@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: window.cpp,v 1.136 2005/09/17 22:00:32 VZ Exp $
+// RCS-ID:      $Id: window.cpp,v 1.137 2005/09/18 14:11:14 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2159,12 +2159,10 @@ void wxUniversalRepaintProc(Widget w, XtPointer WXUNUSED(c_data), XEvent *event,
     {
         case Expose:
         {
-            Display *display = (Display *) win -> GetXDisplay();
-
             win->AddUpdateRect(event->xexpose.x, event->xexpose.y,
                                event->xexpose.width, event->xexpose.height);
 
-            if (event -> xexpose.count == 0)
+            if ( event->xexpose.count == 0 )
             {
                 win->DoPaint();
             }

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcmemory.cpp,v 1.19 2005/02/06 17:38:29 MBN Exp $
+// RCS-ID:      $Id: dcmemory.cpp,v 1.20 2005/09/18 01:19:28 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,10 +55,6 @@ wxMemoryDC::wxMemoryDC(void)
 
     m_backgroundPixel = (int) gcvalues.background;
 
-    // Get the current Font so we can set it back later
-    XGCValues valReturn;
-    XGetGCValues((Display*) m_display, (GC) m_gc, GCFont, &valReturn);
-    m_oldFont = (WXFont) valReturn.font;
     SetBrush (* wxWHITE_BRUSH);
     SetPen (* wxBLACK_PEN);
     SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
@@ -86,10 +82,6 @@ wxMemoryDC::wxMemoryDC( wxDC* dc )
 
     m_backgroundPixel = (int) gcvalues.background;
 
-    // Get the current Font so we can set it back later
-    XGCValues valReturn;
-    XGetGCValues((Display*) m_display, (GC) m_gc, GCFont, &valReturn);
-    m_oldFont = (WXFont) valReturn.font;
     SetBrush (* wxWHITE_BRUSH);
     SetPen (* wxBLACK_PEN);
 };
@@ -123,11 +115,6 @@ void wxMemoryDC::SelectObject( const wxBitmap& bitmap )
 
         m_backgroundPixel = (int) gcvalues.background;
         m_ok = true;
-
-        // Get the current Font so we can set it back later
-        XGCValues valReturn;
-        XGetGCValues((Display*) m_display, (GC) m_gc, GCFont, &valReturn);
-        m_oldFont = (WXFont) valReturn.font;
 
         SetBrush (* wxWHITE_BRUSH);
         SetPen (* wxBLACK_PEN);

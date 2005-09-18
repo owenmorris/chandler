@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dcclient.h,v 1.33 2005/02/06 17:38:20 MBN Exp $
+// RCS-ID:      $Id: dcclient.h,v 1.34 2005/09/18 01:19:13 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -168,6 +168,12 @@ protected:
     int          m_currentStyle ;
     int          m_currentFill ;
     int          m_autoSetting ; // See comment in dcclient.cpp
+
+    // this is useless and should be removed, kept for now just for backwards
+    // compatibility
+#if wxCHECK_VERSION(2, 7, 0)
+    #error "Remove wxClientDC::m_oldFont"
+#endif
     WXFont       m_oldFont;
 };
 

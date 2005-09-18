@@ -107,6 +107,8 @@ static const size_t LEN_LANG = 2;
 static const size_t LEN_SUBLANG = 2;
 static const size_t LEN_FULL = LEN_LANG + 1 + LEN_SUBLANG; // 1 for '_'
 
+#define TRACE_I18N _T("i18n")
+
 // ----------------------------------------------------------------------------
 // global functions
 // ----------------------------------------------------------------------------
@@ -1076,13 +1078,24 @@ static wxString GetFullSearchPath(const wxChar *lang)
 bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName,
                             wxPluralFormsCalculatorPtr& rPluralFormsCalculator)
 {
-  /*
-     We need to handle locales like  de_AT.iso-8859-1
-     For this we first chop off the .CHARSET specifier and ignore it.
-     FIXME: UNICODE SUPPORT: must use CHARSET specifier!
-  */
+  wxString searchPath;
 
-  wxString searchPath = GetFullSearchPath(szDirPrefix);
+#if wxUSE_FONTMAP
+  // first look for the catalog for this language and the current locale:
+  // notice that we don't use the system name for the locale as this would
+  // force us to install catalogs in different locations depending on the
+  // system but always use the canonical name
+  wxFontEncoding encSys = wxLocale::GetSystemEncoding();
+  if ( encSys != wxFONTENCODING_SYSTEM )
+  {
+    wxString fullname(szDirPrefix);
+    fullname << _T('.') << wxFontMapperBase::GetEncodingName(encSys);
+    searchPath << GetFullSearchPath(fullname) << wxPATH_SEP;
+  }
+#endif // wxUSE_FONTMAP
+
+
+  searchPath += GetFullSearchPath(szDirPrefix);
   const wxChar *sublocale = wxStrchr(szDirPrefix, wxT('_'));
   if ( sublocale )
   {
@@ -1102,17 +1115,21 @@ bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName,
   NoTransErr noTransErr;
   wxLogVerbose(_("looking for catalog '%s' in path '%s'."),
                szName, searchPath.c_str());
+  wxLogTrace(TRACE_I18N, _T("Looking for \"%s.mo\" in \"%s\""),
+             szName, searchPath.c_str());
 
   wxFileName fn(szName);
   fn.SetExt(_T("mo"));
   wxString strFullName;
   if ( !wxFindFileInPath(&strFullName, searchPath, fn.GetFullPath()) ) {
     wxLogVerbose(_("catalog file for domain '%s' not found."), szName);
+    wxLogTrace(TRACE_I18N, _T("Catalog \"%s.mo\" not found"), szName);
     return false;
   }
 
   // open file
   wxLogVerbose(_("using catalog '%s' from '%s'."), szName, strFullName.c_str());
+  wxLogTrace(TRACE_I18N, _T("Using catalog \"%s\"."), strFullName.c_str());
 
   wxFile fileMsg(strFullName);
   if ( !fileMsg.IsOpened() )
@@ -1200,8 +1217,7 @@ bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName,
               }
               else
               {
-                   wxLogVerbose(_("Cannot parse Plural-Forms:'%s'"),
-                          pfs.c_str());
+                   wxLogVerbose(_("Cannot parse Plural-Forms:'%s'"), pfs.c_str());
               }
           }
       }
@@ -1219,16 +1235,42 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
                                 const wxString& msgIdCharset,
                                 bool convertEncoding) const
 {
+#if wxUSE_FONTMAP
+    // determine if we need any conversion at all
+    if ( convertEncoding )
+    {
+        wxFontEncoding encCat = wxFontMapperBase::GetEncodingFromName(m_charset);
+        if ( encCat == wxLocale::GetSystemEncoding() )
+        {
+            // no need to convert
+            convertEncoding = false;
+        }
+    }
+#endif // wxUSE_FONTMAP
+
 #if wxUSE_WCHAR_T
-    wxCSConv *csConv = NULL;
-    if ( !m_charset.empty() )
-        csConv = new wxCSConv(m_charset);
+    // conversion to use to convert catalog strings to the GUI encoding
+    wxMBConv *inputConv,
+             *csConv = NULL; // another ptr just to be able to delete it later
+    if ( convertEncoding )
+    {
+        if ( m_charset.empty() )
+            inputConv = wxConvCurrent;
+        else
+            inputConv =
+            csConv = new wxCSConv(m_charset);
+    }
+    else // no conversion needed
+    {
+        inputConv = NULL;
+    }
 
-    wxMBConv& inputConv = csConv ? *((wxMBConv*)csConv) : *wxConvCurrent;
-
-    wxCSConv *sourceConv = NULL;
-    if ( !msgIdCharset.empty() && (m_charset != msgIdCharset) )
-        sourceConv = new wxCSConv(msgIdCharset);
+    // conversion to apply to msgid strings before looking them up: we only
+    // need it if the msgids are neither in 7 bit ASCII nor in the same
+    // encoding as the catalog
+    wxCSConv *sourceConv = msgIdCharset.empty() || (msgIdCharset == m_charset)
+                            ? NULL
+                            : new wxCSConv(msgIdCharset);
 
 #elif wxUSE_FONTMAP
     wxASSERT_MSG( msgIdCharset == NULL,
@@ -1271,12 +1313,12 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
     {
         const char *data = StringAtOfs(m_pOrigTable, i);
 #if wxUSE_UNICODE
-        wxString msgid(data, inputConv);
-#else
+        wxString msgid(data, *inputConv);
+#else // ASCII
         wxString msgid;
 #if wxUSE_WCHAR_T
-        if ( convertEncoding && sourceConv )
-            msgid = wxString(inputConv.cMB2WC(data), *sourceConv);
+        if ( inputConv && sourceConv )
+            msgid = wxString(inputConv->cMB2WC(data), *sourceConv);
         else
 #endif
             msgid = data;
@@ -1291,10 +1333,10 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
             wxString msgstr;
 #if wxUSE_WCHAR_T
         #if wxUSE_UNICODE
-            msgstr = wxString(data + offset, inputConv);
+            msgstr = wxString(data + offset, *inputConv);
         #else
-            if ( convertEncoding )
-                msgstr = wxString(inputConv.cMB2WC(data + offset), wxConvLocal);
+            if ( inputConv )
+                msgstr = wxString(inputConv->cMB2WC(data + offset), wxConvLocal);
             else
                 msgstr = wxString(data + offset);
         #endif
@@ -2225,35 +2267,9 @@ wxString wxLocale::GetSystemEncodingName()
 
     if ( alang )
     {
-        // 7 bit ASCII encoding has several alternative names which we should
-        // recognize to avoid warnings about unrecognized encoding on each
-        // program startup
-
-        // nl_langinfo() under Solaris returns 646 by default which stands for
-        // ISO-646, i.e. 7 bit ASCII
-        //
-        // and recent glibc call it ANSI_X3.4-1968...
-        //
-        // HP-UX uses HP-Roman8 cset which is not the same as ASCII (see RFC
-        // 1345 for its definition) but must be recognized as otherwise HP
-        // users get a warning about it on each program startup, so handle it
-        // here -- but it would be obviously better to add real supprot to it,
-        // of course!
-        if ( strcmp(alang, "646") == 0
-                || strcmp(alang, "ANSI_X3.4-1968") == 0
-#ifdef __HPUX__
-                    || strcmp(alang, "roman8") == 0
-#endif // __HPUX__
-            )
-        {
-            encname = _T("US-ASCII");
-        }
-        else
-        {
-            encname = wxString::FromAscii( alang );
-        }
+        encname = wxString::FromAscii( alang );
     }
-    else
+    else // nl_langinfo() failed
 #endif // HAVE_LANGINFO_H
     {
         // if we can't get at the character set directly, try to see if it's in
@@ -2329,16 +2345,15 @@ wxFontEncoding wxLocale::GetSystemEncoding()
 #endif
     return wxMacGetFontEncFromSystemEnc( encoding ) ;
 #elif defined(__UNIX_LIKE__) && wxUSE_FONTMAP
-    wxString encname = GetSystemEncodingName();
+    const wxString encname = GetSystemEncodingName();
     if ( !encname.empty() )
     {
-        wxFontEncoding enc = (wxFontMapperBase::Get())->
-            CharsetToEncoding(encname, false /* not interactive */);
+        wxFontEncoding enc = wxFontMapperBase::GetEncodingFromName(encname);
 
         // on some modern Linux systems (RedHat 8) the default system locale
         // is UTF8 -- but it isn't supported by wxGTK in ANSI build at all so
         // don't even try to use it in this case
-#if !wxUSE_UNICODE
+#if !wxUSE_UNICODE && defined(__WXGTK__)
         if ( enc == wxFONTENCODING_UTF8 )
         {
             // the most similar supported encoding...
@@ -2346,13 +2361,11 @@ wxFontEncoding wxLocale::GetSystemEncoding()
         }
 #endif // !wxUSE_UNICODE
 
-        // this should probably be considered as a bug in CharsetToEncoding():
-        // it shouldn't return wxFONTENCODING_DEFAULT at all - but it does it
-        // for US-ASCII charset
-        //
-        // we, OTOH, definitely shouldn't return it as it doesn't make sense at
-        // all (which encoding is it?)
-        if ( enc != wxFONTENCODING_DEFAULT )
+        // GetEncodingFromName() returns wxFONTENCODING_DEFAULT for C locale
+        // (a.k.a. US-ASCII) which is arguably a bug but keep it like this for
+        // backwards compatibility and just take care to not return
+        // wxFONTENCODING_DEFAULT from here as this surely doesn't make sense
+        if ( enc != wxFONTENCODING_MAX && enc != wxFONTENCODING_DEFAULT )
         {
             return enc;
         }
@@ -2515,7 +2528,7 @@ const wxChar *wxLocale::GetString(const wxChar *szOrigString,
 
             if ( szDomain != NULL )
             {
-                wxLogTrace(_T("i18n"),
+                wxLogTrace(TRACE_I18N,
                            _T("string '%s'[%lu] not found in domain '%s' for locale '%s'."),
                            szOrigString, (unsigned long)n,
                            szDomain, m_strLocale.c_str());
@@ -2523,7 +2536,7 @@ const wxChar *wxLocale::GetString(const wxChar *szOrigString,
             }
             else
             {
-                wxLogTrace(_T("i18n"),
+                wxLogTrace(TRACE_I18N,
                            _T("string '%s'[%lu] not found in locale '%s'."),
                            szOrigString, (unsigned long)n, m_strLocale.c_str());
             }
