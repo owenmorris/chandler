@@ -424,7 +424,7 @@ class Values(dict):
                 return False
 
             elif attrCard == 'set':
-                if self._checkCardinality(logger, key, value, dict, 'set'):
+                if self._checkCardinality(logger, key, value, set, 'set'):
                     result = True
                     for v in value.itervalues():
                         check = self._checkValue(logger, key, v, attrType)
