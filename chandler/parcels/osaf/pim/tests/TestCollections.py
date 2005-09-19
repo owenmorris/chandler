@@ -94,16 +94,46 @@ class CollectionTests(CollectionTestCase):
         self.b1.subscribers.add(self.nh)
         u.subscribers.add(self.nh1)
 
+        # add i to b1
         self.b1.add(self.i)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
-        self.b2.add(self.i1)
 
+        # add i1 to b2
+        self.b2.add(self.i1)
         self.failIf(self.nh.checkLog("add", self.b2, self.i1))
         self.failUnless(self.nh1.checkLog("add", u, self.i1,))
-        self.b1.remove(self.i)
 
+        # remove i from b1
+        self.b1.remove(self.i)
         self.failIf(self.nh.checkLog("remove", self.b1, self.i1))
         self.failIf(self.nh.checkLog("remove", u, self.i1))        
+
+    def testUnionAddSource(self):
+        """
+        test addSource
+        """
+        u = UnionCollection('u', view=self.view)
+        u.subscribers.add(self.nh)
+
+        self.b1.add(self.i)
+        self.b2.add(self.i)
+        self.b2.add(self.i1)
+        self.b1.subscribers.add(self.nh1)
+        self.b2.subscribers.add(self.nh2)
+
+        print [ i for i in u ]
+        u.addSource(self.b1)
+        self.failUnless(self.nh.checkLog("add",u,self.i))
+
+        print [ i for i in u ]
+        u.addSource(self.b2)
+        self.failUnless(self.nh.checkLog("add",u,self.i1))
+
+        print [ i for i in u ]
+        u.removeSource(self.b2)
+        self.failUnless(self.nh.checkLog("remove",u,self.i1))
+        
+        print [ i for i in u ]
 
     def testDifference(self):
         """

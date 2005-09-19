@@ -423,6 +423,15 @@ class Values(dict):
                     return result
                 return False
 
+            elif attrCard == 'set':
+                if self._checkCardinality(logger, key, value, dict, 'set'):
+                    result = True
+                    for v in value.itervalues():
+                        check = self._checkValue(logger, key, v, attrType)
+                        result = result and check
+                    return result
+                return False
+
         return True
 
     def _import(self, view):

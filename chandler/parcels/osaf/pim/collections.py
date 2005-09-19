@@ -379,29 +379,28 @@ class UnionCollection(AbstractCollection):
             self.rep = MultiUnion(*[(i, "rep") for i in self.sources])
 
     def addSource(self, source):
-        if source not in self.sources:
 
+        if source not in self.sources:
             source.subscribers.add(self)
             self.sources.append(source)
             self._sourcesChanged()
 
             view = self.itsView
             for item in source:
-                view._notifyChange(self._collectionChanged,
+                view._notifyChange(source._collectionChanged,
                                    'add', 'collection', 'rep', item)
 
     def removeSource(self, source):
+
         if source in self.sources:
+            view = self.itsView
+            for item in source:
+                view._notifyChange(source._collectionChanged,
+                                   'remove', 'collection', 'rep', item)
 
             source.subscribers.remove(self)
             self.sources.remove(source)
             self._sourcesChanged()
-
-            view = self.itsView
-            for item in source:
-                if item not in self:
-                    view._notifyChange(self._collectionChanged,
-                                       'remove', 'collection', 'rep', item)
 
 
 class IntersectionCollection(AbstractCollection):
