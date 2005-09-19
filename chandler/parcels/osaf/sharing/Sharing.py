@@ -2038,17 +2038,10 @@ class CloudXMLFormat(ImportExportFormat):
                         else:
                             value = type.makeValue(attrNode.content)
 
-                        # Don't modify an attribute if it's got the same value
-                        # already
-                        if not hasattr(item, attrName) or \
-                            (value != item.getAttributeValue(attrName)):
-                            logger.debug( "for %s setting %s to %s" % \
-                                (item.getItemDisplayName().encode('utf8'), attrName, value))
-                            item.setAttributeValue(attrName, value)
-                        else:
-                            logger.debug( "for %s skipping %s of %s" % \
-                                (item.getItemDisplayName().encode('utf8'), attrName, value))
-                            pass
+                        logger.debug( "for %s setting %s to %s" % \
+                            (item.getItemDisplayName().encode('utf8'),
+                             attrName, value))
+                        item.setAttributeValue(attrName, value)
 
                     elif cardinality == 'list':
                         values = []
