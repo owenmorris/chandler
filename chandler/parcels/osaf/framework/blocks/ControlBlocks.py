@@ -1090,18 +1090,29 @@ class Table (PimBlocks.Sendability, RectangularChild):
             self.contents.remove(item)
 
         self.widget.DeleteSelection(Delete)
-        
-    def onRemoveEventUpdateUI (self, event):
+
+    def HasReadonlySelection(self):
         readOnly = True
         for range in self.selection:
             for row in xrange (range[0], range[1] + 1):
                 readOnly, always = self.widget.ReadOnly (row, 0)
                 if not readOnly or always:
                     break
+        return readOnly
+                
+    def onRemoveEventUpdateUI (self, event):
 
-        event.arguments['Enable'] = not readOnly
+        if len(self.contents.collectionList)>0:
+            collection = self.contents.collectionList[0]
+        else:
+            print "Falling back.."
+            collection = self.contents
+        event.arguments['Enable'] = not self.HasReadonlySelection()
+        event.arguments['Text'] = _(u'Delete from \'%(collectionName)s\'') % \
+             {'collectionName': self.contents.collectionList[0].displayName}
 
-    onDeleteEventUpdateUI = onRemoveEventUpdateUI
+    def onDeleteEventUpdateUI(self, event):
+        event.arguments['Enable'] = not self.HasReadonlySelection()
 
 class radioAlignEnumType(schema.Enumeration):
       values = "Across", "Down"

@@ -621,4 +621,8 @@ class InclusionExclusionCollection(DifferenceCollection):
 
         self.sources = [outerSource, exclusions]
 
+        # set up collectionList for sidebar. Eventually, this should be
+        # part of the view information that the sidebar will generate
+        self.collectionList = [self]
+
         return self
