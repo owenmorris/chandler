@@ -381,16 +381,6 @@ class UnionCollection(AbstractCollection):
     def addSource(self, source):
         if source not in self.sources:
 
-            # Originally I was trying to send notifications for the
-            # differences:
-            #
-            # if item not in self:
-            #     print "It wasn't, so notify subscribers"
-            #     self.notifySubscribers('add', self, 'rep', item)
-            #
-            # Andi suggested instead using view._notifyChange( ) as below.
-            # However, we seem to getting erroneous notifications.
-
             source.subscribers.add(self)
             self.sources.append(source)
             self._sourcesChanged()
@@ -409,26 +399,9 @@ class UnionCollection(AbstractCollection):
 
             view = self.itsView
             for item in source:
-                view._notifyChange(self._collectionChanged,
-                                   'remove', 'collection', 'rep', item)
-
-                # At first I tried the code below, but the UI wasn't updating.
-                # Andi suggested using view._notifyChange( ), but now we get
-                # erroneous notifications.  For example, say the notMine
-                # UnionCollection contains two ListCollection sources L1 and
-                # L2.  L1 contains Note N1, while L2 contains Notes N1 and N2.
-                # The all collection doesn't contain N1 nor N2 since the notMine
-                # collection is filtered out.  However, if I removeSource(L2),
-                # notifications indicating that N1 and N2 have been removed
-                # from notMine fire.  The problem is, N1 hasn't really been
-                # removed from this Union because it's still in L1.
-                # I think we're really close, and since nobody yets adds or
-                # removes 'notMine' collections, this won't affect Chandler
-                # right now, and I want to check this in so others can help
-                # debug.
-                #
-                # if item not in self:
-                #     self.notifySubscribers('remove', self, 'rep', item)
+                if item not in self:
+                    view._notifyChange(self._collectionChanged,
+                                       'remove', 'collection', 'rep', item)
 
 
 class IntersectionCollection(AbstractCollection):
