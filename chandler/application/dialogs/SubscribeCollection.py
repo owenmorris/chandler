@@ -8,6 +8,7 @@ import application.Globals as Globals
 import application.dialogs.Util
 import application.Parcel
 from i18n import OSAFMessageFactory as _
+from application import schema
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,6 @@ class SubscribeDialog(wx.Dialog):
         self.textUsername = wx.xrc.XRCCTRL(self, "TEXT_USERNAME")
         self.textPassword = wx.xrc.XRCCTRL(self, "TEXT_PASSWORD")
         self.checkboxKeepOut = wx.xrc.XRCCTRL(self, "CHECKBOX_KEEPOUT")
-        self.checkboxKeepOut.Enable(False) # Not yet supported
 
         self.Bind(wx.EVT_BUTTON, self.OnSubscribe, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
@@ -91,6 +91,10 @@ class SubscribeDialog(wx.Dialog):
             if collection is None:
                 # user cancelled out of account dialog
                 return
+
+            # Keep this collection out of "My items" if checked:
+            if self.checkboxKeepOut.GetValue():
+                schema.ns('osaf.app', view).notMine.addSource(collection)
 
             collection.setColorIfAbsent()
             share = sharing.getShare(collection)

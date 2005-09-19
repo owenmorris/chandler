@@ -424,15 +424,28 @@ def subscribe(view, url, username=None, password=None):
                 ticket=ticket)
 
         try:
-            share.sync()
+            share.get()
             share.contents.shares.append(share, 'main')
-            return share.contents
 
         except Exception, err:
             location = share.getLocation()
             logger.exception("Failed to subscribe to %s", location)
             share.delete(True)
             raise
+
+        try:
+            share.put()
+        except NotAllowed, err:
+            # We can get but not put, so read-only it is:
+            share.mode = 'get'
+
+        except Exception, err:
+            location = share.getLocation()
+            logger.exception("Failed to subscribe to %s", location)
+            share.delete(True)
+            raise
+
+        return share.contents
 
     else:
         if hasSubCollection:
@@ -451,8 +464,9 @@ def subscribe(view, url, username=None, password=None):
                     useSSL=useSSL, ticket=ticket)
 
             share.format = CloudXMLFormat(parent=share)
+
             try:
-                share.sync()
+                share.get()
                 contents = share.contents
 
             except Exception, err:
@@ -460,6 +474,18 @@ def subscribe(view, url, username=None, password=None):
                 logger.exception("Failed to subscribe to %s", location)
                 share.delete(True)
                 raise
+
+            try:
+                share.put()
+            except NotAllowed, err:
+                # We can get but not put, so read-only it is:
+                share.mode = 'get'
+            except Exception, err:
+                location = share.getLocation()
+                logger.exception("Failed to subscribe to %s", location)
+                share.delete(True)
+                raise
+
         else:
             contents = None
 
@@ -476,15 +502,28 @@ def subscribe(view, url, username=None, password=None):
                 useSSL=useSSL, ticket=ticket)
 
         try:
-            share.sync()
+            share.get()
             share.contents.shares.append(share, 'main')
-            return share.contents
-
         except Exception, err:
             location = share.getLocation()
             logger.exception("Failed to subscribe to %s", location)
             share.delete(True)
             raise
+
+        try:
+            share.put()
+        except NotAllowed, err:
+            # We can get but not put, so read-only it is:
+            share.mode = 'get'
+        except Exception, err:
+            location = share.getLocation()
+            logger.exception("Failed to subscribe to %s", location)
+            share.delete(True)
+            raise
+
+        return share.contents
+
+
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

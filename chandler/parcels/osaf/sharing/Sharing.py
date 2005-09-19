@@ -1307,7 +1307,7 @@ class WebDAVConduit(ShareConduit):
                err.status == twisted.web.http.CONFLICT:
                 # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
                 message = _(u"Publishing %(itemName)s failed; server rejected our request with status %(status)d") % {'itemName': itemName, 'status': err.status}
-                raise NotFound(message)
+                raise NotAllowed(message)
 
         if newResource is None:
             message = _(u"Not authorized to PUT %(itemName)s") % {'itemName': itemName}
