@@ -380,50 +380,58 @@ class SSSidebarIconButton (SSSidebarButton):
 
     def getButtonImage (self, item, mouseOverFlag):
         """
-        The rules for naming icons are complicated, which is a reflection of complexity
-        of our sidebar design, so here is a summary of the new rules:
+        The rules for naming icons are complicated, which is a
+        reflection of complexity of our sidebar design, so here is a
+        summary of the new rules:
 
         Names are made up of the following pieces:
 
-        "Sidebar", ButtonName, IconName, "Checked", "MouseOver", ".png"
+        'Sidebar', ButtonName, IconName, 'Checked', 'MouseOver', '.png'
 
-        They all begin with "Sidebar", followed by ButtonName. Today, we only have two
-        buttons named: "Icon", and "SharingIcon".
+        They all begin with 'Sidebar', followed by ButtonName. Today,
+        we only have two buttons named: 'Icon', and 'SharingIcon'.
 
-        The  ButtonName is followed by IconName. IconName is a property of the collection,
-        e.g. the AllCollection has an IconName of "All". The In, Out, and Trash collections
-        have names "In", "Out" and "Trash" respectively. Currently, new collections have no
-        icon name, so the IconName can be empty. Another property of the collection is
-        whether or not the IconName has a kind variation, in which case the IconName is
-        appended with the Kind, e.g. CalendarEventMixin, MailMessageMixin, TaskMixin.
-        Currently, only the All collection has this property, so the IconNames for the
-        AllCollection are "All", "AllCalendarEventMixin", "AllMailMessageMixin" and
-        "AllTaskMixin".
+        The ButtonName is followed by IconName. IconName is a property
+        of the collection, e.g. the AllCollection has an IconName of
+        'All'. The In, Out, and Trash collections have names 'In',
+        'Out' and 'Trash' respectively. Currently, new collections
+        have no icon name, so the IconName can be empty. Another
+        property of the collection is whether or not the IconName has
+        a kind variation, in which case the IconName is appended with
+        the Kind, e.g. CalendarEventMixin, MailMessageMixin,
+        TaskMixin.  Currently, only the All collection has this
+        property, so the IconNames for the AllCollection are 'All',
+        'AllCalendarEventMixin', 'AllMailMessageMixin' and
+        'AllTaskMixin'.
 
-        A property of a button in the siebar is whether or not it is checkable. Today
-        the Icon button is checkable and the SharingIcon isn't. For checkable buttons, the
-        IconName is followed by "Checked", for the checked image.
+        A property of a button in the siebar is whether or not it is
+        checkable. Today the Icon button is checkable and the
+        SharingIcon isn't. For checkable buttons, the IconName is
+        followed by 'Checked', for the checked image.
 
-        Next comes "MouseOver" if a different image is necessary for the state when the
-        mouse is over the item.
+        Next comes 'MouseOver' if a different image is necessary for
+        the state when the mouse is over the item.
 
         Here are the new rules for defaults:
 
-        First we lookup the fully qualified name, e.g. "Sidebar", ButtonName, IconName,
-        "Checked", "MouseOver", ".png"
+        First we lookup the fully qualified name, e.g. 'Sidebar',
+        ButtonName, IconName, 'Checked', 'MouseOver', '.png'
 
-        If we don't find an image by that name we next lookup the name without the
-        IconName, e.g. "Sidebar", ButtonName, "Checked", "MouseOver", ".png". This allows
-        us to specify a default icon for Checked and MouseOver that is applied by default
-        if you don't have a special one for a particular icon.
+        If we don't find an image by that name we next lookup the name
+        without the IconName, e.g. 'Sidebar', ButtonName, 'Checked',
+        'MouseOver', '.png'. This allows us to specify a default icon
+        for Checked and MouseOver that is applied by default if you
+        don't have a special one for a particular icon.
 
-        If we still don't find an image, we next lookup the full image name without
-        MouseOver, e.g. "Sidebar", ButtonName, IconName, "Checked", ".png". So if you don't
-        have MouseOver icons they don't get displayed.
+        If we still don't find an image, we next lookup the full image
+        name without MouseOver, e.g. 'Sidebar', ButtonName, IconName,
+        'Checked', '.png'. So if you don't have MouseOver icons they
+        don't get displayed.
 
-        Finally if we still don't have an image, we try to lookup the name without an
-        IconName or MouseOver, e.g "Sidebar", ButtonName, "Checked", ".png". This allows
-        us to have a default for checkable buttons without MouseOver.
+        Finally if we still don't have an image, we try to lookup the
+        name without an IconName or MouseOver, e.g 'Sidebar',
+        ButtonName, 'Checked', '.png'. This allows us to have a
+        default for checkable buttons without MouseOver.
         """
         colorizeIcon = True
         imagePrefix = "Sidebar" + self.buttonName
@@ -689,7 +697,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         rerender = False
         sidebar = Block.Block.findBlockByName ("Sidebar")
         """
-          collectionList should be in the order that the source items are overlayed in the Calendar view
+        collectionList should be in the order that the source items
+        are overlayed in the Calendar view
         """
         if includeCheckedItems:
             collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
@@ -697,10 +706,11 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
             collectionList = []
         if isinstance (item, AbstractCollection):
             collectionList.insert (0, item)
+            
         if len (collectionList) > 0:
             """
-              tupleList is sorted so we always end up with on collection for any order of collections
-            in the source
+            tupleList is sorted so we always end up with on collection
+            for any order of collections in the source
             """
             tupleList = [theItem.itsUUID for theItem in collectionList]
             tupleList.sort()
@@ -743,15 +753,19 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
                     key.collectionList = collectionList
                     self.itemTupleKeyToCacheKey [tupleKey] = key
-                else:
+                else: # try/except
                     """
-                      Check to see if we need to reorder collectionList. The list is kept sorted
-                    by the order of the collections as they overlay one another in the Calendar.
-                      We don't bother to reorder when we're looking up a collection that isn't
-                    displayed in the summary view, both because it's not necessary and because
-                    it causes the source attribute to change which causes a notification to
-                    update the sidebar, which causes the order to change, causing a
-                    notification, ... repeating forever.
+                    Check to see if we need to reorder
+                    collectionList. The list is kept sorted by the
+                    order of the collections as they overlay one
+                    another in the Calendar.  We don't bother to
+                    reorder when we're looking up a collection that
+                    isn't displayed in the summary view, both because
+                    it's not necessary and because it causes the
+                    source attribute to change which causes a
+                    notification to update the sidebar, which causes
+                    the order to change, causing a notification,
+                    ... repeating forever.
                     """
                     if sidebar.selectedItemToView is item:
                         for new, old in map (None, key.collectionList, collectionList):
