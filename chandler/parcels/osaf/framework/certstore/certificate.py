@@ -40,6 +40,9 @@ class CertificateStore(pim.KindCollection):
         self.displayName = _(u'Certificate Store')
 
         self.kind = self.itsView.findPath('//parcels/osaf/framework/certstore/Certificate')
+        
+        self.color = schema.ns('osaf.app',
+                               self.itsView).collectionColors.nextColor()
 
 
 class Certificate(pim.ContentItem):
