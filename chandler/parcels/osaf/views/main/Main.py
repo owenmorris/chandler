@@ -427,6 +427,7 @@ class MainView(View):
 
     def onBackupRepositoryEvent(self, event):
         # triggered from "Test | Backup Repository" Menu
+        self.RepositoryCommitWithStatus()
         repository = self.itsView.repository
         progressMessage = _(u'Backing up repository...')
         repository.logger.info('Backing up repository...')

@@ -63,13 +63,15 @@ class DBItemWriter(ItemWriter):
 
         if isinstance(value, unicode):
             value = value.encode('utf-8')
-            buffer.write(pack('>i', len(value)))
+            size = len(value)
+            buffer.write(pack('>i', size + 1))
         else:
-            buffer.write(pack('>i', -len(value)))
+            size = len(value)
+            buffer.write(pack('>i', -(size + 1)))
             
         buffer.write(value)
 
-        return 4 + len(value)
+        return 4 + size
 
     def writeSymbol(self, buffer, value):
 
@@ -487,8 +489,10 @@ class DBItemReader(ItemReader):
     def readString(self, offset, data):
         offset, len = offset+4, unpack('>i', data[offset:offset+4])[0]
         if len >= 0:
+            len -= 1
             return offset+len, unicode(data[offset:offset+len], 'utf-8')
         else:
+            len += 1
             return offset-len, data[offset:offset-len]
 
     def readSymbol(self, offset, data):

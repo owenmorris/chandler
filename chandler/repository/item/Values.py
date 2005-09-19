@@ -357,7 +357,7 @@ class Values(dict):
                 return False
 
         if not attrType.recognizes(value):
-            logger.error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self._item.itsPath, attrType.itsPath)
+            logger.error("Value %s of type %s in attribute '%s' on %s is not recognized by type %s", repr(value), type(value), name, self._item._repr_(), attrType.itsPath)
             return False
 
         return True
@@ -367,7 +367,7 @@ class Values(dict):
         if not (value is None or
                 (cardType is None and isitem(value)) or
                 (cardType is not None and isinstance(value, cardType))):
-            logger.error('Value %s of type %s in attribute %s on %s is not an instance of type %s which is required for cardinality %s', value, type(value), name, self._item.itsPath, cardType, attrCard)
+            logger.error("Value %s of type %s in attribute '%s' on %s is not an instance of type %s which is required for cardinality '%s'", repr(value), type(value), name, self._item._repr_(), cardType, attrCard)
             return False
 
         return True
@@ -387,10 +387,15 @@ class Values(dict):
 
         item = self._item
 
-        try:
-            attribute = item._kind.getAttribute(key, False, item)
-        except AttributeError:
-            logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', item.itsPath, key, item._kind.itsPath)
+        kind = item.itsKind
+        if kind is None:
+            return True
+
+        attribute = kind.getAttribute(key, True, item)
+        if attribute is None:
+            if item.isSchema():
+                return True
+            logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', item._repr_(), key, kind.itsPath)
             return False
 
         attrType = attribute.getAspect('type', None)

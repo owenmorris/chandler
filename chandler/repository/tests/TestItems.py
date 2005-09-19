@@ -177,7 +177,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(kind is not None)
 
         # Test iterating over literal attributes
-        literalAttributeNames = ['classes'] 
+        literalAttributeNames = ['classes', 'allAttributes'] 
         for i in kind.iterAttributeValues(valuesOnly=True):
             self.failUnless(i[0] in literalAttributeNames)
 
@@ -187,8 +187,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # Test iterating over reference attributes
         referenceAttributeNames = ['superKinds', 'attributes', 'clouds',
-                                   'inheritedAttributes', 'kindOf', 'ofKind',
-                                   'subKinds', 'extent',
+                                   'inheritedAttributes', 'subKinds', 'extent',
                                    'inheritedSuperKinds', 'inheritingSubKinds']
         for i in kind.iterAttributeValues(referencesOnly=True):
             self.failUnless(i[0] in referenceAttributeNames, i[0])

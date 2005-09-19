@@ -15,7 +15,8 @@ from repository.item.Item import Item
 from repository.item.Monitors import Monitors, Monitor
 from repository.item.Values import Values, References
 from repository.item.ItemValue import ItemValue
-from repository.item.PersistentCollections import PersistentCollection
+from repository.item.PersistentCollections import \
+    PersistentCollection, PersistentDict
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
 from repository.util.SingleRef import SingleRef
@@ -53,8 +54,9 @@ class Kind(Item):
                                 'inheritingSubKinds', False)
         references['inheritedSuperKinds'] = refList
 
-        refList = self._refList('ofKind', 'kindOf', False)
-        references['ofKind'] = refList
+        refList = self._refList('inheritingSubKinds',
+                                'inheritedSuperKinds', False)
+        references['inheritingSubKinds'] = refList
 
         self._status |= Item.SCHEMA | Item.PINNED
 
@@ -347,8 +349,8 @@ class Kind(Item):
                         self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to an attribute on Kind %s", name, cls, self.itsPath)
                         result = False
                     else:
-                        if attrId != attribute._uuid:
-                            self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to the attribute of the same name on Kind %s", name, cls, self.itsPath)
+                        if attrId != attribute.itsUUID:
+                            self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to the attribute of the same name on Kind %s", name, cls, self)
                             result = False
 
         return result
@@ -366,6 +368,15 @@ class Kind(Item):
         @return: an L{Attribute<repository.schema.Attribute.Attribute>} item
         instance
         """
+
+        if self.attributesCached:
+            attribute = self._values['allAttributes'].get(name, None)
+            if attribute is None:
+                if noError:
+                    return None
+                raise NoSuchAttributeError, (self, name)
+
+            return attribute[0]
 
         if item is not None:
             try:
@@ -463,32 +474,36 @@ class Kind(Item):
         @type globalOnly: boolean
         """
 
-        references = self._references
-        attributes = references.get('attributes', None)
+        allAttributes = self._values.get('allAttributes', Nil)
 
-        if attributes is not None:
+        if not self.attributesCached:
+            if allAttributes is Nil:
+                self._values['allAttributes'] = PersistentDict(self, 'allAttributes')
+                allAttributes = self._values['allAttributes']
+            else:
+                allAttributes.clear()
 
-            if not globalOnly:
+            references = self._references
+            attributes = references.get('attributes', None)
+
+            if attributes is not None:
+
                 for attribute in attributes:
                     if attribute.itsParent is self:
-                        yield (attributes.getAlias(attribute), attribute, self)
+                        allAttributes[attributes.getAlias(attribute)] = (attribute, self, True, True)
 
-            if not localOnly:
                 for attribute in attributes:
                     if attribute.itsParent is not self:
-                        yield (attributes.getAlias(attribute), attribute, self)
+                        allAttributes[attributes.getAlias(attribute)] = (attribute, self, False, True)
 
-        if inherited:
             inheritedAttributes = self.getAttributeValue('inheritedAttributes',
                                                          references)
-            if not self.attributesCached:
-                for superKind in self.getAttributeValue('superKinds',
-                                                        references):
-                    for name, attribute, k in superKind.iterAttributes():
-                        if (attribute._uuid not in inheritedAttributes and
-                            inheritedAttributes.resolveAlias(name) is None):
-                            inheritedAttributes.append(attribute, name)
-                self.attributesCached = True
+            for superKind in self.getAttributeValue('superKinds', references):
+                for name, attribute, k in superKind.iterAttributes():
+                    if (attribute._uuid not in inheritedAttributes and
+                        inheritedAttributes.resolveAlias(name) is None):
+                        inheritedAttributes.append(attribute, name)
+
             for uuid in inheritedAttributes.iterkeys():
                 link = inheritedAttributes._get(uuid)
                 name = link._alias
@@ -498,20 +513,28 @@ class Kind(Item):
                     for kind in attribute.getAttributeValue('kinds', attribute._references):
                         if self.isKindOf(kind):
                             break
-                    yield (name, attribute, kind)
+                    allAttributes[name] = (attribute, kind, False, False)
 
-    def iterSuperKinds(self):
+            self.attributesCached = True
 
-        inherited = self.inheritedSuperKinds
+        for name, (attribute, kind, local, defined) in allAttributes.iteritems():
+            if not ((globalOnly and local) or
+                    (localOnly and not local) or
+                    (not inherited and not defined)):
+                yield (name, attribute, kind) 
+
+    def getInheritedSuperKinds(self):
+
+        references = self._references
+        inherited = references['inheritedSuperKinds']
 
         if not self.superKindsCached:
-            for superKind in self.getAttributeValue('superKinds',
-                                                    self._references):
+            for superKind in self.getAttributeValue('superKinds', references):
                 inherited.append(superKind)
-                inherited.extend(superKind.iterSuperKinds())
+                inherited.extend(superKind.getInheritedSuperKinds())
             self.superKindsCached = True
 
-        return iter(inherited)
+        return inherited
 
     def _inheritAttribute(self, name):
 
@@ -594,23 +617,7 @@ class Kind(Item):
 
     def isKindOf(self, superKind):
 
-        if self is superKind:
-            return True
-
-        return superKind in self._kindOf()
-
-    def _kindOf(self):
-
-        kindOf = self._references.get('kindOf', Nil)
-        if kindOf is Nil:
-            kindOf = self._refList('kindOf', 'ofKind', False)
-            self._references['kindOf'] = kindOf
-            for superKind in self.getAttributeValue('superKinds',
-                                                    self._references):
-                kindOf.append(superKind)
-                kindOf.update(superKind._kindOf())
-
-        return kindOf
+        return self is superKind or superKind in self.getInheritedSuperKinds()
 
     def getInitialValues(self, item, values, references):
 
@@ -667,8 +674,10 @@ class Kind(Item):
         The caches of the subKinds of this kind are flushed recursively.
         """
         
-        self.inheritedAttributes.clear()
-        self.attributesCached = False
+        if self.attributesCached:
+            self.inheritedAttributes.clear()
+            self.allAttributes.clear()
+            self.attributesCached = False
 
         self.inheritedSuperKinds.clear()
         self.superKindsCached = False
@@ -929,5 +938,5 @@ class Extent(Item):
 
         callable(self, op, change, name, other)
         if name == 'extent':
-            for superKind in self.kind.iterSuperKinds():
+            for superKind in self.kind.getInheritedSuperKinds():
                 callable(superKind.extent, op, change, name, other)
