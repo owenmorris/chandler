@@ -4,7 +4,7 @@
 // Author:      Julian Smart, originally in bitmap.h
 // Modified by:
 // Created:     25/03/2003
-// RCS-ID:      $Id: bmpmotif.h,v 1.5 2004/05/23 20:51:21 JS Exp $
+// RCS-ID:      $Id: bmpmotif.h,v 1.6 2005/09/17 21:54:52 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: frame.h,v 1.33 2005/09/14 14:35:57 VZ Exp $
+// RCS-ID:      $Id: frame.h,v 1.34 2005/09/19 12:46:30 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ private:
     virtual void DoSetClientSize(int width, int height);
 
 private:
-    virtual bool XmDoCreateTLW(wxWindow* parent,
+    virtual bool DoCreate(wxWindow* parent,
                                wxWindowID id,
                                const wxString& title,
                                const wxPoint& pos,

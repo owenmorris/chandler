@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.cpp,v 1.53 2005/09/14 14:36:00 VZ Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.55 2005/09/19 10:36:13 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ bool wxDialog::Create(wxWindow *parent, wxWindowID id,
     return true;
 }
 
-bool wxDialog::XmDoCreateTLW(wxWindow* parent,
+bool wxDialog::DoCreate(wxWindow* parent,
                              wxWindowID id,
                              const wxString& title,
                              const wxPoint& pos,

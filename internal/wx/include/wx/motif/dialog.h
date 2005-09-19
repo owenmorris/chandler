@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.h,v 1.25 2005/09/14 14:35:57 VZ Exp $
+// RCS-ID:      $Id: dialog.h,v 1.26 2005/09/19 12:46:30 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ public:
     void OnCloseWindow(wxCloseEvent& event);
 
 private:
-    virtual bool XmDoCreateTLW(wxWindow* parent,
+    virtual bool DoCreate(wxWindow* parent,
                                wxWindowID id,
                                const wxString& title,
                                const wxPoint& pos,
