@@ -1102,11 +1102,7 @@ class Table (PimBlocks.Sendability, RectangularChild):
                 
     def onRemoveEventUpdateUI (self, event):
 
-        if len(self.contents.collectionList)>0:
-            collection = self.contents.collectionList[0]
-        else:
-            print "Falling back.."
-            collection = self.contents
+        collection = self.contents.collectionList[0]
         event.arguments['Enable'] = not self.HasReadonlySelection()
         event.arguments['Text'] = _(u'Delete from \'%(collectionName)s\'') % \
              {'collectionName': self.contents.collectionList[0].displayName}
