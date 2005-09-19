@@ -119,12 +119,11 @@ class PublishCollectionDialog(wx.Dialog):
         wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(name)
 
         share = sharing.getShare(self.collection)
-        name = share.conduit.account.displayName
+        if share.conduit.account:
+            name = share.conduit.account.displayName
+        else:
+            name = u"(via ticket)"
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
-
-        url = share.conduit.getLocation(privilege='readwrite')
-
-        wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(url)
 
         self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")
 
@@ -361,7 +360,12 @@ class PublishCollectionDialog(wx.Dialog):
             return
 
         share = sharing.getShare(self.collection)
-        self._showStatus(u"%s\n" % share.getLocation(privilege='readwrite'))
+        urls = sharing.getUrls(share)
+        if len(urls) == 1:
+            self._showStatus(u"%s\n" % urls[0])
+        else:
+            self._showStatus(u"Read-write: %s\n" % urls[0])
+            self._showStatus(u"Read-only: %s\n" % urls[1])
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
@@ -393,7 +397,13 @@ class PublishCollectionDialog(wx.Dialog):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
             share = sharing.getShare(self.collection)
-            wx.TheClipboard.SetData(wx.TextDataObject(unicode(share.getLocation(privilege='readwrite'))))
+            urls = sharing.getUrls(share)
+            if len(urls) == 1:
+                urlString = urls[0]
+            else:
+                urlString = "Read-write: %s\nRead-only: %s\n" % (urls[0],
+                                                                 urls[1])
+            wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
             wx.TheClipboard.Close()
 
     def _clearStatus(self):

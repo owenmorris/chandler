@@ -908,10 +908,15 @@ class MainView(View):
         if collection is not None:
             share = sharing.getShare(collection)
             if share is not None:
-                url = str(share.getLocation(privilege='readwrite'))
+                urls = sharing.getUrls(share)
+                if len(urls) == 1:
+                    urlString = urls[0]
+                else:
+                    urlString = "Read-write: %s\nRead-only: %s\n" % (urls[0], urls[1])
+
                 gotClipboard = wx.TheClipboard.Open()
                 if gotClipboard:
-                    wx.TheClipboard.SetData(wx.TextDataObject(url))
+                    wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
                     wx.TheClipboard.Close()
 
     def onCopyCollectionURLEventUpdateUI(self, event):

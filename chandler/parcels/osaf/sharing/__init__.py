@@ -649,6 +649,20 @@ def isSharedByMe(share):
     me = pim.Contact.getCurrentMeContact(share.itsView)
     return share.sharer is me
 
+def getUrls(share):
+    if isSharedByMe(share):
+        url = share.getLocation()
+        readWriteUrl = share.getLocation(privilege='readwrite')
+        readOnlyUrl = share.getLocation(privilege='readonly')
+        if url == readWriteUrl:
+            # Not using tickets
+            return [url]
+        else:
+            return [readWriteUrl, readOnlyUrl]
+    else:
+        url = share.getLocation(privilege='subscribed')
+        return [url]
+
 
 def getShare(collection):
     """ Return the Share item (if any) associated with an AbstractCollection.

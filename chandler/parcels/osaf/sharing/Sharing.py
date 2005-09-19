@@ -1127,6 +1127,9 @@ class WebDAVConduit(ShareConduit):
         elif privilege == 'readwrite':
             if self.ticketReadWrite:
                 url = url + "?ticket=%s" % self.ticketReadWrite
+        elif privilege == 'subscribed':
+            if self.ticket:
+                url = url + "?ticket=%s" % self.ticket
 
         return url
 
