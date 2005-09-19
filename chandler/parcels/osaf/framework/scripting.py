@@ -36,7 +36,7 @@ def installParcel(parcel, oldVersion=None):
                                 detail.makeEditor(parcel, 'EditFKey',
                                            viewAttribute=u'fkey',
                                            stretchFactor=0.0,
-                                           minimumSize=DocumentTypes.SizeType(16,-1)),
+                                           size=DocumentTypes.SizeType(75, -1)),
                                 detail.makeSpacer(parcel, width=60),
                                 ]).install(parcel)
 
