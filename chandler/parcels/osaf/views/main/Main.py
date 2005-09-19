@@ -908,7 +908,7 @@ class MainView(View):
         if collection is not None:
             share = sharing.getShare(collection)
             if share is not None:
-                url = str(share.getLocation())
+                url = str(share.getLocation(privilege='readwrite'))
                 gotClipboard = wx.TheClipboard.Open()
                 if gotClipboard:
                     wx.TheClipboard.SetData(wx.TextDataObject(url))
