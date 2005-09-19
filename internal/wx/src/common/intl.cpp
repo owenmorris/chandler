@@ -1600,6 +1600,18 @@ bool wxLocale::Init(int language, int flags)
 
     wxMB2WXbuf retloc = wxSetlocaleTryUTF(LC_ALL, locale);
 
+#ifdef __AIX__
+    // at least in AIX 5.2 libc is buggy and the string returned from setlocale(LC_ALL)
+    // can't be passed back to it because it returns 6 strings (one for each locale
+    // category), i.e. for C locale we get back "C C C C C C"
+    //
+    // this contradicts IBM own docs but this is not of much help, so just work around
+    // it in the crudest possible manner
+    wxChar *p = wxStrchr((wxChar *)retloc, _T(' '));
+    if ( p )
+        *p = _T('\0');
+#endif // __AIX__
+
     if ( !retloc )
     {
         // Some C libraries don't like xx_YY form and require xx only
@@ -2526,20 +2538,12 @@ const wxChar *wxLocale::GetString(const wxChar *szOrigString,
         {
             NoTransErr noTransErr;
 
-            if ( szDomain != NULL )
-            {
-                wxLogTrace(TRACE_I18N,
-                           _T("string '%s'[%lu] not found in domain '%s' for locale '%s'."),
-                           szOrigString, (unsigned long)n,
-                           szDomain, m_strLocale.c_str());
-
-            }
-            else
-            {
-                wxLogTrace(TRACE_I18N,
-                           _T("string '%s'[%lu] not found in locale '%s'."),
-                           szOrigString, (unsigned long)n, m_strLocale.c_str());
-            }
+            wxLogTrace(TRACE_I18N,
+                       _T("string \"%s\"[%ld] not found in %slocale '%s'."),
+                       szOrigString, (long)n,
+                       szDomain ? wxString::Format(_T("domain '%s' "), szDomain).c_str()
+                                : _T(""),
+                       m_strLocale.c_str());
         }
 #endif // __WXDEBUG__
 
