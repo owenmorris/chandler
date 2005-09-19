@@ -363,19 +363,23 @@ def make_mainview(parcel):
 
     RequestSelectSidebarItemEvent = \
         BlockEvent.template('RequestSelectSidebarItem',
-                       'SendToBlockByName',
-                       dispatchToBlockName='Sidebar').install(parcel)
+                            'SendToBlockByName',
+                            dispatchToBlockName='Sidebar').install(parcel)
     
     SendMailEvent = \
         BlockEvent.template('SendMail',
-                       'SendToBlockByName',
-                       dispatchToBlockName='MainView').install(parcel)
+                            'SendToBlockByName',
+                            dispatchToBlockName='MainView').install(parcel)
                   
     ShareItemEvent = \
         BlockEvent.template('ShareItem',
-                       'SendToBlockByName',
-                       dispatchToBlockName='MainView').install(parcel)
+                            'SendToBlockByName',
+                            dispatchToBlockName='MainView').install(parcel)
                   
+    SelectWeekEvent = \
+        BlockEvent.template('SelectWeek',
+                            'BroadcastEverywhere').install(parcel)
+        
     AddToSidebarWithoutCopyingEvent = \
         ModifyContentsEvent.template('AddToSidebarWithoutCopying',
                                      'SendToBlockByName',
@@ -426,6 +430,7 @@ def make_mainview(parcel):
             RequestSelectSidebarItemEvent,
             SendMailEvent,
             ShareItemEvent,
+            SelectWeekEvent,
             AddToSidebarWithoutCopyingEvent,
             AddToSidebarWithoutCopyingOrCommitingEvent,
             AddToSidebarWithoutCopyingAndSelectFirstEvent,

@@ -87,9 +87,6 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('Preferences',
                             'ActiveViewBubbleUp').install(parcel),
 
-        BlockEvent.template('SelectWeek',
-                            'BroadcastEverywhere').install(parcel),
-        
         BlockEvent.template('SelectedDateChanged',
                             'BroadcastEverywhere').install(parcel),
         
