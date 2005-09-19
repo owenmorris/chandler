@@ -5,37 +5,7 @@ dnl ---------------------------------------------------------------------------
 dnl Lots of compiler & linker detection code contained here was taken from
 dnl wxWindows configure.in script (see http://www.wxwindows.org)
 
-dnl Based on autoconf _AC_LANG_COMPILER_GNU
-AC_DEFUN([_AC_BAKEFILE_LANG_COMPILER_MWERKS],
-[AC_CACHE_CHECK([whether we are using the Metrowerks _AC_LANG compiler],
-    [bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_mwerks],
-    [AC_TRY_COMPILE([],[#ifndef __MWERKS__
-       choke me
-#endif
-],
-        [bakefile_compiler_mwerks=yes],
-        [bakefile_compiler_mwerks=no])
-    bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_mwerks=$bakefile_compiler_mwerks
-    ])
-])
 
-dnl Loosely based on autoconf AC_PROG_CC
-dnl TODO: Maybe this should wrap the call to AC_PROG_CC and be used instead.
-AC_DEFUN([AC_BAKEFILE_PROG_MWCC],
-[AC_LANG_PUSH(C)
-_AC_BAKEFILE_LANG_COMPILER_MWERKS
-MWCC=`test $bakefile_compiler_mwerks = yes && echo yes`
-AC_LANG_POP(C)
-])
-
-dnl Loosely based on autoconf AC_PROG_CXX
-dnl TODO: Maybe this should wrap the call to AC_PROG_CXX and be used instead.
-AC_DEFUN([AC_BAKEFILE_PROG_MWCXX],
-[AC_LANG_PUSH(C++)
-_AC_BAKEFILE_LANG_COMPILER_MWERKS
-MWCXX=`test $bakefile_compiler_mwerks = yes && echo yes`
-AC_LANG_POP(C++)
-])
 
 dnl ---------------------------------------------------------------------------
 dnl AC_BAKEFILE_GNUMAKE
@@ -83,7 +53,7 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM],
 
     if test "x$BAKEFILE_FORCE_PLATFORM" = "x"; then 
         case "${BAKEFILE_HOST}" in
-            *-*-cygwin* | *-*-mingw32* )
+            *-*-mingw32* )
                 PLATFORM_WIN32=1
             ;;
             *-pc-msdosdjgpp )
@@ -92,7 +62,7 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM],
             *-pc-os2_emx | *-pc-os2-emx )
                 PLATFORM_OS2=1
             ;;
-            powerpc-*-darwin* )
+            *-*-darwin* )
                 PLATFORM_MAC=1
                 PLATFORM_MACOSX=1
             ;; 
@@ -161,8 +131,14 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM_SPECIFICS],
       *-*-darwin* )
         dnl For Unix to MacOS X porting instructions, see:
         dnl http://fink.sourceforge.net/doc/porting/porting.html
-        CFLAGS="$CFLAGS -fno-common"
-        CXXFLAGS="$CXXFLAGS -fno-common"
+        if test "x$GCC" = "xyes"; then
+            CFLAGS="$CFLAGS -fno-common"
+            CXXFLAGS="$CXXFLAGS -fno-common"
+        fi
+        if test "x$XLCC" = "xyes"; then
+            CFLAGS="$CFLAGS -qnocommon"
+            CXXFLAGS="$CXXFLAGS -qnocommon"
+        fi
         ;;
 
       *-pc-os2_emx | *-pc-os2-emx )
@@ -201,6 +177,7 @@ AC_DEFUN([AC_BAKEFILE_SUFFIXES],
     DLLPREFIX="lib"
     DLLPREFIX_MODULE=""
     DLLIMP_SUFFIX=""
+    dlldir="$libdir"
     
     case "${BAKEFILE_HOST}" in
         *-hp-hpux* )
@@ -216,16 +193,26 @@ AC_DEFUN([AC_BAKEFILE_SUFFIXES],
             SO_SUFFIX="a"
             SO_SUFFIX_MODULE="a"
         ;;
-        *-*-cygwin* | *-*-mingw32* )
+        *-*-cygwin* )
+            SO_SUFFIX="dll"
+            SO_SUFFIX_MODULE="dll"
+            DLLIMP_SUFFIX="dll.a"
+            EXEEXT=".exe"
+            DLLPREFIX="cyg"
+            dlldir="$bindir"
+        ;;
+        *-*-mingw32* )
             SO_SUFFIX="dll"
             SO_SUFFIX_MODULE="dll"
             DLLIMP_SUFFIX="dll.a"
             EXEEXT=".exe"
             DLLPREFIX=""
+            dlldir="$bindir"
         ;;
         *-pc-msdosdjgpp )
             EXEEXT=".exe"
             DLLPREFIX=""
+            dlldir="$bindir"
         ;;
         *-pc-os2_emx | *-pc-os2-emx )
             SO_SUFFIX="dll"
@@ -235,8 +222,9 @@ AC_DEFUN([AC_BAKEFILE_SUFFIXES],
             DLLPREFIX=""
             LIBPREFIX=""
             LIBEXT=".$OS2_LIBEXT"
+            dlldir="$bindir"
         ;;
-        powerpc-*-darwin* )
+        *-*-darwin* )
             SO_SUFFIX="dylib"
             SO_SUFFIX_MODULE="bundle"
         ;;
@@ -254,6 +242,7 @@ AC_DEFUN([AC_BAKEFILE_SUFFIXES],
     AC_SUBST(LIBEXT)
     AC_SUBST(DLLPREFIX)
     AC_SUBST(DLLPREFIX_MODULE)
+    AC_SUBST(dlldir)
 ])
 
 
@@ -276,6 +265,7 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
     dnl Defaults for GCC and ELF .so shared libs:
     SHARED_LD_CC="\$(CC) -shared ${PIC_FLAG} -o"
     SHARED_LD_CXX="\$(CXX) -shared ${PIC_FLAG} -o"
+    WINDOWS_IMPLIB=0
 
     case "${BAKEFILE_HOST}" in
       *-hp-hpux* )
@@ -361,17 +351,41 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
             SHARED_LD_MODULE_CXX="\${CXX} -bundle -single_module -headerpad_max_install_names -o"
         fi
 
-        PIC_FLAG="-dynamic -fPIC"
+        if test "x$GCC" == "xyes"; then
+            PIC_FLAG="-dynamic -fPIC"
+        fi
+        if test "x$XLCC" = "xyes"; then
+            PIC_FLAG="-dynamic -DPIC"
+        fi
       ;;
 
       *-*-aix* )
-        dnl default settings are ok for gcc
-        if test "x$GCC" != "xyes"; then
-            dnl the abs path below used to be hardcoded here so I guess it must
-            dnl be some sort of standard location under AIX?
+        if test "x$GCC" = "xyes"; then
+	    dnl at least gcc 2.95 warns that -fPIC is ignored when
+	    dnl compiling each and every file under AIX which is annoying,
+	    dnl so don't use it there (it's useless as AIX runs on
+	    dnl position-independent architectures only anyhow)
+	    PIC_FLAG=""
+
+	    dnl -bexpfull is needed by AIX linker to export all symbols (by
+	    dnl default it doesn't export any and even with -bexpall it
+	    dnl doesn't export all C++ support symbols, e.g. vtable
+	    dnl pointers) but it's only available starting from 5.1 (with
+	    dnl maintenance pack 2, whatever this is), see
+	    dnl http://www-128.ibm.com/developerworks/eserver/articles/gnu.html
+	    case "${BAKEFILE_HOST}" in
+		*-*-aix5* )
+		    LD_EXPFULL="-Wl,-bexpfull"
+		    ;;
+	    esac
+
+	    SHARED_LD_CC="\$(CC) -shared $LD_EXPFULL -o"
+	    SHARED_LD_CXX="\$(CXX) -shared $LD_EXPFULL -o"
+	else
+	    dnl FIXME: makeC++SharedLib is obsolete, what should we do for
+	    dnl        recent AIX versions?
             AC_CHECK_PROG(AIX_CXX_LD, makeC++SharedLib,
                           makeC++SharedLib, /usr/lpp/xlC/bin/makeC++SharedLib)
-            dnl FIXME - what about makeCSharedLib?            
             SHARED_LD_CC="$AIX_CC_LD -p 0 -o"
             SHARED_LD_CXX="$AIX_CXX_LD -p 0 -o"
         fi
@@ -395,6 +409,7 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
         PIC_FLAG=""
         SHARED_LD_CC="\$(CC) -shared -o"
         SHARED_LD_CXX="\$(CXX) -shared -o"
+        WINDOWS_IMPLIB=1
       ;;
 
       *-pc-os2_emx | *-pc-os2-emx )
@@ -406,11 +421,12 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
       ;;
       
       powerpc-apple-macos* | \
-      *-*-freebsd* | *-*-openbsd* | *-*-netbsd* | \
+      *-*-freebsd* | *-*-openbsd* | *-*-netbsd* | *-*-k*bsd*-gnu | \
       *-*-sunos4* | \
       *-*-osf* | \
       *-*-dgux5* | \
-      *-*-sysv5* )
+      *-*-sysv5* | \
+      *-pc-msdosdjgpp )
         dnl defaults are ok
       ;;
 
@@ -434,6 +450,7 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
     AC_SUBST(SHARED_LD_MODULE_CC)
     AC_SUBST(SHARED_LD_MODULE_CXX)
     AC_SUBST(PIC_FLAG)
+    AC_SUBST(WINDOWS_IMPLIB)
 ])
 
 
@@ -448,12 +465,13 @@ AC_DEFUN([AC_BAKEFILE_SHARED_VERSIONS],
     USE_SOVERSION=0
     USE_SOVERLINUX=0
     USE_SOVERSOLARIS=0
+    USE_SOVERCYGWIN=0
     USE_SOSYMLINKS=0
     USE_MACVERSION=0
     SONAME_FLAG=
 
     case "${BAKEFILE_HOST}" in
-      *-*-linux* | *-*-freebsd* )
+      *-*-linux* | *-*-freebsd* | *-*-k*bsd*-gnu )
         SONAME_FLAG="-Wl,-soname,"
         USE_SOVERSION=1
         USE_SOVERLINUX=1
@@ -471,12 +489,18 @@ AC_DEFUN([AC_BAKEFILE_SHARED_VERSIONS],
         USE_MACVERSION=1
         USE_SOVERSION=1
         USE_SOSYMLINKS=1
-      ;;      
+      ;;
+
+      *-*-cygwin* )
+        USE_SOVERSION=1
+        USE_SOVERCYGWIN=1
+      ;;
     esac
 
     AC_SUBST(USE_SOVERSION)
     AC_SUBST(USE_SOVERLINUX)
     AC_SUBST(USE_SOVERSOLARIS)
+    AC_SUBST(USE_SOVERCYGWIN)
     AC_SUBST(USE_MACVERSION)
     AC_SUBST(USE_SOSYMLINKS)
     AC_SUBST(SONAME_FLAG)
@@ -492,28 +516,35 @@ dnl ---------------------------------------------------------------------------
 AC_DEFUN([AC_BAKEFILE_DEPS],
 [
     AC_MSG_CHECKING([for dependency tracking method])
-    DEPS_TRACKING=0
+    DEPS_TRACKING=1
 
     if test "x$GCC" = "xyes"; then
         DEPSMODE=gcc
-        DEPS_TRACKING=1
         case "${BAKEFILE_HOST}" in
-            powerpc-*-darwin* )
+            *-*-darwin* )
                 dnl -cpp-precomp (the default) conflicts with -MMD option
                 dnl used by bk-deps (see also http://developer.apple.com/documentation/Darwin/Conceptual/PortingUnix/compiling/chapter_4_section_3.html)
-                DEPSFLAG_GCC="-no-cpp-precomp -MMD"
+                DEPSFLAG="-no-cpp-precomp -MMD"
             ;;
             * )
-                DEPSFLAG_GCC="-MMD"
+                DEPSFLAG="-MMD"
             ;;
         esac
         AC_MSG_RESULT([gcc])
     elif test "x$MWCC" = "xyes"; then
         DEPSMODE=mwcc
-        DEPS_TRACKING=1
-        DEPSFLAG_MWCC="-MM"
+        DEPSFLAG="-MM"
         AC_MSG_RESULT([mwcc])
+    elif test "x$SUNCC" = "xyes"; then
+        DEPSMODE=unixcc
+        DEPSFLAG="-xM1"
+        AC_MSG_RESULT([Sun cc])
+    elif test "x$SGICC" = "xyes"; then
+        DEPSMODE=unixcc
+        DEPSFLAG="-M"
+        AC_MSG_RESULT([SGI cc])
     else
+	DEPS_TRACKING=0
         AC_MSG_RESULT([none])
     fi
 
@@ -690,10 +721,14 @@ AC_DEFUN([AC_BAKEFILE],
     AC_BAKEFILE_DEPS
     AC_BAKEFILE_RES_COMPILERS
 
-    BAKEFILE_BAKEFILE_M4_VERSION="0.1.7"
+    BAKEFILE_BAKEFILE_M4_VERSION="0.1.9"
    
     dnl includes autoconf_inc.m4:
     $1
+    
+    if test "$BAKEFILE_AUTOCONF_INC_M4_VERSION" = "" ; then
+        AC_MSG_ERROR([No version found in autoconf_inc.m4 - bakefile macro was changed to take additional argument, perhaps configure.in wasn't updated (see the documentation)?])
+    fi
     
     if test "$BAKEFILE_BAKEFILE_M4_VERSION" != "$BAKEFILE_AUTOCONF_INC_M4_VERSION" ; then
         AC_MSG_ERROR([Versions of Bakefile used to generate makefiles ($BAKEFILE_AUTOCONF_INC_M4_VERSION) and configure ($BAKEFILE_BAKEFILE_M4_VERSION) do not match.])
@@ -1205,13 +1240,12 @@ cat <<EOF >bk-deps
 
 DEPSMODE=${DEPSMODE}
 DEPSDIR=.deps
-DEPSFLAG_GCC="${DEPSFLAG_GCC}"
-DEPSFLAG_MWCC="${DEPSFLAG_MWCC}"
+DEPSFLAG="${DEPSFLAG}"
 
 mkdir -p ${D}DEPSDIR
 
 if test ${D}DEPSMODE = gcc ; then
-    ${D}* ${D}{DEPSFLAG_GCC}
+    ${D}* ${D}{DEPSFLAG}
     status=${D}?
     if test ${D}{status} != 0 ; then
         exit ${D}{status}
@@ -1245,11 +1279,7 @@ if test ${D}DEPSMODE = gcc ; then
     fi
     exit 0
 elif test ${D}DEPSMODE = mwcc ; then
-    ${D}*
-    status=${D}?
-    if test ${D}{status} != 0 ; then
-        exit ${D}{status}
-    fi
+    ${D}* || exit ${D}?
     # Run mwcc again with -MM and redirect into the dep file we want
     # NOTE: We can't use shift here because we need ${D}* to be valid
     prevarg=
@@ -1267,7 +1297,29 @@ elif test ${D}DEPSMODE = mwcc ; then
         fi
         prevarg="${D}arg"
     done
-    ${D}* ${D}DEPSFLAG_MWCC >${D}{DEPSDIR}/${D}{objfile}.d
+    ${D}* ${D}DEPSFLAG >${D}{DEPSDIR}/${D}{objfile}.d
+    exit 0
+elif test ${D}DEPSMODE = unixcc; then
+    ${D}* || exit ${D}?
+    # Run compiler again with deps flag and redirect into the dep file.
+    # It doesn't work if the '-o FILE' option is used, but without it the
+    # dependency file will contain the wrong name for the object. So it is
+    # removed from the command line, and the dep file is fixed with sed.
+    cmd=""
+    while test ${D}# -gt 0; do
+        case "${D}1" in
+            -o )
+                shift
+                objfile=${D}1
+            ;;
+            * )
+                eval arg${D}#=\\${D}1
+                cmd="${D}cmd \\${D}arg${D}#"
+            ;;
+        esac
+        shift
+    done
+    eval "${D}cmd ${D}DEPSFLAG" | sed "s|.*:|${D}objfile:|" >${D}{DEPSDIR}/${D}{objfile}.d
     exit 0
 else
     ${D}*
@@ -1297,6 +1349,7 @@ verbose=0
 args=""
 objects=""
 linking_flag="-dynamiclib"
+ldargs="-r -keep_private_externs -nostdlib"
 
 while test ${D}# -gt 0; do
     case ${D}1 in
@@ -1309,6 +1362,11 @@ while test ${D}# -gt 0; do
         # collect these options and values
         args="${D}{args} ${D}1 ${D}2"
         shift
+        ;;
+       
+       -s|-Wl,*)
+        # collect these load args
+        ldargs="${D}{ldargs} ${D}1"
         ;;
 
        -l*|-L*|-flat_namespace|-headerpad_max_install_names)
@@ -1339,28 +1397,27 @@ while test ${D}# -gt 0; do
     shift
 done
 
+status=0
+
 #
 # Link one module containing all the others
 #
 if test ${D}{verbose} = 1; then
-    echo "c++ -r -keep_private_externs -nostdlib ${D}{objects} -o master.${D}${D}.o"
+    echo "c++ ${D}{ldargs} ${D}{objects} -o master.${D}${D}.o"
 fi
-c++ -r -keep_private_externs -nostdlib ${D}{objects} -o master.${D}${D}.o
+c++ ${D}{ldargs} ${D}{objects} -o master.${D}${D}.o
 status=${D}?
-if test ${D}{status} != 0; then
-    exit ${D}{status}
-fi
 
 #
-# Link the shared library from the single module created
+# Link the shared library from the single module created, but only if the
+# previous command didn't fail:
 #
-if test ${D}{verbose} = 1; then
-    echo "cc ${D}{linking_flag} master.${D}${D}.o ${D}{args}"
-fi
-c++ ${D}{linking_flag} master.${D}${D}.o ${D}{args}
-status=${D}?
-if test ${D}{status} != 0; then
-    exit ${D}{status}
+if test ${D}{status} = 0; then
+    if test ${D}{verbose} = 1; then
+        echo "c++ ${D}{linking_flag} master.${D}${D}.o ${D}{args}"
+    fi
+    c++ ${D}{linking_flag} master.${D}${D}.o ${D}{args}
+    status=${D}?
 fi
 
 #
@@ -1368,7 +1425,7 @@ fi
 #
 rm -f master.${D}${D}.o
 
-exit 0
+exit ${D}status
 EOF
 dnl ===================== shared-ld-sh ends here =====================
 ])
