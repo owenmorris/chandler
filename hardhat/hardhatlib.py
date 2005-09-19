@@ -624,6 +624,7 @@ def recursiveTest(buildenv, path):
     chandler_debug   = os.path.join(CHANDLERBIN, 'debug')
     chandler_release = os.path.join(CHANDLERBIN, 'release')
     chandler_tools   = os.path.join(CHANDLERHOME, 'tools')
+    chandler_utils   = os.path.join(CHANDLERHOME, 'util')
 
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
@@ -632,7 +633,8 @@ def recursiveTest(buildenv, path):
             # should not contain any of our tests.
             if (full_name.rfind(chandler_debug) < 0) and \
                (full_name.rfind(chandler_release) < 0) and \
-               (full_name.rfind(chandler_tools) < 0):
+               (full_name.rfind(chandler_tools) < 0) and \
+               (full_name.rfind(chandler_util) < 0):
                 recursiveTest(buildenv, full_name)
 
 def test(buildenv, dir, *modules):
