@@ -197,7 +197,10 @@ class DragState(object):
             self.dragEndHandler()
             self._window.ReleaseMouse()
 
-class wxCollectionCanvas(wx.ScrolledWindow):
+class wxCollectionCanvas(DragAndDrop.DropReceiveWidget, 
+                         DragAndDrop.DraggableWidget,
+                         DragAndDrop.ItemClipboardHandler,
+                         wx.ScrolledWindow):
 
     """ Canvas used for displaying an AbstractCollection
 
@@ -386,6 +389,7 @@ class wxCollectionCanvas(wx.ScrolledWindow):
                 self.dragState.HandleDrag(unscrolledPosition)
             else:
                 self.dragState.ResetDrag()
+                self.DoCapturedDragAndDrop()
 
         elif event.LeftDClick():
             # cancel/stop any drag in progress

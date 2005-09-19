@@ -848,10 +848,7 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         self.contents.collectionList[0].color = ColorType(*color)
 
 
-class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
-                  DragAndDrop.DropReceiveWidget, 
-                  DragAndDrop.DraggableWidget,
-                  DragAndDrop.ItemClipboardHandler):
+class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection, 
     date ranges, and so forth
@@ -1045,7 +1042,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         return [selection]
 
     def AddItems(self, itemList):
-        source = self.contents.collectionList[0]
+        source = self.blockItem.contents.collectionList[0]
         for item in itemList:	
             source.add (item)
 
@@ -1463,11 +1460,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         for day in xrange(7):
             actualDay = ((day + firstDay - 1) % 7)
             currentDate = startDate + timedelta(days=day)
-            if currentDate.date() == today:
-                dayName = _(u"Today")
-            else:
-                dayName = u"%s %d" %(shortWeekdays[actualDay + 1],
-                                       currentDate.day)
+            dayName = u"%s %d" %(shortWeekdays[actualDay + 1],
+                                 currentDate.day)
             self.weekColumnHeader.SetLabelText(day+1, dayName)
             
         self.currentSelectedDate = datetime.combine(selectedDate, time())
