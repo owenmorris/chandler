@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "75" # john: Move SelectWeekEvent out of Global Events
+SCHEMA_VERSION = "76" # john: Add and Rename event and fix Set to List confusion in colorCollection
 
 logger = None # initialized in initLogging()
 

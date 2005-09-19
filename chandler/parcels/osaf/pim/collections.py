@@ -52,8 +52,8 @@ class CollectionColors(schema.Item):
     Temporarily put the CollectionColors here until we refactor collection
     to remove display information
     """
-    colors           = schema.Many(ColorType)
-    colorIndex       = schema.One(schema.Integer)
+    colors           = schema.Sequence (ColorType)
+    colorIndex       = schema.One (schema.Integer)
 
     def nextColor (self):
         color = self.colors [self.colorIndex]

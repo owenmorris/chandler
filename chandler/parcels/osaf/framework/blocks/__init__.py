@@ -100,6 +100,8 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('SetContents',
                             'BroadcastInsideMyEventBoundary').install(parcel),
         
+        BlockEvent.template('Rename', 'FocusBubbleUp').install(parcel),
+
         BlockEvent.template('EnterPressed',
                             'BroadcastInsideMyEventBoundary').install(parcel),
     ])

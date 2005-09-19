@@ -689,6 +689,7 @@ def make_mainview(parcel):
                                 title=_(u'Sync collection'),
                                 helpString=_(u'Synchronize a shared collection')),
                             MenuItem.template('RenameItem',
+                                event=globalevents.Rename,
                                 title=_(u'Rename'),
                                 helpString=_(u'Rename the selected collection')),
                             Menu.template('CollectionColorMenu',

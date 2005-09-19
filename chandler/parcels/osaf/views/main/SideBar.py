@@ -681,6 +681,14 @@ class SidebarBlock(ControlBlocks.Table):
         # ColorType's to tuples
         event.arguments['Check'] = color is not None and color.toTuple() == event.color.toTuple()
 
+    def onRenameEventUpdateUI (self, event):
+        event.arguments['Enable'] = (self.selectedItemToView is not None and
+                                     getattr(self.selectedItemToView, 'renameable', True))
+
+    def onRenameEvent (self, event):
+        pass
+
+
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
     tableTemplatePath = schema.One(schema.String)
