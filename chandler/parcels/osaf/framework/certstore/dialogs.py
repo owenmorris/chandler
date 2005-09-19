@@ -17,14 +17,15 @@ from osaf.framework.certstore import utils, errors
 log = logging.getLogger(__name__)
 
 class ImportCertificateDialog(wx.Dialog):
-    def __init__(self, parent, type, x509, choices, size=wx.DefaultSize,
+    def __init__(self, parent, type, fingerprint, x509, choices, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
         Ask the user if they would like to import and trust a certificate.
         
-        @param type: Certificate type
-        @param x509: The certificate to import.
-        @param choices: List of possible trust values.
+        @param type:        Certificate type
+        @param fingerprint: The certificate fingerprint
+        @param x509:        The certificate to import.
+        @param choices:     List of possible trust values.
         """ 
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
@@ -45,7 +46,7 @@ class ImportCertificateDialog(wx.Dialog):
 
         # Static text
 
-        message = _(u'Do you want to import this certificate?\nType: %(certType)s\nSHA1 fingerprint: %(fingerprint)s') % {'certType': type, 'fingerprint': certificate.fingerprint(x509)}
+        message = _(u'Do you want to import this certificate?\nType: %(certType)s\nSHA1 fingerprint: %(fingerprint)s') % {'certType': type, 'fingerprint': fingerprint}
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -106,12 +107,14 @@ class TrustSiteCertificateDialog(wx.Dialog):
     certificates either permanently or until program exit.
     """
     
-    def __init__(self, parent, x509, size=wx.DefaultSize,
+    def __init__(self, parent, x509, storedUntrusted, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
         Initialize dialog.
 
-        @param x509: The certificate the site returned.
+        @param x509:            The certificate the site returned.
+        @param storedUntrusted: The certificate (if any) that is already stored
+                                in the repository but is not trusted.
         """ 
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
@@ -132,7 +135,10 @@ class TrustSiteCertificateDialog(wx.Dialog):
 
         # Static text
 
-        message = _(u'Do you want to trust this certificate?\nSHA1 fingerprint: %s') % utils.fingerprint(x509)
+        if storedUntrusted is None:
+            message = _(u'Do you want to trust this certificate?\nSHA1 fingerprint: %s') % utils.fingerprint(x509)
+        else:
+            message = _(u'This certificate is already known but not trusted.\nDo you want to trust this certificate?\nSHA1 fingerprint: %s') % utils.fingerprint(x509)
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -170,10 +176,10 @@ class TrustSiteCertificateDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, messages.OK_BUTTON)
+        btn = wx.Button(self, wx.ID_OK, messages.OK)
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL_BUTTON)
+        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 

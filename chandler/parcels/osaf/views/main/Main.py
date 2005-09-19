@@ -19,7 +19,6 @@ from application.SplashScreen import SplashScreen
 import application.Parcel
 import osaf.pim.mail as Mail
 from osaf.pim import Contact
-import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim, sharing
 from photos import Photo
 import osaf.pim.tests.GenerateItems as GenerateItems
@@ -28,9 +27,8 @@ from repository.item.Item import Item
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 import osaf.mail.sharing as MailSharing
-import osaf.mail.smtp as smtp
 from osaf.framework.blocks.Block import Block
-from osaf.pim import AbstractCollection, ListCollection
+from osaf.pim import AbstractCollection
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting as Scripting
 from osaf import webserver
@@ -57,7 +55,7 @@ class MainView(View):
             errorStrings = []
 
             for error in mailMessage.deliveryExtension.deliveryErrors:
-                 errorStrings.append(error.errorString)
+                errorStrings.append(error.errorString)
 
             if len (errorStrings) == 0:
                 errorMessage = constants.UNKNOWN_ERROR
@@ -246,11 +244,14 @@ class MainView(View):
             self.setStatusMessage ('')
 
     def askTrustSiteCertificate(self, pem, reconnect):
+        # XXX It's wrong for the MainView to depend on certstore
         import M2Crypto.X509 as X509
-        from osaf.framework.certstore import dialogs
+        from osaf.framework.certstore import dialogs, certificate
         x509 = X509.load_cert_string(pem)
+        untrustedCertificate = certificate.findCertificate(self.itsView, pem)
         dlg = dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
-                                                 x509)
+                                                 x509,
+                                                 untrustedCertificate)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 selection = dlg.GetSelection()
@@ -259,17 +260,22 @@ class MainView(View):
                     from osaf.framework.certstore import ssl
                     ssl.trusted_until_shutdown_site_certs += [pem]
                 else:
-                    from osaf.framework.certstore import utils, certificate, constants
-                    fingerprint = utils.fingerprint(x509)
-                    certificate.importCertificate(x509, fingerprint, 
-                                                  constants.TRUST_AUTHENTICITY,
-                                                  self.itsView)
+                    from osaf.framework.certstore import constants
+                    if untrustedCertificate is not None:
+                        untrustedCertificate.trust |= constants.TRUST_AUTHENTICITY
+                    else:
+                        from osaf.framework.certstore import utils
+                        fingerprint = utils.fingerprint(x509)
+                        certificate.importCertificate(x509, fingerprint, 
+                                                      constants.TRUST_AUTHENTICITY,
+                                                      self.itsView)
 
                 reconnect()
         finally:
             dlg.Destroy()
 
     def askIgnoreSSLError(self, pem, err, reconnect):
+        # XXX It's wrong for the MainView to depend on certstore
         import M2Crypto.X509 as X509
         from osaf.framework.certstore import dialogs
         x509 = X509.load_cert_string(pem)

@@ -7,23 +7,20 @@ Certificate
 __parcel__ = "osaf.framework.certstore"
 
 __all__ = ['Certificate', 'CertificateStore',
-           'importCertificate', 'importCertificateDialog', 'createSidebarView']
+           'importCertificate', 'importCertificateDialog', 'createSidebarView',
+           'findCertificate']
 
 import os, logging
 
 import wx
 import M2Crypto.X509 as X509
-import M2Crypto.util as util
-import M2Crypto.EVP as EVP
 
 import application
 from application import schema
-import application.Globals as Globals
 from osaf import pim
 from application.dialogs import ImportExport
 from i18n import OSAFMessageFactory as _
 from osaf import messages
-import os
 from osaf.pim.collections import FilteredCollection
 from osaf.framework.certstore import utils, dialogs, constants
 
@@ -124,9 +121,6 @@ class Certificate(pim.ContentItem):
                        doc='Site bit.')
 
 
-###
-# XXX begin store.py
-
 def _isSiteCertificate(x509):
     # XXX This will need tweaks
     site = False
@@ -172,7 +166,10 @@ def _certificateType(x509):
         
     return type
 
-def _isInRepository(repView, pem):
+def findCertificate(repView, pem):
+    """
+    See if the certificate is stored in the repository.
+    """
     # XXX This could be optimized by querying based on some cheap field,
     # XXX which would typically return just 0 or 1
     # XXX hit. But I don't want to leave query items laying around either.
@@ -180,9 +177,9 @@ def _isInRepository(repView, pem):
 
     for cert in q:
         if cert.pemAsString() == pem:
-            return True
+            return cert
     
-    return False
+    return None
 
 def importCertificate(x509, fingerprint, trust, repView):
     """
@@ -193,7 +190,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     @param trust:       The trust value for this certificate
     """
     pem = x509.as_pem()
-    if _isInRepository(repView, pem):
+    if findCertificate(repView, pem) is not None:
         raise ValueError('X.509 certificate is already in the repository')
         
     commonName = x509.get_subject().CN
@@ -255,6 +252,7 @@ def importCertificateDialog(repView):
 
         dlg = dialogs.ImportCertificateDialog(wx.GetApp().mainFrame,
                                    type,
+                                   fprint,
                                    x509,
                                    choices)
         trust = 0
@@ -287,20 +285,23 @@ def createSidebarView(repView, cpiaView):
     """
     # First see if the certificate store already is in the sidebar, and if so
     # don't add more entries.
-    sidebar = schema.ns('osaf.views.main', repView).sidebarCollection
-    for item in sidebar:
+    sidebarCollection = schema.ns('osaf.app', repView).sidebarCollection
+    for item in sidebarCollection:
         # XXX It is kind of heavy-weight to have the CertificateStore class
         # XXX just so we can see if this collection is certstore. Besides,
         # XXX isinstance is bad.
         if isinstance(item, CertificateStore):
-            cpiaView.postEventByName('RequestSelectSidebarItem',
-                                     {'item': item})
+            # XXX Why doesn't this work here? It says there's no root or
+            # XXX sidebar on app_ns. It works for scripts, though.
+            #app_ns = schema.ns('osaf.app', cpiaView)
+            #app_ns.root.ApplicationBarAll()
+            #app_ns.sidebar.select(item)
+            cpiaView.postEventByName('ApplicationBarAll', {})
+            cpiaView.postEventByName('RequestSelectSidebarItem', {'item': item})
             return
 
     certstore = CertificateStore(view=repView)
     
+    cpiaView.postEventByName('ApplicationBarAll', {})
     cpiaView.postEventByName('AddToSidebarWithoutCopyingAndSelectFirst',
                              {'items': [certstore]})
-
-# XXX end store.py
-###############
