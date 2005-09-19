@@ -624,7 +624,7 @@ def recursiveTest(buildenv, path):
     chandler_debug   = os.path.join(CHANDLERBIN, 'debug')
     chandler_release = os.path.join(CHANDLERBIN, 'release')
     chandler_tools   = os.path.join(CHANDLERHOME, 'tools')
-    chandler_utils   = os.path.join(CHANDLERHOME, 'util')
+    chandler_util    = os.path.join(CHANDLERHOME, 'util')
 
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
