@@ -26,7 +26,7 @@ class perf:
                        'section':    'base',
                        'warn':       2.0,    # range of values to control color of cells
                        'alert':      5.0,
-                       'p_alert':    5.0, # percentage change to warn about (for summary only)
+                       'p_alert':    100.0, # percentage change to warn about (for summary only)
                      }
 
     self.loadConfiguration()
@@ -472,17 +472,17 @@ class perf:
 
       for key in ['linux', 'osx', 'win']:
         if testkey in targets[key].keys():
-          targetAvg = targets[key][testkey]
+          targetAvg = targets[key][testkey] * 60 # convert to seconds
         else:
           targetAvg = 0.0
 
-        avg      = platforms[key]['avg']
+        avg      = platforms[key]['avg'] * 60 # convert to seconds
         revision = platforms[key]['revision']
 
         c_diff = targetAvg - avg
 
         if targetAvg <> 0:
-          c_perc = c_diff / targetAvg
+          c_perc = (c_diff / targetAvg) * 100
         else:
           c_perc = 0
 
@@ -496,7 +496,7 @@ class perf:
 
         line += '<td>%s</td><td class="number">%02.3f</td>' % (revision, avg)
         line += '<td class="number">%02.3f</td>' % targetAvg
-        line += '<td class="%s">%02.3f</td>' % (s, c_perc)
+        line += '<td class="%s">%03.1f</td>' % (s, c_perc)
         line += '<td class="%s">%02.3f</td>' % (s, c_diff)
 
       line += '</tr>\n'
@@ -525,14 +525,14 @@ class perf:
 
     page.append('<p>This is a summary of the performance totals</p>\n')
     page.append('<p>The Median is calculated from the total number of test runs for the given day<br/>\n')
-    page.append('The % Change is measured from the last Milestone<br/>\n')
-    page.append('Median and Target unit of measure is minutes</p>\n')
+    page.append('The &Delta; % is measured from the last Milestone.  All time values use seconds for the unit of measure</p>\n')
+    page.append('<p>Note: a negative &Delta; value means that the current median value is <strong>slower</strong> than the target value</p>\n')
 
     page.append('<table>\n')
     page.append('<tr><th></th><th colspan="5">Linux</th><th colspan="5">OS X</th><th colspan="5">Windows</th></tr>\n')
-    page.append('<tr><th>Test</th><th>Rev #</th><th>Median</th><th>Target</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>Median</th><th>Target</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>Median</th><th>Target</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
+    page.append('<tr><th>Test</th><th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
+    page.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
+    page.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
