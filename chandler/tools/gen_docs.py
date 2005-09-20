@@ -50,7 +50,6 @@ def generateModelDocs(options, outputDir=None):
 
 
 def processItem(item, handler, conf):
-    pass
     if item.itsName is None:
         # Skip all the unnamed items, otherwise they'll flood your disk over
         # time unless you completely blow away the doc tree before each publish
@@ -67,7 +66,6 @@ def simplePrint(item, conf):
 
 
 def generateSchemaDocument(item, conf):
-    pass
     try: label = item.itsKind.itsName
     except: label = ""
 
@@ -76,7 +74,10 @@ def generateSchemaDocument(item, conf):
     _mkdirs(dir)
     index = os.path.join(dir, 'index.html')
     print index
-    header = "<html><head><title>%s %s - Chandler Schema Documentation</title><link rel='stylesheet' href='%s' type='text/css' /></head><body>\n" % (item.itsName, label, conf['css'])
+    header =  "<html><head>\n"
+    header += "<title>%s %s - Chandler Schema Documentation</title>\n" % (item.itsName, label)
+    header += "<link rel='stylesheet' href='%s' type='text/css' />\n" % conf['css']
+    header += "</head><body>\n"
     body = RenderItem(item, conf['urlRoot'])
     footer = "</body></html>"
     out = file(index, 'w')
@@ -88,10 +89,12 @@ def generateSchemaDocument(item, conf):
 
 
 def generateIndex(view, conf):
-    pass
     index = os.path.join(conf['directory'], 'index.html')
     print index
-    header = "<html><head><title>Chandler Schema Documentation</title><link rel='stylesheet' href='%s' type='text/css' /></head><body>\n" % (conf['css'])
+    header =  "<html><head>\n"
+    header += "<title>Chandler Schema Documentation</title>\n"
+    header += "<link rel='stylesheet' href='%s' type='text/css' />\n" % conf['css']
+    header += "</head><body>\n"
     body = "<div class='header'>Chandler Schema Documentation</div>"
     body += RenderKinds(view, conf['urlRoot'])
     footer = "</body></html>"
@@ -195,47 +198,6 @@ def _getAllClouds(kind):
         for superKind in superKinds:
             for (cloud, alias) in _getAllClouds(superKind):
                 yield (cloud, alias)
-
-
-def RenderAllClouds(urlRoot):
-    result = ""
-
-    clouds = {}
-    for cloud in repository.item.Query.KindQuery().run([repo.findPath("//Schema/Core/Cloud")]):
-        clouds[cloud.itsPath] = cloud
-    keys = clouds.keys()
-    keys.sort()
-    for key in keys:
-        cloud = clouds[key]
-        result += "<p>"
-        result += "Cloud <a href=%s>%s</a> for kind <a href=%s>%s</a>" % \
-         (toLink(urlRoot, cloud.itsPath), cloud.itsPath, toLink(urlRoot, cloud.kind.itsPath), 
-         cloud.kind.itsName)
-        alias = cloud.kind.clouds.getAlias(cloud)
-        if alias:
-            result += " (alias '%s')" % alias
-        result += "<br>"
-        for endpoint in cloud.endpoints:
-            result += "&nbsp;&nbsp;&nbsp;Endpoint <a href=%s>%s</a>:" % (toLink(urlRoot, endpoint.itsPath), endpoint.itsName)
-            result += " attribute '"
-            result += (".".join(endpoint.attribute))
-            result += "', "
-            alias = cloud.endpoints.getAlias(endpoint)
-            if alias:
-                result += " (alias '%s')" % alias
-            result += " policy '%s'" % endpoint.includePolicy
-            if endpoint.includePolicy == "byCloud":
-                if endpoint.getAttributeValue('cloud', default=None) is not \
-                 None:
-                    result += " --&gt; <a href=%s>%s</a>" % (toLink(urlRoot, endpoint.cloud.itsPath), endpoint.cloud.itsName)
-                elif endpoint.getAttributeValue('cloudAlias', default=None) \
-                 is not None:
-                    result += " to cloud alias '%s'" % endpoint.cloudAlias
-
-            result += "<br>"
-        result += "</p>"
-
-    return result
 
 
 def RenderClouds(kind, urlRoot):
@@ -566,7 +528,11 @@ def oddEvenRow(count):
 
 
 def toLink(urlRoot, path):
-    s = "%s/%s" % (urlRoot, path[1:])
+    if urlRoot == "":
+        s = "%s" % path[1:]
+    else:
+        s = "%s/%s" % (urlRoot, path[1:])
+    print "creating link [%s|%s] [%s]" % (urlRoot, path[1:], s)
     return s.replace(" ", "%20")
 
 
@@ -597,7 +563,7 @@ def generateDocs(options, outputDir):
     else:
         verbosity = 1
 
-    if sys.platform == 'cygwin':
+    if sys.platform == 'cygwin' or os.name == 'nt':
         chandlerdb  = 'release/bin/Lib/site-packages/chandlerdb'
         queryparser = 'release/bin/Lib/site-packages/QueryParser.py'
         pyicu       = 'release/bin/Lib/site-packages/PyICU.py'
@@ -645,7 +611,6 @@ def generateDocs(options, outputDir):
                   'ignore_param_mismatch':   1,
                   'list_classes_separately': 0,
                   'modules': ['application',
-                              'crypto',
                               'i18n',
                               'parcels/core',
                               'parcels/feeds',
@@ -662,7 +627,7 @@ def generateDocs(options, outputDir):
                               'parcels/photos',
                               'repository',
                               'samples/skeleton',
-                              'tools',
+                              #'tools',  # this was preventing gen_docs from running on windows
                               'util',
                               'Chandler.py',
                               'version.py',
