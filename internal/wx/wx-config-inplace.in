@@ -24,8 +24,10 @@ check_dirname()
     ( cd $1 && pwd )
 }
 
-this_prefix=$(check_dirname "@abs_top_srcdir@")         || exit
-this_exec_prefix=$(check_dirname "@abs_top_builddir@")  || exit
+# set the variables which allow the real wx-config to check if we're using it
+# in place or after installation
+this_prefix=`check_dirname "@abs_top_srcdir@"`
+this_exec_prefix=`check_dirname "@abs_top_builddir@"`
 
 . "$this_exec_prefix/lib/wx/config/@TOOLCHAIN_FULLNAME@"
 
