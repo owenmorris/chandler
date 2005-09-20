@@ -1098,16 +1098,17 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
 
 void wxMiniCalendar::SetBusy(const wxDateTime& date, double busyPercentage)
 {
-    wxDateTime startDate = GetStartDate();
+    wxDateTime::Tm currentTm = m_date.GetTm();
+	wxDateTime startDate = GetStartDate();
+	wxDateTime firstOfMonth = wxDateTime(1, currentTm.mon, currentTm.year);
     // Only update months that are being displayed
-    if ( ( date < startDate ) ||
-        ( date > ( startDate + MONTHS_TO_DISPLAY * wxDateSpan::Month() ) ) )
+    if ( ( date < firstOfMonth ) ||
+        ( date >= ( startDate + MONTHS_TO_DISPLAY * wxDateSpan::Month() ) ) )
     {
         return;
     }
 
     // Figure out which month this date is in
-    wxDateTime::Tm currentTm = m_date.GetTm();
     wxDateTime::Tm dateTm = date.GetTm();
     int monthDiff = dateTm.mon - currentTm.mon;
     if ( monthDiff < 0 )

@@ -101,16 +101,14 @@ public:
 
     wxMiniCalendarDateAttr *GetAttr(size_t dayPosition) const
     {
-        wxCHECK_MSG( dayPosition >= 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY * MONTHS_TO_DISPLAY),
-                     NULL, _T("invalid day") );
+        wxCHECK_MSG( dayPosition >= 0 && dayPosition < WXSIZEOF(m_attrs), NULL, _T("invalid day") );
 
         return m_attrs[dayPosition];
     }
 
     void SetAttr(size_t dayPosition, wxMiniCalendarDateAttr *attr)
     {
-        wxCHECK_RET( dayPosition >= 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY * MONTHS_TO_DISPLAY),
-                     _T("invalid day") );
+	    wxCHECK_RET( dayPosition >= 0 && dayPosition < WXSIZEOF(m_attrs), _T("invalid day"));
 
         delete m_attrs[dayPosition];
         m_attrs[dayPosition] = attr;
