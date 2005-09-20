@@ -54,88 +54,88 @@ static PyObject *move_NAME;
 static PyObject *rename_NAME;
 static PyObject *_getPath_NAME;
 
-#define isNew_DOC \
-"Tell whether this item is new.\n\nA new item is defined as an item that\
- was never committed to the repository.\n@return: C{True} or C{False}"
+#define isNew_DOC "\
+Tell whether this item is new.\n\nA new item is defined as an item that\
+was never committed to the repository.\n@return: C{True} or C{False}"
 
-#define isDeleting_DOC \
-"Tell whether this item is in the process of being deleted.\n\n\
- @return: C{True} or C{False}"
+#define isDeleting_DOC "\
+Tell whether this item is in the process of being deleted.\n\n\
+@return: C{True} or C{False}"
 
-#define isDeleted_DOC \
-"Tell whether this item is deleted.\n\n\
- @return: C{True} or C{False}"
+#define isDeleted_DOC "\
+Tell whether this item is deleted.\n\n\
+@return: C{True} or C{False}"
 
-#define isStale_DOC \
-"Tell whether this item pointer is out of date.\n\n\
- A stale item pointer is defined as an item pointer that is no longer\
- valid. When an item is unloaded, the item pointer is marked\
- stale. The item pointer can be refreshed by reloading the item via the\
- L{find} method, passing it the item's C{uuid} obtained via the\
- L{itsUUID} property.\n\n\
- Stale items are encountered when item pointers are kept across\
- transaction boundaries. It is recommended to keep the item's\
- C{uuid} instead.\n\n\
- @return: C{True} or C{False}"
+#define isStale_DOC "\
+Tell whether this item pointer is out of date.\n\n\
+A stale item pointer is defined as an item pointer that is no longer\
+valid. When an item is unloaded, the item pointer is marked\
+stale. The item pointer can be refreshed by reloading the item via the\
+L{find} method, passing it the item's C{uuid} obtained via the\
+L{itsUUID} property.\n\n\
+Stale items are encountered when item pointers are kept across\
+transaction boundaries. It is recommended to keep the item's\
+C{uuid} instead.\n\n\
+@return: C{True} or C{False}"
 
-#define isPinned_DOC \
-"Tell whether this item is pinned.\n\n\
- A pinned item is not freed from memory or marked stale, until it\
- is un-pinned or deleted.\n\n\
- @return: C{True} or C{False}"
+#define isPinned_DOC "\
+Tell whether this item is pinned.\n\n\
+A pinned item is not freed from memory or marked stale, until it\
+is un-pinned or deleted.\n\n\
+@return: C{True} or C{False}"
 
-#define isDirty_DOC \
-"Tell whether this item was changed and needs to be committed.\n\n\
- @return: C{True} or C{False}"
+#define isDirty_DOC "\
+Tell whether this item was changed and needs to be committed.\n\n\
+@return: C{True} or C{False}"
 
-#define getDirty_DOC \
-"Return the dirty flags currently set on this item.\n\n\
- @return: an integer"
+#define getDirty_DOC "\
+Return the dirty flags currently set on this item.\n\n\
+@return: an integer"
 
-#define itsName_DOC \
-"Return this item's name.\n\n\
- The item name is used to lookup an item in its parent\
- container and construct the item's path in the repository.\
- An item may be renamed by setting this property.\n\n\
- The name of an item must be unique among all its siblings."
+#define itsName_DOC "\
+Return this item's name.\n\n\
+The item name is used to lookup an item in its parent\
+container and construct the item's path in the repository.\
+An item may be renamed by setting this property.\n\n\
+The name of an item must be unique among all its siblings."
 
-#define itsUUID_DOC \
-"Return the Universally Unique ID for this item.\n\n\
- The UUID for an item is generated when the item is\
- first created and never changes. This UUID is valid\
- for the life of the item.\n\n\
- The UUID is a 128 bit number intended to be unique in\
- the entire universe and is implemented as specified\
- in the IETF's U{UUID draft\
- <www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>}\
- spec."
+#define itsUUID_DOC "\
+Return the Universally Unique ID for this item.\n\n\
+The UUID for an item is generated when the item is\
+first created and never changes. This UUID is valid\
+for the life of the item.\n\n\
+The UUID is a 128 bit number intended to be unique in\
+the entire universe and is implemented as specified\
+in the IETF's U{UUID draft\
+<www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>}\
+spec."
 
-#define itsPath_DOC \
-"Return the path to this item relative to its repository.\n\n\
- A path is a C{/} separated sequence of item names."
+#define itsPath_DOC "\
+Return the path to this item relative to its repository.\n\n\
+A path is a C{/} separated sequence of item names."
 
-#define itsParent_DOC \
-"Return this item's parent.\n\n\
- An item may be moved by setting this property."
+#define itsParent_DOC "\
+Return this item's parent.\n\n\
+An item may be moved by setting this property."
 
-#define itsRoot_DOC \
-"Return this item's repository root.\n\n\
- A repository root is a direct child of the repository.\
- All single-slash rooted paths are expressed relative\
- to this root when used with this item."
+#define itsRoot_DOC "\
+Return this item's repository root.\n\n\
+A repository root is a direct child of the repository.\
+All single-slash rooted paths are expressed relative\
+to this root when used with this item."
 
-#define itsView_DOC \
-"Return this item's repository view.\n\n\
- The item's repository view is defined as the item's root's parent."
+#define itsView_DOC "\
+Return this item's repository view.\n\n\
+The item's repository view is defined as the item's root's parent."
 
-#define itsKind_DOC \
-"Return or set this item's kind.\n\n\
- When setting an item's kind, only the values for\
- attributes common to both current and new kind are\
- retained. After the new kind is set, its attributes'\
- optional L{initial values<getAttributeAspect>} are\
- set for attributes for which there is no value on the\
- item. Setting an item's kind to C{None} clears all its values."
+#define itsKind_DOC "\
+Return or set this item's kind.\n\n\
+When setting an item's kind, only the values for\
+attributes common to both current and new kind are\
+retained. After the new kind is set, its attributes'\
+optional L{initial values<getAttributeAspect>} are\
+set for attributes for which there is no value on the\
+item. Setting an item's kind to C{None} clears all its values."
 
 
 static PyMemberDef t_item_members[] = {
