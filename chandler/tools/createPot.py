@@ -20,7 +20,8 @@ try:
 except ImportError:
     _ = lambda s: s
 
-__doc__ = _("""pygettext -- Python equivalent of xgettext(1)
+__doc__ = _("""
+pygettext -- Python equivalent of xgettext(1)
 
 Many systems (Solaris, Linux, Gnu) provide extensive tools that ease the
 internationalization of C programs. Most of these tools are independent of
@@ -43,7 +44,7 @@ and gettext_noop. But those can be a lot of text to include all over your
 code. C and C++ have a trick: they use the C preprocessor. Most
 internationalized C source includes a #define for gettext() to _() so that
 what has to be written in the source is much less. Thus these are both
-translatable strings:
+translatable strings::
 
     gettext("Translatable String")
     _("Translatable String")
@@ -52,8 +53,8 @@ Python of course has no preprocessor so this doesn't work so well.  Thus,
 pygettext searches only for _() by default, but see the -k/--keyword flag
 below for how to augment this.
 
- [1] http://www.python.org/workshops/1997-10/proceedings/loewis.html
- [2] http://www.gnu.org/software/gettext/gettext.html
+[1] http://www.python.org/workshops/1997-10/proceedings/loewis.html
+[2] http://www.gnu.org/software/gettext/gettext.html
 
 NOTE: pygettext attempts to be option and feature compatible with GNU
 xgettext where ever possible. However some options are still missing or are
@@ -63,7 +64,7 @@ additional switches.
 
 Usage: pygettext [options] inputfile ...
 
-Options:
+Options::
 
     -a
     --extract-all
@@ -254,12 +255,16 @@ def normalize(s):
 
 
 def containsAny(str, set):
-    """Check whether 'str' contains ANY of the chars in 'set'"""
+    """
+    Check whether 'str' contains ANY of the chars in 'set'
+    """
     return 1 in [c in str for c in set]
 
 
 def _visit_pyfiles(list, dirname, names):
-    """Helper for getFilesForName()."""
+    """
+    Helper for getFilesForName().
+    """
     # get extension for python source files
     if not globals().has_key('_py_ext'):
         global _py_ext
@@ -278,7 +283,8 @@ def _visit_pyfiles(list, dirname, names):
 
 
 def _get_modpkg_path(dotted_name, pathlist=None):
-    """Get the filesystem path for a module or a package.
+    """
+    Get the filesystem path for a module or a package.
 
     Return the file system path to a file for a module, and to a directory for
     a package. Return None if the name is not found, or is a builtin or
@@ -317,7 +323,8 @@ def _get_modpkg_path(dotted_name, pathlist=None):
 
 
 def getFilesForName(name):
-    """Get a list of module files for a filename, a module or package name,
+    """
+    Get a list of module files for a filename, a module or package name,
     or a directory.
     """
     if not os.path.exists(name):
