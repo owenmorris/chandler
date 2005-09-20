@@ -64,7 +64,7 @@ class DraggableWidget (object):
         # in other windows, like the sidebar.
         self.CaptureMouse()
         try:
-            self.DoCapturedDragAndDrop(self, copyOnly)
+            self.DoCapturedDragAndDrop(copyOnly)
         finally:
             if self.HasCapture():
                 self.ReleaseMouse()
