@@ -14,12 +14,12 @@ import osaf.pim.items as items
 
 class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
-        super(ContentModelTestCase,self)._setup(self)
+        super(ContentModelTestCase, self)._setup()
 
         self.testdir = os.path.join(self.rootdir, 'parcels', \
          'osaf', 'pim', 'tests')
 
-        super(ContentModelTestCase,self)._openRepository(self)
+        super(ContentModelTestCase, self)._openRepository()
 
 
     def isOnline(self):
