@@ -914,14 +914,10 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
 
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
-        # @@@DLD - remove this workaround for previous wxWidgets issues
-        heightGutter = 9
-        if self.buttonsLabeled:
-            heightGutter += 14
         toolbar = wxToolbar(self.parentBlock.widget, 
                          Block.Block.getWidgetID(self),
                          wx.DefaultPosition,
-                         (-1, self.toolSize.height+heightGutter),
+                         (-1, self.toolSize.height),
                          style=self.calculate_wxStyle())
         # set the tool bitmap size right away
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
