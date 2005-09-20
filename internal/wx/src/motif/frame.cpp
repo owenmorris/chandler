@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: frame.cpp,v 1.71 2005/09/19 10:36:13 VZ Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.72 2005/09/20 20:33:47 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -264,6 +264,10 @@ bool wxFrame::DoCreate(wxWindow* parent,
     wxModelessWindows.Append( this );
 
     return true;
+}
+
+void wxFrame::DoDestroy()
+{
 }
 
 wxFrame::~wxFrame()

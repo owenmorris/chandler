@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2002/12/09
-// RCS-ID:      $Id: NSMenu.mm,v 1.8 2004/10/15 02:55:15 DE Exp $
+// RCS-ID:      $Id: NSMenu.mm,v 1.9 2005/09/20 21:19:25 DE Exp $
 // Copyright:   (c) 2002 David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,6 +40,7 @@ WX_IMPLEMENT_POSER(wxPoserNSMenu);
     wxCocoaNSMenu *menu = wxCocoaNSMenu::GetFromCocoa(self);
     if(menu)
         menu->Cocoa_dealloc();
+    [super dealloc];
 }
 
 @end // wxPoserNSMenu

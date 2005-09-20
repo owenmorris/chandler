@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.cpp,v 1.56 2005/09/20 10:05:46 JS Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.57 2005/09/20 20:33:47 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -194,6 +194,10 @@ bool wxDialog::DoCreate(wxWindow* parent,
     wxAddWindowToTable( (Widget)m_mainWidget, this );
 
     return true;
+}
+
+void wxDialog::DoDestroy()
+{
 }
 
 void wxDialog::SetModal(bool flag)

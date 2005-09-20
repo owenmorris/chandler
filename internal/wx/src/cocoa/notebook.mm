@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/08
-// RCS-ID:      $Id: notebook.mm,v 1.7 2005/02/27 10:36:46 JS Exp $
+// RCS-ID:      $Id: notebook.mm,v 1.8 2005/09/20 21:19:25 DE Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,6 +64,7 @@
 - (void)dealloc
 {
     [m_image release];
+    [super dealloc];
 }
 
 - (NSSize)sizeOfLabel:(BOOL)shouldTruncateLabel

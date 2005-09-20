@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.h,v 1.26 2005/09/19 12:46:30 VZ Exp $
+// RCS-ID:      $Id: dialog.h,v 1.27 2005/09/20 20:33:44 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -98,6 +98,12 @@ protected:
         int sizeFlags = wxSIZE_AUTO);
 
     virtual void DoSetClientSize(int width, int height);
+
+#if wxCHECK_VERSION(2,7,0)
+    #error "Remove DoDestroy(), it was only kept for binary backwards compatibility"
+#endif
+
+    virtual void DoDestroy();
 
 private:
     DECLARE_EVENT_TABLE()
