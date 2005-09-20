@@ -252,12 +252,12 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 self.CheckboxMail.SetValue(False)
 
-            if 'osaf.pim.TaskMixin' in self.filterClasses:
+            if 'osaf.pim.tasks.TaskMixin' in self.filterClasses:
                 self.CheckboxTasks.SetValue(True)
             else:
                 self.CheckboxTasks.SetValue(False)
 
-            if 'osaf.pim.CalendarEventMixin' in self.filterClasses:
+            if 'osaf.pim.calendar.Calendar.CalendarEventMixin' in self.filterClasses:
                 self.CheckboxEvents.SetValue(True)
             else:
                 self.CheckboxEvents.SetValue(False)
@@ -275,10 +275,10 @@ class PublishCollectionDialog(wx.Dialog):
                 self.filterClasses.append('osaf.pim.mail.MailMessageMixin')
 
             if self.CheckboxTasks.GetValue():
-                self.filterClasses.append('osaf.pim.TaskMixin')
+                self.filterClasses.append('osaf.pim.tasks.TaskMixin')
 
             if self.CheckboxEvents.GetValue():
-                self.filterClasses.append('osaf.pim.CalendarEventMixin')
+                self.filterClasses.append('osaf.pim.calendar.Calendar.CalendarEventMixin')
 
         for share in self.collection.shares:
             share.filterClasses = self.filterClasses

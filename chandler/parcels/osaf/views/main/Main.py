@@ -787,16 +787,8 @@ class MainView(View):
             if sidebar.filterKind is None:
                 filterClassName = None
             else:
-                # Is there a better way to get from Kind to dotted classname?
                 klass = sidebar.filterKind.classes['python']
-                for className in (
-                    'osaf.pim.CalendarEventMixin',
-                    'osaf.pim.TaskMixin',
-                    'osaf.pim.mail.MailMessageMixin'
-                ):
-                    if klass is schema.importString(className):
-                        filterClassName = className
-                        break
+                filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
 
             mainFrame = wx.GetApp().mainFrame
             PublishCollection.ShowPublishDialog(mainFrame,
@@ -815,18 +807,12 @@ class MainView(View):
             sidebar = Block.findBlockByName("Sidebar")
             filterClasses = []
             if sidebar.filterKind is not None:
-                # Is there a better way to get from Kind to dotted classname?
                 klass = sidebar.filterKind.classes['python']
-                for className in (
-                    'osaf.pim.CalendarEventMixin',
-                    'osaf.pim.TaskMixin',
-                    'osaf.pim.mail.MailMessageMixin'
-                ):
-                    if klass is schema.importString(className):
-                        filterClasses.append(className)
-            collName = \
-                sharing.getFilteredCollectionDisplayName(collection,
-                    filterClasses)
+                className = "%s.%s" % (klass.__module__, klass.__name__)
+                filterClasses.append(className)
+
+            collName = sharing.getFilteredCollectionDisplayName(collection,
+                                                                filterClasses)
 
             menuTitle = _(u'Share "%(collectionName)s"...') % {'collectionName': collName}
         else:
@@ -887,18 +873,12 @@ class MainView(View):
             sidebar = Block.findBlockByName("Sidebar")
             filterClasses = []
             if sidebar.filterKind is not None:
-                # Is there a better way to get from Kind to dotted classname?
                 klass = sidebar.filterKind.classes['python']
-                for className in (
-                    'osaf.pim.CalendarEventMixin',
-                    'osaf.pim.TaskMixin',
-                    'osaf.pim.mail.MailMessageMixin'
-                ):
-                    if klass is schema.importString(className):
-                        filterClasses.append(className)
-            collName = \
-                sharing.getFilteredCollectionDisplayName(collection,
-                    filterClasses)
+                className = "%s.%s" % (klass.__module__, klass.__name__)
+                filterClasses.append(className)
+
+            collName = sharing.getFilteredCollectionDisplayName(collection,
+                                                                filterClasses)
 
             menuTitle = _(u'Sync "%(collectionName)s"') % {'collectionName': collName}
             if sharing.isShared(collection):

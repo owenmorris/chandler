@@ -105,9 +105,9 @@ class SubscribeDialog(wx.Dialog):
             event = 'ApplicationBarAll'
             if share.filterClasses and len(share.filterClasses) == 1:
                 filterClass = share.filterClasses[0]
-                if filterClass == 'osaf.pim.CalendarEventMixin':
+                if filterClass == 'osaf.pim.calendar.Calendar.CalendarEventMixin':
                     event = 'ApplicationBarEvent'
-                elif filterClass == 'osaf.pim.TaskMixin':
+                elif filterClass == 'osaf.pim.tasks.TaskMixin':
                     event = 'ApplicationBarTask'
                 elif filterClass == 'osaf.pim.mail.MailMessageMixin':
                     event = 'ApplicationBarMail'

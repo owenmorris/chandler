@@ -1789,12 +1789,13 @@ class CloudXMLFormat(ImportExportFormat):
         if item.itsKind.isMixin():
             classNames = []
             for kind in item.itsKind.superKinds:
-                # Strip off "<class '" and "'>"
-                className = str(kind.classes['python'])[8:-2]
+                klass = kind.classes['python']
+                className = "%s.%s" % (klass.__module__, klass.__name__)
                 classNames.append(className)
             classes = ",".join(classNames)
         else:
-            classes = str(item.itsKind.classes['python'])[8:-2]
+            klass = item.itsKind.classes['python']
+            classes = "%s.%s" % (klass.__module__, klass.__name__)
 
         result += "<%s class='%s' uuid='%s'>\n" % (item.itsKind.itsName,
                                                   classes,
