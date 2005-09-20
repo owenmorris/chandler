@@ -71,7 +71,7 @@ def getExistingResources(account):
     skipLen = len(path)
     for resource in handle.blockUntil(parent.getAllChildren):
         path = resource.path[skipLen:]
-        path = path.strip(u"/")
+        path = path.strip("/")
         if path:
             path = urllib.unquote_plus(path).decode('utf-8')
             existing.append(path)
