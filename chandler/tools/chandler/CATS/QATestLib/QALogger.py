@@ -26,8 +26,9 @@ class TestLogger:
         self.startDate = datetime.now()
         if filepath:
             self.inTerminal = False
-            time_stamp = "%s%s%s%s%s%s" %(self.startDate.year, self.startDate.month, self.startDate.day,
+            time_stamp = "%4s%2s%2s%2s%2s%2s" %(self.startDate.year, self.startDate.month, self.startDate.day,
                                           self.startDate.hour, self.startDate.minute, self.startDate.second)
+            time_stamp = string.replace(time_stamp, ' ', '0')
             # add a time stamp at the end of the filename
             filepath = filepath+'.'+time_stamp
             try:
@@ -154,7 +155,7 @@ class TestLogger:
     def SetChecked(self, bool):
         self.checked = bool
     
-    def Close(self):
+    def Close(self, quit=True):
         if self.toClose: # The file must close (time to report a summary)
             TestLogger.logger = None
             now = datetime.now()
@@ -220,6 +221,10 @@ class TestLogger:
             if not self.inTerminal:
                 # close the file
                 self.File.close()
+            # quit Chandler
+            if quit:
+                import sys
+                sys.exit(1)
         else: # Just the end of a testcase
             if self.subTestcaseDesc:
                 if self.nbUnchecked == self.nbVerif:

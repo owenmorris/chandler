@@ -60,6 +60,7 @@ class UITestItem :
                 return
         else:
             self.isNote = self.isEvent = self.isTask = self.isMessage = self.isCollection = self.allDay = self.recurring = False
+            self.view = App_ns.itsView
             self.logger = logger
             self.logger.Start("%s creation" %type)
             if type == "Event": # New Calendar Event
@@ -125,26 +126,30 @@ class UITestItem :
 
     def SelectItem(self):
         """
-        Select the item in chandler (summary view or calendar view selection)
+        Select the item in chandler (summary view or calendar view or sidebar selection)
         """
-        #if not in the Calendar view (select in the summary view)
-        #check the button state
-        button = App_ns.ApplicationBarEventButton
-        buttonState = button.widget.IsToggled()
-        if not buttonState:
-            App_ns.summary.select(self.item)
-        #if in the Calendar view (select by clicking on the TimedCanvasItem)
-        else:
-            timedCanvas = App_ns.TimedEvents
-            allDayCanvas = App_ns.AllDayEvents
-            for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
-                if canvasItem._item == self.item:
-		    allDayCanvas.widget.OnSelectItem(canvasItem.GetItem())
-                    break
-            for canvasItem in reversed(timedCanvas.widget.canvasItemList):
-                if canvasItem._item == self.item:
-                    timedCanvas.widget.OnSelectItem(canvasItem.GetItem())
-                    break
+        if not self.isCollection:
+            # if not in the Calendar view (select in the summary view)
+            # check the button state
+            button = App_ns.ApplicationBarEventButton
+            buttonState = button.widget.IsToggled()
+            if not buttonState:
+                App_ns.summary.select(self.item)
+                App_ns.summary.focus()
+            # if in the Calendar view (select by clicking on the TimedCanvasItem)
+            else:
+                timedCanvas = App_ns.TimedEvents
+                allDayCanvas = App_ns.AllDayEvents
+                for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
+                    if canvasItem._item == self.item:
+                        allDayCanvas.widget.OnSelectItem(canvasItem.GetItem())
+                        break
+                for canvasItem in reversed(timedCanvas.widget.canvasItemList):
+                    if canvasItem._item == self.item:
+                        timedCanvas.widget.OnSelectItem(canvasItem.GetItem())
+                        break
+        else: # the item is a collection (sidebar selection)
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
 
     def SetEditableBlock(self, blockName, description, value, timeInfo):
         """
@@ -157,10 +162,10 @@ class UITestItem :
         @param value : the new value for the editable block
         @type timeInfo: boolean
         """
-        if timeInfo:
-            self.logger.Start("%s setting" %description)
         #select the item
         self.SelectItem()
+        if timeInfo:
+            self.logger.Start("%s setting" %description)
         block = App_ns.__getattr__(blockName)
         # Emulate the mouse click in the display name block
         scripting.User.emulate_click(block)
@@ -182,6 +187,7 @@ class UITestItem :
         @type timeInfo: boolean
         @return : True if the selection is succesfull
         """
+        #select the item
         self.SelectItem()
         block = App_ns.__getattr__(menuName)
         list_of_value = []
@@ -211,11 +217,9 @@ class UITestItem :
         @param displayName : the new title
         @type timeInfo: boolean
         """
-        if (self.isNote or self.isEvent or self.isTask or self.isMessage):
+        if not self.isCollection:
             self.SetEditableBlock("HeadlineBlock", "display name", displayName, timeInfo=timeInfo)
-        elif(self.isCollection):
-            if timeInfo:
-                self.logger.Start("Collection title setting")
+        else:
             # work around for mac bug (I guess relative to focus)
             if '__WXMAC__' in wx.PlatformInfo:
                 #row = GetCollectionRow(self.item.displayName)
@@ -226,15 +230,15 @@ class UITestItem :
                 scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
                 # edit the collection displayName (double click)
                 scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
+                if timeInfo:
+                    self.logger.Start("Collection title setting")
                 # Type the new collection displayName
                 scripting.User.emulate_typing(displayName)
-                # work around : KeyboardReturn doesn't work in that kind of editor
+                # work around : emulate_return doesn't work
+                #scripting.User.emulate_return()
                 scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
             if timeInfo:
                 self.logger.Stop()
-        else:
-            self.logger.Print("SetDisplayName is not available for this kind of item")
-            return
 
     def SetStartTime(self, startTime, timeInfo=True):
         """
@@ -309,12 +313,12 @@ class UITestItem :
         @type timeInfo: boolean
         """
         if self.isEvent:
+            self.SelectItem()
             if timeInfo:
                 self.logger.Start("All-day setting")
-            self.SelectItem()
             allDayBlock = App_ns.detail.all_day  
             # Emulate the mouse click in the all-day block
-            # scripting.User.emulate_click(allDayBlock)
+            #scripting.User.emulate_click(allDayBlock)
             # work around : (the mouse click has not the good effect)
             # the bug #3336 appear on linux
             allDayBlock.widget.SetValue(allDay)
@@ -362,7 +366,11 @@ class UITestItem :
         @param body : the new body text
         @type timeInfo: boolean
         """
-        self.SetEditableBlock("NotesBlock", "body", body, timeInfo=timeInfo)
+        if not self.isCollection:
+            self.SetEditableBlock("NotesBlock", "body", body, timeInfo=timeInfo)
+        else:
+            self.logger.Print("SetBody is not available for this kind of item")
+            return
 
     def SetToAddress(self, toAdd, timeInfo=True):
         """
@@ -390,6 +398,37 @@ class UITestItem :
             self.logger.Print("SetFromAddress is not available for this kind of item")
             return
         
+    def SetStamp(self, type, value, timeInfo=True):
+        """
+        Set the given stamp to the given value
+        @type type : string
+        @param type : the type of stamp to set
+        @type value : boolean
+        @param value : the new stamp value
+        @type timeInfo: boolean
+        """
+        type_list = ["Mail", "Task", "Event"]
+        if not type in type_list:
+            return
+        currentValue = {"Mail": self.isMessage, "Task": self.isTask, "Event": self.isEvent}
+        buttonDict = {"Mail": "MailMessageButton", "Task": "TaskStamp", "Event": "CalendarStamp"}
+        if not self.isCollection:
+            if currentValue[type] == value: #Nothing to do
+                return
+            else:
+                # select the item
+                self.SelectItem()
+                if timeInfo :
+                    self.logger.Start("Change the %s stamp" %type)
+                App_ns.markupbar.press(name=buttonDict[type])
+                wx.GetApp().Yield()
+                if timeInfo:
+                    self.logger.Stop()
+        else:
+            self.logger.Print("SetStamp is not available for this kind of item")
+            return
+                
+
     def StampAsMailMessage(self, stampMail, timeInfo=True):
         """
         Stamp as a mail
@@ -397,18 +436,10 @@ class UITestItem :
         @param stampMail : the new mail stamp value
         @type timeInfo: boolean
         """
-        if stampMail == self.isMessage:# Nothing to do
-            return
-        else:
-            if timeInfo :
-                self.logger.Start("Change the Mail stamp to")
-            self.SelectItem()
-            App_ns.markupbar.press(name='MailMessageButton')
-	    wx.GetApp().Yield()
-            self.isMessage = stampMail
-            if timeInfo:
-                self.logger.Stop()
-                
+        self.SetStamp("Mail", stampMail, timeInfo)
+        # update the item state
+        self.isMessage = stampMail
+        
     def StampAsTask(self, stampTask, timeInfo=True):
         """
         Stamp as a task
@@ -416,17 +447,9 @@ class UITestItem :
         @param stampTask : the new task stamp value
         @type timeInfo: boolean
         """
-        if stampTask == self.isTask:# Nothing to do
-            return
-        else:
-            if timeInfo:
-                self.logger.Start("Change the Task stamp")
-            self.SelectItem()
-            App_ns.markupbar.press(name='TaskStamp')
-	    wx.GetApp().Yield()
-            self.isTask = stampTask
-            if timeInfo:
-                self.logger.Stop()
+        self.SetStamp("Task", stampTask, timeInfo)
+        # update the item state
+        self.isTask = stampTask
                 
     def StampAsCalendarEvent(self, stampEvent, timeInfo=True):
         """
@@ -435,17 +458,9 @@ class UITestItem :
         @param stampEvent : the new event stamp value
         @type timeInfo: boolean
         """
-        if stampEvent == self.isEvent:# Nothing to do
-            return
-        else:
-            if timeInfo:
-                self.logger.Start("Change the Calendar Event stamp")
-            self.SelectItem()
-            App_ns.markupbar.press(name='CalendarStamp')
-	    wx.GetApp().Yield()
-            self.isEvent = stampEvent
-            if timeInfo:
-                self.logger.Stop()
+        self.SetStamp("Event", stampEvent, timeInfo)
+        # update the item state
+        self.isEvent = stampEvent
 
     def SetTimeZone(self, timeZone, timeInfo=True):
         """
@@ -532,14 +547,14 @@ class UITestItem :
             self.logger.Print("SendMail is not available for this kind of item")
             return
 
-    def SetCollection(self, collectionName, timeInfo=True):
+    def AddCollection(self, collectionName, timeInfo=True):
         """
         Put the item in the given collection
         @type collectionName : string
         @param collectionName : the name of a collection
         @type timeInfo: boolean
         """
-        if (self.isNote or self.isEvent or self.isTask or self.isMessage):
+        if not self.isCollection:
             col = App_ns.item_named(pim.AbstractCollection, collectionName)
             if timeInfo:
                 self.logger.Start("Give a collection")
@@ -562,7 +577,56 @@ class UITestItem :
         else:
             self.logger.Print("SetCollection is not available for this kind of item")
             return
-    
+
+    def MoveToTrash(self, timeInfo=True):
+        """
+        Move the item into the trash collection
+        @type timeInfo: boolean
+        """
+        #Check if the item is not already in the Trash
+        if self.Check_Collection("Trash", report=False):
+            self.logger.Print("This item is already in the Trash")
+            return
+        #select the item
+        scripting.User.emulate_click(App_ns.summary.widget.GetGridWindow()) #work around for summary.select highlight bug
+        self.SelectItem()
+        if timeInfo:
+            self.logger.Start("Move the item into the Trash")
+        #Processing of the corresponding CPIA event
+        App_ns.root.Delete()
+        #give the Yield
+        wx.GetApp().Yield()
+        if timeInfo:
+            self.logger.Stop()
+
+    def Remove(self, timeInfo=True):
+        """
+        Remove the item from Chandler
+        @type timeInfo: boolean
+        """
+        #select the item
+        scripting.User.emulate_click(App_ns.summary.widget.GetGridWindow()) #work around for summary.select highlight bug
+        self.SelectItem()
+        if timeInfo:
+            self.logger.Start("Remove the item from Chandler")
+        #Processing of the corresponding CPIA event
+        App_ns.root.Remove()
+        #give the Yield
+        wx.GetApp().Yield()
+        if timeInfo:
+            self.logger.Stop()
+        #Checking
+        self.logger.SetChecked(True)
+        if not self.isCollection:
+            status = self.Check_Collection("All", report=False)
+        else:
+            status = scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
+        if status:
+            self.logger.ReportFail("(On existance Checking) - item named: %s still exists" %self.item.displayName)
+        else:
+            self.logger.ReportPass("(On existance Checking) - item named: %s is removed" %self.item.displayName)
+        self.logger.Report("Remove")
+        
     def CheckEditableBlock(self, blockName, description, value):
         """
         Check the value contained in the given editable block
@@ -614,7 +678,7 @@ class UITestItem :
         #get the button state
         state = App_ns.markupbar.pressed(name=buttonName)
         if not state == value :
-            self.logger.ReportFailure("(On %s Checking) || detail view value = %s ; expected value = %s" %(state, value))
+            self.logger.ReportFailure("(On %s Checking) || detail view value = %s ; expected value = %s" %(description, state, value))
         else:
             self.logger.ReportPass("(On %s Checking)" %description)
         
@@ -664,6 +728,9 @@ class UITestItem :
                 self.CheckButton("TaskStamp", "task stamp", dict[field])
             elif field == "stampEvent": # Event stamp checking
                 self.CheckButton("CalendarStamp", "calendar stamp", dict[field])
+            else: # Wrong check => set the report state to unchecked
+                self.logger.SetChecked(False)
+                
         #report the checkings
         self.logger.Report("Detail View")
     
@@ -792,6 +859,8 @@ class UITestItem :
                     self.logger.ReportFailure("(On Event Stamp Checking) || object Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, dict[field]))
                 else:
                     self.logger.ReportPass("(On Event Stamp Checking)")
+            else: # Wrong check => set the report state to unchecked
+                self.logger.SetChecked(False)
         #report the checkings
         self.logger.Report("Object state")
 
@@ -813,13 +882,41 @@ class UITestItem :
             #report the checkings
             self.logger.Report("Sidebar")
         
-        
+    def Check_Collection(self, collectionName, report=True):
+        """
+        Check if the item is in the given collection
+        @return True if the item is in the given collection
+        """
+        if not self.isCollection or collectionName == "Trash":
+            self.logger.SetChecked(True)
+            # for All, In, Out, Trash collection find by item rather than itemName
+            chandler_collections = {"All":scripting.schema.ns('osaf.app', Globals.mainViewRoot).allCollection,
+                                    "Out":scripting.schema.ns('osaf.app', Globals.mainViewRoot).outCollection,
+                                    "In":scripting.schema.ns('osaf.app', Globals.mainViewRoot).inCollection,
+                                    "Trash":scripting.schema.ns('osaf.app', Globals.mainViewRoot).TrashCollection}
+            if collectionName in chandler_collections.keys():
+                col = chandler_collections[collectionName]
+            else:
+                col = App_ns.item_named(pim.AbstractCollection, dict[field])
+
+            if col.__contains__(self.item):
+                if report:
+                    self.logger.ReportPass("(On Collection Checking) - for item named: %s" %self.item.displayName)
+                    self.logger.Report("Collection")
+                return True
+            else:
+                if report:
+                    self.logger.ReportFailure("(On Collection Checking) - Item named: %s is not in %s " %(self.item.displayName, collectionName))
+                    self.logger.Report("Collection")
+                return False
+            
+    
 class UITestAccounts:
     def __init__(self, logger=None):
         self.view = App_ns.itsView
         self.logger = logger
         self.window = None
-        self.accountNames = {'SMTP': 'Outgoing mail (SMTP)', 'IMAP': 'Incoming mail (IMAP)', 'POP': 'Incoming mail (POP)', 'WebDAV': 'Sharing (WebDAV)'}
+        self.accountTypeIndex = {'SMTP': 3, 'IMAP': 1, 'POP': 2, 'WebDAV': 4}
         SMTPfields = {'displayName': 3, 'host': 5, 'username': 15, 'password': 17, 'security': 7, 'port':11,  'authentication': 13}
         IMAPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15, 'port': 19, 'default': 21, 'server': 24}
         POPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15,'port': 19, 'leave': 21,  'default': 23, 'server': 26}
@@ -856,7 +953,7 @@ class UITestAccounts:
         @type type : string
         @param type : an account type (IMAP,SMTP,WebDAV,POP)
         """
-        self.window.choiceNewType.SetStringSelection(self.accountNames[type])
+        self.window.choiceNewType.SetSelection(self.accountTypeIndex[type])
         self.window.OnNewAccount(None)
 
     def _GetField(self, field):
