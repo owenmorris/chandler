@@ -567,13 +567,6 @@ class UITestItem :
             col.add(self.item)
             if timeInfo:
                 self.logger.Stop()
-            #checking
-            self.logger.SetChecked(True)
-            if col.__contains__(self.item):
-                self.logger.ReportPass("(On give collection Checking)")
-            else:
-                self.logger.ReportFailure("(On give collection Checking)")
-            self.logger.Report("Collection Setting")
         else:
             self.logger.Print("SetCollection is not available for this kind of item")
             return
@@ -584,7 +577,7 @@ class UITestItem :
         @type timeInfo: boolean
         """
         #Check if the item is not already in the Trash
-        if self.Check_Collection("Trash", report=False):
+        if self.Check_ItemCollection("Trash", report=False):
             self.logger.Print("This item is already in the Trash")
             return
         #select the item
@@ -604,28 +597,20 @@ class UITestItem :
         Remove the item from Chandler
         @type timeInfo: boolean
         """
-        #select the item
-        scripting.User.emulate_click(App_ns.summary.widget.GetGridWindow()) #work around for summary.select highlight bug
-        self.SelectItem()
-        if timeInfo:
-            self.logger.Start("Remove the item from Chandler")
-        #Processing of the corresponding CPIA event
-        App_ns.root.Remove()
-        #give the Yield
-        wx.GetApp().Yield()
-        if timeInfo:
-            self.logger.Stop()
-        #Checking
-        self.logger.SetChecked(True)
-        if not self.isCollection:
-            status = self.Check_Collection("All", report=False)
+        if self.isCollection:
+            # select the collection
+            self.SelectItem()
+            if timeInfo:
+                self.logger.Start("Remove the item from Chandler")
+            # Processing of the corresponding CPIA event
+            App_ns.root.Remove()
+            # give the Yield
+            wx.GetApp().Yield()
+            if timeInfo:
+                self.logger.Stop()
         else:
-            status = scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
-        if status:
-            self.logger.ReportFail("(On existance Checking) - item named: %s still exists" %self.item.displayName)
-        else:
-            self.logger.ReportPass("(On existance Checking) - item named: %s is removed" %self.item.displayName)
-        self.logger.Report("Remove")
+            self.logger.Print("Remove is not available for this kind of item")
+            return
         
     def CheckEditableBlock(self, blockName, description, value):
         """
@@ -864,25 +849,31 @@ class UITestItem :
         #report the checkings
         self.logger.Report("Object state")
 
-    def Check_Sidebar(self, dict):
+    def Check_CollectionExistance(self, expectedResult=True):
         """
-        Check expected values by comparison to the data displayed in the sidebar
-        @type dict : dictionnary
-        @param dict : dictionnary with expected item attributes values for checking {"attributeName":"expected value",...}
+        Check if the collection exists (displayed in the sidebar)
+        @return : True if the collection exits
         """
         if self.isCollection:
             self.logger.SetChecked(True)
             # check the changing values
-            for field in dict.keys():
-                if field == "displayName": # display name checking
-                    if not GetCollectionRow(dict[field]):
-                        self.logger.ReportFailure("(On display name Checking)  || expected title = %s" %dict[field])
-                    else:
-                        self.logger.ReportPass("(On display name Checking)")
+            if not GetCollectionRow(self.item.displayName):
+                result = False
+                description = "%s doesn't exists" %self.item.displayName
+            else:
+                result = True
+                description = "%s exists" %self.item.displayName
             #report the checkings
-            self.logger.Report("Sidebar")
+            if result == expectedResult :
+                self.logger.ReportPass("(On collection existance Checking) - %s" %description)
+            else:
+                self.logger.ReportFail("(On collection existance Checking) - %s" %description)
+            self.logger.Report("Collection existance")
+        else:
+            self.logger.Print("Check_CollectionExistance is not available for this kind of item")
+            return False
         
-    def Check_Collection(self, collectionName, report=True):
+    def Check_ItemCollection(self, collectionName, report=True):
         """
         Check if the item is in the given collection
         @return True if the item is in the given collection
@@ -897,19 +888,22 @@ class UITestItem :
             if collectionName in chandler_collections.keys():
                 col = chandler_collections[collectionName]
             else:
-                col = App_ns.item_named(pim.AbstractCollection, dict[field])
+                col = App_ns.item_named(pim.AbstractCollection, collectionName)
 
             if col.__contains__(self.item):
+                result = True
                 if report:
-                    self.logger.ReportPass("(On Collection Checking) - for item named: %s" %self.item.displayName)
-                    self.logger.Report("Collection")
-                return True
+                    self.logger.ReportPass("(On Collection Checking) - item named %s is in %s" %(self.item.displayName, collectionName))
+                    self.logger.Report("Item Collection")
             else:
+                result = False
                 if report:
-                    self.logger.ReportFailure("(On Collection Checking) - Item named: %s is not in %s " %(self.item.displayName, collectionName))
-                    self.logger.Report("Collection")
-                return False
-            
+                    self.logger.ReportFailure("(On Collection Checking) - item named %s is not in %s" %(self.item.displayName, collectionName))
+                    self.logger.Report("Item Collection")
+            return result
+        else:
+            self.logger.Print("Check_ItemCollection is not available for this kind of item")
+            return False 
     
 class UITestAccounts:
     def __init__(self, logger=None):

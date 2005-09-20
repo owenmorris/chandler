@@ -9,16 +9,19 @@ if not filePath:
 #initialization
 fileName = "TestNewCollection.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewCollection")
+
+
+#actions
 col = QAUITestAppLib.UITestItem("Collection", logger)
-
-#action
 col.SetDisplayName("Meeting")
+#verification
+col.Check_CollectionExistance()
 
-col.Check_Sidebar({"displayName":"Meeting"})
-
+#actions
 note = QAUITestAppLib.UITestItem("Note", logger)
 note.AddCollection("Meeting")
-
+#verification
+note.Check_ItemCollection("Meeting")
 
 #cleaning
 logger.Close()

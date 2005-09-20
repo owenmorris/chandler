@@ -105,11 +105,11 @@ class TestLogger:
         ''' Stop the action timer  '''
         self.actionEndDate = datetime.now()
         #report the timing information
-        elapsed = self.actionEndDate - self.actionStartDate
         self.Print("Action = "+self.actionDescription)
         if self.actionStartDate == None: # Start method has not been called
             self.Print("!!! No time informations available !!!")
         else:
+            elapsed = self.actionEndDate - self.actionStartDate
             self.Print("Start date (before %s) = %s" %(self.actionDescription, self.actionStartDate))
             self.Print("End date (after %s) = %s" %(self.actionDescription, self.actionEndDate))
             self.Print("Time Elapsed = %s.%s seconds" %(elapsed.seconds, elapsed.microseconds))

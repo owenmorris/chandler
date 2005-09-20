@@ -10,12 +10,11 @@ fileName = "TestRemove.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestRemove")
 
 #actions
-note = QAUITestAppLib.UITestItem("Note", logger)
-note.Remove()
-
-#actions
 col = QAUITestAppLib.UITestItem("Collection", logger)
 col.Remove()
+#verification
+col.Check_CollectionExistance(expectedResult=False)
+
 
 #cleaning
 logger.Close()
