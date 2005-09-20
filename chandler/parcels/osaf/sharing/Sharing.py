@@ -65,8 +65,10 @@ class modeEnum(schema.Enumeration):
 
 
 class Share(items.ContentItem):
-    """ Represents a set of shared items, encapsulating contents, location,
-        access method, data format, sharer and sharees. """
+    """
+    Represents a set of shared items, encapsulating contents, location,
+    access method, data format, sharer and sharees.
+    """
 
     schema.kindInfo(
         displayName=u"Share Kind",
@@ -182,8 +184,10 @@ class Share(items.ContentItem):
         return self.conduit.getLocation(privilege=privilege)
 
     def getSharedAttributes(self, item, cloudAlias='sharing'):
-        """ Examine sharing clouds and filterAttributes to determine which
-            attributes to share for a given item """
+        """
+        Examine sharing clouds and filterAttributes to determine which
+        attributes to share for a given item
+        """
 
         attributes = []
         skip = {}
@@ -288,7 +292,9 @@ class Share(items.ContentItem):
 
 
 class OneTimeShare(Share):
-    """Delete format, conduit, and share after the first get or put."""
+    """
+    Delete format, conduit, and share after the first get or put.
+    """
 
     def remove(self):
         self.conduit.delete(True)
@@ -310,7 +316,9 @@ class OneTimeShare(Share):
 
 
 class ShareConduit(items.ContentItem):
-    """ Transfers items in and out. """
+    """
+    Transfers items in and out.
+    """
 
     schema.kindInfo(displayName = u"Share Conduit Kind")
 
@@ -357,7 +365,9 @@ class ShareConduit(items.ContentItem):
 
 
     def __conditionalPutItem(self, item):
-        """ Put an item if it's not on the server or is out of date """
+        """
+        Put an item if it's not on the server or is out of date
+        """
 
         if self._getItemPath(item) is None:
             # According to the Format, we don't export this item
@@ -398,7 +408,9 @@ class ShareConduit(items.ContentItem):
                 self._getItemPath(item))
 
     def put(self, view=None):
-        """ Transfer entire 'contents', transformed, to server. """
+        """
+        Transfer entire 'contents', transformed, to server.
+        """
 
         self.connect()
 
@@ -517,8 +529,10 @@ class ShareConduit(items.ContentItem):
 
 
     def __conditionalGetItem(self, itemPath, into=None):
-        """ Get an item from the server if we don't yet have it or our copy
-            is out of date """
+        """
+        Get an item from the server if we don't yet have it or our copy
+        is out of date
+        """
 
         # assumes self.resourceList is populated
 
@@ -717,9 +731,10 @@ class ShareConduit(items.ContentItem):
 
 
     def _getItemPath(self, item):
-        """ Return a string that uniquely identifies a resource in the remote
-            share, such as a URL path or a filesystem path.  These strings
-            will be used for accessing the manifest and resourceList dicts.
+        """
+        Return a string that uniquely identifies a resource in the remote
+        share, such as a URL path or a filesystem path.  These strings
+        will be used for accessing the manifest and resourceList dicts.
         """
         extension = self.share.format.extension(item)
         style = self.share.format.fileStyle()
@@ -781,7 +796,9 @@ class ShareConduit(items.ContentItem):
         return itemPath in self.resourceList
 
     def __haveLatest(self, path, data=None):
-        """ Do we have the latest copy of this item? """
+        """
+        Do we have the latest copy of this item?
+        """
         if data == None:
             data = self.resourceList[path]['data']
         try:
@@ -819,14 +836,17 @@ class ShareConduit(items.ContentItem):
     # Methods that subclasses *must* implement:
 
     def getLocation(self):
-        """ Return a string representing where the share is being exported
-            to or imported from, such as a URL or a filesystem path
+        """
+        Return a string representing where the share is being exported
+        to or imported from, such as a URL or a filesystem path
         """
         pass
 
     def _getResourceList(self, location):
-        """ Return a dictionary representing what items exist in the remote
-            share. """
+        """
+        Return a dictionary representing what items exist in the remote
+        share.
+        """
         # 'location' is a location returned from getLocation
         # The returned dictionary should be keyed on a string that uniquely
         # identifies a resource in the remote share.  For example, a url
@@ -837,15 +857,21 @@ class ShareConduit(items.ContentItem):
         pass
 
     def _putItem(self, item, where):
-        """ Must implement """
+        """
+        Must implement
+        """
         pass
 
     def _deleteItem(self, itemPath):
-        """ Must implement """
+        """
+        Must implement
+        """
         pass
 
     def _getItem(self, itemPath, into=None):
-        """ Must implement """
+        """
+        Must implement
+        """
         pass
 
     def connect(self):
@@ -858,19 +884,27 @@ class ShareConduit(items.ContentItem):
         pass
 
     def create(self):
-        """ Create the share on the server. """
+        """
+        Create the share on the server.
+        """
         pass
 
     def destroy(self):
-        """ Remove the share from the server. """
+        """
+        Remove the share from the server.
+        """
         pass
 
     def open(self):
-        """ Open the share for access. """
+        """
+        Open the share for access.
+        """
         pass
 
     def close(self):
-        """ Close the share. """
+        """
+        Close the share.
+        """
         pass
 
 
@@ -1100,7 +1134,9 @@ class WebDAVConduit(ShareConduit):
         self.serverHandle = None
 
     def getLocation(self, privilege=None, includeShare=True):
-        """ Return the url of the share """
+        """
+        Return the url of the share
+        """
 
         (host, port, sharePath, username, password, useSSL) = \
             self.__getSettings()
@@ -1264,7 +1300,8 @@ class WebDAVConduit(ShareConduit):
 
 
     def _putItem(self, item):
-        """ putItem should publish an item and return etag/date, etc.
+        """
+        putItem should publish an item and return etag/date, etc.
         """
 
         try:
@@ -1367,7 +1404,8 @@ class WebDAVConduit(ShareConduit):
 
 
     def _getResourceList(self, location): # must implement
-        """ Return information (etags) about all resources within a collection
+        """
+        Return information (etags) about all resources within a collection
         """
 
         resourceList = {}
@@ -1472,7 +1510,9 @@ class CalDAVConduit(WebDAVConduit):
 
 
 class SimpleHTTPConduit(WebDAVConduit):
-    """ Useful for get-only subscriptions of remote .ics files """
+    """
+    Useful for get-only subscriptions of remote .ics files
+    """
 
     schema.kindInfo(displayName=u"Simple HTTP Share Conduit Kind")
 
@@ -1567,27 +1607,39 @@ class SharingError(ChandlerException):
 
 
 class AlreadyExists(SharingError):
-    """ Exception raised if a share already exists. """
+    """
+    Exception raised if a share already exists.
+    """
 
 class NotFound(SharingError):
-    """ Exception raised if a share/resource wasn't found. """
+    """
+    Exception raised if a share/resource wasn't found.
+    """
 
 class NotAllowed(SharingError):
-    """ Exception raised if we don't have access. """
+    """
+    Exception raised if we don't have access.
+    """
 
 class Misconfigured(SharingError):
-    """ Exception raised if a share isn't properly configured. """
+    """
+    Exception raised if a share isn't properly configured.
+    """
 
 class CouldNotConnect(SharingError):
-    """ Exception raised if a conduit can't connect to an external entity
-        due to DNS/network problems.
+    """
+    Exception raised if a conduit can't connect to an external entity
+    due to DNS/network problems.
     """
 class IllegalOperation(SharingError):
-    """ Exception raised if the entity a conduit is communicating with is
-        denying an operation for some reason not covered by other exceptions.
+    """
+    Exception raised if the entity a conduit is communicating with is
+    denying an operation for some reason not covered by other exceptions.
     """
 class TransformationFailed(SharingError):
-    """ Exception raised if import or export process failed. """
+    """
+    Exception raised if import or export process failed.
+    """
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -1641,7 +1693,9 @@ class WebDAVAccount(items.ContentItem):
     conduits = schema.Sequence(WebDAVConduit, inverse = WebDAVConduit.account)
 
     def getLocation(self):
-        """ Return the base url of the account """
+        """
+        Return the base url of the account
+        """
 
         if self.useSSL:
             scheme = "https"
@@ -1661,7 +1715,8 @@ class WebDAVAccount(items.ContentItem):
 
     @classmethod
     def findMatch(cls, view, url):
-        """ Find a WebDAV account which corresponds to a URL.
+        """
+        Find a WebDAV account which corresponds to a URL.
 
         The url being passed in is for a collection -- it will include the
         collection name in the url.  We need to find a webdav account who
@@ -1712,11 +1767,15 @@ class ImportExportFormat(items.ContentItem):
                                   # its own file
 
     def fileStyle(self):
-        """ Should return 'single' or 'directory' """
+        """
+        Should return 'single' or 'directory'
+        """
         pass
 
     def shareItemPath(self):
-        """ Return the path for the file representing the Share item """
+        """
+        Return the path for the file representing the Share item
+        """
         return None # None indicates there is no file representing the Share
                     # item
 

@@ -32,7 +32,8 @@ def translateToTimezone(dt, tzinfo):
         return dt.astimezone(tzinfo)
 
 class RecurrenceToVObject:
-    """Temporary home for creating vobject objects that can be serialized.
+    """
+    Temporary home for creating vobject objects that can be serialized.
     
     These functions currently force all recurrence into the US-Pacific, and
     only support a small subset of possible recurrence rules.  Eventually,
@@ -66,7 +67,8 @@ END:VTIMEZONE"""
         self.pacificVTimezone.behavior = vobject.icalendar.VTimezone
 
     def addRRule(self, vevent, freq, count=None, until=None):
-        """Adds an RRULE line to a Component.
+        """
+        Adds an RRULE line to a Component.
         
         Because native vobject vevents are RecurringComponents, use the
         transformFromNative method before calling addRRule.
@@ -83,18 +85,23 @@ END:VTIMEZONE"""
 RecurrenceHelper = RecurrenceToVObject()
 
 def dateForVObject(dt, asDate = False):
-    """Convert the given datetime into a date or datetime in Pacific time."""
+    """
+    Convert the given datetime into a date or datetime in Pacific time.
+    """
     if asDate:
         return dt.date()
     else:
         return translateToTimezone(dt, RecurrenceHelper.pacificTZ)
 
 def preserveTimezone(dtContentLine):
-    """Timezones in vobject lines are converted to UTC by default."""
+    """
+    Timezones in vobject lines are converted to UTC by default.
+    """
     dtContentLine.params['X-VOBJ-PRESERVE-TZID'] = ['TRUE']
 
 def itemsToVObject(view, items, cal=None, filters=None):
-    """Iterate through items, add to cal, create a new vcalendar if needed.
+    """
+    Iterate through items, add to cal, create a new vcalendar if needed.
 
     Consider only master events (then serialize all modifications).  For now,
     set all timezones to Pacific.
@@ -273,7 +280,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return "text/calendar"
 
     def findUID(self, uid):
-        """Return the master event whose icalUID matched uid, or None."""
+        """
+        Return the master event whose icalUID matched uid, or None.
+        """
         uid_map = schema.ns('osaf.sharing', self.itsView).uid_map
         match = uid_map.items.getByAlias(uid)
         if match is None:
@@ -534,13 +543,17 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
 
 class CalDAVFormat(ICalendarFormat):
-    """Treat multiple events as different resources."""
+    """
+    Treat multiple events as different resources.
+    """
     
     def fileStyle(self):
         return self.STYLE_DIRECTORY
 
     def exportProcess(self, item, depth=0):
-        """Item may be a Share or an individual Item, return None if Share."""
+        """
+        Item may be a Share or an individual Item, return None if Share.
+        """
         if not isinstance(item, CalendarEventMixin):
             return None
         cal = itemsToVObject(self.itsView, [item],
