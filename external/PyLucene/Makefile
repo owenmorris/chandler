@@ -136,7 +136,7 @@ binaries:
         tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
 	$(MD5) $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz > $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz.md5
 
-install: pylucene-$(SNAP)-$(RELVER).tar.gz
+install: PyLucene-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf PyLucene-$(SNAP)-$(RELVER).tar.gz
 
 upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
