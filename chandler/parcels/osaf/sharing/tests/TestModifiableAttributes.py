@@ -1,15 +1,12 @@
 import unittest
-from application import schema
+from repository.persistence.RepositoryView import NullRepositoryView
 from osaf import pim, sharing
-from util import testcase
 
-
-class TestModifiableAttributes(testcase.ChandlerTestCase):
-
+class TestModifiableAttributes(unittest.TestCase):
 
     def testModifiable(self):
 
-        view = self.view
+        view = NullRepositoryView()
 
         # Our test subject
         e1 = pim.CalendarEvent(view=view)
