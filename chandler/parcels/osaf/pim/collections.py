@@ -206,7 +206,7 @@ class AbstractCollection(items.ContentItem):
         """
         Create an index on this collection
 
-        If the C{{indexName} attribute of this collection is set to
+        If the C{indexName} attribute of this collection is set to
         "__adhoc__" then a numeric index will be created.  Otherwise
         the C{indexName} attribute should contain the name of the
         attribute (of an item) to be indexed.
