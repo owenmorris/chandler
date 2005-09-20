@@ -389,8 +389,7 @@ class ShareConduit(items.ContentItem):
                 logger.info("...done, data: %s, version: %d" %
                  (data, itemVersion))
 
-            if item not in self.share.items:
-                self.share.items.append(item)
+            self.share.items.append(item)
 
         try:
             del self.resourceList[self._getItemPath(item)]
@@ -1516,6 +1515,11 @@ class SimpleHTTPConduit(WebDAVConduit):
         try:
             text = resp.body
             self.share.format.importProcess(text, item=self.share)
+
+            # The share maintains bi-di-refs between Share and Item:
+            for item in self.share.contents:
+                self.share.items.append(item)
+
         except Exception, e:
             logging.exception(e)
             raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
