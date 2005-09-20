@@ -3,15 +3,15 @@ from application import schema
 from osaf import pim
 from util import testcase
 
-
-class TestUIDMap(testcase.ChandlerTestCase):
-
-    parcels = ['osaf.sharing']
+class TestUIDMap(testcase.NRVTestCase):
 
     def testMap(self):
-        uid_map = schema.ns('osaf.sharing', self.view).uid_map
 
-        event1 = pim.CalendarEvent(view=self.view)
+        view = self.view
+
+        uid_map = schema.ns('osaf.sharing', view).uid_map
+
+        event1 = pim.CalendarEvent(view=view)
 
         # Creating an event sets its icalUID, which is monitored by uid_map,
         # which in turn adds the event to the 'items' ref collection using
