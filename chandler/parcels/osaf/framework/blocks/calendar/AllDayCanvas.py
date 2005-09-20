@@ -11,7 +11,44 @@ from PyICU import GregorianCalendar, ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
 
+class SparseMatrix(object):
 
+    def __init__(self):
+        self._grid = {}
+    
+    def Fill(self, x,y):
+        self._grid.setdefault(x, {})[y] = True
+
+    def Filled(self, x,y):
+        if not self._grid.has_key(x):
+            return False
+        if not self._grid[x].has_key(y):
+            return False
+        return self._grid[x][y]
+
+    def FitBlock(self, x1, x2, y):
+        """
+        are the cells grid[x1..x2][y] all false-valued?  (x2 inclusive.)
+        """
+        for x in range(x1, x2+1):
+            if self.Filled(x,y): return False
+        return True
+
+    def FitRange(self, startX, endX):
+        """
+        find the first available row that fits something that spans from
+        startX to endX
+        """
+        y = 0
+        while True:
+            fitsHere = self.FitBlock(startX, endX, y)
+            if fitsHere:
+                # lay out into this spot
+                for x in xrange(startX, endX+1):
+                    self.Fill(x,y)
+                return y
+            y += 1
+    
 class AllDayEventsCanvas(CalendarBlock):
 
     def instantiateWidget(self):
@@ -115,20 +152,21 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         oldNumEventRows = self.numEventRows
         if self.blockItem.dayMode:
+            # daymode, just stack all the events
             for y, item in enumerate(visibleItems):
                 self.RebuildCanvasItem(item, width, 0,0, y)
             self.numEventRows = len(visibleItems)
             
         else:
-            # Next: place all the items on a grid without overlap. Items can
-            # span multiple columns. TODO: maybe make this into two passes for
-            # layout & then Rebuild()ing should be cleaner
+            # weekmode: place all the items on a grid without
+            # overlap. Items can span multiple columns. TODO: maybe
+            # make this into two passes for layout & then Rebuild()ing
+            # should be cleaner
             
             # conflict grid: 2-d "matrix" of booleans.  False == free spot
             # FIXME fixed number of rows.   Rigged up for grid[x][y] notation:
             # [[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
-            MAX_ROWS = 200
-            grid = [[False for y in range(MAX_ROWS)] for x in range(drawInfo.columns)]
+            grid = SparseMatrix()
             
             self.numEventRows = 0
 
@@ -145,19 +183,14 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                     dayEnd = self.DayOfWeekNumber(item.endTime)
                 
                 #search downward, looking for a spot where it'll fit
-                for y in xrange(MAX_ROWS):
-                    fitsHere = self.BlockFits(grid, dayStart, dayEnd, y)
-                    if fitsHere:
-                        # lay out into this spot
-                        for day in xrange(dayStart, dayEnd+1):
-                            grid[day][y] = True
-                        self.RebuildCanvasItem(item, width, dayStart, dayEnd, y)
-                        if y+1 > self.numEventRows:  self.numEventRows = y+1
-                        break
-                else:
-                    raise Exception, "Too many events in all-day area to fit in MAX_ROWS"
+                y=0
+                y = grid.FitRange(dayStart, dayEnd)
+                self.RebuildCanvasItem(item, width, dayStart, dayEnd, y)
+                self.numEventRows = max(y+1, self.numEventRows)
         
-        if self.numEventRows and self.numEventRows > oldNumEventRows and self.autoExpandMode:
+        if (self.numEventRows and
+            self.numEventRows > oldNumEventRows and
+            self.autoExpandMode):
             self.ExpandIfNeeded()
 
     def ExpandIfNeeded(self):
@@ -175,12 +208,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                               doc="precondition: self.numEventRows must be correctly set")
 
 
-    @staticmethod
-    def BlockFits(grid, x1, x2, y):
-        """are the cells grid[x1..x2][y] all false-valued?  (x2 inclusive.)"""
-        for x in range(x1, x2+1):
-            if grid[x][y]: return False
-        return True
     
     def RebuildCanvasItem(self, item, columnWidth, dayStart, dayEnd, gridRow):
         """
@@ -248,9 +275,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         return event
 
     def OnBeginDragItem(self):
-        originalBox = self.dragState.originalDragBox
-        originalBox.originalStartTime = \
-            originalBox.GetItem().startTime
+        #originalBox = self.dragState.originalDragBox
+        #originalBox.originalStartTime = \
+        #    originalBox.GetItem().startTime
+        pass
 
     def OnDraggingItem(self, unscrolledPosition):
         if self.blockItem.dayMode:
