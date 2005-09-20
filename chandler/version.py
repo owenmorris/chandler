@@ -14,3 +14,4 @@
 
 release = "0.5-5"
 build = "Milestone 0.5.05"
+buildRevision = "0000"
