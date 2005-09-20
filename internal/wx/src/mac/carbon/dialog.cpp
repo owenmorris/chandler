@@ -61,9 +61,9 @@ bool wxDialog::Create(wxWindow *parent, wxWindowID id,
     style |= wxTAB_TRAVERSAL;
 
     if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style & ~(wxYES|wxOK|wxNO|wxCANCEL) , name) )
-        return FALSE;
+        return false;
 
-    return TRUE;
+    return true;
 }
 
 void wxDialog::SetModal(bool flag)
@@ -87,8 +87,8 @@ void wxDialog::SetModal(bool flag)
 
 wxDialog::~wxDialog()
 {
-    m_isBeingDeleted = TRUE;
-    Show(FALSE);
+    m_isBeingDeleted = true;
+    Show(false);
 }
 
 // By default, pressing escape cancels the dialog , on mac command-stop does the same thing
@@ -112,7 +112,8 @@ void wxDialog::OnCharHook(wxKeyEvent& event)
 
 bool wxDialog::IsModal() const
 {
-    return m_isModalStyle;
+    return wxModalDialogs.Find((wxDialog *)this) != NULL; // const_cast
+    //    return m_isModalStyle;
 }
 
 
@@ -126,7 +127,7 @@ bool wxDialog::Show(bool show)
     if ( !wxDialogBase::Show(show) )
     {
         // nothing to do
-        return FALSE;
+        return false;
     }
 
     if ( show )
@@ -135,7 +136,7 @@ bool wxDialog::Show(bool show)
         InitDialog();
     }
 
-    if ( IsModal() )
+    if ( m_isModalStyle )
     {
         if ( show )
         {
@@ -189,12 +190,12 @@ void wxDialog::DoShowModal()
 // Replacement for Show(TRUE) for modal dialogs - returns return code
 int wxDialog::ShowModal()
 {
-    if ( !IsModal() )
+    if ( !m_isModalStyle )
     {
-        SetModal(TRUE);
+        SetModal(true);
     }
 
-    Show(TRUE);
+    Show(true);
     return GetReturnCode();
 }
 
@@ -202,8 +203,9 @@ int wxDialog::ShowModal()
 //     dialogs and should work for both of them
 void wxDialog::EndModal(int retCode)
 {
-  SetReturnCode(retCode);
-  Show(FALSE);
+    SetReturnCode(retCode);
+    Show(false);
+    SetModal(false);
 }
 
 // Standard buttons

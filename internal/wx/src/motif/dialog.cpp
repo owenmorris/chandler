@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.cpp,v 1.55 2005/09/19 10:36:13 VZ Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.56 2005/09/20 10:05:46 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -370,6 +370,8 @@ void wxDialog::EndModal(int retCode)
 
     m_modalShowing = false;
     m_eventLoop->Exit();
+
+    SetModal(false);
 }
 
 // Standard buttons
