@@ -158,7 +158,7 @@ class SMTPClient(object):
             else:
                  key = "displaySMTPSendSuccess"
 
-            NotifyUIAsync(self.mailMessage, callable=key)
+            NotifyUIAsync(self.mailMessage, cl=key)
 
 
             """If there are messages send the next one in the Queue
@@ -427,7 +427,7 @@ class SMTPClient(object):
         else:
             """Clear the status bar message"""
             self.displayed = True
-            NotifyUIAsync("", callable='setStatusMessage')
+            NotifyUIAsync("", cl='setStatusMessage')
 
             """Reset the SMTPClient"""
             self._actionCompleted()
