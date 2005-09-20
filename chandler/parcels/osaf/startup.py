@@ -15,7 +15,9 @@ __all__ = [
 # --------
 
 def run_startup(repositoryView):
-    """Run all active startup items in `repositoryView`"""
+    """
+    Run all active startup items in `repositoryView`
+    """
     started = set()
     attempted = set()
     for item in Startup.iterItems(repositoryView):
@@ -23,7 +25,9 @@ def run_startup(repositoryView):
 
 
 class Startup(schema.Item):
-    """Subclass this & create parcel.xml instances for startup notifications"""
+    """
+    Subclass this & create parcel.xml instances for startup notifications
+    """
 
     invoke = schema.One(schema.String,
         doc="Full name of a class or function to import and run at startup"
@@ -42,15 +46,20 @@ class Startup(schema.Item):
     requiredBy = schema.Sequence(inverse=requires)
 
     def getTarget(self):
-        """Import the object named by ``invoke`` and return it"""
+        """
+        Import the object named by ``invoke`` and return it
+        """
         return schema.importString(self.invoke)
 
     def invokeTarget(self, target):
-        """Run the specified startup target in the current thread"""
+        """
+        Run the specified startup target in the current thread
+        """
         target(self)
 
     def onStart(self):
-        """Override this method in a subclass to receive the notification
+        """
+        Override this method in a subclass to receive the notification
 
         Note: you should *not* create or modify items in this method or code
         called from this method.  If you want to do that, you probably don't
@@ -63,7 +72,9 @@ class Startup(schema.Item):
         self.invokeTarget(self.getTarget())
 
     def _start(self, attempted, started):
-        """Handle inter-startup ordering and invoke onStart()"""
+        """
+        Handle inter-startup ordering and invoke onStart()
+        """
         if self in started:
             return True
         elif not self.active or self in attempted:
@@ -87,7 +98,8 @@ class Startup(schema.Item):
 # -----------------
 
 def fork_item(item_or_view, name=None, version=None):
-    """Return a version of `item_or_view` that's in a new repository view
+    """
+    Return a version of `item_or_view` that's in a new repository view
 
     This is a shortcut for creating a new view against the same repository
     as the original item or view, and then looking up the item or view by
@@ -119,10 +131,14 @@ def fork_item(item_or_view, name=None, version=None):
 
 
 class Thread(Startup):
-    """A Startup that runs its target in a new thread"""
+    """
+    A Startup that runs its target in a new thread
+    """
 
     def invokeTarget(self, target):
-        """Run a target in a new RepositoryThread w/a new repository view"""
+        """
+        Run a target in a new RepositoryThread w/a new repository view
+        """
         thread = RepositoryThread(
             name=str(self.itsPath), target=target, args=(fork_item(self),)
         )
@@ -131,17 +147,23 @@ class Thread(Startup):
 
 
 class TwistedTask(Startup):
-    """A Startup that runs its target in the reactor thread as a callback"""
+    """
+    A Startup that runs its target in the reactor thread as a callback
+    """
 
     def invokeTarget(self, target):
-        """Run a target in the reactor thread w/a new repository view"""
+        """
+        Run a target in the reactor thread w/a new repository view
+        """
         run_reactor()
         from twisted.internet import reactor
         reactor.callFromThread(target, fork_item(self))
 
 
 class PeriodicTask(TwistedTask):
-    """A Startup that runs its target periodically"""
+    """
+    A Startup that runs its target periodically
+    """
 
     interval = schema.One(
         schema.TimeDelta,
@@ -156,11 +178,15 @@ class PeriodicTask(TwistedTask):
     )
 
     def onStart(self):
-        """Start our wrapper in the reactor thread"""
+        """
+        Start our wrapper in the reactor thread
+        """
         self.invokeTarget(lambda self: self.startRunning())
 
     def startRunning(self):
-        """Set up for running and repeating the task"""
+        """
+        Set up for running and repeating the task
+        """
 
         from twisted.internet import reactor
         subject = self.getTarget()(self)
@@ -189,12 +215,16 @@ _reactor_thread = None
 
 
 def get_reactor_thread():
-    """Return the threading.thread running the Twisted reactor, or None"""
+    """
+    Return the threading.thread running the Twisted reactor, or None
+    """
     return _reactor_thread
 
 
 def run_reactor(in_thread=True):
-    """Safely run the Twisted reactor"""
+    """
+    Safely run the Twisted reactor
+    """
 
     global _reactor_thread
 
@@ -237,7 +267,9 @@ def run_reactor(in_thread=True):
 
 
 def stop_reactor():
-    """Stop the Twisted reactor and wait for its thread to exit"""
+    """
+    Stop the Twisted reactor and wait for its thread to exit
+    """
 
     global _reactor_thread
     from twisted.internet import reactor
