@@ -516,7 +516,8 @@ class SSSidebarSharingButton (SSSidebarButton):
                 if (share.sharer is not None and
                     str(share.sharer.itsPath) == "//userdata/me"):
                     shared = "Upload"
-                shared = "Download"
+                else:
+                    shared = "Download"
 
                 if filterKind is None and  len (share.filterClasses) != 0:
                     partial = "Partial"
