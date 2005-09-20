@@ -14,13 +14,13 @@ note = QAUITestAppLib.UITestItem("Note", logger)
 note.SetAttr(displayName="A note to move to Trash", body="TO MOVE TO TRASH")
 note.MoveToTrash()
 #verification
-note.Check_ItemCollection("Trash")
+note.Check_ItemInCollection("Trash")
 
 #actions
 col = QAUITestAppLib.UITestItem("Collection", logger)
 col.MoveToTrash()
 #verification
-col.Check_ItemCollection("Trash")
+col.Check_ItemInCollection("Trash")
 
 #cleaning
 logger.Close()

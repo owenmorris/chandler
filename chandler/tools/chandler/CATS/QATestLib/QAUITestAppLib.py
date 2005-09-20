@@ -149,8 +149,13 @@ class UITestItem :
                         timedCanvas.widget.OnSelectItem(canvasItem.GetItem())
                         break
         else: # the item is a collection (sidebar selection)
-            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
-
+            # work around for mac bug (I guess relative to focus) emulate_sidebarClick doesn't work
+            if '__WXMAC__' in wx.PlatformInfo:
+                App_ns.sidebar.select(self.item)
+                App_ns.sidebar.focus()
+            else:    
+                scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
+            
     def SetEditableBlock(self, blockName, description, value, timeInfo):
         """
         Set the value of an editable block
@@ -220,11 +225,11 @@ class UITestItem :
         if not self.isCollection:
             self.SetEditableBlock("HeadlineBlock", "display name", displayName, timeInfo=timeInfo)
         else:
-            # work around for mac bug (I guess relative to focus)
+            # work around for mac bug (I guess relative to focus) emulate_sidebarClick doesn't work
             if '__WXMAC__' in wx.PlatformInfo:
                 #row = GetCollectionRow(self.item.displayName)
                 #App_ns.sidebar.widget.SetCellValue(row, 0, displayName)
-		self.item.displayName = displayName
+		self.item.displayName = u"%s" %displayName
             else:
                 # select the collection
                 scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
@@ -577,7 +582,7 @@ class UITestItem :
         @type timeInfo: boolean
         """
         #Check if the item is not already in the Trash
-        if self.Check_ItemCollection("Trash", report=False):
+        if self.Check_ItemInCollection("Trash", report=False):
             self.logger.Print("This item is already in the Trash")
             return
         #select the item
@@ -601,7 +606,7 @@ class UITestItem :
             # select the collection
             self.SelectItem()
             if timeInfo:
-                self.logger.Start("Remove the item from Chandler")
+                self.logger.Start("Remove collection")
             # Processing of the corresponding CPIA event
             App_ns.root.Remove()
             # give the Yield
@@ -867,13 +872,13 @@ class UITestItem :
             if result == expectedResult :
                 self.logger.ReportPass("(On collection existance Checking) - %s" %description)
             else:
-                self.logger.ReportFail("(On collection existance Checking) - %s" %description)
+                self.logger.ReportFailure("(On collection existance Checking) - %s" %description)
             self.logger.Report("Collection existance")
         else:
             self.logger.Print("Check_CollectionExistance is not available for this kind of item")
             return False
         
-    def Check_ItemCollection(self, collectionName, report=True):
+    def Check_ItemInCollection(self, collectionName, report=True):
         """
         Check if the item is in the given collection
         @return True if the item is in the given collection
@@ -902,7 +907,7 @@ class UITestItem :
                     self.logger.Report("Item Collection")
             return result
         else:
-            self.logger.Print("Check_ItemCollection is not available for this kind of item")
+            self.logger.Print("Check_ItemInCollection is not available for this kind of item")
             return False 
     
 class UITestAccounts:

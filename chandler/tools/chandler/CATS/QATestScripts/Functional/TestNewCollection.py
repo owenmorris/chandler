@@ -21,7 +21,7 @@ col.Check_CollectionExistance()
 note = QAUITestAppLib.UITestItem("Note", logger)
 note.AddCollection("Meeting")
 #verification
-note.Check_ItemCollection("Meeting")
+note.Check_ItemInCollection("Meeting")
 
 #cleaning
 logger.Close()
