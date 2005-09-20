@@ -1,6 +1,6 @@
 
-VERSION=0.9.9-192
-RELVER=$(VERSION)-3
+VERSION=1.0
+RELVER=$(VERSION)-1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 
@@ -133,15 +133,15 @@ clean: PyLucene-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
-	$(MD5) $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz > $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz.md5
+        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
+	$(MD5) $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz > $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: pylucene-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf pylucene-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf PyLucene-$(SNAP)-$(RELVER).tar.gz
 
-upload: $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz
-	scp $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
+	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 PyLucene-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz
