@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import time
 import string
+import version
 
 
 def QALogger(filepath=None,description="No description"):
@@ -83,8 +84,8 @@ class TestLogger:
                 description = "%s.%s" %(description, testcaseDesc)
             description = "%s.%s" %(description, actionDesc)
         elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
-        self.Print("OSAF_QA: %s | %s | %s | %s" %(description, 1, elapsed_min, elapsed_min)) 
-        print("OSAF_QA: %s | %s | %s | %s" %(description, 1, elapsed_min, elapsed_min))
+        self.Print("OSAF_QA: %s | %s | %s | %s | %s" %(description, version.buildRevision, 1, elapsed_min, elapsed_min)) 
+        print("OSAF_QA: %s | %s | %s | %s | %s" %(description, version.buildRevision, 1, elapsed_min, elapsed_min))
         
     def Start(self,string):
         ''' Start the action timer  '''
