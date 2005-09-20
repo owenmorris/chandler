@@ -504,12 +504,15 @@ class SSSidebarSharingButton (SSSidebarButton):
         if share is not None:
             filterKind = self.buttonOwner.filterKind
 
-            filterMatches = False
-            if filterKind is not None:
-                klass = filterKind.classes['python']
-                className = "%s.%s" % (klass.__module__, klass.__name__)
-                if className in share.filterClasses:
-                    filterMatches = True
+            if not share.filterClasses:
+                filterMatches = True
+            else:
+                filterMatches = False
+                if filterKind is not None:
+                    klass = filterKind.classes['python']
+                    className = "%s.%s" % (klass.__module__, klass.__name__)
+                    if className in share.filterClasses:
+                        filterMatches = True
 
             if ((filterKind is None) or filterMatches):
 
@@ -519,7 +522,7 @@ class SSSidebarSharingButton (SSSidebarButton):
                 else:
                     shared = "Download"
 
-                if filterKind is None and  len (share.filterClasses) != 0:
+                if filterKind is None and len (share.filterClasses) != 0:
                     partial = "Partial"
 
         if mouseOverFlag:
@@ -543,7 +546,7 @@ class SSSidebarSharingButton (SSSidebarButton):
                 iconName = shared + partial
         
         # We need an indication of NotMine
-        if False:
+        if item in schema.ns('osaf.app', self.itsView).notMine.sources:
             iconName += "NotMine"
 
         # First lookup full image name
