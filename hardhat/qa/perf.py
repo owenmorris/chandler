@@ -33,8 +33,13 @@ class perf:
 
     self.verbose = self._options['verbose']
 
-    self.SummaryTestNames = { 'application.tests.testparcelperf.testcalendarevents-generate': 'Test One',
-                              'application.tests.testparcelperf.testcontacts-commit':         'Test Two',
+    self.SummaryTestNames = { 'switching_to_all_view_for_performance':    'Switching Views',
+                              'perf_stamp_as_event':                      'Stamping',
+                              'new_event_from_file_menu_for_performance': 'New event creation (file menu)',
+                              'new_event_by_double_clicking_in_the_cal_view_for_performance': 'New event creation (in-place)',
+                              'importing_3000_event_calendar':            'Importing a 3000 event calendar',
+                              'test_new_calendar_for_performance':        'Creating a new calendar',
+                              #'': 'App startup (with existing repository)',
                             }
     self.PerformanceTBoxes = ['mikala-linux', 'kona-win', 'molokini-osx']
 
@@ -466,9 +471,13 @@ class perf:
       line = '<tr><td><a href="detail_%s.html#%s">%s</a></td>' % (enddate, testkey, testDisplayName)
 
       for key in ['linux', 'osx', 'win']:
-        targetAvg = targets[key][testkey]
-        avg       = platforms[key]['avg']
-        revision  = platforms[key]['revision']
+        if testkey in targets[key].keys():
+          targetAvg = targets[key][testkey]
+        else:
+          targetAvg = 0.0
+
+        avg      = platforms[key]['avg']
+        revision = platforms[key]['revision']
 
         c_diff = targetAvg - avg
 
@@ -477,8 +486,8 @@ class perf:
         else:
           c_perc = 0
 
-
         s = 'ok'
+
         if c_perc < 0.0:
           if abs(c_perc) > self._options['p_alert']:
             s = 'alert'
@@ -486,6 +495,7 @@ class perf:
             s = 'warn'
 
         line += '<td>%s</td><td class="number">%02.3f</td>' % (revision, avg)
+        line += '<td class="number">%02.3f</td>' % targetAvg
         line += '<td class="%s">%02.3f</td>' % (s, c_perc)
         line += '<td class="%s">%02.3f</td>' % (s, c_diff)
 
@@ -514,14 +524,15 @@ class perf:
     page.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
 
     page.append('<p>This is a summary of the performance totals</p>\n')
-    page.append('<p>The Average is calculated from the total number of test runs for the given day<br/>\n')
-    page.append('The % Change is measured from the last Milestone</p>\n')
+    page.append('<p>The Median is calculated from the total number of test runs for the given day<br/>\n')
+    page.append('The % Change is measured from the last Milestone<br/>\n')
+    page.append('Median and Target unit of measure is minutes</p>\n')
 
     page.append('<table>\n')
-    page.append('<tr><th></th><th colspan="4">Linux</th><th colspan="4">OS X</th><th colspan="4">Windows</th></tr>\n')
-    page.append('<tr><th>Test</th><th>Rev #</th><th>Average</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>Average</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>Average</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
+    page.append('<tr><th></th><th colspan="5">Linux</th><th colspan="5">OS X</th><th colspan="5">Windows</th></tr>\n')
+    page.append('<tr><th>Test</th><th>Rev #</th><th>Median</th><th>Target</th><th>&Delta; %</th><th>&Delta; time</th>')
+    page.append('<th>Rev #</th><th>Median</th><th>Target</th><th>&Delta; %</th><th>&Delta; time</th>')
+    page.append('<th>Rev #</th><th>Median</th><th>Target</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
@@ -537,14 +548,31 @@ class perf:
 
         detail.append('<h2>%s: %s</h2>\n' % (testDisplayName, testkey))
 
-        targets = { 'osx':   { 'application.tests.testparcelperf.testcalendarevents-generate': 0.30758,
-                               'application.tests.testparcelperf.testcontacts-commit':         0.60000,
+          # taken from QA testing m5
+
+        targets = { 'osx':   { 'switching_to_all_view_for_performance':    0.0129,
+                               'perf_stamp_as_event':                      0.0224,
+                               'new_event_from_file_menu_for_performance': 0.3655,
+                               'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0372,
+                               'importing_3000_event_calendar':            2.6833,
+                               'test_new_calendar_for_performance':        0.0237,
+                               #'': ,
                              },
-                    'linux': { 'application.tests.testparcelperf.testcalendarevents-generate': 0.35212,
-                               'application.tests.testparcelperf.testcontacts-commit':         0.60000,
+                    'linux': { 'switching_to_all_view_for_performance':    0.0099,
+                               'perf_stamp_as_event':                      0.0157,
+                               'new_event_from_file_menu_for_performance': 0.0268,
+                               'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0255,
+                               'importing_3000_event_calendar':            2.6500,
+                               'test_new_calendar_for_performance':        0.0112,
+                               #'': ,
                              },
-                    'win':   { 'application.tests.testparcelperf.testcalendarevents-generate': 0.34933,
-                               'application.tests.testparcelperf.testcontacts-commit':         0.60000,
+                    'win':   { 'switching_to_all_view_for_performance':    0.0055,
+                               'perf_stamp_as_event':                      0.0232,
+                               'new_event_from_file_menu_for_performance': 0.0229,
+                               'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0274,
+                               'importing_3000_event_calendar':            1.1616,
+                               'test_new_calendar_for_performance':        0.0159,
+                               #'': ,
                              },
                   }
 
@@ -599,7 +627,7 @@ class perf:
 
             detail.append('<h3 id="%s_%s">%s</h3>\n' % (testkey, buildkey, buildkey))
             detail.append('<table>\n')
-            detail.append('<tr><th>Time</th><th>Rev #</th><th>Runs</th><th>Average</th></tr>\n')
+            detail.append('<tr><th>Time</th><th>Rev #</th><th>Runs</th><th>Median</th></tr>\n')
 
             for hour in k_hours:
               for datapoint in dateitem[hour]:
@@ -620,7 +648,7 @@ class perf:
             page.append('<!-- build: %s avg: %02.5f count: %d variance: %02.5f -->\n' % (buildkey, avg, n, v))
 
             detail.append('</table>\n')
-            detail.append('<p>%d items in days sample for an average of %2.5f and a variance of %2.5f</p>' % (n, avg, v))
+            detail.append('<p>%d items in days sample for an median of %2.5f and a variance of %2.5f</p>' % (n, avg, v))
 
             platformdata['var']      = v
             platformdata['avg']      = avg
@@ -631,6 +659,10 @@ class perf:
         page.append(self._generateSummaryDetailLine(platforms, targets, testkey, enddate, testDisplayName))
 
     page.append('</table>\n')
+
+    page.append('<p>The Test name link will take you to the detail information that was used to generate the summary numbers for that test<br/>\n')
+    page.append('The original <a href="variance.html">variance page</a> shows the other test data that is captured and the variance data for the last 7 days</p>\n')
+
     page.append('</div>\n')
 
     detail.append('</div>\n')
