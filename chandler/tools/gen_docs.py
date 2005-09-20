@@ -598,18 +598,26 @@ def generateDocs(options, outputDir):
         verbosity = 1
 
     if sys.platform == 'cygwin':
-        chandlerdb = 'release/bin/Lib/site-packages/chandlerdb'
+        chandlerdb  = 'release/bin/Lib/site-packages/chandlerdb'
         queryparser = 'release/bin/Lib/site-packages/QueryParser.py'
+        pyicu       = 'release/bin/Lib/site-packages/PyICU.py'
+        pylucene    = 'release/bin/Lib/site-packages/PyLucene.py'
     elif sys.platform == 'darwin':
-        chandlerdb = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/chandlerdb'
+        chandlerdb  = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/chandlerdb'
         queryparser = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/QueryParser.py'
+        pyicu       = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/PyICU.py'
+        pylucene    = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/PyLucene.py'
     else:
-        chandlerdb = 'release/lib/python2.4/site-packages/chandlerdb'
+        chandlerdb  = 'release/lib/python2.4/site-packages/chandlerdb'
         queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'
+        pyicu       = 'release/lib/python2.4/site-packages/PyICU.py'
+        pylucene    = 'release/lib/python2.4/site-packages/PyLucene.py'
 
     chandlerBin = os.getenv('CHANDLERBIN')
     chandlerdb  = os.path.join(chandlerBin, chandlerdb)
     queryparser = os.path.join(chandlerBin, queryparser)
+    pyicu       = os.path.join(chandlerBin, pyicu)
+    pylucene    = os.path.join(chandlerBin, pylucene)
 
     targetDir = os.path.join(outputDir, 'api')
 
@@ -658,8 +666,10 @@ def generateDocs(options, outputDir):
                               'util',
                               'Chandler.py',
                               'version.py',
-                              chandlerdb, # This comes from internal
-                              queryparser # This comes from external
+                              chandlerdb,  # This comes from internal
+                              queryparser, # This comes from external
+                              pyicu,       # This comes from external
+                              pylucene,    # This comes from external
                              ],
                  }
 
