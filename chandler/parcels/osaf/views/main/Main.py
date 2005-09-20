@@ -766,6 +766,20 @@ class MainView(View):
         # Test menu item
         wx.GetApp().ChooseLogConfig()
 
+    def onRestoreSharesEvent(self, event):
+        # Test menu item
+        account = schema.ns("osaf.app", self).currentWebDAVAccount.item
+        if account is not None:
+            self.setStatusMessage (_(u"Restoring published shares..."))
+            (collections, failures) = sharing.restoreFromAccount(account)
+            for collection in collections:
+                collection.setColorIfAbsent()
+                self.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst",
+                    {'items':[collection]})
+            self.setStatusMessage (_(u"Restoring shares completed"))
+        else:
+            self.setStatusMessage (_(u"No default sharing account"))
+
     def onShareSidebarCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
         
@@ -854,7 +868,37 @@ class MainView(View):
         # Triggered from "Test | Share tool..."
         ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, view=self.itsView)
 
- 
+
+    def onToggleMineEvent(self, event):
+        collection = self.getSidebarSelectedCollection()
+        if collection is not None:
+            notMine = schema.ns('osaf.app', self.itsView).notMine
+            if collection in notMine.sources:
+                notMine.removeSource(collection)
+            else:
+                notMine.addSource(collection)
+
+    def onToggleMineEventUpdateUI(self, event):
+        menuTitle = _(u"Toggle mine/not-mine")
+        enabled = False
+
+        collection = self.getSidebarSelectedCollection()
+        all = schema.ns('osaf.app', self.itsView).allCollection
+        if collection is not all and collection is not None:
+            enabled = True
+            notMine = schema.ns('osaf.app', self.itsView).notMine
+            if collection in notMine.sources:
+                menuTitle = _(u'Put "%(collection)s" into My Items' % {
+                    'collection' : collection.getItemDisplayName()
+                })
+            else:
+                menuTitle = _(u'Take "%(collection)s" out of My Items' % {
+                    'collection' : collection.getItemDisplayName()
+                })
+
+        event.arguments ['Text'] = menuTitle
+        event.arguments['Enable'] = enabled
+
     def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."
         self.itsView.commit() 

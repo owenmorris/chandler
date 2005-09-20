@@ -5,6 +5,7 @@ from repository.item.Monitors import Monitors
 from i18n import OSAFMessageFactory as _
 import zanshin, M2Crypto
 
+
 import wx          # For the dialogs, but perhaps this is better accomplished
 import application # via callbacks
 
@@ -525,6 +526,44 @@ def subscribe(view, url, username=None, password=None):
 
 
 
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+def restoreFromAccount(account):
+
+    view = account.itsView
+
+    me = pim.Contact.getCurrentMeContact(view)
+
+    accountUrl = account.getLocation()
+    if not accountUrl.endswith(u'/'):
+        accountUrl += u"/"
+
+    collections = []
+    failures = []
+
+    existing = getExistingResources(account)
+
+    for name in existing:
+
+        url = accountUrl + name
+
+        share = findMatchingShare(view, url)
+
+        if share is None:
+            try:
+                collection = subscribe(view, url)
+
+                # Make me the sharer
+                for share in collection.shares:
+                    share.sharer = me
+
+                collections.append(collection)
+
+            except Exception, err:
+                failures.append(name)
+
+    return (collections, failures)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

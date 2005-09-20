@@ -253,8 +253,18 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
+    RestoreSharesEvent = \
+        BlockEvent.template('RestoreShares',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
+    # from //parcels/osaf/views/main
     SyncCollectionEvent = \
         BlockEvent.template('SyncCollection',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
+    # from //parcels/osaf/views/main
+    ToggleMineEvent = \
+        BlockEvent.template('ToggleMine',
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
@@ -692,6 +702,10 @@ def make_mainview(parcel):
                                 event=globalevents.Rename,
                                 title=_(u'Rename'),
                                 helpString=_(u'Rename the selected collection')),
+                            MenuItem.template('ToggleMineItem',
+                                event=ToggleMineEvent,
+                                title=_(u'Toggle mine/not-mine'),
+                                helpString=_(u'Toggle mine/not-mine')),
                             Menu.template('CollectionColorMenu',
                                 title=_(u'&Collection Color'),
                                 childrenBlocks=make_color_blocks(parcel,
@@ -779,6 +793,10 @@ def make_mainview(parcel):
                                 event=LoadLoggingConfigEvent,
                                 title=u'Load logging configuration file...',
                                 helpString=u'Load logging configuration file'),
+                            MenuItem.template('RestoreSharesItem',
+                                event=RestoreSharesEvent,
+                                title=u'Restore published shares',
+                                helpString=u'Restore shares previously published from default account'),
                             Menu.template('ShareMenu',
                                 title=u'Share',
                                 helpString=u'Sharing-related test commands',
