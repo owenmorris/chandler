@@ -366,13 +366,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         canvasItem.setResizeMode(canvasItem.RESIZE_MODE_END)
         return canvasItem
 
-    def IsValidDragPosition(self, unscrolledPosition):
-        # checking y-bounds conflicts with calls to ScrollIntoView()
-        # not (0 < unscrolledPosition.y < self.size.height)):
-        if (not (self.xOffset < unscrolledPosition.x < self.size.width)):
-            return False
-        return super(wxTimedEventsCanvas, self).IsValidDragPosition(unscrolledPosition)
-        
     def OnBeginResizeItem(self):
         self._lastUnscrolledPosition = \
             self.dragState.originalPosition

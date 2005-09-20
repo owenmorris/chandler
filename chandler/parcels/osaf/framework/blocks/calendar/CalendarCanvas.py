@@ -23,6 +23,7 @@ from osaf.framework.blocks import Block
 from osaf.framework.blocks import ContainerBlocks
 from osaf.framework.blocks import Styles
 from osaf.framework.blocks import Sendability
+from osaf.framework.attributeEditors import AttributeEditors
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.calendar import CollectionCanvas
 
@@ -863,7 +864,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
     def OnInit(self):
         super(wxCalendarCanvas, self).OnInit()
-        self.editor = wxInPlaceEditor(self, -1)
+        self.editor = wxInPlaceEditor(self, -1, "", wx.DefaultPosition, (-1,-1))
         
     def OnScroll(self, event):
         self.Refresh()
@@ -1032,6 +1033,14 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             newTime = newTime.astimezone(tzinfo)
         return newTime
 
+    def IsValidDragPosition(self, unscrolledPosition):
+        # checking y-bounds conflicts with calls to ScrollIntoView()
+        # not (0 < unscrolledPosition.y < self.size.height)):
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        if (not (drawInfo.xOffset < unscrolledPosition.x < self.size.width)):
+            return False
+        return super(wxCalendarCanvas, self).IsValidDragPosition(unscrolledPosition)
+        
     """
     Methods for Drag and Drop and Cut and Paste
     """
@@ -1047,7 +1056,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             source.add (item)
 
 
-class wxInPlaceEditor(wx.TextCtrl):
+class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, *arguments, **keywords):
         
         # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
@@ -1078,10 +1087,12 @@ class wxInPlaceEditor(wx.TextCtrl):
                 #style |= wx.TE_PROCESS_ENTER # this works but causes an assertion error
 
         else:
-                # MSW behavior truncates titles that doesn't fit in the event window.
-                # TE_PROCESS_ENTER is supposedly not needed when using TE_MULTILINE flag.
-                # (in fact raises assertion error), but it apparently *is* needed to
-                # not allow newlines in the input field. (at least in GTK.)
+                # MSW behavior truncates titles that doesn't fit in
+                # the event window.  TE_PROCESS_ENTER is supposedly
+                # not needed when using TE_MULTILINE flag.  (in fact
+                # raises assertion error), but it apparently *is*
+                # needed to not allow newlines in the input field. (at
+                # least in GTK.)
                 style |= wx.TE_PROCESS_ENTER 
                                              
 
@@ -1089,8 +1100,6 @@ class wxInPlaceEditor(wx.TextCtrl):
                                               *arguments, **keywords)
         
         self.item = None
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnTextEnter)
         self.Hide()
 
         #self.editor.Bind(wx.EVT_CHAR, self.OnChar)
@@ -1102,11 +1111,18 @@ class wxInPlaceEditor(wx.TextCtrl):
             if self.item.displayName != self.GetValue():
                 proxy = RecurrenceDialog.getProxy(u'ui', self.item)
                 proxy.displayName = self.GetValue()
-        
-    def OnTextEnter(self, event):
+
+    def OnEnterPressed(self, event):
+        """
+        for now, no need to display
+        """
         self.SaveItem()
         self.Hide()
         event.Skip()
+
+    def OnKillFocus(self, event):
+        super(wxInPlaceEditor, self).OnKillFocus(event)
+        self.OnEnterPressed(event)
 
     def OnChar(self, event):
         if (event.KeyCode() == wx.WXK_RETURN):

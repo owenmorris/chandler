@@ -271,10 +271,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # if it was drawn
         
         # hack alert! We shouldn't need to adjust this
+        """
         ost = dragState.originalDragBox.originalStartTime
         if Calendar.datetimeOp(ost, '<', self.blockItem.rangeStart):
             earlier = Calendar.datetimeOp(self.blockItem.rangeStart, '-', ost)
             dx += (earlier.days + 1) * drawInfo.dayWidth
+        """
         
         dx = roundTo(dx, drawInfo.dayWidth)
 
