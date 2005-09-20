@@ -506,7 +506,7 @@ class User(object):
             #work around for mac bug
             widget.ProcessEvent(tu) #for start/end time and location field
             #work around for canvasItem
-            widget.ProcessEvent(ent) #for canvasItem title
+            widget.ProcessEvent(kf) #for canvasItem title
             # events processing
             widget.ProcessEvent(ret_d)
             widget.ProcessEvent(ret_up)
