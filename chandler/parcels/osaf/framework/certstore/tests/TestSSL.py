@@ -6,7 +6,7 @@ Unit test for SSL context, connection and related security checks.
 """
 
 import unittest
-import socket, sys, os
+import socket, os
 
 import M2Crypto.SSL as SSL
 import M2Crypto.SSL.Checker as Checker
@@ -14,29 +14,28 @@ import M2Crypto.X509 as X509
 import twisted.internet.protocol as protocol
 import twisted.protocols.policies as policies
 
-import repository.tests.RepositoryTestCase as RepositoryTestCase
 import application.Utility as Utility
 from osaf.framework.certstore import ssl
+from osaf.pim.tests import TestContentModel
 
-class TestSSL(RepositoryTestCase.RepositoryTestCase):
+class TestSSL(TestContentModel.ContentModelTestCase):
     def setUp(self):
+        super(TestSSL, self)._setup()
+
         self.profileDir = os.path.dirname(__file__)
         Utility.initCrypto(self.profileDir)        
-
-        super(TestSSL, self)._setup()
         self.testdir = self.profileDir
+
         super(TestSSL, self)._openRepository()
 
-        self.loadParcel("osaf.app")
+        self.loadParcel("osaf.framework.certstore")
+        self.loadParcel("osaf.framework.certstore.data")
 
     def tearDown(self):
         super(TestSSL, self).tearDown()
         Utility.stopCrypto(self.profileDir)
     
     def testCertificateVerification(self):
-        self.loadParcel("osaf.framework.certstore")
-        self.loadParcel("osaf.framework.certstore.data")
-
         ctx = ssl.getContext(self.rep.view)
         conn1 = SSL.Connection(ctx)
         conn2 = SSL.Connection(ctx)#XXX Why can't I reuse the connection?
@@ -109,9 +108,6 @@ QUW4hRYWNNbb
 -----END CERTIFICATE-----'''
         x509 = X509.load_cert_string(pemSite)
         
-        self.loadParcel("osaf.framework.certstore")
-        self.loadParcel("osaf.framework.certstore.data")
-
         factory = protocol.ClientFactory()
         wrapper = ssl.TwistedProtocolWrapper(self.rep.view,
                                              'tlsv1',
@@ -126,13 +122,5 @@ QUW4hRYWNNbb
         self.assertRaises(Checker.NoCertificate, wrapper.postConnectionVerify, 
                           None, 'example.com')
 
-    def isOnline(self):
-        try:
-            socket.gethostbyname('www.osafoundation.org')
-            return True
-        except:
-            return False
-
-        
 if __name__ == "__main__":
     unittest.main()

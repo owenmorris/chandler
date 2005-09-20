@@ -10,11 +10,11 @@ import time
 
 import M2Crypto.X509 as X509
 
-import repository.tests.RepositoryTestCase as RepositoryTestCase
 from osaf.pim.collections import FilteredCollection
 from osaf.framework.certstore import certificate, utils, constants
+from osaf.pim.tests import TestContentModel
 
-class CertificateStoreTestCase(RepositoryTestCase.RepositoryTestCase):
+class CertificateStoreTestCase(TestContentModel.ContentModelTestCase):
     pemSite = '''-----BEGIN CERTIFICATE-----
 MIID9TCCA16gAwIBAgIBBjANBgkqhkiG9w0BAQQFADCBmjELMAkGA1UEBhMCVVMx
 CzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRowGAYDVQQKExFv
@@ -175,7 +175,7 @@ rZehs7GgIFvKMquNzxPwHynD
         trust = constants.TRUST_AUTHENTICITY
         self.assertRaises(Exception, self._importAndFind, self.pemUnsupported, trust)
         
-    def testImportMultipleCertificate(self):
+    #def testImportMultipleCertificate(self):
         # XXX I would like to make it so that attempting to import when
         # XXX there are several certificates would be an error, but right now
         # XXX the system seems to load the first certificate in such a case.
@@ -183,11 +183,10 @@ rZehs7GgIFvKMquNzxPwHynD
         # XXX way to change this.
         #trust = constants.TRUST_AUTHENTICITY
         #cert = self._importAndFind(self.pemMultiple, trust)
-        pass
+    #    pass
 
     def setUp(self):
         super(CertificateStoreTestCase, self).setUp()
-        self.loadParcel("osaf.app")
         self.loadParcel("osaf.framework.certstore")
         
         
