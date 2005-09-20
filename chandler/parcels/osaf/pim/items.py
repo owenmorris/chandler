@@ -550,7 +550,7 @@ class ContentItem(schema.Item):
     def isAttributeModifiable(self, attribute):
 
         # fast path -- item is unshared; have at it!
-        if self.sharedState == ContentItem.UNSHARED:
+        if not self.sharedIn:
             return True
 
         # slow path -- item is shared; we need to look at all the *inbound*

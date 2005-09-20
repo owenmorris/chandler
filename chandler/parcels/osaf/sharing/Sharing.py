@@ -536,8 +536,7 @@ class ShareConduit(items.ContentItem):
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
                  (itemPath, item.getItemDisplayName().encode('utf8'), item, data))
 
-                if item not in self.share.items:
-                    self.share.items.append(item)
+                self.share.items.append(item)
 
                 return item
 
