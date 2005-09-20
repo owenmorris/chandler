@@ -19,7 +19,3 @@ ev.Check_DetailView({"displayName":"New Event"})
 
 #cleaning
 logger.Close()
-
-# quit chandler
-App_ns = QAUITestAppLib.App_ns
-App_ns.root.Quit()

@@ -14,8 +14,8 @@ event = QAUITestAppLib.UITestItem("Event", logger)
 event.SetAllDay(True)
 
 #verification
-event.Check_DetailView({"AllDay":True})
-event.Check_Object({"AllDay":True})
+event.Check_DetailView({"allDay":True})
+event.Check_Object({"allDay":True})
 
 #cleaning
 logger.Close()

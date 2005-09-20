@@ -4,17 +4,18 @@ import os
 filePath = os.getenv('CATSREPORTDIR')
 if not filePath:
     filePath = os.getcwd()
-
+    
 #initialization
-fileName = "PerfStampEvent.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Perf Stamp as Event")
+fileName = "TestRemove.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestRemove")
 
-#action
+#actions
 note = QAUITestAppLib.UITestItem("Note", logger)
-note.StampAsCalendarEvent(True)
+note.Remove()
 
-#verification
-note.Check_DetailView({"stampEvent":True})
+#actions
+col = QAUITestAppLib.UITestItem("Collection", logger)
+col.Remove()
 
 #cleaning
 logger.Close()

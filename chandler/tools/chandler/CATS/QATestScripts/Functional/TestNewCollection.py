@@ -17,7 +17,7 @@ col.SetDisplayName("Meeting")
 col.Check_Sidebar({"displayName":"Meeting"})
 
 note = QAUITestAppLib.UITestItem("Note", logger)
-note.SetCollection("Meeting")
+note.AddCollection("Meeting")
 
 
 #cleaning

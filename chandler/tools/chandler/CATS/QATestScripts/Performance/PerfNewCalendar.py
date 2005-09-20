@@ -18,7 +18,3 @@ col.Check_Sidebar({"displayName":"Untitled"})
 
 #cleaning
 logger.Close()
-
-# quit chandler
-App_ns = QAUITestAppLib.App_ns
-App_ns.root.Quit()
