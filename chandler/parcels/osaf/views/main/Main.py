@@ -96,7 +96,8 @@ class MainView(View):
         html = ''
         for line in i18n.getHTML('welcome.html'):
             if line.find('@@buildid@@') >= 0:
-                line = "<p>Build identifier: '%s'</p>" % version.build
+                line = "<p>Version: %s (rev %s build %s)</p>" % \
+                        (version.release, version.buildRevision, version.build)
             html += line
         splash = SplashScreen(None, _(u"About Chandler"),
                                    None, html, True, False)
