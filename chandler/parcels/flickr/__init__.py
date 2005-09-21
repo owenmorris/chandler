@@ -24,6 +24,9 @@ from osaf.framework.types.DocumentTypes import SizeType, RectType
 
 logger = logging.getLogger(__name__)
 
+def showError(errText):
+    application.dialogs.Util.ok(wx.GetApp().mainFrame, _(u"Flickr Error"), errText)
+
 
 class FlickrPhotoMixin(PhotoMixin):
 
@@ -59,7 +62,7 @@ class FlickrPhotoMixin(PhotoMixin):
             if photo.tags:
                 self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
         except Exception, e:
-            logging.debug("tags failed", e)
+            logging.exception(e)
 
         self.importFromURL(self.imageURL)
 
@@ -102,7 +105,7 @@ class Tag(pim.ContentItem):
         return newTag
 
     getTag = classmethod (getTag)
-    
+
 def getPhotoByFlickrID(view, id):
     try:
         for x in FlickrPhotoMixin.iterItems(view, exact=True):
@@ -128,7 +131,7 @@ class PhotoCollection(pim.ContentItem):
     tag = schema.One(
         Tag, otherName="itemsWithTag", displayName=u"Tag", initialValue=None
     )
-       
+
     def getCollectionFromFlickr(self,repView):
         coll = pim.ListCollection(view = repView)
         if self.username:
@@ -175,17 +178,25 @@ def CreateCollectionFromUsername(repView, cpiaView):
     if username:
         myPhotoCollection = PhotoCollection(view = repView)
         myPhotoCollection.username = username
+
         try:
             myPhotoCollection.getCollectionFromFlickr(repView)
 
             # Add the channel to the sidebar
             return cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
-        except flickr.FlickrError, fe: 
-            #XXX: [i18n] will need to capture exception and localize error text
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        _(u"Flickr Error: "),
-                                        str(fe))
+        except flickr.FlickrError, fe:
+            if "User not found" in str(fe):
+                errMsg = _(u"Username '%(username)s' was not found.") % {'username': username}
+            else:
+                logger.exception(fe)
+                errMsg = _(u"An error occurred communicating with Flickr server.\nPlease see log for more details.")
+
+        except Exception, e:
+            logger.exception(e)
+            errMsg = _(u"Unable to communicate with Flickr server.\nPlease see log for more details.")
+
+        showError(errMsg)
 
 def CreateCollectionFromTag(repView, cpiaView):
     tagstring = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
@@ -195,17 +206,26 @@ def CreateCollectionFromTag(repView, cpiaView):
     if tagstring:
         myPhotoCollection = PhotoCollection(view = repView)
         myPhotoCollection.tag = Tag.getTag(repView, tagstring)
+
         try:
             myPhotoCollection.getCollectionFromFlickr(repView)
 
             # Add the channel to the sidebar
             return cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
+
         except flickr.FlickrError, fe:
-            #XXX: [i18n] will need to capture exception and localize error text
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        _(u"Flickr Error: "),
-                                        str(fe))
+            logger.exception(fe)
+            errMsg = _(u"An error occurred communicating with Flickr server.\nPlease see log for more details.")
+
+        except AttributeError:
+            errMsg = _(u"No Flickr items found for tag '%(tag)s'.") % {'tag': tagstring}
+
+        except Exception, e:
+            logger.exception(e)
+            errMsg = _(u"Unable to communicate with Flickr server.\nPlease see log for more details.")
+
+        showError(errMsg)
 
 #
 # Wakeup caller
