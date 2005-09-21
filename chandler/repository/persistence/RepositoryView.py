@@ -36,8 +36,9 @@ class RepositoryView(CView):
     # 0.5.6: added support for Kind extents
     # 0.5.7: added support for Kind inheritedSuperKinds cache
     # 0.5.8: adding complete attribute cache
+    # 0.5.9: remove repository.query.Query
     
-    CORE_SCHEMA_VERSION = 0x00050800
+    CORE_SCHEMA_VERSION = 0x00050900
 
     def __init__(self, repository, name, version):
         """
