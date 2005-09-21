@@ -612,7 +612,6 @@ def generateDocs(options, outputDir):
                   'list_classes_separately': 0,
                   'modules': ['application',
                               'i18n',
-                              'parcels/core',
                               'parcels/feeds',
                               'parcels/osaf',
                               'parcels/osaf/app',
