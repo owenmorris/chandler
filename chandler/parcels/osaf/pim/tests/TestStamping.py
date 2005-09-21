@@ -228,19 +228,24 @@ class StampingTest(TestContentModel.ContentModelTestCase):
             anotherEvent = Calendar.CalendarEvent("anotherEvent", view=view)
             self.setAttributes(anotherEvent)
             self.assert_(anotherEvent.isItemOf(eventKind))
+            # Could use assertRaises here, but it's syntax with respect to parameters is
+            #   not clear with my complex arguments, so try/except/else is more readable.
             try:
                 # double stamping
                 self.traverseStampSquence(anotherEvent, ((add, mailMixin),
                                                          (add, mailMixin)))
             except StampAlreadyPresentError:
                 pass
+            else:
+                self.assert_(False, "Double stamping should raise an exception!")
 
             try:
                 # unstamping something not present
                 self.traverseStampSquence(anotherEvent, ((remove, taskMixin), ))
             except StampNotPresentError:
                 pass
-
+            else:
+                self.assert_(False, "Unstamping a stamp not present should raise an exception!")
 
 if __name__ == "__main__":
     unittest.main()
