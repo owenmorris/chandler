@@ -85,8 +85,9 @@ class RecurrenceDialog(wx.Dialog):
 
         self._init_sizers()
 
-    def __init__(self, parent, proxy):
+    def __init__(self, parent, proxy, cancelCallback = None):
         self.proxy = proxy
+        self.cancelCallback = cancelCallback
         self._init_ctrls(parent)
         labels = {self.cancelButton : messages.CANCEL,
                   self.allButton    : _(u'All events'),
@@ -123,6 +124,8 @@ class RecurrenceDialog(wx.Dialog):
 
     def onCancel(self, event):
         self.proxy.cancelBuffer()
+        if self.cancelCallback is not None:
+            self.cancelCallback()
         self._end()
 
     def onAll(self, event):
@@ -205,7 +208,10 @@ class OccurrenceProxy(object):
         elif self.proxiedItem.rruleset is None:
             setattr(self.proxiedItem, name, value)
         else:
-            if self.currentlyModifying is None:
+            if hasattr(self.proxiedItem, name) and \
+               getattr(self.proxiedItem, name) == value:
+                pass
+            elif self.currentlyModifying is None:
                 self.changeBuffer.append(('change', name, value))
                 if not self.dialogUp:
                     self.dialogUp = True
@@ -216,6 +222,8 @@ class OccurrenceProxy(object):
     def propagateBufferChanges(self):
         while len(self.changeBuffer) > 0:
             self.propagateChange(*self.changeBuffer.pop(0)[1:])
+        if self.currentlyModifying == 'thisandfuture':
+            self.currentlyModifying = None
     
     def propagateChange(self, name, value):
         table = {'this'          : self.changeThis,

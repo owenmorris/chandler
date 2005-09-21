@@ -170,7 +170,10 @@ class ICalendarTestCase(unittest.TestCase):
         format = self.Import(self.repo.view, 'RecurrenceWithTimezone.ics')
         event = format.findUID('FF14A660-02A3-11DA-AA66-000A95DA3228')
         third = event.modifications.first()
-        self.assertEqual(third.rruleset.rrules.first().freq, 'daily')
+        # THISANDFUTURE change creates a new event, so there's nothing in
+        # event.modifications
+        self.assertEqual(third, None)
+        #self.assertEqual(third.rruleset.rrules.first().freq, 'daily')
         
     def exportRecurrence(self):
         helper = ICalendar.RecurrenceHelper

@@ -201,9 +201,20 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.event.rruleset = self._createRuleSetItem('weekly')
         third = self.event.getNextOccurrence().getNextOccurrence()
         third.changeThisAndFuture('startTime', third.startTime + timedelta(hours=1))
+        second = self.event.getNextOccurrence()
         third.removeRecurrence()
-        self.assertEqual(len(self.event.occurrences), 1)
-        self.assert_(third.isDeleted())
+        self.assertEqual(len(third.occurrences), 1)
+        self.failIf(second.isDeleted())
+        
+        # test a THIS modification to master, then removing recurrence
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        self.event.startTime += timedelta(hours=1)
+        eventModified = self.event
+        self.event = self.event.occurrenceFor
+        eventModified.removeRecurrence()
+        self.assert_(self.event.isDeleted())
+        self.failIf(eventModified.isDeleted())
+
         
     def testProxy(self):
         self.failIf(self.event.isProxy())
@@ -226,55 +237,64 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
 
     def testThisAndFutureModification(self):
+        #FIXME: test rruleset changes
         self.event.rruleset = self._createRuleSetItem('weekly')
         lastUntil = self.event.rruleset.rrules.first().until
         second = self.event.getNextOccurrence()
-        
+
         #one simple THISANDFUTURE modification
         second.changeThisAndFuture('displayName', u'Modified title')
-        self.assertEqual(second.modifies, 'thisandfuture')
-        self.assertEqual(second.modificationFor, self.event)
+        
+        self.assertEqual(second.modifies, 'this')
+        self.assertEqual(second.modificationFor, None)
+        
         self.assert_(list(self.event.rruleset.rrules)[0].until < second.startTime)
         self.assertEqual(second.displayName, u'Modified title')
         self.assertEqual(list(second.rruleset.rrules)[0].freq, 'weekly')
-        self.assertEqual(second.startTime, second.modificationRecurrenceID)
-        self.assertEqual(len(list(self.event.modifications)), 1)
-        self.assertEqual(self.event.getLastUntil(), lastUntil)
+        self.assertEqual(second.startTime, second.recurrenceID)
+        self.assertEqual(second.icalUID, str(second.itsUUID))
+        self.assertEqual(second.getLastUntil(), lastUntil)
         
         # make sure a backup occurrence is created
         self.assertEqual(len(list(second.occurrences)), 2)
         third = second.getNextOccurrence()
         self.assertEqual(third.displayName, u'Modified title')
-        
-        # another simple THISANDFUTURE modification
-        thirdChangedStart = third.startTime + timedelta(hours=1)
-        third.changeThisAndFuture('startTime', thirdChangedStart)
+
+        # create a changed fourth event to make sure its recurrenceID gets moved
+        # when third's startTime is changed
         fourth = third.getNextOccurrence()
-        self.assertEqual(fourth.startTime-thirdChangedStart, timedelta(weeks=1))
-        self.assertEqual(len(list(second.occurrences)), 1)
-        self.assertEqual(self.event, third.modificationFor)
-        self.assertEqual(len(list(self.event.modifications)), 2)
+        fourth.changeThis('displayName', 'fourth')
+       
+        thirdStart = third.startTime
+        thirdChangedStart = thirdStart + timedelta(hours=1)
+        third.changeThisAndFuture('startTime', thirdChangedStart)
+
+        # fourth's time shouldn't have changed, but its recurrenceID should have
+        self.assertEqual(fourth.startTime - thirdStart, timedelta(weeks=1))
+        self.assertEqual(len(list(third.occurrences)), 3)
+        self.assertEqual(fourth.recurrenceID,
+                         fourth.startTime + timedelta(hours=1))
         
         # make sure second's rruleset was updated
         self.assert_(list(second.rruleset.rrules)[0].until < thirdChangedStart)
         
-        # changing second's displayName again shouldn't delete third
+        # changing second's displayName again shouldn't create a new occurrence,
+        # and third should be completely unchanged
         second.changeThisAndFuture('displayName', u'Twice modified title')
+
+        self.assertEqual(len(list(second.occurrences)), 1)
         self.assertEqual(third.startTime, thirdChangedStart)
-        self.assertEqual(third.displayName, u'Twice modified title')
-        self.assertEqual(len(list(self.event.modifications)), 2)
-        self.assertEqual(second.getLastUntil(), lastUntil)
+        self.assertEqual(third.displayName, u'Modified title')
+        self.assertEqual(third.getLastUntil(), lastUntil)
         
-        # change second's rule, deleting third
+        # change second's rule 
         second.changeThisAndFuture('rruleset', 
                                    third.rruleset.copy(cloudAlias='copying'))
         newthird = second.getNextOccurrence()
         
         self.assertNotEqual(third, newthird)
         self.failIf(newthird.startTime == thirdChangedStart)
-        self.assertEqual(list(second.rruleset.rrules)[0].until, 
-                              self.weekly['end'])
-        self.assertEqual(len(list(self.event.modifications)), 1)
+        self.assertEqual(list(second.rruleset.rrules)[0].until, lastUntil)
         
         # make a THIS change to a THISANDFUTURE modification 
         second.changeThis('displayName', u"THIS modified title")
@@ -283,21 +303,21 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         second = second.occurrenceFor
 
         self.assertEqual(second.occurrenceFor, None)
-        self.assertEqual(second.modificationFor, self.event)
         self.assertNotEqual(secondModified.displayName, second.displayName)
         self.assertEqual(second.getNextOccurrence(), newthird)
         self.assertEqual(newthird.displayName, u'Twice modified title')
-        self.assertEqual(len(list(self.event.modifications)), 1)
                 
-        # make a destructive THISANDFUTURE change to the THIS modification
+        # make a THISANDFUTURE change to the THIS modification
+        # FIXME: time changes need to preserve modifications for 0.6
         secondModified.changeThisAndFuture('duration', timedelta(hours=2))
         second = secondModified
         third = second.getNextOccurrence()
-        self.assertEqual(len(list(self.event.modifications)), 1)
-        self.assertEqual(second.modificationFor, self.event)
-        self.assertEqual(second.modifications, None)
+        self.assertNotEqual(newthird, third)
         self.assertEqual(third.endTime, datetime(2005, 7, 18, 15))
-        self.assertEqual(second.modifies, 'thisandfuture')
+        self.assertEqual(second.modifies, 'this')
+        # FIXME: these should work after time change preservation is implemented
+        #self.assertEqual(second.displayName, u'Twice modified title')
+        #self.assertEqual(third.displayName, u'Twice modified title')
         
 
         # check if modificationRecurrenceID works for changeThis mod
@@ -309,16 +329,21 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         third.lastModified = 'Changed lastModified.'
         fourth = third.getNextOccurrence()
         fourth.startTime += timedelta(hours=4)
-
+        
         # propagating thisandfuture modification to this
         third.changeThisAndFuture('displayName', u'Yet another title')
         thirdModified = third
         third = third.occurrenceFor
+        # Because fourth is a modification, its title should NOT have changed
+        self.assertEqual(fourth.displayName, u'Twice modified title')
+        
+        self.assertNotEqual(thirdModified.icalUID, second.icalUID)
+        self.assertEqual(thirdModified.icalUID, third.icalUID)
+        self.assertEqual(third.icalUID, fourth.icalUID)
+        self.assertEqual(third.rruleset, fourth.rruleset)
         
         self.assertEqual(third.displayName, u'Yet another title')
         self.failIf(third.hasLocalAttributeValue('lastModified'))
-        self.assertEqual(third.modificationFor, self.event)
-        self.assertEqual(third.modifies, 'thisandfuture')
         self.assertEqual(thirdModified.modifies, 'this')
         self.assertEqual(thirdModified.lastModified, 'Changed lastModified.')
 
@@ -326,9 +351,9 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         
         #check propagation if first in rule is overridden with a THIS mod
         thirdModified.changeThisAndFuture('displayName', u'Changed again')
+
         self.assertEqual(third.displayName, u'Changed again')
         self.assertEqual(thirdModified.displayName, u'Changed again')
-        self.assertEqual(fourth.displayName, u'Changed again')
 
         # THIS mod to master with no occurrences because of later modifications 
         # doesn't create a mod
@@ -336,23 +361,42 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(self.event.occurrenceFor, self.event)
         self.assertEqual(self.event.modificationRecurrenceID,
                          self.event.startTime)
-
-        # change master event back
+        self.assertEqual(self.event.startTime, self.event.recurrenceID)
+        
+        # change master event back to the original rule
         oldrule = self.event.rruleset
-        self.event.changeThisAndFuture('rruleset', 
+        self.event.changeThisAndFuture('rruleset',
                                       third.rruleset.copy(cloudAlias='copying'))
 
         self.assert_(oldrule.isDeleted)
-        self.assert_(second.isDeleted and third.isDeleted and fourth.isDeleted)
-              
+        self.assertEqual(self.event.startTime, self.event.recurrenceID)
+        
+        # make sure changing master also changes master's recurrenceID
+        self.event.changeThisAndFuture('startTime', self.start + timedelta(hours=3))
+        self.assertEqual(self.event.startTime, self.event.recurrenceID)
+        self.assertEqual(self.event.getLastUntil(), lastUntil)
+               
         #make a THIS modification
-        self.event.startTime -= timedelta(hours=6)
+        self.event.startTime -= timedelta(hours=3)
         eventModified = self.event
         self.event = self.event.occurrenceFor
         self.assertEqual(self.event.occurrenceFor, None)
         self.assertEqual(eventModified.startTime, self.start)
         
         self.assertEqual(self.event.startTime, self.start + timedelta(hours=6))
+        
+        # Test moving a later THIS modification when changing an earlier mod
+        
+        second = self.event.getNextOccurrence()
+        second.displayName = "second"
+        third = second.getNextOccurrence()
+        third.displayName = "third"
+
+        second.changeThisAndFuture('displayName', 'changed title')
+
+        self.assertNotEqual(self.event.icalUID, second.icalUID)
+        self.assertEqual(second.icalUID, third.icalUID)
+        self.assertEqual(third.modificationFor, second.occurrenceFor)
 
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, view=self.rep.view)

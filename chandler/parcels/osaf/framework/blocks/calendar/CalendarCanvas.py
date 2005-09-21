@@ -823,7 +823,7 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
 
         # generated events need to defer to their parent event
         if event.isGenerated:
-            event = event.occurrenceFor
+            event = event.getMaster()
             
         collections = self.contents.collectionList
         firstSpecialCollection = None
