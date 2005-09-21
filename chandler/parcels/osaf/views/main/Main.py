@@ -879,13 +879,11 @@ class MainView(View):
             enabled = True
             notMine = schema.ns('osaf.app', self.itsView).notMine
             if collection in notMine.sources:
-                menuTitle = _(u'Put "%(collection)s" into My Items' % {
-                    'collection' : collection.getItemDisplayName()
-                })
+                menuTitle = _(u'Put "%(collection)s" into My Items') % {
+                    'collection': collection.getItemDisplayName()}
             else:
-                menuTitle = _(u'Take "%(collection)s" out of My Items' % {
-                    'collection' : collection.getItemDisplayName()
-                })
+                menuTitle = _(u'Take "%(collection)s" out of My Items') % {
+                    'collection': collection.getItemDisplayName()}
 
         event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = enabled
@@ -1012,3 +1010,4 @@ class MainView(View):
         if sharing.isInboundMailSetUp(self.itsView):
             self.setStatusMessage (_(u"Getting new Mail"))
             self.onGetNewMailEvent (event)
+
