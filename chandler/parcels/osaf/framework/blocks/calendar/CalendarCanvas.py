@@ -1330,8 +1330,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         sizer.Add((5,5), 0, wx.EXPAND)
 
         self.monthText = wx.StaticText(self, -1)
-        self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "backarrow.png")
-        self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "forwardarrow.png")
+        self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "CalBackArrow")
+        self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "CalForwardArrow")
         self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
 
