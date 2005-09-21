@@ -1,5 +1,5 @@
 """
-Unit tests for notes parcel
+Unit test for stamping
 """
 
 __revision__  = "$Revision$"
@@ -18,6 +18,7 @@ import logging
 
 from datetime import datetime
 from repository.util.Path import Path
+from osaf.pim.items import StampAlreadyPresentError, StampNotPresentError
 
 verbose = False
 compareWhos = False
@@ -231,13 +232,13 @@ class StampingTest(TestContentModel.ContentModelTestCase):
                 # double stamping
                 self.traverseStampSquence(anotherEvent, ((add, mailMixin),
                                                          (add, mailMixin)))
-            except:
+            except StampAlreadyPresentError:
                 pass
 
             try:
                 # unstamping something not present
                 self.traverseStampSquence(anotherEvent, ((remove, taskMixin), ))
-            except:
+            except StampNotPresentError:
                 pass
 
 

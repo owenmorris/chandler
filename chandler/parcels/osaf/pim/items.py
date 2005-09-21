@@ -309,14 +309,17 @@ class ContentItem(schema.Item):
         soughtSignature = _SuperKindSignature (myKind)
         stampSignature = _SuperKindSignature (stampKind)
         if operation == 'add':
+            stampAdditions = []
             for stampSuperKind in stampSignature:
-                if stampSuperKind in soughtSignature:
-                    logger.warning("Trying to stamp with a Kind Signature already present.")
-                    logger.warning("%s has signature %s which overlaps with %s whose signature is %s)" % \
-                                    (stampKind.itsName, stampSignature, \
-                                     myKind.itsName, soughtSignature))
-                    return None # in case this method is overloaded
-            soughtSignature.extend(stampSignature)
+                if not stampSuperKind in soughtSignature:
+                    stampAdditions.append(stampSuperKind)
+            if len(stampAdditions) == 0:
+                logger.warning("Trying to stamp with a Kind Signature already present.")
+                logger.warning("%s has signature %s which overlaps with %s whose signature is %s)" % \
+                                (stampKind.itsName, stampSignature, \
+                                 myKind.itsName, soughtSignature))
+                raise StampAlreadyPresentError # no new class was added
+            soughtSignature.extend(stampAdditions)
             extrasAllowed = 1
         else:
             assert operation == 'remove', "invalid Stamp operation in ContentItem.NewStampedKind: "+operation
@@ -325,7 +328,7 @@ class ContentItem(schema.Item):
                 logger.warning("%s has signature %s which is not present in %s: %s" % \
                                     (stampKind.itsName, stampSignature, \
                                      myKind.itsName, soughtSignature))
-                return None # in case this method is overloaded
+                raise StampNotPresentError # Can't remove a stamp that's not there
             for stampSuperKind in stampSignature:
                 soughtSignature.remove(stampSuperKind)
             extrasAllowed = -1
@@ -587,6 +590,18 @@ class ContentItem(schema.Item):
 """
 STAMPING SUPPORT CLASSES
 """
+class StampAlreadyPresentError(ValueError):
+    """
+    Stamping could not be performed because the stamp is already present,
+    and no new class would be added.
+    """
+
+class StampNotPresentError(ValueError):
+    """
+    A Stamp could not be removed because the stamp is not already
+    present in the item to be unstamped.
+    """
+
 class _SuperKindSignature(list):
     """
     A list of unique superkinds, used as a signature to identify 
@@ -603,8 +618,8 @@ class _SuperKindSignature(list):
       1. it bypasses all the branching, allowing (A, (B,C)) to match 
          ((A, B), C)
       2. it uses the most specialized form when there is no branching,
-         thus if D has superKind B, and B has no superKinds,
-         D is more specialized, so we want to use it.
+         thus if D has superKind B, and D has no other superKinds,
+         D is more specialized, so we want to use it over B.
     """
     def __init__(self, aKind, *args, **kwds):
         """
