@@ -653,7 +653,7 @@ class SidebarBlock(ControlBlocks.Table):
 
     def onRemoveEventUpdateUI(self, event):
         # so you can't use the delete key to delete a collection
-        event.arguments['Enabled'] = False
+        event.arguments['Enable'] = False
             
     def onDeleteEventUpdateUI(self, event):
         event.arguments['Text'] = _(u'Delete Collection')
