@@ -633,7 +633,7 @@ class SidebarBlock(ControlBlocks.Table):
         self.postEventByName("SelectItemBroadcast", {'item':item})
         return item
 
-    def onRemoveItemEvent(self, event):
+    def onRemoveEvent(self, event):
         """
         Permanently remove the collection - we eventually need a user
         confirmation here
@@ -649,7 +649,7 @@ class SidebarBlock(ControlBlocks.Table):
 
         self.widget.DeleteSelection(deleteItem)
 
-    onDeleteItemEvent = onRemoveItemEvent
+    onDeleteEvent = onRemoveEvent
 
     def onRemoveEventUpdateUI(self, event):
         # so you can't use the delete key to delete a collection
