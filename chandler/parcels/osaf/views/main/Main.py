@@ -774,7 +774,7 @@ class MainView(View):
             (collections, failures) = sharing.restoreFromAccount(account)
             for collection in collections:
                 collection.setColorIfAbsent()
-                self.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst",
+                self.postEventByName("AddToSidebarWithoutCopying",
                     {'items':[collection]})
             self.setStatusMessage (_(u"Restoring shares completed"))
         else:
