@@ -510,7 +510,7 @@ class CalendarEventMixin(ContentItem):
         
         new.isGenerated = True
         new.startTime = new.recurrenceID = recurrenceID
-        new.occurrenceFor = first        
+        new.occurrenceFor = first
         new.modificationFor = None
         new.modifies = 'this' # it doesn't work with the rep to make this None
         
@@ -538,7 +538,7 @@ class CalendarEventMixin(ContentItem):
                     return mod.isBetween(after, before)
             for mod in first.modifications or []:
                 if test(mod):
-                    if nextEvent==None:
+                    if nextEvent is None:
                         nextEvent = mod
                         # finally, well-ordering requires that we sort by
                         # recurrenceID if startTimes are equal
@@ -556,6 +556,13 @@ class CalendarEventMixin(ContentItem):
                                 nextEvent = mod
             return nextEvent
         
+        def getExistingOccurrence(first, nextRecurrenceID):
+            for occurrence in first.occurrences:
+                if datetimeOp(occurrence.recurrenceID, '==',
+                                nextRecurrenceID):
+                    return occurrence
+            return None
+        
         # main getNextOccurrence logic
         if self.rruleset is None:
             return None
@@ -564,30 +571,30 @@ class CalendarEventMixin(ContentItem):
             # take duration into account if after is set
             if after is not None:
                 earliest = after - first.duration
-                inc = True
+                inclusive = True
             elif first == self: #recurrenceID means a different thing for first
                 earliest = self.startTime 
-                inc = False
+                inclusive = False
             else:
                 earliest = datetimeOp(self.recurrenceID, 'min', self.startTime)
-                inc = False
+                inclusive = False
+
+            fromRule = self.createDateUtilFromRule()
+            # Here, we want to make sure that anything we pass
+            # to fromRule has the same timezone as all the rules
+            # and dates within fromRule.
+            #
+            # Otherwise, we could well end up with unsafe datetime
+            # comparisons inside dateutil.
+            try:
+                tzinfo = fromRule[0].tzinfo
+            except IndexError:
+                tzinfo = self.startTime.tzinfo
             while True:
-            
-                fromRule = self.createDateUtilFromRule()
-                # Here, we want to make sure that anything we pass
-                # to fromRule has the same timezone as all the rules
-                # and dates within fromRule.
-                #
-                # Otherwise, we could well end up with unsafe datetime
-                # comparisons inside dateutil.
-                try:
-                    tzinfo = fromRule[0].tzinfo
-                except IndexError:
-                    tzinfo = self.startTime.tzinfo
                 
                 earliestWithTz = coerceTimeZone(earliest, tzinfo)
                     
-                nextRecurrenceID = fromRule.after(earliestWithTz, inc)
+                nextRecurrenceID = fromRule.after(earliestWithTz, inclusive)
                 
                 if nextRecurrenceID == None or \
                    (before != None and datetimeOp(nextRecurrenceID, '>', before)):
@@ -596,15 +603,38 @@ class CalendarEventMixin(ContentItem):
                     return checkModifications(first, before)
                                 
                 # First, see if an occurrence for nextRecurrenceID exists.
-                calculated = None
-                for occurrence in first.occurrences:
-                    if datetimeOp(occurrence.recurrenceID, '==',
-                                    nextRecurrenceID):
-                        calculated = occurrence
-                        break
-                    
+                calculated = getExistingOccurrence(first, nextRecurrenceID)
+
+                # if the event was modified to occur much later than its
+                # recurrenceID, it may actually be after the next recurrenceID.
+                # If so, find the next generated occurrence and test if
+                # calculated is before it, if it's not, set calculated to be
+                # the next generated occurrence.  There may be modifications
+                # before this, but they're guaranteed to already be generated
+                # and they'll be picked up by checkModifications.
+                if calculated is not None:
+                    if datetimeOp(calculated.startTime, '>', nextRecurrenceID):
+                        laterRecurrenceID = fromRule.after(nextRecurrenceID)
+                        while laterRecurrenceID is not None:
+                            if datetimeOp(calculated.startTime, '>', laterRecurrenceID):
+                                event = getExistingOccurrence(first, laterRecurrenceID)
+                                if event is None:
+                                    # This recurrenceID doesn't exist, it's
+                                    # earlier than calculated and (will be)
+                                    # generated, use it.
+                                    calculated = self._createOccurrence(laterRecurrenceID)
+                                    laterRecurrenceID = None
+                                elif event.isGenerated:
+                                    calculated = event
+                                    laterRecurrenceID = None
+                                else:
+                                    laterRecurrenceID = fromRule.after(laterRecurrenceID)
+                            else:
+                                laterRecurrenceID = None                                
+                        
+                        
                 # If no occurrence already exists, create one
-                if calculated is None:
+                else:
                     calculated = self._createOccurrence(nextRecurrenceID)
 
                 # now we have an event calculated from nextRecurrenceID.  It's
@@ -747,7 +777,7 @@ class CalendarEventMixin(ContentItem):
 
     def _movePreviousRuleEnd(self, master, recurrenceID):
         """Make sure the previous rule doesn't recreate or overlap with self."""
-        newend = min(self.startTime, recurrenceID) - timedelta(minutes=1)
+        newend = recurrenceID - timedelta(minutes=1)
               
         #change the rule, onValueChanged will trigger cleanRule for master
         for rule in master.rruleset.getAttributeValue('rrules',default=[]):

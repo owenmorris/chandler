@@ -153,6 +153,20 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(self.event.modifies, 'this')
         self.assertNotEqual(None, self.event.occurrenceFor)
         self.assertNotEqual(self.event, self.event.occurrenceFor)
+        
+        # test getNextOccurrence ordering, bug 4083
+        generated = evtaskmod.getNextOccurrence()
+        self.assertEqual(self.event.getNextOccurrence(), calmod)
+        
+        evtaskmod.startTime = calmod.startTime - timedelta(hours=1)
+        self.assertEqual(self.event.getNextOccurrence(), evtaskmod)
+        self.assertEqual(calmod.getNextOccurrence(), generated)
+        
+        evtaskmod.startTime = generated.startTime + timedelta(hours=1)
+        self.assertEqual(self.event.getNextOccurrence(), calmod)
+        self.assertEqual(calmod.getNextOccurrence(), generated)
+        self.assertEqual(generated.getNextOccurrence(), evtaskmod)
+
 
     def testRuleChange(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
@@ -397,7 +411,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertNotEqual(self.event.icalUID, second.icalUID)
         self.assertEqual(second.icalUID, third.icalUID)
         self.assertEqual(third.modificationFor, second.occurrenceFor)
-
+        
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, view=self.rep.view)
         ruleItem.freq = 'daily'
