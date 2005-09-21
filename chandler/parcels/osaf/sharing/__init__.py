@@ -885,9 +885,15 @@ def syncAll(view):
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
     """
-    for share in Share.iterItems(view):
-        if share.active:
-            syncShare(share)
+
+    # Instead of simply iterating all Shares, iterating the shares for
+    # each collection will get things synced in the right order.  A collection's
+    # shares ref collection is always in the order in which they should be
+    # synced.
+    for collection in pim.AbstractCollection.iterItems(view):
+        for share in collection.shares:
+            if share.active:
+                syncShare(share)
 
 
 def checkForActiveShares(view):
