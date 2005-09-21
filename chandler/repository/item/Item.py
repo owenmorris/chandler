@@ -1749,7 +1749,8 @@ class Item(CItem):
             prevKind = self._kind
             if prevKind is not None:
                 view._notifyChange(prevKind.extent._collectionChanged,
-                                   'remove', 'collection', 'extent', self)
+                                   'remove', 'collection', 'extent', self,
+                                   kind)
 
                 if kind is None:
                     self._values.clear()
@@ -1777,7 +1778,8 @@ class Item(CItem):
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
                 view._notifyChange(kind.extent._collectionChanged,
-                                   'add', 'collection', 'extent', self)
+                                   'add', 'collection', 'extent', self,
+                                   prevKind)
 
     def mixinKinds(self, *kinds):
         """

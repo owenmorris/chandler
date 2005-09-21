@@ -932,11 +932,28 @@ class Extent(Item):
             for item in KindQuery(recursive).run((self.kind,)):
                 yield item
 
-    def _collectionChanged(self, op, change, name, other):
+    def _collectionChanged(self, op, change, name, other, filterKind=None):
 
         callable = Item._collectionChanged
 
-        callable(self, op, change, name, other)
         if name == 'extent':
-            for superKind in self.kind.getInheritedSuperKinds():
-                callable(superKind.extent, op, change, name, other)
+            kind = self.kind
+
+            if filterKind is not None:
+                filterKinds = filterKind.getInheritedSuperKinds()
+                if not (kind is filterKind or
+                        kind in filterKinds):
+                    callable(self, op, change, name, other)
+                    for superKind in kind.getInheritedSuperKinds():
+                        if not (superKind is filterKind or
+                                superKind in filterKinds):
+                            callable(superKind.extent, op, change, name, other)
+
+            else:
+                callable(self, op, change, name, other)
+                for superKind in kind.getInheritedSuperKinds():
+                    callable(superKind.extent, op, change, name, other)
+
+        else:
+            callable(self, op, change, name, other)
+
