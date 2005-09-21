@@ -3,16 +3,10 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-import os, sys, re, logging, string, errno, getopt, shutil, time
+import os, sys, re, string, errno, shutil, time
 import repository
 
 from application import Utility
-from application.Parcel import Parcel
-from repository.item.Item import Item
-from repository.schema.Kind import Kind
-from repository.schema.Types import Type
-from repository.schema.Attribute import Attribute
-from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
 
@@ -59,10 +53,6 @@ def processItem(item, handler, conf):
 
     for child in item.iterChildren():
         processItem(child, handler, conf)
-
-
-def simplePrint(item, conf):
-    print item.itsPath
 
 
 def generateSchemaDocument(item, conf):
@@ -626,7 +616,7 @@ def generateDocs(options, outputDir):
                               'parcels/photos',
                               'repository',
                               'samples/skeleton',
-                              #'tools',  # this was preventing gen_docs from running on windows
+                              'tools',
                               'util',
                               'Chandler.py',
                               'version.py',
@@ -718,7 +708,7 @@ def generateDocs(options, outputDir):
         htmldoc  = HTMLFormatter(d, **e_options)
         numfiles = htmldoc.num_files()
 
-        def progress_callback(path, numfiles=numfiles, progress=None, cancel=None, num=[1]):
+        def progress_callback(path):
             (dir, file) = os.path.split(path)
             (root, d)   = os.path.split(dir)
 
