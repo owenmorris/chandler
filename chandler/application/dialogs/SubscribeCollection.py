@@ -71,8 +71,7 @@ class SubscribeDialog(wx.Dialog):
         url = self.textUrl.GetValue()
         if url.startswith('webcal:'):
             url = 'http:' + url[7:]
-        share = sharing.findMatchingShare(view, url)
-        if share is not None:
+
             self.__showStatus(_(u"You are already subscribed"))
             return
 
@@ -120,6 +119,8 @@ class SubscribeDialog(wx.Dialog):
             self.__showAccountInfo()
         except sharing.NotFound, err:
             self.__showStatus(_(u"That collection was not found"))
+        except sharing.AlreadySubscribed, err:
+            self.__showStatus(_(u"You are already subscribed"))
         except sharing.SharingError, err:
             logger.exception("Error during subscribe for %s" % url)
             self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})

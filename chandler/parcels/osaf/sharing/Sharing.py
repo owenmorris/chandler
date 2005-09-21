@@ -22,6 +22,7 @@ __all__ = [
     'CouldNotConnect',
     'IllegalOperation',
     'TransformationFailed',
+    'AlreadySubscribed',
     'WebDAVAccount',
     'ImportExportFormat',
     'CloudXMLFormat',
@@ -1639,6 +1640,10 @@ class IllegalOperation(SharingError):
 class TransformationFailed(SharingError):
     """
     Exception raised if import or export process failed.
+    """
+class AlreadySubscribed(SharingError):
+    """
+    Exception raised if subscribing to an already-subscribed url
     """
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

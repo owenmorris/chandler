@@ -149,7 +149,11 @@ def publish(collection, account, classes_to_include=None, attrs_to_exclude=None)
                                      account=account,
                                      useCalDAV=True)
 
-            collection.shares.append(share, 'main')
+            try:
+                collection.shares.append(share, 'main')
+            except ValueError:
+                # There is already a 'main' share for this collection
+                collection.shares.append(share)
 
             shares.append(share)
             share.displayName = collection.displayName
@@ -177,7 +181,11 @@ def publish(collection, account, classes_to_include=None, attrs_to_exclude=None)
                                          useCalDAV=True)
 
 
-                collection.shares.append(share, 'main')
+                try:
+                    collection.shares.append(share, 'main')
+                except ValueError:
+                    # There is already a 'main' share for this collection
+                    collection.shares.append(share)
 
                 shares.append(share)
                 share.displayName = name
@@ -224,7 +232,11 @@ def publish(collection, account, classes_to_include=None, attrs_to_exclude=None)
                                          shareName=safe_name,
                                          account=account)
 
-                collection.shares.append(share, 'main')
+                try:
+                    collection.shares.append(share, 'main')
+                except ValueError:
+                    # There is already a 'main' share for this collection
+                    collection.shares.append(share)
 
                 shares.append(share)
                 share.displayName = name
@@ -341,24 +353,6 @@ def subscribe(view, url, username=None, password=None):
         accountPathLen = len(account.path.strip("/"))
         shareName = path.strip("/")[accountPathLen:]
 
-    if url.endswith(".ics"):
-        share = Share(view=view)
-        share.format = ICalendarFormat(parent=share)
-        share.conduit = SimpleHTTPConduit(parent=share,
-                                          shareName=shareName,
-                                          account=account)
-        share.mode = "get"
-        try:
-            share.sync()
-            share.contents.shares.append(share, 'main')
-            return share.contents
-
-        except Exception, err:
-            logger.exception("Failed to subscribe to %s", url)
-            share.delete(True)
-            raise
-
-
     if account:
         conduit = WebDAVConduit(view=view, account=account,
             shareName=shareName)
@@ -367,49 +361,79 @@ def subscribe(view, url, username=None, password=None):
             sharePath=parentPath, shareName=shareName, useSSL=useSSL,
             ticket=ticket)
 
-    # Interrogate the server
+    try:
+        location = conduit.getLocation()
+        for share in Share.iterItems(view=view):
+            if share.getLocation() == location:
+                raise AlreadySubscribed(_(u"Already subscribed"))
 
-    location = conduit.getLocation()
-    if not location.endswith("/"):
-        location += "/"
-    handle = conduit._getServerHandle()
-    resource = handle.getResource(location)
-    if ticket:
-        resource.ticketId = ticket
+        if url.endswith(".ics"):
+            share = Share(view=view)
+            share.format = ICalendarFormat(parent=share)
+            share.conduit = SimpleHTTPConduit(parent=share,
+                                              shareName=shareName,
+                                              account=account)
+            share.mode = "get"
+            try:
+                share.sync()
 
-    logger.debug('Examining %s ...', location)
-    exists = handle.blockUntil(resource.exists)
-    if not exists:
-        logger.debug("...doesn't exist")
-        raise NotFound(message="%s does not exist" % location)
+                try:
+                    share.contents.shares.append(share, 'main')
+                except ValueError:
+                    # There is already a 'main' share for this collection
+                    share.contents.shares.append(share)
 
-    isCalendar = handle.blockUntil(resource.isCalendar)
-    logger.debug('...Calendar?  %s', isCalendar)
-    if isCalendar:
-        subLocation = urlparse.urljoin(location, SUBCOLLECTION)
-        if not subLocation.endswith("/"):
-            subLocation += "/"
-        subResource = handle.getResource(subLocation)
+                return share.contents
+
+            except Exception, err:
+                logger.exception("Failed to subscribe to %s", url)
+                share.delete(True)
+                raise
+
+
+        # Interrogate the server
+
+        if not location.endswith("/"):
+            location += "/"
+        handle = conduit._getServerHandle()
+        resource = handle.getResource(location)
         if ticket:
-            subResource.ticketId = ticket
-        try:
-            hasSubCollection = handle.blockUntil(subResource.exists) and \
-                handle.blockUntil(subResource.isCollection)
-        except Exception, e:
-            logger.exception("Couldn't determine existence of subcollection %s",
-                subLocation)
-            hasSubCollection = False
-        logger.debug('...Has subcollection?  %s', hasSubCollection)
-    isCollection =  handle.blockUntil(resource.isCollection)
-    logger.debug('...Collection?  %s', isCollection)
+            resource.ticketId = ticket
 
-    response = handle.blockUntil(resource.options)
-    dav = response.headers.getHeader('DAV')
-    logger.debug('...DAV:  %s', dav)
-    allowed = response.headers.getHeader('Allow')
-    logger.debug('...Allow:  %s', allowed)
+        logger.debug('Examining %s ...', location)
+        exists = handle.blockUntil(resource.exists)
+        if not exists:
+            logger.debug("...doesn't exist")
+            raise NotFound(message="%s does not exist" % location)
 
-    conduit.delete(True) # Clean up the temporary conduit
+        isCalendar = handle.blockUntil(resource.isCalendar)
+        logger.debug('...Calendar?  %s', isCalendar)
+        if isCalendar:
+            subLocation = urlparse.urljoin(location, SUBCOLLECTION)
+            if not subLocation.endswith("/"):
+                subLocation += "/"
+            subResource = handle.getResource(subLocation)
+            if ticket:
+                subResource.ticketId = ticket
+            try:
+                hasSubCollection = handle.blockUntil(subResource.exists) and \
+                    handle.blockUntil(subResource.isCollection)
+            except Exception, e:
+                logger.exception("Couldn't determine existence of subcollection %s",
+                    subLocation)
+                hasSubCollection = False
+            logger.debug('...Has subcollection?  %s', hasSubCollection)
+        isCollection =  handle.blockUntil(resource.isCollection)
+        logger.debug('...Collection?  %s', isCollection)
+
+        response = handle.blockUntil(resource.options)
+        dav = response.headers.getHeader('DAV')
+        logger.debug('...DAV:  %s', dav)
+        allowed = response.headers.getHeader('Allow')
+        logger.debug('...Allow:  %s', allowed)
+
+    finally:
+        conduit.delete(True) # Clean up the temporary conduit
 
     if not isCalendar:
         share = Share(view=view)
@@ -426,7 +450,12 @@ def subscribe(view, url, username=None, password=None):
 
         try:
             share.get()
-            share.contents.shares.append(share, 'main')
+
+            try:
+                share.contents.shares.append(share, 'main')
+            except ValueError:
+                # There is already a 'main' share for this collection
+                share.contents.shares.append(share)
 
         except Exception, err:
             location = share.getLocation()
@@ -504,7 +533,13 @@ def subscribe(view, url, username=None, password=None):
 
         try:
             share.get()
-            share.contents.shares.append(share, 'main')
+
+            try:
+                share.contents.shares.append(share, 'main')
+            except ValueError:
+                # There is already a 'main' share for this collection
+                share.contents.shares.append(share)
+
         except Exception, err:
             location = share.getLocation()
             logger.exception("Failed to subscribe to %s", location)
@@ -656,7 +691,7 @@ def findMatchingShare(view, url):
     if hasattr(account, 'conduits'):
         for conduit in account.conduits:
             if conduit.shareName == shareName:
-                if conduit.share.hidden == False:
+                if conduit.share and conduit.share.hidden == False:
                     return conduit.share
 
     return None
