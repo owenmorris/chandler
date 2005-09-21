@@ -914,10 +914,11 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
 
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
+        heightGutter = 23
         toolbar = wxToolbar(self.parentBlock.widget, 
                          Block.Block.getWidgetID(self),
                          wx.DefaultPosition,
-                         (-1, self.toolSize.height),
+                         (-1, self.toolSize.height+heightGutter),
                          style=self.calculate_wxStyle())
         # set the tool bitmap size right away
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
