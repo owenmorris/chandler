@@ -1091,6 +1091,8 @@ class CalendarEventMixin(ContentItem):
         
     def removeRecurrence(self):
         master = self.getMaster()
+        if master.recurrenceID != master.startTime:
+            master.changeNoModification('recurrenceID', master.startTime)
         if master.rruleset is not None:
             del master.rruleset
             masterHadModification = False
@@ -1098,6 +1100,8 @@ class CalendarEventMixin(ContentItem):
                 if event.recurrenceID != master.startTime:
                     event.delete()
                 elif event != master:
+                    # A THIS modification to master, make it the new master
+                    del event.rruleset
                     event.recurrenceID = event.startTime
                     event.modificationFor = None
                     event.occurrenceFor = event

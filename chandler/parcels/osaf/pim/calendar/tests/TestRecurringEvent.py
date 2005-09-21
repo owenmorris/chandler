@@ -228,6 +228,8 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         eventModified.removeRecurrence()
         self.assert_(self.event.isDeleted())
         self.failIf(eventModified.isDeleted())
+        # bug 4084, rruleset isn't getting deleted from eventModified
+        self.failIf(eventModified.hasLocalAttributeValue('rruleset'))
 
         
     def testProxy(self):
