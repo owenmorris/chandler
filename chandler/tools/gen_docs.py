@@ -21,6 +21,8 @@ def generateModelDocs(options, outputDir=None):
     else:
         modelDir = os.path.join(outputDir, 'model')
 
+    options.ramdb = True # force ramdb
+
     parcelPath = Utility.initParcelEnv(chandlerDir, options.parcelPath)
     view       = Utility.initRepository(repositoryDir, options)
 
