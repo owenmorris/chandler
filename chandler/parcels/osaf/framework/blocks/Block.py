@@ -624,6 +624,10 @@ class Block(schema.Item):
                 accel = getattr(event.arguments['sender'], 'accel', '')
                 if accel:
                     title += '\t' + accel
+                    # this isn't a real wx argument, but is used later
+                    # to re-attach the accelerator after the client has
+                    # updated the 'Text' argument
+                    event.arguments['Accel'] = accel
                 event.arguments['Text'] = title
             methodName += 'UpdateUI'
             commitAfterDispatch = False
@@ -683,6 +687,11 @@ class Block(schema.Item):
         elif __debug__:
             assert (False)
 
+        # clean up any accelerator mess left by wx
+        if (event.arguments.has_key('Accel') and
+            event.arguments.has_key('Text') and
+            event.arguments['Text'] != title):
+            event.arguments['Text'] += '\t' + event.arguments['Accel']
         if commitAfterDispatch:
             wx.GetApp().UIRepositoryView.commit()
 
