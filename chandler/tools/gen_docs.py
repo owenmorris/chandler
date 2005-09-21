@@ -106,11 +106,7 @@ def RenderKinds(view, urlRoot):
     result = ""
     items = {}
     tree = {}
-    for item in repository.item.Query.KindQuery().run(
-     [
-      view.findPath("//Schema/Core/Kind"),
-     ]
-    ):
+    for item in view.findPath("//Schema/Core/Kind").iterItems(view):
         items[item.itsPath] = item
         _insertItem(tree, item.itsPath[1:], item)
 
