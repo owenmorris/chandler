@@ -682,7 +682,7 @@ class SidebarBlock(ControlBlocks.Table):
                                      getattr(self.selectedItemToView, 'renameable', True))
 
     def onRenameEvent (self, event):
-        pass
+        self.widget.EnableCellEditControl()
 
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):

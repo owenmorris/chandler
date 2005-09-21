@@ -744,6 +744,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             for range in self.blockItem.selection:
                 if firstSelectedRow is None:
                     firstSelectedRow = range[0]
+                    self.SetGridCursor (firstSelectedRow, 0)
                 self.SelectBlock (range[0], 0, range[1], newColumns, True)
         else:
             self.blockItem.selection = []
