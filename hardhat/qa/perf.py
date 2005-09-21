@@ -469,7 +469,6 @@ class perf:
 
   def _generateSummaryDetailLine(self, platforms, targets, testkey, enddate, testDisplayName):
       line = '<tr><td><a href="detail_%s.html#%s">%s</a></td>' % (enddate, testkey, testDisplayName)
-      tbox = {}
 
       for key in ['linux', 'osx', 'win']:
         if testkey in targets[key].keys():
@@ -495,14 +494,6 @@ class perf:
           else:
             s = 'warn'
 
-        tbox_line =  '<tr><td><a id="%s">%s</a></td>' % (testkey, testDisplayName)
-        tbox_line += '<td>%02.3f</td>' % avg
-        tbox_line += '<td>%02.3f</td>' % targetAvg
-        tbox_line += '<td class="%s">%03.1f</td>' % (s, c_perc)
-        tbox_line += '<td class="%s">%02.3f</td></tr>\n' % (s, c_diff)
-
-        tbox[key] = tbox_line
-
         line += '<td>%s</td><td class="number">%02.3f</td>' % (revision, avg)
         line += '<td class="number">%02.3f</td>' % targetAvg
         line += '<td class="%s">%03.1f</td>' % (s, c_perc)
@@ -510,7 +501,7 @@ class perf:
 
       line += '</tr>\n'
 
-      return (line, tbox)
+      return line
 
   def generateSummaryPage(self, pagename, tests, startdate, enddate):
     # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runs, total, average) ] }}}}
@@ -526,10 +517,7 @@ class perf:
 
     page   = []
     detail = []
-    tbox   = { 'linux': [],
-               'osx':   [],
-               'win':   [],
-             }
+    tbox   = []
 
     page.append('<h1>Use Case Performance Summary</h1>\n')
     page.append('<div id="summary">\n')
@@ -547,13 +535,12 @@ class perf:
     page.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
     page.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
-    tbox_header =  '<div id="tbox">\n'
-    tbox_header += '<table>\n'
-    tbox_header += '<tr><th>Test</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n'
-
-    tbox['linux'].append(tbox_header)
-    tbox['osx'].append(tbox_header)
-    tbox['win'].append(tbox_header)
+    tbox.append('<div id="tbox">\n')
+    tbox.append('<table>\n')
+    tbox.append('<tr><th></th><th colspan="5">Linux</th><th colspan="5">OS X</th><th colspan="5">Windows</th></tr>\n')
+    tbox.append('<tr><th>Test</th><th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
+    tbox.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
+    tbox.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
@@ -677,13 +664,11 @@ class perf:
             platformdata['count']    = n
             platformdata['revision'] = revision
 
-        (summaryline, tboxlines) = self._generateSummaryDetailLine(platforms, targets, testkey, enddate, testDisplayName)
+        summaryline = self._generateSummaryDetailLine(platforms, targets, testkey, enddate, testDisplayName)
 
         page.append(summaryline)
+        tbox.append(summaryline)
         
-        for key in ['linux', 'osx', 'win']:
-          tbox[key].append(tboxlines[key])
-
     page.append('</table>\n')
                                       
     page.append('<p>The Test name link will take you to the detail information that was used to generate the summary numbers for that test<br/>\n')
@@ -693,11 +678,7 @@ class perf:
 
     detail.append('</div>\n')
 
-    tbox_footer = '</table>\n</div>\n'
-
-    tbox['linux'].append(tbox_footer)
-    tbox['osx'].append(tbox_footer)
-    tbox['win'].append(tbox_footer)
+    tbox.append('</table>\n</div>\n')
 
     pagefile = file(os.path.join(self._options['html_data'], pagename), 'w')
 
@@ -729,27 +710,20 @@ class perf:
 
     detailfile.close()
 
-    tbox_header = ''
-    tbox_footer = ''
+    tboxfile = file(os.path.join(self._options['html_data'], 'tbox.html'), 'w')
 
     if os.path.isfile(os.path.join(self._options['perf_data'], 'tbox.html.header')):
       for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
-        tbox_header += line
+        tboxfile.write(line)
+
+    for line in tbox:
+      tboxfile.write(line)
 
     if os.path.isfile(os.path.join(self._options['perf_data'], 'tbox.html.footer')):
       for line in file(os.path.join(self._options['perf_data'], 'tbox.html.footer')):
-        tbox_footer += line
-
-    for key in ['linux', 'osx', 'win']:
-      tboxfile = file(os.path.join(self._options['html_data'], 'tbox_%s.html' % (key)), 'w')
-
-      tboxfile.write(tbox_header)
-      
-      for line in tbox[key]:
         tboxfile.write(line)
 
-      tboxfile.write(tbox_footer)
-      tboxfile.close()
+    tboxfile.close()
 
 
   def generateOutput(self, tests, startdate, enddate):
