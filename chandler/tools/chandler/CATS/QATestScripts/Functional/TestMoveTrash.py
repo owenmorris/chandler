@@ -16,11 +16,5 @@ note.MoveToTrash()
 #verification
 note.Check_ItemInCollection("Trash")
 
-#actions
-col = QAUITestAppLib.UITestItem("Collection", logger)
-col.MoveToTrash()
-#verification
-col.Check_ItemInCollection("Trash")
-
 #cleaning
 logger.Close()
