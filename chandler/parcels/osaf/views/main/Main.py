@@ -668,15 +668,6 @@ class MainView(View):
         SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView, url=url)
 
 
-    def onEditCollectionRuleEvent(self, event):
-        # Triggered from "Tests | Edit collection rule..."
-        collection = self.getSidebarSelectedCollection (private=True)
-        if collection is not None:
-            #XXX: i18n str cast of rule seems wrong 
-            rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, _(u"Edit rule"), _(u"Enter a rule for this collection"), str(collection.getRule()))
-            if rule:
-                collection.setRule(rule)
-
     def _SelectedItemScript(self):
         """ Return the possible script item:
         the item shown in the Detail View, unless

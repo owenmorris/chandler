@@ -204,12 +204,6 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
-    EditCollectionRuleEvent = \
-        BlockEvent.template('EditCollectionRule',
-            commitAfterDispatch=True,
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
-    # from //parcels/osaf/views/main
     ApplicationBarEventEvent = \
         KindParameterizedEvent.template('ApplicationBarEvent',
             methodName='onKindParameterizedEvent',
@@ -727,10 +721,6 @@ def make_mainview(parcel):
                                 event=GenerateContentItemsFromFileEvent,
                                 title=u'Generate Items from a file',
                                 helpString=u'generates Items from a file'),
-                            MenuItem.template('EditCollectionRuleItem',
-                                event=EditCollectionRuleEvent,
-                                title=u'Edit collection rule...',
-                                helpString=u'Edit the rule of a collection'),
                             MenuItem.template('MimeTestItem',
                                 event=MimeTestEvent,
                                 title=u'MIME Torture Tests',
