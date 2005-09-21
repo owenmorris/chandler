@@ -1,15 +1,35 @@
 __parcel__ = "amazon"
 
 import amazon
+from amazon import AmazonError
 import application
 from osaf.pim import ContentItem, ListCollection
 from repository.util.URL import URL
 import wx
 from application import schema
 from i18n import OSAFMessageFactory as _
+import logging
+import string
+
+log = logging.getLogger(__name__)
 
 
 amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
+
+
+
+def isEmpty(text):
+    if text is None or len(string.strip(text)) == 0:
+        return True
+
+    return False
+
+
+
+def showError(errText):
+    application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                _(u"Amazon Error"), errText)
+
 
 def CreateCollection(repView, cpiaView):
     keywords = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
@@ -17,24 +37,37 @@ def CreateCollection(repView, cpiaView):
         _(u"Enter your Amazon search keywords:"),
           u"Theodore Leung")
 
-    newAmazonCollection = AmazonCollection(view=repView, keywords=keywords)
-    return cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
-    
+    if isEmpty(keywords):
+        """The user did not enter any text to search on or hit the cancel button"""
+        return
+
+    try:
+        results = amazon.searchByKeyword(keywords)
+        newAmazonCollection = AmazonCollection(results, view=repView, keywords=keywords)
+        return cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
+
+    except (AmazonError, AttributeError), e:
+        log.exception(e)
+        showError(_(u"No Amazon Wishlist was found for search keywords '%(keywords)s'") % {'keywords': keywords})
+
 def CreateWishListCollection(repView, cpiaView):
     emailAddr = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
         _(u"New Amazon Wish List"),
         _(u"What is the Amazon email address of the wish list?"),
           u"")
 
-    if emailAddr is not None:
-        newAmazonCollection = AmazonCollection(view=repView, email=emailAddr)
+    if isEmpty(emailAddr):
+        return
+    try:
+        results = amazon.searchWishListByEmail(emailAddr)
+        newAmazonCollection = AmazonCollection(results, view=repView, email=emailAddr)
         return cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
 
-def NewCollectionFromKeywords(view, keywords, update = True):
-    collection = AmazonCollection(keywords=keywords,view=view)
-    if update:
-        print "updating new amazon collection"
-    return collection
+    except (AmazonError, AttributeError), e:
+        log.exception(e)
+        showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") \
+                                                            % {'emailAddress': emailAddr})
+
 
 class AmazonCollection(ListCollection):
 
@@ -44,31 +77,20 @@ class AmazonCollection(ListCollection):
 
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonCollection"
-    
-    def __init__(self,keywords=None,email=None, name=None, parent=None, kind=None, view=None):
+
+    def __init__(self, results, keywords=None,email=None, name=None, parent=None, kind=None, view=None):
         super(AmazonCollection, self).__init__(name, parent, kind, view)
         if keywords:
-            bags = amazon.searchByKeyword(keywords)
             self.displayName = u'Amzn: ' + keywords
-        elif email:
-            try:
-                results = amazon.searchWishListByEmail(email)
-            except AttributeError:
-                #No email address found
-                #XXX [Brian K] Will fix all this logic. Should not 
-                #    create collections till results are returned from Amazon
-                #    The programming logic here is incorrect
-                application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                _(u"Amazon Error"),
-                _(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") % {'emailAddress': email})
-                self.displayName = u'Amzn: Failed'
-                return
+            bags = results
 
+        elif email:
             customerName = results[0]
             bags = results[1]
             self.displayName = u'Amzn: ' + customerName
         else:
             bags = {}
+
         for aBag in bags:
             self.add(AmazonItem(aBag, view=view))
 
@@ -90,7 +112,7 @@ class AmazonItem(ContentItem):
 
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"
-    
+ 
     def __init__(self,bag, name=None, parent=None, kind=None, view=None):
         super(AmazonItem, self).__init__(name, parent, kind, view)
         if bag:
