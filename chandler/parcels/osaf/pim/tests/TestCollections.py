@@ -11,10 +11,10 @@ class NotifyHandler(schema.Item):
     log = schema.Sequence(initialValue=[])
     collectionEventHandler = schema.One(schema.String, initialValue="onCollectionEvent")
 
-    def checkLog(self, op, item, other):
+    def checkLog(self, op, item, other, index=-1):
         if len(self.log) == 0:
             return False
-        rec = self.log[-1]
+        rec = self.log[index]
         return rec[0] == op and rec[1] == item and rec[2] == "rep" and rec[3] == other and rec[4] == ()
     
 
@@ -331,6 +331,10 @@ class CollectionTests(CollectionTestCase):
 
 
     def testFilteredDelete(self):
+        """
+        Test deleting an item from a FilteredCollection by updating an
+        attribute of an item in the source.
+        """
         k1 = KindCollection(view=self.view)
         k1.kind = self.i.itsKind
         f2 = FilteredCollection(view=self.view)
@@ -343,9 +347,11 @@ class CollectionTests(CollectionTestCase):
         f2.subscribers.add(nh3)
 
         self.i.label = "xxx"
+        print nh3.log
         self.view.mapChanges(mapChangesCallable, True)
 
         changed = False
+        print nh3.log
         for i in nh3.log[::-1]:
             if i[0] == "changed" and i[1] == f2 and i[3] == self.i:
                 changed = True
@@ -355,7 +361,10 @@ class CollectionTests(CollectionTestCase):
 
         delattr(self.i,"label")
         self.view.mapChanges(mapChangesCallable, True)
-        self.failUnless(nh3.checkLog("remove", f2, self.i))
+        print nh3.log
+        self.failUnless(nh3.checkLog("remove", f2, self.i,-2))
+        self.failUnless(nh3.checkLog("changed", k1, self.i))
+
 
     def testFilters(self):
         from application.Parcel import Manager as ParcelManager
@@ -366,6 +375,39 @@ class CollectionTests(CollectionTestCase):
 
         k = KindCollection(view=self.view)
         kind = self.view.findPath('//parcels/osaf/pim/ContentItem')
+    
+    def testFilteredStack(self):
+#        import wingdbstub
+        k = KindCollection(view=self.view)
+        k.kind = self.i.itsKind
+
+        f = FilteredCollection(view=self.view)
+        f.source = k
+        f.filterExpression = "len(item.label) > 1"
+        f.filterAttributes = ["label"]
+        
+        l = ListCollection(view=self.view)
+        
+        u = UnionCollection(view=self.view)
+        u.subscribers.add(self.nh)
+        
+        u.addSource(f)
+        u.addSource(l)
+        print u.rep
+        
+        print [i for i in u]
+        print self.nh.log
+        self.i.label = "abcd"
+        print [i for i in u]
+        print self.nh.log
+        self.i.label = "defg"
+        print [i for i in u]
+        print self.nh.log
+        self.i.label = "a"
+        print [i for i in u]
+        print self.nh.log
+        
+        
         
     def testNumericIndex(self):
         k = KindCollection(view=self.view)

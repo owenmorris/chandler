@@ -34,18 +34,10 @@ def mapChangesCallable(item, version, status, literals, references):
 
     # handle changes to items in an existing KindCollection
     # is the item in a kind collection?
-    try:
-        #@@@ this is not the most efficient way...
-        # Find the global directory of kind collections
-        kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
-        for i in kc.collections:
-            if item in i:
-                i.contentsUpdated (item)
-    except AttributeError, ae:
-        #logger.debug(ae)
-        # @@@ intentionally swallow AttributeErrors from parcel loading
-        # due to notification attempts before reps are created.
-        pass 
+    kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
+    for i in kc.collections:
+        if item in i:
+            i.contentsUpdated (item)
 
 class CollectionColors(schema.Item):
     """
@@ -165,6 +157,7 @@ class AbstractCollection(items.ContentItem):
             if method_name != None:
                 method = getattr(type(i), method_name, None)
                 if method != None:
+                    logger.debug("Delivering %s %s to %s from %s" % (op, other, i, self.itsName))
                     method(i, op, item, name, other, *args)
                 else:
                     logger.debug("Didn't find the specified notification handler named %s" % (method_name))
@@ -264,7 +257,7 @@ class KindCollection(AbstractCollection):
         kc.collections.add(self)
     
     def contentsUpdated(self, item):
-        self.rep.notify('changed', item)
+        self.rep.notify('changed', item)        
 
     def onValueChanged(self, name):
         if name == "kind" or name == "recursive":
@@ -402,7 +395,6 @@ class UnionCollection(AbstractCollection):
             self.sources.remove(source)
             self._sourcesChanged()
 
-
 class IntersectionCollection(AbstractCollection):
     """
     A collection containing the set theoretic intersection of at least 2 collections
@@ -466,33 +458,29 @@ class FilteredCollection(AbstractCollection):
     def onValueChanged(self, name):
         if name == "source" or name == "filterExpression" or name =="filterAttributes":
             if self.source != None:
-                try:
-                    if self.filterExpression != "" and self.filterAttributes != []:
+                if self.filterExpression != "" and self.filterAttributes != []:
 
-                        # see if the expression contains hasLocalAttributeValue
-                        m = delPat.match(self.filterExpression)
-                        if m:
-                            delatt = m.group(1)
-                            if delatt is not None:
-                                # strip leading quotes
-                                if delatt.startswith("'") or delatt.startswith('"'):
-                                    delatt = delatt[1:-1] 
-                                delatt = [ delatt.replace("item.","") ]
-                        else:
-                            delatt = []
-                        attrTuples = []
+                    # see if the expression contains hasLocalAttributeValue
+                    m = delPat.match(self.filterExpression)
+                    if m:
+                        delatt = m.group(1)
+                        if delatt is not None:
+                            # strip leading quotes
+                            if delatt.startswith("'") or delatt.startswith('"'):
+                                delatt = delatt[1:-1] 
+                            delatt = [ delatt.replace("item.","") ]
+                    else:
+                        delatt = []
+                    attrTuples = []
 
-                        # build a list of (item, monitor-operation) tuples
-                        for i in self.filterAttributes:
-                            attrTuples.append((i, "set"))
-                            for j in delatt:
-                                attrTuples.append((j, "remove"))
+                    # build a list of (item, monitor-operation) tuples
+                    for i in self.filterAttributes:
+                        attrTuples.append((i, "set"))
+                        for j in delatt:
+                            attrTuples.append((j, "remove"))
 
-                        self.rep = FilteredSet((self.source, "rep"), self.filterExpression, attrTuples)
-                    for i in self.sources:
-                        i.subscribers.add(self)
-                except AttributeError, ae:
-                    pass
+                    self.rep = FilteredSet((self.source, "rep"), self.filterExpression, attrTuples)
+                    self.source.subscribers.add(self)
 
 
 class InclusionExclusionCollection(DifferenceCollection):

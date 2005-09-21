@@ -1773,11 +1773,11 @@ class Item(CItem):
             if kind is None:
                 self.__class__ = Item
             else:
-                view._notifyChange(kind.extent._collectionChanged,
-                                   'add', 'collection', 'extent', self)
                 self.__class__ = kind.getItemClass()
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
+                view._notifyChange(kind.extent._collectionChanged,
+                                   'add', 'collection', 'extent', self)
 
     def mixinKinds(self, *kinds):
         """
