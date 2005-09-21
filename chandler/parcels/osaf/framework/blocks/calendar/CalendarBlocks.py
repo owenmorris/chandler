@@ -134,10 +134,9 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             is visible).  A 100% full day is assumed to be 12 hours worth of appointments.
             """
             for item in self.blockItem.getItemsInRange(
-                            datetime.combine(startDate, time(0)),
-                            datetime.combine(endDate, time(0)),
-                            True,
-                            True):
+                (datetime.combine(startDate, time(0)),
+                 datetime.combine(endDate, time(0))),
+                True, True):
     
                 if item.transparency == "confirmed":
                     # @@@ Multiday events -- Grant???

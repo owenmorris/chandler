@@ -210,11 +210,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         self.canvasItemList = []
 
-        (startDay, endDay) = self.GetCurrentDateRange()
+        currentRange = self.GetCurrentDateRange()
         
         # we sort the items so that when drawn, the later events are drawn last
         # so that we get proper stacking
-        visibleItems = list(self.blockItem.getItemsInRange(startDay, endDay, False, True))
+        visibleItems = list(self.blockItem.getItemsInRange(currentRange, False, True))
         visibleItems.sort(self.sortByStartTime)
                 
         

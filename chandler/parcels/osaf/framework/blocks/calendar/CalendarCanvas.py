@@ -740,7 +740,7 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
             
         return generatedItems
 
-    def getItemsInRange(self, date, nextDate, dayItems=False, timedItems=True):
+    def getItemsInRange(self, (date, nextDate), dayItems=False, timedItems=True):
         """
         Convenience method to look for the items in the block's contents
         that appear on the given date. We might be able to push this
@@ -789,8 +789,8 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
                 yield item
 
     def getItemsInCurrentRange(self, *arguments, **keywords):
-        start, end = self.GetCurrentDateRange()
-        return self.getItemsInRange(start,end, *arguments, **keywords)
+        currentRange = self.GetCurrentDateRange()
+        return self.getItemsInRange(currentRange, *arguments, **keywords)
 
 
     def GetCurrentDateRange(self):

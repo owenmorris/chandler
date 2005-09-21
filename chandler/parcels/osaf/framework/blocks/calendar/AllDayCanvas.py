@@ -134,9 +134,25 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if selectedBox:
             draw(selectedBox, True)
 
+    @staticmethod
+    def GetColumnRange(item, (startDateTime, endDateTime)):
+        # get first and last column of its span
+        if Calendar.datetimeOp(item.startTime, '<', startDateTime):
+            dayStart = 0
+        else:
+            dayStart = wxAllDayEventsCanvas.DayOfWeekNumber(item.startTime)
+
+        if Calendar.datetimeOp(item.endTime, '>', endDateTime):
+            dayEnd = 6
+        else:
+            dayEnd = wxAllDayEventsCanvas.DayOfWeekNumber(item.endTime)
+        return (dayStart, dayEnd)
+        
 
     def RebuildCanvasItems(self):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        currentRange = self.GetCurrentDateRange()
+
         self.canvasItemList = []
 
         if self.blockItem.dayMode:
@@ -146,15 +162,15 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         size = self.GetSize()
         
-        startDateTime, endDateTime = self.GetCurrentDateRange()
-        visibleItems = list(self.blockItem.getItemsInRange(startDateTime, endDateTime, True, False))
+        visibleItems = list(self.blockItem.getItemsInRange(currentRange,
+                                                           True, False))
         visibleItems.sort(self.sortByDurationAndStart)
         
         oldNumEventRows = self.numEventRows
         if self.blockItem.dayMode:
             # daymode, just stack all the events
-            for y, item in enumerate(visibleItems):
-                self.RebuildCanvasItem(item, width, 0,0, y)
+            for row, item in enumerate(visibleItems):
+                self.RebuildCanvasItem(item, width, 0,0, row)
             self.numEventRows = len(visibleItems)
             
         else:
@@ -168,26 +184,19 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             # [[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
             grid = SparseMatrix()
             
-            self.numEventRows = 0
+            numEventRows = 0
 
             for item in visibleItems:
-                # get first and last column of its span
-                if Calendar.datetimeOp(item.startTime, '<', startDateTime):
-                    dayStart = 0
-                else:
-                    dayStart = self.DayOfWeekNumber(item.startTime)
-                    
-                if Calendar.datetimeOp(item.endTime, '>', endDateTime):
-                    dayEnd = 6
-                else:
-                    dayEnd = self.DayOfWeekNumber(item.endTime)
+                (dayStart, dayEnd) = \
+                           self.GetColumnRange(item, currentRange)
                 
                 #search downward, looking for a spot where it'll fit
-                y=0
-                y = grid.FitRange(dayStart, dayEnd)
-                self.RebuildCanvasItem(item, width, dayStart, dayEnd, y)
-                self.numEventRows = max(y+1, self.numEventRows)
-        
+                row = grid.FitRange(dayStart, dayEnd)
+                self.RebuildCanvasItem(item, width, dayStart, dayEnd, row)
+                numEventRows = max(row+1, self.numEventRows)
+
+            self.numEventRows = numEventRows
+            
         if (self.numEventRows and
             self.numEventRows > oldNumEventRows and
             self.autoExpandMode):
@@ -200,14 +209,13 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             self.GetParent().MoveSash(self.expandedHeight)
             self.blockItem.calendarContainer.calendarControl.widget.OnSashPositionChange()
 
-    @staticmethod
-    def NeededHeight(numEventRows, eventHeight):
-        return int( (numEventRows + .5) * eventHeight )
+    def GetExpandedHeight(self):
+        """
+        precondition: self.numEventRows must be correctly set
+        """
+        return int((self.numEventRows + .5) * self.eventHeight)
     
-    expandedHeight = property(lambda self:  self.NeededHeight(self.numEventRows, self.eventHeight),
-                              doc="precondition: self.numEventRows must be correctly set")
-
-
+    expandedHeight = property(GetExpandedHeight)
     
     def RebuildCanvasItem(self, item, columnWidth, dayStart, dayEnd, gridRow):
         """
