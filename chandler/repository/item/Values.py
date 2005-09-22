@@ -592,13 +592,14 @@ class References(Values):
         if value is other:
             if other is not None and other._isRefList():
                 other.clear()
-                self._item.setDirty(self._item.RDIRTY, name, self, True)
+                dirty = self._item.RDIRTY
             else:
-                self._item.setDirty(self._item.VDIRTY, name, self, True)
+                dirty = self._item.VDIRTY
             del self[name]
+            self._item.setDirty(dirty, name, self, True)
         elif value._isUUID() and isitem(other) and value == other._uuid:
-            self._item.setDirty(self._item.VDIRTY, name, self, True)
             del self[name]
+            self._item.setDirty(self._item.VDIRTY, name, self, True)
         elif value._isRefList():
             value._removeRef(other)
         else:

@@ -386,14 +386,16 @@ class RefList(LinkedMap, Indexed):
         if self._flags & RefList.READONLY:
             raise ReadOnlyAttributeError, (self._item, self._name)
 
-        self._setDirty()
         key = other._uuid
         
         if self._indexes:
             for index in self._indexes.itervalues():
                 index.removeKey(key)
 
-        return super(RefList, self).__delitem__(key)
+        link = super(RefList, self).__delitem__(key)
+        self._setDirty()
+
+        return link
 
     def _removeRef(self, other):
 

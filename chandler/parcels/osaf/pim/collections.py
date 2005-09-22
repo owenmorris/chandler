@@ -395,20 +395,23 @@ class UnionCollection(AbstractCollection):
 
             view = self.itsView
             for item in source:
-                view._notifyChange(source._collectionChanged,
-                                   'add', 'collection', 'rep', item)
+                view._notifyChange(self.rep.sourceChanged,
+                                   'add', 'collection', source, 'rep', False,
+                                   item)
 
     def removeSource(self, source):
 
         if source in self.sources:
             view = self.itsView
             for item in source:
-                view._notifyChange(source._collectionChanged,
-                                   'remove', 'collection', 'rep', item)
+                view._notifyChange(self.rep.sourceChanged,
+                                   'remove', 'collection', source, 'rep', False,
+                                   item)
 
             source.subscribers.remove(self)
             self.sources.remove(source)
             self._sourcesChanged()
+
 
 class IntersectionCollection(AbstractCollection):
     """
