@@ -1104,11 +1104,12 @@ class Table (PimBlocks.Sendability, RectangularChild):
         return readOnly
                 
     def onRemoveEventUpdateUI (self, event):
-
-        collection = self.contents.collectionList[0]
+        if hasattr (self.contents, 'collectionList'):
+            collection = self.contents.collectionList[0]
+        else:
+            collection = self.contents
         event.arguments['Enable'] = not self.HasReadonlySelection()
-        event.arguments['Text'] = _(u'Delete from \'%(collectionName)s\'') % \
-             {'collectionName': self.contents.collectionList[0].displayName}
+        event.arguments['Text'] = _(u'Delete from \'%s\'') % collection.displayName
 
     def onDeleteEventUpdateUI(self, event):
         event.arguments['Enable'] = not self.HasReadonlySelection()

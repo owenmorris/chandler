@@ -102,8 +102,7 @@ class AbstractCollection(items.ContentItem):
         'AbstractCollection',
         doc="Views, e.g. the Calendar, that display collections need to know "
             "which collection are combined to make up the calendar. collectionList"
-            "is an optional parameter for this purpose.",
-        defaultValue = []
+            "is an optional parameter for this purpose."
     )
 
     invitees = schema.Sequence(

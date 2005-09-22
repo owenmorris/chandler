@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "78" # john: added outOfTheBoxCollection bool to collection
+SCHEMA_VERSION = "79" # john: collectionList no longer has a defaultValue
 
 logger = None # initialized in initLogging()
 
