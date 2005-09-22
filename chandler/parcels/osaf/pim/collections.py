@@ -230,6 +230,21 @@ class AbstractCollection(items.ContentItem):
             self.createIndex()
             return self.resultSet.getIndexPosition (self.indexName, item)
 
+    def isReadOnly(self):
+        """
+        Return True iff participating in only read-only shares
+        """
+        if not self.shares:
+            return False
+
+        for share in self.shares:
+            if share.mode in ('put', 'both'):
+                return False
+
+        return True
+
+    readOnly = property(isReadOnly)
+
 class KindCollection(AbstractCollection):
     """
     A Collection of all of the items of a particular kind
