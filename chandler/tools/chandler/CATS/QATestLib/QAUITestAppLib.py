@@ -854,8 +854,12 @@ class UITestItem :
 
     def Check_CollectionExistance(self, expectedName=None, expectedResult=True):
         """
-        Check if the collection exists and has the expected display name (displayed in the sidebar)
-        @return : True if the collection exits
+        Check if the collection exists/doesn't exist and has the expected display name (displayed in the sidebar)
+        @type expectedName : string
+        @param expectedName : The expected title of the collection
+        @type expectedResult : boolean
+        @param expectedResult : expected result of the method
+        @return : True if result is the same as the expected
         """
         if self.isCollection:
             if not expectedName:
@@ -886,8 +890,12 @@ class UITestItem :
         
     def Check_ItemInCollection(self, collectionName, expectedResult=True, report=True):
         """
-        Check if the item is in the given collection
-        @return True if the item is in the given collection
+        Check if the item is/is not in the given collection
+        @type collectionName : string
+        @type expectedResult : boolean
+        @param expectedResult : expected result of the method
+        @type repor : boolean
+        @return : True if the result is the same as the expected
         """
         if not self.isCollection or collectionName == "Trash":
             self.logger.SetChecked(True)
