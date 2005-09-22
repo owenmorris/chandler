@@ -265,27 +265,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             #return dateResult
         #return spanResult
 
-                    
-    def OnCreateItem(self, unscrolledPosition):
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        
-        # creating event with no start time to acquire
-        # defaults for hour/minute
-        event = self.CreateEmptyEvent(None, True, False)
-        event.startTime = datetime.combine(newTime, event.startTime.timetz())
-                
-        event.endTime = event.startTime + timedelta(hours=1)
-
-        # collectionList[0] is the currently selected collection
-        self.blockItem.contents.collectionList[0].add (event)
-        self.OnSelectItem(event)
-        self.blockItem.itsView.commit()
-        return event
-
     def OnBeginDragItem(self):
-        #originalBox = self.dragState.originalDragBox
-        #originalBox.originalStartTime = \
-        #    originalBox.GetItem().startTime
         pass
 
     def OnDraggingItem(self, unscrolledPosition):
@@ -312,13 +292,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # if it was drawn
         
         # hack alert! We shouldn't need to adjust this
-        """
-        ost = dragState.originalDragBox.originalStartTime
-        if Calendar.datetimeOp(ost, '<', self.blockItem.rangeStart):
-            earlier = Calendar.datetimeOp(self.blockItem.rangeStart, '-', ost)
-            dx += (earlier.days + 1) * drawInfo.dayWidth
-        """
-        
         dx = roundTo(dx, drawInfo.dayWidth)
 
         position = wx.Point(unscrolledPosition.x - dx,

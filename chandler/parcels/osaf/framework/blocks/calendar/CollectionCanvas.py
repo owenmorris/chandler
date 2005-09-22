@@ -271,7 +271,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
     def OnKeyUp(self, event):
         if (event.m_keyCode == wx.WXK_DELETE and
-            self.blockItem.RemoveIsAllowed()):
+            self.blockItem.CanRemove()):
             self.blockItem.onRemoveEvent(event)
         else:
             event.Skip()
@@ -343,7 +343,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 break
         if hitBox:
             self.OnEditItem(hitBox)
-        else:
+        elif self.blockItem.CanAdd():
             self.OnCreateItem(unscrolledPosition)
             
     def _handleLeftClick(self, unscrolledPosition):
@@ -683,13 +683,17 @@ class CollectionBlock(Block.RectangularChild):
         self.selection = None
         self.postSelectItemBroadcast()
 
-    def RemoveIsAllowed(self):
-        return (self.selection is not None)
+    def CanAdd(self):
+        return not self.contents.collectionList[0].isReadOnly()
+
+    def CanRemove(self):
+        return (self.selection is not None and
+                not self.contents.collectionList[0].isReadOnly())
 
     def onRemoveEventUpdateUI(self, event):
-        event.arguments['Enable'] = self.RemoveIsAllowed()
+        event.arguments['Enable'] = self.CanRemove()
         event.arguments['Text'] = _(u"Delete from '%(collectionName)s'") % {'collectionName': self.contents.collectionList[0].displayName}
 
     def onDeleteEventUpdateUI(self, event):
-        event.arguments['Enable'] = self.RemoveIsAllowed()
+        event.arguments['Enable'] = self.CanRemove()
 
