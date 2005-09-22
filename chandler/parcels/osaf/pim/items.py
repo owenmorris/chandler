@@ -52,13 +52,16 @@ class Calculated(property):
     - I'm open to a different name: I think it oughta be schema.Property, but pje
     thought Calculated was better...
     """
-    def __new__(cls, schema_type, displayName, fget, fset=None, fdel=None, doc=None):
+    def __new__(cls, schema_type, displayName, basedOn, fget, fset=None, fdel=None, 
+                doc=None):
         return property.__new__(cls, fget, fset, fdel, doc)
     
-    def __init__(self, schema_type, displayName, fget, fset=None, fdel=None, doc=None):
+    def __init__(self, schema_type, displayName, basedOn, fget, fset=None, fdel=None, 
+                 doc=None):
         property.__init__(self, fget, fset, fdel, doc)
         self.type = schema_type
         self.displayName = displayName
+        self.basedOn = basedOn
 
 
 class ContentItem(schema.Item):
@@ -486,7 +489,8 @@ class ContentItem(schema.Item):
             finally:
                 writer.close()
 
-    bodyString = Calculated(schema.String, "bodyString", 
+    bodyString = Calculated(schema.String, u"bodyString", 
+                            basedOn=('body',),
                             fget=ItemBodyString, fset=SetItemBodyString,
                             doc="body attribute as a string")
         
@@ -549,9 +553,28 @@ class ContentItem(schema.Item):
 
     sharedState = property(getSharedState)
 
-
+    def getBasedAttributes(self, attribute):
+        """ Determine the schema attributes that affect this attribute
+        (which might be a redirectTo or a Calculated attribute) """
+        # Recurse to handle redirection if necessary
+        try:
+            redirect = self.getAttributeAspect(attribute, 'redirectTo')
+        except AttributeError:
+            pass
+        else:
+            if redirect is not None:
+                item = self
+                names = redirect.split('.')
+                for name in names [:-1]:
+                    item = item.getAttributeValue (name)
+                return item.getBasedAttributes(names[-1])
+        
+        # Not redirected. If it's Calculated, see what it's based on; 
+        # otherwise, just return a list containing its own name.
+        descriptor = getattr(self.__class__, attribute)
+        return getattr(descriptor, 'basedOn', (attribute,))
+    
     def isAttributeModifiable(self, attribute):
-
         # fast path -- item is unshared; have at it!
         if not self.sharedIn:
             return True
@@ -562,29 +585,25 @@ class ContentItem(schema.Item):
         # those inbound shares are read-only, but none of those shares
         # actually *share* that attribute (i.e., it's being filtered either
         # by sharing cloud or explicit filter), then it's modifiable.
-
         me = self.getCurrentMeContact(self.itsView)
-
+        basedAttributeNames = None # we'll look these up if necessary
         isSharedInAnyReadOnlyShares = False
-
-        # If the attribute is one of our calculated properties, map it to the
-        # real attribute.
-        if attribute == 'bodyString':
-            attribute = 'body'
-
         for share in self.sharedIn:
             if share.sharer is not me:          # inbound share
                 if share.mode in ('put', 'both'):   # writable share
                     return True
                 else:                               # read-only share
-                    if attribute in share.getSharedAttributes(self):
-                        isSharedInAnyReadOnlyShares = True
+                    # We found a read-only share; this attribute isn't
+                    # modifiable if it's one of the attributes shared for
+                    # this item in this share. (First, map this attribute to 
+                    # the 'real' attributes it depends on, if we haven't yet.)
+                    if basedAttributeNames is None:
+                        basedAttributeNames = self.getBasedAttributes(attribute)
+                    for attr in basedAttributeNames:
+                        if attr in share.getSharedAttributes(self):
+                            isSharedInAnyReadOnlyShares = True
 
-        if isSharedInAnyReadOnlyShares:
-            return False
-
-        return True
-
+        return not isSharedInAnyReadOnlyShares
 
 
 """

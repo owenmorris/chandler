@@ -25,6 +25,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
 
         def _verifyNote(note):
             self.assertEqual(note.displayName, u"sample note")
+            self.assertEqual(note.getBasedAttributes('about'), ('displayName',))
 
             reader = note.body.getReader()
             self.assertEqual(reader.read(),

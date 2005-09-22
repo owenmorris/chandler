@@ -24,17 +24,14 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         self.assert_(not e1.isAttributeModifiable('displayName'))
 
         # ...an attribute that is sometimes shared (based on filterAttributes)
-        self.assert_(not e1.isAttributeModifiable('reminderTime'))
+        self.assert_(not e1.isAttributeModifiable('reminders'))
 
         # ...an attribute which is pretty much never shared
         self.assert_(e1.isAttributeModifiable('read'))
 
-
         # Filter out reminderTime, and it should become modifiable:
-
-        share_ro.filterAttributes = ['reminderTime']
-        self.assert_(e1.isAttributeModifiable('reminderTime'))
-
+        share_ro.filterAttributes = ['reminders']
+        self.assert_(e1.isAttributeModifiable('reminders'))
 
         # Now also add the subject to a read-write share:
 
@@ -49,7 +46,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         self.assert_(e1.isAttributeModifiable('displayName'))
 
         # ...an attribute that is sometimes shared (based on filterAttributes)
-        self.assert_(e1.isAttributeModifiable('reminderTime'))
+        self.assert_(e1.isAttributeModifiable('reminders'))
 
         # ...an attribute which is pretty much never shared
         self.assert_(e1.isAttributeModifiable('read'))

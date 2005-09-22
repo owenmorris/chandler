@@ -28,6 +28,8 @@ import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
+from osaf.pim import Reminder
+from repository.item.Monitors import Monitors
 from i18n import OSAFMessageFactory as _
 
 
@@ -1590,6 +1592,8 @@ class Timer(Block):
             pass
 
 class ReminderTimer(Timer):
+    """ Watches for reminders & drives the reminder dialog. """
+    
     def synchronizeWidget (self):
         # logger.debug("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget()
@@ -1600,35 +1604,36 @@ class ReminderTimer(Timer):
             if reminderDialog is not None:
                 (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
             elif len(pending) > 0:
-                nextReminderTime = pending[0].reminderTime
+                nextReminderTime = pending[0][0]
             else:
                 nextReminderTime = None
             if closeIt:
                 self.closeReminderDialog();
             self.setFiringTime(nextReminderTime)
 
-    def getPendingReminders (self):
-        # @@@BJS Eventually, the query should be able to do the sorting for us;
-        # for now, that doesn't seem to work so we're doing it here.
-        # ... this routine should just be "return self.contents.resultSet"
-        timesAndReminders = []
-        for item in self.contents:
-            try:
-                reminderTime = item.reminderTime
-            except AttributeError:
-                pass
-            else:
-                timesAndReminders.append((reminderTime, item))
+    def render(self, *args, **kwds):
+        super(ReminderTimer, self).render(*args, **kwds)
+        # Create a monitor to watch for changes that affect reminders
+        for attr in ('reminders', 'startTime', 'duration'):
+            Monitors.attach(self, 'onRemindersChanged', 'set', attr)
             
-        if len(timesAndReminders) != 0:
-            def compareTimesAndReminders(tuple1, tuple2):
-                result = Calendar.datetimeOp(tuple1[0], 'cmp', tuple2[0])
-                if result == 0:
-                    result = cmp(tuple1[1], tuple2[1])
-                return result
-            timesAndReminders.sort(cmp=compareTimesAndReminders)
-            timesAndReminders = [ item[1] for item in timesAndReminders ]
-        return timesAndReminders
+    def unRender(self, *args, **kwds):
+        # Get rid of the monitors
+        for attr in ('reminders', 'startTime', 'duration'):
+            Monitors.detach(self, 'onRemindersChanged', 'set', attr)
+        super(ReminderTimer, self).unRender(*args, **kwds)
+
+    def onRemindersChanged(self, op, item, attribute):
+        self.synchronizeSoon()
+
+    def getPendingReminders (self):
+        """ Return a list of reminder tuples sorted by reminderTime 
+
+        Each tuple contains (reminderTime, remindable, reminder) 
+        """
+        timesAndRemindables = filter(None, map(Reminder.getNextFiring, self.contents))
+        timesAndRemindables.sort(cmp=Reminder.TupleComparer)
+        return timesAndRemindables
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
@@ -1649,6 +1654,7 @@ class ReminderTimer(Timer):
             if createIt:
                 reminderDialog = ReminderDialog.ReminderDialog(wx.GetApp().mainFrame, -1)
                 self.widget.reminderDialog = reminderDialog
+                reminderDialog.dismissCallback = self.synchronizeSoon
             else:
                 reminderDialog = None
         return reminderDialog
@@ -1850,29 +1856,14 @@ class AEBlock(BoxContainer):
         return selectedEditor
 
     def isReadOnly(self, item, attributeName):
-        if self.readOnly or not item.isAttributeModifiable(attributeName):
-            return True
-        
-        # See if this attribute is redirected.
-        try:
-            redirect = item.getAttributeAspect(attributeName, 'redirectTo')
-        except AttributeError:
-            redirect = None
-        if redirect is None:
-            return False # no redirect? must not be readonly.
-
-        # Follow the redirection and see if that attr is readonly.
-        names = redirect.split('.')
-        for name in names [:-1]:
-            item = item.getAttributeValue (name)
-        return not item.isAttributeModifiable(names[-1])
+        return self.readOnly or not item.isAttributeModifiable(attributeName)
         
     def onSetContentsEvent (self, event):
         self.item = event.arguments['item']            
         assert not hasattr(self, 'widget')
             
     def getItemAttributeTypeName(self):
-        # Get the type of the current attribute
+        """ Get the type of the current attribute """
         if self.item is None:
             return None
 

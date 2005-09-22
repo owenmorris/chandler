@@ -162,13 +162,10 @@ def itemsToVObject(view, items, cal=None, filters=None):
         except AttributeError:
             pass
 
-        if not filters or "reminderTime" not in filters:
-            try:
-                comp.add('valarm').add('trigger').value = \
-                  dateForVObject(item.reminderTime) - \
-                  dateForVObject(item.startTime)
-            except AttributeError:
-                pass
+        if not filters or "reminders" not in filters:
+            firstReminder = item.reminders.first()
+            if firstReminder is not None:
+                comp.add('valarm').add('trigger').value = firstReminder.delta
         
         if item.getAttributeValue('modificationFor', default=None) is not None:
             recurrenceid = comp.add('recurrence-id')
@@ -498,9 +495,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     eventItem.location = Calendar.Location.getLocation(view,
                                                                        location)
                 
-                if not filters or "reminderTime" not in filters:
+                if not filters or "reminders" not in filters:
                     if reminderDelta is not None:
-                        eventItem.reminderTime = dtstart + reminderDelta
+                        eventItem.makeReminder(reminderDelta)
     
                 if len(event.rdate) > 0 or len(event.rrule) > 0:
                     # make until to have no timezone if the event is all day, since

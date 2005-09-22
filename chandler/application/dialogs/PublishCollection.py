@@ -199,7 +199,8 @@ class PublishCollectionDialog(wx.Dialog):
         self.EndModal(False)
 
     def _loadAttributeFilterState(self, share):
-        self.CheckboxShareAlarms.SetValue("reminderTime" not in \
+        # @@@ Jeffrey: Needs updating for new reminders?
+        self.CheckboxShareAlarms.SetValue("reminders" not in \
                                           share.filterAttributes)
         self.CheckboxShareStatus.SetValue("transparency" not in \
                                           share.filterAttributes)
@@ -207,20 +208,25 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _getAttributeFilterState(self):
         attrs = []
+        # @@@ Jeffrey: Needs updating for new reminders?
         if not self.CheckboxShareAlarms.GetValue():
-            attrs.append('reminderTime')
+            attrs.append('reminders')
+            attrs.append('expiredReminders')
         if not self.CheckboxShareStatus.GetValue():
             attrs.append('transparency')
         return attrs
 
 
     def _saveAttributeFilterState(self, share):
+        # @@@ Jeffrey: Needs updating for new reminders?
         if not self.CheckboxShareAlarms.GetValue():
-            if "reminderTime" not in share.filterAttributes:
-                share.filterAttributes.append("reminderTime")
+            if "reminders" not in share.filterAttributes:
+                share.filterAttributes.append("reminders")
+                share.filterAttributes.append("expiredReminders")
         else:
-            if "reminderTime" in share.filterAttributes:
-                share.filterAttributes.remove("reminderTime")
+            if "reminders" in share.filterAttributes:
+                share.filterAttributes.remove("reminders")
+                share.filterAttributes.remove("expiredReminders")
 
         if not self.CheckboxShareStatus.GetValue():
             if "transparency" not in share.filterAttributes:

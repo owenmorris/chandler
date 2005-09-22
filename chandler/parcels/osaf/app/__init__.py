@@ -266,6 +266,11 @@ def MakeCollections(parcel):
         sources=[nonGeneratedNotes, notMine]
     )
 
+    reminders = \
+        KindCollection.update(parcel, 'reminders')
+    reminders.kind = pim.Reminder.getKind(parcel.itsView)
+    reminders.recursive = True
+    
     # the "All" collection
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_(u"All My Items"),

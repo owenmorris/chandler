@@ -60,14 +60,6 @@ def make_mainview(parcel):
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", parcel.itsView)
     app  = schema.ns("osaf.app", parcel.itsView)
 
-    ReminderItems = \
-        pim.FilteredCollection.update(parcel, 'ReminderItems',
-                                      displayName=_(u'Reminder Items'),
-                                      indexName='reminderTime',
-                                      source=app.events,
-                                      filterExpression='item.hasLocalAttributeValue(\'reminderTime\') == True',
-                                      filterAttributes=['reminderTime'])
-
     # these reference each other... ugh!
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
     
@@ -78,7 +70,7 @@ def make_mainview(parcel):
     
     ReminderTimer.update(parcel, 'ReminderTimer',
                          event=ReminderTimerEvent,
-                         contents=ReminderItems)
+                         contents=app.reminders)
 
     # from //parcels/osaf/views/main
     NewNoteEvent = \

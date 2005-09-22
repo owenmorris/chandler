@@ -35,7 +35,7 @@ IMPORTANCE = [u"important", u"normal", u"fyi"]
 LOCATIONS  = [u"Home", u"Office", u"School"]
 HEADLINES = [u"Dinner", u"Lunch", u"Meeting", u"Movie", u"Games"]
 DURATIONS = [60, 90, 120, 150, 180]
-REMINDERS = [1, 10, 20, 30, 40]
+REMINDERS = [1, 5, 10, 30, 60, 90] # should match the menu!
 TITLES = [u"reading list", u"restaurant recommendation", u"vacation ideas",
           u"grocery list", u"gift ideas", u"life goals", u"fantastic recipe",
           u"garden plans", u"funny joke", u"story idea", u"poem"]
@@ -183,13 +183,13 @@ def GenerateCalendarEvent(view, mainView, args):
     else:
         event.duration = timedelta(minutes=60) #default value 1h
 
-    #reminderTime
-    if args[7]=='*': # semi-random data
-        reminderInterval = random.choice(REMINDERS)
-        event.reminderTime = event.startTime - timedelta(minutes=reminderInterval)
-    elif not args[7]=='':
-        reminderInterval = string.atoi(args[7])
-        event.reminderTime = event.startTime - timedelta(minutes=reminderInterval)
+    #reminders
+    if not args[7]=='':
+        if args[7]=='*': # semi-random data
+            reminderInterval = random.choice(REMINDERS)
+        else:
+            reminderInterval = string.atoi(args[7])
+        event.makeReminder(timedelta(minutes=-reminderInterval))
 
     #location
     if args[8]=='*': # semi-random data

@@ -7,6 +7,24 @@ import os, sys, wx
 from datetime import datetime, timedelta
 from osaf.pim.calendar import Calendar
 from i18n import OSAFMessageFactory as _
+ 	
+DAY    = 1440
+HOUR   = 60
+MINUTE = 1
+
+# Message strings. Note that the singular ones don't need value interpolation.
+singularPastMessages = { DAY: _(u'1 day ago'), 
+                         HOUR: _(u'1 hour ago'), 
+                         MINUTE: _(u'1 minute ago') }
+singularFutureMessages = { DAY: _(u'1 day from now'), 
+                           HOUR: _(u'1 hour from now'), 
+                           MINUTE: _(u'1 minute from now') }
+pluralPastMessages = { DAY: _(u'%(numOf)d days ago'), 
+                       HOUR: _(u'%(numOf)d hours ago'), 
+                       MINUTE: _(u'%(numOf)d minutes ago') }
+pluralFutureMessages = { DAY: _(u'%(numOf)d days from now'), 
+                         HOUR: _(u'%(numOf)d hours from now'), 
+                         MINUTE: _(u'%(numOf)d minutes from now') }
 
 class ReminderDialog(wx.Dialog):
     def __init__(self, parent, ID, size=wx.DefaultSize,
@@ -28,6 +46,9 @@ class ReminderDialog(wx.Dialog):
         # when the widget gets destroyed, letting UpdateList know it can NOP.
         self.reminderClosing = False
 
+        # Note that we don't have anyone to notify when a reminder is dismissed.
+        self.dismissCallback = None
+        
         # Now continue with the normal construction of the dialog
         # contents: a list, then a row of buttons
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -93,14 +114,18 @@ class ReminderDialog(wx.Dialog):
         self.reminderControls['dismissAll'].Enable(haveAnyItems)
         return haveAnyItems
     
-    def UpdateList (self, reminders):
-        """ 
-        Update our list of reminders, and return the time we next want to fire.
-        If we've still got reminders displayed, this'll be a minute from now, so we can 
-        update their "when" column
+    def UpdateList (self, reminderTuples):
+        """ Update our reminder list; return info about our next firing.
+        
+        We return a tuple containing a time (or None) and a flag that indicates
+        whether this dialog should stay open. If we've still got reminders 
+        displayed, this'll be a minute from now (so we can update their "when" 
+        column) and the flag will be True; if not, it'll be when the next 
+        reminder is due.
         """
 
-        # Don't do anything if we're responding to an update after our widget's been destroyed
+        # Don't do anything if we're responding to an update after our 
+        # widget's been destroyed.
         if self.reminderClosing:
             return (None, False)
         
@@ -108,31 +133,30 @@ class ReminderDialog(wx.Dialog):
         listCtrl = self.reminderControls['list']
         listCtrl.DeleteAllItems()
         self.remindersInList = {}
-        nextReminder = None
-        now = datetime.now()
-        for reminder in reminders:
-            if Calendar.datetimeOp(reminder.reminderTime,
-                                        '<', datetime.now()):
-                # Another pending reminder add it to the list.
-                index = listCtrl.InsertStringItem(sys.maxint, reminder.displayName)
-                self.remindersInList[index] = reminder
+        nextReminderTime = None
+        for t in reminderTuples:
+            (reminderTime, remindable, reminder) = t
+            if Calendar.datetimeOp(reminderTime, '<', datetime.now()):
+                # Another pending reminder; add it to the list.
+                index = listCtrl.InsertStringItem(sys.maxint, 
+                                                  remindable.displayName)
+                self.remindersInList[index] = t
 
                 # Make a relative expression of its time ("3 minutes from now")
-                delta = Calendar.datetimeOp(now, '-',
-                         reminder.getEffectiveStartTime())
-                deltaMessage = self.RelativeDateTimeMessage(delta)
+                eventTime = reminder.getBaseTimeFor(remindable)
+                deltaMessage = self.RelativeDateTimeMessage(eventTime)
                 listCtrl.SetStringItem(index, 1, deltaMessage)
 
                 # Select it if it was selected before
                 try:
-                    selectedReminders.index(reminder)
+                    selectedReminders.index(t)
                 except ValueError:
                     pass
                 else:
                     listCtrl.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
             else:
                 # This reminder is still in the future.
-                nextReminder = reminder
+                nextReminderTime = reminderTime
                 break
 
         self.UpdateControlEnabling()
@@ -145,54 +169,39 @@ class ReminderDialog(wx.Dialog):
         if not closeIt:
             now = datetime.now()
             nextReminderTime = now + timedelta(seconds=(60-now.second))
-        elif nextReminder is not None:
-            nextReminderTime = reminder.reminderTime
-        else:
-            nextReminderTime = None
         return (nextReminderTime, closeIt)
 
-    def RelativeDateTimeMessage(self, delta):
-        #XXX: [i18n] This function might need restrategizing for l10n:
+    def RelativeDateTimeMessage(self, eventTime):
+        """ Build a message expressing relative time to this time, 
+        like '12 minutes from now', 'Now', or '1 day ago'. """
+        now = datetime.now()
+        delta = Calendar.datetimeOp(now, '-', eventTime)
         deltaMinutes = (delta.days * 1440L) + (delta.seconds / 60)
-        if 1 > deltaMinutes >= 0:
+        if 0 <= deltaMinutes < 1:
             return _(u"Now")
-
-        # We're going to produce a string containing a number and a singular or
-        # plural "units" word, possibly also including a phrase indicating
-        # a time in the past (in English, "ago") or the future ("from now").
-        # Examples: "12 minutes from now", "1 day ago", "3 hours from now".
-        absDeltaMinutes = abs(deltaMinutes)
-        if (absDeltaMinutes >= 2880): # Use "days" only if it's more than two
-            singular = _(u"day")
-            plural = _(u"days")
-            scale = 1440
-        elif (absDeltaMinutes >= 120): # Use "hours" only if it's more than two
-            singular = _(u"hour")
-            plural = _(u"hours")
-            scale = 60
+        
+        # Pick a friendly scale factor
+        absDeltaMinutes = abs(deltaMinutes)        
+        ago = absDeltaMinutes == deltaMinutes
+        if absDeltaMinutes < 120: # Use "minutes" if it's less than 2 hrs
+            scale = MINUTE
+        elif absDeltaMinutes < 2880: # Use "hours" if it's less than 2 days
+            scale = HOUR
         else:
-            singular = _(u"minute")
-            plural = _(u"minutes")
-            scale = 1
+            scale = DAY
 
-        # Now that we've picked units, scale the value to the units.
+        # Scale the value to the units.
         value = round((absDeltaMinutes / scale) + 0.49999)
-
-        # Build a little dictionary that we'll format with:
-        words = {
-            # The value itself:
-            'value': value,
-
-            # The units, singular or plural:
-            'units': value != 1 and plural or singular,
-
-            # The "sign": "ago" if negative, "from now" if positive.
-            'sign': absDeltaMinutes == deltaMinutes and _(u"ago") or _(u"from now")
-        }
-
-        # Format & return it.
-        format = _(u"%(value)d %(units)s %(sign)s")
-        return format % words
+        
+        # Make the message.
+        if value == 1:
+            # Singular strings don't need the "1" substituted into them
+            msg = (ago and singularPastMessages or singularFutureMessages)[scale]
+        else:
+            # Get a string and stick the value in it.
+            msg = (ago and pluralPastMessages or pluralFutureMessages)[scale] \
+                % { 'numOf' : value }
+        return msg
 
     def onDismiss(self, event):
         """ 
@@ -200,15 +209,19 @@ class ReminderDialog(wx.Dialog):
         can come from the dismiss or dismissAll buttons, or from the window's close box.
         """
         dismissSelection = event.GetEventObject() is self.reminderControls['dismiss']
-        for reminder in self.getListItems(dismissSelection):
-            del reminder.reminderTime
+        for (reminderTime, remindable, reminder) in self.getListItems(dismissSelection):
+            remindable.dismissReminder(reminder)
         wx.GetApp().repository.view.commit()
+        if self.dismissCallback is not None:
+            self.dismissCallback()
 
     def onSnooze(self, event):
         """ Snooze the selected reminders for five minutes """
-        for reminder in self.getListItems(True):
-            reminder.reminderTime = datetime.now() + timedelta(minutes=5)
+        for (reminderTime, remindable, reminder) in self.getListItems(True):
+            remindable.snoozeReminder(reminder, timedelta(minutes=5))
         wx.GetApp().repository.view.commit()
+        if self.dismissCallback is not None:
+            self.dismissCallback()
 
     def getListItems(self, selectedOnly):
         """ Provide iteration over ListCtrl items """

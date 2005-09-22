@@ -991,8 +991,8 @@ class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
 
 class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
-        return item.isAttributeModifiable('reminderTime') \
-               or hasattr(item, 'reminderTime')
+        return item.isAttributeModifiable('reminders') \
+               or len(item.reminders) > 0
 
 class CalendarTimeZoneAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
@@ -1170,10 +1170,10 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
         self.SetControlValue(self.control, 
                          self.GetAttributeValue(item, attributeName))
 
-class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
+class ReminderAttributeEditor(ChoiceAttributeEditor):
     def GetControlValue (self, control):
         """ Get the reminder delta value for the current selection """        
-        # @@@ For now, assumes that the menu will be a number of minutes, 
+        # @@@ i18n For now, assumes that the menu will be a number of minutes, 
         # followed by a space (eg, "1 minute", "15 minutes", etc), or something
         # that doesn't match this (eg, "None") for no-alarm.
         menuChoice = control.GetStringSelection()
@@ -1206,6 +1206,29 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
                 if choiceIndex == -1:
                     choiceIndex = 0 # the "None" choice
             control.Select(choiceIndex)
+
+    def GetAttributeValue (self, item, attributeName):
+        """ Get the value from the specified attribute of the item. """
+        #@@@ This assumes we've only got 0 or 1 reminders.
+        firstReminder = item.reminders.first()
+        if firstReminder is None or not hasattr(firstReminder, 'delta'):
+            return None # no reminder, or snoozed.
+        else:
+            return firstReminder.delta
+
+    def SetAttributeValue (self, item, attributeName, value):
+        """ Set the value of the attribute given by the value. """
+        if not self.ReadOnly((item, attributeName)) and \
+           value != self.GetAttributeValue(item, attributeName):
+            firstReminder = item.reminders.first()
+            if firstReminder is not None:
+                item.reminders.remove(firstReminder)
+                if not (len(firstReminder.reminderItems) or \
+                        len(firstReminder.expiredReminderItems)):
+                    firstReminder.delete()
+            if value is not None:
+                item.makeReminder(value)
+            self.AttributeChanged()
 
 class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # These are the values we pass around; they're the same as the menu indices.

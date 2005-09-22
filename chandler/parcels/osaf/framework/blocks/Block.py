@@ -305,6 +305,10 @@ class Block(schema.Item):
         """
           When our item collection has changed, we need to synchronize
         """
+        self.synchronizeSoon()
+
+    def synchronizeSoon(self):
+        """ Invoke our general deferred-synchronization mechanism """
         self.dirtyBlocks [self.itsUUID] = True
 
     IdToUUID = []               # A list mapping Ids to UUIDS

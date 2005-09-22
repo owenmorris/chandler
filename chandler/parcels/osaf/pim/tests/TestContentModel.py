@@ -77,7 +77,11 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(genericContentItem.context, "work")
         self.assertEqual(genericContentItem.body, "Notes appear in the body")
         self.assertEqual(genericContentItem.getItemDisplayName(), u"Test Content Item")
-
+        
+        # Test Calculated basedOn
+        self.assertEqual(genericContentItem.getBasedAttributes('bodyString'), ('body',))
+        self.assertEqual(genericContentItem.getBasedAttributes('body'), ('body',))
+                         
         genericProject.name = "Test Project"
         genericGroup.name = "Test Group"
 

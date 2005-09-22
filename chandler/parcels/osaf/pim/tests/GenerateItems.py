@@ -80,7 +80,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=None):
     # Maybe a nice reminder?
     reminderInterval = random.choice(REMINDERS)
     if reminderInterval is not None:
-        event.reminderTime = event.startTime - timedelta(minutes=reminderInterval)
+        event.makeReminder(timedelta(minutes=-reminderInterval))
         
     # Add a location to 2/3 of the events
     if random.randrange(3) > 0:
