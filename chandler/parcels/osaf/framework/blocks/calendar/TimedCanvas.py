@@ -245,7 +245,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # next, generate bounds rectangles for each canvasitem
         for canvasItem in self.canvasItemList:
             # drawing rects should be updated to reflect conflicts
-            if currentDragBox is canvasItem:
+            if (currentDragBox is canvasItem and
+                currentDragBox.CanDrag()):
 
                 (newStartTime, newEndTime) = self.GetDragAdjustedTimes()
 
@@ -399,12 +400,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.StartDragTimer()
 
     def FinishDrag(self):
-        (newStartTime, newEndTime) = self.GetDragAdjustedTimes()
-        currentItem = self.dragState.currentDragBox.GetItem()
+        currentCanvasItem = self.dragState.currentDragBox
+        if not currentCanvasItem.CanDrag():
+            return
 
-        proxy = RecurrenceDialog.getProxy(u'ui', currentItem)
-        proxy.startTime = newStartTime
-        proxy.endTime = newEndTime
+        proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.GetItem())
+        
+        (proxy.startTime, proxy.endTime) = self.GetDragAdjustedTimes()
         
     def OnEndDragItem(self):
         self.FinishDrag()

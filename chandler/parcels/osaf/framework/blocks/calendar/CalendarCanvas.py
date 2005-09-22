@@ -263,7 +263,15 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             maxparents = max([parent.GetIndentLevel() for parent in self._parentConflicts])
         return max(self.GetIndentLevel(), maxchildren, maxparents)
 
-        
+    def CanDrag(self):
+        item = self.GetItem()
+        return (item.isAttributeModifiable('startTime') and
+                item.isAttributeModifiable('duration'))
+
+    def CanChangeTitle(self):
+        item = self.GetItem()
+        return item.isAttributeModifiable('title')
+    
     def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
         item = self._item
@@ -886,6 +894,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
 
     def OnEditItem(self, box):
+        if not box.CanChangeTitle():
+            return
+        
         styles = self.blockItem.calendarContainer
         position = self.CalcScrolledPosition(box.GetEditorPosition())
         size = box.GetMaxEditorSize()

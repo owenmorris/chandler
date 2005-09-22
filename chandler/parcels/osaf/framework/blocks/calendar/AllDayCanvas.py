@@ -290,12 +290,17 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
     def OnDraggingItem(self, unscrolledPosition):
         if self.blockItem.dayMode:
-            #no dragging allowed.
+             #no dragging allowed.
+             return
+        
+        # we have to deduce the offset, so you can begin a drag in any
+        # cell of a multi-day event. Code borrowed from
+        # wxTimedEventsCanvas.OnDraggingItem()
+        dragState = self.dragState
+        
+        if not dragState.currentDragBox.CanDrag():
             return
         
-        # we have to deduce the offset, so you can begin a drag in any cell of
-        # a multi-day event. Code borrowed from wxTimedEventsCanvas.OnDraggingItem()
-        dragState = self.dragState
         (boxX,boxY) = dragState.originalDragBox.GetDragOrigin()
         
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
