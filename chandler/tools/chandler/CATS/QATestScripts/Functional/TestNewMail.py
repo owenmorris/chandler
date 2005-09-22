@@ -1,6 +1,5 @@
 import util.QAUITestAppLib as QAUITestAppLib
 import os
-import shutil
 
 filePath = os.getenv('CATSREPORTDIR')
 if not filePath:
