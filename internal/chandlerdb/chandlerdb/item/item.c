@@ -25,6 +25,7 @@ static PyObject *t_item_isSchema(t_item *self, PyObject *args);
 static PyObject *t_item_isDirty(t_item *self, PyObject *args);
 static PyObject *t_item_getDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isNDirty(t_item *self, PyObject *args);
+static PyObject *t_item__isNoDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isCopyExport(t_item *self, PyObject *args);
 static PyObject *t_item__isImporting(t_item *self, PyObject *args);
 static PyObject *t_item__isRepository(t_item *self, PyObject *args);
@@ -164,6 +165,7 @@ static PyMethodDef t_item_methods[] = {
     { "isDirty", (PyCFunction) t_item_isDirty, METH_NOARGS, isDirty_DOC },
     { "getDirty", (PyCFunction) t_item_getDirty, METH_NOARGS, getDirty_DOC },
     { "_isNDirty", (PyCFunction) t_item__isNDirty, METH_NOARGS, "" },
+    { "_isNoDirty", (PyCFunction) t_item__isNoDirty, METH_NOARGS, "" },
     { "_isCopyExport", (PyCFunction) t_item__isCopyExport, METH_NOARGS, "" },
     { "_isImporting", (PyCFunction) t_item__isImporting, METH_NOARGS, "" },
     { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
@@ -376,6 +378,14 @@ static PyObject *t_item_getDirty(t_item *self, PyObject *args)
 static PyObject *t_item__isNDirty(t_item *self, PyObject *args)
 {
     if (self->status & NDIRTY)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item__isNoDirty(t_item *self, PyObject *args)
+{
+    if (self->status & NODIRTY)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
