@@ -1857,7 +1857,14 @@ class AEBlock(BoxContainer):
         return selectedEditor
 
     def isReadOnly(self, item, attributeName):
-        return self.readOnly or not item.isAttributeModifiable(attributeName)
+        # This used to be this (but I want to be more verbose when debugging for now):
+        # return self.readOnly or not item.isAttributeModifiable(attributeName)
+        if self.readOnly: return True
+        
+        result = not item.isAttributeModifiable(attributeName)
+        logger.debug("AEBlock: %s %s readonly", attributeName,
+                     result and "is" or "is not")
+        return result
         
     def onSetContentsEvent (self, event):
         self.item = event.arguments['item']            
@@ -1951,11 +1958,48 @@ class AEBlock(BoxContainer):
             if editor is not None:
                 editor.EndControlEdit(self.item, self.attributeName, widget)
 
+    def render(self):
+        super(AEBlock, self).render()
+        # Start monitoring the attributes that affect this editor
+        if self.widget is not None and self.item is not None:
+            self.widget.monitoredAttributes = \
+                self.item.getBasedAttributes(self.attributeName)
+            if len(self.widget.monitoredAttributes) > 0:
+                logger.debug("AEBlock: Attaching monitors for %s", 
+                             ', '.join(self.widget.monitoredAttributes))
+                for attr in self.widget.monitoredAttributes:
+                    Monitors.attach(self, 'onMonitoredValueChanged', 'set', attr)
+                
     def unRender(self):
+        # Stop monitoring
+        try:
+            monitoredAttributes = self.widget.monitoredAttributes
+        except AttributeError:
+            pass
+        else:
+            if len(monitoredAttributes) > 0:
+                logger.debug("AEBlock: Detaching monitors for %s", 
+                             ', '.join(self.widget.monitoredAttributes))
+                for attr in monitoredAttributes:
+                    Monitors.detach(self, 'onMonitoredValueChanged', 'set', attr)
+
         # Last-chance write-back.
         if getattr(self, 'forEditing', False):
             self.saveValue()
         super(AEBlock, self).unRender()
+
+    def onMonitoredValueChanged(self, op, item, attribute):
+        # Most notifications aren't for us: ignore them in order of how likely
+        # they are. (yes, it's bad to have specific proxy knowledge here, but
+        # I'm expecting _lots_ of notifications, and this seems like the quickest
+        # way to reduce overhead
+        if not item in (self.item, getattr(self.item, 'proxiedItem', None)) or \
+           self.item is None or self.item.isDeleted():
+            return
+        
+        # It's for us - reload the widget
+        logger.debug("AEBlock: Monitor on %s fired - reloading.", attribute)
+        self.synchronizeWidget()
             
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:

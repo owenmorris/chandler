@@ -529,9 +529,6 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         self.dayMode = False
         self.setRange(self.startOfToday())
 
-        # watch for all color changes
-        Monitors.attach(self, 'onColorChanged', 'set', 'color')
-
     def render(self, *args, **kwds):
         super(CalendarBlock, self).render(*args, **kwds)
         Monitors.attach(self, 'onColorChanged', 'set', 'color')

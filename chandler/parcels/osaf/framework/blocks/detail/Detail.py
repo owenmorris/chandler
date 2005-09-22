@@ -54,20 +54,14 @@ class DetailRootBlock (Sendability, ControlBlocks.ContentItemDetail):
     def onSetContentsEvent (self, event):
         item = event.arguments['item']
         logger.debug("DetailRoot.onSetContentsEvent: %s", item)
-
-        # Make sure the itemcollection that we monitor includes only the selected item.
-        if item is not None:
-            if (len(self.contents) != 1 or self.contents[0] is not item):
-                self.contents.clear()
-                self.contents.add(item)
-        elif len(self.contents) != 0:
-            self.contents.clear()
+        self.item = item
+        return
 
     def selectedItem(self):
         # return the item being viewed
         try:
-            item = self.contents[0]
-        except IndexError:
+            item = self.item
+        except AttributeError:
             item = None
         return item
 
@@ -284,14 +278,10 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
 
         decoratedSubtreeList.sort()
         
-        # Copy our stub block, move the new kids on(to) the block,
-        # and make a ListCollection that we'll use to watch for changes.
+        # Copy our stub block and move the new kids on(to) the block
         trunk = self._copyItem(self.trunkStub)
         trunk.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
-        trunk.contents = ListCollection(view=self.itsView,
-                                        displayName=u'DetailView Contents')
-            
-        return trunk    
+        return trunk
     
     def _getSubtrees(self):
         """
