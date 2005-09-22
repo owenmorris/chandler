@@ -14,11 +14,8 @@ import i18n
 def main():
     message = "while trying to start."
 
+    # Process any command line switches and any environment variable values
 
-
-    """
-    Process any command line switches and any environment variable values
-    """
     application.Globals.options = Utility.initOptions()
 
     application.Globals.chandlerDirectory = Utility.locateChandlerDirectory()
@@ -29,32 +26,31 @@ def main():
 
     def realMain():
         if __debug__ and application.Globals.options.wing:
-            """
-              Check for -wing command line argument; if specified, try to connect to
-            an already-running WingIDE instance.  See:
-              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#wingIDE.
-            for details.
-            """
+            # Check for -wing command line argument; if specified, try to connect to
+            # an already-running WingIDE instance.  See
+            # http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#wingIDE
+            # for details.
+
             import wingdbstub
         if __debug__ and application.Globals.options.komodo:
-            """
-            Check for -komodo command line argument; if specified, try to connect to
-            an already-running Komodo instance.  See:
-              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#Komodo.
-            for details.
-            """
+            # Check for -komodo command line argument; if specified, try to connect to
+            # an already-running Komodo instance.  See
+            # http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#Komodo
+            # for details.
+
             import dbgp.client
             dbgp.client.brk()
         from application.Application import wxApplication
-        """
-          redirect stdio and stderr to a dialog if we're running the debug version.
-        This is done to catch asserts, which otherwise will never get seen by
-        people who run Chandler using the launchers, e.g. Aparna. If you're
-        running release you can also set things up so that you can see
-        stderr and stdout if you run in a shell or from wing with a console.
-          useBestVisual, uses best screen resolutions on some old computers. See
-        wxApp.SetUseBestVisual
-        """
+
+        # redirect stdio and stderr to a dialog if we're running the debug version.
+        # This is done to catch asserts, which otherwise will never get seen by
+        # people who run Chandler using the launchers, e.g. Aparna. If you're
+        # running release you can also set things up so that you can see
+        # stderr and stdout if you run in a shell or from wing with a console.
+        #
+        # useBestVisual - uses best screen resolutions on some old computers. See
+        #                 wxApp.SetUseBestVisual
+
         app = wxApplication(redirect=__debug__, useBestVisual=True)
         app.MainLoop()
 
