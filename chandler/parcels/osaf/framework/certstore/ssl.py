@@ -1,8 +1,29 @@
 """
-Things to tie certificates into SSL/TLS connections.
+SSL/TLS.
 
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
+
+@var  trusted_until_shutdown_site_certs:         Certificates that should be
+                                                 trusted until program exit.
+                                                 The certificates are in PEM
+                                                 format (str).
+@type trusted_until_shutdown_site_certs:         list
+@var  trusted_until_shutdown_invalid_site_certs: Ignore SSL errors with these
+                                                 certificates until program
+                                                 exit. The key is the
+                                                 certificate in PEM format (str)
+                                                 and the value is a list of the
+                                                 errors to ignore.
+@type trusted_until_shutdown_invalid_site_certs: dict
+@var  unknown_issuer:                            Certificate verification error
+                                                 codes in this list signal that
+                                                 the certificate has been
+                                                 issued by unknown authority
+                                                 and that we should probably
+                                                 ask the user if they would
+                                                 like to trust this certificate.
+@type unknown_issuer:                            list
 """
 
 import logging
@@ -18,6 +39,11 @@ import twisted.protocols.policies as policies
 import application.Utility as Utility
 from osaf.framework.certstore import constants, utils
 
+__all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
+           'connectSSL', 'connectTCP', 'unknown_issuer',
+           'trusted_until_shutdown_site_certs',
+           'trusted_until_shutdown_invalid_site_certs']
+
 log = logging.getLogger(__name__)
 
 def loadCertificatesToContext(repView, ctx):
@@ -25,7 +51,7 @@ def loadCertificatesToContext(repView, ctx):
     Add certificates to SSL Context.
     
     @param repView: repository view
-    @param ctx: M2Crypto.SSL.Context
+    @param ctx:     M2Crypto.SSL.Context
     """
     qName = 'sslCertificateQuery'
     q = repView.findPath('//userdata/%s' %(qName))
@@ -44,7 +70,10 @@ def loadCertificatesToContext(repView, ctx):
 
 
 class SSLContextError(Exception):
-    pass
+    """
+    Raised when an SSL Context could not be created. Currently happens
+    only when cipher list cannot be set.
+    """
 
 
 def getContext(repositoryView, protocol='sslv23', verify=True,
@@ -95,14 +124,17 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     # cipher.
     if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
         log.error('Could not set cipher list')
-        raise SSLContextError, 'Could not set cipher list'
+        raise SSLContextError('Could not set cipher list')
 
     return ctx
 
 
 class ContextFactory(object):
+    """
+    This is internal class to this module and should not be used outside.
+    """
     def __init__(self, repositoryView, protocol='sslv23', verify=True,
-               verifyCallback=None):
+                 verifyCallback=None):
         self.repositoryView = repositoryView
         self.protocol = protocol
         self.verify = verify
@@ -125,6 +157,9 @@ unknown_issuer = [m2.X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT,
 
 
 class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
+    """
+    This is internal class to this module and should not be used outside.
+    """
     def __init__(self, repositoryView, protocol, factory, wrappedProtocol, 
                  startPassThrough, client):
         log.debug('TwistedProtocolWrapper.__init__')
@@ -195,16 +230,15 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
 
 
     def postConnectionVerify(self, peerX509, expectedHost):
-        """
-        Do a post connection check on an SSL connection. This is done just
-        after the SSL connection has been established, but before exchanging
-        any real application data like username and password.
-    
-        This implementation checks to make sure that the certificate that the
-        peer presented was issued for the host we tried to connect to, or in
-        other words, make sure that we are talking to the server we think we should
-        be talking to.
-        """
+        #Do a post connection check on an SSL connection. This is done just
+        #after the SSL connection has been established, but before exchanging
+        #any real application data like username and password.
+        #
+        #This implementation checks to make sure that the certificate that the
+        #peer presented was issued for the host we tried to connect to, or in
+        #other words, make sure that we are talking to the server we think we
+        #should be talking to.
+        #
         # TODO: We should report ALL errors from this post connection check
         #       so that users will only get one dialog, even if there are
         #       several errors. Obviously we need to record all errors in

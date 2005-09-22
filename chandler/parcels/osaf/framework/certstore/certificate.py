@@ -28,11 +28,21 @@ log = logging.getLogger(__name__)
 
 
 class typeEnum(schema.Enumeration):
+    """
+    Type enumeration
+    
+    @see: U{model<../model/>}
+    """
     schema.kindInfo(displayName = u"Type Enumeration")
     values = constants.TYPE_ROOT, constants.TYPE_SITE
 
 
 class CertificateStore(pim.KindCollection):
+    """
+    Certificate Store
+    
+    @see: U{model<../model/>}
+    """
     schema.kindInfo(displayName = _(u"Certificate Store"))
     def __init__(self, *args, **kw):
         super(CertificateStore, self).__init__(*args, **kw)
@@ -46,6 +56,11 @@ class CertificateStore(pim.KindCollection):
 
 
 class Certificate(pim.ContentItem):
+    """
+    Certificate
+    
+    @see: U{model<../model/>}
+    """
 
     schema.kindInfo(displayName = _(u"Certificate"))
 
@@ -93,13 +108,32 @@ class Certificate(pim.ContentItem):
     )
 
     def pemAsString(self):
+        """
+        Get the pem attribute (which is stored as a LOB) as a str.
+        
+        @return: pem as str
+        @rtype:   str
+        """
         # M2Crypto needs this to be str rather than unicode - safe conversion
         return str(self.pem.getReader().read())
 
     def asTextAsString(self):
+        """
+        Get the asText attribute (which is stored as a LOB) as a str.
+        
+        @return: asText as str
+        @rtype:  str
+        """
         return self.asText.getReader().read()
 
     def asX509(self):
+        """
+        Get the pem (which is stored as a LOB) as a C{M2Crypto.X509.X509}
+        instance.
+        
+        @return: pem as C{M2Crypto.X509.X509}.
+        @rtype:  C{M2Crypto.X509.X509}
+        """
         return X509.load_cert_string(self.pemAsString())
 
     # XXX These don't work?
@@ -229,6 +263,10 @@ def importCertificate(x509, fingerprint, trust, repView):
 
 
 def importCertificateDialog(repView):
+    """
+    Let the user import a certificate. First brings up a file selection
+    dialog, then asks for trust settings for the certificate being imported.
+    """
     res = ImportExport.showFileDialog(wx.GetApp().mainFrame,
                                       _(u"Choose a certificate to import"),
                                       u"", 
@@ -294,11 +332,6 @@ def createSidebarView(repView, cpiaView):
         # XXX just so we can see if this collection is certstore. Besides,
         # XXX isinstance is bad.
         if isinstance(item, CertificateStore):
-            # XXX Why doesn't this work here? It says there's no root or
-            # XXX sidebar on app_ns. It works for scripts, though.
-            #app_ns = schema.ns('osaf.app', cpiaView)
-            #app_ns.root.ApplicationBarAll()
-            #app_ns.sidebar.select(item)
             cpiaView.postEventByName('ApplicationBarAll', {})
             cpiaView.postEventByName('RequestSelectSidebarItem', {'item': item})
             return

@@ -1,10 +1,11 @@
-from i18n import OSAFMessageFactory as _
-
 """
-Certificate store blocks
+Certificate store UI.
+
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
+
+from i18n import OSAFMessageFactory as _
 
 from osaf.framework.blocks import Block
 from osaf.framework.blocks.detail import Detail
