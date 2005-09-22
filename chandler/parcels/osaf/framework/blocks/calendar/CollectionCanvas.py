@@ -259,10 +259,22 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.dragState = None
         
     def OnInit(self):
+        # _focusWindow is used because wxPanel is much happier if it
+        # has a child window that deals with focus stuff. We create an
+        # invisible window and send all focus (i.e. keyboard) events
+        # through it.
         self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0))
+        self._focusWindow.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 
     def SetPanelFocus(self):
         self._focusWindow.SetFocus()
+
+    def OnKeyUp(self, event):
+        if (event.m_keyCode == wx.WXK_DELETE and
+            self.blockItem.RemoveIsAllowed()):
+            self.blockItem.onRemoveEvent(event)
+        else:
+            event.Skip()
 
     def DrawCenteredText(self, dc, text, rect):
         textExtent = dc.GetTextExtent(text)
@@ -671,10 +683,13 @@ class CollectionBlock(Block.RectangularChild):
         self.selection = None
         self.postSelectItemBroadcast()
 
+    def RemoveIsAllowed(self):
+        return (self.selection is not None)
+
     def onRemoveEventUpdateUI(self, event):
-        event.arguments['Enable'] = (self.selection is not None)
+        event.arguments['Enable'] = self.RemoveIsAllowed()
         event.arguments['Text'] = _(u"Delete from '%(collectionName)s'") % {'collectionName': self.contents.collectionList[0].displayName}
 
     def onDeleteEventUpdateUI(self, event):
-        event.arguments['Enable'] = (self.selection is not None)
+        event.arguments['Enable'] = self.RemoveIsAllowed()
 
