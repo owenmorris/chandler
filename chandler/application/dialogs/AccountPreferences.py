@@ -4,6 +4,7 @@
 import os
 import wx
 import wx.xrc
+import webbrowser
 
 import application.schema as schema
 import application.Globals
@@ -348,6 +349,7 @@ PANELS = {
         "description" : _(u"Sharing %(accountType)s") % {'accountType': 'WebDAV'},
         "callbacks" : (
             ("WEBDAV_TEST", "OnTestWebDAV"),
+            ("WEBDAV_SIGNUP", "OnSignUpWebDAV"),
         )
     },
 }
@@ -1083,6 +1085,8 @@ class AccountPreferencesDialog(wx.Dialog):
         if msg is not None:
             application.dialogs.Util.ok(self, _(u"%(accountType)s Test Results") % {'accountType': 'WebDAV'}, msg)
 
+    def OnSignUpWebDAV(self, evt):
+        webbrowser.open('https://cosmo-demo.osafoundation.org/account/new')
 
     def OnAccountSel(self, evt):
         # Huh? This is always False!

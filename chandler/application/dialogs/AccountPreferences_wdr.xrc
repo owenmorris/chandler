@@ -616,6 +616,20 @@
                         <label>Test this account</label>
                     </object>
                 </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxButton" name="WEBDAV_SIGNUP">
+                        <label>Sign up for an account</label>
+                    </object>
+                </object>
             </object>
         </object>
     </object>

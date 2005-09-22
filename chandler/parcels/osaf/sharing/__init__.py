@@ -836,7 +836,10 @@ def isWebDAVSetUp(view):
     """
 
     account = getWebDAVAccount(view)
-    return account is not None
+    if account and account.host and account.username and account.password:
+        return True
+    else:
+        return False
 
 def ensureAccountSetUp(view):
     """

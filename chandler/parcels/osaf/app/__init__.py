@@ -25,35 +25,15 @@ def installParcel(parcel, oldVersion=None):
 
     MakeCollections(parcel)
 
-    sharing.WebDAVAccount.update(parcel, 'OSAFWebDAVAccount',
-        displayName=_(u'%(accountName)s sharing') % {'accountName': 'OSAF'},
-        host=u'pilikia.osafoundation.org',
-        path=u'/dev1',
-        username=u'dev1',
-        password=u'd4vShare',
-        useSSL=False,
-        port=80,
-        references=[curDav]
-    )
-
-    sharing.WebDAVAccount.update(parcel, 'XythosWebDAVAccount',
-        displayName=_(u'%(accountName)s sharing') % {'accountName': 'Xythos'},
-        host=u'www.sharemation.com',
-        path=u'/OSAFdot5',
-        username=u'OSAFdot5',
-        password=u'osafdemo',
+    sharing.WebDAVAccount.update(parcel, 'CosmoWebDAVAccount',
+        displayName=_(u'Sharing'),
+        host=u'cosmo-demo.osafoundation.org',
+        path=u'',
+        username=u'',
+        password=u'',
         useSSL=True,
         port=443,
-    )
-
-    sharing.WebDAVAccount.update(parcel, 'VenueWebDAVAccount',
-        displayName=_(u'%(accountName)s sharing') % {'accountName': 'Venue'},
-        host=u'webdav.venuecom.com',
-        path=u'/calendar/OSAFdot5/calendars',
-        username=u'OSAFdot5',
-        password=u'demo',
-        useSSL=False,
-        port=80,
+        references=[curDav]
     )
 
     preReply = pim.EmailAddress.update(parcel, 'PredefinedReplyAddress')

@@ -781,11 +781,32 @@ class MainView(View):
         """
           Share the collection selected in the Sidebar. 
         If the current collection is already shared, then manage the collection.
-        In either case, the real work here is to tell the summary
-        view to deselect, and the detail view that the selection has
-        changed to the entire summary view's collection.
+
         The "Collection | Share collection " menu item
         """
+
+        done = False
+
+        while not done:
+
+            if sharing.isWebDAVSetUp(self.itsView):
+                done = True
+
+            else:
+                msg = _(u"Please set up a sharing account")
+                if application.dialogs.Util.okCancel(wx.GetApp().mainFrame,
+                    _(u"Account Setup"), msg):
+
+                    account = schema.ns('osaf.app',
+                        self.itsView).currentWebDAVAccount.item
+                    dlg = AccountPreferences.ShowAccountPreferencesDialog
+                    ok = dlg(wx.GetApp().mainFrame, account=account,
+                             view=self.itsView)
+                    if not ok:
+                        return
+                else:
+                    return
+
 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
