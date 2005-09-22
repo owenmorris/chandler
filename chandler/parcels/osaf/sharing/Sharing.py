@@ -29,6 +29,8 @@ __all__ = [
     'splitUrl',
 ]
 
+CLOUD_XML_VERSION = '1'
+
 import time, StringIO, urlparse, libxml2, os, base64, logging
 from application import schema
 from chandlerdb.util.uuid import UUID
@@ -1401,6 +1403,8 @@ class WebDAVConduit(ShareConduit):
 
         try:
             item = self.share.format.importProcess(text, item=into)
+        except VersionMismatch:
+            raise
         except Exception, e:
             logger.exception("Failed to parse XML for item %s: '%s'" % (itemPath,
                                                                     text))
@@ -1638,18 +1642,26 @@ class CouldNotConnect(SharingError):
     Exception raised if a conduit can't connect to an external entity
     due to DNS/network problems.
     """
+
 class IllegalOperation(SharingError):
     """
     Exception raised if the entity a conduit is communicating with is
     denying an operation for some reason not covered by other exceptions.
     """
+
 class TransformationFailed(SharingError):
     """
     Exception raised if import or export process failed.
     """
+
 class AlreadySubscribed(SharingError):
     """
     Exception raised if subscribing to an already-subscribed url
+    """
+
+class VersionMismatch(SharingError):
+    """
+    Exception raised if syncing with a CloudXML share of an old version
     """
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1841,8 +1853,10 @@ class CloudXMLFormat(ImportExportFormat):
 
         if depth == 0:
             result = '<?xml version="1.0" encoding="UTF-8"?>\n\n'
+            versionString = "version='%s' " % CLOUD_XML_VERSION
         else:
             result = ''
+            versionString = ''
 
         # Collect the set of attributes that are used in this format
         attributes = self.share.getSharedAttributes(item)
@@ -1852,7 +1866,7 @@ class CloudXMLFormat(ImportExportFormat):
         if items.has_key(item.itsUUID):
             result += indent * depth
             result += "<%s uuid='%s' />\n" % (item.itsKind.itsName,
-                item.itsUUID)
+                                               item.itsUUID)
             return result
 
         items[item.itsUUID] = 1
@@ -1870,9 +1884,10 @@ class CloudXMLFormat(ImportExportFormat):
             klass = item.itsKind.classes['python']
             classes = "%s.%s" % (klass.__module__, klass.__name__)
 
-        result += "<%s class='%s' uuid='%s'>\n" % (item.itsKind.itsName,
-                                                  classes,
-                                                  item.itsUUID)
+        result += "<%s %sclass='%s' uuid='%s'>\n" % (item.itsKind.itsName,
+                                                    versionString,
+                                                    classes,
+                                                    item.itsUUID)
 
         depth += 1
 
@@ -1989,6 +2004,12 @@ class CloudXMLFormat(ImportExportFormat):
         kind = None
         kinds = []
 
+        versionNode = node.hasProp('version')
+        if versionNode:
+            versionString = versionNode.content
+            if versionString != CLOUD_XML_VERSION:
+                raise VersionMismatch(_(u"Incompatible share"))
+
         if item is None:
 
             uuidNode = node.hasProp('uuid')
@@ -2001,6 +2022,7 @@ class CloudXMLFormat(ImportExportFormat):
                     return item
             else:
                 uuid = None
+
 
         classNode = node.hasProp('class')
         if classNode:
