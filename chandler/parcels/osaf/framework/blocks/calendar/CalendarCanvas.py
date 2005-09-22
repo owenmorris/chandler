@@ -720,35 +720,25 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
                 (Calendar.datetimeOp(item.startTime, '<=', start) and
                  Calendar.datetimeOp(item.endTime, '>=', end)))
 
-    def generateItemsInRange(self, date, nextDate, dayItems):
-
-        # getOccurrencesBetween is potentially expensive, so
-        # make sure we cache the ones we've already visited
-        generatedUIDs = []
-        generatedItems = []
+    def generateItemsInRange(self, date, nextDate, dayItems, timedItems):
         for item in self.contents:
-            #logger.debug("got item %s" % str(item))
-
-            if self.isDayItem(item) != dayItems:
-                continue
-            
             try:
-                # not all items have UIDs
-                icalUID = item.icalUID
-                if icalUID not in generatedUIDs:
-                    # This is the meat of it - ensure the items actually exist
-                    newItems = item.getOccurrencesBetween(date, nextDate,
-                                                          onlyGenerated=True)
-                    generatedItems.extend(newItems)
-                    #logger.debug("generated items: %s" % newItems)
-                if icalUID is not None:
-                    generatedUIDs.append(icalUID)
+                for newItem in item.getOccurrencesBetween(date, nextDate):
+                    # One or both of dayItems and timedItems must be True,
+                    # if both, no need to test the item's day-ness.  If only one
+                    # is True, then dayItems' value must match the return of
+                    # isDayItem.
+                    if (dayItems and timedItems or
+                        self.isDayItem(newItem) == dayItems):
+                            # For the moment, master events can be
+                            # overridden.  Until this is changed, don't
+                            # display events for which occurrenceFor is None
+                            if newItem.occurrenceFor is not None:
+                                yield newItem
             except AttributeError:
                 continue
-            
-        return generatedItems
 
-    def getItemsInRange(self, (date, nextDate), dayItems=False, timedItems=True):
+    def getItemsInRange(self, (date, nextDate), dayItems=False, timedItems=False):
         """
         Convenience method to look for the items in the block's contents
         that appear on the given date. We might be able to push this
@@ -757,13 +747,13 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         @type date: datetime
         @type nextDate: datetime
         
-        @param dayItems: whether you want day items, or timed items
-        @param allItems: overrides dayItems and gives you everything
+        @param dayItems: return day items (items that have no start time)
+        @param timedItems: return timed items
         
         @return: the items in this collection that appear within the given range
         @rtype: generator of Items
         """
-        
+        assert dayItems or timedItems, "dayItems or timedItems must be True"
         defaultTzinfo = ICUtzinfo.getDefault()
         if date.tzinfo is None:
             date = date.replace(tzinfo=defaultTzinfo)
@@ -775,25 +765,11 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
             nextDate = nextDate.replace(tzinfo=defaultTzinfo)
         else:
             nextDate = nextDate.astimezone(defaultTzinfo)
-        
-        # this is annoying - for the moment we have to first make sure all the
-        # generated items exist, then reiterate self.contents
-        generatedItems = self.generateItemsInRange(date, nextDate, dayItems)
 
-        for item in itertools.chain(self.contents, generatedItems):
-            dayItem = self.isDayItem(item)
-            daynessTest =  dayItem == dayItems  or  (not dayItem == timedItems)
-            
-
-            if (hasattr(item, 'startTime') and
-                hasattr(item, 'duration') and
-                daynessTest and
-                self.itemIsInRange(item, date, nextDate)):
-                # For the moment, master events can be overridden.  Until
-                # this is changed (which should happen soon), don't display
-                # events for which occurrenceFor is None.
-                if item.occurrenceFor is None:
-                    continue
+        for item in self.generateItemsInRange(date, nextDate, dayItems, timedItems):
+            if (hasattr(item, 'startTime') and hasattr(item, 'duration')):
+                assert self.itemIsInRange(item, date, nextDate), \
+                    "generateItemsInRange returned an item outside the range."
                 yield item
 
     def getItemsInCurrentRange(self, *arguments, **keywords):
@@ -830,7 +806,7 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         """
 
         # generated events need to defer to their parent event
-        if event.isGenerated:
+        if event.occurrenceFor != event:
             event = event.getMaster()
             
         collections = self.contents.collectionList

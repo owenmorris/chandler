@@ -136,7 +136,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             for item in self.blockItem.getItemsInRange(
                 (datetime.combine(startDate, time(0)),
                  datetime.combine(endDate, time(0))),
-                True, True):
+                timedItems=True, dayItems=True):
     
                 if item.transparency == "confirmed":
                     # @@@ Multiday events -- Grant???
@@ -405,7 +405,8 @@ class wxPreviewArea(wx.Panel):
                 self.ChangeHeightAndAdjustContainers(0)
                 return
 
-            inRange = list(self.blockItem.getItemsInCurrentRange(True, True))
+            inRange = list(self.blockItem.getItemsInCurrentRange(dayItems=True,
+                                                               timedItems=True))
             self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
             self.currentDaysItems.sort(cmp = self.SortForPreview)

@@ -163,7 +163,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         size = self.GetSize()
         
         visibleItems = list(self.blockItem.getItemsInRange(currentRange,
-                                                           True, False))
+                                                           dayItems=True))
         visibleItems.sort(self.sortByDurationAndStart)
         
         oldNumEventRows = self.numEventRows

@@ -211,12 +211,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.canvasItemList = []
 
         currentRange = self.GetCurrentDateRange()
-        
         # we sort the items so that when drawn, the later events are drawn last
         # so that we get proper stacking
-        visibleItems = list(self.blockItem.getItemsInRange(currentRange, False, True))
+        visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
+                                                           timedItems=True))
         visibleItems.sort(self.sortByStartTime)
-                
+
         
         dragState = self.dragState
         if (dragState and

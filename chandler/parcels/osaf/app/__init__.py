@@ -253,10 +253,10 @@ def MakeCollections(parcel):
     notes.kind = pim.Note.getKind(parcel.itsView)
     notes.recursive=True
 
-    nonGeneratedNotes = FilteredCollection.update(parcel, 'nonGeneratedNotes',
+    nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=notes,
-        filterExpression='not getattr(item, \'isGenerated\', False)',
-        filterAttributes=['isGenerated']
+        filterExpression='not getattr(item, \'isGenerated\', False) and not getattr(item, \'modificationFor\', None)',
+        filterAttributes=['isGenerated', 'modificationFor']
     )
 
     notMine = UnionCollection.update(parcel, 'notMine')
@@ -264,7 +264,7 @@ def MakeCollections(parcel):
     notMine._sourcesChanged()
 
     mine = DifferenceCollection.update(parcel, 'mine',
-        sources=[nonGeneratedNotes, notMine]
+        sources=[nonRecurringNotes, notMine]
     )
 
     reminders = \
