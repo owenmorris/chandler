@@ -829,14 +829,12 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         firstSpecialCollection = None
         for coll in collections:
 
-            # hack alert! The out-of-the-box collections aren't renameable, so
-            # we'll rely on that to make sure we don't get 'All's color
             if (event in coll):
-                if getattr(coll, 'renameable', True):
-                    return coll
-                else:
+                if coll.outOfTheBoxCollection:
                     # save it for later, we might be returning it
                     firstSpecialCollection = coll
+                else:
+                    return coll
                     
         if firstSpecialCollection:
             return firstSpecialCollection

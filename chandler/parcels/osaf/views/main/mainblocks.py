@@ -248,11 +248,10 @@ def make_mainview(parcel):
         BlockEvent.template('SyncCollection',
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
-    # from //parcels/osaf/views/main
     ToggleMineEvent = \
         BlockEvent.template('ToggleMine',
             dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
+            dispatchToBlockName='Sidebar').install(parcel)
     # from //parcels/osaf/views/main
     SharingImportDemoCalendarEvent = \
         BlockEvent.template('SharingImportDemoCalendar',
@@ -688,15 +687,17 @@ def make_mainview(parcel):
                                 event=globalevents.Rename,
                                 title=_(u'Rename'),
                                 helpString=_(u'Rename the selected collection')),
-                            MenuItem.template('ToggleMineItem',
-                                event=ToggleMineEvent,
-                                title=_(u'Toggle mine/not-mine'),
-                                helpString=_(u'Toggle mine/not-mine')),
                             Menu.template('CollectionColorMenu',
                                 title=_(u'&Collection Color'),
                                 childrenBlocks=make_color_blocks(parcel,
                                                                  MenuItem,
                                                                  collection_hues)),
+                            MenuItem.template('CollectionSeparator1',
+                                menuItemKind='Separator'),
+                            MenuItem.template('ToggleMineItem',
+                                event=ToggleMineEvent,
+                                title=_(u'Toggle mine/not-mine'),
+                                helpString=_(u'Toggle mine/not-mine')),
                             ]), # Menu CollectionMenu
                     Menu.template('TestMenu',
                         title=_(u'&Test'),

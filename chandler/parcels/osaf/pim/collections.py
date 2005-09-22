@@ -86,12 +86,13 @@ class AbstractCollection(items.ContentItem):
       The following collection attributes may be moved once the dust
     settles on pje's external attribute mechanism
     """
-    renameable              = schema.One(schema.Boolean)
+    renameable              = schema.One(schema.Boolean, defaultValue = True)
     color                   = schema.One(ColorType)
     iconName                = schema.One(schema.String)
     iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
+    outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
     """
       A dictionary mapping a KindName string to a new displayName.
     """

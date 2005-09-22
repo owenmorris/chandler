@@ -244,7 +244,8 @@ def MakeCollections(parcel):
             displayName=_(u"Trash"),
             renameable=False,
             iconName="Trash",
-            colorizeIcon = False
+            colorizeIcon = False,
+            outOfTheBoxCollection = True
         )
 
     notes = KindCollection.update(parcel, 'notes')
@@ -279,6 +280,7 @@ def MakeCollections(parcel):
         colorizeIcon = False,
         iconNameHasKindVariant = True,
         color = collectionColors.nextColor(),
+        outOfTheBoxCollection = True,
 
         displayNameAlternatives = {'None': _(u'My items'),
                                    'MailMessageMixin': _(u'My mail'),
@@ -313,7 +315,8 @@ def MakeCollections(parcel):
         iconName="In",
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
-        colorizeIcon = False
+        colorizeIcon = False,
+        outOfTheBoxCollection = True
     ).setup(source=inSource, trash=TrashCollection)
 
     outSource = \
@@ -329,7 +332,8 @@ def MakeCollections(parcel):
         iconName="Out",
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
-        colorizeIcon = False
+        colorizeIcon = False,
+        outOfTheBoxCollection = True
     ).setup(source=outSource, trash=TrashCollection)
 
     # The "Scripts" collection
@@ -344,7 +348,7 @@ def MakeCollections(parcel):
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
         colorizeIcon = False
-         ).setup(source=scriptsCollection)
+        ).setup(source=scriptsCollection)
 
     # The Sidebar collection
     ListCollection.update(parcel, 'sidebarCollection',

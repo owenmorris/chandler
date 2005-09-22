@@ -881,34 +881,6 @@ class MainView(View):
         ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, view=self.itsView)
 
 
-    def onToggleMineEvent(self, event):
-        collection = self.getSidebarSelectedCollection()
-        if collection is not None:
-            notMine = schema.ns('osaf.app', self.itsView).notMine
-            if collection in notMine.sources:
-                notMine.removeSource(collection)
-            else:
-                notMine.addSource(collection)
-
-    def onToggleMineEventUpdateUI(self, event):
-        menuTitle = _(u"Toggle mine/not-mine")
-        enabled = False
-
-        collection = self.getSidebarSelectedCollection()
-        all = schema.ns('osaf.app', self.itsView).allCollection
-        if collection is not all and collection is not None:
-            enabled = True
-            notMine = schema.ns('osaf.app', self.itsView).notMine
-            if collection in notMine.sources:
-                menuTitle = _(u'Put "%(collection)s" into My Items') % {
-                    'collection': collection.getItemDisplayName()}
-            else:
-                menuTitle = _(u'Take "%(collection)s" out of My Items') % {
-                    'collection': collection.getItemDisplayName()}
-
-        event.arguments ['Text'] = menuTitle
-        event.arguments['Enable'] = enabled
-
     def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."
         self.itsView.commit() 

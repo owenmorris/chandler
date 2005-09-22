@@ -21,11 +21,7 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
           Second argument should be True if all cells have the first value
         """
         (item, attribute) = self.GetElementValue (row, column)
-        try:
-            readOnly = not item.renameable
-        except AttributeError:
-            readOnly = False
-        return readOnly, False
+        return getattr(item, 'renameable', False), False
 
     def GetElementType (self, row, column):
         return "Item"
@@ -307,13 +303,10 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             """
               Confuse user by changing the name to something they won't understand
             """
-            name = getattr (item, attribute)
             if hasattr (item, "displayNameAlternatives"):
-                if sidebar.filterKind is None:
-                    key = "None"
-                else:
-                    key = os.path.basename (str (sidebar.filterKind.itsPath))
-                name = item.displayNameAlternatives [key]
+                name = sidebar.getNameAlternative (item)
+            else:
+                name = getattr (item, attribute)
             """
               Draw the buttons
             """
@@ -684,6 +677,51 @@ class SidebarBlock(ControlBlocks.Table):
     def onRenameEvent (self, event):
         self.widget.EnableCellEditControl()
 
+    def onToggleMineEvent(self, event):
+        if self.selectedItemToView is not None:
+            notMine = schema.ns('osaf.app', self.itsView).notMine
+            if self.selectedItemToView in notMine.sources:
+                notMine.removeSource(self.selectedItemToView)
+            else:
+                notMine.addSource(self.selectedItemToView)
+
+    def onToggleMineEventUpdateUI(self, event):
+        isCollection = (self.selectedItemToView is not None and
+                        isinstance (self.selectedItemToView, AbstractCollection))
+        if isCollection:
+            if hasattr (self.selectedItemToView, "displayNameAlternatives"):
+                collectionName = self.getNameAlternative (self.selectedItemToView)
+            else:
+                collectionName = self.selectedItemToView.getItemDisplayName()
+            collectionName = u'"' + collectionName + u'" '
+        else:
+            collectionName = ""
+
+        kind = self.getNameAlternative (schema.ns('osaf.app', self.itsView).allCollection)
+
+        if (not isCollection or self.selectedItemToView.outOfTheBoxCollection):
+            enabled = False
+            menuTitle = _(u'Keep %sout of %s') % (collectionName, kind)
+        else:
+            enabled = True
+            notMine = schema.ns('osaf.app', self.itsView).notMine
+            if self.selectedItemToView in notMine.sources:
+                menuTitle = _(u'Add %sto %s') % (collectionName, kind)
+            else:
+                menuTitle = _(u'Keep %sout of %s') % (collectionName, kind)
+        event.arguments ['Text'] = menuTitle
+        event.arguments['Enable'] = enabled
+
+    def getNameAlternative (self, item):
+        """
+        Chandler has a very confusing feature that some collection's names change
+        when the app bar is filtering, so we need to calculate the alternative name
+        """
+        if self.filterKind is None:
+            key = "None"
+        else:
+            key = os.path.basename (str (self.filterKind.itsPath))
+        return item.displayNameAlternatives [key]
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
