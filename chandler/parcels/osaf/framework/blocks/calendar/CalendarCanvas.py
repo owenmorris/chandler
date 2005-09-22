@@ -270,7 +270,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
     def CanChangeTitle(self):
         item = self.GetItem()
-        return item.isAttributeModifiable('title')
+        return item.isAttributeModifiable('displayName')
     
     def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
