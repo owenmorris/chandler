@@ -530,7 +530,6 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def Copy(self): return self.shownControl.Copy()
     def Paste(self): return self.shownControl.Paste()
     def Clear(self): return self.shownControl.Clear()
-    def SelectAll(self): return self.shownControl.SelectAll()
 
     def SetFont(self, font):
         self.editControl.SetFont(font)
@@ -870,17 +869,20 @@ class StringAttributeEditor (BaseAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         """ Get the attribute's current value """
         try:
-            valueString = unicode(getattr(item, attributeName))
+            theValue = unicode(getattr(item, attributeName))
         except AttributeError:
             valueString = u""
         else:
             try:
                 cardinality = item.getAttributeAspect (attributeName, "cardinality")
             except AttributeError:
-                pass
+                cardinality = "single"
+
+            if cardinality == "list":
+                valueString = u", ".join([part.getItemDisplayName()
+                                          for part in theValue])
             else:
-                if cardinality == "list":
-                    valueString = u", ".join([part.getItemDisplayName() for part in value])
+                valueString = unicode(theValue)
 
         return valueString
 
@@ -888,7 +890,6 @@ class StringAttributeEditor (BaseAttributeEditor):
         try:
             cardinality = item.getAttributeAspect (attributeName, "cardinality")
         except AttributeError:
-            # @@@ it's probably Calculated()... Assume it's single for now.
             cardinality = "single"
         if cardinality == "single":
             if self.GetAttributeValue(item, attributeName) != valueString:

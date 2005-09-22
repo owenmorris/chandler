@@ -21,6 +21,7 @@ import osaf.pim.items as items
 from osaf.pim.tasks import TaskMixin
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.Recurrence as Recurrence
+from osaf.pim.contacts import ContactName
 from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
 import application.dialogs.Util as Util
