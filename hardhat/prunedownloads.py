@@ -23,13 +23,15 @@ longPolicyDays   = 30
 smtpServer       = 'mail.osafoundation.org'
 downloadsServer  = 'builds'
 fromAddr         = 'builds'
-toAddr           = 'bear'
+toAddr           = 'builder-admin'
 defaultDomain    = 'osafoundation.org'
 startDir         = '/home/builder/www/docs/chandler/continuous'
 tboxDirGlob      = ['*-win', '*-osx', '*-linux']
+cosmoLatestFile  = 'cosmo-continuous-latest.tar.gz'
+
+symlinkTargets   = ['cosmo-full-osx']
 
 import datetime, time, smtplib, os, glob
-
 
 class mylog:
     def __init__(self):
@@ -40,7 +42,6 @@ class mylog:
     
     def write(self, data):
         self.data += data
-
 
 def rmdirRecursive(dir):
     """
@@ -65,12 +66,11 @@ def rmdirRecursive(dir):
         if os.path.isdir(full_name):
             rmdirRecursive(full_name)
         else:
-            # print "removing file", full_name
+            #print "removing file", full_name
             os.remove(full_name)
     os.rmdir(dir)
 
-
-def prune():
+def prune_and_link():
     global startDir
 
     nowDT = datetime.datetime.now()
@@ -79,7 +79,17 @@ def prune():
 
     tooOldStr = tooOld.strftime("%Y%m%d%H%M%S")
     tooNewStr = tooNew.strftime("%Y%m%d%H%M%S")
-    
+
+    symlinkDir = ''
+
+    def checkArchiveDir(archive, symlinkDir):
+        if archive > symlinkDir:
+            symFiles = glob.glob('*.gz')
+
+            if len(symFiles) > 0:
+                symlinkDir = archive
+        return symlinkDir    
+
     os.chdir(startDir)
 
     # get directories where tbox clients rsync their distributions
@@ -95,34 +105,52 @@ def prune():
             continue
 
         os.chdir(os.path.join(startDir, dir))
-    
+
         # now the real pruning happens here
         betweenDays = {}
         archivedirs = glob.glob('[0-9]*')
+        symlinkDir  = archivedirs[0]
+
         for archive in archivedirs[:-1]: # [:-1] means 'leave latest'
             if len(archive) != 14 or not os.path.isdir(archive):
                 continue 
 
             if archive < tooOldStr:
-                print 'delete ', os.path.join(startDir, dir, archive)
+                #print 'delete', os.path.join(startDir, dir, archive)
                 rmdirRecursive(archive)
                 continue
-            
+
             if archive > tooNewStr:
-                print 'leave ', os.path.join(startDir, dir, archive)
+                #print 'leave', os.path.join(startDir, dir, archive)
                 continue
 
             # Now all we have left are those in-betweens...
 
             day = archive[:8]
             if betweenDays.has_key(day):
-                print 'delete ', os.path.join(startDir, dir, archive)
+                #print 'delete', os.path.join(startDir, dir, archive)
                 rmdirRecursive(archive)
                 continue
-            
-            betweenDays[day] = 1
-            print 'leave ', os.path.join(startDir, dir, archive)
 
+            betweenDays[day] = 1
+            #print 'leave', os.path.join(startDir, dir, archive)
+
+        if dir in symlinkTargets:
+            #print 'symlink check', dir
+            #print 'last found', archivedirs[-1]
+            symlinkDir = checkArchiveDir(archive,archivedirs[-1])
+            sympath    = os.path.join(startDir, dir, symlinkDir, '*.tar.gz')
+            symFiles   = glob.glob(sympath)
+
+            #print 'sympath, symFiles:', sympath, symFiles
+
+            for symSource in symFiles:
+                symTarget = os.path.join(startDir, cosmoLatestFile)
+                if os.path.isfile(symTarget) or os.path.islink(symTarget):
+                    #print 'removing', symTarget
+                    os.unlink(symTarget)
+                #print 'linking', symSource, symTarget
+                os.symlink(symSource, symTarget)
 
 def main():
     global shortPolicyHours, longPolicyDays, smtpServer, downloadsServer
@@ -130,9 +158,9 @@ def main():
 
     fromAddr += '@' + defaultDomain
     toAddr   += '@' + defaultDomain
-    
+
     try:
-        prune()
+        prune_and_link()
     except Exception, e:
         import traceback
         log = mylog()
