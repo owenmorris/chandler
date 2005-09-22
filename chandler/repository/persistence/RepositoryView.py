@@ -35,8 +35,8 @@ class RepositoryView(CView):
     # 0.5.5: added //Schema/Core/Type.types to get rid of type kind query
     # 0.5.6: added support for Kind extents
     # 0.5.7: added support for Kind inheritedSuperKinds cache
-    # 0.5.8: adding complete attribute cache
-    # 0.5.9: remove repository.query.Query
+    # 0.5.8: added complete attribute cache
+    # 0.5.9: removed repository.query.Query and Query kind
     
     CORE_SCHEMA_VERSION = 0x00050900
 

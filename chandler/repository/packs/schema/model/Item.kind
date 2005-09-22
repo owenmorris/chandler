@@ -17,7 +17,7 @@
 
       <!-- 
          - plus local attributes below:
-         -     monitors, queries, watcherDispatch, watchers, watches,
+         -     monitors, watcherDispatch, watchers, watches,
 	 -     kindExtent
         -->
 

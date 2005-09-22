@@ -126,13 +126,13 @@ class DBContainer(object):
             db = self._db
 
         try:
-            cursor = self._threaded.cursors[db].dup()
-            self.store.repository.logger.info('duplicated cursor')
-            return cursor
+            cursor = self._threaded.cursors.get(db, None)
+            if cursor is not None:
+                cursor = cursor.dup()
+                self.store.repository.logger.info('duplicated cursor')
+                return cursor
         except AttributeError:
             self._threaded.cursors = {}
-        except KeyError:
-            pass
             
         cursor = db.cursor(self.store.txn, self._flags)
         self._threaded.cursors[db] = cursor
@@ -146,11 +146,8 @@ class DBContainer(object):
             if db is None:
                 db = self._db
 
-            try:
-                if self._threaded.cursors[db] is cursor:
-                    del self._threaded.cursors[db]
-            except KeyError:
-                pass
+            if self._threaded.cursors.get(db, None) is cursor:
+                del self._threaded.cursors[db]
                 
             cursor.close()
 
