@@ -21,7 +21,7 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
           Second argument should be True if all cells have the first value
         """
         (item, attribute) = self.GetElementValue (row, column)
-        return getattr(item, 'renameable', False), False
+        return not getattr(item, 'renameable', True), False
 
     def GetElementType (self, row, column):
         return "Item"
