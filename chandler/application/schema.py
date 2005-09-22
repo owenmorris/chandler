@@ -126,7 +126,7 @@ class Activator(type):
 class Role(ActiveDescriptor,CDescriptor):
     """Descriptor for a schema-defined attribute"""
 
-    owner = type = _inverse = _frozen = None
+    owner = type = _inverse = _frozen = annotates = None
 
     __slots__ = ['__dict__']
     __slots__.extend(all_aspects)
@@ -148,7 +148,7 @@ class Role(ActiveDescriptor,CDescriptor):
                 setattr(self,k,v)
         self.setDoc()   # default the doc string
 
-    def activateInClass(self,cls,name):
+    def activateInClass(self,cls,name,set_type=True):
         """Role was defined/used in class `cls` under name `name`"""
         if self.owner is None:
             self.owner = cls
@@ -158,7 +158,8 @@ class Role(ActiveDescriptor,CDescriptor):
                     return
                 elif isinstance(self.inverse.inverse,ForwardReference):
                     self.inverse.inverse = self
-                self.inverse.type = cls
+                if set_type:
+                    self.inverse.type = cls
 
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
@@ -274,8 +275,6 @@ class Role(ActiveDescriptor,CDescriptor):
     def _init_schema_item(self, attr, view):
         kind = attr.itsParent = itemFor(self.owner, view)
         attr.itsName = self.name
-        kind.attributes.append(attr, attr.itsName)
-        # XXX self.registerAttribute(kind, attr)
 
         for aspect in all_aspects:
             if hasattr(self,aspect):
@@ -291,10 +290,33 @@ class Role(ActiveDescriptor,CDescriptor):
                 setattr(attr,aspect,val)
 
         if not hasattr(self,'otherName') and self.inverse is not None:
+            if self.inverse.name is None:
+                typ = self.type or Base
+                if isinstance(typ,ForwardReference):
+                    typ = typ.referent()
+                self.inverse.annotates = (typ,)
+                cls = self.owner
+                self.inverse.activateInClass(
+                    cls, "%s.%s.%s.inverse" % (
+                        parcel_name(cls.__module__), cls.__name__, self.name
+                    ), False
+                )
             attr.otherName = self.inverse.name
 
         if not self._frozen:
             self._frozen = True   # disallow changes
+
+        if self.annotates:
+            for cls in self.annotates:
+                kind = itemFor(cls)
+                # XXX Andi: this is where I'm adding attributes
+                kind.attributes.append(attr, attr.itsName)
+                setattr(cls, attr.itsName, self)
+                self.registerAttribute(kind, attr)
+
+        if self.inverse is not None:
+            itemFor(self.inverse, view)
+
 
 class One(Role):
     cardinality = 'single'
@@ -935,10 +957,15 @@ def assertResolved(view):
     raise NameError(s.getvalue())
     
 
+def parcel_name(moduleName):
+    """Get a module's __parcel__ or __name__"""
+    module = importString(moduleName)
+    return getattr(module,'__parcel__',moduleName)
+    
+
 class ModuleMaker:
     def __init__(self,moduleName):
-        module = importString(moduleName)
-        self.moduleName = getattr(module,'__parcel__',moduleName)
+        self.moduleName = parcel_name(moduleName)
         if '.' in self.moduleName:
             self.parentName, self.name = self.moduleName.rsplit('.',1)
         else:
