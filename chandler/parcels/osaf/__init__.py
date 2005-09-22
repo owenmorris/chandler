@@ -1,7 +1,11 @@
 # List of modules/packages that are usable as "APIs" by scripting and
 # development tools
 # 
-__all__ = ['startup']
+
+# When you uncomment this, make sure you list EVERYTHING that is supposed to be
+# public. Otherwise things like epydoc think that everything that is not listed
+# is private and will not provide documentation for it.
+#__all__ = ['startup']
 
 class ChandlerException(Exception):
     __slots__ = ['message', 'debugMessage']
