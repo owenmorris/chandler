@@ -863,24 +863,28 @@ class UITestItem :
             self.logger.SetChecked(True)
             # check the changing values
             if not GetCollectionRow(self.item.displayName):
-                result = False
+                exist = False
                 description = "%s doesn't exists" %self.item.displayName
             else:
-                result = True
+                exist = True
                 description = "%s exists" %self.item.displayName
             #report the checkings
-            if result == expectedResult and self.item.displayName == expectedName:
+            if exist == expectedResult and self.item.displayName == expectedName:
                 self.logger.ReportPass("(On collection existance Checking) - %s" %description)
-            elif not result == expectedResult:
+                result = True
+            elif not exist == expectedResult:
                 self.logger.ReportFailure("(On collection existance Checking) - %s" %description)
+                result = False
             else:
                 self.logger.ReportFailure("(On collection name Checking) - current name = %s ; expected name = %s" %(self.item.displayName, expectedName))
+                result = False
             self.logger.Report("Collection existance")
+            return result
         else:
             self.logger.Print("Check_CollectionExistance is not available for this kind of item")
             return False
         
-    def Check_ItemInCollection(self, collectionName, report=True):
+    def Check_ItemInCollection(self, collectionName, expectedResult=True, report=True):
         """
         Check if the item is in the given collection
         @return True if the item is in the given collection
@@ -898,21 +902,27 @@ class UITestItem :
                 col = App_ns.item_named(pim.AbstractCollection, collectionName)
             if col:
                 if col.__contains__(self.item):
+                    value = True
+                    description = "item named %s is in %s" %(self.item.displayName, collectionName)
+                else:
+                    value = False
+                    description = "item named %s is not in %s" %(self.item.displayName, collectionName)
+                if value == expectedResult:
                     result = True
                     if report:
-                        self.logger.ReportPass("(On Collection Checking) - item named %s is in %s" %(self.item.displayName, collectionName))
+                        self.logger.ReportPass("(On Collection Checking) - %s" %description)
                         self.logger.Report("Item in collection")
                 else:
                     result = False
                     if report:
-                        self.logger.ReportFailure("(On Collection Checking) - item named %s is not in %s" %(self.item.displayName, collectionName))
+                        self.logger.ReportFailure("(On Collection Checking) - %s" %description)
                         self.logger.Report("Item in collection")
             else:
                 result = False
                 if report:
                     self.logger.ReportFailure("(On collection search)")
                     self.logger.Report("Item in collection")
-            return result
+            return result 
         else:
             self.logger.Print("Check_ItemInCollection is not available for this kind of item")
             return False 
