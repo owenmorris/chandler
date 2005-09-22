@@ -91,10 +91,13 @@ def _uniqueName(basename, existing):
     return name
 
 
-def publish(collection, account, classes_to_include=None, attrs_to_exclude=None):
+def publish(collection, account, classes_to_include=None,
+            attrs_to_exclude=None):
 
-    """ Publish a collection, automatically determining which conduits/formats
-        to use, and how many """
+    """
+    Publish a collection, automatically determining which conduits/formats
+    to use, and how many
+    """
 
     view = collection.itsView
 
@@ -899,7 +902,11 @@ def syncShare(share):
 
     try:
         share.sync()
+        share.error = ''
+
     except SharingError, err:
+        share.error = err.message
+
         try:
             msgVars = {
                 'collectionName': share.contents.getItemDisplayName(),

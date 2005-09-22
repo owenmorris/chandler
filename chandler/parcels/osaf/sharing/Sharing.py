@@ -99,6 +99,12 @@ class Share(items.ContentItem):
         initialValue = 'both',
     )
 
+    error = schema.One(
+        schema.String,
+        doc = 'A message describing the last error; empty string otherwise',
+        initialValue = ''
+    )
+
     contents = schema.One(items.ContentItem, otherName = 'shares')
 
     items = schema.Sequence(items.ContentItem, initialValue=[],
