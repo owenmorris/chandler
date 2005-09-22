@@ -13,9 +13,13 @@ logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewCollec
 
 #actions
 col = QAUITestAppLib.UITestItem("Collection", logger)
+#verification
+col.Check_CollectionExistance("Untitled")
+
+#actions
 col.SetDisplayName("Meeting")
 #verification
-col.Check_CollectionExistance()
+col.Check_CollectionExistance("Meeting")
 
 #actions
 note = QAUITestAppLib.UITestItem("Note", logger)

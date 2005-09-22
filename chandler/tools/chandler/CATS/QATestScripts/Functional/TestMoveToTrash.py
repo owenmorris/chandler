@@ -6,8 +6,8 @@ if not filePath:
     filePath = os.getcwd()
     
 #initialization
-fileName = "TestMoveTrash.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestMoveTrash")
+fileName = "TestMoveToTrash.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestMoveToTrash")
 
 #actions
 note = QAUITestAppLib.UITestItem("Note", logger)

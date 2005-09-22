@@ -6,12 +6,12 @@ if not filePath:
     filePath = os.getcwd()
     
 #initialization
-fileName = "TestRemove.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestRemove")
+fileName = "TestDeleteCollection.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestDeleteCollection")
 
 #actions
 col = QAUITestAppLib.UITestItem("Collection", logger)
-col.Remove()
+col.DeleteCollection()
 #verification
 col.Check_CollectionExistance(expectedResult=False)
 

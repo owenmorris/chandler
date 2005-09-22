@@ -149,12 +149,12 @@ class UITestItem :
                         timedCanvas.widget.OnSelectItem(canvasItem.GetItem())
                         break
         else: # the item is a collection (sidebar selection)
-            # work around for mac bug (I guess relative to focus) emulate_sidebarClick doesn't work
-            if '__WXMAC__' in wx.PlatformInfo:
-                App_ns.sidebar.select(self.item)
-                App_ns.sidebar.focus()
-            else:    
-                scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
+            App_ns.sidebar.select(self.item)
+            App_ns.sidebar.focus()
+            wx.GetApp().Yield()
+            ev = wx.IdleEvent()
+            wx.GetApp().ProcessEvent(ev)
+           
             
     def SetEditableBlock(self, blockName, description, value, timeInfo):
         """
@@ -225,23 +225,17 @@ class UITestItem :
         if not self.isCollection:
             self.SetEditableBlock("HeadlineBlock", "display name", displayName, timeInfo=timeInfo)
         else:
-            # work around for mac bug (I guess relative to focus) emulate_sidebarClick doesn't work
-            if '__WXMAC__' in wx.PlatformInfo:
-                #row = GetCollectionRow(self.item.displayName)
-                #App_ns.sidebar.widget.SetCellValue(row, 0, displayName)
-		self.item.displayName = u"%s" %displayName
-            else:
-                # select the collection
-                scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
-                # edit the collection displayName (double click)
-                scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
-                if timeInfo:
-                    self.logger.Start("Collection title setting")
-                # Type the new collection displayName
-                scripting.User.emulate_typing(displayName)
-                # work around : emulate_return doesn't work
-                #scripting.User.emulate_return()
-                scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
+            # select the collection
+            self.SelectItem()
+            # edit the collection displayName (double click)
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
+            if timeInfo:
+                self.logger.Start("Collection title setting")
+            # Type the new collection displayName
+            scripting.User.emulate_typing(displayName)
+            # work around : emulate_return doesn't work
+            #scripting.User.emulate_return()
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
             if timeInfo:
                 self.logger.Stop()
 
@@ -567,7 +561,7 @@ class UITestItem :
                 self.logger.ReportFailure("(On collection search)")
                 if timeInfo:
                     self.logger.Stop()
-                self.logger.Report()
+                self.logger.Report("Add collection")
                 return
             col.add(self.item)
             if timeInfo:
@@ -581,25 +575,29 @@ class UITestItem :
         Move the item into the trash collection
         @type timeInfo: boolean
         """
-        #Check if the item is not already in the Trash
-        if self.Check_ItemInCollection("Trash", report=False):
-            self.logger.Print("This item is already in the Trash")
+        if not self.isCollection:
+            # Check if the item is not already in the Trash
+            if self.Check_ItemInCollection("Trash", report=False):
+                self.logger.Print("This item is already in the Trash")
+                return
+            # select the item
+            scripting.User.emulate_click(App_ns.summary.widget.GetGridWindow()) #work around for summary.select highlight bug
+            self.SelectItem()
+            if timeInfo:
+                self.logger.Start("Move the item into the Trash")
+            # Processing of the corresponding CPIA event
+            App_ns.root.Delete()
+            # give the Yield
+            wx.GetApp().Yield()
+            if timeInfo:
+                self.logger.Stop()
+        else:
+            self.logger.Print("MoveToTrash is not available for this kind of item")
             return
-        #select the item
-        scripting.User.emulate_click(App_ns.summary.widget.GetGridWindow()) #work around for summary.select highlight bug
-        self.SelectItem()
-        if timeInfo:
-            self.logger.Start("Move the item into the Trash")
-        #Processing of the corresponding CPIA event
-        App_ns.root.Delete()
-        #give the Yield
-        wx.GetApp().Yield()
-        if timeInfo:
-            self.logger.Stop()
 
-    def Remove(self, timeInfo=True):
+    def DeleteCollection(self, timeInfo=True):
         """
-        Remove the item from Chandler
+        Remove a collection from Chandler
         @type timeInfo: boolean
         """
         if self.isCollection:
@@ -854,12 +852,14 @@ class UITestItem :
         #report the checkings
         self.logger.Report("Object state")
 
-    def Check_CollectionExistance(self, expectedResult=True):
+    def Check_CollectionExistance(self, expectedName=None, expectedResult=True):
         """
-        Check if the collection exists (displayed in the sidebar)
+        Check if the collection exists and has the expected display name (displayed in the sidebar)
         @return : True if the collection exits
         """
         if self.isCollection:
+            if not expectedName:
+                expectedName = self.item.displayName
             self.logger.SetChecked(True)
             # check the changing values
             if not GetCollectionRow(self.item.displayName):
@@ -869,10 +869,12 @@ class UITestItem :
                 result = True
                 description = "%s exists" %self.item.displayName
             #report the checkings
-            if result == expectedResult :
+            if result == expectedResult and self.item.displayName == expectedName:
                 self.logger.ReportPass("(On collection existance Checking) - %s" %description)
-            else:
+            elif not result == expectedResult:
                 self.logger.ReportFailure("(On collection existance Checking) - %s" %description)
+            else:
+                self.logger.ReportFailure("(On collection name Checking) - current name = %s ; expected name = %s" %(self.item.displayName, expectedName))
             self.logger.Report("Collection existance")
         else:
             self.logger.Print("Check_CollectionExistance is not available for this kind of item")
@@ -894,17 +896,22 @@ class UITestItem :
                 col = chandler_collections[collectionName]
             else:
                 col = App_ns.item_named(pim.AbstractCollection, collectionName)
-
-            if col.__contains__(self.item):
-                result = True
-                if report:
-                    self.logger.ReportPass("(On Collection Checking) - item named %s is in %s" %(self.item.displayName, collectionName))
-                    self.logger.Report("Item Collection")
+            if col:
+                if col.__contains__(self.item):
+                    result = True
+                    if report:
+                        self.logger.ReportPass("(On Collection Checking) - item named %s is in %s" %(self.item.displayName, collectionName))
+                        self.logger.Report("Item in collection")
+                else:
+                    result = False
+                    if report:
+                        self.logger.ReportFailure("(On Collection Checking) - item named %s is not in %s" %(self.item.displayName, collectionName))
+                        self.logger.Report("Item in collection")
             else:
                 result = False
                 if report:
-                    self.logger.ReportFailure("(On Collection Checking) - item named %s is not in %s" %(self.item.displayName, collectionName))
-                    self.logger.Report("Item Collection")
+                    self.logger.ReportFailure("(On collection search)")
+                    self.logger.Report("Item in collection")
             return result
         else:
             self.logger.Print("Check_ItemInCollection is not available for this kind of item")
