@@ -35,9 +35,9 @@ clean:
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/bin/icu*.dll \
-                  $(SNAP)/bin/icu/*.exe; \
+      tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/bin/icu*.dll \
+          $(SNAP)/bin/icu/*.exe; \
 	$(MD5) $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz > $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
@@ -59,8 +59,8 @@ endif
 $(BUILD)/Makefile:
 	mkdir -p $(BUILD)
 	cd $(BUILD); \
-	$(SRC)/icu/source/runConfigureICU \
-            $(CONF_RUN) --prefix=$(PREFIX)/icu $(CONF_DBG)
+      $(SRC)/icu/source/runConfigureICU \
+          $(CONF_RUN) --prefix=$(PREFIX)/icu $(CONF_DBG)
 
 build: expand $(BUILD)/Makefile
 	cd $(BUILD); $(MAKE); $(MAKE) install
@@ -70,8 +70,8 @@ clean:
 
 binaries:
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/icu/bin $(SNAP)/icu/lib; \
+      tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/icu/bin $(SNAP)/icu/lib; \
 	$(MD5) $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz > $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz.md5
 
 endif

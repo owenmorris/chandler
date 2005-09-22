@@ -27,9 +27,9 @@ else
 
 $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD); \
-	cd $(SRC)/$(BUILD); \
-	../configure --prefix=$(PREFIX) \
-                     --with-python=$(PYTHON)
+      cd $(SRC)/$(BUILD); \
+      ../configure --prefix=$(PREFIX) \
+                   --with-python=$(PYTHON)
 
 swig: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)

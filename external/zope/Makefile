@@ -13,8 +13,9 @@ apply: patches-$(VERSION)
 
 build: expand apply
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
 
 ZopeInterface-$(VERSION).tgz:
 	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz
@@ -30,12 +31,12 @@ expand: ZopeInterface-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/zope -name "*.pyo" | xargs rm -f; \
-	tar -cvzf $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/$(SITE)/zope \
-		--exclude tests \
-		--exclude testing; \
+      find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/zope -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/zope \
+          --exclude tests \
+          --exclude testing;
 	$(MD5) $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz > $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: zopeinterface-$(SNAP)-$(RELVER).tar.gz
@@ -47,6 +48,6 @@ upload: zopeinterface-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+      cd $(SRC); \
+      $(PYTHON) setup.py clean --all; \
+  fi

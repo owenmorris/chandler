@@ -30,9 +30,9 @@ build: expand
 
 binaries:
 	cd $(BUILD_ROOT); \
-	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
-	find $(MANIFEST) -name "*.pyo" | xargs rm -f
-	tar -C $(BUILD_ROOT) -cvzf $(DATEUTIL)/dateutil-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+      find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
+      find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
+      tar -C $(BUILD_ROOT) -cvzf $(DATEUTIL)/dateutil-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 	$(MD5) dateutil-$(SNAP)-$(RELVER).tar.gz > dateutil-$(SNAP)-$(RELVER).tar.gz.md5
 
 upload: dateutil-$(SNAP)-$(RELVER).tar.gz

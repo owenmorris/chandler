@@ -45,29 +45,29 @@ endif
 
 bzip2-$(BZIP2VERSION)/$(BUILD)/makefile$(SUFFIX).msc:
 	cd bzip2-$(BZIP2VERSION)/; \
-	mkdir $(BUILD); \
-	cp *.* words1 $(BUILD)/; \
-	$(MKBZIP2MF)
+      mkdir $(BUILD); \
+      cp *.* words1 $(BUILD)/; \
+      $(MKBZIP2MF)
 
 bzip2-$(BZIP2VERSION)/libbz2$(SUFFIX).lib: bzip2-$(BZIP2VERSION)/$(BUILD)/makefile$(SUFFIX).msc
 	cd bzip2-$(BZIP2VERSION)/$(BUILD); \
-	MAKEFLAGS=; \
-        nmake -nologo -f makefile$(SUFFIX).msc; \
-	cp libbz2.lib ../libbz2$(SUFFIX).lib
+      MAKEFLAGS=; \
+      nmake -nologo -f makefile$(SUFFIX).msc; \
+      cp libbz2.lib ../libbz2$(SUFFIX).lib
 
 bzip2: bzip2-$(BZIP2VERSION)/libbz2$(SUFFIX).lib
 
 zlib-$(ZLIBVERSION)/$(BUILD)/win32/makefile$(SUFFIX).msc:
 	cd zlib-$(ZLIBVERSION)/; \
-	mkdir $(BUILD); \
-	cp -r *.c *.h win32 $(BUILD)/; \
-	$(MKZLIBMF)
+      mkdir $(BUILD); \
+      cp -r *.c *.h win32 $(BUILD)/; \
+      $(MKZLIBMF)
 
 zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib: zlib-$(ZLIBVERSION)/$(BUILD)/win32/makefile$(SUFFIX).msc
 	cd zlib-$(ZLIBVERSION)/$(BUILD); \
-	MAKEFLAGS=; \
-	nmake -nologo -f win32/makefile$(SUFFIX).msc; \
-	cp zlib.lib ../zlib$(SUFFIX).lib
+      MAKEFLAGS=; \
+      nmake -nologo -f win32/makefile$(SUFFIX).msc; \
+      cp zlib.lib ../zlib$(SUFFIX).lib
 
 zlib: zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib
 
@@ -76,27 +76,25 @@ build: expand apply compile installext
 
 compile: bzip2 zlib
 	(cd win32/$(VERSION); \
-         tar -cf - *.sln *.vcproj) | tar -C $(SRC)/PCbuild -xf -
+      tar -cf - *.sln *.vcproj) | tar -C $(SRC)/PCbuild -xf -
 	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /build $(Snap)
 
 installext:
 	mkdir -p $(BINDIR)/DLLs $(BINDIR)/Include $(BINDIR)/Lib $(BINDIR)/libs
 	tar -C $(SRC)/PCbuild \
-            -cf - python$(SUFFIX).exe \
-                  pythonw$(SUFFIX).exe \
-                  python$(PV)$(SUFFIX).dll | tar -C $(BINDIR) -xvf -
+      -cf - python$(SUFFIX).exe \
+            pythonw$(SUFFIX).exe \
+            python$(PV)$(SUFFIX).dll | tar -C $(BINDIR) -xvf -
 	tar -C $(SRC)/PCbuild \
-            -cf - python$(PV)$(SUFFIX).lib \
-                  python$(PV)$(SUFFIX).exp | tar -C $(BINDIR)/libs -xvf -
+      -cf - python$(PV)$(SUFFIX).lib \
+            python$(PV)$(SUFFIX).exp | tar -C $(BINDIR)/libs -xvf -
 	(cd $(SRC)/Lib; tar -cf - *.py) | tar -C $(BINDIR)/Lib -xvf -
 	(cd $(SRC)/PCbuild; tar -cf - *.pyd) | tar -C $(BINDIR)/DLLs -xvf -
-	for mod in compiler distutils email encodings hotshot xml \
-                   bsddb logging; \
-        do \
-            (cd $(SRC)/Lib; \
-             tar -cf - `find $$mod -name '*.py'`) | tar -C $(BINDIR)/Lib \
-                                                        -xvf - ; \
-        done
+	for mod in compiler distutils email encodings hotshot xml bsddb logging; \
+  do \
+      (cd $(SRC)/Lib; \
+      tar -cf - `find $$mod -name '*.py'`) | tar -C $(BINDIR)/Lib -xvf - ; \
+  done
 	(cd $(SRC)/Include; tar -cf - *.h) | tar -C $(BINDIR)/Include -xvf -
 	cp -p $(SRC)/PC/pyconfig.h $(BINDIR)/Include
 
@@ -117,13 +115,12 @@ binaries:
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyc" | xargs rm -f
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyo" | xargs rm -f
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
-                  $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
-            --exclude site-packages \
-            --exclude test
-	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
-               $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+      tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
+          $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
+          --exclude site-packages \
+          --exclude test
+	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -132,12 +129,12 @@ ifeq ($(OS),Darwin)
 $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-	   LDFLAGS="-L$(PREFIX)/lib $(LDFLAGS)" \
-	   CPPFLAGS="-I$(PREFIX)/include $(CPPFLAGS)" \
-	         ../configure \
-           --prefix=$(PREFIX) $(CONF_DBG) --enable-framework=$(PREFIX)/Library/Frameworks \
-           --with-readline=$(PREFIX)/lib
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+          LDFLAGS="-L$(PREFIX)/lib $(LDFLAGS)" \
+          CPPFLAGS="-I$(PREFIX)/include $(CPPFLAGS)" \
+          ../configure --prefix=$(PREFIX) $(CONF_DBG) \
+                       --enable-framework=$(PREFIX)/Library/Frameworks \
+                       --with-readline=$(PREFIX)/lib
 
 build: expand apply $(SRC)/$(BUILD)/Makefile
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework
@@ -152,14 +149,15 @@ binaries:
                   $(SNAP)/Library/Frameworks/Python.framework \
             --exclude site-packages \
             --exclude test
-	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
-               $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
 $(SRC)/$(BUILD)/Makefile:
-	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
-	../configure --prefix=$(PREFIX) $(CONF_DBG)
+	cd $(SRC); \
+      mkdir -p $(BUILD); \
+      cd $(BUILD); \
+      ../configure --prefix=$(PREFIX) $(CONF_DBG)
 
 bzip2-$(BZIP2VERSION)/libbz2.a:
 	make -C bzip2-$(BZIP2VERSION) libbz2.a
@@ -172,16 +170,15 @@ build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/lib/python*/ -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/lib/python*/ -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/bin/idle $(SNAP)/bin/python* \
-                  $(SNAP)/lib/python* \
-                  $(SNAP)/include/python* \
-            --exclude site-packages \
-            --exclude test; \
-	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
-               $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+      find $(SNAP)/lib/python*/ -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/lib/python*/ -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/bin/idle $(SNAP)/bin/python* \
+          $(SNAP)/lib/python* \
+          $(SNAP)/include/python* \
+          --exclude site-packages \
+          --exclude test;
+	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
 
 sources:: bzip2-$(BZIP2VERSION).tar.gz
 

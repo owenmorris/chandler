@@ -34,11 +34,11 @@ expand: epydoc-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/epydoc -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/epydoc -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/$(SITE)/epydoc \
-		--exclude test; \
+      find $(SNAP)/$(SITE)/epydoc -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/epydoc -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz \
+          --exclude test \
+          $(SNAP)/$(SITE)/epydoc;
 	$(MD5) $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz > $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: epydoc-$(SNAP)-$(RELVER).tar.gz

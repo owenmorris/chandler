@@ -10,7 +10,7 @@ BUILD=build_$(SNAP)
 
 build: expand apply
 	mkdir -p $(PREFIX)/$(SITE)/yapps; \
-	cp -p $(SRC)/yapps2.py $(SRC)/yappsrt.py $(SRC)/grammar.py $(SRC)/parsetree.py $(PREFIX)/$(SITE)/yapps
+      cp -p $(SRC)/yapps2.py $(SRC)/yappsrt.py $(SRC)/grammar.py $(SRC)/parsetree.py $(PREFIX)/$(SITE)/yapps
 	cp -p __init__.py $(PREFIX)/$(SITE)/yapps
 
 yapps$(VERSION).zip:
@@ -27,10 +27,10 @@ expand: yapps$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/yapps -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/yapps -name "*.pyo" | xargs rm -f; \
-	tar -cvzf $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/$(SITE)/yapps; \
+      find $(SNAP)/$(SITE)/yapps -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/yapps -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/yapps;
 	$(MD5) $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz > $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: yapps-$(SNAP)-$(RELVER).tar.gz

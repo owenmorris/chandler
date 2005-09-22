@@ -24,14 +24,14 @@ apply: patches-$(VERSION)
 
 build: expand apply
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-          build --build-base=$(BUILD) $(DIST_OPT) \
-          install --force
+    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+        build --build-base=$(BUILD) $(DIST_OPT) \
+        install --force
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
-	find $(MANIFEST) -name "*.pyo" | xargs rm -f
+      find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
+      find $(MANIFEST) -name "*.pyo" | xargs rm -f
 	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/vobject-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 	$(MD5) vobject-$(SNAP)-$(RELVER).tar.gz > vobject-$(SNAP)-$(RELVER).tar.gz.md5
 
@@ -41,10 +41,10 @@ upload: vobject-$(SNAP)-$(RELVER).tar.gz
 
 install:
 	cd $(BUILD_ROOT); \
-        tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+      tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
 clean:
 	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+      cd $(SRC); \
+      $(PYTHON) setup.py clean --all; \
+  fi

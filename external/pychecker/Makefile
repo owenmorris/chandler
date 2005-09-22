@@ -21,8 +21,8 @@ BUILD=build_$(SNAP)
 
 build: expand
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
 
 pychecker-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/pychecker-$(VERSION).tar.gz
@@ -38,11 +38,11 @@ expand: pychecker-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/pychecker -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/pychecker -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/pychecker \
-                  $(SNAP)/$(BIN)/pychecker*; \
+      find $(SNAP)/$(SITE)/pychecker -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/pychecker -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/pychecker \
+          $(SNAP)/$(BIN)/pychecker*;
 	$(MD5) $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz > $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: pychecker-$(SNAP)-$(RELVER).tar.gz
@@ -54,6 +54,6 @@ upload: pychecker-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+      cd $(SRC); \
+      $(PYTHON) setup.py clean --all; \
+  fi

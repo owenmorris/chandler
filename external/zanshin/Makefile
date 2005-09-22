@@ -11,8 +11,9 @@ BUILD=build_$(SNAP)
 
 build: expand
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
 
 zanshin-$(VERSION).tar.gz:
 	svn export http://svn.osafoundation.org/zanshin/trunk -r $(VERSION) zanshin-$(VERSION)
@@ -27,11 +28,11 @@ expand: zanshin-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
-	tar -cvzf $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/$(SITE)/zanshin \
-		--exclude tests; \
+      find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/zanshin \
+          --exclude tests;
 	$(MD5) $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz > $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: zanshin-$(SNAP)-$(RELVER).tar.gz
@@ -43,6 +44,6 @@ upload: zanshin-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+      cd $(SRC); \
+      $(PYTHON) setup.py clean --all; \
+  fi

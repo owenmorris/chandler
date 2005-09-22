@@ -30,14 +30,14 @@ installext:
 
 clean:
 	cd $(SRC)/$(BUILD); \
-        devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
+      devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/bin/libdb*.dll \
-                  $(SNAP)/bin/db/db_*.exe; \
+      tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/bin/libdb*.dll \
+          $(SNAP)/bin/db/db_*.exe; \
 	$(MD5) $(DB)/db-$(SNAP)-$(RELVER).tar.gz > $(DB)/db-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
@@ -53,9 +53,9 @@ BUILD=build_$(SNAP)
 
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
-	../dist/configure --prefix=$(PREFIX)/db \
-                          --with-pic \
-                          $(CONF_DBG)
+      ../dist/configure --prefix=$(PREFIX)/db \
+                        --with-pic \
+                        $(CONF_DBG)
 
 build: expand $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
@@ -65,9 +65,9 @@ clean:
 
 binaries:
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/db/bin $(SNAP)/db/lib \
-		--exclude '*.a'; \
+      tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/db/bin $(SNAP)/db/lib \
+          --exclude '*.a';
 	$(MD5) $(DB)/db-$(SNAP)-$(RELVER).tar.gz > $(DB)/db-$(SNAP)-$(RELVER).tar.gz.md5
 
 endif

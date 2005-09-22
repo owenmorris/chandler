@@ -14,8 +14,9 @@ apply: patches-$(VERSION)
 
 build: expand apply
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
 
 Twisted-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz
@@ -31,11 +32,11 @@ expand: Twisted-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \
-	tar -cvzf $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/$(SITE)/twisted \
-		--exclude test; \
+      find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/twisted \
+          --exclude test;
 	$(MD5) $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz > $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: twisted-$(SNAP)-$(RELVER).tar.gz

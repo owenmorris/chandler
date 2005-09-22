@@ -16,8 +16,9 @@ build-optik:
 
 build: build-common build-optik expand
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
 
 pylint-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/pylint-$(VERSION).tar.gz
@@ -52,11 +53,11 @@ binaries-optik:
 
 binaries: binaries-common binaries-optik
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/pylint -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/pylint -name "*.pyo" | xargs rm -f; \
+    find $(SNAP)/$(SITE)/pylint -name "*.pyc" | xargs rm -f; \
+    find $(SNAP)/$(SITE)/pylint -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/pylint \
-                  --exclude test ; \
+                  --exclude test
 	$(MD5) $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz > $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz.md5
 
 install-common:

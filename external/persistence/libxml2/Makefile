@@ -26,17 +26,17 @@ $(SRC)/$(BUILD)/config.msvc: apply
 	mkdir -p $(SRC)/$(BUILD)
 	cp -p win32/winSetup.py.in $(SRC)/python
 	cd $(SRC)/win32; \
-	cscript //E:JScript configure.js prefix=$(SNAP) $(CONF_DBG) \
-                            python=yes iconv=no iso8859x=yes 
+      cscript //E:JScript configure.js prefix=$(SNAP) $(CONF_DBG) \
+          python=yes iconv=no iso8859x=yes 
 
 compile: $(SRC)/$(BUILD)/config.msvc
 	cd $(SRC)/win32; MAKEFLAGS=; \
-	nmake -nologo -f Makefile.msvc BUILD_VERSION=$(SNAP) all install
+      nmake -nologo -f Makefile.msvc BUILD_VERSION=$(SNAP) all install
 
 py:
 	cd $(SRC)/python; \
-	$(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
-                              install --force
+      $(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
+          install --force
 
 build: expand compile py
 
@@ -46,8 +46,8 @@ clean:
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/*libxml2*; \
+      tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/*libxml2*;
 	$(MD5) $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz > $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
@@ -63,28 +63,28 @@ BUILD=build_$(SNAP)
 
 $(SRC)/$(BUILD)/Makefile: apply
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) \
-                     --srcdir=$(SRC) \
-                     --with-python=$(WP) \
-                     --with-pic \
-                     $(CONF_DBG)
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) \
+          --srcdir=$(SRC) \
+          --with-python=$(WP) \
+          --with-pic \
+          $(CONF_DBG)
 
 compile: $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) install
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) install
 
 py:
 	cd $(SRC)/python; \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
-                              install --force
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
+          install --force
 
 build: expand compile py
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/lib/libxml2* \
-                  $(SNAP)/$(SITE)/*libxml2*; \
+      tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/lib/libxml2* \
+          $(SNAP)/$(SITE)/*libxml2*;
 	$(MD5) $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz > $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:

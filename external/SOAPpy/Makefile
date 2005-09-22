@@ -14,8 +14,9 @@ apply: patches
 
 build: expand apply
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
 
 SOAPpy-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/SOAPpy-$(VERSION).tar.gz
@@ -31,10 +32,10 @@ expand: SOAPpy-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/SOAPpy -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/SOAPpy -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/SOAPpy; \
+      find $(SNAP)/$(SITE)/SOAPpy -name "*.pyc" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/SOAPpy -name "*.pyo" | xargs rm -f; \
+      tar -cvzf $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/SOAPpy;
 	$(MD5) $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz > $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: soappy-$(SNAP)-$(RELVER).tar.gz
@@ -42,9 +43,9 @@ install: soappy-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+      cd $(SRC); \
+      $(PYTHON) setup.py clean --all; \
+  fi
 
 upload: soappy-$(SNAP)-$(RELVER).tar.gz
 	scp soappy-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)

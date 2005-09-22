@@ -21,25 +21,27 @@ DOMASM=do_masm.bat
 endif
 
 $(SRC)/$(BUILD)/ms/$(DOMASM):
-	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
-	cp -r crypto ssl apps certs tools util ms include test fips $(BUILD)/; \
-	cd $(BUILD);\
-	$(MK1MF);\
-	chmod a+x ms/$(DOMASM);
+	cd $(SRC); \
+      mkdir $(BUILD); \
+      cp Makefile.org *.h $(BUILD)/; \
+      cp -r crypto ssl apps certs tools util ms include test fips $(BUILD)/; \
+      cd $(BUILD); \
+      $(MK1MF); \
+      chmod a+x ms/$(DOMASM);
 
 openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
 	cd $(SRC)/$(BUILD); \
-	MAKEFLAGS=; \
-	perl ../Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32; \
-	ms/$(DOMASM); \
-	nmake -f ms/ntdll.mak;\
-	cd $(OUT32DLL); \
-	../ms/test.bat; \
-	cp -f ssleay32.dll $(PREFIX)/bin/; \
-	cp -f libeay32.dll $(PREFIX)/bin/; \
-	cp -f ssleay32.lib $(PREFIX)/lib/; \
-	cp -f libeay32.lib $(PREFIX)/lib/; \
-	cp -fr  ../inc32/openssl $(PREFIX)/Include
+      MAKEFLAGS=; \
+      perl ../Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32; \
+      ms/$(DOMASM); \
+      nmake -f ms/ntdll.mak;\
+      cd $(OUT32DLL); \
+      ../ms/test.bat; \
+      cp -f ssleay32.dll $(PREFIX)/bin/; \
+      cp -f libeay32.dll $(PREFIX)/bin/; \
+      cp -f ssleay32.lib $(PREFIX)/lib/; \
+      cp -f libeay32.lib $(PREFIX)/lib/; \
+      cp -fr  ../inc32/openssl $(PREFIX)/Include
 
 # binaries target can be empty on Windows because we will install the OpenSSL
 # DLLs during M2Crypto build, as we'll be copying the DLLs into site-packages
@@ -56,14 +58,15 @@ install:
 else
 
 $(SRC)/$(BUILD):
-	cd $(SRC); mkdir $(BUILD);\
-	cp -r Configure Makefile.org *.h crypto ssl apps certs tools util doc include fips $(BUILD)/
+	cd $(SRC); \
+      mkdir $(BUILD); \
+      cp -r Configure Makefile.org *.h crypto ssl apps certs tools util doc include fips $(BUILD)/
 
 openssl: apply $(SRC)/$(BUILD)
-	cd $(SRC)/$(BUILD);\
-	../config shared --openssldir=$(PREFIX) $(CONF_OPT);\
-	$(MAKE);\
-	$(MAKE) install
+	cd $(SRC)/$(BUILD); \
+      ../config shared --openssldir=$(PREFIX) $(CONF_OPT); \
+      $(MAKE); \
+      $(MAKE) install
 
 upload: openssl-$(SNAP)-$(RELVER).tar.gz
 	scp openssl-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
@@ -76,26 +79,26 @@ ifeq ($(OS),Darwin)
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
-		   $(SNAP)/lib/libcrypto.0.9.7.dylib \
-		   $(SNAP)/lib/libcrypto.0.dylib \
-		   $(SNAP)/lib/libcrypto.dylib \
-		   $(SNAP)/lib/libssl.0.9.7.dylib \
-		   $(SNAP)/lib/libssl.0.dylib \
-		   $(SNAP)/lib/libssl.dylib; \
+      tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/lib/libcrypto.0.9.7.dylib \
+          $(SNAP)/lib/libcrypto.0.dylib \
+          $(SNAP)/lib/libcrypto.dylib \
+          $(SNAP)/lib/libssl.0.9.7.dylib \
+          $(SNAP)/lib/libssl.0.dylib \
+          $(SNAP)/lib/libssl.dylib;
 	$(MD5) $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz > $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
-		   $(SNAP)/lib/libcrypto.so.0.9.7 \
-		   $(SNAP)/lib/libcrypto.so.0 \
-		   $(SNAP)/lib/libcrypto.so \
-		   $(SNAP)/lib/libssl.so.0.9.7 \
-		   $(SNAP)/lib/libssl.so.0 \
-		   $(SNAP)/lib/libssl.so; \
+      tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/lib/libcrypto.so.0.9.7 \
+          $(SNAP)/lib/libcrypto.so.0 \
+          $(SNAP)/lib/libcrypto.so \
+          $(SNAP)/lib/libssl.so.0.9.7 \
+          $(SNAP)/lib/libssl.so.0 \
+          $(SNAP)/lib/libssl.so;
 	$(MD5) $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz > $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz.md5
 
 endif # if OS X or linux

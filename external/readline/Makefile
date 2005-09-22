@@ -14,7 +14,7 @@ ifeq ($(OS),Darwin)
 
 $(SRC)/Makefile:
 	cd $(SRC_BUILD); \
-	./configure --prefix=$(PREFIX)
+  ./configure --prefix=$(PREFIX)
 
 readline: $(SRC)/Makefile apply
 	$(MAKE) -C $(SRC_BUILD)
@@ -35,8 +35,9 @@ endif
 
 binaries:
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
-        $(SNAP)/lib/libreadline* --exclude '*.a'; \
+      tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/lib/libreadline* \
+          --exclude '*.a';
 	$(MD5) $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz > $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz.md5   
 
 upload: readline-$(SNAP)-$(RELVER).tar.gz
