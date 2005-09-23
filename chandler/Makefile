@@ -65,7 +65,7 @@ ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))
 #   CURL="wget -r -P .. -nd"
 
 ifeq ($(CURL),)
-CURL=curl $(CHANDLER_CURL_OPTIONS) -o
+CURL=curl $(CHANDLER_CURL_OPTIONS) -f -o
 endif
 
 ifeq ($(DEBUG),1)
