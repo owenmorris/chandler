@@ -223,8 +223,8 @@ class TestLogger:
                 self.File.close()
             # quit Chandler
             if quit:
-                import sys
-                sys.exit(1)
+                import osaf.framework.scripting as scripting
+                scripting.app_ns().root.Quit()
         else: # Just the end of a testcase
             if self.subTestcaseDesc:
                 if self.nbUnchecked == self.nbVerif:
