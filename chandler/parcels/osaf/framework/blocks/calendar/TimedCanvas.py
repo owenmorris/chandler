@@ -454,7 +454,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def GetDragAdjustedTimes(self):
         """
-        return a new start/end time for the currently selected event, based
+        Return a new start/end time for the currently selected event, based
         on the current position and drag state. Handles both move and
         resize drags
         """
@@ -568,7 +568,8 @@ class TimedCanvasItem(CalendarCanvasItem):
         return self._boundsRects
 
     def isHitResize(self, point):
-        """ Hit testing of a resize region.
+        """
+        Hit testing of a resize region.
         
         @param point: point in unscrolled coordinates
         @type point: wx.Point
@@ -588,23 +589,24 @@ class TimedCanvasItem(CalendarCanvasItem):
         return False
 
     def getResizeMode(self, point):
-        """ Returns the mode of the resize, either RESIZE_MODE_START or
+        """
+        Returns the mode of the resize, either RESIZE_MODE_START or
         RESIZE_MODE_END.
 
         The resize mode is RESIZE_MODE_START if dragging from the top of the
         event, and RESIZE_MODE_END if dragging from the bottom of the
         event. None indicates that we are not resizing at all.
 
-        @param point: drag start position in uscrolled coordinates
-        @type point: wx.Point
-        @return: resize mode, RESIZE_MODE_START, RESIZE_MODE_END or None
-        @rtype: string or None
-
-        the whole _forceResizeMode is to make sure that we stay in the same
+        The whole _forceResizeMode is to make sure that we stay in the same
         mode during a drag, even if we mouseover another region that would
         cause a different drag mode
 
         AF: This should really be handled automatically by the dragging code
+
+        @param point: drag start position in uscrolled coordinates
+        @type point: wx.Point
+        @return: resize mode, RESIZE_MODE_START, RESIZE_MODE_END or None
+        @rtype: string or None
         """
         
         if hasattr(self, '_forceResizeMode'):
@@ -630,11 +632,12 @@ class TimedCanvasItem(CalendarCanvasItem):
     def GenerateBoundsRects(calendarCanvas, startTime, endTime, width, indent=0):
         """
         Generate a bounds rectangle for each day period. For example, an event
-        that goes from noon monday to noon wednesday would have three bounds rectangles:
+        that goes from noon monday to noon wednesday would have three bounds rectangles::
             one from noon monday to midnight
             one for all day tuesday
-            one from midnight wednesday morning to noon wednesday"""
-        
+            one from midnight wednesday morning to noon wednesday
+        """
+
         # calculate how many unique days this appears on 
         defaultTzinfo = ICUtzinfo.getDefault()
         

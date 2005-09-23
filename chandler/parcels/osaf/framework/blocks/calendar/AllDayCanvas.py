@@ -1,4 +1,4 @@
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.calendar"
 
@@ -27,9 +27,7 @@ class SparseMatrix(object):
         return self._grid[x][y]
 
     def FitBlock(self, x1, x2, y):
-        """
-        are the cells grid[x1..x2][y] all false-valued?  (x2 inclusive.)
-        """
+        # are the cells grid[x1..x2][y] all false-valued?  (x2 inclusive.)
         for x in range(x1, x2+1):
             if self.Filled(x,y): return False
         return True
@@ -203,7 +201,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             self.ExpandIfNeeded()
 
     def ExpandIfNeeded(self):
-        """Expand to make all events visible, but never contract to do so."""
+        """
+        Expand to make all events visible, but never contract to do so.
+        """
         currentHeight = self.GetSize()[1]
         if currentHeight < self.expandedHeight:
             self.GetParent().MoveSash(self.expandedHeight)
@@ -241,7 +241,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
     @staticmethod
     def DayOfWeekNumber(datetime):
-        """evaluate datetime's position in the week: 0-6 (sun-sat)
+        """
+        evaluate datetime's position in the week: 0-6 (sun-sat)
         """
         cal = GregorianCalendar()
         cal.setTime(datetime)
@@ -250,7 +251,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
     @staticmethod
     def sortByDurationAndStart(item1, item2):
-        """Comparison callback function for sorting"""
+        """
+        Comparison callback function for sorting
+        """
 
         # ORDER BY duration, date
         spanResult = cmp(item2.duration, item1.duration)

@@ -1,7 +1,8 @@
-""" Canvas for calendaring blocks
+"""
+Canvas for calendaring blocks
 """
 
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.calendar"
 
@@ -42,35 +43,34 @@ dateFormatSymbols = DateFormatSymbols()
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
-"""Widget overview
-
-the composition of blocks is as follows
-CalendarContainer  is the Block for the entire summary view
-its children subblocks are as follows:
-
--------------------------------------------------------------
-| wxCalendarControl - block: CalendarControl                                       
-| [color selector]   <- June 2005 ->      [timezone] 
-|                                                           
-| also has the row of week/7-days buttons as an inset widget:
-|-------------------------------------------------------
-|| wx.colheader.ColumnHeader  (instance name: weekColumnHeader)
-||Week  Sun  Mon  Tue  Wed  Thu  Fri  +                     
-||------------------------------------------------------
-|---------------------------------------------------------
-| SplitterWindow block, two children blocks
-| |---------------------------------------------------------
-| |wxAllDayEventsCanvas - block: AllDayEventsCanvas
-| | where the all-day events go
-| |---------------------------------------------------------
-| |wxTimedEventsCanvas - block: TimedEventsCanvas
-| | the main area that can have events at specific times
-| |
-| | [much bigger, not drawn to scale]
-| |
-| |-------------------------------------------------------
--------------------------------------------------------------
-"""
+# Widget overview
+# 
+# the composition of blocks is as follows
+# CalendarContainer  is the Block for the entire summary view
+# its children subblocks are as follows:
+# 
+# -------------------------------------------------------------
+# | wxCalendarControl - block: CalendarControl                                       
+# | [color selector]   <- June 2005 ->      [timezone] 
+# |                                                           
+# | also has the row of week/7-days buttons as an inset widget:
+# |-------------------------------------------------------
+# || wx.colheader.ColumnHeader  (instance name: weekColumnHeader)
+# ||Week  Sun  Mon  Tue  Wed  Thu  Fri  +                     
+# ||------------------------------------------------------
+# |---------------------------------------------------------
+# | SplitterWindow block, two children blocks
+# | |---------------------------------------------------------
+# | |wxAllDayEventsCanvas - block: AllDayEventsCanvas
+# | | where the all-day events go
+# | |---------------------------------------------------------
+# | |wxTimedEventsCanvas - block: TimedEventsCanvas
+# | | the main area that can have events at specific times
+# | |
+# | | [much bigger, not drawn to scale]
+# | |
+# | |-------------------------------------------------------
+# -------------------------------------------------------------
 
 def roundTo(v, r):
     """
@@ -131,9 +131,9 @@ class ColorInfo(object):
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
     Base class for calendar items. Covers:
-    - editor position & size
-    - text wrapping
-    - conflict management
+     - editor position & size
+     - text wrapping
+     - conflict management
     """
     
     timeHeight = 0
@@ -214,10 +214,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     @staticmethod
     def FindFirstGapInSequence(seq):
         """
-        Look for the first gap in a sequence - for instance
-         0,2,3: choose 1
-         1,2,3: choose 0
-         0,1,2: choose 3        
+        Look for the first gap in a sequence - for instance::
+          0,2,3: choose 1
+          1,2,3: choose 0
+          0,1,2: choose 3        
         """
         if not seq: return 0
         
@@ -448,6 +448,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 class CalendarEventHandler(object):
     """
     Mixin to a widget class.
+    
     ASSUMPTION: its blockItem is a CalendarBlock
     """
 
@@ -483,16 +484,16 @@ class CalendarEventHandler(object):
 
 
 class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
-    """ Abstract block used as base Kind for Calendar related blocks.
+    """
+    Abstract block used as base Kind for Calendar related blocks.
 
     This base class can be used for any block that displays a collection of
     items based on a date range.
 
-    its date range may change, but the collection of items
+    Its date range may change, but the collection of items
     may contain items that don't fall into the currently viewed range.
 
-    @@@ move documentation out of docstrings to schema api .. it supports that
-    right?
+    !@@@ move documentation out of docstrings to schema api .. it supports that right?
     
     @ivar rangeStart: beginning of the currently displayed range (persistent)
     @type rangeStart: datetime
@@ -500,11 +501,13 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
     @type rangeIncrement: timedelta
 
     @ivar selectedDate: within the current range. REFACTOR: why is this in
-    this class? tons of the pre-refactor code used this variable though it was
-    only declared in the subclass. The rule is now: selectedDate = rangeStart
-    for basic behavior, but selectedDate can range within the date range, e.g.
-    when on a week view and you want to have a specific selected date inside
-    that. TODO: get rid of switches testing for its existence
+                        this class? tons of the pre-refactor code used this
+                        variable though it was only declared in the subclass. 
+                        The rule is now: selectedDate = rangeStart for basic
+                        behavior, but selectedDate can range within the date 
+                        range, e.g. when on a week view and you want to have 
+                        a specific selected date inside that. 
+                        TODO: get rid of switches testing for its existence
 
     @type selectedDate: datetime
     """
@@ -560,11 +563,15 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
     _beenRendered = False
     @classmethod
     def setHasBeenRendered(cls):
-        """This says, this class has been rendered during this session"""
+        """
+        This says, this class has been rendered during this session
+        """
         cls._beenRendered = True
     @classmethod
     def getHasBeenRendered(cls):
-        """Has this class been rendered during this session?"""
+        """
+        Has this class been rendered during this session?
+        """
         return cls._beenRendered
     
     @staticmethod
@@ -669,13 +676,17 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
 
 
     def incrementRange(self):
-        """ Increments the calendar's current range """
+        """
+        Increments the calendar's current range
+        """
         self.rangeStart += self.rangeIncrement
         if self.selectedDate:
             self.selectedDate += self.rangeIncrement
 
     def decrementRange(self):
-        """ Decrements the calendar's current range """
+        """
+        Decrements the calendar's current range
+        """
         self.rangeStart -= self.rangeIncrement
         if self.selectedDate:
             self.selectedDate -= self.rangeIncrement
@@ -888,6 +899,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         On Mac, the brushes are relative to the toplevel window. We have
         to walk up the parent window chain to find our offset within the parent
         window.
+
         Other platforms, the brush is offset from the current window.
         """
         if '__WXMAC__' in wx.PlatformInfo:
@@ -991,7 +1003,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         calculate the date based on the x,y coordinates on the canvas
         
         @param mustBeInBounds: if true, restrict to dates the user
-        currently can see/scroll to.
+                               currently can see/scroll to.
         """
 
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
@@ -1023,9 +1035,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             return False
         return super(wxCalendarCanvas, self).IsValidDragPosition(unscrolledPosition)
         
-    """
-    Methods for Drag and Drop and Cut and Paste
-    """
+    # Methods for Drag and Drop and Cut and Paste
     def SelectedItems(self):
         selection = self.blockItem.selection
         if selection is None:
@@ -1253,15 +1263,19 @@ class CalendarControl(CalendarBlock):
         super(CalendarControl, self).onSelectedDateChangedEvent(event)
         
     def onSelectWeekEvent(self, event):
-        """i believe, as of now only calctrl sends SelectWeek events anyways.. but just in case...
-        this code probably wont work from external SW events right now."""
+        """
+        I believe, as of now only calctrl sends SelectWeek events anyways.. but just in case...
+        this code probably wont work from external SW events right now.
+        """
         self.dayMode = not event.arguments['doSelectWeek']
         self.widget.wxSynchronizeWidget()
 
     def setRange(self, date):
-        """we need to override CalendarBlock's because the cal ctrl always has
+        """
+        We need to override CalendarBlock's because the cal ctrl always has
         its range over an entire week, even if a specific day is selected (and
-        dayMode is true)"""
+        dayMode is true)
+        """
         assert self.daysPerView == 7, "daysPerView is a legacy variable, keep it at 7 plz"
         
         date = datetime.combine(date, time())
@@ -1283,8 +1297,10 @@ class CalendarControl(CalendarBlock):
 
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
-    """This is the topmost area with the month name, event color selector,
-    week navigation arrows, and the bar of Week/day selector buttons"""
+    """
+    This is the topmost area with the month name, event color selector,
+    week navigation arrows, and the bar of Week/day selector buttons
+    """
 
     def __init__(self, parent, id, tzCharacterStyle, *arguments, **keywords):
         super(wxCalendarControl, self).__init__(parent, id, *arguments, **keywords)
@@ -1569,9 +1585,11 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         if event: event.Skip()
     
     def OnDaySelect(self, day):
-        """callback when a specific day is selected from column header.
-        @param day: is 0-6"""
-            
+        """
+        Callback when a specific day is selected from column header.
+        
+        @param day: is 0-6
+        """
         startDate = self.blockItem.rangeStart
         selectedDate = startDate + timedelta(days=day)
         
@@ -1579,15 +1597,18 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.blockItem.postDateChanged(selectedDate)
 
     def OnWeekSelect(self):
-        """callback when the "week" button is clicked on column header."""
+        """
+        Callback when the "week" button is clicked on column header.
+        """
         self.blockItem.postSelectWeek(True)
         self.blockItem.postDateChanged(self.blockItem.rangeStart)
 
     ########## used to be in wxCalendarContainer, then CalendarContainer.  lets try putting here...
     def _doDrawingCalculations(self):
-        """sets a bunch of drawing variables.  Some more drawing variables are created lazily
-        outside of this function."""
-
+        """
+        Sets a bunch of drawing variables.  Some more drawing variables are created lazily
+        outside of this function.
+        """
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
 
         self.size = self.GetSize()
@@ -1629,9 +1650,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
 
     def _getDividerPositions(self):
-        """tuple of divider lines for the canvases.
+        """
+        Tuple of divider lines for the canvases.
+        
         unlike columnWidths, this IS sensitive whether you're viewing one day
-        vs. week"""
+        vs. week
+        """
         if not hasattr(self, 'columnWidths'):
             self._doDrawingCalculations()
         cw = self.columnWidths

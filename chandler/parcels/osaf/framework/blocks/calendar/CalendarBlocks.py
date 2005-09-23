@@ -1,9 +1,10 @@
-""" Calendar Blocks
+"""
+Calendar Blocks
 """
 
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.calendar"
 
@@ -127,12 +128,10 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             busyFractions = {}
             defaultTzinfo = ICUtzinfo.getDefault()
             
-            """
-              The exact algorithm for the busy state is yet to be determined.  For now, just 
-            get the confirmed items on a given day and calculate their total duration.  As long
-            as there is at least one event the busy bar should be at least 1/4 height (so that it
-            is visible).  A 100% full day is assumed to be 12 hours worth of appointments.
-            """
+            # The exact algorithm for the busy state is yet to be determined.  For now, just 
+            # get the confirmed items on a given day and calculate their total duration.  As long
+            # as there is at least one event the busy bar should be at least 1/4 height (so that it
+            # is visible).  A 100% full day is assumed to be 12 hours worth of appointments.
             for item in self.blockItem.getItemsInRange(
                 (datetime.combine(startDate, time(0)),
                  datetime.combine(endDate, time(0))),
@@ -290,6 +289,7 @@ class wxPreviewArea(wx.Panel):
     def Draw(self, dc):
         """
         Draw all the items, based on what's in self.currentDaysItems
+        
         @return the height of all the text drawn
         """        
         # Set up drawing & clipping

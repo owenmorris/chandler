@@ -1,7 +1,8 @@
-""" Canvas block for displaying item collections
+"""
+Canvas block for displaying item collections
 """
 
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.calendar"
 
@@ -26,12 +27,13 @@ def GetPlatformBorder():
 # @@@ These buttons could become a more general utility
 
 class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
-    """ Flat bitmap button, no border.
-    
-        Currently, the wx.BitmapButton does not work well on MacOSX:
-        wxWidgets doesn't implement a button with no border.
-        Ideally, we would use a "proper" bitmap button that
-        actually generated a accurate masked area,
+    """
+    Flat bitmap button, no border.
+
+    Currently, the wx.BitmapButton does not work well on MacOSX:
+    wxWidgets doesn't implement a button with no border.
+    Ideally, we would use a "proper" bitmap button that
+    actually generated a accurate masked area,
     """
 
     def __init__(self, parent, name):
@@ -41,7 +43,7 @@ class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
         @type parent: wx.Window
         @param name: unicode name of an image file
         @type name: unicode
-       """
+        """
 
         self.forcedBorder = GetPlatformBorder()
 
@@ -56,8 +58,10 @@ class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
         self.UpdateSize()
 
     def UpdateSize(self):
-        """ Sizes the button to just fit the bitmap """
-        """ @@@ This copies CanvasTextButton.UpdateSize - to be fixed after 0.5 """
+        """
+        Sizes the button to just fit the bitmap
+        """
+        #@@@ This copies CanvasTextButton.UpdateSize - to be fixed after 0.5
         bitmap = self.GetBitmapLabel()
         width = bitmap.GetWidth() + self.forcedBorder*2
         height = bitmap.GetHeight() + self.forcedBorder*2
@@ -84,7 +88,8 @@ class CanvasItem(object):
         self._item = item
 
     def isHit(self, point):
-        """ Hit testing (used for selection and moving items).
+        """
+        Hit testing (used for selection and moving items).
 
         @param point: point in unscrolled coordinates
         @type point: wx.Point
@@ -94,7 +99,8 @@ class CanvasItem(object):
         return self._bounds.Inside(point)
 
     def isHitResize(self, point):
-        """ Hit testing of a resize region.
+        """
+        Hit testing of a resize region.
 
         Subclasses can define to turn on resizing behavior.
         
@@ -203,19 +209,20 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                          DragAndDrop.ItemClipboardHandler,
                          wx.ScrolledWindow):
 
-    """ Canvas used for displaying an AbstractCollection
+    """
+    Canvas used for displaying an AbstractCollection
 
     This class handles:
-    1. Mouse Events: the class sets up methods for selection, move, resize
-    2. Scrolling
-    3. Double buffered painting: the class sets up methods for drawing
+      1. Mouse Events: the class sets up methods for selection, move, resize
+      2. Scrolling
+      3. Double buffered painting: the class sets up methods for drawing
 
     Subclasses need to handle (by overriding appropriate methods):
-    1. Background drawing
-    2. Drawing items
-    3. Creating regions for hit testing
-    4. Resizing items (changing state, drawing the altered item)
-    5. Moving/dragging items (changing state, drawing the altered item)
+      1. Background drawing
+      2. Drawing items
+      3. Creating regions for hit testing
+      4. Resizing items (changing state, drawing the altered item)
+      5. Moving/dragging items (changing state, drawing the altered item)
 
     This class assumes an associated blockItem for some default behavior,
     although subclasses can alter this by overriding the appropriate methods.
@@ -234,7 +241,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
     @ivar dragState: holds details about the drag in progress, if any
     @type dragState: DragState
-    
     """
 
     def __init__(self, *arguments, **keywords):
@@ -316,6 +322,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         Show the resize cursor if we're over a resize area,
         otherwise restore the cursor
+        
         This is potentially expensive, since we're iterating all the canvasItems
         """
         hitBox = None
@@ -332,7 +339,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         Handle a double click on the canvas somewhere. Checks to see
         if we hit an item, and if not, creates one
-        Possible client events:
+
+        Possible client events::
             OnEditItem()
             OnCreateItem()
         """
@@ -349,7 +357,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     def _handleLeftClick(self, unscrolledPosition):
         """
         Handle a single left click, potentially hitting an item
-        Possible client events:
+
+        Possible client events::
             OnSelectItem()
             OnSelectNone()
         """
@@ -371,9 +380,9 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     def OnMouseEvent(self, event):
         """
         Handles mouse events, calls overridable methods related to:
-        1. Selecting an item
-        2. Dragging/moving an item
-        3. Resizing an item
+          1. Selecting an item
+          2. Dragging/moving an item
+          3. Resizing an item
         """
 
         # ignore entering and leaving events
@@ -444,7 +453,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         pass
 
     def OnCreateItem(self, position):
-        """ Creates a new item on the canvas.
+        """
+        Creates a new item on the canvas.
 
         Subclasses can define to create a new item on the canvas.
 
@@ -458,50 +468,54 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         return None
 
     def OnBeginResizeItem(self):
-        """ Called when an item resize begins.
+        """
+        Called when an item resize begins.
         
         Subclasses can define to handle resizing
         """
         pass
 
     def OnEndResizeItem(self):
-        """ Called when an item resize ends.
+        """
+        Called when an item resize ends.
         
         Subclasses can define to handle resizing
         """
         pass
 
     def OnResizingItem(self, position):
-        """ Called when the mouse moves during a resize.
+        """
+        Called when the mouse moves during a resize.
         
         Subclasses can define to handle resizing
         """
         pass
 
     def OnBeginDragItem(self):
-        """ Called when a drag/move begins.
+        """
+        Called when a drag/move begins.
         
         Subclasses can define to handle dragging
         """
         pass
 
     def OnEndDragItem(self):
-        """ Called when a drag/move ends.
+        """
+        Called when a drag/move ends.
         
         Subclasses can define to handle dragging
         """
         pass
 
     def OnDraggingItem(self, position):
-        """ Called when the mouse moves during a drag.
+        """
+        Called when the mouse moves during a drag.
         
         Subclasses can define to handle dragging
         """
         pass
 
     def OnEditItem(self, hitBox):
-        """
-        """
         pass
             
     # Painting and drawing
@@ -513,9 +527,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         pass
 
     def OnPaint(self, event):
-        """
-        """
-
         dc = wx.PaintDC(self)
         self.PrepareDC(dc)
         self.DrawCanvas(dc)
@@ -590,7 +601,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     # selection
 
     def OnSelectItem(self, item):
-        """ Called when an item is hit, to select the item.
+        """
+        Called when an item is hit, to select the item.
 
         Subclasses can override to handle item selection.
         """
@@ -600,7 +612,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
     def OnSelectNone(self, unscrolledPosition):
         """
-           Called when the user clicks on an area that isn't an item
+        Called when the user clicks on an area that isn't an item
         """
         self.OnSelectItem(None)
     
@@ -613,9 +625,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     def OnEndDragNone(self):
         pass
 
-    """
-    Methods for Drag and Drop and Cut and Paste
-    """
+    # Methods for Drag and Drop and Cut and Paste
     def DeleteSelection(self):
         self.blockItem.DeleteSelection()
         
@@ -638,7 +648,7 @@ class CollectionBlock(Block.RectangularChild):
     
     def onSetContentsEvent (self, event):
         """
-          Clear the selection each time we view a new contents
+        Clear the selection each time we view a new contents
         """
         item = event.arguments ['item']
         assert isinstance (item, AbstractCollection)
@@ -651,6 +661,7 @@ class CollectionBlock(Block.RectangularChild):
     def onSelectItemEvent(self, event):
         """
         Sets the block selection
+
         NB this allows a selection on an item not in the current range.
         """
         self.selection = event.arguments['item']
