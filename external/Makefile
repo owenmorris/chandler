@@ -16,7 +16,6 @@ SYSTEMS=persistence/db \
         zope \
         twisted \
         pychecker \
-        yapps \
         vobject \
         dateutil \
         m2crypto \
