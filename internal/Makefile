@@ -3,8 +3,7 @@ include Makefile.inc
 
 SYSTEMS=chandlerdb \
         wx \
-        launchers \
-        queryparser
+        launchers
 
 .PHONY: binaries $(SYSTEMS)
 
