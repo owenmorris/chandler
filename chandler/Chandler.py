@@ -20,9 +20,9 @@ def main():
 
     application.Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     os.chdir(application.Globals.chandlerDirectory)
+    Utility.initLogging(application.Globals.options)
     Utility.initI18n(application.Globals.options)
 
-    Utility.initLogging(application.Globals.options)
 
     def realMain():
         if __debug__ and application.Globals.options.wing:
