@@ -3,6 +3,7 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
+#import wingdbstub
 import os, sys, re, string, errno, shutil, time
 import repository
 
@@ -34,11 +35,11 @@ def generateModelDocs(options, outputDir=None):
              'css':       '%s/schema.css' % urlRoot,
            }
 
-    for root in view.iterRoots():
+    for root in view.iterRoots(): 
         processItem(root, generateSchemaDocument, conf)
 
     generateIndex(view, conf)
-
+ 
     shutil.copy(os.path.join(chandlerDir, 'tools', 'schema.css'),
                 os.path.join(modelDir, 'schema.css'))
 
@@ -108,10 +109,14 @@ def RenderKinds(view, urlRoot):
     result = ""
     items = {}
     tree = {}
-    for item in view.findPath("//Schema/Core/Kind").iterItems(view):
-        items[item.itsPath] = item
-        _insertItem(tree, item.itsPath[1:], item)
-
+    #for item in view.findPath("//Schema/Core/Kind").iterItems(view):
+    #    print item
+    #    items[item.itsPath] = item
+    #    _insertItem(tree, item.itsPath[1:], item)
+    base = view.findPath("//Schema/Core")
+    for child in base.iterChildren():
+        items[child.itsPath] = child
+        _insertItem(tree, child.itsPath[1:], child)
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
     result += "<td><b>All kinds defined in the data model and content model:</b></td>\n"
@@ -271,7 +276,6 @@ def RenderCloudItems(rootItem, urlRoot):
 def RenderItem(item, urlRoot):
 
     result = ""
-
     # For Kinds, display their attributes (except for the internal ones
     # like notFoundAttributes):
     isKind = \
@@ -305,12 +309,14 @@ def RenderItem(item, urlRoot):
 
     result += "<div class='children'><b>Child items:</b> "
     children = {}
+
     for child in item.iterChildren():
         # if isinstance(child, Kind) or isinstance(child, Attribute) or isinstance(child, Type) or isinstance(child, Cloud) or isinstance(child, Endpoint) or isinstance(child, Parcel):
         name = child.itsName
         if name is None: name = str(child.itsUUID)
         children[name] = child
     keys = children.keys()
+
     keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
     output = []
     for key in keys:
@@ -520,7 +526,7 @@ def toLink(urlRoot, path):
         s = "%s" % path[1:]
     else:
         s = "%s/%s" % (urlRoot, path[1:])
-    print "creating link [%s|%s] [%s]" % (urlRoot, path[1:], s)
+    #print "creating link [%s|%s] [%s]" % (urlRoot, path[1:], s)
     return s.replace(" ", "%20")
 
 
