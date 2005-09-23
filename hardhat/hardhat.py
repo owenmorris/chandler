@@ -39,7 +39,6 @@ def usage():
     print "-s|--scrub            scrub module (remove all local files not in SVN)"
     print "-S|--ScrubDeps        scrub module and its dependencies"
     print "-t|--test             run all unit tests in this directory and below"
-    print "-u|--update           checkout (update) source using SVN"
     print "-v|--verbose          increase output information"
     print "-x|--run              execute module"
 
@@ -49,7 +48,7 @@ False = 0
 
 def getOptsAndArgs(arglist):
     try:
-        return getopt.getopt(arglist, "bBcCdD:eghij:lno:rsStuvx", ['build', 'BuildDeps', 
+        return getopt.getopt(arglist, "bBcCdD:ehij:no:rsStvx", ['build', 'BuildDeps', 
          'clean', 'CleanDeps', 'debug', 'Distrib=', 'env', 'help', 'interact', 'epydoc=',
          'noprompt', 'output=', 'release', 'scrub', 'ScrubDeps', 'test', 'verbose', 'run'])
     except getopt.GetoptError:
