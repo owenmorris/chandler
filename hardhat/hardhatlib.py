@@ -1115,7 +1115,6 @@ def executeShell(buildenv):
     args[:0] = [ args[0] ]
     args = map(escapeBackslashes, args)
 
-    print 'HEIKKI', buildenv['os']
     if buildenv['os'] == 'win':
         args = map(escapeArgForWindows, args)
 
