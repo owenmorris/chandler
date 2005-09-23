@@ -593,10 +593,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             theText = self.GetAttributeValue(item, attributeName)
         elif len(theText) > 0:
             # theText is the sample text - switch to gray
-            # @@@ The "gray" color probably needs to be platform- (or theme-)
-            # specific...
-            textColor = wx.Colour(153, 153, 153)
-            dc.SetTextForeground (textColor)
+            dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
 
         if len(theText) > 0:
             # Draw inside the lines.
