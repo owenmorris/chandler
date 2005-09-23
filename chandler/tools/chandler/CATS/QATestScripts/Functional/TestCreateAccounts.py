@@ -20,7 +20,7 @@ ap.TypeValue("displayName", "Personal SMTP") # type the following values into th
 ap.TypeValue("host","smtp.osafoundation.org")
 ap.SelectValue("security",  'TLS') # select the TLS radio button
 ap.ToggleValue("authentication", True) # turn on the authentication checkbox
-ap.TypeValue("port", '25')
+ap.TypeValue("port", '587')
 ap.TypeValue('username', 'demo1')
 ap.TypeValue('password', 'ad3leib5')
 
