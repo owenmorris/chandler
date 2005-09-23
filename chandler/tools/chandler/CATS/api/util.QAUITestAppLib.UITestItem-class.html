@@ -1,0 +1,1071 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>util.QAUITestAppLib.UITestItem</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          Chandler
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        Package&nbsp;util ::
+        <a href="util.QAUITestAppLib-module.html">Module&nbsp;QAUITestAppLib</a> ::
+        Class&nbsp;UITestItem
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="util.QAUITestAppLib.UITestItem-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class UITestItem</h2>
+
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="__init__"></a><span class="summary-sig"><span class="summary-sig-name">__init__</span>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>type</span>,
+          <span class=summary-sig-arg>logger</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#AddCollection" class="summary-sig-name"><code>AddCollection</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>collectionName</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Put the item in the given collection</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#Check_CollectionExistance" class="summary-sig-name"><code>Check_CollectionExistance</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>expectedName</span>,
+          <span class=summary-sig-arg>expectedResult</span>)</span></code>
+<br />
+Check if the collection exists/doesn't exist and has the expected 
+display name (displayed in the sidebar)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#Check_DetailView" class="summary-sig-name"><code>Check_DetailView</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>dict</span>)</span></code>
+<br />
+Check expected values by comparation to the data diplayed in the 
+detail view</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#Check_ItemInCollection" class="summary-sig-name"><code>Check_ItemInCollection</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>collectionName</span>,
+          <span class=summary-sig-arg>expectedResult</span>,
+          <span class=summary-sig-arg>report</span>)</span></code>
+<br />
+Check if the item is/is not in the given collection</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#Check_Object" class="summary-sig-name"><code>Check_Object</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>dict</span>)</span></code>
+<br />
+Check expected value by comparison to the data contained in the object 
+attributes</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#CheckButton" class="summary-sig-name"><code>CheckButton</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>buttonName</span>,
+          <span class=summary-sig-arg>description</span>,
+          <span class=summary-sig-arg>value</span>)</span></code>
+<br />
+Check the current state of the given button</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#CheckEditableBlock" class="summary-sig-name"><code>CheckEditableBlock</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>blockName</span>,
+          <span class=summary-sig-arg>description</span>,
+          <span class=summary-sig-arg>value</span>)</span></code>
+<br />
+Check the value contained in the given editable block</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#CheckMenuBlock" class="summary-sig-name"><code>CheckMenuBlock</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>blockName</span>,
+          <span class=summary-sig-arg>description</span>,
+          <span class=summary-sig-arg>value</span>)</span></code>
+<br />
+Check the current value of the given list-menu</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#DeleteCollection" class="summary-sig-name"><code>DeleteCollection</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Remove a collection from Chandler</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#MoveToTrash" class="summary-sig-name"><code>MoveToTrash</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Move the item into the trash collection</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SelectItem" class="summary-sig-name"><code>SelectItem</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Select the item in chandler (summary view or calendar view or sidebar 
+selection)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SendMail" class="summary-sig-name"><code>SendMail</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Send a mail message</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetAlarm" class="summary-sig-name"><code>SetAlarm</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>alarm</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the alarm</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetAllDay" class="summary-sig-name"><code>SetAllDay</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>allDay</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the allday attribute</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetAttr" class="summary-sig-name"><code>SetAttr</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>displayName</span>,
+          <span class=summary-sig-arg>startDate</span>,
+          <span class=summary-sig-arg>startTime</span>,
+          <span class=summary-sig-arg>endDate</span>,
+          <span class=summary-sig-arg>endTime</span>,
+          <span class=summary-sig-arg>location</span>,
+          <span class=summary-sig-arg>body</span>,
+          <span class=summary-sig-arg>status</span>,
+          <span class=summary-sig-arg>timeZone</span>,
+          <span class=summary-sig-arg>recurrence</span>,
+          <span class=summary-sig-arg>recurrenceEnd</span>,
+          <span class=summary-sig-arg>alarm</span>,
+          <span class=summary-sig-arg>fromAddress</span>,
+          <span class=summary-sig-arg>toAddress</span>,
+          <span class=summary-sig-arg>allDay</span>,
+          <span class=summary-sig-arg>stampEvent</span>,
+          <span class=summary-sig-arg>stampMail</span>,
+          <span class=summary-sig-arg>stampTask</span>)</span></code>
+<br />
+Set the item attributes in a predefined order (see orderList)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetAttrInOrder" class="summary-sig-name"><code>SetAttrInOrder</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>argList</span>)</span></code>
+<br />
+Set the item attributes in the argList order</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetBlockMenu" class="summary-sig-name"><code>SetBlockMenu</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>menuName</span>,
+          <span class=summary-sig-arg>menuChoice</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Select a choice in a list menu</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetBody" class="summary-sig-name"><code>SetBody</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>body</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the body text</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetDisplayName" class="summary-sig-name"><code>SetDisplayName</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>displayName</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the title</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetEditableBlock" class="summary-sig-name"><code>SetEditableBlock</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>blockName</span>,
+          <span class=summary-sig-arg>description</span>,
+          <span class=summary-sig-arg>value</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the value of an editable block</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetEndDate" class="summary-sig-name"><code>SetEndDate</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>endDate</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the end date</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetEndTime" class="summary-sig-name"><code>SetEndTime</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>endTime</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the end time</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetFromAddress" class="summary-sig-name"><code>SetFromAddress</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>fromAdd</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the from address (not available from UI)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetLocation" class="summary-sig-name"><code>SetLocation</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>location</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the location</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetRecurrence" class="summary-sig-name"><code>SetRecurrence</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>recurrence</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the recurrence</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetRecurrenceEnd" class="summary-sig-name"><code>SetRecurrenceEnd</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>endDate</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the recurrence end date</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetStamp" class="summary-sig-name"><code>SetStamp</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>type</span>,
+          <span class=summary-sig-arg>value</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the given stamp to the given value</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetStartDate" class="summary-sig-name"><code>SetStartDate</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>startDate</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the start date</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetStartTime" class="summary-sig-name"><code>SetStartTime</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>startTime</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the start time</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetStatus" class="summary-sig-name"><code>SetStatus</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>status</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the status</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetTimeZone" class="summary-sig-name"><code>SetTimeZone</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>timeZone</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the time zone</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#SetToAddress" class="summary-sig-name"><code>SetToAddress</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>toAdd</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Set the to address</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#StampAsCalendarEvent" class="summary-sig-name"><code>StampAsCalendarEvent</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>stampEvent</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Stamp as an event</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#StampAsMailMessage" class="summary-sig-name"><code>StampAsMailMessage</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>stampMail</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Stamp as a mail</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="util.QAUITestAppLib.UITestItem-class.html#StampAsTask" class="summary-sig-name"><code>StampAsTask</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>stampTask</span>,
+          <span class=summary-sig-arg>timeInfo</span>)</span></code>
+<br />
+Stamp as a task</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="AddCollection"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">AddCollection</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>collectionName</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Put the item in the given collection
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>collectionName</b></code> -
+         the name of a collection
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="Check_CollectionExistance"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">Check_CollectionExistance</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>expectedName</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>expectedResult</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Check if the collection exists/doesn't exist and has the expected 
+  display name (displayed in the sidebar)
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>expectedName</b></code> -
+         The expected title of the collection
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>expectedResult</b></code> -
+         expected result of the method &#64;return : True if result is 
+        the same as the expected
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="Check_DetailView"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">Check_DetailView</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>dict</span>)</span>
+  </h3>
+  Check expected values by comparation to the data diplayed in the 
+  detail view
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>dict</b></code> -
+         dictionnary with expected item attributes values for checking 
+        {&quot;attributeName&quot;:&quot;expected value&quot;,...}
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=dictionnary)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="Check_ItemInCollection"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">Check_ItemInCollection</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>collectionName</span>,
+          <span class=sig-arg>expectedResult</span>=<span class=sig-default>True</span>,
+          <span class=sig-arg>report</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Check if the item is/is not in the given collection
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>collectionName</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>expectedResult</b></code> -
+         expected result of the method
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      <dd><code><b>report</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean &#64;return : True if the result is the same as 
+              the expected)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="Check_Object"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">Check_Object</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>dict</span>)</span>
+  </h3>
+  Check expected value by comparison to the data contained in the 
+  object attributes
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>dict</b></code> -
+         dictionnary with expected item attributes values for checking 
+        {&quot;attributeName&quot;:&quot;expected value&quot;,...}
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=dictionnary)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="CheckButton"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">CheckButton</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>buttonName</span>,
+          <span class=sig-arg>description</span>,
+          <span class=sig-arg>value</span>)</span>
+  </h3>
+  Check the current state of the given button
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>buttonName</b></code> -
+         name of the button block to check
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>description</b></code> -
+         description of the action for the logger
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>value</b></code> -
+         expected value to compare
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="CheckEditableBlock"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">CheckEditableBlock</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>blockName</span>,
+          <span class=sig-arg>description</span>,
+          <span class=sig-arg>value</span>)</span>
+  </h3>
+  Check the value contained in the given editable block
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>blockName</b></code> -
+         name of the editable block to check
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>description</b></code> -
+         description of the action for the logger
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>value</b></code> -
+         expected value to compare
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="CheckMenuBlock"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">CheckMenuBlock</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>blockName</span>,
+          <span class=sig-arg>description</span>,
+          <span class=sig-arg>value</span>)</span>
+  </h3>
+  Check the current value of the given list-menu
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>blockName</b></code> -
+         name of the list-menu block to check
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>description</b></code> -
+         description of the action for the logger
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>value</b></code> -
+         expected value to compare
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="DeleteCollection"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">DeleteCollection</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Remove a collection from Chandler
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="MoveToTrash"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">MoveToTrash</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Move the item into the trash collection
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SelectItem"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SelectItem</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Select the item in chandler (summary view or calendar view or 
+  sidebar selection)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SendMail"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SendMail</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Send a mail message
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetAlarm"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetAlarm</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>alarm</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the alarm
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>alarm</b></code> -
+         the new alarm value 
+        (&quot;1&quot;,&quot;5&quot;,&quot;10&quot;,&quot;30&quot;,&quot;60&quot;,&quot;90&quot;)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetAllDay"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetAllDay</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>allDay</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the allday attribute
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>allDay</b></code> -
+         the new all-day value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetAttr"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetAttr</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>displayName</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>startDate</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>startTime</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>endDate</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>endTime</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>location</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>body</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>status</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>timeZone</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>recurrence</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>recurrenceEnd</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>alarm</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>fromAddress</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>toAddress</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>allDay</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>stampEvent</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>stampMail</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>stampTask</span>=<span class=sig-default>None</span>)</span>
+  </h3>
+  Set the item attributes in a predefined order (see orderList)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetAttrInOrder"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetAttrInOrder</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>argList</span>)</span>
+  </h3>
+  Set the item attributes in the argList order
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetBlockMenu"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetBlockMenu</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>menuName</span>,
+          <span class=sig-arg>menuChoice</span>,
+          <span class=sig-arg>timeInfo</span>)</span>
+  </h3>
+  Select a choice in a list menu
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>menuName</b></code> -
+         The name of the menu
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>menuChoice</b></code> -
+         the choice you want to select
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean &#64;return : True if the selection is 
+              succesfull)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetBody"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetBody</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>body</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the body text
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>body</b></code> -
+         the new body text
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetDisplayName"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetDisplayName</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>displayName</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the title
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>displayName</b></code> -
+         the new title
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetEditableBlock"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetEditableBlock</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>blockName</span>,
+          <span class=sig-arg>description</span>,
+          <span class=sig-arg>value</span>,
+          <span class=sig-arg>timeInfo</span>)</span>
+  </h3>
+  Set the value of an editable block
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>blockName</b></code> -
+         the name of the editable block
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>description</b></code> -
+         description of the action used by the logger
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>value</b></code> -
+         the new value for the editable block
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetEndDate"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetEndDate</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>endDate</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the end date
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>endDate</b></code> -
+         the new end date (mm/dd/yyyy)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetEndTime"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetEndTime</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>endTime</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the end time
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>endTime</b></code> -
+         the new end time (hh:mm PM or AM)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetFromAddress"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetFromAddress</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>fromAdd</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the from address (not available from UI)
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>fromAdd</b></code> -
+         the new from address value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetLocation"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetLocation</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>location</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the location
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>location</b></code> -
+         the new location
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetRecurrence"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetRecurrence</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>recurrence</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the recurrence
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>recurrence</b></code> -
+         the new recurrence value 
+        (&quot;None&quot;,&quot;Daily&quot;,&quot;Weekly&quot;,&quot;Monthly&quot;,&quot;Yearly&quot;)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetRecurrenceEnd"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetRecurrenceEnd</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>endDate</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the recurrence end date
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>endDate</b></code> -
+         the new recurrence end value (&quot;mm/dd/yyyy&quot;)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetStamp"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetStamp</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>type</span>,
+          <span class=sig-arg>value</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the given stamp to the given value
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>type</b></code> -
+         the type of stamp to set
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>value</b></code> -
+         the new stamp value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetStartDate"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetStartDate</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>startDate</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the start date
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>startDate</b></code> -
+         the new start date (mm/dd/yyyy)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetStartTime"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetStartTime</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>startTime</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the start time
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>startTime</b></code> -
+         the new start time (hh:mm PM or AM)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetStatus"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetStatus</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>status</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the status
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>status</b></code> -
+         the new status value (&quot;Confirmed&quot; or 
+        &quot;Tentative&quot; or &quot;FYI&quot;)
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetTimeZone"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetTimeZone</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>timeZone</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the time zone
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>timeZone</b></code> -
+         the new time zone value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="SetToAddress"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">SetToAddress</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>toAdd</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Set the to address
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>toAdd</b></code> -
+         the new destination address value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=string)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="StampAsCalendarEvent"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">StampAsCalendarEvent</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>stampEvent</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Stamp as an event
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>stampEvent</b></code> -
+         the new event stamp value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="StampAsMailMessage"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">StampAsMailMessage</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>stampMail</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Stamp as a mail
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>stampMail</b></code> -
+         the new mail stamp value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+
+<a name="StampAsTask"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">StampAsTask</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>stampTask</span>,
+          <span class=sig-arg>timeInfo</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Stamp as a task
+  <dl><dt></dt><dd>
+    <dl><dt><b>Parameters:</b></dt>
+      <dd><code><b>stampTask</b></code> -
+         the new task stamp value
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      <dd><code><b>timeInfo</b></code>
+        <br /><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (type=boolean)</i>
+      </dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          Chandler
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Sep 22 17:07:44 2005</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>
