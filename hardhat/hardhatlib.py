@@ -676,22 +676,6 @@ def test(buildenv, dir, *modules):
 # end test()
 
 
-def generateDocs(buildenv, module_name):
-    os.chdir(buildenv['root'])
-    # log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
-    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
-    if module_name == 'chandler':
-        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
-    else:
-        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
-    module = module_from_file(buildenv, module_path, module_name)
-    os.chdir(module_name)
-    module.generateDocs(buildenv)
-    # log(buildenv, HARDHAT_MESSAGE, module_name, "Back from build")
-# end build()
-
-
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Module import functions
 
@@ -887,23 +871,6 @@ def findHardHatFile(dir):
     return None
 
 
-def lint(buildenv, args):
-    """ Run PyChecker against the scripts passed in as args """
-
-    if buildenv['version'] == 'debug':
-        python = buildenv['python_d']
-        sitePackages = os.path.join(buildenv['pythonlibdir_d'], "site-packages")
-
-    if buildenv['version'] == 'release':
-        python = buildenv['python']
-        sitePackages = os.path.join(buildenv['pythonlibdir'], "site-packages")
-
-    checkerFile = os.path.join(sitePackages, "pychecker", "checker.py")
-
-    executeCommandNoCapture( buildenv, "HardHat",
-     [python, checkerFile] + args, "Running PyChecker" )
-
-
 def mirrorDirSymlinks(src, dest):
     """ Recreate the directory structure of src under dest, with symlinks
         pointing to the files in src.  src and dest must be absolute.  """
@@ -1087,8 +1054,7 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
             log(buildenv, HARDHAT_ERROR, name, "Trouble opening " + extlog + \
              ":" + str(e))
        
-
-    if exit_code == 0:
+    if exit_code == 0:#IGNORE:E0602
         log(buildenv, HARDHAT_MESSAGE, name, "OK")
     else:
         log(buildenv, HARDHAT_ERROR, name, "Exit code = " + str(exit_code) )
@@ -1124,7 +1090,7 @@ def executeCommandNoCapture(buildenv, name, args, message, flags=0):
     exec(execute_str)
     print "\nExecution complete - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
-    if exit_code == 0:
+    if exit_code == 0:#IGNORE:E0602
         log(buildenv, HARDHAT_MESSAGE, name, "OK")
     else:
         log(buildenv, HARDHAT_ERROR, name, "Command exited with code = " + str(exit_code) )
@@ -1149,6 +1115,7 @@ def executeShell(buildenv):
     args[:0] = [ args[0] ]
     args = map(escapeBackslashes, args)
 
+    print 'HEIKKI', buildenv['os']
     if buildenv['os'] == 'win':
         args = map(escapeArgForWindows, args)
 
@@ -1167,7 +1134,7 @@ def executeShell(buildenv):
     exec(execute_str)
     print "\nBack from interactive shell"
 
-    if exit_code == 0:
+    if exit_code == 0:#IGNORE:E0602
         log(buildenv, HARDHAT_MESSAGE, name, "OK")
     else:
         log(buildenv, HARDHAT_ERROR, name, "Exit code = " + str(exit_code) )
@@ -1542,10 +1509,10 @@ def makeInstaller(buildenv, directories, fileRoot, majorVersion='0', minorVersio
                           (buildenv['version'].upper(), fileRoot, majorVersion, minorVersion, releaseVersion)
 
         if sys.platform == 'cygwin':
-          scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
-          executeCommand(buildenv, "HardHat", 
-             [scriptName, scriptOption, nsisScriptPath, "chandler.nsi"],
-             "Building Windows Installer")
+            scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
+            executeCommand(buildenv, "HardHat", 
+                [scriptName, scriptOption, nsisScriptPath, "chandler.nsi"],
+                "Building Windows Installer")
         else:
             executeCommand(buildenv, "HardHat",
                  [buildenv['makensis'], scriptOption, os.path.join(nsisScriptPath, "chandler.nsi")],

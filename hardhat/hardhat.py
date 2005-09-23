@@ -30,15 +30,12 @@ def usage():
     print "-d|--debug            use debug version"
     print "-D|--Distrib VERSION  create a distribution, using VERSION as the version string"
     print "-e|--env              show environment variables in hardhat.log"
-    print "-g|--docs             generate documentation (via Epydoc and XSLT transform)"
     print "-h|--help             display this help"
     print "-i|--interact         interactive python session"
     print "-j|--epydoc FILE(S)   invoke epydoc on arguments"
-    print "-l|--lint             lint Python file(s) using PyChecker"
     print "-n|--noprompt         non-interactive (won't prompt during scrubbing)"
     print "-o|--ouput DIR        output directory used when creating a distribution (-D)"
     print "-r|--release          use release version (this is the default)"
-    # print "-s          spawn an interactive shell"
     print "-s|--scrub            scrub module (remove all local files not in SVN)"
     print "-S|--ScrubDeps        scrub module and its dependencies"
     print "-t|--test             run all unit tests in this directory and below"
@@ -53,8 +50,8 @@ False = 0
 def getOptsAndArgs(arglist):
     try:
         return getopt.getopt(arglist, "bBcCdD:eghij:lno:rsStuvx", ['build', 'BuildDeps', 
-         'clean', 'CleanDeps', 'debug', 'Distrib=', 'env', 'docs', 'help', 'interact', 'epydoc=',
-         'lint', 'noprompt', 'output=', 'release', 'scrub', 'ScrubDeps', 'test', 'update', 'verbose', 'run'])
+         'clean', 'CleanDeps', 'debug', 'Distrib=', 'env', 'help', 'interact', 'epydoc=',
+         'noprompt', 'output=', 'release', 'scrub', 'ScrubDeps', 'test', 'verbose', 'run'])
     except getopt.GetoptError:
         usage()
         sys.exit(1)
@@ -175,9 +172,6 @@ try:
         if opt == "-e" or opt == "--env":
             buildenv['showenv'] = 1
 
-        if opt == "-g" or opt == "--docs":
-            hardhatlib.generateDocs(buildenv, curmodulepath)
-
         if opt == "-h" or opt == "--help":
             usage()
 
@@ -190,10 +184,6 @@ try:
 
         if opt == "-j" or opt == "--epydoc":
             hardhatlib.epydoc(buildenv, None, None, arg, *args)
-
-        if opt == "-l" or opt == "--lint":
-            args_used = True  # we're going to be using the leftover args
-            hardhatlib.lint(buildenv, args)
 
         if opt == "-n" or opt == "--noprompt":
             buildenv['interactive'] = False
@@ -216,9 +206,6 @@ try:
             opts.extend(loo)
             args.extend(loa)
             
-        #if opt == "-u" or opt == "--update":
-        #    hardhatlib.svnCheckout(buildenv, projectRoot)
-
         if opt == "-v" or opt == "--verbose":
             buildenv['verbosity'] = buildenv['verbosity'] + 1
 
