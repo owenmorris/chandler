@@ -379,10 +379,12 @@ class SSSidebarIconButton (SSSidebarButton):
 
         Names are made up of the following pieces:
 
-        'Sidebar', ButtonName, IconName, 'Checked', 'MouseOver', '.png'
+        'Sidebar', ButtonName, IconName, 'MouseDown', 'MouseOver', '.png'
 
         They all begin with 'Sidebar', followed by ButtonName. Today,
-        we only have two buttons named: 'Icon', and 'SharingIcon'.
+        we only have two buttons named: 'Icon', and 'SharingIcon'. The
+        rules for Icon follow -- see getButtonImage for the SharindIcon
+        rules
 
         The ButtonName is followed by IconName. IconName is a property
         of the collection, e.g. the AllCollection has an IconName of
@@ -397,34 +399,32 @@ class SSSidebarIconButton (SSSidebarButton):
         'AllCalendarEventMixin', 'AllMailMessageMixin' and
         'AllTaskMixin'.
 
-        A property of a button in the siebar is whether or not it is
-        checkable. Today the Icon button is checkable and the
-        SharingIcon isn't. For checkable buttons, the IconName is
-        followed by 'Checked', for the checked image.
+        IconButtons are checkable. The checked state is indicated by
+        adding "MouseDown".
 
         Next comes 'MouseOver' if a different image is necessary for
         the state when the mouse is over the item.
 
-        Here are the new rules for defaults:
+        Here are the rules for defaults:
 
         First we lookup the fully qualified name, e.g. 'Sidebar',
-        ButtonName, IconName, 'Checked', 'MouseOver', '.png'
+        ButtonName, IconName, 'MouseDown', 'MouseOver', '.png'
 
         If we don't find an image by that name we next lookup the name
-        without the IconName, e.g. 'Sidebar', ButtonName, 'Checked',
+        without the IconName, e.g. 'Sidebar', ButtonName, 'MouseDown',
         'MouseOver', '.png'. This allows us to specify a default icon
-        for Checked and MouseOver that is applied by default if you
+        for MouseDown and MouseOver that is applied by default if you
         don't have a special one for a particular icon.
 
         If we still don't find an image, we next lookup the full image
         name without MouseOver, e.g. 'Sidebar', ButtonName, IconName,
-        'Checked', '.png'. So if you don't have MouseOver icons they
+        'MouseDown', '.png'. So if you don't have MouseOver icons they
         don't get displayed.
 
         Finally if we still don't have an image, we try to lookup the
         name without an IconName or MouseOver, e.g 'Sidebar',
-        ButtonName, 'Checked', '.png'. This allows us to have a
-        default for checkable buttons without MouseOver.
+        ButtonName, 'MouseDown', '.png'. This allows us to have a
+        default for buttons without MouseOver.
         """
         colorizeIcon = True
         imagePrefix = "Sidebar" + self.buttonName
@@ -478,13 +478,71 @@ class SSSidebarIconButton (SSSidebarButton):
 class SSSidebarSharingButton (SSSidebarButton):
     def getButtonImage (self, item, mouseOverFlag):
         """
-        """
-        def UpDownLoad ():
-            if (share.sharer is not None and
-                str(share.sharer.itsPath) == "//userdata/me"):
-                return "Upload"
-            return "Download"
+        The rules for naming icons are complicated, which is a
+        reflection of complexity of our sidebar design, so here is a
+        summary of the new rules:
 
+        Names are made up of the following pieces:
+
+        'Sidebar', ButtonName, IconName, 'MouseDown', 'MouseOver', '.png'
+
+        They all begin with 'Sidebar', followed by ButtonName. Today,
+        we only have two buttons named: 'Icon', and 'SharingIcon'. The
+        rules for SharingIcon follow -- see getButtonImage for the Icon
+        rules
+
+        The ButtonName is followed by IconName. IconName may take on
+        the following values depending upon the state of the collection
+
+        "UploadOffline"
+        "UploadOfflineNotMine"
+        "DownloadOffline"
+        "DownloadOfflineNotMine"
+        
+        "Error"
+        "ErrorNotMine"
+        
+        "Upload"
+        "UploadNotMine"
+        "Download"
+        "DownloadNotMine"
+        "UploadPartial"
+        "UploadPartialNotMine"
+        "DownloadPartial"
+        "DownloadPartialNotMine"
+
+        ""
+        "NotMine"
+        
+        Offline icons take precedence over the Error icon. The Error icon
+        takes precedence over the remaining icons. Partial indicates that
+        only some of the items in the collection are shared, e.g. when
+        viewing All only calendar events are shared. If the collection
+        isn't shared then the IconName is empty, i.e. "". NotMine is appended
+        to the IconName if the collection is in the NotMine set of items.
+
+        SharingIcon are momentary switches, i.e. you can click them and 
+        while the mouse is down they show a down state icon. When the mouse
+        is and the button is pressed "MouseDown" is appended.
+
+        Next comes 'MouseOver' if a different image is necessary for
+        the state when the mouse is over the item.
+
+        Here are the rules for defaults:
+
+        First we lookup the fully qualified name, e.g. 'Sidebar',
+        ButtonName, IconName, 'MouseDown', 'MouseOver', '.png'
+
+        If we don't find an image by that name we next lookup the name
+        without the MouseOver, e.g. 'Sidebar', ButtonName, 'MouseDown',
+        '.png'. So for Icons that don't have a special MouseOver state
+        we use theMouseDown variation of the icon.
+
+        Finally if we still don't find an image, we next lookup the full
+        image name without MouseDown or MouseOver, e.g. 'Sidebar',
+        ButtonName, IconName, '.png'. So if the button doesn't have a
+        special icon
+        """
         imagePrefix = "Sidebar" + self.buttonName
         notMine = ""
         mouseOver = ""
