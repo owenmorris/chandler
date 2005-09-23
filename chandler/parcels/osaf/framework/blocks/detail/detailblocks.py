@@ -211,10 +211,6 @@ def makeMarkupBar(parcel, oldVersion):
                                     helpString=_(u'Put this item onto the Calendar'),
                                     event=buttonPressed)
 
-    separator = \
-        ToolbarItem.template('ToolbarItemSeparator',
-                             toolbarItemKind='Separator')
-
     privateSwitchButton = \
         PrivateSwitchButtonBlock.template('PrivateSwitchButton',
                                     title=_(u"Never share this item"),
@@ -229,7 +225,6 @@ def makeMarkupBar(parcel, oldVersion):
                                         childrenBlocks=[mailMessageButton,
                                                         taskStamp,
                                                         calendarStamp,
-                                                        separator,
                                                         privateSwitchButton],
                                         position=0.0,
                                         toolSize=SizeType(20, 20),
