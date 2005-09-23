@@ -473,6 +473,7 @@ class References(Values):
     def _setValue(self, name, other, otherName, **kwds):
 
         item = self._item
+        view = item.itsView
 
         if name in self:
             value = self._getRef(name)
@@ -480,7 +481,6 @@ class References(Values):
                 value._references._removeRef(otherName, item)
 
         if other is not None:
-            view = item.itsView
             otherView = other.itsView
             if not (otherView is view or
                     item._isImporting() or
@@ -498,20 +498,30 @@ class References(Values):
         noMonitors = kwds.get('noMonitors', False)
         kwds['noMonitors'] = True
 
-        self._setRef(name, other, otherName, **kwds)
+        value = self._setRef(name, other, otherName, **kwds)
         if other is not None:
-            other._references._setRef(otherName, item, name,
-                                      cardinality=kwds.get('otherCard'),
-                                      alias=kwds.get('otherAlias'),
-                                      noMonitors=True)
-        
+            otherValue = other._references._setRef(otherName, item, name,
+                                                   cardinality=kwds.get('otherCard'),
+                                                   alias=kwds.get('otherAlias'),
+                                                   noMonitors=True)
+        else:
+            otherValue = None
+
         if not noMonitors:
             if not item._isNoDirty():
                 item._fireChanges(name)
             if not (other is None or other._isNoDirty()):
                 other._fireChanges(otherName)
+
         kwds['noMonitors'] = noMonitors
 
+        if value is not None and value._isRefList():
+            view._notifyChange(item._collectionChanged,
+                               'add', 'collection', name, other)
+        if otherValue is not None and otherValue._isRefList():
+            view._notifyChange(other._collectionChanged,
+                               'add', 'collection', otherName, item)
+            
     def _addValue(self, name, other, otherName, **kwds):
 
         kwds['cardinality'] = 'list'
@@ -537,6 +547,8 @@ class References(Values):
             if not item.itsView.isLoading():
                 item.setDirty(item.VDIRTY, name, self,
                               kwds.get('noMonitors', False))
+
+        return value
 
     def _getRef(self, name, other=None, attrID=None):
 

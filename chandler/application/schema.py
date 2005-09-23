@@ -1261,7 +1261,7 @@ def _get_nrv():
 
 
 core_types = """
-Boolean String Symbol Bytes Text Integer Long Float
+Boolean String Symbol Importable Bytes Text Integer Long Float
 Tuple List Set Class Dictionary Anything
 Date Time DateTime TimeDelta TimeZone
 Lob URL Complex UUID Path SingleRef

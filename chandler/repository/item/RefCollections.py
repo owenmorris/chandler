@@ -280,10 +280,6 @@ class RefList(LinkedMap, Indexed):
         if not load:
             other._references._getRef(self._otherName, item)
 
-        if not loading:
-            view._notifyChange(item._collectionChanged,
-                               'add', 'collection', self._name, other)
-
         return other
 
     def __setitem__(self, key, value):

@@ -37,8 +37,9 @@ class RepositoryView(CView):
     # 0.5.7: added support for Kind inheritedSuperKinds cache
     # 0.5.8: added complete attribute cache
     # 0.5.9: removed repository.query.Query and Query kind
+    # 0.5.10: added Importable type
     
-    CORE_SCHEMA_VERSION = 0x00050900
+    CORE_SCHEMA_VERSION = 0x00050a00
 
     def __init__(self, repository, name, version):
         """
@@ -1054,9 +1055,11 @@ class OnDemandRepositoryView(RepositoryView):
 
 class NullRepositoryView(RepositoryView):
 
-    def __init__(self):
+    def __init__(self, verify=False):
 
         self._logger = logging.getLogger(__name__)
+        self._verify = verify
+
         super(NullRepositoryView, self).__init__(None, "null view", 0)
 
     def setCurrentView(self):
@@ -1128,9 +1131,17 @@ class NullRepositoryView(RepositoryView):
 
         return False
 
+    def isDebug(self):
+
+        return self._logger.getEffectiveLevel() <= logging.DEBUG
+
     def _isNullView(self):
 
         return True
+
+    def _isVerify(self):
+        
+        return self._verify
 
     def _setLoading(self, loading, runHooks=False):
 
@@ -1155,10 +1166,6 @@ class NullRepositoryView(RepositoryView):
     def getLogger(self):
 
         return self._logger
-
-    def isDebug(self):
-
-        return self._logger.getEffectiveLevel() <= logging.DEBUG
 
     def getItemVersion(self, version, item):
 

@@ -4,6 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import re
 import chandlerdb.util.uuid
 import repository.util.Path
 import repository.util.SingleRef
@@ -325,6 +326,8 @@ class UString(StringType):
 
 class Symbol(BString):
 
+    illegal = re.compile("[^_a-zA-Z0-9]")
+
     def _compareTypes(self, other):
 
         return 1
@@ -333,15 +336,8 @@ class Symbol(BString):
 
         if type(value) not in (str, unicode):
             return False
-        
-        for char in value:
-            if not (char == '_' or
-                    char >= '0' and char <= '9' or
-                    char >= 'A' and char <= 'Z' or
-                    char >= 'a' and char <= 'z'):
-                return False
 
-        return True
+        return self.illegal.search(value) is None
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
@@ -351,6 +347,11 @@ class Symbol(BString):
                   afterLoadHooks):
         
         return itemReader.readSymbol(offset, data)
+
+
+class Importable(Symbol):
+
+    illegal = re.compile("[^_.a-zA-Z0-9]")
 
 
 class Integer(Type):

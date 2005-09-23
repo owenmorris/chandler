@@ -102,7 +102,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/Symbol</ref>
+         type="path" otherCard="list">/Core/Importable</ref>
 
     <attribute name="cardinality">single</attribute>
   </item>
