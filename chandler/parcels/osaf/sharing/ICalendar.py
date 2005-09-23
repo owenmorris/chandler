@@ -525,8 +525,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if __debug__:
                     raise e
                 else:
-                    logger.info("import failed to import one event with \
-                                 exception: %s" % str(e))
+                    logger.exception("import failed to import one event with \
+                                     exception: %s" % str(e))
                      
         logger.info("...iCalendar import of %d new items, %d updated" % \
          (countNew, countUpdated))

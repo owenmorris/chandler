@@ -93,6 +93,7 @@ class SubscribeDialog(wx.Dialog):
 
             # Keep this collection out of "My items" if checked:
             if self.checkboxKeepOut.GetValue():
+                logger.info(_(u'Moving collection out of My Items'))
                 schema.ns('osaf.app', view).notMine.addSource(collection)
 
             collection.setColorIfAbsent()

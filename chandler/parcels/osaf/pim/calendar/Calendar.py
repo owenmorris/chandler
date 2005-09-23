@@ -437,10 +437,14 @@ class CalendarEventMixin(RemindableMixin):
 
     def getExistingOccurrence(self, nextRecurrenceID):
         first = self.getFirstInRule()
-        for occurrence in first.occurrences:
-            if datetimeOp(occurrence.recurrenceID, '==',
-                            nextRecurrenceID):
-                return occurrence
+
+        # When an event is imported via sharing, the constructor is bypassed
+        # and we need to make sure occurrences has a value
+        if first.occurrences is not None:
+            for occurrence in first.occurrences:
+                if datetimeOp(occurrence.recurrenceID, '==',
+                                nextRecurrenceID):
+                    return occurrence
         return None
 
 

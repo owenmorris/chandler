@@ -29,7 +29,7 @@ __all__ = [
     'splitUrl',
 ]
 
-CLOUD_XML_VERSION = '1'
+CLOUD_XML_VERSION = '2'
 
 import time, StringIO, urlparse, libxml2, os, base64, logging
 from application import schema
@@ -473,14 +473,6 @@ class ShareConduit(items.ContentItem):
 
                         # Skip private items
                         if item.private:
-                            continue
-
-                        # Skip generated items:
-                        if getattr(item, 'isGenerated', False):
-                            continue
-
-                        # Skip modification items:
-                        if getattr(item, 'modificationFor', None) is not None:
                             continue
 
                         # Skip any items matching the filtered classes
@@ -1811,6 +1803,7 @@ class CloudXMLFormat(ImportExportFormat):
 
     cloudAlias = schema.One(schema.String)
 
+
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  cloudAlias='sharing'):
         super(CloudXMLFormat, self).__init__(name, parent, kind, view)
@@ -1847,6 +1840,31 @@ class CloudXMLFormat(ImportExportFormat):
         return item
 
     def exportProcess(self, item, depth=0, items=None):
+
+
+        def serializeLiteral(attrValue, attrType):
+
+            mimeType = None
+            encoding = None
+
+            if isinstance(attrValue, Lob):
+                mimeType = getattr(attrValue, 'mimetype', None)
+                encoding = getattr(attrValue, 'encoding', None)
+                data = attrValue.getInputStream().read()
+                attrValue = base64.b64encode(data)
+
+            if type(attrValue) is unicode:
+                attrValue = attrValue.encode('utf-8')
+            elif type(attrValue) is not str:
+                attrValue = attrType.makeString(attrValue)
+
+            attrValue = attrValue.replace('&', '&amp;')
+            attrValue = attrValue.replace('<', '&lt;')
+            attrValue = attrValue.replace('>', '&gt;')
+
+            return (mimeType, encoding, attrValue)
+
+
 
         if items is None:
             items = {}
@@ -1929,18 +1947,23 @@ class CloudXMLFormat(ImportExportFormat):
                 result += "<%s" % attrName
 
                 if cardinality == 'single':
-                    if isinstance(attrValue, Lob):
-                        mimeType = attrValue.mimetype
-                        data = attrValue.getInputStream().read()
-                        attrValue = base64.b64encode(data)
-                        result += " mimetype='%s'" % mimeType
 
-                    result += ">"
                     if isinstance(attrValue, Item):
-                        result += "\n"
+                        result += ">\n"
                         result += self.exportProcess(attrValue, depth+1, items)
                     else:
-                        result += "<![CDATA[" + attrType.makeString(attrValue) + "]]>"
+                        (mimeType, encoding, attrValue) = \
+                            serializeLiteral(attrValue, attrType)
+
+                        if mimeType:
+                            result += " mimetype='%s'" % mimeType
+
+                        if encoding:
+                            result += " encoding='%s'" % encoding
+
+                        result += ">"
+                        result += attrValue
+
 
                 elif cardinality == 'list':
                     result += ">"
@@ -1949,7 +1972,21 @@ class CloudXMLFormat(ImportExportFormat):
 
                     for value in attrValue:
                         result += indent * depth
-                        result += "<value>%s</value>\n" % attrType.makeString(value)
+                        result += "<value"
+
+                        (mimeType, encoding, value) = \
+                            serializeLiteral(value, attrType)
+
+                        if mimeType:
+                            result += " mimetype='%s'" % mimeType
+
+                        if encoding:
+                            result += " encoding='%s'" % encoding
+
+                        result += ">"
+                        result += value
+                        result += "</value>\n"
+
                     depth -= 1
 
                     result += indent * depth
@@ -2079,16 +2116,17 @@ class CloudXMLFormat(ImportExportFormat):
                         item.removeAttributeValue(attrName)
                     continue
 
-                otherName = item.itsKind.getOtherName(attrName, None, item, None)
+                otherName = item.itsKind.getOtherName(attrName, None, item,
+                                                      None)
                 cardinality = item.getAttributeAspect(attrName, 'cardinality')
-                type = item.getAttributeAspect(attrName, 'type')
+                attrType = item.getAttributeAspect(attrName, 'type')
 
                 # This code depends on attributes having their type set, which
-                # might not always be the case.  What should be done is to encode
+                # might not always be the case. What should be done is to encode
                 # the value type into the shared xml itself:
 
-                if otherName or (isinstance(type, Item) and \
-                    not isinstance(type, Type)): # it's a ref
+                if otherName or (isinstance(attrType, Item) and \
+                    not isinstance(attrType, Type)): # it's a ref
 
                     if cardinality == 'single':
                         valueNode = attrNode.children
@@ -2126,41 +2164,63 @@ class CloudXMLFormat(ImportExportFormat):
                     if cardinality == 'single':
 
                         mimeTypeNode = attrNode.hasProp('mimetype')
+
                         if mimeTypeNode: # Lob
                             mimeType = mimeTypeNode.content
                             value = base64.b64decode(attrNode.content)
                             value = utils.dataToBinary(item, attrName, value,
                                                        mimeType=mimeType)
+
+                            encodingNode = attrNode.hasProp('encoding')
+                            if encodingNode:
+                                value.encoding = encodingNode.content
+
                         else:
-                            value = type.makeValue(attrNode.content)
+                            content = attrNode.content
+                            content = unicode(content, 'utf-8')
+                            value = attrType.makeValue(content)
 
                         logger.debug( "for %s setting %s to %s" % \
-                            (item.getItemDisplayName().encode('utf8'),
-                             attrName, value))
+                            (item.getItemDisplayName().encode('ascii',
+                            'replace'), attrName, value))
                         item.setAttributeValue(attrName, value)
 
+
                     elif cardinality == 'list':
+
                         values = []
                         valueNode = attrNode.children
                         while valueNode:
                             if valueNode.type == "element":
-                                value = type.makeValue(valueNode.content)
+
+                                mimeTypeNode = valueNode.hasProp('mimetype')
+
+                                if mimeTypeNode: # Lob
+                                    mimeType = mimeTypeNode.content
+                                    value = base64.b64decode(attrNode.content)
+                                    value = utils.dataToBinary(item, attrName,
+                                        value, mimeType=mimeType)
+
+                                    encodingNode = valueNode.hasProp('encoding')
+                                    if encodingNode:
+                                        value.encoding = encodingNode.content
+
+                                else:
+                                    content = valueNode.content
+                                    content = unicode(content, 'utf-8')
+                                    value = attrType.makeValue(content)
+
+
                                 values.append(value)
                             valueNode = valueNode.next
+
                         logger.debug("for %s setting %s to %s" % \
-                            (item.getItemDisplayName().encode('utf8'), attrName, values))
+                            (item.getItemDisplayName().encode('ascii',
+                            'replace'), attrName, values))
                         item.setAttributeValue(attrName, values)
 
                     elif cardinality == 'dict':
                         pass
-
-            # @@@MOR Hack to add imported modification items to the shared
-            # collection as well.  This is a temporary fix for bugs 3790 and
-            # 3954 (modification events need to get added to their master's
-            # collection currently, although this may change)
-            if hasattr(item, 'modificationFor'):
-                if not item in self.share.contents:
-                    self.share.contents.add(item)
 
         finally:
             del item._share_importing

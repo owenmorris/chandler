@@ -18,6 +18,18 @@ from ICalendar import *
 # What to name the CloudXML subcollection on a CalDAV server:
 SUBCOLLECTION = ".chandler"
 
+# What attributes to filter out in the CloudXML subcollection on a CalDAV
+# server (@@@MOR This should change to using a schema decoration instead
+# of thie explicit list):
+
+# Actually, holding off on using this (it's a last resort):
+# CALDAVFILTER = [
+#     'allDay', 'anyTime', 'duration', 'expiredReminders', 'isGenerated',
+#     'location', 'modifications', 'modifies', 'occurrenceFor',
+#     'recurrenceID', 'reminders', 'rruleset', 'startTime',
+#     'transparency'
+# ]
+
 # The import/export mechanism needs a way to quickly map iCalendar UIDs to
 # Chandler event items, so this singleton exists to store a ref collection
 # containing imported calendar events, aliased by iCalendar UID:
@@ -158,6 +170,9 @@ def publish(collection, account, classes_to_include=None,
                 # There is already a 'main' share for this collection
                 collection.shares.append(share)
 
+            if attrs_to_exclude:
+                share.filterAttributes = attrs_to_exclude
+
             shares.append(share)
             share.displayName = collection.displayName
 
@@ -183,6 +198,8 @@ def publish(collection, account, classes_to_include=None,
                                          account=account,
                                          useCalDAV=True)
 
+                if attrs_to_exclude:
+                    share.filterAttributes = attrs_to_exclude
 
                 try:
                     collection.shares.append(share, 'main')
@@ -211,6 +228,14 @@ def publish(collection, account, classes_to_include=None,
                                          classes=classes_to_include,
                                          shareName=safe_sub_name,
                                          account=account)
+
+                if attrs_to_exclude:
+                    share.filterAttributes = attrs_to_exclude
+                else:
+                    share.filterAttributes = []
+
+                # for attr in CALDAVFILTER:
+                #     share.filterAttributes.append(attr)
 
                 shares.append(share)
                 share.displayName = name
@@ -335,8 +360,8 @@ def subscribe(view, url, username=None, password=None):
 
             # Examine the URL for scheme, host, port, path
             frame = wx.GetApp().mainFrame
-            info = application.dialogs.AccountInfoPrompt.PromptForNewAccountInfo(\
-                frame, host=host, path=parentPath)
+            dlg = application.dialogs.AccountInfoPrompt.PromptForNewAccountInfo
+            info = dlg(frame, host=host, path=parentPath)
             if info is not None:
                 (description, username, password) = info
                 account = WebDAVAccount(view=view)
@@ -497,6 +522,9 @@ def subscribe(view, url, username=None, password=None):
                     useSSL=useSSL, ticket=ticket)
 
             share.format = CloudXMLFormat(parent=share)
+
+            # for attr in CALDAVFILTER:
+            #     share.filterAttributes.append(attr)
 
             try:
                 share.get()
@@ -725,6 +753,7 @@ def isSharedByMe(share):
         return False
     me = pim.Contact.getCurrentMeContact(share.itsView)
     return share.sharer is me
+
 
 def getUrls(share):
     if isSharedByMe(share):
