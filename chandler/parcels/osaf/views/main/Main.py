@@ -138,11 +138,23 @@ class MainView(View):
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
 
-        # Tell the sidebar we want to go to the All collection
-        self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.app', self).allCollection})
+        sidebar = Block.findBlockByName("Sidebar")
 
-        # If the event cannot be displayed in this viewer, we need to switch to the all view
-        viewFilter = Block.findBlockByName ("Sidebar").filterKind
+        # if the sidebaritem is read-only, then jump to the
+        # all collection
+        sidebaritem = sidebar.selectedItemToView
+        isReadOnly = getattr(sidebaritem, 'isReadOnly', None)
+        if isReadOnly and isReadOnly():
+            # Tell the sidebar we want to go to the All collection
+            allCollection = schema.ns('osaf.app', self).allCollection
+            self.postEventByName ('RequestSelectSidebarItem',
+                                  {'item': allCollection})
+        elif hasattr(sidebaritem, 'add'):
+            sidebaritem.add(newItem)
+
+        # If the event cannot be displayed in this viewer,
+        # we need to switch to the all view
+        viewFilter = sidebar.filterKind
         if not kindParam.isKindOf(viewFilter):
             self.postEventByName ('ApplicationBarAll', { })
 
@@ -563,7 +575,7 @@ class MainView(View):
         # triggered from "Test | Generate Some Content Items" and
         # "Test | Generate Many Content Items" menu items
         count = event.arguments['sender'].blockName == 'GenerateMuchDataItem' and 100 or 4
-        sidebarCollection = Block.findBlockByName ("Sidebar").contents
+        sidebarCollection = schema.ns("osaf.app").sidebarCollection
         mainView = Globals.views[0]
         return GenerateItems.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
 
