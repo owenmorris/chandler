@@ -741,8 +741,15 @@ class StringAttributeEditor (BaseAttributeEditor):
                 #logger.debug("StringAE.onTextChanged: not ignoring; value is '%s'" % currentText)                    
                 if self.showingSample:
                     if currentText != self.sampleText:
+                        alreadyChanged = True
+                        # workaround for bug 3085 - changed text starts with copy of sample
+                        #  due to multiple calls to this method
+                        if '__WXGTK__' in wx.PlatformInfo:
+                            if currentText.startswith(self.sampleText):
+                                currentText = currentText.replace(self.sampleText,'',1)
+                                alreadyChanged = False
                         logger.debug("onTextChanged: replacing sample with it (alreadyChanged)")
-                        self._changeTextQuietly(control, currentText, False, True)
+                        self._changeTextQuietly(control, currentText, False, alreadyChanged)
                 elif len(currentText) == 0:
                     logger.debug("StringAE.onTextChanged: installing sample.")
                     self._changeTextQuietly(control, self.sampleText, True, False)
