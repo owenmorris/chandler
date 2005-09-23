@@ -186,18 +186,20 @@ class ICalendarTestCase(unittest.TestCase):
         # dateForVObject should take a naive datetime and assume it's in Pacific
         vevent.setDtstart(ICalendar.dateForVObject(start))
         self.assertEqual(vevent.getDtstart().tzinfo, helper.pacificTZ)
+
+        # not creating a RuleSetItem, although it would be required for an item
+        ruleItem = RecurrenceRule(None, view=self.repo.view)
+        ruleItem.freq = 'daily'
         
         vevent = vevent.transformFromNative()
-        helper.addRRule(vevent, freq='daily')
+        helper.addRRule(vevent, ruleItem)
         self.assertEqual(vevent.rrule[0].value, 'FREQ=DAILY')
-        
-        vevent.rrule=[]
-        helper.addRRule(vevent, freq='daily', count=3)
-        self.assertEqual(vevent.rrule[0].value, 'FREQ=DAILY;COUNT=3')
-
+    
         # addRRule should treat until as being in Pacific time if it has no TZ
         vevent.rrule=[]
-        helper.addRRule(vevent, freq='daily', until=datetime.datetime(2005,3,1))
+        ruleItem.until = datetime.datetime(2005,3,1)
+        ruleItem.untilIsDate = False
+        helper.addRRule(vevent, ruleItem)
         self.assertEqual(vevent.rrule[0].value,
                          'FREQ=DAILY;UNTIL=20050301T080000Z')
                          

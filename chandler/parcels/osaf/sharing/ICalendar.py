@@ -66,7 +66,7 @@ END:VTIMEZONE"""
         self.pacificVTimezone = vobject.readComponents(buffer).next()
         self.pacificVTimezone.behavior = vobject.icalendar.VTimezone
 
-    def addRRule(self, vevent, freq, count=None, until=None):
+    def addRRule(self, vevent, rule):
         """
         Adds an RRULE line to a Component.
         
@@ -74,12 +74,16 @@ END:VTIMEZONE"""
         transformFromNative method before calling addRRule.
         
         """
+        freq = rule.freq
+        until = rule.calculatedUntil()
+        interval = rule.interval
+        
         val = "FREQ=" + freq.upper()
-        if count is not None:
-            val += ";COUNT=" + str(count)
-        elif until is not None: # you can't have both a count and until
+        if until is not None:
             until = translateToTimezone(until, utc) # until must be in UTC
             val += ";UNTIL=" + vobject.serializing.dateTimeToString(until)
+        if interval != 1:
+            val += ";INTERVAL=" + str(interval)
         vevent.add('RRULE').value = val
 
 RecurrenceHelper = RecurrenceToVObject()
@@ -179,7 +183,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
             if item.modifies == 'thisandfuture' or item.getMaster() == item:
                 rule = item.rruleset.rrules.first() # only dealing with one rrule right now
                 comp = cal.vevent[-1] = comp.transformFromNative()
-                RecurrenceHelper.addRRule(comp, rule.freq, until=rule.calculatedUntil())
+                RecurrenceHelper.addRRule(comp, rule)
         except AttributeError:
             pass
         # end of populate function
