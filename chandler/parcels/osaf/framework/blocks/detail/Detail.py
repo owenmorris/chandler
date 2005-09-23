@@ -55,15 +55,11 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     def onSetContentsEvent (self, event):
         item = event.arguments['item']
         logger.debug("DetailRoot.onSetContentsEvent: %s", item)
-        self.item = item
-        return
+        self.contents = item
 
     def selectedItem(self):
         # return the item being viewed
-        try:
-            item = self.item
-        except AttributeError:
-            item = None
+        item = getattr(self, 'contents', None)
         return item
 
     def unRender(self):

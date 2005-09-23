@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "81" # donn: removed "label" attribute from ToolbarItem
+SCHEMA_VERSION = "82" # stearns: store dv's selected item in 'contents' again
 
 logger = None # initialized in initLogging()
 
