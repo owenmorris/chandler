@@ -375,7 +375,7 @@ class SSSidebarIconButton (SSSidebarButton):
         """
         The rules for naming icons are complicated, which is a
         reflection of complexity of our sidebar design, so here is a
-        summary of the new rules:
+        summary of the rules:
 
         Names are made up of the following pieces:
 
@@ -383,7 +383,7 @@ class SSSidebarIconButton (SSSidebarButton):
 
         They all begin with 'Sidebar', followed by ButtonName. Today,
         we only have two buttons named: 'Icon', and 'SharingIcon'. The
-        rules for Icon follow -- see getButtonImage for the SharindIcon
+        rules for Icon follow -- see getButtonImage for the SharingIcon
         rules
 
         The ButtonName is followed by IconName. IconName is a property
@@ -480,7 +480,7 @@ class SSSidebarSharingButton (SSSidebarButton):
         """
         The rules for naming icons are complicated, which is a
         reflection of complexity of our sidebar design, so here is a
-        summary of the new rules:
+        summary of the rules:
 
         Names are made up of the following pieces:
 
@@ -541,7 +541,8 @@ class SSSidebarSharingButton (SSSidebarButton):
         Finally if we still don't find an image, we next lookup the full
         image name without MouseDown or MouseOver, e.g. 'Sidebar',
         ButtonName, IconName, '.png'. So if the button doesn't have a
-        special icon
+        special icon for MouseDown or MouseOver you don't need to specify
+        one.
         """
         imagePrefix = "Sidebar" + self.buttonName
         notMine = ""
