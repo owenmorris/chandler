@@ -656,8 +656,8 @@ class UITestItem :
     def CheckButton(self, buttonName, description, value):
         """
         Check the current state of the given button
-        @type blockName : string
-        @param blockName : name of the button block to check
+        @type buttonName : string
+        @param buttonName : name of the button block to check
         @type description : string
         @param description : description of the action for the logger
         @type value : boolean
@@ -894,7 +894,7 @@ class UITestItem :
         @type collectionName : string
         @type expectedResult : boolean
         @param expectedResult : expected result of the method
-        @type repor : boolean
+        @type report : boolean
         @return : True if the result is the same as the expected
         """
         if not self.isCollection or collectionName == "Trash":
@@ -1049,7 +1049,7 @@ class UITestAccounts:
         @param type : the type of account you want to check (IMAP,SMTP,WebDAV,POP)
         @type name : string
         @param name : the name of the account to check
-        @pram keys : key:value pairs
+        @param keys : key:value pairs
         """
         if type == "SMTP":
             iter = Mail.SMTPAccount.iterItems(App_ns.itsView)
@@ -1087,7 +1087,7 @@ class UITestView:
     def GetCurrentState(self):
         """
         Get the current state of the view
-        @return : the current view
+        @return : the current view name
         """
         if App_ns.appbar.pressed(name="ApplicationBarAllButton"):
             return "AllView"
