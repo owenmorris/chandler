@@ -1133,8 +1133,7 @@ role's ``Attribute`` instance should be added to when the ``Attribute`` is
 created::
 
     >>> sorted(a.itsName for a in Person.getKind().attributes)  # doctest: +NORMALIZE_WHITESPACE
-    ['age', 'application.tests.School.attendees.inverse', 'children',
-     'fullname', 'parents']
+    ['age', 'children', 'fullname', 'parents']
 
     >>> class HealthInfo(schema.Item): pass
     >>> weight = schema.One(
@@ -1146,7 +1145,6 @@ created::
     <Attribute... HealthInfo.weight ...>
 
     >>> sorted(a.itsName for a in Person.getKind().attributes)  # doctest: +NORMALIZE_WHITESPACE
-    ['HealthInfo.weight', 'age', 'application.tests.School.attendees.inverse',
-     'children', 'fullname', 'parents']
+    ['HealthInfo.weight', 'age', 'children', 'fullname', 'parents']
 
 

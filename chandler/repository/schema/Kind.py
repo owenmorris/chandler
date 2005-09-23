@@ -559,8 +559,7 @@ class Kind(Item):
 
     def iterItems(self, recursive=True):
 
-        for item in self.extent.iterItems(recursive):
-            yield item
+        return self.extent.iterItems(recursive)
 
     def getItemKind(self):
 
@@ -907,7 +906,7 @@ class Kind(Item):
 class SchemaMonitor(Monitor):
 
     def schemaChange(self, op, kind, attrName):
-
+        
         if isinstance(kind, Kind) and kind.monitorSchema:
             kind.flushCaches(attrName)
 

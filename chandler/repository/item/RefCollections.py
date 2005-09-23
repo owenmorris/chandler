@@ -724,9 +724,6 @@ class TransientRefList(RefList):
     def _isTransient(self):
         return True
 
-    def _setDirty(self, noMonitors=False):
-        pass
-
     def _unloadRef(self, item):
 
         key = item._uuid

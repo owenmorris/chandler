@@ -472,33 +472,45 @@ class References(Values):
 
     def _setValue(self, name, other, otherName, **kwds):
 
+        item = self._item
+
         if name in self:
             value = self._getRef(name)
             if value is not None and isitem(value):
-                value._references._removeRef(otherName, self._item)
+                value._references._removeRef(otherName, item)
 
         if other is not None:
-            view = self._item.itsView
+            view = item.itsView
             otherView = other.itsView
             if not (otherView is view or
-                    self._item._isImporting() or
+                    item._isImporting() or
                     other._isImporting()):
                 if otherView._isNullView() or view._isNullView():
                     view.importItem(other)
                 else:
-                    raise ViewMismatchError, (self._item, other)
+                    raise ViewMismatchError, (item, other)
                     
             if otherName in other._references:
                 value = other._references._getRef(otherName)
                 if value is not None and isitem(value):
                     value._references._removeRef(name, other)
 
+        noMonitors = kwds.get('noMonitors', False)
+        kwds['noMonitors'] = True
+
         self._setRef(name, other, otherName, **kwds)
         if other is not None:
-            other._references._setRef(otherName, self._item, name,
+            other._references._setRef(otherName, item, name,
                                       cardinality=kwds.get('otherCard'),
                                       alias=kwds.get('otherAlias'),
-                                      noMonitors=kwds.get('noMonitors', False))
+                                      noMonitors=True)
+        
+        if not noMonitors:
+            if not item._isNoDirty():
+                item._fireChanges(name)
+            if not (other is None or other._isNoDirty()):
+                other._fireChanges(otherName)
+        kwds['noMonitors'] = noMonitors
 
     def _addValue(self, name, other, otherName, **kwds):
 

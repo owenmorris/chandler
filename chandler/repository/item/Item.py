@@ -1320,9 +1320,7 @@ class Item(CItem):
                     
                 attrDict._setDirty(attribute)
                 if not noMonitors:
-                    if hasattr(type(self), 'onValueChanged'):
-                        view._notifyChange(self.onValueChanged, attribute)
-                    Item._monitorsClass.invoke('set', self, attribute)
+                    self._fireChanges(attribute)
                 
             _countAccess(self)
             dirty |= Item.FDIRTY
@@ -1350,6 +1348,12 @@ class Item(CItem):
                 self._children._clearDirties()
 
         return False
+
+    def _fireChanges(self, name):
+
+        if hasattr(type(self), 'onValueChanged'):
+            self.itsView._notifyChange(self.onValueChanged, name)
+        Item._monitorsClass.invoke('set', self, name)
 
     def _collectItems(self, items, filter=None):
 

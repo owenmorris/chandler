@@ -309,10 +309,7 @@ class Role(ActiveDescriptor,CDescriptor):
         if self.annotates:
             for cls in self.annotates:
                 kind = itemFor(cls)
-                # XXX Andi: this is where I'm adding attributes
                 kind.attributes.append(attr, attr.itsName)
-                setattr(cls, attr.itsName, self)
-                self.registerAttribute(kind, attr)
 
         if self.inverse is not None:
             itemFor(self.inverse, view)
