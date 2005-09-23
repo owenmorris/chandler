@@ -693,22 +693,26 @@ class SidebarBlock(ControlBlocks.Table):
                 collectionName = self.getNameAlternative (self.selectedItemToView)
             else:
                 collectionName = self.selectedItemToView.getItemDisplayName()
-            collectionName = u'"' + collectionName + u'" '
         else:
             collectionName = ""
 
-        kind = self.getNameAlternative (schema.ns('osaf.app', self.itsView).allCollection)
+        arguments = {'collection': collectionName,
+                     'kind': self.getNameAlternative (schema.ns('osaf.app', self.itsView).allCollection)}
 
-        if (not isCollection or self.selectedItemToView.outOfTheBoxCollection):
+        if not isCollection:
             enabled = False
-            menuTitle = _(u'Keep %sout of %s') % (collectionName, kind)
+            menuTitle = _(u'Keep sout of %(kind)s') % arguments
+        elif self.selectedItemToView.outOfTheBoxCollection:
+            enabled = False
+            menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
         else:
             enabled = True
             notMine = schema.ns('osaf.app', self.itsView).notMine
             if self.selectedItemToView in notMine.sources:
-                menuTitle = _(u'Add %sto %s') % (collectionName, kind)
+                menuTitle = _(u'Add "%(collection)s" to %(kind)s') % arguments
             else:
-                menuTitle = _(u'Keep %sout of %s') % (collectionName, kind)
+                menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
+
         event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = enabled
 
