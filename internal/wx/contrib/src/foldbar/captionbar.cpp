@@ -5,7 +5,7 @@
 // Modified by: ABX - 19/12/2004 : possibility of horizontal orientation
 //                               : wxWidgets coding standards
 // Created:     18/06/2004
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: captionbar.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Jorgen Bodde
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

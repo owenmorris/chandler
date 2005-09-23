@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/01/31
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: sound_sdl.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2004, Open Source Applications Foundation
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

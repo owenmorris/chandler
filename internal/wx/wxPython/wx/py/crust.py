@@ -1,8 +1,8 @@
 """Crust combines the shell and filling into one control."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id$"
-__revision__ = "$Revision$"[11:-2]
+__cvsid__ = "$Id: crust.py 5166 2005-04-29 01:36:53Z davids $"
+__revision__ = "$Revision: 5166 $"[11:-2]
 
 import wx
 

@@ -3,7 +3,7 @@
 // Purpose:     wxStopWatch and global time-related functions
 // Author:      Julian Smart (wxTimer), Sylvain Bougnoux (wxStopWatch)
 // Created:     26.06.03 (extracted from wx/timer.h)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: stopwatch.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 1998-2003 Julian Smart, Sylvain Bougnoux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 // Name:        tooltip.cpp
 // Purpose:     wxToolTip implementation
 // Author:      Stefan Csomor
-// Id:          $Id$
+// Id:          $Id: tooltip.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

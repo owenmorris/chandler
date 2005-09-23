@@ -4,7 +4,7 @@
 // Purpose:     Extra implementation for MicroWindows
 // Author:      Julian Smart
 // Created:     2001-05-31
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: microwin.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

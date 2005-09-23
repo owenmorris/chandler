@@ -6,7 +6,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.01.00
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: memconf.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

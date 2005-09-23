@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/1998
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: txtstrm.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: spinctrl.cpp 6300 2005-07-30 03:30:59Z davids $
 // Copyright:   (c) 1999-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

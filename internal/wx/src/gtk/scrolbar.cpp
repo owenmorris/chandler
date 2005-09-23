@@ -2,7 +2,7 @@
 // Name:        src/gtk/scrolbar.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id$
+// Id:          $Id: scrolbar.cpp 6304 2005-07-31 03:36:31Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

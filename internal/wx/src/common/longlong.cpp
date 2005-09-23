@@ -6,7 +6,7 @@
 //              not documented and is for private use only.
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: longlong.cpp 6856 2005-08-28 04:17:53Z davids $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

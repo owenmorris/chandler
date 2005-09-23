@@ -4,7 +4,7 @@
 // Author:      PJ Naughter <pjna@naughter.com>
 // Modified by: Julian Smart
 // Created:     2001-08-21
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: smapi.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) PJ Naughter
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

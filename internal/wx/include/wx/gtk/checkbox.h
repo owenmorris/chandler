@@ -2,7 +2,7 @@
 // Name:        wx/gtk/checkbox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id$
+// Id:          $Id: checkbox.h 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 // Name:        src/common/imagepng.cpp
 // Purpose:     wxImage PNG handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: imagpng.cpp 6184 2005-07-26 17:50:48Z davids $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

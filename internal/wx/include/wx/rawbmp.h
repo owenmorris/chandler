@@ -4,7 +4,7 @@
 // Author:      Eric Kidd, Vadim Zeitlin
 // Modified by:
 // Created:     10.03.03
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: rawbmp.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

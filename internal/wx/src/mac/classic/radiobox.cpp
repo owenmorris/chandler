@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: JS Lair (99/11/15) first implementation
 // Created:     1998-01-01
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: radiobox.cpp 6265 2005-07-29 01:02:38Z davids $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     09.02.01
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: slider.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 1996-2001 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

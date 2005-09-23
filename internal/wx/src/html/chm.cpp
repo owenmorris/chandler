@@ -3,7 +3,7 @@
 // Purpose:     CHM (Help) support for wxHTML
 // Author:      Markus Sinner
 // Copyright:   (c) 2003 Herd Software Development
-// CVS-ID:      $Id$
+// CVS-ID:      $Id: chm.cpp 5166 2005-04-29 01:36:53Z davids $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

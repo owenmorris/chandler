@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2001-08-21
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: email.h 6982 2005-09-04 01:50:57Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

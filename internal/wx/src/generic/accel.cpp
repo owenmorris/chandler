@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxAcceleratorTable class
 // Author:      Robert Roebling
 // Modified:    VZ pn 31.05.01: use typed lists, Unicode cleanup, Add/Remove
-// Id:          $Id$
+// Id:          $Id: accel.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 #!/bin/sh
-# CVS-ID: $Id$
+# CVS-ID: $Id: mk_fallbacks.sh 5166 2005-04-29 01:36:53Z davids $
 
 
 add_fallback()

@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified by: Mart Raudsepp (GetMetric)
-// Id:          $Id$
+// Id:          $Id: settings.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

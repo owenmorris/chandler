@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) wxWidgets Team
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: joystick.h 5166 2005-04-29 01:36:53Z davids $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

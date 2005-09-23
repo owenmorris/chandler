@@ -2,7 +2,7 @@
 // Name:        gtk/font.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id$
+// Id:          $Id: font.cpp 6775 2005-08-24 07:22:26Z davids $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux/Vadim Zeitlin
 // Modified by: Stefan Csomor
 // Created:     04/22/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: thread.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Wolfram Gloger (1996, 1997); Guilhem Lavaux (1998),
 //                  Vadim Zeitlin (1999) , Stefan Csomor (2000)
 // Licence:     wxWindows licence

@@ -2,7 +2,7 @@
 // Name:        editlbox.h
 // Purpose:     ListBox with editable items
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: editlbox.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

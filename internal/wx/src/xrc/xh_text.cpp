@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for wxTextCtrl
 // Author:      Aleksandras Gluchovas
 // Created:     2000/03/21
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_text.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 2000 Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

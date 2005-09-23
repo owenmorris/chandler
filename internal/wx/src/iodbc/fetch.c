@@ -1,7 +1,7 @@
 /*
  *  fetch.c
  *
- *  $Id$
+ *  $Id: fetch.c 5166 2005-04-29 01:36:53Z davids $
  *
  *  Fetch query result
  *

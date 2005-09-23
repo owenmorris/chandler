@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Created:     01/02/97
 // Modified:
-// Id:          $Id$
+// Id:          $Id: treebase.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart et al
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

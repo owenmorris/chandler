@@ -3,7 +3,7 @@
 // Purpose:     MSW version of wxStaticLine class
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id$
+// Version:     $Id: statline.cpp 7090 2005-09-11 20:34:03Z davids $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

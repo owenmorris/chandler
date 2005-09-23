@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id$
+// Id:          $Id: dnd.cpp 6441 2005-08-09 18:29:06Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

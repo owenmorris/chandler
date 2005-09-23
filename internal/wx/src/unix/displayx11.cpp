@@ -4,7 +4,7 @@
 // Author:      Brian Victor
 // Modified by:
 // Created:     12/05/02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: displayx11.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

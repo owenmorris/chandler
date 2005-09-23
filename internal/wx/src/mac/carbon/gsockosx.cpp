@@ -4,7 +4,7 @@
  * Copyright:   (c) Brian Victor
  * Licence:     wxWindows Licence
  * Purpose:     GSocket: Mac OS X mach-o part
- * CVSID:   $Id$
+ * CVSID:   $Id: gsockosx.cpp 6038 2005-07-18 21:58:47Z davids $
  * Mac code by Brian Victor, February 2002.  Email comments to bhv1@psu.edu
  * ------------------------------------------------------------------------- */
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vaclav Slavik
 // Modified by:
 // Created:     25/10/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: sound.h 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) Julian Smart, Vaclav Slavik
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

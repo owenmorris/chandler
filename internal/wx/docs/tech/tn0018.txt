@@ -65,4 +65,4 @@ have to do:
 === EOF ===
 
 Author:  VZ
-Version: $Id$
+Version: $Id: tn0018.txt 5166 2005-04-29 01:36:53Z davids $

@@ -5,7 +5,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWindows licence.
 dnl
-dnl Version: $Id$
+dnl Version: $Id: acinclude.m4 7288 2005-09-20 02:56:12Z davids $
 dnl ---------------------------------------------------------------------------
 
 

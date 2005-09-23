@@ -3,7 +3,7 @@
 // Purpose:     wxCheckListBox class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: checklst.h 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

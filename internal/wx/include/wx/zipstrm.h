@@ -2,7 +2,7 @@
 // Name:        zipstrm.h
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: zipstrm.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

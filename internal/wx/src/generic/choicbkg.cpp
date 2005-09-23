@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Wlodzimierz ABX Skiba from generic/listbkg.cpp
 // Created:     15.09.04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: choicbkg.cpp 6949 2005-09-01 18:59:11Z davids $
 // Copyright:   (c) Vadim Zeitlin, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

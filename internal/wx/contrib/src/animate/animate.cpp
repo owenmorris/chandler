@@ -4,7 +4,7 @@
 // Author:      Julian Smart and Guillermo Rodriguez Garcia
 // Modified by:
 // Created:     13/8/99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: animate.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) Julian Smart and Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

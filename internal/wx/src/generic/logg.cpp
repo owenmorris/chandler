@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99 (extracted from src/common/log.cpp)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: logg.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

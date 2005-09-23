@@ -4,7 +4,7 @@
 // Author:      Aleksandras Gluchovas
 // Modified by:
 // Created:     30/11/98 (my 22th birthday :-)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: barhintspl.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

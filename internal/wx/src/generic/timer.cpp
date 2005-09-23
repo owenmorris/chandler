@@ -2,7 +2,7 @@
 // Name:        mgl/timer.cpp
 // Purpose:     wxTimer implementation
 // Author:      Vaclav Slavik
-// Id:          $Id$
+// Id:          $Id: timer.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

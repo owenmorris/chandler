@@ -4,7 +4,7 @@
 // Author:      William Osborne - minimal working wxPalmOS port
 // Modified by: Wlodzimierz ABX Skiba - more than minimal functionality
 // Created:     10/13/04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: frame.cpp 6719 2005-08-22 19:31:35Z davids $
 // Copyright:   (c) William Osborne, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

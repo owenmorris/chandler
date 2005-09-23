@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-03-07
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: chkconf.h 6303 2005-07-31 01:41:00Z davids $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

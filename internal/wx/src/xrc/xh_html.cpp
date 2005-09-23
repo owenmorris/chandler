@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for wxHtmlWindow
 // Author:      Bob Mitchell
 // Created:     2000/03/21
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_html.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000 Bob Mitchell and Verant Interactive
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

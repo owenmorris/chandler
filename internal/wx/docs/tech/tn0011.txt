@@ -27,7 +27,7 @@
 
 === EOF ===
 
-Version: $Id$
+Version: $Id: tn0011.txt 6039 2005-07-18 22:30:33Z davids $
 
 $Log: tn0011.txt,v $
 Revision 1.3  2004/05/04 08:26:58  JS

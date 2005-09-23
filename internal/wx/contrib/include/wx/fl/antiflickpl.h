@@ -4,7 +4,7 @@
 // Author:      Aleksandras Gluchovas (@Lithuania)
 // Modified by:
 // Created:     23/10/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: antiflickpl.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

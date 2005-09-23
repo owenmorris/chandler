@@ -4,7 +4,7 @@
 # Name:     difflast.pl
 # Purpose:  Shows the difference between the current local version of the file
 #           and the last cvs revision
-# Version:  $Id$
+# Version:  $Id: difflast.pl 5166 2005-04-29 01:36:53Z davids $
 # Author:   VZ
 # Created:  23.12.99
 # Copyright:(c) Vadim Zeitlin 1999

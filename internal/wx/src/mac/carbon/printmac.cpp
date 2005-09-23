@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: printmac.cpp 6941 2005-09-01 08:30:39Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

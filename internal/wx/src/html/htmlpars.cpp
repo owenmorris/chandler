@@ -2,7 +2,7 @@
 // Name:        htmlpars.cpp
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: htmlpars.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

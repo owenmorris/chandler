@@ -2,7 +2,7 @@
 // Purpose:     XML resources editor
 // Author:      Vaclav Slavik
 // Created:     2000/05/05
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: nodehnd.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

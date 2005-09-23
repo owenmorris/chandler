@@ -8,7 +8,7 @@
 //    Guillermo Rodriguez <guille@iies.es> rewrote from scratch (Dic/99)
 // Modified by:
 // Created:     20.06.2003 (extracted from common/timercmn.cpp)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: stopwatch.cpp 6146 2005-07-24 22:32:48Z davids $
 // Copyright:   (c) 1998-2003 wxWidgets Team
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////

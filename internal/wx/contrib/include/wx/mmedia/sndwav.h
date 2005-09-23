@@ -3,7 +3,7 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999
-// CVSID: $Id$
+// CVSID: $Id: sndwav.h 6038 2005-07-18 21:58:47Z davids $
 // License:    wxWindows license
 // --------------------------------------------------------------------------
 #ifndef _WX_SNDWAV_H

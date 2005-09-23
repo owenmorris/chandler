@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.04.03 (from src/*/data.cpp files)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: datacmn.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1997-2002 wxWidgets development team
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////

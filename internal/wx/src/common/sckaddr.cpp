@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     26/04/97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: sckaddr.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 // Purpose:     Implementation of a uri parser
 // Author:      Ryan Norton
 // Created:     10/26/04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: uri.cpp 6265 2005-07-29 01:02:38Z davids $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows
 /////////////////////////////////////////////////////////////////////////////

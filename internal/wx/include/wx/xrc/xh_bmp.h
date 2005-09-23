@@ -3,7 +3,7 @@
 // Purpose:     XML resource handler for wxBitmap and wxIcon
 // Author:      Vaclav Slavik
 // Created:     2000/09/00
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_bmp.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

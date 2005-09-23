@@ -2,7 +2,7 @@
 // Name:        m_image.cpp
 // Purpose:     wxHtml module for displaying images
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: m_image.cpp 6206 2005-07-27 00:07:58Z davids $
 // Copyright:   (c) 1999 Vaclav Slavik, Joel Lucsy
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

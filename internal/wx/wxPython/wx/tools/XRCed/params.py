@@ -2,7 +2,7 @@
 # Purpose:      Classes for parameter introduction
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      22.08.2001
-# RCS-ID:       $Id$
+# RCS-ID:       $Id: params.py 6448 2005-08-09 20:42:28Z davids $
 
 import string
 import os.path

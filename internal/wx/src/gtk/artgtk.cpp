@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-22
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: artgtk.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

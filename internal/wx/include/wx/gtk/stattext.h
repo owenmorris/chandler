@@ -2,7 +2,7 @@
 // Name:        stattext.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id$
+// Id:          $Id: stattext.h 6657 2005-08-18 03:02:27Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

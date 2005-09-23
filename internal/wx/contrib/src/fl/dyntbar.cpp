@@ -4,7 +4,7 @@
 // Author:      Aleksandras Gluchovas
 // Modified by:
 // Created:     ??/10/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dyntbar.cpp 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

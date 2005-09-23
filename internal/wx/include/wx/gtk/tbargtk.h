@@ -2,7 +2,7 @@
 // Name:        tbargtk.h
 // Purpose:     GTK toolbar
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: tbargtk.h 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

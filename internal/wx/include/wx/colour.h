@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: colour.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

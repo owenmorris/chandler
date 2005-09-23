@@ -2,7 +2,7 @@
 // Name:        bitmap.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: bitmap.cpp 6304 2005-07-31 03:36:31Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: VZ (23.11.00): general code review
 // Created:     04/01/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: mstream.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

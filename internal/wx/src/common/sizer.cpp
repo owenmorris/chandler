@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: sizer.cpp 6304 2005-07-31 03:36:31Z davids $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

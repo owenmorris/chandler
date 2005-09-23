@@ -2,7 +2,7 @@
 # Purpose:      XML interface classes
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      22.08.2001
-# RCS-ID:       $Id$
+# RCS-ID:       $Id: xxx.py 6448 2005-08-09 20:42:28Z davids $
 
 from xml.dom import minidom
 from globals import *

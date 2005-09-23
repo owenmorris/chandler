@@ -4,7 +4,7 @@
 // Author:      Ove Kåven
 // Modified by: Ron Lee
 // Created:     09/04/99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: wxchar.cpp 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

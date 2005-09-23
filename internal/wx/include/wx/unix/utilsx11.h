@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon, Vaclav Slavik
 // Modified by:
 // Created:     25.03.02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: utilsx11.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

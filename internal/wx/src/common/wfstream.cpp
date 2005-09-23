@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     11/07/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: wfstream.cpp 6537 2005-08-13 22:35:32Z davids $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     28.12.2004
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: prefconf.cpp 5176 2005-04-30 01:15:54Z davids $
 // Copyright:   (c) Wlodzimierz Skiba
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin (universalization)
 // Modified by:
 // Created:     20.02.02
-// Id:          $Id$
+// Id:          $Id: toolbar.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 2001 Robert Roebling,
 //              (c) 2002 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence

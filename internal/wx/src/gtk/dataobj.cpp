@@ -2,7 +2,7 @@
 // Name:        dataobj.cpp
 // Purpose:     wxDataObject class
 // Author:      Robert Roebling
-// Id:          $Id$
+// Id:          $Id: dataobj.cpp 6163 2005-07-25 21:18:45Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

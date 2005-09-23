@@ -2,7 +2,7 @@
 // Name:        archive.h
 // Purpose:     Streams for archive formats
 // Author:      Mike Wetherell
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: archive.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2004 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

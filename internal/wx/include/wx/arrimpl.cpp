@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.10.97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: arrimpl.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 1997 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////

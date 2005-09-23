@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     04/22/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: threadno.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Wolfram Gloger (1996, 1997); Guilhem Lavaux (1998)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

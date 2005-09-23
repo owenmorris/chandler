@@ -2,7 +2,7 @@
 // Name:        imaggif.cpp
 // Purpose:     wxGIFHandler
 // Author:      Vaclav Slavik & Guillermo Rodriguez Garcia
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: imaggif.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1999 Vaclav Slavik & Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

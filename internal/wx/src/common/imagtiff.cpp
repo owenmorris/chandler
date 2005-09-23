@@ -2,7 +2,7 @@
 // Name:        imagtiff.cpp
 // Purpose:     wxImage TIFF handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: imagtiff.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

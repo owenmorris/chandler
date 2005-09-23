@@ -7,7 +7,7 @@
  *              Guillermo Rodriguez Garcia <guille@iies.es> (maintainer)
  *              Stefan CSomor
  * Purpose:     GSocket main mac file
- * CVSID:   $Id$
+ * CVSID:   $Id: gsocket.cpp 6908 2005-08-31 16:39:45Z davids $
  * -------------------------------------------------------------------------
  */
 

@@ -1,7 +1,7 @@
 #
 # Helper functions for wxWidgets bakefiles
 #
-# $Id$
+# $Id: wxwin.py 6405 2005-08-08 15:31:43Z davids $
 #
 
 

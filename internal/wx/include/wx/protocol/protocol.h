@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     10/07/1997
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: protocol.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

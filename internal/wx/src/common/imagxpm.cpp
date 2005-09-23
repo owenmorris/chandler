@@ -2,7 +2,7 @@
 // Name:        imagxpm.cpp
 // Purpose:     wxXPMHandler
 // Author:      Vaclav Slavik, Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: imagxpm.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2001 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

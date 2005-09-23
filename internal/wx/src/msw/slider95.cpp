@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: slider95.cpp 6809 2005-08-25 20:42:19Z davids $
 // Copyright:   (c) Julian Smart 1998
 //                  Vadim Zeitlin 2004
 // Licence:     wxWindows licence

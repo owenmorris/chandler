@@ -1,7 +1,7 @@
 /*
  *  hdbc.c
  *
- *  $Id$
+ *  $Id: hdbc.c 5166 2005-04-29 01:36:53Z davids $
  *
  *  Data source connect object management functions
  *

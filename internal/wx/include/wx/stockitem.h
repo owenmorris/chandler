@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-15
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: stockitem.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

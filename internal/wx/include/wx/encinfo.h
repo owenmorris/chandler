@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.09.2003 (extracted from wx/fontenc.h)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: encinfo.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Wlodzimierz ABX Skiba from wx/listbook.h
 // Created:     15.09.04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: choicebk.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Vadim Zeitlin, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

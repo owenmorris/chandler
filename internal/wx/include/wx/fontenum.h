@@ -5,7 +5,7 @@
 // Modified by: extended to enumerate more than just font facenames and works
 //              not only on Windows now (VZ)
 // Created:     04/01/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: fontenum.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

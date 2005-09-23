@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: 
 // Created:     29.04.04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: config_xcode.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 // Name:        imaggif.h
 // Purpose:     wxImage GIF handler
 // Author:      Vaclav Slavik & Guillermo Rodriguez Garcia
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: imaggif.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

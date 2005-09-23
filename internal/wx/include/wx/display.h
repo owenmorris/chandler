@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III
 // Modified by: Vadim Zeitlin (resolution changes, display modes, ...)
 // Created:     06/21/02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: display.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2002-2003 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 // Purpose:     MSW/GTK compatible notebook (a.k.a. property sheet)
 // Author:      Stefan Csomor
 // Modified by:
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: notebook.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@
 // Modified by: VZ (23.11.00) to fix realloc()ing new[]ed memory,
 //                            general code review
 // Created:     11/07/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: stream.cpp 7121 2005-09-13 15:20:08Z davids $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

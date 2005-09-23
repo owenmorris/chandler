@@ -4,7 +4,7 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     2005-04-05 (extracted from wx/chkconf.h)
- * RCS-ID:      $Id$
+ * RCS-ID:      $Id: chkconf.h 6300 2005-07-30 03:30:59Z davids $
  * Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */

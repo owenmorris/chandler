@@ -4,7 +4,7 @@
 // Author:      George Policello
 // Modified by:
 // Created:     28 Jan 02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: volume.cpp 7125 2005-09-13 17:20:35Z davids $
 // Copyright:   (c) 2002 George Policello
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

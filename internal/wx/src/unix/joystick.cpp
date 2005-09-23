@@ -4,7 +4,7 @@
 // Author:      Ported to Linux by Guilhem Lavaux
 // Modified by:
 // Created:     05/23/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: joystick.cpp 7090 2005-09-11 20:34:03Z davids $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 // Purpose:     XML resource handler for wxScrolledWindow
 // Author:      Vaclav Slavik
 // Created:     2002/10/18
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_scwin.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2002 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

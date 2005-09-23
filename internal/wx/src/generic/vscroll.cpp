@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.05.03
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: vscroll.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

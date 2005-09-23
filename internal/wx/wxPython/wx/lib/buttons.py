@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     9-Dec-1999
-# RCS-ID:      $Id$
+# RCS-ID:      $Id: buttons.py 6448 2005-08-09 20:42:28Z davids $
 # Copyright:   (c) 1999 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

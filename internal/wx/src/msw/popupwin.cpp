@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.05.02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: popupwin.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2002 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

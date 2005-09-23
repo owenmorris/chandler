@@ -5,7 +5,7 @@
 // Author:      Aleksandras Gluchovas <mailto:alex@soften.ktu.lt>
 // Modified by:
 // Created:     06/09/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: controlbar.h 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

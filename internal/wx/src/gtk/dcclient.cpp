@@ -2,7 +2,7 @@
 // Name:        gtk/dcclient.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dcclient.cpp 6657 2005-08-18 03:02:27Z davids $
 // Copyright:   (c) 1998 Robert Roebling, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

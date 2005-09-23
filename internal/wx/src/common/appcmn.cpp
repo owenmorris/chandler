@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.10.99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: appcmn.cpp 7153 2005-09-14 15:57:55Z davids $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

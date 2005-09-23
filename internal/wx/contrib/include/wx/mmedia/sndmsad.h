@@ -3,7 +3,7 @@
 // Purpose: MS ADPCM codec
 // Date: 25/02/2000
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 2000
-// CVSID: $Id$
+// CVSID: $Id: sndmsad.h 5166 2005-04-29 01:36:53Z davids $
 // License:    wxWindows license
 // --------------------------------------------------------------------------
 #ifndef _WX_SNDMSAD_H

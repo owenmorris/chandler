@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 14.12.99 during wxToolBar classes reorganization
 // Created:     01/02/97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: tbarsmpl.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

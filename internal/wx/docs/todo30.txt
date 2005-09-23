@@ -202,4 +202,4 @@ wxMiscellaneous
   get closer to native look and feel, e.g. the gradient
   shadow on XP toolbars.
 
-Version:      $Id$
+Version:      $Id: todo30.txt 5166 2005-04-29 01:36:53Z davids $

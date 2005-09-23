@@ -3,7 +3,7 @@
 // Purpose:     ZIP file system
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// CVS-ID:      $Id$
+// CVS-ID:      $Id: fs_zip.cpp 6253 2005-07-28 21:41:53Z davids $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

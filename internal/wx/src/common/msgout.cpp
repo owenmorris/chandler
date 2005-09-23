@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     17.07.02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: msgout.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) the wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

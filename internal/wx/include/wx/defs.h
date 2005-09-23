@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id$
+*  RCS-ID:      $Id: defs.h 7248 2005-09-17 22:26:33Z davids $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */

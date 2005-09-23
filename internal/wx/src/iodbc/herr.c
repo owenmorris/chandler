@@ -1,7 +1,7 @@
 /*
  *  herr.c
  *
- *  $Id$
+ *  $Id: herr.c 5166 2005-04-29 01:36:53Z davids $
  *
  *  Error stack management functions
  *

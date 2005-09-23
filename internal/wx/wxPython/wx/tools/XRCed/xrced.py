@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, main module
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      20.08.2001
-# RCS-ID:       $Id$
+# RCS-ID:       $Id: xrced.py 7090 2005-09-11 20:34:03Z davids $
 
 """
 

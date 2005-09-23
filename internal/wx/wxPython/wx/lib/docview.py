@@ -5,7 +5,7 @@
 # Author:       Peter Yared
 #
 # Created:      5/15/03
-# CVS-ID:       $Id$
+# CVS-ID:       $Id: docview.py 6448 2005-08-09 20:42:28Z davids $
 # Copyright:    (c) 2003-2005 ActiveGrid, Inc. (Port of wxWindows classes by Julian Smart et al)
 # License:      wxWindows license
 #----------------------------------------------------------------------------

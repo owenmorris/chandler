@@ -7,7 +7,7 @@
 #              Ported to Python in order to not require yet another
 #              binary in wxPython distributions
 #
-# RCS-ID:      $Id$
+# RCS-ID:      $Id: pywxrc.py 5166 2005-04-29 01:36:53Z davids $
 # Copyright:   (c) 2004 by Total Control Software, 2000 Vaclav Slavik
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

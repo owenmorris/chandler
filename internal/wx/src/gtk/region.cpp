@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified:    VZ at 05.10.00: use AllocExclusive(), comparison fixed
-// Id:          $Id$
+// Id:          $Id: region.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

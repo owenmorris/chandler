@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id$ */
+/* @(#) $Id: uncompr.c 5166 2005-04-29 01:36:53Z davids $ */
 
 #define ZLIB_INTERNAL
 #include "zlib.h"

@@ -4,7 +4,7 @@
 # Author:      Vadim Zeitlin
 # Modified by:
 # Created:     25.02.03
-# RCS-ID:      $Id$
+# RCS-ID:      $Id: version.mak 5166 2005-04-29 01:36:53Z davids $
 # Copyright:   (c) 2003 Vadim Zeitlin
 # Licence:     wxWindows license
 ##############################################################################

@@ -1,7 +1,7 @@
 /*
  *  catalog.c
  *
- *  $Id$
+ *  $Id: catalog.c 5166 2005-04-29 01:36:53Z davids $
  *
  *  Catalog functions
  *

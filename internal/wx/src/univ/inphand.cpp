@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.08.00
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: inphand.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

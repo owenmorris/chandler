@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2/13/2005
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: hidjoystick.cpp 5168 2005-04-29 23:18:17Z davids $
 // Copyright:   (c) Ryan Norton
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

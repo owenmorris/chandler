@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.06.03 (extracted from src/generic/listctrl.cpp)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: selstore.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000-2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 Title:      Metrowerks w/ configure HOWTO
 Author:     David Elliott
-Id:         $Id$
+Id:         $Id: configure_howto.txt 5179 2005-04-30 01:45:07Z davids $
 
 === Introduction to Metrowerks command line tools ===
 

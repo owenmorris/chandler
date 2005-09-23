@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for wxSplitterWindow
 // Author:      panga@freemail.hu, Vaclav Slavik
 // Created:     2003/01/26
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_split.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2003 panga@freemail.hu, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

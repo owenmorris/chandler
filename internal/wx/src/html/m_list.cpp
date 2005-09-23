@@ -2,7 +2,7 @@
 // Name:        m_list.cpp
 // Purpose:     wxHtml module for lists
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: m_list.cpp 6987 2005-09-05 21:20:07Z davids $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

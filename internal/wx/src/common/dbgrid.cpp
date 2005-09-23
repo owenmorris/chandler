@@ -4,7 +4,7 @@
 // Author:      Roger Gammans, Paul Gammans
 // Modified by:
 // Created:
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dbgrid.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1999 The Computer Surgery (roger@computer-surgery.co.uk)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

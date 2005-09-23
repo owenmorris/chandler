@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: joystick.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

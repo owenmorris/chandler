@@ -1,5 +1,5 @@
 
-/* CVS-ID: $Id$ */
+/* CVS-ID: $Id: mk_ctable.c 5166 2005-04-29 01:36:53Z davids $ */
 
 #include <stdio.h>
 

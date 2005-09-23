@@ -3,7 +3,7 @@
 # Author:       Will Sadkin
 # Created:      09/06/2003
 # Copyright:   (c) 2003 by Will Sadkin
-# RCS-ID:      $Id$
+# RCS-ID:      $Id: numctrl.py 5166 2005-04-29 01:36:53Z davids $
 # License:     wxWidgets license
 #----------------------------------------------------------------------------
 # NOTE:

@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-03
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: fontdlgosx.mm 6265 2005-07-29 01:02:38Z davids $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

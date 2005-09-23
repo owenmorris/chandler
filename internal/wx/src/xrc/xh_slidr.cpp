@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for wxSlider
 // Author:      Bob Mitchell
 // Created:     2000/03/21
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_slidr.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 2000 Bob Mitchell and Verant Interactive
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

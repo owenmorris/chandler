@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.07.03
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: rendcmn.cpp 5818 2005-06-29 23:52:26Z davids $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////

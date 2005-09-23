@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: cursor.h 6405 2005-08-08 15:31:43Z davids $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 

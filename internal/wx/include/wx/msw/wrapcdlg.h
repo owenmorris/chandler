@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     22.03.2005
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: wrapcdlg.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2005 Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

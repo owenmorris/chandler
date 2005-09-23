@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     08.12.99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dirmac.cpp 6303 2005-07-31 01:41:00Z davids $
 // Copyright:   (c) 1999 Stefan Csomor <csomor@advanced.ch>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

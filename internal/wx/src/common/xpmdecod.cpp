@@ -2,7 +2,7 @@
 // Name:        xpmdecod.cpp
 // Purpose:     wxXPMDecoder
 // Author:      John Cristy, Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xpmdecod.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) John Cristy, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

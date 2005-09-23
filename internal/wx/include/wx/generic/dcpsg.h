@@ -3,7 +3,7 @@
 // Purpose:     wxPostScriptDC class
 // Author:      Julian Smart and others
 // Modified by:
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dcpsg.h 7180 2005-09-15 18:04:21Z davids $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

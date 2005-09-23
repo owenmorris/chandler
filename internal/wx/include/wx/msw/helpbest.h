@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     02/04/2001
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: helpbest.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

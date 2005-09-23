@@ -2,7 +2,7 @@
 // Name:        imagfill.cpp
 // Purpose:     FloodFill for wxImage
 // Author:      Julian Smart
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: imagfill.cpp 6095 2005-07-21 18:14:35Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

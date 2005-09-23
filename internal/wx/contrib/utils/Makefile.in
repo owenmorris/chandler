@@ -1,4 +1,4 @@
-# $Id$
+# $Id: Makefile.in 6038 2005-07-18 21:58:47Z davids $
 
 CONTRIB_UTILS=convertrc
 

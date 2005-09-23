@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.01.00
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: cmdline.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

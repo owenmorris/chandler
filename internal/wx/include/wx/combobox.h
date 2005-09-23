@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.12.00
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: combobox.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1996-2000 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

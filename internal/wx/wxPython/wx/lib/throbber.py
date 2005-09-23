@@ -14,7 +14,7 @@ can continue unencumbered.
 # Thanks to Harald Massa <harald.massa@suedvers.de> for
 # suggestions and sample code.
 #
-# $Id$
+# $Id: throbber.py 5166 2005-04-29 01:36:53Z davids $
 #
 # 12/12/2003 - Jeff Grimmett (grimmtooth@softhome.net)
 #

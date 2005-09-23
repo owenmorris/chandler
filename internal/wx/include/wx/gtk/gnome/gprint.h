@@ -3,7 +3,7 @@
 // Author:      Robert Roebling
 // Purpose:     GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: gprint.h 7180 2005-09-15 18:04:21Z davids $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////

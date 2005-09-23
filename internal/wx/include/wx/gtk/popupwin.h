@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:
-// Id:          $Id$
+// Id:          $Id: popupwin.h 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) 2001 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.01.99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: tooltip.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

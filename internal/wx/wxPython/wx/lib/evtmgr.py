@@ -7,7 +7,7 @@
 # Author:      Robb Shecter and Robin Dunn
 #
 # Created:     12-December-2002
-# RCS-ID:      $Id$
+# RCS-ID:      $Id: evtmgr.py 6448 2005-08-09 20:42:28Z davids $
 # Copyright:   (c) 2003 by db-X Corporation
 # Licence:     wxWindows license
 #---------------------------------------------------------------------------

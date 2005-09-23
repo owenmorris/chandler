@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/univ/dialog.cpp
 // Author:      Robert Roebling, Vaclav Slavik
-// Id:          $Id$
+// Id:          $Id: dialog.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

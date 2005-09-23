@@ -2,7 +2,7 @@
 // Name:        imagbmp.cpp
 // Purpose:     wxImage BMP,ICO and CUR handlers
 // Author:      Robert Roebling, Chris Elliott
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: imagbmp.cpp 7125 2005-09-13 17:20:35Z davids $
 // Copyright:   (c) Robert Roebling, Chris Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

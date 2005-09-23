@@ -8,7 +8,7 @@
 # Purpose:      Builds wxBase library for Watcom C++ under Win32
 # Author:       Vadim Zeitlin
 # Created:      21.01.03
-# RCS-ID:       $Id$
+# RCS-ID:       $Id: makebase.wat 5166 2005-04-29 01:36:53Z davids $
 # Copyright:    (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 # Licence:      wxWindows licence
 ##############################################################################

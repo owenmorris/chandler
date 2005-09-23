@@ -6,7 +6,7 @@
 # Author:      Mike Fletcher, Robin Dunn
 #
 # Created:     19-Nov-1999
-# RCS-ID:      $Id$
+# RCS-ID:      $Id: splashscreen.py 5166 2005-04-29 01:36:53Z davids $
 # Copyright:   (c) 1999 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

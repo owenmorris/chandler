@@ -2,7 +2,7 @@
 // Name:        menuitem.h
 // Purpose:     wxMenuItem class
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: menuitem.h 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

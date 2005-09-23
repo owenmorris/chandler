@@ -5,7 +5,7 @@
 // Modified by: VZ (resolutions enumeration/change support, DirectDraw, ...)
 //		    Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: display.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

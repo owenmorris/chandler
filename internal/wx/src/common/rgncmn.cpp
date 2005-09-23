@@ -4,7 +4,7 @@
 // Author:      Robin Dunn
 // Modified by:
 // Created:     27-Mar-2003
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: rgncmn.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

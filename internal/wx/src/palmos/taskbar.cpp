@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by: Vaclav Slavik
 // Created:     24/3/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: taskbar.cpp 5176 2005-04-30 01:15:54Z davids $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////

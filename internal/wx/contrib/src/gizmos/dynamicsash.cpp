@@ -5,7 +5,7 @@
 // Author:      Matt Kimball
 // Modified by:
 // Created:     7/15/2001
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dynamicsash.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2001 Matt Kimball
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

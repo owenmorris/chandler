@@ -4,7 +4,7 @@
 // Author:      David Elliott, Ryan Norton (wxMacExecute)
 // Modified by: Stefan Csomor (added necessary wxT for unicode builds)
 // Created:     2004-11-04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: utilsexc_cf.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) David Elliott, Ryan Norton
 // Licence:     wxWindows licence
 // Notes:       This code comes from src/mac/carbon/utilsexc.cpp,1.11

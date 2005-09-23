@@ -1,7 +1,7 @@
 /*
  *  result.c
  *
- *  $Id$
+ *  $Id: result.c 5166 2005-04-29 01:36:53Z davids $
  *
  *  Prepare for getting query result
  *

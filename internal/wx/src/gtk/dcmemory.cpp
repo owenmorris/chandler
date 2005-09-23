@@ -2,7 +2,7 @@
 // Name:        dcmemory.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dcmemory.cpp 6968 2005-09-02 08:35:21Z davids $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

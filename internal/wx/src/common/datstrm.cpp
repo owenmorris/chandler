@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mickael Gilabert
 // Created:     28/06/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: datstrm.cpp 6304 2005-07-31 03:36:31Z davids $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

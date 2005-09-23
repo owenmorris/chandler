@@ -5,7 +5,7 @@
 #             having special comment markers in them will be update using
 #             include/wx/setup_inc.h contents
 # Created:    2005-01-15
-# RCS-ID:     $Id$
+# RCS-ID:     $Id: update-setup-h 6300 2005-07-30 03:30:59Z davids $
 # Copyright:  (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 # Licence:    wxWindows licence
 ##############################################################################

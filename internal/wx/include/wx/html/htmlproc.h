@@ -2,7 +2,7 @@
 // Name:        htmlprep.h
 // Purpose:     HTML processor
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: htmlproc.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2001 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

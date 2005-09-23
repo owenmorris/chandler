@@ -4,7 +4,7 @@
 // Author:      Paul Gammans, Roger Gammans
 // Modified by:
 // Created:     11/04/2001
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: gridctrl.cpp 6121 2005-07-22 20:08:28Z davids $
 // Copyright:   (c) The Computer Surgery (paul@compsurg.co.uk)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

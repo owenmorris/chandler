@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: gauge.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1996-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

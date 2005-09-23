@@ -8,7 +8,7 @@
  * Copyright (c) 1998 by Scriptics Corporation.
  * All rights reserved.
  *
- * RCS: @(#) $Id$
+ * RCS: @(#) $Id: tclUniData.c 5166 2005-04-29 01:36:53Z davids $
  */
 
 /*

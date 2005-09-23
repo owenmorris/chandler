@@ -4,7 +4,7 @@
  * Copyright:   (c) Guilhem Lavaux
  * Licence:     wxWindows Licence
  * Purpose:     GSocket Macintosh header
- * CVSID:   $Id$
+ * CVSID:   $Id: gsockmac.h 6038 2005-07-18 21:58:47Z davids $
  * -------------------------------------------------------------------------
  */
 

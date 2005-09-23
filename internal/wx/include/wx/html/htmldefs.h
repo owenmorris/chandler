@@ -2,7 +2,7 @@
 // Name:        htmldefs.h
 // Purpose:     constants for wxhtml library
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: htmldefs.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

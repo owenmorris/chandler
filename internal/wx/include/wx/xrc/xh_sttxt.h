@@ -3,7 +3,7 @@
 // Purpose:     XML resource handler for wxStaticBitmap
 // Author:      Bob Mitchell
 // Created:     2000/03/21
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_sttxt.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000 Bob Mitchell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

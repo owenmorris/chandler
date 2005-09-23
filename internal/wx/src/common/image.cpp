@@ -2,7 +2,7 @@
 // Name:        image.cpp
 // Purpose:     wxImage
 // Author:      Robert Roebling
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: image.cpp 6303 2005-07-31 01:41:00Z davids $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

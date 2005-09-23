@@ -4,7 +4,7 @@
 // Author:      John Platts, Vadim Zeitlin
 // Modified by:
 // Created:     2003
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: uxtheme.h 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 2003 John Platts, Vadim Zeitlin
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

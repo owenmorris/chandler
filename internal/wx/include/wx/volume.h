@@ -4,7 +4,7 @@
 // Author:      George Policello
 // Modified by:
 // Created:     28 Jan 02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: volume.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2002 George Policello
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: sckfile.cpp 6405 2005-08-08 15:31:43Z davids $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

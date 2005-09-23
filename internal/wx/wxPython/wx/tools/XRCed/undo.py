@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, undo/redo module
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      01.12.2002
-# RCS-ID:       $Id$
+# RCS-ID:       $Id: undo.py 6581 2005-08-15 20:02:04Z davids $
 
 from globals import *
 from xxx import MakeXXXFromDOM

@@ -2,7 +2,7 @@
 // Name:        xh_notbk.h
 // Purpose:     XML resource handler for wxNotebook
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_notbk.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

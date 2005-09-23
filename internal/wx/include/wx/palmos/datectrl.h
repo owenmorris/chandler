@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     02/15/05
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: datectrl.h 5179 2005-04-30 01:45:07Z davids $
 // Copyright:   (c) Wlodzimierz Skiba
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

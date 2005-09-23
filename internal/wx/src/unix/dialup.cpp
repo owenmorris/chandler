@@ -4,7 +4,7 @@
 // Author:      Karsten Ballüder
 // Modified by:
 // Created:     03.10.99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dialup.cpp 7254 2005-09-19 03:34:38Z davids $
 // Copyright:   (c) Karsten Ballüder
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/06/04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: colordlg.cpp 6304 2005-07-31 03:36:31Z davids $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

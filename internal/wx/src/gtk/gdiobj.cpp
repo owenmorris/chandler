@@ -2,7 +2,7 @@
 // Name:        gdiobj.cpp
 // Purpose:     wxGDIObject class
 // Author:      Julian Smart
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: gdiobj.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

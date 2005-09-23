@@ -63,5 +63,5 @@ Julian Smart <julian@wxwidgets.org> as a binary attachment.
 An entry will be added to the Contributions web page.
 
 Author:  Julian Smart
-Version: $Id$
+Version: $Id: tn0005.txt 5166 2005-04-29 01:36:53Z davids $
 

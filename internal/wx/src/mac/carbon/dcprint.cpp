@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dcprint.cpp 6908 2005-08-31 16:39:45Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

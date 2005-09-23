@@ -33,7 +33,7 @@ History:
                   PyCrust package instead.
 
 """
-__version__ ="$Revision$"
+__version__ ="$Revision: 5166 $"
 # $RCSfile$
 
 import  code

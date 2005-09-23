@@ -4,7 +4,7 @@
 // Author:      William Osborne - minimal working wxPalmOS port
 // Modified by: Wlodzimierz ABX Skiba - native wxRadioBox implementation
 // Created:     10/13/04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: radiobox.cpp 5176 2005-04-30 01:15:54Z davids $
 // Copyright:   (c) William Osborne, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

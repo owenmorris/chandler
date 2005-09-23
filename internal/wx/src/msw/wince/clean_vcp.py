@@ -5,9 +5,9 @@ you will have wait untill 'Visual Tools' will rebuild all dependencies
 and this process might take HUGE amount of time
 
 Author : Viktor Voroshylo
-$Id$
+$Id: clean_vcp.py 5166 2005-04-29 01:36:53Z davids $
 '''
-__version__='$Revision$'[11:-2]
+__version__='$Revision: 5166 $'[11:-2]
 
 import sys
 

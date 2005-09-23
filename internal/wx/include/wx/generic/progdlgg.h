@@ -4,7 +4,7 @@
 // Author:      Karsten Ballüder
 // Modified by:
 // Created:     09.05.1999
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: progdlgg.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Karsten Ballüder
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////

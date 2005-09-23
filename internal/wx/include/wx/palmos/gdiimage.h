@@ -5,7 +5,7 @@
 // Author:      William Osborne - minimal working wxPalmOS port
 // Modified by:
 // Created:     10/13/04
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: gdiimage.h 5179 2005-04-30 01:45:07Z davids $
 // Copyright:   (c) William Osborne
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

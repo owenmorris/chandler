@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-16 (extracted from common/dynlib.cpp)
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dlunix.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2000-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

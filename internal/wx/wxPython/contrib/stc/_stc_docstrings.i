@@ -7,7 +7,7 @@
 // Author:      Robin Dunn
 //
 // Created:     16-April-2005
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: _stc_docstrings.i 6050 2005-07-19 19:01:37Z davids $
 // Copyright:   (c) 2005 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

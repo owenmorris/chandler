@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: tif_fax3.h 5166 2005-04-29 01:36:53Z davids $ */
 
 /*
  * Copyright (c) 1990-1997 Sam Leffler

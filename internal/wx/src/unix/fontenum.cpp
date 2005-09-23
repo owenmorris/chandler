@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.10.99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: fontenum.cpp 6860 2005-08-29 14:10:59Z davids $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

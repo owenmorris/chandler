@@ -5,7 +5,7 @@
 // Created:    1997
 // Updated:    1998
 // Copyright:  (C) 1997, 1998, Guilhem Lavaux
-// CVS:        $Id$
+// CVS:        $Id: vidbase.h 5166 2005-04-29 01:36:53Z davids $
 // License:    wxWindows license
 // /////////////////////////////////////////////////////////////////////////////
 /* Real -*- C++ -*- */

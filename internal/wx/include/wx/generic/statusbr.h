@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 05.02.00 to derive from wxStatusBarBase
 // Created:     01/02/97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: statusbr.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

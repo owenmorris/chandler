@@ -4,7 +4,7 @@
 // Author:      Brian Victor
 // Modified by: Royce Mitchell III
 // Created:     06/21/02
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: display.h 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

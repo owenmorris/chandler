@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.2000
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: filename.cpp 6304 2005-07-31 03:36:31Z davids $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

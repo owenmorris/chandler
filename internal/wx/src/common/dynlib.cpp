@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dynlib.cpp 6038 2005-07-18 21:58:47Z davids $
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
 // Licence:     wxWindows licence

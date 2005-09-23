@@ -16,7 +16,7 @@
 //                -Set ODBC option to only read committed writes to the DB so all
 //                   databases operate the same in that respect
 // Created:     9.96
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: db.cpp 7211 2005-09-16 18:25:39Z davids $
 // Copyright:   (c) 1996 Remstar International, Inc.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

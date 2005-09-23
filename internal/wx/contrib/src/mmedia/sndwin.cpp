@@ -3,7 +3,7 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999, 2000
-// CVSID: $Id$
+// CVSID: $Id: sndwin.cpp 6038 2005-07-18 21:58:47Z davids $
 // wxWindows licence
 // --------------------------------------------------------------------------
 #ifdef __GNUG__

@@ -8,7 +8,7 @@
  *              Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main Unix and OS/2 file
  * Licence:     The wxWindows licence
- * CVSID:   $Id$
+ * CVSID:   $Id: gsocket.cpp 7258 2005-09-19 15:36:35Z davids $
  * -------------------------------------------------------------------------
  */
 

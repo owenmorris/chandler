@@ -24,4 +24,4 @@ tn0020.txt   Binary Compatability and wxWidgets
 tn0021.txt   How to add a new wxUSE_XXX preprocessor constant
 
 
-Version: $Id$
+Version: $Id: index.txt 7211 2005-09-16 18:25:39Z davids $

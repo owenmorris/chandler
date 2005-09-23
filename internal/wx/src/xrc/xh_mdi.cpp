@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for dialogs
 // Author:      David M. Falkinder & Vaclav Slavik
 // Created:     14/02/2005
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: xh_mdi.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 2005 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

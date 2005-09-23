@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     10/21/99
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: dataobj.cpp 5166 2005-04-29 01:36:53Z davids $
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
