@@ -629,6 +629,7 @@ class wxMenuBar (wx.MenuBar):
         return menuList
         
     def getItemTitle (self, index, item):
+        # @@@DLD - wxMenuObject needs to be set up here!
         title = wxMenuObject.GetLabelTop (index)
         return title
     
@@ -963,11 +964,6 @@ class ToolbarItem(Block.Block, DynamicChild):
         Block.Block, doc = 'The prototype block to be placed in the Toolbar',
     )
     selected = schema.One(schema.Boolean)
-    label = schema.One(
-        schema.String,
-        doc = 'The label that goes under this ToolbarItem',
-        initialValue = '',
-    )
     toggle = schema.One(
         schema.Boolean,
         doc = 'For Buttons, makes it stay pressed down until pressed again.',
@@ -1002,6 +998,10 @@ class ToolbarItem(Block.Block, DynamicChild):
         tool = None
         id = Block.Block.getWidgetID(self)
         self.toolID = id
+        # Bug 4090 - long help never appears in the status bar
+        # for this reason I'm putting the longhelp into shorthelp too.
+        shortHelp = self.helpString
+        longHelp = self.helpString
         if (self.toolbarItemKind == 'Button' or
             self.toolbarItemKind == 'Radio'):
 
@@ -1014,13 +1014,14 @@ class ToolbarItem(Block.Block, DynamicChild):
                 theKind = wx.ITEM_NORMAL
             
             tool = theToolbar.DoAddTool (id,
-                                        self.label,
+                                        self.title,
                                         bitmap,
                                         disabledBitmap,
                                         kind = theKind,
-                                        shortHelp=self.title,
-                                        longHelp=self.helpString)
+                                        shortHelp=shortHelp,
+                                        longHelp=longHelp)
             tool.__class__ = wxToolbarItem
+            theToolbar.SetToolLongHelp(id, longHelp)
             theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)            
         elif self.toolbarItemKind == 'Separator':
             theToolbar.AddSeparator()
@@ -1028,12 +1029,12 @@ class ToolbarItem(Block.Block, DynamicChild):
             theKind = wx.ITEM_CHECK
             bitmap, disabledBitmap = getBitmaps (self)
             tool = theToolbar.DoAddTool (id,
-                                        self.label,
+                                        self.title,
                                         bitmap,
                                         disabledBitmap,
                                         kind = theKind,
-                                        shortHelp=self.title,
-                                        longHelp=self.helpString)
+                                        shortHelp=shortHelp,
+                                        longHelp=longHelp)
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
         elif self.toolbarItemKind == 'Text':

@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "80" # jeffrey: All collection now excludes modifications
+SCHEMA_VERSION = "81" # donn: removed "label" attribute from ToolbarItem
 
 logger = None # initialized in initLogging()
 
