@@ -742,6 +742,7 @@ class CalendarEventMixin(RemindableMixin):
             self.modificationFor = None
             self.recurrenceID = self.startTime
             self.icalUID = str(self.itsUUID)
+            self.copyCollections(master, self)
                                         
         # determine what type of change to make
         if attr == 'rruleset': # rule change, thus a destructive change
@@ -752,18 +753,10 @@ class CalendarEventMixin(RemindableMixin):
                 makeThisAndFutureMod()
                 self._movePreviousRuleEnd(master, recurrenceID)
             elif self.modificationFor is not None:# changing 'this' modification
-                if datetimeOp(self.recurrenceID, '==', first.startTime):
-                    self.modifies = 'this'
-                    self.modificationFor = None
-                    self.occurrenceFor = self
-                    self.modificationRecurrenceID = self.startTime
-                    first._ignoreValueChanges = True
-                    first.delete()
-                else:
-                    makeThisAndFutureMod()
-                    self._movePreviousRuleEnd(master, recurrenceID)
+                makeThisAndFutureMod()
+                self._movePreviousRuleEnd(master, recurrenceID)
         else: #propagate changes forward                       
-            if self.modifies == 'this' and self.modificationFor is not None:
+            if self.modificationFor is not None:
                 #preserve self as a THIS modification
                 if self.recurrenceID != first.startTime:
                     # create a new event, cloned from first, make it a
@@ -784,6 +777,7 @@ class CalendarEventMixin(RemindableMixin):
                     newfirst.icalUID = self.icalUID = str(newfirst.itsUUID)
                     newfirst._makeGeneralChange()
                     self.occurrenceFor = self.modificationFor = newfirst
+                    self.copyCollections(master, newfirst)
                     # move THIS modifications after self to newfirst
                     if first.hasLocalAttributeValue('modifications'):
                         for mod in first.modifications:
@@ -833,7 +827,12 @@ class CalendarEventMixin(RemindableMixin):
         """Move all collection references from one item to another."""
         for collection in getattr(fromItem, 'collections', []):
             collection.add(toItem)
-            collection.remove(fromItem)             
+            collection.remove(fromItem)
+
+    def copyCollections(self, fromItem, toItem):
+        """Copy all collection references from one item to another."""
+        for collection in getattr(fromItem, 'collections', []):
+            collection.add(toItem)
 
     def changeThis(self, attr=None, value=None):
         """Make this event a modification, don't modify future events.

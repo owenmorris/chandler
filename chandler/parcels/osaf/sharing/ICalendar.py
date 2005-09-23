@@ -518,7 +518,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                  eventItem.startTime))
     
                 if self.fileStyle() == self.STYLE_SINGLE:
-                    item.add(eventItem)
+                    item.add(eventItem.getMaster())
                 else:
                     return eventItem
             except Exception, e:
