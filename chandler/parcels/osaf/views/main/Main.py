@@ -211,9 +211,6 @@ class MainView(View):
         #event.arguments ['Text'] = _(u"Can't Undo\tCtrl+Z")
         event.arguments ['Enable'] = False
 
-    def onNewEventUpdateUI (self, event):
-        event.arguments ['Enable'] = True
-
     def RepositoryCommitWithStatus (self):
         """
           Do a repository commit with notice posted in the Status bar.
@@ -297,9 +294,19 @@ class MainView(View):
 
     def onSendShareItemEventUpdateUI(self, event):
         # If we get asked about this, and it hasn't already been set, there's no selected 
-        # item in the detail view - disallow sending. Also, make sure the label's set back to "Send"
+        # item anywhere - disallow sending. Also, make sure the label's set back to "Send"
         event.arguments ['Enable'] = False
         event.arguments ['Text'] = messages.SEND
+
+    def onFocusTogglePrivateEventUpdateUI(self, event):
+        # If we get asked about this, and it hasn't already been set, there's no selected 
+        # item anywhere - disable.
+        event.arguments ['Enable'] = False
+
+    def onFocusStampEventUpdateUI(self, event):
+        # If we get asked about this, and it hasn't already been set, there's no selected 
+        # item anywhere - disable.
+        event.arguments ['Enable'] = False
 
     def onSendMailEvent (self, event):
         # commit changes, since we'll be switching to Twisted thread

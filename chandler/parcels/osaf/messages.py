@@ -2,7 +2,6 @@ from i18n import OSAFMessageFactory as _
 
 UNTITLED = _(u"Untitled")
 ME = _(u"me")
-SEND = _(u"Send")
 
 
 """Common Button Stuff. This might come directly from WxWidgets"""
@@ -19,6 +18,17 @@ CLEAR  = _(u"Clear")
 SELECT_ALL = _(u"Select All")
 ERROR = _(u"Error")
 
+"""Menu Item / Markup bar button Titles"""
+SEND = _(u"Send")
+STAMP_MAIL = _(u"Prepare as Message")
+STAMP_TASK = _(u"Put on Task list")
+STAMP_CALENDAR = _(u"Put on Calendar")
+PRIVATE = _(u"Never share this item")
+NOT_PRIVATE = _(u"Allow sharing this item")
+
+STAMP_MAIL_HELP = _(u"Prepare this item as a mail message")
+STAMP_TASK_HELP = _(u"Put this item onto the Taskpad")
+STAMP_CALENDAR_HELP = _(u"Put this item onto the Calendar")
 
 """Server Account Settings"""
 USERNAME = _(u"Username")

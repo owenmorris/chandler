@@ -27,7 +27,7 @@ from MenusAndToolbars import (
 
 from ColumnHeaderBlocks import (ColumnHeader) 
 
-from PimBlocks import (Sendability)
+from PimBlocks import (FocusEventHandlers)
 
 def installParcel(parcel, oldName=None):
 

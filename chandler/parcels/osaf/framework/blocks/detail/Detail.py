@@ -14,7 +14,7 @@ from osaf.framework.attributeEditors import \
      ChoiceAttributeEditor, StaticStringAttributeEditor
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
-     Sendability, Trunk, TrunkSubtree
+     FocusEventHandlers, Trunk, TrunkSubtree
 from osaf import sharing
 import osaf.pim.mail as Mail
 import osaf.pim.items as items
@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 class DetailTrunkSubtree(TrunkSubtree):
     """All our subtrees are of this kind, so we can find 'em."""
 
-class DetailRootBlock (Sendability, ControlBlocks.ContentItemDetail):
+class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
       Root of the Detail View.
     """
@@ -192,6 +192,10 @@ class DetailRootBlock (Sendability, ControlBlocks.ContentItemDetail):
 
     def onResynchronizeEventUpdateUI(self, event):
         pass
+
+    # needed to work around bug 4091
+    def onResynchronizeParentEvent(self, event):
+        self.parentBlock.synchronizeWidget()
 
     def onDestroyWidget (self):
         # Hack - @@@DLD - remove when wxWidgets issue is resolved.
@@ -520,14 +524,12 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
         else:
             operation = 'remove'
         
-        # Suppress our on-change processing to avoid issues with 
-        # notifications midway through stamping. See bug 2739.
-        self.detailRoot().ignoreCollectionChangedWhileStamping = True
+        # Now change the kind and class of this item
         item.StampKind(operation, mixinKind)
-        del self.detailRoot().ignoreCollectionChangedWhileStamping
         
         # notify the world that the item has a new kind.
-        self.detailRoot().parentBlock.widget.wxSynchronizeWidget()
+        # This code can be removed when bug 4091 is fixed.
+        self.postEventByName('ResyncDetailParent', {})
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.selectedItem()
@@ -536,22 +538,11 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
         event.arguments ['Enable'] = enable
 
     def onTogglePrivateEvent(self, event):
-        item = self.selectedItem()
-        if item is not None:
-            tool = event.arguments['sender']
-            if not item.private and \
-               item.getSharedState() != ContentItem.UNSHARED:
-                # Marking a shared item as "private" could act weird...
-                # Are you sure?
-                caption = _(u"Change the privacy of a shared item?")
-                msg = _(u"Other people may be subscribed to share this item; " \
-                        "are you sure you want to mark it as private?")
-                if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
-                    # No: Put the not-private state back in the toolbarItem
-                    self.widget.ToggleTool(tool.toolID, False)
-                    return
-            item.private = self.widget.GetToolState(tool.toolID)
-            
+        item = self.selectedItem()            
+        self.postEventByName("FocusTogglePrivate", {'items': [item]})
+        tool = event.arguments['sender']
+        self.widget.ToggleTool(tool.toolID, item.private) # in case the user canceled the dialog, reset markupbar buttons
+
     def onTogglePrivateEventUpdateUI(self, event):
         item = self.selectedItem()            
         enable = item is not None and item.isAttributeModifiable('private')

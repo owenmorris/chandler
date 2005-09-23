@@ -997,7 +997,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         assert False # who needs this?
         return self.delegate.GetControlValue (self.control)
 
-class Table (PimBlocks.Sendability, RectangularChild):
+class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     columnHeadings = schema.Sequence(schema.String, required = True)
     columnHeadingTypes = schema.Sequence(schema.String)

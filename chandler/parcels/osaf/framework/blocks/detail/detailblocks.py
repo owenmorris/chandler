@@ -186,38 +186,38 @@ def makeMarkupBar(parcel, oldVersion):
     # The buttons.
     mailMessageButton = \
         MailMessageButtonBlock.template('MailMessageButton',
-                                        title=_(u"Send as message"),
+                                        title=messages.STAMP_MAIL,
                                         bitmap="MarkupBarMail.png",
                                         toolbarItemKind='Button',
                                         toggle=True,
-                                        helpString=_(u'Send this item as a mail message'),
+                                        helpString=messages.STAMP_MAIL_HELP,
                                         event=buttonPressed)
     
     taskStamp = \
         TaskStampBlock.template('TaskStamp',
-                                title=_(u"Put on Taskpad"),
+                                title=messages.STAMP_TASK,
                                 bitmap="MarkupBarTask.png",
                                 toolbarItemKind='Button',
                                 toggle=True,
-                                helpString=_(u'Put this item onto the Taskpad'),
+                                helpString=messages.STAMP_TASK_HELP,
                                 event=buttonPressed)
                         
     calendarStamp = \
         CalendarStampBlock.template('CalendarStamp',
-                                    title=_(u"Put on Calendar"),
+                                    title=messages.STAMP_CALENDAR,
                                     bitmap="MarkupBarEvent.png",
                                     toolbarItemKind='Button',
                                     toggle=True,
-                                    helpString=_(u'Put this item onto the Calendar'),
+                                    helpString=messages.STAMP_CALENDAR_HELP,
                                     event=buttonPressed)
 
     privateSwitchButton = \
         PrivateSwitchButtonBlock.template('PrivateSwitchButton',
-                                    title=_(u"Never share this item"),
+                                    title=messages.PRIVATE,
                                     bitmap="MarkupBarPrivate.png",
                                     toolbarItemKind='Button',
                                     toggle=True,
-                                    helpString=_(u'Never share this item'),
+                                    helpString=messages.PRIVATE,
                                     event=togglePrivate)
 
     # Finally, (re-)do the bar itself.

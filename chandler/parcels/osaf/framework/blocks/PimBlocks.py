@@ -9,8 +9,12 @@ import time
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
+from osaf.pim import ContentItem, Note
+import application.dialogs.Util as Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages
+from osaf.framework.blocks import BlockEvent
+from application import schema
 
 """
 Chandler-specific Blocks
@@ -20,15 +24,15 @@ specific (not CPIA-generic) subclass of Table for the Summary view, and all
 of them want to use some of what's here... for now, it's here.
 """
 
-class Sendability(Item):
+class FocusEventHandlers(Item):
     """ 
-    Adds behavior to allow sending of a view's selected items, 
-    (if they're sendable) around the SendShareItem event. 
+    Adds behavior to allow handling events for of a view's selected items, 
+    if all the items selected can process the event. 
     Mixed into the Blocks that have selected items (DetailViewRoot, Table,
     CalendarCanvas).
     
-    (At some point, this could be made more generic to support similar
-    operations like Printability...)
+    Currently we're adding all needed handlers to this class, so it will
+    likely expand when we add handlers for messages like Print...
     """
     
     def __getSendabilityOf(self, item):
@@ -107,3 +111,71 @@ class Sendability(Item):
                 if item.ItemWhoFromString() == '':
                     item.whoFrom = item.getCurrentMeEmailAddress()
             item.shareSend()
+
+    def onFocusTogglePrivateEvent(self, event):
+        """
+        Toggle the "private" attribute of all the selected items
+        or of the items specified in the optional arguments of the event.
+        """
+        selectedItems = event.arguments.get('items', self.__getSelectedItems())
+        if len(selectedItems) > 0:
+            # if any item is shared, give a warning if marking it private
+            for item in selectedItems:
+                if not item.private and \
+                   item.getSharedState() != ContentItem.UNSHARED:
+                    # Marking a shared item as "private" could act weird...
+                    # Are you sure?
+                    caption = _(u"Change the privacy of a shared item?")
+                    msg = _(u"Other people may be subscribed to share this item; " \
+                            "are you sure you want to mark it as private?")
+                    if Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                        break
+                    else:
+                        return
+            # change the private state for all items selected
+            for item in selectedItems:
+                item.private = not item.private
+            
+    def onFocusTogglePrivateEventUpdateUI(self, event):
+        selectedItems = self.__getSelectedItems()
+        if len(selectedItems) > 0:
+            # Collect the states of all the items, so that we can change all
+            # the items if they're all in the same state.
+            stateSet = set([ item.private for item in selectedItems \
+                             if isinstance(item, Note)])
+            # only enable for Notes and their subclasses (not collections, etc)
+            enable = len(stateSet) == 1
+            event.arguments['Enable'] = enable
+            event.arguments['Check'] = item.private and enable
+
+    def onFocusStampEvent(self, event):
+        selectedItems = event.arguments.get('items', self.__getSelectedItems())
+        kindParam = event.kindParameter
+        stampClass = kindParam.getItemClass()
+        if len(selectedItems) > 0:
+            stateSet = set([ isinstance(item, stampClass) for item in selectedItems \
+                             if isinstance(item, Note)])
+            assert len(stateSet) == 1
+            # change the private state for all items selected
+            if isinstance(item, stampClass):
+                operation = 'remove'
+            else:
+                operation = 'add'
+            for item in selectedItems:
+                item.StampKind(operation, event.kindParameter)
+            # the Detail View gets upset when we stamp without giving it a chance to update
+            self.postEventByName('ResyncDetailParent', {}) # workaround for bug 4091
+
+    def onFocusStampEventUpdateUI(self, event):
+        selectedItems = self.__getSelectedItems()
+        stampClass = event.kindParameter.getItemClass()
+        if len(selectedItems) > 0:
+            # Collect the states of all the items, so that we can change all
+            # the items if they're all in the same state.
+            stateSet = set([ isinstance(item, stampClass) for item in selectedItems \
+                             if isinstance(item, Note)])
+            enable = len(stateSet) == 1
+            event.arguments['Enable'] = enable
+            event.arguments['Check'] = isinstance(item, stampClass) and enable
+
+

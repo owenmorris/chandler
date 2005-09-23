@@ -603,6 +603,10 @@ class SidebarBlock(ControlBlocks.Table):
         self.widget.Refresh()
         self.postEventByName("SelectItemBroadcast", {'item':self.selectedItemToView})
 
+    def onKindParameterizedEventUpdateUI (self, event):
+        # check the appropriate menu item
+        event.arguments['Check'] = event.kindParameter == self.filterKind
+
     def onRequestSelectSidebarItemEvent (self, event):
         # Request the sidebar to change selection
         # Item specified is usually by name
