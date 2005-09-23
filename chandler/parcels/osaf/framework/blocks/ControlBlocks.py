@@ -691,8 +691,12 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.DoDragAndDrop(copyOnly=True)
 
     def AddItems(self, itemList):
+        
+        collection = self.blockItem.GetCurrentContents(writable=True)
+        assert collection, "Can't add items to readonly collection - should block before the drop"
+        
         for item in itemList:
-            self.blockItem.contents.add (item)
+            collection.add (item)
 
     def OnRightClick(self, event):
         self.blockItem.DisplayContextMenu(event.GetPosition(),
@@ -1040,6 +1044,23 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                                          GridCellAttributeEditor (key))
         return widget
 
+    def GetCurrentContents(self, writable=False):
+        """
+        The table's self.contents may contain a collectionList, in
+        case this collection is composed of other collections. In this
+        case, collectionList[0] is the 'primary' collection that
+        should handle adds/deletes and other status updates
+        """
+        if hasattr(self.contents, 'collectionList'):
+            collection = self.contents.collectionList[0]
+        else:
+            collection = self.contents
+            
+        # Sometimes you need a non-readonly collection. Should we be
+        # checking if the collection has an 'add' attribute too?
+        if not (writable and not collection.isReadOnly()):
+            return collection
+
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
         if isinstance (item, AbstractCollection):
@@ -1087,10 +1108,17 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         # see additional comments in DeleteSelection itself
         self.widget.DeleteSelection(MoveToTrash)
         
+    def onRemoveEventUpdateUI (self, event):
+        collection = self.GetCurrentContents()
+        event.arguments['Enable'] = not self.HasReadonlySelection()
+        event.arguments['Text'] = _(u'Delete from \'%s\'') % collection.displayName
+
     def onRemoveEvent (self, event):
 
+        collection = self.GetCurrentContents(writable=False)
+        assert collection, "Shouldn't be calling this on a readonly collection)"
         def Delete(item):
-            self.contents.remove(item)
+            collection.remove(item)
 
         self.widget.DeleteSelection(Delete)
 
@@ -1102,14 +1130,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                 if not readOnly or always:
                     break
         return readOnly
-                
-    def onRemoveEventUpdateUI (self, event):
-        if hasattr (self.contents, 'collectionList'):
-            collection = self.contents.collectionList[0]
-        else:
-            collection = self.contents
-        event.arguments['Enable'] = not self.HasReadonlySelection()
-        event.arguments['Text'] = _(u'Delete from \'%s\'') % collection.displayName
 
     def onDeleteEventUpdateUI(self, event):
         event.arguments['Enable'] = not self.HasReadonlySelection()
