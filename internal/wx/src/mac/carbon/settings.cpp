@@ -82,7 +82,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
             break ;
         case wxSYS_COLOUR_BTNHIGHLIGHT:
         case wxSYS_COLOUR_GRAYTEXT:
-            return wxColor( 0xCC , 0xCC , 0xCC ) ;
+            return wxColor( 0x80 , 0x80 , 0x80 ) ;
             break ;
 
         case wxSYS_COLOUR_3DDKSHADOW:
