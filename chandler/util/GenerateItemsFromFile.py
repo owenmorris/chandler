@@ -81,7 +81,7 @@ def GenerateCollection(view, mainView, args):
                      mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
              break
     elif not args[0]=='':
-        collection.displayName = args[0]
+        collection.displayName = u"%s" %args[0]
         if not collectionsDict.has_key(args[0]):
             if mainView:
                 collection.setColorIfAbsent()
@@ -108,7 +108,7 @@ def GenerateNote(view, mainView, args):
         note.displayName = random.choice(TITLES)
 
     elif not args[0]=='':
-         note.displayName = args[0]
+         note.displayName = u"%s" %args[0]
     else:
         note.displayName = u'untitled' #default value which does not require localization since this is a util
 
@@ -141,7 +141,7 @@ def GenerateCalendarEvent(view, mainView, args):
         event.displayName = random.choice(HEADLINES)
 
     elif not args[0]=='':
-        event.displayName = args[0]
+        event.displayName = u"%s" %args[0]
     else:
         event.displayName = u'untitled'
 
@@ -196,7 +196,7 @@ def GenerateCalendarEvent(view, mainView, args):
         event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
 
     elif not args[8]=='':
-        event.location = Calendar.Location.getLocation(view,args[8])    
+        event.location = Calendar.Location.getLocation(view,u"%s"%args[8])    
 
     if TEST_I18N:
         event.location = addSurrogatePairToText(event.location)
@@ -249,7 +249,7 @@ def GenerateTask(view, mainView, args):
 
 
     elif not args[0]=='':
-        task.displayName = args[0]
+        task.displayName = u"%s" %args[0]
     else:
         task.displayName = u'untitled'
 
@@ -339,7 +339,7 @@ def GenerateCalendarParticipant(view, emailAddress):
         handle = random.choice(LASTNAMES).lower()
         email.emailAddress = "%s@%s" % (handle, domainName)
     elif not emailAddress=='': 
-        email.emailAddress = emailAddress
+        email.emailAddress = u"%s" %emailAddress
     else: # default value
         email.emailAddress = 'Me'
 
@@ -357,7 +357,7 @@ def GenerateMailMessage(view, mainView, args):
         message.subject = random.choice(TITLES)
 
     elif not args[0]=='':
-        message.subject = args[0]
+        message.subject = u"%s" %args[0]
     else: #default value
         message.subject = u'untitled'
 
@@ -420,7 +420,8 @@ def GenerateMailMessage(view, mainView, args):
     if args[9]=='*':
         message.body = message.getAttributeAspect('body', 'type').makeValue(M_TEXT)
     elif not args[9]=='':
-        message.body = message.getAttributeAspect('body', 'type').makeValue(args[9])
+        txt = u"%s"%args[9]
+        message.body = message.getAttributeAspect('body', 'type').makeValue(txt)
     else: # default value
         message.body = message.getAttributeAspect('body', 'type').makeValue(M_TEXT)
         
