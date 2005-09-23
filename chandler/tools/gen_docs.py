@@ -559,23 +559,19 @@ def generateDocs(options, outputDir):
 
     if sys.platform == 'cygwin' or os.name == 'nt':
         chandlerdb  = 'release/bin/Lib/site-packages/chandlerdb'
-        queryparser = 'release/bin/Lib/site-packages/QueryParser.py'
         pyicu       = 'release/bin/Lib/site-packages/PyICU.py'
         pylucene    = 'release/bin/Lib/site-packages/PyLucene.py'
     elif sys.platform == 'darwin':
         chandlerdb  = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/chandlerdb'
-        queryparser = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/QueryParser.py'
         pyicu       = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/PyICU.py'
         pylucene    = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/PyLucene.py'
     else:
         chandlerdb  = 'release/lib/python2.4/site-packages/chandlerdb'
-        queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'
         pyicu       = 'release/lib/python2.4/site-packages/PyICU.py'
         pylucene    = 'release/lib/python2.4/site-packages/PyLucene.py'
 
     chandlerBin = os.getenv('CHANDLERBIN')
     chandlerdb  = os.path.join(chandlerBin, chandlerdb)
-    queryparser = os.path.join(chandlerBin, queryparser)
     pyicu       = os.path.join(chandlerBin, pyicu)
     pylucene    = os.path.join(chandlerBin, pylucene)
 
@@ -625,7 +621,6 @@ def generateDocs(options, outputDir):
                               'Chandler.py',
                               'version.py',
                               chandlerdb,  # This comes from internal
-                              queryparser, # This comes from external
                               pyicu,       # This comes from external
                               pylucene,    # This comes from external
                              ],
