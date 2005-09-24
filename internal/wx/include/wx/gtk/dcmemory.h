@@ -2,18 +2,13 @@
 // Name:        dcmemory.h
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcmemory.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: dcmemory.h,v 1.18 2005/09/23 12:49:15 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKDCMEMORYH__
 #define __GTKDCMEMORYH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/dcclient.h"

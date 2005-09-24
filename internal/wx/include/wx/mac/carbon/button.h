@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: button.h,v 1.8 2005/09/23 12:49:30 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_BUTTON_H_
 #define _WX_BUTTON_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "button.h"
-#endif
 
 #include "wx/control.h"
 #include "wx/gdicmn.h"

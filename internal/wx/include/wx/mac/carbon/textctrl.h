@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.h 6306 2005-07-31 08:37:41Z davids $
+// RCS-ID:      $Id: textctrl.h,v 1.13 2005/09/23 12:49:36 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TEXTCTRL_H_
 #define _WX_TEXTCTRL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "textctrl.h"
-#endif
 
 #if wxUSE_SYSTEM_OPTIONS
     // set this to true if you want to use the 'classic' mlte based implementation

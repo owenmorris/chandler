@@ -2,17 +2,13 @@
 // Name:        choice.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.h 6657 2005-08-18 03:02:27Z davids $
+// Id:          $Id: choice.h,v 1.42 2005/09/23 12:49:13 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKCHOICEH__
 #define __GTKCHOICEH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "choice.h"
-#endif
 
 class WXDLLIMPEXP_BASE wxSortedArrayString;
 class WXDLLIMPEXP_BASE wxArrayString;

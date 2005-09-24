@@ -4,17 +4,13 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2003/02/28
-// RCS-ID:      $Id: msgdlg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: msgdlg.h,v 1.12 2005/09/23 12:49:17 MR Exp $
 // Copyright:   (c) Vaclav Slavik, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __MSGDLG_H__
 #define __MSGDLG_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "msgdlg.h"
-#endif
 
 #include "wx/setup.h"
 #include "wx/dialog.h"

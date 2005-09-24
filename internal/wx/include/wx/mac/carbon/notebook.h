@@ -3,17 +3,13 @@
 // Purpose:     MSW/GTK compatible notebook (a.k.a. property sheet)
 // Author:      Stefan Csomor
 // Modified by:
-// RCS-ID:      $Id: notebook.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: notebook.h,v 1.8 2005/09/23 12:49:34 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_NOTEBOOK_H_
 #define _WX_NOTEBOOK_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "notebook.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

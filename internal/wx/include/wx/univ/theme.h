@@ -6,17 +6,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.00
-// RCS-ID:      $Id: theme.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: theme.h,v 1.16 2005/09/23 12:50:50 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_THEME_H_
 #define _WX_UNIV_THEME_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "theme.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxTheme

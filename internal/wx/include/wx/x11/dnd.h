@@ -2,18 +2,13 @@
 // Name:        dnd.h
 // Purpose:     declaration of wxDropTarget, wxDropSource classes
 // Author:      Julian Smart
-// RCS-ID:      $Id: dnd.h,v 1.6 2004/05/23 20:51:52 JS Exp $
+// RCS-ID:      $Id: dnd.h,v 1.7 2005/09/23 12:50:59 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin, Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _WX_DND_H_
 #define _WX_DND_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 

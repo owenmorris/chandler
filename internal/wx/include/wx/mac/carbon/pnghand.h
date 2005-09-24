@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: 
 // Created:     04/01/98
-// RCS-ID:      $Id: pnghand.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: pnghand.h,v 1.8 2005/09/23 12:49:34 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PNGHAND_H_
 #define _WX_PNGHAND_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "pnghand.h"
-#endif
 
 #include "wx/defs.h"
 

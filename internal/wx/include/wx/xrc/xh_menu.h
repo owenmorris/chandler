@@ -3,17 +3,13 @@
 // Purpose:     XML resource handler for menus/menubars
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xh_menu.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xh_menu.h,v 1.7 2005/09/23 12:51:14 MR Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XH_MENU_H_
 #define _WX_XH_MENU_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xh_menu.h"
-#endif
 
 #include "wx/xrc/xmlres.h"
 

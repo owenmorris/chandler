@@ -4,14 +4,10 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     09.02.01
-// RCS-ID:      $Id: slider.h 6775 2005-08-24 07:22:26Z davids $
+// RCS-ID:      $Id: slider.h,v 1.13 2005/09/23 12:50:48 MR Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univslider.h"
-#endif
 
 #ifndef _WX_UNIV_SLIDER_H_
 #define _WX_UNIV_SLIDER_H_

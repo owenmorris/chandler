@@ -3,17 +3,13 @@
 // Purpose:     Clipboard functionality.
 // Author:      Robert Roebling
 // Created:     17/09/98
-// RCS-ID:      $Id: clipbrd.h,v 1.7 2005/08/02 18:16:48 MW Exp $
+// RCS-ID:      $Id: clipbrd.h,v 1.8 2005/09/23 12:50:57 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __X11CLIPBOARDH__
 #define __X11CLIPBOARDH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #if wxUSE_CLIPBOARD
 

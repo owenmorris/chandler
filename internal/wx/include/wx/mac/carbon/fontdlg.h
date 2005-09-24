@@ -4,17 +4,13 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-09-25
-// RCS-ID:      $Id: fontdlg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: fontdlg.h,v 1.6 2005/09/23 12:49:33 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FONTDLG_H_
 #define _WX_FONTDLG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "fontdlg.h"
-#endif
 
 #include "wx/dialog.h"
 #include "wx/cmndata.h"

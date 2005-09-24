@@ -2,7 +2,7 @@
 // Name:        bitmap.h
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: bitmap.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: bitmap.h,v 1.50 2005/09/23 12:49:12 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -10,10 +10,6 @@
 
 #ifndef __GTKBITMAPH__
 #define __GTKBITMAPH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

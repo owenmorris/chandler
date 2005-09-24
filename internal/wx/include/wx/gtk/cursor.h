@@ -2,18 +2,13 @@
 // Name:        cursor.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: cursor.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: cursor.h,v 1.13 2005/09/23 12:49:15 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKCURSORH__
 #define __GTKCURSORH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

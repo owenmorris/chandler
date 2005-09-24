@@ -3,17 +3,13 @@
 // Purpose:     XML resource handler for wxCheckBox
 // Author:      Bob Mitchell
 // Created:     2000/03/21
-// RCS-ID:      $Id: xh_chckb.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xh_chckb.h,v 1.6 2005/09/23 12:51:12 MR Exp $
 // Copyright:   (c) 2000 Bob Mitchell and Verant Interactive
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XH_CHCKB_H_
 #define _WX_XH_CHCKB_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xh_chckb.h"
-#endif
 
 #include "wx/xrc/xmlres.h"
 #include "wx/defs.h"

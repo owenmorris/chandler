@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: icon.h 6875 2005-08-30 03:09:44Z davids $
+// RCS-ID:      $Id: icon.h,v 1.8 2005/09/23 12:49:33 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_ICON_H_
 #define _WX_ICON_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "icon.h"
-#endif
 
 #include "wx/bitmap.h"
 
@@ -65,7 +61,7 @@ public:
     void SetHeight(int h);
     void SetDepth(int d);
     void SetOk(bool isOk);
-    
+
     WXHICON GetHICON() const ;
 
     DECLARE_DYNAMIC_CLASS(wxIcon)

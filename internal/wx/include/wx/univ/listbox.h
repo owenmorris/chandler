@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: listbox.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: listbox.h,v 1.23 2005/09/23 12:50:46 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_LISTBOX_H_
 #define _WX_UNIV_LISTBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univlistbox.h"
-#endif
 
 #include "wx/scrolwin.h"    // for wxScrollHelper
 #include "wx/dynarray.h"

@@ -4,7 +4,7 @@
 // Author:      Brian Victor
 // Modified by: 
 // Created:     12/05/02
-// RCS-ID:      $Id: displayx11.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: displayx11.h,v 1.7 2005/09/23 12:50:53 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,10 +13,6 @@
 #define _WX_DISPLAYX11_H_
 
 #if wxUSE_DISPLAY
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "display.h"
-#endif
 
 class wxRect;
 class wxString;

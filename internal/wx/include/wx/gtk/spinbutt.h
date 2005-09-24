@@ -3,17 +3,13 @@
 // Purpose:     wxSpinButton class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: spinbutt.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: spinbutt.h,v 1.16 2005/09/23 12:49:18 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GTK_SPINBUTT_H_
 #define _WX_GTK_SPINBUTT_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 //-----------------------------------------------------------------------------
 // wxSpinButton

@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor (adapted from Robert Roebling's gtk port)
 // Modified by:
 // Created:     10/21/99
-// RCS-ID:      $Id: dataobj.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dataobj.h,v 1.5 2005/09/23 12:49:31 MR Exp $
 // Copyright:   (c) 1998, 1999 Vadim Zeitlin, Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MAC_DATAOBJ_H_
 #define _WX_MAC_DATAOBJ_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dataobj.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxDataObject is the same as wxDataObjectBase under wxGTK

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: region.h,v 1.11 2005/08/02 18:16:51 MW Exp $
+// RCS-ID:      $Id: region.h,v 1.12 2005/09/23 12:51:01 MR Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_REGION_H_
 #define _WX_REGION_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "region.h"
-#endif
 
 #include "wx/list.h"
 #include "wx/gdiobj.h"

@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: toplevel.h,v 1.11 2005/09/23 12:49:36 MR Exp $
 // Copyright:   (c) 2001 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_TOPLEVEL_H_
 #define _WX_MSW_TOPLEVEL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "toplevel.h"
-#endif
 
 #if wxUSE_SYSTEM_OPTIONS
     #define wxMAC_WINDOW_PLAIN_TRANSITION _T("mac.window-plain-transition")

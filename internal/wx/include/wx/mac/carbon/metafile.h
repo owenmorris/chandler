@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: metafile.h 6688 2005-08-19 17:24:23Z davids $
+// RCS-ID:      $Id: metafile.h,v 1.6 2005/08/19 13:48:20 MW Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

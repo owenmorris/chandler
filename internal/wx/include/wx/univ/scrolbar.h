@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.08.00
-// RCS-ID:      $Id: scrolbar.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: scrolbar.h,v 1.18 2005/09/23 12:50:48 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_SCROLBAR_H_
 #define _WX_UNIV_SCROLBAR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univscrolbar.h"
-#endif
 
 class WXDLLEXPORT wxScrollTimer;
 

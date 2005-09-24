@@ -4,18 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.h 6422 2005-08-08 23:04:58Z davids $
+// RCS-ID:      $Id: listbox.h,v 1.14 2005/09/23 12:49:34 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _WX_LISTBOX_H_
 #define _WX_LISTBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "listbox.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // simple types
@@ -76,7 +71,7 @@ public:
                 const wxString& name = wxListBoxNameStr);
 
     virtual ~wxListBox();
-    virtual void Refresh(bool eraseBack = true, const wxRect *rect = NULL);
+    virtual void Refresh(bool eraseBack = TRUE, const wxRect *rect = NULL);
 
     // implement base class pure virtuals
     virtual void Clear();

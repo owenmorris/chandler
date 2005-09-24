@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: textctrl.h,v 1.15 2005/08/02 18:16:51 MW Exp $
+// Id:          $Id: textctrl.h,v 1.16 2005/09/23 12:51:01 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,10 +18,6 @@
 #if wxUSE_UNIV_TEXTCTRL
 #include "wx/univ/textctrl.h"
 #else
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "textctrl.h"
-#endif
 
 #include "wx/scrolwin.h"
 #include "wx/arrstr.h"

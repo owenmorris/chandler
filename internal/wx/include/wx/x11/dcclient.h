@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dcclient.h,v 1.12 2005/08/02 18:16:49 MW Exp $
+// RCS-ID:      $Id: dcclient.h,v 1.13 2005/09/23 12:50:58 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DCCLIENT_H_
 #define _WX_DCCLIENT_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "dcclient.h"
-#endif
 
 #include "wx/dc.h"
 #include "wx/region.h"

@@ -2,19 +2,13 @@
 // Name:        wx/gtk/toplevel.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.h 7347 2005-09-21 16:53:47Z davids $
+// Id:          $Id: toplevel.h,v 1.21 2005/09/23 12:49:20 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKTOPLEVELH__
 #define __GTKTOPLEVELH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "toplevel.h"
-#endif
-
 
 //-----------------------------------------------------------------------------
 // wxTopLevelWindowGTK

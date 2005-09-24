@@ -3,17 +3,13 @@
 // Purpose:     XML resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: xmlres.h,v 1.47 2005/09/23 12:51:17 MR Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XMLRES_H_
 #define _WX_XMLRES_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xmlres.h"
-#endif
 
 #include "wx/defs.h"
 

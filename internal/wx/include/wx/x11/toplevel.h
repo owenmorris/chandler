@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h,v 1.18 2004/05/23 20:51:53 JS Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.19 2005/09/23 12:51:02 MR Exp $
 // Copyright:   (c) 2002 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_X11_TOPLEVEL_H_
 #define _WX_X11_TOPLEVEL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "toplevel.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxTopLevelWindowX11

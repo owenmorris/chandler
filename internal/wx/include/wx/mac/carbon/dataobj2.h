@@ -4,17 +4,13 @@
 // Author:      David Webster (adapted from Robert Roebling's gtk port
 // Modified by:
 // Created:     10/21/99
-// RCS-ID:      $Id: dataobj2.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dataobj2.h,v 1.5 2005/09/23 12:49:31 MR Exp $
 // Copyright:   (c) 1998, 1999 Vadim Zeitlin, Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GTK_DATAOBJ2_H_
 #define _WX_GTK_DATAOBJ2_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dataobj.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxBitmapDataObject is a specialization of wxDataObject for bitmaps

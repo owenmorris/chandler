@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: checkbox.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: checkbox.h,v 1.18 2005/09/23 12:50:44 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_CHECKBOX_H_
 #define _WX_UNIV_CHECKBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univcheckbox.h"
-#endif
 
 #include "wx/button.h" // for wxStdButtonInputHandler
 

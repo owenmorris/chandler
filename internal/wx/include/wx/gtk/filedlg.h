@@ -2,18 +2,13 @@
 // Name:        filedlg.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: filedlg.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: filedlg.h,v 1.29 2005/09/23 12:49:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKFILEDLGH__
 #define __GTKFILEDLGH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "filedlggtk.h"
-#endif
 
 #include "wx/generic/filedlgg.h"
 

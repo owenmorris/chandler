@@ -2,17 +2,13 @@
 // Name:        wx/gtk/app.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: app.h,v 1.57 2005/09/23 12:49:12 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKAPPH__
 #define __GTKAPPH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/frame.h"
 #include "wx/icon.h"

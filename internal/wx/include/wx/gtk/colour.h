@@ -2,18 +2,13 @@
 // Name:        colour.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: colour.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: colour.h,v 1.23 2005/09/23 12:49:14 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKCOLOURH__
 #define __GTKCOLOURH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

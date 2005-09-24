@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: cursor.h,v 1.7 2005/08/02 18:16:49 MW Exp $
+// RCS-ID:      $Id: cursor.h,v 1.8 2005/09/23 12:50:57 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CURSOR_H_
 #define _WX_CURSOR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "cursor.h"
-#endif
 
 #include "wx/bitmap.h"
 

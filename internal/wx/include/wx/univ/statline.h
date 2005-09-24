@@ -3,14 +3,10 @@
 // Purpose:     wxStaticLine class for wxUniversal
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statline.h 5166 2005-04-29 01:36:53Z davids $
+// Version:     $Id: statline.h,v 1.10 2005/09/23 12:50:49 MR Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univstatline.h"
-#endif
 
 #ifndef _WX_UNIV_STATLINE_H_
 #define _WX_UNIV_STATLINE_H_

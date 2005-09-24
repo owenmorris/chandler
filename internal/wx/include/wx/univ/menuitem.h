@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.05.01
-// RCS-ID:      $Id: menuitem.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: menuitem.h,v 1.14 2005/09/23 12:50:46 MR Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_MENUITEM_H_
 #define _WX_UNIV_MENUITEM_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univmenuitem.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxMenuItem implements wxMenuItemBase

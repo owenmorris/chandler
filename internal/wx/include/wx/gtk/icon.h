@@ -2,18 +2,13 @@
 // Name:        icon.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: icon.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: icon.h,v 1.25 2005/09/23 12:49:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKICONH__
 #define __GTKICONH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

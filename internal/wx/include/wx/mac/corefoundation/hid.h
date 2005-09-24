@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     11/11/2003
-// RCS-ID:      $Id: hid.h 5168 2005-04-29 23:18:17Z davids $
+// RCS-ID:      $Id: hid.h,v 1.5 2005/09/23 12:49:49 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,10 +18,6 @@
 
 #ifndef _WX_MACCARBONHID_H_
 #define _WX_MACCARBONHID_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "hid.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/string.h"

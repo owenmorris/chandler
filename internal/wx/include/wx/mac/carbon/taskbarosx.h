@@ -4,17 +4,13 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/04/2003
-// RCS-ID:      $Id: taskbarosx.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: taskbarosx.h,v 1.11 2005/09/23 12:49:36 MR Exp $
 // Copyright:   (c) Ryan Norton, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef _TASKBAR_H_
 #define _TASKBAR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "taskbarosx.h"
-#endif
 
 class WXDLLEXPORT wxIcon;
 class WXDLLEXPORT wxMenu;

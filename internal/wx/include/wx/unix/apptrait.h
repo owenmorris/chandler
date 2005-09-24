@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.06.2003
-// RCS-ID:      $Id: apptrait.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: apptrait.h,v 1.7 2004/11/12 21:20:46 DE Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

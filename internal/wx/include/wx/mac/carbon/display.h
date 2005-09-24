@@ -4,7 +4,7 @@
 // Author:      Brian Victor/Royce Mitchel for non OSX / Ryan Norton for OS X
 // Modified by: 
 // Created:     06/21/02
-// RCS-ID:      $Id: display.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: display.h,v 1.5 2005/02/12 11:29:42 SC Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

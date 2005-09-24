@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: frame.h 6228 2005-07-28 00:11:52Z davids $
+// RCS-ID:      $Id: frame.h,v 1.7 2005/09/23 12:49:33 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FRAME_H_
 #define _WX_FRAME_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "frame.h"
-#endif
 
 #include "wx/window.h"
 #include "wx/toolbar.h"

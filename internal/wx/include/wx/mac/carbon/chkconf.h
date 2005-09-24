@@ -4,7 +4,7 @@
  * Author:      Julian Smart
  * Modified by:
  * Created:     01/02/97
- * RCS-ID:      $Id: chkconf.h 6279 2005-07-29 18:54:34Z davids $
+ * RCS-ID:      $Id: chkconf.h,v 1.7 2005/07/27 15:02:04 SC Exp $
  * Copyright:   (c) Julian Smart
  * Licence:     wxWindows licence
  */
@@ -31,7 +31,7 @@
  */
 
 #ifndef wxMAC_USE_CORE_GRAPHICS
-#define wxMAC_USE_CORE_GRAPHICS 0
+    #define wxMAC_USE_CORE_GRAPHICS 0
 #endif
 
 /*

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: app.h,v 1.31 2004/05/23 20:51:51 JS Exp $
+// RCS-ID:      $Id: app.h,v 1.32 2005/09/23 12:50:56 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_APP_H_
 #define _WX_APP_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "app.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

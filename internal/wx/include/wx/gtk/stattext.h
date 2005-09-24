@@ -2,18 +2,13 @@
 // Name:        stattext.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.h 6657 2005-08-18 03:02:27Z davids $
+// Id:          $Id: stattext.h,v 1.20 2005/09/23 12:49:19 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKSTATICTEXTH__
 #define __GTKSTATICTEXTH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

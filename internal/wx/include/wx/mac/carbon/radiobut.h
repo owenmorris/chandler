@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobut.h 6535 2005-08-13 15:43:53Z davids $
+// RCS-ID:      $Id: radiobut.h,v 1.7 2005/09/23 12:49:35 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_RADIOBUT_H_
 #define _WX_RADIOBUT_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "radiobut.h"
-#endif
 
 class WXDLLEXPORT wxRadioButton: public wxControl
 {

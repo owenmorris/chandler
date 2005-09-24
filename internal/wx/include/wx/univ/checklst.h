@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.00
-// RCS-ID:      $Id: checklst.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: checklst.h,v 1.14 2005/09/23 12:50:45 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_CHECKLST_H_
 #define _WX_UNIV_CHECKLST_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univchecklst.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // actions

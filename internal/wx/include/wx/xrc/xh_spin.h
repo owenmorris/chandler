@@ -3,17 +3,13 @@
 // Purpose:     XML resource handler for wxSpinButton
 // Author:      Bob Mitchell
 // Created:     2000/03/21
-// RCS-ID:      $Id: xh_spin.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xh_spin.h,v 1.7 2005/09/23 12:51:15 MR Exp $
 // Copyright:   (c) 2000 Bob Mitchell and Verant Interactive
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XH_SPIN_H_
 #define _WX_XH_SPIN_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xh_spin.h"
-#endif
 
 #include "wx/xrc/xmlres.h"
 #include "wx/defs.h"

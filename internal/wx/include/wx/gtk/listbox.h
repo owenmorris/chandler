@@ -2,18 +2,13 @@
 // Name:        listbox.h
 // Purpose:     wxListBox class declaration
 // Author:      Robert Roebling
-// Id:          $Id: listbox.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: listbox.h,v 1.51 2005/09/23 12:49:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKLISTBOXH__
 #define __GTKLISTBOXH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "listbox.h"
-#endif
 
 #include "wx/list.h"
 

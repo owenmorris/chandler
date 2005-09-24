@@ -2,17 +2,13 @@
 // Name:        tooltip.h
 // Purpose:     wxToolTip class
 // Author:      Robert Roebling
-// Id:          $Id: tooltip.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: tooltip.h,v 1.12 2005/09/23 12:49:19 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKTOOLTIPH__
 #define __GTKTOOLTIPH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/string.h"

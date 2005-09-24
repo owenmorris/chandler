@@ -3,17 +3,13 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:
-// Id:          $Id: popupwin.h,v 1.9 2005/08/02 18:16:50 MW Exp $
+// Id:          $Id: popupwin.h,v 1.10 2005/09/23 12:51:01 MR Exp $
 // Copyright:   (c) 2001 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKPOPUPWINH__
 #define __GTKPOPUPWINH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "popupwin.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/panel.h"

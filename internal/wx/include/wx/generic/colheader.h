@@ -9,10 +9,6 @@
 // License:
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-	#pragma interface "colheader.h"
-#endif
-
 #if !defined(_WX_GENERIC_COLUMNHEADER_H)
 #define _WX_GENERIC_COLUMNHEADER_H
 

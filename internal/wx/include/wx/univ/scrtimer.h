@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.02.01
-// RCS-ID:      $Id: scrtimer.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: scrtimer.h,v 1.6 2004/08/10 13:08:34 ABX Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

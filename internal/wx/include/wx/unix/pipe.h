@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.06.2003 (extracted from src/unix/utilsunx.cpp)
-// RCS-ID:      $Id: pipe.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: pipe.h,v 1.7 2004/06/21 12:36:34 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

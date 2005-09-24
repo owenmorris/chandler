@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Stefan Csomor
 // Created:     23.06.2003
-// RCS-ID:      $Id: apptbase.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: apptbase.h,v 1.4 2004/05/23 20:51:02 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

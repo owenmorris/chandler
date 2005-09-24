@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.08.00
-// RCS-ID:      $Id: inpcons.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: inpcons.h,v 1.10 2005/09/23 12:50:46 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_INPCONS_H_
 #define _WX_UNIV_INPCONS_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "inpcons.h"
-#endif
 
 class WXDLLEXPORT wxInputHandler;
 class WXDLLEXPORT wxWindow;

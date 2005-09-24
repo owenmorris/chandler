@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: fontutil.h,v 1.9 2004/05/23 20:51:50 JS Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -3,17 +3,13 @@
 // Purpose:     declaration of standard wxDataObjectSimple-derived classes
 // Author:      Robert Roebling
 // Created:     19.10.99 (extracted from gtk/dataobj.h)
-// RCS-ID:      $Id: dataobj2.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: dataobj2.h,v 1.11 2005/09/23 12:49:15 MR Exp $
 // Copyright:   (c) 1998, 1999 Vadim Zeitlin, Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GTK_DATAOBJ2_H_
 #define _WX_GTK_DATAOBJ2_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dataobj.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxBitmapDataObject is a specialization of wxDataObject for bitmaps

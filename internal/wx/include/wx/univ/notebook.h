@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.02.01
-// RCS-ID:      $Id: notebook.h 6827 2005-08-26 17:03:04Z davids $
+// RCS-ID:      $Id: notebook.h,v 1.22 2005/09/23 12:50:47 MR Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_NOTEBOOK_H_
 #define _WX_UNIV_NOTEBOOK_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univnotebook.h"
-#endif
 
 #include "wx/arrstr.h"
 

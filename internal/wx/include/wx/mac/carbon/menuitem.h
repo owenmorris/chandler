@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by: 
 // Created:     11.11.97
-// RCS-ID:      $Id: menuitem.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: menuitem.h,v 1.5 2005/09/23 12:49:34 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef   _MENUITEM_H
 #define   _MENUITEM_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "menuitem.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: pen.h,v 1.9 2005/08/02 18:16:50 MW Exp $
+// RCS-ID:      $Id: pen.h,v 1.10 2005/09/23 12:51:00 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PEN_H_
 #define _WX_PEN_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "pen.h"
-#endif
 
 #include "wx/gdicmn.h"
 #include "wx/gdiobj.h"

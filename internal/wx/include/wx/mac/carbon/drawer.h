@@ -7,17 +7,13 @@
 // Author:      Jason Bagley
 // Modified by:
 // Created:     2004-30-01
-// RCS-ID:      $Id: drawer.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: drawer.h,v 1.4 2005/09/23 12:49:32 MR Exp $
 // Copyright:   (c) Jason Bagley; Art & Logic, Inc.
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DRAWERWINDOW_H_
 #define _WX_DRAWERWINDOW_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "drawer.h"
-#endif
 
 #include "wx/toplevel.h"
 

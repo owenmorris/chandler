@@ -2,17 +2,13 @@
 // Name:        wx/gtk/checkbox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checkbox.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: checkbox.h,v 1.32 2005/09/23 12:49:13 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKCHECKBOXH__
 #define __GTKCHECKBOXH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 // ----------------------------------------------------------------------------
 // wxCheckBox

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: palette.h,v 1.7 2004/12/08 17:43:06 ABX Exp $
+// RCS-ID:      $Id: palette.h,v 1.8 2005/09/23 12:51:00 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PALETTE_H_
 #define _WX_PALETTE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "palette.h"
-#endif
 
 #include "wx/gdiobj.h"
 #include "wx/list.h"

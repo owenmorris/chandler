@@ -2,7 +2,7 @@
 // Name:        wx/toplevel.h
 // Purpose:     Top level window, abstraction of wxFrame and wxDialog
 // Author:      Vaclav Slavik
-// Id:          $Id: toplevel.h 5166 2005-04-29 01:36:53Z davids $
+// Id:          $Id: toplevel.h,v 1.25 2005/09/23 12:50:50 MR Exp $
 // Copyright:   (c) 2001-2002 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -10,10 +10,6 @@
 
 #ifndef __WX_UNIV_TOPLEVEL_H__
 #define __WX_UNIV_TOPLEVEL_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univtoplevel.h"
-#endif
 
 #include "wx/univ/inpcons.h"
 #include "wx/univ/inphand.h"

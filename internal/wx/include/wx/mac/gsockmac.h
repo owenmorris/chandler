@@ -5,7 +5,7 @@
  Modified by:
  Created:
  Copyright:   (c) Stefan Csomor
- RCS-ID:      $Id: gsockmac.h 6038 2005-07-18 21:58:47Z davids $
+ RCS-ID:      $Id: gsockmac.h,v 1.5 2005/05/04 18:52:55 JS Exp $
  Licence:     wxWindows Licence
 */
 

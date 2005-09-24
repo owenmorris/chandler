@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004-10-27
-// RCS-ID:      $Id: stdpaths.h 5168 2005-04-29 23:18:17Z davids $
+// RCS-ID:      $Id: stdpaths.h,v 1.2 2004/11/12 21:20:43 DE Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

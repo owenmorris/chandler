@@ -2,17 +2,13 @@
 // Name:        wx/gtk/slider.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: slider.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: slider.h,v 1.21 2005/09/23 12:49:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKSLIDERH__
 #define __GTKSLIDERH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 // ----------------------------------------------------------------------------
 // wxSlider

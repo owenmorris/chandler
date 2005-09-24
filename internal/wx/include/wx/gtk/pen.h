@@ -2,18 +2,13 @@
 // Name:        wx/gtk/pen.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: pen.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: pen.h,v 1.21 2005/09/23 12:49:17 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKPENH__
 #define __GTKPENH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

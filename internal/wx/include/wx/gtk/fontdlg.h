@@ -3,17 +3,13 @@
 // Purpose:     wxFontDialog
 // Author:      Robert Roebling
 // Created:
-// RCS-ID:      $Id: fontdlg.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: fontdlg.h,v 1.9 2005/09/23 12:49:16 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTK_FONTDLGH__
 #define __GTK_FONTDLGH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "fontdlg.h"
-#endif
 
 //-----------------------------------------------------------------------------
 // wxFontDialog

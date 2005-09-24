@@ -3,18 +3,13 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: combobox.h 6657 2005-08-18 03:02:27Z davids $
+// Id:          $Id: combobox.h,v 1.52 2005/09/23 12:49:14 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKCOMBOBOXH__
 #define __GTKCOMBOBOXH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "combobox.h"
-#endif
 
 #include "wx/defs.h"
 

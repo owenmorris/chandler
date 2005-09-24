@@ -2,17 +2,13 @@
 // Name:        control.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: control.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: control.h,v 1.30 2005/09/23 12:49:14 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKCONTROLH__
 #define __GTKCONTROLH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

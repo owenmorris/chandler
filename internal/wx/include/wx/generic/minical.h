@@ -1,6 +1,13 @@
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "minical.h"
-#endif
+///////////////////////////////////////////////////////////////////////////////
+// Name:		generic/minical.h
+// Purpose:	data definitions for a multi-featured mini-calendar control
+// Author:	Jed Burgess
+// Modified by:
+// Created:	12.01.2004
+// RCS-ID:
+// Copyright:
+// License:
+///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GENERIC_MINICAL_H
 #define _WX_GENERIC_MINICAL_H

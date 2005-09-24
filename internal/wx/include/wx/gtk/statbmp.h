@@ -2,18 +2,13 @@
 // Name:        wx/gtk/statbmp.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbmp.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: statbmp.h,v 1.21 2005/09/23 12:49:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKSTATICBITMAPH__
 #define __GTKSTATICBITMAPH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/icon.h"
 

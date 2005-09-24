@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.00
-// RCS-ID:      $Id: colschem.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: colschem.h,v 1.11 2005/09/23 12:50:45 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_COLSCHEM_H_
 #define _WX_UNIV_COLSCHEM_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "colschem.h"
-#endif
 
 class WXDLLEXPORT wxWindow;
 

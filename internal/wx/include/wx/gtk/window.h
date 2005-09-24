@@ -2,18 +2,13 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h 6776 2005-08-24 16:48:38Z davids $
+// Id:          $Id: window.h,v 1.129 2005/09/23 12:49:20 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKWINDOWH__
 #define __GTKWINDOWH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface
-#endif
 
 // helper structure that holds class that holds GtkIMContext object and
 // some additional data needed for key events processing

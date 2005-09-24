@@ -4,17 +4,13 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/06/04
-// RCS-ID:      $Id: colordlg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: colordlg.h,v 1.3 2005/09/23 12:49:14 MR Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __COLORDLG_H__
 #define __COLORDLG_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "colordlg.h"
-#endif
 
 #include "wx/setup.h"
 #include "wx/gdicmn.h"

@@ -5,17 +5,13 @@
 // Author:      Julian Smart and Wolfram Gloger
 // Modified by:
 // Created:     1995, 1999
-// RCS-ID:      $Id: glcanvas.h,v 1.9 2005/02/21 01:52:23 VZ Exp $
+// RCS-ID:      $Id: glcanvas.h,v 1.10 2005/09/23 12:50:59 MR Exp $
 // Copyright:   (c) Julian Smart, Wolfram Gloger
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GLCANVAS_H_
 #define _WX_GLCANVAS_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "glcanvas.h"
-#endif
 
 #include "wx/setup.h"
 

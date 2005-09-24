@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.09.00
-// RCS-ID:      $Id: textctrl.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: textctrl.h,v 1.20 2005/09/23 12:50:49 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UNIV_TEXTCTRL_H_
 #define _WX_UNIV_TEXTCTRL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "univtextctrl.h"
-#endif
 
 class WXDLLEXPORT wxCaret;
 class WXDLLEXPORT wxTextCtrlCommandProcessor;

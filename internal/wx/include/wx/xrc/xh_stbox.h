@@ -3,17 +3,13 @@
 // Purpose:     XML resource handler for wxStaticBox
 // Author:      Brian Gavin
 // Created:     2000/09/00
-// RCS-ID:      $Id: xh_stbox.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xh_stbox.h,v 1.6 2005/09/23 12:51:16 MR Exp $
 // Copyright:   (c) 2000 Brian Gavin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XH_STBOX_H_
 #define _WX_XH_STBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xh_stbox.h"
-#endif
 
 #include "wx/xrc/xmlres.h"
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vaclav Slavik
 // Modified by:
 // Created:     25/10/98
-// RCS-ID:      $Id: sound.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: sound.h,v 1.7 2005/09/23 12:50:53 MR Exp $
 // Copyright:   (c) Julian Smart, Vaclav Slavik
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,10 +15,6 @@
 #include "wx/defs.h"
 
 #if wxUSE_SOUND
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "sound.h"
-#endif
 
 #include "wx/object.h"
 

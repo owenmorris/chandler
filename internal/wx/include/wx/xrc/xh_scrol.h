@@ -3,17 +3,13 @@
 // Purpose:     XML resource handler for wxScrollBar
 // Author:      Brian Gavin
 // Created:     2000/09/09
-// RCS-ID:      $Id: xh_scrol.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xh_scrol.h,v 1.7 2005/09/23 12:51:15 MR Exp $
 // Copyright:   (c) 2000 Brian Gavin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XH_SCROL_H_
 #define _WX_XH_SCROL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xh_scrol.h"
-#endif
 
 #include "wx/xrc/xmlres.h"
 #include "wx/defs.h"

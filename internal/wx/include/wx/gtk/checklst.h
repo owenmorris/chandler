@@ -3,17 +3,13 @@
 // Purpose:     wxCheckListBox class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: checklst.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: checklst.h,v 1.18 2005/09/23 12:49:13 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GTKCHECKLISTH__
 #define __GTKCHECKLISTH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 // ----------------------------------------------------------------------------
 // macros

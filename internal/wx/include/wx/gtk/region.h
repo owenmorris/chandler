@@ -2,17 +2,13 @@
 // Name:        wx/gtk/region.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: region.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: region.h,v 1.32 2005/09/23 12:49:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GTK_REGION_H_
 #define _WX_GTK_REGION_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/list.h"
 #include "wx/gdiobj.h"

@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: gdiobj.h 6306 2005-07-31 08:37:41Z davids $
+// RCS-ID:      $Id: gdiobj.h,v 1.6 2005/09/23 12:49:33 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GDIOBJ_H_
 #define _WX_GDIOBJ_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "gdiobj.h"
-#endif
 
 #include "wx/object.h"
 

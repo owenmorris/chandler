@@ -2,18 +2,13 @@
 // Name:        wx/gtk/stabox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbox.h 6405 2005-08-08 15:31:43Z davids $
+// Id:          $Id: statbox.h,v 1.17 2005/09/23 12:49:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __GTKSTATICBOXH__
 #define __GTKSTATICBOXH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 //-----------------------------------------------------------------------------
 // wxStaticBox

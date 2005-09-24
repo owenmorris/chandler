@@ -4,17 +4,13 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/16/2005
-// RCS-ID:      $Id: mimetype.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: mimetype.h,v 1.7 2005/09/23 12:49:34 MR Exp $
 // Copyright:   (c) 2005 Ryan Norton (<wxprojects@comcast.net>)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _MIMETYPE_IMPL_H
 #define _MIMETYPE_IMPL_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "mimetype.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/mimetype.h"

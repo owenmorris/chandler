@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: aga.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: aga.h,v 1.4 2004/05/23 20:51:02 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

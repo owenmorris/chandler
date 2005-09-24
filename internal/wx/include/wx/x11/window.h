@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: window.h,v 1.28 2005/08/02 18:16:51 MW Exp $
+// RCS-ID:      $Id: window.h,v 1.29 2005/09/23 12:51:02 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_WINDOW_H_
 #define _WX_WINDOW_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "window.h"
-#endif
 
 #include "wx/region.h"
 
