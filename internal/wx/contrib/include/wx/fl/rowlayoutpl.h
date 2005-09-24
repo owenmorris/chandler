@@ -4,17 +4,13 @@
 // Author:      Aleksandras Gluchovas
 // Modified by:
 // Created:     02/10/98
-// RCS-ID:      $Id: rowlayoutpl.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: rowlayoutpl.h,v 1.7 2005/09/23 12:46:58 MR Exp $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ROWLAYOUTPL_G__
 #define __ROWLAYOUTPL_G__
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "rowlayoutpl.h"
-#endif
 
 #include "wx/fl/controlbar.h"
 

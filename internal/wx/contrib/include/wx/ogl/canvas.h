@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: canvas.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: canvas.h,v 1.7 2005/09/23 12:47:08 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _OGL_CANVAS_H_
 #define _OGL_CANVAS_H_
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "canvas.h"
-#endif
 
 
 // Drag states

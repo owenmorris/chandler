@@ -3,12 +3,9 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999, 2000
-// CVSID: $Id: sndwin.cpp 6038 2005-07-18 21:58:47Z davids $
+// CVSID: $Id: sndwin.cpp,v 1.12 2005/09/23 12:47:52 MR Exp $
 // wxWindows licence
 // --------------------------------------------------------------------------
-#ifdef __GNUG__
-#pragma implementation "sndwin.cpp"
-#endif
 
 #include "wx/wxprec.h"
 

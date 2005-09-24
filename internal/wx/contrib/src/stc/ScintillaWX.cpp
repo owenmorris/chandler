@@ -9,7 +9,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: ScintillaWX.cpp 6858 2005-08-29 01:19:27Z davids $
+// RCS-ID:      $Id: ScintillaWX.cpp,v 1.85 2005/08/23 16:02:48 ABX Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

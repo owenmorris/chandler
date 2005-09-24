@@ -3,12 +3,9 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999
-// CVSID: $Id: sndmsad.cpp 5166 2005-04-29 01:36:53Z davids $
+// CVSID: $Id: sndmsad.cpp,v 1.10 2005/09/23 12:47:51 MR Exp $
 // wxWindows licence
 // --------------------------------------------------------------------------
-#ifdef __GNUG__
-#pragma implementation "sndmsad.cpp"
-#endif
 
 #include "wx/wxprec.h"
 

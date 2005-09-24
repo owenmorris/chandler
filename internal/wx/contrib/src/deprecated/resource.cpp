@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: resource.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: resource.cpp,v 1.18 2005/09/23 12:47:38 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:    wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation "resource.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

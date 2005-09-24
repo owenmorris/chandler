@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: bmpshape.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: bmpshape.h,v 1.6 2005/09/23 12:47:08 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _OGL_BITMAP_H_
 #define _OGL_BITMAP_H_
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "bmpshape.h"
-#endif
 
 
 class WXDLLIMPEXP_OGL wxBitmapShape: public wxRectangleShape

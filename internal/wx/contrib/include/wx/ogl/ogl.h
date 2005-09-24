@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: ogl.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: ogl.h,v 1.3 2004/06/09 16:42:21 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

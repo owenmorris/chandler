@@ -5,17 +5,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: mfutils.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: mfutils.h,v 1.8 2005/09/23 12:47:10 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _MFUTILS_H_
 #define _MFUTILS_H_
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "mfutils.h"
-#endif
 
 
 #include <wx/metafile.h>

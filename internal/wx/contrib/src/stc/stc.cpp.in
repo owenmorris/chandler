@@ -10,7 +10,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: stc.cpp.in 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: stc.cpp.in,v 1.66 2005/04/21 20:35:05 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

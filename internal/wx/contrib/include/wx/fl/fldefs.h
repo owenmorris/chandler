@@ -4,7 +4,7 @@
 // Author:      David M. Falkinder (david_falkinder@hp.com)
 // Modified by:
 // Created:     18/09/2002
-// RCS-ID:      $Id: fldefs.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: fldefs.h,v 1.5 2003/10/25 08:52:23 MBN Exp $
 // Copyright:   (c) David M. Falkinder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

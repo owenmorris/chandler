@@ -4,7 +4,7 @@
 // Author:      Jonathan Bayer
 // Modified by:
 // Created:
-// RCS-ID:      $Id: multicell.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: multicell.h,v 1.10 2005/09/23 12:47:00 MR Exp $
 // Copyright:   (c) Jonathan Bayer
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,10 +14,6 @@
 
 #ifndef __WX_MULTICELL_H__
 #define __WX_MULTICELL_H__
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "multicell.h"
-#endif
 
 #include "wx/gizmos/gizmos.h"
 

@@ -3,15 +3,11 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999
-// CVSID: $Id: sndbase.h 6038 2005-07-18 21:58:47Z davids $
+// CVSID: $Id: sndbase.h,v 1.7 2005/09/23 12:47:04 MR Exp $
 // License:    wxWindows license
 // --------------------------------------------------------------------------
 #ifndef _WX_SNDBASE_H
 #define _WX_SNDBASE_H
-
-#ifdef __GNUG__
-#pragma interface "sndbase.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/mmedia/defs.h"

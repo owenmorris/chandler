@@ -4,17 +4,13 @@
 // Author:      Aleksandras Gluchovas
 // Modified by:
 // Created:     ??/09/98
-// RCS-ID:      $Id: newbmpbtn.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: newbmpbtn.h,v 1.14 2005/09/23 12:46:57 MR Exp $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __NEWBMPBTN_G__
 #define __NEWBMPBTN_G__
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "newbmpbtn.h"
-#endif
 
 #include "wx/button.h"
 #include "wx/string.h"

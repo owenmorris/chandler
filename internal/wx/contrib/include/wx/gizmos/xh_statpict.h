@@ -3,17 +3,13 @@
 // Purpose:     XRC resource handler for wxStaticPicture
 // Author:      David A. Norris
 // Created:     2005/03/13
-// RCS-ID:      $Id: xh_statpict.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xh_statpict.h,v 1.5 2005/09/23 12:47:00 MR Exp $
 // Copyright:   David A. Norris
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XH_STATPICT_H
 #define _WX_XH_STATPICT_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xh_statpict.h"
-#endif
 
 #include "wx/xrc/xmlres.h"
 #include "wx/gizmos/gizmos.h"

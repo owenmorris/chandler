@@ -4,17 +4,13 @@
 // Author:      Aleksandras Gluchovas
 // Modified by:
 // Created:     30/11/98 (my 22th birthday :-)
-// RCS-ID:      $Id: barhintspl.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: barhintspl.h,v 1.7 2005/09/23 12:46:55 MR Exp $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __DRAGHINTSPL_G__
 #define __DRAGHINTSPL_G__
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "barhintspl.h"
-#endif
 
 #include "wx/fl/controlbar.h"
 #include "wx/fl/toolwnd.h"

@@ -3,12 +3,9 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999
-// CVSID: $Id: sndulaw.cpp 5166 2005-04-29 01:36:53Z davids $
+// CVSID: $Id: sndulaw.cpp,v 1.5 2005/09/23 12:47:52 MR Exp $
 // wxWindows licence
 // --------------------------------------------------------------------------
-#ifdef __GNUG__
-#pragma implementation "sndulaw.cpp"
-#endif
 
 #include "wx/wxprec.h"
 

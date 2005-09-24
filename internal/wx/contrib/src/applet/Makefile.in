@@ -1,4 +1,4 @@
-# $Id: Makefile.in 5166 2005-04-29 01:36:53Z davids $
+# $Id: Makefile.in,v 1.3 2002/12/04 13:54:33 VZ Exp $
 
 top_srcdir = @top_srcdir@/..
 top_builddir = ../../..

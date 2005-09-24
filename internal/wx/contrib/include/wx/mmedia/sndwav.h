@@ -3,15 +3,11 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999
-// CVSID: $Id: sndwav.h 6038 2005-07-18 21:58:47Z davids $
+// CVSID: $Id: sndwav.h,v 1.6 2005/09/23 12:47:05 MR Exp $
 // License:    wxWindows license
 // --------------------------------------------------------------------------
 #ifndef _WX_SNDWAV_H
 #define _WX_SNDWAV_H
-
-#ifdef __GNUG__
-#pragma interface "sndwav.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/string.h"

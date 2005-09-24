@@ -3,15 +3,11 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999
-// CVSID: $Id: sndcodec.h 5166 2005-04-29 01:36:53Z davids $
+// CVSID: $Id: sndcodec.h,v 1.5 2005/09/23 12:47:04 MR Exp $
 // License:    wxWindows license
 // --------------------------------------------------------------------------
 #ifndef _WX_SNDCODEC_H
 #define _WX_SNDCODEC_H
-
-#ifdef __GNUG__
-#pragma interface "sndcodec.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/mmedia/defs.h"

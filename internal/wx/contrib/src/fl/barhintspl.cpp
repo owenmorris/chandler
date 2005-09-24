@@ -4,15 +4,11 @@
 // Author:      Aleksandras Gluchovas
 // Modified by:
 // Created:     30/11/98 (my 22th birthday :-)
-// RCS-ID:      $Id: barhintspl.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: barhintspl.cpp,v 1.8 2005/09/23 12:47:41 MR Exp $
 // Copyright:   (c) Aleksandras Gluchovas
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
  
-#ifdef __GNUG__
-    #pragma implementation "barhintspl.h"
-#endif
-
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 

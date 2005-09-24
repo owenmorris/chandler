@@ -4,14 +4,10 @@
 // Author:      Aleksandras Gluchovas
 // Modified by:
 // Created:     19/10/98
-// RCS-ID:      $Id: updatesmgr.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: updatesmgr.cpp,v 1.7 2005/09/23 12:47:44 MR Exp $
 // Copyright:   (c) Aleksandras Gluchovas 
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-    #pragma implementation "updatesmgr.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

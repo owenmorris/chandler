@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2001-08-21
-// RCS-ID:      $Id: email.h 6982 2005-09-04 01:50:57Z davids $
+// RCS-ID:      $Id: email.h,v 1.7 2005/09/23 12:47:07 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "email.h"
-#endif
 
 #ifndef _WX_EMAIL_H_
 #define _WX_EMAIL_H_

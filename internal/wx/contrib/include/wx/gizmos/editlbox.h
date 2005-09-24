@@ -2,7 +2,7 @@
 // Name:        editlbox.h
 // Purpose:     ListBox with editable items
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: editlbox.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: editlbox.h,v 1.11 2005/09/23 12:47:00 MR Exp $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -10,10 +10,6 @@
 
 #ifndef __WX_EDITLBOX_H__
 #define __WX_EDITLBOX_H__
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "editlbox.h"
-#endif
 
 #include "wx/panel.h"
 #include "wx/gizmos/gizmos.h"

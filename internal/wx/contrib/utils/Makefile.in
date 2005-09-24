@@ -1,4 +1,4 @@
-# $Id: Makefile.in 6038 2005-07-18 21:58:47Z davids $
+# $Id: Makefile.in,v 1.4 2005/05/18 13:51:51 JS Exp $
 
 CONTRIB_UTILS=convertrc
 

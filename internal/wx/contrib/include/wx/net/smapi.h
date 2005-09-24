@@ -4,14 +4,10 @@
 // Author:      PJ Naughter <pjna@naughter.com>
 // Modified by: Julian Smart
 // Created:     2001-08-21
-// RCS-ID:      $Id: smapi.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: smapi.h,v 1.4 2005/09/23 12:47:07 MR Exp $
 // Copyright:   (c) PJ Naughter
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "smapi.h"
-#endif
 
 #ifndef _WX_SMAPI_H_
 #define _WX_SMAPI_H_

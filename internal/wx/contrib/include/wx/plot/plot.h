@@ -5,16 +5,12 @@
 // Modified by:
 // Created:     12/1/2000
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: plot.h 6505 2005-08-11 03:58:05Z davids $
+// RCS-ID:      $Id: plot.h,v 1.12 2005/09/23 12:47:12 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PLOT_H_
 #define _WX_PLOT_H_
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "plot.h"
-#endif
 
 #include "wx/defs.h"
 
