@@ -466,9 +466,51 @@ class ShareConduit(items.ContentItem):
                 sharingSelf.resourceList = \
                     sharingSelf._getResourceList(location)
 
+
+                # Ignore any resources which we weren't able to parse during
+                # a previous GET -- they're the ones in our manifest with
+                # None as a uuid:
+                for (path, record) in self.manifest.iteritems():
+                    if record['uuid'] is None:
+                        if sharingSelf.resourceList.has_key(path):
+                            logger.debug(_(u'Removing an unparsable resource from the resourceList: %(path)s') % { 'path' : path })
+                            del sharingSelf.resourceList[path]
+
+
                 # If we're sharing a collection, put the collection's items
                 # individually:
                 if isinstance(sharingSelf.share.contents, AbstractCollection):
+
+                    #
+                    # Remove any resources from the server that aren't in
+                    # our collection anymore.  The reason we have to do this
+                    # first is because if one .ics resource is replacing
+                    # another (on a CalDAV server) and they have the same
+                    # icalUID, the CalDAV server won't allow them to exist
+                    # simultaneously.
+                    #
+
+                    # For each item in the local collection, mark its
+                    # corresponding resourceList entry as a keeper:
+                    for item in sharingSelf.share.contents:
+                        path = sharingSelf._getItemPath(item)
+                        if sharingSelf.resourceList.has_key(path):
+                            sharingSelf.resourceList[path]['keep'] = True
+
+                    # Mark the share if necessary:
+                    shareItemPath = sharingSelf._getItemPath(sharingSelf.share)
+                    if shareItemPath and \
+                        sharingSelf.resourceList.has_key(shareItemPath):
+                        sharingSelf.resourceList[shareItemPath]['keep'] = True
+
+                    # Remove all the non-keepers from the server:
+                    for (path, value) in \
+                        sharingSelf.resourceList.iteritems():
+                        if not value.has_key('keep'):
+                            sharingSelf._deleteItem(path)
+                            sharingSelf.__removeFromManifest(path)
+
+
                     for item in sharingSelf.share.contents:
 
                         # Skip private items
@@ -490,15 +532,6 @@ class ShareConduit(items.ContentItem):
 
                 # Put the Share item itself
                 sharingSelf.__conditionalPutItem(sharingSelf.share)
-
-                logger.debug("Manifest: %s" % self.manifest)
-                # Any items on the server that weren't in our collection now
-                # get removed from the server:
-                for (itemPath, value) in sharingSelf.resourceList.iteritems():
-                    uuid = sharingSelf.manifest[itemPath]['uuid']
-                    if uuid is not None:
-                        sharingSelf._deleteItem(itemPath)
-                    sharingSelf.__removeFromManifest(itemPath)
 
 
             elif style == ImportExportFormat.STYLE_SINGLE:
@@ -650,6 +683,22 @@ class ShareConduit(items.ContentItem):
 
             filterClasses = sharingSelf._getFilterClasses()
 
+
+            # If an item is in the manifest but it's no longer in the
+            # collection, we need to skip the server's copy -- we'll
+            # remove it during the PUT phase
+            for (path, record) in self.manifest.iteritems():
+                if path in sharingSelf.resourceList:
+                    uuid = record['uuid']
+                    if uuid:
+                        item = sharingView.findUUID(uuid)
+                        if item is None or \
+                            item not in sharingSelf.share.contents:
+                            del self.resourceList[path]
+                            sharingSelf.__setSeen(path)
+                            logger.debug(_(u'Item removed locally, so not fetching from server: %(path)s') % { 'path' : path })
+
+
             # Conditionally fetch items, and add them to collection
             for itemPath in sharingSelf.resourceList:
                 item = sharingSelf.__conditionalGetItem(itemPath)
@@ -693,8 +742,7 @@ class ShareConduit(items.ContentItem):
                             sharingSelf.share.contents.remove(item)
                             sharingSelf.share.items.remove(item)
                 else:
-                    logger.info("Just removed a phantom manifest entry for %s",
-                                unseenPath)
+                    logger.info("Removed an unparsable resource manifest entry for %s", unseenPath)
 
                 # In any case, remove from manifest
                 toRemove.append(unseenPath)

@@ -15,6 +15,9 @@ from Sharing import *
 from WebDAV import *
 from ICalendar import *
 
+# A temporary switch to disable CalDAV mode:
+USECALDAV = False
+
 # What to name the CloudXML subcollection on a CalDAV server:
 SUBCOLLECTION = ".chandler"
 
@@ -22,13 +25,12 @@ SUBCOLLECTION = ".chandler"
 # server (@@@MOR This should change to using a schema decoration instead
 # of thie explicit list):
 
-# Actually, holding off on using this (it's a last resort):
-# CALDAVFILTER = [
-#     'allDay', 'anyTime', 'duration', 'expiredReminders', 'isGenerated',
-#     'location', 'modifications', 'modifies', 'occurrenceFor',
-#     'recurrenceID', 'reminders', 'rruleset', 'startTime',
-#     'transparency'
-# ]
+CALDAVFILTER = [
+    'allDay', 'anyTime', 'duration', 'expiredReminders', 'isGenerated',
+    'location', 'modifications', 'modifies', 'occurrenceFor',
+    'recurrenceID', 'reminders', 'rruleset', 'startTime',
+    'transparency'
+]
 
 # The import/export mechanism needs a way to quickly map iCalendar UIDs to
 # Chandler event items, so this singleton exists to store a ref collection
@@ -46,7 +48,15 @@ class UIDMap(schema.Item):
             uid = getattr(item, 'icalUID', '')
             if uid:
 
-                self.items.append(item, uid)
+                try:
+                    self.items.append(item, uid)
+                except ValueError:
+                    # Another event with this uid is in the map.
+                    pass
+                    # otherItem = self.items.getByAlias(uid)
+                    # self.items.remove(otherItem)
+                    # self.items.append(item, uid)
+
                 # logger.debug("uid_map -- added item %s, %s",
                 #     item.getItemDisplayName(), uid)
 
@@ -185,7 +195,7 @@ def publish(collection, account, classes_to_include=None,
             name = _uniqueName(collection.displayName, existing)
             safe_name = urllib.quote_plus(name.encode('utf-8'))
 
-            if 'calendar-access' in dav or 'MKCALENDAR' in allowed:
+            if USECALDAV and ('calendar-access' in dav or 'MKCALENDAR' in allowed):
 
                 # We're speaking to a CalDAV server
 
@@ -234,8 +244,8 @@ def publish(collection, account, classes_to_include=None,
                 else:
                     share.filterAttributes = []
 
-                # for attr in CALDAVFILTER:
-                #     share.filterAttributes.append(attr)
+                for attr in CALDAVFILTER:
+                    share.filterAttributes.append(attr)
 
                 shares.append(share)
                 share.displayName = name
@@ -523,8 +533,8 @@ def subscribe(view, url, username=None, password=None):
 
             share.format = CloudXMLFormat(parent=share)
 
-            # for attr in CALDAVFILTER:
-            #     share.filterAttributes.append(attr)
+            for attr in CALDAVFILTER:
+                share.filterAttributes.append(attr)
 
             try:
                 share.get()
