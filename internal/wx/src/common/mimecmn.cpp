@@ -5,7 +5,7 @@
 // Modified by:
 //  Chris Elliott (biol75@york.ac.uk) 5 Dec 00: write support for Win32
 // Created:     23.09.98
-// RCS-ID:      $Id: mimecmn.cpp,v 1.41 2005/09/23 12:53:03 MR Exp $
+// RCS-ID:      $Id: mimecmn.cpp,v 1.42 2005/09/24 20:29:21 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -110,7 +110,7 @@ wxFileTypeInfo::wxFileTypeInfo(const wxArrayString& sArray)
 }
 
 #include "wx/arrimpl.cpp"
-WX_DEFINE_OBJARRAY(wxArrayFileTypeInfo);
+WX_DEFINE_OBJARRAY(wxArrayFileTypeInfo)
 
 // ============================================================================
 // implementation of the wrapper classes

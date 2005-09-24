@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/09/98
-// RCS-ID:      $Id: variant.cpp,v 1.69 2005/09/23 12:53:11 MR Exp $
+// RCS-ID:      $Id: variant.cpp,v 1.70 2005/09/24 20:29:22 VZ Exp $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1934,7 +1934,7 @@ wxStringList& wxVariant::GetStringList() const
 void wxVariant::NullList()
 {
     SetData(new wxVariantDataList());
-};
+}
 
 // Append to list
 void wxVariant::Append(const wxVariant& value)

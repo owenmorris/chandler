@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.01.00
-// RCS-ID:      $Id: cmdline.cpp,v 1.43 2005/09/23 12:52:42 MR Exp $
+// RCS-ID:      $Id: cmdline.cpp,v 1.44 2005/09/24 20:29:20 VZ Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -166,8 +166,8 @@ WX_DECLARE_OBJARRAY(wxCmdLineParam, wxArrayParams);
 
 #include "wx/arrimpl.cpp"
 
-WX_DEFINE_OBJARRAY(wxArrayOptions);
-WX_DEFINE_OBJARRAY(wxArrayParams);
+WX_DEFINE_OBJARRAY(wxArrayOptions)
+WX_DEFINE_OBJARRAY(wxArrayParams)
 
 // the parser internal state
 struct wxCmdLineParserData

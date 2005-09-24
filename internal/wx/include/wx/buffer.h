@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h,v 1.34 2005/04/16 04:08:35 RD Exp $
+// RCS-ID:      $Id: buffer.h,v 1.35 2005/09/24 21:28:15 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -251,7 +251,7 @@ public:
         m_bufdata->m_len += 1;
     }
 
-    void  AppendData(void* data, size_t len)
+    void  AppendData(const void *data, size_t len)
     {
         memcpy(GetAppendBuf(len), data, len);
         UngetAppendBuf(len);

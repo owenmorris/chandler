@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dde.cpp,v 1.49 2005/09/23 12:54:55 MR Exp $
+// RCS-ID:      $Id: dde.cpp,v 1.50 2005/09/24 20:29:17 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,9 +104,9 @@ static wxAtomMap wxAtomTable;
 
 #include "wx/listimpl.cpp"
 
-WX_DEFINE_LIST(wxDDEClientList);
-WX_DEFINE_LIST(wxDDEServerList);
-WX_DEFINE_LIST(wxDDEConnectionList);
+WX_DEFINE_LIST(wxDDEClientList)
+WX_DEFINE_LIST(wxDDEServerList)
+WX_DEFINE_LIST(wxDDEConnectionList)
 
 static wxDDEClientList wxDDEClientObjects;
 static wxDDEServerList wxDDEServerObjects;

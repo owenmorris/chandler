@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.138 2005/09/23 12:52:44 MR Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.139 2005/09/24 20:29:20 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -4280,7 +4280,7 @@ wxString wxTimeSpan::Format(const wxChar *format) const
 
 #include "wx/arrimpl.cpp"
 
-WX_DEFINE_OBJARRAY(wxDateTimeArray);
+WX_DEFINE_OBJARRAY(wxDateTimeArray)
 
 static int wxCMPFUNC_CONV
 wxDateTimeCompareFunc(wxDateTime **first, wxDateTime **second)

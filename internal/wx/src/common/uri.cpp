@@ -3,7 +3,7 @@
 // Purpose:     Implementation of a uri parser
 // Author:      Ryan Norton
 // Created:     10/26/04
-// RCS-ID:      $Id: uri.cpp,v 1.27 2005/09/23 12:53:10 MR Exp $
+// RCS-ID:      $Id: uri.cpp,v 1.28 2005/09/24 20:29:22 VZ Exp $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@
 // definitions
 // ---------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxURI, wxObject);
+IMPLEMENT_CLASS(wxURI, wxObject)
 
 // ===========================================================================
 // implementation

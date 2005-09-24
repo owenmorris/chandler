@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp,v 1.167 2005/09/23 12:52:51 MR Exp $
+// RCS-ID:      $Id: event.cpp,v 1.168 2005/09/24 20:29:21 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1074,7 +1074,7 @@ void wxEvtHandler::ClearEventLocker()
     delete m_eventsLocker;
     m_eventsLocker = NULL;
 #endif
-};
+}
 
 #endif // wxUSE_THREADS
 
@@ -1367,7 +1367,7 @@ bool wxEvtHandler::SearchDynamicEventTable( wxEvent& event )
     }
 
     return false;
-};
+}
 
 void wxEvtHandler::DoSetClientObject( wxClientData *data )
 {

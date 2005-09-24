@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: filedlg.cpp,v 1.78 2005/09/23 12:54:57 MR Exp $
+// RCS-ID:      $Id: filedlg.cpp,v 1.79 2005/09/24 20:38:45 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -257,7 +257,8 @@ int wxFileDialog::ShowModal()
     }
 
     // if wxCHANGE_DIR flag is not given we shouldn't change the CWD which the
-    // standard dialog does by default
+    // standard dialog does by default (notice that under NT it does it anyhow,
+    // OFN_NOCHANGEDIR or not, see below)
     if ( !(m_dialogStyle & wxCHANGE_DIR) )
     {
         msw_flags |= OFN_NOCHANGEDIR;
@@ -387,12 +388,28 @@ int wxFileDialog::ShowModal()
         }
     }
 
+    // store off before the standard windows dialog can possibly change it
+    const wxString cwdOrig = wxGetCwd();
+
     //== Execute FileDialog >>=================================================
 
     bool success = (m_dialogStyle & wxSAVE ? GetSaveFileName(&of)
                                            : GetOpenFileName(&of)) != 0;
 
     DWORD errCode = CommDlgExtendedError();
+
+    // GetOpenFileName will always change the current working directory on 
+    // (according to MSDN) "Windows NT 4.0/2000/XP" because the flag
+    // OFN_NOCHANGEDIR has no effect.  If the user did not specify wxCHANGE_DIR
+    // let's restore the current working directory to what it was before the
+    // dialog was shown (assuming this behavior extends to Windows Server 2003
+    // seems safe).
+    if ( success &&
+            (msw_flags & OFN_NOCHANGEDIR) &&
+                wxGetOsVersion() == wxWINDOWS_NT )
+    {
+        wxSetWorkingDirectory(cwdOrig);
+    }
 
 #ifdef __WIN32__
     if (!success && (errCode == CDERR_STRUCTSIZE))

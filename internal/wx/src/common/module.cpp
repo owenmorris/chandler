@@ -4,7 +4,7 @@
 // Author:      Wolfram Gloger/adapted by Guilhem Lavaux
 // Modified by:
 // Created:     04/11/98
-// RCS-ID:      $Id: module.cpp,v 1.19 2005/09/23 12:53:03 MR Exp $
+// RCS-ID:      $Id: module.cpp,v 1.20 2005/09/24 20:29:22 VZ Exp $
 // Copyright:   (c) Wolfram Gloger and Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@
 #include "wx/log.h"
 #include "wx/listimpl.cpp"
 
-WX_DEFINE_LIST(wxModuleList);
+WX_DEFINE_LIST(wxModuleList)
 
 IMPLEMENT_CLASS(wxModule, wxObject)
 

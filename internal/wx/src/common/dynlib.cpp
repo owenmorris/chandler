@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.cpp,v 1.108 2005/09/23 12:52:50 MR Exp $
+// RCS-ID:      $Id: dynlib.cpp,v 1.109 2005/09/24 20:29:21 VZ Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -44,7 +44,7 @@
     #include "wx/mac/private.h"
 #endif
 
-WX_DEFINE_USER_EXPORTED_OBJARRAY(wxDynamicLibraryDetailsArray);
+WX_DEFINE_USER_EXPORTED_OBJARRAY(wxDynamicLibraryDetailsArray)
 
 // ============================================================================
 // implementation
