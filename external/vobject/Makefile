@@ -9,7 +9,7 @@ SRC=vobject-$(VERSION)
 
 $(SRC).tar.gz:
 	$(CURL) http://builds.o11n.org/external/$(SRC).tar.gz
-	$(CURL) http://builds.o11n.org/external/$(SRC).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/$(SRC).tar.gz.md5
 
 sources: vobject-$(VERSION).tar.gz
 

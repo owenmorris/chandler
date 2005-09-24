@@ -74,7 +74,7 @@ endif
 
 db-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/db-$(VERSION).tar.gz
-	$(CURL) http://builds.osafoundation.org/external/db-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.osafoundation.org/external/db-$(VERSION).tar.gz.md5
 
 #      $(MD5CHECK) db-$(VERSION).tar.gz.md5
 

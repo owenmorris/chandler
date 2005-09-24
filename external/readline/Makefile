@@ -49,7 +49,7 @@ install: readline-$(SNAP)-$(RELVER).tar.gz
 
 readline-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/readline-$(VERSION).tar.gz 
-	$(CURL) http://builds.o11n.org/external/readline-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/readline-$(VERSION).tar.gz.md5
 
 sources: readline-$(VERSION).tar.gz
 

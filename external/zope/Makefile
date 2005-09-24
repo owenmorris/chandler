@@ -19,7 +19,7 @@ build: expand apply
 
 ZopeInterface-$(VERSION).tgz:
 	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz
-	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz.md5
+#	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz.md5
 
 sources: ZopeInterface-$(VERSION).tgz
 

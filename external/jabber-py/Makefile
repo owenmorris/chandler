@@ -19,7 +19,7 @@ build: expand apply
 
 jabberpy$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/jabberpy$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/jabberpy$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/jabberpy$(VERSION).tar.gz.md5
 
 sources: jabberpy$(VERSION).tar.gz
 

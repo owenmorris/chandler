@@ -55,7 +55,7 @@ install:
 
 SWIG-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/SWIG-$(VERSION).tar.gz 
-	$(CURL) http://builds.osafoundation.org/external/SWIG-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.osafoundation.org/external/SWIG-$(VERSION).tar.gz.md5
 
 sources: SWIG-$(VERSION).tar.gz
 

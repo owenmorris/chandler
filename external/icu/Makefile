@@ -78,7 +78,7 @@ endif
 
 icu-$(VERSION).tgz:
 	$(CURL) http://builds.osafoundation.org/external/icu-$(VERSION).tgz
-	$(CURL) http://builds.osafoundation.org/external/icu-$(VERSION).tgz.md5
+#	$(CURL) http://builds.osafoundation.org/external/icu-$(VERSION).tgz.md5
 
 #      $(MD5CHECK) icu-$(VERSION).tgz.md5
 

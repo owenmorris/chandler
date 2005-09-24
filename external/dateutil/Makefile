@@ -9,7 +9,7 @@ SRC=python-dateutil-$(VERSION)
 
 $(SRC).tar.bz2:
 	$(CURL) http://builds.o11n.org/external/$(SRC).tar.bz2
-	$(CURL) http://builds.o11n.org/external/$(SRC).tar.bz2.md5
+#	$(CURL) http://builds.o11n.org/external/$(SRC).tar.bz2.md5
 
 sources: python-dateutil-$(VERSION).tar.bz2
 

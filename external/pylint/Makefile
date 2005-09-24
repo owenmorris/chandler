@@ -22,7 +22,7 @@ build: build-common build-optik expand
 
 pylint-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/pylint-$(VERSION).tar.gz
-	$(CURL) http://builds.osafoundation.org/external/pylint-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.osafoundation.org/external/pylint-$(VERSION).tar.gz.md5
 
 sources-common:
 	$(MAKE) -C common DEBUG=$(DEBUG) sources

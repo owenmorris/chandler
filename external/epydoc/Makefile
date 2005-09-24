@@ -22,7 +22,7 @@ build: expand apply
 
 epydoc-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz.md5
 
 sources: epydoc-$(VERSION).tar.gz
 

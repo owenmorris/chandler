@@ -106,7 +106,7 @@ endif # if Cygwin or not
 
 openssl-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz.md5
 
 sources: openssl-$(VERSION).tar.gz
 

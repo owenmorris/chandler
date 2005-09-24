@@ -145,7 +145,7 @@ upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
 
 PyLucene-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz.md5
 
 sources: PyLucene-$(VERSION).tar.gz
 

@@ -97,7 +97,7 @@ apply: patches-$(VERSION)
 
 libxml2-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz.md5
 
 sources: libxml2-$(VERSION).tar.gz
 

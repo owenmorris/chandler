@@ -197,15 +197,15 @@ apply: patches-$(VERSION)
 
 Python-$(VERSION).tar.bz2:
 	$(CURL) http://builds.o11n.org/external/Python-$(VERSION).tar.bz2
-	$(CURL) http://builds.o11n.org/external/Python-$(VERSION).tar.bz2.md5
+#	$(CURL) http://builds.o11n.org/external/Python-$(VERSION).tar.bz2.md5
 
 bzip2-$(BZIP2VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/bzip2-$(BZIP2VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/bzip2-$(BZIP2VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/bzip2-$(BZIP2VERSION).tar.gz.md5
 
 zlib-$(ZLIBVERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/zlib-$(ZLIBVERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/zlib-$(ZLIBVERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/zlib-$(ZLIBVERSION).tar.gz.md5
 
 Python-$(VERSION)-expanded: Python-$(VERSION).tar.bz2
 	bunzip2 -c Python-$(VERSION).tar.bz2 | tar -xvf -

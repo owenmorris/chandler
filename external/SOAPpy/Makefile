@@ -20,7 +20,7 @@ build: expand apply
 
 SOAPpy-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/SOAPpy-$(VERSION).tar.gz
-	$(CURL) http://builds.osafoundation.org/external/SOAPpy-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.osafoundation.org/external/SOAPpy-$(VERSION).tar.gz.md5
 
 sources: SOAPpy-$(VERSION).tar.gz
 

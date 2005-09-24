@@ -20,7 +20,7 @@ build: expand apply
 
 Twisted-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz.md5
+#	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz.md5
 
 sources: Twisted-$(VERSION).tar.gz
 
