@@ -41,7 +41,7 @@ class perf:
                               'test_new_calendar_for_performance':        'Creating a new calendar',
                               #'': 'App startup (with existing repository)',
                             }
-    self.PerformanceTBoxes = ['mikala-linux', 'kona-win', 'molokini-osx']
+    self.PerformanceTBoxes = ['p_linux', 'p_win', 'p_osx']
 
     if self._options['debug']:
       print 'Configuration Values:'
