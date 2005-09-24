@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-04
-// RCS-ID:      $Id: settingsdialog.h,v 1.8 2005/04/14 14:53:09 ABX Exp $
+// RCS-ID:      $Id: settingsdialog.h,v 1.9 2005/09/23 12:56:24 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _SETTINGSDIALOG_H_
 #define _SETTINGSDIALOG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "settingsdialog.cpp"
-#endif
 
 /*!
  * Includes

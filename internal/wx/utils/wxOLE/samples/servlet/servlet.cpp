@@ -4,15 +4,10 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     20/04/99
-// RCS-ID:      $Id: servlet.cpp,v 1.2 2004/05/25 11:20:37 JS Exp $
+// RCS-ID:      $Id: servlet.cpp,v 1.3 2005/09/23 12:56:39 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-    #pragma implementation "servlet.cpp"
-    #pragma interface "servlet.cpp"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

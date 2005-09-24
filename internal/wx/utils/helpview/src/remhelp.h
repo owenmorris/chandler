@@ -4,14 +4,10 @@
 // Author:      Eric Dowty
 // Modified by:
 // Created:     2002-11-18
-// RCS-ID:      $Id: remhelp.h,v 1.3 2004/06/04 17:58:50 ABX Exp $
+// RCS-ID:      $Id: remhelp.h,v 1.4 2005/09/23 12:56:29 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface remhelp.h
-#endif
 
 #ifndef _WX_REMHELP_H_
 #define _WX_REMHELP_H_

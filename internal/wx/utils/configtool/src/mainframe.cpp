@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-04
-// RCS-ID:      $Id: mainframe.cpp,v 1.20 2005/05/31 13:44:32 JS Exp $
+// RCS-ID:      $Id: mainframe.cpp,v 1.21 2005/09/23 12:56:23 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "mainframe.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

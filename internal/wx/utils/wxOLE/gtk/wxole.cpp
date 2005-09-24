@@ -4,14 +4,10 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     20/04/99
-// RCS-ID:      $Id: wxole.cpp,v 1.3 2004/05/25 11:20:35 JS Exp $
+// RCS-ID:      $Id: wxole.cpp,v 1.4 2005/09/23 12:56:37 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation "wxole.h"
-#endif
 
 #include "wx/defs.h"
 #include "wxole.h"

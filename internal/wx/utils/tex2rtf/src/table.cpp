@@ -5,14 +5,10 @@
 // Modified by: Wlodzimiez ABX Skiba 2003/2004 Unicode support
 //              Ron Lee
 // Created:     01/01/99
-// RCS-ID:      $Id: table.cpp,v 1.7 2004/07/15 06:31:31 ABX Exp $
+// RCS-ID:      $Id: table.cpp,v 1.8 2005/09/23 12:56:34 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

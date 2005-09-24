@@ -4,14 +4,10 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     17/8/98
-// RCS-ID:      $Id: wxole.h,v 1.2 1999/05/23 18:37:02 RR Exp $
+// RCS-ID:      $Id: wxole.h,v 1.3 2005/09/23 12:56:38 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma interface "wxole.h"
-#endif
 
 #ifndef _WX_OLE_H_
 #define _WX_OLE_H_

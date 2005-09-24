@@ -9,14 +9,10 @@
 // Modified by: Wlodzimiez ABX Skiba 2003/2004 Unicode support
 //              Ron Lee
 // Created:     01/01/99
-// RCS-ID:      $Id: readshg.cpp,v 1.5 2004/10/04 20:03:27 ABX Exp $
+// RCS-ID:      $Id: readshg.cpp,v 1.6 2005/09/23 12:56:33 MR Exp $
 // Copyright:   (c) Petr Smilauer
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

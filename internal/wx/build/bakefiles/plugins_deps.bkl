@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: plugins_deps.bkl 5166 2005-04-29 01:36:53Z davids $ -->
+<!-- $Id: plugins_deps.bkl,v 1.4 2005/02/13 21:02:43 VS Exp $ -->
 
 <makefile>
 

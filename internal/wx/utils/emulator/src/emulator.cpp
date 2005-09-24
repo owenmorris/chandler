@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: emulator.cpp,v 1.15 2005/02/01 20:36:10 ABX Exp $
+// RCS-ID:      $Id: emulator.cpp,v 1.16 2005/09/23 12:56:27 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "emulator.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

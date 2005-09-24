@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-03
-// RCS-ID:      $Id: configtree.h,v 1.3 2004/05/25 11:20:10 JS Exp $
+// RCS-ID:      $Id: configtree.h,v 1.4 2005/09/23 12:56:22 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 
 #ifndef _CT_CONFIGTREE_H_
 #define _CT_CONFIGTREE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "configtree.cpp"
-#endif
 
 #include "wx/wx.h"
 #include "wx/treectrl.h"

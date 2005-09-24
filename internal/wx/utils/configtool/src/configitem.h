@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-03
-// RCS-ID:      $Id: configitem.h,v 1.5 2005/02/01 20:44:05 ABX Exp $
+// RCS-ID:      $Id: configitem.h,v 1.6 2005/09/23 12:56:21 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _CT_CONFIGITEM_H_
 #define _CT_CONFIGITEM_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "configitem.cpp"
-#endif
 
 #include "wx/wx.h"
 #include "wx/treectrl.h"

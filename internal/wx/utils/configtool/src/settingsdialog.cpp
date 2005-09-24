@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-12
-// RCS-ID:      $Id: settingsdialog.cpp,v 1.16 2005/04/14 14:53:09 ABX Exp $
+// RCS-ID:      $Id: settingsdialog.cpp,v 1.17 2005/09/23 12:56:24 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "settingsdialog.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

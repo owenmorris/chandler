@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-04
-// RCS-ID:      $Id: custompropertydialog.cpp,v 1.9 2005/02/01 20:44:06 ABX Exp $
+// RCS-ID:      $Id: custompropertydialog.cpp,v 1.10 2005/09/23 12:56:22 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "custompropertydialog.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

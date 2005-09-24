@@ -5,14 +5,10 @@
 // Modified by: Wlodzimiez ABX Skiba 2003/2004 Unicode support
 //              Ron Lee
 // Created:     7.9.93
-// RCS-ID:      $Id: tex2rtf.cpp,v 1.53 2005/09/01 15:56:09 ABX Exp $
+// RCS-ID:      $Id: tex2rtf.cpp,v 1.54 2005/09/23 12:56:34 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

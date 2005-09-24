@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-04
-// RCS-ID:      $Id: configtooldoc.h,v 1.7 2005/02/01 20:44:05 ABX Exp $
+// RCS-ID:      $Id: configtooldoc.h,v 1.8 2005/09/23 12:56:21 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _CT_CONFIGTOOLDOC_H_
 #define _CT_CONFIGTOOLDOC_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "configtooldoc.cpp"
-#endif
 
 #include "wx/docview.h"
 #include "wx/cmdproc.h"

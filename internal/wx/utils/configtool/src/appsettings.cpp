@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-04
-// RCS-ID:      $Id: appsettings.cpp,v 1.13 2005/02/06 10:41:34 MBN Exp $
+// RCS-ID:      $Id: appsettings.cpp,v 1.14 2005/09/23 12:56:20 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "appsettings.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

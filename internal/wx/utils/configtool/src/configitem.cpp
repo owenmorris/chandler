@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-03
-// RCS-ID:      $Id: configitem.cpp,v 1.9 2004/07/27 19:14:36 ABX Exp $
+// RCS-ID:      $Id: configitem.cpp,v 1.10 2005/09/23 12:56:20 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "configitem.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

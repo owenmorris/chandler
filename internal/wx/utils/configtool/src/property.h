@@ -5,17 +5,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-03
-// RCS-ID:      $Id: property.h,v 1.4 2005/02/01 20:44:06 ABX Exp $
+// RCS-ID:      $Id: property.h,v 1.5 2005/09/23 12:56:24 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _CT_PROPERTY_H_
 #define _CT_PROPERTY_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "property.cpp"
-#endif
 
 #include "wx/variant.h"
 

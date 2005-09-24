@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: build_cfg.bkl 5166 2005-04-29 01:36:53Z davids $ -->
+<!-- $Id: build_cfg.bkl,v 1.7 2005/03/21 00:10:44 VZ Exp $ -->
 
 <makefile>
 

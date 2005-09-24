@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-04
-// RCS-ID:      $Id: wxconfigtool.cpp,v 1.10 2004/10/05 15:38:33 ABX Exp $
+// RCS-ID:      $Id: wxconfigtool.cpp,v 1.11 2005/09/23 12:56:25 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "wxconfigtool.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-04
-// RCS-ID:      $Id: configitemselector.h,v 1.7 2005/04/14 14:53:09 ABX Exp $
+// RCS-ID:      $Id: configitemselector.h,v 1.8 2005/09/23 12:56:21 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _CONFIGITEMSELECTOR_H_
 #define _CONFIGITEMSELECTOR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "configitemselector.cpp"
-#endif
 
 /*!
  * Includes

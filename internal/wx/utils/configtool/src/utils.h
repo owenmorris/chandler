@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-04
-// RCS-ID:      $Id: utils.h,v 1.6 2005/05/30 09:53:21 ABX Exp $
+// RCS-ID:      $Id: utils.h,v 1.7 2005/09/23 12:56:25 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
@@ -13,10 +13,6 @@
  * \file
  * \brief A file of utility functions and classes.
  */
-
-#ifdef __GNUG__
-// #pragma interface
-#endif
 
 #ifndef _AP_UTILS_H_
 #define _AP_UTILS_H_

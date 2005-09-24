@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-03
-// RCS-ID:      $Id: propeditor.h,v 1.6 2004/10/05 15:38:32 ABX Exp $
+// RCS-ID:      $Id: propeditor.h,v 1.7 2005/09/23 12:56:24 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _CT_PROPEDITOR_H_
 #define _CT_PROPEDITOR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "propeditor.cpp"
-#endif
 
 #include "wx/splitter.h"
 #include "wx/grid.h"

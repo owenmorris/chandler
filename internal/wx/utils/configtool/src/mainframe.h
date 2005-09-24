@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-04
-// RCS-ID:      $Id: mainframe.h,v 1.10 2005/05/23 12:30:30 ABX Exp $
+// RCS-ID:      $Id: mainframe.h,v 1.11 2005/09/23 12:56:23 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _AP_MAINFRAME_H_
 #define _AP_MAINFRAME_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "mainframe.cpp"
-#endif
 
 #include "wx/imaglist.h"
 #include "wx/docview.h"

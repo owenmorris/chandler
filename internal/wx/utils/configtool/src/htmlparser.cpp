@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-25
-// RCS-ID:      $Id: htmlparser.cpp,v 1.5 2004/10/05 15:38:32 ABX Exp $
+// RCS-ID:      $Id: htmlparser.cpp,v 1.6 2005/09/23 12:56:23 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -12,9 +12,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "htmlparser.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

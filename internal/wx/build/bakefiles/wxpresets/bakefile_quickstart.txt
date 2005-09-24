@@ -69,7 +69,7 @@ source tree. Here is the minimal.bkl Bakefile used in the sample:
 minimal.bkl
 -------------------------------------------------------------
 <?xml version="1.0" ?>
-<!-- $Id: bakefile_quickstart.txt 6048 2005-07-19 18:38:30Z davids $ -->
+<!-- $Id: bakefile_quickstart.txt,v 1.4 2005/05/31 09:17:06 JS Exp $ -->
 
 <makefile>
 

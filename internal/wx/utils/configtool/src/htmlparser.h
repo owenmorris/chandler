@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-25
-// RCS-ID:      $Id: htmlparser.h,v 1.4 2004/06/04 17:58:45 ABX Exp $
+// RCS-ID:      $Id: htmlparser.h,v 1.5 2005/09/23 12:56:23 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _HTMLPARSER_H_
 #define _HTMLPARSER_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "htmlparser.cpp"
-#endif
 
 //#include "wx/module.h"
 #include "wx/stream.h"

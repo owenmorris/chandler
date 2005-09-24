@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2002-09-04
-// RCS-ID:      $Id: appsettings.h,v 1.8 2004/10/05 15:38:31 ABX Exp $
+// RCS-ID:      $Id: appsettings.h,v 1.9 2005/09/23 12:56:20 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _AP_APPSETTINGS_H_
 #define _AP_APPSETTINGS_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "appsettings.cpp"
-#endif
 
 #include "wx/notebook.h"
 #include "wx/dialog.h"

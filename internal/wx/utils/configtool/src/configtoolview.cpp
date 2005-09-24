@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-06-04
-// RCS-ID:      $Id: configtoolview.cpp,v 1.11 2005/04/04 18:48:35 ABX Exp $
+// RCS-ID:      $Id: configtoolview.cpp,v 1.12 2005/09/23 12:56:21 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "configtoolview.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
