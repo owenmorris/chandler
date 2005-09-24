@@ -1,8 +1,8 @@
 """PyAlaMode is a programmer's editor."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: PyAlaMode.py 5166 2005-04-29 01:36:53Z davids $"
-__revision__ = "$Revision: 5166 $"[11:-2]
+__cvsid__ = "$Id: PyAlaMode.py,v 1.6 2004/03/15 13:42:37 PKO Exp $"
+__revision__ = "$Revision: 1.6 $"[11:-2]
 
 import wx
 from wx import py

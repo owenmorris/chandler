@@ -6,7 +6,7 @@
 #
 # Created:      2002/11/20
 # Version:      0.1
-# RCS-ID:       $Id: popupctl.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: popupctl.py,v 1.8 2004/05/02 02:41:24 RD Exp $
 # License:      wxWindows license
 #----------------------------------------------------------------------
 # 12/09/2003 - Jeff Grimmett (grimmtooth@softhome.net)

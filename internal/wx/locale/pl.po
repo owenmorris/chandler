@@ -4185,13 +4185,13 @@ msgstr "Polecenie bez nazwy"
 
 #: ../contrib/src/deprecated/resource.cpp:2367
 #, c-format
+msgid "Unrecognized style %s while parsing resource."
 msgstr "Nierozpoznany styl %s podczas przetwarzania zasobu."
 
 #: ../src/mac/carbon/clipbrd.cpp:68
 #: ../src/mac/classic/clipbrd.cpp:64
 #: ../src/msw/clipbrd.cpp:273
 #: ../src/msw/clipbrd.cpp:445
-#: ../src/msw/clipbrd.cpp:273 ../src/msw/clipbrd.cpp:445
 msgid "Unsupported clipboard format."
 msgstr "Nieobs³ugiwany format schowka."
 

@@ -5,7 +5,7 @@
 # Author:      Gordon Williams
 #
 # Created:     2003/11/03
-# RCS-ID:      $Id: plot.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:      $Id: plot.py,v 1.14 2005/06/13 20:48:52 RD Exp $
 # Copyright:   (c) 2002
 # Licence:     Use as you wish.
 #-----------------------------------------------------------------------------

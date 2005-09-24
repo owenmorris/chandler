@@ -5,7 +5,7 @@
 # Author:      Will Sadkin, Jeff Childers
 #
 # Created:     6-Mar-2004
-# RCS-ID:      $Id: __init__.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: __init__.py,v 1.2 2004/07/22 18:38:34 RD Exp $
 # Copyright:   (c) 2004
 # License:     wxWidgets license
 #----------------------------------------------------------------------

@@ -33,8 +33,8 @@ History:
                   PyCrust package instead.
 
 """
-__version__ ="$Revision: 5166 $"
-# $RCSfile$
+__version__ ="$Revision: 1.5 $"
+# $RCSfile: shell.py,v $
 
 import  code
 import  sys

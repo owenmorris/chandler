@@ -3,7 +3,7 @@
 # Author:       Will Sadkin
 # Created:      09/19/2002
 # Copyright:    (c) 2002 by Will Sadkin, 2002
-# RCS-ID:       $Id: timectrl.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: timectrl.py,v 1.4 2005/02/28 18:45:13 RD Exp $
 # License:      wxWindows license
 #----------------------------------------------------------------------------
 # NOTE:

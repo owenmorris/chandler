@@ -4,7 +4,7 @@
 #
 # Author:      Robin Dunn
 #
-# RCS-ID:      $Id: activexwrapper.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: activexwrapper.py,v 1.6 2004/06/16 02:22:30 RD Exp $
 # Copyright:   (c) 2000 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

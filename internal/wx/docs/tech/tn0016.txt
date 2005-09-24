@@ -231,4 +231,4 @@ j) Also please add 4 #pragma comment(lib, "foo") (for Unicode/ANSI
 
 === EOF ===
 
-Version: $Id: tn0016.txt 6690 2005-08-19 17:48:32Z davids $
+Version: $Id: tn0016.txt,v 1.22 2005/08/19 17:32:07 VZ Exp $

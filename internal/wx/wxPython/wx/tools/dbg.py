@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 # Name:         dbg.py
-# RCS-ID:       $Id: dbg.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: dbg.py,v 1.6 2004/10/11 22:12:56 RD Exp $
 # Author:       Will Sadkin
 # Email:        wsadkin@nameconnector.com
 # Created:      07/11/2002

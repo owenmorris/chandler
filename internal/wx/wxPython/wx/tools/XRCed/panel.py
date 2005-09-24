@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, Panel class and related
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: panel.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:       $Id: panel.py,v 1.18 2005/07/15 09:51:40 ROL Exp $
 
 from xxx import *                       # xxx imports globals and params
 from undo import *

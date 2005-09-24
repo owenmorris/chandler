@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, toolbar
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      19.03.2003
-# RCS-ID:       $Id: tools.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: tools.py,v 1.8 2004/04/29 22:32:23 RD Exp $
 
 from xxx import *                       # xxx imports globals and params
 from tree import ID_NEW

@@ -4,7 +4,7 @@
 #
 # Author:      Robin Dunn
 #
-# RCS-ID:      $Id: img2py.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: img2py.py,v 1.5 2003/12/22 19:09:46 RD Exp $
 # Copyright:   (c) 2002 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

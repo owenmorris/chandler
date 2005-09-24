@@ -4,7 +4,7 @@
 # Email:        wsadkin@nameconnector.com
 # Created:      02/11/2003
 # Copyright:    (c) 2003 by Will Sadkin, 2003
-# RCS-ID:       $Id: combobox.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: combobox.py,v 1.8 2005/04/08 21:31:25 RD Exp $
 # License:      wxWidgets license
 #----------------------------------------------------------------------------
 #

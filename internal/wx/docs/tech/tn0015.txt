@@ -89,4 +89,4 @@ client to the end of the list.
 
 === EOF ===
 
-Version: $Id: tn0015.txt 5166 2005-04-29 01:36:53Z davids $
+Version: $Id: tn0015.txt,v 1.6 2004/10/22 19:12:59 KH Exp $

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-Nov-2004
-// RCS-ID:      $Id: _stdpaths.i 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: _stdpaths.i,v 1.3 2004/11/19 22:00:02 RD Exp $
 // Copyright:   (c) 2004 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

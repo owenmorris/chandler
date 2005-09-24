@@ -6,7 +6,7 @@
 #
 # Version       0.1
 # Date:         Nov 19, 2002
-# RCS-ID:       $Id: gridmovers.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:       $Id: gridmovers.py,v 1.11 2005/06/02 03:53:01 RD Exp $
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
 # 12/07/2003 - Jeff Grimmett (grimmtooth@softhome.net)

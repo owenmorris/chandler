@@ -21,7 +21,7 @@ print __doc__
 # Author:      Robin Dunn
 #
 # Created:     16-Nov-1999
-# RCS-ID:      $Id: vtk.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: vtk.py,v 1.4 2003/11/12 21:29:05 RD Exp $
 # Copyright:   (c) 1999 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

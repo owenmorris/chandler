@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, XML_tree class
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: tree.py 7090 2005-09-11 20:34:03Z davids $
+# RCS-ID:       $Id: tree.py,v 1.26 2005/09/09 15:47:27 ROL Exp $
 
 from xxx import *                       # xxx imports globals and params
 import types

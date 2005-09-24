@@ -3,7 +3,7 @@
 # Author:       Will Sadkin
 # Created:      01/16/2003
 # Copyright:   (c) 2003 by Will Sadkin
-# RCS-ID:      $Id: intctrl.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: intctrl.py,v 1.6 2003/12/22 19:09:52 RD Exp $
 # License:     wxWindows license
 #----------------------------------------------------------------------------
 # NOTE:

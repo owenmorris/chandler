@@ -1,8 +1,8 @@
 """Base frame with menu."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: frame.py 5166 2005-04-29 01:36:53Z davids $"
-__revision__ = "$Revision: 5166 $"[11:-2]
+__cvsid__ = "$Id: frame.py,v 1.6 2004/02/23 22:36:20 RD Exp $"
+__revision__ = "$Revision: 1.6 $"[11:-2]
 
 import wx
 from version import VERSION

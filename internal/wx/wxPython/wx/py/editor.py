@@ -1,8 +1,8 @@
 """PyAlaCarte and PyAlaMode editors."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: editor.py 5166 2005-04-29 01:36:53Z davids $"
-__revision__ = "$Revision: 5166 $"[11:-2]
+__cvsid__ = "$Id: editor.py,v 1.7 2004/06/14 20:17:31 RD Exp $"
+__revision__ = "$Revision: 1.7 $"[11:-2]
 
 import wx
 

@@ -485,4 +485,4 @@ FIXME -- "platform" property handling
 
 === EOF ===
 
-Version: $Id: tn0014.txt 6039 2005-07-18 22:30:33Z davids $
+Version: $Id: tn0014.txt,v 1.18 2005/05/31 09:18:07 JS Exp $

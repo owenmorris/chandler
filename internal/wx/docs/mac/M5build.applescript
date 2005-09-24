@@ -4,7 +4,7 @@
 -- Author:      Gilles Depeyrot
 -- Modified by:
 -- Created:     06.10.2001
--- RCS-ID:      $Id: M5build.applescript 5166 2005-04-29 01:36:53Z davids $
+-- RCS-ID:      $Id: M5build.applescript,v 1.3 2001/12/02 20:02:17 GD Exp $
 -- Copyright:   (c) 2001 Gilles Depeyrot
 -- Licence:     wxWindows licence
 -----------------------------------------------------------------------------

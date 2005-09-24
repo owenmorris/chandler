@@ -77,7 +77,7 @@ in wx.bkl:
 === EOF ===
 
 Author:  VZ
-Version: $Id: tn0002.txt 6524 2005-08-12 19:48:45Z davids $
+Version: $Id: tn0002.txt,v 1.7 2005/08/12 15:34:01 MW Exp $
 
 $Log: tn0002.txt,v $
 Revision 1.7  2005/08/12 15:34:01  MW

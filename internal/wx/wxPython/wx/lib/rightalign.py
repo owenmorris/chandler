@@ -7,7 +7,7 @@
 # Author:      Josu Oyanguren
 #
 # Created:     19-October-2001
-# RCS-ID:      $Id: rightalign.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: rightalign.py,v 1.10 2004/05/02 02:41:24 RD Exp $
 # Copyright:   (c) 2001 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

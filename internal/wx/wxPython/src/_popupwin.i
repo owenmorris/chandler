@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     22-Dec-1998
-// RCS-ID:      $Id: _popupwin.i 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: _popupwin.i,v 1.6 2004/12/23 20:43:51 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

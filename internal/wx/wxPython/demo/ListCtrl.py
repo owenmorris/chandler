@@ -5,7 +5,7 @@
 # Author:       Robin Dunn & Gary Dumer
 #
 # Created:
-# RCS-ID:       $Id: ListCtrl.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: ListCtrl.py,v 1.8 2004/10/15 19:35:03 RD Exp $
 # Copyright:    (c) 1998 by Total Control Software
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------

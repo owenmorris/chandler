@@ -5,7 +5,7 @@
 # Author:      Robin Dunn, adapted from code by Niki Spahiev
 #
 # Created:     26-Feb-2002
-# RCS-ID:      $Id: rcsizer.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: rcsizer.py,v 1.9 2005/04/06 04:39:11 RD Exp $
 # Copyright:   (c) 2002 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

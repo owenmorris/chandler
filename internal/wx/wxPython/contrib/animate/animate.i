@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     4-April-2005
-// RCS-ID:      $Id: animate.i 5170 2005-04-29 23:49:09Z bear $
+// RCS-ID:      $Id: animate.i,v 1.3 2005/04/25 20:25:41 RD Exp $
 // Copyright:   (c) 2005 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

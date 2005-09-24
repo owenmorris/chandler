@@ -6,7 +6,7 @@
 #
 # Created:      2002/11/20
 # Version:      0.1
-# RCS-ID:       $Id: multisash.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: multisash.py,v 1.13 2005/03/24 20:37:48 RD Exp $
 # License:      wxWindows license
 #----------------------------------------------------------------------
 # 12/09/2003 - Jeff Grimmett (grimmtooth@softhome.net)

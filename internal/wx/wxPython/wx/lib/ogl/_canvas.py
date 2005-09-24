@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _canvas.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: _canvas.py,v 1.4 2004/11/10 18:14:33 RD Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------

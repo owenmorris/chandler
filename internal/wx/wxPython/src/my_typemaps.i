@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     7/3/97
-// RCS-ID:      $Id: my_typemaps.i 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: my_typemaps.i,v 1.53 2005/05/09 18:55:13 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

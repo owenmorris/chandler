@@ -1,8 +1,8 @@
 """Document class."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: document.py 5166 2005-04-29 01:36:53Z davids $"
-__revision__ = "$Revision: 5166 $"[11:-2]
+__cvsid__ = "$Id: document.py,v 1.5 2004/02/13 02:47:58 PKO Exp $"
+__revision__ = "$Revision: 1.5 $"[11:-2]
 
 import os
 

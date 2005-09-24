@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _lines.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:       $Id: _lines.py,v 1.16 2005/06/30 07:20:29 KO Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------

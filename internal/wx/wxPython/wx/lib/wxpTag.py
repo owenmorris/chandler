@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     13-Sept-1999
-# RCS-ID:      $Id: wxpTag.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: wxpTag.py,v 1.10 2005/01/13 21:15:08 RD Exp $
 # Copyright:   (c) 1999 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     7-July-1997
-// RCS-ID:      $Id: _dc.i 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: _dc.i,v 1.31 2005/04/08 14:34:24 MW Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

@@ -78,6 +78,6 @@ http://sourceforge.net/mail/?group_id=31263
 What is the CVS information for this README file?
 -------------------------------------------------
 
-$Date: 2005-04-28 21:36:53 -0400 (Thu, 28 Apr 2005) $
-$Revision: 5166 $
-$Id: README.txt 5166 2005-04-29 01:36:53Z davids $
+$Date: 2004/01/25 23:37:41 $
+$Revision: 1.3 $
+$Id: README.txt,v 1.3 2004/01/25 23:37:41 PKO Exp $

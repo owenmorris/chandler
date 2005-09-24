@@ -3,7 +3,7 @@
 # Author:       Will Sadkin
 # Created:      03/21/2003
 # Copyright:    (c) 2003 by Will Sadkin
-# RCS-ID:       $Id: scrolledpanel.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:       $Id: scrolledpanel.py,v 1.9 2005/05/04 00:03:00 RD Exp $
 # License:      wxWindows license
 #----------------------------------------------------------------------------
 # 12/11/2003 - Jeff Grimmett (grimmtooth@softhome.net)

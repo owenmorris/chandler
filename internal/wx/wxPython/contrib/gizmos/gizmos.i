@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     23-Nov-2001
-// RCS-ID:      $Id: gizmos.i 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: gizmos.i,v 1.42 2005/03/30 22:56:44 RD Exp $
 // Copyright:   (c) 2001 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

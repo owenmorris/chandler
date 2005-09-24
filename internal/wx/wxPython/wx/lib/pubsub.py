@@ -16,7 +16,7 @@ wxPython.lib.pubsub).
 
 :Author:      Oliver Schoenborn
 :Since:       Apr 2004
-:Version:     $Id: pubsub.py 5166 2005-04-29 01:36:53Z davids $
+:Version:     $Id: pubsub.py,v 1.5 2004/05/17 19:20:48 RD Exp $
 :Copyright:   \(c) 2004 Oliver Schoenborn
 :License:     wxWidgets
 

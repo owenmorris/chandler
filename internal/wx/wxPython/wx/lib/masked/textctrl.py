@@ -5,7 +5,7 @@
 # Created:      02/11/2003
 # Copyright:    (c) 2003 by Jeff Childers, Will Sadkin, 2003
 # Portions:     (c) 2002 by Will Sadkin, 2002-2003
-# RCS-ID:       $Id: textctrl.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: textctrl.py,v 1.5 2004/10/11 22:13:00 RD Exp $
 # License:      wxWidgets license
 #----------------------------------------------------------------------------
 #

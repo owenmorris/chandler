@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, global variables
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: globals.py 6581 2005-08-15 20:02:04Z davids $
+# RCS-ID:       $Id: globals.py,v 1.17 2005/08/15 19:53:33 ROL Exp $
 
 from wxPython.wx import *
 from wxPython.xrc import *

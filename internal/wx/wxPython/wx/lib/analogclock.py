@@ -6,7 +6,7 @@
 # Author:      several folks on wxPython-users
 #
 # Created:     16-April-2003
-# RCS-ID:      $Id: analogclock.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:      $Id: analogclock.py,v 1.13 2005/05/12 22:46:53 RD Exp $
 # Copyright:   (c) 2003 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

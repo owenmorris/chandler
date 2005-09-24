@@ -3,7 +3,7 @@
 # Author:       Will Sadkin
 # Created:      09/24/2003
 # Copyright:   (c) 2003 by Will Sadkin
-# RCS-ID:      $Id: ctrl.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: ctrl.py,v 1.2 2004/10/11 22:13:02 RD Exp $
 # License:     wxWindows license
 #----------------------------------------------------------------------------
 # 12/09/2003 - Jeff Grimmett (grimmtooth@softhome.net)

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Sept-2000
-// RCS-ID:      $Id: pyistream.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: pyistream.h,v 1.7 2005/03/03 19:56:42 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

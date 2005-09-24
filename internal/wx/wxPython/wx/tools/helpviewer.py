@@ -5,7 +5,7 @@
 # Author:      Robin Dunn
 #
 # Created:     11-Dec-2002
-# RCS-ID:      $Id: helpviewer.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: helpviewer.py,v 1.5 2003/11/26 06:11:01 RD Exp $
 # Copyright:   (c) 2002 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

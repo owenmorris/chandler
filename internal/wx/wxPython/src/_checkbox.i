@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _checkbox.i 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: _checkbox.i,v 1.11 2004/06/02 20:52:59 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

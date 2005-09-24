@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-Sept-2004
-// RCS-ID:      $Id: _evtloop.i 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: _evtloop.i,v 1.2 2004/09/25 23:09:57 RD Exp $
 // Copyright:   (c) 2004 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

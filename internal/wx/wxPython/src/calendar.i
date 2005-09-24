@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     23-May-2000
-// RCS-ID:      $Id: calendar.i 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: calendar.i,v 1.40 2005/03/09 22:28:40 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

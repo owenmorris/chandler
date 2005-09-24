@@ -6,7 +6,7 @@
 # Author:      Various
 #
 # Created:     3-January-2002
-# RCS-ID:      $Id: dialogs.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: dialogs.py,v 1.15 2005/03/31 21:18:36 RD Exp $
 # Copyright:   (c) 2002 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

@@ -7,7 +7,7 @@
 # Author:      Robin Dunn
 #
 # Created:     8-July-2002
-# RCS-ID:      $Id: stattext.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:      $Id: stattext.py,v 1.11 2005/05/13 01:39:09 RD Exp $
 # Copyright:   (c) 2002 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

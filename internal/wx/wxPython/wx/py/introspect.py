@@ -2,8 +2,8 @@
 things like call tips and command auto completion."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: introspect.py 5166 2005-04-29 01:36:53Z davids $"
-__revision__ = "$Revision: 5166 $"[11:-2]
+__cvsid__ = "$Id: introspect.py,v 1.11 2005/03/25 20:34:52 RD Exp $"
+__revision__ = "$Revision: 1.11 $"[11:-2]
 
 from __future__ import nested_scopes
 

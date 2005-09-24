@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _scrolbar.i 6448 2005-08-09 20:42:28Z davids $
+// RCS-ID:      $Id: _scrolbar.i,v 1.10 2005/05/07 06:26:59 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

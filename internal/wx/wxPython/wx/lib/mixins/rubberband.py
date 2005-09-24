@@ -5,7 +5,7 @@
 # Author:      Robb Shecter and members of wxPython-users
 #
 # Created:     11-September-2002
-# RCS-ID:      $Id: rubberband.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: rubberband.py,v 1.5 2003/12/17 00:33:45 RD Exp $
 # Copyright:   (c) 2002 by db-X Corporation
 # Licence:     wxWindows license
 #---------------------------------------------------------------------------

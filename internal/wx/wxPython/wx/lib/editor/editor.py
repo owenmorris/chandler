@@ -16,7 +16,7 @@
 #
 #
 # Created:     15-Dec-1999
-# RCS-ID:      $Id: editor.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: editor.py,v 1.10 2004/05/02 02:41:19 RD Exp $
 # Copyright:   (c) 1999 by Dirk Holtwick, 1999
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

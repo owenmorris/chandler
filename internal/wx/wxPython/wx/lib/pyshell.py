@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     7-July-2000
-# RCS-ID:      $Id: pyshell.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:      $Id: pyshell.py,v 1.5 2003/12/17 00:34:15 RD Exp $
 # Copyright:   (c) 2000 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

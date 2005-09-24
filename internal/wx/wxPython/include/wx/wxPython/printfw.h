@@ -6,7 +6,7 @@
 // Author:      Robin Dunn
 //
 // Created:     29-Oct-1999
-// RCS-ID:      $Id: printfw.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: printfw.h,v 1.3 2004/11/13 02:30:07 RD Exp $
 // Copyright:   (c) 1999 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

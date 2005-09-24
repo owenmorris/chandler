@@ -5,7 +5,7 @@
 # Author:      Robin Dunn
 #
 # Created:     15-May-2001
-# RCS-ID:      $Id: listctrl.py 6448 2005-08-09 20:42:28Z davids $
+# RCS-ID:      $Id: listctrl.py,v 1.17 2005/05/04 21:47:00 RD Exp $
 # Copyright:   (c) 2001 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------------
