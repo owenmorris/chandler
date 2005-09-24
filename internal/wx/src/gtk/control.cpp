@@ -2,14 +2,10 @@
 // Name:        control.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: control.cpp 5166 2005-04-29 01:36:53Z davids $
+// Id:          $Id: control.cpp,v 1.44 2005/09/23 12:53:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "control.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

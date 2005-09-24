@@ -4,15 +4,10 @@
 // Author:      Harm van der Heijden, Robert Roebling & Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirdlgg.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: dirdlgg.cpp,v 1.62 2005/09/23 12:53:25 MR Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "dirdlgg.h"
-#endif
-
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

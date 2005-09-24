@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: icon.cpp,v 1.8 2004/05/23 20:53:30 JS Exp $
+// RCS-ID:      $Id: icon.cpp,v 1.9 2005/09/23 12:56:05 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "icon.h"
-#endif
 
 #include "wx/icon.h"
 #include "wx/window.h"

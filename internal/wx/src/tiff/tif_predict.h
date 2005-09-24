@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Header: /pack/cvsroots/wxwidgets/wxWidgets/src/tiff/tif_predict.h,v 1.3 2004/11/19 22:29:45 VZ Exp $ */
 
 /*
  * Copyright (c) 1995-1997 Sam Leffler

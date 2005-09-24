@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     09/25/2004
-// RCS-ID:      $Id: taskbar.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: taskbar.cpp,v 1.24 2005/05/31 09:20:19 JS Exp $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

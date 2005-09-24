@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: settings.cpp 7408 2005-09-23 19:01:12Z john $
+// RCS-ID:      $Id: settings.cpp,v 1.22 2005/09/23 12:54:10 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "settings.h"
-#endif
 
 #include "wx/wxprec.h"
 
@@ -82,6 +78,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
             break ;
         case wxSYS_COLOUR_BTNHIGHLIGHT:
         case wxSYS_COLOUR_GRAYTEXT:
+            // OSAF: changed from 0xCC
             return wxColor( 0x80 , 0x80 , 0x80 ) ;
             break ;
 

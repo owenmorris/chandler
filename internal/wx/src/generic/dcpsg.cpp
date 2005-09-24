@@ -4,14 +4,10 @@
 // Author:      Julian Smart, Robert Roebling, Markus Holzhem
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dcpsg.cpp 7180 2005-09-15 18:04:21Z davids $
+// RCS-ID:      $Id: dcpsg.cpp,v 1.132 2005/09/23 12:53:25 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "dcpsg.h"
-#endif
 
 #include "wx/wxprec.h"
 

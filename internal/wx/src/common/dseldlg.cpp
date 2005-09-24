@@ -4,7 +4,7 @@
 // Author:      Paul Thiessen
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id: dseldlg.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dseldlg.cpp,v 1.7 2005/09/23 12:52:49 MR Exp $
 // Copyright:   (c) 2001 wxWidgets team
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "dseldlg.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

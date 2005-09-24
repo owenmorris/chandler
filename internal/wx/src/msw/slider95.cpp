@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: slider95.cpp 6809 2005-08-25 20:42:19Z davids $
+// RCS-ID:      $Id: slider95.cpp,v 1.87 2005/09/23 12:55:10 MR Exp $
 // Copyright:   (c) Julian Smart 1998
 //                  Vadim Zeitlin 2004
 // Licence:     wxWindows licence
@@ -13,10 +13,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "slider95.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

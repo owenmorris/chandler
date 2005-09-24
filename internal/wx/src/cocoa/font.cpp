@@ -4,14 +4,10 @@
 // Author:      AUTHOR
 // Modified by:
 // Created:     ??/??/98
-// RCS-ID:      $Id: font.cpp,v 1.7 2005/07/28 22:08:31 VZ Exp $
+// RCS-ID:      $Id: font.cpp,v 1.8 2005/09/23 12:52:37 MR Exp $
 // Copyright:   (c) AUTHOR
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation "font.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/string.h"

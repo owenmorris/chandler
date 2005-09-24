@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: menuitem.cpp,v 1.25 2005/02/06 17:38:31 MBN Exp $
+// RCS-ID:      $Id: menuitem.cpp,v 1.26 2005/09/23 12:54:42 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "menuitem.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

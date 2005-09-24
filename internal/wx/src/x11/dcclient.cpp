@@ -4,14 +4,10 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp,v 1.40 2005/02/15 18:31:10 RR Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.41 2005/09/23 12:56:04 MR Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "dcclient.h"
-#endif
 
 #include "wx/dcclient.h"
 #include "wx/dcmemory.h"

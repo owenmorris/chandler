@@ -3,14 +3,10 @@
 // Purpose:     Clipboard functionality
 // Author:      Robert Roebling
 // Created:     
-// RCS-ID:      $Id: clipbrd.cpp,v 1.8 2004/05/23 20:53:29 JS Exp $
+// RCS-ID:      $Id: clipbrd.cpp,v 1.9 2005/09/23 12:56:03 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "clipbrd.h"
-#endif
 
 #include "wx/clipbrd.h"
 

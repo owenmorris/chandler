@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-03-12
-// RCS-ID:      $Id: propdlg.cpp 6303 2005-07-31 01:41:00Z davids $
+// RCS-ID:      $Id: propdlg.cpp,v 1.10 2005/09/23 12:53:29 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "propdlg.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -143,7 +139,7 @@ void wxPropertySheetDialog::OnActivate(wxActivateEvent& event)
     // of the dialog (the choicebook).
     if (event.GetActive())
     {
-        wxChoicebook* choiceBook = wxDynamicCast(GetBookCtrl(), wxChoicebook);     
+        wxChoicebook* choiceBook = wxDynamicCast(GetBookCtrl(), wxChoicebook);
         if (choiceBook)
             choiceBook->SetFocus();
     }

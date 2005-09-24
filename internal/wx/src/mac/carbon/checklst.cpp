@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: checklst.cpp 6303 2005-07-31 01:41:00Z davids $
+// RCS-ID:      $Id: checklst.cpp,v 1.42 2005/09/23 12:54:01 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 // ============================================================================
 // headers & declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "checklst.h"
-#endif
 
 #include "wx/wxprec.h"
 

@@ -2,7 +2,7 @@
 // Name:        imagxpm.cpp
 // Purpose:     wxXPMHandler
 // Author:      Vaclav Slavik, Robert Roebling
-// RCS-ID:      $Id: imagxpm.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: imagxpm.cpp,v 1.19 2005/09/23 12:53:00 MR Exp $
 // Copyright:   (c) 2001 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -61,10 +61,6 @@ license is as follows:
 %
 %
 */
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "imagxpm.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

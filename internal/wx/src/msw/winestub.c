@@ -3,7 +3,7 @@
  * Purpose:     wxWINE module mapping main() to WinMain()
  * Author:      Robert Roebling
  * Created:     04/01/98
- * RCS-ID:      $Id: winestub.c 5166 2005-04-29 01:36:53Z davids $
+ * RCS-ID:      $Id: winestub.c,v 1.3 2004/09/07 11:11:05 ABX Exp $
  * Copyright:   (c) Robert Roebling
  * Licence:     wxWidgets Licence
  *****************************************************************************/

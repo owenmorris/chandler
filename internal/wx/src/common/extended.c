@@ -4,7 +4,7 @@
 ** Maintainer:  Ryan Norton
 ** Modified by:
 ** Created:     11/24/04
-** RCS-ID:      $Id: extended.c 5166 2005-04-29 01:36:53Z davids $
+** RCS-ID:      $Id: extended.c,v 1.24 2005/03/07 19:50:02 VZ Exp $
 *****************************************************************************/
 
 

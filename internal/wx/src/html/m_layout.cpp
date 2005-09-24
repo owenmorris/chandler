@@ -2,13 +2,10 @@
 // Name:        m_layout.cpp
 // Purpose:     wxHtml module for basic paragraphs/layout handling
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: m_layout.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: m_layout.cpp,v 1.38 2005/09/23 12:53:53 MR Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation
-#endif
 
 #include "wx/wxprec.h"
 
@@ -300,7 +297,7 @@ TAG_HANDLER_BEGIN(TITLE, "TITLE")
                 wxString title = m_WParser->GetSource()->Mid(
                                         tag.GetBeginPos(),
                                         tag.GetEndPos1()-tag.GetBeginPos());
-#if !wxUSE_UNICODE
+#if !wxUSE_UNICODE && wxUSE_WCHAR_T
                 wxCSConv conv(m_WParser->GetInputEncoding());
                 title = wxString(title.wc_str(conv), wxConvLocal);
 #endif

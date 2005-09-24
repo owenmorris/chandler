@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: gdiobj.cpp,v 1.6 2004/05/23 20:52:49 JS Exp $
+// RCS-ID:      $Id: gdiobj.cpp,v 1.7 2005/09/23 12:54:41 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "gdiobj.h"
-#endif
 
 #include "wx/gdiobj.h"
 

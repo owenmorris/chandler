@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: colour.cpp,v 1.16 2005/02/06 17:38:29 MBN Exp $
+// RCS-ID:      $Id: colour.cpp,v 1.17 2005/09/23 12:54:38 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 //// TODO: make wxColour a ref-counted object,
 //// so pixel values get shared.
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "colour.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

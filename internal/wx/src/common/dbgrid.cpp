@@ -4,16 +4,12 @@
 // Author:      Roger Gammans, Paul Gammans
 // Modified by:
 // Created:
-// RCS-ID:      $Id: dbgrid.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dbgrid.cpp,v 1.21 2005/09/23 12:52:46 MR Exp $
 // Copyright:   (c) 1999 The Computer Surgery (roger@computer-surgery.co.uk)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 // Branched From : dbgrid.cpp,v 1.18 2000/12/19 13:00:58
 ///////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "dbgrid.h"
-#endif
 
 #include "wx/wxprec.h"
 

@@ -4,14 +4,10 @@
 // Author:      Ryan Norton
 // Modified by: Stefan Csomor
 // Created:     1998-01-01
-// RCS-ID:      $Id: sound.cpp 6146 2005-07-24 22:32:48Z davids $
+// RCS-ID:      $Id: sound.cpp,v 1.20 2005/09/23 12:54:10 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "sound.h"
-#endif
 
 #include "wx/wxprec.h"
 

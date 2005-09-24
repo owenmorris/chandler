@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.06.2003 (extracted from msw/utils.cpp)
-// RCS-ID:      $Id: utilsgui.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: utilsgui.cpp,v 1.11 2005/05/31 09:20:34 JS Exp $
 // Copyright:   (c) Julian Smart
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

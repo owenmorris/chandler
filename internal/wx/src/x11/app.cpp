@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: app.cpp,v 1.100 2004/12/08 22:13:36 MBN Exp $
+// RCS-ID:      $Id: app.cpp,v 1.101 2005/09/23 12:56:02 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "app.h"
-#endif
 
 #include "wx/frame.h"
 #include "wx/app.h"

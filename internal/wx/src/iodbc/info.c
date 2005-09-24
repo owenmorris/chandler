@@ -1,7 +1,7 @@
 /*
  *  info.c
  *
- *  $Id: info.c 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: info.c,v 1.7 2000/01/27 22:47:49 GT Exp $
  *
  *  Information functions
  *

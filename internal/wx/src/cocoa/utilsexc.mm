@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-05
-// RCS-ID:      $Id: utilsexc.mm,v 1.5 2005/05/31 09:19:44 JS Exp $
+// RCS-ID:      $Id: utilsexc.mm,v 1.6 2005/09/23 12:52:38 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:   	wxWindows licence
 // Notes:       This code may be useful on platforms other than Darwin.
@@ -18,10 +18,6 @@
 #include "wx/utils.h"
 
 #if 0
-
-#ifdef __GNUG__
-#pragma implementation
-#endif
 
 #include "wx/utils.h"
 

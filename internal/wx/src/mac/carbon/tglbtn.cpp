@@ -5,7 +5,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: tglbtn.cpp,v 1.10 2005/09/23 12:54:12 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -17,10 +17,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "button.h"
-#endif
 
 #include "wx/wxprec.h"
 

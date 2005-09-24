@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Guillermo Rodriguez, Vadim Zeitlin
 // Modified by: VZ: extracted all non-wxTimer stuff in stopwatch.cpp (20.06.03)
 // Created:     04/01/98
-// RCS-ID:      $Id: timercmn.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: timercmn.cpp,v 1.75 2005/09/23 12:53:09 MR Exp $
 // Copyright:   (c) Julian Smart
 //              (c) 1999 Guillermo Rodriguez <guille@iies.es>
 // Licence:     wxWindows licence
@@ -17,10 +17,6 @@
 // ----------------------------------------------------------------------------
 // wxWin headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "timerbase.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

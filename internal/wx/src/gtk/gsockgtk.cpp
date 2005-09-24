@@ -3,7 +3,7 @@
  * Name:    gsockgtk.c
  * Purpose: GSocket: GTK part
  * Licence: The wxWindows licence
- * CVSID:   $Id: gsockgtk.cpp 6982 2005-09-04 01:50:57Z davids $
+ * CVSID:   $Id: gsockgtk.cpp,v 1.6 2005/09/03 01:01:06 KH Exp $
  * -------------------------------------------------------------------------
  */
 #include "wx/setup.h"

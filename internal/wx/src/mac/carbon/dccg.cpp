@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dccg.cpp 7153 2005-09-14 15:57:55Z davids $
+// RCS-ID:      $Id: dccg.cpp,v 1.27 2005/09/23 12:54:04 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation "dc.h"
-#endif
 
 #include "wx/wxprec.h"
 

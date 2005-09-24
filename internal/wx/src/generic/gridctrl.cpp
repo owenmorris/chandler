@@ -4,14 +4,10 @@
 // Author:      Paul Gammans, Roger Gammans
 // Modified by:
 // Created:     11/04/2001
-// RCS-ID:      $Id: gridctrl.cpp 6121 2005-07-22 20:08:28Z davids $
+// RCS-ID:      $Id: gridctrl.cpp,v 1.18 2005/09/23 12:53:27 MR Exp $
 // Copyright:   (c) The Computer Surgery (paul@compsurg.co.uk)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "gridctrl.h"
-#endif
 
 #include "wx/wxprec.h"
 

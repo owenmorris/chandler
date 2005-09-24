@@ -1,7 +1,7 @@
 /*
  *  dlproc.h
  *
- *  $Id: dlproc.h 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: dlproc.h,v 1.5 1999/06/01 15:31:41 VZ Exp $
  *
  *  Load driver and resolve driver's function entry point
  *

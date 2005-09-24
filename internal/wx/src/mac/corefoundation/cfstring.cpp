@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2004-10-29 (from code in src/mac/carbon/utils.cpp)
-// RCS-ID:      $Id: cfstring.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: cfstring.cpp,v 1.4 2005/06/08 23:31:13 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,7 @@
 /*
  *  result.c
  *
- *  $Id: result.c 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: result.c,v 1.4 1999/06/01 15:31:42 VZ Exp $
  *
  *  Prepare for getting query result
  *

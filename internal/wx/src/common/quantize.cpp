@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     22/6/2000
-// RCS-ID:      $Id: quantize.cpp 6095 2005-07-21 18:14:35Z davids $
+// RCS-ID:      $Id: quantize.cpp,v 1.23 2005/09/23 12:53:05 MR Exp $
 // Copyright:   (c) Thomas G. Lane, Vaclav Slavik, Julian Smart
 // Licence:     wxWindows licence + JPEG library licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,10 +29,6 @@
  */
 
 /* modified by Vaclav Slavik for use as jpeglib-independent module */
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "quantize.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"

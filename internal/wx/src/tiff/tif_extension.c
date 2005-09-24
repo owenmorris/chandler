@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Header: /pack/cvsroots/wxwidgets/wxWidgets/src/tiff/tif_extension.c,v 1.1 2004/11/20 00:17:39 VZ Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

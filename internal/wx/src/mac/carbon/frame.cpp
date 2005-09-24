@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: frame.cpp 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: frame.cpp,v 1.48 2005/09/23 12:54:07 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "frame.h"
-#endif
 
 #include "wx/wxprec.h"
 

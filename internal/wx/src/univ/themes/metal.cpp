@@ -3,7 +3,7 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     06.08.00
-// RCS-ID:      $Id: metal.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: metal.cpp,v 1.15 2005/05/31 09:28:50 JS Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

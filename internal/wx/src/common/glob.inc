@@ -4,7 +4,7 @@
 // Author:      Karsten Ballueder
 // Modified by:
 // Created:     20/5/1998
-// RCS-ID:      $Id: glob.inc 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: glob.inc,v 1.2 2005/05/04 18:55:44 JS Exp $
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

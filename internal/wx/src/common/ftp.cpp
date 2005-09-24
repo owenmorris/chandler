@@ -9,7 +9,7 @@
 //              robust Abort(), support for arbitrary FTP commands, ...)
 //              Randall Fox (support for active mode)
 // Created:     07/07/1997
-// RCS-ID:      $Id: ftp.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: ftp.cpp,v 1.62 2005/09/23 12:52:54 MR Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 1998-2004 wxWidgets team
 // Licence:     wxWindows licence
@@ -18,10 +18,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-  #pragma implementation "ftp.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

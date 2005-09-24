@@ -2,14 +2,10 @@
 // Name:        app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp 6184 2005-07-26 17:50:48Z davids $
+// Id:          $Id: app.cpp,v 1.213 2005/09/23 12:53:35 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "app.h"
-#endif
 
 #ifdef __VMS
 // vms_jackets.h should for proper working be included before anything else

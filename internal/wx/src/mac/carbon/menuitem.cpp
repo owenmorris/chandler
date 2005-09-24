@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menuitem.cpp 6303 2005-07-31 01:41:00Z davids $
+// RCS-ID:      $Id: menuitem.cpp,v 1.36 2005/07/22 18:08:17 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

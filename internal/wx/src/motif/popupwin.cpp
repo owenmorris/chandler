@@ -4,14 +4,10 @@
 // Author:      Mattia barbon
 // Modified by:
 // Created:     28.08.03
-// RCS-ID:      $Id: popupwin.cpp,v 1.5 2005/01/31 17:59:35 RR Exp $
+// RCS-ID:      $Id: popupwin.cpp,v 1.6 2005/09/23 12:54:42 MR Exp $
 // Copyright:   (c) Mattia barbon
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "popup.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

@@ -1,7 +1,7 @@
 /*
  *  itrace.c
  *
- *  $Id: itrace.c 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: itrace.c,v 1.4 1999/06/01 15:31:41 VZ Exp $
  *
  *  Trace functions
  *

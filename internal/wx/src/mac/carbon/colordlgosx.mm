@@ -5,7 +5,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-11-16
-// RCS-ID:      $Id: colordlgosx.mm 6265 2005-07-29 01:02:38Z davids $
+// RCS-ID:      $Id: colordlgosx.mm,v 1.4 2005/09/23 12:54:02 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,10 +17,6 @@
 // ---------------------------------------------------------------------------
 // headers
 // ---------------------------------------------------------------------------
-
-#ifdef __GNUG__
-#pragma implementation "colordlg.h"
-#endif
 
 #include "wx/mac/colordlg.h"
 #include "wx/fontdlg.h"

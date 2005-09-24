@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: notebook.cpp 7248 2005-09-17 22:26:33Z davids $
+// RCS-ID:      $Id: notebook.cpp,v 1.37 2005/09/23 12:53:28 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "notebook.h"
-#endif
 
 #ifdef __VMS
 #pragma message disable unscomzer

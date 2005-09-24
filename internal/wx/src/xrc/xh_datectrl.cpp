@@ -3,14 +3,10 @@
 // Purpose:     XML resource handler for wxDatePickerCtrl
 // Author:      Vaclav Slavik
 // Created:     2005-02-07
-// RCS-ID:      $Id: xh_datectrl.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xh_datectrl.cpp,v 1.4 2005/09/23 12:56:11 MR Exp $
 // Copyright:   (c) 2005 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "xh_datectrl.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

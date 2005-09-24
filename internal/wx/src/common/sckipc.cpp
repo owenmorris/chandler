@@ -7,7 +7,7 @@
 //                                  (callbacks deprecated)    Mar 2000
 //              Vadim Zeitlin (added support for Unix sockets) Apr 2002
 // Created:     1993
-// RCS-ID:      $Id: sckipc.cpp 7090 2005-09-11 20:34:03Z davids $
+// RCS-ID:      $Id: sckipc.cpp,v 1.48 2005/09/23 12:53:06 MR Exp $
 // Copyright:   (c) Julian Smart 1993
 //              (c) Guilhem Lavaux 1997, 1998
 //              (c) 2000 Guillermo Rodriguez <guille@iies.es>
@@ -21,10 +21,6 @@
 // --------------------------------------------------------------------------
 // headers
 // --------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "sckipc.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

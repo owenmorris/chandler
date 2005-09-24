@@ -1,7 +1,7 @@
 /*
  *  misc.c
  *
- *  $Id: misc.c 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: misc.c,v 1.8 1999/06/01 15:31:41 VZ Exp $
  *
  *  Miscellaneous functions
  *

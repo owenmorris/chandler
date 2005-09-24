@@ -3,7 +3,7 @@
 // Purpose:     CHM (Help) support for wxHTML
 // Author:      Markus Sinner
 // Copyright:   (c) 2003 Herd Software Development
-// CVS-ID:      $Id: chm.cpp 5166 2005-04-29 01:36:53Z davids $
+// CVS-ID:      $Id: chm.cpp,v 1.9 2005/05/31 09:20:12 JS Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -70,7 +70,7 @@ public:
     /// check archive for a file
     bool Contains(const wxString& pattern);
 
-    /// get a string for the last error occured
+    /// get a string for the last error which occurred
     const wxString GetLastErrorMessage();
 
     /// Last Error
@@ -749,9 +749,9 @@ public:
     virtual bool CanOpen(const wxString& location);
     /// Open a file
     virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location);
-    /// Find first occurence of spec
+    /// Find first occurrence of spec
     virtual wxString FindFirst(const wxString& spec, int flags = 0);
-    /// Find next occurence of spec
+    /// Find next occurrence of spec
     virtual wxString FindNext();
 
 private:

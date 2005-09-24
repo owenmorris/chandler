@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: pen.cpp,v 1.7 2004/05/23 20:53:30 JS Exp $
+// RCS-ID:      $Id: pen.cpp,v 1.8 2005/09/23 12:56:06 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "pen.h"
-#endif
 
 #include "wx/setup.h"
 #include "wx/utils.h"

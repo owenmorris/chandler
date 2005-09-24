@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.cpp,v 1.20 2004/07/30 22:54:29 VZ Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.21 2005/09/23 12:56:05 MR Exp $
 // Copyright:   (c) 2002 Julian Smart
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "evtloop.h"
-#endif
 
 #include "wx/window.h"
 #include "wx/app.h"

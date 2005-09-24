@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: brush.cpp,v 1.8 2004/05/23 20:53:29 JS Exp $
+// RCS-ID:      $Id: brush.cpp,v 1.9 2005/09/23 12:56:03 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "brush.h"
-#endif
 
 #include "wx/setup.h"
 #include "wx/utils.h"

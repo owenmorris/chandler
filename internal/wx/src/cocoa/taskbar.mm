@@ -4,14 +4,10 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/01/24
-// RCS-ID:      $Id: taskbar.mm,v 1.8 2004/11/01 18:03:03 RN Exp $
+// RCS-ID:      $Id: taskbar.mm,v 1.9 2005/09/23 12:52:38 MR Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "taskbar.h"
-#endif
 
 #include "wx/wxprec.h"
 #ifdef wxHAS_TASK_BAR_ICON

@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp 7249 2005-09-18 20:25:01Z davids $
+// RCS-ID:      $Id: toolbar.cpp,v 1.95 2005/09/23 12:54:12 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     The wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "toolbar.h"
-#endif
 
 #include "wx/wxprec.h"
 

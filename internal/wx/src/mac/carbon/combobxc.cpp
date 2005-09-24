@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobxc.cpp 6303 2005-07-31 01:41:00Z davids $
+// RCS-ID:      $Id: combobxc.cpp,v 1.14 2005/09/23 12:54:03 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "combobox.h"
-#endif
 
 #include "wx/wxprec.h"
 

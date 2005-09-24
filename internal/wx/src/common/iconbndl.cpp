@@ -3,14 +3,10 @@
 // Purpose:     wxIconBundle
 // Author:      Mattia Barbon
 // Created:     23.03.2002
-// RCS-ID:      $Id: iconbndl.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: iconbndl.cpp,v 1.12 2005/09/23 12:52:57 MR Exp $
 // Copyright:   (c) Mattia barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "iconbndl.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

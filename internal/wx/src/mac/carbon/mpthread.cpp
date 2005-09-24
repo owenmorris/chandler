@@ -4,15 +4,11 @@
 // Author:	Original from Wolfram Gloger/Guilhem Lavaux/Vadim Zeitlin
 // Modified by: Aj Lavin, Stefan Csomor
 // Created:	04/22/98
-// RCS-ID:	$Id: mpthread.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:	$Id: mpthread.cpp,v 1.10 2005/09/23 12:54:09 MR Exp $
 // Copyright:	(c) Wolfram Gloger (1996, 1997); Guilhem Lavaux (1998),
 //		    Vadim Zeitlin (1999) , Stefan Csomor (2000)
 // Licence:	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "thread.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

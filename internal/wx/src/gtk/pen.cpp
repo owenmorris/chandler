@@ -2,15 +2,10 @@
 // Name:        pen.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: pen.cpp 5166 2005-04-29 01:36:53Z davids $
+// Id:          $Id: pen.cpp,v 1.28 2005/09/23 12:53:40 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "pen.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

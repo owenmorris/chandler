@@ -3,7 +3,7 @@
 # Purpose:		build library Digital Mars 8.33 compiler
 # Author:		Chris Elliott
 # Created:		21.01.03
-# RCS-ID:		$Id: makelib.sc 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:		$Id: makelib.sc,v 1.1 2003/04/25 18:55:46 CE Exp $
 # Licence:		wxWindows licence
 ##############################################################################
 

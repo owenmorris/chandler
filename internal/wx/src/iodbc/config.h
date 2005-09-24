@@ -2,7 +2,7 @@
  *
  *  config.h
  *
- *  $Id: config.h 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: config.h,v 1.7 1999/10/14 17:08:31 RR Exp $
  *
  *  Configuration
  *

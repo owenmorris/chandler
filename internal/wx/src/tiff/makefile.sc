@@ -3,7 +3,7 @@
 # Purpose:		build tiff Digital Mars 8.33 compiler
 # Author:		Chris Elliott
 # Created:		21.01.03
-# RCS-ID:		$Id: makefile.sc 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:		$Id: makefile.sc,v 1.1 2003/04/24 21:01:24 CE Exp $
 # Licence:		wxWindows licence
 ##############################################################################
 

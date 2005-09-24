@@ -2,7 +2,7 @@
 // Name:        gtk/data.cpp
 // Purpose:     Various global GTK-specific data
 // Author:      Robert Roebling
-// Id:          $Id: data.cpp 5166 2005-04-29 01:36:53Z davids $
+// Id:          $Id: data.cpp,v 1.48 2004/05/23 20:52:19 JS Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

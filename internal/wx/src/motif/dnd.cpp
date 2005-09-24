@@ -2,14 +2,10 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget, wxDropSource classes
 // Author:      Julian Smart
-// Id:          $Id: dnd.cpp,v 1.10 2005/02/06 17:38:30 MBN Exp $
+// Id:          $Id: dnd.cpp,v 1.11 2005/09/23 12:54:40 MR Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:   	wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "dnd.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

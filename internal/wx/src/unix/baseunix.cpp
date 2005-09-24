@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.06.2003
-// RCS-ID:      $Id: baseunix.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: baseunix.cpp,v 1.13 2005/04/25 10:28:59 MW Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

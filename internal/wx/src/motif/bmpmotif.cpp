@@ -4,14 +4,10 @@
 // Author:      Julian Smart, originally in bitmap.cpp
 // Modified by:
 // Created:     25/03/2003
-// RCS-ID:      $Id: bmpmotif.cpp,v 1.10 2005/09/17 21:54:54 VZ Exp $
+// RCS-ID:      $Id: bmpmotif.cpp,v 1.11 2005/09/23 12:54:37 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "bmpmotif.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

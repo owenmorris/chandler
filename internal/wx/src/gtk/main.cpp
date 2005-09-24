@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: main.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: main.cpp,v 1.4 2004/05/23 20:52:20 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

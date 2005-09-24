@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.07.2003
-// RCS-ID:      $Id: renderg.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: renderg.cpp,v 1.29 2005/04/16 10:38:23 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////

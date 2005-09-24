@@ -4,14 +4,10 @@
 // Author:      Brian Victor
 // Modified by:
 // Created:     12/05/02
-// RCS-ID:      $Id: displayx11.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: displayx11.cpp,v 1.18 2005/09/23 12:55:58 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "display.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

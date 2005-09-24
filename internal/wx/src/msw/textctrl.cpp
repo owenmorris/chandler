@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textctrl.cpp 7379 2005-09-22 18:40:15Z davids $
+// RCS-ID:      $Id: textctrl.cpp,v 1.250 2005/09/23 12:55:13 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "textctrl.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

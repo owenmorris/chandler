@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: filedlg.cpp 6146 2005-07-24 22:32:48Z davids $
+// RCS-ID:      $Id: filedlg.cpp,v 1.58 2005/09/23 12:54:06 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "filedlg.h"
-#endif
 
 #include "wx/wxprec.h"
 

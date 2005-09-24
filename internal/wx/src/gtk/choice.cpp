@@ -2,15 +2,10 @@
 // Name:        choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp 6304 2005-07-31 03:36:31Z davids $
+// Id:          $Id: choice.cpp,v 1.86 2005/09/23 12:53:36 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "choice.h"
-#endif
 
 #include "wx/defs.h"
 

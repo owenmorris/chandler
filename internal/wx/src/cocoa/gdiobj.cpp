@@ -4,14 +4,10 @@
 // Author:      AUTHOR
 // Modified by:
 // Created:     ??/??/98
-// RCS-ID:      $Id: gdiobj.cpp,v 1.4 2005/07/28 22:08:31 VZ Exp $
+// RCS-ID:      $Id: gdiobj.cpp,v 1.5 2005/09/23 12:52:38 MR Exp $
 // Copyright:   (c) AUTHOR
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation "gdiobj.h"
-#endif
 
 #include "wx/gdiobj.h"
 

@@ -2,14 +2,10 @@
 // Name:        popupwin.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: popupwin.cpp,v 1.26 2005/02/03 22:18:18 MBN Exp $
+// Id:          $Id: popupwin.cpp,v 1.27 2005/09/23 12:56:06 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "popupwin.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/log.h"

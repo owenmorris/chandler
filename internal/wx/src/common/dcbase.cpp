@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dcbase.cpp 5818 2005-06-29 23:52:26Z davids $
+// RCS-ID:      $Id: dcbase.cpp,v 1.40 2005/09/23 12:52:47 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "dcbase.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

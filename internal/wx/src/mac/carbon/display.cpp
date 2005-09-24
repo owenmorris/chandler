@@ -4,14 +4,10 @@
 // Author:      Ryan Norton & Brian Victor
 // Modified by: Royce Mitchell III
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp 6303 2005-07-31 01:41:00Z davids $
+// RCS-ID:      $Id: display.cpp,v 1.13 2005/09/23 12:54:05 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "display.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

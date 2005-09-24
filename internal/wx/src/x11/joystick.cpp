@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: joystick.cpp,v 1.5 2004/05/23 20:53:30 JS Exp $
+// RCS-ID:      $Id: joystick.cpp,v 1.6 2005/09/23 12:56:05 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "joystick.h"
-#endif
 
 // Not implemented in X11
 #if 0

@@ -4,14 +4,10 @@
 // Author:      John Labenski
 // Modified by:
 // Created:     14.06.03 (extracted from src/*/filedlg.cpp)
-// RCS-ID:
+// RCS-ID:      $Id: fldlgcmn.cpp,v 1.24 2005/09/23 12:52:53 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "filedlg.h"
-#endif
 
 #ifdef __BORLANDC__
 #pragma hdrstop

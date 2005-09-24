@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: accel.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: accel.cpp,v 1.31 2005/09/23 12:54:51 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "accel.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

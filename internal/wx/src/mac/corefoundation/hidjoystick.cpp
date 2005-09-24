@@ -4,14 +4,10 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2/13/2005
-// RCS-ID:      $Id: hidjoystick.cpp 5168 2005-04-29 23:18:17Z davids $
+// RCS-ID:      $Id: hidjoystick.cpp,v 1.5 2005/09/23 12:54:31 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "joystick.h"
-#endif
 
 #include "wx/wxprec.h"
 

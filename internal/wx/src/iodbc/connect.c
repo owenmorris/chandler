@@ -1,7 +1,7 @@
 /*
  *  connect.c
  *
- *  $Id: connect.c 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: connect.c,v 1.7 2000/01/20 13:19:20 GT Exp $
  *
  *  Connect (load) driver
  *

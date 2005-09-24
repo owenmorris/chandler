@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.62 2004/05/23 20:53:30 JS Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.63 2005/09/23 12:56:06 MR Exp $
 // Copyright:   (c) 2002 Julian Smart
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "toplevel.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

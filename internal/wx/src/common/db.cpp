@@ -16,7 +16,7 @@
 //                -Set ODBC option to only read committed writes to the DB so all
 //                   databases operate the same in that respect
 // Created:     9.96
-// RCS-ID:      $Id: db.cpp 7211 2005-09-16 18:25:39Z davids $
+// RCS-ID:      $Id: db.cpp,v 1.126 2005/09/23 12:52:44 MR Exp $
 // Copyright:   (c) 1996 Remstar International, Inc.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,9 +25,6 @@
 // SYNOPSIS START
 // SYNOPSIS STOP
 */
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "db.h"
-#endif
 
 #include "wx/wxprec.h"
 

@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp 7005 2005-09-07 01:12:00Z davids $
+// RCS-ID:      $Id: grid.cpp,v 1.346 2005/09/23 12:53:26 MR Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "grid.h"
-#endif
 
 // For compilers that support precompilatixon, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -7059,7 +7055,7 @@ void wxGrid::DrawCell( wxDC& dc, const wxGridCellCoords& coords )
     // Note: However, only if it is really _shown_, i.e. not hidden!
     if ( isCurrent && IsCellEditControlShown() )
     {
-        // NB: this "#if..." is temporary and fixes a problem where the
+        // OSAF NB: this "#if..." is temporary and fixes a problem where the
         // edit control is erased by this code after being rendered.
         // On wxMac (QD build only), the cell editor is a wxTextCntl and is rendered
         // implicitly, causing this out-of order render.

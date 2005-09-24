@@ -3,14 +3,10 @@
 // Purpose:   Region class
 // Author:    Stefan Csomor
 // Created:   Fri Oct 24 10:46:34 MET 1997
-// RCS-ID:    $Id: region.cpp 6688 2005-08-19 17:24:23Z davids $
+// RCS-ID:    $Id: region.cpp,v 1.23 2005/09/23 12:54:10 MR Exp $
 // Copyright: (c) 1997 Stefan Csomor
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "region.h"
-#endif
 
 #include "wx/wxprec.h"
 

@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: clipbrd.cpp 6971 2005-09-02 18:56:20Z davids $
+// RCS-ID:      $Id: clipbrd.cpp,v 1.39 2005/09/23 12:54:02 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "clipbrd.h"
-#endif
 
 #include "wx/wxprec.h"
 

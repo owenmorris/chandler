@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Header: /pack/cvsroots/wxwidgets/wxWidgets/src/tiff/tif_getimage.c,v 1.6 2004/12/17 15:37:30 RN Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler

@@ -3,14 +3,10 @@
 // Purpose:   Region class
 // Author:    Julian Smart, Robert Roebling
 // Created:   Fri Oct 24 10:46:34 MET 1997
-// RCS-ID:    $Id: region.cpp,v 1.12 2004/05/23 20:53:30 JS Exp $
+// RCS-ID:    $Id: region.cpp,v 1.13 2005/09/23 12:56:06 MR Exp $
 // Copyright: (c) 1997 Julian Smart, Robert Roebling
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "region.h"
-#endif
 
 #include "wx/region.h"
 #include "wx/gdicmn.h"

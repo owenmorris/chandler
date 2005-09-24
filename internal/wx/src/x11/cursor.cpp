@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: cursor.cpp,v 1.12 2004/05/23 20:53:29 JS Exp $
+// RCS-ID:      $Id: cursor.cpp,v 1.13 2005/09/23 12:56:03 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "cursor.h"
-#endif
 
 #include "wx/cursor.h"
 #include "wx/gdicmn.h"

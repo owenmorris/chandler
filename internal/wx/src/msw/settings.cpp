@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: settings.cpp 6441 2005-08-09 18:29:06Z davids $
+// RCS-ID:      $Id: settings.cpp,v 1.42 2005/07/22 17:13:46 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

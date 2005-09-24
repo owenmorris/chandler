@@ -5,14 +5,10 @@
 // Author:      Julian Smart and Wolfram Gloger
 // Modified by:
 // Created:     1995, 1999
-// RCS-ID:      $Id: glcanvas.cpp,v 1.15 2004/05/23 20:53:30 JS Exp $
+// RCS-ID:      $Id: glcanvas.cpp,v 1.16 2005/09/23 12:56:05 MR Exp $
 // Copyright:   (c) Julian Smart, Wolfram Gloger
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "glcanvas.h"
-#endif
 
 #include "wx/setup.h"
 

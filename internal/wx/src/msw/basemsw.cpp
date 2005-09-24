@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.06.2003
-// RCS-ID:      $Id: basemsw.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: basemsw.cpp,v 1.4 2004/05/23 20:52:56 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

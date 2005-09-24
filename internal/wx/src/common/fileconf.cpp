@@ -4,15 +4,11 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: fileconf.cpp,v 1.138 2005/09/23 12:52:52 MR Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "fileconf.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

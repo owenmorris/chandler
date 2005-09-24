@@ -1,7 +1,7 @@
 /*
  *  herr.h
  *
- *  $Id: herr.h 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: herr.h,v 1.3 1999/01/22 10:52:18 RR Exp $
  *
  *  Error stack management functions
  *

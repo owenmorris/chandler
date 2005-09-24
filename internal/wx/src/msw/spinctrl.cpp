@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.cpp 6300 2005-07-30 03:30:59Z davids $
+// RCS-ID:      $Id: spinctrl.cpp,v 1.58 2005/09/23 12:55:10 MR Exp $
 // Copyright:   (c) 1999-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,11 +12,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "spinctrlbase.h"
-    #pragma implementation "spinctrl.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

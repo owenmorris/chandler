@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-08
-// RCS-ID:      $Id: stackwalk.cpp 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: stackwalk.cpp,v 1.8 2005/08/03 23:57:00 VZ Exp $
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

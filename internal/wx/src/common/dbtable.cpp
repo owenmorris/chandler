@@ -6,7 +6,7 @@
 //              Bart Jourquin
 //              Mark Johnson
 // Created:     9.96
-// RCS-ID:      $Id: dbtable.cpp 7211 2005-09-16 18:25:39Z davids $
+// RCS-ID:      $Id: dbtable.cpp,v 1.106 2005/09/23 12:52:46 MR Exp $
 // Copyright:   (c) 1996 Remstar International, Inc.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,10 +15,6 @@
 // SYNOPSIS START
 // SYNOPSIS STOP
 */
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "dbtable.h"
-#endif
 
 #include  "wx/wxprec.h"
 

@@ -7,14 +7,10 @@
 // Author:      Jason Bagley 
 // Modified by: Ryan Norton (To make it work :), plus bug fixes)
 // Created:     2004-30-01
-// RCS-ID:      $Id: drawer.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: drawer.cpp,v 1.6 2005/09/23 12:54:06 MR Exp $
 // Copyright:   (c) Jason Bagley; Art & Logic, Inc.
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "control.h"
-#endif
 
 #include "wx/wxprec.h"
 

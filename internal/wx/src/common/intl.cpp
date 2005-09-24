@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp 7254 2005-09-19 03:34:38Z davids $
+// RCS-ID:      $Id: intl.cpp,v 1.167 2005/09/23 12:53:00 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,10 +17,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "intl.h"
-#endif
 
 #if defined(__BORLAND__) && !defined(__WXDEBUG__)
     // There's a bug in Borland's compiler that breaks wxLocale with -O2,

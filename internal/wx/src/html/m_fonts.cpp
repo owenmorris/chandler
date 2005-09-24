@@ -2,14 +2,10 @@
 // Name:        m_fonts.cpp
 // Purpose:     wxHtml module for fonts & colors of fonts
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: m_fonts.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: m_fonts.cpp,v 1.27 2005/09/23 12:53:53 MR Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation
-#endif
 
 #include "wx/wxprec.h"
 

@@ -2,15 +2,10 @@
 // Name:        htmlpars.cpp
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: htmlpars.cpp,v 1.49 2005/09/23 12:53:52 MR Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "htmlpars.h"
-#endif
 
 #include "wx/wxprec.h"
 
@@ -309,14 +304,10 @@ void wxHtmlParser::DoParsing(int begin_pos, int end_pos)
         }
         else if (m_CurTag)
         {
-            // Add tag:
-            if (m_CurTag)
-            {
-                if (m_CurTag->HasEnding())
-                    begin_pos = m_CurTag->GetEndPos2();
-                else
-                    begin_pos = m_CurTag->GetBeginPos();
-            }
+            if (m_CurTag->HasEnding())
+                begin_pos = m_CurTag->GetEndPos2();
+            else
+                begin_pos = m_CurTag->GetBeginPos();
             wxHtmlTag *t = m_CurTag;
             m_CurTag = m_CurTag->GetNextTag();
             AddTag(*t);

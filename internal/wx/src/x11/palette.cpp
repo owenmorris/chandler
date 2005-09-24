@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: palette.cpp,v 1.10 2004/12/08 17:43:18 ABX Exp $
+// RCS-ID:      $Id: palette.cpp,v 1.11 2005/09/23 12:56:06 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,10 +33,6 @@ X11 colormap for a particular window, and AFAIK this is not
 recommended; only the window manager should do this...  Also, it is
 not the functionality that wxPalette::Create() aims to provide.
  */
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "palette.h"
-#endif
 
 #include "wx/palette.h"
 #include "wx/window.h"

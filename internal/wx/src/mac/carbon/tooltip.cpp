@@ -2,14 +2,10 @@
 // Name:        tooltip.cpp
 // Purpose:     wxToolTip implementation
 // Author:      Stefan Csomor
-// Id:          $Id: tooltip.cpp 5166 2005-04-29 01:36:53Z davids $
+// Id:          $Id: tooltip.cpp,v 1.37 2005/09/23 12:54:12 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "tooltip.h"
-#endif
 
 #include "wx/wxprec.h"
 

@@ -5,17 +5,13 @@
 // Created:    April 1997
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 2000-1999, Guillermo Rodriguez Garcia
-// RCS_ID:     $Id: cfsocket.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS_ID:     $Id: cfsocket.cpp,v 1.5 2005/09/23 12:54:01 MR Exp $
 // License:    see wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 // ==========================================================================
 // Declarations
 // ==========================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "socket.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

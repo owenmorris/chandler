@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Header: /pack/cvsroots/wxwidgets/wxWidgets/src/tiff/tiffiop.h,v 1.7 2005/04/22 13:18:47 MW Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -34,7 +34,7 @@
  * a port.h file that reflects the system capabilities.
  * Doing this obviates all the dreck done in tiffcomp.h.
  */
-#if defined(unix) || defined(__unix)
+#if (defined(unix) || defined(__unix)) && !defined(__DJGPP__)
 #include "port.h"
 #include "tiffconf.h"
 #else

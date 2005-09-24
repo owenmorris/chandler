@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcprint.cpp 6908 2005-08-31 16:39:45Z davids $
+// RCS-ID:      $Id: dcprint.cpp,v 1.38 2005/09/23 12:54:05 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "dcprint.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcmemory.cpp,v 1.8 2004/05/23 20:53:30 JS Exp $
+// RCS-ID:      $Id: dcmemory.cpp,v 1.9 2005/09/23 12:56:04 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "dcmemory.h"
-#endif
 
 #include "wx/dcmemory.h"
 #include "wx/settings.h"

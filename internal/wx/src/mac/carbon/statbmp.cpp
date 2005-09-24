@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: statbmp.cpp 6744 2005-08-23 14:30:53Z davids $
+// RCS-ID:      $Id: statbmp.cpp,v 1.29 2005/09/23 12:54:11 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-  #pragma implementation "statbmp.h"
-#endif
 
 #include "wx/wxprec.h"
 

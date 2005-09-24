@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.00
-// RCS-ID:      $Id: win32.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: win32.cpp,v 1.77 2005/05/31 16:17:57 JS Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

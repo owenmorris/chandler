@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: cursor.cpp 6265 2005-07-29 01:02:38Z davids $
+// RCS-ID:      $Id: cursor.cpp,v 1.29 2005/09/23 12:54:03 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "cursor.h"
-#endif
 
 #include "wx/wxprec.h"
 

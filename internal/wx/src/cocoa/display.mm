@@ -4,14 +4,10 @@
 // Author:      Ryan Norton
 // Modified by: 
 // Created:     2004-10-03
-// RCS-ID:      $Id: display.mm,v 1.3 2004/10/08 01:26:42 RN Exp $
+// RCS-ID:      $Id: display.mm,v 1.4 2005/09/23 12:52:37 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-    #pragma implementation "display.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

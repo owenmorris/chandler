@@ -4,14 +4,10 @@
 // Author:      Arthur Seaton, Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: memory.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: memory.cpp,v 1.74 2005/09/23 12:53:03 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "memory.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -25,10 +21,6 @@
 #endif
 
 #if (defined(__WXDEBUG__) && wxUSE_MEMORY_TRACING) || wxUSE_DEBUG_CONTEXT
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-// #pragma implementation
-#endif
 
 #ifndef WX_PRECOMP
 #include "wx/utils.h"

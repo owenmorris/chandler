@@ -4,7 +4,7 @@
 // Author:      John Platts, Vadim Zeitlin
 // Modified by:
 // Created:     2003
-// RCS-ID:      $Id: uxtheme.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: uxtheme.cpp,v 1.15 2005/09/23 12:55:15 MR Exp $
 // Copyright:   (c) 2003 John Platts, Vadim Zeitlin
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,6 @@
 // ============================================================================
 // declarations
 // ============================================================================
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "uxtheme.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

@@ -5,7 +5,7 @@
  * Licence:     wxWindows Licence
  * Author:      Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket GUI-specific MSW code
- * CVSID:   $Id: gsockmsw.cpp 6038 2005-07-18 21:58:47Z davids $
+ * CVSID:       $Id: gsockmsw.cpp,v 1.16 2005/05/04 18:55:50 JS Exp $
  * -------------------------------------------------------------------------
  */
 

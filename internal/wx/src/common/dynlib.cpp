@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.cpp 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: dynlib.cpp,v 1.108 2005/09/23 12:52:50 MR Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -20,10 +20,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#   pragma implementation "dynlib.h"
-#endif
 
 #include  "wx/wxprec.h"
 

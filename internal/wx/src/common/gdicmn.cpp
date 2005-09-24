@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: gdicmn.cpp,v 1.118 2005/09/23 12:52:55 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "gdicmn.h"
-#endif
 
 #ifdef __VMS
 #define XtDisplay XTDISPLAY

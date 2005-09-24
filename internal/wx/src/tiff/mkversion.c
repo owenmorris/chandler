@@ -1,4 +1,4 @@
-/* "$Header$ */
+/* "$Header: /pack/cvsroots/wxwidgets/wxWidgets/src/tiff/mkversion.c,v 1.1 2004/11/20 00:17:38 VZ Exp $ */
 
 /*
  * Copyright (c) 1995-1997 Sam Leffler

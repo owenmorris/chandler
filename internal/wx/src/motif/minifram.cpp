@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: minifram.cpp,v 1.5 2004/05/23 20:52:49 JS Exp $
+// RCS-ID:      $Id: minifram.cpp,v 1.6 2005/09/23 12:54:42 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "minifram.h"
-#endif
 
 #include "wx/minifram.h"
 

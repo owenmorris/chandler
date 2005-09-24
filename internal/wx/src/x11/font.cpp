@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: font.cpp,v 1.17 2005/06/10 14:57:11 JS Exp $
+// RCS-ID:      $Id: font.cpp,v 1.19 2005/09/23 12:56:05 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "font.h"
-#endif
 
 #ifdef __VMS
 #pragma message disable nosimpint

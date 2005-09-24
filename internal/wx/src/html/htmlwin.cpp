@@ -2,16 +2,10 @@
 // Name:        htmlwin.cpp
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML (implementation)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.cpp 5215 2005-05-04 18:35:20Z davids $
+// RCS-ID:      $Id: htmlwin.cpp,v 1.110 2005/09/23 12:53:52 MR Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "htmlwin.h"
-#pragma implementation "htmlproc.h"
-#endif
 
 #include "wx/wxprec.h"
 
@@ -826,6 +820,8 @@ bool wxHtmlWindow::CopySelection(ClipboardType t)
             return true;
         }
     }
+#else
+    wxUnusedVar(t);
 #endif // wxUSE_CLIPBOARD
 
     return false;
@@ -1027,6 +1023,8 @@ void wxHtmlWindow::OnMouseDown(wxMouseEvent& event)
             CaptureMouse();
         }
     }
+#else
+    wxUnusedVar(event);
 #endif // wxUSE_CLIPBOARD
 }
 

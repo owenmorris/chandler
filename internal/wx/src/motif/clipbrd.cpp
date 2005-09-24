@@ -4,15 +4,10 @@
 // Author:      Julian Smart
 // Modified by: Mattia Barbon (added support for generic wxDataObjects)
 // Created:     17/09/98
-// RCS-ID:      $Id: clipbrd.cpp,v 1.26 2005/09/13 16:36:50 VZ Exp $
+// RCS-ID:      $Id: clipbrd.cpp,v 1.27 2005/09/23 12:54:38 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation
-#pragma implementation "clipbrd.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"

@@ -1,7 +1,7 @@
 /*
  *  hstmt.h
  *
- *  $Id: hstmt.h 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: hstmt.h,v 1.4 1999/06/01 15:31:41 VZ Exp $
  *
  *  Query statement object management functions
  *

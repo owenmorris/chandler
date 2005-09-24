@@ -4,14 +4,10 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.33 2005/02/14 11:11:56 JJ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.35 2005/09/23 12:56:02 MR Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "bitmap.h"
-#endif
 
 #include "wx/bitmap.h"
 #include "wx/icon.h"

@@ -2,14 +2,10 @@
 // Name:        dataobj.cpp
 // Purpose:     wxDataObject class
 // Author:      Julian Smart
-// Id:          $Id: dataobj.cpp,v 1.11 2004/12/09 19:39:17 VZ Exp $
+// Id:          $Id: dataobj.cpp,v 1.12 2005/09/23 12:56:03 MR Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "dataobj.h"
-#endif
 
 #include "wx/defs.h"
 

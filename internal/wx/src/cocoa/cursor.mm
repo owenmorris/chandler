@@ -4,14 +4,10 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-05
-// RCS-ID:      $Id: cursor.mm,v 1.8 2005/07/28 22:08:31 VZ Exp $
+// RCS-ID:      $Id: cursor.mm,v 1.9 2005/09/23 12:52:37 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
-
-#ifdef __GNUG__
-#pragma implementation "cursor.h"
-#endif
 
 #include "wx/wxprec.h"
 #ifndef WX_PRECOMP

@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Header: /pack/cvsroots/wxwidgets/wxWidgets/src/tiff/tif_dumpmode.c,v 1.4 2004/11/19 22:29:43 VZ Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

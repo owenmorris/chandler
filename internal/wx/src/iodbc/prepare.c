@@ -1,7 +1,7 @@
 /*
  *  prepare.c
  *
- *  $Id: prepare.c 5166 2005-04-29 01:36:53Z davids $
+ *  $Id: prepare.c,v 1.5 1999/06/01 15:31:41 VZ Exp $
  *
  *  Prepare a query
  *

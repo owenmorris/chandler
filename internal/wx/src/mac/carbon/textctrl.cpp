@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp 6972 2005-09-02 18:57:19Z davids $
+// RCS-ID:      $Id: textctrl.cpp,v 1.163 2005/09/23 12:54:11 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "textctrl.h"
-#endif
 
 #include "wx/wxprec.h"
 

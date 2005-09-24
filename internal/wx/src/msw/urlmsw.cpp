@@ -4,7 +4,7 @@
 // Author:      Hajo Kirchhoff
 // Modified by:
 // Created:     06/11/2003
-// RCS-ID:      $Id: urlmsw.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: urlmsw.cpp,v 1.5 2004/11/10 21:02:44 VZ Exp $
 // Copyright:   (c) 2003 Hajo Kirchhoff
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
