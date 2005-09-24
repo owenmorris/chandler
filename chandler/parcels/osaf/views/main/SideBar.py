@@ -108,26 +108,53 @@ class wxSidebar(ControlBlocks.wxTable):
 
         item, attribute = self.GetTable().GetValue (row, 0)
 
+        def stopHovering():
+            del self.hoverImageRow
+            """
+            @@@ this comment is applicable for all 3 ReleaseMouse calls in this routine
+            A possible bug (either here in SideBar or perhaps within wxWidgets) causes
+            this window to not have the mouse capture event though it never explicit released it.
+            You can verify this by enabling (i.e., commenting in) this assert:
+            assert gridWindow.HasCapture()
+            """
+            if (gridWindow.HasCapture()):
+                gridWindow.ReleaseMouse()
+            for button in blockItem.buttons:
+                method = getattr (type (button), "onOverButton", False)
+                if method:
+                    if button.buttonState['overButton']:
+                        button.buttonState['overButton'] = False
+                        method (button, item)
+
         if (cellRect.InsideXY (x, y) and
-            not hasattr (self, 'hoverImageRow') and
             not self.IsCellEditControlEnabled() and
             isinstance (item, AbstractCollection)):
-                assert not gridWindow.HasCapture()
-                gridWindow.CaptureMouse()
-
-                self.hoverImageRow = row
-                self.cellRect = cellRect
-                self.pressedButton = None
-
-                # Initialize the buttons state and store in temporary attributes that don't persist
+                if not hasattr (self, 'hoverImageRow'):
+                    assert not gridWindow.HasCapture()
+                    gridWindow.CaptureMouse()
+    
+                    self.hoverImageRow = row
+                    self.cellRect = cellRect
+                    self.pressedButton = None
+    
+                    # Initialize the buttons state and store in temporary attributes that don't persist
+                    for button in blockItem.buttons:
+                        method = getattr (type (button), "getChecked", False)
+                        checked = method and method (button, item)
+                        imageRect = self.GetRectFromOffsets (cellRect, button.buttonOffsets)
+                        button.buttonState = {'imageRect': imageRect,
+                                              'screenMouseDown': checked,
+                                              'blockChecked': checked,
+                                              'overButton': False}
+                        self.RefreshRect (imageRect)
                 for button in blockItem.buttons:
-                    method = getattr (type (button), "getChecked", False)
-                    checked = method and method (button, item)
-                    imageRect = self.GetRectFromOffsets (cellRect, button.buttonOffsets)
-                    button.buttonState = {'imageRect': imageRect,
-                                          'screenMouseDown': checked,
-                                          'blockChecked': checked}
-                    self.RefreshRect (imageRect)
+                    method = getattr (type (button), "onOverButton", False)
+                    if method:
+                        overButton = button.buttonState['imageRect'].InsideXY (x, y)
+                        if button.buttonState['overButton'] != overButton:
+                            button.buttonState['overButton'] = overButton
+                            method (button, item)
+
 
         if hasattr (self, 'hoverImageRow'):
             if event.LeftDown():
@@ -166,30 +193,18 @@ class wxSidebar(ControlBlocks.wxTable):
                             self.RefreshRect (pressedButton.buttonState['imageRect'])
                     elif not self.cellRect.InsideXY (x, y):
                         self.RefreshRect (imageRect)
-                        del self.hoverImageRow
-                        """
-                        @@@ this comment is applicable for all 3 ReleaseMouse calls in this routine
-                        A possible bug (either here in SideBar or perhaps within wxWidgets) causes
-                        this window to not have the mouse capture event though it never explicit released it.
-                        You can verify this by enabling (i.e., commenting in) this assert:
-                        assert gridWindow.HasCapture()
-                        """
-                        if (gridWindow.HasCapture()):
-                            gridWindow.ReleaseMouse()
+                        stopHovering()
                     self.pressedButton = None
 
             elif event.LeftDClick():
-                if (gridWindow.HasCapture()):
-                    gridWindow.ReleaseMouse()
-                del self.hoverImageRow
+                # Stop hover if we're going to edit
+                stopHovering()
 
             elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
                 for button in blockItem.buttons:
                     self.RefreshRect (button.buttonState['imageRect'])
                 self.pressedButton = None
-                del self.hoverImageRow
-                if (gridWindow.HasCapture()):
-                    gridWindow.ReleaseMouse()
+                stopHovering()
 
             elif (self.pressedButton is not None):
                 buttonState = self.pressedButton.buttonState
@@ -359,6 +374,7 @@ class SSSidebarButton (schema.Item):
     buttonOwner = schema.One("SidebarBlock",
                              inverse="buttons",
                              initialValue = None)
+
 
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
@@ -614,6 +630,19 @@ class SSSidebarSharingButton (SSSidebarButton):
 
         return image
 
+    def onOverButton (self, item):
+        gridWindow = self.buttonOwner.widget.GetGridWindow()
+        errorString = getattr (sharing.getShare(item), "error", False)
+        if self.buttonState['overButton']:
+            if errorString:
+                gridWindow.SetToolTipString (errorString)
+                gridWindow.GetToolTip().Enable (True)
+        else:
+            toolTip = gridWindow.GetToolTip()
+            if toolTip:
+                gridWindow.GetToolTip().Enable (False)
+                gridWindow.SetToolTip (None)
+    
 
 class SidebarBlock(ControlBlocks.Table):
     filterKind = schema.One(
