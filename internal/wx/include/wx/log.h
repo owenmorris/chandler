@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: log.h 7323 2005-09-20 22:53:51Z davids $
+// RCS-ID:      $Id: log.h,v 1.108 2005/09/23 12:48:43 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_LOG_H_
 #define _WX_LOG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "log.h"
-#endif
 
 #include "wx/defs.h"
 

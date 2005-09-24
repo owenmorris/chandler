@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     28/6/2000
-// RCS-ID:      $Id: splash.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: splash.h,v 1.12 2005/09/23 12:49:08 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "splash.h"
-#endif
 
 #ifndef _WX_SPLASH_H_
 #define _WX_SPLASH_H_

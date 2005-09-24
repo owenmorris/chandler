@@ -6,7 +6,7 @@
  * Copyright:   (c) Guilhem Lavaux
  * Licence:     wxWindows Licence
  * Purpose:     GSocket include file (system independent)
- * CVSID:   $Id: gsocket.h 6038 2005-07-18 21:58:47Z davids $
+ * CVSID:       $Id: gsocket.h,v 1.49 2005/05/04 18:51:58 JS Exp $
  * -------------------------------------------------------------------------
  */
 

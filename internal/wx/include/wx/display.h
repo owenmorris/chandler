@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III
 // Modified by: Vadim Zeitlin (resolution changes, display modes, ...)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: display.h,v 1.21 2005/09/23 12:48:36 MR Exp $
 // Copyright:   (c) 2002-2003 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,10 +13,6 @@
 #define _WX_DISPLAY_H_BASE_
 
 #if wxUSE_DISPLAY
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "displaybase.h"
-#endif
 
 #include "wx/dynarray.h"
 #include "wx/vidmode.h"

@@ -1,7 +1,7 @@
 /*
  *  isql.h
  *
- *  $Id: isql.h 7211 2005-09-16 18:25:39Z davids $
+ *  $Id: isql.h,v 1.10 2005/09/16 11:22:32 JS Exp $
  *
  *  iODBC defines
  *

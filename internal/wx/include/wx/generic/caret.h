@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin (original code by Robert Roebling)
 // Modified by:
 // Created:     25.05.99
-// RCS-ID:      $Id: caret.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: caret.h,v 1.13 2005/09/23 12:49:03 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CARET_H_
 #define _WX_CARET_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "caret.h"
-#endif
 
 #include "wx/timer.h"
 

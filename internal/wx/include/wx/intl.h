@@ -5,17 +5,13 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - plural forms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: intl.h,v 1.59 2005/09/23 12:48:42 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_INTL_H_
 #define _WX_INTL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "intl.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/string.h"

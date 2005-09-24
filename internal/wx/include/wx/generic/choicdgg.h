@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     01/02/97
-// RCS-ID:      $Id: choicdgg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: choicdgg.h,v 1.35 2005/09/23 12:49:03 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __CHOICEDLGH_G__
 #define __CHOICEDLGH_G__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "choicdgg.h"
-#endif
 
 #include "wx/dynarray.h"
 #include "wx/dialog.h"

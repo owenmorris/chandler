@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: list.h,v 1.94 2005/09/23 12:48:42 MR Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,11 +24,6 @@
 
 #ifndef _WX_LISTH__
 #define _WX_LISTH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA) && \
-    !(defined(__MINGW32__) && __GNUC__ == 3 && __GNUC_MINOR__ == 2)
-#pragma interface "list.h"
-#endif
 
 // -----------------------------------------------------------------------------
 // headers

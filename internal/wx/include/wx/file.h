@@ -5,17 +5,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: file.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: file.h,v 1.48 2005/09/23 12:48:38 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FILEH__
 #define _WX_FILEH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "file.h"
-#endif
 
 #include  "wx/defs.h"
 

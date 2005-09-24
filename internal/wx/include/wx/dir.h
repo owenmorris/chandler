@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.12.99
-// RCS-ID:      $Id: dir.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dir.h,v 1.19 2005/09/23 12:48:36 MR Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DIR_H_
 #define _WX_DIR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dir.h"
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/string.h"

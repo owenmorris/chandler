@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: splitter.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: splitter.h,v 1.54 2005/09/23 12:49:08 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __SPLITTERH_G__
 #define __SPLITTERH_G__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "splitter.h"
-#endif
 
 #include "wx/window.h"                      // base class declaration
 #include "wx/containr.h"                    // wxControlContainer

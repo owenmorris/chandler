@@ -3,17 +3,13 @@
 // Purpose:     a generic wxStaticLine class
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statline.h 5166 2005-04-29 01:36:53Z davids $
+// Version:     $Id: statline.h,v 1.11 2005/09/23 12:49:08 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GENERIC_STATLINE_H_
 #define _WX_GENERIC_STATLINE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "statline.h"
-#endif
 
 class wxStaticBox;
 

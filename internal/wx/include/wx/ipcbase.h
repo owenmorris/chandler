@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     4/1/98
-// RCS-ID:      $Id: ipcbase.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: ipcbase.h,v 1.26 2005/09/23 12:48:42 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_IPCBASEH__
 #define _WX_IPCBASEH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "ipcbase.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

@@ -5,17 +5,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.01.00
-// RCS-ID:      $Id: cmdline.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: cmdline.h,v 1.27 2005/09/23 12:48:32 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CMDLINE_H_
 #define _WX_CMDLINE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "cmdline.h"
-#endif
 
 #include "wx/defs.h"
 

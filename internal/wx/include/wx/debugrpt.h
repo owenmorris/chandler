@@ -3,7 +3,7 @@
 // Purpose:     declaration of wxDebugReport class
 // Author:      Vadim Zeitlin
 // Created:     2005-01-17
-// RCS-ID:      $Id: debugrpt.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: debugrpt.h,v 1.7 2005/04/16 21:42:16 RN Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

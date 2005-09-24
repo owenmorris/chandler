@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: VZ at 05.02.00 to derive from wxStatusBarBase
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: statusbr.h,v 1.27 2005/09/23 12:49:08 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GENERIC_STATUSBR_H_
 #define _WX_GENERIC_STATUSBR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "statusbr.h"
-#endif
 
 #include "wx/pen.h"
 #include "wx/font.h"

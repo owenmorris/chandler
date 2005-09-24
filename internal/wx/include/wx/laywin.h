@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: laywin.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: laywin.h,v 1.2 2005/05/04 18:51:59 JS Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

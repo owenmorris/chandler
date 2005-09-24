@@ -3,18 +3,13 @@
 // Purpose:     wxHtmlCell class is used by wxHtmlWindow/wxHtmlWinParser
 //              as a basic visual element of HTML page
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlcell.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: htmlcell.h,v 1.59 2005/09/23 12:49:26 MR Exp $
 // Copyright:   (c) 1999-2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _WX_HTMLCELL_H_
 #define _WX_HTMLCELL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "htmlcell.h"
-#endif
 
 #include "wx/defs.h"
 

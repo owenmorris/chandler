@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: dirctrl.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: dirctrl.h,v 1.2 2005/05/04 18:51:57 JS Exp $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 

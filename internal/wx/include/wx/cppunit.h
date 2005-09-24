@@ -3,7 +3,7 @@
 // Purpose:     wrapper header for CppUnit headers
 // Author:      Vadim Zeitlin
 // Created:     15.02.04
-// RCS-ID:      $Id: cppunit.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: cppunit.h,v 1.6 2005/05/04 18:51:56 JS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////

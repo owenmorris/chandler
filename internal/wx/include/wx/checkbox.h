@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: checkbox.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: checkbox.h,v 1.23 2005/01/25 06:55:06 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

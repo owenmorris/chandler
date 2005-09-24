@@ -2,17 +2,13 @@
 // Name:        imagtiff.h
 // Purpose:     wxImage TIFF handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagtiff.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: imagtiff.h,v 1.14 2005/09/23 12:48:42 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_IMAGTIFF_H_
 #define _WX_IMAGTIFF_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "imagtiff.h"
-#endif
 
 #include "wx/defs.h"
 

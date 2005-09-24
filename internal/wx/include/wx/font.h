@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: font.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: font.h,v 1.51 2005/09/23 12:48:39 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FONT_H_BASE_
 #define _WX_FONT_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "fontbase.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

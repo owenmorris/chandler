@@ -2,17 +2,13 @@
 // Name:        imagiff.h
 // Purpose:     wxImage handler for Amiga IFF images
 // Author:      Steffen Gutmann
-// RCS-ID:      $Id: imagiff.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: imagiff.h,v 1.9 2005/09/23 12:48:41 MR Exp $
 // Copyright:   (c) Steffen Gutmann, 2002
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_IMAGE_IFF_H_
 #define _WX_IMAGE_IFF_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "imagiff.h"
-#endif
 
 #include "wx/image.h"
 

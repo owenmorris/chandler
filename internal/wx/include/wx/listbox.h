@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: listbox.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: listbox.h,v 1.28 2005/09/23 12:48:43 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,10 +15,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "listboxbase.h"
-#endif
 
 #include "wx/defs.h"
 

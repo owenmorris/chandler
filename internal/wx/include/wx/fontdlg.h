@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.05.02
-// RCS-ID:      $Id: fontdlg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: fontdlg.h,v 1.28 2004/11/16 14:32:17 RN Exp $
 // Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

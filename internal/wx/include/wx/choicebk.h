@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by: Wlodzimierz ABX Skiba from wx/listbook.h
 // Created:     15.09.04
-// RCS-ID:      $Id: choicebk.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: choicebk.h,v 1.7 2005/09/23 12:48:32 MR Exp $
 // Copyright:   (c) Vadim Zeitlin, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CHOICEBOOK_H_
 #define _WX_CHOICEBOOK_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "choicebook.h"
-#endif
 
 #include "wx/defs.h"
 

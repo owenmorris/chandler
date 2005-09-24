@@ -4,17 +4,13 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     29/01/2002
-// RCS-ID:      $Id: hashmap.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: hashmap.h,v 1.47 2005/09/23 12:48:41 MR Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_HASHMAP_H_
 #define _WX_HASHMAP_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "hashmap.h"
-#endif
 
 #include "wx/string.h"
 

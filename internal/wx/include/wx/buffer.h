@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: buffer.h,v 1.34 2005/04/16 04:08:35 RD Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

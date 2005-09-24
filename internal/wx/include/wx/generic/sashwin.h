@@ -6,17 +6,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sashwin.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: sashwin.h,v 1.23 2005/09/23 12:49:07 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_SASHWIN_H_G_
 #define _WX_SASHWIN_H_G_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "sashwin.h"
-#endif
 
 #if wxUSE_SASH
 

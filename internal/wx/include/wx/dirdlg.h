@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: dirdlg.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: dirdlg.h,v 1.39 2005/05/04 18:51:57 JS Exp $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 

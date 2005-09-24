@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: filedlg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: filedlg.h,v 1.40 2005/09/23 12:48:38 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -15,10 +15,6 @@
 #include "wx/defs.h"
 
 #if wxUSE_FILEDLG
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "filedlg.h"
-#endif
 
 #include "wx/dialog.h"
 #include "wx/arrstr.h"

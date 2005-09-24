@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: VZ at 25.02.00: type safe hashes with WX_DECLARE_HASH()
 // Created:     01/02/97
-// RCS-ID:      $Id: hash.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: hash.h,v 1.43 2005/09/23 12:48:40 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_HASH_H__
 #define _WX_HASH_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "hash.h"
-#endif
 
 #include "wx/defs.h"
 

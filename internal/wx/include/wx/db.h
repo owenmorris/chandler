@@ -17,7 +17,7 @@
 //                     databases operate the same in that respect
 //
 // Created:     9.96
-// RCS-ID:      $Id: db.h 7211 2005-09-16 18:25:39Z davids $
+// RCS-ID:      $Id: db.h,v 1.99 2005/09/23 12:48:35 MR Exp $
 // Copyright:   (c) 1996 Remstar International, Inc.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,10 +30,6 @@
 //               return columns in the order they were created
 #define OLD_GETCOLUMNS 1
 #define EXPERIMENTAL_WXDB_FUNCTIONS 1
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "db.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/string.h"

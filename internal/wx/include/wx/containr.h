@@ -5,17 +5,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: containr.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: containr.h,v 1.17 2005/09/23 12:48:33 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CONTAINR_H_
 #define _WX_CONTAINR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "containr.h"
-#endif
 
 class WXDLLEXPORT wxFocusEvent;
 class WXDLLEXPORT wxNavigationKeyEvent;

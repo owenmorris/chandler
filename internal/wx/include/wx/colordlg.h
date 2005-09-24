@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitiln
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colordlg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: colordlg.h,v 1.18 2005/01/18 10:31:20 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

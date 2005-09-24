@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.07.99
-// RCS-ID:      $Id: dialup.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dialup.h,v 1.28 2005/09/23 12:48:36 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DIALUP_H
 #define _WX_DIALUP_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dialup.h"
-#endif
 
 #if wxUSE_DIALUP_MANAGER
 

@@ -3,17 +3,13 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h 6133 2005-07-23 00:29:23Z davids $
+// RCS-ID:      $Id: listctrl.h,v 1.101 2005/09/23 12:49:05 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __LISTCTRLH_G__
 #define __LISTCTRLH_G__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "listctrl.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

@@ -3,17 +3,13 @@
 // Purpose:     wxPostScriptDC class
 // Author:      Julian Smart and others
 // Modified by:
-// RCS-ID:      $Id: dcpsg.h 7180 2005-09-15 18:04:21Z davids $
+// RCS-ID:      $Id: dcpsg.h,v 1.34 2005/09/23 12:49:04 MR Exp $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DCPSG_H_
 #define _WX_DCPSG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "dcpsg.h"
-#endif
 
 #include "wx/dc.h"
 

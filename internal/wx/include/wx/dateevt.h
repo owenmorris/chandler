@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-10
-// RCS-ID:      $Id: dateevt.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dateevt.h,v 1.4 2005/03/09 16:29:55 ABX Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

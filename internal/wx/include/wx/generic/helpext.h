@@ -4,17 +4,13 @@
  * (C) 1998 by Karsten Ballüder (Ballueder@usa.net)                 *
  * License: wxWindows licence                                       *
  *                                                                  *
- * $Id: helpext.h 5166 2005-04-29 01:36:53Z davids $
+ * $Id: helpext.h,v 1.19 2005/09/23 12:49:05 MR Exp $
  *******************************************************************/
 
 #ifndef __WX_HELPEXT_H_
 #define __WX_HELPEXT_H_
 
 #if wxUSE_HELP
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#   pragma interface "wxexthlp.h"
-#endif
 
 #include "wx/helpbase.h"
 

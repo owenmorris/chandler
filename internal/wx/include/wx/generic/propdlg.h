@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-03-12
-// RCS-ID:      $Id: propdlg.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: propdlg.h,v 1.5 2005/09/23 12:49:07 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PROPDLG_H_
 #define _WX_PROPDLG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "propdlg.h"
-#endif
 
 #include "wx/defs.h"
 

@@ -4,7 +4,7 @@
 // Author:      Roger Gammans
 // Modified by:
 // Created:
-// RCS-ID:      $Id: dbkeyg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dbkeyg.h,v 1.4 2004/09/10 12:55:47 ABX Exp $
 // Copyright:   (c) 1999 The Computer Surgery (roger@computer-surgery.co.uk)
 // Licence:     wxWindows licence
 //

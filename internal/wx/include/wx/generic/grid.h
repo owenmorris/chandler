@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by:
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: grid.h,v 1.148 2005/09/23 12:49:04 MR Exp $
 // Copyright:   (c) Michael Bedward
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,10 +13,6 @@
 
 #ifndef __WXGRID_H__
 #define __WXGRID_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "grid.h"
-#endif
 
 #include "wx/hashmap.h"
 #include "wx/panel.h"

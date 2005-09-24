@@ -4,7 +4,7 @@
 // Author:      Vadim Zetlin
 // Modified by:
 // Created:     15.08.00
-// RCS-ID:      $Id: button.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: button.h,v 1.26 2005/01/24 07:38:48 ABX Exp $
 // Copyright:   (c) Vadim Zetlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

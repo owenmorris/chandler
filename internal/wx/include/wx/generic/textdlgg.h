@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: textdlgg.h 6935 2005-09-01 03:05:53Z davids $
+// RCS-ID:      $Id: textdlgg.h,v 1.30 2005/09/23 12:49:09 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TEXTDLGH_G__
 #define __TEXTDLGH_G__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "textdlgg.h"
-#endif
 
 #include "wx/defs.h"
 

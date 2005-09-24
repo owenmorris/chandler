@@ -2,17 +2,13 @@
 // Name:        imagpng.h
 // Purpose:     wxImage PNG handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagpng.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: imagpng.h,v 1.12 2005/09/23 12:48:41 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_IMAGPNG_H_
 #define _WX_IMAGPNG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "imagpng.h"
-#endif
 
 #include "wx/defs.h"
 

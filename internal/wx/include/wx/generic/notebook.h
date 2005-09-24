@@ -3,17 +3,13 @@
 // Purpose:     wxNotebook class (a.k.a. property sheet, tabbed dialog)
 // Author:      Julian Smart
 // Modified by:
-// RCS-ID:      $Id: notebook.h 6858 2005-08-29 01:19:27Z davids $
+// RCS-ID:      $Id: notebook.h,v 1.21 2005/09/23 12:49:06 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_NOTEBOOK_H_
 #define _WX_NOTEBOOK_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "notebook.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers

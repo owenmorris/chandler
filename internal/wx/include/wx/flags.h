@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: flags.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: flags.h,v 1.9 2005/09/23 12:48:39 MR Exp $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_SETH__
 #define _WX_SETH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "flags.h"
-#endif
 
 // wxBitset should be applied to an enum, then this can be used like
 // bitwise operators but keeps the type safety and information, the

@@ -2,18 +2,13 @@
 // Name:        htmlpars.h
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: htmlpars.h,v 1.23 2005/09/23 12:49:26 MR Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _WX_HTMLPARS_H_
 #define _WX_HTMLPARS_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "htmlpars.h"
-#endif
 
 #include "wx/defs.h"
 #if wxUSE_HTML

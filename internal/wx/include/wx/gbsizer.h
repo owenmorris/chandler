@@ -6,17 +6,13 @@
 //
 // Author:      Robin Dunn
 // Created:     03-Nov-2003
-// RCS-ID:      $Id: gbsizer.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: gbsizer.h,v 1.11 2005/09/23 12:48:40 MR Exp $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WXGBSIZER_H__
 #define __WXGBSIZER_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "gbsizer.h"
-#endif
 
 #include "wx/sizer.h"
 

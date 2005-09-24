@@ -3,16 +3,12 @@
 // Purpose:     class for opening files - virtual file system
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// RCS-ID:      $Id: filesys.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: filesys.h,v 1.31 2005/09/23 12:48:39 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __FILESYS_H__
 #define __FILESYS_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "filesys.h"
-#endif
 
 #include "wx/defs.h"
 

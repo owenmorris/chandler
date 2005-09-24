@@ -5,16 +5,12 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: filedlgg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: filedlgg.h,v 1.40 2005/09/23 12:49:04 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FILEDLGG_H_
 #define _WX_FILEDLGG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "filedlgg.h"
-#endif
 
 #include "wx/listctrl.h"
 #include "wx/datetime.h"

@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id: gauge.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: gauge.h,v 1.24 2005/09/23 12:48:40 MR Exp $
 // Copyright:   (c) 1996-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GAUGE_H_BASE_
 #define _WX_GAUGE_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "gaugebase.h"
-#endif
 
 #include "wx/defs.h"
 

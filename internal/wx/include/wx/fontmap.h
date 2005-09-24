@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.11.99
-// RCS-ID:      $Id: fontmap.h 7249 2005-09-18 20:25:01Z davids $
+// RCS-ID:      $Id: fontmap.h,v 1.27 2005/09/18 14:01:09 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

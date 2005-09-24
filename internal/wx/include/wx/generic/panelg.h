@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: panelg.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: panelg.h,v 1.45 2005/09/23 12:49:06 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GENERIC_PANEL_H_
 #define _WX_GENERIC_PANEL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "panelg.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers and forward declarations

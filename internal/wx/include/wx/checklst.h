@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.00
-// RCS-ID:      $Id: checklst.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: checklst.h,v 1.12 2004/09/10 12:55:45 ABX Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

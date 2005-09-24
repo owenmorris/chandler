@@ -4,17 +4,13 @@
 // Author:      Karsten Ballüder
 // Modified by:
 // Created:     09.05.1999
-// RCS-ID:      $Id: progdlgg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: progdlgg.h,v 1.37 2005/09/23 12:49:07 MR Exp $
 // Copyright:   (c) Karsten Ballüder
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////
 
 #ifndef __PROGDLGH_G__
 #define __PROGDLGH_G__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "progdlgg.h"
-#endif
 
 #include "wx/defs.h"
 

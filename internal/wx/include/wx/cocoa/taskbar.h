@@ -4,17 +4,13 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/01/24
-// RCS-ID:      $Id: taskbar.h,v 1.4 2004/10/22 15:42:11 DE Exp $
+// RCS-ID:      $Id: taskbar.h,v 1.5 2005/09/23 12:49:02 MR Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_COCOA_TASKBAR_H__
 #define _WX_COCOA_TASKBAR_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "taskbar.h"
-#endif
 
 #include "wx/icon.h"
 

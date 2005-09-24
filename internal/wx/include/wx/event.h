@@ -4,24 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: event.h,v 1.245 2005/09/23 12:48:37 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_EVENT_H__
 #define _WX_EVENT_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA) && !defined(__EMX__)
-// Some older compilers (such as EMX) cannot handle
-// #pragma interface/implementation correctly, iff
-// #pragma implementation is used in _two_ translation
-// units (as created by e.g. event.cpp compiled for
-// libwx_base and event.cpp compiled for libwx_gui_core).
-// So we must not use those pragmas for those compilers in
-// such files.
-    #pragma interface "event.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/object.h"

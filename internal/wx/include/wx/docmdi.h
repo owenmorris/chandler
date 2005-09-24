@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docmdi.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: docmdi.h,v 1.20 2005/09/23 12:48:36 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DOCMDI_H_
 #define _WX_DOCMDI_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "docmdi.h"
-#endif
 
 #include "wx/defs.h"
 

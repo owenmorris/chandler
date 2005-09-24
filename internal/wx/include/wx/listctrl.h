@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.12.99
-// RCS-ID:      $Id: listctrl.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: listctrl.h,v 1.62 2005/09/23 12:48:43 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_LISTCTRL_H_BASE_
 #define _WX_LISTCTRL_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "listctrlbase.h"
-#endif
 
 #include "wx/defs.h" // headers should include this before first wxUSE_XXX check
 

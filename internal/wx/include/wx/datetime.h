@@ -5,17 +5,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: datetime.h 6858 2005-08-29 01:19:27Z davids $
+// RCS-ID:      $Id: datetime.h,v 1.65 2005/09/23 12:48:34 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DATETIME_H
 #define _WX_DATETIME_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "datetime.h"
-#endif
 
 #include "wx/defs.h"
 

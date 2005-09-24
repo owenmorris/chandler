@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: ctrlsub.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: ctrlsub.h,v 1.30 2005/09/23 12:48:34 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CTRLSUB_H_BASE_
 #define _WX_CTRLSUB_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "controlwithitems.h"
-#endif
 
 #include "wx/defs.h"
 

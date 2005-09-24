@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     26.05.99
-// RCS-ID:      $Id: dnd.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dnd.h,v 1.34 2005/09/23 12:48:36 MR Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DND_H_BASE_
 #define _WX_DND_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dndbase.h"
-#endif
 
 #include "wx/defs.h"
 

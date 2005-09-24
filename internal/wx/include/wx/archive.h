@@ -2,17 +2,13 @@
 // Name:        archive.h
 // Purpose:     Streams for archive formats
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: archive.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: archive.h,v 1.8 2005/09/23 12:48:30 MR Exp $
 // Copyright:   (c) 2004 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_ARCHIVE_H__
 #define _WX_ARCHIVE_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "archive.h"
-#endif
 
 #include "wx/defs.h"
 

@@ -2,7 +2,7 @@
 // Name:        timer.h
 // Purpose:     Cocoa wxTimer class
 // Author:      Ryan Norton
-// Id:          $Id: timer.h,v 1.1 2005/02/04 17:21:20 RN Exp $
+// Id:          $Id: timer.h,v 1.2 2005/09/23 12:49:02 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -10,10 +10,6 @@
 
 #ifndef __WX_TIMER_H__
 #define __WX_TIMER_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "timer.h"
-#endif
 
 #include "wx/cocoa/ObjcRef.h"
 

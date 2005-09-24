@@ -4,17 +4,13 @@
 // Author:      Robin Dunn
 // Modified by:
 // Created:     9-Oct-2001
-// RCS-ID:      $Id: clntdata.h 6713 2005-08-22 18:09:29Z davids $
+// RCS-ID:      $Id: clntdata.h,v 1.23 2005/09/23 12:48:32 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CLNTDATAH__
 #define _WX_CLNTDATAH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "clntdata.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/string.h"

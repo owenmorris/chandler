@@ -3,16 +3,12 @@
 // Purpose:     Information window (when app is busy)
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// RCS-ID:      $Id: busyinfo.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: busyinfo.h,v 1.14 2005/09/23 12:48:31 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __INFOWIN_H__
 #define __INFOWIN_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "busyinfo.h"
-#endif
 
 #include "wx/defs.h"
 

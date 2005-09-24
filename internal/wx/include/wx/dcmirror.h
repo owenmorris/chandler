@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.07.2003
-// RCS-ID:      $Id: dcmirror.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dcmirror.h,v 1.6 2004/09/10 12:55:48 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

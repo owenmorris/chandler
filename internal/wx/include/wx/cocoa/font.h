@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.h,v 1.6 2004/05/23 20:50:42 JS Exp $
+// RCS-ID:      $Id: font.h,v 1.7 2005/09/23 12:49:02 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FONT_H_
 #define _WX_FONT_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "font.h"
-#endif
 
 class WXDLLEXPORT wxFontRefData: public wxGDIRefData
 {

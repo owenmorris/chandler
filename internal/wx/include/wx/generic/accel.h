@@ -2,17 +2,13 @@
 // Name:        wx/generic/accel.h
 // Purpose:     wxAcceleratorTable class
 // Author:      Robert Roebling
-// RCS-ID:      $Id: accel.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: accel.h,v 1.11 2005/09/23 12:49:03 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GENERIC_ACCEL_H_
 #define _WX_GENERIC_ACCEL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "accel.h"
-#endif
 
 class WXDLLEXPORT wxKeyEvent;
 
