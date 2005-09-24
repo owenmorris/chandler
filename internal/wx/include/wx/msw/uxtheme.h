@@ -4,17 +4,13 @@
 // Author:      John Platts, Vadim Zeitlin
 // Modified by:
 // Created:     2003
-// RCS-ID:      $Id: uxtheme.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: uxtheme.h,v 1.18 2005/09/23 12:50:17 MR Exp $
 // Copyright:   (c) 2003 John Platts, Vadim Zeitlin
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_UXTHEME_H_
 #define _WX_UXTHEME_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-  #pragma interface "uxtheme.h"
-#endif
 
 #include "wx/defs.h"
 

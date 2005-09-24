@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: msgdlg.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: msgdlg.h,v 1.23 2005/05/04 18:52:00 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

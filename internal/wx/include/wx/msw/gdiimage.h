@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: gdiimage.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: gdiimage.h,v 1.15 2005/09/23 12:50:11 MR Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,10 +15,6 @@
 
 #ifndef _WX_MSW_GDIIMAGE_H_
 #define _WX_MSW_GDIIMAGE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "gdiimage.h"
-#endif
 
 #include "wx/gdiobj.h"          // base class
 #include "wx/gdicmn.h"          // wxBITMAP_TYPE_INVALID

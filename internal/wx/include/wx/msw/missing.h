@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h 6278 2005-07-29 18:01:24Z davids $
+// RCS-ID:      $Id: missing.h,v 1.55 2005/06/29 01:34:43 MW Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

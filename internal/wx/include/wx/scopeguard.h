@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.07.2003
-// RCS-ID:      $Id: scopeguard.h 6066 2005-07-20 16:39:13Z davids $
+// RCS-ID:      $Id: scopeguard.h,v 1.10 2005/07/20 13:30:28 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

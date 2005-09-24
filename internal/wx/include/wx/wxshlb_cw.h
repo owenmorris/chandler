@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     12/10/98
-// RCS-ID:      $Id: wxshlb_cw.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: wxshlb_cw.h,v 1.5 2005/04/19 10:06:30 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: 13.12.99 by VZ during toolbar classes reorganization
 // Created:     01/02/97
-// RCS-ID:      $Id: tbarmsw.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: tbarmsw.h,v 1.22 2005/09/23 12:50:16 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TBARMSW_H_
 #define _WX_TBARMSW_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "tbarmsw.h"
-#endif
 
 #if wxUSE_TOOLBAR
 

@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.1998
-// RCS-ID:      $Id: registry.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: registry.h,v 1.34 2005/09/23 12:50:15 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_REGISTRY_H_
 #define _WX_MSW_REGISTRY_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "registry.h"
-#endif
 
 class WXDLLIMPEXP_BASE wxOutputStream;
 

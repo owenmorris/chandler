@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbox.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: statbox.h,v 1.35 2005/09/23 12:50:15 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_STATBOX_H_
 #define _WX_MSW_STATBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "statbox.h"
-#endif
 
 // Group box
 class WXDLLEXPORT wxStaticBox : public wxStaticBoxBase

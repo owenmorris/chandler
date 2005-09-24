@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.01.99
-// RCS-ID:      $Id: tooltip.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: tooltip.h,v 1.13 2005/02/28 01:22:35 VZ Exp $
 // Copyright:   (c) 1999 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: radiobut.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: radiobut.h,v 1.17 2005/05/04 18:52:02 JS Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     01/02/97
-// RCS-ID:      $Id: choice.h 7153 2005-09-14 15:57:55Z davids $
+// RCS-ID:      $Id: choice.h,v 1.33 2005/09/23 12:50:07 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CHOICE_H_
 #define _WX_CHOICE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "choice.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // Choice item

@@ -4,17 +4,13 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/1998
-// RCS-ID:      $Id: txtstrm.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: txtstrm.h,v 1.28 2005/09/23 12:48:49 MR Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TXTSTREAM_H_
 #define _WX_TXTSTREAM_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "txtstrm.h"
-#endif
 
 #include "wx/stream.h"
 

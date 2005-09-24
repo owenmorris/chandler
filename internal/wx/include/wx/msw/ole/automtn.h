@@ -4,14 +4,10 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     11/6/98
-// RCS-ID:      $Id: automtn.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: automtn.h,v 1.12 2005/09/23 12:50:23 MR Exp $
 // Copyright:   (c) 1998, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "automtn.h"
-#endif
 
 #ifndef _WX_AUTOMTN_H_
 #define _WX_AUTOMTN_H_

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.08.2003
-// RCS-ID:      $Id: wrapcctl.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: wrapcctl.h,v 1.10 2005/07/01 13:38:51 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

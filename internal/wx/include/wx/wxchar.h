@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h 7019 2005-09-07 20:22:42Z davids $
+ * RCS-ID:      $Id: wxchar.h,v 1.181 2005/09/23 12:48:50 MR Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -13,10 +13,6 @@
 
 #ifndef _WX_WXCHAR_H_
 #define _WX_WXCHAR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "wxchar.h"
-#endif
 
 #include "wx/defs.h"        /* for wxUSE_UNICODE */
 

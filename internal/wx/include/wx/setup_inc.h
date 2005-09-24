@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:
-// RCS-ID:      $Id: setup_inc.h 6300 2005-07-30 03:30:59Z davids $
+// RCS-ID:      $Id: setup_inc.h,v 1.24 2005/07/30 00:36:30 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     17.07.02
-// RCS-ID:      $Id: msgout.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: msgout.h,v 1.16 2005/09/23 12:48:45 MR Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,17 +15,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA) && !defined(__EMX__)
-// Some older compilers (such as EMX) cannot handle
-// #pragma interface/implementation correctly, iff
-// #pragma implementation is used in _two_ translation
-// units (as created by e.g. event.cpp compiled for
-// libwx_base and event.cpp compiled for libwx_gui_core).
-// So we must not use those pragmas for those compilers in
-// such files.
-    #pragma interface "msgout.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/wxchar.h"

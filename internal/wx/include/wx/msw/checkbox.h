@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: checkbox.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: checkbox.h,v 1.23 2005/09/23 12:50:07 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CHECKBOX_H_
 #define _WX_CHECKBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "checkbox.h"
-#endif
 
 // Checkbox item (single checkbox)
 class WXDLLEXPORT wxCheckBox : public wxCheckBoxBase

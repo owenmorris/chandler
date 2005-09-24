@@ -5,17 +5,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.06.01
-// RCS-ID:      $Id: snglinst.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: snglinst.h,v 1.12 2005/09/23 12:48:46 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_SNGLINST_H_
 #define _WX_SNGLINST_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "snglinst.h"
-#endif
 
 #if wxUSE_SNGLINST_CHECKER
 

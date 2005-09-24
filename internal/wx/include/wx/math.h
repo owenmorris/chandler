@@ -5,7 +5,7 @@
 * Modified by:
 * Created:     02/02/03
 * RCS-ID:
-* Copyright:   (c)
+* Copyright:   (c) John Labenski
 * Licence:     wxWindows licence
 */
 
@@ -13,10 +13,6 @@
 
 #ifndef _WX_MATH_H_
 #define _WX_MATH_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "math.h"
-#endif
 
 #include "wx/defs.h"
 

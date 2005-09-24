@@ -4,17 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xtistrm.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xtistrm.h,v 1.20 2005/09/23 12:48:51 MR Exp $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_XTISTRMH__
 #define _WX_XTISTRMH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xtistrm.h"
-#endif
 
 #include "wx/wx.h"
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: wrapshl.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: wrapshl.h,v 1.1 2004/10/19 16:43:43 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

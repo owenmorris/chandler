@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: valtext.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: valtext.h,v 1.22 2005/09/23 12:48:50 MR Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_VALTEXTH__
 #define _WX_VALTEXTH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "valtext.h"
-#endif
 
 #include "wx/defs.h"
 

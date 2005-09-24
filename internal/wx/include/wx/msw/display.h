@@ -4,14 +4,10 @@
 // Author:      Royce Mitchell III
 // Modified by:
 // Created:     06/21/02
-// RCS-ID:      $Id: display.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: display.h,v 1.10 2005/09/23 12:50:10 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "display.h"
-#endif
 
 #ifndef _WX_MSW_DISPLAY_H_
 #define _WX_MSW_DISPLAY_H_

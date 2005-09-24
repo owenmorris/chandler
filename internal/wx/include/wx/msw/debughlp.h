@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-08 (extracted from msw/crashrpt.cpp)
-// RCS-ID:      $Id: debughlp.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: debughlp.h,v 1.2 2005/01/18 10:07:21 ABX Exp $
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

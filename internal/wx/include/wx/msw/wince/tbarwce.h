@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: tbarwce.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: tbarwce.h,v 1.9 2005/09/23 12:50:25 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_BARWCE_H_
 #define _WX_BARWCE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "tbarwce.h"
-#endif
 
 #if wxUSE_TOOLBAR
 

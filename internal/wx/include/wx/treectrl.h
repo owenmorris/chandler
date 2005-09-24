@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Karsten Ballueder
-// RCS-ID:      $Id: treectrl.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: treectrl.h,v 1.36 2005/05/04 18:52:05 JS Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -4,7 +4,7 @@
 // Author:      Jesse Lovelace <jllovela@eos.ncsu.edu>
 // Modified by:
 // Created:     06/01/02
-// RCS-ID:      $Id: ptr_scpd.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: ptr_scpd.h,v 1.13 2005/06/13 12:19:14 ABX Exp $
 // Copyright:   (c) Jesse Lovelace and original Boost authors (see below)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

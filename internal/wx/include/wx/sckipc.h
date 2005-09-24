@@ -6,7 +6,7 @@
 //              Guillermo Rodriguez (updated for wxSocket v2) Jan 2000
 //                                  (callbacks deprecated)    Mar 2000
 // Created:     1993
-// RCS-ID:      $Id: sckipc.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: sckipc.h,v 1.30 2005/09/23 12:48:46 MR Exp $
 // Copyright:   (c) Julian Smart 1993
 //              (c) Guilhem Lavaux 1997, 1998
 //              (c) 2000 Guillermo Rodriguez <guille@iies.es>
@@ -15,10 +15,6 @@
 
 #ifndef _WX_SCKIPC_H
 #define _WX_SCKIPC_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "sckipc.h"
-#endif
 
 #include "wx/defs.h"
 

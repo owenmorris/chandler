@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     31/7/98
-// RCS-ID:      $Id: accel.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: accel.h,v 1.15 2005/09/23 12:50:06 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_ACCEL_H_
 #define _WX_ACCEL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "accel.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // the accel table has all accelerators for a given window or menu

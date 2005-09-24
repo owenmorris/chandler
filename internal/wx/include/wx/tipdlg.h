@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.06.99
-// RCS-ID:      $Id: tipdlg.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: tipdlg.h,v 1.9 2005/09/23 12:48:48 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TIPDLG_H_
 #define _WX_TIPDLG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "tipdlg.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers which we must include here

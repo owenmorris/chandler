@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: statbmp.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: statbmp.h,v 1.23 2005/09/23 12:48:47 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_STATBMP_H_BASE_
 #define _WX_STATBMP_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "statbmpbase.h"
-#endif
 
 #include "wx/defs.h"
 

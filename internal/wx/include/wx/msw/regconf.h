@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     27.04.98
-// RCS-ID:      $Id: regconf.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: regconf.h,v 1.34 2005/09/23 12:50:14 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef   _REGCONF_H
 #define   _REGCONF_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "regconf.h"
-#endif
 
 #ifndef   _REGISTRY_H
   #include "wx/msw/registry.h"

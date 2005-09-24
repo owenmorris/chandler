@@ -4,17 +4,13 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-15
-// RCS-ID:      $Id: stockitem.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: stockitem.h,v 1.5 2005/09/23 12:48:47 MR Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_STOCKITEM_H_
 #define _WX_STOCKITEM_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "stockitem.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/wxchar.h"

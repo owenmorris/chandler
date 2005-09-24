@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h 6133 2005-07-23 00:29:23Z davids $
+// RCS-ID:      $Id: listctrl.h,v 1.56 2005/09/23 12:50:12 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_LISTCTRL_H_
 #define _WX_LISTCTRL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "listctrl.h"
-#endif
 
 #if wxUSE_LISTCTRL
 

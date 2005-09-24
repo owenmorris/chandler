@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: dcclient.h,v 1.22 2005/09/23 12:50:08 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,10 +15,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dcclient.h"
-#endif
 
 #include "wx/dc.h"
 #include "wx/dynarray.h"

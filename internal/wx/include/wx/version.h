@@ -4,7 +4,7 @@
 *  Author:      Julian Smart
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     29/01/98
-*  RCS-ID:      $Id: version.h 6153 2005-07-25 17:59:53Z davids $
+*  RCS-ID:      $Id: version.h,v 1.69 2005/07/25 16:35:11 JS Exp $
 *  Copyright:   (c) 1998 Julian Smart
 *  Licence:     wxWindows licence
 */

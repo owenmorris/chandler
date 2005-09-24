@@ -5,17 +5,13 @@
 // Modified by:
 //  Chris Elliott (biol75@york.ac.uk) 5 Dec 00: write support for Win32
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: mimetype.h,v 1.39 2005/09/23 12:48:44 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MIMETYPE_H_
 #define _WX_MIMETYPE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "mimetypebase.h"
-#endif // __GNUG__
 
 // ----------------------------------------------------------------------------
 // headers and such

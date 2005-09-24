@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     16/04/2000
-// RCS-ID:      $Id: helpchm.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: helpchm.h,v 1.11 2005/09/23 12:50:12 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_HELPCHM_H_
 #define _WX_HELPCHM_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "helpchm.h"
-#endif
 
 #if wxUSE_MS_HTML_HELP
 

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: stattext.h 6688 2005-08-19 17:24:23Z davids $
+// RCS-ID:      $Id: stattext.h,v 1.23 2005/08/18 22:15:40 VZ Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin: fixed operator=(), ==(), !=()
 // Created:     01/02/97
-// RCS-ID:      $Id: pen.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: pen.h,v 1.25 2005/09/23 12:50:14 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PEN_H_
 #define _WX_PEN_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "pen.h"
-#endif
 
 #include "wx/gdiobj.h"
 #include "wx/bitmap.h"

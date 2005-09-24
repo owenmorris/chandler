@@ -4,7 +4,7 @@
  * Copyright:   (c) Guilhem Lavaux
  * Licence:     wxWindows Licence
  * Purpose:     GSocket MSW header
- * CVSID:   $Id: gsockmsw.h 6038 2005-07-18 21:58:47Z davids $
+ * CVSID:       $Id: gsockmsw.h,v 1.26 2005/05/04 18:53:02 JS Exp $
  * -------------------------------------------------------------------------
  */
 

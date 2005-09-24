@@ -2,17 +2,13 @@
 // Name:        zipstrm.h
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: zipstrm.h,v 1.20 2005/09/23 12:48:51 MR Exp $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_WXZIPSTREAM_H__
 #define _WX_WXZIPSTREAM_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "zipstrm.h"
-#endif
 
 #include "wx/defs.h"
 

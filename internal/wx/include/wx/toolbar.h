@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: toolbar.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: toolbar.h,v 1.41 2005/05/04 18:52:05 JS Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

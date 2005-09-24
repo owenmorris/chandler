@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: printdlg.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: printdlg.h,v 1.21 2005/09/23 12:48:45 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PRINTDLG_H_BASE_
 #define _WX_PRINTDLG_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "printdlg.h"
-#endif
 
 #include "wx/defs.h"
 

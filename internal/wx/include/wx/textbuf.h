@@ -5,16 +5,12 @@
 //              differences between platforms.
 // Created:     14.11.01
 // Author:      Morten Hanssen, Vadim Zeitlin
-// Copyright:   (c) 1998-2001 wxWidgets team
+// Copyright:   (c) 1998-2001 Morten Hanssen, Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TEXTBUFFER_H
 #define _WX_TEXTBUFFER_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "textbuf.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/arrstr.h"

@@ -4,17 +4,13 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     10/07/1997
-// RCS-ID:      $Id: protocol.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: protocol.h,v 1.21 2005/09/23 12:50:43 MR Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PROTOCOL_PROTOCOL_H
 #define _WX_PROTOCOL_PROTOCOL_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/defs.h"
 

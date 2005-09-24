@@ -4,17 +4,13 @@
 // Author:      Karsten Ballüder
 // Modified by: VZ at 13.07.01 (integrated to wxWin)
 // Created:     05.02.2000
-// RCS-ID:      $Id: regex.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: regex.h,v 1.15 2005/09/23 12:48:46 MR Exp $
 // Copyright:   (c) 2000 Karsten Ballüder <ballueder@gmx.net>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_REGEX_H_
 #define _WX_REGEX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "regex.h"
-#endif
 
 #include "wx/defs.h"
 

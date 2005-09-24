@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.05.03
-// RCS-ID:      $Id: vscroll.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: vscroll.h,v 1.18 2005/09/23 12:48:50 MR Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_VSCROLL_H_
 #define _WX_VSCROLL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "vscroll.h"
-#endif
 
 #include "wx/panel.h"           // base class
 

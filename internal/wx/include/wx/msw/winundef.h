@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.05.99
-// RCS-ID:      $Id: winundef.h 6969 2005-09-02 17:11:04Z davids $
+// RCS-ID:      $Id: winundef.h,v 1.37 2005/09/02 15:54:06 VS Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

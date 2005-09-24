@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: toplevel.h,v 1.54 2005/09/23 12:48:49 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -13,10 +13,6 @@
 
 #ifndef _WX_TOPLEVEL_BASE_H_
 #define _WX_TOPLEVEL_BASE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "toplevelbase.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers
@@ -158,7 +154,7 @@ public:
     // return true if the frame is in fullscreen mode
     virtual bool IsFullScreen() const = 0;
 
-    // VELL - added
+    // OSAF - added
     virtual void ForceRedraw( void );
 
     /*

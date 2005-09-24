@@ -4,17 +4,13 @@
 // Author:      Robert Roebling and Robin Dunn
 // Modified by: Ron Lee, Vadim Zeitlin (wxSizerFlags)
 // Created:
-// RCS-ID:      $Id: sizer.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: sizer.h,v 1.71 2005/09/23 12:48:46 MR Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WXSIZER_H__
 #define __WXSIZER_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "sizer.h"
-#endif
 
 #include "wx/defs.h"
 

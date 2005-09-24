@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.10.99 (extracted from msw/ole/dataobj.h)
-// RCS-ID:      $Id: dataform.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dataform.h,v 1.7 2004/08/16 12:45:40 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

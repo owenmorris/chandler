@@ -5,17 +5,13 @@
 // Modified by: Vadim Zeitlin (wxTimerBase)
 //              Guillermo Rodriguez (global clean up)
 // Created:     04/01/98
-// RCS-ID:      $Id: timer.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: timer.h,v 1.54 2005/09/23 12:48:48 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TIMER_H_BASE_
 #define _WX_TIMER_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "timerbase.h"
-#endif
 
 #include "wx/defs.h"
 

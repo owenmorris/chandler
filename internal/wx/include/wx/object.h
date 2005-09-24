@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: object.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: object.h,v 1.120 2005/09/23 12:48:45 MR Exp $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -12,10 +12,6 @@
 
 #ifndef _WX_OBJECTH__
 #define _WX_OBJECTH__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "object.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // headers
@@ -409,9 +405,9 @@ public:
     virtual ~wxObject() { UnRef(); }
 
     wxObject(const wxObject& other)
-        {
-            InitFrom(other);
-        }
+    {
+        InitFrom(other);
+    }
 
     wxObject& operator=(const wxObject& other)
     {

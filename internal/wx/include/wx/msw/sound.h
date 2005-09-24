@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sound.h 6278 2005-07-29 18:01:24Z davids $
+// RCS-ID:      $Id: sound.h,v 1.6 2005/09/23 12:50:15 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_SOUND_H_
 #define _WX_SOUND_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "sound.h"
-#endif
 
 #if wxUSE_SOUND
 

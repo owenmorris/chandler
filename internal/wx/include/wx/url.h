@@ -4,17 +4,13 @@
 // Author:      Guilhem Lavaux
 // Modified by: Ryan Norton
 // Created:     20/07/1997
-// RCS-ID:      $Id: url.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: url.h,v 1.31 2005/09/23 12:48:49 MR Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_URL_H
 #define _WX_URL_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "url.h"
-#endif
 
 #include "wx/defs.h"
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.03.03 (replaces the old file with the same name)
-// RCS-ID:      $Id: dib.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: dib.h,v 1.25 2004/07/22 11:43:53 VZ Exp $
 // Copyright:   (c) 1997-2003 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

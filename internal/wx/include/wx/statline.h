@@ -3,7 +3,7 @@
 // Purpose:     wxStaticLine class interface
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statline.h 5166 2005-04-29 01:36:53Z davids $
+// Version:     $Id: statline.h,v 1.14 2005/04/10 15:22:53 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

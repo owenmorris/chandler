@@ -4,16 +4,12 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     17/07/97
-// RCS-ID:      $Id: sckstrm.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: sckstrm.h,v 1.20 2005/09/23 12:48:46 MR Exp $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 #ifndef __SCK_STREAM_H__
 #define __SCK_STREAM_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface
-#endif
 
 #include "wx/stream.h"
 

@@ -4,17 +4,13 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     30.08.2004
-// RCS-ID:      $Id: textctrlce.h 5482 2005-05-27 01:01:20Z twl $
+// RCS-ID:      $Id: textctrlce.h,v 1.6 2005/09/23 12:50:25 MR Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TEXTCTRLCE_H_
 #define _WX_TEXTCTRLCE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "textctrlce.h"
-#endif
 
 #include "wx/dynarray.h"
 

@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.03.98
-// RCS-ID:      $Id: droptgt.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: droptgt.h,v 1.15 2005/09/23 12:50:23 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef   _WX_OLEDROPTGT_H
 #define   _WX_OLEDROPTGT_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "droptgt.h"
-#endif
 
 #if wxUSE_DRAG_AND_DROP
 

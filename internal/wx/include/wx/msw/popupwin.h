@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupwin.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: popupwin.h,v 1.16 2005/09/23 12:50:14 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_POPUPWIN_H_
 #define _WX_MSW_POPUPWIN_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "popup.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxPopupWindow

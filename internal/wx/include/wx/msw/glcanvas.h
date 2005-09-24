@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: glcanvas.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: glcanvas.h,v 1.16 2005/09/23 12:50:11 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GLCANVAS_H_
 #define _WX_GLCANVAS_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "glcanvas.h"
-#endif
 
 #include "wx/palette.h"
 #include "wx/scrolwin.h"

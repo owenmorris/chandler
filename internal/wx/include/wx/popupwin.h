@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupwin.h 6095 2005-07-21 18:14:35Z davids $
+// RCS-ID:      $Id: popupwin.h,v 1.37 2005/09/23 12:48:45 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_POPUPWIN_H_BASE_
 #define _WX_POPUPWIN_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "popupwinbase.h"
-#endif
 
 #include "wx/defs.h"
 
@@ -131,7 +127,7 @@ protected:
     // check if the mouse needs captured or released
     void OnIdle(wxIdleEvent& event);
 #endif
-    
+
     // the child of this popup if any
     wxWindow *m_child;
 

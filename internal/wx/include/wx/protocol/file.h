@@ -4,17 +4,13 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     1997
-// RCS-ID:      $Id: file.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: file.h,v 1.11 2005/09/23 12:50:42 MR Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WX_PROTO_FILE_H__
 #define __WX_PROTO_FILE_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "sckfile.h"
-#endif
 
 #include "wx/defs.h"
 

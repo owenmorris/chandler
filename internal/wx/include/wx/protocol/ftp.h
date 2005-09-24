@@ -5,17 +5,13 @@
 // Modified by: Mark Johnson, wxWindows@mj10777.de 
 //              20000917 : RmDir, GetLastResult, GetList
 // Created:     07/07/1997
-// RCS-ID:      $Id: ftp.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: ftp.h,v 1.22 2005/09/23 12:50:42 MR Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WX_FTP_H__
 #define __WX_FTP_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "ftp.h"
-#endif
 
 #include "wx/defs.h"
 

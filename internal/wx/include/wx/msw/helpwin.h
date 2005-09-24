@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpwin.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: helpwin.h,v 1.14 2005/09/23 12:50:12 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_HELPWIN_H_
 #define _WX_HELPWIN_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "helpwin.h"
-#endif
 
 #include "wx/wx.h"
 

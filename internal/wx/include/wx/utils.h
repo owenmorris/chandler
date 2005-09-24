@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: utils.h,v 1.119 2005/09/23 12:48:49 MR Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,17 +15,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA) && !defined(__EMX__)
-// Some older compilers (such as EMX) cannot handle
-// #pragma interface/implementation correctly, iff
-// #pragma implementation is used in _two_ translation
-// units (as created by e.g. event.cpp compiled for
-// libwx_base and event.cpp compiled for libwx_gui_core).
-// So we must not use those pragmas for those compilers in
-// such files.
-    #pragma interface "utils.h"
-#endif
 
 #include "wx/object.h"
 #include "wx/list.h"

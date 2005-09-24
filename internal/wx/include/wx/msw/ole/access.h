@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-02-12
-// RCS-ID:      $Id: access.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: access.h,v 1.7 2005/09/23 12:50:22 MR Exp $
 // Copyright:   (c) 2003 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef   _WX_ACCESS_H_
 #define   _WX_ACCESS_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface
-#endif
 
 #if wxUSE_ACCESSIBILITY
 

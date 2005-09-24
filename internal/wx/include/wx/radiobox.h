@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: radiobox.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: radiobox.h,v 1.29 2005/09/23 12:48:46 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_RADIOBOX_H_BASE_
 #define _WX_RADIOBOX_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "radioboxbase.h"
-#endif
 
 #if wxUSE_RADIOBOX
 

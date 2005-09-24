@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.1998
-// RCS-ID:      $Id: oleutils.h 7211 2005-09-16 18:25:39Z davids $
+// RCS-ID:      $Id: oleutils.h,v 1.26 2005/09/23 12:50:23 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef   _WX_OLEUTILS_H
 #define   _WX_OLEUTILS_H
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "oleutils.h"
-#endif
 
 #include "wx/defs.h"
 

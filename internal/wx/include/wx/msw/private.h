@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: private.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: private.h,v 1.147 2005/08/04 20:31:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

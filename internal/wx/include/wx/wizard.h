@@ -9,7 +9,7 @@
 //              Added wxWIZARD_HELP event
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.h 6405 2005-08-08 15:31:43Z davids $
+// RCS-ID:      $Id: wizard.h,v 1.44 2005/08/04 00:22:42 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

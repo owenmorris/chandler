@@ -4,17 +4,13 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/02/01
-// RCS-ID:      $Id: sound.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: sound.h,v 1.13 2005/09/23 12:48:47 MR Exp $
 // Copyright:   (c) 2004, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_SOUND_H_BASE_
 #define _WX_SOUND_H_BASE_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "soundbase.h"
-#endif
 
 #include "wx/defs.h"
 

@@ -4,17 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: toplevel.h,v 1.33 2005/09/23 12:50:17 MR Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_TOPLEVEL_H_
 #define _WX_MSW_TOPLEVEL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "toplevel.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxTopLevelWindowMSW

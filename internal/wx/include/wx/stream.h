@@ -4,17 +4,13 @@
 // Author:      Guilhem Lavaux, Guillermo Rodriguez Garcia, Vadim Zeitlin
 // Modified by:
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.h 6038 2005-07-18 21:58:47Z davids $
+// RCS-ID:      $Id: stream.h,v 1.72 2005/09/23 12:48:47 MR Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_WXSTREAM_H__
 #define _WX_WXSTREAM_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "stream.h"
-#endif
 
 #include "wx/defs.h"
 

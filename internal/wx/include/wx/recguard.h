@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.08.2003
-// RCS-ID:      $Id: recguard.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: recguard.h,v 1.4 2004/09/21 18:15:50 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

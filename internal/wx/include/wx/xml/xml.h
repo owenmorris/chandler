@@ -3,7 +3,7 @@
 // Purpose:     wxXmlDocument - XML parser & data holder class
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xml.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: xml.h,v 1.5 2005/09/23 12:51:10 MR Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,10 +21,6 @@
 
 #ifndef _WX_XML_H_
 #define _WX_XML_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "xml.h"
-#endif
 
 #include "wx/defs.h"
 

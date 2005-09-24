@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdiobj.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: gdiobj.h,v 1.12 2005/09/23 12:50:11 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GDIOBJ_H_
 #define _WX_GDIOBJ_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "gdiobj.h"
-#endif
 
 #include "wx/object.h"  // base class
 

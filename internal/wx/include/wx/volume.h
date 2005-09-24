@@ -4,7 +4,7 @@
 // Author:      George Policello
 // Modified by:
 // Created:     28 Jan 02
-// RCS-ID:      $Id: volume.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: volume.h,v 1.15 2005/09/23 12:48:50 MR Exp $
 // Copyright:   (c) 2002 George Policello
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,10 +15,6 @@
 
 #ifndef _WX_FSVOLUME_H_
 #define _WX_FSVOLUME_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "fsvolume.h"
-#endif
 
 #include "wx/defs.h"
 

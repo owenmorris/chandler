@@ -4,17 +4,13 @@
 // Authors:     Guilhem Lavaux, Guillermo Rodriguez Garcia
 // Modified by:
 // Created:     April 1997
-// RCS-ID:      $Id: socket.h 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: socket.h,v 1.66 2005/09/23 12:48:46 MR Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_SOCKET_H_
 #define _WX_SOCKET_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-  #pragma interface "socket.h"
-#endif
 
 #include "wx/defs.h"
 
