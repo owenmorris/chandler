@@ -20,7 +20,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     13/10/99
-// RCS-ID:      $Id: splitwise.cpp 5166 2005-04-29 01:36:53Z davids $
+// RCS-ID:      $Id: splitwise.cpp,v 1.2 2004/05/23 14:52:50 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWidgets licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.164 2005/09/23 12:53:08 MR Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.165 2005/09/24 00:16:56 MW Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -1530,7 +1530,8 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
     wxMutexLocker lock(wxConstCast(this, wxMBConv_iconv)->m_iconvMutex);
 #endif
 
-    size_t inbuf = wxWcslen(psz) * SIZEOF_WCHAR_T;
+    size_t inlen = wxWcslen(psz);
+    size_t inbuf = inlen * SIZEOF_WCHAR_T;
     size_t outbuf = n;
     size_t res, cres;
 
@@ -1542,9 +1543,9 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         // (doing WC_BSWAP twice on the original buffer won't help, as it
         //  could be in read-only memory, or be accessed in some other thread)
         tmpbuf = (wchar_t *)malloc(inbuf + SIZEOF_WCHAR_T);
-        for ( size_t n = 0; n < inbuf; n++ )
+        for ( size_t n = 0; n < inlen; n++ )
             tmpbuf[n] = WC_BSWAP(psz[n]);
-        tmpbuf[inbuf] = L'\0';
+        tmpbuf[inlen] = L'\0';
         psz = tmpbuf;
     }
 

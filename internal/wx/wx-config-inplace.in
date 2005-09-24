@@ -5,7 +5,7 @@
 # Author:      Ron <ron@debian.org>
 # Modified by: VZ on 2005-09-20 to make it work with Bourne shell
 # Created:     14/9/2004
-# RCS-ID:      $Id: wx-config-inplace.in 7341 2005-09-21 03:09:56Z davids $
+# RCS-ID:      $Id: wx-config-inplace.in,v 1.6 2005/09/20 23:09:36 VZ Exp $
 # Copyright:   (c) 2004 Ron <ron@debian.org>
 # Licence:     wxWindows licence
 ############################################################################
