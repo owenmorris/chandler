@@ -96,6 +96,9 @@ is un-pinned or deleted.\n\n\
 Tell whether this item was changed and needs to be committed.\n\n\
 @return: C{True} or C{False}"
 
+#ifdef _MSC_VER
+#define getAttributeAspect_DOC "doc too large for VC++ (error C2026)"
+#else
 #define getAttributeAspect_DOC "\
 Return the value for an attribute aspect.\n\n\
 An attribute aspect is one of an attribute's many attributes\
@@ -178,6 +181,7 @@ a subclass of C{AttributeError} is raised.\n\n\
 supported and used to return a default value for an aspect that has\
 no value set for the attribute.\n\
 @return: a value"
+#endif
 
 #define getDirty_DOC "\
 Return the dirty flags currently set on this item.\n\n\
