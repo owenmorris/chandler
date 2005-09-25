@@ -1967,7 +1967,7 @@ class CloudXMLFormat(ImportExportFormat):
                 continue
 
 
-            otherName = item.itsKind.getOtherName(attrName, None, item, None)
+            otherName = item.itsKind.getOtherName(attrName, item, None)
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
             attrType = item.getAttributeAspect(attrName, 'type')
 
@@ -2164,8 +2164,7 @@ class CloudXMLFormat(ImportExportFormat):
                         item.removeAttributeValue(attrName)
                     continue
 
-                otherName = item.itsKind.getOtherName(attrName, None, item,
-                                                      None)
+                otherName = item.itsKind.getOtherName(attrName, item, None)
                 cardinality = item.getAttributeAspect(attrName, 'cardinality')
                 attrType = item.getAttributeAspect(attrName, 'type')
 

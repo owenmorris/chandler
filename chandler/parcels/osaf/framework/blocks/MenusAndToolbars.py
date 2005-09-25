@@ -24,11 +24,6 @@ class RefCollectionDictionary(schema.Item):
     the name accessor if you want to use something other than
     itsName to key the items in the collection.
     """
-    def __init__(self, *args, **kwds):
-        super(RefCollectionDictionary, self).__init__(*args, **kwds)
-        # ensure that the collectionSpecifier exists
-        if not self.hasLocalAttributeValue(self.getCollectionSpecifier()):
-            self.setAttributeValue(self.getCollectionSpecifier(), [])
         
     def itemNameAccessor(self, item):
         """
@@ -384,7 +379,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     """
 
     dynamicChildren = schema.Sequence(
-        Block.Block, otherName = 'dynamicParent',
+        Block.Block, otherName = 'dynamicParent', initialValue = [],
     )
 
     collectionSpecifier = schema.One(redirectTo = 'dynamicChildren')
@@ -415,12 +410,8 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
         If there is no DynamicChildren built, then initialize it from
         the childrenBlocks hierarchy.
         """
-        try:
-            children = len (self.dynamicChildren)
-        except AttributeError:
-            children = 0
-        if not children:
-            self.populateFromStaticChildren ()
+        if not self.dynamicChildren:
+            self.populateFromStaticChildren()
 
 class wxMenuItem (wx.MenuItem):
     def __init__(self, style, *arguments, **keywords):

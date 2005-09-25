@@ -5,7 +5,8 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import _hash, _combine
-from chandlerdb.item.item import Nil, Default
+from chandlerdb.item.c import Nil, Default
+from chandlerdb.schema.c import CAttribute
 from chandlerdb.item.ItemError import SchemaError
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
@@ -18,10 +19,12 @@ class Attribute(Item):
 
         super(Attribute, self).__init__(name, parent, kind)
         self._status |= Item.SCHEMA | Item.PINNED
+        self.c = CAttribute(self)
 
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Attribute, self)._fillItem(name, parent, kind, **kwds)
+        self.c = CAttribute(self)
 
         if not kwds.get('update'):
             refList = self._refList('inheritingKinds', 'inheritedAttributes',
@@ -29,6 +32,10 @@ class Attribute(Item):
             self._references['inheritingKinds'] = refList
 
         self._status |= Item.SCHEMA | Item.PINNED
+
+    def onItemCopy(self, view, orig):
+
+        self.c.__init__(self)
 
     def hasAspect(self, name):
 
@@ -136,13 +143,47 @@ class Attribute(Item):
 
     def onValueChanged(self, name):
 
-        if ('schemaHash' in self._values and
-            (name in Attribute.valueAspects or
-             name in Attribute.refAspects)):
-            del self.schemaHash
-            if 'kinds' in self._references:
-                for kind in self.kinds:
-                    kind.onValueChanged('attributeHash')
+        if name in Attribute.valueAspects or name in Attribute.refAspects:
+            values = self._values
+
+            if 'schemaHash' in values:
+                del self.schemaHash
+                if 'kinds' in self._references:
+                    for kind in self.kinds:
+                        kind.onValueChanged('attributeHash')
+
+            c = getattr(self, 'c', None)
+            if c is not None:
+
+                if name == 'cardinality':
+                    c.cardinality = values
+
+                elif name == 'persisted':
+                    c.persisted = values.get('persisted', True)
+
+                elif name == 'required':
+                    c.required = values.get('required', False)
+
+                elif name == 'indexed':
+                    c.indexed = values.get('indexed', False)
+
+                elif name == 'inheritFrom':
+                    c.noInherit = (values, 'inheritFrom',
+                                   'defaultValue', 'redirectTo')
+
+                elif name == 'defaultValue':
+                    c.noInherit = (values, 'defaultValue',
+                                   'redirectTo', 'inheritFrom')
+
+                elif name == 'redirectTo':
+                    c.redirectTo = (values, 'redirectTo',
+                                    'inheritFrom', 'defaultValue')
+
+                elif name == 'otherName':
+                    c.otherName = values
+
+                elif name == 'type':
+                    c.typeID = self._references
 
     def findMatch(self, view, matches=None):
 

@@ -8,7 +8,7 @@ from struct import pack, unpack
 from cStringIO import StringIO
 
 from chandlerdb.util.uuid import UUID, _hash
-from chandlerdb.item.item import Nil, Default, isitem
+from chandlerdb.item.c import Nil, Default, isitem
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
@@ -242,9 +242,10 @@ class DBItemWriter(ItemWriter):
             indexed = False
         else:
             uAttr = attribute._uuid
-            attrCard = attribute.getAspect('cardinality', 'single')
+            c = attribute.c
+            attrCard = c.cardinality
             attrType = attribute.getAspect('type', None)
-            indexed = attribute.getAspect('indexed', False)
+            indexed = c.indexed
             
         buffer = self.dataBuffer
         buffer.truncate(0)
@@ -374,8 +375,7 @@ class DBItemWriter(ItemWriter):
             buffer.write(chr(flags))
             buffer.write(value.uuid._uuid)
             if withSchema:
-                self.writeSymbol(buffer,
-                                 item._kind.getOtherName(name, attribute._uuid))
+                self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
             size += value._saveValues(version)
             value._validateIndexes()
             size += self.writeIndexes(buffer, item, version, value)
@@ -471,9 +471,6 @@ class DBItemReader(ItemReader):
         if isContainer:
             item._children = view._createChildren(item, False)
             
-        values._setItem(item)
-        references._setItem(item)
-
         for name, value in values.iteritems():
             if isinstance(value, ItemValue):
                 value._setOwner(item, name)
@@ -664,7 +661,7 @@ class DBItemReader(ItemReader):
             if withSchema:
                 offset, otherName = self.readSymbol(offset, data)
             else:
-                otherName = kind.getOtherName(name, attribute._uuid)
+                otherName = kind.getOtherName(name, None)
             value = view._createRefList(None, name, otherName,
                                         True, False, False, uuid)
             offset = self.readIndexes(offset, data, value, afterLoadHooks)
@@ -870,7 +867,7 @@ class DBItemVMergeReader(DBItemMergeReader):
                 if origRef._isUUID():
                     origRef = origItem._references._getRef(name, origRef)
                 origItem._references._unloadValue(name, origRef,
-                                                  kind.getOtherName(name))
+                                                  kind.getOtherName(name, None))
 
         return offset, itemRef
 

@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import logging, heapq, sys, gc, threading, os
 
 from chandlerdb.util.uuid import UUID
-from chandlerdb.item.item import CItem
+from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import CView
 
 from repository.util.Path import Path

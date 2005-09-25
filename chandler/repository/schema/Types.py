@@ -16,9 +16,9 @@ from struct import pack
 from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo
 
-from chandlerdb.schema.descriptor import CDescriptor
+from chandlerdb.schema.c import CAttribute
 from chandlerdb.util.uuid import _hash, _combine
-from chandlerdb.item.item import Nil, isitem
+from chandlerdb.item.c import Nil, isitem
 from repository.item.Item import Item
 from repository.item.PersistentCollections import \
      PersistentList, PersistentDict, PersistentTuple, PersistentSet
@@ -633,7 +633,7 @@ class SingleRef(Type):
 
     def getFlags(self):
 
-        return CDescriptor.PROCESS
+        return CAttribute.PROCESS
 
     def hashValue(self, value):
 
@@ -1125,7 +1125,7 @@ class DateTime(DateStruct):
     # bypass == optimization as it will return True with different timezones
     def getFlags(self):
 
-        return CDescriptor.PROCESS_SET
+        return CAttribute.PROCESS_SET
 
     def getImplementationType(self):
 
@@ -1224,7 +1224,7 @@ class Time(DateStruct):
     # bypass == optimization as it will return True with different timezones
     def getFlags(self):
 
-        return CDescriptor.PROCESS_SET
+        return CAttribute.PROCESS_SET
 
     def getImplementationType(self):
 
@@ -1398,6 +1398,10 @@ class TimeZone(Type):
 
 class Collection(Type):
 
+    def getFlags(self):
+
+        return CAttribute.PROCESS_SET
+
     def getParsedValue(self, itemHandler, data):
 
         itemHandler.tagCounts.pop()
@@ -1443,9 +1447,6 @@ class Collection(Type):
 
 
 class Dictionary(Collection):
-
-    def getFlags(self):
-        return CDescriptor.DICT
 
     def handlerName(self):
         return 'dict'
@@ -1525,9 +1526,6 @@ class Dictionary(Collection):
 
 class List(Collection):
 
-    def getFlags(self):
-        return CDescriptor.LIST
-    
     def handlerName(self):
         return 'list'
 
@@ -1583,9 +1581,6 @@ class List(Collection):
 
 
 class Tuple(Collection):
-
-    def getFlags(self):
-        return CDescriptor.LIST
 
     def handlerName(self):
         return 'tuple'
@@ -1652,9 +1647,6 @@ class Tuple(Collection):
 
 
 class Set(Collection):
-
-    def getFlags(self):
-        return CDescriptor.SET
 
     def handlerName(self):
         return 'set'

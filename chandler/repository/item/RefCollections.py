@@ -9,7 +9,7 @@ from chandlerdb.util.uuid import UUID, _hash, _combine
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
-from chandlerdb.item.item import Nil
+from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemError import *
 
 
@@ -521,7 +521,7 @@ class RefList(LinkedMap, Indexed):
         attrs['name'] = name
         if withSchema:
             attrs['cardinality'] = 'list'
-            attrs['otherName'] = item._kind.getOtherName(name, None, item)
+            attrs['otherName'] = item.itsKind.getOtherName(name, item)
 
         generator.startElement('ref', attrs)
         self._xmlValues(generator, version)

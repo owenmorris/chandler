@@ -7,8 +7,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from new import classobj
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
-from chandlerdb.schema.descriptor import CDescriptor
-from chandlerdb.item.item import Nil, Default, isitem
+from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
+from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 
 from repository.item.Item import Item
@@ -36,6 +36,7 @@ class Kind(Item):
         
     def __init(self):
 
+        self.c = CKind(self)
         self.monitorSchema = False
         self.attributesCached = False
         self.superKindsCached = False
@@ -132,11 +133,11 @@ class Kind(Item):
             
             for name, descriptor in descriptors.items():
                 try:
-                    attrId, flags = descriptor.getAttribute(self)
+                    attr = descriptor.getAttribute(self)
                 except KeyError:
                     pass
                 else:
-                    if attrId not in attributes:
+                    if attr.attrID not in attributes:
                         if descriptor.unregisterAttribute(self):
                             delattr(cls, name)
 
@@ -146,9 +147,9 @@ class Kind(Item):
                 descriptor = CDescriptor(name)
                 descriptors[name] = descriptor
                 setattr(cls, name, descriptor)
-                descriptor.registerAttribute(self, attribute)
+                descriptor.registerAttribute(self, attribute.c)
             elif isinstance(descriptor, CDescriptor):
-                descriptor.registerAttribute(self, attribute)
+                descriptor.registerAttribute(self, attribute.c)
             else:
                 self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
 
@@ -336,7 +337,7 @@ class Kind(Item):
         else:
             for name, descriptor in descriptors.iteritems():
                 try:
-                    attrId, flags = descriptor.getAttribute(self)
+                    attr = descriptor.getAttribute(self)
                 except KeyError:
                     pass
                 else:
@@ -349,7 +350,7 @@ class Kind(Item):
                         self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to an attribute on Kind %s", name, cls, self.itsPath)
                         result = False
                     else:
-                        if attrId != attribute.itsUUID:
+                        if attr.attrID != attribute.itsUUID:
                             self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to the attribute of the same name on Kind %s", name, cls, self)
                             result = False
 
@@ -369,27 +370,10 @@ class Kind(Item):
         instance
         """
 
-        if self.attributesCached:
-            attribute = self._values['allAttributes'].get(name, None)
-            if attribute is None:
-                if noError:
-                    return None
-                raise NoSuchAttributeError, (self, name)
-
-            return attribute[0]
-
         if item is not None:
-            try:
-                descriptor = Kind._descriptors[type(item)][name]
-            except KeyError:
-                pass
-            else:
-                try:
-                    attrId, flags = descriptor.getAttribute(self)
-                except KeyError:
-                    pass
-                else:
-                    return self.itsView.find(attrId)
+            attribute = self.c.getAttribute(item, name)
+            if attribute is not None:
+                return attribute
 
         refs = self._references
         attrs = refs.get('attributes', None)
@@ -427,25 +411,25 @@ class Kind(Item):
         
         return False
 
-    def getOtherName(self, name, _attrID=None, item=None, default=Default):
+    def getOtherName(self, name, item, default=Default):
 
         otherNames = self._values.get('otherNames', None)
         if otherNames is not None:
-            otherName = otherNames[name]
+            otherName = otherNames.get(name, None)
         else:
             otherName = None
 
         if otherName is None:
-            if _attrID is not None:
-                attribute = self.itsView[_attrID]
+            if item is not None:
+                otherName = item.getAttributeAspect(name, 'otherName',
+                                                    False, None, None)
             else:
-                attribute = self.getAttribute(name, False, item)
+                otherName = self.getAttribute(name).getAspect('otherName', None)
 
-            otherName = attribute._values.get('otherName', None)
-            if otherName is None:
-                if default is not Default:
-                    return default
-                raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
+        if otherName is None:
+            if default is not Default:
+                return default
+            raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
 
         return otherName
 
@@ -627,7 +611,7 @@ class Kind(Item):
             for name, attribute, k in self.iterAttributes():
                 value = attribute.getAspect('initialValue', Nil)
                 if value is not Nil:
-                    otherName = self.getOtherName(name, None, None, None)
+                    otherName = self.getOtherName(name, item, None)
                     if otherName is None:
                         self._initialValues[name] = value
                     else:
@@ -646,7 +630,7 @@ class Kind(Item):
 
         for name, value in self._initialReferences.iteritems():
             if name not in references:
-                otherName = self.getOtherName(name)
+                otherName = self.getOtherName(name, item)
                 if isinstance(value, PersistentCollection):
                     refList = references[name] = item._refList(name, otherName)
                     for other in value.itervalues():
@@ -789,7 +773,7 @@ class Kind(Item):
 
     def getFlags(self):
 
-        return CDescriptor.KIND | CDescriptor.PROCESS
+        return CAttribute.KIND | CAttribute.PROCESS
 
     # end typeness of Kind as SingleRef
 

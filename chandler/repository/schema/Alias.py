@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from chandlerdb.util.uuid import _hash, _combine
-from chandlerdb.schema.descriptor import CDescriptor
+from chandlerdb.schema.c import CAttribute
 from repository.schema.Types import Type
 from repository.schema.TypeHandler import TypeHandler
 
@@ -21,13 +21,13 @@ class Alias(Type):
 
     def getFlags(self):
 
-        flags = CDescriptor.ALIAS
+        flags = CAttribute.ALIAS
 
         if 'types' in self._references:
             for t in self._references['types']:
                 flags |= t.getFlags()
         else:
-            flags |= CDescriptor.PROCESS
+            flags |= CAttribute.PROCESS
 
         return flags
 

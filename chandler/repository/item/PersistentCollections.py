@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from repository.util.SingleRef import SingleRef
-from chandlerdb.item.item import Nil, isitem
+from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemError import ReadOnlyAttributeError, OwnedValueError
 from repository.item.ItemValue import ItemValue
 

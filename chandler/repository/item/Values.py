@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
-from chandlerdb.item.item import Nil
+from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemError import *
 from repository.util.Path import Path
 from repository.util.Lob import Lob
@@ -220,7 +220,7 @@ class Values(dict):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persisted = attribute.getAspect('persisted', True)
+                persisted = attribute.c.persisted
             else:
                 attribute = None
                 persisted = True
@@ -252,11 +252,12 @@ class Values(dict):
         for key, value in self.iteritems():
             if kind is not None:
                 attribute = kind.getAttribute(key, False, item)
+                c = attribute.c
             else:
                 attribute = None
 
             if attribute is not None:
-                persisted = attribute.getAspect('persisted', True)
+                persisted = c.persisted
             else:
                 persisted = True
 
@@ -268,7 +269,7 @@ class Values(dict):
             if persisted:
                 if attribute is not None:
                     attrType = attribute.getAspect('type')
-                    attrCard = attribute.getAspect('cardinality', 'single')
+                    attrCard = c.cardinality
                     attrId = attribute.itsUUID
                 else:
                     attrType = None
@@ -301,11 +302,12 @@ class Values(dict):
         for name in names:
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
+                c = attribute.c
             else:
                 attribute = None
 
             if attribute is not None:
-                persisted = attribute.getAspect('persisted', True)
+                persisted = c.persisted
             else:
                 persisted = True
 
@@ -400,7 +402,7 @@ class Values(dict):
 
         attrType = attribute.getAspect('type', None)
         if attrType is not None:
-            attrCard = attribute.getAspect('cardinality', 'single')
+            attrCard = attribute.c.cardinality
 
             if attrCard == 'single':
                 return self._checkValue(logger, key, value, attrType)
@@ -567,8 +569,8 @@ class References(Values):
                 self[name] = other
                 kind = item.itsKind
                 if kind is not None:  # kind may be None during bootstrap
-                    other._references._getRef(kind.getOtherName(name, attrID,
-                                                                item), item)
+                    otherName = kind.getOtherName(name, item)
+                    other._references._getRef(otherName, item)
                 return other
 
             raise TypeError, '%s, type: %s' %(value, type(value))
@@ -702,7 +704,7 @@ class References(Values):
 
         if copyOther is not Nil and name not in copyItem._references:
             copyItem._references._setValue(name, copyOther,
-                                           copyItem._kind.getOtherName(name))
+                                           copyItem.itsKind.getOtherName(name, copyItem))
 
     # copy orig._references into self
     def _copy(self, orig, copyPolicy, copyFn):
@@ -723,7 +725,8 @@ class References(Values):
                 if value._isRefList():
                     value._unload()
                 elif isitem(value):
-                    otherName = self._item.itsKind.getOtherName(name)
+                    item = self._item
+                    otherName = item.itsKind.getOtherName(name, item)
                     self._unloadValue(name, value, otherName)
 
         super(References, self)._unload()
@@ -761,7 +764,8 @@ class References(Values):
         addAttr(attrs, 'alias', alias)
 
         if withSchema:
-            otherName = self._item._kind.getOtherName(name)
+            item = self._item
+            otherName = item.itsKind.getOtherName(name, item)
             otherCard = other.getAttributeAspect(otherName, 'cardinality',
                                                  False, None, 'single')
             attrs['otherName'] = otherName
@@ -791,7 +795,7 @@ class References(Values):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persisted = attribute.getAspect('persisted', True)
+                persisted = attribute.c.persisted
             else:
                 attribute = None
                 persisted = True
@@ -822,7 +826,7 @@ class References(Values):
 
         for name, value in self.iteritems():
             attribute = kind.getAttribute(name, False, item)
-            if attribute.getAspect('persisted', True):
+            if attribute.c.persisted:
                 flags = self._getFlags(name) & Values.SAVEMASK
                 attrs = { 'id': attribute.itsUUID.str64() }
                 if flags:
@@ -858,7 +862,7 @@ class References(Values):
 
         for name in names:
             attribute = kind.getAttribute(name, False, item)
-            if attribute.getAspect('persisted', True):
+            if attribute.c.persisted:
                 hash = _combine(hash, _hash(name))
                 value = self[name]
                 
@@ -948,7 +952,8 @@ class References(Values):
                              other, self._item.itsPath, name)
                 return False
 
-        otherName = self._item._kind.getOtherName(name, None, None, None)
+        item = self._item
+        otherName = item.itsKind.getOtherName(name, item, None)
         if otherName is None:
             logger.error('otherName is None for attribute %s.%s',
                          self._item._kind.itsPath, name)
@@ -957,8 +962,7 @@ class References(Values):
         if other is not None:
             if other._kind is None:
                 raise AssertionError, 'no kind for %s' %(other.itsPath)
-            otherOtherName = other._kind.getOtherName(otherName,
-                                                      None, None, None)
+            otherOtherName = other.itsKind.getOtherName(otherName, other, None)
             if otherOtherName != name:
                 logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
                              self._item._kind.itsPath, name, otherName,

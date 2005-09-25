@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import re
 
-from chandlerdb.item.item import Nil, isitem
+from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemError import RecursiveDeleteError
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet

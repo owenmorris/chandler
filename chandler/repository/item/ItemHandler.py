@@ -12,7 +12,7 @@ from repository.item.PersistentCollections import \
 from repository.item.Values import Values, References
 from repository.item.ItemValue import ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
-from chandlerdb.item.item import Nil, isitem
+from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemError import *
 
 from chandlerdb.util.uuid import UUID
@@ -576,8 +576,6 @@ class ItemHandler(ValueHandler):
 
         if not (self.update or self.delete):
             self.repository._registerItem(item)
-            self.values._setItem(item)
-            self.references._setItem(item)
 
         for attribute, value in self.values.iteritems():
             if isinstance(value, ItemValue):
@@ -726,7 +724,7 @@ class ItemHandler(ValueHandler):
         otherName = attrs.get('otherName')
 
         if otherName is None and attribute is not None:
-            otherName = self.kind.getOtherName(name, None, None, None)
+            otherName = self.kind.getOtherName(name, None, None)
 
         if otherName is None:
             raise TypeError, 'Undefined other endpoint for %s.%s of kind %s' %(self.name or self.uuid, name, self.kind.itsPath)
