@@ -4,7 +4,7 @@
 // Author:      Wolfram Gloger/adapted by Guilhem Lavaux
 // Modified by:
 // Created:     04/11/98
-// RCS-ID:      $Id: module.cpp,v 1.20 2005/09/24 20:29:22 VZ Exp $
+// RCS-ID:      $Id: module.cpp,v 1.21 2005/09/25 14:26:38 MBN Exp $
 // Copyright:   (c) Wolfram Gloger and Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +21,8 @@
 #include "wx/intl.h"
 #include "wx/log.h"
 #include "wx/listimpl.cpp"
+
+#define TRACE_MODULE _T("module")
 
 WX_DEFINE_LIST(wxModuleList)
 
@@ -54,6 +56,8 @@ void wxModule::RegisterModules()
         if ( classInfo->IsKindOf(CLASSINFO(wxModule)) &&
             (classInfo != (& (wxModule::ms_classInfo))) )
         {
+            wxLogTrace(TRACE_MODULE, wxT("Registering module %s"),
+                       classInfo->GetClassName());
             wxModule* module = (wxModule *)classInfo->CreateObject();
             RegisterModule(module);
         }
@@ -93,6 +97,8 @@ void wxModule::CleanUpModules()
     wxModuleList::compatibility_iterator node;
     for ( node = m_modules.GetFirst(); node; node = node->GetNext() )
     {
+        wxLogTrace(TRACE_MODULE, wxT("Cleanup module %s"),
+                   node->GetData()->GetClassInfo()->GetClassName());
         node->GetData()->Exit();
     }
 

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling and Robin Dunn
 // Modified by: Ron Lee, Vadim Zeitlin (wxSizerFlags)
 // Created:
-// RCS-ID:      $Id: sizer.h,v 1.72 2005/09/24 21:42:09 VZ Exp $
+// RCS-ID:      $Id: sizer.h,v 1.73 2005/09/25 14:24:00 MBN Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,6 @@
 #include "wx/window.h"
 #include "wx/frame.h"
 #include "wx/dialog.h"
-#include "wx/bookctrl.h"
 
 //---------------------------------------------------------------------------
 // classes

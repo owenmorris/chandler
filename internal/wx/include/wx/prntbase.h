@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: prntbase.h,v 1.46 2005/09/23 12:48:45 MR Exp $
+// RCS-ID:      $Id: prntbase.h,v 1.47 2005/09/25 14:22:16 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -95,6 +95,7 @@ public:
 
     static void SetPrintFactory( wxPrintFactory *factory );
     static wxPrintFactory *GetFactory();
+private:
     static wxPrintFactory *m_factory;
 };
 

@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: K. S. Sreeram (2002): POSIXified wxCondition, added wxSemaphore
 // Created:     04/22/98
-// RCS-ID:      $Id: threadpsx.cpp,v 1.84 2005/09/23 12:56:00 MR Exp $
+// RCS-ID:      $Id: threadpsx.cpp,v 1.85 2005/09/25 16:12:15 SN Exp $
 // Copyright:   (c) Wolfram Gloger (1996, 1997)
 //                  Guilhem Lavaux (1998)
 //                  Vadim Zeitlin (1999-2002)
@@ -1058,7 +1058,13 @@ wxThread::wxThread(wxThreadKind kind)
     m_isDetached = kind == wxTHREAD_DETACHED;
 }
 
-wxThreadError wxThread::Create(unsigned int WXUNUSED(stackSize))
+#ifdef HAVE_PTHREAD_ATTR_SETSTACKSIZE
+    #define WXUNUSED_STACKSIZE(identifier)  identifier
+#else
+    #define WXUNUSED_STACKSIZE(identifier)  WXUNUSED(identifier)
+#endif
+
+wxThreadError wxThread::Create(unsigned int WXUNUSED_STACKSIZE(stackSize))
 {
     if ( m_internal->GetState() != STATE_NEW )
     {
@@ -1069,6 +1075,11 @@ wxThreadError wxThread::Create(unsigned int WXUNUSED(stackSize))
     // set up the thread attribute: right now, we only set thread priority
     pthread_attr_t attr;
     pthread_attr_init(&attr);
+
+#ifdef HAVE_PTHREAD_ATTR_SETSTACKSIZE
+    if (stackSize)
+      pthread_attr_setstacksize(&attr, stackSize);
+#endif
 
 #ifdef HAVE_THREAD_PRIORITY_FUNCTIONS
     int policy;
