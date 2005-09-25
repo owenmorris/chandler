@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp,v 1.163 2005/09/23 12:54:11 MR Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.164 2005/09/24 21:42:47 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2575,7 +2575,7 @@ static pascal void wxMacControlUserPaneDrawProc(ControlRef control, SInt16 part)
         win->MacControlUserPaneDrawProc(part) ;
 }
 
-static pascal ControlPartCode wxMacControlUserPaneHitTestProc(ControlRef control, Point where)
+static pascal ControlPartCode wxMacControlUserPaneHitTestProc(ControlRef control, const Point& where)
 {
     wxTextCtrl *textCtrl =  wxDynamicCast( wxFindControlFromMacControl(control) , wxTextCtrl ) ;
     wxMacMLTEClassicControl * win = textCtrl ? (wxMacMLTEClassicControl*)(textCtrl->GetPeer()) : NULL ;
@@ -2585,7 +2585,7 @@ static pascal ControlPartCode wxMacControlUserPaneHitTestProc(ControlRef control
         return kControlNoPart ;
 }
 
-static pascal ControlPartCode wxMacControlUserPaneTrackingProc(ControlRef control, Point startPt, ControlActionUPP actionProc)
+static pascal ControlPartCode wxMacControlUserPaneTrackingProc(ControlRef control, const Point& startPt, ControlActionUPP actionProc)
 {
     wxTextCtrl *textCtrl =  wxDynamicCast( wxFindControlFromMacControl(control) , wxTextCtrl ) ;
     wxMacMLTEClassicControl * win = textCtrl ? (wxMacMLTEClassicControl*)(textCtrl->GetPeer()) : NULL ;

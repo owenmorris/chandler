@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: pen.h,v 1.5 2005/09/23 12:49:34 MR Exp $
+// RCS-ID:      $Id: pen.h,v 1.6 2005/09/24 21:42:18 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,8 +58,8 @@ public:
   ~wxPen();
 
   inline wxPen& operator = (const wxPen& pen) { if (*this == pen) return (*this); Ref(pen); return *this; }
-  inline bool operator == (const wxPen& pen) { return m_refData == pen.m_refData; }
-  inline bool operator != (const wxPen& pen) { return m_refData != pen.m_refData; }
+  inline bool operator == (const wxPen& pen) const { return m_refData == pen.m_refData; }
+  inline bool operator != (const wxPen& pen) const { return m_refData != pen.m_refData; }
 
   virtual bool Ok() const { return (m_refData != NULL) ; }
 

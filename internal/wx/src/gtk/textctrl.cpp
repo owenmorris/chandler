@@ -2,7 +2,7 @@
 // Name:        textctrl.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: textctrl.cpp,v 1.218 2005/09/23 12:53:42 MR Exp $
+// Id:          $Id: textctrl.cpp,v 1.219 2005/09/24 21:42:41 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ extern "C" {
 static void wxGtkTextInsert(GtkWidget *text,
                             GtkTextBuffer *text_buffer,
                             const wxTextAttr& attr,
-                            wxCharBuffer buffer)
+                            const wxCharBuffer& buffer)
 
 {
     gint start_offset;

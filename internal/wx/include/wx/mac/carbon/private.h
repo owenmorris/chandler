@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.40 2005/09/14 11:49:31 SC Exp $
+// RCS-ID:      $Id: private.h,v 1.41 2005/09/24 21:42:18 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -753,7 +753,7 @@ private :
 
 // toplevel.cpp
 
-ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow, Point location , WindowRef window , ControlPartCode *outPart ) ;
+ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow, const Point& location , WindowRef window , ControlPartCode *outPart ) ;
 
 #endif // wxUSE_GUI
 

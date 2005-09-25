@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/08/02 (stubs from 22.03.2003)
-// RCS-ID:      $Id: pen.h,v 1.6 2004/05/23 20:50:42 JS Exp $
+// RCS-ID:      $Id: pen.h,v 1.7 2005/09/24 21:42:03 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,9 +39,9 @@ public:
 
     inline wxPen& operator = (const wxPen& pen)
     {   if (*this == pen) return (*this); Ref(pen); return *this; }
-    inline bool operator == (const wxPen& pen)
+    inline bool operator == (const wxPen& pen) const
     {   return m_refData == pen.m_refData; }
-    inline bool operator != (const wxPen& pen)
+    inline bool operator != (const wxPen& pen) const
     {   return m_refData != pen.m_refData; }
 
     virtual bool Ok() const { return (m_refData != NULL) ; }

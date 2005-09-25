@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/12
-// RCS-ID:      $Id: regiong.cpp,v 1.7 2005/08/28 15:37:54 VZ Exp $
+// RCS-ID:      $Id: regiong.cpp,v 1.8 2005/09/24 21:42:39 VZ Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -275,7 +275,7 @@ wxObjectRefData *wxRegionGeneric::CloneRefData(const wxObjectRefData *data) cons
     return new wxRegionRefData(*(wxRegionRefData *)data);
 }
 
-bool wxRegionGeneric::operator== (const wxRegionGeneric& region)
+bool wxRegionGeneric::operator== (const wxRegionGeneric& region) const
 {
     wxASSERT(m_refData && region.m_refData);
     return REGION::XEqualRegion(M_REGIONDATA,M_REGIONDATA_OF(region));

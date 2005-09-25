@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: accel.h,v 1.5 2005/09/23 12:49:29 MR Exp $
+// RCS-ID:      $Id: accel.h,v 1.6 2005/09/24 21:42:17 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,9 +33,9 @@ public:
 
     wxAcceleratorTable& operator = (const wxAcceleratorTable& accel)
     { if (*this == accel) return (*this); Ref(accel); return *this; }
-    bool operator == (const wxAcceleratorTable& accel)
+    bool operator == (const wxAcceleratorTable& accel) const
     { return m_refData == accel.m_refData; }
-    bool operator != (const wxAcceleratorTable& accel)
+    bool operator != (const wxAcceleratorTable& accel) const
     { return m_refData != accel.m_refData; }
 
     bool Ok() const;

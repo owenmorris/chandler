@@ -3,7 +3,7 @@
 // Purpose:     wxHtmlCell class is used by wxHtmlWindow/wxHtmlWinParser
 //              as a basic visual element of HTML page
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlcell.h,v 1.59 2005/09/23 12:49:26 MR Exp $
+// RCS-ID:      $Id: htmlcell.h,v 1.60 2005/09/24 21:42:15 VZ Exp $
 // Copyright:   (c) 1999-2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -333,7 +333,7 @@ protected:
 class WXDLLIMPEXP_HTML wxHtmlWordCell : public wxHtmlCell
 {
 public:
-    wxHtmlWordCell(const wxString& word, wxDC& dc);
+    wxHtmlWordCell(const wxString& word, const wxDC& dc);
     void Draw(wxDC& dc, int x, int y, int view_y1, int view_y2,
               wxHtmlRenderingInfo& info);
     wxCursor GetCursor() const;
@@ -343,8 +343,8 @@ public:
     void SetPreviousWord(wxHtmlWordCell *cell);
 
 protected:
-    void SetSelectionPrivPos(wxDC& dc, wxHtmlSelection *s) const;
-    void Split(wxDC& dc,
+    void SetSelectionPrivPos(const wxDC& dc, wxHtmlSelection *s) const;
+    void Split(const wxDC& dc,
                const wxPoint& selFrom, const wxPoint& selTo,
                unsigned& pos1, unsigned& pos2) const;
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: htmllbox.cpp,v 1.18 2005/02/16 20:34:20 ABX Exp $
+// RCS-ID:      $Id: htmllbox.cpp,v 1.19 2005/09/24 21:42:38 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ private:
 class wxHtmlListBoxStyle : public wxDefaultHtmlRenderingStyle
 {
 public:
-    wxHtmlListBoxStyle(wxHtmlListBox& hlbox) : m_hlbox(hlbox) { }
+    wxHtmlListBoxStyle(const wxHtmlListBox& hlbox) : m_hlbox(hlbox) { }
 
     virtual wxColour GetSelectedTextColour(const wxColour& colFg)
     {

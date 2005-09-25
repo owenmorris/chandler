@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/16/2005
-// RCS-ID:      $Id: mimetmac.cpp,v 1.29 2005/09/23 12:54:08 MR Exp $
+// RCS-ID:      $Id: mimetmac.cpp,v 1.30 2005/09/24 21:42:47 VZ Exp $
 // Copyright:   (c) 2005 Ryan Norton (<wxprojects@comcast.net>)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -968,7 +968,7 @@ public:
         }
     }
 
-    static void PrintOutType(wxString& sMessage, wxString sValue, CFTypeRef cfRef)
+    static void PrintOutType(wxString& sMessage, const wxString& sValue, CFTypeRef cfRef)
     {
             sMessage << wxT(" {");
 

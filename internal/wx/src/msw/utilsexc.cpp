@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: utilsexc.cpp,v 1.81 2005/09/23 12:55:14 MR Exp $
+// RCS-ID:      $Id: utilsexc.cpp,v 1.82 2005/09/24 23:56:31 VZ Exp $
 // Copyright:   (c) 1998-2002 wxWidgets dev team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -483,16 +483,16 @@ size_t wxPipeOutputStream::OnSysWrite(const void *buffer, size_t len)
 #if wxUSE_IPC
 
 // connect to the given server via DDE and ask it to execute the command
-static bool wxExecuteDDE(const wxString& ddeServer,
-                         const wxString& ddeTopic,
-                         const wxString& ddeCommand)
+bool
+wxExecuteDDE(const wxString& ddeServer,
+             const wxString& ddeTopic,
+             const wxString& ddeCommand)
 {
     bool ok wxDUMMY_INITIALIZE(false);
 
     wxDDEClient client;
-    wxConnectionBase *conn = client.MakeConnection(wxEmptyString,
-                                                   ddeServer,
-                                                   ddeTopic);
+    wxConnectionBase *
+        conn = client.MakeConnection(wxEmptyString, ddeServer, ddeTopic);
     if ( !conn )
     {
         ok = false;

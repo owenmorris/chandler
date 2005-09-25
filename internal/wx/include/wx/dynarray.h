@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.97
-// RCS-ID:      $Id: dynarray.h,v 1.82 2005/09/23 12:48:37 MR Exp $
+// RCS-ID:      $Id: dynarray.h,v 1.83 2005/09/24 21:42:07 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -400,8 +400,8 @@ public:                                                               \
       { reverse_iterator tmp = *this; --m_ptr; return tmp; }          \
     itor& operator--() { ++m_ptr; return *this; }                     \
     const itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }\
-    bool operator ==(const itor& it) { return m_ptr == it.m_ptr; }    \
-    bool operator !=(const itor& it) { return m_ptr != it.m_ptr; }    \
+    bool operator ==(const itor& it) const { return m_ptr == it.m_ptr; }\
+    bool operator !=(const itor& it) const { return m_ptr != it.m_ptr; }\
   };                                                                  \
                                                                       \
   class const_reverse_iterator                                        \
@@ -433,8 +433,8 @@ public:                                                               \
       { itor tmp = *this; --m_ptr; return tmp; }                      \
     itor& operator--() { ++m_ptr; return *this; }                     \
     const itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }\
-    bool operator ==(const itor& it) { return m_ptr == it.m_ptr; }    \
-    bool operator !=(const itor& it) { return m_ptr != it.m_ptr; }    \
+    bool operator ==(const itor& it) const { return m_ptr == it.m_ptr; }\
+    bool operator !=(const itor& it) const { return m_ptr != it.m_ptr; }\
   };                                                                  \
                                                                       \
   name(size_type n, const_reference v) { assign(n, v); }              \

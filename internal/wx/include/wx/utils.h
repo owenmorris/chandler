@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h,v 1.119 2005/09/23 12:48:49 MR Exp $
+// RCS-ID:      $Id: utils.h,v 1.120 2005/09/24 23:56:29 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -209,6 +209,13 @@ WXDLLIMPEXP_BASE long wxExecute(const wxString& command,
                                 wxArrayString& error,
                                 int flags = 0);
 
+#ifdef __WXMSW__
+// ask a DDE server to execute the DDE request with given parameters
+WXDLLIMPEXP_BASE bool wxExecuteDDE(const wxString& ddeServer,
+                                   const wxString& ddeTopic,
+                                   const wxString& ddeCommand);
+#endif // __WXMSW__
+
 enum wxSignal
 {
     wxSIGNONE = 0,  // verify if the process exists under Unix
@@ -319,8 +326,15 @@ WXDLLIMPEXP_BASE bool wxHandleFatalExceptions(bool doit = true);
 #endif // wxUSE_ON_FATAL_EXCEPTION
 
 #if wxABI_VERSION >= 20601
+
+// flags for wxLaunchDefaultBrowser
+enum
+{
+    wxBROWSER_NEW_WINDOW = 1
+};
+
 // Launch url in the user's default internet browser
-WXDLLIMPEXP_BASE bool wxLaunchDefaultBrowser(const wxString& url);
+WXDLLIMPEXP_BASE bool wxLaunchDefaultBrowser(const wxString& url, int flags = 0);
 #endif
 
 // ----------------------------------------------------------------------------

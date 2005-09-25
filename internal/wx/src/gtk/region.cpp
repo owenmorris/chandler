@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified:    VZ at 05.10.00: use AllocExclusive(), comparison fixed
-// Id:          $Id: region.cpp,v 1.43 2005/09/23 12:53:41 MR Exp $
+// Id:          $Id: region.cpp,v 1.44 2005/09/24 21:42:41 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ wxObjectRefData *wxRegion::CloneRefData(const wxObjectRefData *data) const
 // wxRegion comparison
 // ----------------------------------------------------------------------------
 
-bool wxRegion::operator==( const wxRegion& region )
+bool wxRegion::operator==( const wxRegion& region ) const
 {
     if (m_refData == region.m_refData) return TRUE;
 

@@ -2,7 +2,7 @@
 // Name:        winpars.cpp
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: winpars.cpp,v 1.59 2005/09/23 12:53:54 MR Exp $
+// RCS-ID:      $Id: winpars.cpp,v 1.60 2005/09/24 21:42:45 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ void wxHtmlWinParser::RemoveModule(wxHtmlTagsModule *module)
     m_Modules.DeleteObject(module);
 }
 
-void wxHtmlWinParser::SetFonts(wxString normal_face, wxString fixed_face,
+void wxHtmlWinParser::SetFonts(const wxString& normal_face, const wxString& fixed_face,
                                const int *sizes)
 {
     static int default_sizes[7] =

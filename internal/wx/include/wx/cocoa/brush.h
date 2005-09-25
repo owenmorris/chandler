@@ -4,7 +4,7 @@
 // Author:      David Elliott <dfe@cox.net>
 // Modified by:
 // Created:     2003/07/03
-// RCS-ID:      $Id: brush.h,v 1.7 2004/12/03 15:28:48 ABX Exp $
+// RCS-ID:      $Id: brush.h,v 1.8 2005/09/24 21:42:03 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,9 +49,9 @@ public:
     {   if (*this == brush) return (*this); Ref(brush); return *this; }
 
     // comparison
-    bool operator == (const wxBrush& brush)
+    bool operator == (const wxBrush& brush) const
     {   return m_refData == brush.m_refData; }
-    bool operator != (const wxBrush& brush)
+    bool operator != (const wxBrush& brush) const
     {   return m_refData != brush.m_refData; }
 
     // accessors

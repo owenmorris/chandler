@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py 6243 2005-07-28 19:00:03Z davids $
+# RCS-ID:      $Id: config.py,v 1.71 2005/06/09 18:59:58 RD Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

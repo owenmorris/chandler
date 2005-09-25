@@ -2,7 +2,7 @@
 // Name:        htmlwin.cpp
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML (implementation)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.cpp,v 1.110 2005/09/23 12:53:52 MR Exp $
+// RCS-ID:      $Id: htmlwin.cpp,v 1.111 2005/09/24 21:42:44 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ void wxHtmlWindow::SetRelatedStatusBar(int bar)
 
 
 
-void wxHtmlWindow::SetFonts(wxString normal_face, wxString fixed_face, const int *sizes)
+void wxHtmlWindow::SetFonts(const wxString& normal_face, const wxString& fixed_face, const int *sizes)
 {
     wxString op = m_OpenedPage;
 

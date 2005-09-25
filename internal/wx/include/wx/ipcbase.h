@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     4/1/98
-// RCS-ID:      $Id: ipcbase.h,v 1.26 2005/09/23 12:48:42 MR Exp $
+// RCS-ID:      $Id: ipcbase.h,v 1.27 2005/09/24 21:42:08 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ class WXDLLIMPEXP_BASE wxConnectionBase: public wxObject
 public:
   wxConnectionBase(wxChar *buffer, int size); // use external buffer
   wxConnectionBase(); // use internal, adaptive buffer
-  wxConnectionBase(wxConnectionBase& copy);
+  wxConnectionBase(const wxConnectionBase& copy);
   ~wxConnectionBase(void);
 
   void SetConnected( bool c ) { m_connected = c; }

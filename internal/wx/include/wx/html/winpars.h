@@ -2,7 +2,7 @@
 // Name:        winpars.h
 // Purpose:     wxHtmlWinParser class (parser to be used with wxHtmlWindow)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: winpars.h,v 1.30 2005/09/23 12:49:27 MR Exp $
+// RCS-ID:      $Id: winpars.h,v 1.31 2005/09/24 21:42:16 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ public:
     wxHtmlWindow *GetWindow() {return m_Window;}
 
     // Sets fonts to be used when displaying HTML page. (if size null then default sizes used).
-    void SetFonts(wxString normal_face, wxString fixed_face, const int *sizes = NULL);
+    void SetFonts(const wxString& normal_face, const wxString& fixed_face, const int *sizes = NULL);
 
     // Sets font sizes to be relative to the given size or the system
     // default size; use either specified or default font

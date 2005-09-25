@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.h,v 1.98 2005/09/23 12:48:40 MR Exp $
+// RCS-ID:      $Id: gdicmn.h,v 1.99 2005/09/24 21:42:08 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -213,10 +213,10 @@ public:
     bool operator==(const wxSize& sz) const { return x == sz.x && y == sz.y; }
     bool operator!=(const wxSize& sz) const { return x != sz.x || y != sz.y; }
 
-    wxSize operator+(const wxSize& sz) { return wxSize(x + sz.x, y + sz.y); }
-    wxSize operator-(const wxSize& sz) { return wxSize(x - sz.x, y - sz.y); }
-    wxSize operator/(const int i) { return wxSize(x / i, y / i); }
-    wxSize operator*(const int i) { return wxSize(x * i, y * i); }
+    wxSize operator+(const wxSize& sz) const { return wxSize(x + sz.x, y + sz.y); }
+    wxSize operator-(const wxSize& sz) const { return wxSize(x - sz.x, y - sz.y); }
+    wxSize operator/(int i) const { return wxSize(x / i, y / i); }
+    wxSize operator*(int i) const { return wxSize(x * i, y * i); }
 
     wxSize& operator+=(const wxSize& sz) { x += sz.x; y += sz.y; return *this; }
     wxSize& operator-=(const wxSize& sz) { x -= sz.x; y -= sz.y; return *this; }

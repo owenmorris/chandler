@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: metafile.h,v 1.6 2005/08/19 13:48:20 MW Exp $
+// RCS-ID:      $Id: metafile.h,v 1.7 2005/09/24 21:42:18 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,8 +64,8 @@ public:
 
     // Operators
     inline wxMetafile& operator = (const wxMetafile& metafile) { if (*this == metafile) return (*this); Ref(metafile); return *this; }
-    inline bool operator == (const wxMetafile& metafile) { return m_refData == metafile.m_refData; }
-    inline bool operator != (const wxMetafile& metafile) { return m_refData != metafile.m_refData; }
+    inline bool operator == (const wxMetafile& metafile) const { return m_refData == metafile.m_refData; }
+    inline bool operator != (const wxMetafile& metafile) const { return m_refData != metafile.m_refData; }
 
 protected:
 };

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.cpp,v 1.63 2005/09/23 12:55:58 MR Exp $
+// RCS-ID:      $Id: fontutil.cpp,v 1.64 2005/09/24 21:42:55 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ void wxNativeFontInfo::SetUnderlined(bool WXUNUSED(underlined))
     wxFAIL_MSG( _T("not implemented") );
 }
 
-void wxNativeFontInfo::SetFaceName(wxString facename)
+void wxNativeFontInfo::SetFaceName(const wxString& facename)
 {
     pango_font_description_set_family( description, wxGTK_CONV(facename) );
 }
@@ -753,7 +753,7 @@ void wxNativeFontInfo::SetUnderlined(bool WXUNUSED(underlined))
     // can't do this under X
 }
 
-void wxNativeFontInfo::SetFaceName(wxString facename)
+void wxNativeFontInfo::SetFaceName(const wxString& facename)
 {
     SetXFontComponent(wxXLFD_FAMILY, facename);
 }

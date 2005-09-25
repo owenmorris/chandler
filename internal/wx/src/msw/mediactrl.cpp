@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.cpp,v 1.57 2005/09/23 12:55:02 MR Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.58 2005/09/24 21:42:52 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1195,7 +1195,7 @@ public:
     wxDL_VOIDMETHOD_DEFINE(DestroyPortAssociation, (CGrafPtr g), (g));
     wxDL_VOIDMETHOD_DEFINE(NativeEventToMacEvent, (MSG* p1, EventRecord* p2), (p1,p2));
     wxDL_VOIDMETHOD_DEFINE(MCIsPlayerEvent, (ComponentInstance ci, EventRecord* p2), (ci, p2));
-    wxDL_METHOD_DEFINE(int, MCSetMovie, (ComponentInstance ci, Movie m, void* p1, Point w),
+    wxDL_METHOD_DEFINE(int, MCSetMovie, (ComponentInstance ci, Movie m, void* p1, const Point& w),
                           (ci,m,p1,w),0);
     wxDL_VOIDMETHOD_DEFINE(MCPositionController,
         (ComponentInstance ci, Rect* r, void* junk, void* morejunk), (ci,r,junk,morejunk));

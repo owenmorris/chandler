@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-09-25
-// RCS-ID:      $Id: fontdlg.h,v 1.6 2005/09/23 12:49:33 MR Exp $
+// RCS-ID:      $Id: fontdlg.h,v 1.7 2005/09/24 21:42:18 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ public:
     wxFontData& GetFontData() { return m_fontData; }
     bool IsShown() const;
     void OnPanelClose();
-    void SetData(wxFontData& data);
+    void SetData(const wxFontData& data);
 
 protected:
     wxWindow*   m_dialogParent;

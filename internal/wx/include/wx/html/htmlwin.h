@@ -2,7 +2,7 @@
 // Name:        htmlwin.h
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.h,v 1.67 2005/09/23 12:49:27 MR Exp $
+// RCS-ID:      $Id: htmlwin.h,v 1.68 2005/09/24 21:42:16 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ public:
 #endif // wxUSE_STATUSBAR
 
     // Sets fonts to be used when displaying HTML page.
-    void SetFonts(wxString normal_face, wxString fixed_face,
+    void SetFonts(const wxString& normal_face, const wxString& fixed_face,
                   const int *sizes = NULL);
 
     // Sets font sizes to be relative to the given size or the system

@@ -4,7 +4,7 @@
 // Author:      Chris Breeze, Julian Smart
 // Modified by:  Klaas Holwerda
 // Created:     01/02/97
-// RCS-ID:      $Id: matrix.h,v 1.14 2005/09/23 12:48:43 MR Exp $
+// RCS-ID:      $Id: matrix.h,v 1.15 2005/09/24 21:42:08 VZ Exp $
 // Copyright:   (c) Julian Smart, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,8 +48,8 @@ public:
     void SetValue(int col, int row, double value);
 
     void operator = (const wxTransformMatrix& mat);
-    bool operator == (const wxTransformMatrix& mat);
-    bool operator != (const wxTransformMatrix& mat);
+    bool operator == (const wxTransformMatrix& mat) const;
+    bool operator != (const wxTransformMatrix& mat) const;
 
     //multiply every element by t
     wxTransformMatrix&          operator*=(const double& t);

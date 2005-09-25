@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: ipcbase.cpp,v 1.14 2005/09/23 12:53:01 MR Exp $
+// RCS-ID:      $Id: ipcbase.cpp,v 1.15 2005/09/24 21:42:32 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ wxConnectionBase::wxConnectionBase()
 {
 }
 
-wxConnectionBase::wxConnectionBase(wxConnectionBase& copy)
+wxConnectionBase::wxConnectionBase(const wxConnectionBase& copy)
     : wxObject(),
       m_connected(copy.m_connected),
       m_buffer(copy.m_buffer),

@@ -6,7 +6,7 @@
  * Author:      Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main MSW file
  * Licence:     The wxWindows licence
- * CVSID:       $Id: gsocket.cpp,v 1.18 2005/08/31 15:48:38 SN Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.19 2005/09/24 22:31:47 VZ Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -726,7 +726,10 @@ int GSocket::Read(char *buffer, int size)
 
   /* If the socket is blocking, wait for data (with a timeout) */
   if (Input_Timeout() == GSOCK_TIMEDOUT)
+  {
+    m_error = GSOCK_TIMEDOUT;
     return -1;
+  }
 
   /* Read the data */
   if (m_stream)

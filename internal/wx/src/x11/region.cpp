@@ -3,7 +3,7 @@
 // Purpose:   Region class
 // Author:    Julian Smart, Robert Roebling
 // Created:   Fri Oct 24 10:46:34 MET 1997
-// RCS-ID:    $Id: region.cpp,v 1.13 2005/09/23 12:56:06 MR Exp $
+// RCS-ID:    $Id: region.cpp,v 1.14 2005/09/24 21:42:57 VZ Exp $
 // Copyright: (c) 1997 Julian Smart, Robert Roebling
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ wxObjectRefData *wxRegion::CloneRefData(const wxObjectRefData *data) const
 // wxRegion comparison
 // ----------------------------------------------------------------------------
 
-bool wxRegion::operator==( const wxRegion& region )
+bool wxRegion::operator==( const wxRegion& region ) const
 {
     if (m_refData == region.m_refData) return TRUE;
 

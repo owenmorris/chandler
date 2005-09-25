@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.01.00
-// RCS-ID:      $Id: cmdline.cpp,v 1.44 2005/09/24 20:29:20 VZ Exp $
+// RCS-ID:      $Id: cmdline.cpp,v 1.45 2005/09/24 21:42:31 VZ Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,7 +120,7 @@ struct wxCmdLineOption
     void SetStrVal(const wxString& val)
         { Check(wxCMD_LINE_VAL_STRING); m_strVal = val; m_hasVal = true; }
 #if wxUSE_DATETIME
-    void SetDateVal(const wxDateTime val)
+    void SetDateVal(const wxDateTime& val)
         { Check(wxCMD_LINE_VAL_DATE); m_dateVal = val; m_hasVal = true; }
 #endif // wxUSE_DATETIME
 

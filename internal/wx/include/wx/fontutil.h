@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.h,v 1.38 2005/09/23 12:48:39 MR Exp $
+// RCS-ID:      $Id: fontutil.h,v 1.39 2005/09/24 21:42:07 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -195,7 +195,7 @@ public:
     void SetStyle(wxFontStyle style);
     void SetWeight(wxFontWeight weight);
     void SetUnderlined(bool underlined);
-    void SetFaceName(wxString facename);
+    void SetFaceName(const wxString& facename);
     void SetFamily(wxFontFamily family);
     void SetEncoding(wxFontEncoding encoding);
 

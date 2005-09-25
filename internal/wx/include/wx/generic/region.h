@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/12
-// RCS-ID:      $Id: region.h,v 1.4 2004/06/17 16:22:27 ABX Exp $
+// RCS-ID:      $Id: region.h,v 1.5 2005/09/24 21:42:12 VZ Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,8 +44,8 @@ public:
 
     bool Ok() const { return m_refData != NULL; }
 
-    bool operator == ( const wxRegionGeneric& region );
-    bool operator != ( const wxRegionGeneric& region ) { return !(*this == region); }
+    bool operator == ( const wxRegionGeneric& region ) const;
+    bool operator != ( const wxRegionGeneric& region ) const { return !(*this == region); }
 
     //# Modify region
     // Clear current region

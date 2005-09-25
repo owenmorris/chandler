@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: brush.h,v 1.7 2005/09/23 12:49:30 MR Exp $
+// RCS-ID:      $Id: brush.h,v 1.8 2005/09/24 21:42:18 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,9 +49,9 @@ public:
 
     wxBrush& operator = (const wxBrush& brush)
     { if (*this == brush) return (*this); Ref(brush); return *this; }
-    bool operator == (const wxBrush& brush)
+    bool operator == (const wxBrush& brush) const
     { return m_refData == brush.m_refData; }
-    bool operator != (const wxBrush& brush)
+    bool operator != (const wxBrush& brush) const
     { return m_refData != brush.m_refData; }
 
     wxMacBrushKind MacGetBrushKind()  const ;

@@ -4,7 +4,7 @@
 // Authors:     Guilhem Lavaux, Guillermo Rodriguez Garcia
 // Modified by:
 // Created:     April 1997
-// RCS-ID:      $Id: socket.h,v 1.66 2005/09/23 12:48:46 MR Exp $
+// RCS-ID:      $Id: socket.h,v 1.67 2005/09/24 21:42:09 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -230,7 +230,7 @@ class WXDLLIMPEXP_NET wxSocketServer : public wxSocketBase
   DECLARE_CLASS(wxSocketServer)
 
 public:
-  wxSocketServer(wxSockAddress& addr, wxSocketFlags flags = wxSOCKET_NONE);
+  wxSocketServer(const wxSockAddress& addr, wxSocketFlags flags = wxSOCKET_NONE);
 
   wxSocketBase* Accept(bool wait = true);
   bool AcceptWith(wxSocketBase& socket, bool wait = true);
@@ -272,12 +272,12 @@ class WXDLLIMPEXP_NET wxDatagramSocket : public wxSocketBase
   DECLARE_CLASS(wxDatagramSocket)
 
 public:
-  wxDatagramSocket(wxSockAddress& addr, wxSocketFlags flags = wxSOCKET_NONE);
+  wxDatagramSocket(const wxSockAddress& addr, wxSocketFlags flags = wxSOCKET_NONE);
 
   wxDatagramSocket& RecvFrom( wxSockAddress& addr,
                               void* buf,
                               wxUint32 nBytes );
-  wxDatagramSocket& SendTo( wxSockAddress& addr,
+  wxDatagramSocket& SendTo( const wxSockAddress& addr,
                             const void* buf,
                             wxUint32 nBytes );
 

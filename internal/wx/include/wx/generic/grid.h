@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by:
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.h,v 1.148 2005/09/23 12:49:04 MR Exp $
+// RCS-ID:      $Id: grid.h,v 1.149 2005/09/24 21:42:12 VZ Exp $
 // Copyright:   (c) Michael Bedward
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -180,13 +180,13 @@ public:
 
 protected:
     // set the text colours before drawing
-    void SetTextColoursAndFont(wxGrid& grid,
-                               wxGridCellAttr& attr,
+    void SetTextColoursAndFont(const wxGrid& grid,
+                               const wxGridCellAttr& attr,
                                wxDC& dc,
                                bool isSelected);
 
     // calc the string extent for given string/font
-    wxSize DoGetBestSize(wxGridCellAttr& attr,
+    wxSize DoGetBestSize(const wxGridCellAttr& attr,
                          wxDC& dc,
                          const wxString& text);
 };
@@ -212,7 +212,7 @@ public:
         { return new wxGridCellNumberRenderer; }
 
 protected:
-    wxString GetString(wxGrid& grid, int row, int col);
+    wxString GetString(const wxGrid& grid, int row, int col);
 };
 
 class WXDLLIMPEXP_ADV wxGridCellFloatRenderer : public wxGridCellStringRenderer
@@ -245,7 +245,7 @@ public:
     virtual wxGridCellRenderer *Clone() const;
 
 protected:
-    wxString GetString(wxGrid& grid, int row, int col);
+    wxString GetString(const wxGrid& grid, int row, int col);
 
 private:
     // formatting parameters
@@ -1178,7 +1178,7 @@ public:
     //
     void StringToLines( const wxString& value, wxArrayString& lines );
 
-    void GetTextBoxSize( wxDC& dc,
+    void GetTextBoxSize( const wxDC& dc,
                          const wxArrayString& lines,
                          long *width, long *height );
 

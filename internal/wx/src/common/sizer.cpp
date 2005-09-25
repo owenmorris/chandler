@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp,v 1.126 2005/09/23 12:53:07 MR Exp $
+// RCS-ID:      $Id: sizer.cpp,v 1.127 2005/09/24 21:42:33 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -295,8 +295,10 @@ wxSize wxSizerItem::GetMinSizeWithBorder() const
 }
 
 
-void wxSizerItem::SetDimension( wxPoint pos, wxSize size )
+void wxSizerItem::SetDimension( const wxPoint& pos_, const wxSize& size_ )
 {
+    wxPoint pos = pos_;
+    wxSize size = size_;
     if (m_flag & wxSHAPED)
     {
         // adjust aspect ratio

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     26/04/97
-// RCS-ID:      $Id: sckaddr.cpp,v 1.47 2005/09/23 12:53:06 MR Exp $
+// RCS-ID:      $Id: sckaddr.cpp,v 1.48 2005/09/24 21:42:33 VZ Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -214,7 +214,7 @@ wxString wxIPV4address::IPAddress() const
         );
 }
 
-bool wxIPV4address::operator==(wxIPV4address& addr)
+bool wxIPV4address::operator==(const wxIPV4address& addr) const
 {
     if(Hostname().Cmp(addr.Hostname().c_str()) == 0 && Service() == addr.Service()) return true;
     return false;

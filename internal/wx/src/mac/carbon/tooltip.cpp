@@ -2,7 +2,7 @@
 // Name:        tooltip.cpp
 // Purpose:     wxToolTip implementation
 // Author:      Stefan Csomor
-// Id:          $Id: tooltip.cpp,v 1.37 2005/09/23 12:54:12 MR Exp $
+// Id:          $Id: tooltip.cpp,v 1.38 2005/09/24 21:42:47 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ class wxMacToolTip
         wxMacToolTip( ) ;
         ~wxMacToolTip() ;
         
-        void            Setup( WindowRef window  , const wxString& text , wxPoint localPosition ) ;
+        void            Setup( WindowRef window  , const wxString& text , const wxPoint& localPosition ) ;
         long            GetMark() { return m_mark ; }
         void             Draw() ;
         void            Clear() ;
@@ -184,7 +184,7 @@ wxMacToolTip::wxMacToolTip()
     m_timer = NULL ;
 }
 
-void wxMacToolTip::Setup( WindowRef win  , const wxString& text , wxPoint localPosition ) 
+void wxMacToolTip::Setup( WindowRef win  , const wxString& text , const wxPoint& localPosition ) 
 {
     m_mark++ ;
     Clear() ;

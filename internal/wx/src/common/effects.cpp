@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     25/4/2000
-// RCS-ID:      $Id: effects.cpp,v 1.10 2005/09/23 12:52:50 MR Exp $
+// RCS-ID:      $Id: effects.cpp,v 1.11 2005/09/24 21:42:31 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ void wxEffects::DrawSunkenEdge(wxDC& dc, const wxRect& rect, int WXUNUSED(border
     dc.SetPen(wxNullPen);
 }
 
-bool wxEffects::TileBitmap(const wxRect& rect, wxDC& dc, wxBitmap& bitmap)
+bool wxEffects::TileBitmap(const wxRect& rect, wxDC& dc, const wxBitmap& bitmap)
 {
     static bool hiColour = (wxDisplayDepth() >= 16) ;
 

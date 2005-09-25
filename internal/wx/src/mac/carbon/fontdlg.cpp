@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: fontdlg.cpp,v 1.24 2005/09/23 12:54:06 MR Exp $
+// RCS-ID:      $Id: fontdlg.cpp,v 1.25 2005/09/24 21:42:47 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ wxFontDialog::~wxFontDialog()
     // empty
 }
 
-void wxFontDialog::SetData(wxFontData& fontdata)
+void wxFontDialog::SetData(const wxFontData& fontdata)
 {
     m_fontData = fontdata;
 }

@@ -2,7 +2,7 @@
 // Name:        gtk/filedlg.cpp
 // Purpose:     native implementation of wxFileDialog
 // Author:      Robert Roebling, Zbigniew Zagorski, Mart Raudsepp
-// Id:          $Id: filedlg.cpp,v 1.68 2005/09/23 12:53:38 MR Exp $
+// Id:          $Id: filedlg.cpp,v 1.69 2005/09/24 21:42:41 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, 2004 Zbigniew Zagorski, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -157,7 +157,7 @@ wxFileDialog::wxFileDialog(wxWindow *parent, const wxString& message,
         if (parent)
             gtk_parent = GTK_WINDOW( gtk_widget_get_toplevel(parent->m_widget) );
 
-        gchar* ok_btn_stock;
+        const gchar* ok_btn_stock;
         if ( style & wxSAVE )
         {
             gtk_action = GTK_FILE_CHOOSER_ACTION_SAVE;

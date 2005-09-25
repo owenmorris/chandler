@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.156 2005/09/23 12:54:12 MR Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.157 2005/09/24 21:42:48 VZ Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -394,7 +394,7 @@ static void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEvent )
     }
 }
 
-ControlRef wxMacFindSubControl( wxTopLevelWindowMac* toplevelWindow, Point location , ControlRef superControl , ControlPartCode *outPart )
+ControlRef wxMacFindSubControl( wxTopLevelWindowMac* toplevelWindow, const Point& location , ControlRef superControl , ControlPartCode *outPart )
 {
     if ( superControl )
     {
@@ -441,7 +441,7 @@ ControlRef wxMacFindSubControl( wxTopLevelWindowMac* toplevelWindow, Point locat
     return NULL ;
 }
 
-ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow , Point location , WindowRef window , ControlPartCode *outPart )
+ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow , const Point& location , WindowRef window , ControlPartCode *outPart )
 {
 #if TARGET_API_MAC_OSX
     if ( UMAGetSystemVersion() >= 0x1030 && ( toplevelWindow == 0 || toplevelWindow->MacUsesCompositing() ) )

@@ -4,7 +4,7 @@
 // Author:      Chris Breeze, Julian Smart
 // Modified by: Klaas Holwerda
 // Created:     01/02/97
-// RCS-ID:      $Id: matrix.cpp,v 1.16 2005/09/23 12:53:03 MR Exp $
+// RCS-ID:      $Id: matrix.cpp,v 1.17 2005/09/24 21:42:32 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ void wxTransformMatrix::operator = (const wxTransformMatrix& mat)
     m_isIdentity = mat.m_isIdentity;
 }
 
-bool wxTransformMatrix::operator == (const wxTransformMatrix& mat)
+bool wxTransformMatrix::operator == (const wxTransformMatrix& mat) const
 {
     if (m_isIdentity && mat.m_isIdentity)
         return true;
@@ -88,7 +88,7 @@ bool wxTransformMatrix::operator == (const wxTransformMatrix& mat)
     return true;
 }
 
-bool wxTransformMatrix::operator != (const wxTransformMatrix& mat)
+bool wxTransformMatrix::operator != (const wxTransformMatrix& mat) const
 {
     return (! ((*this) == mat));
 }

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/region.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: region.h,v 1.32 2005/09/23 12:49:18 MR Exp $
+// Id:          $Id: region.h,v 1.33 2005/09/24 21:42:14 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -87,8 +87,8 @@ public:
 
     bool Ok() const { return m_refData != NULL; }
 
-    bool operator == ( const wxRegion& region );
-    bool operator != ( const wxRegion& region ) { return !(*this == region); }
+    bool operator == ( const wxRegion& region ) const;
+    bool operator != ( const wxRegion& region ) const { return !(*this == region); }
 
     void Clear();
 

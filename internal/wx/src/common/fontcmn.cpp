@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: fontcmn.cpp,v 1.51 2005/09/23 12:52:53 MR Exp $
+// RCS-ID:      $Id: fontcmn.cpp,v 1.52 2005/09/24 21:42:32 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -514,7 +514,7 @@ void wxNativeFontInfo::SetUnderlined(bool underlined_)
     underlined = underlined_;
 }
 
-void wxNativeFontInfo::SetFaceName(wxString facename_)
+void wxNativeFontInfo::SetFaceName(const wxString& facename_)
 {
     faceName = facename_;
 }

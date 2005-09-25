@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp,v 1.138 2005/09/23 12:52:52 MR Exp $
+// RCS-ID:      $Id: fileconf.cpp,v 1.139 2005/09/24 21:42:31 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -572,7 +572,7 @@ wxFileConfig::~wxFileConfig()
 // parse a config file
 // ----------------------------------------------------------------------------
 
-void wxFileConfig::Parse(wxTextBuffer& buffer, bool bLocal)
+void wxFileConfig::Parse(const wxTextBuffer& buffer, bool bLocal)
 {
   const wxChar *pStart;
   const wxChar *pEnd;

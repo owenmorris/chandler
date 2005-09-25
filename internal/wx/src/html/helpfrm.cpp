@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpfrm.cpp,v 1.126 2005/09/23 12:53:51 MR Exp $
+// RCS-ID:      $Id: helpfrm.cpp,v 1.127 2005/09/24 21:42:43 VZ Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1187,7 +1187,7 @@ void wxHtmlHelpFrame::WriteCustomization(wxConfigBase *cfg, const wxString& path
 
 
 
-static void SetFontsToHtmlWin(wxHtmlWindow *win, wxString scalf, wxString fixf, int size)
+static void SetFontsToHtmlWin(wxHtmlWindow *win, const wxString& scalf, const wxString& fixf, int size)
 {
     int f_sizes[7];
     f_sizes[0] = int(size * 0.6);

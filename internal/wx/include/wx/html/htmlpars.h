@@ -2,7 +2,7 @@
 // Name:        htmlpars.h
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.h,v 1.23 2005/09/23 12:49:26 MR Exp $
+// RCS-ID:      $Id: htmlpars.h,v 1.24 2005/09/24 21:42:16 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ public:
     // handler can handle only 'myitems' (e.g. it's GetSupportedTags returns "MYITEMS")
     // you can call PushTagHandler(handler, "IT") when you find <myitems>
     // and call PopTagHandler() when you find </myitems>
-    void PushTagHandler(wxHtmlTagHandler *handler, wxString tags);
+    void PushTagHandler(wxHtmlTagHandler *handler, const wxString& tags);
 
     // Restores state before last call to PushTagHandler
     void PopTagHandler();

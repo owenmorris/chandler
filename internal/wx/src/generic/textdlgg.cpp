@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textdlgg.cpp,v 1.36 2005/09/23 12:53:30 MR Exp $
+// RCS-ID:      $Id: textdlgg.cpp,v 1.37 2005/09/24 21:42:39 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -173,7 +173,7 @@ void wxTextEntryDialog::SetTextValidator( long style )
     m_textctrl->SetValidator( validator );
 }
 
-void wxTextEntryDialog::SetTextValidator( wxTextValidator& validator )
+void wxTextEntryDialog::SetTextValidator( const wxTextValidator& validator )
 {
     m_textctrl->SetValidator( validator );
 }

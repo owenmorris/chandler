@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.h,v 1.245 2005/09/23 12:48:37 MR Exp $
+// RCS-ID:      $Id: event.h,v 1.246 2005/09/24 21:42:07 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1088,7 +1088,7 @@ public:
 
     wxSize GetSize() const { return m_size; }
     wxRect GetRect() const { return m_rect; }
-    void SetRect(wxRect rect) { m_rect = rect; }
+    void SetRect(const wxRect& rect) { m_rect = rect; }
 
     virtual wxEvent *Clone() const { return new wxSizeEvent(*this); }
 
@@ -1128,7 +1128,7 @@ public:
     wxPoint GetPosition() const { return m_pos; }
     void SetPosition(const wxPoint& pos) { m_pos = pos; }
     wxRect GetRect() const { return m_rect; }
-    void SetRect(wxRect rect) { m_rect = rect; }
+    void SetRect(const wxRect& rect) { m_rect = rect; }
 
     virtual wxEvent *Clone() const { return new wxMoveEvent(*this); }
 

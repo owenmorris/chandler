@@ -2,7 +2,7 @@
 // Name:        htmlcell.cpp
 // Purpose:     wxHtmlCell - basic element of HTML output
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlcell.cpp,v 1.103 2005/09/23 12:53:51 MR Exp $
+// RCS-ID:      $Id: htmlcell.cpp,v 1.104 2005/09/24 21:42:43 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -252,7 +252,7 @@ bool wxHtmlCell::IsBefore(wxHtmlCell *cell) const
 
 IMPLEMENT_ABSTRACT_CLASS(wxHtmlWordCell, wxHtmlCell)
 
-wxHtmlWordCell::wxHtmlWordCell(const wxString& word, wxDC& dc) : wxHtmlCell()
+wxHtmlWordCell::wxHtmlWordCell(const wxString& word, const wxDC& dc) : wxHtmlCell()
 {
     m_Word = word;
     dc.GetTextExtent(m_Word, &m_Width, &m_Height, &m_Descent);
@@ -272,7 +272,7 @@ void wxHtmlWordCell::SetPreviousWord(wxHtmlWordCell *cell)
 // Splits m_Word into up to three parts according to selection, returns
 // substring before, in and after selection and the points (in relative coords)
 // where s2 and s3 start:
-void wxHtmlWordCell::Split(wxDC& dc,
+void wxHtmlWordCell::Split(const wxDC& dc,
                            const wxPoint& selFrom, const wxPoint& selTo,
                            unsigned& pos1, unsigned& pos2) const
 {
@@ -337,7 +337,7 @@ void wxHtmlWordCell::Split(wxDC& dc,
     pos2 = j;
 }
 
-void wxHtmlWordCell::SetSelectionPrivPos(wxDC& dc, wxHtmlSelection *s) const
+void wxHtmlWordCell::SetSelectionPrivPos(const wxDC& dc, wxHtmlSelection *s) const
 {
     unsigned p1, p2;
 

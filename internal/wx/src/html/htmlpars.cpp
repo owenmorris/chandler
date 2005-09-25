@@ -2,7 +2,7 @@
 // Name:        htmlpars.cpp
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.cpp,v 1.49 2005/09/23 12:53:52 MR Exp $
+// RCS-ID:      $Id: htmlpars.cpp,v 1.50 2005/09/24 21:42:44 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -351,7 +351,7 @@ void wxHtmlParser::AddTagHandler(wxHtmlTagHandler *handler)
     handler->SetParser(this);
 }
 
-void wxHtmlParser::PushTagHandler(wxHtmlTagHandler *handler, wxString tags)
+void wxHtmlParser::PushTagHandler(wxHtmlTagHandler *handler, const wxString& tags)
 {
     wxStringTokenizer tokenizer(tags, wxT(", "));
     wxString key;

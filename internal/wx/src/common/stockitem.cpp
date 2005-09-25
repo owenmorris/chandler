@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-15
-// RCS-ID:      $Id: stockitem.cpp,v 1.13 2005/09/23 12:53:08 MR Exp $
+// RCS-ID:      $Id: stockitem.cpp,v 1.14 2005/09/24 21:42:34 VZ Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ bool wxIsStockID(wxWindowID id)
     }
 }
 
-wxString wxGetStockLabel(wxWindowID id, bool withCodes, wxString accelerator)
+wxString wxGetStockLabel(wxWindowID id, bool withCodes, const wxString& accelerator)
 {
     wxString stockLabel;
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.h,v 1.57 2005/09/23 12:48:38 MR Exp $
+// RCS-ID:      $Id: fileconf.h,v 1.58 2005/09/24 21:42:07 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -200,7 +200,7 @@ private:
   void CleanUp();
 
   // parse the whole file
-  void Parse(wxTextBuffer& buffer, bool bLocal);
+  void Parse(const wxTextBuffer& buffer, bool bLocal);
 
   // the same as SetPath("/")
   void SetRootPath();

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.cpp,v 1.74 2005/09/23 12:54:57 MR Exp $
+// RCS-ID:      $Id: font.cpp,v 1.75 2005/09/24 21:42:52 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -562,7 +562,7 @@ void wxNativeFontInfo::SetUnderlined(bool underlined)
     lf.lfUnderline = underlined;
 }
 
-void wxNativeFontInfo::SetFaceName(wxString facename)
+void wxNativeFontInfo::SetFaceName(const wxString& facename)
 {
     wxStrncpy(lf.lfFaceName, facename, WXSIZEOF(lf.lfFaceName));
 }

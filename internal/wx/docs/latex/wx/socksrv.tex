@@ -4,7 +4,7 @@
 %% Author:      Guillermo Rodriguez Garcia <guille@iies.es>
 %% Modified by:
 %% Created:     14.01.02 (extracted from socket.tex)
-%% RCS-ID:      $Id: socksrv.tex,v 1.5 2005/02/22 15:09:53 ABX Exp $
+%% RCS-ID:      $Id: socksrv.tex,v 1.6 2005/09/24 21:43:15 VZ Exp $
 %% Copyright:   (c) wxWidgets team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +32,7 @@
 %
 \membersection{wxSocketServer::wxSocketServer}\label{wxsocketserverctor}
 
-\func{}{wxSocketServer}{\param{wxSockAddress\&}{ address}, \param{wxSocketFlags}{ flags = wxSOCKET\_NONE}}
+\func{}{wxSocketServer}{\param{const wxSockAddress\&}{ address}, \param{wxSocketFlags}{ flags = wxSOCKET\_NONE}}
 
 Constructs a new server and tries to bind to the specified {\it address}.
 Before trying to accept new connections, test whether it succeeded with 

@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-15
-// RCS-ID:      $Id: stockitem.h,v 1.5 2005/09/23 12:48:47 MR Exp $
+// RCS-ID:      $Id: stockitem.h,v 1.6 2005/09/24 21:42:09 VZ Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ WXDLLEXPORT bool wxIsStockLabel(wxWindowID id, const wxString& label);
 // for wxSTOCK_OK):
 WXDLLEXPORT wxString wxGetStockLabel(wxWindowID id,
                                      bool withCodes = true,
-                                     wxString accelerator = wxEmptyString);
+                                     const wxString& accelerator = wxEmptyString);
 
 #ifdef __WXGTK20__
 // Translates stock ID to GTK+'s stock item string indentifier:
