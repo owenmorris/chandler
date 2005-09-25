@@ -2575,7 +2575,7 @@ static pascal void wxMacControlUserPaneDrawProc(ControlRef control, SInt16 part)
         win->MacControlUserPaneDrawProc(part) ;
 }
 
-static pascal ControlPartCode wxMacControlUserPaneHitTestProc(ControlRef control, const Point& where)
+static pascal ControlPartCode wxMacControlUserPaneHitTestProc(ControlRef control, Point where)
 {
     wxTextCtrl *textCtrl =  wxDynamicCast( wxFindControlFromMacControl(control) , wxTextCtrl ) ;
     wxMacMLTEClassicControl * win = textCtrl ? (wxMacMLTEClassicControl*)(textCtrl->GetPeer()) : NULL ;
@@ -2585,7 +2585,7 @@ static pascal ControlPartCode wxMacControlUserPaneHitTestProc(ControlRef control
         return kControlNoPart ;
 }
 
-static pascal ControlPartCode wxMacControlUserPaneTrackingProc(ControlRef control, const Point& startPt, ControlActionUPP actionProc)
+static pascal ControlPartCode wxMacControlUserPaneTrackingProc(ControlRef control, Point startPt, ControlActionUPP actionProc)
 {
     wxTextCtrl *textCtrl =  wxDynamicCast( wxFindControlFromMacControl(control) , wxTextCtrl ) ;
     wxMacMLTEClassicControl * win = textCtrl ? (wxMacMLTEClassicControl*)(textCtrl->GetPeer()) : NULL ;
