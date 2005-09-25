@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: accel.h,v 1.10 2004/05/23 20:51:21 JS Exp $
+// RCS-ID:      $Id: accel.h,v 1.12 2005/09/24 21:42:24 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_ACCEL_H_
 #define _WX_ACCEL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "accel.h"
-#endif
 
 #include "wx/object.h"
 #include "wx/string.h"
@@ -35,8 +31,8 @@ public:
     ~wxAcceleratorTable();
     
     wxAcceleratorTable& operator = (const wxAcceleratorTable& accel) { if (*this == accel) return (*this); Ref(accel); return *this; }
-    bool operator == (const wxAcceleratorTable& accel) { return m_refData == accel.m_refData; }
-    bool operator != (const wxAcceleratorTable& accel) { return m_refData != accel.m_refData; }
+    bool operator == (const wxAcceleratorTable& accel) const { return m_refData == accel.m_refData; }
+    bool operator != (const wxAcceleratorTable& accel) const { return m_refData != accel.m_refData; }
     
     bool Ok() const;
     

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: icon.h,v 1.23 2005/09/13 16:04:10 VZ Exp $
+// RCS-ID:      $Id: icon.h,v 1.24 2005/09/23 12:49:58 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_ICON_H_
 #define _WX_ICON_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "icon.h"
-#endif
 
 #include "wx/bitmap.h"
 

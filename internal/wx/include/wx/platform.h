@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.81 2005/08/30 19:23:11 VZ Exp $
+* RCS-ID:      $Id: platform.h,v 1.82 2005/09/25 19:58:31 VZ Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -474,6 +474,10 @@
 #    else
 #         define __SYMANTEC__
 #    endif
+#endif
+
+#ifdef __INTEL_COMPILER
+#   define __INTELC__
 #endif
 
 /*

@@ -3,7 +3,7 @@
 // Purpose:     ZIP file system
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// CVS-ID:      $Id: fs_zip.h,v 1.28 2005/09/23 12:48:40 MR Exp $
+// CVS-ID:      $Id: fs_zip.h,v 1.29 2005/09/25 20:23:20 VZ Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -33,9 +33,7 @@ class WXDLLIMPEXP_BASE wxZipFSHandler : public wxFileSystemHandler
         virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location);
         virtual wxString FindFirst(const wxString& spec, int flags = 0);
         virtual wxString FindNext();
-#if wxABI_VERSION >= 20602 /* 2.6.2+ only */
         void Cleanup();
-#endif
         ~wxZipFSHandler();
 
     private:

@@ -5,7 +5,7 @@
 // Author:      Jeffrey C. Ollie <jeff@ollie.clive.ia.us>, Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: longlong.h,v 1.65 2005/09/23 12:48:43 MR Exp $
+// RCS-ID:      $Id: longlong.h,v 1.67 2005/09/25 20:23:21 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -139,10 +139,10 @@ public:
     // accessors
         // get high part
     long GetHi() const
-        { return (long)(m_ll >> 32); }
+        { return wx_truncate_cast(long, m_ll >> 32); }
         // get low part
     unsigned long GetLo() const
-        { return (unsigned long)m_ll; }
+        { return wx_truncate_cast(unsigned long, m_ll); }
 
         // get absolute value
     wxLongLongNative Abs() const { return wxLongLongNative(*this).Abs(); }
@@ -157,13 +157,11 @@ public:
         wxASSERT_MSG( (m_ll >= LONG_MIN) && (m_ll <= LONG_MAX),
                       _T("wxLongLong to long conversion loss of precision") );
 
-        return (long)m_ll;
+        return wx_truncate_cast(long, m_ll);
     }
 
-#if wxABI_VERSION >= 20602
         // convert to double
-    double ToDouble() const { return m_ll; }
-#endif // ABI >= 2.6.2
+    double ToDouble() const { return wx_truncate_cast(double, m_ll); }
 
     // don't provide implicit conversion to wxLongLong_t or we will have an
     // ambiguity for all arithmetic operations
@@ -344,10 +342,10 @@ public:
     // accessors
         // get high part
     unsigned long GetHi() const
-        { return (unsigned long)(m_ll >> 32); }
+        { return wx_truncate_cast(unsigned long, m_ll >> 32); }
         // get low part
     unsigned long GetLo() const
-        { return (unsigned long)m_ll; }
+        { return wx_truncate_cast(unsigned long, m_ll); }
 
         // convert to native ulong long
     wxULongLong_t GetValue() const { return m_ll; }
@@ -358,7 +356,7 @@ public:
         wxASSERT_MSG( m_ll <= LONG_MAX,
                       _T("wxULongLong to long conversion loss of precision") );
 
-        return (unsigned long)m_ll;
+        return wx_truncate_cast(unsigned long, m_ll);
     }
 
     // operations
@@ -591,10 +589,8 @@ public:
         return (long)m_lo;
     }
 
-#if wxABI_VERSION >= 20602
         // convert to double
     double ToDouble() const;
-#endif // ABI >= 2.6.2
 
     // operations
         // addition

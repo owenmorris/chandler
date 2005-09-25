@@ -4,17 +4,13 @@
 // Author:      Julian Smart, originally in bitmap.h
 // Modified by:
 // Created:     25/03/2003
-// RCS-ID:      $Id: bmpmotif.h,v 1.6 2005/09/17 21:54:52 VZ Exp $
+// RCS-ID:      $Id: bmpmotif.h,v 1.7 2005/09/23 12:49:54 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_BMPMOTIF_H_
 #define _WX_BMPMOTIF_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "bmpmotif.h"
-#endif
 
 #include "wx/defs.h"
 #include "wx/bitmap.h"

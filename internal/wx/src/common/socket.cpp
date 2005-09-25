@@ -5,7 +5,7 @@
 // Created:    April 1997
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 2000-1999, Guillermo Rodriguez Garcia
-// RCS_ID:     $Id: socket.cpp,v 1.135 2005/09/24 21:42:33 VZ Exp $
+// RCS_ID:     $Id: socket.cpp,v 1.136 2005/09/25 19:58:47 VZ Exp $
 // License:    see wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -95,7 +95,7 @@ public:
 public:
   wxSocketState() : wxObject() {}
 
-    DECLARE_NO_COPY_CLASS(wxSocketState)
+  DECLARE_NO_COPY_CLASS(wxSocketState)
 };
 
 // ==========================================================================

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp,v 1.168 2005/09/24 20:29:21 VZ Exp $
+// RCS-ID:      $Id: event.cpp,v 1.169 2005/09/25 20:35:45 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -235,14 +235,6 @@ DEFINE_EVENT_TYPE(wxEVT_SCROLL_PAGEDOWN)
 DEFINE_EVENT_TYPE(wxEVT_SCROLL_THUMBTRACK)
 DEFINE_EVENT_TYPE(wxEVT_SCROLL_THUMBRELEASE)
 DEFINE_EVENT_TYPE(wxEVT_SCROLL_CHANGED)
-
-// see comments in wx/event.h, near wxEVT_SCROLL_ENDSCROLL declaration
-#if wxCHECK_VERSION(2, 7, 0)
-    #error "Remove the lines below, not needed any more"
-#endif
-#undef wxEVT_SCROLL_ENDSCROLL
-extern WXDLLIMPEXP_CORE const wxEventType wxEVT_SCROLL_ENDSCROLL;
-const wxEventType wxEVT_SCROLL_ENDSCROLL = wxEVT_SCROLL_CHANGED;
 
 // Scroll events from wxWindow
 DEFINE_EVENT_TYPE(wxEVT_SCROLLWIN_TOP)

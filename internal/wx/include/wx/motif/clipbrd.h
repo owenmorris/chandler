@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: clipbrd.h,v 1.18 2005/08/03 00:53:08 MW Exp $
+// RCS-ID:      $Id: clipbrd.h,v 1.19 2005/09/23 12:49:55 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CLIPBRD_H_
 #define _WX_CLIPBRD_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "clipbrd.h"
-#endif
 
 #if wxUSE_CLIPBOARD
 

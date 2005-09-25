@@ -2,7 +2,7 @@
 // Name:        htmlpars.cpp
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.cpp,v 1.50 2005/09/24 21:42:44 VZ Exp $
+// RCS-ID:      $Id: htmlpars.cpp,v 1.51 2005/09/25 19:59:09 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ public:
 };
 
 WX_DECLARE_OBJARRAY(wxHtmlTextPiece, wxHtmlTextPieces);
-WX_DEFINE_OBJARRAY(wxHtmlTextPieces);
+WX_DEFINE_OBJARRAY(wxHtmlTextPieces)
 
 class wxHtmlParserState
 {

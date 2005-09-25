@@ -8,7 +8,7 @@
 //              3) Fixed ShowPage() bug on displaying bitmaps
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.cpp,v 1.64 2005/09/23 12:53:31 MR Exp $
+// RCS-ID:      $Id: wizard.cpp,v 1.65 2005/09/25 20:35:46 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -263,12 +263,9 @@ wxSize wxWizardSizer::SiblingSize(wxSizerItem *child)
 // generic wxWizard implementation
 // ----------------------------------------------------------------------------
 
-#if wxCHECK_VERSION(2, 7, 0)
-    #error "Fix wxGTK vs. wxMSW difference other way"
-#else
-    WX_DEFINE_ARRAY_PTR(wxWizard *, wxModelessWizards);
-    wxModelessWizards modelessWizards;
-#endif
+// FIXME: this is a hack
+WX_DEFINE_ARRAY_PTR(wxWizard *, wxModelessWizards);
+static wxModelessWizards modelessWizards;
 
 void wxWizard::Init()
 {

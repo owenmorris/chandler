@@ -1,23 +1,19 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        font.h
+// Name:        wx/motif/font.h
 // Purpose:     wxFont class
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: font.h,v 1.23 2005/08/18 00:41:18 MBN Exp $
+// RCS-ID:      $Id: font.h,v 1.26 2005/09/25 20:35:11 VZ Exp $
 // Copyright:   (c) Julian Smart
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FONT_H_
 #define _WX_FONT_H_
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "font.h"
-#endif
-
 #if __WXMOTIF20__ && !__WXLESSTIF__
-    #define wxMOTIF_NEW_FONT_HANDLING 0 // safe default, change to 1 to enable
+    #define wxMOTIF_NEW_FONT_HANDLING 1
 #else
     #define wxMOTIF_NEW_FONT_HANDLING 0
 #endif

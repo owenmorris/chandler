@@ -4,10 +4,13 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     31.01.99
-// RCS-ID:      $Id: tooltip.h,v 1.2 2004/10/08 01:26:41 RN Exp $
+// RCS-ID:      $Id: tooltip.h,v 1.3 2005/09/25 20:49:23 MW Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_COCOA_TOOLTIP_H_
+#define _WX_COCOA_TOOLTIP_H_
 
 #include "wx/object.h"
 
@@ -44,3 +47,5 @@ private:
     
     DECLARE_ABSTRACT_CLASS(wxToolTip)
 };
+
+#endif // _WX_COCOA_TOOLTIP_H_

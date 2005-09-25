@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bmpbuttn.h,v 1.14 2004/05/23 20:51:21 JS Exp $
+// RCS-ID:      $Id: bmpbuttn.h,v 1.15 2005/09/23 12:49:54 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_BMPBUTTN_H_
 #define _WX_BMPBUTTN_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "bmpbuttn.h"
-#endif
 
 #include "wx/motif/bmpmotif.h"
 

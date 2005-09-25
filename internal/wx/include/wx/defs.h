@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.513 2005/09/17 21:03:42 VZ Exp $
+*  RCS-ID:      $Id: defs.h,v 1.515 2005/09/25 20:23:20 VZ Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -297,7 +297,23 @@ typedef int wxWindowID;
    truncate from a larger to smaller type, static_cast<> can't be used for it
    as it results in warnings when using some compilers (SGI mipspro for example)
  */
-#define wx_truncate_cast(t, x) ((t)(x))
+#if defined(__INTELC__) && defined(__cplusplus)
+    template <typename T, typename X>
+    inline T wx_truncate_cast_impl(X x)
+    {
+        #pragma warning(push)
+        /* explicit conversion of a 64-bit integral type to a smaller integral type */
+        #pragma warning(disable: 1683)
+
+        return (T)x;
+
+        #pragma warning(pop)
+    }
+
+    #define wx_truncate_cast(t, x) wx_truncate_cast_impl<t>(x)
+#else /* !__INTELC__ */
+    #define wx_truncate_cast(t, x) ((t)(x))
+#endif /* __INTELC__/!__INTELC__ */
 
 /* for consistency with wxStatic/DynamicCast defined in wx/object.h */
 #define wxConstCast(obj, className) wx_const_cast(className *, obj)
@@ -844,29 +860,43 @@ inline wxUIntPtr wxPtrToUInt(const void *p)
     /*
        VC++ 7.1 gives warnings about casts such as below even when they're
        explicit with /Wp64 option, suppress them as we really know what we're
-       doing here
+       doing here. Same thing with icc with -Wall.
      */
-#ifdef __VISUALC__
-    #pragma warning(disable: 4311) /* pointer truncation from '' to '' */
+#if defined(__VISUALC__) || defined(__INTELC__)
+    #pragma warning(push)
+    #ifdef __VISUALC__
+        /* pointer truncation from '' to '' */
+        #pragma warning(disable: 4311)
+    #elif defined(__INTELC__)
+        /* conversion from pointer to same-sized integral type */
+        #pragma warning(disable: 1684)
+    #endif
 #endif
 
     return wx_reinterpret_cast(wxUIntPtr, p);
 
-#ifdef __VISUALC__
-    #pragma warning(default: 4311)
+#if defined(__VISUALC__) || defined(__INTELC__)
+    #pragma warning(pop)
 #endif
 }
 
 inline void *wxUIntToPtr(wxUIntPtr p)
 {
-#ifdef __VISUALC__
-    #pragma warning(disable: 4312) /* conversion to type of greater size */
+#if defined(__VISUALC__) || defined(__INTELC__)
+    #pragma warning(push)
+    #ifdef __VISUALC__
+        /* conversion to type of greater size */
+        #pragma warning(disable: 4312)
+    #elif defined(__INTELC__)
+        /* invalid type conversion: "wxUIntPtr={unsigned long}" to "void *" */
+        #pragma warning(disable: 171)
+    #endif
 #endif
 
     return wx_reinterpret_cast(void *, p);
 
-#ifdef __VISUALC__
-    #pragma warning(default: 4312)
+#if defined(__VISUALC__) || defined(__INTELC__)
+    #pragma warning(pop)
 #endif
 }
 #endif /*__cplusplus*/
@@ -1806,11 +1836,8 @@ enum wxHitTest
 #define wxSIZE_ALLOW_MINUS_ONE  0x0004
 /*  Don't do parent client adjustments (for implementation only) */
 #define wxSIZE_NO_ADJUSTMENTS   0x0008
-
-#if wxABI_VERSION >= 20602
 /*  Change the window position even if it seems to be already correct */
 #define wxSIZE_FORCE            0x0010
-#endif // 2.6.2+
 
 /*  ---------------------------------------------------------------------------- */
 /*  GDI descriptions */

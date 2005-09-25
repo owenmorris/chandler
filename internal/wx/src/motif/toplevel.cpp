@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     12/10/2002
-// RCS-ID:      $Id: toplevel.cpp,v 1.20 2005/09/23 12:54:44 MR Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.21 2005/09/25 20:29:58 VZ Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ bool wxTopLevelWindowMotif::Create( wxWindow *parent, wxWindowID id,
 
     m_windowId = ( id > -1 ) ? id : NewControlId();
 
-    bool retval = DoCreate( parent, id, title, pos, size, style, name );
+    bool retval = XmDoCreateTLW( parent, id, title, pos, size, style, name );
 
     if( !retval ) return false;
 

@@ -4,17 +4,13 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     28.08.03
-// RCS-ID:      $Id: popupwin.h,v 1.4 2005/08/03 00:53:09 MW Exp $
+// RCS-ID:      $Id: popupwin.h,v 1.5 2005/09/23 12:49:59 MR Exp $
 // Copyright:   (c) 2003 Mattia Barbon
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MOTIF_POPUPWIN_H_
 #define _WX_MOTIF_POPUPWIN_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "popup.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxPopupWindow

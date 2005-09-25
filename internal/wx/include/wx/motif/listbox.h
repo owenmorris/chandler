@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: listbox.h,v 1.25 2005/02/13 17:07:52 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.26 2005/09/23 12:49:58 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_LISTBOX_H_
 #define _WX_LISTBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "listbox.h"
-#endif
 
 #include "wx/ctrlsub.h"
 #include "wx/clntdata.h"

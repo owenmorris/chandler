@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxAcceleratorTable class
 // Author:      Robert Roebling
 // Modified:    VZ pn 31.05.01: use typed lists, Unicode cleanup, Add/Remove
-// Id:          $Id: accel.cpp,v 1.13 2005/09/23 12:53:24 MR Exp $
+// Id:          $Id: accel.cpp,v 1.14 2005/09/25 19:58:55 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@
 
 WX_DECLARE_LIST(wxAcceleratorEntry, wxAccelList);
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxAccelList);
+WX_DEFINE_LIST(wxAccelList)
 
 // ----------------------------------------------------------------------------
 // wxAccelRefData: the data used by wxAcceleratorTable

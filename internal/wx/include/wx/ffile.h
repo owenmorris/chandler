@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.07.99
-// RCS-ID:      $Id: ffile.h,v 1.24 2005/09/23 12:48:38 MR Exp $
+// RCS-ID:      $Id: ffile.h,v 1.25 2005/09/25 20:49:24 MW Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,8 @@
 
 #if wxUSE_FFILE
 
-#ifndef WX_PRECOMP
-  #include  "wx/string.h"
-  #include  "wx/filefn.h"
-#endif
+#include  "wx/string.h"
+#include  "wx/filefn.h"
 
 #include <stdio.h>
 

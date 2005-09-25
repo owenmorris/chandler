@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp,v 1.68 2005/09/23 12:54:40 MR Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.69 2005/09/25 20:39:23 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,6 @@ void wxWindowDC::Init()
     m_display = (WXDisplay*) NULL;
     m_pixmap = (WXPixmap) 0;
     m_autoSetting = 0;
-    m_oldFont = (WXFont) 0;
     m_ok = false;
     m_clipRegion = (WXRegion) 0;
 }

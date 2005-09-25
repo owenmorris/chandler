@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: prntdlgg.cpp,v 1.83 2005/09/23 12:53:29 MR Exp $
+// RCS-ID:      $Id: prntdlgg.cpp,v 1.84 2005/09/25 19:58:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -678,8 +678,7 @@ wxGenericPrintSetupDialog::~wxGenericPrintSetupDialog()
 void wxGenericPrintSetupDialog::OnPrinter(wxListEvent& event)
 {
     // Delete check mark
-    long item;
-    for (item = 0; item < m_printerListCtrl->GetItemCount(); item++)
+    for (long item = 0; item < m_printerListCtrl->GetItemCount(); item++)
         m_printerListCtrl->SetItemImage( item, -1 );
 
     m_printerListCtrl->SetItemImage( event.GetIndex(), 0 );
@@ -690,14 +689,12 @@ void wxGenericPrintSetupDialog::OnPrinter(wxListEvent& event)
     }
     else
     {
-        wxString tmp = wxT("lpr -P");
-        wxListItem item;
-        item.SetColumn( 1 );
-        item.SetMask( wxLIST_MASK_TEXT );
-        item.SetId( event.GetIndex() );
-        m_printerListCtrl->GetItem( item );
-        tmp += item.GetText();
-        m_printerCommandText->SetValue( tmp );
+        wxListItem li;
+        li.SetColumn( 1 );
+        li.SetMask( wxLIST_MASK_TEXT );
+        li.SetId( event.GetIndex() );
+        m_printerListCtrl->GetItem( li );
+        m_printerCommandText->SetValue( _T("lpr -P") + li.GetText() );
     }
 }
 

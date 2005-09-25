@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.h,v 1.99 2005/09/24 21:42:08 VZ Exp $
+// RCS-ID:      $Id: gdicmn.h,v 1.100 2005/09/25 18:14:51 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +21,7 @@
 #include "wx/string.h"
 #include "wx/fontenc.h"
 #include "wx/hashmap.h"
+#include "wx/math.h"
 
 // ---------------------------------------------------------------------------
 // forward declarations
@@ -269,9 +270,13 @@ public:
     wxRealPoint operator+(const wxRealPoint& pt) const { return wxRealPoint(x + pt.x, y + pt.y); }
     wxRealPoint operator-(const wxRealPoint& pt) const { return wxRealPoint(x - pt.x, y - pt.y); }
 
-    bool operator==(const wxRealPoint& pt) const { return x == pt.x && y == pt.y; }
-    bool operator!=(const wxRealPoint& pt) const { return x != pt.x || y != pt.y; }
+    bool operator==(const wxRealPoint& pt) const
+    {
+        return wxIsSameDouble(x, pt.x) && wxIsSameDouble(y, pt.y);
+    }
+    bool operator!=(const wxRealPoint& pt) const { return !(*this == pt); }
 };
+
 
 class WXDLLEXPORT wxPoint
 {

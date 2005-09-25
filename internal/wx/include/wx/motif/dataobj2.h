@@ -3,17 +3,13 @@
 // Purpose:     declaration of standard wxDataObjectSimple-derived classes
 // Author:      Mattia Barbon
 // Created:     27.04.03
-// RCS-ID:      $Id: dataobj2.h,v 1.6 2005/09/13 16:37:11 VZ Exp $
+// RCS-ID:      $Id: dataobj2.h,v 1.7 2005/09/23 12:49:56 MR Exp $
 // Copyright:   (c) 2003 Mattia Barbon
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MOTIF_DATAOBJ2_H_
 #define _WX_MOTIF_DATAOBJ2_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "dataobj.h"
-#endif
 
 // ----------------------------------------------------------------------------
 // wxBitmapDataObject is a specialization of wxDataObject for bitmaps

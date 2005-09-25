@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.07.99
-// RCS-ID:      $Id: ffile.cpp,v 1.25 2005/09/23 12:52:51 MR Exp $
+// RCS-ID:      $Id: ffile.cpp,v 1.26 2005/09/25 19:58:43 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@ bool wxFFile::ReadAll(wxString *str, wxMBConv& conv)
     wxCHECK_MSG( str, false, wxT("invalid parameter") );
     wxCHECK_MSG( IsOpened(), false, wxT("can't read from closed file") );
     wxCHECK_MSG( Length() >= 0, false, wxT("invalid length") );
-    size_t length = (size_t)Length();
+    size_t length = wx_truncate_cast(size_t, Length());
     wxCHECK_MSG( (wxFileOffset)length == Length(), false, wxT("huge file not supported") );
 
     clearerr(m_fp);

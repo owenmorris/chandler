@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: K. S. Sreeram (2002): POSIXified wxCondition, added wxSemaphore
 // Created:     04/22/98
-// RCS-ID:      $Id: threadpsx.cpp,v 1.85 2005/09/25 16:12:15 SN Exp $
+// RCS-ID:      $Id: threadpsx.cpp,v 1.86 2005/09/25 19:59:15 VZ Exp $
 // Copyright:   (c) Wolfram Gloger (1996, 1997)
 //                  Guilhem Lavaux (1998)
 //                  Vadim Zeitlin (1999-2002)
@@ -760,7 +760,7 @@ void *wxThreadInternal::PthreadStart(wxThread *thread)
 
         wxLogTrace(TRACE_THREADS,
                    _T("Thread %ld Entry() returned %lu."),
-                   THR_ID(pthread), (unsigned long)pthread->m_exitcode);
+                   THR_ID(pthread), wxPtrToUInt(pthread->m_exitcode));
 
         {
             wxCriticalSectionLocker lock(thread->m_critsect);
@@ -1215,42 +1215,21 @@ void wxThread::SetPriority(unsigned int prio)
         case STATE_PAUSED:
 #ifdef HAVE_THREAD_PRIORITY_FUNCTIONS
 #if defined(__LINUX__)
-// On Linux, pthread_setschedparam with SCHED_OTHER does not allow
-// a priority other than 0.  Instead, we use the BSD setpriority
-// which alllows us to set a 'nice' value between 20 to -20.  Only
-// super user can set a value less than zero (more negative yields
-// higher priority).  setpriority set the static priority of a process,
-// but this is OK since Linux is configured as a thread per process.
+            // On Linux, pthread_setschedparam with SCHED_OTHER does not allow
+            // a priority other than 0.  Instead, we use the BSD setpriority
+            // which alllows us to set a 'nice' value between 20 to -20.  Only
+            // super user can set a value less than zero (more negative yields
+            // higher priority).  setpriority set the static priority of a
+            // process, but this is OK since Linux is configured as a thread
+            // per process.
+            //
+            // FIXME this is not true for 2.6!!
+
+            // map wx priorites WXTHREAD_MIN_PRIORITY..WXTHREAD_MAX_PRIORITY
+            // to Unix priorities 20..-20
+            if ( setpriority(PRIO_PROCESS, 0, -(2*prio)/5 + 20) == -1 )
             {
-                float   fPrio;
-                float	pSpan;
-                int		iPrio;
-
-                // Map Wx priorites (WXTHREAD_MIN_PRIORITY -
-                // WXTHREAD_MAX_PRIORITY) into BSD priorities (20 - -20).
-                // Do calculation of values instead of hard coding them
-                // to make maintenance easier.
-
-                pSpan = ((float)(WXTHREAD_MAX_PRIORITY - WXTHREAD_MIN_PRIORITY)) / 2.0;
-
-                // prio starts as ...................  // value =>  (0) >=  p  <=  (n)
-
-                fPrio = ((float)prio) -  pSpan;        // value =>  (-n) >=  p  <=  (+n)
-
-                fPrio = 0.0 - fPrio;                   // value =>  (+n) <=  p  >=  (-n)
-
-                fPrio = fPrio * (20. / pSpan) + .5;    // value =>  (20) <=  p  >=  (-20)
-
-                iPrio = (int)fPrio;
-
-                // Clamp prio from 20 - -20;
-                iPrio = (iPrio > 20)  ?  20 : iPrio;
-                iPrio = (iPrio < -20) ? -20 : iPrio;
-
-                if (setpriority(PRIO_PROCESS, 0, iPrio) == -1)
-                {
-                    wxLogError(_("Failed to set thread priority %d."), prio);
-                }
+                wxLogError(_("Failed to set thread priority %d."), prio);
             }
 #else // __LINUX__
             {
@@ -1541,7 +1520,8 @@ wxThread::~wxThread()
     if ( m_internal->GetState() != STATE_EXITED &&
          m_internal->GetState() != STATE_NEW )
     {
-        wxLogDebug(_T("The thread %ld is being destroyed although it is still running! The application may crash."), GetId());
+        wxLogDebug(_T("The thread %ld is being destroyed although it is still running! The application may crash."),
+                   (long)GetId());
     }
 
     m_critsect.Leave();

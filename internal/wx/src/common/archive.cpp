@@ -2,7 +2,7 @@
 // Name:        archive.cpp
 // Purpose:     Streams for archive formats
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: archive.cpp,v 1.6 2005/09/23 12:52:41 MR Exp $
+// RCS-ID:      $Id: archive.cpp,v 1.7 2005/09/25 18:09:26 VZ Exp $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,15 +21,13 @@
 #if wxUSE_STREAMS && wxUSE_ARCHIVE_STREAMS
 
 #include "wx/archive.h"
+#include "wx/link.h"
 
 IMPLEMENT_ABSTRACT_CLASS(wxArchiveEntry, wxObject)
 IMPLEMENT_ABSTRACT_CLASS(wxArchiveClassFactory, wxObject)
 
 #if wxUSE_ZIPSTREAM
-//FORCE_LINK(zipstrm)
-extern int _wx_link_dummy_func_zipstrm();
-static int _wx_link_dummy_var_zipstrm =
-               _wx_link_dummy_func_zipstrm ();
+wxFORCE_LINK_MODULE(zipstrm)
 #endif
 
 

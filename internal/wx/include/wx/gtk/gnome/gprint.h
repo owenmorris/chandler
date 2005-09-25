@@ -3,7 +3,7 @@
 // Author:      Robert Roebling
 // Purpose:     GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id: gprint.h,v 1.9 2005/09/23 12:49:24 MR Exp $
+// RCS-ID:      $Id: gprint.h,v 1.10 2005/09/25 20:49:28 MW Exp $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,15 +13,13 @@
 
 // Include wxWindows' headers
 
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
+#include "wx/defs.h"
 
 #if wxUSE_LIBGNOMEPRINT
 
 #include "wx/print.h"
-#include "wx/prntbase.h"
 #include "wx/printdlg.h"
+#include "wx/dc.h"
 
 typedef struct _GnomePrintJob GnomePrintJob;
 typedef struct _GnomePrintContext GnomePrintContext;

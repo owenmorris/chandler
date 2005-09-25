@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.140 2005/09/25 16:19:02 VZ Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.141 2005/09/25 19:58:42 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -2373,23 +2373,23 @@ wxString wxDateTime::Format(const wxChar *format, const TimeZone& tz) const
 
                         // find two strings not occurring in format (this is surely
                         // not the optimal way of doing it... improvements welcome!)
-                        wxString fmt = format;
+                        wxString fmt2 = format;
                         wxString replacement = (wxChar)-1;
-                        while ( fmt.Find(replacement) != wxNOT_FOUND )
+                        while ( fmt2.Find(replacement) != wxNOT_FOUND )
                         {
                             replacement << (wxChar)-1;
                         }
 
                         wxString replacement2 = (wxChar)-2;
-                        while ( fmt.Find(replacement) != wxNOT_FOUND )
+                        while ( fmt2.Find(replacement) != wxNOT_FOUND )
                         {
                             replacement << (wxChar)-2;
                         }
 
                         // replace all occurrences of year with it
-                        bool wasReplaced = fmt.Replace(strYear, replacement) > 0;
+                        bool wasReplaced = fmt2.Replace(strYear, replacement) > 0;
                         if ( !wasReplaced )
-                            wasReplaced = fmt.Replace(strYear2, replacement2) > 0;
+                            wasReplaced = fmt2.Replace(strYear2, replacement2) > 0;
 
                         // use strftime() to format the same date but in supported
                         // year

@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     08/09/2000
-// RCS-ID:      $Id: cshelp.cpp,v 1.36 2005/09/23 12:52:43 MR Exp $
+// RCS-ID:      $Id: cshelp.cpp,v 1.37 2005/09/25 19:58:42 VZ Exp $
 // Copyright:   (c) 2000 Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -330,9 +330,11 @@ wxHelpProvider::~wxHelpProvider()
 // wxSimpleHelpProvider
 // ----------------------------------------------------------------------------
 
+#define WINHASH_KEY(w) wxPtrToUInt(w)
+
 wxString wxSimpleHelpProvider::GetHelp(const wxWindowBase *window)
 {
-    wxLongToStringHashMap::iterator it = m_hashWindows.find((long)window);
+    wxLongToStringHashMap::iterator it = m_hashWindows.find(WINHASH_KEY(window));
 
     if ( it == m_hashWindows.end() )
     {
@@ -346,8 +348,8 @@ wxString wxSimpleHelpProvider::GetHelp(const wxWindowBase *window)
 
 void wxSimpleHelpProvider::AddHelp(wxWindowBase *window, const wxString& text)
 {
-    m_hashWindows.erase((long)window);
-    m_hashWindows[(long)window] = text;
+    m_hashWindows.erase(WINHASH_KEY(window));
+    m_hashWindows[WINHASH_KEY(window)] = text;
 }
 
 void wxSimpleHelpProvider::AddHelp(wxWindowID id, const wxString& text)
@@ -360,7 +362,7 @@ void wxSimpleHelpProvider::AddHelp(wxWindowID id, const wxString& text)
 // removes the association
 void wxSimpleHelpProvider::RemoveHelp(wxWindowBase* window)
 {
-    m_hashWindows.erase((long)window);
+    m_hashWindows.erase(WINHASH_KEY(window));
 }
 
 bool wxSimpleHelpProvider::ShowHelp(wxWindowBase *window)

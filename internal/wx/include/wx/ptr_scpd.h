@@ -4,7 +4,7 @@
 // Author:      Jesse Lovelace <jllovela@eos.ncsu.edu>
 // Modified by:
 // Created:     06/01/02
-// RCS-ID:      $Id: ptr_scpd.h,v 1.14 2005/09/25 11:13:28 VZ Exp $
+// RCS-ID:      $Id: ptr_scpd.h,v 1.15 2005/09/25 19:58:32 VZ Exp $
 // Copyright:   (c) Jesse Lovelace and original Boost authors (see below)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@
     #define wxPOST_NO_WARNING_SCOPE(name)
 #else
     #define wxPRE_NO_WARNING_SCOPE(name)  do
-    #define wxPOST_NO_WARNING_SCOPE(name) while ( 0 )
+    #define wxPOST_NO_WARNING_SCOPE(name) while ( wxFalse )
 #endif
 
 #define wxCHECKED_DELETE(ptr)                                                 \

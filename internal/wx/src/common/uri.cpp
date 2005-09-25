@@ -3,7 +3,7 @@
 // Purpose:     Implementation of a uri parser
 // Author:      Ryan Norton
 // Created:     10/26/04
-// RCS-ID:      $Id: uri.cpp,v 1.28 2005/09/24 20:29:22 VZ Exp $
+// RCS-ID:      $Id: uri.cpp,v 1.29 2005/09/25 19:58:49 VZ Exp $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows
 /////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ wxChar wxURI::TranslateEscape(const wxChar* s)
 {
     wxASSERT_MSG( IsHex(s[0]) && IsHex(s[1]), wxT("Invalid escape sequence!"));
 
-    return (wxChar)( CharToHex(s[0]) << 4 ) | CharToHex(s[1]);
+    return wx_truncate_cast(wxChar, (CharToHex(s[0]) << 4 ) | CharToHex(s[1]));
 }
 
 wxString wxURI::Unescape(const wxString& uri)

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     26.05.99
-// RCS-ID:      $Id: dataobj.h,v 1.57 2005/09/23 12:48:34 MR Exp $
+// RCS-ID:      $Id: dataobj.h,v 1.58 2005/09/25 19:58:30 VZ Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -318,7 +318,13 @@ public:
     // ctor: you can specify the text here or in SetText(), or override
     // GetText()
     wxTextDataObject(const wxString& text = wxEmptyString)
-        : wxDataObjectSimple(wxUSE_UNICODE?wxDF_UNICODETEXT:wxDF_TEXT),
+        : wxDataObjectSimple(
+#if wxUSE_UNICODE
+                             wxDF_UNICODETEXT
+#else
+                             wxDF_TEXT
+#endif
+                            ),
           m_text(text)
         {
         }
@@ -332,19 +338,8 @@ public:
     // implement base class pure virtuals
     // ----------------------------------
 
-#if wxUSE_UNICODE && defined(__WXGTK20__)
-    virtual size_t GetFormatCount(Direction WXUNUSED(dir) = Get) const { return 2; }
-    virtual void GetAllFormats(wxDataFormat *formats,
-                               wxDataObjectBase::Direction WXUNUSED(dir) = Get) const;
-
-    virtual size_t GetDataSize() const { return GetDataSize(GetPreferredFormat()); }
-    virtual bool GetDataHere(void *buf) const { return GetDataHere(GetPreferredFormat(), buf); }
-    virtual bool SetData(size_t len, const void *buf) { return SetData(GetPreferredFormat(), len, buf); }
-
-    size_t GetDataSize(const wxDataFormat& format) const;
-    bool GetDataHere(const wxDataFormat& format, void *pBuf) const;
-    bool SetData(const wxDataFormat& format, size_t nLen, const void* pBuf);
-#elif wxUSE_UNICODE && defined(__WXMAC__)
+    // some platforms have 2 and not 1 format for text data
+#if wxUSE_UNICODE && (defined(__WXGTK20__) || defined(__WXMAC__))
     virtual size_t GetFormatCount(Direction WXUNUSED(dir) = Get) const { return 2; }
     virtual void GetAllFormats(wxDataFormat *formats,
                                wxDataObjectBase::Direction WXUNUSED(dir) = Get) const;

@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.347 2005/09/24 21:42:37 VZ Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.348 2005/09/25 19:58:57 VZ Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -8278,7 +8278,16 @@ bool wxGrid::MoveCursorUp( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetRow() > 0 )
-            SelectCell (m_currentCellCoords.GetRow() - 1, m_currentCellCoords.GetCol() );
+        {
+            // OSAF (25-Sept-05) - John Anderson, please review this change
+            // the commented-out line is your old code
+            // SelectCell (m_currentCellCoords.GetRow() - 1, m_currentCellCoords.GetCol() );
+            ClearSelection();
+            MakeCellVisible( m_currentCellCoords.GetRow() - 1,
+                             m_currentCellCoords.GetCol() );
+            SetCurrentCell( m_currentCellCoords.GetRow() - 1,
+                            m_currentCellCoords.GetCol() );
+        }
         else
             return false;
         return true;
@@ -8306,7 +8315,16 @@ bool wxGrid::MoveCursorDown( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetRow() < m_numRows - 1 )
-            SelectCell (m_currentCellCoords.GetRow() + 1, m_currentCellCoords.GetCol() );
+        {
+            // OSAF (25-Sept-05) - John Anderson, please review this change
+            // the commented-out line is your old code
+            // SelectCell (m_currentCellCoords.GetRow() + 1, m_currentCellCoords.GetCol() );
+            ClearSelection();
+            MakeCellVisible( m_currentCellCoords.GetRow() + 1,
+                             m_currentCellCoords.GetCol() );
+            SetCurrentCell( m_currentCellCoords.GetRow() + 1,
+                            m_currentCellCoords.GetCol() );
+        }
         else
             return false;
         return true;
@@ -8334,7 +8352,16 @@ bool wxGrid::MoveCursorLeft( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetCol() > 0 )
-            SelectCell (m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() - 1 );
+        {
+            // OSAF (25-Sept-05) - John Anderson, please review this change
+            // the commented-out line is your old code
+            // SelectCell (m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() - 1 );
+            ClearSelection();
+            MakeCellVisible( m_currentCellCoords.GetRow(),
+                             m_currentCellCoords.GetCol() - 1 );
+            SetCurrentCell( m_currentCellCoords.GetRow(),
+                            m_currentCellCoords.GetCol() - 1 );
+        }
         else
             return false;
         return true;
@@ -8362,7 +8389,16 @@ bool wxGrid::MoveCursorRight( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetCol() < m_numCols - 1 )
-            SelectCell (m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() + 1 );
+        {
+            // OSAF (25-Sept-05) - John Anderson, please review this change
+            // the commented-out line is your old code
+            // SelectCell (m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() + 1 );
+            ClearSelection();
+            MakeCellVisible( m_currentCellCoords.GetRow(),
+                             m_currentCellCoords.GetCol() + 1 );
+            SetCurrentCell( m_currentCellCoords.GetRow(),
+                            m_currentCellCoords.GetCol() + 1 );
+        }
         else
             return false;
         return true;
@@ -9785,7 +9821,7 @@ void wxGrid::SetRowMinimalAcceptableHeight( int height )
     if ( height<0 )
         return;
     m_minAcceptableRowHeight = height;
-};
+}
 
 int  wxGrid::GetColMinimalAcceptableWidth() const
 {

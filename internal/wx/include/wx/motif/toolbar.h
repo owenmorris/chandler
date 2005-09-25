@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by: 13.12.99 by VZ during toolbar classes reorganization
 // Created:     17/09/98
-// RCS-ID:      $Id: toolbar.h,v 1.15 2004/05/23 20:51:23 JS Exp $
+// RCS-ID:      $Id: toolbar.h,v 1.16 2005/09/23 12:50:00 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TOOLBAR_H_
 #define _WX_TOOLBAR_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "toolbar.h"
-#endif
 
 class WXDLLEXPORT wxToolBar : public wxToolBarBase
 {

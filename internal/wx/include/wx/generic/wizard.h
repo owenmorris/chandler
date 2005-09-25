@@ -4,10 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by: Robert Vazan (sizers)
 // Created:     28.09.99
-// RCS-ID:      $Id: wizard.h,v 1.22 2005/09/23 12:49:09 MR Exp $
+// RCS-ID:      $Id: wizard.h,v 1.24 2005/09/25 20:49:27 MW Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_GENERIC_WIZARD_H_
+#define _WX_GENERIC_WIZARD_H_
 
 // ----------------------------------------------------------------------------
 // wxWizard
@@ -66,6 +69,9 @@ public:
     // this is app-overridable to, for example, set help and tooltip text
     virtual void DoCreateControls();
 
+protected:
+    void FinishLayout();
+
 private:
     // was the dialog really created?
     bool WasCreated() const { return m_btnPrev != NULL; }
@@ -82,12 +88,6 @@ private:
     void AddBackNextPair(wxBoxSizer *buttonRow);
     void AddButtonRow(wxBoxSizer *mainColumn);
 
-#if wxABI_VERSION >= 20602
-protected:
-#endif
-    void FinishLayout();
-
-private:
     wxSize GetManualPageSize() const;
 
     // the page size requested by user
@@ -126,3 +126,4 @@ private:
     DECLARE_NO_COPY_CLASS(wxWizard)
 };
 
+#endif // _WX_GENERIC_WIZARD_H_

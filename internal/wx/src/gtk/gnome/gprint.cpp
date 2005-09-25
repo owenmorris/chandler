@@ -3,7 +3,7 @@
 // Author:      Robert Roebling
 // Purpose:     Implement GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id: gprint.cpp,v 1.31 2005/09/23 12:53:50 MR Exp $
+// RCS-ID:      $Id: gprint.cpp,v 1.32 2005/09/25 20:49:40 MW Exp $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,11 +21,12 @@
 
 #include "wx/math.h"
 #include "wx/fontutil.h"
-#include "wx/printdlg.h"
 #include "wx/gtk/private.h"
 #include "wx/module.h"
-#include "wx/generic/prntdlgg.h"
 #include "wx/dynlib.h"
+#include "wx/dcmemory.h"
+#include "wx/log.h"
+#include "wx/icon.h"
 
 #include <libgnomeprint/gnome-print.h>
 #include <libgnomeprint/gnome-print-pango.h>

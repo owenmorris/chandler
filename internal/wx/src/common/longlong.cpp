@@ -6,7 +6,7 @@
 //              not documented and is for private use only.
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: longlong.cpp,v 1.42 2005/09/23 12:53:02 MR Exp $
+// RCS-ID:      $Id: longlong.cpp,v 1.43 2005/09/25 19:58:45 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,14 +47,14 @@ void *wxLongLongNative::asArray() const
 {
     static unsigned char temp[8];
 
-    temp[0] = (unsigned char)((m_ll >> 56) & 0xFF);
-    temp[1] = (unsigned char)((m_ll >> 48) & 0xFF);
-    temp[2] = (unsigned char)((m_ll >> 40) & 0xFF);
-    temp[3] = (unsigned char)((m_ll >> 32) & 0xFF);
-    temp[4] = (unsigned char)((m_ll >> 24) & 0xFF);
-    temp[5] = (unsigned char)((m_ll >> 16) & 0xFF);
-    temp[6] = (unsigned char)((m_ll >> 8)  & 0xFF);
-    temp[7] = (unsigned char)((m_ll >> 0)  & 0xFF);
+    temp[0] = wx_truncate_cast(unsigned char, ((m_ll >> 56) & 0xFF));
+    temp[1] = wx_truncate_cast(unsigned char, ((m_ll >> 48) & 0xFF));
+    temp[2] = wx_truncate_cast(unsigned char, ((m_ll >> 40) & 0xFF));
+    temp[3] = wx_truncate_cast(unsigned char, ((m_ll >> 32) & 0xFF));
+    temp[4] = wx_truncate_cast(unsigned char, ((m_ll >> 24) & 0xFF));
+    temp[5] = wx_truncate_cast(unsigned char, ((m_ll >> 16) & 0xFF));
+    temp[6] = wx_truncate_cast(unsigned char, ((m_ll >> 8)  & 0xFF));
+    temp[7] = wx_truncate_cast(unsigned char, ((m_ll >> 0)  & 0xFF));
 
     return temp;
 }
@@ -63,14 +63,14 @@ void *wxULongLongNative::asArray() const
 {
     static unsigned char temp[8];
 
-    temp[0] = (unsigned char)((m_ll >> 56) & 0xFF);
-    temp[1] = (unsigned char)((m_ll >> 48) & 0xFF);
-    temp[2] = (unsigned char)((m_ll >> 40) & 0xFF);
-    temp[3] = (unsigned char)((m_ll >> 32) & 0xFF);
-    temp[4] = (unsigned char)((m_ll >> 24) & 0xFF);
-    temp[5] = (unsigned char)((m_ll >> 16) & 0xFF);
-    temp[6] = (unsigned char)((m_ll >> 8)  & 0xFF);
-    temp[7] = (unsigned char)((m_ll >> 0)  & 0xFF);
+    temp[0] = wx_truncate_cast(unsigned char, ((m_ll >> 56) & 0xFF));
+    temp[1] = wx_truncate_cast(unsigned char, ((m_ll >> 48) & 0xFF));
+    temp[2] = wx_truncate_cast(unsigned char, ((m_ll >> 40) & 0xFF));
+    temp[3] = wx_truncate_cast(unsigned char, ((m_ll >> 32) & 0xFF));
+    temp[4] = wx_truncate_cast(unsigned char, ((m_ll >> 24) & 0xFF));
+    temp[5] = wx_truncate_cast(unsigned char, ((m_ll >> 16) & 0xFF));
+    temp[6] = wx_truncate_cast(unsigned char, ((m_ll >> 8)  & 0xFF));
+    temp[7] = wx_truncate_cast(unsigned char, ((m_ll >> 0)  & 0xFF));
 
     return temp;
 }

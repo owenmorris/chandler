@@ -2,7 +2,7 @@
 // Name:        gtk/dcclient.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcclient.cpp,v 1.205 2005/09/23 12:53:37 MR Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.206 2005/09/25 19:59:04 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -88,9 +88,9 @@ void gdk_wx_draw_bitmap(GdkDrawable  *drawable,
                         gint         width,
                         gint         height)
 {
-    g_return_if_fail (drawable != NULL);
-    g_return_if_fail (src != NULL);
-    g_return_if_fail (gc != NULL);
+    wxCHECK_RET( drawable, _T("NULL drawable in gdk_wx_draw_bitmap") );
+    wxCHECK_RET( src, _T("NULL src in gdk_wx_draw_bitmap") );
+    wxCHECK_RET( gc, _T("NULL gc in gdk_wx_draw_bitmap") );
 
 #ifdef __WXGTK20__
     gint src_width, src_height;

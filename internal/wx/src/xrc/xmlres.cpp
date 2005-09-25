@@ -3,7 +3,7 @@
 // Purpose:     XRC resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.cpp,v 1.73 2005/09/23 12:56:15 MR Exp $
+// RCS-ID:      $Id: xmlres.cpp,v 1.74 2005/09/25 19:59:19 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@
 #include "wx/xrc/xmlres.h"
 
 #include "wx/arrimpl.cpp"
-WX_DEFINE_OBJARRAY(wxXmlResourceDataRecords);
+WX_DEFINE_OBJARRAY(wxXmlResourceDataRecords)
 
 
 wxXmlResource *wxXmlResource::ms_instance = NULL;
@@ -679,7 +679,7 @@ wxObject *wxXmlResource::CreateResFromNode(wxXmlNode *node, wxObject *parent,
 
 #include "wx/listimpl.cpp"
 WX_DECLARE_LIST(wxXmlSubclassFactory, wxXmlSubclassFactoriesList);
-WX_DEFINE_LIST(wxXmlSubclassFactoriesList);
+WX_DEFINE_LIST(wxXmlSubclassFactoriesList)
 
 wxXmlSubclassFactoriesList *wxXmlResource::ms_subclassFactories = NULL;
 
@@ -936,7 +936,7 @@ float wxXmlResourceHandler::GetFloat(const wxString& param, float defaultv)
     setlocale(LC_NUMERIC, prevlocale);
 #endif
 
-    return value;
+    return wx_truncate_cast(float, value);
 }
 
 

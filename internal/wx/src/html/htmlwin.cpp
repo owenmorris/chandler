@@ -2,7 +2,7 @@
 // Name:        htmlwin.cpp
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML (implementation)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.cpp,v 1.111 2005/09/24 21:42:44 VZ Exp $
+// RCS-ID:      $Id: htmlwin.cpp,v 1.112 2005/09/25 19:59:09 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -135,10 +135,10 @@ private:
 //-----------------------------------------------------------------------------
 
 WX_DECLARE_OBJARRAY(wxHtmlHistoryItem, wxHtmlHistoryArray);
-WX_DEFINE_OBJARRAY(wxHtmlHistoryArray);
+WX_DEFINE_OBJARRAY(wxHtmlHistoryArray)
 
 WX_DECLARE_LIST(wxHtmlProcessor, wxHtmlProcessorList);
-WX_DEFINE_LIST(wxHtmlProcessorList);
+WX_DEFINE_LIST(wxHtmlProcessorList)
 
 //-----------------------------------------------------------------------------
 // wxHtmlWindow

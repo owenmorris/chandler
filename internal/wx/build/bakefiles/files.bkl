@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.274 2005/09/22 16:22:30 MW Exp $ -->
+<!-- $Id: files.bkl,v 1.276 2005/09/25 19:58:27 VZ Exp $ -->
 <makefile>
 
 <!--
@@ -72,6 +72,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/unix/execute.h
     wx/unix/mimetype.h
     wx/unix/pipe.h
+    wx/unix/private.h
     wx/unix/stackwalk.h
     wx/unix/stdpaths.h
 </set>
@@ -392,6 +393,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/ipcbase.h
     wx/isql.h
     wx/isqlext.h
+    wx/link.h
     wx/list.h
     wx/listimpl.cpp
     wx/log.h

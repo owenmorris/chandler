@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     07.05.02
-// RCS-ID:      $Id: build.h,v 1.19 2005/09/25 11:13:28 VZ Exp $
+// RCS-ID:      $Id: build.h,v 1.20 2005/09/25 19:58:30 VZ Exp $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,13 +112,14 @@
 // Use this macro to check build options. Adding it to a file in DLL will
 // ensure that the DLL checks build options in same way IMPLEMENT_APP() does.
 #define WX_CHECK_BUILD_OPTIONS(libName)                                 \
-    static bool wxCheckBuildOptions()                                   \
+    static struct wxBuildOptionsChecker                                 \
     {                                                                   \
-        wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,     \
-                                        libName);                       \
-        return true;                                                    \
-    }                                                                   \
-    static bool gs_buildOptionsCheck = wxCheckBuildOptions();
+        wxBuildOptionsChecker()                                         \
+        {                                                               \
+            wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, \
+                                            libName);                   \
+        }                                                               \
+    } gs_buildOptionsCheck;
 
 
 #if WXWIN_COMPATIBILITY_2_4

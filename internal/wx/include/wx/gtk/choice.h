@@ -2,7 +2,7 @@
 // Name:        choice.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.h,v 1.42 2005/09/23 12:49:13 MR Exp $
+// Id:          $Id: choice.h,v 1.43 2005/09/25 20:23:26 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,9 +66,7 @@ public:
     void Clear();
 
     int GetSelection() const;
-#if wxABI_VERSION >= 20602
     int GetCurrentSelection() const { return GetSelection(); }
-#endif
     void SetSelection( int n );
 
     virtual int GetCount() const;

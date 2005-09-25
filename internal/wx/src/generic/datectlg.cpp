@@ -4,7 +4,7 @@
 // Author:      Andreas Pflug
 // Modified by:
 // Created:     2005-01-19
-// RCS-ID:      $Id: datectlg.cpp,v 1.36 2005/08/04 00:34:03 VZ Exp $
+// RCS-ID:      $Id: datectlg.cpp,v 1.37 2005/09/25 19:58:56 VZ Exp $
 // Copyright:   (c) 2005 Andreas Pflug <pgadmin@pse-consulting.de>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -633,14 +633,14 @@ wxDatePickerCtrlGeneric::SetDateRange(const wxDateTime& lowerdate,
 
 bool wxDatePickerCtrlGeneric::SetFormat(const wxChar *fmt)
 {
+    m_format.clear();
+
     wxDateTime dt;
     dt.ParseFormat(wxT("2003-10-13"), wxT("%Y-%m-%d"));
-    wxString str=dt.Format(fmt);
-    wxChar *p=(wxChar*)str.c_str();
+    wxString str(dt.Format(fmt));
 
-    m_format=wxEmptyString;
-
-    while (*p)
+    const wxChar *p = str.c_str();
+    while ( *p )
     {
         int n=wxAtoi(p);
         if (n == dt.GetDay())
@@ -670,19 +670,19 @@ bool wxDatePickerCtrlGeneric::SetFormat(const wxChar *fmt)
             m_format.Append(*p++);
     }
 
-    if (m_txt)
+    if ( m_txt )
     {
         wxArrayString allowedChars;
         for ( wxChar c = _T('0'); c <= _T('9'); c++ )
             allowedChars.Add(wxString(c, 1));
 
-        const wxChar *p = m_format.c_str();
-        while (*p)
+        const wxChar *p2 = m_format.c_str();
+        while ( *p2 )
         {
-            if (*p == '%')
-                p += 2;
+            if ( *p2 == '%')
+                p2 += 2;
             else
-                allowedChars.Add(wxString(*p++, 1));
+                allowedChars.Add(wxString(*p2++, 1));
         }
 
 #if wxUSE_VALIDATORS

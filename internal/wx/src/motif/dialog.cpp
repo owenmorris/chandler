@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.cpp,v 1.58 2005/09/23 12:54:40 MR Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.59 2005/09/25 20:29:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ bool wxDialog::Create(wxWindow *parent, wxWindowID id,
     return true;
 }
 
-bool wxDialog::DoCreate(wxWindow* parent,
+bool wxDialog::XmDoCreateTLW(wxWindow* parent,
                              wxWindowID id,
                              const wxString& title,
                              const wxPoint& pos,
@@ -190,10 +190,6 @@ bool wxDialog::DoCreate(wxWindow* parent,
     wxAddWindowToTable( (Widget)m_mainWidget, this );
 
     return true;
-}
-
-void wxDialog::DoDestroy()
-{
 }
 
 void wxDialog::SetModal(bool flag)

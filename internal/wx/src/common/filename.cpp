@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.2000
-// RCS-ID:      $Id: filename.cpp,v 1.159 2005/09/23 12:52:52 MR Exp $
+// RCS-ID:      $Id: filename.cpp,v 1.160 2005/09/25 19:58:44 VZ Exp $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1890,6 +1890,8 @@ bool wxFileName::SetTimes(const wxDateTime *dtAccess,
         }
     }
 #elif defined(__UNIX_LIKE__) || (defined(__DOS__) && defined(__WATCOMC__))
+    wxUnusedVar(dtCreate);
+
     if ( !dtAccess && !dtMod )
     {
         // can't modify the creation time anyhow, don't try

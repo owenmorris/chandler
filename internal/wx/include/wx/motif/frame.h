@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: frame.h,v 1.35 2005/09/20 20:33:44 VZ Exp $
+// RCS-ID:      $Id: frame.h,v 1.37 2005/09/25 20:29:56 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MOTIF_FRAME_H_
 #define _WX_MOTIF_FRAME_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "frame.h"
-#endif
 
 class WXDLLEXPORT wxFrame : public wxFrameBase
 {
@@ -117,7 +113,7 @@ private:
     virtual void DoSetClientSize(int width, int height);
 
 private:
-    virtual bool DoCreate(wxWindow* parent,
+    virtual bool XmDoCreateTLW(wxWindow* parent,
                                wxWindowID id,
                                const wxString& title,
                                const wxPoint& pos,
@@ -126,11 +122,6 @@ private:
                                const wxString& name);
 
 
-#if wxCHECK_VERSION(2,7,0)
-    #error "Remove DoDestroy(), it was only kept for binary backwards compatibility"
-#endif
-
-    virtual void DoDestroy();
 
     DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxFrame)

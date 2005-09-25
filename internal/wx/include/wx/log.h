@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: log.h,v 1.108 2005/09/23 12:48:43 MR Exp $
+// RCS-ID:      $Id: log.h,v 1.109 2005/09/25 20:23:21 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -284,8 +284,6 @@ private:
 // "trivial" derivations of wxLog
 // ----------------------------------------------------------------------------
 
-#if wxABI_VERSION > 20601
-
 // log everything to a buffer
 class WXDLLIMPEXP_BASE wxLogBuffer : public wxLog
 {
@@ -309,7 +307,6 @@ private:
     DECLARE_NO_COPY_CLASS(wxLogBuffer)
 };
 
-#endif // wxABI_VERSION
 
 // log everything to a "FILE *", stderr by default
 class WXDLLIMPEXP_BASE wxLogStderr : public wxLog

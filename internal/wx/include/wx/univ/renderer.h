@@ -4,10 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.00
-// RCS-ID:      $Id: renderer.h,v 1.30 2005/09/23 12:50:47 MR Exp $
+// RCS-ID:      $Id: renderer.h,v 1.31 2005/09/25 20:49:35 MW Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_UNIV_RENDERER_H_
+#define _WX_UNIV_RENDERER_H_
 
 /*
    wxRenderer class is used to draw all wxWidgets controls. This is an ABC and
@@ -24,9 +27,6 @@
    includes the latters functionality (which it may delegate to the generic
    implementation of the latter or reimplement itself).
  */
-
-#ifndef _WX_UNIV_RENDERER_H_
-#define _WX_UNIV_RENDERER_H_
 
 #include "wx/renderer.h"
 

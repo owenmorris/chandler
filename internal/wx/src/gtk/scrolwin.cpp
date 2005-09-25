@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolwin.cpp,v 1.45 2005/09/23 12:53:41 MR Exp $
+// RCS-ID:      $Id: scrolwin.cpp,v 1.46 2005/09/25 19:59:05 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1021,19 +1021,19 @@ void wxScrolledWindow::OnChar(wxKeyEvent& event)
     int xScroll = GetScrollPos(wxHORIZONTAL);
     if ( xScroll != xScrollOld )
     {
-        wxScrollWinEvent event(wxEVT_SCROLLWIN_THUMBTRACK, xScroll,
-                               wxHORIZONTAL);
-        event.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(event);
+        wxScrollWinEvent eventS(wxEVT_SCROLLWIN_THUMBTRACK, xScroll,
+                                wxHORIZONTAL);
+        eventS.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(eventS);
     }
 
     int yScroll = GetScrollPos(wxVERTICAL);
     if ( yScroll != yScrollOld )
     {
-        wxScrollWinEvent event(wxEVT_SCROLLWIN_THUMBTRACK, yScroll,
-                               wxVERTICAL);
-        event.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(event);
+        wxScrollWinEvent eventS(wxEVT_SCROLLWIN_THUMBTRACK, yScroll,
+                                wxVERTICAL);
+        eventS.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(eventS);
     }
 }
 

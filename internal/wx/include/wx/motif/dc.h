@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dc.h,v 1.20 2004/12/16 21:24:27 ABX Exp $
+// RCS-ID:      $Id: dc.h,v 1.21 2005/09/23 12:49:56 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DC_H_
 #define _WX_DC_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "dc.h"
-#endif
 
 #include "wx/pen.h"
 #include "wx/brush.h"

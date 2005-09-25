@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: mdi.h,v 1.27 2005/03/21 12:27:40 VZ Exp $
+// RCS-ID:      $Id: mdi.h,v 1.28 2005/09/23 12:49:59 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MDI_H_
 #define _WX_MDI_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "mdi.h"
-#endif
 
 /*
 New MDI scheme using tabs. We can use a wxNotebook to implement the client

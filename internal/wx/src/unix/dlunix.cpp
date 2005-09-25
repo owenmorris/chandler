@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-16 (extracted from common/dynlib.cpp)
-// RCS-ID:      $Id: dlunix.cpp,v 1.11 2005/04/19 12:38:24 SC Exp $
+// RCS-ID:      $Id: dlunix.cpp,v 1.12 2005/09/25 19:59:14 VZ Exp $
 // Copyright:   (c) 2000-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -293,7 +293,7 @@ public:
         wxDynamicLibraryDetails *details = new wxDynamicLibraryDetails;
         details->m_path = path;
         details->m_name = path.AfterLast(_T('/'));
-        details->m_address = wx_reinterpret_cast(void *, start);
+        details->m_address = wxUIntToPtr(start);
         details->m_length = end - start;
 
         // try to extract the library version from its name

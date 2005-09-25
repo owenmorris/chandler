@@ -4,10 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.02.01
-// RCS-ID:      $Id: scrtimer.h,v 1.6 2004/08/10 13:08:34 ABX Exp $
+// RCS-ID:      $Id: scrtimer.h,v 1.7 2005/09/25 20:49:35 MW Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_UNIV_SCRTIMER_H
+#define _WX_UNIV_SCRTIMER_H
 
 // NB: this class is implemented in scrolbar.cpp
 
@@ -39,3 +42,4 @@ protected:
     bool m_skipNext;
 };
 
+#endif // _WX_UNIV_SCRTIMER_H

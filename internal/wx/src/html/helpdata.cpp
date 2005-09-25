@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpdata.cpp,v 1.80 2005/09/23 12:53:51 MR Exp $
+// RCS-ID:      $Id: helpdata.cpp,v 1.81 2005/09/25 19:59:09 VZ Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -462,17 +462,17 @@ bool wxHtmlHelpData::SaveCachedBook(wxHtmlBookRecord *book, wxOutputStream *f)
         }
         else
         {
-            int cnt = 0;
+            int cnt2 = 0;
             wxHtmlHelpDataItem *parent = m_index[i].parent;
             for (int j = i-1; j >= 0; j--)
             {
                 if (m_index[j].book == book && m_index[j].level > 0)
-                    cnt++;
+                    cnt2++;
                 if (&m_index[j] == parent)
                     break;
             }
-            wxASSERT(cnt > 0);
-            CacheWriteInt32(f, cnt);
+            wxASSERT(cnt2 > 0);
+            CacheWriteInt32(f, cnt2);
         }
     }
     return true;

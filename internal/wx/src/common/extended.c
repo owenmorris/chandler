@@ -4,7 +4,7 @@
 ** Maintainer:  Ryan Norton
 ** Modified by:
 ** Created:     11/24/04
-** RCS-ID:      $Id: extended.c,v 1.24 2005/03/07 19:50:02 VZ Exp $
+** RCS-ID:      $Id: extended.c,v 1.25 2005/09/25 19:58:43 VZ Exp $
 *****************************************************************************/
 
 
@@ -105,7 +105,7 @@
  * and a 64-bit mantissa, with no hidden bit.
  ****************************************************************/
 
-wxFloat64 ConvertFromIeeeExtended(wxInt8* bytes)
+wxFloat64 ConvertFromIeeeExtended(const wxInt8 *bytes)
 {
     wxFloat64 f;
     wxInt32 expon;

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: choice.h,v 1.24 2005/02/16 10:12:40 VZ Exp $
+// RCS-ID:      $Id: choice.h,v 1.25 2005/09/23 12:49:55 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CHOICE_H_
 #define _WX_CHOICE_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "choice.h"
-#endif
 
 #include "wx/clntdata.h"
 

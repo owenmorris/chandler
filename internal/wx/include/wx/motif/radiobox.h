@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobox.h,v 1.26 2005/02/23 16:35:00 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.27 2005/09/23 12:49:59 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MOTIF_RADIOBOX_H_
 #define _WX_MOTIF_RADIOBOX_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "radiobox.h"
-#endif
 
 #ifndef wxWIDGET_ARRAY_DEFINED
     #define wxWIDGET_ARRAY_DEFINED

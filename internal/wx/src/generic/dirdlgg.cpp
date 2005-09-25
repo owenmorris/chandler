@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling & Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirdlgg.cpp,v 1.62 2005/09/23 12:53:25 MR Exp $
+// RCS-ID:      $Id: dirdlgg.cpp,v 1.63 2005/09/25 19:58:56 VZ Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -272,7 +272,7 @@ void wxGenericDirDialog::OnTreeSelected( wxTreeEvent &event )
 
     if (data)
        m_input->SetValue( data->m_path );
-};
+}
 
 void wxGenericDirDialog::OnTreeKeyDown( wxTreeEvent &WXUNUSED(event) )
 {
@@ -282,7 +282,7 @@ void wxGenericDirDialog::OnTreeKeyDown( wxTreeEvent &WXUNUSED(event) )
     wxDirItemData *data = (wxDirItemData*)m_dirCtrl->GetTreeCtrl()->GetItemData(m_dirCtrl->GetTreeCtrl()->GetSelection());
     if (data)
         m_input->SetValue( data->m_path );
-};
+}
 
 void wxGenericDirDialog::OnShowHidden( wxCommandEvent& event )
 {

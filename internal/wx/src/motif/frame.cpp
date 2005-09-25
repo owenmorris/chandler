@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: frame.cpp,v 1.73 2005/09/23 12:54:41 MR Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.74 2005/09/25 20:29:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ bool wxFrame::Create(wxWindow *parent,
     return true;
 }
 
-bool wxFrame::DoCreate(wxWindow* parent,
+bool wxFrame::XmDoCreateTLW(wxWindow* parent,
                             wxWindowID id,
                             const wxString& title,
                             const wxPoint& pos,
@@ -260,10 +260,6 @@ bool wxFrame::DoCreate(wxWindow* parent,
     wxModelessWindows.Append( this );
 
     return true;
-}
-
-void wxFrame::DoDestroy()
-{
 }
 
 wxFrame::~wxFrame()

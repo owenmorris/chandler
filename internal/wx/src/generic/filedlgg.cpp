@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: filedlgg.cpp,v 1.144 2005/09/23 12:53:26 MR Exp $
+// RCS-ID:      $Id: filedlgg.cpp,v 1.145 2005/09/25 19:58:56 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -293,7 +293,7 @@ wxString wxFileData::GetHint() const
     }
 
     return s;
-};
+}
 
 wxString wxFileData::GetEntry( fileListFieldType num ) const
 {

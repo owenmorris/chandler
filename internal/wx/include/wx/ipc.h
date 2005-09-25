@@ -4,10 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.04.02
-// RCS-ID:      $Id: ipc.h,v 1.3 2004/05/23 20:50:23 JS Exp $
+// RCS-ID:      $Id: ipc.h,v 1.4 2005/09/25 20:49:25 MW Exp $
 // Copyright:   (c) 2002 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_IPC_H_
+#define _WX_IPC_H_
 
 // Set wxUSE_DDE_FOR_IPC to 1 to use DDE for IPC under Windows. If it is set to
 // 0, or if the platform is not Windows, use TCP/IP for IPC implementation
@@ -39,3 +42,4 @@
     #include "wx/sckipc.h"
 #endif // wxUSE_DDE_FOR_IPC/!wxUSE_DDE_FOR_IPC
 
+#endif // _WX_IPC_H_

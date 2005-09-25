@@ -4,10 +4,13 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id: gauge.h,v 1.10 2005/09/23 12:50:46 MR Exp $
+// RCS-ID:      $Id: gauge.h,v 1.11 2005/09/25 20:49:35 MW Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_UNIV_GAUGE_H_
+#define _WX_UNIV_GAUGE_H_
 
 // ----------------------------------------------------------------------------
 // wxGauge: a progress bar
@@ -68,3 +71,5 @@ protected:
 
     DECLARE_DYNAMIC_CLASS(wxGauge)
 };
+
+#endif // _WX_UNIV_GAUGE_H_

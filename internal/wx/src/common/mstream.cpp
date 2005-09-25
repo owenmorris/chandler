@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: VZ (23.11.00): general code review
 // Created:     04/01/98
-// RCS-ID:      $Id: mstream.cpp,v 1.35 2005/09/23 12:53:04 MR Exp $
+// RCS-ID:      $Id: mstream.cpp,v 1.36 2005/09/25 19:58:46 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,12 +50,17 @@ wxMemoryInputStream::wxMemoryInputStream(const void *data, size_t len)
 
 wxMemoryInputStream::wxMemoryInputStream(const wxMemoryOutputStream& stream)
 {
-    ssize_t len = (ssize_t)stream.GetLength();
-    if (len == wxInvalidOffset) {
+    const wxFileOffset lenFile = stream.GetLength();
+    if ( lenFile == wxInvalidOffset )
+    {
         m_i_streambuf = NULL;
         m_lasterror = wxSTREAM_EOF;
         return;
     }
+
+    const size_t len = wx_truncate_cast(size_t, lenFile);
+    wxASSERT_MSG( len == lenFile, _T("huge files not supported") );
+
     m_i_streambuf = new wxStreamBuffer(wxStreamBuffer::read);
     m_i_streambuf->SetBufferIO(len); // create buffer
     stream.CopyTo(m_i_streambuf->GetBufferStart(), len);

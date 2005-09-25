@@ -3,7 +3,7 @@
 // Purpose:     XML resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.h,v 1.47 2005/09/23 12:51:17 MR Exp $
+// RCS-ID:      $Id: xmlres.h,v 1.48 2005/09/25 20:23:30 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -120,10 +120,8 @@ public:
     // This method understands VFS (see filesys.h).
     bool Load(const wxString& filemask);
 
-#if wxABI_VERSION > 20601
     // Unload resource from the given XML file (wildcards not allowed)
     bool Unload(const wxString& filename);
-#endif // wxABI_VERSION
 
     // Initialize handlers for all supported controls/windows. This will
     // make the executable quite big because it forces linking against
@@ -251,7 +249,6 @@ protected:
                                 wxObject *instance = NULL,
                                 wxXmlResourceHandler *handlerToUse = NULL);
 
-#if wxABI_VERSION > 20601
     // Helper of Load() and Unload(): returns the URL corresponding to the
     // given file if it's indeed a file, otherwise returns the original string
     // unmodified
@@ -262,8 +259,6 @@ protected:
     // Another helper: detect if the filename is a ZIP or XRS file
     static bool IsArchive(const wxString& filename);
 #endif // wxUSE_FILESYSTEM
-
-#endif // wxABI_VERSION
 
 private:
     long m_version;

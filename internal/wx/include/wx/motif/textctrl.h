@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: textctrl.h,v 1.24 2005/01/19 16:25:06 ABX Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.25 2005/09/23 12:50:00 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TEXTCTRL_H_
 #define _WX_TEXTCTRL_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "textctrl.h"
-#endif
 
 // Single-line text item
 class WXDLLEXPORT wxTextCtrl : public wxTextCtrlBase

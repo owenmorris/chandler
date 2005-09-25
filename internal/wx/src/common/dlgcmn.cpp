@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.06.99
-// RCS-ID:      $Id: dlgcmn.cpp,v 1.48 2005/09/23 12:52:48 MR Exp $
+// RCS-ID:      $Id: dlgcmn.cpp,v 1.49 2005/09/25 20:17:01 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,8 @@ void wxDialogBase::Init()
 {
     m_returnCode = 0;
     m_affirmativeId = wxID_OK;
-    
+    m_escapeId = wxID_ANY;
+
     // the dialogs have this flag on by default to prevent the events from the
     // dialog controls from reaching the parent frame which is usually
     // undesirable and can lead to unexpected and hard to find bugs

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp,v 1.139 2005/09/24 21:42:31 VZ Exp $
+// RCS-ID:      $Id: fileconf.cpp,v 1.140 2005/09/25 19:58:44 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -450,16 +450,16 @@ wxFileConfig::wxFileConfig(const wxString& appName, const wxString& vendorName,
     {
         if ( !m_strLocalFile.empty() && !wxIsAbsolutePath(m_strLocalFile) )
         {
-            wxString strLocal = m_strLocalFile;
+            const wxString strLocalOrig = m_strLocalFile;
             m_strLocalFile = GetLocalDir();
-            m_strLocalFile << strLocal;
+            m_strLocalFile << strLocalOrig;
         }
 
         if ( !m_strGlobalFile.empty() && !wxIsAbsolutePath(m_strGlobalFile) )
         {
-            wxString strGlobal = m_strGlobalFile;
+            const wxString strGlobalOrig = m_strGlobalFile;
             m_strGlobalFile = GetGlobalDir();
-            m_strGlobalFile << strGlobal;
+            m_strGlobalFile << strGlobalOrig;
         }
     }
 
@@ -664,7 +664,7 @@ void wxFileConfig::Parse(const wxTextBuffer& buffer, bool bLocal)
       }
     }
     else {                        // a key
-      const wxChar *pEnd = pStart;
+      pEnd = pStart;
       while ( *pEnd && *pEnd != wxT('=') /* && !wxIsspace(*pEnd)*/ ) {
         if ( *pEnd == wxT('\\') ) {
           // next character may be space or not - still take it because it's

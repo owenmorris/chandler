@@ -4,7 +4,7 @@
 *  Author:      Julian Smart
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     29/01/98
-*  RCS-ID:      $Id: version.h,v 1.69 2005/07/25 16:35:11 JS Exp $
+*  RCS-ID:      $Id: version.h,v 1.70 2005/09/25 20:23:21 VZ Exp $
 *  Copyright:   (c) 1998 Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -20,10 +20,10 @@
 /*  NB: this file is parsed by Perl code in tmake templates in distrib/msw/tmake */
 /*      so don't change its format too much or they could break */
 #define wxMAJOR_VERSION      2
-#define wxMINOR_VERSION      6
-#define wxRELEASE_NUMBER     2
-#define wxSUBRELEASE_NUMBER  1
-#define wxVERSION_STRING   _T("wxWidgets 2.6.2")
+#define wxMINOR_VERSION      7
+#define wxRELEASE_NUMBER     0
+#define wxSUBRELEASE_NUMBER  0
+#define wxVERSION_STRING   _T("wxWidgets 2.7.0")
 
 /*  nothing to update below this line when updating the version */
 /*  ---------------------------------------------------------------------------- */

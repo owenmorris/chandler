@@ -5,7 +5,7 @@
 // Modified by: VZ (23.11.00) to fix realloc()ing new[]ed memory,
 //                            general code review
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.cpp,v 1.97 2005/09/23 12:53:08 MR Exp $
+// RCS-ID:      $Id: stream.cpp,v 1.98 2005/09/25 19:58:48 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -576,7 +576,7 @@ wxFileOffset wxStreamBuffer::Seek(wxFileOffset pos, wxSeekMode mode)
         }
         if (diff < 0 || diff > last_access)
             return wxInvalidOffset;
-        size_t int_diff = (size_t)diff;
+        size_t int_diff = wx_truncate_cast(size_t, diff);
         wxCHECK_MSG( (wxFileOffset)int_diff == diff, wxInvalidOffset, wxT("huge file not supported") );
         SetIntPosition(int_diff);
         return diff;
@@ -603,7 +603,7 @@ wxFileOffset wxStreamBuffer::Seek(wxFileOffset pos, wxSeekMode mode)
             }
             else
             {
-                size_t int_diff = (size_t)diff;
+                size_t int_diff = wx_truncate_cast(size_t, diff);
                 wxCHECK_MSG( (wxFileOffset)int_diff == diff, wxInvalidOffset, wxT("huge file not supported") );
                 SetIntPosition(int_diff);
                 return pos;
@@ -660,7 +660,13 @@ wxStreamBase::~wxStreamBase()
 size_t wxStreamBase::GetSize() const
 {
     wxFileOffset length = GetLength();
-    return length == wxInvalidOffset ? 0 : (size_t)length;
+    if ( length == wxInvalidOffset )
+        return 0;
+
+    const size_t len = wx_truncate_cast(size_t, length);
+    wxASSERT_MSG( len == length, _T("large files not supported") );
+
+    return len;
 }
 
 wxFileOffset wxStreamBase::OnSysSeek(wxFileOffset WXUNUSED(seek), wxSeekMode WXUNUSED(mode))
@@ -994,7 +1000,7 @@ size_t wxCountingOutputStream::OnSysWrite(const void *WXUNUSED(buffer),
 
 wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
 {
-    ssize_t new_pos = (ssize_t)pos;
+    ssize_t new_pos = wx_truncate_cast(ssize_t, pos);
 
     switch ( mode )
     {

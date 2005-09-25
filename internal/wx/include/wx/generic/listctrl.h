@@ -3,7 +3,7 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.101 2005/09/23 12:49:05 MR Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.102 2005/09/25 20:23:24 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,10 +114,8 @@ public:
     wxColour GetItemTextColour( long item ) const;
     void SetItemBackgroundColour( long item, const wxColour &col);
     wxColour GetItemBackgroundColour( long item ) const;
-#if wxABI_VERSION >= 20602
     void SetItemFont( long item, const wxFont &f);
     wxFont GetItemFont( long item ) const;
-#endif
     int GetSelectedItemCount() const;
     wxColour GetTextColour() const;
     void SetTextColour(const wxColour& col);

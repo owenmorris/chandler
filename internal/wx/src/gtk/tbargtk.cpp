@@ -3,7 +3,7 @@
 // Purpose:     GTK toolbar
 // Author:      Robert Roebling
 // Modified:    13.12.99 by VZ to derive from wxToolBarBase
-// RCS-ID:      $Id: tbargtk.cpp,v 1.102 2005/09/23 12:53:42 MR Exp $
+// RCS-ID:      $Id: tbargtk.cpp,v 1.103 2005/09/25 19:59:05 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -428,15 +428,16 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
                 {
                     wxToolBarToolsList::compatibility_iterator node
                         = wxToolBarToolsList::compatibility_iterator();
-                    if ( pos ) node = m_tools.Item(pos - 1);
+                    if ( pos )
+                        node = m_tools.Item(pos - 1);
 
                     while ( node )
                     {
-                        wxToolBarTool *tool = (wxToolBarTool *)node->GetData();
-                        if ( !tool->IsRadio() )
+                        wxToolBarTool *toolNext = (wxToolBarTool *)node->GetData();
+                        if ( !toolNext->IsRadio() )
                             break;
 
-                        widget = tool->m_item;
+                        widget = toolNext->m_item;
 
                         node = node->GetPrevious();
                     }

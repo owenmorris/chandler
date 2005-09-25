@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     01/02/97
-// RCS-ID:      $Id: choice.h,v 1.33 2005/09/23 12:50:07 MR Exp $
+// RCS-ID:      $Id: choice.h,v 1.34 2005/09/25 20:23:27 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,9 +74,7 @@ public:
 
     virtual int GetCount() const;
     virtual int GetSelection() const;
-#if wxABI_VERSION >= 20602
     virtual int GetCurrentSelection() const;
-#endif
     virtual void SetSelection(int n);
 
     virtual int FindString(const wxString& s) const;

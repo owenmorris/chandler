@@ -4,12 +4,10 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by:
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.h,v 1.149 2005/09/24 21:42:12 VZ Exp $
+// RCS-ID:      $Id: grid.h,v 1.150 2005/09/25 20:49:26 MW Exp $
 // Copyright:   (c) Michael Bedward
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-#include "wx/defs.h"
 
 #ifndef __WXGRID_H__
 #define __WXGRID_H__

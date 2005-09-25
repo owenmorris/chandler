@@ -4,10 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     22/6/2000
-// RCS-ID:      $Id: quantize.h,v 1.8 2005/09/23 12:48:46 MR Exp $
+// RCS-ID:      $Id: quantize.h,v 1.9 2005/09/25 20:49:25 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:
 /////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_QUANTIZE_H_
+#define _WX_QUANTIZE_H_
 
 /*
  * From jquant2.c
@@ -16,9 +19,6 @@
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  */
-
-#ifndef _WX_QUANTIZE_H_
-#define _WX_QUANTIZE_H_
 
 class WXDLLEXPORT wxImage;
 

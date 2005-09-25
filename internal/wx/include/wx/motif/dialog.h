@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.h,v 1.27 2005/09/20 20:33:44 VZ Exp $
+// RCS-ID:      $Id: dialog.h,v 1.29 2005/09/25 20:29:56 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DIALOG_H_
 #define _WX_DIALOG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "dialog.h"
-#endif
 
 class WXDLLEXPORT wxEventLoop;
 
@@ -79,7 +75,7 @@ public:
     void OnCloseWindow(wxCloseEvent& event);
 
 private:
-    virtual bool DoCreate(wxWindow* parent,
+    virtual bool XmDoCreateTLW(wxWindow* parent,
                                wxWindowID id,
                                const wxString& title,
                                const wxPoint& pos,
@@ -99,11 +95,6 @@ protected:
 
     virtual void DoSetClientSize(int width, int height);
 
-#if wxCHECK_VERSION(2,7,0)
-    #error "Remove DoDestroy(), it was only kept for binary backwards compatibility"
-#endif
-
-    virtual void DoDestroy();
 
 private:
     DECLARE_EVENT_TABLE()

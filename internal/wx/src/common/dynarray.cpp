@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.97
-// RCS-ID:      $Id: dynarray.cpp,v 1.53 2005/09/23 12:52:50 MR Exp $
+// RCS-ID:      $Id: dynarray.cpp,v 1.54 2005/09/25 19:58:43 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -410,12 +410,22 @@ void name::insert(iterator it, const_iterator first, const_iterator last)   \
         _WX_DEFINE_BASEARRAY_COMMON(T, name)                                \
         _WX_DEFINE_BASEARRAY_NOCOMMON(T, name)
 
+#ifdef __INTELC__
+    #pragma warning(push)
+    #pragma warning(disable: 1684)
+    #pragma warning(disable: 1572)
+#endif
+
 _WX_DEFINE_BASEARRAY(const void *, wxBaseArrayPtrVoid)
 _WX_DEFINE_BASEARRAY(short,        wxBaseArrayShort)
 _WX_DEFINE_BASEARRAY(int,          wxBaseArrayInt)
 _WX_DEFINE_BASEARRAY(long,         wxBaseArrayLong)
 _WX_DEFINE_BASEARRAY(size_t,       wxBaseArraySizeT)
 _WX_DEFINE_BASEARRAY(double,       wxBaseArrayDouble)
+
+#ifdef __INTELC__
+    #pragma warning(pop)
+#endif
 
 #if wxUSE_STL
 #include "wx/arrstr.h"

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/98
-// RCS-ID:      $Id: txtstrm.cpp,v 1.37 2005/09/23 12:53:10 MR Exp $
+// RCS-ID:      $Id: txtstrm.cpp,v 1.38 2005/09/25 19:58:49 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -348,7 +348,7 @@ void wxTextOutputStream::Write32(wxUint32 i)
 void wxTextOutputStream::Write16(wxUint16 i)
 {
     wxString str;
-    str.Printf(wxT("%u"), i);
+    str.Printf(wxT("%u"), (unsigned)i);
 
     WriteString(str);
 }
@@ -356,7 +356,7 @@ void wxTextOutputStream::Write16(wxUint16 i)
 void wxTextOutputStream::Write8(wxUint8 i)
 {
     wxString str;
-    str.Printf(wxT("%u"), i);
+    str.Printf(wxT("%u"), (unsigned)i);
 
     WriteString(str);
 }

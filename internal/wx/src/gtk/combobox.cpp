@@ -2,7 +2,7 @@
 // Name:        combobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: combobox.cpp,v 1.132 2005/09/23 12:53:37 MR Exp $
+// Id:          $Id: combobox.cpp,v 1.133 2005/09/25 19:59:04 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -844,12 +844,12 @@ void wxComboBox::OnChar( wxKeyEvent &event )
     if ( event.GetKeyCode() == WXK_RETURN )
     {
         // GTK automatically selects an item if its in the list
-        wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, GetId());
-        event.SetString( GetValue() );
-        event.SetInt( GetSelection() );
-        event.SetEventObject( this );
+        wxCommandEvent eventEnter(wxEVT_COMMAND_TEXT_ENTER, GetId());
+        eventEnter.SetString( GetValue() );
+        eventEnter.SetInt( GetSelection() );
+        eventEnter.SetEventObject( this );
 
-        if (!GetEventHandler()->ProcessEvent( event ))
+        if (!GetEventHandler()->ProcessEvent( eventEnter ))
         {
             // This will invoke the dialog default action, such
             // as the clicking the default button.

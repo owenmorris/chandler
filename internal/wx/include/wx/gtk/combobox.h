@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: combobox.h,v 1.52 2005/09/23 12:49:14 MR Exp $
+// Id:          $Id: combobox.h,v 1.53 2005/09/25 20:23:26 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,9 +85,7 @@ public:
 
     virtual int FindString( const wxString &item ) const;
     int GetSelection() const;
-#if wxABI_VERSION >= 20602
     int GetCurrentSelection() const;
-#endif
     wxString GetString( int n ) const;
     wxString GetStringSelection() const;
     int GetCount() const;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     28/6/2000
-// RCS-ID:      $Id: splash.cpp,v 1.28 2005/09/23 12:53:30 MR Exp $
+// RCS-ID:      $Id: splash.cpp,v 1.29 2005/09/25 19:58:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,7 @@
 
 #define wxSPLASH_TIMER_ID 9999
 
-IMPLEMENT_DYNAMIC_CLASS(wxSplashScreen, wxFrame);
+IMPLEMENT_DYNAMIC_CLASS(wxSplashScreen, wxFrame)
 
 BEGIN_EVENT_TABLE(wxSplashScreen, wxFrame)
     EVT_TIMER(wxSPLASH_TIMER_ID, wxSplashScreen::OnNotify)

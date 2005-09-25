@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.11.97
-// RCS-ID:      $Id: ownerdrw.h,v 1.27 2005/09/23 12:48:45 MR Exp $
+// RCS-ID:      $Id: ownerdrw.h,v 1.28 2005/09/25 20:43:32 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -153,7 +153,8 @@ private:
   static size_t ms_nLastMarginWidth;    // handy for aligning all items
 
   bool      m_bCheckable,   // used only for menu or check listbox items
-            m_bOwnerDrawn;  // true if something is non standard
+            m_bOwnerDrawn,  // true if something is non standard
+            m_isMenuItem;   // true if this is a menu item
 
   wxFont    m_font;         // font to use for drawing
   wxColour  m_colText,      // color ----"---"---"----

@@ -4,17 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: filedlg.h,v 1.11 2004/05/23 20:51:22 JS Exp $
+// RCS-ID:      $Id: filedlg.h,v 1.12 2005/09/23 12:49:57 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FILEDLG_H_
 #define _WX_FILEDLG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "filedlg.h"
-#endif
 
 //-------------------------------------------------------------------------
 // wxFileDialog

@@ -4,18 +4,13 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.00
-// RCS-ID:      $Id: filename.h,v 1.64 2005/09/23 12:48:39 MR Exp $
+// RCS-ID:      $Id: filename.h,v 1.65 2005/09/25 20:49:25 MW Exp $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef   _WX_FILENAME_H_
 #define   _WX_FILENAME_H_
-
-#ifndef WX_PRECOMP
-    #include  "wx/string.h"
-    #include  "wx/arrstr.h"
-#endif
 
 /*
     TODO:
@@ -31,6 +26,7 @@
     3. SameFileAs() function to compare inodes under Unix
  */
 
+#include "wx/arrstr.h"
 #include "wx/filefn.h"
 #include "wx/datetime.h"
 

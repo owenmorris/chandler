@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     17.07.02
-// RCS-ID:      $Id: msgout.h,v 1.16 2005/09/23 12:48:45 MR Exp $
+// RCS-ID:      $Id: msgout.h,v 1.17 2005/09/25 20:23:21 VZ Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,8 +49,6 @@ private:
 // otherwise; unlike wxMessageOutputMessageBox this class is always safe to use
 // ----------------------------------------------------------------------------
 
-#if wxABI_VERSION > 20601
-
 class WXDLLIMPEXP_BASE wxMessageOutputBest : public wxMessageOutput
 {
 public:
@@ -58,8 +56,6 @@ public:
 
     virtual void Printf(const wxChar* format, ...) ATTRIBUTE_PRINTF_2;
 };
-
-#endif // wxABI_VERSION
 
 // ----------------------------------------------------------------------------
 // implementation which sends output to stderr

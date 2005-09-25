@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.cpp,v 1.258 2005/09/13 14:35:50 VZ Exp $
+// RCS-ID:      $Id: string.cpp,v 1.259 2005/09/25 19:58:49 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -365,8 +365,8 @@ bool wxStringBase::Alloc(size_t nLen)
     if ( pData->IsEmpty() ) {
       nLen += EXTRA_ALLOC;
 
-      wxStringData* pData = (wxStringData*)
-          malloc(sizeof(wxStringData) + (nLen + 1)*sizeof(wxChar));
+      pData = (wxStringData *)
+                malloc(sizeof(wxStringData) + (nLen + 1)*sizeof(wxChar));
 
       if ( pData == NULL ) {
         // allocation failure handled by caller

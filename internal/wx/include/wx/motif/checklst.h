@@ -5,17 +5,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: checklst.h,v 1.11 2005/08/03 00:53:07 MW Exp $
+// RCS-ID:      $Id: checklst.h,v 1.12 2005/09/23 12:49:55 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_CHECKLST_H_
 #define _WX_CHECKLST_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "checklst.h"
-#endif
 
 #include "wx/listbox.h"
 

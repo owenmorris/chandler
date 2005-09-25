@@ -5,17 +5,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: msgdlg.h,v 1.9 2005/03/11 15:33:40 ABX Exp $
+// RCS-ID:      $Id: msgdlg.h,v 1.10 2005/09/23 12:49:59 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSGBOXDLG_H_
 #define _WX_MSGBOXDLG_H_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma interface "msgdlg.h"
-#endif
 
 #include "wx/setup.h"
 #include "wx/dialog.h"

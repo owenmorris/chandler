@@ -9,7 +9,7 @@
 //              Added wxWIZARD_HELP event
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.h,v 1.44 2005/08/04 00:22:42 VZ Exp $
+// RCS-ID:      $Id: wizard.h,v 1.46 2005/09/25 20:49:25 MW Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,13 +25,9 @@
 // headers and other simple declarations
 // ----------------------------------------------------------------------------
 
-#ifndef WX_PRECOMP
-    #include "wx/dialog.h"      // the base class
-    #include "wx/panel.h"       // ditto
-
-    #include "wx/event.h"       // wxEVT_XXX constants
-#endif // WX_PRECOMP
-
+#include "wx/dialog.h"      // the base class
+#include "wx/panel.h"       // ditto
+#include "wx/event.h"       // wxEVT_XXX constants
 #include "wx/bitmap.h"
 
 // Extended style to specify a help button
@@ -76,9 +72,7 @@ public:
     // wxNullBitmap from here - the default one will be used then.
     virtual wxBitmap GetBitmap() const { return m_bitmap; }
 
-    // due to a typo in #if condition, the validation functions were disabled
-    // in 2.6.[01] releases so check for wxABI_VERSION here
-#if wxUSE_VALIDATORS && (wxABI_VERSION >= 20602)
+#if wxUSE_VALIDATORS
     // Override the base functions to allow a validator to be assigned to this page.
     virtual bool TransferDataToWindow()
     {

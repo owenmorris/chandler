@@ -4,11 +4,13 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     31.01.99
-// RCS-ID:      $Id: tooltip.h,v 1.4 2004/05/23 20:51:03 JS Exp $
+// RCS-ID:      $Id: tooltip.h,v 1.5 2005/09/25 20:49:29 MW Exp $
 // Copyright:   (c) 1999 Robert Roebling, Vadim Zeitlin, Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef _WX_MAC_TOOLTIP_H_
+#define _WX_MAC_TOOLTIP_H_
 
 class wxToolTip : public wxObject
 {
@@ -46,3 +48,4 @@ private:
     DECLARE_ABSTRACT_CLASS(wxToolTip)
 };
 
+#endif // _WX_MAC_TOOLTIP_H_

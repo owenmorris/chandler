@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: app.h,v 1.129 2005/06/21 09:56:12 VS Exp $
+// RCS-ID:      $Id: app.h,v 1.130 2005/09/25 19:58:30 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -661,6 +661,7 @@ public:
     }                                                                       \
     wxAppInitializer                                                        \
         wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);        \
+    DECLARE_APP(appname)                                                    \
     appname& wxGetApp() { return *(appname *)wxTheApp; }
 
 // Same as IMPLEMENT_APP() normally but doesn't include themes support in
@@ -683,6 +684,14 @@ public:
 // this macro can be used multiple times and just allows you to use wxGetApp()
 // function
 #define DECLARE_APP(appname) extern appname& wxGetApp();
+
+
+// declare the stuff defined by IMPLEMENT_APP() macro, it's not really needed
+// anywhere else but at the very least it suppresses icc warnings about
+// defining extern symbols without prior declaration, and it shouldn't do any
+// harm
+extern wxAppConsole *wxCreateApp();
+extern wxAppInitializer wxTheAppInitializer;
 
 #endif // _WX_APP_H_BASE_
 
