@@ -30,11 +30,15 @@ def main():
                                          'chandlerdb/util/rijndael.c'],
                                 include_dirs=['rijndael-3.0']))
 
-    extensions.append(Extension('chandlerdb.schema.descriptor',
-                                sources=['chandlerdb/schema/descriptor.c']))
+    extensions.append(Extension('chandlerdb.schema.c',
+                                sources=['chandlerdb/schema/descriptor.c',
+                                         'chandlerdb/schema/attribute.c',
+                                         'chandlerdb/schema/kind.c',
+                                         'chandlerdb/schema/c.c']))
 
-    extensions.append(Extension('chandlerdb.item.item',
-                                sources=['chandlerdb/item/item.c']))
+    extensions.append(Extension('chandlerdb.item.c',
+                                sources=['chandlerdb/item/item.c',
+                                         'chandlerdb/item/c.c']))
 
     extensions.append(Extension('chandlerdb.persistence.c',
                                 sources=['chandlerdb/persistence/repository.c',

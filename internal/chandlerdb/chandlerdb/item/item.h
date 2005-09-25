@@ -12,6 +12,10 @@
  * a view is also the parent of root items
  */
 
+#ifndef _ITEM_H
+#define _ITEM_H
+
+
 #define Item_HEAD          \
     unsigned long status;  \
     unsigned long version; \
@@ -65,3 +69,5 @@ enum {
                   NEW | DELETED |
                   SCHEMA | CORESCHEMA | CONTAINER),
 };
+
+#endif

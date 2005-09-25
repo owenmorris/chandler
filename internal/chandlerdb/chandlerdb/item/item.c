@@ -9,7 +9,9 @@
 #include <Python.h>
 #include "structmember.h"
 
-#include "item.h"
+#include "c.h"
+#include "../schema/descriptor.h"
+#include "../schema/attribute.h"
 
 static void t_item_dealloc(t_item *self);
 static int t_item_traverse(t_item *self, visitproc visit, void *arg);
@@ -34,6 +36,7 @@ static PyObject *t_item__isItem(t_item *self, PyObject *args);
 static PyObject *t_item__isRefList(t_item *self, PyObject *args);
 static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyObject *t_item__isMerged(t_item *self, PyObject *args);
+static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
@@ -41,19 +44,23 @@ static int t_item__setView(t_item *self, PyObject *view, void *data);
 static PyObject *t_item__getParent(t_item *self, void *data);
 static int t_item__setParent(t_item *self, PyObject *view, void *data);
 static PyObject *t_item__getName(t_item *self, void *data);
-static int t_item__setName(t_item *self, PyObject *view, void *data);
+static int t_item__setName(t_item *self, PyObject *name, void *data);
 static PyObject *t_item__getRoot(t_item *self, void *data);
 static PyObject *t_item__getUUID(t_item *self, void *data);
 static PyObject *t_item__getPath(t_item *self, void *data);
 static PyObject *t_item__getVersion(t_item *self, void *data);
-
-static PyObject *isitem(PyObject *self, PyObject *obj);
 
 static PyObject *_setKind_NAME;
 static PyObject *importItem_NAME;
 static PyObject *move_NAME;
 static PyObject *rename_NAME;
 static PyObject *_getPath_NAME;
+static PyObject *find_NAME;
+static PyObject *getAttribute_NAME;
+static PyObject *getAspect_NAME;
+static PyObject *getAttributeAspect_NAME;
+static PyObject *redirectTo_NAME;
+static PyObject *_redirectTo_NAME;
 
 #define isNew_DOC "\
 Tell whether this item is new.\n\nA new item is defined as an item that\
@@ -88,6 +95,89 @@ is un-pinned or deleted.\n\n\
 #define isDirty_DOC "\
 Tell whether this item was changed and needs to be committed.\n\n\
 @return: C{True} or C{False}"
+
+#define getAttributeAspect_DOC "\
+Return the value for an attribute aspect.\n\n\
+An attribute aspect is one of an attribute's many attributes\
+described in the list below. All aspects are optional.\n\n\
+    - C{required}: C{True} if the attribute is required to have a\
+      value, C{False} otherwise, the default. This aspects takes a\
+      boolean value.\n\
+    - C{persisted}: C{True}, the default, if the attribute's value is\
+      persisted when the owning item is saved; C{False}\
+      otherwise. This aspect takes a boolean value.\n\
+    - C{cardinality}: C{single}, the default if the attribute is\
+      to have one single value, C{list} or C{dict}, if the attribute\
+      is to have a list or dictionary of values. This aspect takes a\
+      string value.\n\
+    - C{type}: a reference to the type item describing the type(s) of\
+      value(s) this attribute can store. By default, if this aspect\
+      is not set, an attribute can store value(s) of any type. This\
+      aspect takes an item of kind C{Type} as value.\n\
+    - C{defaultValue}: the value to return when there is no value\
+      set for this attribute. This default value is owned by the\
+      schema attribute item and is read-only when it is a collection\
+      or a Lob. Other mutable types, such as Structs, should be used\
+      with care as mutating a defaultValue causes it to appear\
+      changed by all items returning it. By default, an attribute\
+      has no default value. See C{initialValue}, C{inheritFrom} and\
+      C{redirectTo} below. This aspect takes any type of value.\n\
+    - C{initialValue}: similar to C{defaultValue} but the initial\
+      value is set as the value of the attribute the first time it is\
+      returned. A copy of the initial value is set when it is a\
+      collection. This aspect takes any type of value.\n\
+    - C{inheritFrom}: one or several attribute names chained\
+      together by periods naming attributes to recursively inherit a\
+      value from. When several names are used, all but the last name\
+      are expected to name attributes containing a reference to the\
+      next item to inherit from by applying the next name. This\
+      aspect takes a string value.\n\
+    - C{redirectTo}: one or several attribute names chained\
+      together by periods naming attributes to recursively obtain a\
+      value or aspect value from or set a value to. When several\
+      names are used, all but the last name are expected to name\
+      attributes containing a reference to the next item to redirect\
+      to by applying the next name. This aspect takes a string\
+      value.\n\
+    - C{otherName}: for bi-directional reference attributes, this\
+      aspect names the attribute used to attach the other endpoint\
+      on the other item, ie the referenced item. This is the aspect\
+      that determines whether the attribute stored bi-directional\
+      references to items. This aspect takes a string value.\n\
+    - C{copyPolicy}: when an item is copied this policy defines\
+      what happens to items that are referenced by this\
+      attribute. Possible C{copyPolicy} values are:\n\
+        - C{remove}, the default. The reference is not copied.\n\
+        - C{copy}, the reference is copied.\n\
+        - C{cascade}, the referenced item is copied recursively and\n\
+          a reference to this copy is set.\n\
+      This aspect takes a string value.\n\
+    - C{deletePolicy}: when an item is deleted this policy defines\
+      what happens to items that are referenced by this\
+      attribute. Possible C{deletePolicy} values are:\n\
+        - C{remove}, the default.\n\
+        - C{cascade}, which causes the referenced item(s) to get\
+          deleted as well. See C{countPolicy} below.\n\
+      This aspect takes a string value.\n\
+    - C{countPolicy}: when an attribute's C{deletePolicy} is\
+      C{cascade} this aspect can be used to modify the delete\
+      behaviour to only delete the referenced item if its reference\
+      count is 0. The reference count of an item is defined by the\
+      total number of references it holds in attributes where the\
+      C{countPolicy} is set to C{count}. By default, an attribute's\
+      C{countPolicy} is C{none}. This aspect takes a string value.\n\n\
+If the attribute's C{redirectTo} aspect is set, this method is\
+redirected just like C{getAttributeValue}.\n\n\
+If the attribute is not defined for the item's kind,\
+a subclass of C{AttributeError} is raised.\n\n\
+@param name: the name of the attribute being queried\n\
+@type name: a string\n\
+@param aspect: the name of the aspect being queried\n\
+@type aspect: a string\n\
+@param kwds: optional keywords of which only C{default} is\
+supported and used to return a default value for an aspect that has\
+no value set for the attribute.\n\
+@return: a value"
 
 #define getDirty_DOC "\
 Return the dirty flags currently set on this item.\n\n\
@@ -174,6 +264,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isRefList", (PyCFunction) t_item__isRefList, METH_NOARGS, "" },
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
+    { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, getAttributeAspect_DOC },
     { NULL, NULL, 0, NULL }
 };
 
@@ -197,16 +288,10 @@ static PyGetSetDef t_item_properties[] = {
     { NULL, NULL, NULL, NULL, NULL }
 };
 
-static PyMethodDef item_funcs[] = {
-    { "isitem", (PyCFunction) isitem, METH_O,
-      "isinstance(), but not as easily fooled" },
-    { NULL, NULL, 0, NULL }
-};
-
 static PyTypeObject ItemType = {
     PyObject_HEAD_INIT(NULL)
     0,                                         /* ob_size */
-    "chandlerdb.item.item.CItem",              /* tp_name */
+    "chandlerdb.item.c.CItem",                 /* tp_name */
     sizeof(t_item),                            /* tp_basicsize */
     0,                                         /* tp_itemsize */
     (destructor)t_item_dealloc,                /* tp_dealloc */
@@ -443,6 +528,121 @@ static PyObject *t_item__isMerged(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
+static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
+{
+    PyObject *name, *aspect;
+    PyObject *noError = Py_False;
+    PyObject *attrID = Py_None;
+    PyObject *defaultValue = Default;
+
+    if (!PyArg_ParseTuple(args, "OO|OOO", &name, &aspect,
+                          &noError, &attrID, &defaultValue))
+        return NULL;
+
+    if (self->kind != Py_None)
+    {
+        PyObject *descriptor = PyObject_GetAttr((PyObject *) self->ob_type,
+                                                name);
+        PyObject *attribute;
+
+        if (descriptor)
+        {
+            if (PyObject_TypeCheck(descriptor, CDescriptor))
+            {
+                PyObject *attr =
+                    PyDict_GetItem(((t_descriptor *) descriptor)->attrs,
+                                   ((t_item *) self->kind)->uuid);
+
+                if (attr)
+                {
+                    PyObject *value = PyObject_GetAttr(attr, aspect);
+
+                    if (value)
+                    {
+                        Py_DECREF(descriptor);
+                        Py_INCREF(value);
+
+                        return value;
+                    }
+                    else
+                        PyErr_Clear();
+
+                    attrID = ((t_attribute *) attr)->attrID;
+                }
+            }
+
+            Py_DECREF(descriptor);
+        }
+        else
+            PyErr_Clear();
+
+        if (attrID != Py_None)
+        {
+            PyObject *view = ((t_item *) self->root)->parent;
+            attribute = PyObject_CallMethodObjArgs(view, find_NAME,
+                                                   attrID, NULL);
+        }
+        else
+            attribute = PyObject_CallMethodObjArgs(self->kind,
+                                                   getAttribute_NAME,
+                                                   name, noError,
+                                                   self, NULL);
+
+        if (!attribute)
+            return NULL;
+
+        if (attribute != Py_None)
+        {
+            if (PyObject_Compare(aspect, redirectTo_NAME))
+            {
+                PyObject *redirect =
+                    PyObject_CallMethodObjArgs(attribute, getAspect_NAME,
+                                               redirectTo_NAME, Py_None, NULL);
+
+                if (!redirect)
+                {
+                    Py_DECREF(attribute);
+                    return NULL;
+                }
+
+                if (redirect != Py_None)
+                {
+                    PyObject *value =
+                        PyObject_CallMethodObjArgs((PyObject *) self,
+                                                   _redirectTo_NAME, redirect,
+                                                   getAttributeAspect_NAME,
+                                                   aspect, noError, Py_None,
+                                                   defaultValue, NULL);
+
+                    Py_DECREF(attribute);
+                    Py_DECREF(redirect);
+
+                    return value;
+                }
+
+                Py_DECREF(redirect);
+            }
+
+            {
+                PyObject *value =
+                    PyObject_CallMethodObjArgs(attribute, getAspect_NAME,
+                                               aspect, defaultValue, NULL);
+
+                Py_DECREF(attribute);
+                return value;
+            }
+        }
+        
+        Py_DECREF(attribute);
+    }
+
+    if (defaultValue == Default)
+        defaultValue = Py_None;
+
+    Py_INCREF(defaultValue);
+    return defaultValue;
+}
+
 
 /* itsKind */
 
@@ -593,15 +793,6 @@ static PyObject *t_item__getVersion(t_item *self, void *data)
 }
 
 
-static PyObject *isitem(PyObject *self, PyObject *obj)
-{
-    if (PyObject_TypeCheck(obj, &ItemType))
-        Py_RETURN_TRUE;
-
-    Py_RETURN_FALSE;
-}
-
-
 typedef struct {
     PyObject_HEAD
 } t_nil;
@@ -625,7 +816,7 @@ static PySequenceMethods nil_as_sequence = {
 static PyTypeObject NilType = {
     PyObject_HEAD_INIT(NULL)
     0,                                         /* ob_size */
-    "chandlerdb.item.item.Nil",                /* tp_name */
+    "chandlerdb.item.c.Nil",                   /* tp_name */
     sizeof(t_nil),                             /* tp_basicsize */
     0,                                         /* tp_itemsize */
     0,                                         /* tp_dealloc */
@@ -665,31 +856,23 @@ static PyTypeObject NilType = {
 };
 
 
-static void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
-{
-    PyObject *pyValue = PyInt_FromLong(value);
-
-    PyDict_SetItemString(dict, key, pyValue);
-    Py_DECREF(pyValue);
-}
-
-void inititem(void)
+void _init_item(PyObject *m)
 {
     if (PyType_Ready(&ItemType) >= 0 && PyType_Ready(&NilType) >= 0)
     {
-        PyObject *m = Py_InitModule3("item", item_funcs, "Item C type module");
-
         if (m)
         {
             PyObject *dict = ItemType.tp_dict;
 
             Py_INCREF(&ItemType);
             PyModule_AddObject(m, "CItem", (PyObject *) &ItemType);
+            CItem = &ItemType;
 
-            PyModule_AddObject(m, "Nil",
-                               (PyObject *) PyObject_New(t_nil, &NilType));
-            PyModule_AddObject(m, "Default",
-                               (PyObject *) PyObject_New(t_nil, &NilType));
+            Nil = (PyObject *) PyObject_New(t_nil, &NilType);
+            Default = (PyObject *) PyObject_New(t_nil, &NilType);
+
+            PyModule_AddObject(m, "Nil", Nil);
+            PyModule_AddObject(m, "Default", Default);
 
             PyDict_SetItemString_Int(dict, "DELETED", DELETED);
             PyDict_SetItemString_Int(dict, "VDIRTY", VDIRTY);
@@ -724,6 +907,12 @@ void inititem(void)
             move_NAME = PyString_FromString("move");
             rename_NAME = PyString_FromString("rename");
             _getPath_NAME = PyString_FromString("_getPath");
+            find_NAME = PyString_FromString("find");
+            getAttribute_NAME = PyString_FromString("getAttribute");
+            getAspect_NAME = PyString_FromString("getAspect");
+            getAttributeAspect_NAME = PyString_FromString("getAttributeAspect");
+            redirectTo_NAME = PyString_FromString("redirectTo");
+            _redirectTo_NAME = PyString_FromString("_redirectTo");
         }
     }
 }
