@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.cpp,v 1.33 2005/09/23 12:54:56 MR Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.34 2005/09/25 11:14:10 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@
 
     #include "wx/listimpl.cpp"
 
-    WX_DEFINE_LIST(wxMsgList);
+    WX_DEFINE_LIST(wxMsgList)
 #endif // wxUSE_THREADS
 
 // ----------------------------------------------------------------------------

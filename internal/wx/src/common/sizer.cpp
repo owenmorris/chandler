@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp,v 1.127 2005/09/24 21:42:33 VZ Exp $
+// RCS-ID:      $Id: sizer.cpp,v 1.128 2005/09/25 11:13:31 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ IMPLEMENT_CLASS(wxStaticBoxSizer, wxBoxSizer)
 IMPLEMENT_CLASS(wxStdDialogButtonSizer, wxBoxSizer)
 #endif
 
-WX_DEFINE_EXPORTED_LIST( wxSizerItemList );
+WX_DEFINE_EXPORTED_LIST( wxSizerItemList )
 
 /*
     TODO PROPERTIES

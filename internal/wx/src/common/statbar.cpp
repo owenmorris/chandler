@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.10.01
-// RCS-ID:      $Id: statbar.cpp,v 1.19 2005/09/23 12:53:07 MR Exp $
+// RCS-ID:      $Id: statbar.cpp,v 1.20 2005/09/25 11:13:32 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@
 #if wxUSE_STATUSBAR
 
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxListString);
+WX_DEFINE_LIST(wxListString)
 
 // ============================================================================
 // wxStatusBarBase implementation

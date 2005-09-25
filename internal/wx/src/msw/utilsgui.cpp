@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.06.2003 (extracted from msw/utils.cpp)
-// RCS-ID:      $Id: utilsgui.cpp,v 1.11 2005/05/31 09:20:34 JS Exp $
+// RCS-ID:      $Id: utilsgui.cpp,v 1.12 2005/09/25 11:14:11 VZ Exp $
 // Copyright:   (c) Julian Smart
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -257,7 +257,7 @@ void wxGetMousePosition( int* x, int* y )
     GetCursorPos( & pt );
     if ( x ) *x = pt.x;
     if ( y ) *y = pt.y;
-};
+}
 
 // Return true if we have a colour display
 bool wxColourDisplay()

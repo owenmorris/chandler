@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp,v 1.161 2005/09/24 21:22:24 VZ Exp $
+// RCS-ID:      $Id: notebook.cpp,v 1.162 2005/09/25 11:14:11 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ LRESULT APIENTRY _EXPORT wxNotebookWndProc(HWND hwnd,
 
 #include <wx/listimpl.cpp>
 
-WX_DEFINE_LIST( wxNotebookPageInfoList ) ;
+WX_DEFINE_LIST( wxNotebookPageInfoList )
 
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING)

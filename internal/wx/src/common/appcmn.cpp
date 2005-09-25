@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.10.99
-// RCS-ID:      $Id: appcmn.cpp,v 1.107 2005/09/23 12:52:40 MR Exp $
+// RCS-ID:      $Id: appcmn.cpp,v 1.108 2005/09/25 11:16:57 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ WX_CHECK_BUILD_OPTIONS("wxCore")
 // ----------------------------------------------------------------------------
 
 // this defines wxEventLoopPtr
-wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
+wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop)
 
 // ============================================================================
 // wxAppBase implementation

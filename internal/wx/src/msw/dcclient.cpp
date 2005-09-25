@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp,v 1.45 2005/09/23 12:54:55 MR Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.46 2005/09/25 11:13:35 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ struct WXDLLEXPORT wxPaintDCInfo
 
 #include "wx/arrimpl.cpp"
 
-WX_DEFINE_OBJARRAY(wxArrayDCInfo);
+WX_DEFINE_OBJARRAY(wxArrayDCInfo)
 
 // ----------------------------------------------------------------------------
 // macros

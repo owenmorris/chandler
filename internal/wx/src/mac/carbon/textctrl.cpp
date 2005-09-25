@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp,v 1.164 2005/09/24 21:42:47 VZ Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.165 2005/09/25 11:06:02 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

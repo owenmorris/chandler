@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: spinbutt.cpp,v 1.26 2005/09/23 12:54:43 MR Exp $
+// RCS-ID:      $Id: spinbutt.cpp,v 1.27 2005/09/24 21:42:50 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -240,7 +240,7 @@ bool wxArrowButton::Create( wxSpinButton* parent, wxWindowID id,
 IMPLEMENT_DYNAMIC_CLASS(wxSpinButton, wxControl);
 IMPLEMENT_DYNAMIC_CLASS(wxSpinEvent, wxNotifyEvent);
 
-static void CalcSizes( wxPoint pt, wxSize sz,
+static void CalcSizes( const wxPoint& pt, const wxSize& sz,
                        wxPoint& pt1, wxSize& sz1,
                        wxPoint& pt2, wxSize& sz2,
                        bool isVertical )

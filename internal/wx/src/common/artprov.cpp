@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     18/03/2002
-// RCS-ID:      $Id: artprov.cpp,v 1.22 2005/09/23 12:52:41 MR Exp $
+// RCS-ID:      $Id: artprov.cpp,v 1.23 2005/09/25 11:13:31 VZ Exp $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@
 
 #include "wx/listimpl.cpp"
 WX_DECLARE_LIST(wxArtProvider, wxArtProvidersList);
-WX_DEFINE_LIST(wxArtProvidersList);
+WX_DEFINE_LIST(wxArtProvidersList)
 
 // ----------------------------------------------------------------------------
 // Cache class - stores already requested bitmaps

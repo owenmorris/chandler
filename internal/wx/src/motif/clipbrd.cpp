@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Mattia Barbon (added support for generic wxDataObjects)
 // Created:     17/09/98
-// RCS-ID:      $Id: clipbrd.cpp,v 1.27 2005/09/23 12:54:38 MR Exp $
+// RCS-ID:      $Id: clipbrd.cpp,v 1.28 2005/09/24 21:42:50 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ bool wxClipboardOpen()
     return wxTheClipboard->IsOpened();
 }
 
-bool wxIsClipboardFormatAvailable(wxDataFormat dataFormat)
+bool wxIsClipboardFormatAvailable(const wxDataFormat& dataFormat)
 {
     return wxTheClipboard->IsSupported( dataFormat );
 }
@@ -129,7 +129,7 @@ wxObject *wxGetClipboardData(wxDataFormat dataFormat, long *len)
     return NULL; // just in case...
 }
 
-wxDataFormat wxEnumClipboardFormats(wxDataFormat dataFormat)
+wxDataFormat wxEnumClipboardFormats(const wxDataFormat& dataFormat)
 {
     // Only wxDF_TEXT supported
     if (dataFormat == wxDF_TEXT)
@@ -144,7 +144,7 @@ wxDataFormat wxRegisterClipboardFormat(char *WXUNUSED(formatName))
     return wxDF_INVALID;
 }
 
-bool wxGetClipboardFormatName(wxDataFormat dataFormat, char *formatName,
+bool wxGetClipboardFormatName(const wxDataFormat& dataFormat, char *formatName,
                               int maxCount)
 {
     wxStrncpy( formatName, dataFormat.GetId().c_str(), maxCount );

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: paper.cpp,v 1.22 2005/09/23 12:53:04 MR Exp $
+// RCS-ID:      $Id: paper.cpp,v 1.23 2005/09/25 11:13:31 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ wxSize wxPrintPaperType::GetSizeDeviceUnits() const
 
 WX_DECLARE_LIST(wxPrintPaperType, wxPrintPaperTypeList);
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxPrintPaperTypeList);
+WX_DEFINE_LIST(wxPrintPaperTypeList)
 
 wxPrintPaperDatabase* wxThePrintPaperDatabase = (wxPrintPaperDatabase*) NULL;
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: window.cpp,v 1.138 2005/09/23 12:54:44 MR Exp $
+// RCS-ID:      $Id: window.cpp,v 1.140 2005/09/25 12:53:28 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2521,7 +2521,8 @@ wxWindow *wxWindowBase::GetCapture()
 // position.
 wxWindow* wxFindWindowAtPointer(wxPoint& pt)
 {
-    return wxFindWindowAtPoint(wxGetMousePosition());
+    pt = wxGetMousePosition();
+    return wxFindWindowAtPoint(pt);
 }
 
 // Get the current mouse position.

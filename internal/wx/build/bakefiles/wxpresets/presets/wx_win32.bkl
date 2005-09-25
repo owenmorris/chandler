@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: wx_win32.bkl,v 1.16 2005/06/16 18:40:20 VS Exp $ -->
+<!-- $Id: wx_win32.bkl,v 1.17 2005/09/25 11:19:39 VZ Exp $ -->
 
 <!-- Original source: http://wiki.wxwidgets.org/wiki.pl?Bakefile    -->
 <!-- Modified by: Francesco Montorsi <frm@users.sourceforge.net>    -->
@@ -7,7 +7,7 @@
                   into Bakefile's presets                           -->
 <!-- Creation date: 6/9/2004                                        -->
 <!-- Last revision: 22/1/2005 off-CVS                               -->
-<!--                $Id: wx_win32.bkl,v 1.16 2005/06/16 18:40:20 VS Exp $ -->
+<!--                $Id: wx_win32.bkl,v 1.17 2005/09/25 11:19:39 VZ Exp $ -->
 
 
 <!--
@@ -187,7 +187,7 @@ FIXME: this template has (at least) the following bugs:
         <if cond="value in ['net','xml', 'odbc']">
             <sys-lib>wxbase$(WX_VERSION)$(WXLIBPOSTFIX)_$(value)</sys-lib>
         </if>
-        <if cond="value not in ['base','net','xml']">
+        <if cond="value not in ['base','net', 'odbc', 'xml']">
             <sys-lib>wx$(WXPORT)$(WX_VERSION)$(WXLIBPOSTFIX)_$(value)</sys-lib>
         </if>
     </define-tag>

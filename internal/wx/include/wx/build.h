@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     07.05.02
-// RCS-ID:      $Id: build.h,v 1.18 2004/09/09 17:42:29 ABX Exp $
+// RCS-ID:      $Id: build.h,v 1.19 2005/09/25 11:13:28 VZ Exp $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@
         wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,     \
                                         libName);                       \
         return true;                                                    \
-    };                                                                  \
+    }                                                                   \
     static bool gs_buildOptionsCheck = wxCheckBuildOptions();
 
 

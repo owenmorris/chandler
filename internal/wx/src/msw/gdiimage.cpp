@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: gdiimage.cpp,v 1.51 2005/09/23 12:54:58 MR Exp $
+// RCS-ID:      $Id: gdiimage.cpp,v 1.52 2005/09/25 11:14:10 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@
 #include "wx/file.h"
 
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxGDIImageHandlerList);
+WX_DEFINE_LIST(wxGDIImageHandlerList)
 
 // ----------------------------------------------------------------------------
 // private classes

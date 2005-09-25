@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     04/01/98
-// RCS-ID:      $Id: menu.cpp,v 1.125 2005/09/23 12:55:03 MR Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.126 2005/09/25 11:14:11 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ UINT GetMenuState(HMENU hMenu, UINT id, UINT flags)
 
 #include <wx/listimpl.cpp>
 
-WX_DEFINE_LIST( wxMenuInfoList ) ;
+WX_DEFINE_LIST( wxMenuInfoList )
 
 #if wxUSE_EXTENDED_RTTI
 

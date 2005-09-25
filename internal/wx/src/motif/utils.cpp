@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: utils.cpp,v 1.60 2005/09/13 16:49:07 VZ Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.61 2005/09/24 21:42:50 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -926,7 +926,7 @@ void wxDoChangeBackgroundColour(WXWidget widget, wxColour& backgroundColour, boo
         NULL);
 }
 
-extern void wxDoChangeFont(WXWidget widget, wxFont& font)
+extern void wxDoChangeFont(WXWidget widget, const wxFont& font)
 {
     // Lesstif 0.87 hangs here, but 0.93 does not; MBN: sometimes it does
 #if !wxCHECK_LESSTIF() // || wxCHECK_LESSTIF_VERSION( 0, 93 )
@@ -967,7 +967,7 @@ XmString wxStringToXmString( const char* str )
 
 // Creates a bitmap with transparent areas drawn in
 // the given colour.
-wxBitmap wxCreateMaskedBitmap(const wxBitmap& bitmap, wxColour& colour)
+wxBitmap wxCreateMaskedBitmap(const wxBitmap& bitmap, const wxColour& colour)
 {
     wxBitmap newBitmap(bitmap.GetWidth(),
                        bitmap.GetHeight(),

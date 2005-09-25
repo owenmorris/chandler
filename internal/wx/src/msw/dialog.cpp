@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dialog.cpp,v 1.126 2005/09/23 12:54:56 MR Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.127 2005/09/25 11:13:35 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -143,7 +143,7 @@ private:
     wxModalEventLoop m_evtLoop;
 };
 
-wxDEFINE_TIED_SCOPED_PTR_TYPE(wxDialogModalData);
+wxDEFINE_TIED_SCOPED_PTR_TYPE(wxDialogModalData)
 
 // ============================================================================
 // implementation

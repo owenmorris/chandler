@@ -4,7 +4,7 @@
 // Author:      Jesse Lovelace <jllovela@eos.ncsu.edu>
 // Modified by:
 // Created:     06/01/02
-// RCS-ID:      $Id: ptr_scpd.h,v 1.13 2005/06/13 12:19:14 ABX Exp $
+// RCS-ID:      $Id: ptr_scpd.h,v 1.14 2005/09/25 11:13:28 VZ Exp $
 // Copyright:   (c) Jesse Lovelace and original Boost authors (see below)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -197,7 +197,7 @@ void name::reset(T * p){                \
 // ----------------------------------------------------------------------------
 
 #define wxDEFINE_TIED_SCOPED_PTR_TYPE(T)                                      \
-    wxDEFINE_SCOPED_PTR_TYPE(T);                                              \
+    wxDEFINE_SCOPED_PTR_TYPE(T)                                               \
     class T ## TiedPtr : public T ## Ptr                                      \
     {                                                                         \
     public:                                                                   \
@@ -216,7 +216,7 @@ void name::reset(T * p){                \
     private:                                                                  \
         T **m_pp;                                                             \
         T *m_pOld;                                                            \
-    }
+    };
 
 #endif // __WX_SCOPED_POINTER__
 

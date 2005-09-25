@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp,v 1.148 2005/09/24 23:56:32 VZ Exp $
+// RCS-ID:      $Id: utilscmn.cpp,v 1.149 2005/09/25 13:02:27 MW Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -549,7 +549,7 @@ bool wxLaunchDefaultBrowser(const wxString& urlOrig, int flags)
                 bool ok = ddeTopic == wxT("WWW_OpenURL");
                 if ( ok )
                 {
-                    ddeCmd = keyDDE;
+                    ddeCmd = keyDDE.QueryDefaultValue();
                     ok = !ddeCmd.empty();
                 }
 

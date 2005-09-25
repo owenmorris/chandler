@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.10.99
-// RCS-ID:      $Id: menucmn.cpp,v 1.55 2005/09/23 12:53:03 MR Exp $
+// RCS-ID:      $Id: menucmn.cpp,v 1.56 2005/09/25 11:13:31 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,8 +40,8 @@
 
 #include "wx/listimpl.cpp"
 
-WX_DEFINE_LIST(wxMenuList);
-WX_DEFINE_LIST(wxMenuItemList);
+WX_DEFINE_LIST(wxMenuList)
+WX_DEFINE_LIST(wxMenuItemList)
 
 // ============================================================================
 // implementation

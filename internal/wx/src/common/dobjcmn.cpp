@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: dobjcmn.cpp,v 1.36 2005/09/23 12:52:48 MR Exp $
+// RCS-ID:      $Id: dobjcmn.cpp,v 1.37 2005/09/25 11:13:31 VZ Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@
 
 #include "wx/listimpl.cpp"
 
-WX_DEFINE_LIST(wxSimpleDataObjectList);
+WX_DEFINE_LIST(wxSimpleDataObjectList)
 
 // ----------------------------------------------------------------------------
 // globals

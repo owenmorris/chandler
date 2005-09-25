@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 11.12.99 (wxScrollableToolBar split off)
 // Created:     04/01/98
-// RCS-ID:      $Id: tbarbase.cpp,v 1.79 2005/09/23 12:53:08 MR Exp $
+// RCS-ID:      $Id: tbarbase.cpp,v 1.80 2005/09/25 11:13:32 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ END_EVENT_TABLE()
 
 #include "wx/listimpl.cpp"
 
-WX_DEFINE_LIST(wxToolBarToolsList);
+WX_DEFINE_LIST(wxToolBarToolsList)
 
 // ============================================================================
 // implementation

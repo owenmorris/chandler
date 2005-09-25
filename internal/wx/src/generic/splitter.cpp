@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: splitter.cpp,v 1.117 2005/09/23 12:53:30 MR Exp $
+// RCS-ID:      $Id: splitter.cpp,v 1.118 2005/09/25 11:13:34 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ BEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
     WX_EVENT_TABLE_CONTROL_CONTAINER(wxSplitterWindow)
 END_EVENT_TABLE()
 
-WX_DELEGATE_TO_CONTROL_CONTAINER(wxSplitterWindow);
+WX_DELEGATE_TO_CONTROL_CONTAINER(wxSplitterWindow)
 
 bool wxSplitterWindow::Create(wxWindow *parent, wxWindowID id,
                                    const wxPoint& pos,
