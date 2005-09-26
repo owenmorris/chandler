@@ -1147,7 +1147,6 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         #Note: It appears that setting the selection before self.Show() causes
         #      the selection to get discarded. (so we set it after.)
         
-        #self.SetSelection(-1, -1) # is ignored.
         self.Show()
         self.SetFocus()
         self.SetSelection(-1, -1)
@@ -1157,12 +1156,12 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         event.Skip()
 
         
-##############################################################################################################################################################################################################
-################# new refactored classes under construction ###################
-############# these have to move eventually, together for now #################
-
 class CalendarContainer(ContainerBlocks.BoxContainer):
-
+    """
+    The highlevel container that holds:
+    - the controller
+    - the various canvases
+    """
     calendarControl = schema.One(schema.Item, required=True)
     characterStyle = schema.One(Styles.CharacterStyle, required=True)
     boldCharacterStyle = schema.One(Styles.CharacterStyle, required=True)
@@ -1349,24 +1348,30 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         
         # finally the last row, with the header
-        self.weekColumnHeader = wx.colheader.ColumnHeader(self)
+        weekColumnHeader = \
+            self.weekColumnHeader = wx.colheader.ColumnHeader(self)
         
         # turn this off for now, because our sizing needs to be exact
-        self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
+        weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
 
         #these labels get overriden by wxSynchronizeWidget()
         #XXX: [i18n] These Header labels need to leverage PyICU for the display names
         headerLabels = ["Week", "S", "M", "Tu", "W", "Th", "F", "S", '']
         for header in headerLabels:
-            self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 0, bSortEnabled=False)
+            weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center,
+                                        0, bSortEnabled=False)
 
-        self.weekColumnHeader.SetBitmapJustification(8, wx.colheader.CH_JUST_Center)
-        self.weekColumnHeader.SetBitmapRef(8, self.allDayBlankArrowImage)
-        self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekColumnHeader)
+        expandoColumn = len(headerLabels) - 1
+        weekColumnHeader.SetBitmapJustification(expandoColumn,
+                                                wx.colheader.CH_JUST_Center)
+        weekColumnHeader.SetBitmapRef(expandoColumn, self.allDayBlankArrowImage)
+        self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED,
+                  self.OnDayColumnSelect, weekColumnHeader)
 
         # set up initial selection
-        self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,True)
-        sizer.Add(self.weekColumnHeader, 0, wx.EXPAND)
+        weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,
+                                      True)
+        sizer.Add(weekColumnHeader, 0, wx.EXPAND)
         
         self.SetSizer(sizer)
         sizer.SetSizeHints(self)

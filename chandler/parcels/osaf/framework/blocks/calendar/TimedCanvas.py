@@ -43,8 +43,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def wxSynchronizeWidget(self):
         #print "%s rebuilding canvas items" % self
+        # we sort the items so that when drawn, the later events are drawn last
+        # so that we get proper stacking
+        # print "TimedEventsCanvas.wxSynchronizeWidget()"
+        currentRange = self.GetCurrentDateRange()
+        self.visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
+                                                                timedItems=True))
         self._doDrawingCalculations()
-        self.RebuildCanvasItems()
+        self.RebuildCanvasItems(resort=True)
         self.Refresh()
 
     def OnSize(self, event):
@@ -206,17 +212,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             dateResult = Calendar.datetimeOp(item2.endTime, 'cmp', item1.endTime)
         return dateResult
 
-    def RebuildCanvasItems(self):
+    def RebuildCanvasItems(self, resort=False):
+        if resort:
+            self.visibleItems.sort(self.sortByStartTime)
         
         self.canvasItemList = []
-
-        currentRange = self.GetCurrentDateRange()
-        # we sort the items so that when drawn, the later events are drawn last
-        # so that we get proper stacking
-        visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
-                                                           timedItems=True))
-        visibleItems.sort(self.sortByStartTime)
-
         
         dragState = self.dragState
         if (dragState and
@@ -228,7 +228,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         currentDragBox = None
 
         # First generate a sorted list of TimedCanvasItems
-        for item in visibleItems:
+        for item in self.visibleItems:
                                                
             canvasItem = TimedCanvasItem(item, self)
             self.canvasItemList.append(canvasItem)

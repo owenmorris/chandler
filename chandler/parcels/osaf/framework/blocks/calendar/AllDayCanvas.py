@@ -84,7 +84,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
     def wxSynchronizeWidget(self):
         #print "%s rebuilding canvas items" % self
-        self.RebuildCanvasItems()
+        currentRange = self.GetCurrentDateRange()
+        self.visibleItems = list(self.blockItem.getItemsInRange(currentRange,
+                                                                dayItems=True))
+        self.RebuildCanvasItems(resort=True)
         self.Refresh()
 
     def DrawBackground(self, dc):
@@ -147,10 +150,13 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         return (dayStart, dayEnd)
         
 
-    def RebuildCanvasItems(self):
+    def RebuildCanvasItems(self, resort=False):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         currentRange = self.GetCurrentDateRange()
 
+        if resort:
+            self.visibleItems.sort(self.sortByDurationAndStart)
+        
         self.canvasItemList = []
 
         if self.blockItem.dayMode:
@@ -159,17 +165,13 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             width = drawInfo.dayWidth
 
         size = self.GetSize()
-        
-        visibleItems = list(self.blockItem.getItemsInRange(currentRange,
-                                                           dayItems=True))
-        visibleItems.sort(self.sortByDurationAndStart)
-        
+
         oldNumEventRows = self.numEventRows
         if self.blockItem.dayMode:
             # daymode, just stack all the events
-            for row, item in enumerate(visibleItems):
+            for row, item in enumerate(self.visibleItems):
                 self.RebuildCanvasItem(item, width, 0,0, row)
-            self.numEventRows = len(visibleItems)
+            self.numEventRows = len(self.visibleItems)
             
         else:
             # weekmode: place all the items on a grid without
@@ -184,7 +186,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             
             numEventRows = 0
 
-            for item in visibleItems:
+            for item in self.visibleItems:
                 (dayStart, dayEnd) = \
                            self.GetColumnRange(item, currentRange)
                 
