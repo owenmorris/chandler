@@ -13,7 +13,7 @@ logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Test New Cale
 col = QAUITestAppLib.UITestItem("Collection", logger)
 
 #action
-col.Check_CollectionExistance("Untitled"})
+col.Check_CollectionExistance("Untitled")
 
 
 #cleaning
