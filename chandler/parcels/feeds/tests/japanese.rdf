@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+  xmlns:admin="http://webns.net/mvcb/"
+  xmlns:cc="http://web.resource.org/cc/"
+  xmlns="http://purl.org/rss/1.0/">
+
+<channel rdf:about="http://blog.japan.cnet.com/kondo/">
+<title>近藤淳也の新ネットコミュニティ論</title>
+<link>http://blog.japan.cnet.com/kondo/</link>
+<description>人力検索やダイアリー、アンテナなどユニークなサービスでおなじみの「はてな」。そんなはてなを率いる近藤淳也氏が、ネットのコミュニティやサービスのあり方について独自の視点で切り取ります。</description>
+<dc:language>ja</dc:language>
+<dc:creator></dc:creator>
+<dc:rights>Copyright (c) 2005 CNET Networks Japan K.K. All rights reserved.</dc:rights>
+<dc:date>2005-09-26T16:06:59+09:00</dc:date>
+
+
+<items>
+<rdf:Seq><rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002364.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002359.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002324.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002314.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002309.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002288.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002281.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002275.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002257.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002240.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002232.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002212.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002209.html" />
+<rdf:li rdf:resource="http://blog.japan.cnet.com/kondo/archives/002202.html" />
+</rdf:Seq>
+</items>
+
+</channel>
+
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002364.html">
+<title>コモンセンスの確認</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002364.html</link>
+<description>はてなに名誉毀損やプライバシー侵害の申立てがあった場合にどのように対処するのか。これにはいくつかの変遷がありました。当初社員数が少なかった頃には、メールなどで連絡を受け、社員全員のミーティングで「この情報は消すべきか、残すべきか」といった事を議論していました。
+
+こうした重要な問題をないがしろにして前に進めば、いずれ大きな問題となって戻ってくるだろうし、でき得る限りの妥当な判断を繰り返していかなければならないと考えたのです。
+</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-09-26T16:06:59+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002359.html">
+<title>名誉毀損・プライバシー侵害</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002359.html</link>
+<description><![CDATA[コミュニティサービスを提供していて頭を悩ませる問題の一つに名誉毀損やプライバシー侵害などの違法行為への対応があります。ユーザーが書き込んだ文章がそのままインターネット上に公開される設計になっている以上、こうした問題が無くなることは無いでしょう。はてなでは<a href="http://d.hatena.ne.jp/">はてなダイアリー</a>を始めてからこの種の問題が増加しました。
+
+これが、営業行為やポルノ情報の開示禁止といった利用規約違反であれば]]></description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-09-22T06:44:47+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002324.html">
+<title>不具合と信頼性</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002324.html</link>
+<description><![CDATA[2003年1月、国内では初期のブログサービスとして<a href="http://d.hatena.ne.jp/">はてなダイアリー</a>ベータ版を開始しました。それまでのブログやウェブ日記には無いキーワード機能などを備えたはてなダイアリーは、無料で利用できることもあり当初から利用申し込みが多く、100名のベータテスター枠はすぐに埋まってしまいました。
+
+初期のベータテスト段階では、システムにはまだバグや脆弱性が含まれていました。本来動作するはずの機能が]]></description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-09-07T12:54:27+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002314.html">
+<title>ユーザーとともにサービスを開発する</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002314.html</link>
+<description>インターネットの普及に伴って、「どこにいても」「誰とでも」容易にコミュニケーションが可能になりました。コミュニケーションの可能性は、時間や空間の物理的制限を超えて、「いつでもどこでも誰とでも」という世界が実現し始めています。
+
+こうした変化は、「遠く離れた恋人とメッセンジャーで会話する」といったような、各個々人が誰とどのようにコミュニケーションを行うかという問題にとどまらず、企業が製品やサービスを開発して提供していくプロセスの中にも影響を及ぼしつつあり、今後その影響はどんどん拡大していくと思います。</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-08-29T11:02:36+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002309.html">
+<title>まっとうな意見が通る組織に</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002309.html</link>
+<description>前回までのエントリーでは、はてなでのこれまでの取り組みに絡めながら、各個人の意識の持ち方、社内での取り組みなどに触れてきました。主に情報共有や業務の効率化について、会社の中でどのような取り組みを行うと有効か、という点について考えてきましたが、次回以降は「社内と社外」、という視線に目を移していきたいと思っていますが、社内の情報共有への取り組みの重要性について触れてみたいと思います。</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-08-19T20:00:21+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002288.html">
+<title>カードゲームで人間を知る</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002288.html</link>
+<description>合宿の話が出たところで今回は少し脱線して柔らかいゲームの話題に触れたいと思います。（そろそろお盆休みですしね）
+
+僕は「大富豪」というゲームが好きで、合宿に行くとよくこれで遊びます。大富豪（大貧民）はご存知の方が多いと思いますがカードゲームの名前です。持ち札を順番に切っていって…</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-08-11T08:01:33+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002281.html">
+<title>連続的な開発と非連続的な開発</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002281.html</link>
+<description><![CDATA[ペアプログラミングや偉くない管理職、といった方法のほかに、はてなでは様々な開発業務を「連続的」「非連続的」といった概念で分類して考えています。
+
+例えば、<a href="http://i.hatena.ne.jp/idea/2108">携帯電話から見ると、はてなダイアリー向け以外のリンクが張られない。はてなアンテナと同様に、コンテンツ変換を通して携帯から読める形のリンクを張ってほしい</a>といった問題に対してシステムの変更を行う作業は「連続的」な問題です。
+
+既に動いているコードがあり…]]></description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-08-09T14:24:33+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002275.html">
+<title>開発者が楽しく仕事できる環境とは</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002275.html</link>
+<description>立って会議をするだけでなく、はてな社内では他にも色々なことを試みています。その中でも、開発者が楽しく仕事ができるように、という観点でいくつか紹介してみたいと思います。
+
+まずはペアプログラミング。これは、2人1組になってプログラムの開発を行うスタイルで、XP（エクストリームプログラミング）のプラクティスの一つとしても提唱されているものです。</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-08-05T07:54:26+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002257.html">
+<title>会議の無駄をなくそう</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002257.html</link>
+<description>社内の情報共有についてあれこれ書いていますが、ちょうど先週からはてなで面白い取り組みをしていますので、まずそれを紹介したいと思います。
+
+はてなでは毎朝開発陣によるミーティングを行っているのですが、先週からそのミーティングを「ユーザー参加型」にしました。</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-08-02T09:13:26+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002240.html">
+<title>情報の私物化を禁止する</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002240.html</link>
+<description>前回は各個人のコミュニケーション能力について触れましたが、社内での情報共有を活発に行うにあたって他にどういう問題が発生するかを、自分自身の起業からの出来事を振り返りながら考えてみたいと思います。
+
+まず、はてなでかなり初期に表面化してきたのが…</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-07-27T11:11:25+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002232.html">
+<title>情報共有 - 「自分のこと」を「あなたと私のこと」に変える方法</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002232.html</link>
+<description>はてなは「運営者」と「ユーザー」が対話を行うユーザー参加型のコミュニティである、といった文脈で雑誌などに取り上げて頂くことが多くなっています。
+
+確かに、「はてな社内」と「はてな社外」の情報共有について、ユーザーからの要望によって色々な機能を追加したり、社内会議を音声で公開したりといった色々な取り組みを行っているのは事実です。
+
+しかし…</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-07-23T17:41:47+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002212.html">
+<title>でたらめさはどこから来るか</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002212.html</link>
+<description>少なくとも生徒の側からしてみれば理不尽な事のように見える学校の制服制度はなぜ必要なのでしょうか。
+
+制服がなくなると服装が乱れて生徒らしからぬ服装になってしまうから？（服装の乱れは心の乱れなんていう標語がありましたね）。
+
+制服を無くしてしまうと生徒たちが良い服を競って着るようになって家計に負担が増えるから？（毎週新しい服を買うのは確かに大変です）</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-07-18T09:41:18+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002209.html">
+<title>世の中はでたらめな仕組みで動いている</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002209.html</link>
+<description>はてなはよく「変な会社」と言われます。社内の会議の様子を音声ファイルでラジオのように毎日配布したり、合宿でサービスを開発したり、ユーザーとの対話からサービスを改善するためにアイデアの取引を行う市場を用意していたり、とあまり聞き慣れないような取り組みをあれこれやっています。
+
+このブログでは恐らくそういうはてななりの取り組みとその背景についてご紹介していくことになると思うのですが、その前に、なぜそんなに「変な会社」になってしまったのか考えてみたいと思います。</description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-07-15T07:03:44+09:00</dc:date>
+</item>
+<item rdf:about="http://blog.japan.cnet.com/kondo/archives/002202.html">
+<title>近藤淳也の新ネットコミュニティ論、開始にあたって</title>
+<link>http://blog.japan.cnet.com/kondo/archives/002202.html</link>
+<description><![CDATA[株式会社はてなの近藤です。「はてな」という一風変わった名前のウェブサイト（<a href="http://www.hatena.ne.jp/">http://www.hatena.ne.jp/</a>）を運用しています。
+CNETでブログを書きませんかと誘われて、果たして続くだろうか、業務との両立は可能だろうかという不安がありましたが、ひとまず10月まで、という期間限定で書かせて頂くことにしました。]]></description>
+<dc:subject></dc:subject>
+<dc:creator>kondo</dc:creator>
+<dc:date>2005-07-13T11:20:05+09:00</dc:date>
+</item>
+
+
+</rdf:RDF>

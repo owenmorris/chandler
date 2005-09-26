@@ -12,8 +12,6 @@ class NRVTestCase(unittest.TestCase):
 
     def setUp(self):
         Globals.options = Utility.initOptions()
-        Globals.chandlerDirectory = Utility.locateChandlerDirectory()
-        os.chdir(Globals.chandlerDirectory)
         profileDir = Globals.options.profileDir
         Utility.initLogging(Globals.options)
         self.view = NullRepositoryView()

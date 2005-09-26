@@ -540,7 +540,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             cal.add('x-wr-calname').value = share.contents.displayName
         except:
             pass
-        return cal.serialize()
+        return cal.serialize().encode('utf-8')
 
 
 class CalDAVFormat(ICalendarFormat):
@@ -559,4 +559,4 @@ class CalDAVFormat(ICalendarFormat):
             return None
         cal = itemsToVObject(self.itsView, [item],
                              filters=self.share.filterAttributes)
-        return cal.serialize()
+        return cal.serialize().encode('utf-8')

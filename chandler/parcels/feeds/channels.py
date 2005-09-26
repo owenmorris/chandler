@@ -47,7 +47,7 @@ def SetAttributes(self, data, attributes):
 def NewChannelFromURL(view, url, update = True):
     data = feedparser.parse(url)
 
-    if data['channel'] == {} or data['status'] == 404:
+    if data['channel'] == {} or data.get('status', None) == 404:
         return None
 
     channel = FeedChannel(view=view)

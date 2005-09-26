@@ -81,9 +81,9 @@ class SharingTestCase(unittest.TestCase):
         coll = sandbox.findPath("testcollection")
 
         names = [
-            ("Morgen", "Sagen", "morgen@example.com"),
-            ("Ted", "Leung", "ted@example.com"),
-            ("Andi", "Vajda", "andi@example.com"),
+            (u"Morgen", u"Sagen", u"morgen@example.com"),
+            (u"Ted", u"Leung", u"ted@example.com"),
+            (u"Andi", u"Vajda", u"andi@example.com"),
         ]
 
         contacts = []
@@ -105,7 +105,7 @@ class SharingTestCase(unittest.TestCase):
             u"dinner",
             u"meeting",
             u"movie",
-            u"game",
+            u'\u8fd1\u85e4\u6df3\u4e5f\u306e\u65b0\u30cd\u30c3\u30c8\u30b3\u30df\u30e5\u30cb\u30c6\u30a3\u8ad6',
         ]
         for i in xrange(6):
             c = Calendar.CalendarEvent(parent=sandbox)
