@@ -9,10 +9,23 @@ from repository.item.Sets import Set, MultiUnion, Union, MultiIntersection, Inte
 from repository.item.Item import Item
 from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
-import logging, os, re
+import logging, os, re, Queue
 from osaf.framework.types.DocumentTypes import ColorType
 
 logger = logging.getLogger(__name__)
+
+def deliverNotifications(view, updates = True):
+    # first play back the notification queue
+    if not hasattr(view,'notificationQueue'):
+        view.notificationQueue = Queue.Queue()
+    notificationQueue = view.notificationQueue
+    while not notificationQueue.empty():
+        (collection, op, item, name, other, args) = notificationQueue.get()
+        logger.debug("dequeued: %s %s %s %s" % (collection, op, item, other))
+        collection.notifySubscribers(op, collection, name, other, *args)
+
+    if updates:
+        view.mapChanges(mapChangesCallable, True)
 
 def mapChangesCallable(item, version, status, literals, references):
     """
@@ -77,7 +90,7 @@ class AbstractCollection(items.ContentItem):
     subscribers = schema.Many(initialValue=set())
     # collectionEventHandler is used when a collection subscribes to
     # the results of another collection.
-    collectionEventHandler = schema.One(schema.String, initialValue="collectionChanged")
+#    collectionEventHandler = schema.One(schema.String, initialValue="notifySubscribers")
     # the name of the default index
     indexName   = schema.One(schema.String, initialValue="__adhoc__")
 
@@ -141,7 +154,11 @@ class AbstractCollection(items.ContentItem):
         # mapChanges (called in the idle loop)
         # propagates any updates (not add/removes) that
         # happened since the last
-        self.notifySubscribers(op, item, name, other, *args)
+        logger.debug("Collection Changed on %s: %s %s %s %s" % (self, op, item, name, other))
+        if not hasattr(self.itsView,'notificationQueue'):
+            self.itsView.notificationQueue = Queue.Queue()
+        logger.debug("%s is queuing %s %s" % (self, op, other))
+        self.itsView.notificationQueue.put((self, op, item, name, other, args))
 
     def notifySubscribers(self, op, item, name, other, *args):
         """
@@ -153,14 +170,22 @@ class AbstractCollection(items.ContentItem):
         if it exists.
         """
         for i in self.subscribers:
+            method = None # must be done each time around the loop
             method_name = getattr(i, "collectionEventHandler", "onCollectionEvent")
+
+            # we must propagate changes "by hand"
+            if op == "changed":
+                if isinstance(i, AbstractCollection):
+                    method_name = "notifySubscribers"
+                else:
+                    method_name = "onCollectionEvent"
             if method_name != None:
                 method = getattr(type(i), method_name, None)
                 if method != None:
-                    logger.debug("Delivering %s %s to %s from %s" % (op, other, i, self.itsName))
-                    method(i, op, item, name, other, *args)
+                    logger.debug("Delivering %s [%s] %s to %s from %s using %s" % (op, item, other, i, self.itsName, method_name))
+                    method(i, op, self, name, other, *args)
                 else:
-                    logger.debug("Didn't find the specified notification handler named %s" % (method_name))
+                    logger.debug("Didn't find the specified notification handler named %s for %s" % (method_name, i))
             else:
                 logger.debug("notification handler not specfied - no collectionEventHandler attribute")
 
@@ -194,6 +219,12 @@ class AbstractCollection(items.ContentItem):
 
     def __nonzero__(self):
         return True
+
+    def __str__(self):
+        """ for debugging """
+        return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
+                                self.itsUUID.str16())
+        
 
     def createIndex (self):
         """
@@ -270,9 +301,10 @@ class KindCollection(AbstractCollection):
         # find the global KindCollectionDirectory item.
         kc = schema.ns("osaf.pim.collections", self.itsView).kind_collections
         kc.collections.add(self)
-    
+
     def contentsUpdated(self, item):
-        self.rep.notify('changed', item)        
+        self.rep.notify('changed', item)
+        deliverNotifications(self.itsView)
 
     def onValueChanged(self, name):
         if name == "kind" or name == "recursive":
@@ -327,6 +359,7 @@ class ListCollection(AbstractCollection):
 
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
+        deliverNotifications(self.itsView)
 
     def empty(self):
         for item in self:

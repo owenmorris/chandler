@@ -517,7 +517,7 @@ class wxApplication (wx.App):
         try:
             import osaf.pim.collections as collections
             # call mapChanges with flag that prevents seeing changes we've seen before
-            the_view.mapChanges(collections.mapChangesCallable, True)
+            collections.deliverNotifications(the_view)
         except MergeError, e:
             if e.getReasonCode() == MergeError.BUG:
                 logger.warning("Changes cancelled due to merge error: %s", e)

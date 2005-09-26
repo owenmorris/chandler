@@ -14,9 +14,16 @@ class NotifyHandler(schema.Item):
     def checkLog(self, op, item, other, index=-1):
         if len(self.log) == 0:
             return False
-        rec = self.log[index]
-        return rec[0] == op and rec[1] == item and rec[2] == "rep" and rec[3] == other and rec[4] == ()
-    
+        
+        # skip 'changed' entries unless we are looking for changes
+        # this is due to mixing of mapChangesCallables in collections.deliverNotifications
+        for i in range(-1, -(len(self.log)+1), -1):
+            rec = self.log[i]
+            if op != 'changed' and rec[0] == 'changed':
+                continue
+            if op == 'changed' and rec[0] != 'changed':
+                continue
+            return rec[0] == op and rec[3] == other 
 
     def onCollectionEvent(self, op, item, name, other, *args):
         self.log.append((op, item, name, other, args))
@@ -96,15 +103,18 @@ class CollectionTests(CollectionTestCase):
 
         # add i to b1
         self.b1.add(self.i)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
 
         # add i1 to b2
         self.b2.add(self.i1)
+        deliverNotifications(self.view)
         self.failIf(self.nh.checkLog("add", self.b2, self.i1))
         self.failUnless(self.nh1.checkLog("add", u, self.i1,))
 
         # remove i from b1
         self.b1.remove(self.i)
+        deliverNotifications(self.view)
         self.failIf(self.nh.checkLog("remove", self.b1, self.i1))
         self.failIf(self.nh.checkLog("remove", u, self.i1))        
 
@@ -123,14 +133,17 @@ class CollectionTests(CollectionTestCase):
 
         print [ i for i in u ]
         u.addSource(self.b1)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add",u,self.i))
 
         print [ i for i in u ]
         u.addSource(self.b2)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add",u,self.i1))
 
         print [ i for i in u ]
         u.removeSource(self.b2)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("remove",u,self.i1))
         
         print [ i for i in u ]
@@ -143,23 +156,26 @@ class CollectionTests(CollectionTestCase):
         d.sources = [ self.b1, self.b2 ]
         self.b1.subscribers.add(self.nh)
         d.subscribers.add(self.nh1)
-        #
+
         self.b1.add(self.i)
+        deliverNotifications(self.view)      
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
         self.failUnless(self.nh1.checkLog("add", d, self.i))
 
         self.b1.add(self.i1)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i1))
         self.failUnless(self.nh1.checkLog("add", d, self.i1))
 
         self.b2.subscribers.add(self.nh2)
         self.b2.add(self.i2)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("add", self.b2, self.i2))
         self.failIf(self.nh1.checkLog("add", d, self.i2))
-        self.failIf(self.nh1.checkLog("remove", d, self.i2))
-        
+        self.failIf(self.nh1.checkLog("remove", d, self.i2))     
 
         self.b2.add(self.i)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("add", self.b2, self.i))
         self.failUnless(self.nh1.checkLog("remove", d, self.i))
 
@@ -167,7 +183,6 @@ class CollectionTests(CollectionTestCase):
         """
         Test the ItemCollection expression
         """
-
         inclusions = ListCollection("inclusions", view=self.view)
         rule = KindCollection(view=self.view)
         rule.kind = self.i.itsKind
@@ -186,24 +201,29 @@ class CollectionTests(CollectionTestCase):
         ic.subscribers.add(nh3)
 
         inclusions.add(self.i)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add", inclusions, self.i))
         self.failIf(nh3.checkLog("add", ic, self.i))
 
         it = OtherSimpleItem(view=self.view)
         inclusions.add(it)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add", inclusions, it))
         self.failUnless(nh3.checkLog("add", ic, it))        
 
         nancy = SimpleItem("nancy", label="nancy", view=self.view)
+        deliverNotifications(self.view)
         self.failUnless(self.nh1.checkLog("add", rule, nancy))
         self.assertEqual(len(list(rule)), 4)
         self.assertEqual(len(list(ic)), 5)
 
         exclusions.add(self.i2)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("add", exclusions, self.i2))
         self.failUnless(nh3.checkLog("remove", ic, self.i2))
         
         exclusions.remove(self.i2)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("remove", exclusions, self.i2))
         self.failUnless(nh3.checkLog("add", ic, self.i2))
 
@@ -222,11 +242,14 @@ class CollectionTests(CollectionTestCase):
         k2.subscribers.add(self.nh)
 
         i = SimpleItem("new i", view=self.view)
+        deliverNotifications(self.view)       
         self.failUnless(self.nh.checkLog("add", k2, i))
 
         i.delete()
         # note deleting an item Nulls references to it.
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("remove", k2, None))                        
+
     def testRecursiveKindCollection(self):
         """
         Test Recursive KindCollections
@@ -239,6 +262,7 @@ class CollectionTests(CollectionTestCase):
         i1 = ChildSimpleItem("new child", view=self.view)
 
         flags = [isinstance(i,SimpleItem) for i in k ]
+        deliverNotifications(self.view)
         self.failUnless(False not in flags)
 
     def testFilteredCollection(self):
@@ -250,15 +274,18 @@ class CollectionTests(CollectionTestCase):
         f1.subscribers.add(self.nh1)
 
         self.b1.add(self.i)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
         self.failIf(self.nh1.checkLog("add", f1, self.i))
 
         self.b1.add(self.i2)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i2))
         self.failIf(self.nh1.checkLog("add", f1, self.i2))
 
         ted = SimpleItem("ted", label="ted", view=self.view)
         self.b1.add(ted)
+        deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add", self.b1, ted))
         self.failUnless(self.nh1.checkLog("add", f1, ted))
 
@@ -278,18 +305,22 @@ class CollectionTests(CollectionTestCase):
         f2.subscribers.add(nh3)
 
         fred = SimpleItem("fred", label="fred", view=self.view)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("add", k1, fred))
         self.failUnless(nh3.checkLog("add", f2, fred))
 
         john = SimpleItem("john", label="john", view=self.view)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("add", k1, john))
         self.failUnless(nh3.checkLog("add", f2, john))
 
         karen = SimpleItem("karen", label="karen", view=self.view)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("add", k1, karen))
         self.failUnless(nh3.checkLog("add", f2, karen))
 
         x = SimpleItem("x", label="x", view=self.view)
+        deliverNotifications(self.view)
         self.failUnless(self.nh2.checkLog("add", k1, x))
         self.failIf(nh3.checkLog("add", f2, x))
 
@@ -304,7 +335,7 @@ class CollectionTests(CollectionTestCase):
 
         pos = len(nh3.log)
         # simulate idle loop
-        self.view.mapChanges(mapChangesCallable, True)
+        deliverNotifications(self.view)
 
         #@@@ TODO - the following assert is broken until we have a way of
         # locating the KindCollection for a specific Kind
@@ -348,7 +379,7 @@ class CollectionTests(CollectionTestCase):
 
         self.i.label = "xxx"
         print nh3.log
-        self.view.mapChanges(mapChangesCallable, True)
+        deliverNotifications(self.view)
 
         changed = False
         print nh3.log
@@ -360,11 +391,10 @@ class CollectionTests(CollectionTestCase):
         self.assertEqual(self.i.label,"xxx")
 
         delattr(self.i,"label")
-        self.view.mapChanges(mapChangesCallable, True)
+        deliverNotifications(self.view)
         print nh3.log
         self.failUnless(nh3.checkLog("remove", f2, self.i,-2))
         self.failUnless(nh3.checkLog("changed", k1, self.i))
-
 
     def testFilters(self):
         from application.Parcel import Manager as ParcelManager
@@ -377,7 +407,9 @@ class CollectionTests(CollectionTestCase):
         kind = self.view.findPath('//parcels/osaf/pim/ContentItem')
     
     def testFilteredStack(self):
-#        import wingdbstub
+        """
+        Test collections stacked on top of each other
+        """
         k = KindCollection(view=self.view)
         k.kind = self.i.itsKind
 
@@ -393,21 +425,19 @@ class CollectionTests(CollectionTestCase):
         
         u.addSource(f)
         u.addSource(l)
-        print u.rep
+        deliverNotifications(self.view)
         
-        print [i for i in u]
-        print self.nh.log
         self.i.label = "abcd"
-        print [i for i in u]
-        print self.nh.log
+        deliverNotifications(self.view)
+        self.failUnless(self.nh.checkLog('add', u, self.i))        
+
         self.i.label = "defg"
-        print [i for i in u]
-        print self.nh.log
+        deliverNotifications(self.view)
+        self.failUnless(self.nh.checkLog('changed', u, self.i))        
+
         self.i.label = "a"
-        print [i for i in u]
-        print self.nh.log
-        
-        
+        deliverNotifications(self.view)
+        self.failUnless(self.nh.checkLog('remove', u, self.i))                
         
     def testNumericIndex(self):
         k = KindCollection(view=self.view)
@@ -513,8 +543,6 @@ class CollectionTests(CollectionTestCase):
         self.assert_(note in coll1)
         self.assert_(note in coll2)
         self.assert_(note not in coll3)
-
-        
 
 if __name__ == "__main__":
 #    import hotshot
