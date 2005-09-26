@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        utilscmn.cpp
+// Name:        src/common/utilscmn.cpp
 // Purpose:     Miscellaneous utility functions and classes
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp,v 1.149 2005/09/25 13:02:27 MW Exp $
+// RCS-ID:      $Id: utilscmn.cpp,v 1.150 2005/09/26 13:37:07 ABX Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,6 +89,7 @@
 
 #if defined(__WXMSW__)
     #include "wx/msw/private.h"
+    #include "wx/msw/registry.h"
 #endif
 
 #if wxUSE_BASE

@@ -4,7 +4,7 @@
 *  Author:      Julian Smart
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     29/01/98
-*  RCS-ID:      $Id: version.h,v 1.70 2005/09/25 20:23:21 VZ Exp $
+*  RCS-ID:      $Id: version.h,v 1.71 2005/09/26 08:59:51 VZ Exp $
 *  Copyright:   (c) 1998 Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -17,8 +17,13 @@
 /*  the constants below must be changed with each new version */
 /*  ---------------------------------------------------------------------------- */
 
-/*  NB: this file is parsed by Perl code in tmake templates in distrib/msw/tmake */
-/*      so don't change its format too much or they could break */
+/*
+    Don't forget to update WX_CURRENT, WX_REVISION and WX_AGE in
+    build/bakefiles/version.bkl and regenerate the makefiles when you change
+    this!
+ */
+
+/*  NB: this file is parsed by automatic tools so don't change its format! */
 #define wxMAJOR_VERSION      2
 #define wxMINOR_VERSION      7
 #define wxRELEASE_NUMBER     0

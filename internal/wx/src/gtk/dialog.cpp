@@ -2,7 +2,7 @@
 // Name:        dialog.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dialog.cpp,v 1.110 2005/09/23 12:53:38 MR Exp $
+// Id:          $Id: dialog.cpp,v 1.111 2005/09/26 12:53:29 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -201,8 +201,6 @@ int wxDialog::ShowModal()
     wxBusyCursorSuspender cs; // temporarily suppress the busy cursor
 
     Show( true );
-
-    SetFocus();
 
     m_modalShowing = true;
 

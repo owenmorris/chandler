@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
-// Name:        filedlgg.cpp
+// Name:        src/generic/filedlgg.cpp
 // Purpose:     wxGenericFileDialog
 // Author:      Robert Roebling
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: filedlgg.cpp,v 1.147 2005/09/25 23:57:35 VZ Exp $
+// RCS-ID:      $Id: filedlgg.cpp,v 1.148 2005/09/26 13:43:21 ABX Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -829,10 +829,6 @@ void wxFileCtrl::SortItems(wxFileData::fileListFieldType field, bool forward)
 
     switch (m_sort_field)
     {
-        case wxFileData::FileList_Name :
-            wxListCtrl::SortItems(wxFileDataNameCompare, sort_dir);
-            break;
-
         case wxFileData::FileList_Size :
             wxListCtrl::SortItems(wxFileDataSizeCompare, sort_dir);
             break;
@@ -843,6 +839,11 @@ void wxFileCtrl::SortItems(wxFileData::fileListFieldType field, bool forward)
 
         case wxFileData::FileList_Time :
             wxListCtrl::SortItems(wxFileDataTimeCompare, sort_dir);
+            break;
+
+        case wxFileData::FileList_Name :
+        default :
+            wxListCtrl::SortItems(wxFileDataNameCompare, sort_dir);
             break;
     }
 }
@@ -1490,4 +1491,3 @@ IMPLEMENT_DYNAMIC_CLASS(wxFileDialog, wxGenericFileDialog);
 #endif // USE_GENERIC_FILEDIALOG
 
 #endif // wxUSE_FILEDLG
-

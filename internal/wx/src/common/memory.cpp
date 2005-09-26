@@ -4,7 +4,7 @@
 // Author:      Arthur Seaton, Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: memory.cpp,v 1.74 2005/09/23 12:53:03 MR Exp $
+// RCS-ID:      $Id: memory.cpp,v 1.75 2005/09/26 12:39:55 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -907,10 +907,11 @@ private:
 
 static MemoryCriticalSection memLocker;
 
-#endif
+#endif // USE_THREADSAFE_MEMORY_ALLOCATION
 
-#if !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
+
 #ifdef __WXDEBUG__
+#if !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
 #if wxUSE_GLOBAL_MEMORY_OPERATORS
 void * operator new (size_t size, wxChar * fileName, int lineNum)
 {
@@ -943,8 +944,8 @@ void operator delete[] (void * buf)
   wxDebugFree(buf, true);
 }
 #endif // wxUSE_ARRAY_MEMORY_OPERATORS
-#endif // !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
 #endif // wxUSE_GLOBAL_MEMORY_OPERATORS
+#endif // !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
 
 // TODO: store whether this is a vector or not.
 void * wxDebugAlloc(size_t size, wxChar * fileName, int lineNum, bool isObject, bool WXUNUSED(isVect) )

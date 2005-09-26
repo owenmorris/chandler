@@ -3,7 +3,7 @@
 // Purpose:     macros to force linking modules which might otherwise be
 //              discarded by the linker
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: link.h,v 1.1 2005/09/25 18:09:22 VZ Exp $
+// RCS-ID:      $Id: link.h,v 1.2 2005/09/26 12:29:25 VZ Exp $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 
 // And this must be somewhere where it certainly will be linked:
 #define wxFORCE_LINK_MODULE(module_name)                              \
-                extern int _wx_link_dummy_func_##module_name ();      \
+                extern void _wx_link_dummy_func_##module_name ();     \
                 static struct wxForceLink##module_name                \
                 {                                                     \
                     wxForceLink##module_name()                        \
