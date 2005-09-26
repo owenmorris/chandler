@@ -62,176 +62,9 @@ static PyObject *getAttributeAspect_NAME;
 static PyObject *redirectTo_NAME;
 static PyObject *_redirectTo_NAME;
 
-#define isNew_DOC "\
-Tell whether this item is new.\n\nA new item is defined as an item that\
-was never committed to the repository.\n@return: C{True} or C{False}"
-
-#define isDeleting_DOC "\
-Tell whether this item is in the process of being deleted.\n\n\
-@return: C{True} or C{False}"
-
-#define isDeleted_DOC "\
-Tell whether this item is deleted.\n\n\
-@return: C{True} or C{False}"
-
-#define isStale_DOC "\
-Tell whether this item pointer is out of date.\n\n\
-A stale item pointer is defined as an item pointer that is no longer\
-valid. When an item is unloaded, the item pointer is marked\
-stale. The item pointer can be refreshed by reloading the item via the\
-L{find} method, passing it the item's C{uuid} obtained via the\
-L{itsUUID} property.\n\n\
-Stale items are encountered when item pointers are kept across\
-transaction boundaries. It is recommended to keep the item's\
-C{uuid} instead.\n\n\
-@return: C{True} or C{False}"
-
-#define isPinned_DOC "\
-Tell whether this item is pinned.\n\n\
-A pinned item is not freed from memory or marked stale, until it\
-is un-pinned or deleted.\n\n\
-@return: C{True} or C{False}"
-
-#define isDirty_DOC "\
-Tell whether this item was changed and needs to be committed.\n\n\
-@return: C{True} or C{False}"
-
-#ifdef _MSC_VER
-#define getAttributeAspect_DOC "doc too large for VC++ (error C2026)"
-#else
-#define getAttributeAspect_DOC "\
-Return the value for an attribute aspect.\n\n\
-An attribute aspect is one of an attribute's many attributes\
-described in the list below. All aspects are optional.\n\n\
-    - C{required}: C{True} if the attribute is required to have a\
-      value, C{False} otherwise, the default. This aspects takes a\
-      boolean value.\n\
-    - C{persisted}: C{True}, the default, if the attribute's value is\
-      persisted when the owning item is saved; C{False}\
-      otherwise. This aspect takes a boolean value.\n\
-    - C{cardinality}: C{single}, the default if the attribute is\
-      to have one single value, C{list} or C{dict}, if the attribute\
-      is to have a list or dictionary of values. This aspect takes a\
-      string value.\n\
-    - C{type}: a reference to the type item describing the type(s) of\
-      value(s) this attribute can store. By default, if this aspect\
-      is not set, an attribute can store value(s) of any type. This\
-      aspect takes an item of kind C{Type} as value.\n\
-    - C{defaultValue}: the value to return when there is no value\
-      set for this attribute. This default value is owned by the\
-      schema attribute item and is read-only when it is a collection\
-      or a Lob. Other mutable types, such as Structs, should be used\
-      with care as mutating a defaultValue causes it to appear\
-      changed by all items returning it. By default, an attribute\
-      has no default value. See C{initialValue}, C{inheritFrom} and\
-      C{redirectTo} below. This aspect takes any type of value.\n\
-    - C{initialValue}: similar to C{defaultValue} but the initial\
-      value is set as the value of the attribute the first time it is\
-      returned. A copy of the initial value is set when it is a\
-      collection. This aspect takes any type of value.\n\
-    - C{inheritFrom}: one or several attribute names chained\
-      together by periods naming attributes to recursively inherit a\
-      value from. When several names are used, all but the last name\
-      are expected to name attributes containing a reference to the\
-      next item to inherit from by applying the next name. This\
-      aspect takes a string value.\n\
-    - C{redirectTo}: one or several attribute names chained\
-      together by periods naming attributes to recursively obtain a\
-      value or aspect value from or set a value to. When several\
-      names are used, all but the last name are expected to name\
-      attributes containing a reference to the next item to redirect\
-      to by applying the next name. This aspect takes a string\
-      value.\n\
-    - C{otherName}: for bi-directional reference attributes, this\
-      aspect names the attribute used to attach the other endpoint\
-      on the other item, ie the referenced item. This is the aspect\
-      that determines whether the attribute stored bi-directional\
-      references to items. This aspect takes a string value.\n\
-    - C{copyPolicy}: when an item is copied this policy defines\
-      what happens to items that are referenced by this\
-      attribute. Possible C{copyPolicy} values are:\n\
-        - C{remove}, the default. The reference is not copied.\n\
-        - C{copy}, the reference is copied.\n\
-        - C{cascade}, the referenced item is copied recursively and\n\
-          a reference to this copy is set.\n\
-      This aspect takes a string value.\n\
-    - C{deletePolicy}: when an item is deleted this policy defines\
-      what happens to items that are referenced by this\
-      attribute. Possible C{deletePolicy} values are:\n\
-        - C{remove}, the default.\n\
-        - C{cascade}, which causes the referenced item(s) to get\
-          deleted as well. See C{countPolicy} below.\n\
-      This aspect takes a string value.\n\
-    - C{countPolicy}: when an attribute's C{deletePolicy} is\
-      C{cascade} this aspect can be used to modify the delete\
-      behaviour to only delete the referenced item if its reference\
-      count is 0. The reference count of an item is defined by the\
-      total number of references it holds in attributes where the\
-      C{countPolicy} is set to C{count}. By default, an attribute's\
-      C{countPolicy} is C{none}. This aspect takes a string value.\n\n\
-If the attribute's C{redirectTo} aspect is set, this method is\
-redirected just like C{getAttributeValue}.\n\n\
-If the attribute is not defined for the item's kind,\
-a subclass of C{AttributeError} is raised.\n\n\
-@param name: the name of the attribute being queried\n\
-@type name: a string\n\
-@param aspect: the name of the aspect being queried\n\
-@type aspect: a string\n\
-@param kwds: optional keywords of which only C{default} is\
-supported and used to return a default value for an aspect that has\
-no value set for the attribute.\n\
-@return: a value"
-#endif
-
-#define getDirty_DOC "\
-Return the dirty flags currently set on this item.\n\n\
-@return: an integer"
-
-#define itsName_DOC "\
-Return this item's name.\n\n\
-The item name is used to lookup an item in its parent\
-container and construct the item's path in the repository.\
-An item may be renamed by setting this property.\n\n\
-The name of an item must be unique among all its siblings."
-
-#define itsUUID_DOC "\
-Return the Universally Unique ID for this item.\n\n\
-The UUID for an item is generated when the item is\
-first created and never changes. This UUID is valid\
-for the life of the item.\n\n\
-The UUID is a 128 bit number intended to be unique in\
-the entire universe and is implemented as specified\
-in the IETF's U{UUID draft\
-<www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>}\
-spec."
-
-#define itsPath_DOC "\
-Return the path to this item relative to its repository.\n\n\
-A path is a C{/} separated sequence of item names."
-
-#define itsParent_DOC "\
-Return this item's parent.\n\n\
-An item may be moved by setting this property."
-
-#define itsRoot_DOC "\
-Return this item's repository root.\n\n\
-A repository root is a direct child of the repository.\
-All single-slash rooted paths are expressed relative\
-to this root when used with this item."
-
-#define itsView_DOC "\
-Return this item's repository view.\n\n\
-The item's repository view is defined as the item's root's parent."
-
-#define itsKind_DOC "\
-Return or set this item's kind.\n\n\
-When setting an item's kind, only the values for\
-attributes common to both current and new kind are\
-retained. After the new kind is set, its attributes'\
-optional L{initial values<getAttributeAspect>} are\
-set for attributes for which there is no value on the\
-item. Setting an item's kind to C{None} clears all its values."
-
+/* NULL docstrings are set in chandlerdb/__init__.py
+ * "" docstrings are missing docstrings
+ */
 
 static PyMemberDef t_item_members[] = {
     { "_status", T_UINT, offsetof(t_item, status), 0, "item status flags" },
@@ -250,14 +83,14 @@ static PyMemberDef t_item_members[] = {
 };
 
 static PyMethodDef t_item_methods[] = {
-    { "isNew", (PyCFunction) t_item_isNew, METH_NOARGS, isNew_DOC },
-    { "isDeleting", (PyCFunction) t_item_isDeleting, METH_NOARGS, isDeleting_DOC },
-    { "isDeleted", (PyCFunction) t_item_isDeleted, METH_NOARGS, isDeleted_DOC },
-    { "isStale", (PyCFunction) t_item_isStale, METH_NOARGS, isStale_DOC },
-    { "isPinned", (PyCFunction) t_item_isPinned, METH_NOARGS, isPinned_DOC },
+    { "isNew", (PyCFunction) t_item_isNew, METH_NOARGS, NULL },
+    { "isDeleting", (PyCFunction) t_item_isDeleting, METH_NOARGS, NULL },
+    { "isDeleted", (PyCFunction) t_item_isDeleted, METH_NOARGS, NULL },
+    { "isStale", (PyCFunction) t_item_isStale, METH_NOARGS, NULL },
+    { "isPinned", (PyCFunction) t_item_isPinned, METH_NOARGS, NULL },
     { "isSchema", (PyCFunction) t_item_isSchema, METH_NOARGS, "" },
-    { "isDirty", (PyCFunction) t_item_isDirty, METH_NOARGS, isDirty_DOC },
-    { "getDirty", (PyCFunction) t_item_getDirty, METH_NOARGS, getDirty_DOC },
+    { "isDirty", (PyCFunction) t_item_isDirty, METH_NOARGS, NULL },
+    { "getDirty", (PyCFunction) t_item_getDirty, METH_NOARGS, NULL },
     { "_isNDirty", (PyCFunction) t_item__isNDirty, METH_NOARGS, "" },
     { "_isNoDirty", (PyCFunction) t_item__isNoDirty, METH_NOARGS, "" },
     { "_isCopyExport", (PyCFunction) t_item__isCopyExport, METH_NOARGS, "" },
@@ -268,25 +101,25 @@ static PyMethodDef t_item_methods[] = {
     { "_isRefList", (PyCFunction) t_item__isRefList, METH_NOARGS, "" },
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
-    { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, getAttributeAspect_DOC },
+    { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
 static PyGetSetDef t_item_properties[] = {
     { "itsKind", (getter) t_item__getKind, (setter) t_item__setKind,
-      itsKind_DOC, NULL },
+      NULL, NULL },
     { "itsView", (getter) t_item__getView, (setter) t_item__setView,
-      itsView_DOC, NULL },
+      NULL, NULL },
     { "itsParent", (getter) t_item__getParent, (setter) t_item__setParent,
-      itsParent_DOC, NULL },
+      NULL, NULL },
     { "itsName", (getter) t_item__getName, (setter) t_item__setName,
-      itsName_DOC, NULL },
+      NULL, NULL },
     { "itsRoot", (getter) t_item__getRoot, NULL,
-      itsRoot_DOC, NULL },
+      NULL, NULL },
     { "itsUUID", (getter) t_item__getUUID, NULL,
-      itsUUID_DOC, NULL },
+      NULL, NULL },
     { "itsPath", (getter) t_item__getPath, NULL,
-      itsPath_DOC, NULL },
+      NULL, NULL },
     { "itsVersion", (getter) t_item__getVersion, NULL,
       "itsVersion property", NULL },
     { NULL, NULL, NULL, NULL, NULL }

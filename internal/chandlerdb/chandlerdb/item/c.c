@@ -26,10 +26,58 @@ static PyObject *isitem(PyObject *self, PyObject *obj)
     Py_RETURN_FALSE;
 }
 
+static PyObject *_install__doc__(PyObject *self, PyObject *args)
+{
+    PyObject *object, *doc, *x;
+    PyTypeObject *type;
+    char *string;
+
+    if (!PyArg_ParseTuple(args, "OO", &object, &doc))
+        return NULL;
+
+    string = PyString_AsString(doc);
+    if (!string)
+        return NULL;
+
+    x = PyObject_GetAttrString((PyObject *) CItem, "isNew");
+    type = x->ob_type;
+    Py_DECREF(x);
+
+    if (object->ob_type == type)
+    {
+        ((PyMethodDescrObject *) object)->d_method->ml_doc = strdup(string);
+        Py_RETURN_NONE;
+    }
+
+    x = PyObject_GetAttrString((PyObject *) CItem, "itsKind");
+    type = x->ob_type;
+    Py_DECREF(x);
+
+    if (object->ob_type == type)
+    {
+        ((PyGetSetDescrObject *) object)->d_getset->doc = strdup(string);
+        Py_RETURN_NONE;
+    }
+
+    x = PyObject_GetAttrString((PyObject *) CItem, "_uuid");
+    type = x->ob_type;
+    Py_DECREF(x);
+
+    if (object->ob_type == type)
+    {
+        ((PyMemberDescrObject *) object)->d_member->doc = strdup(string);
+        Py_RETURN_NONE;
+    }
+
+    PyErr_SetObject(PyExc_TypeError, object);
+    return NULL;
+}
 
 static PyMethodDef c_funcs[] = {
     { "isitem", (PyCFunction) isitem, METH_O,
       "isinstance(), but not as easily fooled" },
+    { "_install__doc__", (PyCFunction) _install__doc__, METH_VARARGS,
+      "install immutable doc strings from python" },
     { NULL, NULL, 0, NULL }
 };
 
