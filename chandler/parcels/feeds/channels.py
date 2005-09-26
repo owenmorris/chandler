@@ -27,7 +27,7 @@ def SetAttribute(self, data, attr, newattr=None):
         newattr = attr
     value = data.get(attr)
     if value:
-        type = self.getAttributeAspect(newattr, 'type', default=None)
+        type = self.getAttributeAspect(newattr, 'type', None)
         if type is not None:
             value = type.makeValue(value)
         self.setAttributeValue(newattr, value)

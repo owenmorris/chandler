@@ -1026,7 +1026,10 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
             typeName = theType.getImplementationType().__name__
             result += "<b>(%s)</b> " % typeName
         except:
-            result += "<b>(%s)</b> " % value.__class__.__name__
+            try:
+                result += "<b>(%s)</b> " % value.__class__.__name__
+            except Exception, e:
+                result += "<b>(%s)</b> " % e
 
         if isinstance(value, list):
             results = []

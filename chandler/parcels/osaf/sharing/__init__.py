@@ -488,6 +488,7 @@ def subscribe(view, url, username=None, password=None):
 
         try:
             share.get()
+            view.refresh()
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -538,6 +539,7 @@ def subscribe(view, url, username=None, password=None):
 
             try:
                 share.get()
+                view.refresh()
                 contents = share.contents
 
             except Exception, err:
@@ -574,6 +576,7 @@ def subscribe(view, url, username=None, password=None):
 
         try:
             share.get()
+            view.refresh()
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -818,6 +821,8 @@ def takeOnline(collection):
 def takeOffline(collection):
     for share in collection.shares:
         share.active = False
+
+
 
 
 def isInboundMailSetUp(view):

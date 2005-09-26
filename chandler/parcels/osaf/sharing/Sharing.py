@@ -385,28 +385,39 @@ class ShareConduit(items.ContentItem):
         # Assumes that self.resourceList has been populated:
         externalItemExists = self.__externalItemExists(item)
 
-        # Check to see if the item or any of its itemCloud items have a
-        # more recent version than the last time we synced
-        highVersion = -1
-        for relatedItem in item.getItemCloud('sharing'):
-            itemVersion = relatedItem.getVersion()
-            if itemVersion > highVersion:
-                highVersion = itemVersion
-
         prevVersion = self.marker.getVersion()
 
-        if highVersion > prevVersion or not externalItemExists:
+        if not externalItemExists:
+            needsUpdate = True
 
+        else:
+            needsUpdate = False
+
+            # Check to see if the item or any of its itemCloud items have a
+            # more recent version than the last time we synced
+            for relatedItem in item.getItemCloud('sharing'):
+                itemVersion = relatedItem.getVersion()
+                if itemVersion > prevVersion:
+                    sharedAttributes = \
+                        self.share.getSharedAttributes(relatedItem)
+                    changes = changedAttributes(relatedItem, prevVersion,
+                                                itemVersion)
+                    for change in changes:
+                        if change in sharedAttributes:
+                            needsUpdate = True
+                            break
+
+        if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
-             (item.getItemDisplayName().encode('utf8'), item.itsUUID, itemVersion,
-             prevVersion, externalItemExists))
+             (item.getItemDisplayName().encode('utf8'), item.itsUUID,
+              item.getVersion(), prevVersion, externalItemExists))
 
             data = self._putItem(item)
 
             if data is not None:
                 self.__addToManifest(self._getItemPath(item), item, data)
                 logger.info("...done, data: %s, version: %d" %
-                 (data, itemVersion))
+                 (data, item.getVersion()))
 
             self.share.items.append(item)
 
@@ -454,8 +465,6 @@ class ShareConduit(items.ContentItem):
             location = sharingSelf.getLocation()
             logger.info("Starting PUT of %s" % (location))
 
-            logger.debug("Manifest: %s" % self.manifest)
-
             # share.filterClasses includes the dotted names of classes so
             # they can be shared.
             filterClasses = sharingSelf._getFilterClasses()
@@ -466,11 +475,15 @@ class ShareConduit(items.ContentItem):
                 sharingSelf.resourceList = \
                     sharingSelf._getResourceList(location)
 
+                logger.debug(_(u"Resources on server: %(resources)s") % \
+                    {'resources':sharingSelf.resourceList})
+                logger.debug(_(u"Manifest: %(manifest)s") % \
+                    {'manifest':sharingSelf.manifest})
 
                 # Ignore any resources which we weren't able to parse during
                 # a previous GET -- they're the ones in our manifest with
                 # None as a uuid:
-                for (path, record) in self.manifest.iteritems():
+                for (path, record) in sharingSelf.manifest.iteritems():
                     if record['uuid'] is None:
                         if sharingSelf.resourceList.has_key(path):
                             logger.debug(_(u'Removing an unparsable resource from the resourceList: %(path)s') % { 'path' : path })
@@ -488,27 +501,29 @@ class ShareConduit(items.ContentItem):
                     # another (on a CalDAV server) and they have the same
                     # icalUID, the CalDAV server won't allow them to exist
                     # simultaneously.
-                    #
+                    # Any items that are in the manifest but not in the
+                    # collection are the ones to remove.
 
-                    # For each item in the local collection, mark its
-                    # corresponding resourceList entry as a keeper:
-                    for item in sharingSelf.share.contents:
-                        path = sharingSelf._getItemPath(item)
-                        if sharingSelf.resourceList.has_key(path):
-                            sharingSelf.resourceList[path]['keep'] = True
+                    removeFromManifest = []
 
-                    # Mark the share if necessary:
-                    shareItemPath = sharingSelf._getItemPath(sharingSelf.share)
-                    if shareItemPath and \
-                        sharingSelf.resourceList.has_key(shareItemPath):
-                        sharingSelf.resourceList[shareItemPath]['keep'] = True
+                    for (path, record) in sharingSelf.manifest.iteritems():
+                        if path in sharingSelf.resourceList:
+                            uuid = record['uuid']
+                            if uuid:
+                                item = sharingView.findUUID(uuid)
+                                if item is not sharingSelf.share and \
+                                    (item is None or \
+                                    item not in sharingSelf.share.contents):
+                                    sharingSelf._deleteItem(path)
+                                    del sharingSelf.resourceList[path]
+                                    removeFromManifest.append(path)
+                                    logger.debug(_(u'Item removed locally, so removing from server: %(path)s') % { 'path' : path })
 
-                    # Remove all the non-keepers from the server:
-                    for (path, value) in \
-                        sharingSelf.resourceList.iteritems():
-                        if not value.has_key('keep'):
-                            sharingSelf._deleteItem(path)
-                            sharingSelf.__removeFromManifest(path)
+                    for path in removeFromManifest:
+                        sharingSelf.__removeFromManifest(path)
+
+                    logger.debug(_(u"Manifest: %(manifest)s") % \
+                        {'manifest':sharingSelf.manifest})
 
 
                     for item in sharingSelf.share.contents:
@@ -554,6 +569,10 @@ class ShareConduit(items.ContentItem):
 
             # If sharing work happened in a different view, refresh the
             # main view
+
+            # @@@MOR We might not want to do this, and let the caller decide
+            # if they want to refresh to pick up sharing's changes...
+
             if self.itsView is not sharingView:
                 self.itsView.refresh()
 
@@ -634,7 +653,11 @@ class ShareConduit(items.ContentItem):
            raise NotFound(_(u"%(location)s does not exist") % {'location': location})
 
         sharingSelf.resourceList = sharingSelf._getResourceList(location)
-        logger.debug("Resources on server: %s", sharingSelf.resourceList)
+
+        logger.debug(_(u"Resources on server: %(resources)s") % \
+            {'resources':sharingSelf.resourceList})
+        logger.debug(_(u"Manifest: %(manifest)s") % \
+            {'manifest':sharingSelf.manifest})
 
         # We need to keep track of which items we've seen on the server so
         # we can tell when one has disappeared.
@@ -687,14 +710,14 @@ class ShareConduit(items.ContentItem):
             # If an item is in the manifest but it's no longer in the
             # collection, we need to skip the server's copy -- we'll
             # remove it during the PUT phase
-            for (path, record) in self.manifest.iteritems():
+            for (path, record) in sharingSelf.manifest.iteritems():
                 if path in sharingSelf.resourceList:
                     uuid = record['uuid']
                     if uuid:
                         item = sharingView.findUUID(uuid)
                         if item is None or \
                             item not in sharingSelf.share.contents:
-                            del self.resourceList[path]
+                            del sharingSelf.resourceList[path]
                             sharingSelf.__setSeen(path)
                             logger.debug(_(u'Item removed locally, so not fetching from server: %(path)s') % { 'path' : path })
 
@@ -740,7 +763,8 @@ class ShareConduit(items.ContentItem):
                         if removeLocally:
                             logger.info("...removing %s from collection" % item)
                             sharingSelf.share.contents.remove(item)
-                            sharingSelf.share.items.remove(item)
+                            if item in sharingSelf.share.items:
+                                sharingSelf.share.items.remove(item)
                 else:
                     logger.info("Removed an unparsable resource manifest entry for %s", unseenPath)
 
@@ -796,7 +820,7 @@ class ShareConduit(items.ContentItem):
                         return path
 
                 path = "%s.%s" % (item.itsUUID, extension)
-                self.manifest[path] = {'uuid':item.itsUUID, 'data':None}
+
             return path
 
         elif style == ImportExportFormat.STYLE_SINGLE:
@@ -1169,7 +1193,7 @@ class WebDAVConduit(ShareConduit):
     def _getServerHandle(self):
         # @@@ [grant] Collections and the trailing / issue.
         if self.serverHandle == None:
-            logger.info("...creating new webdav ServerHandle")
+            logger.debug("...creating new webdav ServerHandle")
             (host, port, sharePath, username, password, useSSL) = \
             self.__getSettings()
 
@@ -1650,6 +1674,21 @@ def splitUrl(url):
         port = int(port)
 
     return (useSSL, host, port, path, query, fragment)
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+def changedAttributes(item, fromVersion, toVersion):
+
+    changes = set([])
+
+    def historyCallback(i, version, status, values, references):
+        if i is item:
+            changes.update(values)
+            changes.update(references)
+
+    item.itsView.mapHistory(historyCallback, fromVersion, toVersion)
+
+    return changes
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
