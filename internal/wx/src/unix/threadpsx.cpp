@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: K. S. Sreeram (2002): POSIXified wxCondition, added wxSemaphore
 // Created:     04/22/98
-// RCS-ID:      $Id: threadpsx.cpp,v 1.86 2005/09/25 19:59:15 VZ Exp $
+// RCS-ID:      $Id: threadpsx.cpp,v 1.87 2005/09/25 22:48:06 VZ Exp $
 // Copyright:   (c) Wolfram Gloger (1996, 1997)
 //                  Guilhem Lavaux (1998)
 //                  Vadim Zeitlin (1999-2002)
@@ -170,7 +170,8 @@ private:
     friend class wxConditionInternal;
 };
 
-#ifdef HAVE_PTHREAD_MUTEXATTR_T
+#if defined(HAVE_PTHREAD_MUTEXATTR_T) && \
+        wxUSE_UNIX && !defined(HAVE_PTHREAD_MUTEXATTR_SETTYPE_DECL)
 // on some systems pthread_mutexattr_settype() is not in the headers (but it is
 // in the library, otherwise we wouldn't compile this code at all)
 extern "C" int pthread_mutexattr_settype(pthread_mutexattr_t *, int);

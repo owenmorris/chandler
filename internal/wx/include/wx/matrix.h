@@ -4,7 +4,7 @@
 // Author:      Chris Breeze, Julian Smart
 // Modified by:  Klaas Holwerda
 // Created:     01/02/97
-// RCS-ID:      $Id: matrix.h,v 1.15 2005/09/24 21:42:08 VZ Exp $
+// RCS-ID:      $Id: matrix.h,v 1.16 2005/09/25 23:27:18 VZ Exp $
 // Copyright:   (c) Julian Smart, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -214,15 +214,15 @@ inline double wxTransformMatrix::TransformY(double y) const
 inline bool wxTransformMatrix::IsIdentity1(void) const
 {
     return
-     (m_matrix[0][0] == 1.0 &&
-      m_matrix[1][1] == 1.0 &&
-      m_matrix[2][2] == 1.0 &&
-      m_matrix[1][0] == 0.0 &&
-      m_matrix[2][0] == 0.0 &&
-      m_matrix[0][1] == 0.0 &&
-      m_matrix[2][1] == 0.0 &&
-      m_matrix[0][2] == 0.0 &&
-      m_matrix[1][2] == 0.0) ;
+    ( wxIsSameDouble(m_matrix[0][0], 1.0) &&
+      wxIsSameDouble(m_matrix[1][1], 1.0) &&
+      wxIsSameDouble(m_matrix[2][2], 1.0) &&
+      wxIsSameDouble(m_matrix[1][0], 0.0) &&
+      wxIsSameDouble(m_matrix[2][0], 0.0) &&
+      wxIsSameDouble(m_matrix[0][1], 0.0) &&
+      wxIsSameDouble(m_matrix[2][1], 0.0) &&
+      wxIsSameDouble(m_matrix[0][2], 0.0) &&
+      wxIsSameDouble(m_matrix[1][2], 0.0) );
 }
 
 // Calculates the determinant of a 2 x 2 matrix
@@ -231,5 +231,4 @@ inline double wxCalculateDet(double a11, double a21, double a12, double a22)
     return a11 * a22 - a12 * a21;
 }
 
-#endif
-    // _WX_MATRIXH__
+#endif // _WX_MATRIXH__

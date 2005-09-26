@@ -4,7 +4,7 @@
 // Author:      Stefan Neis
 // Modified by:
 // Created:     20/02/1999
-// RCS-ID:      $Id: gridsel.cpp,v 1.23 2005/09/23 12:53:27 MR Exp $
+// RCS-ID:      $Id: gridsel.cpp,v 1.24 2005/09/26 00:29:38 VZ Exp $
 // Copyright:   (c) Stefan Neis (Stefan.Neis@t-online.de)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ bool wxGridSelection::IsInSelection ( int row, int col )
     // (unless we are in column selection mode).
     if ( m_selectionMode != wxGrid::wxGridSelectColumns )
     {
-        size_t count = m_rowSelection.GetCount();
+        count = m_rowSelection.GetCount();
         for ( size_t n = 0; n < count; n++ )
         {
             if ( row == m_rowSelection[n] )
@@ -100,7 +100,7 @@ bool wxGridSelection::IsInSelection ( int row, int col )
     // (unless we are in row selection mode).
     if ( m_selectionMode != wxGrid::wxGridSelectRows )
     {
-        size_t count = m_colSelection.GetCount();
+        count = m_colSelection.GetCount();
         for ( size_t n = 0; n < count; n++ )
         {
             if ( col == m_colSelection[n] )
@@ -595,8 +595,8 @@ void wxGridSelection::ToggleCellSelection( int row, int col,
         count = m_cellSelection.GetCount();
         for ( n = 0; n < count; n++ )
         {
-            wxGridCellCoords& coords = m_cellSelection[n];
-            if ( row == coords.GetRow() && col == coords.GetCol() )
+            const wxGridCellCoords& sel = m_cellSelection[n];
+            if ( row == sel.GetRow() && col == sel.GetCol() )
             {
                 wxGridCellCoords coords = m_cellSelection[n];
                 m_cellSelection.RemoveAt(n);

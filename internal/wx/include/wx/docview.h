@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.h,v 1.69 2005/09/23 12:48:37 MR Exp $
+// RCS-ID:      $Id: docview.h,v 1.70 2005/09/25 22:50:26 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -126,7 +126,8 @@ public:
 
     virtual bool AddView(wxView *view);
     virtual bool RemoveView(wxView *view);
-    wxList& GetViews() const { return (wxList&) m_documentViews; }
+    wxList& GetViews() { return m_documentViews; }
+    const wxList& GetViews() const { return m_documentViews; }
     wxView *GetFirstView() const;
 
     virtual void UpdateAllViews(wxView *sender = (wxView *) NULL, wxObject *hint = (wxObject *) NULL);

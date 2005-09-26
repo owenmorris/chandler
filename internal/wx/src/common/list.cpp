@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     04/01/98
-// RCS-ID:      $Id: list.cpp,v 1.56 2005/09/23 12:53:01 MR Exp $
+// RCS-ID:      $Id: list.cpp,v 1.57 2005/09/25 23:38:54 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////////////////////////////////
@@ -654,13 +654,19 @@ wxStringList::wxStringList (const wxChar *first, ...)
   {
       Add(s);
 
-      s = va_arg(ap, const wxChar *);
-      //    if (s == NULL)
-#ifdef __WXMSW__
-      if ((int)(long) s == 0)
-#else
-      if ((long) s == 0)
+      // icc gives this warning in its own va_arg() macro, argh
+#ifdef __INTELC__
+    #pragma warning(push)
+    #pragma warning(disable: 1684)
 #endif
+
+      s = va_arg(ap, const wxChar *);
+
+#ifdef __INTELC__
+    #pragma warning(pop)
+#endif
+
+      if ( !s )
           break;
   }
 

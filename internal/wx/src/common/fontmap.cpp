@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.11.99
-// RCS-ID:      $Id: fontmap.cpp,v 1.72 2005/09/23 12:52:54 MR Exp $
+// RCS-ID:      $Id: fontmap.cpp,v 1.73 2005/09/26 00:29:32 VZ Exp $
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -445,9 +445,9 @@ bool wxFontMapper::GetAltForEncoding(wxFontEncoding encoding,
 
 #if wxUSE_CONFIG && wxUSE_FILECONFIG
                 // remember this in the config
-                wxFontMapperPathChanger path(this,
-                                             FONTMAPPER_FONT_FROM_ENCODING_PATH);
-                if ( path.IsOk() )
+                wxFontMapperPathChanger path2(this,
+                                              FONTMAPPER_FONT_FROM_ENCODING_PATH);
+                if ( path2.IsOk() )
                 {
                     GetConfig()->Write(configEntry, info->ToString());
                 }
@@ -464,9 +464,9 @@ bool wxFontMapper::GetAltForEncoding(wxFontEncoding encoding,
             //
             // remember it to avoid asking the same question again later
 #if wxUSE_CONFIG && wxUSE_FILECONFIG
-            wxFontMapperPathChanger path(this,
-                                         FONTMAPPER_FONT_FROM_ENCODING_PATH);
-            if ( path.IsOk() )
+            wxFontMapperPathChanger path2(this,
+                                          FONTMAPPER_FONT_FROM_ENCODING_PATH);
+            if ( path2.IsOk() )
             {
                 GetConfig()->Write
                              (

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrl.cpp,v 1.71 2005/09/23 12:53:24 MR Exp $
+// RCS-ID:      $Id: calctrl.cpp,v 1.72 2005/09/26 00:29:37 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1414,9 +1414,9 @@ void wxCalendarCtrl::OnClick(wxMouseEvent& event)
 
         case wxCAL_HITTEST_HEADER:
             {
-                wxCalendarEvent event(this, wxEVT_CALENDAR_WEEKDAY_CLICKED);
-                event.m_wday = wday;
-                (void)GetEventHandler()->ProcessEvent(event);
+                wxCalendarEvent eventWd(this, wxEVT_CALENDAR_WEEKDAY_CLICKED);
+                eventWd.m_wday = wday;
+                (void)GetEventHandler()->ProcessEvent(eventWd);
             }
             break;
 

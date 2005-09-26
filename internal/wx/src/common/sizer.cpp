@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp,v 1.128 2005/09/25 11:13:31 VZ Exp $
+// RCS-ID:      $Id: sizer.cpp,v 1.129 2005/09/26 00:31:47 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,7 @@
 #ifndef WX_PRECOMP
     #include "wx/string.h"
     #include "wx/intl.h"
+    #include "wx/math.h"
 #endif // WX_PRECOMP
 
 #include "wx/sizer.h"
@@ -265,7 +266,7 @@ wxSize wxSizerItem::CalcMin()
 
         // if we have to preserve aspect ratio _AND_ this is
         // the first-time calculation, consider ret to be initial size
-        if ((m_flag & wxSHAPED) && !m_ratio)
+        if ( (m_flag & wxSHAPED) && wxIsNullDouble(m_ratio) )
             SetRatio(m_minSize);
     }
     else if ( IsWindow() )

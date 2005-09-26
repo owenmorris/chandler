@@ -2,7 +2,7 @@
 // Name:        notebook.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: notebook.cpp,v 1.122 2005/09/25 19:08:36 VZ Exp $
+// Id:          $Id: notebook.cpp,v 1.123 2005/09/25 23:28:04 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ public:
 
 
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxGtkNotebookPagesList);
+WX_DEFINE_LIST(wxGtkNotebookPagesList)
 
 
 //-----------------------------------------------------------------------------

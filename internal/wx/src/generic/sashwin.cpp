@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sashwin.cpp,v 1.47 2005/09/23 12:53:29 MR Exp $
+// RCS-ID:      $Id: sashwin.cpp,v 1.48 2005/09/26 00:29:38 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -276,11 +276,11 @@ void wxSashWindow::OnMouseEvent(wxMouseEvent& event)
 
         dragRect = wxRect(x, y, newWidth, newHeight);
 
-        wxSashEvent event(GetId(), edge);
-        event.SetEventObject(this);
-        event.SetDragStatus(status);
-        event.SetDragRect(dragRect);
-        GetEventHandler()->ProcessEvent(event);
+        wxSashEvent eventSash(GetId(), edge);
+        eventSash.SetEventObject(this);
+        eventSash.SetDragStatus(status);
+        eventSash.SetDragRect(dragRect);
+        GetEventHandler()->ProcessEvent(eventSash);
     }
     else if ( event.LeftUp() )
     {

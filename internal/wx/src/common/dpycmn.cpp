@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.03.03
-// RCS-ID:      $Id: dpycmn.cpp,v 1.11 2005/09/23 12:52:49 MR Exp $
+// RCS-ID:      $Id: dpycmn.cpp,v 1.12 2005/09/25 23:28:02 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@
 #if wxUSE_DISPLAY
 
 #include "wx/arrimpl.cpp"
-WX_DEFINE_OBJARRAY(wxArrayVideoModes);
+WX_DEFINE_OBJARRAY(wxArrayVideoModes)
 
 const wxVideoMode wxDefaultVideoMode;
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.141 2005/09/25 19:58:42 VZ Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.142 2005/09/25 22:33:49 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -392,9 +392,9 @@ static wxString CallStrftime(const wxChar *format, const tm* tm)
 
 #ifdef HAVE_STRPTIME
 
-// glibc2 doesn't define this in the headers unless _XOPEN_SOURCE is defined
-// which, unfortunately, wreaks havoc elsewhere
-#if defined(__GLIBC__) && (__GLIBC__ == 2)
+#if wxUSE_UNIX && !defined(HAVE_STRPTIME_DECL)
+    // configure detected that we had strptime() but not its declaration,
+    // provide it ourselves
     extern "C" char *strptime(const char *, const char *, struct tm *);
 #endif
 

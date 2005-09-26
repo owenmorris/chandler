@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp,v 1.96 2005/09/23 12:53:38 MR Exp $
+// Id:          $Id: dnd.cpp,v 1.97 2005/09/25 23:36:06 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -506,7 +506,12 @@ GdkAtom wxDropTarget::GetMatchingPair()
     GList *child = m_dragContext->targets;
     while (child)
     {
-        GdkAtom formatAtom = (GdkAtom) GPOINTER_TO_INT(child->data);
+        // in GTK+ 1.x GdkAtom was a gulong, but now it's a pointer
+        GdkAtom formatAtom = (GdkAtom)
+#ifndef __WXGTK20__
+                             GPOINTER_TO_INT
+#endif
+                             (child->data);
         wxDataFormat format( formatAtom );
 
 #ifdef __WXDEBUG__

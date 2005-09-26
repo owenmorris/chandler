@@ -2,7 +2,7 @@
 // Name:        textctrl.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: textctrl.cpp,v 1.219 2005/09/24 21:42:41 VZ Exp $
+// Id:          $Id: textctrl.cpp,v 1.220 2005/09/25 23:27:24 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,6 +14,7 @@
 #include "wx/utils.h"
 #include "wx/intl.h"
 #include "wx/log.h"
+#include "wx/math.h"
 #include "wx/settings.h"
 #include "wx/panel.h"
 #include "wx/strconv.h"
@@ -1029,7 +1030,7 @@ void wxTextCtrl::WriteText( const wxString &text )
 
         GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment( GTK_SCROLLED_WINDOW(m_widget) );
         // Scroll to cursor, but only if scrollbar thumb is at the very bottom
-        if ( adj->value == adj->upper - adj->page_size )
+        if ( wxIsSameDouble(adj->value, adj->upper - adj->page_size) )
         {
             gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW(m_text),
                     gtk_text_buffer_get_insert( m_buffer ), 0.0, FALSE, 0.0, 1.0 );

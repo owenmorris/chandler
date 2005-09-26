@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.174 2005/09/23 12:53:31 MR Exp $
+// Id:          $Id: treectlg.cpp,v 1.175 2005/09/26 00:29:39 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2696,23 +2696,23 @@ void wxGenericTreeCtrl::OnChar( wxKeyEvent &event )
                 wxRect ItemRect;
                 GetBoundingRect(m_current, ItemRect, true);
 
-                wxTreeEvent event( wxEVT_COMMAND_TREE_ITEM_MENU, GetId() );
-                event.m_item = m_current;
+                wxTreeEvent eventMenu( wxEVT_COMMAND_TREE_ITEM_MENU, GetId() );
+                eventMenu.m_item = m_current;
                 // Use the left edge, vertical middle
-                event.m_pointDrag = wxPoint(ItemRect.GetX(),
-                                            ItemRect.GetY() + ItemRect.GetHeight() / 2);
-                event.SetEventObject( this );
-                GetEventHandler()->ProcessEvent( event );
+                eventMenu.m_pointDrag = wxPoint(ItemRect.GetX(),
+                                                ItemRect.GetY() + ItemRect.GetHeight() / 2);
+                eventMenu.SetEventObject( this );
+                GetEventHandler()->ProcessEvent( eventMenu );
                 break;
             }
         case ' ':
         case WXK_RETURN:
             if ( !event.HasModifiers() )
             {
-                wxTreeEvent event( wxEVT_COMMAND_TREE_ITEM_ACTIVATED, GetId() );
-                event.m_item = m_current;
-                event.SetEventObject( this );
-                GetEventHandler()->ProcessEvent( event );
+                wxTreeEvent eventAct( wxEVT_COMMAND_TREE_ITEM_ACTIVATED, GetId() );
+                eventAct.m_item = m_current;
+                eventAct.SetEventObject( this );
+                GetEventHandler()->ProcessEvent( eventAct );
             }
 
             // in any case, also generate the normal key event for this key,
@@ -3179,13 +3179,13 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
         }
 
         // generate the drag end event
-        wxTreeEvent event(wxEVT_COMMAND_TREE_END_DRAG, GetId());
+        wxTreeEvent eventEndDrag(wxEVT_COMMAND_TREE_END_DRAG, GetId());
 
-        event.m_item = item;
-        event.m_pointDrag = pt;
-        event.SetEventObject(this);
+        eventEndDrag.m_item = item;
+        eventEndDrag.m_pointDrag = pt;
+        eventEndDrag.SetEventObject(this);
 
-        (void)GetEventHandler()->ProcessEvent(event);
+        (void)GetEventHandler()->ProcessEvent(eventEndDrag);
 
         m_isDragging = false;
         m_dropTarget = (wxGenericTreeItem *)NULL;

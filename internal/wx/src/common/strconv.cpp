@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.166 2005/09/25 19:58:48 VZ Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.168 2005/09/26 01:02:14 VZ Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -1349,6 +1349,8 @@ wxMBConv_iconv::wxMBConv_iconv(const wxChar *name)
     // check for charset that represents wchar_t:
     if ( ms_wcCharsetName.empty() )
     {
+        wxLogTrace(TRACE_STRCONV, _T("Looking for wide char codeset:"));
+
 #if wxUSE_FONTMAP
         const wxChar **names = wxFontMapperBase::GetAllEncodingNames(WC_ENC);
 #else // !wxUSE_FONTMAP
@@ -1363,7 +1365,7 @@ wxMBConv_iconv::wxMBConv_iconv(const wxChar *name)
         };
 #endif // wxUSE_FONTMAP/!wxUSE_FONTMAP
 
-        for ( ; *names; ++names )
+        for ( ; *names && ms_wcCharsetName.empty(); ++names )
         {
             const wxString nameCS(*names);
 
@@ -1375,10 +1377,15 @@ wxMBConv_iconv::wxMBConv_iconv(const wxChar *name)
                 nameXE += _T("LE");
             #endif
 
+            wxLogTrace(TRACE_STRCONV, _T("  trying charset \"%s\""),
+                       nameXE.c_str());
+
             m2w = iconv_open(nameXE.ToAscii(), cname);
             if ( m2w == ICONV_T_INVALID )
             {
                 // try charset w/o bytesex info (e.g. "UCS4")
+                wxLogTrace(TRACE_STRCONV, _T("  trying charset \"%s\""),
+                           nameCS.c_str());
                 m2w = iconv_open(nameCS.ToAscii(), cname);
 
                 // and check for bytesex ourselves:
@@ -1584,7 +1591,6 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 
     if (ICONV_FAILED(cres, inbuf))
     {
-        //VS: it is ok if iconv fails, hence trace only
         wxLogTrace(TRACE_STRCONV, wxT("iconv failed: %s"), wxSysErrorMsg(wxSysErrorCode()));
         return (size_t)-1;
     }

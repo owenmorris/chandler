@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: splitter.cpp,v 1.118 2005/09/25 11:13:34 VZ Exp $
+// RCS-ID:      $Id: splitter.cpp,v 1.119 2005/09/26 00:29:38 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -292,9 +292,9 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
                 m_windowOne = m_windowTwo;
                 m_windowTwo = (wxWindow *) NULL;
                 OnUnsplit(removedWindow);
-                wxSplitterEvent event(wxEVT_COMMAND_SPLITTER_UNSPLIT, this);
-                event.m_data.win = removedWindow;
-                (void)DoSendEvent(event);
+                wxSplitterEvent eventUnsplit(wxEVT_COMMAND_SPLITTER_UNSPLIT, this);
+                eventUnsplit.m_data.win = removedWindow;
+                (void)DoSendEvent(eventUnsplit);
                 SetSashPositionAndNotify(0);
             }
             else if ( posSashNew == GetWindowSize() )
@@ -303,9 +303,9 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
                 wxWindow *removedWindow = m_windowTwo;
                 m_windowTwo = (wxWindow *) NULL;
                 OnUnsplit(removedWindow);
-                wxSplitterEvent event(wxEVT_COMMAND_SPLITTER_UNSPLIT, this);
-                event.m_data.win = removedWindow;
-                (void)DoSendEvent(event);
+                wxSplitterEvent eventUnsplit(wxEVT_COMMAND_SPLITTER_UNSPLIT, this);
+                eventUnsplit.m_data.win = removedWindow;
+                (void)DoSendEvent(eventUnsplit);
                 SetSashPositionAndNotify(0);
             }
             else

@@ -5,7 +5,7 @@
 // Modified by:
 //  Chris Elliott (biol75@york.ac.uk) 5 Dec 00: write support for Win32
 // Created:     23.09.98
-// RCS-ID:      $Id: mimecmn.cpp,v 1.42 2005/09/24 20:29:21 VZ Exp $
+// RCS-ID:      $Id: mimecmn.cpp,v 1.43 2005/09/25 23:38:54 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,17 @@ wxFileTypeInfo::wxFileTypeInfo(const wxChar *mimeType,
 
     for ( ;; )
     {
+        // icc gives this warning in its own va_arg() macro, argh
+#ifdef __INTELC__
+    #pragma warning(push)
+    #pragma warning(disable: 1684)
+#endif
+
         const wxChar *ext = va_arg(argptr, const wxChar *);
+
+#ifdef __INTELC__
+    #pragma warning(pop)
+#endif
         if ( !ext )
         {
             // NULL terminates the list

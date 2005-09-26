@@ -2,7 +2,7 @@
 // Name:        gtk/statbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbox.cpp,v 1.41 2005/09/23 12:53:42 MR Exp $
+// Id:          $Id: statbox.cpp,v 1.42 2005/09/25 23:27:24 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ bool wxStaticBox::Create( wxWindow *parent,
     else // wxALIGN_LEFT
         xalign = 0.0;
 
-    if ( xalign )
+    if ( style & (wxALIGN_RIGHT | wxALIGN_CENTER) ) // left alignment is default
         gtk_frame_set_label_align(GTK_FRAME( m_widget ), xalign, 0.5);
 
     return TRUE;

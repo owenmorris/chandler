@@ -4,7 +4,7 @@
 // Author:      Julian Smart (extracted from docview.h by VZ)
 // Modified by:
 // Created:     05.11.00
-// RCS-ID:      $Id: cmdproc.h,v 1.20 2005/09/23 12:48:32 MR Exp $
+// RCS-ID:      $Id: cmdproc.h,v 1.21 2005/09/25 22:49:14 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,8 @@ public:
 #endif // wxUSE_MENUS
 
     // command list access
-    wxList& GetCommands() const { return (wxList&) m_commands; }
+    wxList& GetCommands() { return m_commands; }
+    const wxList& GetCommands() const { return m_commands; }
     wxCommand *GetCurrentCommand() const
     {
         return (wxCommand *)(m_currentCommand ? m_currentCommand->GetData() : NULL);

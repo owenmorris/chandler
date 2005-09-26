@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.cpp,v 1.137 2005/09/23 12:52:49 MR Exp $
+// RCS-ID:      $Id: docview.cpp,v 1.138 2005/09/25 22:51:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2215,10 +2215,10 @@ void wxFileHistory::RemoveFileFromHistory(size_t i)
         // delete the last separator too if no more files are left
         if ( m_fileHistoryN == 1 )
         {
-            wxMenuItemList::compatibility_iterator node = menu->GetMenuItems().GetLast();
-            if ( node )
+            wxMenuItemList::compatibility_iterator nodeLast = menu->GetMenuItems().GetLast();
+            if ( nodeLast )
             {
-                wxMenuItem *menuItem = node->GetData();
+                wxMenuItem *menuItem = nodeLast->GetData();
                 if ( menuItem->IsSeparator() )
                 {
                     menu->Delete(menuItem);

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: vlbox.cpp,v 1.22 2005/02/19 04:04:08 KH Exp $
+// RCS-ID:      $Id: vlbox.cpp,v 1.23 2005/09/26 00:29:39 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -577,7 +577,7 @@ void wxVListBox::OnKeyDown(wxKeyEvent& event)
 void wxVListBox::OnLeftDown(wxMouseEvent& event)
 {
     SetFocus();
-    
+
     int item = HitTest(event.GetPosition());
 
     if ( item != wxNOT_FOUND )
@@ -599,9 +599,9 @@ void wxVListBox::OnLeftDown(wxMouseEvent& event)
     }
 }
 
-void wxVListBox::OnLeftDClick(wxMouseEvent& event)
+void wxVListBox::OnLeftDClick(wxMouseEvent& eventMouse)
 {
-    int item = HitTest(event.GetPosition());
+    int item = HitTest(eventMouse.GetPosition());
     if ( item != wxNOT_FOUND )
     {
         wxCommandEvent event(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, GetId());

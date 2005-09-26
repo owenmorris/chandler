@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.348 2005/09/25 19:58:57 VZ Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.350 2005/09/26 00:29:38 VZ Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,6 +38,7 @@
     #include "wx/combobox.h"
     #include "wx/valtext.h"
     #include "wx/intl.h"
+    #include "wx/math.h"
 #endif
 
 #include "wx/textfile.h"
@@ -1085,7 +1086,8 @@ bool wxGridCellFloatEditor::EndEdit(int row, int col,
     double value = 0.0;
     wxString text(Text()->GetValue());
 
-    if ( (text.empty() || text.ToDouble(&value)) && (value != m_valueOld) )
+    if ( (text.empty() || text.ToDouble(&value)) &&
+            !wxIsSameDouble(value, m_valueOld) )
     {
         if (grid->GetTable()->CanSetValueAs(row, col, wxGRID_VALUE_FLOAT))
             grid->GetTable()->SetValueAsDouble(row, col, value);
@@ -5042,7 +5044,7 @@ void wxGrid::ProcessRowLabelMouseEvent( wxMouseEvent& event )
     //
     else if (event.LeftDClick() )
     {
-        int row = YToEdgeOfRow(y);
+        row = YToEdgeOfRow(y);
         if ( row < 0 )
         {
             row = YToRow(y);
@@ -5266,7 +5268,7 @@ void wxGrid::ProcessColLabelMouseEvent( wxMouseEvent& event )
     //
     if ( event.LeftDClick() )
     {
-        int col = XToEdgeOfCol(x);
+        col = XToEdgeOfCol(x);
         if ( col < 0 )
         {
             col = XToCol(x);

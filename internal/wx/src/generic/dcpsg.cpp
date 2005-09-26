@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Markus Holzhem
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dcpsg.cpp,v 1.132 2005/09/23 12:53:25 MR Exp $
+// RCS-ID:      $Id: dcpsg.cpp,v 1.134 2005/09/26 00:29:37 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -405,9 +405,10 @@ void wxPostScriptDC::DoDrawArc (wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2, 
         alpha1 = 0.0;
         alpha2 = 360.0;
     }
-    else if (radius == 0.0)
+    else if ( wxIsNullDouble(radius) )
     {
-        alpha1 = alpha2 = 0.0;
+        alpha1 =
+        alpha2 = 0.0;
     }
     else
     {
@@ -460,12 +461,16 @@ void wxPostScriptDC::DoDrawEllipticArc(wxCoord x,wxCoord y,wxCoord w,wxCoord h,d
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
-    if (sa>=360 || sa<=-360) sa=sa-int(sa/360)*360;
-    if (ea>=360 || ea<=-360) ea=ea-int(ea/360)*360;
-    if (sa<0) sa+=360;
-    if (ea<0) ea+=360;
+    if ( sa >= 360 || sa <= -360 )
+        sa -= int(sa/360)*360;
+    if ( ea >= 360 || ea <=- 360 )
+        ea -= int(ea/360)*360;
+    if ( sa < 0 )
+        sa += 360;
+    if ( ea < 0 )
+        ea += 360;
 
-    if (sa==ea)
+    if ( wxIsSameDouble(sa, ea) )
     {
         DrawEllipse(x,y,w,h);
         return;
@@ -1070,7 +1075,6 @@ void wxPostScriptDC::SetPen( const wxPen& pen )
         double bluePS = (double)(blue) / 255.0;
         double greenPS = (double)(green) / 255.0;
 
-        char buffer[100];
         sprintf( buffer,
             "%.8f %.8f %.8f setrgbcolor\n",
             redPS, greenPS, bluePS );
@@ -1247,7 +1251,7 @@ void wxPostScriptDC::DoDrawText( const wxString& text, wxCoord x, wxCoord y )
 
 void wxPostScriptDC::DoDrawRotatedText( const wxString& text, wxCoord x, wxCoord y, double angle )
 {
-    if (angle == 0.0)
+    if ( wxIsNullDouble(angle) )
     {
         DoDrawText(text, x, y);
         return;
@@ -1347,7 +1351,6 @@ void wxPostScriptDC::DoDrawRotatedText( const wxString& text, wxCoord x, wxCoord
     {
         wxCoord uy = (wxCoord)(y + size - m_underlinePosition);
         wxCoord w, h;
-        char buffer[100];
         GetTextExtent(text, &w, &h);
 
         sprintf( buffer,

@@ -2,7 +2,7 @@
 // Name:        gtk/dcclient.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcclient.cpp,v 1.206 2005/09/25 19:59:04 VZ Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.208 2005/09/26 00:29:42 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -538,10 +538,10 @@ void wxWindowDC::DoDrawArc( wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2,
         radius1 = 0.0;
         radius2 = 360.0;
     }
-    else
-    if (radius == 0.0)
+    else if ( wxIsNullDouble(radius) )
     {
-        radius1 = radius2 = 0.0;
+        radius1 =
+        radius2 = 0.0;
     }
     else
     {
@@ -1133,15 +1133,15 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
     if (is_mono)
     {
 #ifdef __WXGTK20__
-        GdkPixmap *bitmap = gdk_pixmap_new( wxGetRootWindow()->window, ww, hh, -1 );
-        GdkGC *gc = gdk_gc_new( bitmap );
+        GdkPixmap *bitmap2 = gdk_pixmap_new( wxGetRootWindow()->window, ww, hh, -1 );
+        GdkGC *gc = gdk_gc_new( bitmap2 );
         gdk_gc_set_foreground( gc, m_textForegroundColour.GetColor() );
         gdk_gc_set_background( gc, m_textBackgroundColour.GetColor() );
-        gdk_wx_draw_bitmap( bitmap, gc, use_bitmap.GetBitmap(), 0, 0, 0, 0, -1, -1 );
+        gdk_wx_draw_bitmap( bitmap2, gc, use_bitmap.GetBitmap(), 0, 0, 0, 0, -1, -1 );
 
-        gdk_draw_drawable( m_window, m_textGC, bitmap, 0, 0, xx, yy, -1, -1 );
+        gdk_draw_drawable( m_window, m_textGC, bitmap2, 0, 0, xx, yy, -1, -1 );
 
-        gdk_bitmap_unref( bitmap );
+        gdk_bitmap_unref( bitmap2 );
         gdk_gc_unref( gc );
 #else
         gdk_wx_draw_bitmap( m_window, m_textGC, use_bitmap.GetBitmap(), 0, 0, xx, yy, -1, -1 );
@@ -1606,7 +1606,7 @@ void wxWindowDC::DoDrawText( const wxString &text, wxCoord x, wxCoord y )
 
 void wxWindowDC::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord y, double angle )
 {
-    if (angle == 0.0)
+    if ( wxIsNullDouble(angle) )
     {
         DrawText(text, x, y);
         return;
@@ -2366,18 +2366,15 @@ void wxWindowDC::Destroy()
 
 void wxWindowDC::ComputeScaleAndOrigin()
 {
-    /* CMB: copy scale to see if it changes */
-    double origScaleX = m_scaleX;
-    double origScaleY = m_scaleY;
+    const wxRealPoint origScale(m_scaleX, m_scaleY);
 
     wxDC::ComputeScaleAndOrigin();
 
-    /* CMB: if scale has changed call SetPen to recalulate the line width */
-    if ((m_scaleX != origScaleX || m_scaleY != origScaleY) &&
-        (m_pen.Ok()))
+    // if scale has changed call SetPen to recalulate the line width
+    if ( wxRealPoint(m_scaleX, m_scaleY) != origScale && m_pen.Ok() )
     {
-        /* this is a bit artificial, but we need to force wxDC to think
-           the pen has changed */
+        // this is a bit artificial, but we need to force wxDC to think the pen
+        // has changed
         wxPen pen = m_pen;
         m_pen = wxNullPen;
         SetPen( pen );
