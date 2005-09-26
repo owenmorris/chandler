@@ -31,7 +31,7 @@ class typeEnum(schema.Enumeration):
     """
     Type enumeration
     
-    @see: U{model<../model/>}
+    @see: U{model<../model/parcels/osaf/framework/certstore/typeEnum/index.html>}
     """
     schema.kindInfo(displayName = u"Type Enumeration")
     values = constants.TYPE_ROOT, constants.TYPE_SITE
@@ -41,7 +41,7 @@ class CertificateStore(pim.KindCollection):
     """
     Certificate Store
     
-    @see: U{model<../model/>}
+    @see: U{model<../model/parcels/osaf/framework/certstore/CertificateStore/index.html>}
     """
     schema.kindInfo(displayName = _(u"Certificate Store"))
     def __init__(self, *args, **kw):
@@ -59,7 +59,7 @@ class Certificate(pim.ContentItem):
     """
     Certificate
     
-    @see: U{model<../model/>}
+    @see: U{model<../model/parcels/osaf/framework/certstore/Certificate/index.html>}
     """
 
     schema.kindInfo(displayName = _(u"Certificate"))
@@ -267,7 +267,8 @@ def importCertificateDialog(repView):
     Let the user import a certificate. First brings up a file selection
     dialog, then asks for trust settings for the certificate being imported.
     """
-    res = ImportExport.showFileDialog(wx.GetApp().mainFrame,
+    app = wx.GetApp()
+    res = ImportExport.showFileDialog(app.mainFrame,
                                       _(u"Choose a certificate to import"),
                                       u"", 
                                       u"", 
@@ -291,7 +292,7 @@ def importCertificateDialog(repView):
         if type == constants.TYPE_ROOT:
             choices += [_(u"Trust this certificate to sign site certificates.")]
 
-        dlg = dialogs.ImportCertificateDialog(wx.GetApp().mainFrame,
+        dlg = dialogs.ImportCertificateDialog(app.mainFrame,
                                    type,
                                    fprint,
                                    x509,
@@ -315,7 +316,7 @@ def importCertificateDialog(repView):
         log.exception(e)
         # XXX Inform the user what went wrong so they can figure out how to
         # XXX fix this.
-        application.dialogs.Util.ok(wx.GetApp().mainFrame, messages.ERROR,
+        application.dialogs.Util.ok(app.mainFrame, messages.ERROR,
             _(u"Could not add certificate from: %(path)s\nCheck the path and try again.") % {'path': path})
         return
 

@@ -405,6 +405,7 @@ class User(object):
             event.m_altDown = altFlag
             event.SetEventObject(widget)
         # for each key, check for specials, then try several approaches
+        app = wx.GetApp()
         for char in string:
             keyCode = ord(char)
             if keyCode == wx.WXK_RETURN:
@@ -433,7 +434,7 @@ class User(object):
                             writeMethod(char)
                         else:
                             success = False # remember we had a failure
-                wx.GetApp().Yield()
+                app.Yield()
         return success
 
     @classmethod 
@@ -511,9 +512,10 @@ class User(object):
             widget.ProcessEvent(ret_d)
             widget.ProcessEvent(ret_up)
             # Give Yield & Idle to the App
-            wx.GetApp().Yield()
+            app = wx.GetApp()
+            app.Yield()
             ev = wx.IdleEvent()
-            wx.GetApp().ProcessEvent(ev)
+            app.ProcessEvent(ev)
             return True
 
     @classmethod

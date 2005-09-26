@@ -89,14 +89,15 @@ class MainFrame(wx.Frame):
         # application the mainFrame windows doesn't get destroyed, so
         # we'll remove the handler
 
-        wx.GetApp().Bind(wx.EVT_IDLE, None)
+        app = wx.GetApp()
+        app.Bind(wx.EVT_IDLE, None)
 
         # When we quit, as each wxWidget window is torn down our handlers that
         # track changes to the selection are called, and we don't want to count
         # these changes, since they weren't caused by user actions.
 
-        wx.GetApp().ignoreSynchronizeWidget = True
-        wx.GetApp().frame = None
+        app.ignoreSynchronizeWidget = True
+        app.frame = None
         Globals.mainViewRoot.frame = None
         self.Destroy()
 

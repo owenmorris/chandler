@@ -922,7 +922,8 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             msg += _(u" - SMTP (outbound email)\n")
         msg += _(u"\nWould you like to enter account information now?")
 
-        response = application.dialogs.Util.yesNo(wx.GetApp().mainFrame,
+        app = wx.GetApp()
+        response = application.dialogs.Util.yesNo(app.mainFrame,
                                                   _(u"Account set up"),
                                                   msg)
         if response == False:
@@ -938,7 +939,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
 
         response = \
           application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
-          wx.GetApp().mainFrame, account=account, view=view)
+          app.mainFrame, account=account, view=view)
 
         if response == False:
             return False

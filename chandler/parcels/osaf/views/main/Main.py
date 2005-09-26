@@ -246,10 +246,11 @@ class MainView(View):
         no percentage is specified the progress bar will disappear.
         """
 
-        wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
+        app = wx.GetApp()
+        app.mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
         if alert:
             # XXX This is not right, the alert should have a caption
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
+            application.dialogs.Util.ok(app.mainFrame,
              "", statusMessage)
             self.setStatusMessage ('')
 

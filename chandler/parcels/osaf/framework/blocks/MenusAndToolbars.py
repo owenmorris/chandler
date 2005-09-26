@@ -421,11 +421,12 @@ class wxMenuItem (wx.MenuItem):
 
     def OnInit(self):
         if hasattr(self.blockItem, 'icon'):
+            app = wx.GetApp()
             uncheckedbitmap = \
-                wx.GetApp().GetImage(self.blockItem.icon + ".png")
+                app.GetImage(self.blockItem.icon + ".png")
             if uncheckedbitmap:
                 checkedbitmap = \
-                    wx.GetApp().GetImage(self.blockItem.icon + "Checked.png")
+                    app.GetImage(self.blockItem.icon + "Checked.png")
                 if not checkedbitmap:
                     checkedbitmap = uncheckedbitmap
                 self.SetBitmaps(checkedbitmap, uncheckedbitmap)
@@ -971,13 +972,14 @@ class ToolbarItem(Block.Block, DynamicChild):
 
     def instantiateWidget (self):
         def getBitmaps (self):
-            bitmap = wx.GetApp().GetImage (self.bitmap)
+            app = wx.GetApp()
+            bitmap = app.GetImage (self.bitmap)
             try:
                 disabledBitmapName = self.disabledBitmap
             except AttributeError:
                 disabledBitmap = wx.NullBitmap
             else:
-                disabledBitmap = wx.GetApp().GetImage (disabledBitmapName)
+                disabledBitmap = app.GetImage (disabledBitmapName)
             return bitmap, disabledBitmap
 
         # can't instantiate ourself without a toolbar
@@ -993,6 +995,7 @@ class ToolbarItem(Block.Block, DynamicChild):
         # for this reason I'm putting the longhelp into shorthelp too.
         shortHelp = self.helpString
         longHelp = self.helpString
+        app = wx.GetApp()
         if (self.toolbarItemKind == 'Button' or
             self.toolbarItemKind == 'Radio'):
 
@@ -1035,7 +1038,7 @@ class ToolbarItem(Block.Block, DynamicChild):
                                wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand, id=id)
+            tool.Bind(wx.EVT_TEXT_ENTER, app.OnCommand, id=id)
         elif self.toolbarItemKind == 'Combo':
             proto = self.prototype
             choices = proto.choices
@@ -1046,8 +1049,8 @@ class ToolbarItem(Block.Block, DynamicChild):
                             (proto.minimumSize.width, proto.minimumSize.height),
                             proto.choices)            
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_COMBOBOX, wx.GetApp().OnCommand, id=id)
-            tool.Bind(wx.EVT_TEXT, wx.GetApp().OnCommand, id=id)
+            tool.Bind(wx.EVT_COMBOBOX, app.OnCommand, id=id)
+            tool.Bind(wx.EVT_TEXT, app.OnCommand, id=id)
         elif self.toolbarItemKind == 'Choice':
             proto = self.prototype
             choices = proto.choices
@@ -1057,7 +1060,7 @@ class ToolbarItem(Block.Block, DynamicChild):
                             (proto.minimumSize.width, proto.minimumSize.height),
                             proto.choices)            
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_CHOICE, wx.GetApp().OnCommand, id=id)
+            tool.Bind(wx.EVT_CHOICE, app.OnCommand, id=id)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
         

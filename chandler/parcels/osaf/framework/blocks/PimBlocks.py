@@ -122,6 +122,7 @@ class FocusEventHandlers(Item):
         selectedItems = event.arguments.get('items', self.__getSelectedItems())
         if len(selectedItems) > 0:
             # if any item is shared, give a warning if marking it private
+            app = wx.GetApp()
             for item in selectedItems:
                 if not item.private and \
                    item.getSharedState() != ContentItem.UNSHARED:
@@ -130,7 +131,7 @@ class FocusEventHandlers(Item):
                     caption = _(u"Change the privacy of a shared item?")
                     msg = _(u"Other people may be subscribed to share this item; " \
                             "are you sure you want to mark it as private?")
-                    if Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                    if Util.yesNo(app.mainFrame, caption, msg):
                         break
                     else:
                         return

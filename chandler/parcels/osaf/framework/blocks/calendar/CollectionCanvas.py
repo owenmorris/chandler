@@ -47,12 +47,13 @@ class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
 
         self.forcedBorder = GetPlatformBorder()
 
-        bitmap = wx.GetApp().GetImage (name + ".png")
+        app = wx.GetApp()
+        bitmap = app.GetImage (name + ".png")
         super(CanvasBitmapButton, self).__init__(parent, -1,
                                                  bitmap, style=wx.NO_BORDER)
         # NB: forcing a white background (as needed by GenBitmapButton)
         # to match the Calendar header background
-        pressedBitmap = wx.GetApp().GetImage(name + "MouseDown.png")
+        pressedBitmap = app.GetImage(name + "MouseDown.png")
         self.SetBitmapSelected(pressedBitmap)
         self.SetBackgroundColour("white")
         self.UpdateSize()

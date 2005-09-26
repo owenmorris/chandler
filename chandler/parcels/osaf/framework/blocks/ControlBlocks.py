@@ -524,12 +524,13 @@ class wxTable(DragAndDrop.DraggableWidget,
         object is being created cause the object to get the wrong type because of a
         "feature" of SWIG. So we need to avoid OnShows in this case.
         """
-        oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
-        wx.GetApp().ignoreSynchronizeWidget = True
+        app = wx.GetApp()
+        oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+        app.ignoreSynchronizeWidget = True
         try:
             super (wxTable, self).__init__ (*arguments, **keywords)
         finally:
-            wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+            app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
         self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
         self.SetRowLabelSize(0)
@@ -1305,7 +1306,8 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         if not child.IsOk():
 
             parentUUID = self.GetItemData(parentId).GetData()
-            for child in self.GetElementChildren (wx.GetApp().UIRepositoryView [parentUUID]):
+            app = wx.GetApp()
+            for child in self.GetElementChildren (app.UIRepositoryView [parentUUID]):
                 cellValues = self.GetElementValues (child)
                 childNodeId = self.AppendItem (parentId,
                                                cellValues.pop(0),
@@ -1809,15 +1811,16 @@ class AEBlock(BoxContainer):
         """
         Override to call the editor to do the synchronization
         """
-        if not wx.GetApp().ignoreSynchronizeWidget and hasattr(self, 'widget'):
-            oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
-            wx.GetApp().ignoreSynchronizeWidget = True
+        app = wx.GetApp()
+        if not app.ignoreSynchronizeWidget and hasattr(self, 'widget'):
+            oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+            app.ignoreSynchronizeWidget = True
             try:
                 editor = self.lookupEditor()
                 if editor is not None:
                     editor.BeginControlEdit(editor.item, editor.attributeName, self.widget)
             finally:
-                wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     def onWidgetChangedSize(self):
         """ 

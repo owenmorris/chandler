@@ -490,19 +490,20 @@ class SSSidebarIconButton (SSSidebarButton):
             iconName += os.path.basename (str (sidebar.filterKind.itsPath))
 
         # First lookup full image name
-        image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
+        app = wx.GetApp()
+        image = app.GetRawImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
         
         # If that fails try the default image wihtout the name of the icon
         if image is None:
-            image = wx.GetApp().GetRawImage (imagePrefix + mouseDown + mouseOver + imageSuffix)
+            image = app.GetRawImage (imagePrefix + mouseDown + mouseOver + imageSuffix)
                 
         # If that fails try the full icon name wihtout mouseOver
         if image is None:
-            image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseDown + imageSuffix)
+            image = app.GetRawImage (imagePrefix + iconName + mouseDown + imageSuffix)
 
         # If that fails try the default image name wihtout mouseOver
         if image is None:
-            image = wx.GetApp().GetRawImage (imagePrefix + mouseDown + imageSuffix)
+            image = app.GetRawImage (imagePrefix + mouseDown + imageSuffix)
 
 
         if image is not None and colorizeIcon:
@@ -644,15 +645,16 @@ class SSSidebarSharingButton (SSSidebarButton):
             iconName += "NotMine"
 
         # First lookup full image name
-        image = wx.GetApp().GetImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
+        app = wx.GetApp()
+        image = app.GetImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
         
         # If that fails try the default image wihtout mouseOver
         if image is None:
-            image = wx.GetApp().GetImage (imagePrefix + iconName + mouseDown + imageSuffix)
+            image = app.GetImage (imagePrefix + iconName + mouseDown + imageSuffix)
                 
         # If that fails try the full icon name wihtout mouseDown and mouseOver
         if image is None:
-            image = wx.GetApp().GetImage (imagePrefix + iconName + imageSuffix)
+            image = app.GetImage (imagePrefix + iconName + imageSuffix)
 
         return image
 

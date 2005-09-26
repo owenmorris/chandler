@@ -203,18 +203,19 @@ class Block(schema.Item):
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)
         if method:
-            oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
-            wx.GetApp().ignoreSynchronizeWidget = True
+            app = wx.GetApp()
+            oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+            app.ignoreSynchronizeWidget = True
             try:
                 widget = method (self)
             finally:
-                wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
               Store a non persistent pointer to the widget in the block. Store a pointer to
             the block in the widget. Undo all this when the widget is destroyed.
             """
             if widget:
-                wx.GetApp().needsUpdateUI = True
+                app.needsUpdateUI = True
                 assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
                 self.widget = widget
                 widget.blockItem = self
@@ -257,12 +258,12 @@ class Block(schema.Item):
                   After the blocks are wired up give the window a chance
                 to synchronize itself to any persistent state.
                 """
-                oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
-                wx.GetApp().ignoreSynchronizeWidget = False
+                oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+                app.ignoreSynchronizeWidget = False
                 try:
                     self.synchronizeWidget()
                 finally:
-                    wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                    app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
                 method = getattr (type (widget), "Thaw", None)
                 if method:
@@ -462,13 +463,14 @@ class Block(schema.Item):
         except AttributeError:
             pass
         else:
-            if not wx.GetApp().ignoreSynchronizeWidget:
-                oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
-                wx.GetApp().ignoreSynchronizeWidget = True
+            app = wx.GetApp()
+            if not app.ignoreSynchronizeWidget:
+                oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+                app.ignoreSynchronizeWidget = True
                 try:
                     method (self.widget)
                 finally:
-                    wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                    app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     def pushView (self):
         """ 

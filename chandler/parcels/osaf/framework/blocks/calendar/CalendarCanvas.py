@@ -1305,9 +1305,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     def __init__(self, parent, id, tzCharacterStyle, *arguments, **keywords):
         super(wxCalendarControl, self).__init__(parent, id, *arguments, **keywords)
     
-        self.allDayCloseArrowImage = wx.GetApp().GetImage("AllDayCloseArrow_whitebg.png")
-        self.allDayOpenArrowImage = wx.GetApp().GetImage("AllDayOpenArrow_whitebg.png")
-        self.allDayBlankArrowImage = wx.GetApp().GetImage("AllDayBlankArrow_whitebg.png")
+        app = wx.GetApp()
+        self.allDayCloseArrowImage = app.GetImage("AllDayCloseArrow_whitebg.png")
+        self.allDayOpenArrowImage = app.GetImage("AllDayOpenArrow_whitebg.png")
+        self.allDayBlankArrowImage = app.GetImage("AllDayBlankArrow_whitebg.png")
 
 
         self.currentSelectedDate = None
