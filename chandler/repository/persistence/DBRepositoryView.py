@@ -402,12 +402,11 @@ class DBRepositoryView(OnDemandRepositoryView):
             if item is not None:
                 values = []
                 references = []
-                kind = item._kind
+                kind = item.itsKind
                 if kind is not None:
                     for name, attr, k in kind.iterAttributes():
                         if name in dirties:
-                            if kind.getOtherName(name,
-                                                 default=None) is not None:
+                            if kind.getOtherName(name, item, None) is not None:
                                 references.append(name)
                             else:
                                 values.append(name)
