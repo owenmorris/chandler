@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.266 2005/09/23 12:54:13 MR Exp $
+// RCS-ID:      $Id: window.cpp,v 1.267 2005/09/26 04:55:02 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -599,7 +599,10 @@ void wxWindowMac::MacControlUserPaneActivateProc(bool activating)
 
 wxInt16 wxWindowMac::MacControlUserPaneFocusProc(wxInt16 action)
 {
-    return kControlNoPart ;
+	if ( AcceptsFocus() )
+		return 1 ;
+	else
+		return kControlNoPart ;
 }
 
 void wxWindowMac::MacControlUserPaneBackgroundProc(void* info)
