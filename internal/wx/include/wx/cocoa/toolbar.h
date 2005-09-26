@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/08/17
-// RCS-ID:      $Id: toolbar.h,v 1.4 2004/11/17 18:02:52 DE Exp $
+// RCS-ID:      $Id: toolbar.h,v 1.5 2005/09/26 16:20:55 DE Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -57,6 +57,7 @@ protected:
 // Cocoa
 // ------------------------------------------------------------------------
 protected:
+    virtual bool Cocoa_acceptsFirstMouse(bool &acceptsFirstMouse, WX_NSEvent theEvent);
     virtual bool Cocoa_drawRect(const NSRect &rect);
     virtual bool Cocoa_mouseDown(WX_NSEvent theEvent);
     virtual bool Cocoa_mouseDragged(WX_NSEvent theEvent);

@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/08/17
-// RCS-ID:      $Id: toolbar.mm,v 1.7 2004/12/28 01:40:03 DE Exp $
+// RCS-ID:      $Id: toolbar.mm,v 1.8 2005/09/26 16:20:57 DE Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -219,6 +219,11 @@ bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
 {
     Realize();
     return true;
+}
+
+bool wxToolBar::Cocoa_acceptsFirstMouse(bool &acceptsFirstMouse, WX_NSEvent theEvent)
+{
+    acceptsFirstMouse = true; return true;
 }
 
 bool wxToolBar::Cocoa_drawRect(const NSRect &rect)
