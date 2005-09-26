@@ -888,7 +888,8 @@ def isWebDAVSetUp(view):
     else:
         return False
 
-def ensureAccountSetUp(view):
+def ensureAccountSetUp(view, sharing=False, inboundMail=False,
+                       outboundMail=False):
     """
     A helper method to make sure the user gets the account info filled out.
 
@@ -905,9 +906,10 @@ def ensureAccountSetUp(view):
 
     while True:
 
-        DAVReady = isWebDAVSetUp(view)
-        InboundMailReady = isInboundMailSetUp(view)
-        SMTPReady = isSMTPSetUp(view)
+        DAVReady = not sharing or isWebDAVSetUp(view)
+        InboundMailReady = not inboundMail or isInboundMailSetUp(view)
+        SMTPReady = not outboundMail or isSMTPSetUp(view)
+
         if DAVReady and InboundMailReady and SMTPReady:
             return True
 

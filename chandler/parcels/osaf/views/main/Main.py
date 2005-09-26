@@ -342,7 +342,7 @@ class MainView(View):
 
         # Make sure we have all the accounts; returns False if the user cancels
         # out and we don't.
-        if not sharing.ensureAccountSetUp(self.itsView):
+        if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
             return
         webdavAccount = sharing.getWebDAVAccount(self.itsView)
 
@@ -609,7 +609,7 @@ class MainView(View):
     def onGetNewMailEvent (self, event):
         # Make sure we have all the accounts; returns False if the user cancels
         # out and we don't.
-        if not sharing.ensureAccountSetUp(self.itsView):
+        if not sharing.ensureAccountSetUp(self.itsView, inboundMail=True):
             return
 
         view = self.itsView
@@ -804,28 +804,8 @@ class MainView(View):
         The "Collection | Share collection " menu item
         """
 
-        done = False
-
-        while not done:
-
-            if sharing.isWebDAVSetUp(self.itsView):
-                done = True
-
-            else:
-                msg = _(u"Please set up a sharing account")
-                if application.dialogs.Util.okCancel(wx.GetApp().mainFrame,
-                    _(u"Account Setup"), msg):
-
-                    account = schema.ns('osaf.app',
-                        self.itsView).currentWebDAVAccount.item
-                    dlg = AccountPreferences.ShowAccountPreferencesDialog
-                    ok = dlg(wx.GetApp().mainFrame, account=account,
-                             view=self.itsView)
-                    if not ok:
-                        return
-                else:
-                    return
-
+        if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
+            return
 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:

@@ -97,7 +97,9 @@ class FocusEventHandlers(Item):
 
         # Make sure we have all the accounts; returns False if the user cancels
         # out and we don't.
-        if not sharing.ensureAccountSetUp(self.itsView):
+        if not sharing.ensureAccountSetUp(self.itsView,
+                                          inboundMail=True,
+                                          outboundMail=True):
             return
 
         sendableItems = [ item for item in selectedItems 
