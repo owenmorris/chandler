@@ -117,6 +117,8 @@ clean:
 
 cleanmanifest:
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/wx -name ".svn" | xargs rm -rf; \
+	find $(SNAP)/$(SITE)/wxPython -name ".svn" | xargs rm -rf; \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f
 
@@ -155,6 +157,8 @@ MANIFEST=$(SNAP)/$(SITE)/wx \
 
 cleanmanifest:
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/wx -name ".svn" | xargs rm -rf; \
+	find $(SNAP)/$(SITE)/wxPython -name ".svn" | xargs rm -rf; \
 	find $(SNAP)/$(SITE)/wx -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wxPython -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wx -name "*.pyo" | xargs rm -f; \
@@ -195,6 +199,8 @@ MANIFEST=$(SNAP)/$(SITE)/wx \
 
 cleanmanifest:
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/wx -name ".svn" | xargs rm -rf; \
+	find $(SNAP)/$(SITE)/wxPython -name ".svn" | xargs rm -rf; \
 	find $(SNAP)/$(SITE)/wx -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wxPython -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wx -name "*.pyo" | xargs rm -f; \
