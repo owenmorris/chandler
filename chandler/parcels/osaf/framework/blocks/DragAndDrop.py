@@ -176,10 +176,7 @@ class DropReceiveWidget (object):
         img = wx.GetApp().GetRawImage(filename)
         if img is None:
             return None
-        if wx.Platform == '__WXGTK__':
-            return wx.IconFromBitmap(wx.BitmapFromImage(img))
-        else:
-            return wx.CursorFromImage(img)
+        return wx.CursorFromImage(img)
 
 
 class DropSourceWithFeedback(wx.DropSource):
