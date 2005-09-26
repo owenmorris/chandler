@@ -172,11 +172,13 @@ class FeedChannel(pim.ListCollection):
 
     def _DoChannel(self, data):
         # fill in the item
-        attrs = {'title':'displayName'}
+
+        # Map some external attribute names to internal attribute names:
+        attrs = {'title':'displayName', 'description':'body'}
         SetAttributes(self, data, attrs)
 
-        attrs = ['link', 'description', 'copyright', 'category', 'language']
-        # @@@MOR attrs = ['link', 'description', 'copyright', 'creator', 'category', 'language']
+        # These attribute names don't need remapping:
+        attrs = ['link', 'copyright', 'category', 'language']
         SetAttributes(self, data, attrs)
 
         date = data.get('date')
