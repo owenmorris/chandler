@@ -247,7 +247,13 @@ class DragAndDropTextCtrl(ShownSynchronizer,
                     # have we had the focus for a little while?
                     if hasattr(self, 'focusedSince'):
                         if datetime.now() - self.focusedSince > timedelta(seconds=.2):
-                            self.DoDragAndDrop()
+                            # Try Dragging the text
+                            result = self.DoCapturedDragAndDrop()
+                            if result == wx.DragNone:
+                                # Drag not allowed - set an insertion point instead
+                                hit, row, column = self.HitTest(event.GetPosition())
+                                if result != wx.TE_HT_UNKNOWN:
+                                    self.SetInsertionPoint(self.XYToPosition(row, column))
                             return # don't skip, eat the click.
         event.Skip()
 

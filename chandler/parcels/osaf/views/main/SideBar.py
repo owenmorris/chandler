@@ -248,7 +248,7 @@ class wxSidebar(ControlBlocks.wxTable):
         # You also can't Cut or Copy items from the sidebar
         return False
 
-    def OnHover (self, x, y):
+    def OnHover (self, x, y, dragResult):
         hoverRow = self.YToRow(y)
         try:
             self.hoverRow
@@ -266,8 +266,34 @@ class wxSidebar(ControlBlocks.wxTable):
         
         # Store current state
         self.hoverRow = hoverRow
-            
-    def OnHoverLeave (self):
+        
+        # don't allow the drag if we're not over an item
+        if hoverRow == wx.NOT_FOUND:
+            dragResult = wx.DragNone
+        else:
+            # Switch to the "move" icon if we're over the trash
+            possibleCollection = self.blockItem.contents[hoverRow]
+            theTrash = schema.ns('osaf.app', self.blockItem.itsView).TrashCollection
+            if possibleCollection is theTrash:
+                if self.GetDragData() is not None: # make sure the data is the kind we want.
+                    dragResult = wx.DragMove
+    
+            # Don't allow a drag if the collection already contains all these items.
+            dragItems = self.GetDragData()
+            if dragItems is not None:
+                try:
+                    allThere = [item in possibleCollection for item in dragItems]
+                except TypeError:
+                    dragResult = wx.DragNone
+                else:
+                    if len(set(allThere)) == 1 and allThere[0] == True:
+                        dragResult = wx.DragNone
+                        # use a custom cursor to let the user know the items are already there
+                        self.SetCustomCursor(wx.DragNone, "DragCheckCursor.png")
+
+        return dragResult
+
+    def OnLeave (self):
         # check if we had a hover row
         try:
             self.hoverRow

@@ -5,66 +5,73 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import application.Globals as Globals
-import time
 
 """
-Overview of Drag and Drop infrastructure:
+Overview of Drag and Drop:
+==========================
 
+Mixin Classes
+-------------
 Mixin classes are provided that should be mixed in to your widget class:
-    Use DraggableWidget for things that export data through Drag & Drop.
-    Use DropReceiveWidget for things that import data through Drag & Drop.
-    Use one of the ClipboardDataHandlers to handle copying data from a
+    - Use DraggableWidget for things that export data through Drag & Drop.
+    - Use DropReceiveWidget for things that import data through Drag & Drop.
+    - Use one of the ClipboardDataHandlers to handle copying data from a
             widget or pasting data into a widget.
-        TextClipboardHandler handles Text data with EditText widgets
-        ItemClipboardHandler handles Item data, with help from the Content Model
+        - TextClipboardHandler handles Text data with EditText widgets
+        - ItemClipboardHandler handles Item data, with help from the Content Model
 
+Clipboard Handlers
+------------------
 Since most of Chandler data are Items, most widgets will use the ItemClipboardHandler.
-    Widgets that mix in ItemClipboardHandler should implement:
-        SelectedItems() to return a list of items currently selected (Copy, Drag)
-        AddItems() to insert a list of items (Paste, Drop)
-        DeleteSelection() to remove the selected items (Cut, Move)
+
+Widgets that mix in ItemClipboardHandler should implement:
+    - SelectedItems() to return a list of items currently selected (Copy, Drag)
+    - AddItems() to insert a list of items (Paste, Drop)
+    - DeleteSelection() to remove the selected items (Cut, Move)
 
 It's easy to write new ClipboardHandlers for your own kind of data:
-    CopyData() - gather data from your widget into a DataObject
-    PasteData() - place data from a DataObject into your widget
-    ClipboardDataFormat() - define the format of your DataObject
-    ClipboardDataObject() - create your data object
-    CanCopy(), CanCut(), CanPaste() - return booleans
-    Cut(), Copy(), Paste() - interact with the clipboard calling 
+    - CopyData() - gather data from your widget into a DataObject
+    - PasteData() - place data from a DataObject into your widget
+    - ClipboardDataFormat() - define the format of your DataObject
+    - ClipboardDataObject() - create your data object
+    - CanCopy(), CanCut(), CanPaste() - return booleans
+    - Cut(), Copy(), Paste() - interact with the clipboard calling 
         CopyData() or PasteData().
 
+What's going on inside
+----------------------
 wxWidgets level:
-    * wx.DropSource - the window you are dragging from
-    * wx.DropTarget - the window you are dragging to
-    * wx.DataObject - the stuff being dragged
-    * wx.DataFormat - the format of the DataObject
+    - wx.DropSource - the window you are dragging from
+    - wx.DropTarget - the window you are dragging to
+    - wx.DataObject - the stuff being dragged
+    - wx.DataFormat - the format of the DataObject
    
 CPIA level:
-    * DraggableWidget - class to mixin that makes widget a DropSource
-    * DropReceiveWidget - class to mixin to make a widget a DropTarget
-    * _DropTarget - helper object connected to the DropReceiveWidget
+    - DraggableWidget - class to mixin that makes widget a DropSource
+    - DropReceiveWidget - class to mixin to make a widget a DropTarget
+    - _DropTarget - helper object connected to the DropReceiveWidget
        that converts wxWidget callbacks to CPIA DnD callbacks.
    
-       Usually there's a one-to-one correspondence between your CPIA 
-    DropReceiveWidget and the wx.DropTarget.  However, the Grid case
-    is a little tricky; the wx.DropTarget is the Table, but the
-    DropReceiveWidget is an individual Grid element (cell).  This
-    allows the Table to decide if the drop should be onto itself
-    or onto its Grid elements.  The default table implementation
-    drops onto itself, but the Sidebar drops onto its Grid elements.
 """
-   
-   
+
+# Global to remember the widget we dragged from
+DraggedFromWidget = None
+
 class DraggableWidget (object):
     """
     Mixin class for widgets that are draggable.
+    @param copyOnly: flag to disable a move operation
+    @type copyOnly: C{None} to allow a move based on the presence of a Delete capability
+        C{True} to disallow a move
+        C{False} to allow a move
+    @return: C{wx.DragResult} - e.g. wx.DragNone if the drag was refused
     """
     def DoDragAndDrop(self, copyOnly=None):
         # capture the mouse, so mouse moves don't trigger activities
         # in other windows, like the sidebar.
         self.CaptureMouse()
         try:
-            self.DoCapturedDragAndDrop(copyOnly)
+            return self.DoCapturedDragAndDrop(copyOnly)
         finally:
             if self.HasCapture():
                 self.ReleaseMouse()
@@ -75,10 +82,13 @@ class DraggableWidget (object):
         If you want to disable Move, pass True for copyOnly.  Passing
            False allows the Move.  Passing None (the default) will
            allow the Move iff you have a DeleteSelection method.
+        @return wx.DragResult - result of the drag 
         """
+        global DraggedFromWidget
         # make sure we got mixed in OK, so the __init__ got called.
         if __debug__:
             assert self.clipboardHandlerInited, "Object of type %s never inited its ClipboardHandler" % type(self)
+
         # set up copyOnly flag - so we know if a 'move' is allowed
         if copyOnly is None:
             if not hasattr (self, 'DeleteSelection'):
@@ -86,43 +96,26 @@ class DraggableWidget (object):
             else:
                 copyOnly = False
 
-        # set up cursor icons for user feedback
-        iconParams = {'copy': self._DROP_ICON("DragCopyCursor.png"),
-                      'none': self._DROP_ICON("DragNotCursor.png")}
-
-        # copyOnly mode - a 'move' operations are allowed, but we treat
-        #  them like 'copy' to get the right cursor defaults
+        # Flags of copy-only will disallow the move, giving the wrong cursor
+        #  until the user presses the option key - not good.
+        # We'll map move to copy during the drag instead.
         flags = wx.Drag_AllowMove
-        if copyOnly:
-            # copy and move are the same - show the same cursor icon
-            iconParams['move'] = iconParams['copy']
-        else:
-            # copy and move a different, load separate 'move' cursor
-            moveCursor = self._DROP_ICON("DragMoveCursor.png")
-            if moveCursor is not None:
-                iconParams['move'] = moveCursor
 
         # create the drop source, set up its data
-        dropSource = wx.DropSource(self, **iconParams)
-        dataObject = self.CopyData()
-        dropSource.SetData(dataObject)
+        DraggedFromWidget = self
+        self.copyOnly = copyOnly
+        self.dropSource = DropSourceWithFeedback(self)
+        self.dataObject = self.CopyData()
+        self.dropSource.SetData(self.dataObject)
 
         # drag and drop the DropSource.  Many callbacks happen here.
-        result = dropSource.DoDragDrop(flags=flags)
+        result = self.dropSource.DoDragDrop(flags=flags)
 
         # if we moved the item, instead of the usual copy, remove the original
         if not copyOnly and result == wx.DragMove:
             self.DeleteSelection()
-
-    def _DROP_ICON(self, filename):
-        # This macro from wxWidgets is going to be in wxPython soon.
-        img = wx.GetApp().GetRawImage(filename)
-        if img is None:
-            return None
-        if wx.Platform == '__WXGTK__':
-            return wx.IconFromBitmap(wx.BitmapFromImage(img))
-        else:
-            return wx.CursorFromImage(img)
+        DraggedFromWidget = None
+        return result
 
 class DropReceiveWidget (object):
     """
@@ -140,30 +133,82 @@ class DropReceiveWidget (object):
         
     def OnRequestDrop(self, x, y):
         """
-          Override this to decide whether or not to accept a dropped 
+        Override this to decide whether or not to accept a dropped 
         item.
         """
-        return True
+        return DraggedFromWidget is not self
         
-    def OnHover(self, x, y):
+    def OnEnter(self, x, y, dragResult):
         """
-          Override this to perform an action when a drag action is
+        Override this to perform an action when a drag enters your widget.
+        
+        @return a wxDragResult other than dragResult if you want to change the drag operation
+        """
+        # default - don't allow dragging to ourself
+        if DraggedFromWidget is self:
+            return wx.DragNone
+        return dragResult
+
+    def OnHover(self, x, y, dragResult):
+        """
+        Override this to perform an action when a drag cursor is
         hovering over the widget.
+        
+        @return a wxDragResult other than dragResult if you want to change the drag operation
+        """
+        # default - don't allow dragging to ourself
+        if DraggedFromWidget is self:
+            return wx.DragNone
+        return dragResult
+
+    def OnLeave(self):
+        """
+        Override this to perform an action when hovering terminates.
         """
         pass
 
-    def OnHoverLeave(self):
+    def SetCustomCursor(self, dragResult, cursorFilename):
+        self.SetCursor(self._DROP_ICON(cursorFilename))
+        DraggedFromWidget.dropSource.OverrideFeedback(dragResult)
+
+    def _DROP_ICON(self, filename):
+        # This macro from wxWidgets is going to be in wxPython soon.
+        img = wx.GetApp().GetRawImage(filename)
+        if img is None:
+            return None
+        if wx.Platform == '__WXGTK__':
+            return wx.IconFromBitmap(wx.BitmapFromImage(img))
+        else:
+            return wx.CursorFromImage(img)
+
+
+class DropSourceWithFeedback(wx.DropSource):
+    """
+    DropSource that can give custom cursor feedback.
+    """
+    def __init__(self, *args, **keys):
+        super(DropSourceWithFeedback, self).__init__(*args, **keys)
+        self.customFeedback = wx.DragError
+
+    def OverrideFeedback(self, dragResult):
         """
-          Override this to perform an action when hovering terminates.
+        Set the one-shot dragResult to override feedback for.
         """
-        pass
+        self.customFeedback = dragResult # temporarily override copy feedback
+
+    def GiveFeedback(self, effect):
+        """
+        Callback from inside wx DropSource::DoDragDrop()
+        """
+        override = self.customFeedback
+        self.customFeedback = wx.DragError # back to normal feedback next time
+        return effect is override
+
 
 class _DropTarget(wx.DropTarget):
     """
-        An instance of this class is a helper object that associates
-        a wx.DropTarget with a receiver - a DropReceiveWidget.
-        Usually these are the same object, but for Grids, they are not;
-        the _DropTarget is the Table, and the Grid element is the receiver.
+    An instance of this class is a helper object that associates
+    a wx.DropTarget with a receiver - a DropReceiveWidget.
     """
     def __init__(self, receiver):
         super (_DropTarget, self).__init__ ()
@@ -175,27 +220,30 @@ class _DropTarget(wx.DropTarget):
     def OnDrop(self, x, y):
         return self.receiver.OnRequestDrop(x, y)
     
-    def OnData(self, x, y, d):
+    def OnData(self, x, y, dragResult):
         if self.GetData():
             dataToPaste = self.dataObject
             self.receiver.PasteData(dataToPaste)
-        return d
+        return dragResult
     
-    def OnDragOver(self, x, y, d):
-        self.receiver.OnHover(x, y)
-        return d
+    def OnDragOver(self, x, y, dragResult):
+        # map "move" to "copy" if copyOnly set
+        if    (dragResult == wx.DragMove 
+               and DraggedFromWidget is not None 
+               and DraggedFromWidget.copyOnly):
+            dragResult = wx.DragCopy
+        return self.receiver.OnHover(x, y, dragResult)
         
-    def OnEnter(self, x, y, d):
-        self.enterTime = time.time()
-        return d
+    def OnEnter(self, x, y, dragResult):
+        # map "move" to "copy" if copyOnly set
+        if    (dragResult == wx.DragMove 
+               and DraggedFromWidget is not None 
+               and DraggedFromWidget.copyOnly):
+            dragResult = wx.DragCopy
+        return self.receiver.OnEnter(x, y, dragResult)
 
     def OnLeave(self):
-        try:
-            leaveMethod = self.receiver.OnHoverLeave
-        except AttributeError:
-            pass
-        else:
-            leaveMethod()
+        self.receiver.OnLeave()
 
 class _ClipboardHandler(object):
     if __debug__:
@@ -203,12 +251,25 @@ class _ClipboardHandler(object):
             super(_ClipboardHandler, self).__init__(*args, **keys)
             self.clipboardHandlerInited = True
 
+    def ClipboardDataFormat(self):
+        raise NotImplementedError
+
     def DataObjectFormat(self):
         format = self.ClipboardDataFormat()
         if isinstance(format, int):
             return wx.DataFormat(format)
         else:
             return wx.CustomDataFormat(format)
+
+    def GetDragData(self):        
+        """
+        Return the data being dragged onto self
+        """
+        if DraggedFromWidget is None:
+            return None
+        dataObject = DraggedFromWidget.dataObject
+        # ask the dragged from widget to convert the data to our format, if possible.
+        return DraggedFromWidget.NativeData(dataObject, self.DataObjectFormat())
 
 class TextClipboardHandler(_ClipboardHandler):
     """
@@ -235,13 +296,19 @@ class TextClipboardHandler(_ClipboardHandler):
 
     def ClipboardDataFormat(self):
         """
-          Override to define which kinds you allow to be dropped.
+        Override to define which kinds you allow to be dropped.
         """
         return wx.DF_TEXT # Default is any kind of Text.
 
     def ClipboardDataObject(self):
         return wx.TextDataObject()
     
+    def NativeData(self, rawObject, dataFormat):
+        # convert the raw data into native data of the desired format
+        if dataFormat != self.ClipboardDataFormat():
+            return None
+        return rawObject.GetText()
+
     """ 
     EditText widgets already implement CanCopy, CanCut, CanPaste,
     Copy, Cut, Paste, etc, so we don't need to here.
@@ -256,13 +323,13 @@ class ItemClipboardHandler(_ClipboardHandler):
     """
     def AddItems(self, itemList):
         """
-          Override this to add the dropped items to your widget.
+        Override this to add the dropped items to your widget.
         """
         pass
     
     def SelectedItems(self):
         """
-          Override this to return the list of selected items.
+        Override this to return the list of selected items.
         """
         return []
     
@@ -294,37 +361,33 @@ class ItemClipboardHandler(_ClipboardHandler):
                 pass
 
         # now create a custom data object for each kind
-        for format, itemUUIDList in self.exportDict.items():
+        for format, itemList in self.exportDict.items():
             customData = wx.CustomDataObject(wx.CustomDataFormat(format))
-            customData.SetData(','.join(itemUUIDList))
+            customData.SetData(self.ExportClipboardItems(itemList))
             compositeObject.Add(customData)
 
-        # Add Text format data - use the Item's display name
-        names = []
-        for item in items:
-            try:
-                names.append(item.about)
-            except AttributeError:
-                pass
-        textObject = wx.TextDataObject()
-        textObject.SetText(', '.join(names))
-        compositeObject.Add(textObject)
-        
         return compositeObject
 
     def ExportItemFormat(self, item, format):
         # Callback for the ContentModel to tell us what format data to export.
         # Builds a dictionary keyed by format with a lists of item UUID strings.
-        try:
-            itemUUIDList = self.exportDict[format]
-        except KeyError:
-            itemUUIDList = []
-            self.exportDict[format] = itemUUIDList
-        itemUUIDList.append(str(item.itsUUID))
+        itemList = self.exportDict.setdefault(format, [])
+        itemList.append(item)
+
+    def ExportClipboardItems(self, items):
+        return ','.join([str(item.itsUUID) for item in items])
+
+    def ImportClipboardItems(self, rawData):
+        itemList = []
+        for itemUUID in rawData.split(','):
+            item = self.blockItem.findUUID(itemUUID)
+            if item is not None:
+                itemList.append(item)
+        return itemList
 
     def ClipboardDataFormat(self):
         """
-          Override to define which kind you allow to be dropped.
+        Override to define which kind you allow to be dropped.
         """
         return "Note" # Default is any kind of Note or subclass of Note.
     
@@ -382,12 +445,13 @@ class ItemClipboardHandler(_ClipboardHandler):
         because of a Paste operation, or a Drag and Drop.
         Assumes that the data are Items, override for other kinds.
         """
-        itemUUIDList = data.GetData()
-        itemList = []
-        for itemUUID in itemUUIDList.split(','):
-            item = self.blockItem.findUUID(itemUUID)
-            if item is not None:
-                itemList.append(item)
+        rawData = data.GetData()
+        itemList = self.ImportClipboardItems(rawData)
         if len(itemList)>0:
             self.AddItems(itemList)
+
+    def NativeData(self, rawObject, dataFormat):
+        # convert the raw data into native data of the desired format
+        rawData = rawObject.GetDataHere(dataFormat)
+        return self.ImportClipboardItems(rawData)
 

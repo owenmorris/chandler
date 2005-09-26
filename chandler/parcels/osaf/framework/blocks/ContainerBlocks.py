@@ -614,16 +614,21 @@ class wxTabbedContainer(DragAndDrop.DropReceiveWidget,
                 if isinstance(newItem, Block):
                     self.blockItem.ChangeCurrentTab(node)
 
-    def OnHover(self, x, y):
+    def OnEnter(self, x, y, dragResult):
+        self.enterTime = time.time()
+        return dragResult
+        
+    def OnHover(self, x, y, dragResult):
         currentTab = self.HitTest((x, y))[0]
         if currentTab < 0:
-            return
+            return dragResult
         currentTime = time.time()
         if not hasattr(self, "hoverTab") or self.hoverTab != currentTab:
             self.hoverTab = currentTab            
             self.dropTarget.enterTime = currentTime
         elif (currentTime - self.dropTarget.enterTime) > 1:
             self.SetSelection(currentTab)
+        return dragResult
             
     def wxSynchronizeWidget(self):
         assert(len(self.blockItem.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
