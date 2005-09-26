@@ -226,12 +226,10 @@ realclean: clean
 
 upload: wxPython-$(SNAP)-$(RELVER).tar.gz
 	scp wxPython-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp wxPython-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 snap: cleanmanifest
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
-	$(MD5) wxPython-$(SNAP)-$(RELVER).tar.gz > wxPython-$(SNAP)-$(RELVER).tar.gz.md5
 
 install:
 	cd $(BUILD_ROOT); \

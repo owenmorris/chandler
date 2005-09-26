@@ -87,7 +87,6 @@ MANIFEST=$(SNAP)/Run* \
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LAUNCHERS)/Launchers-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
-	$(MD5) Launchers-$(SNAP)-$(RELVER).tar.gz > Launchers-$(SNAP)-$(RELVER).tar.gz.md5
 
 install:
 	cd $(BUILD_ROOT); \
@@ -98,4 +97,3 @@ realclean: clean
 
 upload: Launchers-$(SNAP)-$(RELVER).tar.gz
 	scp Launchers-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp Launchers-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
