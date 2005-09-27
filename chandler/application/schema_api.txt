@@ -509,6 +509,141 @@ And calling ``kindInfo()`` is meaningless outside a class statement::
     SyntaxError: kindInfo() must be called in the body of a class statement
 
 
+Annotation Classes
+==================
+
+Chandler types can be extended to add new attributes not envisioned by their
+creators, using ``schema.Annotation`` classes.  Here, we'll define a
+"Teacher" annotation class that adds "annotation attributes" to "Person"::
+
+    >>> __name__ = "application.tests"    # pretend we're in this parcel
+
+    >>> class Teacher(schema.Annotation):
+    ...     schema.kindInfo(annotates=Person)   # annotate the "Person" type
+    ...     certifications = schema.Sequence()
+    ...     supervisor = schema.One(Person)
+
+    >>> class TeachingCertificate(schema.Item):
+    ...     subject = schema.One(schema.Text)
+    ...     certified_teachers = schema.Sequence(
+    ...         Teacher, inverse=Teacher.certifications
+    ...     )
+
+Annotation classes do not create persistent items.  Instead, their instances
+are wrappers that give you access to the annotation attributes, which are
+actually stored on the wrapped item::
+   
+    >>> ProfMary = Teacher(Mary)
+    >>> gym = TeachingCertificate("gym", subject=u"Physical Education")
+    >>> ProfMary.certifications = [gym]
+    >>> list(ProfMary.certifications)
+    [<TeachingCertificate ... gym ...>]
+
+    >>> list(gym.certified_teachers)
+    [Mary Quite Contrary]
+
+As you can see, you can set or get attributes on the "Teacher" object, that
+will actually be stored in the "Mary" item.  Because the annotation wrapper
+delegates all the attribute storage to the underlying "Person", you can create
+as many wrappers as you want for a given item and they will all share the same
+attribute values::
+
+    >>> list(Teacher(Mary).certifications)
+    [<TeachingCertificate ... gym ...>]
+    
+These additional attributes are added to the annotated kinds, using their
+module/class names to distinguish them from "native" or "essential" attributes
+of the kind::
+
+    >>> sorted(
+    ...     a.itsName for a in Person.getKind().attributes
+    ... ) # doctest: +NORMALIZE_WHITESPACE
+    ... 
+    ['age', 'application.tests.School.attendees.inverse',
+     'application.tests.Teacher.certifications',
+     'application.tests.Teacher.supervisor', 'children', 'fullname', 'parents']
+
+So you can still get to these attributes without using the Annotation wrapper,
+as long as you use the fully-qualified attribute name::
+
+    >>> list(getattr(Mary,'application.tests.Teacher.certifications'))
+    [<TeachingCertificate ... gym ...>]
+
+And setting or deleting the attribute on either the underlying item (full name)
+or the annotation wrapper (short name) has identical effects::
+
+    >>> setattr(Mary, 'application.tests.Teacher.supervisor', Joe)
+    >>> ProfMary.supervisor
+    Joe Schmoe
+
+    >>> del ProfMary.supervisor
+    >>> hasattr(Mary, 'application.tests.Teacher.supervisor')
+    False
+
+You cannot assign arbitrary attributes to annotation instances, only ones
+that were defined in its schema, or by using ``__slots__`` in the class
+definition::
+
+    >>> ProfMary.foo = "bar"
+    Traceback (most recent call last):
+      ...
+    AttributeError: 'Teacher' object has no attribute 'foo'
+
+    >>> class Friend(schema.Annotation):
+    ...     __slots__ = ["jabberConnection"]
+    ...     schema.kindInfo(annotates=Person)
+    ...     likes = schema.Sequence()
+    ...     isLikedBy = schema.Sequence(inverse=likes)
+
+    >>> Friend(Mary).isLikedBy = [Joe]
+    >>> list(Friend(Joe).likes)
+    [Mary Quite Contrary]
+
+Note, however, that variables defined in ``__slots__`` are *transient*; they
+will not be stored in the repository.  They also are per-annotation instance,
+not per underlying item::
+
+    >>> fMary = Friend(Mary)
+    >>> fMary.jabberConnection = "just pretending"
+    >>> fMary.jabberConnection
+    'just pretending'
+    
+    >>> f2Mary = Friend(Mary)
+    >>> f2Mary.jabberConnection
+    Traceback (most recent call last):
+      ...
+    AttributeError: jabberConnection
+
+Annotation class instances must wrap an instance of the type they were defined
+as annotating::
+
+    >>> Teacher(gym)
+    Traceback (most recent call last):
+      ...
+    TypeError: <class '...Teacher'> requires a <class '...Person'> instance
+
+or an instance of another annotation wrapping an instance of the appropriate
+type.  Thus, we can convert a ``Friend`` to a ``Teacher`` or vice versa::
+
+    >>> Teacher(fMary)
+    Teacher(Mary Quite Contrary)
+    
+    >>> Friend(ProfMary)
+    Friend(Mary Quite Contrary)
+
+    >>> Friend(Teacher(Friend(Friend(ProfMary))))
+    Friend(Mary Quite Contrary)
+
+Finally, if you need to get at the annotated item of an annotation instance,
+you can use the ``itsItem`` attribute::
+
+    >>> fMary.itsItem
+    Mary Quite Contrary
+
+
+    >>> del __name__    # CLEANUP (quit pretending we're in application.tests)
+
+
 Enumerations
 ============
 
@@ -972,7 +1107,7 @@ loaded::
         >>> schema.itemFor(schema.One())
         Traceback (most recent call last):
         ...
-        TypeError: role object used outside of schema.Item subclass
+        TypeError: role object used outside of schema class
 
     And once a role's ``Attribute`` is generated, you cannot change any of its
     attributes any more::

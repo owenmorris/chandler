@@ -1,6 +1,5 @@
 from repository.persistence.RepositoryView import NullRepositoryView
 from repository.item.Item import Item as Base
-from repository.item.Query import KindQuery
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
 from repository.schema import Types
@@ -13,13 +12,50 @@ __all__ = [
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module', 'TypeReference',
     'Enumeration', 'Cloud', 'Endpoint', 'addClouds', 'Struct',
-    'assertResolved',
+    'assertResolved', 'Annotation', 'AnnotationItem',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
     ('displayName','description')
 
 global_lock = threading.RLock()
+
+
+class TypeReference:
+    """Reference a core schema type (e.g. Integer) by its repository path"""
+
+    def __init__(self,path):
+        called_from_here = sys._getframe(1).f_globals is globals()
+        if not called_from_here and _get_nrv().findPath(path) is None:
+            # We don't do a check if the TypeReference was created in this
+            # module, thereby avoiding all sorts of bootstrapping issues
+            raise NameError("Type %r not found in the core schema" % (path,))
+        self.path = path
+        self.__name__ = path.split('/')[-1]
+
+    def __repr__(self):
+        return "TypeReference(%r)" % self.path
+
+    def _find_schema_item(self,view):
+        item = view.findPath(self.path)
+        if item is None:
+            raise TypeError("Unrecognized type", self.path)
+        return item
+
+    def targetType(self):
+        return self
+
+core_types = """
+Boolean String Symbol Importable Bytes Text Integer Long Float
+Tuple List Set Class Dictionary Anything
+Date Time DateTime TimeDelta TimeZone
+Lob URL Complex UUID Path SingleRef
+""".split()
+
+for name in core_types:
+    globals()[name] = TypeReference("//Schema/Core/"+name)
+
+__all__.extend(core_types)
 
 
 class ForwardReference:
@@ -44,7 +80,7 @@ class ForwardReference:
             if '.' in self.name:
                 return importString(self.name)
         else:
-            module = sys.modules[self.role.owner.__module__] 
+            module = sys.modules[self.role.owner.__module__]
             if '.' in self.name:
                 return importString(self.name, module.__dict__)
             elif self.role.type is self:
@@ -62,6 +98,9 @@ class ForwardReference:
                 "Can't resolve local forward reference %r from %r"
                 % (self.name,self.role)
             )
+
+    def targetType(self):
+        return self
 
     def __eq__(self,other):
         if self is other:
@@ -86,25 +125,6 @@ class ForwardReference:
     def __ne__(self,other):
         return not self.__eq__(other)
 
-    
-class TypeReference:
-    """Reference a core schema type (e.g. Integer) by its repository path"""
-
-    def __init__(self,path):
-        if _get_nrv().findPath(path) is None:
-            raise NameError("Type %r not found in the core schema" % (path,))
-        self.path = path
-        self.__name__ = path.split('/')[-1]
-
-    def __repr__(self):
-        return "TypeReference(%r)" % self.path
-
-    def _find_schema_item(self,view):
-        item = view.findPath(self.path)
-        if item is None:
-            raise TypeError("Unrecognized type", self.path)
-        return item
-
 
 class ActiveDescriptor(object):
     """Abstract base for descriptors needing activation by their classes"""
@@ -121,6 +141,10 @@ class Activator(type):
         for name,ob in cdict.items():
             if isinstance(ob,ActiveDescriptor):
                 ob.activateInClass(cls,name)
+
+    def targetType(cls):
+        """By default, backreferences to arbitrary classes go nowhere"""
+        return None
 
 
 class Role(ActiveDescriptor,CDescriptor):
@@ -153,23 +177,23 @@ class Role(ActiveDescriptor,CDescriptor):
         if self.owner is None:
             self.owner = cls
             CDescriptor.__init__(self,name)
-            if isinstance(cls,ItemClass) and self.inverse is not None:
+            if cls.targetType() and self.inverse is not None:
                 if isinstance(self.inverse,ForwardReference):
                     return
                 elif isinstance(self.inverse.inverse,ForwardReference):
                     self.inverse.inverse = self
                 if set_type:
-                    self.inverse.type = cls
+                    self.inverse.type = cls.targetType()
 
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
         super(Role,self).__setattr__(attr,value)
 
-    def __setattr__(self,attr,value):       
+    def __setattr__(self,attr,value):
         if not hasattr(type(self),attr):
             raise TypeError("%r is not a public attribute of %r objects"
                 % (attr,type(self).__name__))
-                
+
         old = getattr(self,attr,None)
         if old is not None and old<>value:
             raise TypeError(
@@ -181,7 +205,7 @@ class Role(ActiveDescriptor,CDescriptor):
                 "Role object %r cannot be modified after use" % self
             )
 
-        self._setattr(attr,value)
+        self._setattr(attr, value)
 
         if attr=='type' and value is not None:
             if not hasattr(value,"_find_schema_item"):
@@ -190,6 +214,8 @@ class Role(ActiveDescriptor,CDescriptor):
                     "Attribute type must be Item/Enumeration class or "
                     "TypeReference",value
                 )
+            if value.targetType():
+                self._setattr(attr, value.targetType())
             self.setDoc()   # update docstring
 
     def __setInverse(self,inverse):
@@ -211,8 +237,8 @@ class Role(ActiveDescriptor,CDescriptor):
                     self._setattr('_inverse',None)  # roll back the change
                     raise
 
-                if self.owner is not None and isinstance(self.owner,ItemClass):
-                    inverse.type = self.owner
+                if self.owner and self.owner.targetType():
+                    inverse.type = self.owner.targetType()
 
     inverse = property(
         lambda s: s._inverse, __setInverse, doc="""The inverse of this role"""
@@ -263,7 +289,7 @@ class Role(ActiveDescriptor,CDescriptor):
     def _create_schema_item(self, view):
         if self.owner is None or self.name is None:
             raise TypeError(
-                "role object used outside of schema.Item subclass"
+                "role object used outside of schema class"
             )
 
         if isinstance(self.inverse,ForwardReference):
@@ -308,7 +334,7 @@ class Role(ActiveDescriptor,CDescriptor):
 
         if self.annotates:
             for cls in self.annotates:
-                kind = itemFor(cls)
+                kind = itemFor(cls, view)
                 kind.attributes.append(attr, attr.itsName)
 
         if self.inverse is not None:
@@ -354,7 +380,7 @@ class Endpoint(object):
         self.includePolicy = includePolicy
         self.cloudAlias = cloudAlias
         self.method = method
-        
+
     def make_endpoint(self, cloud, alias):
         ep = _Endpoint(
             self.name, cloud, itemFor(_Endpoint, cloud.itsView),
@@ -370,14 +396,14 @@ class Endpoint(object):
 
 class AttributeAsEndpoint(Endpoint):
     """Adapt a Role or attribute name to use as an Endpoint factory"""
-    
+
     def __new__(cls, attr, policy):
         if isinstance(attr, Endpoint):
             if attr.includePolicy != policy:
                 raise ValueError("Endpoint policy doesn't match group")
             return attr
-        return super(AttributeAsEndpoint,cls).__new__(cls,None,(),policy)          
-        
+        return super(AttributeAsEndpoint,cls).__new__(cls,None,(),policy)
+
     def __init__(self, attr, policy):
         if isinstance(attr,str):
             super(AttributeAsEndpoint,self).__init__(attr,(attr,), policy)
@@ -427,7 +453,7 @@ class Cloud:
     """
 
     def __init__(self,*byValue,**groups):
-        self.endpoints = [AttributeAsEndpoint(ep,'byValue') for ep in byValue]        
+        self.endpoints = [AttributeAsEndpoint(ep,'byValue') for ep in byValue]
         for policy,group in groups.items():
             if not isinstance(group, (list,tuple)):
                 raise TypeError("Endpoint groups must be lists or tuples")
@@ -444,7 +470,7 @@ class Cloud:
             cloud.endpoints.append(ep, ep.itsName)
         return cloud
 
-        
+
 class ItemClass(Activator):
     """Metaclass for schema.Item"""
 
@@ -466,7 +492,7 @@ class ItemClass(Activator):
             item = parent.getItemChild(cls.__name__)
             if isinstance(item,Kind) and item.getItemClass() is cls:
                 return item
-        
+
     def _create_schema_item(cls, view):
         return Kind("tmp_"+cls.__name__, view, itemFor(Kind, view))
 
@@ -511,6 +537,10 @@ class ItemClass(Activator):
             for k,v in attrs.iteritems():
                 setattr(item,k,v)
         return item
+
+    def targetType(cls):
+        """Backreferences to an Item class go to that class"""
+        return cls
 
 
 class ItemRoot:
@@ -569,10 +599,10 @@ class Item(Base):
                     view = kind.itsView
                 else:
                     view = _get_nrv()
-    
+
             if parent is None:
                 parent = self.getDefaultParent(view)
-    
+
             if kind is None:
                 kind = self.getKind(view)
 
@@ -597,11 +627,104 @@ class Item(Base):
         matches.  If `view` is omitted, the schema API's null repository view
         is used.
         """
-        return KindQuery(not exact).run([itemFor(cls,view)])
+        return itemFor(cls,view).iterItems(not exact)
+
+
+class AnnotationItem(Item):
+    """Persistent data for Annotation types"""
+    annotates = One(Class)
+
+
+class Redirector(object):
+    """Descriptor that does annotation attribute redirection"""
+
+    def __init__(self, cdesc):
+        self.cdesc = cdesc
+        self.name = cdesc.name
+        self.__doc__ = cdesc.__doc__
+
+    def __get__(self, ob, typ=None):
+        if ob is None:
+            # pretend to be the original descriptor if retrieved from class
+            return self.cdesc
+        return getattr(ob.itsItem, self.name)
+
+    def __set__(self, ob, val):
+        setattr(ob.itsItem, self.cdesc.name, val)
+
+    def __delete__(self, ob):
+        delattr(ob.itsItem, self.name)
+
+
+class AnnotationClass(type):
+    """Metaclass for annotation types"""
+
+    _kind_class = AnnotationItem
+
+    # Prevent __kind_info__ from being inherited by Annotation classes; each
+    # class must define its own, if it has any.
+    __kind_info__ = ItemClass.__kind_info__
+
+    def __new__(cls,name,bases,cdict):
+        cdict.setdefault('__slots__', [])
+        return super(AnnotationClass,cls).__new__(cls,name,bases,cdict)
+
+    def __init__(cls,name,bases,cdict):
+        for name,ob in cdict.items():
+            if isinstance(ob,Role):
+                basename = "%s.%s." % (parcel_name(cls.__module__), cls.__name__)
+                ob.annotates = cls.targetType(),
+                ob.activateInClass(cls,basename+name)
+                setattr(cls,name,Redirector(ob))
+            elif isinstance(ob,ActiveDescriptor):
+                ob.activateInClass(cls,name)
+
+    def _find_schema_item(cls, view):
+        parent = parcel_for_module(cls.__module__, view)
+        item = parent.getItemChild(cls.__name__)
+        if isinstance(item, AnnotationItem):
+            return item
+
+    def _create_schema_item(cls, view):
+        return AnnotationItem(
+            cls.__name__, parcel_for_module(cls.__module__, view),
+        )
+
+    def _init_schema_item(cls, annInfo, view):
+        for attr in cls.__dict__.values():
+            if isinstance(attr,Redirector):
+                itemFor(attr.cdesc, view)     # ensure all attributes exist
+
+    def targetType(cls):
+        try:
+            return cls.__kind_info__['annotates']
+        except KeyError:
+            raise TypeError(
+                "Annotation must use schema.kindInfo(annotates=[classes])"
+            )
+
+
+class Annotation:
+    """Base class for annotations"""
+    __metaclass__ = AnnotationClass
+    __kind_info__ = {'annotates':None}  # Annotation doesn't annotate anything
+    __slots__ = ['itsItem']
+
+    def __init__(self, itsItem):
+        if isinstance(itsItem,Annotation):
+            itsItem = itsItem.itsItem   # unwrap if annotation
+        required = type(self).targetType()
+        if not isinstance(itsItem, required):
+            raise TypeError("%s requires a %s instance" % (type(self),required))
+        itemFor(type(self), itsItem.itsView)
+        self.itsItem = itsItem
+
+    def __repr__(self):
+        return "%s(%r)" % (type(self).__name__, self.itsItem)
 
 
 class StructClass(Activator):
-    """Metaclass for enumerations"""
+    """Metaclass for struct types"""
 
     _kind_class = Types.Struct
 
@@ -627,7 +750,7 @@ class StructClass(Activator):
         item = parent.getItemChild(cls.__name__)
         if isinstance(item,Types.Struct):
             return item
-        
+
     def _create_schema_item(cls, view):
         return SchemaStruct(
             cls.__name__, parcel_for_module(cls.__module__, view),
@@ -646,7 +769,7 @@ class SchemaStruct(Types.Struct):
 
     def makeValue(self,value):
         return self.getImplementationType()(*eval(value)) # XXX
-        
+
 
 class Struct(object):
     __metaclass__ = StructClass
@@ -739,7 +862,7 @@ def _update_info(name,attr,data):
         if k in info:
             raise ValueError("%r defined multiple times for this class" % (k,))
         info[k] = v
-    
+
 def kindInfo(**attrs):
     """Declare metadata for a class' schema item
 
@@ -782,7 +905,7 @@ def addClouds(**clouds):
 
     Takes keyword arguments whose names define the clouds' aliases, and
     whose values are the ``schema.Cloud`` instances.  For example::
-        
+
         class anItem(OtherItem):
             foo = schema.One(schema.String)
             bar = schema.Sequence(Something)
@@ -790,7 +913,7 @@ def addClouds(**clouds):
             schema.addClouds(
                 sharing = schema.Cloud(foo, "displayName"),
                 copying = schema.Cloud(byCloud = [bar]),
-            )    
+            )
     """
     for cloud in clouds.values():
         if not isinstance(cloud,Cloud):
@@ -868,7 +991,7 @@ class ns(object):
 
     def fwdRef(self, cls, name):
         return fwdRef(self.parcel, name, cls, getCaller())
-        
+
     def __getattr__(self, name):
         if name.startswith('_'):
             raise AttributeError("No delegation for private attributes")
@@ -901,7 +1024,7 @@ def _refMap(ob):
         initRepository(view)
         return view._schema_fwdrefs
 
-    
+
 def fwdRef(parent, name, cls=Item, callerInfo=None):
     """Get child `name` of `parent`, creating a new kindless item if needed
 
@@ -940,7 +1063,7 @@ def assertResolved(view):
     them."""
     if not _refMap(view):
         return  # nothing to see, move along
-        
+
     from cStringIO import StringIO
     s = StringIO()
 
@@ -952,13 +1075,13 @@ def assertResolved(view):
             print >>s,"        %s line %d" % (f,l)
 
     raise NameError(s.getvalue())
-    
+
 
 def parcel_name(moduleName):
     """Get a module's __parcel__ or __name__"""
     module = importString(moduleName)
     return getattr(module,'__parcel__',moduleName)
-    
+
 
 class ModuleMaker:
     def __init__(self,moduleName):
@@ -1024,7 +1147,7 @@ class ModuleMaker:
         module = importString(self.moduleName)
         from application.Parcel import Parcel
         return getattr(module,'__parcel_class__',Parcel)
-        
+
     def _create_schema_item(self,view):
         mkParcel = self._get_parcel_factory(view)
         if isinstance(mkParcel, ItemClass):
@@ -1061,7 +1184,7 @@ class ModuleMaker:
             # make sure that the schema for the module is fully created
             for it in module.__dict__.values():
                 if hasattr(it,'_find_schema_item'):
-                    # Import each kind/struct/enum          
+                    # Import each kind/struct/enum
                     itemFor(it,view)
             module.installParcel(item, None)
 
@@ -1108,7 +1231,7 @@ def synchronize(repoView,moduleName):
 
     for item in module.__dict__.values():
         if hasattr(item,'_find_schema_item'):
-            # Import each kind/struct/enum          
+            # Import each kind/struct/enum
             itemFor(item,repoView)
 
 
@@ -1167,7 +1290,7 @@ def itemFor(obj, view=None):
                     for k,v in getattr(obj,'__kind_info__',{}).items():
                         setattr(item,k,v)
                     # set up possibly-recursive data
-                    obj._init_schema_item(item,view) 
+                    obj._init_schema_item(item,view)
             return item
     finally:
         global_lock.release()
@@ -1189,7 +1312,7 @@ def initRepository(rv,
         item_kind = rv.findPath('//Schema/Core/Item')
         rv._schema_fwdrefs = {}
         rv._schema_cache = {
-            Base: item_kind, Item: item_kind, 
+            Base: item_kind, Item: item_kind,
         }
         # Make all core kinds available for subclassing, etc.
         for core_item in rv.findPath('//Schema/Core').iterChildren():
@@ -1236,7 +1359,7 @@ def reset(rv=None):
     try:
         old_rv = nrv
         if rv is None:
-            rv = NullRepositoryView()
+            rv = NullRepositoryView(verify=True)
 
         nrv = rv
         initRepository(nrv)
@@ -1246,11 +1369,6 @@ def reset(rv=None):
         global_lock.release()
 
 
-
-# ---------------------------
-# Setup null view and globals
-# ---------------------------
-
 nrv = None
 
 def _get_nrv():
@@ -1259,16 +1377,4 @@ def _get_nrv():
         reset()
     return nrv
 
-
-core_types = """
-Boolean String Symbol Importable Bytes Text Integer Long Float
-Tuple List Set Class Dictionary Anything
-Date Time DateTime TimeDelta TimeZone
-Lob URL Complex UUID Path SingleRef
-""".split()
-
-for name in core_types:
-    globals()[name] = TypeReference("//Schema/Core/"+name)
-
-__all__.extend(core_types)
-
+reset()
