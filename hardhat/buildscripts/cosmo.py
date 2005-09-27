@@ -28,7 +28,7 @@ reposTest    = [('cosmo',  'test'),
 reposDist    = [('cosmo',  'dist:release', 'dist',   'cosmo*.tar.gz'),
                ]
 
-def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, revID=None):
 
       # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
