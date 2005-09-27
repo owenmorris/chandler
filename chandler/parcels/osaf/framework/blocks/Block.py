@@ -78,9 +78,6 @@ class Block(schema.Item):
     blockName = schema.One(schema.String)
     eventsForNamedLookup = schema.Sequence("BlockEvent", defaultValue=None)
 
-    itemCollectionInclusions = ContentItem.itemCollectionInclusions
-    itemCollectionExclusions = ContentItem.itemCollectionExclusions
-
     parentTrunkSubtrees = schema.Sequence(
         TrunkSubtree,
         otherName = "rootBlocks"    # reference to parent tree of blocks

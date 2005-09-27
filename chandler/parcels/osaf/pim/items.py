@@ -147,11 +147,6 @@ class ContentItem(schema.Item):
         "osaf.framework.blocks.Block.Block", inverse="contents"
     )
 
-    # Placeholders for bidirectional references
-    
-    itemCollectionInclusions = schema.Sequence()    # ItemCollection
-    itemCollectionExclusions = schema.Sequence()    # ItemCollection
-
     # We haven't ported the "other end" of these links, so we have to use
     # 'otherName' settings to ensure that they get hooked up correctly.
     # The 'otherName' settings should be removed once the other side of these
