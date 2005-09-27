@@ -144,6 +144,7 @@ class DragState(object):
     All positions are UNSCROLLED - meaning relative to the virtual space of
     a scrolled window, not the actual coordinates on screen
     """
+
     def __init__(self, canvasItem, window,
                  dragStartHandler,
                  dragHandler,
@@ -194,7 +195,16 @@ class DragState(object):
             
     def HandleDrag(self, unscrolledPosition):
         if not self._dragStarted:
-            self.HandleDragStart()
+            # calculate the absolute drag delta
+            dx, dy = \
+                [abs(d) for d in unscrolledPosition - self.originalPosition]
+
+            # Only initiate the drag if we move at least 5 pixels
+            if (dx > 5 or dy > 5):
+                self.HandleDragStart()
+            else:
+                return
+            
         self.currentPosition = unscrolledPosition
         self._dragDirty = True
 
@@ -674,7 +684,7 @@ class CollectionBlock(Block.RectangularChild):
         """
         Convenience method for posting a selection changed event.
         """
-        if not newSelection and len(self.selection)>0:
+        if not newSelection and len(self.selection) == 1:
             newSelection = self.selection[0]
         self.postEventByName('SelectItemBroadcast', {'item': newSelection})
 
