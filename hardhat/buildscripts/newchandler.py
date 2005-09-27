@@ -12,7 +12,7 @@ True = 1
 False = 0
 
 
-import os, hardhatutil, hardhatlib, sys, re
+import os, hardhatutil, hardhatlib, sys, re, glob
 
 path     = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
@@ -90,6 +90,8 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
+    runPerfTests = (os.getenv('CHANDLER_PERFORMANCE_TEST', 'no').lower() == 'yes')
+
     if not os.path.exists(chanDir):
         # Initialize sources
         print "Setup source tree..."
@@ -110,6 +112,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         for releaseMode in releaseModes:
             doInstall(releaseMode, workingDir, log)
 
+            if runPerfTests:
+                doCATS(workingDir, log)
+
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
 
             if skipTests:
@@ -119,6 +124,12 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
+                else:
+                    if runPerfTests:
+                        ret = doPerformanceTests(hardhatScript, releaseMode, workingDir,
+                                                 outputDir, buildVersion, log)
+                        if ret != 'success':
+                            break
 
         changes = "-first-run"
     else:
@@ -134,11 +145,15 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             for releaseMode in releaseModes:
                 doInstall(releaseMode, workingDir, log)
 
+        if runPerfTests:
+            doCATS(workingDir, log)
+
         if svnChanges:
             log.write("Changes in SVN require making distributions\n")
             changes = "-changes"
             for releaseMode in releaseModes:
-                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
+                doDistribution(releaseMode, workingDir, log, outputDir,
+                               buildVersion, buildVersionEscaped, hardhatScript)
 
         if not svnChanges:
             log.write("No changes\n")
@@ -153,6 +168,12 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
+                else:
+                    if runPerfTests:
+                        ret = doPerformanceTests(hardhatScript, releaseMode, workingDir,
+                                                 outputDir, buildVersion, log)
+                        if ret != 'success':
+                            break
 
     return ret + changes
 
@@ -187,6 +208,45 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         doCopyLog("Tests successful", workingDir, logPath, log)
 
     return "success"  # end of doTests( )
+
+
+def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
+    hardhatlib.setupEnvironment(buildenv)
+
+    chandlerDir = os.path.join(workingDir, "chandler")
+    testDir     = os.path.join(chandlerDir, 'util', 'QATestScripts', 'Performance')
+
+    if buildenv['version'] == 'debug':
+        python = buildenv['python_d']
+        pythonOpts = ''
+    elif buildenv['version'] == 'release':
+        python = buildenv['python']
+        pythonOpts = '-O'
+
+    os.chdir(chandlerDir)
+
+    result = 'success'
+
+    testFiles = glob.glob(os.path.join(testDir, 'Perf*.py'))
+
+    for testFile in testFiles:
+        args = [python, pythonOpts, os.path.join(chandlerDir, 'Chandler.py'),
+                '--create', '--profileDir=%s' % chandlerDir, '--scriptFile=%s' % testFile]
+
+        try:
+            outputlist = hardhatutil.executeCommandReturnOutput(args)
+            hardhatutil.dumpOutputList(outputlist, log)
+
+        except Exception, e:
+            print "a testing error"
+            print "exception raised: ", e
+            doCopyLog("***Error during tests***", workingDir, logPath, log)
+            forceBuildNextCycle(log, workingDir)
+            return "test_failed"
+        else:
+            doCopyLog("Tests successful", workingDir, logPath, log)
+
+    return result
 
 
 def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
@@ -267,10 +327,7 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
 
-    if os.getenv('CHANDLER_PERFORMANCE_TEST', 'no').lower() == 'yes':
-        targets = ['install', 'strip', 'cats']
-    else:
-        targets = ['install', 'strip']
+    targets = ['install', 'strip']
 
     print "Doing make " + dbgStr + clean + " ".join(targets) + "\n"
     log.write("Doing make " + dbgStr + clean + " ".join(targets) + "\n")
@@ -282,6 +339,37 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
         hardhatutil.dumpOutputList(outputList, log)
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "build error"
+        log.write("***Error during build***\n")
+        log.write(separator)
+        log.write("Build log:" + "\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        log.write(separator)
+        forceBuildNextCycle(log, workingDir)
+        raise e
+    except Exception, e:
+        print "build error"
+        log.write("***Error during build***\n")
+        log.write(separator)
+        log.write("No build log!\n")
+        log.write(separator)
+        forceBuildNextCycle(log, workingDir)
+        raise e
+
+
+def doCATS(workingDir, log):
+    moduleDir = os.path.join(workingDir, mainModule)
+    os.chdir(moduleDir)
+
+    print "Doing make cats\n"
+    log.write("Doing make cats\n")
+
+    try:
+        outputList = hardhatutil.executeCommandReturnOutput([buildenv['make'], 'cats'])
+
+        hardhatutil.dumpOutputList(outputList, log)
+
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
         log.write("***Error during build***\n")
