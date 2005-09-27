@@ -871,10 +871,10 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         # tell the sidebar to select the collection    that contains
         # this event - makes the sidebar track the "current" calendar
         # as well as update the gradients correctly
-        #coll = self.parent.blockItem.getContainingCollection(item)
-        #if coll and coll != self.parent.blockItem.contents.collectionList[0]:
-        #    self.parent.blockItem.SelectCollectionInSidebar(coll)
-        #self.parent.wxSynchronizeWidget()
+        # coll = self.blockItem.getContainingCollection(item)
+        # if coll and coll != self.blockItem.contents.collectionList[0]:
+        #     self.blockItem.SelectCollectionInSidebar(coll)
+        # self.wxSynchronizeWidget()
 
 
     def OnEditItem(self, box):
