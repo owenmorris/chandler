@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     29.07.2004
-// RCS-ID:      $Id: choicece.cpp,v 1.6 2005/09/23 12:55:25 MR Exp $
+// RCS-ID:      $Id: choicece.cpp,v 1.7 2005/09/27 17:05:19 ABX Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -223,7 +223,7 @@ bool wxChoice::CreateAndInit(wxWindow *parent,
     if ( style & wxSP_WRAP )
         spiner_style |= UDS_WRAP;
 
-    if ( !MSWCreateControl(UPDOWN_CLASS, spiner_style, posBtn, sizeBtn, _T(""), 0) )
+    if ( !MSWCreateControl(UPDOWN_CLASS, spiner_style, posBtn, sizeBtn, wxEmptyString, 0) )
         return false;
 
     // subclass the text ctrl to be able to intercept some events
@@ -414,8 +414,12 @@ int wxChoice::GetCount() const
     return (int)::SendMessage(GetBuddyHwnd(), LB_GETCOUNT, 0, 0);
 }
 
-int wxChoice::FindString(const wxString& s) const
+int wxChoice::FindString(const wxString& s, bool bCase) const
 {
+    // back to base class search for not native search type
+    if (bCase)
+       return wxItemContainerImmutable::FindString( s, bCase );
+
     int pos = (int)::SendMessage(GetBuddyHwnd(), LB_FINDSTRINGEXACT,
                                (WPARAM)-1, (LPARAM)s.c_str());
 

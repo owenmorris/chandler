@@ -1,5 +1,5 @@
 #
-# $Id: version-script.in 6858 2005-08-29 01:19:27Z davids $
+# $Id: version-script.in,v 1.23 2005/08/28 13:33:31 VZ Exp $
 #
 
 # Note: Remove all of the tags below except for the last one when creating

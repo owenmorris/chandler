@@ -2,7 +2,7 @@
 // Name:        wx/gtk/radiobox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.h,v 1.43 2005/09/23 12:49:17 MR Exp $
+// Id:          $Id: radiobox.h,v 1.44 2005/09/27 16:54:25 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ public:
                 const wxValidator& val = wxDefaultValidator,
                 const wxString& name = wxRadioBoxNameStr);
 
-    int FindString( const wxString& s) const;
+    virtual int FindString(const wxString& s, bool bCase = false) const;
     void SetSelection( int n );
     int GetSelection() const;
 

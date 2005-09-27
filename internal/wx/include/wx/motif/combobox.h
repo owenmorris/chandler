@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        combobox.h
+// Name:        wx/motif/combobox.h
 // Purpose:     wxComboBox class
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: combobox.h,v 1.21 2005/09/23 12:49:55 MR Exp $
+// RCS-ID:      $Id: combobox.h,v 1.22 2005/09/27 16:54:33 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ public:
     virtual void Clear();
     virtual int GetSelection() const ;
     virtual void SetSelection(int n);
-    virtual int FindString(const wxString& s) const;
+    virtual int FindString(const wxString& s, bool bCase = false) const;
     virtual wxString GetString(int n) const ;
     virtual void SetString(int n, const wxString& s);
 

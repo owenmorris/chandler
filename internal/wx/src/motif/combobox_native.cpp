@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        combobox_native.cpp
+// Name:        src/motif/combobox_native.cpp
 // Purpose:     wxComboBox class
 // Author:      Julian Smart, Ian Brown
 // Modified by:
 // Created:     01/02/03
-// RCS-ID:      $Id: combobox_native.cpp,v 1.14 2005/01/19 16:25:24 ABX Exp $
+// RCS-ID:      $Id: combobox_native.cpp,v 1.15 2005/09/27 17:05:13 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -292,8 +292,10 @@ wxString wxComboBox::GetString(int n) const
     return wxDoGetStringInList( GetXmList(this), n );
 }
 
-int wxComboBox::FindString(const wxString& s) const
+int wxComboBox::FindString(const wxString& s, bool bCase) const
 {
+    // FIXME: back to base class for not supported value of bCase
+
     return wxDoFindStringInList( GetXmList( this ), s );
 }
 

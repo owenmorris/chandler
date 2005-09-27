@@ -4,7 +4,7 @@
 %% Author:      Vadim Zeitlin
 %% Modified by:
 %% Created:     01.01.03
-%% RCS-ID:      $Id: ctrlsub.tex,v 1.9 2005/02/22 15:09:47 ABX Exp $
+%% RCS-ID:      $Id: ctrlsub.tex,v 1.10 2005/09/27 16:38:17 ABX Exp $
 %% Copyright:   (c) 2003 Vadim Zeitlin
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,13 +107,15 @@ items in the control.
 
 \membersection{wxControlWithItems::FindString}\label{wxcontrolwithitemsfindstring}
 
-\func{int}{FindString}{\param{const wxString\& }{string}}
+\func{int}{FindString}{\param{const wxString\& }{string}, \param{bool}{ caseSensitive = false}}
 
 Finds an item whose label matches the given string.
 
 \wxheading{Parameters}
 
 \docparam{string}{String to find.}
+
+\docparam{caseSensitive}{Whether search is case sensitive (default is not).}
 
 \wxheading{Return value}
 

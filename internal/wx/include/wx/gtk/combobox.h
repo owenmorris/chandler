@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        combobox.h
+// Name:        wx/gtk/combobox.h
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: combobox.h,v 1.53 2005/09/25 20:23:26 VZ Exp $
+// Id:          $Id: combobox.h,v 1.54 2005/09/27 16:54:25 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ public:
     void Clear();
     void Delete( int n );
 
-    virtual int FindString( const wxString &item ) const;
+    virtual int FindString(const wxString& s, bool bCase = false) const;
     int GetSelection() const;
     int GetCurrentSelection() const;
     wxString GetString( int n ) const;

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: listbox.h,v 1.23 2005/09/23 12:50:46 MR Exp $
+// RCS-ID:      $Id: listbox.h,v 1.24 2005/09/27 16:54:43 ABX Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,8 +103,8 @@ public:
     virtual wxString GetString(int n) const
         { return m_strings->Item(n); }
     virtual void SetString(int n, const wxString& s);
-    virtual int FindString(const wxString& s) const
-        { return m_strings->Index(s); }
+    virtual int FindString(const wxString& s, bool bCase = false) const
+        { return m_strings->Index(s, bCase); }
 
     virtual bool IsSelected(int n) const
         { return m_selections.Index(n) != wxNOT_FOUND; }

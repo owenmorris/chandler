@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.06.01
-// RCS-ID:      $Id: radiocmn.cpp,v 1.12 2005/09/23 12:53:05 MR Exp $
+// RCS-ID:      $Id: radiocmn.cpp,v 1.13 2005/09/27 17:04:58 ABX Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,18 +33,6 @@
 // ============================================================================
 // implementation
 // ============================================================================
-
-int wxRadioBoxBase::FindString(const wxString& s) const
-{
-    int count = GetCount();
-    for ( int n = 0; n < count; n++ )
-    {
-        if ( GetString(n) == s )
-            return n;
-    }
-
-    return wxNOT_FOUND;
-}
 
 int wxRadioBoxBase::GetNextItem(int item, wxDirection dir, long style) const
 {
@@ -176,4 +164,3 @@ void wxRadioBoxBase::SetLabel(int n, const wxString& label)
 #endif // WXWIN_COMPATIBILITY_2_2
 
 #endif // wxUSE_RADIOBOX
-

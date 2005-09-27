@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listbox.h,v 1.44 2005/09/23 12:50:12 MR Exp $
+// RCS-ID:      $Id: listbox.h,v 1.45 2005/09/27 16:54:35 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public:
     virtual int GetCount() const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
-    virtual int FindString(const wxString& s) const;
+    virtual int FindString(const wxString& s, bool bCase = false) const;
 
     virtual bool IsSelected(int n) const;
     virtual void DoSetSelection(int n, bool select);

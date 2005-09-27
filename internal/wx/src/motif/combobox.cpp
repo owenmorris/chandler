@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        combobox.cpp
+// Name:        src/motif/combobox.cpp
 // Purpose:     wxComboBox class
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: combobox.cpp,v 1.34 2005/09/23 12:54:39 MR Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.35 2005/09/27 17:05:13 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -222,8 +222,10 @@ wxString wxComboBox::GetString(int n) const
         return wxEmptyString;
 }
 
-int wxComboBox::FindString(const wxString& s) const
+int wxComboBox::FindString(const wxString& s, bool bCase) const
 {
+    // FIXME: back to base class for not supported value of bCase
+
     int *pos_list = NULL;
     int count = 0;
     wxXmString text( s );
@@ -237,7 +239,7 @@ int wxComboBox::FindString(const wxString& s) const
         return pos;
     }
 
-    return -1;
+    return wxNOT_FOUND;
 }
 
 // Clipboard operations

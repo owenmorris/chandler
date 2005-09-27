@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     29.07.2004
-// RCS-ID:      $Id: choicece.h,v 1.4 2005/09/23 12:50:24 MR Exp $
+// RCS-ID:      $Id: choicece.h,v 1.5 2005/09/27 16:54:36 ABX Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ public:
     virtual int GetSelection() const;
     virtual void SetSelection(int n);
 
-    virtual int FindString(const wxString& s) const;
+    virtual int FindString(const wxString& s, bool bCase = false) const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
 

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        radiobox.cpp
+// Name:        src/motif/radiobox.cpp
 // Purpose:     wxRadioBox
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobox.cpp,v 1.47 2005/09/23 12:54:42 MR Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.48 2005/09/27 17:05:14 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -190,15 +190,6 @@ void wxRadioBox::SetString(int item, const wxString& label)
                         XmNlabelType, XmSTRING,
                         NULL);
     }
-}
-
-int wxRadioBox::FindString(const wxString& s) const
-{
-    int i;
-    for (i = 0; i < m_noItems; i++)
-        if (s == m_radioButtonLabels[i])
-            return i;
-    return wxNOT_FOUND;
 }
 
 void wxRadioBox::SetSelection(int n)
@@ -434,4 +425,3 @@ void wxRadioBoxCallback (Widget w, XtPointer clientData,
   event.SetEventObject(item);
   item->ProcessCommand (event);
 }
-

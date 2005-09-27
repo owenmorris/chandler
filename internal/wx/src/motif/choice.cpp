@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        choice.cpp
+// Name:        src/motif/choice.cpp
 // Purpose:     wxChoice
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: choice.cpp,v 1.47 2005/09/23 12:54:38 MR Exp $
+// RCS-ID:      $Id: choice.cpp,v 1.48 2005/09/27 17:05:12 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -278,7 +278,7 @@ int wxChoice::GetSelection() const
     wxXmString freeMe(text);
     wxString s = wxXmStringToString( text );
 
-    if (!s.IsEmpty())
+    if (!s.empty())
     {
         int i = 0;
         for (wxStringList::compatibility_iterator node = m_stringList.GetFirst ();
@@ -327,21 +327,6 @@ void wxChoice::SetSelection(int n)
 #endif
     }
     m_inSetValue = false;
-}
-
-int wxChoice::FindString(const wxString& s) const
-{
-    int i = 0;
-    for (wxStringList::compatibility_iterator node = m_stringList.GetFirst();
-         node; node = node->GetNext ())
-    {
-        if (s == node->GetData())
-            return i;
-
-        i++;
-    }
-
-    return wxNOT_FOUND;
 }
 
 wxString wxChoice::GetString(int n) const

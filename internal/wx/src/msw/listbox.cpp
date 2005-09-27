@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (owner drawn stuff)
 // Created:
-// RCS-ID:      $Id: listbox.cpp,v 1.124 2005/09/23 12:55:01 MR Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.125 2005/09/27 17:05:17 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -348,8 +348,12 @@ void wxListBox::DoSetItems(const wxArrayString& choices, void** clientData)
     InvalidateBestSize();
 }
 
-int wxListBox::FindString(const wxString& s) const
+int wxListBox::FindString(const wxString& s, bool bCase) const
 {
+    // back to base class search for not native search type
+    if (bCase)
+       return wxItemContainerImmutable::FindString( s, bCase );
+
     int pos = ListBox_FindStringExact(GetHwnd(), (WPARAM)-1, s);
     if (pos == LB_ERR)
         return wxNOT_FOUND;

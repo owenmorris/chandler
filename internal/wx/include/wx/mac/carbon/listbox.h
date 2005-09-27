@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        listbox.h
+// Name:        wx/mac/carbon/listbox.h
 // Purpose:     wxListBox class
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.h,v 1.14 2005/09/23 12:49:34 MR Exp $
+// RCS-ID:      $Id: listbox.h,v 1.15 2005/09/27 16:54:28 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ public:
     virtual int GetCount() const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
-    virtual int FindString(const wxString& s) const;
+    virtual int FindString(const wxString& s, bool bCase = false) const;
 
     virtual bool IsSelected(int n) const;
     virtual void DoSetSelection(int n, bool select);

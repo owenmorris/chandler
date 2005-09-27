@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.29 2005/09/23 12:48:46 MR Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.30 2005/09/27 16:54:19 ABX Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,10 +37,6 @@ public:
 
     // return the item above/below/to the left/right of the given one
     int GetNextItem(int item, wxDirection dir, long style) const;
-
-
-    // implement some of wxItemContainerImmutable functions
-    virtual int FindString(const wxString& s) const;
 
     // deprecated functions
     // --------------------

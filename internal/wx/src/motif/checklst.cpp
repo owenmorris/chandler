@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        checklst.cpp
+// Name:        src/motif/checklst.cpp
 // Purpose:     implementation of wxCheckListBox class
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: checklst.cpp,v 1.21 2005/09/23 12:54:38 MR Exp $
+// RCS-ID:      $Id: checklst.cpp,v 1.22 2005/09/27 17:05:12 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ bool wxCheckListBox::Create(wxWindow *parent, wxWindowID id,
     bool retVal = wxListBox::Create(parent, id, pos, size, n, choices,
                                     style, validator, name);
     return retVal;
-}   
+}
 
 bool wxCheckListBox::Create(wxWindow *parent, wxWindowID id,
                             const wxPoint& pos,
@@ -111,7 +111,7 @@ bool wxCheckListBox::Create(wxWindow *parent, wxWindowID id,
     bool retVal = wxListBox::Create(parent, id, pos, size, choices,
                                     style, validator, name);
     return retVal;
-}   
+}
 
 // check items
 // -----------
@@ -156,10 +156,10 @@ int wxCheckListBox::DoAppend(const wxString& item)
     return wxListBox::DoAppend( Prefix(false) + item );
 }
 
-int wxCheckListBox::FindString(const wxString& s) const
+int wxCheckListBox::FindString(const wxString& s, bool bCase) const
 {
-    int n1 = wxListBox::FindString(Prefix(false) + s);
-    int n2 = wxListBox::FindString(Prefix(true) + s);
+    int n1 = wxListBox::FindString(Prefix(false) + s, bCase);
+    int n2 = wxListBox::FindString(Prefix(true) + s, bCase);
     int min = wxMin(n1, n2), max = wxMax(n1, n2);
 
     // why this works:
