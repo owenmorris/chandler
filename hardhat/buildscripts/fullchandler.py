@@ -21,7 +21,7 @@ reposBase    = 'trunk'
 reposModules = ['external', 'internal', 'chandler']
 releaseModes = ('debug', 'release')
 
-def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, revID=None):
 
     global buildenv, changes
 
