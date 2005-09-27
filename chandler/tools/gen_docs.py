@@ -551,29 +551,44 @@ def _mkdirs(newdir, mode=0777):
             raise
 
 
+  # "borrowed" verbatim from the python setuptools sandbox
+  # http://cvs.sourceforge.net/viewcvs.py/python/python/nondist/sandbox/setuptools/setuptools/__init__.py?view=markup
+
+def find_packages(where='.', exclude=()):
+    """
+    Return a list all Python packages found within directory 'where'
+
+    'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
+    will be converted to the appropriate local path syntax.  'exclude' is a
+    sequence of package names to exclude; '*' can be used as a wildcard in the
+    names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
+    'foo' itself).
+    """
+    from distutils.util import convert_path
+
+    out = []
+    stack=[(convert_path(where), '')]
+    while stack:
+        where,prefix = stack.pop(0)
+        for name in os.listdir(where):
+            fn = os.path.join(where,name)
+            if (os.path.isdir(fn) and
+                os.path.isfile(os.path.join(fn,'__init__.py'))
+            ):
+                out.append(prefix+name); stack.append((fn,prefix+name+'.'))
+    for pat in exclude:
+        from fnmatch import fnmatchcase
+        out = [item for item in out if not fnmatchcase(item,pat)]
+    return out
+
+
 def generateDocs(options, outputDir):
     if options.verbose:
         verbosity = 4
     else:
         verbosity = 1
 
-    if sys.platform == 'cygwin' or os.name == 'nt':
-        chandlerdb  = 'release/bin/Lib/site-packages/chandlerdb'
-        pyicu       = 'release/bin/Lib/site-packages/PyICU.py'
-        pylucene    = 'release/bin/Lib/site-packages/PyLucene.py'
-    elif sys.platform == 'darwin':
-        chandlerdb  = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/chandlerdb'
-        pyicu       = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/PyICU.py'
-        pylucene    = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/PyLucene.py'
-    else:
-        chandlerdb  = 'release/lib/python2.4/site-packages/chandlerdb'
-        pyicu       = 'release/lib/python2.4/site-packages/PyICU.py'
-        pylucene    = 'release/lib/python2.4/site-packages/PyLucene.py'
-
     chandlerBin = os.getenv('CHANDLERBIN')
-    chandlerdb  = os.path.join(chandlerBin, chandlerdb)
-    pyicu       = os.path.join(chandlerBin, pyicu)
-    pylucene    = os.path.join(chandlerBin, pylucene)
 
     targetDir = os.path.join(outputDir, 'api')
 
@@ -584,6 +599,18 @@ def generateDocs(options, outputDir):
       # It is used by most of the epydoc routines and
       # the contents were determined by examining epydoc/gui.py
       # and epydoc/cli.py
+
+    source_modules = ['samples/skeleton', 'Chandler.py', 'version.py', 
+                      'PyICU', 'PyLucene',
+                      'chandlerdb', 'chandlerdb.item', 'chandlerdb.persistence', 
+                      'chandlerdb.schema', 'chandlerdb.util']
+
+    source_modules += find_packages('application', exclude=['*.tests'])
+    source_modules += find_packages('i18n',        exclude=['*.tests'])
+    source_modules += find_packages('repository',  exclude=['*.tests'])
+    source_modules += find_packages('parcels',     exclude=['*.tests'])
+
+    print 'find_packages: ', source_modules
 
     e_options = { 'target':       targetDir,
                   'verbosity':    verbosity,
@@ -600,30 +627,7 @@ def generateDocs(options, outputDir):
                   'alphabetical': 1,
                   'ignore_param_mismatch':   1,
                   'list_classes_separately': 0,
-                  'modules': ['application',
-                              'i18n',
-                              'parcels/feeds',
-                              'parcels/osaf',
-                              'parcels/osaf/app',
-                              'parcels/osaf/examples',
-                              'parcels/osaf/framework',
-                              'parcels/osaf/mail',
-                              'parcels/osaf/pim',
-                              'parcels/osaf/servlets',
-                              'parcels/osaf/sharing',
-                              'parcels/osaf/tests',
-                              'parcels/osaf/views',
-                              'parcels/photos',
-                              'repository',
-                              'samples/skeleton',
-                              'tools',
-                              'util',
-                              'Chandler.py',
-                              'version.py',
-                              chandlerdb,  # This comes from internal
-                              pyicu,       # This comes from external
-                              pylucene,    # This comes from external
-                             ],
+                  'modules': source_modules,
                  }
 
       # based on the code in epydoc's gui.py
