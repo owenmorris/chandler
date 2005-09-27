@@ -29,7 +29,7 @@ mainModule   = reposModules[0]
 
 releaseModes = ('debug', 'release')
 
-def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, tagID=None):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, tagID=None, revID=None):
 
     global buildenv, changes
 
@@ -102,8 +102,14 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
             log.write("[tbox] Retrieving source tree [%s]\n" % svnSource)
 
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [svnProgram, "-q", "co", svnSource, module])
+            # if revID is present then we have to modify the request to include
+            # the given revision #
+            if revID:
+                cmd = [svnProgram, "-q", "co", "-r %s" % revID, svnSource, module]
+            else:
+                cmd = [svnProgram, "-q", "co", svnSource, module]
+
+            outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
 
             hardhatutil.dumpOutputList(outputList, log)
 
@@ -137,7 +143,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         print "Checking SVN for updates"
         log.write("Checking SVN for updates\n")
-        svnChanges = changesInSVN(chanDir, workingDir, log)
+        svnChanges = changesInSVN(chanDir, workingDir, log, revID)
 
         if svnChanges:
             log.write("Changes in SVN require install\n")
@@ -284,7 +290,7 @@ def doCopyLog(msg, workingDir, logPath, log):
     log.write(separator)
 
 
-def changesInSVN(moduleDir, workingDir, log):
+def changesInSVN(moduleDir, workingDir, log, revID):
     changesAtAll = False
 
     for module in reposModules:
@@ -295,7 +301,14 @@ def changesInSVN(moduleDir, workingDir, log):
         print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
         os.chdir(moduleDir)
 
-        outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
+        # if revID is present then we have to modify the request to include
+        # the given revision #
+        if revID:
+            cmd = [svnProgram, "up", "-r %s" % revID]
+        else:
+            cmd = [svnProgram, "up"]
+
+        outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
 
         hardhatutil.dumpOutputList(outputList, log) 
 

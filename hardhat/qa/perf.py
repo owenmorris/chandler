@@ -493,9 +493,12 @@ class perf:
             s = 'alert'
           else:
             s = 'warn'
+        else:
+            if c_perc > 10.0:
+                s = 'good'
 
-        line += '<td>%s</td><td class="number">%02.3f</td>' % (revision, avg)
-        line += '<td class="number">%02.3f</td>' % targetAvg
+        line += '<td>%s</td><td class="number">%02.3f</td>' % (revision, targetAvg)
+        line += '<td class="number">%02.3f</td>' % avg
         line += '<td class="%s">%03.1f</td>' % (s, c_perc)
         line += '<td class="%s">%02.3f</td>' % (s, c_diff)
 
@@ -531,16 +534,16 @@ class perf:
 
     page.append('<table>\n')
     page.append('<tr><th></th><th colspan="5">Linux</th><th colspan="5">OS X</th><th colspan="5">Windows</th></tr>\n')
-    page.append('<tr><th>Test</th><th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
+    page.append('<tr><th>Test</th><th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
+    page.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
+    page.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
     tbox.append('<div id="tbox">\n')
     tbox.append('<table>\n')
     tbox.append('<tr><th></th><th colspan="5">Linux</th><th colspan="5">OS X</th><th colspan="5">Windows</th></tr>\n')
-    tbox.append('<tr><th>Test</th><th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
-    tbox.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th>')
-    tbox.append('<th>Rev #</th><th>Median</th><th>m5</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
+    tbox.append('<tr><th>Test</th><th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
+    tbox.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
+    tbox.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')

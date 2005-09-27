@@ -57,6 +57,9 @@ def main():
     parser.add_option("-S", "--skipTests", action="store_true", dest="skipTests",
       default=False, help="Skip Unit Tests \n"
       " [default] False")
+    parser.add_option("-R", "--revision", action="store", type="string", dest="revID",
+      default=None, help="revision # to checkout\n"
+      " [default] None")
     parser.add_option("-w", "--work", action="store", type="string", dest="buildDir",
       default=buildDir, help="Name of working directory\n"
       " [default] ~/tinderbuild")
@@ -121,7 +124,7 @@ def main():
         SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", treeName, None)
 
         ret = mod.Start(hardhatFile, buildDir, buildVersion, 0, log,
-                        upload=options.uploadStaging, skipTests=options.skipTests)
+                        upload=options.uploadStaging, skipTests=options.skipTests, revID=options.revID)
 
     except TinderbuildError, e:
         print e
@@ -283,12 +286,16 @@ def main():
 
         log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
 
-        log.close()
+        try:
+            log.close()
 
-        log = open(logFile, "r")
-        logContents = log.read()
-        log.close()
-        nowTime = str(int(time.time()))
+            maillog = open(logFile, "r")
+            logContents = maillog.read()
+            maillog.close()
+            nowTime = str(int(time.time()))
+        except e:
+            print "exception during log flush and close"
+            print e
 
         SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents)
 
