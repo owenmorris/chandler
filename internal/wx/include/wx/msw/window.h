@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.152 2005/09/23 12:50:17 MR Exp $
+// RCS-ID:      $Id: window.h,v 1.153 2005/09/27 11:08:34 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -488,7 +488,9 @@ protected:
     bool DoEraseBackground(WXHDC hDC);
 
     // generate WM_UPDATEUISTATE if it's needed for the OS we're running under
-    void MSWUpdateUIState();
+    //
+    // the parameter should be one of UIS_XXX constants
+    void MSWUpdateUIState(int action);
 
 private:
     // common part of all ctors

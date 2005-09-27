@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.55 2005/06/29 01:34:43 MW Exp $
+// RCS-ID:      $Id: missing.h,v 1.56 2005/09/27 11:08:34 VZ Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,9 @@
 #endif
 
 // Needed by toplevel.cpp
-#ifndef UIS_INITIALIZE
+#ifndef UIS_SET
+    #define UIS_SET         1
+    #define UIS_CLEAR       2
     #define UIS_INITIALIZE  3
 #endif
 

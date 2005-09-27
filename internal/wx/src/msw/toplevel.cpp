@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.121 2005/09/23 12:55:14 MR Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.122 2005/09/27 11:08:41 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -544,7 +544,7 @@ bool wxTopLevelWindowMSW::Create(wxWindow *parent,
     // focus rectangles) work under Win2k+
     if ( ret )
     {
-        MSWUpdateUIState();
+        MSWUpdateUIState(UIS_INITIALIZE);
     }
 
     // Note: if we include PocketPC in this test, dialogs can fail to show up,

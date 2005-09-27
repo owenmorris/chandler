@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.06.2003 (extracted from common/fontmap.cpp)
-// RCS-ID:      $Id: fmapbase.cpp,v 1.22 2005/09/25 19:58:44 VZ Exp $
+// RCS-ID:      $Id: fmapbase.cpp,v 1.23 2005/09/26 22:13:41 VZ Exp $
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ static const wxChar* gs_encodingNames[WXSIZEOF(gs_encodingDescs)][10] =
       wxT("646"), wxT("roman8"), wxT( "" ), NULL },
 
     { wxT( "BIG5" ), NULL },
-    { wxT( "shift-jis" ), wxT( "shift_jis" ), wxT( "sjis" ), NULL },
+    { wxT( "SJIS" ), wxT( "SHIFT-JIS" ), wxT( "SHIFT_JIS" ), NULL },
     { wxT( "GB2312" ), NULL },
 };
 

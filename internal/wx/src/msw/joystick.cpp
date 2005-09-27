@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: joystick.cpp,v 1.24 2005/09/23 12:55:00 MR Exp $
+// RCS-ID:      $Id: joystick.cpp,v 1.25 2005/09/27 11:19:05 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ wxJoystick::wxJoystick(int joystick)
     /* No such joystick, return ID 0 */
     m_joystick = 0;
     return;
-};
+}
 
 wxPoint wxJoystick::GetPosition() const
 {

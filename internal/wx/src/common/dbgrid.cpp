@@ -4,7 +4,7 @@
 // Author:      Roger Gammans, Paul Gammans
 // Modified by:
 // Created:
-// RCS-ID:      $Id: dbgrid.cpp,v 1.21 2005/09/23 12:52:46 MR Exp $
+// RCS-ID:      $Id: dbgrid.cpp,v 1.22 2005/09/27 11:19:01 VZ Exp $
 // Copyright:   (c) 1999 The Computer Surgery (roger@computer-surgery.co.uk)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -723,7 +723,7 @@ bool wxDbGridTableBase::Writeback() const
 
 #include "wx/arrimpl.cpp"
 
-WX_DEFINE_EXPORTED_OBJARRAY(keyarray);
+WX_DEFINE_EXPORTED_OBJARRAY(keyarray)
 
 #endif  // #if wxUSE_GRID
 #endif  // #if wxUSE_ODBC
