@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: choice.h,v 1.26 2005/09/27 16:54:32 ABX Exp $
+// RCS-ID:      $Id: choice.h,v 1.27 2005/09/27 21:20:22 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,6 @@ public:
     virtual wxClientData* DoGetItemClientObject(int n) const;
     virtual int GetSelection() const;
     virtual void Delete(int n);
-    virtual int FindString(const wxString& s, bool bCase = false) const;
     virtual void Clear();
     virtual void SetString(int n, const wxString& s);
     virtual wxString GetString(int n) const;
