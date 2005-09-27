@@ -279,7 +279,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             item = canvasItem.GetItem()
             
             # save the selected box to be drawn last
-            if self.blockItem.selection is item:
+            if item in self.blockItem.selection:
                 selectedBox = canvasItem
             else:
                 canvasItem.Draw(dc, styles,  brushOffset, False)

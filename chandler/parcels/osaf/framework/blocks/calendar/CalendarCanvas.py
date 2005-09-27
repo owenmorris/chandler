@@ -1037,10 +1037,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
     # Methods for Drag and Drop and Cut and Paste
     def SelectedItems(self):
-        selection = self.blockItem.selection
-        if selection is None:
-            return []
-        return [selection]
+        return self.blockItem.selection
 
     def AddItems(self, itemList):
         source = self.blockItem.contents.collectionList[0]

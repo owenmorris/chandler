@@ -127,7 +127,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         for canvasItem in self.canvasItemList:
             # save the selected box to be drawn last
             item = canvasItem.GetItem()
-            if selection is item:
+            if item in selection:
                 selectedBox = canvasItem
             else:
                 draw(canvasItem, False)

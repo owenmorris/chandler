@@ -607,7 +607,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         Subclasses can override to handle item selection.
         """
-        self.blockItem.selection = item
+        self.blockItem.selection = [item]
         self.blockItem.postSelectItemBroadcast()
         self.wxSynchronizeWidget()
         
@@ -633,17 +633,19 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
 class CollectionBlock(Block.RectangularChild):
     """
-    @ivar selection: selected item (persistent)
-    @type selection: Item
-    @ivar widget: widget associated with this block (not persistent)
-    @type widget: wx.Window (usually wx.CollectionCanvas)
+    Parent block class for a generic collection display. Handles selection,
+    hit testing, notifications, and some event handling
     """
 
-    selection = schema.One(schema.Item, initialValue = None)
+    # working under the assumption that selection will never be None,
+    # and will always exist on this block, if only as an empty list
+    selection = schema.Sequence(schema.Item,
+                                doc = "List of currently selected items",
+                                initialValue = [])
 
     def __init__(self, *arguments, **keywords):
         super(CollectionBlock, self).__init__(*arguments, **keywords)
-        self.selection = None
+        self.selection = []
 
     # Event handling
     
@@ -655,7 +657,7 @@ class CollectionBlock(Block.RectangularChild):
         assert isinstance (item, AbstractCollection)
         self.contents = item
 
-        self.selection = None
+        self.selection = []
         self.postSelectItemBroadcast()
 
 
@@ -665,15 +667,15 @@ class CollectionBlock(Block.RectangularChild):
 
         NB this allows a selection on an item not in the current range.
         """
-        self.selection = event.arguments['item']
+        self.selection = [event.arguments['item']]
 
         
     def postSelectItemBroadcast(self, newSelection=None):
         """
         Convenience method for posting a selection changed event.
         """
-        if not newSelection:
-            newSelection = self.selection
+        if not newSelection and len(self.selection)>0:
+            newSelection = self.selection[0]
         self.postEventByName('SelectItemBroadcast', {'item': newSelection})
 
     def SelectCollectionInSidebar(self, collection):
@@ -681,25 +683,27 @@ class CollectionBlock(Block.RectangularChild):
 
     def onDeleteEvent(self, event):
         trash = schema.ns('osaf.app', self).TrashCollection
-        trash.add(self.selection)
+        for item in self.selection:
+            trash.add(item)
         self.ClearSelection()
         
     def onRemoveEvent(self, event):
         self.DeleteSelection()
 
     def DeleteSelection(self):
-        self.contents.collectionList[0].remove(self.selection)
+        for item in self.selection:
+            self.contents.collectionList[0].remove(item)
         self.ClearSelection()
 
     def ClearSelection(self):
-        self.selection = None
+        self.selection = []
         self.postSelectItemBroadcast()
 
     def CanAdd(self):
         return not self.contents.collectionList[0].isReadOnly()
 
     def CanRemove(self):
-        return (self.selection is not None and
+        return (len(self.selection) > 0 and
                 not self.contents.collectionList[0].isReadOnly())
 
     def onRemoveEventUpdateUI(self, event):
