@@ -249,11 +249,13 @@ class DragAndDropTextCtrl(ShownSynchronizer,
                         if datetime.now() - self.focusedSince > timedelta(seconds=.2):
                             # Try Dragging the text
                             result = self.DoCapturedDragAndDrop()
-                            if result == wx.DragNone:
+                            if result != wx.DragMove and result != wx.DragCopy:
                                 # Drag not allowed - set an insertion point instead
                                 hit, row, column = self.HitTest(event.GetPosition())
-                                if result != wx.TE_HT_UNKNOWN:
+                                if hit != wx.TE_HT_UNKNOWN:
                                     self.SetInsertionPoint(self.XYToPosition(row, column))
+                                else:
+                                    self.SetInsertionPointEnd() # workaround for bug 4116
                             return # don't skip, eat the click.
         event.Skip()
 

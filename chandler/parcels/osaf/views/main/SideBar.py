@@ -278,20 +278,9 @@ class wxSidebar(ControlBlocks.wxTable):
                 if self.GetDragData() is not None: # make sure the data is the kind we want.
                     dragResult = wx.DragMove
     
-            # Don't allow a drag if the collection already contains all these items.
-            dragItems = self.GetDragData()
-            if dragItems is not None:
-                try:
-                    allThere = [item in possibleCollection for item in dragItems]
-                except TypeError:
-                    dragResult = wx.DragNone
-                else:
-                    if len(set(allThere)) == 1 and allThere[0] == True:
-                        dragResult = wx.DragNone
-                        # use a custom cursor to let the user know the items are already there
-                        self.SetCustomCursor(wx.DragNone, "DragCheckCursor.png")
-
         return dragResult
+
+    OnEnter = OnHover # Enter callback same as Hover callback (Drag & Drop)
 
     def OnLeave (self):
         # check if we had a hover row

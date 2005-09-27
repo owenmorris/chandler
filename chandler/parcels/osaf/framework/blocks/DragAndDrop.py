@@ -59,12 +59,7 @@ DraggedFromWidget = None
 
 class DraggableWidget (object):
     """
-    Mixin class for widgets that are draggable.
-    @param copyOnly: flag to disable a move operation
-    @type copyOnly: C{None} to allow a move based on the presence of a Delete capability
-        C{True} to disallow a move
-        C{False} to allow a move
-    @return: C{wx.DragResult} - e.g. wx.DragNone if the drag was refused
+    Mixin class for widgets with data that are draggable.
     """
     def DoDragAndDrop(self, copyOnly=None):
         # capture the mouse, so mouse moves don't trigger activities
@@ -82,7 +77,11 @@ class DraggableWidget (object):
         If you want to disable Move, pass True for copyOnly.  Passing
            False allows the Move.  Passing None (the default) will
            allow the Move iff you have a DeleteSelection method.
-        @return wx.DragResult - result of the drag 
+        @param copyOnly: flag to disable a move operation
+        @type copyOnly: C{None} to allow a move based on the presence of a Delete capability
+            C{True} to disallow a move
+            C{False} to allow a move
+        @return: C{wx.DragResult} - e.g. wx.DragNone if the drag was refused
         """
         global DraggedFromWidget
         # make sure we got mixed in OK, so the __init__ got called.
@@ -110,6 +109,8 @@ class DraggableWidget (object):
 
         # drag and drop the DropSource.  Many callbacks happen here.
         result = self.dropSource.DoDragDrop(flags=flags)
+        if not getattr(self, 'dropResult', True):  # workaround for bug 4128:
+            result = wx.DragNone # override the result
 
         # if we moved the item, instead of the usual copy, remove the original
         if not copyOnly and result == wx.DragMove:
@@ -136,7 +137,10 @@ class DropReceiveWidget (object):
         Override this to decide whether or not to accept a dropped 
         item.
         """
-        return DraggedFromWidget is not self
+        result = DraggedFromWidget is not self
+        if DraggedFromWidget is not None:
+            DraggedFromWidget.dropResult = result # part of workaround for bug 4128
+        return result
         
     def OnEnter(self, x, y, dragResult):
         """
