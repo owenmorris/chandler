@@ -267,6 +267,8 @@ def _getVersionInfo(buildenv):
 
                 data[id] = value
 
+    del data['buildrevision'] # remove the lowercase item
+
     data['build']         = buildenv['buildVersion']
     data['buildRevision'] = _getSVNRevisionInfo(buildenv)
 
