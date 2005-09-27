@@ -94,7 +94,7 @@ class CalendarEventMixin(RemindableMixin):
         displayName=u"Recurrence ID",
         defaultValue=None,
         doc="Date time this occurrence was originally scheduled. startTime and "
-            "recurrenceID for everything but modifications"
+            "recurrenceID match for everything but modifications"
     )
 
     allDay = schema.One(
@@ -167,6 +167,7 @@ class CalendarEventMixin(RemindableMixin):
     modifications = schema.Sequence(
         "CalendarEventMixin",
         displayName=u"Events modifying recurrence",
+        doc = "A list of occurrences that have been modified",
         defaultValue=None,
         inverse="modificationFor"
     )
@@ -334,11 +335,8 @@ class CalendarEventMixin(RemindableMixin):
 
     def getFirstInRule(self):
         """Return the nearest thisandfuture modifications or master."""
-        if self.modificationFor != None:
-            if self.modifies == 'thisandfuture':
-                return self
-            else:
-                return self.modificationFor
+        if self.modificationFor is not None:
+            return self.modificationFor
         elif self.occurrenceFor in (self, None):
             # could be None if a master's first date has a "this" modification
             return self
@@ -352,7 +350,7 @@ class CalendarEventMixin(RemindableMixin):
             return self.rruleset.rrules.first().until
         except:
             return None
-                   
+        
     def getMaster(self):
         """Return the master event in modifications or occurrences."""
         if self.modificationFor is not None:
@@ -364,7 +362,7 @@ class CalendarEventMixin(RemindableMixin):
             
 
     def isBetween(self, after=None, before=None):
-        #TODO: deal with different sorts of events
+        #TODO: deal with allDay and anyTime events
         return (before is None or datetimeOp(self.startTime, '<=', before)) and \
                (after is None or datetimeOp(self.endTime, '>=', after))
 
@@ -422,7 +420,7 @@ class CalendarEventMixin(RemindableMixin):
         """Generate an occurrence for recurrenceID, return it."""
         first = self.getFirstInRule()
         if first != self:
-            return self.getFirstInRule()._createOccurrence(recurrenceID)
+            return first._createOccurrence(recurrenceID)
         new = self._cloneEvent()
         new._ignoreValueChanges = True
         
@@ -434,19 +432,6 @@ class CalendarEventMixin(RemindableMixin):
         
         del new._ignoreValueChanges
         return new
-
-    def getExistingOccurrence(self, nextRecurrenceID):
-        first = self.getFirstInRule()
-
-        # When an event is imported via sharing, the constructor is bypassed
-        # and we need to make sure occurrences has a value
-        if first.occurrences is not None:
-            for occurrence in first.occurrences:
-                if datetimeOp(occurrence.recurrenceID, '==',
-                                nextRecurrenceID):
-                    return occurrence
-        return None
-
 
     def getNextOccurrence(self, after=None, before=None):
         """Return the next occurrence for the recurring event self is part of.
@@ -517,7 +502,8 @@ class CalendarEventMixin(RemindableMixin):
             while True:
                 
                 earliestWithTz = coerceTimeZone(earliest, tzinfo)
-                    
+                
+                # the after method is the call to dateutil's machinery
                 nextRecurrenceID = fromRule.after(earliestWithTz, inclusive)
                 
                 if nextRecurrenceID == None or \
@@ -589,28 +575,28 @@ class CalendarEventMixin(RemindableMixin):
     def _generateRule(self, after=None, before=None):
         """Yield all occurrences in this rule."""
         event = first = self.getFirstInRule()
-        # check for modifications taking place before first
-        if first.modifications is not None:
+        # check for modifications taking place before first, but only if
+        # if we're actually interested in dates before first (i.e., the
+        # after argument is None or less than first.startTime)
+        if first.modifications is not None and \
+           (after is None or datetimeOp(after, "<", first.startTime)):
             for mod in first.modifications:
                 if datetimeOp(mod.startTime, "<=", event.startTime):
                     event = mod
                 
         if not event.isBetween(after, before):
-            event = first.getNextOccurrence(after, before)        
+            event = first.getNextOccurrence(after, before)
+            
         while event is not None:
             if event.isBetween(after, before):
                 if event.occurrenceFor is not None:
                     yield event
                 
-            # isBetween really means AFTER here
+            # if event takes place after the before parameter, we're done.
             elif event.isBetween(after=before):
                 break
             
             event = event.getNextOccurrence()
-
-            # does this ever happen?
-            if event is not None and event.occurrenceFor != first:
-                break
 
     def _getFirstGeneratedOccurrence(self, create=False):
         """Return the first generated occurrence or None.
@@ -655,22 +641,23 @@ class CalendarEventMixin(RemindableMixin):
 
         return list(master._generateRule(after, before))
 
+    def getExistingOccurrence(self, recurrenceID):
+        first = self.getFirstInRule()
+
+        # When an event is imported via sharing, the constructor is bypassed
+        # and we need to make sure occurrences has a value
+        if first.occurrences is not None:
+            for occurrence in first.occurrences:
+                if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
+                    return occurrence
+        return None
+
     def getRecurrenceID(self, recurrenceID):
         """Get or create the item matching recurrenceID, or None."""
-        # first look through modifications and occurrences
-        for mod in self.getMaster().modifications or []:
-            if mod.modifies == 'this':
-                if datetimeOp(mod.recurrenceID, '==', recurrenceID):
-                    return mod
-            elif mod.modifies == 'thisandfuture':
-                for occurrence in mod.occurrences or []:
-                    if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
-                        return occurrence
-
         # look through master's occurrences
-        for occurrence in self.getMaster().occurrences:
-            if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
-                return occurrence
+        existing = self.getExistingOccurrence(recurrenceID)
+        if existing is not None:
+            return existing
 
         # no existing matches, see if one can be generated:
         for occurrence in self.getOccurrencesBetween(recurrenceID,recurrenceID):
@@ -680,17 +667,22 @@ class CalendarEventMixin(RemindableMixin):
         # no match
         return None
 
-    def _movePreviousRuleEnd(self, master, recurrenceID):
-        """Make sure the previous rule doesn't recreate or overlap with self."""
-        newend = recurrenceID - timedelta(minutes=1)
+    def moveRuleEndBefore(self, end):
+        """Make self's rules end one minute before recurrenceID.
+        
+        Change to rules triggers cleanRule, so if any modifications need to
+        be preserved, they should be moved before moveRuleEndBefore is called.
+        
+        """
+        newend = end - timedelta(minutes=1)
               
         #change the rule, onValueChanged will trigger cleanRule for master
-        for rule in master.rruleset.getAttributeValue('rrules',default=[]):
+        for rule in self.rruleset.getAttributeValue('rrules',default=[]):
             if not rule.hasLocalAttributeValue('until') or \
                datetimeOp(rule.calculatedUntil(), '>', newend):
                 rule.until = newend
                 rule.untilIsDate = False
-            # TODO: enable support for RDATEs when making THISANDFUTURE changes
+            # TODO: enable support for RDATEs and EXDATEs when making THISANDFUTURE changes
             #previousMod.rruleset.rdates = [rdate for rdate in \
             #       previousMod.rruleset.getAttributeValue('rdates', default=[])\
             #       if datetimeOp(rdate, '>', newend)]
@@ -707,13 +699,15 @@ class CalendarEventMixin(RemindableMixin):
         if flagStart is None:
             del self._ignoreValueChanges
 
-    def _propagateChange(self, modification, first, master):
+    def _propagateChange(self, modification):
         """Move later modifications to self."""
-        #TODO: icalUID and rruleset changes
-        if datetimeOp(modification.startTime, '>=',  self.startTime):
+        if modification.occurrenceFor != self and \
+           datetimeOp(modification.recurrenceID, '>',  self.startTime):
             # future 'this' modifications in master should move to self
             modification.modificationFor = self
             modification.occurrenceFor = self
+            modification.rruleset = self.rruleset
+            modification.icalUID = self.icalUID
                            
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
@@ -747,14 +741,21 @@ class CalendarEventMixin(RemindableMixin):
         # determine what type of change to make
         if attr == 'rruleset': # rule change, thus a destructive change
             self.cleanFuture()
-            if self == master: # self is master, nothing to do
+            if self.recurrenceID == master.startTime and self.modificationFor == master:
+                # A THIS modification to master, make it the new master
+                self.moveCollections(master, self)
+                self.modificationFor = None
+                self.occurrenceFor = self
+                self.recurrenceID = self.startTime
+                master.deleteAll()
+            elif self == master: # self is master, nothing to do
                 pass
             elif self.isGenerated:
                 makeThisAndFutureMod()
-                self._movePreviousRuleEnd(master, recurrenceID)
+                master.moveRuleEndBefore(recurrenceID)
             elif self.modificationFor is not None:# changing 'this' modification
                 makeThisAndFutureMod()
-                self._movePreviousRuleEnd(master, recurrenceID)
+                master.moveRuleEndBefore(recurrenceID)
         else: #propagate changes forward                       
             if self.modificationFor is not None:
                 #preserve self as a THIS modification
@@ -792,11 +793,13 @@ class CalendarEventMixin(RemindableMixin):
                 else:
                     # self was a THIS modification to the master, setattr needs
                     # to be called on master
-                    master.changeNoModification(attr, value)
-                    # if startTime changed, sync master's recurrenceID up with
-                    # its new startTime
                     if attr == 'startTime':
-                        master.recurrenceID = master.startTime
+                        newStart = master.startTime + startTimeDelta
+                        master.changeNoModification('startTime', newStart)
+                        master.changeNoModification('recurrenceID', newStart)
+                        self.recurrenceID = newStart
+                    else:
+                        master.changeNoModification(attr, value)
 
             else: # change applies to an event which isn't a modification
                 if self.isGenerated:
@@ -808,17 +811,20 @@ class CalendarEventMixin(RemindableMixin):
             master._deleteGeneratedOccurrences()
             
             if master.modifications:
-                for modification in master.modifications:
-                    self.occurrenceFor._propagateChange(modification, first, 
-                                                                      master)
+                for mod in master.modifications:
+                    self.occurrenceFor._propagateChange(mod)
                     # change recurrenceIDs for modifications if startTime change
-                    if attr == 'startTime' and \
-                       datetimeOp(modification.startTime, '>=', self.startTime):
-                        modification.changeNoModification('recurrenceID', 
-                            modification.recurrenceID + startTimeDelta)
+                    if attr == 'startTime' and mod.modificationFor == self:
+                        mod.changeNoModification('recurrenceID', 
+                            mod.recurrenceID + startTimeDelta)
             if not isFirst:
-                self._movePreviousRuleEnd(master, recurrenceID)
-
+                master.moveRuleEndBefore(recurrenceID)
+        
+        # if modifications were moved from master to self, they may have the 
+        # same recurrenceID as a (spurious) generated event, so delete
+        # generated occurrences.
+        
+        self._deleteGeneratedOccurrences()
         self._getFirstGeneratedOccurrence(True)
 
         del self._ignoreValueChanges
@@ -915,18 +921,13 @@ class CalendarEventMixin(RemindableMixin):
                 logger.debug("got first generated occurrence, %s", gen.serializeMods().getvalue())
 
             # make sure masters get modificationRecurrenceID set
-            if self is self.getFirstInRule():
+            if self == self.getFirstInRule():
                 self.modificationRecurrenceID = self.startTime
                 self.recurrenceID = self.startTime
                 
-            # this kludge should be replaced with the new domain attribute aspect
-##        elif name not in """modifications modificationFor occurrences
-##                          occurrenceFor modifies isGenerated recurrenceID
-##                          _ignoreValueChanges modificationRecurrenceID queries
-##                          contentsOwner TPBSelectedItemOwner TPBDetailItemOwner
-##                          itemCollectionInclusions
-##                          """.split():
-        # this won't work with stamping, temporary solution to allow testing
+        # the changeName kludge should be replaced with the new domain attribute
+        # aspect, just using a fixed list of attributes which should trigger
+        # changeThis won't work with stamping
         elif changeName:
             if DEBUG:
                 logger.debug("about to changeThis in onValueChanged(name=%s) for %s", name, str(self))
@@ -946,54 +947,55 @@ class CalendarEventMixin(RemindableMixin):
         first = self.getFirstInRule()
         self._deleteGeneratedOccurrences()
         if first.hasLocalAttributeValue('modifications'):
+            until = first.rruleset.rrules.first().calculatedUntil()
             for mod in first.modifications:
-                if mod.modifies == 'this':
-                    # this won't work for complicated rrulesets
-                    until = first.rruleset.rrules.first().calculatedUntil()
-                    if until is not None \
-                       and datetimeOp(mod.recurrenceID, '>', until) \
-                       and mod !=  first:
-                        mod._ignoreValueChanges = True
-                        mod.delete()
+                # this won't work for complicated rrulesets
+                if until != None and datetimeOp(mod.recurrenceID, '>', until):
+                    mod._ignoreValueChanges = True
+                    mod.delete()
                     
         # create a backup
         first._getFirstGeneratedOccurrence(True)
 
-    def removeFuture(self):
+    def deleteFuture(self):
         """Delete self and all future occurrences and modifications."""
-        pass
+        # changing the rule will delete self unless self is the master
+        master = self.getMaster()
+        if self.recurrenceID == master.startTime:
+            self.deleteAll()
+        else:
+            self.moveRuleEndBefore(self.recurrenceID)
 
-    def _deleteThisAndFutureModification(self):
-        """Remove 'thisandfuture' modification and all its occurrences."""
+    def deleteThis(self):
+        """Exclude this occurrence from the recurrence rule."""
+        if not getattr(self.rruleset, 'exdates', None):
+            self.rruleset.exdates=[]
+        self.rruleset.exdates.append(self.recurrenceID)
+        del self
+
+    def deleteAll(self):
+        """Delete master, all its modifications, occurrences, and rules."""
         for event in self.occurrences:
             if event == self: #don't delete self quite yet
                 continue
             event._ignoreValueChanges = True
             event.delete(recursive=True)
 
-        self.rruleset._ignoreValueChanges = True
-        self.rruleset.delete(recursive=True)
+        rruleset = self.rruleset
+        rruleset._ignoreValueChanges = True
+        # we don't want rruleset's recursive delete to get self yet
+        del self.rruleset
+        rruleset.delete(recursive=True)
         self._ignoreValueChanges = True
         self.delete(recursive=True)
 
     def cleanFuture(self):
         """Delete all future occurrences and modifications."""
-
-        def deleteLater(item):
-            if datetimeOp(item.startTime, '>',  self.startTime): 
-                item._ignoreValueChanges = True
-                item.delete()
-                
         master = self.getMaster()
-        for mod in master.modifications or []:
-            if mod.modifies == 'thisandfuture':
-                if datetimeOp(mod.startTime, '>', self.startTime):
-                        mod._deleteThisAndFutureModification()
-                else:
-                    for event in mod.occurrences or []:
-                        deleteLater(event)
         for event in master.occurrences:
-            deleteLater(event)
+            if datetimeOp(event.startTime, '>',  self.startTime): 
+                event._ignoreValueChanges = True
+                event.delete()
                     
         self._getFirstGeneratedOccurrence(True)
         
@@ -1011,13 +1013,15 @@ class CalendarEventMixin(RemindableMixin):
                     # A THIS modification to master, make it the new master
                     self.moveCollections(master, event)
                     del event.rruleset
-                    event.recurrenceID = event.startTime
+                    del event.recurrenceID
                     event.modificationFor = None
                     event.occurrenceFor = event
                     masterHadModification = True
 
             if masterHadModification:
                 master.delete()
+            else:
+                del master.recurrenceID
         
                    
     def isCustomRule(self):

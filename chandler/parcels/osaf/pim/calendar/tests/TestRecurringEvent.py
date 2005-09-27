@@ -290,6 +290,9 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(len(list(third.occurrences)), 3)
         self.assertEqual(fourth.recurrenceID,
                          fourth.startTime + timedelta(hours=1))
+        self.assertEqual(third.rruleset, fourth.rruleset)
+        self.assertEqual(third.icalUID, fourth.icalUID)
+        self.assertNotEqual(second.icalUID, third.icalUID)
         
         # make sure second's rruleset was updated
         self.assert_(list(second.rruleset.rrules)[0].until < thirdChangedStart)
@@ -413,7 +416,13 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertNotEqual(self.event.icalUID, second.icalUID)
         self.assertEqual(second.icalUID, third.icalUID)
         self.assertEqual(third.modificationFor, second.occurrenceFor)
-        
+
+    def testRdatesAndExdates(self):
+        pass
+    
+    def testDelete(self):
+        pass
+
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, view=self.rep.view)
         ruleItem.freq = 'daily'

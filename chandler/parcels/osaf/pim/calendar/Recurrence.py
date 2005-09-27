@@ -198,6 +198,7 @@ class RecurrenceRule(items.ContentItem):
                 value = coerceTimeZone(value, tzinfo)
             return value
 
+        # TODO: more comments
         kwargs = dict((k, getattr(self, k, None)) for k in 
                                             self.listNames + self.normalNames)
         for key in self.specialNames:
@@ -236,8 +237,8 @@ class RecurrenceRule(items.ContentItem):
                 # Day tuples are (dayOrdinal, n-th week of the month),
                 # 0 means all weeks
                 listOfDayTuples=[(day, 0) for day in rrule._byweekday]
-            if rrule._bynweekday:
-                listOfDayTuples.extend(tup for tup in rrule._bynweekday)
+            if rrule._bynweekday is not None:
+                listOfDayTuples.extend(rrule._bynweekday)
             if len(listOfDayTuples) > 0:
                 self.byweekday = []
                 for day, n in listOfDayTuples:
@@ -257,10 +258,11 @@ class RecurrenceRule(items.ContentItem):
                 self.until = coerceTimeZone(until, ICUtzinfo.getDefault())
             
         for key in self.listNames:
+            # TODO: cache getattr(rrule, '_' + key)
             if getattr(rrule, '_' + key) is not None and \
                                         (key not in self.interpretedNames or \
                                          len(getattr(rrule, '_' + key)) > 1):
-                # cast tuples to list, or will the repository do this for us?
+                # cast tuples to list
                 setattr(self, key, list(getattr(rrule, '_' + key)))
         # bymonthday and bymonth may be set automatically by dateutil, if so, 
         # unset them
@@ -272,7 +274,6 @@ class RecurrenceRule(items.ContentItem):
             if len(rrule._bymonth) == 1:
                 if rrule._bymonth[0] == rrule._dtstart.month:
                     del self.bymonth
-
 
 
     def onValueChanged(self, name):
@@ -317,9 +318,10 @@ class RecurrenceRuleSet(items.ContentItem):
 
     def addRule(self, rule, rruleorexrule='rrule'):
         """Add an rrule or exrule, defaults to rrule."""
-        rulelist = getattr(self, rruleorexrule + 's', [])
-        rulelist.append(rule)
-        setattr(self, rruleorexrule + 's', rulelist)
+        try:
+            getattr(self, rruleorexrule + 's').append(rule)
+        except AttributeError:
+            setattr(self, rruleorexrule + 's', [rule])
         
     def createDateUtilFromRule(self, dtstart):
         """Return an appropriate dateutil.rrule.rruleset."""
@@ -377,9 +379,11 @@ class RecurrenceRuleSet(items.ContentItem):
             rule = list(self.rrules)[0]
             if rule.interval != 1:
                 return True
-            for attr in RecurrenceRule.listNames+("byweekday",):
+            for attr in RecurrenceRule.listNames:
                 if getattr(rule, attr):
                     return True
+            if rule.byweekday:
+                return True
         return False
 
     def getCustomDescription(self):

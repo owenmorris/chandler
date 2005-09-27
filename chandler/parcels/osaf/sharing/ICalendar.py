@@ -318,6 +318,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             if not isinstance(item, AbstractCollection):
                 print "Only a share or an item collection can be passed in"
                 #@@@MOR Raise something
+        else:
+            caldavReturn = None
 
         input = StringIO.StringIO(text)
         calendar = vobject.readComponents(input, validate=True).next()
@@ -452,12 +454,19 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             continue
                     else:
                         eventItem = uidMatchItem
+                        if (eventItem.occurrenceFor is None and
+                            eventItem.occurrences is None):
+                                eventItem.occurrenceFor = eventItem
+                        if eventItem.rruleset is not None:
+                            # re-creating a recurring item from scratch, delete 
+                            # old recurrence information
+                            eventItem.removeRecurrence()
+
                         countUpdated += 1
                 else:
                     eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
-                    eventItem.icalUID = event.uid[0].value
-    
+                    eventItem.icalUID = event.uid[0].value    
     
                 # vobject isn't meshing well with dateutil when dtstart isDate;
                 # dtstart is converted to a datetime for dateutil, but rdate
@@ -520,7 +529,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if self.fileStyle() == self.STYLE_SINGLE:
                     item.add(eventItem.getMaster())
                 else:
-                    return eventItem
+                    caldavReturn = eventItem.getMaster()
             except Exception, e:
                 if __debug__:
                     raise e
@@ -531,7 +540,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         logger.info("...iCalendar import of %d new items, %d updated" % \
          (countNew, countUpdated))
 
-        return item
+        if self.fileStyle() == self.STYLE_SINGLE:
+            return item
+        else:
+            return caldavReturn
+
 
     def exportProcess(self, share, depth=0):
         cal = itemsToVObject(self.itsView, share.contents,
