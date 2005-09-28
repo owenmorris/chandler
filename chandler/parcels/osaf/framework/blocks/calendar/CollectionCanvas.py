@@ -636,6 +636,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         Subclasses can override to handle item selection.
         """
+        assert item, "Oops, shouldn't be None!"
         self.blockItem.selection = [item]
         self.blockItem.postSelectItemsBroadcast()
         self.wxSynchronizeWidget()
@@ -709,7 +710,7 @@ class CollectionBlock(Block.RectangularChild):
         self.selection = event.arguments['items']
 
         
-    def postSelectItemsBroadcast(self, newSelection=None):
+    def postSelectItemsBroadcast(self):
         """
         Convenience method for posting a selection changed event.
         """
