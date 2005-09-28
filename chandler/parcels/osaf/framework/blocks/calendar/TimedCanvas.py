@@ -404,7 +404,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.GetItem())
         
-        (proxy.startTime, proxy.endTime) = self.GetDragAdjustedTimes()
+        (startTime, endTime) = self.GetDragAdjustedTimes()
+        duration = endTime - startTime
+        proxy.duration = endTime - startTime
         
     def OnEndDragItem(self):
         self.FinishDrag()
@@ -471,18 +473,23 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 self.getDateTimeFromPosition(self.dragState.currentPosition,
                                              tzinfo=item.startTime.tzinfo)
             newEndTime = item.endTime
-
-            if newEndTime - newStartTime <= timedelta(0):
-                newStartTime = newEndTime - timedelta(minutes=15)
+            # getDateTimeFromPosition always sets a non-None tzinfo, even if
+            # it's passed tzinfo=None, so newEndTime needs a timezone, too
+            if newEndTime.tzinfo is None:
+                newEndTime = newEndTime.replace(tzinfo=newStartTime.tzinfo)
             
         elif resizeMode == TimedCanvasItem.RESIZE_MODE_END:
             newEndTime = \
                 self.getDateTimeFromPosition(self.dragState.currentPosition,
                                              tzinfo=item.endTime.tzinfo)
             newStartTime = item.startTime
-            if newEndTime - newStartTime <= timedelta(0):
-                newEndTime = newStartTime + timedelta(minutes=15)
+            # getDateTimeFromPosition always sets a non-None tzinfo, even if
+            # it's passed tzinfo=None, so newEndTime needs a timezone, too
+            if newStartTime.tzinfo is None:
+                newStartTime = newStartTime.replace(tzinfo=newEndTime.tzinfo)
 
+        if newEndTime < newStartTime:
+            newEndTime = newStartTime + timedelta(minutes=15)
 
         return (newStartTime, newEndTime)
                     
