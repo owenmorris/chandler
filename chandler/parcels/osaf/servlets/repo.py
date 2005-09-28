@@ -595,7 +595,7 @@ def RenderItem(repoView, item):
 
     name = item.itsName
     if name is None:
-        name = unicode(item.itsPath[-1])
+        name = u'{%s}' % item.itsUUID.str64()
     result += "<div class='path'>%s &gt; <span class='itemname'>%s</span>" % (path, name)
 
     try: result += " (<a href=%s>%s</a>)" % (toLink(item.itsKind.itsPath), item.itsKind.itsName)
