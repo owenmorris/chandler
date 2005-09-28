@@ -62,16 +62,6 @@ class DraggableWidget (object):
     Mixin class for widgets with data that are draggable.
     """
     def DoDragAndDrop(self, copyOnly=None):
-        # capture the mouse, so mouse moves don't trigger activities
-        # in other windows, like the sidebar.
-        self.CaptureMouse()
-        try:
-            return self.DoCapturedDragAndDrop(copyOnly)
-        finally:
-            if self.HasCapture():
-                self.ReleaseMouse()
-            
-    def DoCapturedDragAndDrop(self, copyOnly=None):
         """
         Do a Drag And Drop operation, given the data in the selection.
         If you want to disable Move, pass True for copyOnly.  Passing

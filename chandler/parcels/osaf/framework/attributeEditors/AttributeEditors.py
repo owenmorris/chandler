@@ -248,7 +248,7 @@ class DragAndDropTextCtrl(ShownSynchronizer,
                     if hasattr(self, 'focusedSince'):
                         if datetime.now() - self.focusedSince > timedelta(seconds=.2):
                             # Try Dragging the text
-                            result = self.DoCapturedDragAndDrop()
+                            result = self.DoDragAndDrop()
                             if result != wx.DragMove and result != wx.DragCopy:
                                 # Drag not allowed - set an insertion point instead
                                 hit, row, column = self.HitTest(event.GetPosition())
@@ -477,7 +477,10 @@ class AETypeOverTextCtrl(wxRectangularChild):
             hiddenControl = controlToShow
             shownControl = self.shownControl
             self.Freeze()
-            hiddenControl.SetValue(shownControl.GetValue())
+            hiddenValue = hiddenControl.GetValue()
+            shownValue = shownControl.GetValue()
+            if shownValue != hiddenValue:
+                hiddenControl.SetValue(shownValue)
             shownControl.Move(self.hideLoc)
             hiddenControl.Move(self.showLoc)
             self.shownControl = hiddenControl
