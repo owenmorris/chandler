@@ -122,7 +122,6 @@ class FocusEventHandlers(Item):
         selectedItems = event.arguments.get('items', self.__getSelectedItems())
         if len(selectedItems) > 0:
             # if any item is shared, give a warning if marking it private
-            app = wx.GetApp()
             for item in selectedItems:
                 if not item.private and \
                    item.getSharedState() != ContentItem.UNSHARED:
@@ -131,7 +130,7 @@ class FocusEventHandlers(Item):
                     caption = _(u"Change the privacy of a shared item?")
                     msg = _(u"Other people may be subscribed to share this item; " \
                             "are you sure you want to mark it as private?")
-                    if Util.yesNo(app.mainFrame, caption, msg):
+                    if Util.yesNo(wx.GetApp().mainFrame, caption, msg):
                         break
                     else:
                         return
@@ -144,23 +143,27 @@ class FocusEventHandlers(Item):
         if len(selectedItems) > 0:
             # Collect the states of all the items, so that we can change all
             # the items if they're all in the same state.
-            stateSet = set([ item.private for item in selectedItems \
-                             if isinstance(item, Note)])
+            states = [(isinstance(item, Note), getattr(item, 'private', None))
+                      for item in selectedItems]
             # only enable for Notes and their subclasses (not collections, etc)
-            enable = len(stateSet) == 1
+            isNote, isPrivate = states[0]
+            enable = isNote and len(set(states)) == 1
             event.arguments['Enable'] = enable
-            event.arguments['Check'] = item.private and enable
+            event.arguments['Check'] = enable and isPrivate
 
     def onFocusStampEvent(self, event):
         selectedItems = event.arguments.get('items', self.__getSelectedItems())
         kindParam = event.kindParameter
         stampClass = kindParam.getItemClass()
         if len(selectedItems) > 0:
-            stateSet = set([ isinstance(item, stampClass) for item in selectedItems \
-                             if isinstance(item, Note)])
-            assert len(stateSet) == 1
-            # change the private state for all items selected
-            if isinstance(item, stampClass):
+            # we don't want to try to stamp non-Note content items (e.g. Collections)
+            states = [ (isinstance(item, Note), isinstance(item, stampClass))
+                             for item in selectedItems]
+            isNote, isStamped = states[0]
+            assert len(set(states)) == 1
+            assert isNote
+            # stamp all items selected
+            if isStamped:
                 operation = 'remove'
             else:
                 operation = 'add'
@@ -175,10 +178,12 @@ class FocusEventHandlers(Item):
         if len(selectedItems) > 0:
             # Collect the states of all the items, so that we can change all
             # the items if they're all in the same state.
-            stateSet = set([ isinstance(item, stampClass) for item in selectedItems \
-                             if isinstance(item, Note)])
-            enable = len(stateSet) == 1
+            states = [ (isinstance(item, Note), isinstance(item, stampClass))
+                             for item in selectedItems]
+            isNote, isStamped = states[0]
+            # we don't want to try to stamp non-Note content items (e.g. Collections)
+            enable = isNote and len(set(states)) == 1 # all Notes with the same states?
             event.arguments['Enable'] = enable
-            event.arguments['Check'] = isinstance(item, stampClass) and enable
+            event.arguments['Check'] = enable and isStamped
 
 
