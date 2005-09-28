@@ -406,7 +406,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         (startTime, endTime) = self.GetDragAdjustedTimes()
         duration = endTime - startTime
-        proxy.duration = endTime - startTime
+        proxy.duration = duration
+        proxy.startTime = startTime
         
     def OnEndDragItem(self):
         self.FinishDrag()

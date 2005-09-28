@@ -1003,10 +1003,10 @@ class CalendarEventMixin(RemindableMixin):
         master = self.getMaster()
         if master.recurrenceID != master.startTime:
             master.changeNoModification('recurrenceID', master.startTime)
-        if master.rruleset is not None:
-            del master.rruleset
+        rruleset = master.rruleset
+        if rruleset is not None:
             masterHadModification = False
-            for event in master.occurrences:
+            for event in master.occurrences:                
                 if event.recurrenceID != master.startTime:
                     event.delete()
                 elif event != master:
@@ -1017,7 +1017,10 @@ class CalendarEventMixin(RemindableMixin):
                     event.modificationFor = None
                     event.occurrenceFor = event
                     masterHadModification = True
-
+                    
+            master.rruleset = None
+            rruleset.delete(recursive=True)
+            
             if masterHadModification:
                 master.delete()
             else:
@@ -1032,14 +1035,16 @@ class CalendarEventMixin(RemindableMixin):
         rules which are not custom.
         
         """
-        if self.hasLocalAttributeValue('rruleset'):
+        rruleset = getattr(self, 'rruleset', None)
+        if rruleset is not None:
             return self.rruleset.isCustomRule()
         else: return False
     
     def getCustomDescription(self):
         """Return a string describing custom rules."""
-        if self.hasLocalAttributeValue('rruleset'):
-            return self.rruleset.getCustomDescription()
+        rruleset = getattr(self, 'rruleset', None)
+        if rruleset is not None:
+            return rruleset.getCustomDescription()
         else: return ''
 
     def serializeMods(self, level=0, buf=None):
