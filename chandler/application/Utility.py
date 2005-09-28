@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "85" # Donn: added an event to the Detail View
+SCHEMA_VERSION = "86" # alecf: changing SelectItemBroadcast to support multiple items
 
 logger = None # initialized in initLogging()
 

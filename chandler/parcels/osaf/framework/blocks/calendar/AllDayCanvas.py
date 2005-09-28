@@ -114,7 +114,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         dc.SetFont(styles.eventLabelFont)
         
-        selectedBox = None
+        selectedBoxes = []
         brushOffset = self.GetPlatformBrushOffset()
 
         
@@ -128,11 +128,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             # save the selected box to be drawn last
             item = canvasItem.GetItem()
             if item in selection:
-                selectedBox = canvasItem
+                selectedBoxes.append(canvasItem)
             else:
                 draw(canvasItem, False)
         
-        if selectedBox:
+        for selectedBox in selectedBoxes:
             draw(selectedBox, True)
 
     @staticmethod

@@ -546,7 +546,8 @@ class ViewContainer(BoxContainer):
                         view = view.copy (parent=userData,
                                           cloudAlias="copying")
                         self.views.append (view)
-                    self.postEventByName('SelectItemBroadcast', {'item':view})
+                    self.postEventByName('SelectItemsBroadcast',
+                                         {'items':[view]})
                 break
             selectionIndex = selectionIndex + 1
 
@@ -594,7 +595,8 @@ class wxTabbedContainer(DragAndDrop.DropReceiveWidget,
             if self.selectedTab != selection:
                 self.selectedTab = selection
                 page = self.GetPage(self.selectedTab)
-                self.blockItem.postEventByName("SelectItemBroadcast", {'item':page.blockItem})
+                self.blockItem.postEventByName("SelectItemsBroadcast",
+                                               {'items':[page.blockItem]})
         event.Skip()
         
     def OnRequestDrop(self, x, y):
@@ -740,8 +742,8 @@ class TabbedView(TabbedContainer):
         self.parentBlock.widget.Freeze()        
         self.synchronizeWidget()
         self.parentBlock.widget.Thaw()
-        self.postEventByName ('SelectItemBroadcast',
-                              {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
+        self.postEventByName ('SelectItemsBroadcast',
+                              {'items':[self.widget.GetPage(self.widget.selectedTab).blockItem]})
 
     def onOpenEvent (self, event):
         "Opens the chosen item in a new tab"
@@ -760,7 +762,7 @@ class TabbedView(TabbedContainer):
             item.widget.SetSize (self.widget.GetClientSize())
             self.synchronizeWidget()
             self.parentBlock.widget.Thaw()
-            self.postEventByName ('SelectItemBroadcast', {'item':item})
+            self.postEventByName ('SelectItemsBroadcast', {'items':[item]})
         
     def onCloseEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.widget.GetPageCount() > 1)

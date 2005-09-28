@@ -161,7 +161,7 @@ class DragState(object):
         # current position of the dragbox
         # (Why can't we use currentDragBox._bounds or something?)
         self.currentPosition = \
-            self.originalPosition = initialPosition
+            self._originalPosition = initialPosition
 
         # the current canvasItem being dragged
         # note that currentDragBox gets constantly reset as the drag happens
@@ -179,7 +179,7 @@ class DragState(object):
 
     def ResetDrag(self):
         # do we need to have a handler for this?
-        self.HandleDrag(self.originalPosition)
+        self.HandleDrag(self._originalPosition)
         
     def HandleDragStart(self):
         self._window.CaptureMouse()
@@ -197,7 +197,7 @@ class DragState(object):
         if not self._dragStarted:
             # calculate the absolute drag delta
             dx, dy = \
-                [abs(d) for d in unscrolledPosition - self.originalPosition]
+                [abs(d) for d in unscrolledPosition - self._originalPosition]
 
             # Only initiate the drag if we move at least 5 pixels
             if (dx > 5 or dy > 5):
@@ -365,7 +365,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         elif self.blockItem.CanAdd():
             self.OnCreateItem(unscrolledPosition)
             
-    def _handleLeftClick(self, unscrolledPosition):
+    def _handleLeftClick(self, unscrolledPosition,
+                         multipleSelection):
         """
         Handle a single left click, potentially hitting an item
 
@@ -380,7 +381,24 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 break
 
         if hitBox:
-            self.OnSelectItem(hitBox.GetItem())
+            item = hitBox.GetItem()
+            if multipleSelection:
+                # need to add/remove from the selection
+
+                # XXX This it the first time wxCollectionCanvas
+                # knows about selection, is this ok?
+                selection = self.blockItem.selection
+                if item in selection:
+                    self.OnRemoveFromSelection(item)
+                else:
+                    if len(selection) == 0:
+                        self.OnSelectItem(item)
+                    else:
+                        self.OnAddToSelection(item)
+            else:
+                # need to clear out the old selection, and select this
+                self.OnSelectItem(item)
+                
         else:
             self.OnSelectNone(unscrolledPosition)
 
@@ -432,7 +450,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self._handleDoubleClick(unscrolledPosition)
 
         elif event.LeftDown():
-            self._handleLeftClick(unscrolledPosition)
+            self._handleLeftClick(unscrolledPosition,
+                                  event.ControlDown())
             
         elif event.LeftUp():
             # we need to make sure we have a  dragState, because we
@@ -618,7 +637,17 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         Subclasses can override to handle item selection.
         """
         self.blockItem.selection = [item]
-        self.blockItem.postSelectItemBroadcast()
+        self.blockItem.postSelectItemsBroadcast()
+        self.wxSynchronizeWidget()
+
+    def OnAddToSelection(self, item):
+        self.blockItem.selection.append(item)
+        self.blockItem.postSelectItemsBroadcast()
+        self.wxSynchronizeWidget()
+
+    def OnRemoveFromSelection(self, item):
+        self.blockItem.selection.remove(item)
+        self.blockItem.postSelectItemsBroadcast()
         self.wxSynchronizeWidget()
         
     def OnSelectNone(self, unscrolledPosition):
@@ -668,25 +697,23 @@ class CollectionBlock(Block.RectangularChild):
         self.contents = item
 
         self.selection = []
-        self.postSelectItemBroadcast()
+        self.postSelectItemsBroadcast()
 
 
-    def onSelectItemEvent(self, event):
+    def onSelectItemsEvent(self, event):
         """
         Sets the block selection
 
         NB this allows a selection on an item not in the current range.
         """
-        self.selection = [event.arguments['item']]
+        self.selection = event.arguments['items']
 
         
-    def postSelectItemBroadcast(self, newSelection=None):
+    def postSelectItemsBroadcast(self, newSelection=None):
         """
         Convenience method for posting a selection changed event.
         """
-        if not newSelection and len(self.selection) == 1:
-            newSelection = self.selection[0]
-        self.postEventByName('SelectItemBroadcast', {'item': newSelection})
+        self.postEventByName('SelectItemsBroadcast', {'items': self.selection})
 
     def SelectCollectionInSidebar(self, collection):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
@@ -707,7 +734,7 @@ class CollectionBlock(Block.RectangularChild):
 
     def ClearSelection(self):
         self.selection = []
-        self.postSelectItemBroadcast()
+        self.postSelectItemsBroadcast()
 
     def CanAdd(self):
         return not self.contents.collectionList[0].isReadOnly()

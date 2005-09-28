@@ -186,7 +186,8 @@ class wxSidebar(ControlBlocks.wxTable):
                             checked = not method (pressedButton, item)
                             pressedButton.setChecked (item, checked)
                             pressedButton.buttonState['screenMouseDown'] = checked
-                            blockItem.postEventByName ("SelectItemBroadcast", {'item':blockItem.selectedItemToView})
+                            blockItem.postEventByName ("SelectItemsBroadcast",
+                                                       {'items':[blockItem.selectedItemToView]})
                             wx.GetApp().UIRepositoryView.commit()
                         else:
                             pressedButton.buttonState['screenMouseDown'] = False
@@ -706,7 +707,8 @@ class SidebarBlock(ControlBlocks.Table):
                 button.widget.selectTool()
                 continue
         self.widget.Refresh()
-        self.postEventByName("SelectItemBroadcast", {'item':self.selectedItemToView})
+        self.postEventByName("SelectItemsBroadcast",
+                             {'items':[self.selectedItemToView]})
 
     def onKindParameterizedEventUpdateUI (self, event):
         # check the appropriate menu item
@@ -732,7 +734,7 @@ class SidebarBlock(ControlBlocks.Table):
             else:
                 return
 
-        self.postEventByName("SelectItemBroadcast", {'item':item})
+        self.postEventByName("SelectItemsBroadcast", {'items':[item]})
         return item
 
     def onRemoveEvent(self, event):

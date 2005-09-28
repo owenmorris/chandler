@@ -172,8 +172,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         else:
             # Yep, our item went away. Cheat and tell our parent to 
             # pick a different tree of blocks
-            self.parentBlock.postEventByName('SelectItemBroadcast', 
-                                             {'item': None})
+            self.parentBlock.postEventByName('SelectItemsBroadcast', 
+                                             {'items': []})
 
     def SelectedItems(self):
         """ 

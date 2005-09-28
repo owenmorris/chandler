@@ -212,7 +212,7 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         self.widget.wxSynchronizeWidget()
         self.widget.Refresh()
 
-    def onSelectItemEvent(self, event):
+    def onSelectItemsEvent(self, event):
         self.widget.wxSynchronizeWidget()
         self.widget.Refresh()        
 
@@ -247,7 +247,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
         super(PreviewArea, self).__init__(*arguments, **keywords)
         self.rangeIncrement = timedelta(days=1)
 
-    def onSelectItemEvent(self, event):
+    def onSelectItemsEvent(self, event):
         self.widget.wxSynchronizeWidget()
         #self.widget.Refresh() 
     def onSetContentsEvent(self, event):

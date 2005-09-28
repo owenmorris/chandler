@@ -372,7 +372,7 @@ class wxList (DragAndDrop.DraggableWidget,
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
-            self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
+            self.blockItem.postEventByName("SelectItemsBroadcast", {'items':[item]})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -439,11 +439,16 @@ class List(RectangularChild):
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
 
-    def onSelectItemEvent (self, event):
+    def onSelectItemsEvent (self, event):
         """
           Display the item in the widget.
         """
-        self.selection = event.arguments['item']
+        items = event.arguments['items']
+        if len(items) == 1:
+            self.selection = items[0]
+        else:
+            self.selection = None
+        
         self.widget.GoToItem (self.selection)
 
 
@@ -630,21 +635,30 @@ class wxTable(DragAndDrop.DraggableWidget,
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
                 """
-                  So happens that under some circumstances widgets needs to clear the selection before
-                setting a new selection, e.g. when you have some rows in a table selected and you click
-                on another cell. However, we need to catch changes to the selection in OnRangeSelect to
-                keep track of the selection and broadcast selection changes to other blocks. So under
-                some circumstances you get two OnRangeSelect calls, one to clear the selection and another
-                to set the new selection. When the first OnRangeSelect is called to clear the selection
-                we used to broadcast a select item event with None as the selection. This has two
-                unfortunate side effects: it causes other views (e.g. the detail view) to draw blank
-                and it causes the subsequent call to OnRangeSelect to not occur, causing the selection
-                to vanish.
-                  It turns out that ignoring all the clear selections except when control is down
-                skips the extra clear selections.
+                  So happens that under some circumstances widgets
+                  needs to clear the selection before setting a new
+                  selection, e.g. when you have some rows in a table
+                  selected and you click on another cell. However, we
+                  need to catch changes to the selection in
+                  OnRangeSelect to keep track of the selection and
+                  broadcast selection changes to other blocks. So
+                  under some circumstances you get two OnRangeSelect
+                  calls, one to clear the selection and another to set
+                  the new selection. When the first OnRangeSelect is
+                  called to clear the selection we used to broadcast a
+                  select item event with None as the selection. This
+                  has two unfortunate side effects: it causes other
+                  views (e.g. the detail view) to draw blank and it
+                  causes the subsequent call to OnRangeSelect to not
+                  occur, causing the selection to vanish.  It turns
+                  out that ignoring all the clear selections except
+                  when control is down skips the extra clear
+                  selections.
                 """
-                if (item is not None or event.Selecting() or event.ControlDown()):
-                    self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
+                if (item is not None or event.Selecting() or
+                    event.ControlDown()):
+                    self.blockItem.postEventByName("SelectItemsBroadcast",
+                                                   {'items':[item]})
                 
         event.Skip()
 
@@ -766,7 +780,8 @@ class wxTable(DragAndDrop.DraggableWidget,
             firstSelectedRow is not None):
             selectedItemToView = self.blockItem.contents [firstSelectedRow]
             self.blockItem.selectedItemToView = selectedItemToView
-            self.blockItem.postEventByName("SelectItemBroadcast", {'item':selectedItemToView})
+            self.blockItem.postEventByName("SelectItemsBroadcast",
+                                           {'items':[selectedItemToView]})
 
         try:
             row = self.blockItem.contents.index (self.blockItem.selectedItemToView)
@@ -790,7 +805,8 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.blockItem.selection = []
             self.blockItem.selectedItemToView = None
             self.ClearSelection()
-        self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
+        self.blockItem.postEventByName("SelectItemsBroadcast",
+                                       {'items':[item]})
 
     def DeleteSelection (self, DeleteItemCallback=None):
         def DefaultCallback(item, collection=self.blockItem.contents):
@@ -836,19 +852,23 @@ class wxTable(DragAndDrop.DraggableWidget,
         # now select the "next" item
         totalItems = len(contents)
         """
-          We call wxSynchronizeWidget here because the postEvent causes the DetailView
-        to call it's wxSynchrnoizeWidget, which calls layout, which causes us to redraw
-        the table, which hasn't had time to get it's notificaitons so its data is out
-        of synch and chandler Crashes. So I think the long term fix is to not call
-        wxSynchronizeWidget here or in the DetailView and instead let the notifications
-        cause wxSynchronizeWidget to be called. -- DJA
+          We call wxSynchronizeWidget here because the postEvent
+          causes the DetailView to call it's wxSynchrnoizeWidget,
+          which calls layout, which causes us to redraw the table,
+          which hasn't had time to get it's notificaitons so its data
+          is out of synch and chandler Crashes. So I think the long
+          term fix is to not call wxSynchronizeWidget here or in the
+          DetailView and instead let the notifications cause
+          wxSynchronizeWidget to be called. -- DJA
         """
         self.wxSynchronizeWidget()
         if totalItems > 0:
             newRowSelection = min(newRowSelection, totalItems - 1)
-            self.blockItem.postEventByName("SelectItemBroadcast", {'item':contents[newRowSelection]})
+            self.blockItem.postEventByName("SelectItemsBroadcast",
+                                           {'items':[contents[newRowSelection]]})
         else:
-            self.blockItem.postEventByName("SelectItemBroadcast", {'item': None})
+            self.blockItem.postEventByName("SelectItemsBroadcast",
+                                           {'items': []})
 
     def SelectedItems(self):
         """
@@ -1067,34 +1087,46 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         if isinstance (item, AbstractCollection):
             self.contents = item
 
-    def onSelectItemEvent (self, event):
-        item = event.arguments ['item']
-        self.select_item (item)
+    def onSelectItemsEvent (self, event):
+        items = event.arguments ['items']
+        self.select_items (items)
 
     def select (self, item):
         # polymorphic method used by scripts
-        self.select_item (item)
+        self.select_items ([item])
 
-    def select_item (self, item):
-        if item != self.selectedItemToView:
-            self.selectedItemToView = item
-            row = -1
-            if item is not None:
-                try:
-                    row = self.contents.index (item)
-                except ValueError:
-                    pass
-            if row < 0:
-                self.widget.ClearSelection()
-            else:
-                self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
-                self.widget.MakeCellVisible (row, 0)
+    def select_items (self, items):
+        """
+        Select the row corresponding to each item, and account for the
+        fact that not all of the items are int the table
+        Also make the first visible 
+        """
+        visiblerow = None
+        self.widget.ClearSelection()
+        lastColumn = self.widget.GetColumnCount() - 1
+        for item in items:
+            try:
+                row = self.contents.index (item)
+            except ValueError:
+                continue
+
+            if visiblerow is None:
+                visiblerow = row
+                
+            if item != self.selectedItemToView:
+                self.selectedItemToView = item
+                self.widget.SelectBlock (row, 0, row, lastColumn, True)
+                
+        if visiblerow is not None:
+            self.widget.MakeCellVisible (row, 0)
 
     def onModifyContentsEvent(self, event):
         result = super (Table, self).onModifyContentsEvent (event)
         if event.selectFirstItem:
-            self.onSelectItemEvent (event)
-            self.postEventByName ('SelectItemBroadcast', {'item':event.arguments ['item']})
+            self.select(event.arguments['item'])
+            # need to convert from single item to multiple items:
+            self.postEventByName ('SelectItemsBroadcast',
+                                  {'items':[event.arguments ['item']]})
         return result
 
     def onDeleteEvent(self, event):
@@ -1347,7 +1379,8 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
             if self.blockItem.selection != selection:
                 self.blockItem.selection = selection
         
-                self.blockItem.postEventByName("SelectItemBroadcast", {'item':selection})
+                self.blockItem.postEventByName("SelectItemsBroadcast",
+                                               {'items':[selection]})
         event.Skip()
         
     def SelectedItems(self):
@@ -1494,8 +1527,10 @@ class Tree(RectangularChild):
                                style=wxTreeAndList.CalculateWXStyle(self))
         return tree
 
-    def onSelectItemEvent (self, event):
-        self.widget.GoToItem (event.arguments['item'])
+    def onSelectItemsEvent (self, event):
+        items = event.arguments['items']
+        if len(items)>0:
+            self.widget.GoToItem (event.arguments['items'][0])
                             
 
 class wxItemDetail(wx.html.HtmlWindow):
@@ -1509,7 +1544,8 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
+            self.blockItem.postEventByName("SelectItemsBroadcast",
+                                           {'items':[item]})
 
     def wxSynchronizeWidget(self):
         if self.blockItem.selection is not None:
@@ -1539,11 +1575,15 @@ class ItemDetail(RectangularChild):
     def getHTMLText(self, item):
         return u'<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
 
-    def onSelectItemEvent (self, event):
+    def onSelectItemsEvent (self, event):
         """
           Display the item in the wxWidget.
         """
-        self.selection = event.arguments['item']
+        items = event.arguments['items']
+        if len(items)>0:
+            self.selection = items[0]
+        else:
+            self.selection = None
         self.synchronizeWidget ()
 
     

@@ -90,13 +90,13 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('SelectedDateChanged',
                             'BroadcastEverywhere').install(parcel),
         
-        BlockEvent.template('SelectItemBroadcast',
+        BlockEvent.template('SelectItemsBroadcast',
                             'BroadcastInsideMyEventBoundary',
-                            methodName='onSelectItemEvent').install(parcel),
+                            methodName='onSelectItemsEvent').install(parcel),
         
-        BlockEvent.template('SelectItemBroadcastInsideActiveView',
+        BlockEvent.template('SelectItemsBroadcastInsideActiveView',
                             'BroadcastInsideActiveViewEventBoundary',
-                            methodName='onSelectItemEvent').install(parcel),
+                            methodName='onSelectItemsEvent').install(parcel),
         BlockEvent.template('SetContents',
                             'BroadcastInsideMyEventBoundary').install(parcel),
         

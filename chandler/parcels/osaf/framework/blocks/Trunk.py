@@ -10,7 +10,6 @@ from osaf.framework.blocks import ContainerBlocks
 from repository.item.Item import Item
 from application import schema
 import wx
-import osaf.pim.items as items
 import logging
 
 """
@@ -62,8 +61,18 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
     def instantiateWidget(self):
        return wxTrunkParentBlock(self.parentBlock.widget)
     
-    def onSelectItemEvent (self, event):
-        self.TPBSelectedItem = event.arguments['item']
+    def onSelectItemsEvent (self, event):
+        # for the moment, multiple selection means, "select nothing"
+        # i.e. multiple selection in the summary view means selecting
+        # nothing in the detail view
+
+        # eventually we might want TPBSelectedItem to be an iterable
+        # of some kind
+        items = event.arguments['items']
+        if len(items)==1:
+            self.TPBSelectedItem = items[0]
+        else:
+            self.TPBSelectedItem = None
         """
           Occasionally a block that contains a TrunkParentBlock will send
         a selectItem event to set TPBSelectedItem when it can't be set in parcel

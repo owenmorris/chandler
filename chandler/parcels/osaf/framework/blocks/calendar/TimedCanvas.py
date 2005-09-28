@@ -271,7 +271,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dc.SetTextForeground(wx.BLACK)
         dc.SetBrush(wx.WHITE_BRUSH)
 
-        selectedBox = None        
+        selectedBoxes = []
         # finally, draw the items
         brushOffset = self.GetPlatformBrushOffset()
         for canvasItem in self.canvasItemList:
@@ -280,12 +280,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
             # save the selected box to be drawn last
             if item in self.blockItem.selection:
-                selectedBox = canvasItem
+                selectedBoxes.append(canvasItem)
             else:
                 canvasItem.Draw(dc, styles,  brushOffset, False)
             
         # now draw the current item on top of everything else
-        if selectedBox:
+        for selectedBox in selectedBoxes:
             selectedBox.Draw(dc, styles, brushOffset, True)
 
     def CheckConflicts(self):
@@ -368,8 +368,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return canvasItem
 
     def OnBeginResizeItem(self):
-        self._lastUnscrolledPosition = \
-            self.dragState.originalPosition
         self.StartDragTimer()
         
     def OnEndResizeItem(self):

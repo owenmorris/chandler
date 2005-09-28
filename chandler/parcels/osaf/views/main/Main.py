@@ -159,7 +159,8 @@ class MainView(View):
             self.postEventByName ('ApplicationBarAll', { })
 
         # Tell the ActiveView to select our new item
-        self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
+        self.postEventByName ('SelectItemsBroadcastInsideActiveView',
+                              {'items':[newItem]})
         return [newItem]
 
     def onNewCollectionEvent(self, event):
@@ -546,8 +547,8 @@ class MainView(View):
         self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.app', self).allCollection})
         self.postEventByName ('ApplicationBarAll', { })
         # Tell the ActiveView to select our new item
-        self.postEventByName ('SelectItemBroadcastInsideActiveView',
-                              {'item':photo})
+        self.postEventByName ('SelectItemsBroadcastInsideActiveView',
+                              {'items':[photo]})
 
     def onCommitRepositoryEvent(self, event):
         # Test menu item
