@@ -213,8 +213,14 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         """ 
         Need to finish any changes to the selected item
         that are in progress.
-        """
+        @@@DLD - use an event for notification:
         self.postEventByName('BroadcastFinishChanges', {})
+        """
+        focusBlock = self.getFocusBlock()
+        try:
+            focusBlock.saveTextValue (validate=True)
+        except AttributeError:
+            pass
     
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 
