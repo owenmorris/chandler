@@ -31,7 +31,7 @@ def make_mainview(parcel):
                                       displayName=_(u'Reminder Items'),
                                       indexName='reminderTime',
                                       source=app.events,
-                                      filterExpression='item.hasLocalAttributeValue(\'reminderTime\') == True',
+                                      filterExpression='item.hasLocalAttributeValue(\'reminderTime\')',
                                       filterAttributes=['reminderTime'])
 
     # these reference each other... ugh!
