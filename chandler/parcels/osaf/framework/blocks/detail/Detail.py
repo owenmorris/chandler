@@ -211,16 +211,10 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
 
     def finishSelectionChanges (self):
         """ 
-          Need to finish any changes to the selected item
+        Need to finish any changes to the selected item
         that are in progress.
-        @@@DLD - find a better way to commit widget changes
-        Maybe trigger an EVT_KILL_FOCUS event?
         """
-        focusBlock = self.getFocusBlock()
-        try:
-            focusBlock.saveTextValue (validate=True)
-        except AttributeError:
-            pass
+        self.postEventByName('BroadcastFinishChanges', {})
     
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 
@@ -486,6 +480,9 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
     def OnDataChanged (self):
         self.saveTextValue()
 
+    def OnFinishChangesEvent (self, event):
+        self.saveTextValue(validate=True)
+
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or a Collection,
     # then return True
@@ -660,6 +657,9 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     def OnDataChanged (self):
         # event that an edit operation has taken place
         self.saveTextValue()
+
+    def OnFinishChangesEvent (self, event):
+        self.saveTextValue(validate=True)
 
     def synchronizeItemDetail (self, item):
         self.loadTextValue(item)
