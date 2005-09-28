@@ -27,8 +27,6 @@ reposRoot    = 'http://svn.osafoundation.org/chandler'
 reposModules = ['chandler', 'internal/installers']
 mainModule   = reposModules[0]
 
-releaseModes = ('debug', 'release')
-
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, tagID=None, revID=None):
 
     global buildenv, changes
@@ -92,6 +90,11 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
     runPerfTests = (os.getenv('CHANDLER_PERFORMANCE_TEST', 'no').lower() == 'yes')
 
+    if runPerfTests:
+      buildModes = ('release')
+    else:
+      buildModes = ('debug', 'release')
+
     if not os.path.exists(chanDir):
         # Initialize sources
         print "Setup source tree..."
@@ -115,7 +118,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         os.chdir(chanDir)
 
-        for releaseMode in releaseModes:
+        for releaseMode in buildModes:
             doInstall(releaseMode, workingDir, log)
 
             if runPerfTests:
@@ -148,7 +151,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         if svnChanges:
             log.write("Changes in SVN require install\n")
             changes = "-changes"
-            for releaseMode in releaseModes:
+            for releaseMode in buildModes:
                 doInstall(releaseMode, workingDir, log)
 
         if runPerfTests:
@@ -157,7 +160,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         if svnChanges:
             log.write("Changes in SVN require making distributions\n")
             changes = "-changes"
-            for releaseMode in releaseModes:
+            for releaseMode in buildModes:
                 doDistribution(releaseMode, workingDir, log, outputDir,
                                buildVersion, buildVersionEscaped, hardhatScript)
 
@@ -169,7 +172,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         if skipTests:
             ret = 'success'
         else:
-            for releaseMode in releaseModes:
+            for releaseMode in buildModes:
                 ret = doTests(hardhatScript, releaseMode, workingDir,
                               outputDir, buildVersion, log)
                 if ret != 'success':
