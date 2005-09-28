@@ -321,7 +321,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if item:
             # clear background selection when an existing item is selected
             self._bgSelectionStartTime = self._bgSelectionEndTime = None
-        self.blockItem.selection = []
+        
+        super(wxTimedEventsCanvas, self).OnSelectItem(item)
         
     def OnSelectNone(self, unscrolledPosition):
         selectedTime = self.getDateTimeFromPosition(unscrolledPosition)

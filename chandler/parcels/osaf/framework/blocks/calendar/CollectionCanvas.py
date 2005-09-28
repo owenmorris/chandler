@@ -636,8 +636,10 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         Subclasses can override to handle item selection.
         """
-        assert item, "Oops, shouldn't be None!"
-        self.blockItem.selection = [item]
+        if item:
+            self.blockItem.selection = [item]
+        else:
+            self.blockItem.selection = []
         self.blockItem.postSelectItemsBroadcast()
         self.wxSynchronizeWidget()
 
