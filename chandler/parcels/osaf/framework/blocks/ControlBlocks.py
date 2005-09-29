@@ -510,8 +510,8 @@ class wxTableData(wx.grid.PyGridTableBase):
             there are no entries in the table
             """
             grid = self.GetView()
-            assert row < grid.GetElementCount()
-            if (not grid.blockItem.columnReadOnly[column] and
+            if ((row < grid.GetElementCount()) and
+                not grid.blockItem.columnReadOnly[column] and
                 not grid.ReadOnly (row, column)[0] and
                 not delegate.ReadOnly (grid.GetElementValue (row, column))):
                 attribute = self.defaultRWAttribute
