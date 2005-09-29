@@ -353,7 +353,7 @@ def MakeCollections(parcel):
         ).setup(source=scriptsCollection)
 
     sidebarListCollection = ListCollection.update(parcel,
-                                                  'sidebarListCollection',
+                                                  'sidebarCollection',
                                                   refCollection=[allCollection,
                                                                  inCollection,
                                                                  outCollection,
@@ -361,7 +361,7 @@ def MakeCollections(parcel):
 
     # The Sidebar collection
     FilteredCollection.update(parcel,
-                              'sidebarCollection',
+                              'sidebarFilteredCollection',
                               source=sidebarListCollection,
                               filterExpression='item.visible',
                               filterAttributes=['visible'])

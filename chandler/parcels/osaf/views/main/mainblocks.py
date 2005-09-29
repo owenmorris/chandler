@@ -480,7 +480,7 @@ def make_mainview(parcel):
 
     sidebarUICollection = pim.UICollection.update(parcel,
                                                   'sidebarUICollection',
-                                                  source=app.sidebarCollection)
+                                                  source=app.sidebarFilteredCollection)
 
     mainview = \
     MainView.template('MainView',

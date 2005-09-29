@@ -281,7 +281,7 @@ def GenerateCollection(view, postToView=None, existingNames=None):
         
     if postToView is not None:
         collection.setColorIfAbsent()
-        postToView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
+        schema.ns("osaf.app", view).sidebarCollection.add (collection)
     return collection
 
 
