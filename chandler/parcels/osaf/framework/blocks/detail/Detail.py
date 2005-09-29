@@ -934,7 +934,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         collection = share.contents
         mainView = application.Globals.views[0]
         collection.setColorIfAbsent()
-        mainView.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
+        schema.ns("osaf.app", self).sidebarCollection.add (collection)
 
     def onAcceptShareEventUpdateUI(self, event):
         # If we're already sharing it, we should disable the button and change the text.

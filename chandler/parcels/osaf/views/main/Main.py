@@ -169,7 +169,7 @@ class MainView(View):
         coll.setColorIfAbsent()
         coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
         coll.displayName = messages.UNTITLED
-        self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[coll]})
+        schema.ns("osaf.app", self).sidebarCollection.add (coll)
         return [coll]
 
     def onPasteEventUpdateUI (self, event):
@@ -485,7 +485,7 @@ class MainView(View):
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
             collection.setColorIfAbsent()
-            self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
+            schema.ns("osaf.app", self).sidebarCollection.add (coll)
             self.setStatusMessage (_(u"Import completed"))
         except:
             logger.exception("Failed importFile %s" % \
@@ -738,8 +738,8 @@ class MainView(View):
         if scriptsSet in sidebar:
             self.postEventByName('RequestSelectSidebarItem', {'item': scriptsSet})
         else:
-            self.postEventByName('AddToSidebarWithoutCopyingAndSelectFirst',
-                             {'items': [scriptsSet]})
+            schema.ns("osaf.app", self).sidebarCollection.add (scriptsSet)
+
         # go to the All application, so we can view the scripts
         self.postEventByName ('ApplicationBarAll', { })
 
@@ -786,8 +786,8 @@ class MainView(View):
             (collections, failures) = sharing.restoreFromAccount(account)
             for collection in collections:
                 collection.setColorIfAbsent()
-                self.postEventByName("AddToSidebarWithoutCopying",
-                    {'items':[collection]})
+                schema.ns("osaf.app", self).sidebarCollection.add (collection)
+
             self.setStatusMessage (_(u"Restoring shares completed"))
         else:
             self.setStatusMessage (_(u"No default sharing account"))

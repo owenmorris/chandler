@@ -340,5 +340,4 @@ def createSidebarView(repView, cpiaView):
     certstore = CertificateStore(view=repView)
     
     cpiaView.postEventByName('ApplicationBarAll', {})
-    cpiaView.postEventByName('AddToSidebarWithoutCopyingAndSelectFirst',
-                             {'items': [certstore]})
+    schema.ns("osaf.app", cpiaView).sidebarCollection.add (certstore)

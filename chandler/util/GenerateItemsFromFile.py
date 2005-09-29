@@ -17,7 +17,7 @@ import osaf.pim.mail as Mail
 from PyICU import UnicodeString, ICUtzinfo
 import i18n
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
-
+from application import schema
 
 logger = logging.getLogger(__name__)
 
@@ -78,14 +78,14 @@ def GenerateCollection(view, mainView, args):
                  collectionsDict[potentialName] = collection
                  if mainView:
                      collection.setColorIfAbsent()
-                     mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
+                     schema.ns("osaf.app", view).sidebarCollection.add (collection)
              break
     elif not args[0]=='':
         collection.displayName = u"%s" %args[0]
         if not collectionsDict.has_key(args[0]):
             if mainView:
                 collection.setColorIfAbsent()
-                mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
+                schema.ns("osaf.app", view).sidebarCollection.add (collection)
             collectionsDict[args[0]]=collection
     else:
         #default value
@@ -93,7 +93,7 @@ def GenerateCollection(view, mainView, args):
         if not collectionsDict.has_key(u'Untitled'):
             if mainView:
                 collection.setColorIfAbsent()
-                mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
+                schema.ns("osaf.app", view).sidebarCollection.add (collection)
             collectionsDict[u'Untitled']=collection
         
     return collection
