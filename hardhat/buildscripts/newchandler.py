@@ -91,7 +91,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     runPerfTests = (os.getenv('CHANDLER_PERFORMANCE_TEST', 'no').lower() == 'yes')
 
     if runPerfTests:
-      buildModes = ('release')
+      buildModes = ('release',)
     else:
       buildModes = ('debug', 'release')
 
