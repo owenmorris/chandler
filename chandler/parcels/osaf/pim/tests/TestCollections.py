@@ -443,35 +443,39 @@ class CollectionTests(CollectionTestCase):
         k = KindCollection(view=self.view)
         k.kind = self.i.itsKind
 
+        testCollection = UICollection(view=self.view)
+        testCollection.source = k
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=i, view=self.view)
 
         #@@@ this is a bug in len -- if you compute the length before you
         #create any indexes, you are out of luck
-#        self.assertEqual(len(list(k)),8)
-        k.indexName = "__adhoc__"
-        k.createIndex()
+#        self.assertEqual(len(list(testCollection)),8)
+        testCollection.indexName = "__adhoc__"
+        testCollection._createIndex()
 
-        self.assertEqual([x.label for x in k],
-                         [k[i].label for i in xrange(0, len(k))])
+        self.assertEqual([x.label for x in testCollection],
+                         [testCollection[i].label for i in xrange(0, len(testCollection))])
 
 
     def testAttributeIndex(self):
         k = KindCollection(view = self.view)
         k.kind = self.i.itsKind
 
+        testCollection = UICollection(view=self.view)
+        testCollection.source = k
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=i, view=self.view)
 
-        self.assertEqual(len(list(k)),8)
+        self.assertEqual(len(list(testCollection)),8)
 
-        k.indexName = "label"
-        k.createIndex()
+        testCollection.indexName = "label"
+        testCollection._createIndex()
 
-        self.assertEqual([k[i].label for i in xrange(0, len(k))],['i','i2','i3','v','w','x','y','z'])
+        self.assertEqual([testCollection[i].label for i in xrange(0, len(testCollection))],['i','i2','i3','v','w','x','y','z'])
 
-        k[len(k)-1].label = 'u'
-        self.assertEqual([k[i].label for i in xrange(0, len(k))],['i','i2','i3','u','v','w','x','y'])
+        testCollection[len(testCollection)-1].label = 'u'
+        self.assertEqual([testCollection[i].label for i in xrange(0, len(testCollection))],['i','i2','i3','u','v','w','x','y'])
 
     def testDelayedCreation(self):
         uc = UnionCollection('u', view=self.view)
