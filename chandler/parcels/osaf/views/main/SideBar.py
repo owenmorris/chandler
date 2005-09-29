@@ -7,7 +7,7 @@ __parcel__ = "osaf.views.main"
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Trunk as Trunk
-from osaf.pim import AbstractCollection, FilteredCollection, IntersectionCollection, KindCollection, UnionCollection
+from osaf.pim import AbstractCollection, IntersectionCollection, KindCollection, UnionCollection, UICollection
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
@@ -694,7 +694,17 @@ class SidebarBlock(ControlBlocks.Table):
         widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
         return widget
 
-    def onKindParameterizedEvent (self, event):                
+    def onKindParameterizedEvent (self, event):
+        assert self.filterKind != event.kindParameter
+        
+        calendarKind = schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)
+        if (self.filterKind == calendarKind or event.kindParameter == calendarKind):
+            nameSpace = schema.ns('osaf.app', self)
+            inCollection = nameSpace.inCollection
+            outCollection = nameSpace.outCollection
+            inCollection.visible = not inCollection.visible
+            outCollection.visible = not outCollection.visible
+
         self.filterKind = event.kindParameter
         # We need to update the click state of the toolbar as well
         toolbar = Block.Block.findBlockByName("ApplicationBar")
@@ -876,60 +886,63 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
             if not filterKind is None:
                 tupleList.append (filterKind.itsUUID)
             
-            if len (tupleList) > 1:
-                tupleKey = tuple (tupleList)
+            tupleKey = tuple (tupleList)
 
-                try:
-                    key = self.itemTupleKeyToCacheKey [tupleKey]
-                except KeyError:
-                    if len (collectionList) == 1:
-                        key = collectionList [0]
-                    else:
-                        key = UnionCollection (view=self.itsView)
-                        for col in collectionList:
-                            key.addSource(col)
+            try:
+                key = self.itemTupleKeyToCacheKey [tupleKey]
+            except KeyError:
+                if len (collectionList) == 1:
+                    key = collectionList [0]
+                else:
+                    key = UnionCollection (view=self.itsView)
+                    for col in collectionList:
+                        key.addSource(col)
 
-                    displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+                displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
 
-                    if filterKind is not None:
-                        newKey = IntersectionCollection(view=self.itsView)
-                        try:
-                            kindCollection = self.kindToKindCollectionCache [filterKind]
-                        except KeyError:
-                            kindCollection = KindCollection (view=self.itsView)
-                            kindCollection.kind = filterKind
-                            kindCollection.recursive = True
-                            self.kindToKindCollectionCache [filterKind] = kindCollection
+                if filterKind is not None:
+                    newKey = IntersectionCollection(view=self.itsView)
+                    try:
+                        kindCollection = self.kindToKindCollectionCache [filterKind]
+                    except KeyError:
+                        kindCollection = KindCollection (view=self.itsView)
+                        kindCollection.kind = filterKind
+                        kindCollection.recursive = True
+                        self.kindToKindCollectionCache [filterKind] = kindCollection
 
-                        newKey.sources = [key, kindCollection]
-                        newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
-                        displayName += u" filtered by " + filterKind.displayName
-                        key = newKey
+                    newKey.sources = [key, kindCollection]
+                    newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
+                    displayName += u" filtered by " + filterKind.displayName
+                    key = newKey
 
-                    key.displayName = displayName
+                newKey = UICollection (view=self.itsView)
+                newKey.source = key
+                key = newKey
 
-                    key.collectionList = collectionList
-                    self.itemTupleKeyToCacheKey [tupleKey] = key
-                else: # try/except
-                    """
-                    Check to see if we need to reorder
-                    collectionList. The list is kept sorted by the
-                    order of the collections as they overlay one
-                    another in the Calendar.  We don't bother to
-                    reorder when we're looking up a collection that
-                    isn't displayed in the summary view, both because
-                    it's not necessary and because it causes the
-                    source attribute to change which causes a
-                    notification to update the sidebar, which causes
-                    the order to change, causing a notification,
-                    ... repeating forever.
-                    """
-                    if sidebar.selectedItemToView is item:
-                        for new, old in map (None, key.collectionList, collectionList):
-                            if new is not old:
-                                key.collectionList = collectionList
-                                rerender = True
-                                break
+                key.displayName = displayName
+
+                key.collectionList = collectionList
+                self.itemTupleKeyToCacheKey [tupleKey] = key
+            else: # try/except
+                """
+                Check to see if we need to reorder
+                collectionList. The list is kept sorted by the
+                order of the collections as they overlay one
+                another in the Calendar.  We don't bother to
+                reorder when we're looking up a collection that
+                isn't displayed in the summary view, both because
+                it's not necessary and because it causes the
+                source attribute to change which causes a
+                notification to update the sidebar, which causes
+                the order to change, causing a notification,
+                ... repeating forever.
+                """
+                if sidebar.selectedItemToView is item:
+                    for new, old in map (None, key.collectionList, collectionList):
+                        if new is not old:
+                            key.collectionList = collectionList
+                            rerender = True
+                            break
         return key, rerender
 
     def _makeTrunkForCacheKey(self, keyItem):

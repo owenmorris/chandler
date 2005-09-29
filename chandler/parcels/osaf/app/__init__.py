@@ -316,7 +316,8 @@ def MakeCollections(parcel):
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
         colorizeIcon = False,
-        outOfTheBoxCollection = True
+        outOfTheBoxCollection = True,
+        visible = False
     ).setup(source=inSource, trash=TrashCollection)
 
     outSource = \
@@ -333,7 +334,8 @@ def MakeCollections(parcel):
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
         colorizeIcon = False,
-        outOfTheBoxCollection = True
+        outOfTheBoxCollection = True,
+        visible = False
     ).setup(source=outSource, trash=TrashCollection)
 
     # The "Scripts" collection
@@ -350,11 +352,18 @@ def MakeCollections(parcel):
         colorizeIcon = False
         ).setup(source=scriptsCollection)
 
+    sidebarListCollection = ListCollection.update(parcel,
+                                                  'sidebarListCollection',
+                                                  refCollection=[allCollection,
+                                                                 inCollection,
+                                                                 outCollection,
+                                                                 TrashCollection])
+
     # The Sidebar collection
-    ListCollection.update(parcel, 'sidebarCollection',
-                          refCollection=[allCollection,
-                                         inCollection,
-                                         outCollection,
-                                         TrashCollection])
+    FilteredCollection.update(parcel,
+                              'sidebarCollection',
+                              source=sidebarListCollection,
+                              filterExpression='item.visible',
+                              filterAttributes=['visible'])
 
     TrashCollection.color = collectionColors.nextColor()

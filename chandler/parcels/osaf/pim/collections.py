@@ -91,8 +91,6 @@ class AbstractCollection(items.ContentItem):
     # collectionEventHandler is used when a collection subscribes to
     # the results of another collection.
 #    collectionEventHandler = schema.One(schema.String, initialValue="notifySubscribers")
-    # the name of the default index
-    indexName   = schema.One(schema.String, initialValue="__adhoc__")
 
 
     """
@@ -106,6 +104,7 @@ class AbstractCollection(items.ContentItem):
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
     outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
+    visible                 = schema.One(schema.Boolean, defaultValue = True)
     """
       A dictionary mapping a KindName string to a new displayName.
     """
@@ -207,16 +206,6 @@ class AbstractCollection(items.ContentItem):
             for i in self.rep:
                 yield i
 
-    def __len__(self):
-        if hasattr(self, 'rep'):
-            try:
-                return len(self.rep)
-            except ValueError:
-                self.createIndex()
-                return len(self.rep)
-        else:
-            return 0
-
     def __nonzero__(self):
         return True
 
@@ -225,20 +214,6 @@ class AbstractCollection(items.ContentItem):
         return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
                                 self.itsUUID.str16())
         
-
-    def createIndex (self):
-        """
-        Create an index on this collection
-
-        If the C{indexName} attribute of this collection is set to
-        "__adhoc__" then a numeric index will be created.  Otherwise
-        the C{indexName} attribute should contain the name of the
-        attribute (of an item) to be indexed.
-        """
-        if self.indexName == "__adhoc__":
-            self.rep.addIndex (self.indexName, 'numeric')
-        else:
-            self.rep.addIndex (self.indexName, 'attribute', attribute=self.indexName)
 
     def __getitem__ (self, index):
         """
@@ -664,3 +639,83 @@ class InclusionExclusionCollection(DifferenceCollection):
         self.collectionList = [self]
 
         return self
+
+class UICollection (AbstractCollection):
+    """
+    A collection that adds an index, e.g.for sorting items, a
+    selection and visiblity attribute to another source collection.
+    """
+
+    indexName   = schema.One(schema.String, initialValue="__adhoc__")
+    source      = schema.One(AbstractCollection, defaultValue=None)
+
+    def _createIndex (self):
+        """
+        Create an index on this collection. Normally you never call this
+        method, since indexes are lazily created when you index into
+        a collection.
+
+        If the C{indexName} attribute of this collection is set to
+        "__adhoc__" then a numeric index will be created.  Otherwise
+        the C{indexName} attribute should contain the name of the
+        attribute (of an item) to be indexed.
+        """
+        if self.indexName == "__adhoc__":
+            self.rep.addIndex (self.indexName, 'numeric')
+        else:
+            self.rep.addIndex (self.indexName, 'attribute', attribute=self.indexName)
+
+    def __len__(self):
+        if hasattr(self, 'rep'):
+            try:
+                return len(self.rep)
+            except ValueError:
+                self._createIndex()
+                return len(self.rep)
+        else:
+            return 0
+
+    def __getitem__ (self, index):
+        """
+        Support indexing using []
+        """
+
+        try:
+            return self.rep.getByIndex (self.indexName, index)
+        except NoSuchIndexError:
+            self._createIndex()
+            return self.rep.getByIndex (self.indexName, index)
+
+    def index (self, item):
+        """
+        Return the position of item in the index.
+        """
+        try:
+            return self.rep.getIndexPosition (self.indexName, item)
+        except NoSuchIndexError:
+            self._createIndex()
+            return self.resultSet.getIndexPosition (self.indexName, item)
+
+    def onValueChanged(self, name):
+        if name == "source" and self.source != None:
+            self.rep = Set((self.source, "rep"))
+            self.source.subscribers.add (self)
+
+    def add(self, item):
+        self.source.add(item)
+
+    def clear(self):
+        self.source.clear()
+
+    def first(self):
+        self.source.first()
+
+    def remove(self, item):
+        self.source.remove(item)
+
+    def contentsUpdated(self, item):
+        self.rep.notify('changed', item)
+        deliverNotifications(self.itsView)
+
+    def empty(self):
+        self.source.empty()

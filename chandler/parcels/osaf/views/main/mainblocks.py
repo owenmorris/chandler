@@ -477,6 +477,11 @@ def make_mainview(parcel):
     SharingButton = SSSidebarSharingButton.update(parcel, 'SharingIcon',
                                             buttonName='SharingIcon',
                                             buttonOffsets=[-17,-1,16])
+
+    sidebarUICollection = pim.UICollection.update(parcel,
+                                                  'sidebarUICollection',
+                                                  source=app.sidebarCollection)
+
     mainview = \
     MainView.template('MainView',
         size=SizeType(1024, 720),
@@ -983,7 +988,7 @@ def make_mainview(parcel):
                                         editRectOffsets=[17, -17, 0],
                                         buttons=[IconButton, SharingButton],
                                         selection=[[0,0]],
-                                        contents=app.sidebarCollection,
+                                        contents=sidebarUICollection,
                                         selectedItemToView=app.allCollection,
                                         elementDelegate=u'osaf.views.main.SideBar.SidebarElementDelegate',
                                         hideColumnHeadings=True,
