@@ -611,7 +611,11 @@ def runTest(buildenv, testFile, fullPath):
         
 def recursiveTest(buildenv, path):
 
-    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
+    if sys.platform == 'cygwin':
+        CHANDLERHOME = os.path.join(buildenv['root'], 'chandler')
+        CHANDLERBIN  = os.getenv('CHANDLERBIN') or CHANDLERHOME
+    else:
+        CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
 
     path = os.path.abspath(path)
     os.chdir(path)
