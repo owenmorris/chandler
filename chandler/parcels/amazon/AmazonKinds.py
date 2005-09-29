@@ -44,7 +44,8 @@ def CreateCollection(repView, cpiaView):
     try:
         results = amazon.searchByKeyword(keywords)
         newAmazonCollection = AmazonCollection(results, view=repView, keywords=keywords)
-        return cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
+        schema.ns("osaf.app", cpiaView).sidebarCollection.add (newAmazonCollection)
+        return newAmazonCollection
 
     except (AmazonError, AttributeError), e:
         log.exception(e)
@@ -61,7 +62,8 @@ def CreateWishListCollection(repView, cpiaView):
     try:
         results = amazon.searchWishListByEmail(emailAddr)
         newAmazonCollection = AmazonCollection(results, view=repView, email=emailAddr)
-        return cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
+        schema.ns("osaf.app", cpiaView).sidebarCollection.add (newAmazonCollection)
+        return newAmazonCollection
 
     except (AmazonError, AttributeError), e:
         log.exception(e)

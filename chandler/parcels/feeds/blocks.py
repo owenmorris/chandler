@@ -93,10 +93,7 @@ class FeedController(Block.Block):
                 channel = channels.NewChannelFromURL(view=self.itsView, url=url,
                                                      update=True)
 
-                # now post the new collection to the sidebar
-                mainView = Globals.views[0]
-                mainView.postEventByName ('AddToSidebarWithoutCopying',
-                    {'items': [channel]})
+                schema.ns("osaf.app", self).sidebarCollection.add (channel)
                 return [channel]
             except:
                 application.dialogs.Util.ok(wx.GetApp().mainFrame,

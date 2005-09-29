@@ -97,7 +97,7 @@ rZehs7GgIFvKMquNzxPwHynD
         now = time.gmtime()
         format = '%b %d %H:%M:%S %Y %Z'
 
-        assert len(rootCerts) > 0
+        assert not rootCerts.isEmpty()
 
         for cert in rootCerts:
             x509 = cert.asX509()
@@ -133,11 +133,11 @@ rZehs7GgIFvKMquNzxPwHynD
         matchingCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
         matchingCerts.filterExpression = 'item.fingerprint == "%s"' % fingerprint
         matchingCerts.filterAttributes = ['fingerprint']
-            
-        assert len(matchingCerts) == 1
         
-        for cert in matchingCerts: #q[0] does not seem to work
-            return cert
+        #unfortunately len isn't implemented for FilteredCollections
+        assert len([theItem for theItem in matchingCerts]) == 1
+        
+        return iter(matchingCerts).next()
     
     def testImportSiteCertificate(self):
         trust = constants.TRUST_AUTHENTICITY

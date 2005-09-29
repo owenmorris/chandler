@@ -97,10 +97,9 @@ class SubscribeDialog(wx.Dialog):
                 schema.ns('osaf.app', view).notMine.addSource(collection)
 
             collection.setColorIfAbsent()
+            schema.ns("osaf.app", self).sidebarCollection.add (collection)
+            # Need to SelectFirstItem -- DJA
             share = sharing.getShare(collection)
-
-            mainView = Globals.views[0]
-            mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
 
             event = 'ApplicationBarAll'
             if share.filterClasses and len(share.filterClasses) == 1:

@@ -18,7 +18,7 @@ class TestFeedImporting(testcase.NRVTestCase):
 
         self.assertEqual(14, len(channel))
 
-        self.assertEqual(channel[0].displayName, u'\u30b3\u30e2\u30f3\u30bb\u30f3\u30b9\u306e\u78ba\u8a8d')
+        self.assertEqual(iter(channel).next().displayName, u'\u30b3\u30e2\u30f3\u30bb\u30f3\u30b9\u306e\u78ba\u8a8d')
 
 if __name__ == "__main__":
     unittest.main()

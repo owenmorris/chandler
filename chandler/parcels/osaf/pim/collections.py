@@ -213,28 +213,6 @@ class AbstractCollection(items.ContentItem):
         """ for debugging """
         return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
                                 self.itsUUID.str16())
-        
-
-    def __getitem__ (self, index):
-        """
-        Support indexing using []
-        """
-
-        try:
-            return self.rep.getByIndex (self.indexName, index)
-        except NoSuchIndexError:
-            self.createIndex()
-            return self.rep.getByIndex (self.indexName, index)
-
-    def index (self, item):
-        """
-        Return the position of item in the index.
-        """
-        try:
-            return self.rep.getIndexPosition (self.indexName, item)
-        except NoSuchIndexError:
-            self.createIndex()
-            return self.resultSet.getIndexPosition (self.indexName, item)
 
     def isEmpty(self):
         """
@@ -351,6 +329,9 @@ class ListCollection(AbstractCollection):
     def empty(self):
         for item in self:
             item.delete(True)
+
+    def __len__(self):
+        return len(self.refCollection)
 
 class DifferenceCollection(AbstractCollection):
     """

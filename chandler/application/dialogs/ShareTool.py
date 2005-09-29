@@ -5,6 +5,7 @@ from osaf import sharing
 import application.Globals as Globals
 import application.dialogs.Util
 from i18n import OSAFMessageFactory as _
+from application import schema
 
 class ShareToolDialog(wx.Dialog):
 
@@ -94,9 +95,8 @@ class ShareToolDialog(wx.Dialog):
          resources=self.resources, view=self.view, join=True)
         if share is not None:
             share.get()
-            collection = share.contents
-            mainView = Globals.views[0]
-            mainView.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
+            schema.ns("osaf.app", self).sidebarCollection.add (share.contents)
+            # Need to SelectFirstItem -- DJA
         self._populateSharesList()
 
     def OnEditShare(self, evt):

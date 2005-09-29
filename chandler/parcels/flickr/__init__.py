@@ -183,8 +183,8 @@ def CreateCollectionFromUsername(repView, cpiaView):
             myPhotoCollection.getCollectionFromFlickr(repView)
 
             # Add the channel to the sidebar
-            return cpiaView.postEventByName('AddToSidebarWithoutCopying',
-                                     {'items': [myPhotoCollection.sidebarCollection]})
+            schema.ns("osaf.app", cpiaView).sidebarCollection.add (myPhotoCollection.sidebarCollection)
+            return myPhotoCollection.sidebarCollection
         except flickr.FlickrError, fe:
             if "User not found" in str(fe):
                 errMsg = _(u"Username '%(username)s' was not found.") % {'username': username}
@@ -211,8 +211,7 @@ def CreateCollectionFromTag(repView, cpiaView):
             myPhotoCollection.getCollectionFromFlickr(repView)
 
             # Add the channel to the sidebar
-            return cpiaView.postEventByName('AddToSidebarWithoutCopying',
-                                     {'items': [myPhotoCollection.sidebarCollection]})
+            schema.ns("osaf.app", cpiaView).sidebarCollection.add (myPhotoCollection.sidebarCollection)
 
         except flickr.FlickrError, fe:
             logger.exception(fe)
