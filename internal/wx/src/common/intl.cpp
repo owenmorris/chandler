@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp,v 1.170 2005/09/25 20:45:25 VZ Exp $
+// RCS-ID:      $Id: intl.cpp,v 1.171 2005/09/28 09:41:55 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1254,14 +1254,23 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
     if ( convertEncoding )
     {
         if ( m_charset.empty() )
+        {
             inputConv = wxConvCurrent;
+        }
         else
+        {
             inputConv =
             csConv = new wxCSConv(m_charset);
+        }
     }
-    else // no conversion needed
+    else // no need to convert the encoding
     {
+        // we still need the conversion for Unicode build
+#if wxUSE_UNICODE
+        inputConv = wxConvCurrent;
+#else // !wxUSE_UNICODE
         inputConv = NULL;
+#endif // wxUSE_UNICODE/!wxUSE_UNICODE
     }
 
     // conversion to apply to msgid strings before looking them up: we only
@@ -1315,11 +1324,11 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
         wxString msgid(data, *inputConv);
 #else // ASCII
         wxString msgid;
-#if wxUSE_WCHAR_T
-        if ( inputConv && sourceConv )
-            msgid = wxString(inputConv->cMB2WC(data), *sourceConv);
-        else
-#endif
+        #if wxUSE_WCHAR_T
+            if ( inputConv && sourceConv )
+                msgid = wxString(inputConv->cMB2WC(data), *sourceConv);
+            else
+        #endif
             msgid = data;
 #endif // wxUSE_UNICODE
 
