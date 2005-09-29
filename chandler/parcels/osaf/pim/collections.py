@@ -236,6 +236,18 @@ class AbstractCollection(items.ContentItem):
             self.createIndex()
             return self.resultSet.getIndexPosition (self.indexName, item)
 
+    def isEmpty(self):
+        """
+        Return True if the collection has no members
+        """
+        try:
+            # eventually Andi will give us a better API for this so we
+            # don't have to make an iterator object
+            iter(self).next()
+            return False
+        except StopIteration:
+            return True
+
     def isReadOnly(self):
         """
         Return True iff participating in only read-only shares

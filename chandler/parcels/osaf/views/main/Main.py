@@ -119,7 +119,7 @@ class MainView(View):
 
     def onEmptyTrashEventUpdateUI(self, event):
         trash = schema.ns("osaf.app", self).TrashCollection
-        event.arguments['Enable'] = (len(trash) > 0)
+        event.arguments['Enable'] = not trash.isEmpty()
 
     def onEditAccountPreferencesEvent (self, event):
         # Triggered from "File | Prefs | Accounts..."

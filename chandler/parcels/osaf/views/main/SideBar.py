@@ -329,7 +329,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
             if sidebarTPB is not None:
                 (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item, False)
-                if len (filteredCollection) == 0:
+                if filteredCollection.isEmpty():
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
             """
               Confuse user by changing the name to something they won't understand
