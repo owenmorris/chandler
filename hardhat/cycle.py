@@ -22,9 +22,9 @@ def main():
     while go:
         os.chdir(curDir)
 
-        if not firstRound:
-            print "Sleeping 5 minutes"
-            time.sleep(5 * 60)
+        #if not firstRound:
+        #    print "Sleeping 5 minutes"
+        #    time.sleep(5 * 60)
 
         nowString = time.strftime("%Y-%m-%d %H:%M:%S")
         
