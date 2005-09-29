@@ -6,7 +6,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, sys, os
+import unittest, sys, os, logging
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
@@ -14,10 +14,13 @@ import osaf.sharing.Sharing as Sharing
 from osaf.pim import ContentItem, ListCollection
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.contacts import Contact, ContactName
+from util import testcase
 
 import time # @@@ temporary
 
-class SharingTestCase(unittest.TestCase):
+logger = logging.getLogger(__name__)
+
+class SharingTestCase(testcase.NRVTestCase):
 
     def runTest(self):
         self._setup()
@@ -148,7 +151,7 @@ class SharingTestCase(unittest.TestCase):
         self.share2 = Sharing.Share(name="share", parent=sandbox,
                                     conduit=conduit, format=format,
                                     view=repo.view)
-        self.share2.get()
+        self.share2.sync()
 
         # Make sure that the items we imported have the same displayNames
         # as the ones we exported (and no fewer, no more)
@@ -189,7 +192,7 @@ class SharingTestCase(unittest.TestCase):
         format = Sharing.CloudXMLFormat(view=repo.view)
         self.share4 = Sharing.Share(conduit=conduit, format=format,
                                     view=repo.view)
-        self.share4.get()
+        self.share4.sync()
 
         alsoTheItem = self.share4.contents
         self.assert_(alsoTheItem.displayName == u"I'm an item",
@@ -211,9 +214,11 @@ class SharingTestCase(unittest.TestCase):
             if item.displayName == u"meeting":
                 changedItem = item
 
-        self.share2.put()
+        self.share2.sync()
+        time.sleep(1)  # @@@ if all happens within the same second, changes
+                       # aren't detected.  perhaps checksum checking is needed
 
-        self.share1.get()
+        self.share1.sync()
 
         self.assert_(changedItem.displayName == u"meeting rescheduled",
          u"displayName is %s" % (changedItem.displayName))
@@ -226,10 +231,10 @@ class SharingTestCase(unittest.TestCase):
                 toRemove = item
         self.share1.contents.remove(toRemove)
         # ...publish...
-        self.share1.put()
+        self.share1.sync()
 
         # ...get...
-        self.share2.get()
+        self.share2.sync()
         # ...and make sure it's gone from share2
         for item in self.share2.contents:
             self.assert_(item.displayName != u"lunch")

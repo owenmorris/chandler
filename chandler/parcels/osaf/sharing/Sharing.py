@@ -349,18 +349,16 @@ class ShareConduit(items.ContentItem):
         initialValue = {}
     )
 
-    marker = schema.One(schema.SingleRef)
+    syncVersion = schema.One(schema.Integer,
+        doc = "Keeps track of the repository view version at the time of "
+              "the last Put"
+    )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super(ShareConduit, self).__init__(name, parent, kind, view)
-
-        # 'marker' is an item which exists only to keep track of the repository
-        # view version number at the time of last sync
-        self.marker = Item('marker', self, None)
 
     @classmethod
     def getSharingView(self, repo, version=None):
-        # @@@MOR
+        # @@@MOR -- This is not used until I can revisit view merging
+
         # Until we can switch over to using view merging, returning None
         # here is a sign that no view switching should take place.  When
         # we can use view merging, this 'return None' should be removed.
@@ -385,7 +383,12 @@ class ShareConduit(items.ContentItem):
         # Assumes that self.resourceList has been populated:
         externalItemExists = self.__externalItemExists(item)
 
-        prevVersion = self.marker.getVersion()
+        prevVersion = getattr(self, 'syncVersion', self.itsView.itsVersion)
+
+        logger.debug("Examining for put: %s, version=%d",
+            item.getItemDisplayName().encode('ascii', 'replace'),
+            item.getVersion())
+        logger.debug("Previous Sync version: %s", prevVersion)
 
         if not externalItemExists:
             needsUpdate = True
@@ -402,6 +405,7 @@ class ShareConduit(items.ContentItem):
                         self.share.getSharedAttributes(relatedItem)
                     changes = changedAttributes(relatedItem, prevVersion,
                                                 itemVersion)
+                    logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), changes)
                     for change in changes:
                         if change in sharedAttributes:
                             needsUpdate = True
@@ -432,153 +436,120 @@ class ShareConduit(items.ContentItem):
         Transfer entire 'contents', transformed, to server.
         """
 
+        location = self.getLocation()
+        logger.info("Starting PUT of %s" % (location))
+
         self.connect()
 
         if view is None:
+            view = self.itsView
 
             # We didn't get a view, so we must not have been called during
             # a sync -- just a put( )
-            # @@@DLD bug 1998 - would refresh do here?
-            # @@@MOR, I think I need a commit for the view merging to work
-            self.itsView.commit()
+            # This commit is needed for me to detect local changes (otherwise
+            # those changes won't appear in the changedAttributes list:
+            view.commit()
 
-            # We need to switch to a repository view with the version number
-            # set to the last time we synced.
-            sharingView = self.getSharingView(self.itsView.repository)
+        # share.filterClasses includes the dotted names of classes so
+        # they can be shared.
+        filterClasses = self._getFilterClasses()
 
-            # if getSharingView returns None, that's an indication we aren't
-            # using view merging.  So just stick with the current view as is.
-            if sharingView is None:
-                sharingView = self.itsView
-            else:
-                # Make sure we have the latest
-                sharingView.refresh()
+        style = self.share.format.fileStyle()
+        if style == ImportExportFormat.STYLE_DIRECTORY:
 
-        else:
-            sharingView = view
+            self.resourceList = \
+                self._getResourceList(location)
 
-        # "self" is an object in the main view; we need a reference to self
-        # that is in the sharing view:
-        sharingSelf = sharingView[self.itsUUID]
+            logger.debug(_(u"Resources on server: %(resources)s") % \
+                {'resources':self.resourceList})
+            logger.debug(_(u"Manifest: %(manifest)s") % \
+                {'manifest':self.manifest})
 
-        try:
-            location = sharingSelf.getLocation()
-            logger.info("Starting PUT of %s" % (location))
+            # Ignore any resources which we weren't able to parse during
+            # a previous GET -- they're the ones in our manifest with
+            # None as a uuid:
+            for (path, record) in self.manifest.iteritems():
+                if record['uuid'] is None:
+                    if self.resourceList.has_key(path):
+                        logger.debug(_(u'Removing an unparsable resource from the resourceList: %(path)s') % { 'path' : path })
+                        del self.resourceList[path]
 
-            # share.filterClasses includes the dotted names of classes so
-            # they can be shared.
-            filterClasses = sharingSelf._getFilterClasses()
 
-            style = sharingSelf.share.format.fileStyle()
-            if style == ImportExportFormat.STYLE_DIRECTORY:
+            # If we're sharing a collection, put the collection's items
+            # individually:
+            if isinstance(self.share.contents, AbstractCollection):
 
-                sharingSelf.resourceList = \
-                    sharingSelf._getResourceList(location)
+                #
+                # Remove any resources from the server that aren't in
+                # our collection anymore.  The reason we have to do this
+                # first is because if one .ics resource is replacing
+                # another (on a CalDAV server) and they have the same
+                # icalUID, the CalDAV server won't allow them to exist
+                # simultaneously.
+                # Any items that are in the manifest but not in the
+                # collection are the ones to remove.
 
-                logger.debug(_(u"Resources on server: %(resources)s") % \
-                    {'resources':sharingSelf.resourceList})
+                removeFromManifest = []
+
+                for (path, record) in self.manifest.iteritems():
+                    if path in self.resourceList:
+                        uuid = record['uuid']
+                        if uuid:
+                            item = view.findUUID(uuid)
+                            if item is not self.share and \
+                                (item is None or \
+                                item not in self.share.contents):
+                                self._deleteItem(path)
+                                del self.resourceList[path]
+                                removeFromManifest.append(path)
+                                logger.debug(_(u'Item removed locally, so removing from server: %(path)s') % { 'path' : path })
+
+                for path in removeFromManifest:
+                    self.__removeFromManifest(path)
+
                 logger.debug(_(u"Manifest: %(manifest)s") % \
-                    {'manifest':sharingSelf.manifest})
-
-                # Ignore any resources which we weren't able to parse during
-                # a previous GET -- they're the ones in our manifest with
-                # None as a uuid:
-                for (path, record) in sharingSelf.manifest.iteritems():
-                    if record['uuid'] is None:
-                        if sharingSelf.resourceList.has_key(path):
-                            logger.debug(_(u'Removing an unparsable resource from the resourceList: %(path)s') % { 'path' : path })
-                            del sharingSelf.resourceList[path]
+                    {'manifest':self.manifest})
 
 
-                # If we're sharing a collection, put the collection's items
-                # individually:
-                if isinstance(sharingSelf.share.contents, AbstractCollection):
+                for item in self.share.contents:
 
-                    #
-                    # Remove any resources from the server that aren't in
-                    # our collection anymore.  The reason we have to do this
-                    # first is because if one .ics resource is replacing
-                    # another (on a CalDAV server) and they have the same
-                    # icalUID, the CalDAV server won't allow them to exist
-                    # simultaneously.
-                    # Any items that are in the manifest but not in the
-                    # collection are the ones to remove.
+                    # Skip private items
+                    if item.private:
+                        continue
 
-                    removeFromManifest = []
-
-                    for (path, record) in sharingSelf.manifest.iteritems():
-                        if path in sharingSelf.resourceList:
-                            uuid = record['uuid']
-                            if uuid:
-                                item = sharingView.findUUID(uuid)
-                                if item is not sharingSelf.share and \
-                                    (item is None or \
-                                    item not in sharingSelf.share.contents):
-                                    sharingSelf._deleteItem(path)
-                                    del sharingSelf.resourceList[path]
-                                    removeFromManifest.append(path)
-                                    logger.debug(_(u'Item removed locally, so removing from server: %(path)s') % { 'path' : path })
-
-                    for path in removeFromManifest:
-                        sharingSelf.__removeFromManifest(path)
-
-                    logger.debug(_(u"Manifest: %(manifest)s") % \
-                        {'manifest':sharingSelf.manifest})
-
-
-                    for item in sharingSelf.share.contents:
-
-                        # Skip private items
-                        if item.private:
+                    # Skip any items matching the filtered classes
+                    if filterClasses is not None:
+                        match = False
+                        for klass in filterClasses:
+                            if isinstance(item, klass):
+                                match = True
+                                break
+                        if not match:
                             continue
 
-                        # Skip any items matching the filtered classes
-                        if filterClasses is not None:
-                            match = False
-                            for klass in filterClasses:
-                                if isinstance(item, klass):
-                                    match = True
-                                    break
-                            if not match:
-                                continue
+                    # Put the item
+                    self.__conditionalPutItem(item)
 
-                        # Put the item
-                        sharingSelf.__conditionalPutItem(item)
-
-                # Put the Share item itself
-                sharingSelf.__conditionalPutItem(sharingSelf.share)
+            # Put the Share item itself
+            self.__conditionalPutItem(self.share)
 
 
-            elif style == ImportExportFormat.STYLE_SINGLE:
-                # Put a monolithic file representing the share item.
-                #@@@MOR This should be beefed up to only publish if at least one
-                # of the items has changed.
-                sharingSelf._putItem(sharingSelf.share)
+        elif style == ImportExportFormat.STYLE_SINGLE:
+            # Put a monolithic file representing the share item.
+            #@@@MOR This should be beefed up to only publish if at least one
+            # of the items has changed.
+            self._putItem(self.share)
 
 
-            # dirty our marker
-            sharingSelf.marker.setDirty(Item.NDIRTY)
-
-
-            # @@@DLD bug 1998 - why do we need a second commit here?
-            # Is this just for the setDirty above?
-            # @@@MOR This is to make our changes available to the main view
-            sharingSelf.itsView.commit()
-
-        finally:
-
-            # If sharing work happened in a different view, refresh the
-            # main view
-
-            # @@@MOR We might not want to do this, and let the caller decide
-            # if they want to refresh to pick up sharing's changes...
-
-            if self.itsView is not sharingView:
-                self.itsView.refresh()
+        # Store the view version number, committing first so we actually
+        # store the correct version number (it changes after you commit)
+        view.commit()
+        self.syncVersion = view.itsVersion
 
         self.disconnect()
 
-        logger.info("Finished PUT of %s" % (location))
+        logger.info("Finished PUT of %s (view version=%d)", location,
+            self.syncVersion)
 
 
     def __conditionalGetItem(self, itemPath, into=None):
@@ -619,75 +590,55 @@ class ShareConduit(items.ContentItem):
 
     def get(self):
 
-        self.itsView.commit() # Make sure locally modified items are available
-                              # for merging into sharingView at the end of this
-                              # method
+        location = self.getLocation()
+        logger.info("Starting GET of %s" % (location))
+
+        view = self.itsView
+
+        # This commit demarcates local changes from those that will be made
+        # during this Get operation.
+        view.commit()
 
         self.connect()
 
-        # We need to switch to a repository view with the version number
-        # set to the last time we synced.
-        sharingView = self.getSharingView(self.itsView.repository,
-                                          version=self.marker.getVersion())
+        if not self.exists():
+            raise NotFound(_(u"%(location)s does not exist") %
+                {'location': location})
 
-        # @@@MOR
-        # Until we can do view merging, getsharingView will return None,
-        # in which case just use the main view:
-
-        if sharingView is None:
-            sharingView = self.itsView
-
-        else:
-            # Make sure our version is as it was at last sync
-            version = self.marker.getVersion()
-            sharingView.itsVersion = version
-
-        # "self" is an object in the main view; we need a reference to self
-        # that is in the sharing view:
-        sharingSelf = sharingView[self.itsUUID]
-
-        location = sharingSelf.getLocation()
-        logger.info("Starting GET of %s" % (location))
-
-        if not sharingSelf.exists():
-           raise NotFound(_(u"%(location)s does not exist") % {'location': location})
-
-        sharingSelf.resourceList = sharingSelf._getResourceList(location)
+        self.resourceList = self._getResourceList(location)
 
         logger.debug(_(u"Resources on server: %(resources)s") % \
-            {'resources':sharingSelf.resourceList})
+            {'resources':self.resourceList})
         logger.debug(_(u"Manifest: %(manifest)s") % \
-            {'manifest':sharingSelf.manifest})
+            {'manifest':self.manifest})
 
         # We need to keep track of which items we've seen on the server so
         # we can tell when one has disappeared.
-        sharingSelf.__resetSeen()
+        self.__resetSeen()
 
-        itemPath = sharingSelf._getItemPath(sharingSelf.share)
+        itemPath = self._getItemPath(self.share)
         # if itemPath is None, the Format we're using doesn't have a file
         # that represents the Share item (CalDAV, for instance).
 
         if itemPath:
             # Get the file that represents the Share item
-            item = sharingSelf.__conditionalGetItem(itemPath,
-                                                    into=sharingSelf.share)
+            item = self.__conditionalGetItem(itemPath, into=self.share)
 
             # Whenever we get an item, mark it seen in our manifest and remove
             # it from the server resource list:
-            sharingSelf.__setSeen(itemPath)
+            self.__setSeen(itemPath)
             try:
-                del sharingSelf.resourceList[itemPath]
+                del self.resourceList[itemPath]
             except:
                 pass
 
         # Make sure we have a collection to add items to:
-        if sharingSelf.share.contents is None:
-            sharingSelf.share.contents = InclusionExclusionCollection( \
-                view=sharingView)
-            trash = schema.ns('osaf.app', sharingView).TrashCollection
-            sharingSelf.share.contents.setup(trash=trash)
+        if self.share.contents is None:
+            self.share.contents = InclusionExclusionCollection(view=view)
+            trash = schema.ns('osaf.app', view).TrashCollection
+            self.share.contents.setup(trash=trash)
 
-        contents = sharingSelf.share.contents
+        contents = self.share.contents
 
         # If share.contents is an AbstractCollection, treat other resources as
         # items to add to the collection:
@@ -701,48 +652,48 @@ class ShareConduit(items.ContentItem):
 
             if isinstance(contents, InclusionExclusionCollection) and \
                 not hasattr(contents, 'rep'):
-                    trash = schema.ns('osaf.app', sharingView).TrashCollection
+                    trash = schema.ns('osaf.app', view).TrashCollection
                     contents.setup(trash=trash)
 
-            filterClasses = sharingSelf._getFilterClasses()
+            filterClasses = self._getFilterClasses()
 
 
             # If an item is in the manifest but it's no longer in the
             # collection, we need to skip the server's copy -- we'll
             # remove it during the PUT phase
-            for (path, record) in sharingSelf.manifest.iteritems():
-                if path in sharingSelf.resourceList:
+            for (path, record) in self.manifest.iteritems():
+                if path in self.resourceList:
                     uuid = record['uuid']
                     if uuid:
-                        item = sharingView.findUUID(uuid)
+                        item = view.findUUID(uuid)
                         if item is None or \
-                            item not in sharingSelf.share.contents:
-                            del sharingSelf.resourceList[path]
-                            sharingSelf.__setSeen(path)
+                            item not in self.share.contents:
+                            del self.resourceList[path]
+                            self.__setSeen(path)
                             logger.debug(_(u'Item removed locally, so not fetching from server: %(path)s') % { 'path' : path })
 
 
             # Conditionally fetch items, and add them to collection
-            for itemPath in sharingSelf.resourceList:
-                item = sharingSelf.__conditionalGetItem(itemPath)
+            for itemPath in self.resourceList:
+                item = self.__conditionalGetItem(itemPath)
                 if item is not None:
-                    sharingSelf.share.contents.add(item)
+                    self.share.contents.add(item)
 
-                sharingSelf.__setSeen(itemPath)
+                self.__setSeen(itemPath)
 
             # When first importing a collection, name it after the share
-            if not hasattr(sharingSelf.share.contents, 'displayName'):
-                sharingSelf.share.contents.displayName = \
-                    sharingSelf.share.displayName
+            if not hasattr(self.share.contents, 'displayName'):
+                self.share.contents.displayName = \
+                    self.share.displayName
 
             # If an item was previously on the server (it was in our
             # manifest) but is no longer on the server, remove it from
             # the collection locally:
             toRemove = []
-            for unseenPath in sharingSelf.__iterUnseen():
-                uuid = sharingSelf.manifest[unseenPath]['uuid']
+            for unseenPath in self.__iterUnseen():
+                uuid = self.manifest[unseenPath]['uuid']
                 if uuid:
-                    item = sharingView.findUUID(uuid)
+                    item = view.findUUID(uuid)
                     if item is not None:
 
                         # If an item has disappeared from the server, only
@@ -762,9 +713,9 @@ class ShareConduit(items.ContentItem):
 
                         if removeLocally:
                             logger.info("...removing %s from collection" % item)
-                            sharingSelf.share.contents.remove(item)
-                            if item in sharingSelf.share.items:
-                                sharingSelf.share.items.remove(item)
+                            self.share.contents.remove(item)
+                            if item in self.share.items:
+                                self.share.items.remove(item)
                 else:
                     logger.info("Removed an unparsable resource manifest entry for %s", unseenPath)
 
@@ -772,24 +723,27 @@ class ShareConduit(items.ContentItem):
                 toRemove.append(unseenPath)
 
             for removePath in toRemove:
-                sharingSelf.__removeFromManifest(removePath)
+                self.__removeFromManifest(removePath)
 
+        ## @@@MOR Repo view merging will be revisited later, but leaving this
+        ## code here in the meantime.
+        ##
+        ## # This is where merge conflicts will happen:
+        ##
+        ##         def tmpMergeFn(code, item, attribute, value):
+        ##             # print "Conflict:", code, item, attribute, value
+        ##             logger.info("Sharing conflict: Item=%s, Attribute=%s, Local=%s, Remote=%s" % (item.displayName.encode('utf8'), attribute, str(item.getAttributeValue(attribute)), str(value)))
+        ##             return value # let the user win
+        ##             # return item.getAttributeValue(attribute) # let the server win
+        ##
+        ##         view.refresh(tmpMergeFn)
 
-        # This is where merge conflicts will happen:
-
-        def tmpMergeFn(code, item, attribute, value):
-            # print "Conflict:", code, item, attribute, value
-            logger.info("Sharing conflict: Item=%s, Attribute=%s, Local=%s, Remote=%s" % (item.displayName.encode('utf8'), attribute, str(item.getAttributeValue(attribute)), str(value)))
-            return value # let the user win
-            # return item.getAttributeValue(attribute) # let the server win
-
-        sharingView.refresh(tmpMergeFn)
-
-        logger.info("Finished GET of %s" % location)
 
         self.disconnect()
 
-        return sharingView
+        logger.info("Finished GET of %s" % location)
+
+        return view
 
 
 

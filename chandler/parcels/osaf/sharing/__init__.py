@@ -16,7 +16,7 @@ from WebDAV import *
 from ICalendar import *
 
 # A temporary switch to disable CalDAV mode:
-USECALDAV = False
+USECALDAV = True
 
 # What to name the CloudXML subcollection on a CalDAV server:
 SUBCOLLECTION = ".chandler"
