@@ -6903,100 +6903,111 @@ void wxGrid::DrawGridCellArea( wxDC& dc, const wxGridCellCoordsArray& cells )
     int i, numCells = cells.GetCount();
     int row, col, cell_rows, cell_cols;
     wxGridCellCoordsArray redrawCells;
+    int maxRow, maxCol;
+    wxGridTableBase *table = GetTable();
+
+    maxRow = table->GetNumberRows();
+    maxCol = table->GetNumberCols();
+
 
     for ( i = numCells-1; i >= 0;  i-- )
     {
         row = cells[i].GetRow();
         col = cells[i].GetCol();
-        GetCellSize( row, col, &cell_rows, &cell_cols );
-
-        // If this cell is part of a multicell block, find owner for repaint
-        if ( cell_rows <= 0 || cell_cols <= 0 )
+        if (row < maxRow && col < maxCol)
         {
-            wxGridCellCoords cell(row+cell_rows, col+cell_cols);
-            bool marked = false;
-            for ( int j = 0;  j < numCells;  j++ )
+            GetCellSize( row, col, &cell_rows, &cell_cols );
+
+            // If this cell is part of a multicell block, find owner for repaint
+            if ( cell_rows <= 0 || cell_cols <= 0 )
             {
-                if ( cell == cells[j] )
+                wxGridCellCoords cell(row+cell_rows, col+cell_cols);
+                bool marked = false;
+                for ( int j = 0;  j < numCells;  j++ )
                 {
-                    marked = true;
-                    break;
-                }
-            }
-            if (!marked)
-            {
-                int count = redrawCells.GetCount();
-                for (int j = 0; j < count; j++)
-                {
-                    if ( cell == redrawCells[j] )
+                    if ( cell == cells[j] )
                     {
                         marked = true;
                         break;
                     }
                 }
-                if (!marked) redrawCells.Add( cell );
-            }
-            continue; // don't bother drawing this cell
-        }
-
-        // If this cell is empty, find cell to left that might want to overflow
-        if (m_table && m_table->IsEmptyCell(row, col))
-        {
-            for ( int l = 0; l < cell_rows; l++ )
-            {
-                // find a cell in this row to left alreay marked for repaint
-                int left = col;
-                for (int k = 0; k < int(redrawCells.GetCount()); k++)
-                    if ((redrawCells[k].GetCol() < left) &&
-                        (redrawCells[k].GetRow() == row))
-                        left=redrawCells[k].GetCol();
-
-                if (left == col) left = 0; // oh well
-
-                for (int j = col-1; j >= left; j--)
+                if (!marked)
                 {
-                    if (!m_table->IsEmptyCell(row+l, j))
+                    int count = redrawCells.GetCount();
+                    for (int j = 0; j < count; j++)
                     {
-                        if (GetCellOverflow(row+l, j))
+                        if ( cell == redrawCells[j] )
                         {
-                            wxGridCellCoords cell(row+l, j);
-                            bool marked = false;
+                            marked = true;
+                            break;
+                        }
+                    }
+                    if (!marked) redrawCells.Add( cell );
+                }
+                continue; // don't bother drawing this cell
+            }
 
-                            for (int k = 0; k < numCells; k++)
+            // If this cell is empty, find cell to left that might want to overflow
+            if (m_table && m_table->IsEmptyCell(row, col))
+            {
+                for ( int l = 0; l < cell_rows; l++ )
+                {
+                    // find a cell in this row to left alreay marked for repaint
+                    int left = col;
+                    for (int k = 0; k < int(redrawCells.GetCount()); k++)
+                        if ((redrawCells[k].GetCol() < left) &&
+                            (redrawCells[k].GetRow() == row))
+                            left=redrawCells[k].GetCol();
+
+                    if (left == col) left = 0; // oh well
+
+                    for (int j = col-1; j >= left; j--)
+                    {
+                        if (!m_table->IsEmptyCell(row+l, j))
+                        {
+                            if (GetCellOverflow(row+l, j))
                             {
-                                if ( cell == cells[k] )
+                                wxGridCellCoords cell(row+l, j);
+                                bool marked = false;
+
+                                for (int k = 0; k < numCells; k++)
                                 {
-                                    marked = true;
-                                    break;
-                                }
-                            }
-                            if (!marked)
-                            {
-                                int count = redrawCells.GetCount();
-                                for (int k = 0; k < count; k++)
-                                {
-                                    if ( cell == redrawCells[k] )
+                                    if ( cell == cells[k] )
                                     {
                                         marked = true;
                                         break;
                                     }
                                 }
-                                if (!marked) redrawCells.Add( cell );
+                                if (!marked)
+                                {
+                                    int count = redrawCells.GetCount();
+                                    for (int k = 0; k < count; k++)
+                                    {
+                                        if ( cell == redrawCells[k] )
+                                        {
+                                            marked = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!marked) redrawCells.Add( cell );
+                                }
                             }
+                            break;
                         }
-                        break;
                     }
                 }
             }
+
+            DrawCell( dc, cells[i] );
         }
-        DrawCell( dc, cells[i] );
     }
 
     numCells = redrawCells.GetCount();
 
     for ( i = numCells - 1; i >= 0;  i-- )
     {
-        DrawCell( dc, redrawCells[i] );
+        if (cells[i].GetRow() < maxRow && cells[i].GetCol() < maxCol)
+            DrawCell( dc, redrawCells[i] );
     }
 }
 
