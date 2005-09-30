@@ -912,11 +912,12 @@ class AccountPreferencesDialog(wx.Dialog):
         if self.__Validate():
             self.__ApplyChanges()
             self.__ApplyDeletions()
-            app = schema.ns('osaf.app', self.view)
-            sidebarCollection = app.sidebarCollection
-            for collection in [app.inCollection, app.outCollection]:
-                if collection not in sidebarCollection:
-                    sidebarCollection.add (collection)
+            if sharing.isInboundMailSetUp (self.view):
+                app = schema.ns('osaf.app', self.view)
+                sidebarCollection = app.sidebarCollection
+                for collection in [app.inCollection, app.outCollection]:
+                    if collection not in sidebarCollection:
+                        sidebarCollection.add (collection)
             self.EndModal(True)
             self.view.commit()
             application.Globals.mailService.refreshMailServiceCache()
