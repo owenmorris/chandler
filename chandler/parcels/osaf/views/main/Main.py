@@ -610,24 +610,6 @@ class MainView(View):
         utils.loadMailTests(self.itsView, dir)
         self.itsView.refresh()
 
-    def onGetNewMailEvent (self, event):
-        # Make sure we have all the accounts; returns False if the user cancels
-        # out and we don't.
-        if not sharing.ensureAccountSetUp(self.itsView, inboundMail=True):
-            return
-
-        view = self.itsView
-        # @@@DLD bug 1998 - why do we have to commit here?  Are we pushing our changes
-        # over to mail?
-        view.commit()
-
-        for account in Mail.IMAPAccount.getActiveAccounts(self.itsView):
-            Globals.mailService.getIMAPInstance(account).getMail()
-
-        for account in Mail.POPAccount.getActiveAccounts(self.itsView):
-            Globals.mailService.getPOPInstance(account).getMail()
-
-        view.refresh()
 
     def onReloadParcelsEvent(self, event, traceItem = None):
         """
@@ -968,41 +950,95 @@ class MainView(View):
         event.arguments['Enable'] = enable
         event.arguments ['Text'] = menuTitle
 
-    def onSyncWebDAVEvent (self, event):
-        """
-          Synchronize WebDAV sharing.
-        The "File | Sync | WebDAV" menu item
-        """
-        # commit repository changes before synch
-        # @@@DLD bug 1998 - update comment above and use refresh instead?
-        self.RepositoryCommitWithStatus()
 
-        # find all the shared collections and sync them.
-        self.setStatusMessage (_(u"Checking shared collections..."))
-        if sharing.checkForActiveShares(self.itsView):
-            self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            sharing.syncAll(self.itsView)
-        else:
-            self.setStatusMessage (_(u"No shared collections found"))
-            return
-        self.setStatusMessage (_(u"Shared collections synchronized"))
 
-    def onSyncWebDAVEventUpdateUI (self, event):
-        accountOK = sharing.isWebDAVSetUp(self.itsView)
-        haveActiveShares = sharing.checkForActiveShares(self.itsView)
-        event.arguments ['Enable'] = accountOK and haveActiveShares
-        # @@@DLD set up the help string to let the user know why it's disabled
 
     def onSyncAllEvent (self, event):
         """
-          Synchronize Mail and all sharing.
-        The "File | Sync | All" menu item
+        Synchronize Mail and all sharing.
+        The "File | Sync | All" menu item, and the Sync All Toolbar button
         """
+
+        view = self.itsView
+
+        # Check account status:
+        DAVReady = sharing.isWebDAVSetUp(view)
+        inboundMailReady = sharing.isInboundMailSetUp(view)
+
+        # Any active shares?  (Even if default WebDAV account not set up,
+        # the user could have subscribed with tickets)
+        activeShares = sharing.checkForActiveShares(view)
+
+        if not (DAVReady or activeShares or inboundMailReady):
+            # Nothing is set up -- nudge the user to set up a sharing account
+            sharing.ensureAccountSetUp(view, sharing=True)
+            # Either the user has created a sharing account, or they haven't,
+            # but it doesn't matter since there's no shares to sync
+            return
+
+        # At least one account is setup, or there are active shares
+
         # find all the shared collections and sync them.
-        self.onSyncWebDAVEvent (event)
+        if activeShares:
+            self.setStatusMessage (_(u"Synchronizing shared collections..."))
+            sharing.syncAll(view)
+            self.setStatusMessage (_(u"Shared collections synchronized"))
+        else:
+            if DAVReady:
+                self.setStatusMessage (_(u"No shared collections found"))
 
         # If mail is set up, fetch it:
-        if sharing.isInboundMailSetUp(self.itsView):
+        if inboundMailReady:
             self.setStatusMessage (_(u"Getting new Mail"))
             self.onGetNewMailEvent (event)
 
+    def onSyncWebDAVEvent (self, event):
+        """
+        Synchronize WebDAV sharing.
+        The "File | Sync | Shares" menu item
+        """
+
+        view = self.itsView
+
+        activeShares = sharing.checkForActiveShares(view)
+        if activeShares:
+            # find all the shared collections and sync them.
+            self.setStatusMessage (_(u"Synchronizing shared collections..."))
+            sharing.syncAll(view)
+            self.setStatusMessage (_(u"Shared collections synchronized"))
+
+        else:
+            if not sharing.isWebDAVSetUp(view):
+                # DAV is not set up -- nudge the user to set up sharing account
+                sharing.ensureAccountSetUp(view, sharing=True)
+                # Either way, we don't care if the user actually created an
+                # account or not, we know there's nothing to sync
+                return
+            self.setStatusMessage (_(u"No shared collections found"))
+
+
+
+    def onGetNewMailEvent (self, event):
+        """
+        Fetch Mail.
+        The "File | Sync | Mail" menu item
+        """
+
+        view = self.itsView
+
+        # Make sure we have all the accounts; returns False if the user cancels
+        # out and we don't.
+        if not sharing.ensureAccountSetUp(view, inboundMail=True):
+            return
+
+        # @@@DLD bug 1998 - why do we have to commit here?  Are we pushing our changes
+        # over to mail?
+        view.commit()
+
+        for account in Mail.IMAPAccount.getActiveAccounts(view):
+            Globals.mailService.getIMAPInstance(account).getMail()
+
+        for account in Mail.POPAccount.getActiveAccounts(view):
+            Globals.mailService.getPOPInstance(account).getMail()
+
+        view.refresh()
