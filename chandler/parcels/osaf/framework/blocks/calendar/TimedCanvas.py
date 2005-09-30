@@ -344,28 +344,58 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # @@@ this code might want to live somewhere else, refactored
         
         # if a region is selected, then use that for the event span
-        if (self._bgSelectionStartTime):
-            newTime = self._bgSelectionStartTime
-            duration = self._bgSelectionEndTime - self._bgSelectionStartTime
-        else:
-            newTime = self.getDateTimeFromPosition(unscrolledPosition)
-            duration = timedelta(hours=1)
+        newTime, duration = self.GetNewEventTime(unscrolledPosition)
             
-        event = self.CreateEmptyEvent(newTime, False, False)
-        event.duration = duration
+        event = self.CreateEmptyEvent(newTime, duration, False, False)
 
-        # collectionList[0] is the currently selected collection
-        self.blockItem.contents.collectionList[0].add (event)
+        # now try to insert the event onto the canvas without too many
+        # redraws, and allow the user to start dragging if they are
+        # still holding down the mouse button (doesn't quite work yet)
         
-        self.OnSelectItem(event)
-
-        self.blockItem.itsView.commit()
         canvasItem = TimedCanvasItem(event, self)
         
         # only problem here is that we haven't checked for conflicts
         canvasItem.UpdateDrawingRects()
         canvasItem.setResizeMode(canvasItem.RESIZE_MODE_END)
         return canvasItem
+
+    def GetNewEventTime(self, unscrolledPosition=None):
+        """
+        Returns a reasonable startTime and duration for creation of an
+        event, taking into account.
+        """
+        if (self._bgSelectionStartTime):
+            # first try selection, if any
+            newTime = self._bgSelectionStartTime
+            duration = self._bgSelectionEndTime - newTime
+            
+        elif unscrolledPosition:
+            newTime = self.getDateTimeFromPosition(unscrolledPosition)
+            duration = timedelta(hours=1)
+            
+        else:
+            # next try the current time today, if visible
+            duration = timedelta(hours=1)
+            
+            now = datetime.today()
+            startDay, endDay = self.blockItem.GetCurrentDateRange()
+            if startDay <= now <= endDay:
+                # if today is in view, try to create the time about an
+                # hour from now.
+                nowMinute = now.minute
+                nowHour = now.hour
+                newTime = now.replace(minute=roundTo(nowMinute,15),
+                                      hour=nowHour + 1)
+            elif self.blockItem.dayMode:
+                # create the time at noon on the current day
+                newTime = startDay + timedelta(hours=12)
+                
+            else:
+                # finally, just throw it in the middle of the current view
+                newTime = startDay + timedelta(days=3, hours=12)
+                
+        return newTime, duration
+            
 
     def OnBeginResizeItem(self):
         self.StartDragTimer()

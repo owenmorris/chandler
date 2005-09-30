@@ -78,8 +78,7 @@ def make_mainview(parcel):
             methodName='onNewEvent',
             kindParameter=osaf.pim.notes.Note.getKind(parcel.itsView),
             commitAfterDispatch=True,
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
+            dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
     RunSelectedScriptEvent = \
         BlockEvent.template('RunSelectedScript',
@@ -219,8 +218,7 @@ def make_mainview(parcel):
             methodName='onNewEvent',
             kindParameter=osaf.pim.mail.MailMessage.getKind(parcel.itsView),
             commitAfterDispatch=True,
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
+            dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
     ApplicationBarEventEvent = \
         KindParameterizedEvent.template('ApplicationBarEvent',
@@ -234,8 +232,7 @@ def make_mainview(parcel):
             methodName='onNewEvent',
             kindParameter=osaf.pim.calendar.Calendar.CalendarEvent.getKind(parcel.itsView),
             commitAfterDispatch=True,
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
+            dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
     DeleteEvent = \
         BlockEvent.template('Delete',
@@ -295,8 +292,7 @@ def make_mainview(parcel):
             methodName='onNewEvent',
             kindParameter=osaf.pim.tasks.Task.getKind(parcel.itsView),
             commitAfterDispatch=True,
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
+            dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
     GenerateContentItemsEvent = \
         BlockEvent.template('GenerateContentItems',

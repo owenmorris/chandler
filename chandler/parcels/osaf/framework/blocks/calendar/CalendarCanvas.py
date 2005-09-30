@@ -31,7 +31,7 @@ from osaf.framework.blocks.calendar import CollectionCanvas
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 from application import schema
-import itertools
+from itertools import islice
 import copy
 import logging
 
@@ -42,6 +42,9 @@ logger = logging.getLogger(__name__)
 dateFormatSymbols = DateFormatSymbols()
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
+
+def nth(iterable, n):
+    return list(islice(iterable, n, n+1))[0]
 
 # Widget overview
 # 
@@ -963,7 +966,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             drawDayLine(dayNum)
 
 
-    def CreateEmptyEvent(self, startTime, allDay, anyTime):	
+    def CreateEmptyEvent(self, startTime, duration, allDay, anyTime):	
         """	
         shared routine to create an event, using the current view	
         also forces consumers to specify important fields	
@@ -974,10 +977,20 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
        
         # start time is "optional" - callers still must specify None	
         # to be explicit that they want the default time	
-        if startTime:	
-            event.startTime = startTime	
+        if startTime is not None:
+            event.startTime = startTime
+        if duration is not None:
+            event.duration = duration
+            
         event.allDay = allDay	
-        event.anyTime = anyTime	
+        event.anyTime = anyTime
+        
+        # collectionList[0] is the currently selected collection
+        self.blockItem.contents.collectionList[0].add (event)
+        
+        self.OnSelectItem(event)
+
+        self.blockItem.itsView.commit()
         return event	
         
 
@@ -1220,6 +1233,21 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         w.SetMinSize((8*45, -1))
 
         return w
+
+    def onNewEvent(self, event):
+        """
+        Create a new event from the menu - try to use contextual information
+        from the view to create it in a normal place
+        """
+
+        # this is a little bit of a hack, because we know we want to get
+        # to the timed events canvas
+        calendarSplitter = nth(self.childrenBlocks, 1)
+        timedEventsBlock = nth(calendarSplitter.childrenBlocks, 1)
+        timedEventsCanvas = timedEventsBlock.widget
+
+        startTime, duration = timedEventsCanvas.GetNewEventTime()
+        timedEventsCanvas.CreateEmptyEvent(startTime, duration, False, False)
 
 
 class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):

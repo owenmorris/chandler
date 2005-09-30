@@ -613,52 +613,74 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
     
     def OnRangeSelect(self, event):
+        if (hasattr(self, '_selectingItems') or
+            (not event.Selecting() and not event.ControlDown())):
+            event.Skip()
+            return
         if not wx.GetApp().ignoreSynchronizeWidget:
             topLeftList = self.GetSelectionBlockTopLeft()
-            self.blockItem.selection = []
-            for topLeft, bottomRight in zip (topLeftList,
-                                             self.GetSelectionBlockBottomRight()):
-                self.blockItem.selection.append ([topLeft[0], bottomRight[0]])
-           
-            topLeftList.sort()
-            try:
-                (row, column) = topLeftList [0]
-            except IndexError:
-                item = None
-            else:
-                item = self.blockItem.contents [row]
+            bottomRightList = self.GetSelectionBlockBottomRight()
+            newSelection = []
+            selectedItems = []
+            print "Checking Selection:"
+            for topLeft, bottomRight in zip (topLeftList, bottomRightList):
+                row,column = topLeft[0], bottomRight[0]
+                selectedItems.append(self.blockItem.contents[row])
+                print "Selection: %s" % selectedItems[-1].displayName
+                newSelection.append([row, column])
 
-            if item is not self.blockItem.selectedItemToView:
+            if len(selectedItems) > 0:
+                item = selectedItems[0]
+            else:
+                item = None
+
+            if (item is not self.blockItem.selectedItemToView or
+                newSelection != self.blockItem.selection):
+                if newSelection != self.blockItem.selection:
+                    print "newSelection = %s" % newSelection
+                    print "already have = %s" % self.blockItem.selection
                 self.blockItem.selectedItemToView = item
+                self.blockItem.selection = newSelection
+                
+                # reset the column header titles
                 if item is not None:
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
-                        self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
+                        label = gridTable.GetColLabelValue(columnIndex)
+                        self.SetColLabelValue (columnIndex, label)
                 """
-                  So happens that under some circumstances widgets
-                  needs to clear the selection before setting a new
-                  selection, e.g. when you have some rows in a table
-                  selected and you click on another cell. However, we
-                  need to catch changes to the selection in
-                  OnRangeSelect to keep track of the selection and
-                  broadcast selection changes to other blocks. So
-                  under some circumstances you get two OnRangeSelect
-                  calls, one to clear the selection and another to set
-                  the new selection. When the first OnRangeSelect is
-                  called to clear the selection we used to broadcast a
-                  select item event with None as the selection. This
-                  has two unfortunate side effects: it causes other
-                  views (e.g. the detail view) to draw blank and it
-                  causes the subsequent call to OnRangeSelect to not
-                  occur, causing the selection to vanish.  It turns
-                  out that ignoring all the clear selections except
-                  when control is down skips the extra clear
-                  selections.
+                Under some circumstances widgets needs to clear the
+                selection before setting a new selection, e.g. when
+                you have some rows in a table selected and you click
+                on another cell. However, we need to catch changes to
+                the selection in OnRangeSelect to keep track of the
+                selection and broadcast selection changes to other
+                blocks.
+
+                So under some circumstances you get two OnRangeSelect
+                calls, one to clear the selection and another to set
+                the new selection. When the first OnRangeSelect is
+                called to clear the selection we used to broadcast a
+                select item event with None as the selection. This has
+                two unfortunate side effects: it causes other views
+                (e.g. the detail view) to draw blank and it causes the
+                subsequent call to OnRangeSelect to not occur, causing
+                the selection to vanish.
+
+                It turns out that ignoring all the clear selections
+                except when control is down skips the extra clear
+                selections.
                 """
-                if (item is not None or event.Selecting() or
+
+                if (event.Selecting() or
                     event.ControlDown()):
+
+                    print "Broadcasting selection of %d items" % len(selectedItems)
+                    assert not hasattr(self, '_selectingItems')
+                    self._selectingItems = True
                     self.blockItem.postEventByName("SelectItemsBroadcast",
-                                                   {'items':[item]})
+                                                   {'items':selectedItems})
+                    del self._selectingItems
                 
         event.Skip()
 
@@ -673,9 +695,10 @@ class wxTable(DragAndDrop.DraggableWidget,
                 widthMinusLastColumn += self.GetColSize (column)
             lastColumnWidth = size.width - widthMinusLastColumn
             """
-              This is a temporary fix to get around an apparent bug in grids.  We only want to adjust
-            for scrollbars if they are present.  The -2 is a hack, without which the sidebar will grow
-            indefinitely when resizing the window.
+            This is a temporary fix to get around an apparent bug in
+            grids.  We only want to adjust for scrollbars if they are
+            present.  The -2 is a hack, without which the sidebar will
+            grow indefinitely when resizing the window.
             """
             if (self.GetSize() == self.GetVirtualSize()):
                 lastColumnWidth = lastColumnWidth - 2

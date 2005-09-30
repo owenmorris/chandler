@@ -681,7 +681,13 @@ class Block(schema.Item):
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
             try:
-                block = Globals.views [1]
+                v = Globals.views [1]
+                # the active view is typically a splitter, so really
+                # we probably want the first child (and even if we
+                # don't, the event will bubble up)
+                
+                # for some reason v.childrenBlocks[0] is busting
+                block = iter(v.childrenBlocks).next()
             except IndexError:
                 pass
             else:                
