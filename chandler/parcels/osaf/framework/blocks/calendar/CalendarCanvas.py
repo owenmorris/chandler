@@ -1239,17 +1239,24 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         Create a new event from the menu - try to use contextual information
         from the view to create it in a normal place
         """
-
-        # this is a little bit of a hack, because we know we want to get
-        # to the timed events canvas
-        calendarSplitter = nth(self.childrenBlocks, 1)
-        timedEventsBlock = nth(calendarSplitter.childrenBlocks, 1)
-        timedEventsCanvas = timedEventsBlock.widget
-
-        startTime, duration = timedEventsCanvas.GetNewEventTime()
-        timedEventsCanvas.CreateEmptyEvent(startTime, duration, False, False)
-
-
+        ourKind = Calendar.CalendarEvent.getKind(self.itsView)
+        kindParam = getattr(event, 'kindParameter', ourKind)
+        # if we're not creating our own kind, let someone else handle it
+        if kindParam is not ourKind:
+            event.arguments['continueBubbleUp'] = True
+        else:
+            # this is a little bit of a hack, because we know we want to get
+            # to the timed events canvas
+            calendarSplitter = nth(self.childrenBlocks, 1)
+            timedEventsBlock = nth(calendarSplitter.childrenBlocks, 1)
+            timedEventsCanvas = timedEventsBlock.widget
+    
+            startTime, duration = timedEventsCanvas.GetNewEventTime()
+            newEvent = timedEventsCanvas.CreateEmptyEvent(startTime, duration, False, False)
+            
+            # return the list of items created
+            return [newEvent]
+    
 class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
     def instantiateWidget(self):
         wxSplitter = super(CanvasSplitterWindow, self).instantiateWidget()
