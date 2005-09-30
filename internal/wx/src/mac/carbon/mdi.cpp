@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: mdi.cpp,v 1.39 2005/09/23 12:54:08 MR Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.40 2005/09/30 16:39:41 DE Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,10 +13,13 @@
 
 #if wxUSE_MDI
 
-#include "wx/mdi.h"
-#include "wx/menu.h"
-#include "wx/settings.h"
-#include "wx/log.h"
+#ifndef WX_PRECOMP
+    #include "wx/mdi.h"
+    #include "wx/log.h"
+    #include "wx/menu.h"
+    #include "wx/settings.h"
+    #include "wx/statusbr.h"
+#endif
 
 #include "wx/mac/private.h"
 #include "wx/mac/uma.h"

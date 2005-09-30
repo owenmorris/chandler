@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: font.h,v 1.26 2005/09/25 20:35:11 VZ Exp $
+// RCS-ID:      $Id: font.h,v 1.27 2005/09/30 09:12:54 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,8 +14,10 @@
 
 #if __WXMOTIF20__ && !__WXLESSTIF__
     #define wxMOTIF_NEW_FONT_HANDLING 1
+    #define wxMOTIF_USE_RENDER_TABLE 1
 #else
     #define wxMOTIF_NEW_FONT_HANDLING 0
+    #define wxMOTIF_USE_RENDER_TABLE 0
 #endif
 
 class wxXFont;
@@ -97,17 +99,18 @@ public:
         WXDisplay* display = NULL) const;
 
     // These two are helper functions for convenient access of the above.
-#if !wxMOTIF_NEW_FONT_HANDLING
+#if wxMOTIF_NEW_FONT_HANDLING
+    WXFontSet GetFontSet(double scale, WXDisplay* display = NULL) const;
+#else // if !wxMOTIF_NEW_FONT_HANDLING
     WXFontStructPtr GetFontStruct(double scale = 1.0,
         WXDisplay* display = NULL) const;
+#endif // wxMOTIF_NEW_FONT_HANDLING
+#if wxMOTIF_USE_RENDER_TABLE
+    WXRenderTable GetRenderTable(WXDisplay* display) const;
+#else // if !wxMOTIF_USE_RENDER_TABLE
     WXFontList GetFontList(double scale = 1.0,
         WXDisplay* display = NULL) const;
-#else
-    WXFontSet GetFontSet(double scale, WXDisplay* display = NULL) const;
-#endif
-#if __WXMOTIF20__ // && !__WXLESSTIF__ for 2.7
-    WXRenderTable GetRenderTable(WXDisplay* display) const;
-#endif
+#endif // wxMOTIF_USE_RENDER_TABLE
     // returns either a XmFontList or XmRenderTable, depending
     // on Motif version
     WXFontType GetFontType(WXDisplay* display) const;
@@ -120,8 +123,6 @@ protected:
     // common part of all ctors
     void Init();
 
-    // VZ: IMHO, we don't need it at all...
-    bool RealizeResource() { return true; }
     void Unshare();
 
 private:

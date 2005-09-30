@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.11.97
-// RCS-ID:      $Id: menuitem.h,v 1.19 2005/09/23 12:49:59 MR Exp $
+// RCS-ID:      $Id: menuitem.h,v 1.20 2005/09/30 09:15:48 MBN Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,8 @@ public:
     virtual const wxBitmap& GetBitmap() const { return m_bitmap; }
     
     // implementation from now on
-    void CreateItem (WXWidget menu, wxMenuBar * menuBar, wxMenu * topMenu);
+    void CreateItem (WXWidget menu, wxMenuBar * menuBar, wxMenu * topMenu,
+                     size_t index);
     void DestroyItem(bool full);
     
     WXWidget GetButtonWidget() const { return m_buttonWidget; }

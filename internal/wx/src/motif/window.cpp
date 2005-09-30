@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: window.cpp,v 1.140 2005/09/25 12:53:28 MW Exp $
+// RCS-ID:      $Id: window.cpp,v 1.141 2005/09/30 09:15:52 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1089,7 +1089,7 @@ bool wxWindow::DoPopupMenu(wxMenu *menu, int x, int y)
     }
 
     menu->SetId(1); /* Mark as popped-up */
-    menu->CreateMenu(NULL, widget, menu);
+    menu->CreateMenu(NULL, widget, menu, 0);
     menu->SetInvokingWindow(this);
 
     menu->UpdateUI();
