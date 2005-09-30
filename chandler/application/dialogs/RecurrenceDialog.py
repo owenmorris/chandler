@@ -109,11 +109,10 @@ class RecurrenceDialog(wx.Dialog):
 
         self.SetTitle(title)
 
-        # Make sure the dialog can fit the buttons and question text
-        self.SetSize(self.GetBestSize())
-
         if verb == 'change': # changes don't apply to all, hide the all button
             self.allButton.Show(False)
+
+        self.Layout()
 
         self.CenterOnScreen()
         self.Show()
@@ -121,7 +120,7 @@ class RecurrenceDialog(wx.Dialog):
     def _end(self):
         self.proxy.dialogUp = False
         self.Destroy()
-
+        
     def onCancel(self, event):
         self.proxy.cancelBuffer()
         if self.cancelCallback is not None:
@@ -214,10 +213,19 @@ class OccurrenceProxy(object):
             elif self.currentlyModifying is None:
                 self.changeBuffer.append(('change', name, value))
                 if not self.dialogUp:
+                    # [Bug 4110] Put the dialog on-screen asynchronously
+                    # This code can get called while wx is busy changing
+                    # focus, etc, and popping a new window onscreen seems
+                    # to get it into a weird state.
                     self.dialogUp = True
-                    RecurrenceDialog(wx.GetApp().mainFrame, self)
+                    wx.GetApp().PostAsyncEvent(self.runDialog)
             else:
                 self.propagateChange(name, value)
+    
+    def runDialog(self):
+         # Check in case the dialog somehow got cancelled
+         if self.dialogUp:
+            RecurrenceDialog(wx.GetApp().mainFrame, self)
     
     def propagateBufferChanges(self):
         while len(self.changeBuffer) > 0:
