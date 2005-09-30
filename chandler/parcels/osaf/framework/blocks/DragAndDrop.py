@@ -91,15 +91,21 @@ class DraggableWidget (object):
         flags = wx.Drag_AllowMove
 
         # create the drop source, set up its data
+        dropSource = DropSourceWithFeedback(self)
+        dataObject = self.CopyData()
+        dropSource.SetData(dataObject)
+
+        # keep some state in a global and self so we can prevent drags into ourself, 
+        # workaround bugs with copy/move, and give custom cursor feedback, etc.
         DraggedFromWidget = self
-        self.copyOnly = copyOnly
-        self.dropSource = DropSourceWithFeedback(self)
-        self.dataObject = self.CopyData()
-        self.dropSource.SetData(self.dataObject)
+        self._DnD_copyOnly = copyOnly
+        self._DnD_dropSource = dropSource
+        self._DnD_dataObject = dataObject
+        self._DnD_dropResult = True  # workaround for bug 4128:
 
         # drag and drop the DropSource.  Many callbacks happen here.
-        result = self.dropSource.DoDragDrop(flags=flags)
-        if not getattr(self, 'dropResult', True):  # workaround for bug 4128:
+        result = dropSource.DoDragDrop(flags=flags)
+        if not self._DnD_dropResult:  # workaround for bug 4128:
             result = wx.DragNone # override the result
 
         # if we moved the item, instead of the usual copy, remove the original
@@ -127,9 +133,10 @@ class DropReceiveWidget (object):
         Override this to decide whether or not to accept a dropped 
         item.
         """
-        result = DraggedFromWidget is not self
-        if DraggedFromWidget is not None:
-            DraggedFromWidget.dropResult = result # part of workaround for bug 4128
+        # default - don't allow drop onto ourself
+        result = self.GetDraggedFromWidget() is not self
+        if self.GetDraggedFromWidget() is not None:
+            self.GetDraggedFromWidget()._DnD_dropResult = result # part of workaround for bug 4128
         return result
         
     def OnEnter(self, x, y, dragResult):
@@ -139,7 +146,7 @@ class DropReceiveWidget (object):
         @return a wxDragResult other than dragResult if you want to change the drag operation
         """
         # default - don't allow dragging to ourself
-        if DraggedFromWidget is self:
+        if self.GetDraggedFromWidget() is self:
             return wx.DragNone
         return dragResult
 
@@ -151,7 +158,7 @@ class DropReceiveWidget (object):
         @return a wxDragResult other than dragResult if you want to change the drag operation
         """
         # default - don't allow dragging to ourself
-        if DraggedFromWidget is self:
+        if self.GetDraggedFromWidget() is self:
             return wx.DragNone
         return dragResult
 
@@ -162,8 +169,9 @@ class DropReceiveWidget (object):
         pass
 
     def SetCustomCursor(self, dragResult, cursorFilename):
-        self.SetCursor(self._DROP_ICON(cursorFilename))
-        DraggedFromWidget.dropSource.OverrideFeedback(dragResult)
+        if self.GetDraggedFromWidget():
+            self.SetCursor(self._DROP_ICON(cursorFilename))
+            self.GetDraggedFromWidget()._DnD_dropSource.OverrideFeedback(dragResult)
 
     def _DROP_ICON(self, filename):
         # This macro from wxWidgets is going to be in wxPython soon.
@@ -172,6 +180,9 @@ class DropReceiveWidget (object):
             return None
         return wx.CursorFromImage(img)
 
+    def GetDraggedFromWidget(self):
+        # return the wiget that initiated the drag
+        return DraggedFromWidget
 
 class DropSourceWithFeedback(wx.DropSource):
     """
@@ -215,13 +226,16 @@ class _DropTarget(wx.DropTarget):
         if self.GetData():
             dataToPaste = self.dataObject
             self.receiver.PasteData(dataToPaste)
+            # notify the receiver that data has changed, if it cares
+            boundMethod = getattr(self.receiver.blockItem, 'OnDataChanged', lambda:None)
+            boundMethod()
         return dragResult
     
     def OnDragOver(self, x, y, dragResult):
         # map "move" to "copy" if copyOnly set
         if    (dragResult == wx.DragMove 
                and DraggedFromWidget is not None 
-               and DraggedFromWidget.copyOnly):
+               and DraggedFromWidget._DnD_copyOnly):
             dragResult = wx.DragCopy
         return self.receiver.OnHover(x, y, dragResult)
         
@@ -229,7 +243,7 @@ class _DropTarget(wx.DropTarget):
         # map "move" to "copy" if copyOnly set
         if    (dragResult == wx.DragMove 
                and DraggedFromWidget is not None 
-               and DraggedFromWidget.copyOnly):
+               and DraggedFromWidget._DnD_copyOnly):
             dragResult = wx.DragCopy
         return self.receiver.OnEnter(x, y, dragResult)
 
@@ -258,7 +272,7 @@ class _ClipboardHandler(object):
         """
         if DraggedFromWidget is None:
             return None
-        dataObject = DraggedFromWidget.dataObject
+        dataObject = DraggedFromWidget._DnD_dataObject
         # ask the dragged from widget to convert the data to our format, if possible.
         return DraggedFromWidget.NativeData(dataObject, self.DataObjectFormat())
 
@@ -444,5 +458,6 @@ class ItemClipboardHandler(_ClipboardHandler):
     def NativeData(self, rawObject, dataFormat):
         # convert the raw data into native data of the desired format
         rawData = rawObject.GetDataHere(dataFormat)
-        return self.ImportClipboardItems(rawData)
+        if rawData is not None:
+            return self.ImportClipboardItems(rawData)
 

@@ -148,19 +148,12 @@ def registerAttributeEditors(parcel, oldVersion):
                                       __name__ + '.' + className)
     
 def makeRootStuff(parcel, oldVersion):
-    # Our FinishChanges event.
-    finishChangesEvent = \
-        BlockEvent.template('BroadcastFinishChanges',
-            methodName='OnFinishChangesEvent',
-            dispatchEnum='BroadcastInsideMyEventBoundary').install(parcel)
- 
     # The DetailTrunkCache starts each specific DetailTrunk by cloning this stub.
     detailRoot = DetailRootBlock.template('DetailRoot',
                                           orientationEnum='Vertical',
                                           size=SizeType(80, 20),
                                           minimumSize=SizeType(80, 40),
-                                          eventBoundary=True,
-                                          eventsForNamedLookup=[finishChangesEvent])
+                                          eventBoundary=True)
     detailRoot.install(parcel)
     
     # Our Resynchronize event.
