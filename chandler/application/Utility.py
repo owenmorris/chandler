@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "88" # John: added UICollections
+SCHEMA_VERSION = "89" # John: remove visible bit and filtered sidebar collection
 
 logger = None # initialized in initLogging()
 

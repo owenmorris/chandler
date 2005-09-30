@@ -352,18 +352,12 @@ def MakeCollections(parcel):
         colorizeIcon = False
         ).setup(source=scriptsCollection)
 
+    # The Sidebar collection
     sidebarListCollection = ListCollection.update(parcel,
                                                   'sidebarCollection',
                                                   refCollection=[allCollection,
                                                                  inCollection,
                                                                  outCollection,
                                                                  TrashCollection])
-
-    # The Sidebar collection
-    FilteredCollection.update(parcel,
-                              'sidebarFilteredCollection',
-                              source=sidebarListCollection,
-                              filterExpression='item.visible',
-                              filterAttributes=['visible'])
 
     TrashCollection.color = collectionColors.nextColor()

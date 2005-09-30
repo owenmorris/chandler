@@ -696,15 +696,6 @@ class SidebarBlock(ControlBlocks.Table):
 
     def onKindParameterizedEvent (self, event):
         assert self.filterKind != event.kindParameter
-        
-        calendarKind = schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)
-        if (self.filterKind == calendarKind or event.kindParameter == calendarKind):
-            nameSpace = schema.ns('osaf.app', self)
-            inCollection = nameSpace.inCollection
-            outCollection = nameSpace.outCollection
-            inCollection.visible = not inCollection.visible
-            outCollection.visible = not outCollection.visible
-
         self.filterKind = event.kindParameter
         # We need to update the click state of the toolbar as well
         toolbar = Block.Block.findBlockByName("ApplicationBar")

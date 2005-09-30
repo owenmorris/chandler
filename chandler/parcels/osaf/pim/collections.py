@@ -104,7 +104,6 @@ class AbstractCollection(items.ContentItem):
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
     outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
-    visible                 = schema.One(schema.Boolean, defaultValue = True)
     """
       A dictionary mapping a KindName string to a new displayName.
     """
