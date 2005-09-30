@@ -822,7 +822,7 @@ class SidebarBlock(ControlBlocks.Table):
 
         if not isCollection:
             enabled = False
-            menuTitle = _(u'Keep sout of %(kind)s') % arguments
+            menuTitle = _(u'Keep out of %(kind)s') % arguments
         elif self.selectedItemToView.outOfTheBoxCollection:
             enabled = False
             menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
