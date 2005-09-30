@@ -935,6 +935,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         mainView = application.Globals.views[0]
         collection.setColorIfAbsent()
         schema.ns("osaf.app", self).sidebarCollection.add (collection)
+        # Need to SelectFirstItem -- DJA
 
     def onAcceptShareEventUpdateUI(self, event):
         # If we're already sharing it, we should disable the button and change the text.

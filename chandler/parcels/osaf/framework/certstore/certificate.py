@@ -341,3 +341,4 @@ def createSidebarView(repView, cpiaView):
     
     cpiaView.postEventByName('ApplicationBarAll', {})
     schema.ns("osaf.app", cpiaView).sidebarCollection.add (certstore)
+    # Need to SelectFirstItem -- DJA

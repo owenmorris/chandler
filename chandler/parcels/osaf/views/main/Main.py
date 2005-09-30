@@ -170,6 +170,7 @@ class MainView(View):
         coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
         coll.displayName = messages.UNTITLED
         schema.ns("osaf.app", self).sidebarCollection.add (coll)
+        # Need to SelectFirstItem -- DJA
         return [coll]
 
     def onPasteEventUpdateUI (self, event):
@@ -486,6 +487,7 @@ class MainView(View):
             collection = share.get()
             collection.setColorIfAbsent()
             schema.ns("osaf.app", self).sidebarCollection.add (collection)
+            # Need to SelectFirstItem -- DJA
             self.setStatusMessage (_(u"Import completed"))
         except:
             logger.exception("Failed importFile %s" % \
@@ -739,6 +741,7 @@ class MainView(View):
             self.postEventByName('RequestSelectSidebarItem', {'item': scriptsSet})
         else:
             schema.ns("osaf.app", self).sidebarCollection.add (scriptsSet)
+            # Need to SelectFirstItem -- DJA
 
         # go to the All application, so we can view the scripts
         self.postEventByName ('ApplicationBarAll', { })
