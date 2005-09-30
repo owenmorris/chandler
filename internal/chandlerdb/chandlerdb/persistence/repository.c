@@ -12,6 +12,9 @@
 #include "c.h"
 
 static void t_repository_dealloc(t_repository *self);
+static int t_repository_traverse(t_repository *self,
+                                 visitproc visit, void *arg);
+static int t_repository_clear(t_repository *self);
 static PyObject *t_repository_new(PyTypeObject *type,
                                   PyObject *args, PyObject *kwds);
 static int t_repository_init(t_repository *self,
@@ -30,6 +33,8 @@ static PyObject *t_repository__isVerify(t_repository *self, PyObject *args);
 static PyMemberDef t_repository_members[] = {
     { "_status", T_UINT, offsetof(t_repository, status), 0,
       "repository status flags" },
+    { "store", T_OBJECT, offsetof(t_repository, store), 0,
+      "repository store" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -72,10 +77,12 @@ static PyTypeObject RepositoryType = {
     0,                                                   /* tp_getattro */
     0,                                                   /* tp_setattro */
     0,                                                   /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,            /* tp_flags */
+    (Py_TPFLAGS_DEFAULT |
+     Py_TPFLAGS_BASETYPE |
+     Py_TPFLAGS_HAVE_GC),                                /* tp_flags */
     "C Repository type",                                 /* tp_doc */
-    0,                                                   /* tp_traverse */
-    0,                                                   /* tp_clear */
+    (traverseproc)t_repository_traverse,                 /* tp_traverse */
+    (inquiry)t_repository_clear,                         /* tp_clear */
     0,                                                   /* tp_richcompare */
     0,                                                   /* tp_weaklistoffset */
     0,                                                   /* tp_iter */
@@ -96,7 +103,21 @@ static PyTypeObject RepositoryType = {
 
 static void t_repository_dealloc(t_repository *self)
 {
+    t_repository_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+}
+
+static int t_repository_traverse(t_repository *self,
+                                 visitproc visit, void *arg)
+{
+    Py_VISIT(self->store);
+    return 0;
+}
+
+static int t_repository_clear(t_repository *self)
+{
+    Py_CLEAR(self->store);
+    return 0;
 }
 
 static PyObject *t_repository_new(PyTypeObject *type,
@@ -189,6 +210,7 @@ void _init_repository(PyObject *m)
 
             Py_INCREF(&RepositoryType);
             PyModule_AddObject(m, "CRepository", (PyObject *) &RepositoryType);
+            CRepository = &RepositoryType;
 
             PyDict_SetItemString_Int(dict, "OPEN", OPEN);
             PyDict_SetItemString_Int(dict, "REFCOUNTED", REFCOUNTED);

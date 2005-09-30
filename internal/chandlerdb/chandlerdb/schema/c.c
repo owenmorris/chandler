@@ -16,6 +16,7 @@ long _lastAccess = 0L;
 PyTypeObject *CDescriptor = NULL;
 PyTypeObject *CAttribute = NULL;
 PyTypeObject *CItem = NULL;
+PyTypeObject *CValues = NULL;
 PyObject *PyExc_StaleItemError;
 
 
@@ -56,5 +57,6 @@ void initc(void)
     
     m = PyImport_ImportModule("chandlerdb.item.c");
     LOAD_TYPE(m, CItem);
+    LOAD_TYPE(m, CValues);
     Py_DECREF(m);
 }

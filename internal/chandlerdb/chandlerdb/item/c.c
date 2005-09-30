@@ -13,9 +13,14 @@
 #include "c.h"
 
 PyTypeObject *CItem = NULL;
+PyTypeObject *CValues = NULL;
 PyTypeObject *CDescriptor = NULL;
+PyTypeObject *ItemValue = NULL;
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
+
+CView_invokeMonitors_fn CView_invokeMonitors = NULL;
+PyCFunction _countAccess = NULL;
 
 
 static PyObject *isitem(PyObject *self, PyObject *obj)
@@ -96,8 +101,18 @@ void initc(void)
     PyObject *m = Py_InitModule3("c", c_funcs, "C item types module");
 
     _init_item(m);
+    _init_values(m);
+
+    m = PyImport_ImportModule("chandlerdb.item.ItemValue");
+    LOAD_TYPE(m, ItemValue);
+    Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.schema.c");
     LOAD_TYPE(m, CDescriptor);
+    LOAD_CFUNC(m, _countAccess);
+    Py_DECREF(m);
+
+    m = PyImport_ImportModule("chandlerdb.persistence.c");
+    LOAD_FN(m, CView_invokeMonitors);
     Py_DECREF(m);
 }    

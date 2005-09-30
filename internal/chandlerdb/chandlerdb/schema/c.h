@@ -23,6 +23,7 @@ extern long _lastAccess;
 extern PyTypeObject *CDescriptor;
 extern PyTypeObject *CAttribute;
 extern PyTypeObject *CItem;
+extern PyTypeObject *CValues;
 extern PyObject *PyExc_StaleItemError;
 
 

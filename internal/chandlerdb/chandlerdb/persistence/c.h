@@ -8,43 +8,28 @@
 
 
 #include "../item/item.h"
+#include "view.h"
 
-/*
- * t_item and t_view share the same top fields because
- * a view is also the parent of root items
- */
+#define LOAD_TYPE(m, name) \
+    name = (PyTypeObject *) PyObject_GetAttrString(m, #name);
 
-typedef struct {
-    PyObject_HEAD
-    Item_HEAD
-    PyObject *repository;
-    PyObject *changeNotifications;
-} t_view;
+#define LOAD_FN(m, name) \
+    { PyObject *cobj = PyObject_GetAttrString(m, #name); \
+      name = (name##_fn) PyCObject_AsVoidPtr(cobj); \
+      Py_DECREF(cobj); }
+
 
 typedef struct {
     PyObject_HEAD
     unsigned long status;
+    PyObject *store;
 } t_repository;
 
-enum {
-    OPEN       = 0x0001,
-    REFCOUNTED = 0x0002,
-    LOADING    = 0x0004,
-    COMMITTING = 0x0008,
-    /* FDIRTY  = 0x0010, from CItem */
-    RECORDING  = 0x0020,
 
-    /* STALE   = 0x0080, from CItem */
-    /* CDIRTY  = 0x0200, from CItem */
-
-    VERIFY     = 0x1000,
-    DEBUG      = 0x2000,
-    RAMDB      = 0x4000,
-    CLOSED     = 0x8000,
-    /*
-     * merge flags from CItem
-     */
-};
+extern PyTypeObject *CView;
+extern PyTypeObject *CRepository;
+extern PyTypeObject *CItem;
+extern PyTypeObject *UUID;
 
 void _init_view(PyObject *m);
 void _init_repository(PyObject *m);

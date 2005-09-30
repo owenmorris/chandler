@@ -155,7 +155,7 @@ static int t_descriptor_init(t_descriptor *self,
     return 0;
 }
 
-static PyObject *get_attrdict(PyObject *obj, int flags)
+static t_values *get_attrdict(PyObject *obj, int flags)
 {
     switch (flags & ATTRDICT) {
       case VALUE:
@@ -163,7 +163,7 @@ static PyObject *get_attrdict(PyObject *obj, int flags)
       case REF:
         return ((t_item *) obj)->references;
       case REDIRECT:
-        return Py_None;
+        return NULL;
       default:
         return NULL;
     }
@@ -195,15 +195,15 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
             if (attr != NULL)
             {
                 int flags = attr->flags;
-                PyObject *attrDict = get_attrdict(obj, flags);
-                PyObject *value;
+                t_values *attrDict = get_attrdict(obj, flags);
+                PyObject *value = NULL;
                 int found = 0;
 
-                if (attrDict != Py_None)
+                if (attrDict)
                 {
                     if (!(flags & PROCESS_GET))
                     {
-                        value = PyDict_GetItem(attrDict, self->name);
+                        value = PyDict_GetItem(attrDict->dict, self->name);
                         if (value != NULL)
                         {
                             Py_INCREF(value);
@@ -214,9 +214,9 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                     }
                     else if (flags & REF)
                     {
-                        if (PyDict_Contains(attrDict, self->name))
+                        if (PyDict_Contains(attrDict->dict, self->name))
                         {
-                            value = PyObject_CallMethodObjArgs(attrDict, _getRef_NAME, self->name, Py_None, attr->attrID, NULL);
+                            value = PyObject_CallMethodObjArgs((PyObject *) attrDict, _getRef_NAME, self->name, Py_None, attr->otherName, NULL);
                             found = 1;
                         }
                         else
@@ -228,8 +228,13 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                     ((t_item *) obj)->lastAccess = ++_lastAccess;
                 else if (found < 0 && flags & NOINHERIT)
                 {
-                    PyErr_SetObject(PyExc_AttributeError, self->name);
-                    return NULL;
+                    if (flags & DEFAULT)
+                    {
+                        value = attr->defaultValue;
+                        Py_INCREF(value);
+                    }
+                    else
+                        PyErr_SetObject(PyExc_AttributeError, self->name);
                 }                    
                 else
                     value = PyObject_CallMethodObjArgs(obj, getAttributeValue_NAME, self->name, attrDict, attr->attrID, NULL);
@@ -282,11 +287,12 @@ static int t_descriptor___set__(t_descriptor *self,
             if (attr != NULL)
             {
                 int flags = attr->flags;
-                PyObject *attrDict = get_attrdict(obj, flags);
+                t_values *attrDict = get_attrdict(obj, flags);
 
-                if (attrDict != Py_None)
+                if (attrDict)
                 {
-                    PyObject *oldValue = PyDict_GetItem(attrDict, self->name);
+                    PyObject *oldValue =
+                        PyDict_GetItem(attrDict->dict, self->name);
 
                     if (value == oldValue)
                         return 0;
@@ -296,7 +302,7 @@ static int t_descriptor___set__(t_descriptor *self,
                         return 0;
                 }
 
-                value = PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict, attr->attrID, Py_True, Py_False, NULL);
+                value = PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict ? (PyObject *) attrDict : Py_None, flags & REF ? attr->otherName : Py_None, Py_True, Py_False, NULL);
 
                 if (!value)
                     return -1;
@@ -328,8 +334,8 @@ static int t_descriptor___delete__(t_descriptor *self, PyObject *obj)
 
         if (attr)
         {
-            PyObject *attrDict = get_attrdict(obj, attr->flags);
-            PyObject *value = PyObject_CallMethodObjArgs(obj, removeAttributeValue_NAME, self->name, attrDict, attr->attrID, NULL);
+            t_values *attrDict = get_attrdict(obj, attr->flags);
+            PyObject *value = PyObject_CallMethodObjArgs(obj, removeAttributeValue_NAME, self->name, attrDict ? (PyObject *) attrDict : Py_None, attr->attrID, NULL);
 
             if (!value)
                 return -1;
@@ -407,26 +413,14 @@ static PyObject *t_descriptor_isValueRequired(t_descriptor *self,
     if (attr)
     {
         int flags = attr->flags;
-        PyObject *attrDict = get_attrdict(item, flags);
-        PyObject *value, *tuple;
+        t_values *attrDict = get_attrdict(item, flags);
 
-        tuple = PyTuple_New(2);
-        value = attrDict != Py_None && flags & REQUIRED ? Py_True : Py_False;
-
-        PyTuple_SET_ITEM(tuple, 0, attrDict); Py_INCREF(attrDict);
-        PyTuple_SET_ITEM(tuple, 1, value); Py_INCREF(value);
-
-        return tuple;
+        return PyTuple_Pack(2,
+                            attrDict ? (PyObject *) attrDict : Py_None,
+                            attrDict && flags & REQUIRED ? Py_True : Py_False);
     }
     else
-    {
-        PyObject *tuple = PyTuple_New(2);
-
-        PyTuple_SET_ITEM(tuple, 0, Py_None); Py_INCREF(Py_None);
-        PyTuple_SET_ITEM(tuple, 1, Py_False); Py_INCREF(Py_False);
-    
-        return tuple;
-    }
+        return PyTuple_Pack(2, Py_None, Py_False);
 }
 
 

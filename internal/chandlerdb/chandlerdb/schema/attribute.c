@@ -21,7 +21,7 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds);
 static PyObject *t_attribute_getAspect(t_attribute *self, PyObject *args);
 
 static PyObject *t_attribute__getCardinality(t_attribute *self, void *data);
-static int t_attribute__setCardinality(t_attribute *self, PyObject *value,
+static int t_attribute__setCardinality(t_attribute *self, t_values *values,
                                        void *data);
 static PyObject *t_attribute__getPersisted(t_attribute *self, void *data);
 static int t_attribute__setPersisted(t_attribute *self, PyObject *value,
@@ -35,14 +35,17 @@ static int t_attribute__setIndexed(t_attribute *self, PyObject *value,
 static PyObject *t_attribute__getNoInherit(t_attribute *self, void *data);
 static int t_attribute__setNoInherit(t_attribute *self, PyObject *value,
                                      void *data);
+static PyObject *t_attribute__getDefaultValue(t_attribute *self, void *data);
+static int t_attribute__setDefaultValue(t_attribute *self, t_values *values,
+                                        void *data);
 static PyObject *t_attribute__getRedirectTo(t_attribute *self, void *data);
 static int t_attribute__setRedirectTo(t_attribute *self, PyObject *value,
                                       void *data);
 static PyObject *t_attribute__getOtherName(t_attribute *self, void *data);
-static int t_attribute__setOtherName(t_attribute *self, PyObject *value,
+static int t_attribute__setOtherName(t_attribute *self, t_values *values,
                                      void *data);
 static PyObject *t_attribute__getTypeID(t_attribute *self, void *data);
-static int t_attribute__setTypeID(t_attribute *self, PyObject *value,
+static int t_attribute__setTypeID(t_attribute *self, t_values *refs,
                                   void *data);
 static PyObject *t_attribute__getProcess(t_attribute *self, void *data);
 
@@ -58,7 +61,6 @@ static PyObject *redirectTo_NAME;
 static PyObject *inheritFrom_NAME;
 static PyObject *defaultValue_NAME;
 static PyObject *type_NAME;
-static PyObject *_item_NAME;
 
 static PyMemberDef t_attribute_members[] = {
     { "attrID", T_OBJECT, offsetof(t_attribute, attrID), READONLY,
@@ -94,6 +96,10 @@ static PyGetSetDef t_attribute_properties[] = {
       (getter) t_attribute__getNoInherit,
       (setter) t_attribute__setNoInherit,
       "noInherit property", NULL },
+    { "defaultValue",
+      (getter) t_attribute__getDefaultValue,
+      (setter) t_attribute__setDefaultValue,
+      "defaultValue property", NULL },
     { "redirectTo",
       (getter) t_attribute__getRedirectTo,
       (setter) t_attribute__setRedirectTo,
@@ -169,6 +175,7 @@ static int t_attribute_traverse(t_attribute *self, visitproc visit, void *arg)
     Py_VISIT(self->attrID);
     Py_VISIT(self->otherName);
     Py_VISIT(self->redirectTo);
+    Py_VISIT(self->defaultValue);
     Py_VISIT(self->typeID);
 
     return 0;
@@ -179,6 +186,7 @@ static int t_attribute_clear(t_attribute *self)
     Py_CLEAR(self->attrID);
     Py_CLEAR(self->otherName);
     Py_CLEAR(self->redirectTo);
+    Py_CLEAR(self->defaultValue);
     Py_CLEAR(self->typeID);
 
     return 0;
@@ -209,11 +217,12 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
         return -1;
     else
     {
-        PyObject *values = ((t_item *) attribute)->values;
-        PyObject *cardinality = PyDict_GetItem(values, cardinality_NAME);
-        PyObject *inheritFrom = PyDict_GetItem(values, inheritFrom_NAME);
-        PyObject *defaultValue = PyDict_GetItem(values, defaultValue_NAME);
-        PyObject *redirectTo = PyDict_GetItem(values, redirectTo_NAME);
+        t_values *values = ((t_item *) attribute)->values;
+        PyObject *dict = values->dict;
+        PyObject *cardinality = PyDict_GetItem(dict, cardinality_NAME);
+        PyObject *inheritFrom = PyDict_GetItem(dict, inheritFrom_NAME);
+        PyObject *defaultValue = PyDict_GetItem(dict, defaultValue_NAME);
+        PyObject *redirectTo = PyDict_GetItem(dict, redirectTo_NAME);
         int flags = NOINHERIT;
 
         if (!cardinality)
@@ -227,19 +236,23 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
         else if (!PyObject_Compare(cardinality, set_NAME))
             flags |= SET;
 
-        if (PyDict_GetItem(values, persisted_NAME) == Py_False)
+        if (PyDict_GetItem(dict, persisted_NAME) == Py_False)
             flags |= TRANSIENT;
 
-        if (PyDict_GetItem(values, required_NAME) == Py_True)
+        if (PyDict_GetItem(dict, required_NAME) == Py_True)
             flags |= REQUIRED;
 
-        if (PyDict_GetItem(values, indexed_NAME) == Py_True)
+        if (PyDict_GetItem(dict, indexed_NAME) == Py_True)
             flags |= INDEXED;
 
-        if ((inheritFrom != NULL && inheritFrom != Py_None) ||
-            (defaultValue != NULL))
-        {
+        if (inheritFrom != NULL && inheritFrom != Py_None)
             flags &= ~NOINHERIT;
+
+        if (defaultValue != NULL)
+        {
+            flags |= DEFAULT;
+            Py_INCREF(defaultValue);
+            self->defaultValue = defaultValue;
         }
 
         if (redirectTo != NULL && redirectTo != Py_None)
@@ -252,7 +265,7 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
         }
         else
         {
-            PyObject *otherName = PyDict_GetItem(values, otherName_NAME);
+            PyObject *otherName = PyDict_GetItem(dict, otherName_NAME);
 
             if (otherName != NULL && otherName != Py_None)
             {
@@ -268,11 +281,11 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
 
         if (!(flags & (REF | REDIRECT)))
         {
-            PyObject *references = ((t_item *) attribute)->references;
+            t_values *references = ((t_item *) attribute)->references;
 
-            if (PyDict_Contains(references, type_NAME))
+            if (PyDict_Contains(references->dict, type_NAME))
             {
-                PyObject *type = PyObject_CallMethodObjArgs(references, _getRef_NAME, type_NAME, Py_None, Py_None, NULL);
+                PyObject *type = PyObject_CallMethodObjArgs((PyObject *) references, _getRef_NAME, type_NAME, Py_None, Py_None, NULL);
 
                 if (type == NULL)
                     return -1;
@@ -367,6 +380,15 @@ static PyObject *t_attribute_getAspect(t_attribute *self, PyObject *args)
                 Py_RETURN_FALSE;
             }
 
+            else if (!PyObject_Compare(aspect, defaultValue_NAME))
+            {
+                if (flags & DEFAULT)
+                {
+                    Py_INCREF(self->defaultValue);
+                    return self->defaultValue;
+                }
+            }
+
             else if (!PyObject_Compare(aspect, indexed_NAME))
             {
                 if (flags & INDEXED)
@@ -421,17 +443,17 @@ static PyObject *t_attribute__getCardinality(t_attribute *self, void *data)
     return NULL;
 }
 
-static int t_attribute__setCardinality(t_attribute *self, PyObject *value,
+static int t_attribute__setCardinality(t_attribute *self, t_values *values,
                                        void *data)
 {
-    if (!PyDict_Check(value))
+    if (!PyObject_TypeCheck((PyObject *) values, CValues))
     {
-        PyErr_SetObject(PyExc_TypeError, value);
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
         return -1;
     }
     else
     {
-        PyObject *cardinality = PyDict_GetItem(value, cardinality_NAME);
+        PyObject *cardinality = PyDict_GetItem(values->dict, cardinality_NAME);
 
         self->flags &= ~CARDINALITY;
     
@@ -445,12 +467,12 @@ static int t_attribute__setCardinality(t_attribute *self, PyObject *value,
             self->flags |= SET;
         else
         {
-            PyErr_SetObject(PyExc_ValueError, value);
+            PyErr_SetObject(PyExc_ValueError, cardinality);
             return -1;
         }
 
         if (self->flags & REF)
-            return t_attribute__setOtherName(self, value, data);
+            return t_attribute__setOtherName(self, values, data);
 
         return 0;
     }
@@ -570,32 +592,80 @@ static int t_attribute__setNoInherit(t_attribute *self, PyObject *value,
         PyErr_SetObject(PyExc_TypeError, value);
         return -1;
     }
-    else if (!PyTuple_Size(value) == 4)
+    else if (!PyTuple_Size(value) == 3)
     {
         PyErr_SetObject(PyExc_ValueError, value);
         return -1;
     }
     else
     {
-        PyObject *values = PyTuple_GET_ITEM(value, 0);
-        PyObject *n1 = PyTuple_GET_ITEM(value, 1);
-        PyObject *n2 = PyTuple_GET_ITEM(value, 2);
-        PyObject *n3 = PyTuple_GET_ITEM(value, 3);
-        PyObject *v1 = PyDict_GetItem(values, n1);
-        PyObject *v2 = PyDict_GetItem(values, n2);
-        PyObject *v3 = PyDict_GetItem(values, n3);
+        PyObject *t0 = PyTuple_GET_ITEM(value, 0);
 
-        if (v1 == NULL ||
-            (v1 == Py_None && PyObject_Compare(n1, defaultValue_NAME)))
+        if (!PyObject_TypeCheck(t0, CValues))
         {
-            if ((v2 == NULL ||
-                 (v2 == Py_None && PyObject_Compare(n2, defaultValue_NAME))) &&
-                (v3 == NULL ||
-                 (v3 == Py_None && PyObject_Compare(n3, defaultValue_NAME))))
-                self->flags |= NOINHERIT;
+            PyErr_SetObject(PyExc_TypeError, t0);
+            return -1;
         }
         else
-            self->flags &= ~NOINHERIT;
+        {
+            t_values *values = (t_values *) t0;
+            PyObject *n1 = PyTuple_GET_ITEM(value, 1);
+            PyObject *n2 = PyTuple_GET_ITEM(value, 2);
+            PyObject *v1 = PyDict_GetItem(values->dict, n1);
+            PyObject *v2 = PyDict_GetItem(values->dict, n2);
+
+            if (v1 == NULL || v1 == Py_None)
+            {
+                if (v2 == NULL || v2 == Py_None)
+                    self->flags |= NOINHERIT;
+            }
+            else
+                self->flags &= ~NOINHERIT;
+
+            return 0;
+        }
+    }
+}
+
+/* defaultValue property */
+
+static PyObject *t_attribute__getDefaultValue(t_attribute *self, void *data)
+{
+    if (!(self->flags & REDIRECT) && (self->flags & DEFAULT))
+    {
+        Py_INCREF(self->defaultValue);
+        return self->defaultValue;
+    }
+            
+    PyErr_SetObject(PyExc_AttributeError, defaultValue_NAME);
+    return NULL;
+}
+
+static int t_attribute__setDefaultValue(t_attribute *self, t_values *values,
+                                        void *data)
+{
+    if (!PyObject_TypeCheck(values, CValues))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
+        return -1;
+    }
+    else
+    {
+        PyObject *defaultValue =
+            PyDict_GetItem(values->dict, defaultValue_NAME);
+
+        if (defaultValue == NULL)
+        {
+            self->flags &= ~DEFAULT;
+            Py_XDECREF(self->defaultValue);
+            self->defaultValue = NULL;
+        }
+        else
+        {
+            self->flags |= DEFAULT;
+            Py_INCREF(defaultValue);
+            self->defaultValue = defaultValue;
+        }
 
         return 0;
     }
@@ -623,8 +693,8 @@ static int t_attribute__setRedirectTo(t_attribute *self, PyObject *value,
         return -1;
     else
     {
-        PyObject *values = PyTuple_GET_ITEM(value, 0);
-        PyObject *redirectTo = PyDict_GetItem(values, redirectTo_NAME);
+        t_values *values = (t_values *) PyTuple_GET_ITEM(value, 0);
+        PyObject *redirectTo = PyDict_GetItem(values->dict, redirectTo_NAME);
 
         if (redirectTo)
             Py_INCREF(redirectTo);
@@ -666,17 +736,17 @@ static PyObject *t_attribute__getOtherName(t_attribute *self, void *data)
     return NULL;
 }
 
-static int t_attribute__setOtherName(t_attribute *self, PyObject *value,
+static int t_attribute__setOtherName(t_attribute *self, t_values *values,
                                      void *data)
 {
-    if (!PyDict_Check(value))
+    if (!PyObject_TypeCheck(values, CValues))
     {
-        PyErr_SetObject(PyExc_TypeError, value);
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
         return -1;
     }
     else
     {
-        PyObject *otherName = PyDict_GetItem(value, otherName_NAME);
+        PyObject *otherName = PyDict_GetItem(values->dict, otherName_NAME);
 
         if (otherName)
             Py_INCREF(otherName);
@@ -686,10 +756,9 @@ static int t_attribute__setOtherName(t_attribute *self, PyObject *value,
         self->flags &= ~ATTRDICT;
         if (otherName == NULL || otherName == Py_None)
         {
-            t_item *item = (t_item *) PyObject_GetAttr(value, _item_NAME);
-            PyObject *references = item->references;
+            t_item *item = (t_item *) values->item;
+            t_values *references = item->references;
 
-            Py_DECREF(item);
             return t_attribute__setTypeID(self, references, data);
         }
         else
@@ -732,21 +801,20 @@ static PyObject *t_attribute__getTypeID(t_attribute *self, void *data)
     return NULL;
 }
 
-static int t_attribute__setTypeID(t_attribute *self, PyObject *value,
-                                  void *data)
+static int t_attribute__setTypeID(t_attribute *self, t_values *refs, void *data)
 {
     if (!(self->flags & (REDIRECT | REF)))
     {
-        if (!PyDict_Check(value))
+        if (!PyObject_TypeCheck(refs, CValues))
         {
-            PyErr_SetObject(PyExc_TypeError, value);
+            PyErr_SetObject(PyExc_TypeError, (PyObject *) refs);
             return -1;
         }
-        else if (PyDict_Contains(value, type_NAME))
+        else if (PyDict_Contains(refs->dict, type_NAME))
         {
             PyObject *type =
-                PyObject_CallMethodObjArgs(value, _getRef_NAME, type_NAME,
-                                           Py_None, Py_None, NULL);
+                PyObject_CallMethodObjArgs((PyObject *) refs, _getRef_NAME,
+                                           type_NAME, Py_None, Py_None, NULL);
 
             if (type == Py_None)
             {
@@ -828,6 +896,7 @@ void _init_attribute(PyObject *m)
             PyDict_SetItemString_Int(dict, "ALIAS", ALIAS);
             PyDict_SetItemString_Int(dict, "KIND", KIND);
             PyDict_SetItemString_Int(dict, "NOINHERIT", NOINHERIT);
+            PyDict_SetItemString_Int(dict, "DEFAULT", DEFAULT);
             PyDict_SetItemString_Int(dict, "TRANSIENT", TRANSIENT);
             PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
             PyDict_SetItemString_Int(dict, "CARDINALITY", CARDINALITY);
@@ -848,7 +917,6 @@ void _init_attribute(PyObject *m)
             inheritFrom_NAME = PyString_FromString("inheritFrom");
             defaultValue_NAME = PyString_FromString("defaultValue");
             type_NAME = PyString_FromString("type");
-            _item_NAME = PyString_FromString("_item");
         }
     }
 }

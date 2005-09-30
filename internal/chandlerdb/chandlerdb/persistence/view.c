@@ -12,6 +12,8 @@
 #include "c.h"
 
 static void t_view_dealloc(t_view *self);
+static int t_view_traverse(t_view *self, visitproc visit, void *arg);
+static int t_view_clear(t_view *self);
 static PyObject *t_view_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_view_init(t_view *self, PyObject *args, PyObject *kwds);
 static PyObject *t_view__isRepository(t_view *self, PyObject *args);
@@ -36,10 +38,28 @@ static PyObject *t_view__getVersion(t_view *self, void *data);
 static int t_view__setVersion(t_view *self, PyObject *view, void *data);
 static PyObject *t_view__getStore(t_view *self, void *data);
 static PyObject *t_view__getLogger(t_view *self, void *data);
+static PyObject *t_view__getMONITORING(t_view *self, void *data);
+static int t_view__setMONITORING(t_view *self, PyObject *value, void *data);
+static PyObject *t_view_find(t_view *self, PyObject *args);
+static PyObject *t_view_getSingleton(t_view *self, PyObject *key);
+static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
+static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args);
 
-static PyObject *store_NAME;
+static int t_view_dict_length(t_view *self);
+static PyObject *t_view_dict_get(t_view *self, PyObject *key);
+
 static PyObject *refresh_NAME;
 static PyObject *logger_NAME;
+static PyObject *_loadItem_NAME;
+static PyObject *_readItem_NAME;
+static PyObject *getRoot_NAME;
+static PyObject *_fwalk_NAME;
+static PyObject *findPath_NAME;
+static PyObject *cacheMonitors_NAME;
+static PyObject *method_NAME;
+static PyObject *args_NAME, *kwds_NAME;
+static PyObject *item_NAME;
+static PyObject *MONITORS_PATH;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
@@ -49,6 +69,9 @@ static PyMemberDef t_view_members[] = {
     { "name", T_OBJECT, offsetof(t_view, name), 0, "view name" },
     { "_changeNotifications", T_OBJECT, offsetof(t_view, changeNotifications),
       0, "" },
+    { "_registry", T_OBJECT, offsetof(t_view, registry), 0, "" },
+    { "_deletedRegistry", T_OBJECT, offsetof(t_view, deletedRegistry), 0, "" },
+    { "_monitors", T_OBJECT, offsetof(t_view, monitors), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -67,6 +90,10 @@ static PyMethodDef t_view_methods[] = {
     { "_isVerify", (PyCFunction) t_view__isVerify, METH_NOARGS, "" },
     { "getLogger", (PyCFunction) t_view_getLogger, METH_NOARGS, "" },
     { "_notifyChange", (PyCFunction) t_view__notifyChange, METH_VARARGS|METH_KEYWORDS, "" },
+    { "find", (PyCFunction) t_view_find, METH_VARARGS, NULL },
+    { "getSingleton", (PyCFunction) t_view_getSingleton, METH_O, NULL },
+    { "setSingleton", (PyCFunction) t_view_setSingleton, METH_VARARGS, "" },
+    { "invokeMonitors", (PyCFunction) t_view_invokeMonitors, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -83,7 +110,17 @@ static PyGetSetDef t_view_properties[] = {
       "store property", NULL },
     { "logger", (getter) t_view__getLogger, NULL,
       "logger property", NULL },
+    { "MONITORING",
+      (getter) t_view__getMONITORING,
+      (setter) t_view__setMONITORING,
+      "MONITORING flag", NULL },
     { NULL, NULL, NULL, NULL, NULL }
+};
+
+static PyMappingMethods t_view_as_mapping = {
+    (inquiry) t_view_dict_length,
+    (binaryfunc) t_view_dict_get,
+    (objobjargproc) NULL
 };
 
 static PyTypeObject ViewType = {
@@ -100,17 +137,19 @@ static PyTypeObject ViewType = {
     0,                                                   /* tp_repr */
     0,                                                   /* tp_as_number */
     0,                                                   /* tp_as_sequence */
-    0,                                                   /* tp_as_mapping */
+    &t_view_as_mapping,                                  /* tp_as_mapping */
     0,                                                   /* tp_hash  */
     0,                                                   /* tp_call */
     0,                                                   /* tp_str */
     0,                                                   /* tp_getattro */
     0,                                                   /* tp_setattro */
     0,                                                   /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,            /* tp_flags */
+    (Py_TPFLAGS_DEFAULT |
+     Py_TPFLAGS_BASETYPE |
+     Py_TPFLAGS_HAVE_GC),                                /* tp_flags */
     "C View type",                                       /* tp_doc */
-    0,                                                   /* tp_traverse */
-    0,                                                   /* tp_clear */
+    (traverseproc)t_view_traverse,                       /* tp_traverse */
+    (inquiry)t_view_clear,                               /* tp_clear */
     0,                                                   /* tp_richcompare */
     0,                                                   /* tp_weaklistoffset */
     0,                                                   /* tp_iter */
@@ -131,11 +170,36 @@ static PyTypeObject ViewType = {
 
 static void t_view_dealloc(t_view *self)
 {
-    Py_XDECREF(self->name);
-    Py_XDECREF(self->repository);
-    Py_XDECREF(self->changeNotifications);
-
+    t_view_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+}
+
+static int t_view_traverse(t_view *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->name);
+    Py_VISIT(self->repository);
+    Py_VISIT(self->changeNotifications);
+    Py_VISIT(self->registry);
+    Py_VISIT(self->deletedRegistry);
+    Py_VISIT(self->uuid);
+    Py_VISIT(self->monitors);
+    Py_VISIT(self->singletons);
+
+    return 0;
+}
+
+static int t_view_clear(t_view *self)
+{
+    Py_CLEAR(self->name);
+    Py_CLEAR(self->repository);
+    Py_CLEAR(self->changeNotifications);
+    Py_CLEAR(self->registry);
+    Py_CLEAR(self->deletedRegistry);
+    Py_CLEAR(self->uuid);
+    Py_CLEAR(self->monitors);
+    Py_CLEAR(self->singletons);
+
+    return 0;
 }
 
 static PyObject *t_view_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -145,15 +209,21 @@ static PyObject *t_view_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *repository, *name;
+    PyObject *repository, *name, *uuid;
 
-    if (!PyArg_ParseTuple(args, "OOk", &repository, &name, &self->version))
+    if (!PyArg_ParseTuple(args, "OOkO", &repository, &name, &self->version,
+                          &uuid))
         return -1;
 
     self->status = 0;
     Py_INCREF(name); self->name = name;
     Py_INCREF(repository); self->repository = repository;
     Py_INCREF(Py_None); self->changeNotifications = Py_None;
+    self->registry = NULL;
+    self->deletedRegistry = NULL;
+    Py_INCREF(uuid); self->uuid = uuid;
+    self->monitors = NULL;
+    self->singletons = PyDict_New();
 
     return 0;
 }
@@ -251,6 +321,25 @@ static PyObject *t_view_getLogger(t_view *self, PyObject *args)
     return PyObject_GetAttr(self->repository, logger_NAME);
 }
 
+static PyObject *t_view__getMONITORING(t_view *self, void *data)
+{
+    if (self->status & MONITORING)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static int t_view__setMONITORING(t_view *self, PyObject *value, void *data)
+{
+    if (PyObject_IsTrue(value))
+        self->status |= MONITORING;
+    else
+        self->status &= ~MONITORING;
+
+    return 0;
+}
+
+
 static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
                                       PyObject *kwds)
 {
@@ -335,10 +424,16 @@ static PyObject *t_view__getStore(t_view *self, void *data)
 {
     PyObject *repository = self->repository;
 
-    if (repository != Py_None)
-        return PyObject_GetAttr(repository, store_NAME);
+    if (PyObject_TypeCheck(repository, CRepository))
+    {
+        PyObject *store = ((t_repository *) repository)->store;
 
-    Py_RETURN_NONE;
+        Py_INCREF(store);
+        return store;
+    }
+
+    PyErr_SetObject(PyExc_TypeError, repository);
+    return NULL;
 }
 
 
@@ -350,6 +445,311 @@ static PyObject *t_view__getLogger(t_view *self, void *data)
 }
 
 
+/* as_mapping (read-only) */
+
+static int t_view_dict_length(t_view *self)
+{
+    return PyDict_Size(self->registry);
+}
+
+static PyObject *t_view_dict_get(t_view *self, PyObject *key)
+{
+    if (PyObject_TypeCheck(key, UUID))
+    {
+        PyObject *item;
+
+        if (!PyObject_Compare(key, self->uuid))
+        {
+            Py_INCREF(self);
+            return (PyObject *) self;
+        }
+
+        item = PyDict_GetItem(self->registry, key);
+        if (item == NULL)
+        {
+            item = PyObject_CallMethodObjArgs((PyObject *) self,
+                                              _loadItem_NAME, key, NULL);
+
+            if (item == NULL)
+                return NULL;
+
+            if (item == Py_None)
+            {
+                Py_DECREF(item);
+                PyErr_SetObject(PyExc_KeyError, key);
+
+                return NULL;
+            }
+        }
+        else
+            Py_INCREF(item);
+
+        return item;
+    }
+
+    if (PyString_Check(key) || PyUnicode_Check(key))
+    {
+        PyObject *root = PyObject_CallMethodObjArgs((PyObject *) self,
+                                                    getRoot_NAME, key, NULL);
+
+        if (root == NULL)
+            return NULL;
+
+        if (root == Py_None)
+        {
+            Py_DECREF(root);
+            PyErr_SetObject(PyExc_KeyError, key);
+
+            return NULL;
+        }
+            
+        return root;
+    }
+
+    PyErr_SetObject(PyExc_TypeError, key);
+    return NULL;
+}
+
+
+static PyObject *t_view_find(t_view *self, PyObject *args)
+{
+    PyObject *spec, *load = Py_True;
+
+    if (!PyArg_ParseTuple(args, "O|O", &spec, &load))
+        return NULL;
+
+    if (PyObject_TypeCheck(spec, UUID))
+    {
+        PyObject *item;
+
+        if (!PyObject_Compare(spec, self->uuid))
+        {
+            Py_INCREF(self);
+            return (PyObject *) self;
+        }
+
+        item = PyDict_GetItem(self->registry, spec);
+        if (item != NULL)
+        {
+            Py_INCREF(item);
+            return item;
+        }
+        else
+        {
+            if (load == Py_True)
+                return PyObject_CallMethodObjArgs((PyObject *) self,
+                                                  _loadItem_NAME, spec, NULL);
+
+            if (PyObject_IsTrue(load) &&
+                !PyDict_Contains(self->deletedRegistry, spec))
+            {
+                /* in this case, load is an itemReader (queryItems) */
+                return PyObject_CallMethodObjArgs((PyObject *) self,
+                                                  _readItem_NAME, load, NULL);
+            }
+
+            Py_RETURN_NONE;
+        }
+    }
+     
+    return PyObject_CallMethodObjArgs((PyObject *) self,
+                                      _fwalk_NAME, spec, NULL);
+}
+
+
+static PyObject *t_view_getSingleton(t_view *self, PyObject *key)
+{
+    PyObject *uuid = PyDict_GetItem(self->singletons, key);
+
+    if (uuid != NULL)
+        return t_view_dict_get(self, uuid);
+
+    return PyObject_CallMethodObjArgs((PyObject *) self,
+                                      findPath_NAME, key, NULL);
+}
+
+static PyObject *t_view_setSingleton(t_view *self, PyObject *args)
+{
+    PyObject *key, *item;
+
+    if (!PyArg_ParseTuple(args, "OO", &key, &item))
+        return NULL;
+
+    if (item == Py_None)
+        PyDict_DelItem(self->singletons, key);
+    else if (PyObject_TypeCheck(item, CItem))
+        PyDict_SetItem(self->singletons, key, ((t_item *) item)->uuid);
+    else if (PyObject_TypeCheck(item, UUID))
+        PyDict_SetItem(self->singletons, key, item);
+    else
+    {
+        PyErr_SetObject(PyExc_TypeError, item);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
+{
+    PyObject *op, *attribute, *monitors;
+    int argCount = PySequence_Size(args);
+
+    if (argCount < 3)
+    {
+        PyErr_SetString(PyExc_TypeError, "missing args");
+        return NULL;
+    }
+
+    if (!(self->status & MONITORING))
+    {
+        PyObject *singleton = t_view_getSingleton(self, MONITORS_PATH);
+        PyObject *result;
+
+        if (singleton == NULL)
+            return NULL;
+
+        if (singleton == Py_None) /* during core schema loading */
+            return singleton;
+
+        result = PyObject_CallMethodObjArgs(singleton,
+                                            cacheMonitors_NAME, NULL);
+        Py_DECREF(singleton);
+
+        if (result == NULL)
+            return NULL;
+
+        Py_DECREF(result);
+    }
+
+    args = PySequence_Tuple(args);
+    op = PyTuple_GET_ITEM(args, 0);
+    attribute = PyTuple_GET_ITEM(args, 2);
+
+    monitors = PyDict_GetItem(PyDict_GetItem(self->monitors, op), attribute);
+    if (monitors != NULL)
+    {
+        int size = PyList_Size(monitors);
+        int i;
+
+        for (i = 0; i < size; i++) {
+            t_item *monitor = (t_item *) PyList_GetItem(monitors, i);
+            PyObject *monitoringItem, *callable, *result;
+            PyObject *monitorArgs, *monitorKwds;
+            int j, margCount = 0;
+
+            if (monitor->status & DELETING)
+                continue;
+
+            monitoringItem = PyDict_GetItem(monitor->references->dict,
+                                            item_NAME);
+            if (monitoringItem == NULL)
+                continue;
+
+            if (PyObject_TypeCheck(monitoringItem, UUID))
+            {
+                monitoringItem = t_view_dict_get(self, monitoringItem);
+                if (monitoringItem == NULL)
+                {
+                    Py_DECREF(args);
+                    return NULL;
+                }
+            }
+            else
+                Py_INCREF(monitoringItem);
+
+            callable = PyDict_GetItem(monitor->values->dict, method_NAME);
+            if (callable == NULL)
+            {
+                Py_DECREF(args);
+                Py_DECREF(monitoringItem);
+                PyErr_SetObject(PyExc_AttributeError, method_NAME);
+                return NULL;
+            }
+
+            callable = PyObject_GetAttr(monitoringItem, callable);
+            Py_DECREF(monitoringItem);
+            if (callable == NULL)
+            {
+                Py_DECREF(args);
+                return NULL;
+            }
+
+            monitorArgs = PyDict_GetItem(monitor->values->dict, args_NAME);
+            if (monitorArgs != NULL)
+                margCount = PySequence_Size(monitorArgs);
+
+            monitorKwds = PyDict_GetItem(monitor->values->dict, kwds_NAME);
+
+            if (self->status & RECORDING)
+            {
+                PyObject *_args = PyTuple_New(argCount + 1 + margCount);
+
+                PyTuple_SET_ITEM(_args, 0, callable);
+                for (j = 0; j < argCount; j++) {
+                    PyObject *o = PyTuple_GET_ITEM(args, j);
+                    Py_INCREF(o);
+                    PyTuple_SET_ITEM(_args, j + 1, o);
+                }
+
+                if (margCount > 0)
+                    for (j = 0; j < margCount; j++) {
+                        PyObject *o = PySequence_GetItem(monitorArgs, j);
+                        PyTuple_SET_ITEM(_args, j + 1 + argCount, o);
+                    }
+
+                result = t_view__notifyChange(self, _args, monitorKwds);
+                Py_DECREF(_args);
+
+                if (result == NULL)
+                {
+                    Py_DECREF(args);
+                    return NULL;
+                }
+            }
+            else
+            {
+                PyObject *_args;
+
+                if (margCount > 0)
+                {
+                    _args = PyTuple_New(argCount + margCount);
+
+                    for (j = 0; j < argCount; j++) {
+                        PyObject *o = PyTuple_GET_ITEM(args, j);
+                        Py_INCREF(o);
+                        PyTuple_SET_ITEM(_args, j, o);
+                    }
+                    for (j = 0; j < margCount; j++) {
+                        PyObject *o = PySequence_GetItem(monitorArgs, j);
+                        PyTuple_SET_ITEM(_args, j + argCount, o);
+                    }
+                }
+                else
+                {
+                    _args = args;
+                    Py_INCREF(args);
+                }
+
+                result = PyObject_Call(callable, _args, monitorKwds);
+                Py_DECREF(_args);
+
+                if (result == NULL)
+                {
+                    Py_DECREF(args);
+                    return NULL;
+                }
+            }
+
+            Py_DECREF(result);
+        }
+    }
+
+    Py_DECREF(args);
+    Py_RETURN_NONE;
+}
+
+
 void _init_view(PyObject *m)
 {
     if (PyType_Ready(&ViewType) >= 0)
@@ -357,9 +757,11 @@ void _init_view(PyObject *m)
         if (m)
         {
             PyObject *dict = ViewType.tp_dict;
+            PyObject *cobj;
 
             Py_INCREF(&ViewType);
             PyModule_AddObject(m, "CView", (PyObject *) &ViewType);
+            CView = &ViewType;
 
             PyDict_SetItemString_Int(dict, "OPEN", OPEN);
             PyDict_SetItemString_Int(dict, "REFCOUNTED", REFCOUNTED);
@@ -368,9 +770,24 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
             PyDict_SetItemString_Int(dict, "RECORDING", RECORDING);
 
-            store_NAME = PyString_FromString("store");
             refresh_NAME = PyString_FromString("refresh");
             logger_NAME = PyString_FromString("logger");
+            _loadItem_NAME = PyString_FromString("_loadItem");
+            _readItem_NAME = PyString_FromString("_readItem");
+            getRoot_NAME = PyString_FromString("getRoot");
+            _fwalk_NAME = PyString_FromString("_fwalk");
+            findPath_NAME = PyString_FromString("findPath");
+            cacheMonitors_NAME = PyString_FromString("cacheMonitors");
+            method_NAME = PyString_FromString("method");
+            args_NAME = PyString_FromString("args");
+            kwds_NAME = PyString_FromString("kwds");
+            item_NAME = PyString_FromString("item");
+
+            MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
+            PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);
+
+            cobj = PyCObject_FromVoidPtr(t_view_invokeMonitors, NULL);
+            PyModule_AddObject(m, "CView_invokeMonitors", cobj);
         }
     }
 }

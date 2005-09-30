@@ -23,6 +23,7 @@ enum {
     NOINHERIT    = 0x1000,
     TRANSIENT    = 0x2000,
     INDEXED      = 0x4000,
+    DEFAULT      = 0x8000,
 
     ATTRDICT     = VALUE | REF | REDIRECT,
     CARDINALITY  = SINGLE | LIST | DICT | SET,
@@ -35,6 +36,7 @@ typedef struct {
     int flags;
     PyObject *otherName;
     PyObject *redirectTo;
+    PyObject *defaultValue;
     PyObject *typeID;
 } t_attribute;
 

@@ -12,6 +12,11 @@
 
 #include "c.h"
 
+PyTypeObject *CView = NULL;
+PyTypeObject *CRepository = NULL;
+PyTypeObject *CItem = NULL;
+PyTypeObject *UUID = NULL;
+
 
 static PyMethodDef c_funcs[] = {
     { NULL, NULL, 0, NULL }
@@ -33,4 +38,12 @@ void initc(void)
 
     _init_view(m);
     _init_repository(m);
+
+    m = PyImport_ImportModule("chandlerdb.util.uuid");
+    LOAD_TYPE(m, UUID);
+    Py_DECREF(m);
+
+    m = PyImport_ImportModule("chandlerdb.item.c");
+    LOAD_TYPE(m, CItem);
+    Py_DECREF(m);
 }

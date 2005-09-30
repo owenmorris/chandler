@@ -18,6 +18,7 @@ static int t_item_traverse(t_item *self, visitproc visit, void *arg);
 static int t_item_clear(t_item *self);
 static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_item_init(t_item *self, PyObject *args, PyObject *kwds);
+static PyObject *t_item_repr(t_item *self);
 static PyObject *t_item_isNew(t_item *self, PyObject *args);
 static PyObject *t_item_isDeleting(t_item *self, PyObject *args);
 static PyObject *t_item_isDeleted(t_item *self, PyObject *args);
@@ -37,12 +38,14 @@ static PyObject *t_item__isRefList(t_item *self, PyObject *args);
 static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyObject *t_item__isMerged(t_item *self, PyObject *args);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
+static PyObject *t_item__fireChanges(t_item *self, PyObject *args);
+static PyObject *t_item_setDirty(t_item *self, PyObject *args);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
 static int t_item__setView(t_item *self, PyObject *view, void *data);
 static PyObject *t_item__getParent(t_item *self, void *data);
-static int t_item__setParent(t_item *self, PyObject *view, void *data);
+static int t_item__setParent(t_item *self, PyObject *parent, void *data);
 static PyObject *t_item__getName(t_item *self, void *data);
 static int t_item__setName(t_item *self, PyObject *name, void *data);
 static PyObject *t_item__getRoot(t_item *self, void *data);
@@ -60,7 +63,16 @@ static PyObject *getAttribute_NAME;
 static PyObject *getAspect_NAME;
 static PyObject *getAttributeAspect_NAME;
 static PyObject *redirectTo_NAME;
+static PyObject *persisted_NAME;
 static PyObject *_redirectTo_NAME;
+static PyObject *onValueChanged_NAME;
+static PyObject *logger_NAME;
+static PyObject *_verifyAssignment_NAME;
+static PyObject *_setDirty_NAME;
+static PyObject *set_NAME;
+static PyObject *_logItem_NAME;
+static PyObject *_clearDirties_NAME;
+static PyObject *_flags_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
  * "" docstrings are missing docstrings
@@ -102,6 +114,8 @@ static PyMethodDef t_item_methods[] = {
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
+    { "_fireChanges", (PyCFunction) t_item__fireChanges, METH_VARARGS, "" },
+    { "setDirty", (PyCFunction) t_item_setDirty, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -136,7 +150,7 @@ static PyTypeObject ItemType = {
     0,                                         /* tp_getattr */
     0,                                         /* tp_setattr */
     0,                                         /* tp_compare */
-    0,                                         /* tp_repr */
+    (reprfunc)t_item_repr,                     /* tp_repr */
     0,                                         /* tp_as_number */
     0,                                         /* tp_as_sequence */
     0,                                         /* tp_as_mapping */
@@ -180,8 +194,8 @@ static int t_item_traverse(t_item *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->uuid);
     Py_VISIT(self->name);
-    Py_VISIT(self->values);
-    Py_VISIT(self->references);
+    Py_VISIT((PyObject *) self->values);
+    Py_VISIT((PyObject *) self->references);
     Py_VISIT(self->kind);
     Py_VISIT(self->parent);
     Py_VISIT(self->children);
@@ -234,6 +248,47 @@ static int t_item_init(t_item *self, PyObject *args, PyObject *kwds)
     self->status = NEW;
 
     return 0;
+}
+
+static PyObject *t_item_repr(t_item *self)
+{
+    if (self->status & RAW)
+        return PyString_FromFormat("<raw item at %p>", self);
+    else
+    {
+        PyObject *name, *uuid, *type, *repr;
+        char *status;
+
+        if (self->status & DELETED)
+            status = " (deleted)";
+        else if (self->status & STALE)
+            status = " (stale)";
+        else if (self->status & NEW)
+            status = " (new)";
+        else
+            status = "";
+
+        if (self->name != Py_None)
+            name = PyObject_Str(self->name);
+        else
+            name = NULL;
+
+        type = PyObject_GetAttrString((PyObject *) self->ob_type, "__name__");
+        uuid = PyObject_Str(self->uuid);
+        
+        repr = PyString_FromFormat("<%s%s:%s%s %s>",
+                                   PyString_AsString(type),
+                                   status,
+                                   name ? " " : "",
+                                   name ? PyString_AsString(name) : "",
+                                   PyString_AsString(uuid));
+
+        Py_DECREF(type);
+        Py_XDECREF(name);
+        Py_DECREF(uuid);
+
+        return repr;
+    }
 }
 
 static PyObject *t_item_isNew(t_item *self, PyObject *args)
@@ -478,6 +533,209 @@ static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
 
     Py_INCREF(defaultValue);
     return defaultValue;
+}
+
+static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
+{
+    PyObject *op, *name;
+
+    if (!PyArg_ParseTuple(args, "OO", &op, &name))
+        return NULL;
+
+    if (PyObject_HasAttr((PyObject *) self->ob_type, onValueChanged_NAME))
+    {
+        PyObject *result = PyObject_CallMethodObjArgs((PyObject *) self,
+                                                      onValueChanged_NAME,
+                                                      name, NULL);
+        if (result == NULL)
+            return NULL;
+
+        Py_DECREF(result);
+    }
+
+    {
+        PyObject *args = PyTuple_Pack(3, op, self, name);
+        t_view *view = (t_view *) ((t_item *) self->root)->parent;
+        PyObject *result = CView_invokeMonitors(view, args);
+
+        Py_DECREF(args);
+        if (result == NULL)
+            return NULL;
+
+        Py_DECREF(result);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static int verify(t_item *self, t_view *view,
+                  t_values *attrDict, PyObject *attribute)
+{
+    PyObject *value = PyDict_GetItem(attrDict->dict, attribute);
+                
+    if (value != NULL)
+    {
+        PyObject *logger = PyObject_GetAttr((PyObject *) view, logger_NAME);
+        PyObject *verified = PyObject_CallMethodObjArgs((PyObject *) attrDict,
+                                                        _verifyAssignment_NAME,
+                                                        value, logger, NULL);
+        Py_DECREF(logger);
+        if (verified == NULL)
+            return -1;
+
+        if (verified == Py_False)
+        {
+            PyObject *msgValue = PyObject_Repr(value);
+            PyObject *msgAttr = PyObject_Str(attribute);
+            PyObject *msgItem = t_item_repr(self);
+                                                
+            PyErr_Format(PyExc_ValueError,
+                         "Assigning value '%s' to %s on %s didn't match schema",
+                         PyString_AsString(msgValue),
+                         PyString_AsString(msgAttr),
+                         PyString_AsString(msgItem));
+
+            Py_DECREF(msgValue);
+            Py_DECREF(msgAttr);
+            Py_DECREF(msgItem);
+            Py_DECREF(verified);
+
+            return -1;
+        }
+
+        Py_DECREF(verified);
+        return 0;
+    }
+
+    return -1;
+}
+
+static PyObject *t_item_setDirty(t_item *self, PyObject *args)
+{
+    PyObject *attribute = Py_None, *result;
+    t_values *attrDict = NULL;
+    int dirty, noMonitors = 0, transient = 0;
+
+    if (self->status & NODIRTY)
+        Py_RETURN_FALSE;
+
+    if (!PyArg_ParseTuple(args, "i|OOi", &dirty,
+                          &attribute, &attrDict, &noMonitors))
+        return NULL;
+
+    if (dirty)
+    {
+        t_view *view = (t_view *) ((t_item *) self->root)->parent;
+
+        if (dirty & VRDIRTY)
+        {
+            if (attribute == Py_None)
+            {
+                PyErr_SetString(PyExc_ValueError, "attribute is None");
+                return NULL;
+            }
+            if (attrDict == NULL)
+            {
+                PyErr_SetString(PyExc_ValueError, "attrDict is missing");
+                return NULL;
+            }
+            if (!PyObject_TypeCheck(attrDict, CValues))
+            {
+                PyErr_SetString(PyExc_TypeError, "attrDict is not a Values");
+                return NULL;
+            }
+
+            if (view->status & VERIFY && dirty & VDIRTY &&
+                verify(self, view, attrDict, attribute) < 0)
+                return NULL;
+            else
+            {
+                PyObject *args = PyTuple_Pack(5, attribute, persisted_NAME,
+                                              Py_True, Py_None, Py_True);
+
+                result = t_item_getAttributeAspect(self, args);
+                Py_DECREF(args);
+                if (result == NULL)
+                    return NULL;
+
+                transient = result == Py_False;
+                Py_DECREF(result);
+            }
+
+            if (!transient)
+            {
+                result = t_values__setDirty(attrDict, attribute);
+                Py_DECREF(result);
+            }
+
+            if (!noMonitors)
+            {
+                PyObject *args = PyTuple_Pack(2, set_NAME, attribute);
+
+                result = t_item__fireChanges(self, args);
+                Py_DECREF(args);
+                if (result == NULL)
+                    return NULL;
+                Py_DECREF(result);
+            }
+        }
+
+        result = _countAccess(NULL, (PyObject *) self);
+        Py_DECREF(result);
+
+        if (!transient)
+        {
+            dirty |= FDIRTY;
+            view->status |= FDIRTY;
+            
+            if (!(self->status & DIRTY))
+            {
+                if (!(view->status & LOADING))
+                {
+                    result =
+                        PyObject_CallMethodObjArgs((PyObject *) view,
+                                                   _logItem_NAME, self, NULL);
+                    if (!result)
+                        return NULL;
+
+                    if (PyObject_IsTrue(result))
+                    {
+                        self->status |= dirty;
+                        return result;
+                    }
+                }
+            }
+            else
+                self->status |= dirty;
+        }
+    }
+    else
+    {
+        self->status &= ~(DIRTY | ADIRTY | FDIRTY);
+
+        result = PyObject_CallMethodObjArgs((PyObject *) self->values,
+                                            _clearDirties_NAME, NULL); 
+        if (result == NULL)
+            return NULL;
+        Py_DECREF(result);
+
+        result = PyObject_CallMethodObjArgs((PyObject *) self->references,
+                                            _clearDirties_NAME, NULL);
+        if (result == NULL)
+            return NULL;
+        Py_DECREF(result);
+
+        if (self->children != NULL && self->children != Py_None)
+        {
+            result = PyObject_CallMethodObjArgs(self->children,
+                                                _clearDirties_NAME, NULL);
+            if (result == NULL)
+                return NULL;
+            Py_DECREF(result);
+        }
+    }
+
+    Py_RETURN_FALSE;
 }
 
 
@@ -749,7 +1007,16 @@ void _init_item(PyObject *m)
             getAspect_NAME = PyString_FromString("getAspect");
             getAttributeAspect_NAME = PyString_FromString("getAttributeAspect");
             redirectTo_NAME = PyString_FromString("redirectTo");
+            persisted_NAME = PyString_FromString("persisted");
             _redirectTo_NAME = PyString_FromString("_redirectTo");
+            onValueChanged_NAME = PyString_FromString("onValueChanged");
+            logger_NAME = PyString_FromString("logger");
+            _verifyAssignment_NAME = PyString_FromString("_verifyAssignment");
+            _setDirty_NAME = PyString_FromString("_setDirty");
+            set_NAME = PyString_FromString("set");
+            _logItem_NAME = PyString_FromString("_logItem");
+            _clearDirties_NAME = PyString_FromString("_clearDirties");
+            _flags_NAME = PyString_FromString("_flags");
         }
     }
 }

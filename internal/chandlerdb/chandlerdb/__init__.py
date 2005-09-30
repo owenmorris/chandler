@@ -2,7 +2,8 @@
 # chandlerdb package
 
 from chandlerdb.item.c import CItem, _install__doc__
-import schema.c
+from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
+from chandlerdb.persistence.c import CView
 
 
 _install__doc__(CItem.isNew, """
@@ -210,4 +211,25 @@ retained. After the new kind is set, its attributes'
 optional L{initial values<getAttributeAspect>} are
 set for attributes for which there is no value on the
 item. Setting an item's kind to C{None} clears all its values.
+""")
+
+_install__doc__(CView.find, """
+Find an item.
+
+An item can be found by a path determined by its name and container
+or by a uuid generated for it at creation time. If C{spec} is a
+relative path, it is evaluated relative to C{self}.
+
+This method returns C{None} if the item is not found or if it is
+found but not yet loaded and C{load} was set to C{False}.
+
+See the L{findPath} and L{findUUID} methods for versions of this
+method that can also be called with a string.
+
+@param spec: a path or UUID
+@type spec: L{Path<repository.util.Path.Path>} or
+            L{UUID<chandlerdb.util.uuid.UUID>} 
+@param load: load the item if it not yet loaded, C{True} by default
+@type load: boolean
+@return: an item or C{None} if not found
 """)

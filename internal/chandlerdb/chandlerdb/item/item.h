@@ -24,11 +24,18 @@
 
 typedef struct {
     PyObject_HEAD
+    PyObject *item;
+    PyObject *dict;
+    PyObject *flags;
+} t_values;
+
+typedef struct {
+    PyObject_HEAD
     Item_HEAD
     unsigned long lastAccess;
     PyObject *uuid;
-    PyObject *values;
-    PyObject *references;
+    t_values *values;
+    t_values *references;
     PyObject *kind;
     PyObject *parent;
     PyObject *children;

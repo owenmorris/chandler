@@ -18,6 +18,7 @@ def main():
                'chandlerdb.schema.__init__',
                'chandlerdb.item.__init__',
                'chandlerdb.item.ItemError',
+               'chandlerdb.item.ItemValue',
                'chandlerdb.persistence.__init__']
 
     extensions.append(Extension('chandlerdb.util.uuid',
@@ -38,6 +39,7 @@ def main():
 
     extensions.append(Extension('chandlerdb.item.c',
                                 sources=['chandlerdb/item/item.c',
+                                         'chandlerdb/item/values.c',
                                          'chandlerdb/item/c.c']))
 
     extensions.append(Extension('chandlerdb.persistence.c',
