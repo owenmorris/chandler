@@ -26,7 +26,7 @@ except:
     logger.Stop()
     logger.ReportFailure("Importing calendar: exception raised")
 else:
-    App_ns.root.AddToSidebarWithoutCopying({'items' : [collection]})	
+    App_ns.sidebarCollection.add(collection)
     wx.GetApp().Yield()
     ev = wx.IdleEvent()
     wx.GetApp().ProcessEvent(ev)
