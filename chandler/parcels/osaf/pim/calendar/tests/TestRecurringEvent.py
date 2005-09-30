@@ -16,6 +16,7 @@ from osaf.pim.tasks import TaskMixin
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 
 from application.dialogs.RecurrenceDialog import getProxy
+from itertools import chain
 
 import osaf.pim
 import osaf.pim.tests.TestContentModel as TestContentModel
@@ -35,11 +36,15 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.monthly = {'end'   : datetime(2005, 11, 4, 13),
                        'start' : self.start,
                        'count' : 5}
-        self.event = Calendar.CalendarEvent(None, view=self.rep.view)
-        self.event.startTime = self.start
-        self.event.endTime = self.event.startTime + timedelta(hours=1)
-        self.event.anyTime = False
-        self.event.displayName = u"Sample event"
+        self.event = self._createEvent()
+
+    def _createEvent(self):
+        event = Calendar.CalendarEvent(None, view=self.rep.view)
+        event.startTime = self.start
+        event.endTime = event.startTime + timedelta(hours=1)
+        event.anyTime = False
+        event.displayName = u"Sample event"
+        return event
 
     def _createRuleSetItem(self, freq):
         ruleItem = RecurrenceRule(None, view=self.rep.view)
@@ -417,11 +422,51 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(second.icalUID, third.icalUID)
         self.assertEqual(third.modificationFor, second.occurrenceFor)
 
+    def testDelete(self):
+        event = self.event
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        
+        def checkDeleted(items, notdeleted):
+            for item in chain(items, notdeleted):
+                if item in notdeleted:
+                    self.failIf(item.isDeleted(),
+                                "Item was deleted, but shouldn't have been: %s"
+                                % repr(item))
+                else:
+                    self.assert_(item.isDeleted(),
+                                 "Item wasn't deleted: %s" % repr(item))
+
+        
+        # check a simple recurring rule
+        event.removeRecurrence()
+        checkDeleted(chain(event.occurrences, [rruleset]), [event])
+                
+        # THIS modification
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        event.getNextOccurrence().displayName = 'changed'
+        event.removeRecurrence()
+        checkDeleted(chain(event.occurrences, [rruleset]), [event])
+                
+        # THIS modification to master 
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        event.displayName = 'changed'
+        event.removeRecurrence()
+        master = event.occurrenceFor
+        checkDeleted(chain([master], master.occurrences, [rruleset]), [event])
+        
+        # THISANDFUTURE modification
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        second = event.getNextOccurrence()
+        second.changeThisAndFuture('displayName', 'changed')
+        event.removeRecurrence()
+        checkDeleted([rruleset, event, second, second.rruleset], [event, second, second.rruleset])
+        
+        
+        # deleteThis, deleteFuture, deleteAll, removeRecurrence
+
     def testRdatesAndExdates(self):
         pass
-    
-    def testDelete(self):
-        pass
+
 
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, view=self.rep.view)

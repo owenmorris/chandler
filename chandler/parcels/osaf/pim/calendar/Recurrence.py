@@ -163,9 +163,16 @@ class RecurrenceRule(items.ContentItem):
     )
 
     normalNames = "interval", "until"
-    listNames = "bysetpos", "bymonth", "bymonthday", "byyearday", "byweekno",\
-                "byhour", "byminute", "bysecond"
+    listNames = ("bysetpos", "bymonth", "bymonthday", "byyearday", "byweekno",
+                 "byhour", "byminute", "bysecond")
     specialNames = "wkst", "byweekday", "freq"
+
+    notSpecialNames = ("interval", "until", "bysetpos", "bymonth", "bymonthday",
+                       "byyearday","byweekno", "byhour", "byminute", "bysecond")
+    
+    allNames = ("interval", "until", "bysetpos", "bymonth", "bymonthday",
+                "byyearday","byweekno", "byhour", "byminute", "bysecond",
+                "wkst", "byweekday", "freq")
 
     # dateutil automatically sets these from dtstart, we don't want these
     # unless their length is greater than 1.
@@ -199,8 +206,7 @@ class RecurrenceRule(items.ContentItem):
             return value
 
         # TODO: more comments
-        kwargs = dict((k, getattr(self, k, None)) for k in 
-                                            self.listNames + self.normalNames)
+        kwargs = dict((k, getattr(self, k, None)) for k in self.notSpecialNames)
         for key in self.specialNames:
             value = coerceIfDatetime(getattr(self, key))
             if value is not None:
@@ -278,7 +284,7 @@ class RecurrenceRule(items.ContentItem):
 
     def onValueChanged(self, name):
         """If the rule changes, update any associated events."""
-        if name in self.listNames + self.normalNames + self.specialNames:
+        if name in self.allNames:
             for ruletype in ('rruleFor', 'exruleFor'):
                 if self.hasLocalAttributeValue(ruletype):
                     getattr(self, ruletype).onValueChanged('rrules')
@@ -316,12 +322,12 @@ class RecurrenceRuleSet(items.ContentItem):
         sharing = schema.Cloud(exdates, rdates, byCloud = [exrules, rrules])
     )
 
-    def addRule(self, rule, rruleorexrule='rrule'):
+    def addRule(self, rule, rrulesorexrules='rrules'):
         """Add an rrule or exrule, defaults to rrule."""
         try:
-            getattr(self, rruleorexrule + 's').append(rule)
+            getattr(self, rrulesorexrules).append(rule)
         except AttributeError:
-            setattr(self, rruleorexrule + 's', [rule])
+            setattr(self, rrulesorexrules, [rule])
         
     def createDateUtilFromRule(self, dtstart):
         """Return an appropriate dateutil.rrule.rruleset."""
@@ -390,9 +396,11 @@ class RecurrenceRuleSet(items.ContentItem):
         """Return a string describing custom rules."""
         return "not yet implemented"
 
+    RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
+
     def onValueChanged(self, name):
         """If the RuleSet changes, update the associated event."""
-        if name in ('rrules', 'exrules', 'rdates', 'exdates'):
+        if name in self.RULENAMES:
             if self.hasLocalAttributeValue('events'):
                 for event in self.events:
                     event.getFirstInRule().cleanRule()
