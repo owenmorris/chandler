@@ -168,16 +168,13 @@ class Attribute(Item):
                     c.indexed = values.get('indexed', False)
 
                 elif name == 'inheritFrom':
-                    c.noInherit = (values, 'inheritFrom',
-                                   'defaultValue', 'redirectTo')
+                    c.noInherit = (values, 'inheritFrom', 'redirectTo')
 
                 elif name == 'defaultValue':
-                    c.noInherit = (values, 'defaultValue',
-                                   'redirectTo', 'inheritFrom')
+                    c.defaultValue = values
 
                 elif name == 'redirectTo':
-                    c.redirectTo = (values, 'redirectTo',
-                                    'inheritFrom', 'defaultValue')
+                    c.redirectTo = (values, 'redirectTo', 'inheritFrom')
 
                 elif name == 'otherName':
                     c.otherName = values

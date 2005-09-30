@@ -64,13 +64,9 @@ class RefList(LinkedMap, Indexed):
 
         return old
 
-    def _getFlag(self, flag):
-
-        return self._flags & flag != 0
-
     def _setDirty(self, noMonitors=False):
 
-        if self._getFlag(RefList.SETDIRTY):
+        if self._flags & RefList.SETDIRTY:
             item = self._item
             item.setDirty(item.RDIRTY, self._name, item._references, noMonitors)
 
@@ -87,9 +83,8 @@ class RefList(LinkedMap, Indexed):
     # copy the refs from self into copyItem._references
     def _copy(self, copyItem, name, policy, copyFn):
 
-        try:
-            refList = copyItem._references[name]
-        except KeyError:
+        refList = copyItem._references.get(name, Nil)
+        if refList is Nil:
             refList = copyItem._refList(name)
             self._copyIndexes(refList)
             copyItem._references[name] = refList
@@ -166,7 +161,7 @@ class RefList(LinkedMap, Indexed):
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 
-        self._setDirty()
+        self._setDirty(True)
 
     def update(self, dictionary, setAliases=False):
         """
@@ -190,7 +185,7 @@ class RefList(LinkedMap, Indexed):
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 
-        self._setDirty()
+        self._setDirty(True)
 
     def add(self, item, alias=None):
         """
@@ -219,8 +214,8 @@ class RefList(LinkedMap, Indexed):
             if alias is not None:
                 self.setAlias(item, alias)
         else:
-            self._item._references._addValue(self._name, item, self._otherName,
-                                             alias=alias)
+            self._item._references._setValue(self._name, item, self._otherName,
+                                             False, 'list', alias)
 
     def clear(self):
         """
@@ -245,40 +240,20 @@ class RefList(LinkedMap, Indexed):
         for item in self:
             print item._repr_()
 
-    def __getitem__(self, key):
-
-        return self._getRef(key)
-
     def _getRef(self, key, load=True):
 
-        return super(RefList, self).__getitem__(key, load)
+        return self.__getitem__(key, load)
 
-    def _setRef(self, other, **kwds):
+    def _setRef(self, other, alias=None):
 
-        key = other._uuid
-        load = kwds.get('load', True)
-        item = self._item
-        view = item.itsView
-        loading = view.isLoading()
-        
-        old = super(RefList, self).get(key, None, load)
-        if not (loading or old is None):
-            self.linkChanged(self._get(key), key)
+        key = other.itsUUID
+        link = super(RefList, self).__setitem__(key, other, None, None, alias)
 
-        link = super(RefList, self).__setitem__(key, other,
-                                                kwds.get('previous'),
-                                                kwds.get('next'),
-                                                kwds.get('alias'))
+        if self._indexes:
+            for index in self._indexes.itervalues():
+                index.insertKey(key, link._previousKey)
 
-        if not loading:
-            if self._indexes:
-                for index in self._indexes.itervalues():
-                    index.insertKey(key, link._previousKey)
-            if old is None:
-                self._setDirty(kwds.get('noMonitors', False))
-
-        if not load:
-            other._references._getRef(self._otherName, item)
+        self._setDirty(True)
 
         return other
 
@@ -310,7 +285,7 @@ class RefList(LinkedMap, Indexed):
                 afterKey = None
 
             self.place(key, afterKey)
-
+            self._setDirty(True)
         else:
             self.placeInIndex(item, after, *indexNames)
 
@@ -375,7 +350,7 @@ class RefList(LinkedMap, Indexed):
             
     def __delitem__(self, key):
 
-        self._item._references._removeValue(self._name, self._getRef(key),
+        self._item._references._removeValue(self._name, self[key],
                                             self._otherName)
     def _removeRef_(self, other):
 
@@ -415,12 +390,13 @@ class RefList(LinkedMap, Indexed):
             
         try:
             loading = view._setLoading(True)
-            other = view.find(key)
-            if other is None:
+            try:
+                other = view[key]
+            except KeyError:
                 raise DanglingRefError, (self._item, self._name, key)
             
-            self._setRef(other, previous=ref[0], next=ref[1], alias=ref[2],
-                         load=False)
+            super(RefList, self).__setitem__(key, other,
+                                             ref[0], ref[1], ref[2])
                     
             return True
         finally:
@@ -437,14 +413,6 @@ class RefList(LinkedMap, Indexed):
         for link in self._values():
             # accessing _value directly to prevent reloading
             references._unloadValue(name, link._value, otherName)
-
-    def linkChanged(self, link, key):
-
-        if self._flags & RefList.READONLY:
-            raise ReadOnlyAttributeError, (self._item, self._name)
-
-        if key is not None:
-            self._setDirty(True)
 
     def get(self, key, default=None, load=True):
         """
@@ -656,7 +624,7 @@ class RefList(LinkedMap, Indexed):
         prevKey = None
         while key:
             try:
-                other = self._getRef(key)
+                other = self[key]
                 result = result and refs._checkRef(logger, name, other)
             except DanglingRefError, e:
                 logger.error("Iterator on %s caused DanglingRefError: %s",

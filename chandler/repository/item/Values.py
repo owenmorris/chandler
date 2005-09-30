@@ -5,33 +5,32 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
-from chandlerdb.item.c import Nil
+from chandlerdb.item.c import Nil, Default, CValues
 from chandlerdb.item.ItemError import *
+from chandlerdb.item.ItemValue import ItemValue
+
 from repository.util.Path import Path
 from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
 from repository.schema.TypeHandler import TypeHandler
-from repository.item.ItemValue import ItemValue
 
 
-class Values(dict):
+class Values(CValues):
 
     def __init__(self, item):
 
-        super(Values, self).__init__()
         if item is not None:
             self._setItem(item)
 
     def clear(self):
 
-        for name, value in self.iteritems():
+        for name, value in self._dict.iteritems():
             if isinstance(value, ItemValue):
                 value._setOwner(None, None)
             self._setDirty(name)
 
-        super(Values, self).clear()
-        self._clearNoinherits()
+        self._dict.clear()
 
     def _getItem(self):
 
@@ -45,7 +44,7 @@ class Values(dict):
 
         count = 1
 
-        for value in self.itervalues():
+        for value in self._dict.itervalues():
             if isinstance(value, ItemValue):
                 count += value._refCount()
 
@@ -54,7 +53,7 @@ class Values(dict):
     def _copy(self, orig, copyPolicy, copyFn):
 
         item = self._item
-        for name, value in orig.iteritems():
+        for name, value in orig._dict.iteritems():
             if isinstance(value, ItemValue):
                 value = value._copy(item, name, copyPolicy, copyFn)
                 value._setOwner(item, name)
@@ -79,111 +78,22 @@ class Values(dict):
 
     def _copyFlags(self, orig, name):
 
-        flags = orig._getFlags(name, 0) & Values.COPYMASK
+        flags = orig._flags.get(name, 0) & Values.COPYMASK
         if flags != 0:
-            self._setFlags(name, flags)
-
-    def __setitem__(self, key, value):
-
-        if self._getFlags(key) & Values.READONLY:
-            raise ReadOnlyAttributeError, (self._item, key)
-        
-        oldValue = self.get(key, None)
-        if oldValue is not None and isinstance(oldValue, ItemValue):
-            oldValue._setOwner(None, None)
-
-        return super(Values, self).__setitem__(key, value)
-
-    def __delitem__(self, key):
-
-        if self._getFlags(key) & Values.READONLY:
-            raise ReadOnlyAttributeError, (self._item, key)
-
-        value = self.get(key, None)
-        if value is not None and isinstance(value, ItemValue):
-            value._setOwner(None, None)
-
-        return super(Values, self).__delitem__(key)
+            self._flags[name] = flags
 
     def _unload(self):
 
-        super(Values, self).clear()
-
-        _flags = getattr(self, "_flags", None)
-        if _flags:
-            _flags.clear()
-
-    def _setFlag(self, key, flag):
-
-        _flags = getattr(self, "_flags", None)
-        if _flags:
-            if key in _flags:
-                _flags[key] |= flag
-            else:
-                _flags[key] = flag
-        else:
-            self._flags = { key: flag }
-
-    def _clearFlag(self, key, flag):
-
-        _flags = getattr(self, "_flags", None)
-        if _flags:
-            if key in _flags:
-                _flags[key] &= ~flag
+        self._dict.clear()
+        self._flags.clear()
 
     def _setFlags(self, key, flags):
 
-        _flags = getattr(self, '_flags', None)
-        if _flags:
-            _flags[key] = flags
-        else:
-            self._flags = { key: flags }
-
-    def _getFlags(self, key, default=0):
-
-        _flags = getattr(self, '_flags', None)
-        if _flags:
-            return _flags.get(key, default)
-
-        return default
-
-    def _isReadOnly(self, key):
-
-        return self._getFlags(key) & Values.READONLY != 0
-
-    def _isTransient(self, key):
-
-        return self._getFlags(key) & Values.TRANSIENT != 0
-
-    def _isDirty(self, key):
-
-        return self._getFlags(key) & Values.DIRTY != 0
-
-    def _isNoinherit(self, key):
-
-        return self._getFlags(key) & Values.NOINHERIT != 0
-
-    def _setTransient(self, key):
-
-        self._setFlag(key, Values.TRANSIENT)
-
-    def _setDirty(self, key):
-
-        self._setFlag(key, Values.DIRTY)
-
-    def _setNoinherit(self, key):
-
-        self._setFlag(key, Values.NOINHERIT)
-
-    def _clearTransient(self, key):
-
-        flags = getattr(self, "_flags", None)
-        if flags:
-            flags[key] &= ~Values.TRANSIENT
+        self._flags[key] = flags
 
     def _getDirties(self):
 
-        _flags = getattr(self, '_flags', None)
+        _flags = self._flags
         if _flags:
             return [ key for key, flags in _flags.iteritems()
                      if flags & Values.DIRTY ]
@@ -192,19 +102,11 @@ class Values(dict):
 
     def _clearDirties(self):
 
-        _flags = getattr(self, '_flags', None)
+        _flags = self._flags
         if _flags:
             for key, flags in _flags.iteritems():
                 if flags & Values.DIRTY:
                     _flags[key] &= ~Values.DIRTY
-
-    def _clearNoinherits(self):
-
-        _flags = getattr(self, '_flags', None)
-        if _flags:
-            for key, flags in _flags.iteritems():
-                if flags & Values.NOINHERIT:
-                    _flags[key] &= ~Values.NOINHERIT
 
     def _writeValues(self, itemWriter, version, withSchema, all):
 
@@ -212,9 +114,9 @@ class Values(dict):
         kind = item._kind
 
         size = 0
-        for name, value in self.iteritems():
+        for name, value in self._dict.iteritems():
 
-            flags = self._getFlags(name)
+            flags = self._flags.get(name, 0)
             if flags & Values.TRANSIENT != 0:
                 continue
             
@@ -249,7 +151,7 @@ class Values(dict):
         kind = item._kind
         view = item.itsView
 
-        for key, value in self.iteritems():
+        for key, value in self._dict.iteritems():
             if kind is not None:
                 attribute = kind.getAttribute(key, False, item)
                 c = attribute.c
@@ -262,7 +164,7 @@ class Values(dict):
                 persisted = True
 
             if persisted:
-                flags = self._getFlags(key)
+                flags = self._flags.get(key, 0)
                 persisted = flags & Values.TRANSIENT == 0
                 flags &= Values.SAVEMASK
 
@@ -312,7 +214,7 @@ class Values(dict):
                 persisted = True
 
             if persisted:
-                persisted = self._getFlags(name) & Values.TRANSIENT == 0
+                persisted = not self._isTransient(name)
 
             if persisted:
                 hash = _combine(hash, _hash(name))
@@ -379,7 +281,7 @@ class Values(dict):
         logger = self._item.itsView.logger
         result = True
 
-        for key, value in self.iteritems():
+        for key, value in self._dict.iteritems():
             r = self._verifyAssignment(key, value, logger)
             result = result and r
 
@@ -440,45 +342,22 @@ class Values(dict):
 
         item = self._item
         if type(view) is not type(item.itsView):
-            for key, value in self.iteritems():
+            for key, value in self._dict.iteritems():
                 if isinstance(value, Lob):
                     item.setAttributeValue(key, value.copy(view), self)
-
-    
-    READONLY  = 0x0001         # value is read-only
-
-    DIRTY     = 0x0100         # value is dirty
-    TRANSIENT = 0x0200         # value is transient
-    NOINHERIT = 0x0400         # no schema for inheriting a value
-    SAVEMASK  = 0x00ff         # save these flags
-    COPYMASK  = READONLY | TRANSIENT | NOINHERIT
     
 
 class References(Values):
 
-    def __setitem__(self, key, value):
-
-        if self._getFlags(key) & Values.READONLY:
-            raise ReadOnlyAttributeError, (self._item, key)
-
-        # bypass Values
-        return super(Values, self).__setitem__(key, value)
-
-    def __delitem__(self, key):
-
-        if self._getFlags(key) & Values.READONLY:
-            raise ReadOnlyAttributeError, (self._item, key)
-
-        # bypass Values
-        return super(Values, self).__delitem__(key)
-
-    def _setValue(self, name, other, otherName, **kwds):
+    def _setValue(self, name, other, otherName, noMonitors=False,
+                  cardinality=None, alias=None,
+                  otherCard=None, otherAlias=None):
 
         item = self._item
         view = item.itsView
 
         if name in self:
-            value = self._getRef(name)
+            value = self._getRef(name, None, otherName)
             if value is not None and isitem(value):
                 value._references._removeRef(otherName, item)
 
@@ -493,29 +372,22 @@ class References(Values):
                     raise ViewMismatchError, (item, other)
                     
             if otherName in other._references:
-                value = other._references._getRef(otherName)
+                value = other._references._getRef(otherName, None, name)
                 if value is not None and isitem(value):
                     value._references._removeRef(name, other)
 
-        noMonitors = kwds.get('noMonitors', False)
-        kwds['noMonitors'] = True
-
-        value = self._setRef(name, other, otherName, **kwds)
+        value = self._setRef(name, other, otherName, cardinality, alias)
         if other is not None:
             otherValue = other._references._setRef(otherName, item, name,
-                                                   cardinality=kwds.get('otherCard'),
-                                                   alias=kwds.get('otherAlias'),
-                                                   noMonitors=True)
+                                                   otherCard, otherAlias)
         else:
             otherValue = None
 
         if not noMonitors:
             if not item._isNoDirty():
-                item._fireChanges(name)
+                item._fireChanges('set', name)
             if not (other is None or other._isNoDirty()):
-                other._fireChanges(otherName)
-
-        kwds['noMonitors'] = noMonitors
+                other._fireChanges('set', otherName)
 
         if value is not None and value._isRefList():
             view._notifyChange(item._collectionChanged,
@@ -524,61 +396,59 @@ class References(Values):
             view._notifyChange(other._collectionChanged,
                                'add', 'collection', otherName, item)
             
-    def _addValue(self, name, other, otherName, **kwds):
-
-        kwds['cardinality'] = 'list'
-        self._setValue(name, other, otherName, **kwds)
-
-    def _setRef(self, name, other, otherName, **kwds):
+    def _setRef(self, name, other, otherName, cardinality=None, alias=None):
 
         item = self._item
         value = self.get(name)
         if value is None:
-            cardinality = (kwds.get('cardinality') or
-                           item.getAttributeAspect(name, 'cardinality',
-                                                   True, None, 'single'))
+            if cardinality is None:
+                cardinality = item.getAttributeAspect(name, 'cardinality',
+                                                      True, None, 'single')
             if cardinality == 'list':
                 self[name] = value = item._refList(name, otherName)
-            elif cardinality != 'single':
-                raise CardinalityError, (item, name, 'list or single')
 
         if value is not None and value._isRefList():
-            value._setRef(other, **kwds)
+            value._setRef(other, alias)
         else:
-            self[name] = other
+            self[name] = value = other
             if not item.itsView.isLoading():
-                item.setDirty(item.VDIRTY, name, self,
-                              kwds.get('noMonitors', False))
+                item.setDirty(item.VDIRTY, name, self, True)
 
         return value
 
-    def _getRef(self, name, other=None, attrID=None):
+    def _getRef(self, name, other=None, otherName=None, default=Default):
 
         value = self.get(name, self)
         item = self._item
 
         if other is None:
             if value is self:
+                if default is not Default:
+                    return default
                 raise KeyError, name
             if value is None or isitem(value) or value._isRefList():
                 return value
             if value._isUUID():
-                other = item.find(value)
-                if other is None:
+                try:
+                    other = item.itsView[value]
+                except KeyError:
                     raise DanglingRefError, (item, name, value)
+                
                 self[name] = other
                 kind = item.itsKind
                 if kind is not None:  # kind may be None during bootstrap
-                    otherName = kind.getOtherName(name, item)
-                    other._references._getRef(otherName, item)
+                    if otherName is None:
+                        otherName = kind.getOtherName(name, item)
+                    other._references._getRef(otherName, item, name)
                 return other
 
             raise TypeError, '%s, type: %s' %(value, type(value))
 
         if value is other:
             if value._isUUID():
-                other = item.find(value)
-                if other is None:
+                try:
+                    other = item.itsView[value]
+                except KeyError:
                     raise DanglingRefError, (item, name, value)
                 self[name] = other
             return other
@@ -586,7 +456,7 @@ class References(Values):
         if value is self or value is None:
             raise BadRefError, (item, name, value, other)
 
-        if value == other._uuid:
+        if value == other.itsUUID:
             self[name] = other
             return other
 
@@ -664,7 +534,7 @@ class References(Values):
 
         self._item = item
 
-        for value in self.itervalues():
+        for value in self._dict.itervalues():
             if value is not None and value._isRefList():
                 value._setItem(item, False)
 
@@ -672,7 +542,7 @@ class References(Values):
 
         count = 0
 
-        for value in self.itervalues():
+        for value in self._dict.itervalues():
             if value is not None:
                 if isitem(value):
                     count += 1
@@ -687,7 +557,7 @@ class References(Values):
 
         count = 1
 
-        for value in self.itervalues():
+        for value in self._dict.itervalues():
             if value is not None:
                 if isitem(value):
                     count += 1
@@ -703,14 +573,14 @@ class References(Values):
         copyOther = copyFn(copyItem, value, policy)
 
         if copyOther is not Nil and name not in copyItem._references:
-            copyItem._references._setValue(name, copyOther,
-                                           copyItem.itsKind.getOtherName(name, copyItem))
+            otherName = copyItem.itsKind.getOtherName(name, copyItem)
+            copyItem._references._setValue(name, copyOther, otherName)
 
     # copy orig._references into self
     def _copy(self, orig, copyPolicy, copyFn):
 
         item = self._item
-        for name, value in orig.iteritems():
+        for name, value in orig._dict.iteritems():
             policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
             if value is not None and value._isRefList():
                 value._copy(item, name, policy, copyFn)
@@ -720,7 +590,7 @@ class References(Values):
 
     def _unload(self):
 
-        for name, value in self.iteritems():
+        for name, value in self._dict.iteritems():
             if value is not None:
                 if value._isRefList():
                     value._unload()
@@ -787,9 +657,9 @@ class References(Values):
         kind = item._kind
 
         size = 0
-        for name, value in self.iteritems():
+        for name, value in self._dict.iteritems():
 
-            flags = self._getFlags(name)
+            flags = self._flags.get(name, 0)
             if flags & Values.TRANSIENT != 0:
                 continue
             
@@ -811,7 +681,7 @@ class References(Values):
                 raise ValueError, 'Cannot persist Nil'
 
             if withSchema and value is not None and value._isUUID():
-                value = self._getRef(name, value)
+                value = self._getRef(name, value, attribute.c.otherName)
 
             size += itemWriter._ref(item, name, value,
                                     version, flags & Values.SAVEMASK, 
@@ -824,10 +694,10 @@ class References(Values):
         item = self._item
         kind = item._kind
 
-        for name, value in self.iteritems():
+        for name, value in self._dict.iteritems():
             attribute = kind.getAttribute(name, False, item)
             if attribute.c.persisted:
-                flags = self._getFlags(name) & Values.SAVEMASK
+                flags = self._flags.get(name, 0) & Values.SAVEMASK
                 attrs = { 'id': attribute.itsUUID.str64() }
                 if flags:
                     attrs['flags'] = str(flags)
@@ -883,7 +753,7 @@ class References(Values):
 
         super(References, self)._clearDirties()
         # clearing according to flags is not enough, flags not set on new items
-        for value in self.itervalues():
+        for value in self._dict.itervalues():
             if value is not None and value._isRefList():
                 value._clearDirties()
 
@@ -900,7 +770,7 @@ class References(Values):
         except AttributeError:
             dirties = None
 
-        for key, value in self.iteritems():
+        for key, value in self._dict.iteritems():
             if value is not None and value._isRefList():
                 if dirties is not None and key in dirties:
                     value._clear_()
@@ -924,7 +794,7 @@ class References(Values):
         except AttributeError:
             pass
 
-        for key, value in original.iteritems():
+        for key, value in original._dict.iteritems():
             try:
                 if value is not None and value._isRefList():
                     self[key] = value._original
@@ -990,7 +860,7 @@ class References(Values):
         logger = item.itsView.logger
         result = True
 
-        for key, value in self.iteritems():
+        for key, value in self._dict.iteritems():
             if value is not None and value._isUUID():
                 value = self._getRef(key, value)
                 
@@ -1025,7 +895,7 @@ class References(Values):
         itemView = item.itsView
         sameType = type(view) is type(itemView)
 
-        for key, value in self.items():
+        for key, value in self._dict.items():
             if value is not None:
                 if value._isRefList():
                     if sameType or value._isTransient():
@@ -1044,9 +914,7 @@ class References(Values):
                         value._copyIndexes(localValue)
                         for other in value:
                             if other in items:
-                                localValue._setRef(other, load=True,
-                                                   alias=value.getAlias(other),
-                                                   noMonitors=True)
+                                localValue._setRef(other, value.getAlias(other))
                             else:
                                 localOther = other.findMatch(view, replace)
                                 if localOther is not None:

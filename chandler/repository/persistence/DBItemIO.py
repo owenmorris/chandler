@@ -5,14 +5,13 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from struct import pack, unpack
-from cStringIO import StringIO
 
 from chandlerdb.util.uuid import UUID, _hash
 from chandlerdb.item.c import Nil, Default, isitem
+from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
-from repository.item.ItemValue import ItemValue
 from repository.item.ItemIO import ItemWriter, ItemReader
 from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
@@ -29,8 +28,8 @@ class DBItemWriter(ItemWriter):
         super(DBItemWriter, self).__init__()
 
         self.store = store
-        self.valueBuffer = StringIO()
-        self.dataBuffer = StringIO()
+        self.valueBuffer = []
+        self.dataBuffer = []
 
     def writeItem(self, item, version):
 
@@ -64,12 +63,12 @@ class DBItemWriter(ItemWriter):
         if isinstance(value, unicode):
             value = value.encode('utf-8')
             size = len(value)
-            buffer.write(pack('>i', size + 1))
+            buffer.append(pack('>i', size + 1))
         else:
             size = len(value)
-            buffer.write(pack('>i', -(size + 1)))
+            buffer.append(pack('>i', -(size + 1)))
             
-        buffer.write(value)
+        buffer.append(value)
 
         return 4 + size
 
@@ -78,40 +77,40 @@ class DBItemWriter(ItemWriter):
         if isinstance(value, unicode):
             value = value.encode('ascii')
 
-        buffer.write(pack('>H', len(value)))
-        buffer.write(value)
+        buffer.append(pack('>H', len(value)))
+        buffer.append(value)
 
         return 2 + len(value)
 
     def writeBoolean(self, buffer, value):
 
         if value is None:
-            buffer.write('\2')
+            buffer.append('\2')
         elif value:
-            buffer.write('\1')
+            buffer.append('\1')
         else:
-            buffer.write('\0')
+            buffer.append('\0')
 
         return 1
 
     def writeInteger(self, buffer, value):
 
-        buffer.write(pack('>i', value))
+        buffer.append(pack('>i', value))
         return 4
 
     def writeLong(self, buffer, value):
         
-        buffer.write(pack('>q', value))
+        buffer.append(pack('>q', value))
         return 8
         
     def writeFloat(self, buffer, value):
 
-        buffer.write(pack('>d', value))
+        buffer.append(pack('>d', value))
         return 8
 
     def writeUUID(self, buffer, value):
 
-        buffer.write(value._uuid)
+        buffer.append(value._uuid)
         return 16
 
     def writeValue(self, buffer, item, version, value, withSchema, attrType):
@@ -127,7 +126,7 @@ class DBItemWriter(ItemWriter):
         flags = DBItemWriter.LIST | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, False,
                               withSchema, attrType)
-        buffer.write(pack('>I', len(value)))
+        buffer.append(pack('>I', len(value)))
         size = 4
         for v in value:
             size += self.writeValue(buffer, item, version,
@@ -140,7 +139,7 @@ class DBItemWriter(ItemWriter):
         flags = DBItemWriter.SET | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, False,
                               withSchema, attrType)
-        buffer.write(pack('>I', len(value)))
+        buffer.append(pack('>I', len(value)))
         size = 4
         for v in value:
             size += self.writeValue(buffer, item, version,
@@ -153,7 +152,7 @@ class DBItemWriter(ItemWriter):
         flags = DBItemWriter.DICT | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, False,
                               withSchema, attrType)
-        buffer.write(pack('>I', len(value)))
+        buffer.append(pack('>I', len(value)))
         size = 4
         for k, v in value._iteritems():
             size += self.writeValue(buffer, item, version,
@@ -166,10 +165,10 @@ class DBItemWriter(ItemWriter):
     def writeIndexes(self, buffer, item, version, value):
 
         if value._indexes:
-            buffer.write(pack('>H', len(value._indexes)))
+            buffer.append(pack('>H', len(value._indexes)))
             size = 2 + value._saveIndexes(self, buffer, version)
         else:
-            buffer.write('\0\0')
+            buffer.append('\0\0')
             size = 2
 
         return size
@@ -248,10 +247,9 @@ class DBItemWriter(ItemWriter):
             indexed = c.indexed
             
         buffer = self.dataBuffer
-        buffer.truncate(0)
-        buffer.seek(0)
+        del buffer[:]
 
-        buffer.write(pack('>I', flags))
+        buffer.append(pack('>I', flags))
         if withSchema:
             self.writeSymbol(buffer, name)
 
@@ -283,7 +281,7 @@ class DBItemWriter(ItemWriter):
             valueType.indexValue(self, item, name, version, value)
 
         return self.store._values.saveValue(self.store.txn, item._uuid, version,
-                                            uAttr, uValue, buffer.getvalue())
+                                            uAttr, uValue, ''.join(buffer))
 
     def indexValue(self, value, item, name, version):
 
@@ -333,11 +331,11 @@ class DBItemWriter(ItemWriter):
                 typeId = None
 
         if typeId is None:
-            buffer.write(chr(flags))
+            buffer.append(chr(flags))
         else:
             flags |= DBItemWriter.TYPED
-            buffer.write(chr(flags))
-            buffer.write(typeId._uuid)
+            buffer.append(chr(flags))
+            buffer.append(typeId._uuid)
 
         return attrType
 
@@ -348,32 +346,31 @@ class DBItemWriter(ItemWriter):
         size = 0
 
         buffer = self.dataBuffer
-        buffer.truncate(0)
-        buffer.seek(0)
+        del buffer[:]
 
-        buffer.write(pack('>I', flags))
+        buffer.append(pack('>I', flags))
         if withSchema:
             self.writeSymbol(buffer, name)
 
         if value is None:
-            buffer.write(chr(DBItemWriter.NONE | DBItemWriter.REF))
+            buffer.append(chr(DBItemWriter.NONE | DBItemWriter.REF))
 
         elif value._isUUID():
             if withSchema:
                 raise AssertionError, 'withSchema is True'
-            buffer.write(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
-            buffer.write(value._uuid)
+            buffer.append(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
+            buffer.append(value._uuid)
 
         elif isitem(value):
-            buffer.write(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
-            buffer.write(value._uuid._uuid)
+            buffer.append(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
+            buffer.append(value._uuid._uuid)
 
         elif value._isRefList():
             flags = DBItemWriter.LIST | DBItemWriter.REF
             if withSchema:
                 flags |= DBItemWriter.TYPED
-            buffer.write(chr(flags))
-            buffer.write(value.uuid._uuid)
+            buffer.append(chr(flags))
+            buffer.append(value.uuid._uuid)
             if withSchema:
                 self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
             size += value._saveValues(version)
@@ -385,7 +382,7 @@ class DBItemWriter(ItemWriter):
 
         size += self.store._values.saveValue(self.store.txn, item._uuid,
                                              version, attribute._uuid, uValue,
-                                             buffer.getvalue())
+                                             ''.join(buffer))
 
         return size
 
@@ -471,7 +468,7 @@ class DBItemReader(ItemReader):
         if isContainer:
             item._children = view._createChildren(item, False)
             
-        for name, value in values.iteritems():
+        for name, value in values._dict.iteritems():
             if isinstance(value, ItemValue):
                 value._setOwner(item, name)
 
@@ -549,8 +546,9 @@ class DBItemReader(ItemReader):
     def _setKind(self, view):
 
         if self.item._kind is None:
-            kind = view.find(self.uKind)
-            if kind is None:
+            try:
+                kind = view[self.uKind]
+            except KeyError:
                 raise LoadError, (self.name or self.uItem,
                                   "kind not found: %s" %(uuid))
             else:
@@ -572,8 +570,9 @@ class DBItemReader(ItemReader):
     def _move(self, view):
 
         if self.item._parent is None:
-            parent = view.find(self.uParent)
-            if parent is None:
+            try:
+                parent = view[self.uParent]
+            except KeyError:
                 raise LoadError, (self.name or self.uItem,
                                   "parent not found: %s" %(self.uParent))
             else:
@@ -591,11 +590,13 @@ class DBItemReader(ItemReader):
                 attribute = None
                 offset, name = self.readSymbol(4, data)
             else:
-                attribute = view.find(attrId)
-                if attribute is None:
+                try:
+                    attribute = view[attrId]
+                except KeyError:
                     raise LoadError, (self.name or self.uItem,
                                       "attribute not found: %s" %(attrId))
-                offset, name = 4, attribute._name
+                else:
+                    offset, name = 4, attribute._name
 
             flags = ord(data[offset])
 
@@ -676,12 +677,11 @@ class DBItemReader(ItemReader):
 
         if ord(data[offset]) & DBItemWriter.TYPED:
             typeId = UUID(data[offset+1:offset+17])
-            attrType = view.find(typeId)
-            if attrType is None:
+            try:
+                return offset+17, view[typeId]
+            except KeyError:
                 raise LoadValueError, (self.name or self.uItem, name,
                                        "type not found: %s" %(typeId))
-
-            return offset+17, attrType
 
         return offset+1, attrType
 

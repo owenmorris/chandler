@@ -55,7 +55,6 @@ class DBRepository(OnDemandRepository):
 
         self._openLock = None
         self._openFile = None
-        self.store = None
 
         if dbHome is not None:
             self._openDir = os.path.join(self.dbHome, '__open')

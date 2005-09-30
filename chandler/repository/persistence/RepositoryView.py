@@ -57,7 +57,8 @@ class RepositoryView(CView):
         if repository is not None and not repository.isOpen():
             raise RepositoryError, "Repository is not open"
 
-        super(RepositoryView, self).__init__(repository, name, version)
+        super(RepositoryView, self).__init__(repository, name, version,
+                                             RepositoryView.itsUUID)
         self.openView()
         
     def __repr__(self):
@@ -130,10 +131,6 @@ class RepositoryView(CView):
             schema.version = RepositoryView.CORE_SCHEMA_VERSION
 
         return schema
-
-    def __len__(self):
-
-        return len(self._registry)
 
     def __nonzero__(self):
 
@@ -259,6 +256,9 @@ class RepositoryView(CView):
 
     def _fwalk(self, path, load=True):
 
+        if not isinstance(path, Path):
+            raise TypeError, '%s is not Path or UUID' %(type(spec))
+
         item = self
         for name in path:
 
@@ -284,48 +284,6 @@ class RepositoryView(CView):
 
         return item
 
-    def find(self, spec, load=True):
-        """
-        Find an item.
-
-        An item can be found by a path determined by its name and container
-        or by a uuid generated for it at creation time. If C{spec} is a
-        relative path, it is evaluated relative to C{self}.
-
-        This method returns C{None} if the item is not found or if it is
-        found but not yet loaded and C{load} was set to C{False}.
-
-        See the L{findPath} and L{findUUID} methods for versions of this
-        method that can also be called with a string.
-
-        @param spec: a path or UUID
-        @type spec: L{Path<repository.util.Path.Path>} or
-                    L{UUID<chandlerdb.util.uuid.UUID>} 
-        @param load: load the item if it not yet loaded, C{True} by default
-        @type load: boolean
-        @return: an item or C{None} if not found
-        """
-        
-        if isinstance(spec, UUID):
-            if spec == self.itsUUID:
-                return self
-            else:
-                try:
-                    return self._registry[spec]
-                except KeyError:
-                    if load is True:
-                        return self._loadItem(spec)
-                    elif load and not spec in self._deletedRegistry:
-                        # in this case, load is an itemReader (queryItems)
-                        return self._readItem(load)
-                    else:
-                        return None
-
-        if isinstance(spec, Path):
-            return self._fwalk(spec, load)
-
-        raise TypeError, '%s is not Path or UUID' %(type(spec))
-
     def findPath(self, path, load=True):
         """
         Find an item by path.
@@ -339,7 +297,7 @@ class RepositoryView(CView):
         @return: an item or C{None} if not found
         """
 
-        if isinstance(path, str) or isinstance(path, unicode):
+        if isinstance(path, (str, unicode)):
             path = Path(path)
         elif not isinstance(path, Path):
             raise TypeError, '%s is not Path or string' %(type(path))
@@ -359,7 +317,7 @@ class RepositoryView(CView):
         @return: an item or C{None} if not found
         """
 
-        if isinstance(uuid, str) or isinstance(uuid, unicode):
+        if isinstance(uuid, (str, unicode)):
             uuid = UUID(uuid)
         elif not isinstance(uuid, UUID):
             raise TypeError, '%s is not UUID or string' %(type(uuid))
@@ -512,28 +470,6 @@ class RepositoryView(CView):
     def hasChild(self, name, load=True):
 
         return self.hasRoot(name, load)
-
-    def __getitem__(self, key):
-
-        if isinstance(key, UUID):
-            if key == self.itsUUID:
-                return self
-            else:
-                try:
-                    return self._registry[key]
-                except KeyError:
-                    item = self._loadItem(key)
-                    if item is not None:
-                        return item
-                    raise
-
-        if isinstance(key, str) or isinstance(key, unicode):
-            root = self.getRoot(key)
-            if root is not None:
-                return root
-            raise KeyError, key
-
-        raise TypeError, (type(key), key)
 
     def __iter__(self):
         """
@@ -993,7 +929,7 @@ class OnDemandRepositoryView(RepositoryView):
     def _findSchema(self, spec, withSchema):
 
         if withSchema:
-            return self.find(spec, load=False)
+            return self.find(spec, False)
 
         # when crossing the schema boundary, reset loading status so that
         # hooks get called before resuming regular loading
@@ -1097,7 +1033,7 @@ class NullRepositoryView(RepositoryView):
 
     def _findSchema(self, spec, withSchema):
 
-        return self.find(spec, load=False)
+        return self.find(spec, False)
 
     def _loadItem(self, uuid):
 

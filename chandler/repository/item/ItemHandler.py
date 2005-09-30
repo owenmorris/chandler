@@ -4,18 +4,19 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from chandlerdb.item.c import Nil, isitem
+from chandlerdb.item.ItemValue import ItemValue
+from chandlerdb.item.ItemError import *
+from chandlerdb.util.uuid import UUID
+
 from repository.schema.TypeHandler import TypeHandler
 from repository.schema.Kind import Kind
 from repository.item.PersistentCollections import \
     PersistentCollection, \
     PersistentList, PersistentDict, PersistentSet, PersistentTuple
 from repository.item.Values import Values, References
-from repository.item.ItemValue import ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
-from chandlerdb.item.c import Nil, isitem
-from chandlerdb.item.ItemError import *
 
-from chandlerdb.util.uuid import UUID
 from repository.util.Path import Path
 from repository.util.ClassLoader import ClassLoader
 from repository.util.SAX import ContentHandler
@@ -35,7 +36,7 @@ class RefArgs(object):
     def _setItem(self, item):
 
         self.item = item
-        other = item.find(self.ref, load=False)
+        other = item.find(self.ref, False)
         if other is not None:
             self.other = other
 
@@ -47,12 +48,15 @@ class RefArgs(object):
         other = self.other
 
         if other is None:
-            other = item.find(self.ref, load=False)
+            other = item.find(self.ref, False)
             if other is None:
                 raise DanglingRefError, (item, self.name, self.ref)
 
-        item._references._setValue(self.name, other, self.otherName,
-                                   noMonitors=True, **self.kwds)
+        kwds = self.kwds
+        item._references._setValue(self.name, other, self.otherName, True,
+                                   kwds.get('cardinality'), kwds.get('alias'),
+                                   kwds.get('otherCard'),
+                                   kwds.get('otherAlias'))
 
     def _setRef(self):
 
@@ -61,8 +65,10 @@ class RefArgs(object):
         else:
             other = self.other
             
-        self.item._references._setRef(self.name, other, self.otherName,
-                                      noMonitors=True, **self.kwds)
+        kwds = self.kwds
+        self.item._references._setRef(self.name, other, self.otherName, True,
+                                      kwds.get('cardinality'),
+                                      kwds.get('alias'))
 
 
 class ValueHandler(ContentHandler, TypeHandler):
@@ -544,12 +550,12 @@ class ItemHandler(ValueHandler):
             values = item._values
             references = item._references
 
-            for name, value in self.values.iteritems():
+            for name, value in self.values._dict.iteritems():
                 values[name] = value
-                item.setDirty(Item.VDIRTY, name, values, noMonitors=True)
+                item.setDirty(Item.VDIRTY, name, values, True)
             self.values = values
 
-            for name, value in self.references.iteritems():
+            for name, value in self.references._dict.iteritems():
                 if not isinstance(value, dict):
                     dirty = Item.VDIRTY
                     item.setAttributeValue(name, value, references,
@@ -557,7 +563,7 @@ class ItemHandler(ValueHandler):
                 else:
                     dirty = Item.RDIRTY
                     references[name] = value
-                item.setDirty(dirty, name, references, noMonitors=True)
+                item.setDirty(dirty, name, references, True)
             self.references = references
 
             status = item._status | Item.NDIRTY
@@ -577,7 +583,7 @@ class ItemHandler(ValueHandler):
         if not (self.update or self.delete):
             self.repository._registerItem(item)
 
-        for attribute, value in self.values.iteritems():
+        for attribute, value in self.values._dict.iteritems():
             if isinstance(value, ItemValue):
                 value._setOwner(item, attribute)
 

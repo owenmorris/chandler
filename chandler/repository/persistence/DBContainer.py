@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import cStringIO, threading
+import threading
 
 from struct import pack, unpack
 
@@ -185,26 +185,26 @@ class DBContainer(object):
     def _writeUUID(self, buffer, value):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
         else:
-            buffer.write('\3')
-            buffer.write(value._uuid)
+            buffer.append('\3')
+            buffer.append(value._uuid)
 
     def _writeString(self, buffer, value):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
         
         elif isinstance(value, str):
-            buffer.write('\5')
-            buffer.write(pack('>H', len(value)))
-            buffer.write(value)
+            buffer.append('\5')
+            buffer.append(pack('>H', len(value)))
+            buffer.append(value)
 
         elif isinstance(value, unicode):
             value = value.encode('utf-8')
-            buffer.write('\5')
-            buffer.write(pack('>H', len(value)))
-            buffer.write(value)
+            buffer.append('\5')
+            buffer.append(pack('>H', len(value)))
+            buffer.append(value)
 
         else:
             raise TypeError, type(value)
@@ -212,10 +212,10 @@ class DBContainer(object):
     def _writeBoolean(self, buffer, value):
 
         if value is True:
-            buffer.write('\1')
+            buffer.append('\1')
 
         elif value is False:
-            buffer.write('\2')
+            buffer.append('\2')
         
         else:
             raise TypeError, type(value)
@@ -223,15 +223,15 @@ class DBContainer(object):
     def _writeInteger(self, buffer, value):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
         
-        buffer.write('\4')
-        buffer.write(pack('>l', value))
+        buffer.append('\4')
+        buffer.append(pack('>l', value))
 
     def _writeValue(self, buffer, value):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
 
         elif value is True or value is False:
             self._writeBoolean(buffer, value)
@@ -273,21 +273,14 @@ class RefContainer(DBContainer, CRefContainer):
 
     def prepareKey(self, uItem, uuid):
 
-        buffer = cStringIO.StringIO()
-        buffer.write(uItem._uuid)
-        buffer.write(uuid._uuid)
-
-        return buffer
+        return uItem._uuid + uuid._uuid
             
     def _packKey(self, buffer, key, version=None):
 
-        buffer.truncate(32)
-        buffer.seek(0, 2)
-        buffer.write(key._uuid)
-        if version is not None:
-            buffer.write(pack('>l', ~version))
+        if version is None:
+            return buffer + key._uuid
 
-        return buffer.getvalue()
+        return buffer + key._uuid + pack('>l', ~version)
 
     def _historyKey(self, key, value):
 
@@ -344,18 +337,9 @@ class RefContainer(DBContainer, CRefContainer):
                 self.closeCursor(cursor, self._history)
                 store.abortTransaction(view, txnStatus)
 
-    def deleteRef(self, keyBuffer, buffer, version, key):
+    def deleteRef(self, keyBuffer, version, key):
 
-        buffer.truncate(0)
-        buffer.seek(0)
-        self._writeUUID(buffer, None)
-
-        return self.put(self._packKey(keyBuffer, key, version),
-                        buffer.getvalue())
-
-    def eraseRef(self, buffer, key):
-
-        self.delete(self._packKey(buffer, key))
+        return self.put(self._packKey(keyBuffer, key, version), '\0')
 
     def _readRef(self, value):
 
@@ -653,42 +637,30 @@ class ACLContainer(DBContainer):
 
 class IndexesContainer(DBContainer):
 
-    def prepareKey(self, uuid):
-
-        buffer = cStringIO.StringIO()
-        buffer.write(uuid._uuid)
-
-        return buffer
-            
     def _packKey(self, buffer, key, version=None):
 
-        buffer.truncate(16)
-        buffer.seek(0, 2)
-        buffer.write(key._uuid)
-        if version is not None:
-            buffer.write(pack('>l', ~version))
+        if version is None:
+            return buffer + key._uuid
 
-        return buffer.getvalue()
+        return buffer + key._uuid + pack('>l', ~version)
 
-    def saveKey(self, keyBuffer, buffer, version, key, node):
+    def saveKey(self, keyBuffer, version, key, node):
 
-        buffer.truncate(0)
-        buffer.seek(0)
+        buffer = []
 
         if node is not None:
             level = node.getLevel()
-            buffer.write(pack('b', node.getLevel()))
-            buffer.write(pack('>l', node._entryValue))
+            buffer.append(pack('b', node.getLevel()))
+            buffer.append(pack('>l', node._entryValue))
             for lvl in xrange(1, level + 1):
                 point = node.getPoint(lvl)
                 self._writeUUID(buffer, point.prevKey)
                 self._writeUUID(buffer, point.nextKey)
-                buffer.write(pack('>l', point.dist))
+                buffer.append(pack('>l', point.dist))
         else:
-            buffer.write('\0')
+            buffer.append('\0')
             
-        return self.put(self._packKey(keyBuffer, key, version),
-                        buffer.getvalue())
+        return self.put(self._packKey(keyBuffer, key, version), ''.join(buffer))
 
     def loadKey(self, view, index, keyBuffer, version, key):
         
@@ -808,12 +780,11 @@ class ItemContainer(DBContainer):
                  uParent, name, moduleName, className,
                  values, dirtyValues, dirtyRefs):
 
-        buffer.truncate(0)
-        buffer.seek(0)
+        del buffer[:]
 
-        buffer.write(uKind._uuid)
-        buffer.write(pack('>l', status))
-        buffer.write(uParent._uuid)
+        buffer.append(uKind._uuid)
+        buffer.append(pack('>l', status))
+        buffer.append(uParent._uuid)
 
         self._writeString(buffer, name)
         self._writeString(buffer, moduleName)
@@ -822,11 +793,11 @@ class ItemContainer(DBContainer):
         def writeName(name):
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            buffer.write(pack('>l', _hash(name)))
+            buffer.append(pack('>l', _hash(name)))
             
         for name, uValue in values:
             writeName(name)
-            buffer.write(uValue._uuid)
+            buffer.append(uValue._uuid)
 
         count = 0
         for name in dirtyValues:
@@ -835,10 +806,10 @@ class ItemContainer(DBContainer):
         for name in dirtyRefs:
             writeName(name)
             count += 1
-        buffer.write(pack('>l', len(values)))
-        buffer.write(pack('>l', count))
+        buffer.append(pack('>l', len(values)))
+        buffer.append(pack('>l', count))
 
-        return self.put(pack('>16sl', uItem._uuid, ~version), buffer.getvalue())
+        return self.put(pack('>16sl', uItem._uuid, ~version), ''.join(buffer))
 
     def _readItem(self, itemVer, value):
 

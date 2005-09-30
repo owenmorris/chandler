@@ -4,8 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from cStringIO import StringIO
-
 from chandlerdb.item.c import Nil
 from chandlerdb.util.uuid import UUID
 from repository.item.Children import Children
@@ -34,18 +32,14 @@ class PersistentRefs(object):
         super(PersistentRefs, self).__init__()
 
         self.view = view
+        self.store = view.store
         self._changedRefs = {}
         self._key = None
-        self._value = None
         self._count = 0
         
     def __len__(self):
 
         return self._count
-
-    def _getRefs(self):
-
-        return self.view.repository.store._refs
 
     def _copy_(self, orig):
 
@@ -57,12 +51,11 @@ class PersistentRefs(object):
     def _setItem(self, item, new):
 
         if self._key is None:
-            self._key = self._getRefs().prepareKey(item.itsUUID, self.uuid)
-            self._value = StringIO()
+            self._key = self.store._refs.prepareKey(item.itsUUID, self.uuid)
 
         if not new:
-            ref = self._getRefs().loadRef(self.view, self._key,
-                                          self._item._version, self.uuid)
+            ref = self.store._refs.loadRef(self.view, self._key,
+                                           self._item._version, self.uuid)
             if ref is not None:
                 self._firstKey, self._lastKey, self._count = ref
 
@@ -115,29 +108,28 @@ class PersistentRefs(object):
         if self._isRemoved(key):
             return None
         
-        return self._getRefs().loadRef(self.view, self._key,
-                                       self._item._version, key)
+        return self.store._refs.loadRef(self.view, self._key,
+                                        self._item._version, key)
 
     def _writeRef(self, key, version, previous, next, alias):
 
         if key is None:
             raise ValueError, 'key is None'
 
-        store = self.view.repository.store
-        return store._refs.saveRef(store.txn, self._key.getvalue(), version,
+        store = self.store
+        return store._refs.saveRef(store.txn, self._key, version,
                                    key, previous, next, alias)
 
     def _deleteRef(self, key, version):
 
-        return self._getRefs().deleteRef(self._key, self._value, version, key)
+        return self.store._refs.deleteRef(self._key, version, key)
 
     def resolveAlias(self, alias, load=True):
 
         key = None
         if load:
             view = self.view
-            key = view.repository.store.readName(view, view.itsVersion,
-                                                 self.uuid, alias)
+            key = self.store.readName(view, view.itsVersion, self.uuid, alias)
             if key is not None:
                 op, oldAlias = self._changedRefs.get(key, (0, None))
                 if oldAlias == alias:
@@ -195,8 +187,8 @@ class PersistentRefs(object):
                     else:
                         moves[previousKey] = item
 
-        self._getRefs().applyHistory(self.view, merge, self.uuid,
-                                     oldVersion, toVersion)
+        self.store._refs.applyHistory(self.view, merge, self.uuid,
+                                      oldVersion, toVersion)
 
         for previousKey, item in moves.iteritems():
             self.place(item, previousKey)
@@ -261,22 +253,19 @@ class DBRefList(RefList, PersistentRefs):
         RefList._setItem(self, item, new)
         PersistentRefs._setItem(self, item, new)
 
-    def _setRef(self, other, **kwds):
+    def _setRef(self, other, alias=None):
 
-        loading = self.view.isLoading()
-        super(DBRefList, self)._setRef(other, **kwds)
-
-        if not loading:
-            self._count += 1
+        super(DBRefList, self)._setRef(other, alias)
+        self._count += 1
 
     def _setFuture(self, key, alias):
         
-        super(RefList, self).__setitem__(key, key, alias=alias)
+        super(RefList, self).__setitem__(key, key, None, None, alias)
         self._count += 1
     
     def _saveValues(self, version):
 
-        store = self.view.repository.store
+        store = self.store
 
         item = self._item
         if not (self._flags & LinkedMap.NEW or
@@ -377,8 +366,7 @@ class DBNumericIndex(NumericIndex):
 
     def __init(self):
     
-        self._key = self._getIndexes().prepareKey(self._uuid)
-        self._value = StringIO()
+        self._key = self._uuid._uuid
         self._version = 0
 
     def _keyChanged(self, key):
@@ -428,7 +416,7 @@ class DBNumericIndex(NumericIndex):
 
     def _restore(self, version):
 
-        indexes = self._getIndexes()
+        indexes = self.view.store._indexes
         
         view = self.view
         self._version = version
@@ -452,16 +440,13 @@ class DBNumericIndex(NumericIndex):
             if self._changedKeys.get(key, Nil) is None:   # removed key
                 return None
 
-            node = self._getIndexes().loadKey(self.view, self,
-                                              self._key, version, key)
+            view = self.view
+            node = view.store._indexes.loadKey(view, self,
+                                               self._key, version, key)
             if node is not None:
                 self[key] = node
 
         return node
-
-    def _getIndexes(self):
-
-        return self.view.repository.store._indexes
 
     def _writeValue(self, itemWriter, buffer, version):
 
@@ -487,15 +472,12 @@ class DBNumericIndex(NumericIndex):
 
     def _saveValues(self, version):
 
-        indexes = self._getIndexes()
+        indexes = self.view.store._indexes
 
-        size = indexes.saveKey(self._key, self._value,
-                               version, self._headKey, self._head)
-        size += indexes.saveKey(self._key, self._value,
-                                version, self._tailKey, self._tail)
+        size = indexes.saveKey(self._key, version, self._headKey, self._head)
+        size += indexes.saveKey(self._key, version, self._tailKey, self._tail)
         for key, node in self._changedKeys.iteritems():
-            size += indexes.saveKey(self._key, self._value,
-                                    version, key, node)
+            size += indexes.saveKey(self._key, version, key, node)
 
         self._version = version
 
@@ -596,7 +578,7 @@ class DBChildren(Children, PersistentRefs):
     
     def _saveValues(self, version):
 
-        store = self.view.repository.store
+        store = self.store
         unloads = []
         
         size = self._writeRef(self.uuid, version,

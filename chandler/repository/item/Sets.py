@@ -8,7 +8,7 @@ from itertools import izip
 
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.c import Nil
-from repository.item.ItemValue import ItemValue
+from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Query import KindQuery
 from repository.item.Indexed import Indexed
@@ -45,6 +45,16 @@ class AbstractSet(ItemValue, Indexed):
             return len(self._indexes.itervalues().next())
 
         raise ValueError, "set has no indexes, length is unknown"
+
+    def __nonzero__(self):
+
+        if self._indexes:
+            return len(self._indexes.itervalues().next()) > 0
+
+        for i in self:
+            return True
+
+        return False
 
     def iterkeys(self):
 

@@ -279,7 +279,7 @@ class Indexed(object):
         for indexName in indexNames:
             self._index(indexName).moveKey(key, afterKey)
 
-        self._setDirty()
+        self._setDirty(True)
 
     def iterindexkeys(self, indexName):
 

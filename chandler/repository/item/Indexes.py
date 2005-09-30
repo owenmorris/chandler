@@ -361,8 +361,11 @@ class AttributeIndex(SortedIndex):
 
     def compare(self, k0, k1):
 
-        v0 = self._valueMap[k0].getAttributeValue(self._attribute)
-        v1 = self._valueMap[k1].getAttributeValue(self._attribute)
+        valueMap = self._valueMap
+        attribute = self._attribute
+
+        v0 = getattr(valueMap[k0], attribute)
+        v1 = getattr(valueMap[k1], attribute)
 
         if v0 < v1:
             return -1

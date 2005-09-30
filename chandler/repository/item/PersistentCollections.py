@@ -8,7 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.util.SingleRef import SingleRef
 from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemError import ReadOnlyAttributeError, OwnedValueError
-from repository.item.ItemValue import ItemValue
+from chandlerdb.item.ItemValue import ItemValue
 
 
 class PersistentCollection(ItemValue):
@@ -85,7 +85,7 @@ class PersistentCollection(ItemValue):
         item = self._item
         if item is not None and isinstance(value, SingleRef):
             uuid = value.itsUUID
-            return item.find(uuid)
+            return item.itsView.find(uuid)
 
         return value
 

@@ -5,9 +5,10 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from repository.item.ItemValue import ItemValue
-from repository.util.Lob import Lob
+from chandlerdb.item.ItemValue import ItemValue
 from chandlerdb.util.uuid import UUID
+
+from repository.util.Lob import Lob
 from repository.util.Streams import ConcatenatedInputStream, NullInputStream
 
 

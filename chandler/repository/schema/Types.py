@@ -547,11 +547,11 @@ class UUID(Type):
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
             return 1
         else:
-            buffer.write('\1')
-            buffer.write(value._uuid)
+            buffer.append('\1')
+            buffer.append(value._uuid)
             return 17
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
@@ -615,11 +615,11 @@ class SingleRef(Type):
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
             return 1
         else:
-            buffer.write('\1')
-            buffer.write(value._uuid._uuid)
+            buffer.append('\1')
+            buffer.append(value._uuid._uuid)
             return 17
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
@@ -689,10 +689,10 @@ class Path(Type):
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
             size = 1
         else:
-            buffer.write('\1')
+            buffer.append('\1')
             size = 1 + itemWriter.writeString(buffer, str(value))
 
         return size
@@ -745,10 +745,10 @@ class URL(Type):
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
             size = 1
         else:
-            buffer.write('\1')
+            buffer.append('\1')
             size = 1 + itemWriter.writeString(buffer, str(value))
 
         return size
@@ -791,7 +791,7 @@ class NoneType(Type):
         return -1
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-        buffer.write('\0')
+        buffer.append('\0')
         return 1
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
@@ -1371,10 +1371,10 @@ class TimeZone(Type):
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
             size = 1
         else:
-            buffer.write('\1')
+            buffer.append('\1')
             size = 1 + itemWriter.writeString(buffer, str(value))
 
         return size

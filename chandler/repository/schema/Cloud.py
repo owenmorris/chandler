@@ -146,7 +146,7 @@ class Cloud(Item):
         def copyOther(copy, other, policy):
             if other is None:
                 return None
-            uuid = other._uuid
+            uuid = other.itsUUID
             if uuid in copies:
                 return copies[uuid]
             if uuid in items:
@@ -423,9 +423,7 @@ class Endpoint(Item):
             else:
                 kind = item._kind
                 if cloudAlias is None:
-                    cloudAlias = self.getAttributeValue('cloudAlias',
-                                                        self._values,
-                                                        None, None)
+                    cloudAlias = getattr(self, 'cloudAlias', None)
                 clouds = kind.getClouds(cloudAlias)
                 for cloud in clouds:
                     getItems(cloud)

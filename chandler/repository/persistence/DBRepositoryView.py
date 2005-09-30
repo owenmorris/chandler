@@ -86,7 +86,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             uuid = itemReader.getUUID()
             if not uuid in self._deletedRegistry:
                 # load and itemReader, trick to pass reader directly to find
-                item = self.find(uuid, load=load and itemReader)
+                item = self.find(uuid, load and itemReader)
                 if item is not None:
                     items.append(item)
 
@@ -99,7 +99,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         docs = store.searchItems(self, self._version, query, attribute)
         for uuid, (ver, attribute) in docs.iteritems():
             if not uuid in self._deletedRegistry:
-                item = self.find(uuid, load=load)
+                item = self.find(uuid, load)
                 if item is not None:
                     results.append((item, attribute))
 

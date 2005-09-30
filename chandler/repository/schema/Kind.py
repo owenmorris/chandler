@@ -10,11 +10,11 @@ from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
 from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
+from chandlerdb.item.ItemValue import ItemValue
 
 from repository.item.Item import Item
 from repository.item.Monitors import Monitors, Monitor
 from repository.item.Values import Values, References
-from repository.item.ItemValue import ItemValue
 from repository.item.PersistentCollections import \
     PersistentCollection, PersistentDict
 from repository.persistence.RepositoryError import RecursiveLoadItemError
@@ -228,7 +228,7 @@ class Kind(Item):
         self._setupClass(cls)
 
         if withInitialValues:
-            self.getInitialValues(item, values, references)
+            self.getInitialValues(item, False)
 
         if hasattr(cls, 'onItemLoad'):
             item.onItemLoad(self.itsView)
@@ -602,43 +602,49 @@ class Kind(Item):
 
         return self is superKind or superKind in self.getInheritedSuperKinds()
 
-    def getInitialValues(self, item, values, references):
+    def getInitialValues(self, item, isNew):
+
+        initialValues = self._initialValues
+        initialReferences = self._initialReferences
 
         # setup cache
-        if self._initialValues is None:
-            self._initialValues = {}
-            self._initialReferences = {}
+        if initialValues is None:
+            self._initialValues = initialValues = {}
+            self._initialReferences = initialReferences = {}
             for name, attribute, k in self.iterAttributes():
                 value = attribute.getAspect('initialValue', Nil)
                 if value is not Nil:
                     otherName = self.getOtherName(name, item, None)
                     if otherName is None:
-                        self._initialValues[name] = value
+                        initialValues[name] = value
                     else:
-                        self._initialReferences[name] = value
+                        initialReferences[name] = value
 
-        isNew = item.isNew()
+        if initialValues:
+            values = item._values
+            for name, value in initialValues.iteritems():
+                if name not in values:
+                    if isinstance(value, ItemValue):
+                        value = value._copy(item, name, 'copy')
 
-        for name, value in self._initialValues.iteritems():
-            if name not in values:
-                if isinstance(value, ItemValue):
-                    value = value._copy(item, name, 'copy')
+                    values[name] = value
+                    if not isNew:   # __setKind case
+                        item.setDirty(Item.VDIRTY, name, values, True)
 
-                values[name] = value
-                if not isNew:   # __setKind case
-                    item.setDirty(Item.VDIRTY, name, values, True)
-
-        for name, value in self._initialReferences.iteritems():
-            if name not in references:
-                otherName = self.getOtherName(name, item)
-                if isinstance(value, PersistentCollection):
-                    refList = references[name] = item._refList(name, otherName)
-                    for other in value.itervalues():
-                        refList.append(other)
-                else:
-                    references._setValue(name, value, otherName)
-                if not isNew:   # __setKind case
-                    item.setDirty(Item.RDIRTY, name, references, True)
+        if initialReferences:
+            references = item._references
+            for name, value in initialReferences.iteritems():
+                if name not in references:
+                    otherName = self.getOtherName(name, item)
+                    if isinstance(value, PersistentCollection):
+                        references[name] = refList = item._refList(name,
+                                                                   otherName)
+                        for other in value.itervalues():
+                            refList.append(other)
+                    else:
+                        references._setValue(name, value, otherName)
+                    if not isNew:   # __setKind case
+                        item.setDirty(Item.RDIRTY, name, references, True)
 
     def flushCaches(self, reason, silent=False):
         """
@@ -725,11 +731,11 @@ class Kind(Item):
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
-            buffer.write('\0')
+            buffer.append('\0')
             return 1
         else:
-            buffer.write('\1')
-            buffer.write(value.itsUUID._uuid)
+            buffer.append('\1')
+            buffer.append(value.itsUUID._uuid)
             return 17
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,

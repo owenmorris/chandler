@@ -7,11 +7,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.c import _countAccess
 from chandlerdb.item.c import CItem, Nil, Default, isitem
+from chandlerdb.item.ItemValue import ItemValue
 from chandlerdb.item.ItemError import *
 
 from repository.item.RefCollections import RefList
 from repository.item.Values import Values, References
-from repository.item.ItemValue import ItemValue
 from repository.item.Access import ACL
 from repository.item.PersistentCollections import \
      PersistentCollection, PersistentList, PersistentDict, \
@@ -75,13 +75,13 @@ class Item(CItem):
 
         self._setParent(itsParent)
 
-        if itsKind is not None:
-            itsKind.getInitialValues(self, self._values, self._references)
-
         self.setDirty(Item.NDIRTY)
 
+        if itsKind is not None:
+            itsKind.getInitialValues(self, True)
+
         for name, value in values.iteritems():
-            self.setAttributeValue(name, value)
+            setattr(self, name, value)
 
         if not (_noMonitors or (itsKind is None)):
             self.itsView._notifyChange(itsKind.extent._collectionChanged,
@@ -115,47 +115,8 @@ class Item(CItem):
 
     def _repr_(self):
 
-        return Item.__repr__(self)
+        return CItem.__repr__(self)
     
-    def __repr__(self):
-        """
-        The debugging string representation of an item.
-
-        It follows the following format:
-
-        C{<classname (status): name uuid>}
-
-        where:
-          - C{classname} is the name of the class implementing the item
-          - C{status} is displayed when the item is stale or deleted
-          - C{name} is displayed if the item's name is not None
-          - C{uuid} is the item's UUID
-
-        @return: a string representation of an item.
-        """
-
-        _status = self._status
-        
-        if _status & Item.RAW:
-            return super(Item, self).__repr__()
-
-        if _status & Item.DELETED:
-            status = ' (deleted)'
-        elif _status & Item.STALE:
-            status = ' (stale)'
-        elif _status & Item.NEW:
-            status = ' (new)'
-        else:
-            status = ''
-
-        if self._name is None:
-            name = ''
-        else:
-            name = ' ' + self._name
-
-        return "<%s%s:%s %s>" %(type(self).__name__, status, name,
-                                self._uuid.str16())
-
     def hasAttributeAspect(self, name, aspect):
         """
         Tell whether an attribute has a value set for the aspect.
@@ -185,8 +146,8 @@ class Item(CItem):
 
         return getattr(item, methodName)(names[-1], *args)
         
-    def setAttributeValue(self, name, value=None, _attrDict=None, _attrID=None,
-                          setDirty=True, setAliases=False):
+    def setAttributeValue(self, name, value=None, _attrDict=None,
+                          otherName=None, setDirty=True, setAliases=False):
         """
         Set a value on a Chandler attribute.
 
@@ -204,7 +165,6 @@ class Item(CItem):
         @return: the value actually set.
         """
 
-        otherName = None
         _values = self._values
         _references = self._references
         
@@ -216,19 +176,20 @@ class Item(CItem):
                 _attrDict = _references
             else:
                 redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   False, _attrID, None)
+                                                   False, None, None)
                 if redirect is not None:
                     return self._redirectTo(redirect, 'setAttributeValue',
                                             value, None, None,
                                             setDirty, setAliases)
 
-                otherName = self.itsKind.getOtherName(name, self, Nil)
+                if otherName is None:
+                    otherName = self.itsKind.getOtherName(name, self, Nil)
                 if otherName is not Nil:
                     _attrDict = _references
                 else:
                     _attrDict = _values
 
-        isItem = value is not None and isitem(value)
+        isItem = isitem(value)
         wasRefList = False
         old = None
 
@@ -253,6 +214,17 @@ class Item(CItem):
                     otherName = self.itsKind.getOtherName(name, self)
                 _references._setValue(name, value, otherName)
                 setDirty = False
+
+        elif not isinstance(value, (list, dict, tuple, set)):
+
+            if _attrDict is not _values:
+                raise TypeError, ('Expecting an item or a ref collection',
+                                  value)
+            else:
+                _values[name] = value
+                if isinstance(value, ItemValue):
+                    value._setOwner(self, name)
+                dirty = Item.VDIRTY
 
         elif isinstance(value, list):
             if _attrDict is _references:
@@ -297,7 +269,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.update(value, setAliases)
+                refList.extend(value)
                 value = refList
                 setDirty = False
             else:
@@ -314,22 +286,13 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.update(value, setAliases)
+                refList.extend(value)
                 value = refList
                 setDirty = False
             else:
                 attrValue = PersistentSet(self, name, value, False)
                 _values[name] = attrValue
                 dirty = Item.VDIRTY
-
-        elif _attrDict is not _values:
-            raise TypeError, ('Expecting an item or a ref collection', value)
-
-        else:
-            _values[name] = value
-            if isinstance(value, ItemValue):
-                value._setOwner(self, name)
-            dirty = Item.VDIRTY
 
         if setDirty:
             self.setDirty(dirty, name, _attrDict)
@@ -454,26 +417,34 @@ class Item(CItem):
 
         _countAccess(self)
 
-        try:
-            if (_attrDict is self._values or
-                _attrDict is None and name in self._values):
-                value = self._values[name]
+        if (_attrDict is self._values or
+            _attrDict is None and name in self._values):
+            value = self._values.get(name, Nil)
+            if value is not Nil:
                 if isinstance(value, SingleRef):
                     value = self.itsView.find(value.itsUUID)
                 return value
 
-            elif (_attrDict is self._references or
-                  _attrDict is None and name in self._references):
-                return self._references._getRef(name)
+        elif (_attrDict is self._references or
+              _attrDict is None and name in self._references):
+            value = self._references._getRef(name, None, None, Nil)
+            if value is not Nil:
+                return value
 
-        except KeyError:
-            pass
-
-        if not (self._kind is None or self._values._isNoinherit(name)):
+        if self.itsKind is not None:
             if _attrID is not None:
-                attribute = self.find(_attrID)
+                attribute = self.itsView[_attrID]
             else:
-                attribute = self._kind.getAttribute(name, False, self)
+                attribute = self.itsKind.getAttribute(name, False, self)
+
+            redirect = attribute.c.getAspect('redirectTo', None)
+            if redirect is not None:
+                value = self
+                for attr in redirect.split('.'):
+                    value = value.getAttributeValue(attr, None, None, default)
+                    if value is default:
+                        break
+                return value
 
             inherit = attribute.getAspect('inheritFrom', None)
             if inherit is not None:
@@ -487,25 +458,14 @@ class Item(CItem):
                         value.setReadOnly(True)
                     return value
 
-            redirect = attribute.getAspect('redirectTo', None)
-            if redirect is not None:
-                value = self
-                for attr in redirect.split('.'):
-                    value = value.getAttributeValue(attr, None, None, default)
-                    if value is default:
-                        break
-                return value
-
             if default is not Default:
                 return default
 
-            value = attribute.getAspect('defaultValue', Nil)
+            value = attribute.c.getAspect('defaultValue', Nil)
             if value is not Nil:
                 if isinstance(value, PersistentCollection):
                     value.setReadOnly(True)
                 return value
-
-            self._values._setNoinherit(name)
 
             raise NoValueForAttributeError, (self, name)
 
@@ -565,9 +525,7 @@ class Item(CItem):
             else:
                 raise NoLocalValueForAttributeError, (self, name)
 
-        if hasattr(type(self), 'onValueChanged'):
-            self.itsView._notifyChange(self.onValueChanged, name)
-        Item._monitorsClass.invoke('remove', self, name)
+        self._fireChanges('remove', name)
 
     def hasChild(self, name, load=True):
         """
@@ -682,13 +640,13 @@ class Item(CItem):
         """
 
         if not referencesOnly:
-            for name, value in self._values.iteritems():
+            for name, value in self._values._dict.iteritems():
                 if isinstance(value, SingleRef):
                     value = self.itsView.find(value.itsUUID)
                 yield name, value
 
         if not valuesOnly:
-            for name, ref in self._references.iteritems():
+            for name, ref in self._references._dict.iteritems():
                 if ref is not None and ref._isUUID():
                     ref = self._references._getRef(name, ref)
                 yield name, ref
@@ -1151,82 +1109,6 @@ class Item(CItem):
         else:
             self._status &= ~Item.PINNED
 
-    def setDirty(self, dirty, attribute=None, attrDict=None, noMonitors=False):
-        """
-        Mark this item to get committed with the current transaction.
-
-        Returns C{True} if the dirty bit was changed from unset to set.
-        Returns C{False} otherwise.
-
-        If C{attribute} denotes a transient attribute (whose C{persisted}
-        aspect is C{False}), then this method has no effect and returns
-        C{False}.
-
-        @param dirty: one of L{Item.VDIRTY <VDIRTY>},
-        L{Item.RDIRTY <RDIRTY>}, L{Item.CDIRTY <CDIRTY>}, or a bitwise or'ed
-        combination, defaults to C{Item.VDIRTY}.
-        @type dirty: an integer
-        @param attribute: the name of the attribute that was changed,
-        optional, defaults to C{None} which means that no attribute was
-        changed
-        @type attribute: a string
-        @return: C{True} or C{False}
-        """
-
-        if self._status & Item.NODIRTY:
-            return False
-
-        if dirty:
-            view = self.itsView
-            
-            if dirty & Item.VRDIRTY:
-                assert attribute is not None
-                assert attrDict is not None
-
-                if view._isVerify() and dirty & Item.VDIRTY:
-                    value = attrDict.get(attribute, Nil)
-                    if not (value is Nil or 
-                            attrDict._verifyAssignment(attribute, value,
-                                                       view.logger)):
-                        raise ValueError, ("attribute assignment didn't match schema, see log for details", self._repr_(), attribute, value)
-                    
-                attrDict._setDirty(attribute)
-                if not noMonitors:
-                    self._fireChanges(attribute)
-                
-            _countAccess(self)
-            dirty |= Item.FDIRTY
-            view._status |= view.FDIRTY
-            
-            if not self.isDirty():
-                if not view.isLoading():
-                    if attribute is not None:
-                        if not self.getAttributeAspect(attribute, 'persisted',
-                                                       True, None, True):
-                            return False
-                    if view._logItem(self):
-                        self._status |= dirty
-                        return True
-                    elif self.isNew():
-                        view.logger.error('logging of new item %s failed', self.itsPath)
-            else:
-                self._status |= dirty
-
-        else:
-            self._status &= ~(Item.DIRTY | Item.ADIRTY | Item.FDIRTY)
-            self._values._clearDirties()
-            self._references._clearDirties()
-            if self._children is not None:
-                self._children._clearDirties()
-
-        return False
-
-    def _fireChanges(self, name):
-
-        if hasattr(type(self), 'onValueChanged'):
-            self.itsView._notifyChange(self.onValueChanged, name)
-        Item._monitorsClass.invoke('set', self, name)
-
     def _collectItems(self, items, filter=None):
 
         def collectItems(item):
@@ -1248,7 +1130,7 @@ class Item(CItem):
                         if filter is None or filter(__item) is True:
                             collectItems(__item)
                     
-                for key, value in _item._references.items():
+                for key, value in _item._references._dict.items():
                     if value is not None:
                         if value._isRefList():
                             for other in value:
@@ -1556,7 +1438,7 @@ class Item(CItem):
         count = 0
 
         if not self.isStale():
-            for name in self._references.iterkeys():
+            for name in self._references._dict.iterkeys():
                 if counted:
                     policy = self.getAttributeAspect(name, 'countPolicy',
                                                      False, None, 'none')
@@ -1610,7 +1492,7 @@ class Item(CItem):
 
             self._root = root
 
-            for child in self.iterChildren(load=False):
+            for child in self.iterChildren(False):
                 child._setRoot(root, oldView)
 
         elif root is not None:
@@ -1652,7 +1534,7 @@ class Item(CItem):
             else:
                 self.__class__ = kind.getItemClass()
                 kind._setupClass(self.__class__)
-                kind.getInitialValues(self, self._values, self._references)
+                kind.getInitialValues(self, False)
                 view._notifyChange(kind.extent._collectionChanged,
                                    'add', 'collection', 'extent', self,
                                    prevKind)
@@ -2026,7 +1908,7 @@ class Item(CItem):
         else:
             name = path[_index]
             if isinstance(name, UUID):
-                child = self.findUUID(name, kwds.get('load', True))
+                child = self.find(name, kwds.get('load', True))
                 if child is not None and child.itsParent is not self:
                     child = None
             else:
@@ -2068,7 +1950,7 @@ class Item(CItem):
 
         return item
 
-    def find(self, spec, attribute=None, load=True):
+    def find(self, spec, load=True, attribute=None):
         """
         Find an item.
 
@@ -2117,7 +1999,7 @@ class Item(CItem):
         @return: an item or C{None} if not found
         """
 
-        if isinstance(path, str) or isinstance(path, unicode):
+        if isinstance(path, (str, unicode)):
             path = Path(path)
         elif not isinstance(path, Path):
             raise TypeError, '%s is not Path or string' %(type(path))
@@ -2140,7 +2022,7 @@ class Item(CItem):
         @return: an item or C{None} if not found
         """
 
-        if isinstance(uuid, str) or isinstance(uuid, unicode):
+        if isinstance(uuid, (str, unicode)):
             uuid = UUID(uuid)
         elif not isinstance(uuid, UUID):
             raise TypeError, '%s is not UUID or string' %(type(uuid))

@@ -6,39 +6,33 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
 
-
 class Monitors(Item):
 
     def _fillItem(self, *args, **kwds):
 
         super(Monitors, self)._fillItem(*args, **kwds)
-        self.needsCaching = True
+        self.itsView.MONITORING = False
 
     def onItemLoad(self, view):
 
         self.setPinned()
-        self.needsCaching = True
-        Monitors.instances[view] = self
+        view.MONITORING = False
+        view.setSingleton(view.MONITORS, self)
 
     def onItemImport(self, view):
 
         if view is not self.itsView:
-            try:
-                del Monitors.instances[self.itsView]
-            except KeyError:
-                pass
+            view.setSingleton(view.MONITORS, None)
+            view.MONITORING = False
 
             self.setPinned()
-            self.needsCaching = True
-            Monitors.instances[view] = self
+            view = self.itsView
+            view.MONITORING = False
+            view.setSingleton(view.MONITORS, self)
 
     def onViewClear(self, view):
 
-        try:
-            del Monitors.instances[view]
-            self.needsCaching = True
-        except KeyError:
-            pass
+        view.setSingleton(view.MONITORS, None)
 
     def _collectionChanged(self, op, change, name, other):
 
@@ -51,20 +45,11 @@ class Monitors(Item):
 
         super(Monitors, self)._collectionChanged(op, change, name, other)
                             
-    @classmethod
-    def getInstance(cls, view):
-
-        try:
-            return cls.instances[view]
-        except AttributeError:
-            return view.findPath('//Schema/Core/items/Monitors')
-        except KeyError:
-            return view.findPath('//Schema/Core/items/Monitors')
-
     def cacheMonitors(self):
 
-        self.monitoring = { 'set': {}, 'remove': {} }
-        self.needsCaching = False
+        view = self.itsView
+        view._monitors = { 'set': {}, 'remove': {} }
+        self.itsView.MONITORING = True
 
         for monitor in getattr(self, 'monitors', []):
             if not monitor.isDeleting():
@@ -74,7 +59,7 @@ class Monitors(Item):
 
         op = monitor.getAttributeValue('op', monitor._values)
         attribute = monitor.getAttributeValue('attribute', monitor._values)
-        opDict = self.monitoring[op]
+        opDict = self.itsView._monitors[op]
 
         if attribute in opDict:
             opDict[attribute].append(monitor)
@@ -82,48 +67,10 @@ class Monitors(Item):
             opDict[attribute] = [monitor]
 
     @classmethod
-    def invoke(cls, op, item, attribute, *args):
-
-        view = item.itsView
-
-        dispatcher = cls.getInstance(view)
-        if dispatcher is None:  # during core schema loading
-            return
-
-        if dispatcher.needsCaching:
-            dispatcher.cacheMonitors()
-
-        try:
-            monitors = dispatcher.monitoring[op][attribute]
-        except KeyError:
-            return
-
-        for monitor in monitors:
-            if monitor.isDeleting():
-                continue
-
-            monitorItem = monitor.getAttributeValue('item', monitor._references,
-                                                    None, None)
-            if monitorItem is None:
-                continue
-
-            monitorArgs = monitor.args
-            if monitorArgs:
-                if args:
-                    _args = list(args)
-                    _args.extend(monitorArgs)
-                else:
-                    _args = monitorArgs
-            else:
-                _args = args
-
-            view._notifyChange(getattr(monitorItem, monitor.method),
-                               op, item, attribute, *_args, **monitor.kwds)
-
-    @classmethod
     def attach(cls, item, method, op, attribute, *args, **kwds):
 
-        dispatcher = cls.getInstance(item.itsView)
+        view = item.itsView
+        dispatcher = view.getSingleton(view.MONITORS)
 
         kind = dispatcher._kind.itsParent['Monitor']
         monitor = kind.newItem(None, dispatcher.itsParent['monitors'])
@@ -136,7 +83,7 @@ class Monitors(Item):
         monitor.kwds = kwds
         monitor.dispatcher = dispatcher
 
-        if dispatcher.needsCaching:
+        if not view.MONITORING:
             dispatcher.cacheMonitors()
         else:
             dispatcher._cacheMonitor(monitor)

@@ -15,8 +15,6 @@ class LinkedMap(dict):
 
         def __init__(self, value):
 
-            super(LinkedMap.link, self).__init__()
-
             self._previousKey = self._nextKey = None
             self._value = value
             self._alias = None
@@ -59,8 +57,6 @@ class LinkedMap(dict):
 
 
     def __init__(self, new):
-
-        super(LinkedMap, self).__init__()
 
         self._head = self._makeLink(None)
         self._aliases = None
