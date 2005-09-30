@@ -485,7 +485,7 @@ class MainView(View):
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
             collection.setColorIfAbsent()
-            schema.ns("osaf.app", self).sidebarCollection.add (coll)
+            schema.ns("osaf.app", self).sidebarCollection.add (collection)
             self.setStatusMessage (_(u"Import completed"))
         except:
             logger.exception("Failed importFile %s" % \
