@@ -769,7 +769,7 @@ class SidebarBlock(ControlBlocks.Table):
         event.arguments['Enable'] = False
             
     def onRemoveEventUpdateUI(self, event):
-        event.arguments['Text'] = _(u'Remove Collection')
+        event.arguments['Text'] = _(u'Delete Collection')
         """
         this is enabled if any user item is selected in the sidebar
         """
