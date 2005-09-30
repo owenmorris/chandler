@@ -433,34 +433,6 @@ def make_mainview(parcel):
         BlockEvent.template('SelectWeek',
                             'BroadcastEverywhere').install(parcel)
         
-    AddToSidebarWithoutCopyingEvent = \
-        ModifyContentsEvent.template('AddToSidebarWithoutCopying',
-                                     'SendToBlockByName',
-                                     methodName='onModifyContentsEvent',
-                                     dispatchToBlockName='Sidebar',
-                                     copyItems=False,
-                                     disambiguateDisplayName=True,
-                                     commitAfterDispatch=True).install(parcel)
-                  
-    AddToSidebarWithoutCopyingOrCommitingEvent = \
-        ModifyContentsEvent.template('AddToSidebarWithoutCopyingOrCommiting',
-                                     'SendToBlockByName',
-                                     methodName='onModifyContentsEvent',
-                                     dispatchToBlockName='Sidebar',
-                                     disambiguateDisplayName=True,
-                                     copyItems=False).install(parcel)
-                  
-    AddToSidebarWithoutCopyingAndSelectFirstEvent = \
-        ModifyContentsEvent.template('AddToSidebarWithoutCopyingAndSelectFirst',
-                                     'SendToBlockByName',
-                                     methodName='onModifyContentsEvent',
-                                     dispatchToBlockName='Sidebar',
-                                     copyItems=False,
-                                     selectFirstItem=True,
-                                     disambiguateDisplayName=True,
-                                     commitAfterDispatch=True).install(parcel)
-                  
-    
     SidebarTrunkDelegateInstance = \
         SidebarTrunkDelegate.update(parcel, 'SidebarTrunkDelegateInstance',
                                     tableTemplatePath='//parcels/osaf/views/main/TableSummaryViewTemplate',
@@ -489,9 +461,6 @@ def make_mainview(parcel):
             SendMailEvent,
             ShareItemEvent,
             SelectWeekEvent,
-            AddToSidebarWithoutCopyingEvent,
-            AddToSidebarWithoutCopyingOrCommitingEvent,
-            AddToSidebarWithoutCopyingAndSelectFirstEvent,
             ApplicationBarEventEvent,
             ApplicationBarTaskEvent,
             ApplicationBarMailEvent,
