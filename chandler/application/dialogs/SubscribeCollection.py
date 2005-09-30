@@ -97,7 +97,7 @@ class SubscribeDialog(wx.Dialog):
                 schema.ns('osaf.app', view).notMine.addSource(collection)
 
             collection.setColorIfAbsent()
-            schema.ns("osaf.app", self).sidebarCollection.add (collection)
+            schema.ns("osaf.app", view).sidebarCollection.add (collection)
             # Need to SelectFirstItem -- DJA
             share = sharing.getShare(collection)
 
@@ -111,7 +111,7 @@ class SubscribeDialog(wx.Dialog):
                 elif filterClass == 'osaf.pim.mail.MailMessageMixin':
                     event = 'ApplicationBarMail'
 
-            mainView.postEventByName(event, {})
+            Globals.views[0].postEventByName(event, {})
 
             self.EndModal(True)
 

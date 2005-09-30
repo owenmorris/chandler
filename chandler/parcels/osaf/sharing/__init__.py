@@ -2,6 +2,7 @@ import logging, urllib, urlparse
 from application import schema, Utility
 from osaf import pim
 from repository.item.Monitors import Monitors
+import chandlerdb
 from i18n import OSAFMessageFactory as _
 import zanshin, M2Crypto
 
@@ -405,6 +406,11 @@ def subscribe(view, url, username=None, password=None):
             if share.getLocation() == location:
                 raise AlreadySubscribed(_(u"Already subscribed"))
 
+
+        # Shortcut: if it's a .ics file we're subscribing to, it's only
+        # going to be read-only (in 0.6 at least), and we don't need to
+        # mess around with checking Allow headers and the like:
+
         if url.endswith(".ics"):
             share = Share(view=view)
             share.format = ICalendarFormat(parent=share)
@@ -429,6 +435,7 @@ def subscribe(view, url, username=None, password=None):
                 raise
 
 
+
         # Interrogate the server
 
         if not location.endswith("/"):
@@ -444,8 +451,29 @@ def subscribe(view, url, username=None, password=None):
             logger.debug("...doesn't exist")
             raise NotFound(message="%s does not exist" % location)
 
+        isReadOnly = False
+        shareMode = 'both'
+
+        if ticket:
+            # @@@MOR:  Grant -- canWrite( ) would be used here, hint hint
+
+            logger.debug('Checking for write-access to %s...', location)
+            # Create a random collection name to create
+            testCollName = u'.%s.tmp' % (chandlerdb.util.uuid.UUID())
+            try:
+                child = handle.blockUntil(resource.createCollection,
+                                          testCollName)
+                handle.blockUntil(child.delete)
+            except zanshin.http.HTTPError, err:
+                logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
+                isReadOnly = True
+                shareMode = 'get'
+
+        logger.debug('...Read Only?  %s', isReadOnly)
+
         isCalendar = handle.blockUntil(resource.isCalendar)
         logger.debug('...Calendar?  %s', isCalendar)
+
         if isCalendar:
             subLocation = urlparse.urljoin(location, SUBCOLLECTION)
             if not subLocation.endswith("/"):
@@ -461,6 +489,7 @@ def subscribe(view, url, username=None, password=None):
                     subLocation)
                 hasSubCollection = False
             logger.debug('...Has subcollection?  %s', hasSubCollection)
+
         isCollection =  handle.blockUntil(resource.isCollection)
         logger.debug('...Collection?  %s', isCollection)
 
@@ -474,8 +503,13 @@ def subscribe(view, url, username=None, password=None):
         conduit.delete(True) # Clean up the temporary conduit
 
     if not isCalendar:
+
+        # Just a WebDAV/XML collection
+
         share = Share(view=view)
-        share.mode = "both"
+
+        share.mode = shareMode
+
         share.format = CloudXMLFormat(parent=share)
         if account:
             share.conduit = WebDAVConduit(parent=share,
@@ -487,8 +521,7 @@ def subscribe(view, url, username=None, password=None):
                 ticket=ticket)
 
         try:
-            share.get()
-            view.refresh()
+            share.sync()
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -502,68 +535,52 @@ def subscribe(view, url, username=None, password=None):
             share.delete(True)
             raise
 
-        try:
-            share.put()
-        except NotAllowed, err:
-            # We can get but not put, so read-only it is:
-            share.mode = 'get'
-
-        except Exception, err:
-            location = share.getLocation()
-            logger.exception("Failed to subscribe to %s", location)
-            share.delete(True)
-            raise
-
         return share.contents
 
     else:
+
+        # This is a CalDAV calendar, possibly containing an XML subcollection
+
+        # We need to perform two syncs as one, so wrap these operations in
+        # commit calls, and call the lower-level _get and _put methods directly
+        view.commit()
+
         if hasSubCollection:
             # Here is the Share for the subcollection with cloudXML
-            share = Share(view=view)
-            share.mode = "both"
+            subShare = Share(view=view)
+            subShare.mode = shareMode
             subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
 
             if account:
-                share.conduit = WebDAVConduit(parent=share,
-                                             shareName=subShareName,
-                                             account=account)
+                subShare.conduit = WebDAVConduit(parent=subShare,
+                                                 shareName=subShareName,
+                                                 account=account)
             else:
-                share.conduit = WebDAVConduit(parent=share, host=host,
+                subShare.conduit = WebDAVConduit(parent=subShare, host=host,
                     port=port, sharePath=parentPath, shareName=subShareName,
                     useSSL=useSSL, ticket=ticket)
 
-            share.format = CloudXMLFormat(parent=share)
+            subShare.format = CloudXMLFormat(parent=subShare)
 
             for attr in CALDAVFILTER:
-                share.filterAttributes.append(attr)
+                subShare.filterAttributes.append(attr)
 
             try:
-                share.get()
-                view.refresh()
-                contents = share.contents
+                subShare.conduit._get()
+                contents = subShare.contents
 
             except Exception, err:
-                location = share.getLocation()
+                location = subShare.getLocation()
                 logger.exception("Failed to subscribe to %s", location)
-                share.delete(True)
-                raise
-
-            try:
-                share.put()
-            except NotAllowed, err:
-                # We can get but not put, so read-only it is:
-                share.mode = 'get'
-            except Exception, err:
-                location = share.getLocation()
-                logger.exception("Failed to subscribe to %s", location)
-                share.delete(True)
+                subShare.delete(True)
                 raise
 
         else:
+            subShare = None
             contents = None
 
         share = Share(view=view, contents=contents)
-        share.mode = "both"
+        share.mode = shareMode
         share.format = CalDAVFormat(parent=share)
         if account:
             share.conduit = CalDAVConduit(parent=share,
@@ -575,8 +592,7 @@ def subscribe(view, url, username=None, password=None):
                 useSSL=useSSL, ticket=ticket)
 
         try:
-            share.get()
-            view.refresh()
+            share.conduit._get()
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -590,16 +606,23 @@ def subscribe(view, url, username=None, password=None):
             share.delete(True)
             raise
 
-        try:
-            share.put()
-        except NotAllowed, err:
-            # We can get but not put, so read-only it is:
-            share.mode = 'get'
-        except Exception, err:
-            location = share.getLocation()
-            logger.exception("Failed to subscribe to %s", location)
-            share.delete(True)
-            raise
+        if not isReadOnly:
+            try:
+                if subShare is not None:
+                    subShare.conduit._put()
+                share.conduit._put()
+                view.commit()
+                if subShare is not None:
+                    subShare.conduit.syncVersion = view.itsVersion
+                share.conduit.syncVersion = view.itsVersion
+
+            except Exception, err:
+                location = share.getLocation()
+                logger.exception("Failed to subscribe to %s", location)
+                if subShare is not None:
+                    subShare.delete(True)
+                share.delete(True)
+                raise
 
         return share.contents
 
@@ -945,7 +968,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             return False
 
 
-def syncShare(share):
+def __syncShare(share):   # Now obsolete
 
     try:
         share.sync()
@@ -970,6 +993,48 @@ def syncShare(share):
                                     _(u"Synchronization Error"), msg)
 
 
+def syncCollection(collection, firstTime=False):
+
+    view = collection.itsView
+
+    view.commit()
+
+    try:
+        # perform the 'get' operations of all associated shares
+        for share in collection.shares:
+            if share.active and share.mode in ('get', 'both'):
+                share.conduit._get()
+
+        # perform the 'put' operations of all associated shares
+        for share in collection.shares:
+            if share.active and share.mode in ('put', 'both'):
+                share.conduit._put()
+
+    except SharingError, err:
+        share.error = err.message
+
+        try:
+            msgVars = {
+                'collectionName': share.contents.getItemDisplayName(),
+                'accountName': share.conduit.account.getItemDisplayName()
+            }
+
+            msg = _(u"Error syncing the '%(collectionName)s' collection\nusing the '%(accountName)s' account\n\n") % msgVars
+            msg += err.message
+        except:
+            msg = _(u"Error during sync")
+
+        logger.exception("Sharing Error: %s" % msg)
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    _(u"Synchronization Error"), msg)
+
+    view.commit()
+
+    for share in collection.shares:
+        if share.active and share.mode in ('put', 'both'):
+            share.conduit.syncVersion = view.itsVersion
+
+
 def syncAll(view):
     """
     Synchronize all active shares.
@@ -978,14 +1043,8 @@ def syncAll(view):
     @type view: L{repository.persistence.RepositoryView}
     """
 
-    # Instead of simply iterating all Shares, iterating the shares for
-    # each collection will get things synced in the right order.  A collection's
-    # shares ref collection is always in the order in which they should be
-    # synced.
     for collection in pim.AbstractCollection.iterItems(view):
-        for share in collection.shares:
-            if share.active:
-                syncShare(share)
+        syncCollection(collection)
 
 
 def checkForActiveShares(view):

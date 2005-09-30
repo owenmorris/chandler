@@ -887,9 +887,7 @@ class MainView(View):
         self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            for share in collection.shares:
-                if share.active:
-                    sharing.syncShare(share)
+            sharing.syncCollection(collection)
 
     def onSyncCollectionEventUpdateUI (self, event):
         """

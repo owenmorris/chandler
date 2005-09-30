@@ -5,7 +5,7 @@ from util import testcase
 
 class TestFeedImporting(testcase.NRVTestCase):
 
-    def testModifiable(self):
+    def testNonASCII(self):
 
         view = self.view
 

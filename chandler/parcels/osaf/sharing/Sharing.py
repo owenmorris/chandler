@@ -6,26 +6,27 @@ __parcel__ = "osaf.sharing"
 
 
 __all__ = [
-    'Share',
-    'OneTimeShare',
-    'ShareConduit',
-    'FileSystemConduit',
-    'WebDAVConduit',
-    'CalDAVConduit',
-    'SimpleHTTPConduit',
-    'OneTimeFileSystemShare',
-    'SharingError',
     'AlreadyExists',
-    'NotFound',
-    'NotAllowed',
-    'Misconfigured',
-    'CouldNotConnect',
-    'IllegalOperation',
-    'TransformationFailed',
     'AlreadySubscribed',
-    'WebDAVAccount',
-    'ImportExportFormat',
+    'CalDAVConduit',
     'CloudXMLFormat',
+    'CouldNotConnect',
+    'FileSystemConduit',
+    'IllegalOperation',
+    'ImportExportFormat',
+    'Misconfigured',
+    'NotAllowed',
+    'NotFound',
+    'OneTimeFileSystemShare',
+    'OneTimeShare',
+    'Share',
+    'ShareConduit',
+    'SharingError',
+    'SimpleHTTPConduit',
+    'TransformationFailed',
+    'WebDAVAccount',
+    'WebDAVConduit',
+    'changedAttributes',
     'splitUrl',
 ]
 
@@ -170,13 +171,18 @@ class Share(items.ContentItem):
         self.conduit.close()
 
     def sync(self):
+        view = self.itsView
+
         if self.mode in ('get', 'both'):
-            sharingView = self.conduit.get()
-        else:
-            sharingView = None
+            view.commit()
+            self.conduit._get()
 
         if self.mode in ('put', 'both'):
-            self.conduit.put(view=sharingView)
+            self.conduit._put()
+            view.commit()
+
+            # @@@MOR This can probably go away if we use marker again:
+            self.conduit.syncVersion = view.itsVersion
 
     def put(self):
         if self.mode in ('put', 'both'):
@@ -371,17 +377,18 @@ class ShareConduit(items.ContentItem):
         return self.sharingView
 
 
-    def __conditionalPutItem(self, item):
+    def _conditionalPutItem(self, item):
         """
         Put an item if it's not on the server or is out of date
         """
+        result = 'skipped'
 
         if self._getItemPath(item) is None:
             # According to the Format, we don't export this item
-            return
+            return result
 
         # Assumes that self.resourceList has been populated:
-        externalItemExists = self.__externalItemExists(item)
+        externalItemExists = self._externalItemExists(item)
 
         prevVersion = getattr(self, 'syncVersion', self.itsView.itsVersion)
 
@@ -391,25 +398,33 @@ class ShareConduit(items.ContentItem):
         logger.debug("Previous Sync version: %s", prevVersion)
 
         if not externalItemExists:
+            result = 'added'
             needsUpdate = True
 
         else:
             needsUpdate = False
 
-            # Check to see if the item or any of its itemCloud items have a
-            # more recent version than the last time we synced
-            for relatedItem in item.getItemCloud('sharing'):
-                itemVersion = relatedItem.getVersion()
-                if itemVersion > prevVersion:
-                    sharedAttributes = \
-                        self.share.getSharedAttributes(relatedItem)
-                    changes = changedAttributes(relatedItem, prevVersion,
-                                                itemVersion)
-                    logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), changes)
-                    for change in changes:
-                        if change in sharedAttributes:
-                            needsUpdate = True
-                            break
+            # Did we fetch this item during the previous GET?
+            if self._wasFetched(self._getItemPath(item)):
+                logger.debug("Skipping PUT of %s since we just GOT it",
+                    item.getItemDisplayName().encode('ascii', 'replace'))
+            else:
+                # Check to see if the item or any of its itemCloud items have a
+                # more recent version than the last time we synced
+                for relatedItem in item.getItemCloud('sharing'):
+                    itemVersion = relatedItem.getVersion()
+                    if itemVersion > prevVersion:
+                        sharedAttributes = \
+                            self.share.getSharedAttributes(relatedItem)
+                        changes = changedAttributes(relatedItem, prevVersion,
+                                                    itemVersion)
+                        logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), changes)
+                        for change in changes:
+                            if change in sharedAttributes:
+                                logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName().encode('ascii', 'replace'))
+                                needsUpdate = True
+                                result = 'modified'
+                                break
 
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
@@ -419,7 +434,7 @@ class ShareConduit(items.ContentItem):
             data = self._putItem(item)
 
             if data is not None:
-                self.__addToManifest(self._getItemPath(item), item, data)
+                self._addToManifest(self._getItemPath(item), item, data)
                 logger.info("...done, data: %s, version: %d" %
                  (data, item.getVersion()))
 
@@ -431,24 +446,39 @@ class ShareConduit(items.ContentItem):
             logger.info("...external item %s didn't previously exist" % \
                 self._getItemPath(item))
 
-    def put(self, view=None):
+        return result
+
+
+    def put(self):
+        view = self.itsView
+
+        # This commit is needed to detect local changes (otherwise
+        # those changes won't appear in the changedAttributes list):
+        view.commit()
+
+        stats = self._put()
+
+        # Store the view version number, committing first so we actually
+        # store the correct version number (it changes after you commit)
+        view.commit()
+        self.syncVersion = view.itsVersion
+
+        return stats
+
+
+    def _put(self):
         """
         Transfer entire 'contents', transformed, to server.
         """
 
+        view = self.itsView
+
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
+        stats = { 'added' : 0, 'modified' : 0, 'removed' : 0, 'skipped' : 0 }
+
         self.connect()
-
-        if view is None:
-            view = self.itsView
-
-            # We didn't get a view, so we must not have been called during
-            # a sync -- just a put( )
-            # This commit is needed for me to detect local changes (otherwise
-            # those changes won't appear in the changedAttributes list:
-            view.commit()
 
         # share.filterClasses includes the dotted names of classes so
         # they can be shared.
@@ -503,9 +533,10 @@ class ShareConduit(items.ContentItem):
                                 del self.resourceList[path]
                                 removeFromManifest.append(path)
                                 logger.debug(_(u'Item removed locally, so removing from server: %(path)s') % { 'path' : path })
+                                stats['removed'] += 1
 
                 for path in removeFromManifest:
-                    self.__removeFromManifest(path)
+                    self._removeFromManifest(path)
 
                 logger.debug(_(u"Manifest: %(manifest)s") % \
                     {'manifest':self.manifest})
@@ -528,10 +559,11 @@ class ShareConduit(items.ContentItem):
                             continue
 
                     # Put the item
-                    self.__conditionalPutItem(item)
+                    stats[ self._conditionalPutItem(item) ] += 1
+                    
 
             # Put the Share item itself
-            self.__conditionalPutItem(self.share)
+            stats[ self._conditionalPutItem(self.share) ] += 1
 
 
         elif style == ImportExportFormat.STYLE_SINGLE:
@@ -541,18 +573,13 @@ class ShareConduit(items.ContentItem):
             self._putItem(self.share)
 
 
-        # Store the view version number, committing first so we actually
-        # store the correct version number (it changes after you commit)
-        view.commit()
-        self.syncVersion = view.itsVersion
-
         self.disconnect()
 
-        logger.info("Finished PUT of %s (view version=%d)", location,
-            self.syncVersion)
+        logger.info("Finished PUT of %s %s", location, stats)
 
+        return stats
 
-    def __conditionalGetItem(self, itemPath, into=None):
+    def _conditionalGetItem(self, itemPath, into=None):
         """
         Get an item from the server if we don't yet have it or our copy
         is out of date
@@ -564,12 +591,13 @@ class ShareConduit(items.ContentItem):
             logger.info("...Not on server: %s" % itemPath)
             return None
 
-        if not self.__haveLatest(itemPath):
+        if not self._haveLatest(itemPath):
             # logger.info("...getting: %s" % itemPath)
             (item, data) = self._getItem(itemPath, into)
 
             if item is not None:
-                self.__addToManifest(itemPath, item, data)
+                self._addToManifest(itemPath, item, data)
+                self._setFetched(itemPath)
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
                  (itemPath, item.getItemDisplayName().encode('utf8'), item, data))
 
@@ -579,25 +607,34 @@ class ShareConduit(items.ContentItem):
 
             logger.error("...NOT able to import '%s'" % itemPath)
             # Record with no item, indicating an error
-            self.__addToManifest(itemPath)
-
-            msg = _(u"Not able to import '%(itemPath)s'") % {'itemPath': itemPath}
-            # @@@MOR Shall we just skip bogus imported items?
-            # raise SharingError(message=msg)
+            self._addToManifest(itemPath)
 
         return None
 
 
     def get(self):
 
-        location = self.getLocation()
-        logger.info("Starting GET of %s" % (location))
-
         view = self.itsView
 
         # This commit demarcates local changes from those that will be made
         # during this Get operation.
         view.commit()
+
+        stats = self._get()
+
+        view.commit()
+
+        return stats
+
+
+    def _get(self):
+
+        location = self.getLocation()
+        logger.info("Starting GET of %s" % (location))
+
+        view = self.itsView
+
+        stats = { 'added' : 0, 'modified' : 0, 'removed' : 0, 'skipped' : 0 }
 
         self.connect()
 
@@ -613,8 +650,10 @@ class ShareConduit(items.ContentItem):
             {'manifest':self.manifest})
 
         # We need to keep track of which items we've seen on the server so
-        # we can tell when one has disappeared.
-        self.__resetSeen()
+        # we can tell when one has disappeared.  Also we keep track of which
+        # items have been downloaded during this GET so we avoid putting
+        # them during the following PUT (until view merging works)
+        self._resetFlags()
 
         itemPath = self._getItemPath(self.share)
         # if itemPath is None, the Format we're using doesn't have a file
@@ -622,11 +661,19 @@ class ShareConduit(items.ContentItem):
 
         if itemPath:
             # Get the file that represents the Share item
-            item = self.__conditionalGetItem(itemPath, into=self.share)
+            item = self._conditionalGetItem(itemPath, into=self.share)
+
+            if item is None:
+                stats['skipped'] += 1
+            else:
+                if item.itsVersion > 0 :
+                    stats['added'] += 1
+                else:
+                    stats['modified'] += 1
 
             # Whenever we get an item, mark it seen in our manifest and remove
             # it from the server resource list:
-            self.__setSeen(itemPath)
+            self._setSeen(itemPath)
             try:
                 del self.resourceList[itemPath]
             except:
@@ -669,17 +716,25 @@ class ShareConduit(items.ContentItem):
                         if item is None or \
                             item not in self.share.contents:
                             del self.resourceList[path]
-                            self.__setSeen(path)
+                            self._setSeen(path)
                             logger.debug(_(u'Item removed locally, so not fetching from server: %(path)s') % { 'path' : path })
 
 
             # Conditionally fetch items, and add them to collection
             for itemPath in self.resourceList:
-                item = self.__conditionalGetItem(itemPath)
-                if item is not None:
+                item = self._conditionalGetItem(itemPath)
+
+                if item is None:
+                    stats['skipped'] += 1
+                else:
                     self.share.contents.add(item)
 
-                self.__setSeen(itemPath)
+                    if item.itsVersion == 0 :
+                        stats['added'] += 1
+                    else:
+                        stats['modified'] += 1
+
+                self._setSeen(itemPath)
 
             # When first importing a collection, name it after the share
             if not hasattr(self.share.contents, 'displayName'):
@@ -690,7 +745,7 @@ class ShareConduit(items.ContentItem):
             # manifest) but is no longer on the server, remove it from
             # the collection locally:
             toRemove = []
-            for unseenPath in self.__iterUnseen():
+            for unseenPath in self._iterUnseen():
                 uuid = self.manifest[unseenPath]['uuid']
                 if uuid:
                     item = view.findUUID(uuid)
@@ -716,6 +771,7 @@ class ShareConduit(items.ContentItem):
                             self.share.contents.remove(item)
                             if item in self.share.items:
                                 self.share.items.remove(item)
+                            stats['removed'] += 1
                 else:
                     logger.info("Removed an unparsable resource manifest entry for %s", unseenPath)
 
@@ -723,7 +779,7 @@ class ShareConduit(items.ContentItem):
                 toRemove.append(unseenPath)
 
             for removePath in toRemove:
-                self.__removeFromManifest(removePath)
+                self._removeFromManifest(removePath)
 
         ## @@@MOR Repo view merging will be revisited later, but leaving this
         ## code here in the meantime.
@@ -741,9 +797,9 @@ class ShareConduit(items.ContentItem):
 
         self.disconnect()
 
-        logger.info("Finished GET of %s" % location)
+        logger.info("Finished GET of %s %s", location, stats)
 
-        return view
+        return stats
 
 
 
@@ -795,10 +851,10 @@ class ShareConduit(items.ContentItem):
     # If we tried to get an item but the transform failed, we add that resource
     # to the manifest with "" as the uuid
 
-    def __clearManifest(self):
+    def _clearManifest(self):
         self.manifest = {}
 
-    def __addToManifest(self, path, item=None, data=None):
+    def _addToManifest(self, path, item=None, data=None):
         # data is an ETAG, or last modified date
 
         if item is None:
@@ -812,17 +868,17 @@ class ShareConduit(items.ContentItem):
         }
 
 
-    def __removeFromManifest(self, path):
+    def _removeFromManifest(self, path):
         try:
             del self.manifest[path]
         except:
             pass
 
-    def __externalItemExists(self, item):
+    def _externalItemExists(self, item):
         itemPath = self._getItemPath(item)
         return itemPath in self.resourceList
 
-    def __haveLatest(self, path, data=None):
+    def _haveLatest(self, path, data=None):
         """
         Do we have the latest copy of this item?
         """
@@ -844,17 +900,30 @@ class ShareConduit(items.ContentItem):
         logger.info("...don't yet have %s" % path)
         return False
 
-    def __resetSeen(self):
+    def _resetFlags(self):
         for value in self.manifest.itervalues():
             value['seen'] = False
+            value['fetched'] = False
 
-    def __setSeen(self, path):
+    def _setSeen(self, path):
         try:
             self.manifest[path]['seen'] = True
         except:
             pass
 
-    def __iterUnseen(self):
+    def _setFetched(self, path):
+        try:
+            self.manifest[path]['fetched'] = True
+        except:
+            pass
+
+    def _wasFetched(self, path):
+        try:
+            return self.manifest[path]['fetched']
+        except:
+            return False
+
+    def _iterUnseen(self):
         for (path, value) in self.manifest.iteritems():
             if not value['seen']:
                 yield path
@@ -965,7 +1034,7 @@ class FileSystemConduit(ShareConduit):
         raise Misconfigured(_(u"A misconfiguration error was encountered"))
 
     def _putItem(self, item):
-        path = self.__getItemFullPath(self._getItemPath(item))
+        path = self._getItemFullPath(self._getItemPath(item))
 
         try:
             text = self.share.format.exportProcess(item)
@@ -982,7 +1051,7 @@ class FileSystemConduit(ShareConduit):
         return stat.st_mtime
 
     def _deleteItem(self, itemPath):
-        path = self.__getItemFullPath(itemPath)
+        path = self._getItemFullPath(itemPath)
 
         logger.info("...removing from disk: %s" % path)
         os.remove(path)
@@ -991,7 +1060,7 @@ class FileSystemConduit(ShareConduit):
         view = self.itsView
 
         # logger.info("Getting item: %s" % itemPath)
-        path = self.__getItemFullPath(itemPath)
+        path = self._getItemFullPath(itemPath)
 
         extension = os.path.splitext(path)[1].strip(os.path.extsep)
         text = file(path).read()
@@ -1025,7 +1094,7 @@ class FileSystemConduit(ShareConduit):
 
         return fileList
 
-    def __getItemFullPath(self, path):
+    def _getItemFullPath(self, path):
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
             path = os.path.join(self.sharePath, self.shareName, path)
@@ -1135,7 +1204,7 @@ class WebDAVConduit(ShareConduit):
     def onItemLoad(self, view=None):
         self.serverHandle = None
 
-    def __getSettings(self):
+    def _getSettings(self):
         if self.account is None:
             return (self.host, self.port, self.sharePath.strip("/"),
                     self.username, self.password, self.useSSL)
@@ -1149,7 +1218,7 @@ class WebDAVConduit(ShareConduit):
         if self.serverHandle == None:
             logger.debug("...creating new webdav ServerHandle")
             (host, port, sharePath, username, password, useSSL) = \
-            self.__getSettings()
+            self._getSettings()
 
             self.serverHandle = WebDAV.ChandlerServerHandle(host, port=port,
                 username=username, password=password, useSSL=useSSL,
@@ -1157,7 +1226,7 @@ class WebDAVConduit(ShareConduit):
 
         return self.serverHandle
 
-    def __releaseServerHandle(self):
+    def _releaseServerHandle(self):
         self.serverHandle = None
 
     def getLocation(self, privilege=None, includeShare=True):
@@ -1166,7 +1235,7 @@ class WebDAVConduit(ShareConduit):
         """
 
         (host, port, sharePath, username, password, useSSL) = \
-            self.__getSettings()
+            self._getSettings()
         if useSSL:
             scheme = "https"
             defaultPort = 443
@@ -1194,13 +1263,13 @@ class WebDAVConduit(ShareConduit):
 
         return url
 
-    def __getSharePath(self):
-        return "/" + self.__getSettings()[2]
+    def _getSharePath(self):
+        return "/" + self._getSettings()[2]
 
-    def __resourceFromPath(self, path):
+    def _resourceFromPath(self, path):
 
         serverHandle = self._getServerHandle()
-        sharePath = self.__getSharePath()
+        sharePath = self._getSharePath()
 
         resourcePath = "%s/%s" % (sharePath, self.shareName)
 
@@ -1215,7 +1284,7 @@ class WebDAVConduit(ShareConduit):
     def exists(self):
         result = super(WebDAVConduit, self).exists()
 
-        resource = self.__resourceFromPath("")
+        resource = self._resourceFromPath("")
 
         try:
             result = self._getServerHandle().blockUntil(resource.exists)
@@ -1284,7 +1353,7 @@ class WebDAVConduit(ShareConduit):
                     # this happens if you try to create a collection within a
                     # nonexistent collection
                     (host, port, sharePath, username, password, useSSL) = \
-                        self.__getSettings()
+                        self._getSettings()
                     message = _(u"The directory '%(directoryName)s' could not be found on %(server)s.\nPlease verify the Path setting in your %(accountType)s account") % {'directoryName': sharePath, 'server': host,
                                                         'accountType': 'WebDAV'}
                     raise NotFound(message)
@@ -1305,7 +1374,7 @@ class WebDAVConduit(ShareConduit):
     def open(self):
         super(WebDAVConduit, self).open()
 
-    def __getContainerResource(self):
+    def _getContainerResource(self):
 
         serverHandle = self._getServerHandle()
 
@@ -1314,7 +1383,7 @@ class WebDAVConduit(ShareConduit):
         if style == ImportExportFormat.STYLE_DIRECTORY:
             path = self.getLocation()
         else:
-            path = self.__getSharePath()
+            path = self._getSharePath()
 
         # Make sure we have a container
         if path and path[-1] != '/':
@@ -1343,7 +1412,7 @@ class WebDAVConduit(ShareConduit):
 
         contentType = self.share.format.contentType(item)
         itemName = self._getItemPath(item)
-        container = self.__getContainerResource()
+        container = self._getContainerResource()
 
         try:
             # @@@MOR For some reason, when doing a PUT on the rpi server, I
@@ -1384,7 +1453,7 @@ class WebDAVConduit(ShareConduit):
         return etag
 
     def _deleteItem(self, itemPath):
-        resource = self.__resourceFromPath(itemPath)
+        resource = self._resourceFromPath(itemPath)
         logger.info("...removing from server: %s" % resource.path)
 
         if resource != None:
@@ -1397,7 +1466,7 @@ class WebDAVConduit(ShareConduit):
 
     def _getItem(self, itemPath, into=None):
         view = self.itsView
-        resource = self.__resourceFromPath(itemPath)
+        resource = self._resourceFromPath(itemPath)
 
         try:
             resp = self._getServerHandle().blockUntil(resource.get)
@@ -1442,7 +1511,7 @@ class WebDAVConduit(ShareConduit):
         style = self.share.format.fileStyle()
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
-            shareCollection = self.__getContainerResource()
+            shareCollection = self._getContainerResource()
 
             try:
                 children = self._getServerHandle().blockUntil(
@@ -1467,10 +1536,9 @@ class WebDAVConduit(ShareConduit):
                 if child != shareCollection:
                     path = child.path.split("/")[-1]
                     etag = child.etag
+                    # if path is empty, it's a subcollection (skip it)
                     if path:
                         resourceList[path] = { 'data' : etag }
-                    else:
-                        logger.info("Child has no path")
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             resource = self._getServerHandle().getResource(location)
@@ -1501,11 +1569,11 @@ class WebDAVConduit(ShareConduit):
         return resourceList
 
     def connect(self):
-        self.__releaseServerHandle()
+        self._releaseServerHandle()
         self._getServerHandle() # @@@ [grant] Probably not necessary
 
     def disconnect(self):
-        self.__releaseServerHandle()
+        self._releaseServerHandle()
 
     def createTickets(self):
         handle = self._getServerHandle()
@@ -1870,7 +1938,7 @@ class CloudXMLFormat(ImportExportFormat):
 
             # self.itsView.recordChangeNotifications()
 
-            item = self.__importNode(node, item)
+            item = self._importNode(node, item)
 
         finally:
 
@@ -2045,7 +2113,7 @@ class CloudXMLFormat(ImportExportFormat):
         return result
 
 
-    def __getNode(self, node, attribute):
+    def _getNode(self, node, attribute):
 
         # @@@MOR This method only supports traversal of single-cardinality
         # attributes
@@ -2069,14 +2137,14 @@ class CloudXMLFormat(ImportExportFormat):
                         while grandChild.type != "element":
                             # skip over non-elements
                             grandChild = grandChild.next
-                        return self.__getNode(grandChild,
+                        return self._getNode(grandChild,
                          ".".join(remaining))
 
             child = child.next
         return None
 
 
-    def __importNode(self, node, item=None):
+    def _importNode(self, node, item=None):
 
         view = self.itsView
         kind = None
@@ -2151,7 +2219,7 @@ class CloudXMLFormat(ImportExportFormat):
             attributes = self.share.getSharedAttributes(item)
             for attrName in attributes:
 
-                attrNode = self.__getNode(node, attrName)
+                attrNode = self._getNode(node, attrName)
                 if attrNode is None:
                     if item.hasLocalAttributeValue(attrName):
                         item.removeAttributeValue(attrName)
@@ -2174,7 +2242,7 @@ class CloudXMLFormat(ImportExportFormat):
                             # skip over non-elements
                             valueNode = valueNode.next
                         if valueNode:
-                            valueItem = self.__importNode(valueNode)
+                            valueItem = self._importNode(valueNode)
                             if valueItem is not None:
                                 logger.debug("for %s setting %s to %s" % \
                                     (item.getItemDisplayName().encode('utf8'),
@@ -2186,7 +2254,7 @@ class CloudXMLFormat(ImportExportFormat):
                         valueNode = attrNode.children
                         while valueNode:
                             if valueNode.type == "element":
-                                valueItem = self.__importNode(valueNode)
+                                valueItem = self._importNode(valueNode)
                                 if valueItem is not None:
                                     logger.debug("for %s setting %s to %s" % \
                                         (item.getItemDisplayName().encode("utf8"),
