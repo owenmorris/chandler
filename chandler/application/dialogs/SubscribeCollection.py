@@ -9,6 +9,7 @@ import application.dialogs.Util
 import application.Parcel
 from i18n import OSAFMessageFactory as _
 from application import schema
+from AccountInfoPrompt import PromptForNewAccountInfo
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,9 @@ class SubscribeDialog(wx.Dialog):
         self.textUrl.SetInsertionPointEnd()
 
 
+    def accountInfoCallback(self, host, path):
+        return PromptForNewAccountInfo(self, host=host, path=path)
+
     def OnSubscribe(self, evt):
         view = self.view
         url = self.textUrl.GetValue()
@@ -83,9 +87,12 @@ class SubscribeDialog(wx.Dialog):
             if self.accountPanel.IsShown():
                 username = self.textUsername.GetValue()
                 password = self.textPassword.GetValue()
-                collection = sharing.subscribe(view, url, username, password)
+                collection = sharing.subscribe(view, url,
+                    accountInfoCallback=self.accountInfoCallback,
+                    username=username, password=password)
             else:
-                collection = sharing.subscribe(view, url)
+                collection = sharing.subscribe(view, url,
+                    accountInfoCallback=self.accountInfoCallback)
 
             if collection is None:
                 # user cancelled out of account dialog

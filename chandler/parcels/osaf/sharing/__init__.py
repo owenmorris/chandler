@@ -324,7 +324,8 @@ def publish(collection, account, classes_to_include=None,
 
 
 
-def subscribe(view, url, username=None, password=None):
+def subscribe(view, url, accountInfoCallback=None, username=None,
+              password=None):
 
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
@@ -367,22 +368,19 @@ def subscribe(view, url, username=None, password=None):
             # ['dev1', 'foo'] becomes "dev1/foo"
             parentPath = "/".join(parentPath)
 
-            # @@@MOR -- Having a UI dependency in this code is bad.
-
-            # Examine the URL for scheme, host, port, path
-            frame = wx.GetApp().mainFrame
-            dlg = application.dialogs.AccountInfoPrompt.PromptForNewAccountInfo
-            info = dlg(frame, host=host, path=parentPath)
-            if info is not None:
-                (description, username, password) = info
-                account = WebDAVAccount(view=view)
-                account.displayName = description
-                account.host = host
-                account.path = parentPath
-                account.username = username
-                account.password = password
-                account.useSSL = useSSL
-                account.port = port
+            if accountInfoCallback:
+                # Prompt the user for username/password/description:
+                info = accountInfoCallback(host, path)
+                if info is not None:
+                    (description, username, password) = info
+                    account = WebDAVAccount(view=view)
+                    account.displayName = description
+                    account.host = host
+                    account.path = parentPath
+                    account.username = username
+                    account.password = password
+                    account.useSSL = useSSL
+                    account.port = port
 
         # The user cancelled out of the dialog
         if account is None:
