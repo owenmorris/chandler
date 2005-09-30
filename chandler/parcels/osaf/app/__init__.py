@@ -356,8 +356,6 @@ def MakeCollections(parcel):
     sidebarListCollection = ListCollection.update(parcel,
                                                   'sidebarCollection',
                                                   refCollection=[allCollection,
-                                                                 inCollection,
-                                                                 outCollection,
                                                                  TrashCollection])
 
     TrashCollection.color = collectionColors.nextColor()
