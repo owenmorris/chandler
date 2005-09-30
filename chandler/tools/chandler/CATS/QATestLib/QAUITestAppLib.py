@@ -229,6 +229,8 @@ class UITestItem :
             self.SelectItem()
             # edit the collection displayName (double click)
             scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
+            # select all
+            App_ns.root.SelectAll()
             if timeInfo:
                 self.logger.Start("Collection title setting")
             # Type the new collection displayName
