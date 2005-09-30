@@ -21,6 +21,7 @@ from PyICU import ICUtzinfo
 from application import schema
 
 logger = logging.getLogger(__name__)
+DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 localtime = dateutil.tz.tzlocal()
 utc = dateutil.tz.tzutc()
@@ -235,8 +236,9 @@ def convertToICUtzinfo(dt):
                 result = ICUtzinfo.getInstance(name)
                 
                 if result is not None and \
-                    result.timezone.getID() == 'GMT' and \
+                    result.tzid == 'GMT' and \
                     name != 'GMT':
+                        
                     
                     result = None
                     
@@ -338,7 +340,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         # more readable table driven code to process VEVENTs and VTODOs
         for event in getattr(calendar, 'vevent', []):
             try:
-                logger.debug("got VEVENT")
+                if DEBUG: logger.debug("got VEVENT")
                 pickKind = eventKind
 
                 try:
@@ -430,7 +432,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 recurrenceID = None
                 uidMatchItem = self.findUID(event.uid[0].value)
                 if uidMatchItem is not None:
-                    logger.debug("matched UID")
+                    if DEBUG: logger.debug("matched UID")
                     try:
                         recurrenceID = event.contents['recurrence-id'][0].value
                         if type(recurrenceID) == date:
@@ -485,7 +487,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     if event.rdate[i] == dtstart:
                         del event.rdate[i]
                     
-                logger.debug("eventItem is %s" % str(eventItem))
+                if DEBUG: logger.debug("eventItem is %s" % str(eventItem))
                 
                 #Default to NOT any time
                 eventItem.anyTime = False
@@ -523,7 +525,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 elif recurrenceID is None: # delete any existing rule
                     eventItem.removeRecurrence()
     
-                logger.debug(u"Imported %s %s" % (eventItem.displayName,
+                if DEBUG: logger.debug(u"Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
     
                 if self.fileStyle() == self.STYLE_SINGLE:
