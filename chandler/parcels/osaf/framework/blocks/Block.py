@@ -687,7 +687,7 @@ class Block(schema.Item):
                 # don't, the event will bubble up)
                 
                 # for some reason v.childrenBlocks[0] is busting
-                block = iter(v.childrenBlocks).next()
+                block = v.childrenBlocks.first()
             except IndexError:
                 pass
             else:                
