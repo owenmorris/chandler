@@ -440,8 +440,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         proxy.startTime = startTime
         
     def OnEndDragItem(self):
-        self.FinishDrag()
-        self.StopDragTimer()
+        e = None
+        try:
+            self.FinishDrag()
+        finally:
+            # make sure the drag timer stops no matter what!
+            self.StopDragTimer()
         self.RebuildCanvasItems()
         self.Refresh()
         
