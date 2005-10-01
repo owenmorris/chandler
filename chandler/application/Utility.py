@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "91" # John: Don't show trash in Calendar view
+SCHEMA_VERSION = "92" # John: UICollections broke dontDisplayAsCalendar
 
 logger = None # initialized in initLogging()
 

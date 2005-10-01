@@ -907,6 +907,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
                 newKey = UICollection (view=self.itsView)
                 newKey.source = key
+                newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
                 key = newKey
 
                 key.displayName = displayName
