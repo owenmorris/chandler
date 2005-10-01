@@ -2,7 +2,7 @@
 // Name:        bitmap.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: bitmap.cpp,v 1.93 2005/09/25 19:59:03 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.94 2005/10/01 15:27:30 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1282,7 +1282,7 @@ wxBitmap wxBitmap::GetSubBitmap( const wxRect& rect) const
     {
         GdkPixbuf *pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
                                            gdk_pixbuf_get_has_alpha(GetPixbuf()),
-                                           8, GetWidth(), GetHeight());
+                                           8, rect.width, rect.height);
         ret.SetPixbuf(pixbuf);
         gdk_pixbuf_copy_area(GetPixbuf(),
                              rect.x, rect.y, rect.width, rect.height,
