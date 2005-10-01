@@ -51,7 +51,10 @@ else:
 
 #action
 #double click in the calendar view => event creation or selection
-ev = testView.DoubleClickInCalView()
+# try to pick a place with no existing Calendar Event
+x=200
+y=70
+ev = testView.DoubleClickInCalView(x, y)
 
 #check the detail view of the created event
 ev.Check_DetailView({"displayName":"New Event"})
