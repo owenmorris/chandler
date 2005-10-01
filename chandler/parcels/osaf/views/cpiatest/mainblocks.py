@@ -911,24 +911,5 @@ def make_mainview(parcel):
          renameable = False,
          private = False
          ).setup(source=scripts)
-
-    # Event to put "Scripts" in the Sidebar
-    addScriptsEvent = ModifyContentsEvent.update(parcel, "AddScriptsCollectionEvent",
-                                                        blockName = "AddScriptsCollectionEvent",
-                                                        dispatchEnum = "SendToBlockByName",
-                                                        dispatchToBlockName = "Sidebar",
-                                                        methodName = "onModifyContentsEvent",
-                                                        items = [scriptsSet], 
-                                                        selectFirstItem=True,
-                                                        copyItems=True,
-                                                        commitAfterDispatch = True
-                                                        )
-    # Menu item to put "Scripts" in the Sidebar
-    MenuItem.template("AddScriptsCollectionMenu",
-                           title = u"Add Scripts to Sidebar",
-                           event = addScriptsEvent,
-                           parentBlock = main.TestMenu
-                           ).install(parcel)
-    
     
     return mainview
