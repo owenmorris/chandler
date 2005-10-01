@@ -1217,10 +1217,6 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         self.selectionBrush = wx.Brush(wx.Colour(229, 229, 229))
         self.todayBrush = wx.Brush(wx.Colour(242,242,242))
 
-        #self.Bind(wx.EVT_SIZE, self.OnSize) ## REFACTOR: from the old wx one.
-        #hmm. probably dont need because old code did drawing calculations
-        #here?
-        
         # gradient cache
         self.brushes = DrawingUtilities.Gradients()
 

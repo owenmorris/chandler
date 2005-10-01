@@ -730,6 +730,13 @@ class CollectionBlock(Block.RectangularChild):
     def onRemoveEvent(self, event):
         self.DeleteSelection()
 
+    def onSelectAllEvent(self, event):
+        self.selection = list(self.contents)
+        self.postSelectItemsBroadcast()
+
+    def onSelectAllEventUpdateUI(self, event):
+        return len(self.contents) > 0
+
     def DeleteSelection(self):
         for item in self.selection:
             self.contents.collectionList[0].remove(item)
