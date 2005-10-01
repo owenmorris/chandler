@@ -245,6 +245,7 @@ def MakeCollections(parcel):
             renameable=False,
             iconName="Trash",
             colorizeIcon = False,
+            dontDisplayAsCalendar=True,
             outOfTheBoxCollection = True
         )
 

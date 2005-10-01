@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "90" # John: redo bug #3998 
+SCHEMA_VERSION = "91" # John: Don't show trash in Calendar view
 
 logger = None # initialized in initLogging()
 
