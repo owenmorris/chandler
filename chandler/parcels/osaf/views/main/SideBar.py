@@ -7,7 +7,7 @@ __parcel__ = "osaf.views.main"
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Trunk as Trunk
-from osaf.pim import AbstractCollection, IntersectionCollection, KindCollection, UnionCollection, UICollection
+from osaf.pim import AbstractCollection, IntersectionCollection, KindCollection, UnionCollection, IndexedSelectionCollection
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
@@ -905,7 +905,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     displayName += u" filtered by " + filterKind.displayName
                     key = newKey
 
-                newKey = UICollection (view=self.itsView)
+                newKey = IndexedSelectionCollection (view=self.itsView)
                 newKey.source = key
                 newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
                 key = newKey

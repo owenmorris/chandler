@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "93" # John: Update Sidebar selection when adding In and Out
+SCHEMA_VERSION = "94" # John: Rename UICollection to IndexedSelectionCollection
 
 logger = None # initialized in initLogging()
 

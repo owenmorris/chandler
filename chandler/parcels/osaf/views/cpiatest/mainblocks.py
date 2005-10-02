@@ -393,9 +393,9 @@ def make_mainview(parcel):
                                             buttonName='SharingIcon',
                                             buttonOffsets=[-17,-1,16])
 
-    sidebarUICollection = pim.UICollection.update(parcel,
-                                                  'sidebarUICollection',
-                                                  source=app.sidebarCollection)
+    sidebarSelectionCollection = pim.IndexedSelectionCollection.update(parcel,
+                                                                       'sidebarSelectionCollection',
+                                                                       source=app.sidebarCollection)
 
     mainview = \
     MainView.template('MainView',
@@ -849,7 +849,7 @@ def make_mainview(parcel):
                                         editRectOffsets=[17, -17, 0],
                                         buttons=[IconButton, SharingButton],
                                         selection=[[0,0]],
-                                        contents=app.sidebarUICollection,
+                                        contents=app.sidebarSelectionCollection,
                                         selectedItemToView=app.allCollection,
                                         elementDelegate=u'osaf.views.main.SideBar.SidebarElementDelegate',
                                         hideColumnHeadings=True,

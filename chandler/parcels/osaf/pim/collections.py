@@ -632,7 +632,7 @@ class InclusionExclusionCollection(DifferenceCollection):
 
         return self
 
-class UICollection (AbstractCollection):
+class IndexedSelectionCollection (AbstractCollection):
     """
     A collection that adds an index, e.g.for sorting items, a
     selection and visiblity attribute to another source collection.

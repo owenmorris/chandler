@@ -14,7 +14,7 @@ from mail import EmailAddress
 from collections import KindCollection, AbstractCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, InclusionExclusionCollection, \
-     UICollection, CollectionColors
+     IndexedSelectionCollection, CollectionColors
 
 import tasks, mail, calendar.Calendar
 

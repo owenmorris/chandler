@@ -443,7 +443,7 @@ class CollectionTests(CollectionTestCase):
         k = KindCollection(view=self.view)
         k.kind = self.i.itsKind
 
-        testCollection = UICollection(view=self.view)
+        testCollection = IndexedSelectionCollection(view=self.view)
         testCollection.source = k
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=i, view=self.view)
@@ -462,7 +462,7 @@ class CollectionTests(CollectionTestCase):
         k = KindCollection(view = self.view)
         k.kind = self.i.itsKind
 
-        testCollection = UICollection(view=self.view)
+        testCollection = IndexedSelectionCollection(view=self.view)
         testCollection.source = k
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=i, view=self.view)

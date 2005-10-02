@@ -15,7 +15,7 @@ from osaf import sharing
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 from osaf.framework.blocks.Block import Block
-from osaf.pim import UICollection
+from osaf.pim import IndexedSelectionCollection
 
 """
 Notes: still more i18n work to do on this file. This is just a first pass.
@@ -917,13 +917,13 @@ class AccountPreferencesDialog(wx.Dialog):
             if sharing.isInboundMailSetUp (self.view):
                 app = schema.ns('osaf.app', self.view)
                 sidebarCollection = app.sidebarCollection
-                sidebarUICollection = Block.findBlockByName("Sidebar").contents
-                assert (isinstance (sidebarUICollection, UICollection))
+                sidebarSelectionCollection = Block.findBlockByName("Sidebar").contents
+                assert (isinstance (sidebarSelectionCollection, IndexedSelectionCollection))
                 for collection in [app.outCollection, app.inCollection]:
                     if collection not in sidebarCollection:
                         # Add the item and locate it in the sidebar collection
                         sidebarCollection.add (collection)
-                        sidebarUICollection.moveItemToLocation (collection, 1)
+                        sidebarSelectionCollection.moveItemToLocation (collection, 1)
             self.EndModal(True)
             self.view.commit()
             application.Globals.mailService.refreshMailServiceCache()
