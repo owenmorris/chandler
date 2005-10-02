@@ -641,6 +641,16 @@ class UICollection (AbstractCollection):
     indexName   = schema.One(schema.String, initialValue="__adhoc__")
     source      = schema.One(AbstractCollection, defaultValue=None)
 
+    def moveItemToLocation (self, item, location):
+        assert self.indexName == "__adhoc__"
+        if location == 0:
+            if not self.rep._indexes.has_key (self.indexName):
+                self._createIndex
+            before = None
+        else:
+            before = self [location - 1]
+        self.rep.placeInIndex (item, before, self.indexName)             
+
     def _createIndex (self):
         """
         Create an index on this collection. Normally you never call this
@@ -686,7 +696,7 @@ class UICollection (AbstractCollection):
             return self.rep.getIndexPosition (self.indexName, item)
         except NoSuchIndexError:
             self._createIndex()
-            return self.resultSet.getIndexPosition (self.indexName, item)
+            return self.rep.getIndexPosition (self.indexName, item)
 
     def onValueChanged(self, name):
         if name == "source" and self.source != None:
