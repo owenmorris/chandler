@@ -408,11 +408,6 @@ def make_mainview(parcel):
             methodName='onChoiceEvent',
             choice='CPIATestMainView',
             dispatchToBlockName='MainViewRoot').install(parcel)
-    EnableBusyBarsEvent = \
-        BlockEvent.template('EnableBusyBars',
-            dispatchEnum='SendToBlockByName',
-            methodName='onEnableBusyBars',
-            dispatchToBlockName='MiniCalendar').install(parcel)
 
     RequestSelectSidebarItemEvent = \
         BlockEvent.template('RequestSelectSidebarItem',
@@ -864,11 +859,7 @@ def make_mainview(parcel):
                                         event=AddCPIAViewEvent,
                                         title=u'Add CPIA Viewer',
                                         helpString=u'Adds the CPIA viewer to the sidebar'),
-                                    ]), # Menu AddAdditionalViews
-                            MenuItem.template('Enable Busy Bars',
-                                event=EnableBusyBarsEvent,
-                                title=u'EnableBusyBars',
-                                helpString=u'Enable busy bars in the minicalendar'),
+                                    ]) # Menu AddAdditionalViews
                             ]), # Menu TestMenu
                     Menu.template('HelpMenu',
                         title=_(u'&Help'),

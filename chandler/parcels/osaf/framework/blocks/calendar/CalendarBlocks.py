@@ -98,9 +98,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         self.Refresh()
 
     def setFreeBusy(self, event):
-        if self.blockItem.enableBusyBars:
-            self._redrawCount += 1
-            self.Refresh()
+        self._redrawCount += 1
+        self.Refresh()
 
     def OnPaint(self, event):
         self._checkRedraw()
@@ -191,7 +190,6 @@ def isMainCalendarVisible():
 
 class MiniCalendar(CalendarCanvas.CalendarBlock):
     doSelectWeek = schema.One(schema.Boolean, initialValue = True)
-    enableBusyBars = schema.One(schema.Boolean, initialValue = False)
     
     def __init__(self, *arguments, **keywords):
         super (MiniCalendar, self).__init__(*arguments, **keywords)
@@ -221,19 +219,6 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         #never want to change our collection
         pass
     
-    def onEnableBusyBars(self, event):
-        self.enableBusyBars = not self.enableBusyBars
-        if ( not self.enableBusyBars ):
-            self.widget.ClearAllAttr()
-        self.widget.wxSynchronizeWidget()
-        self.widget.Refresh()
-
-    def onEnableBusyBarsUpdateUI(self, event):
-        if ( self.enableBusyBars ):
-            event.arguments['Text'] = "Disable busy bars"
-        else:
-            event.arguments['Text'] = "Enable busy bars"
-
 class PreviewArea(CalendarCanvas.CalendarBlock):
     timeCharacterStyle = schema.One(Styles.CharacterStyle)
     eventCharacterStyle = schema.One(Styles.CharacterStyle)

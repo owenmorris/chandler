@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "95" # stearns: changed DV resyncing
+SCHEMA_VERSION = "96" # jed: Remove option to disable busy bars
 
 logger = None # initialized in initLogging()
 
