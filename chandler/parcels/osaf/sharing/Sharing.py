@@ -599,7 +599,7 @@ class ShareConduit(items.ContentItem):
                 self._addToManifest(itemPath, item, data)
                 self._setFetched(itemPath)
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
-                 (itemPath, item.getItemDisplayName().encode('utf8'), item, data))
+                 (itemPath, item.getItemDisplayName().encode('ascii', 'replace'), item, data))
 
                 self.share.items.append(item)
 
