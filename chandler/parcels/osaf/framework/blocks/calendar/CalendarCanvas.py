@@ -1255,6 +1255,10 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
 class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
     def instantiateWidget(self):
         wxSplitter = super(CanvasSplitterWindow, self).instantiateWidget()
+        if '__WXMAC__' in wx.PlatformInfo:
+            wxSplitter.SetWindowStyle(wx.SP_LIVE_UPDATE | wx.BORDER_SIMPLE | wx.SP_3DSASH)
+        else:
+            wxSplitter.SetWindowStyle(wx.SP_LIVE_UPDATE | wx.STATIC_BORDER | wx.SP_3DSASH)
         
         #we use a proxy because at this splitter's instantiateWidget time,
         #it's not wise to rely on calctrl's widget existence.
@@ -1330,6 +1334,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
     def __init__(self, parent, id, tzCharacterStyle, *arguments, **keywords):
         super(wxCalendarControl, self).__init__(parent, id, *arguments, **keywords)
+        if '__WXMAC__' in wx.PlatformInfo:
+            self.SetWindowStyle(wx.BORDER_SIMPLE)
+        else:
+            self.SetWindowStyle(wx.STATIC_BORDER)
     
         app = wx.GetApp()
         self.allDayCloseArrowImage = app.GetImage("AllDayCloseArrow_whitebg.png")
