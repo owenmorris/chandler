@@ -889,7 +889,7 @@ void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &WXUNUSED(event) )
 	else if (event.LeftDown())
 	{
 		// -- Left button pressed
-		// don't send a label click event for a hit on the edge of the column label 
+		// don't send a label click event for a hit on the edge of the column label
 		// - this is probably the user wanting to resize the column
 		//
 		if (XToEdgeOfCol( x ) < 0)
@@ -1611,9 +1611,10 @@ long		resultV, i;
 	{
 	wxPaintDC	dc( this );
 
-		// FIXME: what about tranparency ??
+		// FIXME: what about transparency ??
 		dc.Clear();
 
+		dc.SetTextForeground( *wxBLACK );
 		dc.SetFont( m_Font );
 
 		for (i=0; i<m_ItemCount; i++)
@@ -1628,8 +1629,8 @@ long		resultV, i;
 						&dc, &boundsR,
 						&m_SelectionColour, m_SelectionDrawStyle );
 
-				// NB: for MSW, existing clips must be destroyed before changing the clipping geometry;
-				// on Mac (and perhaps other platforms) this limitation doesn't apply
+				// NB: for wxMSW, existing clips must be destroyed before changing the clipping geometry;
+				// on wxMac (and perhaps other platforms) this limitation doesn't apply.
 				dc.DestroyClippingRegion();
 			}
 
@@ -1655,7 +1656,7 @@ long		resultV, i;
 						itemRef->DrawButtonArrow( &dc, &boundsR );
 			}
 
-			// MSW case - add selection indicator - no appropriate native adornment exists
+			// wxMSW case - add selection indicator - no appropriate native adornment exists
 			if (m_BVisibleSelection && (m_ItemSelected >= 0))
 				if (GetItemBounds( m_ItemSelected, &boundsR ))
 				{
@@ -1675,6 +1676,7 @@ long		resultV, i;
 	{
 	wxPaintDC	dc( this );
 
+		dc.SetTextForeground( *wxBLACK );
 		dc.SetFont( m_Font );
 
 		for (i=0; i<m_ItemCount; i++)
@@ -1682,12 +1684,12 @@ long		resultV, i;
 			{
 				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
-				// MacOS case - selection indicator is drawn as needed
+				// wxMac case - selection indicator is drawn as needed
 				resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 
-				// NB: for MSW, existing clips must be destroyed before changing the clipping geometry;
-				// on Mac (and perhaps other platforms) this limitation doesn't apply, but it's used here
-				// with the tenuous justification of "balance" with the generic version
+				// NB: for wxMSW, existing clips must be destroyed before changing the clipping geometry;
+				// on wxMac (and perhaps other platforms) this limitation doesn't apply, but it's used here
+				// with the tenuous justification of "balance" with the wxMSW and generic versions.
 				dc.DestroyClippingRegion();
 			}
 //			else
@@ -2023,11 +2025,11 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	, m_ButtonArrowStyle( 0 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
-	, m_BEnabled( FALSE )
-	, m_BSelected( FALSE )
-	, m_BSortEnabled( FALSE )
-	, m_BSortAscending( FALSE )
-	, m_BFixedWidth( FALSE )
+	, m_BEnabled( false )
+	, m_BSelected( false )
+	, m_BSortEnabled( false )
+	, m_BSortAscending( false )
+	, m_BFixedWidth( false )
 {
 	InvalidateTextExtent();
 }
@@ -2041,11 +2043,11 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	, m_ButtonArrowStyle( 0 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
-	, m_BEnabled( FALSE )
-	, m_BSelected( FALSE )
-	, m_BSortEnabled( FALSE )
-	, m_BSortAscending( FALSE )
-	, m_BFixedWidth( FALSE )
+	, m_BEnabled( false )
+	, m_BSelected( false )
+	, m_BSortEnabled( false )
+	, m_BSortAscending( false )
+	, m_BFixedWidth( false )
 {
 	InvalidateTextExtent();
 	SetItemData( info );
