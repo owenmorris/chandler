@@ -203,8 +203,8 @@ class MainView(View):
         application.dialogs.Util.ok(None, message, title)
 
     def onQuitEvent (self, event):
+        self.finishDetailViewChanges()
         mainFrame = wx.GetApp().mainFrame
-        mainFrame.SetFocus() # Force any in-progress edit to save its value.
         mainFrame.Close()
         windows = wx.GetTopLevelWindows()
         for window in windows:
@@ -231,14 +231,15 @@ class MainView(View):
         """
         self.setStatusMessage (_(u"committing changes to the repository..."))
 
-        # If we have a detail view, let it write pending edits back first.
-        detailView = self.findBlockByName("DetailRoot")
-        if detailView is not None:
-            detailView.finishSelectionChanges()
-
+        self.finishDetailViewChanges()
         self.itsView.commit()
         self.setStatusMessage ('')
 
+    def finishDetailViewChanges(self):
+        # If we have a detail view, let it write pending edits back.
+        detailView = self.findBlockByName("DetailRoot")
+        if detailView is not None:
+            detailView.finishSelectionChanges()
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
         """
