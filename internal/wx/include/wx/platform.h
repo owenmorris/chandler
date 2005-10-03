@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.82 2005/09/25 19:58:31 VZ Exp $
+* RCS-ID:      $Id: platform.h,v 1.83 2005/10/03 16:25:49 ABX Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -398,14 +398,19 @@
        __DARWIN__ for Darwin related corrections (wxMac, wxMotif)
      */
 #elif defined(__OS2__)
+
+    /* wxOS2 vs. non wxOS2 ports on OS2 platform */
+#    ifndef __WXMOTIF__
+#        ifndef __WXOS2__
+#            define __WXOS2__
+#        endif
+#        ifndef __WXPM__
+#            define __WXPM__
+#        endif
+#    endif
+
 #    if defined(__IBMCPP__)
 #        define __VISAGEAVER__ __IBMCPP__
-#    endif
-#    ifndef __WXOS2__
-#        define __WXOS2__
-#    endif
-#    ifndef __WXPM__
-#        define __WXPM__
 #    endif
 
     /* Place other OS/2 compiler environment defines here */

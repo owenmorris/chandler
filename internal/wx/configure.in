@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1071 2005/09/25 22:48:01 VZ Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1072 2005/10/03 18:19:10 VZ Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1071 2005/09/25 22:48:01 VZ Exp $
+dnl Version: $Id: configure.in,v 1.1072 2005/10/03 18:19:10 VZ Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -781,6 +781,7 @@ dnl ---------------------------------------------------------------------------
 WX_ARG_ENABLE(gui,         [  --enable-gui            use GUI classes], wxUSE_GUI)
 WX_ARG_ENABLE(monolithic,  [  --enable-monolithic     build wxWidgets as single library], wxUSE_MONOLITHIC)
 WX_ARG_ENABLE(plugins,     [  --enable-plugins        build parts of wxWidgets as loadable components], wxUSE_PLUGINS)
+WX_ARG_WITH(subdirs,       [  --without-subdirs       don't generate makefiles for samples/demos/...], wxWITH_SUBDIRS, without)
 
 if test "$wxUSE_GUI" = "yes"; then
 
@@ -7259,7 +7260,7 @@ dnl on platforms that do not have symlinks.
 dnl AC_CONFIG_LINKS([ include/wx-$WX_RELEASE$WX_FLAVOUR:include ])
 dnl AC_CONFIG_LINKS([ contrib/include ])
 
-
+if test "$wxWITH_SUBDIRS" != "no"; then
 dnl Configure samples, contrib etc. directories, but only if they are present:
 if test "$wxUSE_GUI" = "yes"; then
     SUBDIRS="samples demos utils contrib"
@@ -7316,7 +7317,7 @@ for subdir in `echo $SUBDIRS`; do
         done
     fi
 done
-
+fi dnl wxWITH_SUBDIRS
 
 AC_OUTPUT
 

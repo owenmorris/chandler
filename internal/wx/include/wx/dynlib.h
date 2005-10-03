@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux, Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.h,v 1.57 2005/09/23 12:48:37 MR Exp $
+// RCS-ID:      $Id: dynlib.h,v 1.58 2005/10/03 16:25:49 ABX Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 #include "wx/string.h"
 #include "wx/dynarray.h"
 
-#if defined(__WXPM__) || defined(__EMX__)
+#if defined(__OS2__) || defined(__EMX__)
 #include "wx/os2/private.h"
 #endif
 
@@ -37,9 +37,9 @@ class WXDLLIMPEXP_BASE wxDynamicLibraryDetailsCreator;
 // conditional compilation
 // ----------------------------------------------------------------------------
 
-// Note: WXPM/EMX has to be tested first, since we want to use
+// Note: __OS2__/EMX has to be tested first, since we want to use
 // native version, even if configure detected presence of DLOPEN.
-#if defined(__WXPM__) || defined(__EMX__) || defined(__WINDOWS__)
+#if defined(__OS2__) || defined(__EMX__) || defined(__WINDOWS__)
     typedef HMODULE             wxDllType;
 #elif defined(HAVE_DLOPEN)
     #include <dlfcn.h>
@@ -250,7 +250,7 @@ public:
         return RawGetSymbol
                (
                 handle,
-                name + 
+                name +
 #if wxUSE_UNICODE
                 L'W'
 #else

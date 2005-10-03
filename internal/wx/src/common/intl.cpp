@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp,v 1.171 2005/09/28 09:41:55 VZ Exp $
+// RCS-ID:      $Id: intl.cpp,v 1.172 2005/10/03 16:27:58 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1600,7 +1600,9 @@ bool wxLocale::Init(int language, int flags)
     wxString locale;
 
     // Set the locale:
-#if defined(__UNIX__) && !defined(__WXMAC__)
+#if defined(__OS2__)
+    wxMB2WXbuf retloc = wxSetlocale(LC_ALL , wxEmptyString);
+#elif defined(__UNIX__) && !defined(__WXMAC__)
     if (language == wxLANGUAGE_DEFAULT)
         locale = wxEmptyString;
     else
@@ -1771,8 +1773,6 @@ bool wxLocale::Init(int language, int flags)
         wxLogError(wxT("Cannot set locale to '%s'."), locale.c_str());
         return false;
     }
-#elif defined(__WXPM__)
-    wxMB2WXbuf retloc = wxSetlocale(LC_ALL , wxEmptyString);
 #else
     return false;
     #define WX_NO_LOCALE_SUPPORT
@@ -3554,4 +3554,3 @@ void wxLocale::InitLanguagesDB()
 // --- --- --- generated code ends here --- --- ---
 
 #endif // wxUSE_INTL
-

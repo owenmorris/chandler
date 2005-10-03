@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        accel.cpp
+// Name:        src/motif/accel.cpp
 // Purpose:     wxAcceleratorTable
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: accel.cpp,v 1.13 2005/09/23 12:54:37 MR Exp $
+// RCS-ID:      $Id: accel.cpp,v 1.14 2005/10/03 16:33:02 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -112,4 +112,3 @@ bool wxAcceleratorEntry::MatchesEvent(const wxKeyEvent& event) const
         (eventShiftDown == accShiftDown) &&
         ((eventKeyCode == accKeyCode || eventKeyCode == accKeyCode2))) ;
 }
-

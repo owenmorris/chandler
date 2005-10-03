@@ -1,10 +1,10 @@
 /**
-*  Name:        defs.h
+*  Name:        wx/defs.h
 *  Purpose:     Declarations/definitions common to all wx source files
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.515 2005/09/25 20:23:20 VZ Exp $
+*  RCS-ID:      $Id: defs.h,v 1.516 2005/10/03 16:25:49 ABX Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -2583,6 +2583,11 @@ typedef int             (__stdcall *WXFARPROC)();
 #endif /*  __WIN32__ */
 
 
+#if defined(__OS2__)
+typedef unsigned long   DWORD;
+typedef unsigned short  WORD;
+#endif
+
 #if defined(__WXPM__) || defined(__EMX__)
 #ifdef __WXPM__
 /*  Stand-ins for OS/2 types, to avoid #including all of os2.h */
@@ -2643,8 +2648,6 @@ typedef unsigned long   HCURSOR;
 typedef unsigned long   HINSTANCE;
 typedef unsigned long   HIMAGELIST;
 typedef unsigned long   HGLOBAL;
-typedef unsigned long   DWORD;
-typedef unsigned short  WORD;
 #endif /*  WXPM || EMX */
 
 #if defined (__WXPM__)

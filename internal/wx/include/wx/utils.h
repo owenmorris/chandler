@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        utils.h
+// Name:        wx/utils.h
 // Purpose:     Miscellaneous utilities
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h,v 1.121 2005/09/25 20:23:21 VZ Exp $
+// RCS-ID:      $Id: utils.h,v 1.122 2005/10/03 16:25:50 ABX Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,9 @@ class WXDLLIMPEXP_BASE wxArrayString;
 // wxLongLong
 #include "wx/longlong.h"
 
-#ifdef __X__
+#ifdef __WATCOMC__
+    #include <direct.h>
+#elif defined(__X__)
     #include <dirent.h>
     #include <unistd.h>
 #endif

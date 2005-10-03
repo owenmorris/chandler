@@ -4,7 +4,7 @@
 // Author:      Julian Smart et al
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treebase.h,v 1.53 2005/09/23 12:48:49 MR Exp $
+// RCS-ID:      $Id: treebase.h,v 1.54 2005/10/03 17:54:06 VZ Exp $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -123,11 +123,19 @@ protected:
 
 WX_DEFINE_EXPORTED_ARRAY_PTR(wxTreeItemIdValue, wxArrayTreeItemIdsBase);
 
+// this is a wrapper around the array class defined above which allow to wok
+// with vaue of natural wxTreeItemId type instead of using wxTreeItemIdValue
+// and does it without any loss of efficiency
 class WXDLLEXPORT wxArrayTreeItemIds : public wxArrayTreeItemIdsBase
 {
 public:
     void Add(const wxTreeItemId& id)
         { wxArrayTreeItemIdsBase::Add(id.m_pItem); }
+    void Insert(const wxTreeItemId& id, size_t pos)
+        { wxArrayTreeItemIdsBase::Insert(id.m_pItem, pos); }
+    wxTreeItemId Item(size_t i) const
+        { return wxTreeItemId(wxArrayTreeItemIdsBase::Item(i)); }
+    wxTreeItemId operator[](size_t i) const { return Item(i); }
 };
 
 // ----------------------------------------------------------------------------

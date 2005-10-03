@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dcclient.h,v 1.36 2005/09/25 20:35:44 VZ Exp $
+// RCS-ID:      $Id: dcclient.h,v 1.37 2005/10/03 16:25:53 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ public:
     WXGC GetGC() const { return m_gc; }
     WXGC GetBackingGC() const { return m_gcBacking; }
     WXDisplay* GetDisplay() const { return m_display; }
-    bool GetAutoSetting() const { return m_autoSetting; }
+    bool GetAutoSetting() const { return (m_autoSetting != 0); } // See comment in dcclient.cpp
     void SetAutoSetting(bool flag) { m_autoSetting = flag; }
 
 protected:

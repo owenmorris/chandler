@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.cpp,v 1.188 2005/09/23 12:53:59 MR Exp $
+// RCS-ID:      $Id: app.cpp,v 1.189 2005/10/03 09:28:01 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -453,7 +453,15 @@ static pascal OSStatus wxMacAppCommandEventHandler( EventHandlerCallRef handler 
     }
     else if ( id != 0 && command.menu.menuRef != 0 && command.menu.menuItemIndex != 0 )
     {
-        GetMenuItemRefCon( command.menu.menuRef , command.menu.menuItemIndex , (UInt32*) &item ) ;
+        wxMenu* itsMenu = NULL ;
+        UInt32 refCon ;
+        GetMenuItemRefCon( command.menu.menuRef , command.menu.menuItemIndex , &refCon ) ;
+        // make sure it is one of our own menus, otherwise don't touch
+        itsMenu = wxFindMenuFromMacMenu( command.menu.menuRef ) ;
+        if ( itsMenu != NULL )
+        {
+            item = (wxMenuItem*) refCon ;
+        }
     }
 
     if ( item )

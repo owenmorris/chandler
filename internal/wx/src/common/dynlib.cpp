@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        dynlib.cpp
+// Name:        src/common/dynlib.cpp
 // Purpose:     Dynamic library management
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.cpp,v 1.109 2005/09/24 20:29:21 VZ Exp $
+// RCS-ID:      $Id: dynlib.cpp,v 1.110 2005/10/03 16:27:58 ABX Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -141,7 +141,7 @@ bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
 /* static */
 void wxDynamicLibrary::Unload(wxDllType handle)
 {
-#if defined(__WXPM__) || defined(__EMX__)
+#if defined(__OS2__) || defined(__EMX__)
     DosFreeModule( handle );
 #elif defined(__WXMAC__) && !defined(__DARWIN__)
     CloseConnection( (CFragConnectionID*) &handle );

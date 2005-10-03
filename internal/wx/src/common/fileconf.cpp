@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        fileconf.cpp
+// Name:        src/common/fileconf.cpp
 // Purpose:     implementation of wxFileConfig derivation of wxConfig
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp,v 1.140 2005/09/25 19:58:44 VZ Exp $
+// RCS-ID:      $Id: fileconf.cpp,v 1.141 2005/10/03 16:27:58 ABX Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -271,7 +271,7 @@ wxString wxFileConfig::GetGlobalDir()
     strDir = wxMacFindFolder(  (short) kOnSystemDisk, kPreferencesFolderType, kDontCreateFolder ) ;
 #elif defined( __UNIX__ )
     strDir = wxT("/etc/");
-#elif defined(__WXPM__)
+#elif defined(__OS2__)
     ULONG aulSysInfo[QSV_MAX] = {0};
     UINT drive;
     APIRET rc;
@@ -2076,4 +2076,3 @@ static wxString GetAppName(const wxString& appName)
 }
 
 #endif // wxUSE_CONFIG
-

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        dialog.cpp
+// Name:        src/motif/dialog.cpp
 // Purpose:     wxDialog class
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.cpp,v 1.59 2005/09/25 20:29:58 VZ Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.60 2005/10/03 16:33:03 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -304,7 +304,7 @@ bool wxDialog::Show( bool show )
         else
             XtManageChild((Widget)m_mainWidget) ;
 
-        XRaiseWindow( XtDisplay( (Widget)m_mainWidget ), 
+        XRaiseWindow( XtDisplay( (Widget)m_mainWidget ),
                       XtWindow( (Widget)m_mainWidget) );
 
     }

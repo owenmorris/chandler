@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: choice.cpp,v 1.49 2005/09/28 21:16:27 MBN Exp $
+// RCS-ID:      $Id: choice.cpp,v 1.50 2005/10/03 16:33:02 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -352,7 +352,7 @@ void wxChoice::SetColumns(int n)
 {
     if (n<1) n = 1 ;
 
-    short numColumns = n ;
+    short numColumns = (short)n ;
     Arg args[3];
 
     XtSetArg(args[0], XmNnumColumns, numColumns);

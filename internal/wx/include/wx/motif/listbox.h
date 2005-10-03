@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: listbox.h,v 1.27 2005/09/27 16:54:33 ABX Exp $
+// RCS-ID:      $Id: listbox.h,v 1.28 2005/10/03 16:25:53 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ public:
     WXWidget GetTopWidget() const;
 
 #if wxUSE_CHECKLISTBOX
-    virtual void DoToggleItem(int item, int x) {};
+    virtual void DoToggleItem(int WXUNUSED(item), int WXUNUSED(x)) {};
 #endif
 protected:
     virtual wxSize DoGetBestSize() const;
