@@ -1173,14 +1173,17 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
     - the various canvases
     """
     calendarControl = schema.One(schema.Item, required=True)
-    characterStyle = schema.One(Styles.CharacterStyle, required=True)
-    boldCharacterStyle = schema.One(Styles.CharacterStyle, required=True)
-    bigBoldCharacterStyle = schema.One(Styles.CharacterStyle, required=True)
 
+    monthLabelStyle = schema.One(Styles.CharacterStyle, required=True)
+    eventLabelStyle = schema.One(Styles.CharacterStyle, required=True)
+    eventTimeStyle = schema.One(Styles.CharacterStyle, required=True)
+    legendStyle = schema.One(Styles.CharacterStyle, required=True)
+    
     schema.addClouds(
-        copying = schema.Cloud(byRef = [characterStyle, 
-                                        boldCharacterStyle, 
-                                        bigBoldCharacterStyle, 
+        copying = schema.Cloud(byRef = [monthLabelStyle, 
+                                        eventLabelStyle, 
+                                        eventTimeStyle,
+                                        legendStyle,
                                         ])
     )
 
@@ -1189,22 +1192,18 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
 
     def InitializeStyles(self):
 
-        #XXX: [i18n] The colors and fonts should be configurable for i18n and accessibility
-        #     or at least should come from the host OS
-        defaultFont = Styles.getFont(self.characterStyle)
-        defaultBoldFont = Styles.getFont(self.boldCharacterStyle)
-        defaultBigBoldFont = Styles.getFont(self.bigBoldCharacterStyle)
-
-        self.monthLabelFont = defaultBigBoldFont
+        # Map styles to fonts
+        for stylename in ('monthLabel', 'eventLabel', 'eventTime', 'legend'):
+            style = getattr(self, stylename + 'Style')
+            setattr(self, stylename + 'Font', 
+                    Styles.getFont(style))
+            
         self.monthLabelColor = wx.Colour(64, 64, 64)
 
-        self.eventLabelFont = defaultFont
         self.eventLabelColor = wx.BLACK
-        self.eventLabelHeight = Styles.getMeasurements(defaultFont).height
+        self.eventLabelHeight = \
+            Styles.getMeasurements(self.eventLabelFont).height
         
-        self.eventTimeFont = defaultBoldFont
-        
-        self.legendFont = defaultFont
         self.legendColor = wx.Colour(128,128,128)
 
         self.bgColor = wx.WHITE

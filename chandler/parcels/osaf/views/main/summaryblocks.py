@@ -72,9 +72,10 @@ def make_summaryblocks(parcel):
     CalendarSummaryView = \
         CalendarContainer.template('CalendarSummaryView',
                 calendarControl=MainCalendarControl,
-                characterStyle=DefaultCharacterStyle,
-                boldCharacterStyle=DefaultBoldStyle,
-                bigBoldCharacterStyle=DefaultBigBoldStyle,
+                monthLabelStyle=DefaultBigBoldStyle,
+                eventLabelStyle=DefaultCharacterStyle,
+                eventTimeStyle=DefaultBoldStyle,
+                legendStyle=DefaultCharacterStyle,
                 orientationEnum='Vertical',
                 eventsForNamedLookup=[TimeZoneChange]).install(parcel)
     
