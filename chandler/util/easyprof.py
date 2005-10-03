@@ -22,8 +22,8 @@ class Profile(object):
         self.profiler = hotshot.Profile(profilefile)
 
     def profiled(self, method):
-        def profile_me(*args):
-            self.profiler.runcall(method, *args)
+        def profile_me(*args, **kwds):
+            self.profiler.runcall(method, *args, **kwds)
         return profile_me
 
 def QuickProfile(profilefile):
@@ -43,11 +43,11 @@ def QuickProfile(profilefile):
         """
         Descriptor which returns a function that should be called
         """
-        def profiled_caller(*args):
+        def profiled_caller(*args, **kwds):
             """
             Wrapper which actually calls the profiler
             """
-            profile.runcall(method, *args)
+            profile.runcall(method, *args, **kwds)
         return profiled_caller
 
     return profiled_descriptor
