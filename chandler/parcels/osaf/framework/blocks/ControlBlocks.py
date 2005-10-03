@@ -1765,6 +1765,18 @@ class PresentationStyle(schema.Item):
         )
     )
 
+def getProxiedContentsItem(block):
+    item = getattr(block, 'contents', None)
+    if item is not None:
+        if item.isDeleted():
+            logger.debug("getProxiedContentsItem(%s): item is deleted!",
+                         getattr(block, 'blockName', '?'))
+            item = None
+        else:
+            # We have an item - return a proxy for it if necessary
+            item = RecurrenceDialog.getProxy(u'ui', item)
+    return item
+
 class AEBlock(BoxContainer):
     """
     Attribute Editor Block: instantiates an Attribute Editor appropriate for
@@ -1782,26 +1794,17 @@ class AEBlock(BoxContainer):
     characterStyle = schema.One(Styles.CharacterStyle)
     readOnly = schema.One(schema.Boolean, initialValue = False)
     presentationStyle = schema.One(PresentationStyle)
-    event = schema.One(BlockEvent)
+    changeEvent = schema.One(BlockEvent)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[characterStyle, presentationStyle])
+        copying = schema.Cloud(byRef=[characterStyle, presentationStyle, 
+                                      changeEvent])
     )
     
-    def getItem(self): 
-        item = getattr(self, 'contents', None)
-        if item is not None:
-            if item.isDeleted():
-                logger.debug("AEBlock.getItem: item is deleted!")
-                item = None
-            else:
-                # We have an item - return a proxy for it if necessary
-                item = RecurrenceDialog.getProxy(u'ui', item)
-        return item
     def setItem(self, value): 
         assert not value.isDeleted()
         self.contents = value
-    item = property(getItem, setItem, 
+    item = property(getProxiedContentsItem, setItem, 
                     doc="Safely access the selected item (or None)")
     
     def getAttributeName(self): return getattr(self, 'viewAttribute', None)
@@ -1880,11 +1883,13 @@ class AEBlock(BoxContainer):
         """
         Make sure we've got the right attribute editor for this type
         """
-        if self.item is None or self.item.isDeleted():
+        item = self.item
+        if item is None:
             return None
+        
         # Get the parameters we'll use to pick an editor
         typeName = self.getItemAttributeTypeName()
-        readOnly = self.isReadOnly(self.item, self.attributeName)
+        readOnly = self.isReadOnly(item, self.attributeName)
         try:
             presentationStyle = self.presentationStyle
         except AttributeError:
@@ -1900,17 +1905,18 @@ class AEBlock(BoxContainer):
                and (oldEditor.attributeName == self.attributeName) \
                and (oldEditor.readOnly == readOnly) and \
                (oldEditor.presentationStyle is presentationStyle):
-                assert oldEditor.item is self.item # this shouldn't've changed.
+                # this shouldn't've changed:
+                assert oldEditor.item in (item, getattr(item, 'proxiedItem', None))
                 return oldEditor
 
         # We need a new editor - create one.
         # logger.debug("Creating new AE for %s (%s.%s), ro=%s", typeName, item, attributeName, readOnly)
         selectedEditor = AttributeEditors.getInstance\
-                       (typeName, self.item, self.attributeName, readOnly, presentationStyle)
+                       (typeName, item, self.attributeName, readOnly, presentationStyle)
         
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
-        selectedEditor.item = self.item
+        selectedEditor.item = item
         selectedEditor.attributeName = self.attributeName
         selectedEditor.readOnly = readOnly
         selectedEditor.presentationStyle = presentationStyle
@@ -1935,21 +1941,24 @@ class AEBlock(BoxContainer):
             
     def getItemAttributeTypeName(self):
         """ Get the type of the current attribute """
-        if self.item is None:
+        item = self.item
+        if item is None:
             return None
 
         # Ask the schema for the attribute's type first
         try:
-            theType = self.item.getAttributeAspect(self.attributeName, "type")
+            theType = item.getAttributeAspect(self.attributeName, "type")
         except:
             # If the repository doesn't know about it (it might be a property),
             # see if it's one of our type-friendly Calculated properties
             try:
-                theType = schema.itemFor(getattr(self.item.__class__, self.attributeName).type, self.item.itsView)
+                theType = schema.itemFor(getattr(item.__class__, 
+                                                 self.attributeName).type, 
+                                         item.itsView)
             except:
                 # get its value and use its type
                 try:
-                    attrValue = getattr(self.item, self.attributeName)
+                    attrValue = getattr(item, self.attributeName)
                 except:
                     typeName = "_default"
                 else:
@@ -2021,48 +2030,11 @@ class AEBlock(BoxContainer):
             if editor is not None:
                 editor.EndControlEdit(self.item, self.attributeName, widget)
 
-    def render(self):
-        super(AEBlock, self).render()
-        # Start monitoring the attributes that affect this editor
-        if self.widget is not None and self.item is not None:
-            self.widget.monitoredAttributes = \
-                self.item.getBasedAttributes(self.attributeName)
-            if len(self.widget.monitoredAttributes) > 0:
-                logger.debug("AEBlock: Attaching monitors for %s", 
-                             ', '.join(self.widget.monitoredAttributes))
-                for attr in self.widget.monitoredAttributes:
-                    Monitors.attach(self, 'onMonitoredValueChanged', 'set', attr)
-                
     def unRender(self):
-        # Stop monitoring
-        try:
-            monitoredAttributes = self.widget.monitoredAttributes
-        except AttributeError:
-            pass
-        else:
-            if len(monitoredAttributes) > 0:
-                logger.debug("AEBlock: Detaching monitors for %s", 
-                             ', '.join(self.widget.monitoredAttributes))
-                for attr in monitoredAttributes:
-                    Monitors.detach(self, 'onMonitoredValueChanged', 'set', attr)
-
         # Last-chance write-back.
         if getattr(self, 'forEditing', False):
             self.saveValue()
         super(AEBlock, self).unRender()
-
-    def onMonitoredValueChanged(self, op, item, attribute):
-        # Most notifications aren't for us: ignore them in order of how likely
-        # they are. (yes, it's bad to have specific proxy knowledge here, but
-        # I'm expecting _lots_ of notifications, and this seems like the quickest
-        # way to reduce overhead
-        if not item in (self.item, getattr(self.item, 'proxiedItem', None)) or \
-           self.item is None or self.item.isDeleted():
-            return
-        
-        # It's for us - reload the widget
-        logger.debug("AEBlock: Monitor on %s fired - reloading.", attribute)
-        self.synchronizeWidget()
             
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
@@ -2082,14 +2054,15 @@ class AEBlock(BoxContainer):
 
     def onAttributeEditorValueChange(self):
         """ Called when the attribute editor changes the value """
+        item = self.item
         logger.debug("onAttributeEditorValueChange: %s %s", 
-                     self.item, self.attributeName)
+                     item, self.attributeName)
         try:
-            event = self.event
+            event = self.changeEvent
         except AttributeError:
             pass
         else:
-            self.post(event, {'item': self.item, 
+            self.post(event, {'item': item, 
                               'attribute': self.attributeName })
 
 

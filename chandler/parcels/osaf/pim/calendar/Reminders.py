@@ -19,7 +19,7 @@ class Reminder(schema.Item):
     relativeTo = schema.One(
         schema.String,
         displayName=u"Relative to",
-        defaultValue='effectiveStartTime',
+        initialValue='effectiveStartTime',
     )
 
     reminderItems = schema.Sequence(

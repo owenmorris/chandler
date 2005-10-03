@@ -93,20 +93,9 @@ def makeEditor(parcel, name, viewAttribute, border=None,
        or None
     border = border or RectType(2, 2, 2, 2)
     
-    # We need to find the Resynchronize event... it's in the given parcel if 
-    # we're building the detail view, or we'll get the detail view's namespace
-    # if we're building an editor for another parcel. (We do it this way 'cuz
-    # it'd be bad to schema.ns the detail view while building the detail view.)
-    try:
-        resyncEvent = parcel['Resynchronize']
-    except KeyError:
-        detailParcelPath = '.'.join(__name__.split('.')[:-1])
-        resyncEvent = schema.ns(detailParcelPath, parcel.itsView).Resynchronize
-        
     ae = baseClass.template(name, viewAttribute=viewAttribute,
                             characterStyle=characterStyle or blocks.TextStyle,
-                            presentationStyle=ps, border=border,
-                            event=resyncEvent, **kwds)
+                            presentationStyle=ps, border=border, **kwds)
     return ae
           
 #
@@ -128,7 +117,6 @@ def installParcel(parcel, oldVersion=None):
     makeNoteSubtree(parcel, oldVersion)
     makeMailSubtree(parcel, oldVersion)
     makeCalendarEventSubtree(parcel, oldVersion)
-    makeItemCollectionSubtree(parcel, oldVersion)
     makeEmptySubtree(parcel, oldVersion)
                       
 def registerAttributeEditors(parcel, oldVersion):
@@ -155,13 +143,7 @@ def makeRootStuff(parcel, oldVersion):
                                           minimumSize=SizeType(80, 40),
                                           eventBoundary=True)
     detailRoot.install(parcel)
-    
-    # Our Resynchronize event.
-    resyncEvent = \
-        BlockEvent.template('Resynchronize',
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='DetailRoot').install(parcel)
- 
+     
     # A few spacer blocks, copied by other parcel.xml blocks.
     # @@@ Should go away when parcel.xml conversion is complete!
     makeSpacer(parcel, height=6, name='TopSpacer', position=0.01).install(parcel)
@@ -396,6 +378,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
     recurrenceCustomArea = \
         makeArea(parcel, 'CalendarRecurrenceCustomArea',
             baseClass=CalendarRecurrenceCustomAreaBlock,
+            viewAttribute=u'rruleset',
             childrenBlocks=[
                 makeLabel(parcel, u'', borderTop=2), # leave label blank.
                 makeSpacer(parcel, width=8),
@@ -407,6 +390,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
     recurrenceEndArea = \
         makeArea(parcel, 'CalendarRecurrenceEndArea',
             baseClass=CalendarRecurrenceEndAreaBlock,
+            viewAttribute=u'rruleset',
             childrenBlocks=[
                 makeLabel(parcel, _(u'ends')),
                 makeSpacer(parcel, width=8),
@@ -529,12 +513,6 @@ def makeMailSubtree(parcel, oldVersion):
                 toMailArea,
                 acceptShareButton,
                 attachmentArea])
-
-def makeItemCollectionSubtree(parcel, oldVersion):
-    # @@@ BJS I didn't bother porting the item collection subtree from
-    # parcel.xml because we're not using it now, and the UI will probably
-    # change before we start using it again.
-    pass
 
 def makeEmptySubtree(parcel, oldVersion):
   # An empty panel, used when there's no item selected in the detail view

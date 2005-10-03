@@ -26,10 +26,12 @@ from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
+import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import osaf.mail.constants as MailConstants
 import osaf.mail.sharing as MailSharing
 import osaf.mail.message as MailMessage
 from repository.item.Item import Item
+from repository.item.Monitors import Monitors
 import wx
 import sets
 import logging
@@ -57,11 +59,9 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         logger.debug("DetailRoot.onSetContentsEvent: %s", item)
         self.contents = item
 
-    def selectedItem(self):
-        # return the item being viewed
-        item = getattr(self, 'contents', None)
-        return item
-
+    item = property(fget=ControlBlocks.getProxiedContentsItem, 
+                    doc="Return the selected item, or None")
+    
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
         # after the control's been deleted, which makes it impossible to grab
@@ -78,52 +78,6 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     def detailRoot (self):
         # we are the detail root object
         return self
-
-    def synchronizeDetailView(self, item):
-        """
-        We have an event boundary inside us, which keeps all
-        the events sent between blocks of the Detail View to
-        ourselves.
-
-        When we get a SelectItem event, we jump across
-        the event boundary and call synchronizeItemDetail on each
-        block to give it a chance to update the widget with data
-        from the Item.
-
-        Notify container blocks before their children.
-
-        @@@DLD - find a better way to broadcast inside my boundary.
-        """
-        def reNotifyInside(block, item):
-            notifySelf = len(block.childrenBlocks) == 0 # True if no children
-            try:
-                # process from the children up
-                for child in block.childrenBlocks:
-                    notifySelf = reNotifyInside (child, item) or notifySelf
-            except AttributeError:
-                pass
-            try:
-                syncMethod = type(block).synchronizeItemDetail
-            except AttributeError:
-                if notifySelf:
-                    block.synchronizeWidget()
-            else:
-                notifySelf = syncMethod(block, item) or notifySelf
-            return notifySelf
-
-        needsLayout = False
-        children = self.childrenBlocks
-        for child in children:
-            needsLayout = reNotifyInside(child, item) or needsLayout
-        wx.GetApp().needsUpdateUI = True
-        if needsLayout:
-            try:
-                sizer = self.widget.GetSizer()
-            except AttributeError:
-                pass
-            else:
-                if sizer:
-                    sizer.Layout()
 
     if __debug__:
         def dumpShownHierarchy (self, methodName=''):
@@ -142,7 +96,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
                         reNotifyInside (child, item, indent + '  ')
                 except AttributeError:
                     pass
-            item= self.selectedItem()
+            item = self.item
             try:
                 itemDescription = item.itsKind.itsName + ' '
             except AttributeError:
@@ -157,14 +111,13 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             print
 
     def synchronizeWidget (self):
-        item = self.selectedItem()
+        item = self.item
         logger.debug("DetailRoot.synchronizeWidget: %s", item)
         # If we're being synchronized on "None", it might be because we're really
         # displaying the None view, or because our selected item got 
         # deleted. Discern by looking at our TrunkParentBlock.
         if item is not None or hasattr(self.parentBlock, 'TPBSelectedItem'):
             super(DetailRootBlock, self).synchronizeWidget ()
-            self.synchronizeDetailView(item)
             if __debug__:
                 dumpSynchronizeWidget = False
                 if dumpSynchronizeWidget:
@@ -174,20 +127,21 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             # pick a different tree of blocks
             self.parentBlock.postEventByName('SelectItemsBroadcast', 
                                              {'items': []})
+    def relayout(self):
+        try:
+            sizer = self.widget.GetSizer()
+        except AttributeError:
+            pass
+        else:
+            if sizer:
+                sizer.Layout()
 
     def SelectedItems(self):
         """ 
         Return a list containing the item we're displaying. (This gets
         used for Send)
         """
-        return [ self.selectedItem() ]
-
-    def onResynchronizeEvent(self, event):
-        logger.debug("onResynchronizeEvent: resynching")
-        self.synchronizeWidget()
-
-    def onResynchronizeEventUpdateUI(self, event):
-        pass
+        return [ self.item ]
 
     # needed to work around bug 4091
     def onResynchronizeParentEvent(self, event):
@@ -318,14 +272,19 @@ class DetailSynchronizer(Item):
         logger.debug("DetailSynchronizer: onSetContentsEvent")
         self.contents = event.arguments['item']
 
-    def selectedItem (self):
-        # return the selected item
-        return getattr(self, 'contents', None)
+    item = property(fget=ControlBlocks.getProxiedContentsItem, 
+                    doc="Return the selected item, or None")
 
     def finishSelectionChanges (self):
         # finish any changes in progress in editable text fields.
         self.detailRoot().finishSelectionChanges ()
 
+    def synchronizeWidget(self):
+        needsLayout = self.synchronizeItemDetail(self.item)
+        super(DetailSynchronizer, self).synchronizeWidget()
+        if needsLayout:
+            self.detailRoot().relayout()
+        
     def synchronizeItemDetail (self, item):
         # if there is an item, we should show ourself, else hide
         if item is None:
@@ -351,12 +310,72 @@ class DetailSynchronizer(Item):
             else:
                 widget.Hide()
             self.isShown = shouldShow
+            logger.debug("DetailSync.show %s: now %s",
+                         getattr(self, 'blockName', '?'),
+                         shouldShow and "visible" or "hidden")
             return True
         return False
 
     def whichAttribute(self):
-        # define the attribute to be used
-        return self.parentBlock.viewAttribute
+        # define the attribute to be used: ours or our parent's
+        return getattr(self, 'viewAttribute',
+                       getattr(self.parentBlock, 'viewAttribute', u''))
+
+    def attributesToMonitor(self):
+        """
+        Get the set of attributes that we'll monitor while rendered
+        """
+        return [ self.whichAttribute() ]
+
+    def render(self):
+        super(DetailSynchronizer, self).render()
+        # Start monitoring the attributes that affect this block
+        item = self.item
+        if self.widget is not None and item is not None and \
+           not item.isDeleted():
+            attrsToMonitor = self.attributesToMonitor()
+            if attrsToMonitor is not None:
+                # Map the attributes to the real attributes they're based on
+                # (this isn't a list comprehension because we're relying on the
+                # list-flattening behavior provided by 'update')
+                basedAttributes = set()
+                for a in attrsToMonitor:
+                    if a:
+                        basedAttributes.update(item.getBasedAttributes(a))
+                if len(basedAttributes):
+                    logger.debug("DetailSynchronizer (%s): Attaching monitors for %s",
+                                 getattr(self, 'blockName', '?'),
+                                 ', '.join(basedAttributes))
+                    for attr in basedAttributes:
+                        Monitors.attach(self, 'onMonitoredValueChanged', 'set', attr)
+                    self.widget.monitoredAttributes = basedAttributes
+
+    def unRender(self):
+        # Stop monitoring
+        try:
+            monitoredAttributes = self.widget.monitoredAttributes
+        except AttributeError:
+            pass
+        else:
+            logger.debug("DetailSynchronizer (%s): Detaching monitors for %s", 
+                         getattr(self, 'blockName', '?'),
+                         ', '.join(self.widget.monitoredAttributes))
+            for attr in monitoredAttributes:
+                Monitors.detach(self, 'onMonitoredValueChanged', 'set', attr)
+
+        super(DetailSynchronizer, self).unRender()
+
+    def onMonitoredValueChanged(self, op, item, attribute):
+        # Ignore notifications that aren't for us. (Yes, it's not ideal to have 
+        # awareness of proxies here, but I'm expecting _lots_ of notifications, 
+        # and this seems like the quickest way to reduce overhead, and seems
+        # safer than a deeper '==' comparison.)
+        ourItem = self.item
+        if item in (ourItem, getattr(ourItem, 'proxiedItem', None)):            
+            # It's for us - reload the widget
+            logger.debug("DetailSynchronizer (%s): Monitor on %s fired; syncing.", 
+                         self.blockName, attribute)
+            self.synchronizeWidget()
 
     def parseEmailAddresses(self, item, addressesString):
         """
@@ -461,7 +480,6 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail(self, item):
         whichAttr = self.viewAttribute
         self.isShown = item is not None and item.itsKind.hasAttribute(whichAttr)
-        self.synchronizeWidget()
 
 class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     pass
@@ -470,15 +488,6 @@ class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.Cont
     pass
 
 class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
-    
-    # temporary fix until AEBlocks update themselves automatically
-    def synchronizeItemDetail(self, item):
-        super(DetailSynchronizedAttributeEditorBlock, self).synchronizeItemDetail(item)
-        
-        # tell the AE block to update itself
-        if self.isShown:
-            self.synchronizeWidget()
-
     def saveTextValue (self, validate=False):
         # Tell the AE to save itself
         self.saveValue()
@@ -489,30 +498,17 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
     def OnFinishChangesEvent (self, event):
         self.saveTextValue(validate=True)
 
-def ItemCollectionOrMailMessageMixin (item):
-    # if the item is a MailMessageMixin, or a Collection,
-    # then return True
-    mailKind = Mail.MailMessageMixin.getKind (item.itsView)
-    isCollection = isinstance (item, pim.AbstractCollection)
-    isOneOrOther = isCollection or item.isItemOf (mailKind)
-    return isOneOrOther
-
 class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
     """
       Markup Toolbar, for quick control over Items.
     Doesn't need to synchronizeItemDetail, because
     the individual ToolbarItems synchronizeItemDetail.
     """
-    def shouldShow (self, item):
-        # if the item is a collection, we should not show ourself
-        shouldShow = not isinstance (item, pim.AbstractCollection)
-        return shouldShow
-
     def onButtonPressedEvent (self, event):
         # Rekind the item by adding or removing the associated Mixin Kind
         self.finishSelectionChanges () # finish changes to editable fields 
         tool = event.arguments['sender']
-        item = self.selectedItem()
+        item = self.item
         
         if not item or not self._isStampable(item):
             return
@@ -531,19 +527,19 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
         self.postEventByName('ResyncDetailParent', {})
 
     def onButtonPressedEventUpdateUI(self, event):
-        item = self.selectedItem()
+        item = self.item
         enable = item is not None and self._isStampable(item) and \
                item.isAttributeModifiable('itsKind')
         event.arguments ['Enable'] = enable
 
     def onTogglePrivateEvent(self, event):
-        item = self.selectedItem()            
+        item = self.item            
         self.postEventByName("FocusTogglePrivate", {'items': [item]})
         tool = event.arguments['sender']
         self.widget.ToggleTool(tool.toolID, item.private) # in case the user canceled the dialog, reset markupbar buttons
 
     def onTogglePrivateEventUpdateUI(self, event):
-        item = self.selectedItem()            
+        item = self.item            
         enable = item is not None and item.isAttributeModifiable('private')
         event.arguments ['Enable'] = enable
 
@@ -634,7 +630,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
 
     def saveTextValue (self, validate=False):
         # save the user's edits into item's attibute
-        item = self.selectedItem()
+        item = self.item
         try:
             widget = self.widget
         except AttributeError:
@@ -645,7 +641,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     def loadTextValue (self, item):
         # load the edit text from our attribute into the field
         if item is None:
-            item = self.selectedItem()
+            item = self.item
         if item is not None:
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
@@ -735,56 +731,7 @@ class ToMailEditField (EditToAddressTextAttribute):
     def whichAttribute(self):
         # define the attribute to be used
         return 'toAddress'
-
-class SharingArea (DetailSynchronizedLabeledTextAttributeBlock):
-    """ an area visible only when the item (a collection) is shared """
-    def shouldShow (self, item):
-        return item is not None and sharing.isShared(item)
                 
-class ParticipantsTextFieldBlock(EditTextAttribute):
-    """
-    'participants' attribute of an AbstractCollection, e.g. who it's already been shared with.
-    Read only, at least for now.
-    """
-    def loadAttributeIntoWidget (self, item, widget):
-        share = sharing.getShare(item)
-        if share is not None:
-            sharees = sets.Set(share.sharees)
-            sharees.add(share.sharer)
-            value = ", ".join([ str(sharee) for sharee in list(sharees) ])
-            widget.SetValue(value)
-
-    def saveAttributeFromWidget (self, item, widget, validate):  
-        # It's read-only, but we have to override this method.
-        pass
-    
-class InviteEditFieldBlock(EditToAddressTextAttribute):
-    """
-    'invitees' attribute of an AbstractCollection, e.g. who we're inviting to share it.
-    """
-    def whichAttribute(self):
-        # define the attribute to be used
-        return 'invitees'
-
-class EditSharingActiveBlock(DetailSynchronizer, ControlBlocks.CheckBox):
-    """
-      "Sharing Active" checkbox on item collections
-    """
-    def synchronizeItemDetail (self, item):
-        hasChanged = super(EditSharingActiveBlock, self).synchronizeItemDetail(item)
-        if item is not None and self.isShown:
-            share = sharing.getShare(item)
-            if share is not None:
-                self.widget.SetValue(share.active)
-        return hasChanged
-    
-    def onToggleSharingActiveEvent (self, event):
-        item = self.selectedItem()
-        if item is not None:
-            share = sharing.getShare(item)
-            if share is not None:
-                share.active = self.widget.GetValue() == wx.CHK_CHECKED
-
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
     def saveAttributeFromWidget(self, item, widget, validate):  
@@ -921,7 +868,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         return showIt
 
     def onAcceptShareEvent(self, event):
-        url, collectionName = MailSharing.getSharingHeaderInfo(self.selectedItem())
+        url, collectionName = MailSharing.getSharingHeaderInfo(self.item)
         statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
         statusBlock.setStatusMessage( _(u'Subscribing to collection...') )
         wx.Yield()
@@ -940,7 +887,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     def onAcceptShareEventUpdateUI(self, event):
         # If we're already sharing it, we should disable the button and change the text.
         enabled = True
-        item = self.selectedItem()
+        item = self.item
         try:
             url, collectionName = MailSharing.getSharingHeaderInfo(item)
             existingSharedCollection = sharing.findMatchingShare(self.itsView, url)
@@ -964,26 +911,32 @@ class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
         return item.isAttributeModifiable('location') \
                or hasattr(item, 'location')
 
-class CalendarConditionalLabelBlock(StaticTextLabel):
+class CalendarHideIfAlldayOrAnytime(schema.Item):
+    def attributesToMonitor(self):
+        attrs = super(CalendarHideIfAlldayOrAnytime, self).attributesToMonitor()
+        attrs.extend((u'allDay', u'anyTime'))
+        return attrs
+
     def shouldShow (self, item):
-        return item.isAttributeModifiable('startTime') \
-               or not (item.allDay or item.anyTime)
-        
-class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
-    def shouldShow (self, item):
-        return item.isAttributeModifiable('startTime') \
-               or not (item.allDay or item.anyTime)
+        return not (item.allDay or item.anyTime)
+
+class CalendarConditionalLabelBlock(CalendarHideIfAlldayOrAnytime, 
+                                    StaticTextLabel):
+    pass
+
+class CalendarTimeAEBlock (CalendarHideIfAlldayOrAnytime, 
+                           DetailSynchronizedAttributeEditorBlock):
+    pass
+
+class CalendarTimeZoneAreaBlock (CalendarHideIfAlldayOrAnytime, 
+                                 DetailSynchronizedContentItemDetail):
+    pass
+
 
 class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('reminders') \
                or len(item.reminders) > 0
-
-class CalendarTimeZoneAreaBlock (DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return item.isAttributeModifiable('startTime') \
-               or not (item.allDay or item.anyTime)
-
 
 # Centralize the recurrence blocks' visibility decisions
 showPopup = 1
@@ -1350,7 +1303,6 @@ class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):
         self.selection = item
         # this ensures that getHTMLText() gets called appropriately on the derived class
-        self.synchronizeWidget()
         
     def getHTMLText(self, item):
         return "<html><body>" + str(item) + "</body></html>"
