@@ -389,58 +389,48 @@ class Block(schema.Item):
     def onShowHideEventUpdateUI(self, event):
         event.arguments['Check'] = self.isShown
 
-    def onModifyContentsEvent(self, event):
-        def modifyContents (item):
-            if event.copyItems:
-                item = item.copy(parent=userdata, cloudAlias='copying')
+    def onModifyCollectionEvent(self, event):
+        """
+        Adds itms to a collection, by default the sidebarCollection.
 
-            operation = event.operation
-            if operation == 'toggle':
-                try:
-                    index = self.contents.index (item)
-                except ValueError:
-                    operation = 'add'
-                else:
-                    operation = 'remove'
-            if operation == 'add':
-                if event.disambiguateDisplayName:
-                    displayName = item.displayName
-                    newDisplayName = displayName
-                    suffix = 1;
-                    while True:
-                        for contentsItem in self.contents:
-                            if contentsItem.displayName == newDisplayName:
-                                newDisplayName = displayName + u'-' + unicode (suffix)
-                                suffix += 1
-                                break
-                        else:
-                            break
-                    if displayName != newDisplayName:
-                        item.displayName = newDisplayName
-                if not event.arguments.has_key ('item'):
-                    event.arguments ['item'] = item
-
-            method = getattr (type(self.contents), operation)
-            method (self.contents, item)
-
-        assert not event.arguments.has_key ('item')
-        if event.copyItems:
-            userdata = self.findPath('//userdata')
-
-        resultItems = []
-        for item in event.items:
-            modifyContents (item)
-            resultItems.append (item)
-        try:
-            items = event.arguments ['items']
-        except KeyError:
-            pass
-        else:
-            for item in items:
-                modifyContents (item)
-            resultItems.extend (items)
-        return resultItems
+        This method originally had an operation attribute that let you add,
+        remove or toggle (e.g. add if not present or delete if present) items
+        to a collection.
         
+        Since this behavior is no longer used, we removed it. It can be added back
+        if necessary
+        """
+        collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
+        for item in event.items:
+
+            if event.copyItems:
+                # Do a cloud copy
+                item = item.copy (parent = self.itsView.findPath ("//userdata"),
+                                  cloudAlias="copying")
+                # And call setup if it exists
+                method = getattr (type (item), "setup", None)
+                if method:
+                    method (item)
+
+            if event.disambiguateDisplayName:
+                # You can only change the name if you make a copy
+                assert self.copy
+                displayName = item.displayName
+                newDisplayName = displayName
+                suffix = 1;
+                while True:
+                    for theCollection in collection:
+                        if theCollection.displayName == newDisplayName:
+                            newDisplayName = displayName + u'-' + unicode (suffix)
+                            suffix += 1
+                            break
+                    else:
+                        item.displayName = newDisplayName
+                        break
+
+            collection.add (item)
+        # Need to SelectFirstItem -- DJA based on self.selectInBlock
+
     def synchronizeWidget (self):
         """
           synchronizeWidget's job is to make the wxWidget match the state of
@@ -973,12 +963,12 @@ class KindParameterizedEvent(BlockEvent):
 class operationType(schema.Enumeration):
       values = "add", "remove", "toggle"
 
-class ModifyContentsEvent(BlockEvent):
+class ModifyCollectionEvent(BlockEvent):
     items = schema.Sequence(schema.Item, initialValue = [])
-    operation = schema.One(operationType, initialValue = 'add')
-    copyItems = schema.One(schema.Boolean, initialValue = True)
-    selectFirstItem = schema.One(schema.Boolean, initialValue = False)
-    disambiguateDisplayName = schema.One(schema.Boolean, initialValue = False)
+    collectionName = schema.One(schema.String, initialValue = "sidebarCollection")
+    copyItems = schema.One(schema.Boolean, initialValue=False)
+    selectFirstItemInBlockNamed = schema.One(schema.String, defaultValue = None)
+    disambiguateDisplayName = schema.One(schema.Boolean, initialValue=False)
     schema.addClouds(
         copying = schema.Cloud(byRef=[items])
     )

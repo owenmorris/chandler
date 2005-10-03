@@ -3,7 +3,7 @@ from Block import Block as __Block
 
 from Block import (
     RectangularChild, TrunkSubtree, BlockEvent, ChoiceEvent, ColorEvent,
-    KindParameterizedEvent, ModifyContentsEvent, EventList
+    KindParameterizedEvent, ModifyCollectionEvent, EventList
 )
 
 from ContainerBlocks import (

@@ -880,7 +880,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         # @@@ Remove this when the sidebar autodetects new collections
         collection = share.contents
         mainView = application.Globals.views[0]
-        collection.setColorIfAbsent()
+        assert (hasattr (collection, 'color'))
         schema.ns("osaf.app", self).sidebarCollection.add (collection)
         # Need to SelectFirstItem -- DJA
 

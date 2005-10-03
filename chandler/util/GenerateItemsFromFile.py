@@ -67,7 +67,10 @@ def addSurrogatePairToText(text):
 
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
+    appNameSpace = schema.ns('osaf.app', self)
     collection = pim.ListCollection(view=view)
+    collection.color = appNameSpace.collectionColors.nextColor()
+    sidebarCollection = appNameSpace.sidebarCollection
 
     if args[0]=='*': # semi-random data
         while True:
@@ -77,23 +80,20 @@ def GenerateCollection(view, mainView, args):
                  collection.displayName = potentialName
                  collectionsDict[potentialName] = collection
                  if mainView:
-                     collection.setColorIfAbsent()
-                     schema.ns("osaf.app", view).sidebarCollection.add (collection)
+                     sidebarCollection.add (collection)
              break
     elif not args[0]=='':
         collection.displayName = u"%s" %args[0]
         if not collectionsDict.has_key(args[0]):
             if mainView:
-                collection.setColorIfAbsent()
-                schema.ns("osaf.app", view).sidebarCollection.add (collection)
+                idebarCollection.add (collection)
             collectionsDict[args[0]]=collection
     else:
         #default value
         collection.displayName = u'Untitled'
         if not collectionsDict.has_key(u'Untitled'):
             if mainView:
-                collection.setColorIfAbsent()
-                schema.ns("osaf.app", view).sidebarCollection.add (collection)
+                sidebarCollection.add (collection)
             collectionsDict[u'Untitled']=collection
         
     return collection

@@ -138,10 +138,6 @@ class AbstractCollection(items.ContentItem):
         sharing = schema.Cloud( none = ["displayName"] ),
     )
 
-    def setColorIfAbsent (self):
-        if not hasattr (self, 'color'):
-            self.color = schema.ns('osaf.app', self).collectionColors.nextColor()
-
     def collectionChanged(self, op, item, name, other, *args):
         """
         The method called by the repository level set that backs a collection.
@@ -573,14 +569,27 @@ class InclusionExclusionCollection(DifferenceCollection):
             item.getItemDisplayName().encode('utf8'),
             self.getItemDisplayName().encode('utf8'))
 
-    def setup(self, source=None, exclusions=None, trash=None):
+    def setup(self, source=None, exclusions=None,  trash="TrashCollection"):
         """
-            Auto-configure the source tree depending on the arguments provided.
+        setup all the extra parts of a InclusionExclusionCollection. Sets the
+        color, source, exclusions and trash collections. source, exclusions and
+        trash may be collections or strings. If they are strings, then the
+        corresponding collection is looked up in the osaf.app namespace
         """
 
-        # An inclusions ListCollection is always created.  if source is
-        # provided, then an additional UnionCollection is created to combine
-        # source and inclusions
+        def collectionLookup (collection):
+            if isinstance (collection, str):
+                collection = getattr (appNameSpace, collection)
+            return collection
+
+        appNameSpace = schema.ns('osaf.app', self.itsView)
+        
+        source = collectionLookup (source)
+        exclusions = collectionLookup (exclusions)
+        trash = collectionLookup (trash)
+
+        if not hasattr (self, 'color'):
+            self.color = appNameSpace.collectionColors.nextColor()
 
         if source is None:
             innerSource = ListCollection(parent=self,
@@ -619,16 +628,12 @@ class InclusionExclusionCollection(DifferenceCollection):
             outerSource = DifferenceCollection(parent=self,
                 displayName=u"(Difference between source and trash)")
             outerSource.sources = [innerSource, trash]
+            self.trash = trash
         else:
             outerSource = innerSource
-            trash = exclusions
-        self.trash = trash
+            self.trash = exclusions
 
         self.sources = [outerSource, exclusions]
-
-        # set up collectionList for sidebar. Eventually, this should be
-        # part of the view information that the sidebar will generate
-        self.collectionList = [self]
 
         return self
 

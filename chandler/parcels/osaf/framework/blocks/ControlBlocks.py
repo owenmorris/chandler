@@ -1120,15 +1120,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         if visiblerow is not None:
             self.widget.MakeCellVisible (row, 0)
 
-    def onModifyContentsEvent(self, event):
-        result = super (Table, self).onModifyContentsEvent (event)
-        if event.selectFirstItem:
-            self.select(event.arguments['item'])
-            # need to convert from single item to multiple items:
-            self.postEventByName ('SelectItemsBroadcast',
-                                  {'items':[event.arguments ['item']]})
-        return result
-
     def onDeleteEvent(self, event):
 
         # precache the trash so we don't have to keep looking it up

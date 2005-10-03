@@ -681,9 +681,7 @@ class ShareConduit(items.ContentItem):
 
         # Make sure we have a collection to add items to:
         if self.share.contents is None:
-            self.share.contents = InclusionExclusionCollection(view=view)
-            trash = schema.ns('osaf.app', view).TrashCollection
-            self.share.contents.setup(trash=trash)
+            self.share.contents = InclusionExclusionCollection(view=view).setup()
 
         contents = self.share.contents
 
@@ -699,8 +697,7 @@ class ShareConduit(items.ContentItem):
 
             if isinstance(contents, InclusionExclusionCollection) and \
                 not hasattr(contents, 'rep'):
-                    trash = schema.ns('osaf.app', view).TrashCollection
-                    contents.setup(trash=trash)
+                    contents.setup()
 
             filterClasses = self._getFilterClasses()
 

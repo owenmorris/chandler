@@ -192,9 +192,9 @@ def make_mainview(parcel):
             dispatchEnum='FocusBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
     AddCPIAViewEvent = \
-        ModifyContentsEvent.template('AddCPIAView',
-            methodName='onModifyContentsEvent',
-            dispatchToBlockName='Sidebar',
+        ModifyCollectionEvent.template('AddCPIAView',
+            methodName='onModifyCollectionEvent',
+            dispatchToBlockName='MainView',
             commitAfterDispatch=True,
             items=[repositoryViewer.CPIAView],
             dispatchEnum='SendToBlockByName').install(parcel)
@@ -245,9 +245,9 @@ def make_mainview(parcel):
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
     AddRepositoryViewEvent = \
-        ModifyContentsEvent.template('AddRepositoryView',
-            methodName='onModifyContentsEvent',
-            dispatchToBlockName='Sidebar',
+        ModifyCollectionEvent.template('AddRepositoryView',
+            methodName='onModifyCollectionEvent',
+            dispatchToBlockName='MainView',
             commitAfterDispatch=True,
             items=[repositoryViewer.RepositoryView],
             dispatchEnum='SendToBlockByName').install(parcel)
@@ -275,9 +275,14 @@ def make_mainview(parcel):
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
     NewCollectionEvent = \
-        ModifyContentsEvent.template('NewCollection',
-            dispatchToBlockName='MainView',
-            dispatchEnum='SendToBlockByName').install(parcel)
+        ModifyCollectionEvent.template('NewCollection',
+            methodName='onModifyCollectionEvent',
+            copyItems = True,
+            disambiguateDisplayName = True,
+            dispatchToBlockName = 'MainView',
+            selectFirstItemInBlockNamed = 'Sidebar',
+            items=[app.untitledCollection],
+            dispatchEnum = 'SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main
     ImportImageEvent = \
         BlockEvent.template('ImportImage',
@@ -285,11 +290,11 @@ def make_mainview(parcel):
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
     AddAllAdditionalViewsEvent = \
-        ModifyContentsEvent.template('AddAllAdditionalViews',
-            methodName='onModifyContentsEvent',
-            dispatchToBlockName='Sidebar',
+        ModifyCollectionEvent.template('AddAllAdditionalViews',
+            methodName='onModifyCollectionEvent',
+            dispatchToBlockName='MainView',
             commitAfterDispatch=True,
-            items=[demo.BlockDemoView, repositoryViewer.RepositoryView, repositoryViewer.CPIAView],
+            items=[repositoryViewer.RepositoryView, repositoryViewer.CPIAView],
             dispatchEnum='SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main
     GenerateContentItemsFromFileEvent = \
@@ -306,9 +311,9 @@ def make_mainview(parcel):
             dispatchToBlockName='Sidebar').install(parcel)
     # from //parcels/osaf/views/main
     AddDemoViewEvent = \
-        ModifyContentsEvent.template('AddDemoView',
-            methodName='onModifyContentsEvent',
-            dispatchToBlockName='Sidebar',
+        ModifyCollectionEvent.template('AddDemoView',
+            methodName='onModifyCollectionEvent',
+            dispatchToBlockName='MainView',
             commitAfterDispatch=True,
             items=[demo.BlockDemoView],
             dispatchEnum='SendToBlockByName').install(parcel)
@@ -910,6 +915,6 @@ def make_mainview(parcel):
          displayName = _(u"Scripts"),
          renameable = False,
          private = False
-         ).setup(source=scripts)
+         ).setup(source=scripts, trash=None)
     
     return mainview

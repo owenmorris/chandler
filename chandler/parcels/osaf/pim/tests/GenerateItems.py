@@ -262,9 +262,7 @@ def GenerateContact(view):
     return contact
 
 def GenerateCollection(view, postToView=None, existingNames=None):
-    collection = pim.InclusionExclusionCollection(view=view)
-    app = schema.ns('osaf.app', view)
-    collection.setup(trash=app.TrashCollection)
+    collection = pim.InclusionExclusionCollection(view=view).setup()
     
     while True:
         # Find a name that isn't already in use
@@ -280,7 +278,7 @@ def GenerateCollection(view, postToView=None, existingNames=None):
             break
         
     if postToView is not None:
-        collection.setColorIfAbsent()
+        assert hasattr (collection, 'color')
         schema.ns("osaf.app", view).sidebarCollection.add (collection)
     return collection
 

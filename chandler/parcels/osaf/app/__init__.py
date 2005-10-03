@@ -287,7 +287,7 @@ def MakeCollections(parcel):
                                    'MailMessageMixin': _(u'My mail'),
                                    'CalendarEventMixin': _(u'My calendar'),
                                    'TaskMixin': _(u'My tasks')}
-    ).setup(source=mine, exclusions=TrashCollection)
+    ).setup(source=mine, exclusions=TrashCollection, trash=None)
 
 
     events = \
@@ -319,7 +319,7 @@ def MakeCollections(parcel):
         colorizeIcon = False,
         outOfTheBoxCollection = True,
         visible = False
-    ).setup(source=inSource, trash=TrashCollection)
+    ).setup(source=inSource)
 
     outSource = \
         FilteredCollection.update(parcel, 'outSource',
@@ -337,7 +337,7 @@ def MakeCollections(parcel):
         colorizeIcon = False,
         outOfTheBoxCollection = True,
         visible = False
-    ).setup(source=outSource, trash=TrashCollection)
+    ).setup(source=outSource)
 
     # The "Scripts" collection
     scriptsCollection = KindCollection.update(parcel, 'scripts')
@@ -360,3 +360,8 @@ def MakeCollections(parcel):
                                                                  TrashCollection])
 
     TrashCollection.color = collectionColors.nextColor()
+
+
+    InclusionExclusionCollection.update (parcel,
+                                         'untitledCollection',
+                                         displayName=messages.UNTITLED)

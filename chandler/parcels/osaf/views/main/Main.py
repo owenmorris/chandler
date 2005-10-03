@@ -163,16 +163,6 @@ class MainView(View):
                               {'items':[newItem]})
         return [newItem]
 
-    def onNewCollectionEvent(self, event):
-        # Create a new collection, triggered from File | New Collection
-        coll = pim.InclusionExclusionCollection(view=self.itsView)
-        coll.setColorIfAbsent()
-        coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
-        coll.displayName = messages.UNTITLED
-        schema.ns("osaf.app", self).sidebarCollection.add (coll)
-        # Need to SelectFirstItem -- DJA
-        return [coll]
-
     def onPasteEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
 
@@ -486,7 +476,7 @@ class MainView(View):
             share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
-            collection.setColorIfAbsent()
+            assert (hasattr (collection, 'color'))
             schema.ns("osaf.app", self).sidebarCollection.add (collection)
             # Need to SelectFirstItem -- DJA
             self.setStatusMessage (_(u"Import completed"))
@@ -771,7 +761,7 @@ class MainView(View):
             self.setStatusMessage (_(u"Restoring published shares..."))
             (collections, failures) = sharing.restoreFromAccount(account)
             for collection in collections:
-                collection.setColorIfAbsent()
+                assert (hasattr (collection, 'color'))
                 schema.ns("osaf.app", self).sidebarCollection.add (collection)
 
             self.setStatusMessage (_(u"Restoring shares completed"))
