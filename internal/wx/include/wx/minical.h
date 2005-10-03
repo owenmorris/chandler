@@ -112,8 +112,8 @@ public:
     wxMiniCalendarEvent() { Init(); }
     wxMiniCalendarEvent(wxMiniCalendar *cal, wxEventType type);
 
-    const wxDateTime& GetDate() const { return m_date; }
-    void SetDate(const wxDateTime &date) { m_date = date; }
+    const wxDateTime& GetDate() const { return m_selected; }
+    void SetDate(const wxDateTime &date) { m_selected = date; }
     void SetWeekDay(const wxDateTime::WeekDay wd) { m_wday = wd; }
     wxDateTime::WeekDay GetWeekDay() const { return m_wday; }
 
@@ -121,7 +121,8 @@ protected:
     void Init();
 
 private:
-    wxDateTime m_date;
+    wxDateTime m_selected;
+	wxDateTime m_visible;
     wxDateTime::WeekDay m_wday;
 
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxMiniCalendarEvent)

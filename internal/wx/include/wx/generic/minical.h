@@ -56,7 +56,8 @@ public:
     // ------------------------
 
     bool SetDate(const wxDateTime& date); // we need to be able to control if the event should be sent in SetDateAndNotify(...)
-    const wxDateTime& GetDate() const { return m_date; }
+    const wxDateTime& GetDate() const { return m_selected; }
+	bool SetVisibleDate(const wxDateTime& date, bool setVisible);
 
     // set/get the range in which selection can occur
     // ---------------------------------------------
@@ -183,6 +184,7 @@ private:
 
     // set the date and send the notification
     void SetDateAndNotify(const wxDateTime& date);
+    void SetVisibleDateAndNotify(const wxDateTime& date, bool setVisible);
 
     // get the week (row, in range 1..WEEKS_TO_DISPLAY) for the given date
     size_t GetWeek(const wxDateTime& date, bool useRelative = true) const;
@@ -239,7 +241,10 @@ private:
     wxStaticText *m_staticYear;
 
     // the current selection
-    wxDateTime m_date;
+    wxDateTime m_selected;
+
+	// the currently visible day
+	wxDateTime m_visible;
 
     // the date-range
     wxDateTime m_lowdate;

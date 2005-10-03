@@ -174,7 +174,8 @@ bool wxMiniCalendar::Create(wxWindow *parent,
     // needed to get the arrow keys normally used for the dialog navigation
     SetWindowStyle(style);
 
-    m_date = date.IsValid() ? date : wxDateTime::Today();
+    m_selected = date.IsValid() ? date : wxDateTime::Today();
+	m_visible = m_selected;
 
     m_lowdate = wxDefaultDateTime;
     m_highdate = wxDefaultDateTime;
@@ -274,8 +275,8 @@ bool wxMiniCalendar::SetDate(const wxDateTime& date)
 {
     bool retval = true;
 
-    bool sameMonth = m_date.GetMonth() == date.GetMonth(),
-         sameYear = m_date.GetYear() == date.GetYear();
+    bool sameMonth = m_selected.GetMonth() == date.GetMonth() && m_visible.GetMonth() == date.GetMonth(),
+         sameYear = m_selected.GetYear() == date.GetYear() && m_visible.GetYear() == date.GetYear();
 
     if ( IsDateInRange(date) )
     {
@@ -287,7 +288,8 @@ bool wxMiniCalendar::SetDate(const wxDateTime& date)
         else
         {
             // change everything
-            m_date = date;
+            m_selected = date;
+			m_visible = m_selected;
 
             ClearAllAttr();
             GenerateEvent(wxEVT_MINI_CALENDAR_UPDATE_BUSY);
@@ -304,27 +306,49 @@ bool wxMiniCalendar::SetDate(const wxDateTime& date)
 
 void wxMiniCalendar::ChangeDay(const wxDateTime& date)
 {
-    if ( m_date != date )
+    if ( m_selected != date )
     {
         // we need to refresh the row containing the old date and the one
         // containing the new one
-        wxDateTime dateOld = m_date;
-        m_date = date;
+        wxDateTime dateOld = m_selected;
+        m_selected = date;
+		m_visible = m_selected;
 
         RefreshDate(dateOld);
 
         // if the date is in the same row, it was already drawn correctly
-        if ( GetWeek(m_date) != GetWeek(dateOld) )
+        if ( GetWeek(m_selected) != GetWeek(dateOld) )
         {
-            RefreshDate(m_date);
+            RefreshDate(m_selected);
         }
     }
 }
 
 void wxMiniCalendar::SetDateAndNotify(const wxDateTime& date)
 {
-    wxDateTime::Tm tm1 = m_date.GetTm(),
+    wxDateTime::Tm tm1 = m_selected.GetTm(),
                    tm2 = date.GetTm();
+/*
+    wxEventType type;
+    if ( tm1.year != tm2.year )
+        type = wxEVT_MINI_CALENDAR_YEAR_CHANGED;
+    else if ( tm1.mon != tm2.mon )
+        type = wxEVT_MINI_CALENDAR_MONTH_CHANGED;
+    else if ( tm1.mday != tm2.mday )
+        type = wxEVT_MINI_CALENDAR_DAY_CHANGED;
+    else
+        return;
+*/
+    if ( SetDate(date) )
+    {
+        GenerateEvents(wxEVT_MINI_CALENDAR_YEAR_CHANGED, wxEVT_MINI_CALENDAR_SEL_CHANGED);
+    }
+}
+
+void wxMiniCalendar::SetVisibleDateAndNotify(const wxDateTime& date, bool setVisible)
+{
+	wxDateTime::Tm tm1, tm2 = date.GetTm();
+	tm1 = (setVisible) ? m_visible.GetTm() : m_selected.GetTm();
 
     wxEventType type;
     if ( tm1.year != tm2.year )
@@ -336,11 +360,51 @@ void wxMiniCalendar::SetDateAndNotify(const wxDateTime& date)
     else
         return;
 
-    if ( SetDate(date) )
+    if ( SetVisibleDate(date, setVisible) )
     {
         GenerateEvents(type, wxEVT_MINI_CALENDAR_SEL_CHANGED);
     }
 }
+
+bool wxMiniCalendar::SetVisibleDate(const wxDateTime& date, bool setVisible)
+{
+    bool retval = true;
+
+    bool sameMonth = m_visible.GetMonth() == date.GetMonth(),
+         sameYear = m_visible.GetYear() == date.GetYear();
+
+    if ( IsDateInRange(date) )
+    {
+        if ( sameMonth && sameYear )
+        {
+            // just change the day
+            ChangeDay(date);
+        }
+        else
+        {
+            // change everything
+            if (setVisible)
+			{
+				m_visible = date;
+			}
+			else
+			{
+				m_selected = date;
+			}
+
+            ClearAllAttr();
+            GenerateEvent(wxEVT_MINI_CALENDAR_UPDATE_BUSY);
+
+            // update the calendar
+            Refresh();
+        }
+    }
+
+    m_userChangedYear = false;
+
+    return retval;
+}
+
 
 // ----------------------------------------------------------------------------
 // date range
@@ -403,7 +467,7 @@ bool wxMiniCalendar::SetDateRange(const wxDateTime& lowerdate /* = wxDefaultDate
 
 wxDateTime wxMiniCalendar::GetStartDate() const
 {
-    wxDateTime::Tm tm = m_date.GetTm();
+    wxDateTime::Tm tm = m_visible.GetTm();
 
     wxDateTime date = wxDateTime(1, tm.mon, tm.year);
 
@@ -418,7 +482,7 @@ bool wxMiniCalendar::IsDateShown(const wxDateTime& date) const
 {
     if ( !(GetWindowStyle() & wxCAL_SHOW_SURROUNDING_WEEKS) )
     {
-        return date.GetMonth() == m_date.GetMonth();
+        return date.GetMonth() == m_visible.GetMonth();
     }
     else
     {
@@ -582,6 +646,7 @@ void wxMiniCalendar::RecalcGeometry()
     m_todayHeight = m_heightRow + 2;
 }
 
+
 // ----------------------------------------------------------------------------
 // drawing
 // ----------------------------------------------------------------------------
@@ -675,12 +740,11 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     y += m_todayHeight;
 
-
-    wxDateTime dateToDraw = m_date;
+    wxDateTime dateToDraw = m_visible;
     int i;
     int dayPosition = 0;
     for (i = 0; i < MONTHS_TO_DISPLAY; i++) {
-        DrawMonth(dc, dateToDraw, &y, dayPosition, i == 0);
+        DrawMonth(dc, dateToDraw, &y, dayPosition, true);
         dateToDraw += wxDateSpan::Month();
         dayPosition += DAYS_PER_WEEK * WEEKS_TO_DISPLAY;
     }
@@ -775,8 +839,8 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 if ( highlightDay )
                 {
                 // either highlight the selected week or the selected day depending upon the style
-                    if ( ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) != 0 ) && ( GetWeek(date, false) == GetWeek(startDate, false) ) ) ||
-                        ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) == 0 ) && ( date.IsSameDate(startDate) ) ) )
+                    if ( ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) != 0 ) && ( GetWeek(date, false) == GetWeek(m_selected, false) ) ) ||
+                        ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) == 0 ) && ( date.IsSameDate(m_selected) ) ) )
                     {
                         dc.SetTextBackground(highlightColour);
                         dc.SetBrush(wxBrush(highlightColour, wxSOLID));
@@ -987,7 +1051,7 @@ bool wxMiniCalendar::GetDateCoord(const wxDateTime& date, int *day, int *week) c
         }
 
         int targetmonth = date.GetMonth() + (12 * date.GetYear());
-        int thismonth = m_date.GetMonth() + (12 * m_date.GetYear());
+        int thismonth = m_visible.GetMonth() + (12 * m_visible.GetYear());
 
         // Find week
         if ( targetmonth == thismonth )
@@ -1007,7 +1071,7 @@ bool wxMiniCalendar::GetDateCoord(const wxDateTime& date, int *day, int *week) c
                 int lastday;
 
                 // get the datecoord of the last day in the month currently shown
-                GetDateCoord(ldcm.SetToLastMonthDay(m_date.GetMonth(), m_date.GetYear()), &lastday, &lastweek);
+                GetDateCoord(ldcm.SetToLastMonthDay(m_visible.GetMonth(), m_visible.GetYear()), &lastday, &lastweek);
 
                 wxTimeSpan span = date - ldcm;
 
@@ -1074,12 +1138,15 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
             event.Skip();
             break;
         case wxCAL_HITTEST_TODAY:
-        case wxCAL_HITTEST_SURROUNDING_WEEK:
             SetDateAndNotify(date);
+            break;
+        case wxCAL_HITTEST_SURROUNDING_WEEK:
+			SetVisibleDateAndNotify(date, false);
+//            SetDateAndNotify(date);
             break;
         case wxCAL_HITTEST_DECMONTH:
         case wxCAL_HITTEST_INCMONTH:
-            SetDate(date);
+            SetVisibleDate(date, true);
             break;
 
         default:
@@ -1094,7 +1161,7 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
 
 void wxMiniCalendar::SetBusy(const wxDateTime& date, double busyPercentage)
 {
-    wxDateTime::Tm currentTm = m_date.GetTm();
+    wxDateTime::Tm currentTm = m_visible.GetTm();
 	wxDateTime startDate = GetStartDate();
 	wxDateTime firstOfMonth = wxDateTime(1, currentTm.mon, currentTm.year);
     // Only update months that are being displayed
@@ -1163,9 +1230,9 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     {
         if ( date )
         {
-            if ( IsDateInRange(m_date - wxDateSpan::Month()) )
+            if ( IsDateInRange(m_visible - wxDateSpan::Month()) )
             {
-                *date = m_date - wxDateSpan::Month();
+                *date = m_visible - wxDateSpan::Month();
             }
             else
             {
@@ -1180,9 +1247,9 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     {
         if ( date )
         {
-            if ( IsDateInRange(m_date + wxDateSpan::Month()) )
+            if ( IsDateInRange(m_visible + wxDateSpan::Month()) )
             {
-                *date = m_date + wxDateSpan::Month();
+                *date = m_visible + wxDateSpan::Month();
             }
             else
             {
@@ -1253,7 +1320,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     }
 
     wxDateTime dt;
-    wxDateTime::Tm tm = m_date.GetTm();
+    wxDateTime::Tm tm = m_visible.GetTm();
     dt = wxDateTime(1, tm.mon, tm.year);
     int monthsToAdd;
     for (monthsToAdd = 0; monthsToAdd < month; monthsToAdd++)
@@ -1266,7 +1333,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
 
     // Test to see if click is actually in a hidden date
     wxDateTime::Tm clickTm = dt.GetTm();
-    wxDateTime::Tm monthTm = m_date.GetTm();
+    wxDateTime::Tm monthTm = m_visible.GetTm();
     int targetMonth = monthTm.mon + month;
     if ( targetMonth > 11 ) {
         targetMonth -= 12;
@@ -1279,7 +1346,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
         if ( date )
             *date = dt;
 
-        if ( dt.GetMonth() == m_date.GetMonth() )
+        if ( dt.GetMonth() == m_visible.GetMonth() )
         {
             return wxCAL_HITTEST_DAY;
         }
@@ -1315,7 +1382,8 @@ void wxMiniCalendarEvent::Init()
 wxMiniCalendarEvent::wxMiniCalendarEvent(wxMiniCalendar *cal, wxEventType type)
                : wxCommandEvent(type, cal->GetId())
 {
-    m_date = cal->GetDate();
+    m_selected = cal->GetDate();
+	m_visible = m_selected;
     SetEventObject(cal);
 }
 
