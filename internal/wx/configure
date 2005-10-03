@@ -1663,7 +1663,7 @@ test -n "$target_alias" &&
 
 
 wx_major_version_number=2
-wx_minor_version_number=6
+wx_minor_version_number=7
 wx_release_number=2
 wx_subrelease_number=1
 
