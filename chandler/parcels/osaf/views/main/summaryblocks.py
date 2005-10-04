@@ -43,14 +43,21 @@ def make_summaryblocks(parcel):
     TimeZoneChange = \
         BlockEvent.template('TimeZoneChange',
                             'BroadcastEverywhere').install(parcel)
-    
-    TimeZoneStyle = \
-        CharacterStyle.update(parcel, 'TimeZoneStyle',
-                              fontFamily='DefaultUIFont',
-                              fontSize=11)
+
     DefaultCharacterStyle = \
         CharacterStyle.update(parcel, 'DefaultCharacterStyle',
                               fontFamily='DefaultUIFont')
+
+    DefaultSmallBoldStyle = \
+        CharacterStyle.update(parcel, 'DefaultSmallBoldStyle',
+                              fontFamily='DefaultUIFont',
+                              fontSize=10.0,
+                              fontStyle='bold')
+
+    DefaultBigStyle = \
+        CharacterStyle.update(parcel, 'DefaultBigStyle',
+                              fontFamily='DefaultUIFont',
+                              fontSize=12.0)
 
     DefaultBoldStyle = \
         CharacterStyle.update(parcel, 'DefaultBoldStyle',
@@ -63,9 +70,10 @@ def make_summaryblocks(parcel):
                               fontSize=13,
                               fontStyle='bold')
 
+    # save the template because we'll need it for later
     MainCalendarControlT = \
         calendar.CalendarControl.template('MainCalendarControl',
-                                          tzCharacterStyle=TimeZoneStyle,
+                                          tzCharacterStyle=DefaultCharacterStyle,
                                           stretchFactor=0)
     MainCalendarControl = MainCalendarControlT.install(parcel)
     
@@ -74,7 +82,7 @@ def make_summaryblocks(parcel):
                 calendarControl=MainCalendarControl,
                 monthLabelStyle=DefaultBigBoldStyle,
                 eventLabelStyle=DefaultCharacterStyle,
-                eventTimeStyle=DefaultBoldStyle,
+                eventTimeStyle=DefaultSmallBoldStyle,
                 legendStyle=DefaultCharacterStyle,
                 orientationEnum='Vertical',
                 eventsForNamedLookup=[TimeZoneChange]).install(parcel)
