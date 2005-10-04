@@ -33,7 +33,6 @@ typedef struct {
 extern PyTypeObject *CView;
 extern PyTypeObject *CRepository;
 extern PyTypeObject *CItem;
-extern PyTypeObject *UUID;
 
 extern PyUUID_Check_fn PyUUID_Check;
 extern PyUUID_Make16_fn PyUUID_Make16;

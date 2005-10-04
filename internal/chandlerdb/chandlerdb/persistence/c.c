@@ -15,7 +15,6 @@
 PyTypeObject *CView = NULL;
 PyTypeObject *CRepository = NULL;
 PyTypeObject *CItem = NULL;
-PyTypeObject *UUID = NULL;
 
 PyUUID_Check_fn PyUUID_Check = NULL;
 PyUUID_Make16_fn PyUUID_Make16 = NULL;
@@ -44,7 +43,8 @@ void initc(void)
     _init_container(m);
 
     m = PyImport_ImportModule("chandlerdb.util.c");
-    LOAD_TYPE(m, UUID);
+    LOAD_FN(m, PyUUID_Check);
+    LOAD_FN(m, PyUUID_Make16);
     Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.item.c");

@@ -454,7 +454,7 @@ static int t_view_dict_length(t_view *self)
 
 static PyObject *t_view_dict_get(t_view *self, PyObject *key)
 {
-    if (PyObject_TypeCheck(key, UUID))
+    if (PyUUID_Check(key))
     {
         PyObject *item;
 
@@ -518,7 +518,7 @@ static PyObject *t_view_find(t_view *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O|O", &spec, &load))
         return NULL;
 
-    if (PyObject_TypeCheck(spec, UUID))
+    if (PyUUID_Check(spec))
     {
         PyObject *item;
 
@@ -579,7 +579,7 @@ static PyObject *t_view_setSingleton(t_view *self, PyObject *args)
         PyDict_DelItem(self->singletons, key);
     else if (PyObject_TypeCheck(item, CItem))
         PyDict_SetItem(self->singletons, key, ((t_item *) item)->uuid);
-    else if (PyObject_TypeCheck(item, UUID))
+    else if (PyUUID_Check(item))
         PyDict_SetItem(self->singletons, key, item);
     else
     {
@@ -646,7 +646,7 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
             if (monitoringItem == NULL)
                 continue;
 
-            if (PyObject_TypeCheck(monitoringItem, UUID))
+            if (PyUUID_Check(monitoringItem))
             {
                 monitoringItem = t_view_dict_get(self, monitoringItem);
                 if (monitoringItem == NULL)

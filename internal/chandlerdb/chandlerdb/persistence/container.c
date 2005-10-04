@@ -6,6 +6,16 @@
  * License at http://osafoundation.org/Chandler_0.1_license_terms.htm
  */
 
+#if defined(_MSC_VER)
+#include <winsock2.h>
+#elif defined(__MACH__)
+#include <arpa/inet.h>
+#elif defined(linux)
+#include <netinet/in.h>
+#else
+#error system is not linux, os x or winnt
+#endif
+
 #include <db.h>
 #include <Python.h>
 #include "structmember.h"
@@ -458,8 +468,11 @@ static PyObject *t_value_container_saveValue(t_value_container *self,
         DBT key, data;
         int vLen = PyString_GET_SIZE(value);
         int len = 36 + vLen;
-        char *buffer = alloca(len);
+        char *buffer = malloc(len);
         int err;
+
+        if (!buffer)
+            PyErr_SetString(PyExc_MemoryError, "malloc failed");
 
         memset(&key, 0, sizeof(key));
         key.data = PyString_AS_STRING(((t_uuid *) uValue)->uuid);
@@ -477,6 +490,8 @@ static PyObject *t_value_container_saveValue(t_value_container *self,
         Py_BEGIN_ALLOW_THREADS;
         err = db->put(db, db_txn, &key, &data, 0);
         Py_END_ALLOW_THREADS;
+
+        free(buffer);
 
         if (err)
             return raiseDBError(err);
@@ -601,7 +616,10 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         len += _size_valueType(previous, &prevType);
         len += _size_valueType(next, &nextType);
         len += _size_valueType(alias, &aliasType);
-        dataBuffer = alloca(len);
+
+        dataBuffer = malloc(len);
+        if (!dataBuffer)
+            PyErr_SetString(PyExc_MemoryError, "malloc failed");
         
         len = 0;
         len += _writeValue(dataBuffer + len, previous, prevType);
@@ -614,6 +632,8 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         Py_BEGIN_ALLOW_THREADS;
         err = db->put(db, db_txn, &key, &data, 0);
         Py_END_ALLOW_THREADS;
+
+        free(dataBuffer);
 
         if (err)
             return raiseDBError(err);
@@ -649,11 +669,6 @@ void _init_container(PyObject *m)
             LOAD_EXC(m, DBInvalidArgError);
             LOAD_EXC(m, DBNoSpaceError);
             LOAD_EXC(m, DBError);
-            Py_DECREF(m);
-
-            m = PyImport_ImportModule("chandlerdb.util.c");
-            LOAD_FN(m, PyUUID_Check);
-            LOAD_FN(m, PyUUID_Make16);
             Py_DECREF(m);
         }
     }
