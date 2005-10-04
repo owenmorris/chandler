@@ -967,30 +967,6 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             return False
 
 
-def __syncShare(share):   # Now obsolete
-
-    try:
-        share.sync()
-        share.error = ''
-
-    except SharingError, err:
-        share.error = err.message
-
-        try:
-            msgVars = {
-                'collectionName': share.contents.getItemDisplayName(),
-                'accountName': share.conduit.account.getItemDisplayName()
-            }
-
-            msg = _(u"Error syncing the '%(collectionName)s' collection\nusing the '%(accountName)s' account\n\n") % msgVars
-            msg += err.message
-        except:
-            msg = _(u"Error during sync")
-
-        logger.exception("Sharing Error: %s" % msg)
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    _(u"Synchronization Error"), msg)
-
 
 def syncCollection(collection, firstTime=False):
 
