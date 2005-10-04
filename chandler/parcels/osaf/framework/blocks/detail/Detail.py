@@ -541,7 +541,7 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item
         enable = item is not None and self._isStampable(item) and \
-               item.isAttributeModifiable('itsKind')
+               item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
 
     def onTogglePrivateEvent(self, event):
@@ -552,7 +552,7 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
 
     def onTogglePrivateEventUpdateUI(self, event):
         item = self.item            
-        enable = item is not None and item.isAttributeModifiable('private')
+        enable = item is not None and item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
 
     def _isStampable(self, item):
