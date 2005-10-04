@@ -120,10 +120,6 @@ class perf:
 
     for perf in perfs:
       if os.path.splitext(perf)[1] == '.perf':
-          # the .perf files are not named by the builder that created them
-          # so we have to figure the name out during parsing and then use
-          # that name later to archive the file to the appropriate tarball
-        buildname = ''
         perffile  = os.path.join(self._options['tbox_data'], perf)
 
           # UGLY CODE ALERT!
@@ -137,14 +133,29 @@ class perf:
         p = len(lines)
 
         if p > 0:
-          for line in lines[(p / 2):]:
+          # the .perf files are not named by the builder that created them
+          # so we have to figure the name out during parsing and then use
+          # that name later to archive the file to the appropriate tarball
+          line      = lines[0]
+          item      = string.split(string.lower(line[:-1]), '|')
+          treename  = item[0]
+          buildname = item[1]
+
+            # another hack - check to see if the buildname is one of the performance
+            # only tboxes.  They only run release mode tests so will not have any
+            # debug data so the starting point will be the first line
+          if buildname.lower().startswith('p_'):
+            p = 0
+          else:
+            p = p / 2
+
+          print '%s: %d %d' % (buildname, len(lines), p)
+
+          for line in lines[p:]:
             item = string.split(string.lower(line[:-1]), '|')
 
               # each line of a .perf file has the following format
               # treename | buildname | date | time | testname | svn rev # | run count | total time | average time
-
-            treename  = item[0]
-            buildname = item[1]
 
             if not datafiles.has_key(buildname):
               datafiles[buildname] = file(os.path.join(self._options['perf_data'], ('%s.dat' % buildname)), 'a')
@@ -249,26 +260,22 @@ class perf:
     avg = 0
 
     if n > 1:
-      sum1 = 0
-      sum2 = 0
+      sum = 0
 
         # algorithm is from http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        # first pass to calculate average of all data points    
-      for item in values:
-        avg = avg + item
+        # first pass to calculate average of all data points
+        # Note: Code modified on 3 Oct 2005 from the original based on a code review by
+        #       Philippe and Grant as they both pointed out the single pass method and
+        #       Philippe pointed out an error in my implementation that was causing
+        #       erronious results
 
-      #print avg, n, avg / n
+      for item in values:
+          avg = avg + item
+          sum = sum + item*item
 
       avg = avg / n
+      v = sqrt((sum - n*avg*avg)/n*n)
 
-        # second pass to calculate variance
-      for item in values:
-        sum2 = sum2 + (item - avg)**2
-        sum1 = sum1 + (item - avg)
-
-      v = (sum2 - sum1 / n) / (n - 1)
-
-      #print "%02.5f %02.5f %d %02.5f %02.5f %02.5f" %  (sum2, sum1, n, (sum2 - sum1), (sum2 - sum1) / n, v)
     else:
       avg = values[0]
 
@@ -468,7 +475,8 @@ class perf:
 
 
   def _generateSummaryDetailLine(self, platforms, targets, testkey, enddate, testDisplayName):
-      line = '<tr><td><a href="detail_%s.html#%s">%s</a></td>' % (enddate, testkey, testDisplayName)
+      line  = '<tr><td><a href="detail_%s.html#%s">%s</a></td>' % (enddate, testkey, testDisplayName)
+      graph = []
 
       for key in ['linux', 'osx', 'win']:
         if testkey in targets[key].keys():
@@ -497,14 +505,17 @@ class perf:
             if c_perc > 10.0:
                 s = 'good'
 
-        line += '<td>%s</td><td class="number">%02.3f</td>' % (revision, targetAvg)
-        line += '<td class="number">%02.3f</td>' % avg
-        line += '<td class="%s">%03.1f</td>' % (s, c_perc)
-        line += '<td class="%s">%02.3f</td>' % (s, c_diff)
+        graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, avg, c_diff, c_perc))
+
+        line += '<td class="number">%2.0fs</td>' % targetAvg
+        line += '<td class="number">%2.2fs</td>' % avg
+        line += '<td class="%s">%3.0f%</td>' % (s, c_perc)
+        line += '<td class="%s">%1.2fs</td>' % (s, c_diff)
+        line += '<td>%01.4fs</td>' % platforms[key]['var']
 
       line += '</tr>\n'
 
-      return line
+      return (line, graph)
 
   def generateSummaryPage(self, pagename, tests, startdate, enddate):
     # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runs, total, average) ] }}}}
@@ -521,29 +532,11 @@ class perf:
     page   = []
     detail = []
     tbox   = []
+    graph  = []
 
-    page.append('<h1>Use Case Performance Summary</h1>\n')
-    page.append('<div id="summary">\n')
-    page.append('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
-    page.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>\n', time.localtime()))
-
-    page.append('<p>This is a summary of the performance totals</p>\n')
-    page.append('<p>The Median is calculated from the total number of test runs for the given day<br/>\n')
-    page.append('The &Delta; % is measured from the last Milestone.  All time values use seconds for the unit of measure</p>\n')
-    page.append('<p>Note: a negative &Delta; value means that the current median value is <strong>slower</strong> than the target value</p>\n')
-
-    page.append('<table>\n')
-    page.append('<tr><th></th><th colspan="5">Linux</th><th colspan="5">OS X</th><th colspan="5">Windows</th></tr>\n')
-    page.append('<tr><th>Test</th><th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
-    page.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
-
-    tbox.append('<div id="tbox">\n')
-    tbox.append('<table>\n')
-    tbox.append('<tr><th></th><th colspan="5">Linux</th><th colspan="5">OS X</th><th colspan="5">Windows</th></tr>\n')
-    tbox.append('<tr><th>Test</th><th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
-    tbox.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th>')
-    tbox.append('<th>Rev #</th><th>m5</th><th>Median</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
+    revisions = { 'osx':   '',
+                  'linux': '',
+                  'win':   '', }
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
@@ -554,8 +547,6 @@ class perf:
       if testkey in self.SummaryTestNames.keys():
         testitem        = tests[testkey]
         testDisplayName = self.SummaryTestNames[testkey]
-
-        page.append('<!-- testkey: %s %s -->\n' % (testkey, testDisplayName))
 
         detail.append('<h2>%s: %s</h2>\n' % (testDisplayName, testkey))
 
@@ -636,7 +627,7 @@ class perf:
             dv_total = 0
             revision = ''
 
-            detail.append('<h3 id="%s_%s">%s</h3>\n' % (testkey, buildkey, buildkey))
+            detail.append('\n<h3 id="%s_%s">%s</h3>\n' % (testkey, buildkey, buildkey))
             detail.append('<table>\n')
             detail.append('<tr><th>Time</th><th>Rev #</th><th>Runs</th><th>Median</th></tr>\n')
 
@@ -650,16 +641,17 @@ class perf:
                 detail.append('<tr><td>%02d:%02d:%02d</td><td>%s</td><td class="number">%d</td><td class="number">%02.5f</td></tr>\n' %
                               (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
                                revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
-
-                print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
+                detail.append('<!-- revision %s runs %d time %02.5f -->\n' % (revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
+                
+                #print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
 
             (v, n, avg) = self.variance(platformdata['values'])
 
-            print "average: %02.5f count: %d variance: %02.5f" % (avg, n, v)
+            #print "average: %02.5f count: %d variance: %02.5f" % (avg, n, v)
             page.append('<!-- build: %s avg: %02.5f count: %d variance: %02.5f -->\n' % (buildkey, avg, n, v))
 
             detail.append('</table>\n')
-            detail.append('<p>%d items in days sample for an median of %2.5f and a variance of %2.5f</p>' % (n, avg, v))
+            detail.append('<p>%d items in days sample for an median of %02.5f and a variance of %02.5f</p>\n' % (n, avg, v))
 
             platformdata['var']      = v
             platformdata['avg']      = avg
@@ -667,15 +659,21 @@ class perf:
             platformdata['count']    = n
             platformdata['revision'] = revision
 
-        summaryline = self._generateSummaryDetailLine(platforms, targets, testkey, enddate, testDisplayName)
+            revisions[platformkey] = revision
+
+        (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, targets, testkey, enddate, testDisplayName)
 
         page.append(summaryline)
         tbox.append(summaryline)
-        
+
+        graph += graphdata
+
     page.append('</table>\n')
                                       
-    page.append('<p>The Test name link will take you to the detail information that was used to generate the summary numbers for that test<br/>\n')
-    page.append('The original <a href="variance.html">variance page</a> shows the other test data that is captured and the variance data for the last 7 days</p>\n')
+    page.append('<p>The Test name link will take you to the detail information that was \n')
+    page.append('used to generate the summary numbers for that test<br/>\n')
+    page.append('The original <a href="variance.html">variance page</a> shows the other test \n')
+    page.append('data that is captured and the variance data for the last 7 days</p>\n')
 
     page.append('</div>\n')
 
@@ -684,6 +682,29 @@ class perf:
     tbox.append('</table>\n</div>\n')
 
     pagefile = file(os.path.join(self._options['html_data'], pagename), 'w')
+
+    pagefile.write('<h1>Use Case Performance Summary</h1>\n')
+    pagefile.write('<div id="summary">\n')
+    pagefile.write('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
+    pagefile.write(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>\n', time.localtime()))
+
+    pagefile.write('<p>This is a summary of the performance totals</p>\n')
+    pagefile.write('<p>The Median is calculated from the total number of \n')
+    pagefile.write('test runs for the given day<br/>\n')
+    pagefile.write('The &Delta; % is measured from the last Milestone.  \n')
+    pagefile.write('All time values use seconds for the unit of measure</p>\n')
+    pagefile.write('<p>Note: a negative &Delta; value means that the current \n')
+    pagefile.write('median value is <strong>slower</strong> than the target value</p>\n')
+
+    pagefile.write('<table>\n')
+    pagefile.write('<tr><th></th>')
+    pagefile.write('<th colspan="5">Linux (r %s)</th>' % revisions['linux'])
+    pagefile.write('<th colspan="5">OS X (r %s)</th>' % revisions['osx'])
+    pagefile.write('<th colspan="5">Windows (r %s)</th></tr>\n' % revisions['win'])
+    pagefile.write('<tr><th>Test</th>')
+    pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
 
     if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.header')):
       for line in file(os.path.join(self._options['perf_data'], 'index.html.header')):
@@ -697,6 +718,13 @@ class perf:
         pagefile.write(line)
 
     pagefile.close()
+
+    graphfile = file(os.path.join(self._options['html_data'], 'graph_%s.dat' % (enddate)), 'w')
+
+    for line in graph:
+      graphfile.write(line)
+
+    graphfile.close()
 
     detailfile = file(os.path.join(self._options['html_data'], 'detail_%s.html' % (enddate)), 'w')
 
@@ -714,6 +742,17 @@ class perf:
     detailfile.close()
 
     tboxfile = file(os.path.join(self._options['html_data'], 'tbox.html'), 'w')
+
+    tboxfile.write('<div id="tbox">\n')
+    tboxfile.write('<table>\n')
+    tboxfile.write('<tr><th></th>')
+    tboxfile.write('<th colspan="5">Linux (r %s)</th>' % revisions['linux'])
+    tboxfile.write('<th colspan="5">OS X (r %s)</th>' % revisions['osx'])
+    tboxfile.write('<th colspan="5">Windows (r %s)</th></tr>\n' % revisions['win'])
+    tboxfile.write('<tr><th>Test</th>')
+    tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
 
     if os.path.isfile(os.path.join(self._options['perf_data'], 'tbox.html.header')):
       for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
