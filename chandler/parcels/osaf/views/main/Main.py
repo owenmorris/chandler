@@ -160,6 +160,12 @@ class MainView(View):
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemsBroadcastInsideActiveView',
                               {'items':[newItem]})
+
+        # Put the focus into the Detail View
+        detailRoot = self.findBlockByName("DetailRoot")
+        if detailRoot:
+            detailRoot.focus()
+
         return [newItem]
 
     def onPasteEventUpdateUI (self, event):

@@ -176,6 +176,18 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         except AttributeError:
             pass
     
+    def focus(self):
+        """
+        Put the focus into the Detail View
+        """
+        # Currently, just set the focus to the Title/Headline/Subject
+        # Later we may want to support the "preferred" block for
+        #  focus within a tree of blocks.
+        titleBlock = self.findBlockByName('HeadlineBlock')
+        if titleBlock:
+            titleBlock.widget.SetFocus()
+            titleBlock.widget.SelectAll()
+
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 
     Delegate for the trunk builder on DetailRoot; the cache key is the given item's Kind

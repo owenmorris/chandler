@@ -990,6 +990,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
         self.OnSelectItem(event)
 
+        # Put the focus into the Detail View
+        detailRoot = self.blockItem.findBlockByName("DetailRoot")
+        if detailRoot:
+            detailRoot.focus()
+
         self.blockItem.itsView.commit()
         return event	
         
