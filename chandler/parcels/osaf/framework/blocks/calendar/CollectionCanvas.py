@@ -558,42 +558,23 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
+
+
+        # Sometimes we get empty regions to paint,
+        # like when you mouseover the scrollbar
+        region = self.GetUpdateRegion()
+        if region.IsEmpty():
+            return
+            
         self.PrepareDC(dc)
         self.DrawCanvas(dc)
         
     def DrawCanvas(self, dc):
 
-        if (True):
-            # if non-double buffered drawing is desired
-            # esp. if top window is already composited
-            dc.BeginDrawing()
-            self.DrawBackground(dc)
-            self.DrawCells(dc)
-            dc.EndDrawing()
-        else:
-            # if double buffered drawing is desired
-
-            # Find update rect in scrolled coordinates
-            updateRect = self.GetUpdateRegion().GetBox()
-            point = self.CalcUnscrolledPosition((updateRect.GetLeft(), updateRect.GetTop()))
-            wBuffer = updateRect.GetWidth()
-            hBuffer = updateRect.GetHeight()
-
-            # Create offscreen buffer
-            memoryDC = wx.MemoryDC()
-            buffer = wx.EmptyBitmap(wBuffer, hBuffer)
-            memoryDC.SelectObject(buffer)
-            memoryDC.SetDeviceOrigin(-point.x, -point.y)
-
-            memoryDC.BeginDrawing()
-            self.DrawBackground(memoryDC)
-            self.DrawCells(memoryDC)
-            memoryDC.EndDrawing()      
-
-            dc.Blit(point.x, point.y,
-                    wBuffer, hBuffer,
-                    memoryDC,
-                    point.x, point.y)
+        dc.BeginDrawing()
+        self.DrawBackground(dc)
+        self.DrawCells(dc)
+        dc.EndDrawing()
 
     def PrintCanvas(self, dc):
         dc.BeginDrawing()
