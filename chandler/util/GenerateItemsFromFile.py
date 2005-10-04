@@ -86,7 +86,7 @@ def GenerateCollection(view, mainView, args):
         collection.displayName = u"%s" %args[0]
         if not collectionsDict.has_key(args[0]):
             if mainView:
-                idebarCollection.add (collection)
+                sidebarCollection.add (collection)
             collectionsDict[args[0]]=collection
     else:
         #default value
