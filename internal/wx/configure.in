@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1072 2005/10/03 18:19:10 VZ Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1074 2005/10/04 11:11:36 VZ Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1072 2005/10/03 18:19:10 VZ Exp $
+dnl Version: $Id: configure.in,v 1.1074 2005/10/04 11:11:36 VZ Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -3019,7 +3019,7 @@ libraries returned by 'pkg-config gtk+-2.0 --libs' or 'gtk-config
         AC_PATH_XTRA
 
         if test "$no_x" = "yes"; then
-          AC_MSG_ERROR(X11 not found, please use --x-includes and/or --x-libraries options)
+          AC_MSG_ERROR([X11 not found, please use --x-includes and/or --x-libraries options (see config.log for details)])
         fi
 
         dnl for some reason AC_PATH_XTRA seems to add -INONE and -LNONE (and
