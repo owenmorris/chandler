@@ -212,6 +212,7 @@ def CreateCollectionFromTag(repView, cpiaView):
 
             # Add the channel to the sidebar
             schema.ns("osaf.app", cpiaView).sidebarCollection.add (myPhotoCollection.sidebarCollection)
+            return myPhotoCollection.sidebarCollection
 
         except flickr.FlickrError, fe:
             logger.exception(fe)
@@ -299,7 +300,7 @@ def installParcel(parcel, oldVersion=None):
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "AuthorArea",
                 position = 0.6,
-                viewAttribute="owner",
+                viewAttribute=u"owner",
                 stretchFactor = 0,
                 childrenBlocks = [
                     detail.StaticRedirectAttributeLabel.update(
