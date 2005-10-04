@@ -30,7 +30,6 @@ import osaf.mail.sharing as MailSharing
 from osaf.framework.blocks.Block import Block
 from osaf.pim import AbstractCollection
 import osaf.sharing.ICalendar as ICalendar
-import osaf.framework.scripting as Scripting
 from osaf import webserver
 from i18n import OSAFMessageFactory as _
 import i18n
@@ -303,16 +302,6 @@ class MainView(View):
         # item anywhere - disallow sending. Also, make sure the label's set back to "Send"
         event.arguments ['Enable'] = False
         event.arguments ['Text'] = messages.SEND
-
-    def onFocusTogglePrivateEventUpdateUI(self, event):
-        # If we get asked about this, and it hasn't already been set, there's no selected 
-        # item anywhere - disable.
-        event.arguments ['Enable'] = False
-
-    def onFocusStampEventUpdateUI(self, event):
-        # If we get asked about this, and it hasn't already been set, there's no selected 
-        # item anywhere - disable.
-        event.arguments ['Enable'] = False
 
     def onSendMailEvent (self, event):
         # commit changes, since we'll be switching to Twisted thread
@@ -662,49 +651,6 @@ class MainView(View):
         url="http://www.osafoundation.org/0.5/DemoCalendar.ics"
 
         SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView, url=url)
-
-
-    def _SelectedItemScript(self):
-        """ Return the possible script item:
-        the item shown in the Detail View, unless
-        its body is empty.  
-        Otherwise return None.
-        """
-        item = None
-        try:
-            item = Block.findBlockByName("DetailRoot").selectedItem()
-            body = item.bodyString
-        except AttributeError:
-            pass
-        else:
-            if len(body) == 0:
-                item = None
-        return item
-
-    def onRunSelectedScriptEvent(self, event):
-        # Triggered from "Tests | Run a Script"
-        item = self._SelectedItemScript()
-        if item and isinstance(item, Scripting.Script):
-            # in case the user was just editing the script,
-            # ask the focus to finish changes, if it can
-            focusedWidget = wx.Window_FindFocus()
-            try:
-                focusedWidget.blockItem.finishSelectionChanges()
-            except AttributeError:
-                pass
-            # run the script from the item's body
-            item.execute()
-
-    def onRunSelectedScriptEventUpdateUI(self, event):
-        # Triggered from "Tests | Run a Script"
-        item = self._SelectedItemScript()
-        enable = item is not None and isinstance(item, Scripting.Script)
-        event.arguments ['Enable'] = enable
-        if enable:
-            menuTitle = u'Run "%s"\tCtrl+S' % item.about
-        else:
-            menuTitle = u'Run a Script\tCtrl+S'
-        event.arguments ['Text'] = menuTitle
 
     def onAddScriptsToSidebarEvent(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents

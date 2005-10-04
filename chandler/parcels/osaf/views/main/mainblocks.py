@@ -82,8 +82,7 @@ def make_mainview(parcel):
     # from //parcels/osaf/views/main
     RunSelectedScriptEvent = \
         BlockEvent.template('RunSelectedScript',
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
+            dispatchEnum='FocusBubbleUp').install(parcel)
     # Event to put "Scripts" in the Sidebar
     AddScriptsToSidebarEvent = \
         BlockEvent.template('AddScriptsToSidebar',

@@ -186,4 +186,37 @@ class FocusEventHandlers(Item):
             event.arguments['Enable'] = enable
             event.arguments['Check'] = enable and isStamped
 
+    def onRunSelectedScriptEvent(self, event):
+        # Triggered from "Tests | Run a Script"
+        items = self.__getSelectedItems()
+        if len(items) > 0:
+            for item in items:
+                if hasattr(item, 'execute'):
+                    # in case the user was just editing the script,
+                    # ask the focus to finish changes, if it can
+                    focusedWidget = wx.Window_FindFocus()
+                    try:
+                        method = focusedWidget.blockItem.finishSelectionChanges()
+                    except AttributeError:
+                        pass
+                    else:
+                        method()
+                    # run the script from the item's body
+                    item.execute()
+
+    def onRunSelectedScriptEventUpdateUI(self, event):
+        # Triggered from "Tests | Run a Script"
+        items = self.__getSelectedItems()
+        enable = False
+        if len(items) > 0:
+            states = [hasattr(item, 'execute') for item in items]
+            canExecute = states[0]
+            enable = canExecute and len(set(states)) == 1
+        event.arguments ['Enable'] = enable
+        if enable:
+            menuTitle = u'Run "%s"\tCtrl+S' % item.about
+        else:
+            menuTitle = u'Run a Script\tCtrl+S'
+        event.arguments ['Text'] = menuTitle
+
 
