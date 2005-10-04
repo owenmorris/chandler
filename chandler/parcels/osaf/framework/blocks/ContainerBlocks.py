@@ -310,6 +310,10 @@ class wxSplitterWindow(wx.SplitterWindow):
             return
         splitMode = self.GetSplitMode()
         width, height = self.GetSizeTuple()
+        # On the mac, we were getting an extra call before sizes were valid and that was
+        # messing up persistence
+        if ( ( width < 0 ) or ( height < 0 ) ):
+            return
         child1 = self.GetWindow1()
         didAdjust = False
         if child1:
