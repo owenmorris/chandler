@@ -133,7 +133,7 @@ class PhotoCollection(pim.ContentItem):
     )
 
     def getCollectionFromFlickr(self,repView):
-        coll = pim.ListCollection(view = repView)
+        coll = pim.ListCollection(view = repView).setup()
         if self.username:
             flickrUsername = flickr.people_findByUsername(self.username.encode('utf8'))
             try:

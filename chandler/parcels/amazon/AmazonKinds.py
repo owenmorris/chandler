@@ -43,7 +43,7 @@ def CreateCollection(repView, cpiaView):
 
     try:
         results = amazon.searchByKeyword(keywords)
-        newAmazonCollection = AmazonCollection(results, view=repView, keywords=keywords)
+        newAmazonCollection = AmazonCollection(results, view=repView, keywords=keywords).setup()
         schema.ns("osaf.app", cpiaView).sidebarCollection.add (newAmazonCollection)
         return newAmazonCollection
 
@@ -61,7 +61,7 @@ def CreateWishListCollection(repView, cpiaView):
         return
     try:
         results = amazon.searchWishListByEmail(emailAddr)
-        newAmazonCollection = AmazonCollection(results, view=repView, email=emailAddr)
+        newAmazonCollection = AmazonCollection(results, view=repView, email=emailAddr).setup()
         schema.ns("osaf.app", cpiaView).sidebarCollection.add (newAmazonCollection)
         return newAmazonCollection
 
