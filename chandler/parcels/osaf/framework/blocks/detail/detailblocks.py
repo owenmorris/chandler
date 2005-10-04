@@ -92,10 +92,21 @@ def makeEditor(parcel, name, viewAttribute, border=None,
                                     **presentationStyle) \
        or None
     border = border or RectType(2, 2, 2, 2)
-    
+
+    # We need to find the Resynchronize event... it's in the given parcel if
+    # we're building the detail view, or we'll get the detail view's namespace
+    # if we're building an editor for another parcel. (We do it this way 'cuz
+    # it'd be bad to schema.ns the detail view while building the detail view.)
+    try:
+        resyncEvent = parcel['Resynchronize']
+    except KeyError:
+        detailParcelPath = '.'.join(__name__.split('.')[:-1])
+        resyncEvent = schema.ns(detailParcelPath, parcel.itsView).Resynchronize
+
     ae = baseClass.template(name, viewAttribute=viewAttribute,
                             characterStyle=characterStyle or blocks.TextStyle,
-                            presentationStyle=ps, border=border, **kwds)
+                            presentationStyle=ps, border=border, 
+                            changeEvent=resyncEvent, **kwds)
     return ae
           
 #
@@ -144,6 +155,12 @@ def makeRootStuff(parcel, oldVersion):
                                           eventBoundary=True)
     detailRoot.install(parcel)
      
+    # Our Resynchronize event.
+    resyncEvent = BlockEvent.template('Resynchronize',
+                                      dispatchEnum='SendToBlockByName',
+                                      dispatchToBlockName='DetailRoot'
+                                      ).install(parcel)
+
     # A few spacer blocks, copied by other parcel.xml blocks.
     # @@@ Should go away when parcel.xml conversion is complete!
     makeSpacer(parcel, height=6, name='TopSpacer', position=0.01).install(parcel)
@@ -338,7 +355,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     viewAttribute=u'startTime',
                     presentationStyle={'format': 'timeZoneOnly'},
                     stretchFactor=0.0,
-                    size=SizeType(75, -1))])
+                    minimumSize=SizeType(100, -1))])
 
     transparencyArea = \
         makeArea(parcel, 'CalendarTransparencyArea',
@@ -378,7 +395,6 @@ def makeCalendarEventSubtree(parcel, oldVersion):
     recurrenceCustomArea = \
         makeArea(parcel, 'CalendarRecurrenceCustomArea',
             baseClass=CalendarRecurrenceCustomAreaBlock,
-            viewAttribute=u'rruleset',
             childrenBlocks=[
                 makeLabel(parcel, u'', borderTop=2), # leave label blank.
                 makeSpacer(parcel, width=8),
@@ -390,7 +406,6 @@ def makeCalendarEventSubtree(parcel, oldVersion):
     recurrenceEndArea = \
         makeArea(parcel, 'CalendarRecurrenceEndArea',
             baseClass=CalendarRecurrenceEndAreaBlock,
-            viewAttribute=u'rruleset',
             childrenBlocks=[
                 makeLabel(parcel, _(u'ends')),
                 makeSpacer(parcel, width=8),

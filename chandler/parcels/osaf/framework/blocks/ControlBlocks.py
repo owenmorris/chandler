@@ -1922,8 +1922,8 @@ class AEBlock(BoxContainer):
         if self.readOnly: return True
         
         result = not item.isAttributeModifiable(attributeName)
-        logger.debug("AEBlock: %s %s readonly", attributeName,
-                     result and "is" or "is not")
+        #logger.debug("AEBlock: %s %s readonly", attributeName,
+                     #result and "is" or "is not")
         return result
         
     def onSetContentsEvent (self, event):
@@ -1970,7 +1970,7 @@ class AEBlock(BoxContainer):
         """
           The widget got clicked on - make sure we're in edit mode.
         """
-        logger.debug("AEBlock: %s widget got clicked on", self.attributeName)
+        #logger.debug("AEBlock: %s widget got clicked on", self.attributeName)
 
         # If the widget didn't get focus as a result of the click,
         # grab focus now.
@@ -1990,7 +1990,7 @@ class AEBlock(BoxContainer):
                 else:
                     method()
         
-            logger.debug("Grabbing focus.")
+            #logger.debug("Grabbing focus.")
             wx.Window.SetFocus(self.widget)
 
         event.Skip()
@@ -1999,7 +1999,7 @@ class AEBlock(BoxContainer):
         """
           The widget lost focus - we're finishing editing.
         """
-        logger.debug("AEBlock: %s, widget losing focus" % self.blockName)
+        #logger.debug("AEBlock: %s, widget losing focus" % self.blockName)
         
         if event is not None:
             event.Skip()
@@ -2007,7 +2007,7 @@ class AEBlock(BoxContainer):
         # Workaround for wx Mac crash bug, 2857: ignore the event if we're being deleted
         widget = getattr(self, 'widget', None)
         if widget is None or widget.IsBeingDeleted() or widget.GetParent().IsBeingDeleted():
-            logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
+            #logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
             return
 
         # Make sure the value is written back to the item. 

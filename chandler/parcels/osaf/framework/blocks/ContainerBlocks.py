@@ -38,7 +38,7 @@ class wxBoxContainer (wxRectangularChild):
                 self.SetSizer (sizer)
             sizer.Clear()
             for childBlock in self.blockItem.childrenBlocks:
-                if isinstance (childBlock, RectangularChild):
+                if childBlock.isShown and isinstance (childBlock, RectangularChild):
                     sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 
                                wxRectangularChild.CalculateWXFlag(childBlock), 
@@ -207,7 +207,7 @@ class wxScrolledContainer (wx.ScrolledWindow):
             sizer = self.GetSizer()
             sizer.Clear()
             for childBlock in self.blockItem.childrenBlocks:
-                if isinstance (childBlock, RectangularChild):
+                if childBlock.isShown and isinstance (childBlock, RectangularChild):
                     sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 
                                wxRectangularChild.CalculateWXFlag(childBlock), 

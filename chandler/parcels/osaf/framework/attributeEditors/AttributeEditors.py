@@ -711,7 +711,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             self._changeTextQuietly(control, self.sampleText, True, False)
         else:
             self._changeTextQuietly(control, value, False, False)
-        logger.debug("BeginControlEdit: %s (%s) on %s", attributeName, self.showingSample, item)
+        #logger.debug("BeginControlEdit: %s (%s) on %s", attributeName, self.showingSample, item)
 
     def EndControlEdit (self, item, attributeName, control):
         # update the item attribute value, from the latest control value.
@@ -759,14 +759,14 @@ class StringAttributeEditor (BaseAttributeEditor):
                             if currentText.startswith(self.sampleText):
                                 currentText = currentText.replace(self.sampleText,'',1)
                                 alreadyChanged = False
-                        logger.debug("onTextChanged: replacing sample with it (alreadyChanged)")
+                        #logger.debug("onTextChanged: replacing sample with it (alreadyChanged)")
                         self._changeTextQuietly(control, currentText, False, alreadyChanged)
                 elif len(currentText) == 0:
-                    logger.debug("StringAE.onTextChanged: installing sample.")
+                    #logger.debug("StringAE.onTextChanged: installing sample.")
                     self._changeTextQuietly(control, self.sampleText, True, False)
                 pass # logger.debug("StringAE.onTextChanged: done; new values is '%s'" % control.GetValue())
             else:
-                logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
+                pass # logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
         else:
             pass # logger.debug("StringAE.onTextChanged: ignoring (self-changed); value is '%s'" % event.GetEventObject().GetValue())
         
