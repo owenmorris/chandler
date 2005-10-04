@@ -4,7 +4,7 @@ from osaf import pim
 from repository.item.Monitors import Monitors
 import chandlerdb
 from i18n import OSAFMessageFactory as _
-import zanshin, M2Crypto
+import zanshin, M2Crypto, twisted
 
 
 import wx          # For the dialogs, but perhaps this is better accomplished
@@ -309,7 +309,8 @@ def publish(collection, account, classes_to_include=None,
     except (SharingError,
             zanshin.error.Error,
             M2Crypto.SSL.Checker.WrongHost,
-            Utility.CertificateVerificationError), e:
+            Utility.CertificateVerificationError,
+            twisted.internet.error.TimeoutError), e:
 
         # Clean up share objects
         try:

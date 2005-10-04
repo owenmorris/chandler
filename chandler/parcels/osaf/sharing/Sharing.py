@@ -1264,16 +1264,18 @@ class WebDAVConduit(ShareConduit):
         return "/" + self._getSettings()[2]
 
     def _resourceFromPath(self, path):
-
         serverHandle = self._getServerHandle()
         sharePath = self._getSharePath()
 
+        if sharePath == "/":
+            sharePath = "" # Avoid double-slashes on next line...
         resourcePath = "%s/%s" % (sharePath, self.shareName)
 
         if self.share.format.fileStyle() == ImportExportFormat.STYLE_DIRECTORY:
             resourcePath += "/" + path
 
         resource = serverHandle.getResource(resourcePath)
+
         if getattr(self, 'ticket', False):
             resource.ticketId = self.ticket
         return resource
@@ -1613,6 +1615,9 @@ class SimpleHTTPConduit(WebDAVConduit):
     lastModified = schema.One(schema.String, initialValue = '')
 
     def get(self):
+        self._get()
+
+    def _get(self):
         self.connect()
 
         location = self.getLocation()
