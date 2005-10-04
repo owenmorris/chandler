@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// RCS-ID:      $Id: appbase.cpp,v 1.62 2005/09/25 19:58:42 VZ Exp $
+// RCS-ID:      $Id: appbase.cpp,v 1.63 2005/10/03 23:07:58 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -734,8 +734,7 @@ static wxString GetAssertStackTrace()
             }
             else
             {
-                m_stackTrace << wxString::Format(_T("0x%08p"),
-                                                 frame.GetAddress());
+                m_stackTrace << wxString::Format(_T("%p"), frame.GetAddress());
             }
 
             if ( frame.HasSourceLocation() )
