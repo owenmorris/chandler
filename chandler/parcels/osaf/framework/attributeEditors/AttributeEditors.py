@@ -58,6 +58,7 @@ def installParcel(parcel, oldVersion=None):
         'DateTime+timeZoneOnly': 'TimeZoneAttributeEditor',
         'EmailAddress': 'EmailAddressAttributeEditor',
         'Integer': 'StringAttributeEditor',
+        'Item': 'ItemNameAttributeEditor',
         'Kind': 'StampAttributeEditor',
         'image/jpeg': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
@@ -908,9 +909,26 @@ class StringAttributeEditor (BaseAttributeEditor):
             cardinality = "single"
         if cardinality == "single":
             if self.GetAttributeValue(item, attributeName) != valueString:
-                # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
-                setattr (item, attributeName, valueString)
-                self.AttributeChanged()
+                # The value changed
+                if self.allowEmpty() or len(valueString.strip()) > 0:
+                    # Either the value's not empty, or we allow empty values.
+                    # Write the updated value.
+                    # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
+                    setattr (item, attributeName, valueString)
+                    self.AttributeChanged()
+                else:
+                    # The user cleared out the old value, which isn't allowed. 
+                    # Reread the old value from the content model.
+                    self.SetControlValue(self.control, 
+                                         self.GetAttributeValue(item, attributeName))
+
+    def allowEmpty(self):
+        """ 
+        Return true if this field allows an empty value to be written
+        to the content model. 
+        """
+        # Defaults to true
+        return True
 
     def getShowingSample(self):
         return getattr(self, '_showingSample', False)
@@ -919,6 +937,13 @@ class StringAttributeEditor (BaseAttributeEditor):
     showingSample = property(getShowingSample, setShowingSample,
                     doc="Are we currently displaying the sample text?")
 
+class ItemNameAttributeEditor(StringAttributeEditor):
+    """
+    The editor used for editing collection names in the sidebar
+    """
+    def allowEmpty(self):
+        return False
+    
 class StaticStringAttributeEditor(StringAttributeEditor):
     """
     To be always static, we pretend to be "edit-in-place", but never in 
