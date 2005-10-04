@@ -401,6 +401,7 @@ class Block(schema.Item):
         if necessary
         """
         collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
+        itemList = []
         for item in event.items:
 
             if event.copyItems:
@@ -429,7 +430,9 @@ class Block(schema.Item):
                         break
 
             collection.add (item)
+            itemList.append (item)
         # Need to SelectFirstItem -- DJA based on self.selectInBlock
+        return itemList
 
     def synchronizeWidget (self):
         """
