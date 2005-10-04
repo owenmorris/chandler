@@ -7,4 +7,4 @@ try:
   i = f.selectedItemToView
 except AttributeError:
   i = f.selection
-print i.displayName, i
+print i.displayName, repr(i)
