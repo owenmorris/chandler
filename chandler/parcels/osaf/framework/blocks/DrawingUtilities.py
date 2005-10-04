@@ -126,6 +126,8 @@ class Gradients(object):
     """
     def __init__(self):
         self.ClearCache()
+        self.hits = 0
+        self.misses = 0
     
     def ClearCache(self):
         """
@@ -134,7 +136,7 @@ class Gradients(object):
         """
         self._gradientCache = {}
     
-    def MakeGradientBitmap(self, offset, width, leftColor, rightColor):
+    def MakeGradientBrush(self, offset, width, leftColor, rightColor):
         """
         Creates a gradient brush from leftColor to rightColor, specified
         as color tuples (r,g,b)
@@ -192,7 +194,9 @@ class Gradients(object):
             image.SetRGB(x,0,rgb.red, rgb.green, rgb.blue)
             
         # and now we have to go from Image -> Bitmap. Yuck.
-        return wx.BitmapFromImage(image)
+        brush = wx.Brush(wx.WHITE, wx.STIPPLE)
+        brush.SetStipple(wx.BitmapFromImage(image))
+        return brush
         
     def GetGradientBrush(self, offset, width, leftColor, rightColor):
         """
@@ -200,12 +204,13 @@ class Gradients(object):
         or creates one if necessary
         """
         key = (offset, width, leftColor, rightColor)
-        bitmap = self._gradientCache.get(key, None)
-        if not bitmap:
-            bitmap = self.MakeGradientBitmap(*key)
-            self._gradientCache[key] = bitmap
-        brush = wx.Brush(wx.WHITE, wx.STIPPLE)
-        brush.SetStipple(bitmap)
+        brush = self._gradientCache.get(key, None)
+        if brush is None:
+            self.misses += 1
+            brush = self.MakeGradientBrush(*key)
+            self._gradientCache[key] = brush
+        else:
+            self.hits += 1
         return brush
 
 if __name__ == '__main__':
