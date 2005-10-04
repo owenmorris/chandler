@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys, re, xmlrpclib, jabber
 from SOAPpy import SOAPServer
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.c import UUID
 
 
 class RepositoryServer(object):

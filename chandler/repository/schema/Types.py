@@ -5,11 +5,6 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import re
-import chandlerdb.util.uuid
-import repository.util.Path
-import repository.util.SingleRef
-import repository.util.URL
-import repository.item.Sets as Sets
 
 from new import classobj
 from struct import pack
@@ -17,7 +12,7 @@ from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo
 
 from chandlerdb.schema.c import CAttribute
-from chandlerdb.util.uuid import _hash, _combine
+from chandlerdb.util.c import _hash, _combine
 from chandlerdb.item.c import Nil, isitem
 from repository.item.Item import Item
 from repository.item.PersistentCollections import \
@@ -27,6 +22,12 @@ from repository.item.Query import KindQuery
 from repository.schema.Kind import Kind
 from repository.schema.TypeHandler import TypeHandler
 from repository.util.ClassLoader import ClassLoader
+
+from chandlerdb.util.c import UUID as UUIDType
+from repository.util.Path import Path as PathType
+from repository.util.SingleRef import SingleRef as SingleRefType
+from repository.util.URL import URL as URLType
+from repository.item.Sets import AbstractSet as AbstractSetType
 
 
 class TypeKind(Kind):
@@ -516,7 +517,7 @@ class UUID(Type):
         if data == Type.NoneString:
             return None
 
-        return chandlerdb.util.uuid.UUID(data)
+        return UUIDType(data)
 
     def makeString(self, value):
 
@@ -527,7 +528,7 @@ class UUID(Type):
     
     def recognizes(self, value):
 
-        return value is None or type(value) is chandlerdb.util.uuid.UUID
+        return value is None or type(value) is UUIDType
 
     def eval(self, value):
 
@@ -560,7 +561,7 @@ class UUID(Type):
         if data[offset] == '\0':
             return offset+1, None
         
-        return offset+17, chandlerdb.util.uuid.UUID(data[offset+1:offset+17])
+        return offset+17, UUIDType(data[offset+1:offset+17])
 
     def hashValue(self, value):
 
@@ -581,8 +582,8 @@ class SingleRef(Type):
         if data == Type.NoneString:
             return None
         
-        uuid = chandlerdb.util.uuid.UUID(data)
-        return repository.util.SingleRef.SingleRef(uuid)
+        uuid = UUIDType(data)
+        return SingleRefType(uuid)
 
     def makeString(self, value):
 
@@ -594,7 +595,7 @@ class SingleRef(Type):
     def recognizes(self, value):
 
         return (value is None or
-                type(value) is repository.util.SingleRef.SingleRef or
+                type(value) is SingleRefType or
                 isitem(value))
 
     def eval(self, value):
@@ -628,8 +629,8 @@ class SingleRef(Type):
         if data[offset] == '\0':
             return offset+1, None
         
-        uuid = chandlerdb.util.uuid.UUID(data[offset+1:offset+17])
-        return offset+17, repository.util.SingleRef.SingleRef(uuid)
+        uuid = UUIDType(data[offset+1:offset+17])
+        return offset+17, SingleRefType(uuid)
 
     def getFlags(self):
 
@@ -654,7 +655,7 @@ class Path(Type):
         if data == Type.NoneString:
             return None
 
-        return repository.util.Path.Path(data)
+        return PathType(data)
 
     def makeString(self, value):
 
@@ -665,7 +666,7 @@ class Path(Type):
     
     def recognizes(self, value):
 
-        return value is None or type(value) is repository.util.Path.Path
+        return value is None or type(value) is PathType
 
     def eval(self, value):
 
@@ -704,7 +705,7 @@ class Path(Type):
             return offset+1, None
         
         offset, string = itemReader.readString(offset+1, data)
-        return offset, repository.util.Path.Path(string)
+        return offset, PathType(string)
 
     def hashValue(self, value):
 
@@ -725,7 +726,7 @@ class URL(Type):
         if data == Type.NoneString:
             return None
 
-        return repository.util.URL.URL(data)
+        return URLType(data)
 
     def makeString(self, value):
 
@@ -736,7 +737,7 @@ class URL(Type):
     
     def recognizes(self, value):
 
-        return value is None or type(value) is repository.util.URL.URL
+        return value is None or type(value) is URLType
 
     def _compareTypes(self, other):
 
@@ -760,7 +761,7 @@ class URL(Type):
             return offset+1, None
         
         offset, string = itemReader.readString(offset+1, data)
-        return offset, repository.util.URL.URL(string)
+        return offset, URLType(string)
 
     def hashValue(self, value):
 
@@ -929,7 +930,7 @@ class Struct(Type):
         name = attrs['name']
 
         if attrs.has_key('typeid'):
-            typeHandler = itemHandler.repository[chandlerdb.util.uuid.UUID(attrs['typeid'])]
+            typeHandler = itemHandler.repository[UUIDType(attrs['typeid'])]
             value = typeHandler.makeValue(itemHandler.data)
         elif attrs.has_key('typepath'):
             typeHandler = itemHandler.repository.findPath(attrs['typepath'])
@@ -1706,7 +1707,7 @@ class AbstractSet(Type):
 
     def getImplementationType(self):
 
-        return Sets.AbstractSet
+        return AbstractSetType
 
     def handlerName(self):
 
@@ -1714,7 +1715,7 @@ class AbstractSet(Type):
 
     def makeValue(self, data):
 
-        return Sets.AbstractSet.makeValue(data)
+        return AbstractSetType.makeValue(data)
 
     def makeString(self, value):
 
@@ -1722,7 +1723,7 @@ class AbstractSet(Type):
     
     def recognizes(self, value):
 
-        return isinstance(value, Sets.AbstractSet)
+        return isinstance(value, AbstractSetType)
 
     def _compareTypes(self, other):
 
@@ -1731,7 +1732,7 @@ class AbstractSet(Type):
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         value._validateIndexes()
-        string = Sets.AbstractSet.makeString(value)
+        string = AbstractSetType.makeString(value)
         size = itemWriter.writeString(buffer, string)
         size += itemWriter.writeIndexes(buffer, item, version, value)
 
@@ -1741,7 +1742,7 @@ class AbstractSet(Type):
                   afterLoadHooks):
 
         offset, string = itemReader.readString(offset, data)
-        value = Sets.AbstractSet.makeValue(string)
+        value = AbstractSetType.makeValue(string)
         value._setView(view)
 
         offset = itemReader.readIndexes(offset, data, value, afterLoadHooks)

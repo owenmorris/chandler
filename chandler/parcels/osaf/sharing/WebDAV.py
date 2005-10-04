@@ -18,7 +18,7 @@ import zanshin.util
 
 import M2Crypto.BIO
 import M2Crypto.SSL.Checker
-import chandlerdb.util.uuid
+import chandlerdb
 import twisted.internet.error as error
 from twisted.internet import reactor
 
@@ -193,7 +193,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     # Try to figure out a unique path (although the odds of
     # even more than one try being needs are probably negligible)..
     triesLeft = 10
-    testFilename = unicode(chandlerdb.util.uuid.UUID())
+    testFilename = unicode(chandlerdb.util.c.UUID())
     
     # Random string to use for trying a put
     while testFilename in childNames:
@@ -204,7 +204,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
             # original (pre-zanshin) code.
             return -1
 
-        testFilename = chandlerdb.util.uuid.UUID()
+        testFilename = chandlerdb.util.c.UUID()
     
     # Now, we try to PUT a small test file on the server. If that
     # fails, we're going to say the user only has read-only access.

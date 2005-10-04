@@ -15,7 +15,6 @@ from datetime import datetime
 
 #Chandler imports
 import osaf.pim.mail as Mail
-import chandlerdb.util.uuid as UUID
 
 #Chandler Mail Service imports
 import constants

@@ -21,7 +21,6 @@ from application import schema
 import repository.item.Item as Item
 import items, notes
 import application.Globals as Globals
-import chandlerdb.util.uuid as UUID
 import email.Utils as Utils
 import re as re
 import chandlerdb.item.ItemError as ItemError

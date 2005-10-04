@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging, heapq, sys, gc, threading, os
 
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.c import UUID
 from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import CView
 
@@ -311,7 +311,7 @@ class RepositoryView(CView):
         See L{find} for more information.
 
         @param uuid: a UUID
-        @type uuid: L{UUID<chandlerdb.util.uuid.UUID>} or a uuid string
+        @type uuid: L{UUID<chandlerdb.util.c.UUID>} or a uuid string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -345,7 +345,7 @@ class RepositoryView(CView):
         None)} and the ACL for an attribute value on an item is stored with
         C{(item.itsUUID, attributeName)}.
 
-        @param uuid: a L{UUID<chandlerdb.util.uuid.UUID>} instance
+        @param uuid: a L{UUID<chandlerdb.util.c.UUID>} instance
         @param name: a string or C{None}
         @return: an L{ACL<repository.item.Access.ACL>} instance or C{None}
         """

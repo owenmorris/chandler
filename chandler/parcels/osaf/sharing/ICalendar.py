@@ -10,7 +10,6 @@ import application.Parcel
 from osaf.pim import AbstractCollection, ListCollection, CalendarEventMixin
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.TimeZone as TimeZone
-from chandlerdb.util.uuid import UUID
 import StringIO
 import vobject
 import logging

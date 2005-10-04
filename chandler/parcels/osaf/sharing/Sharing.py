@@ -34,7 +34,7 @@ CLOUD_XML_VERSION = '2'
 
 import time, StringIO, urlparse, libxml2, os, base64, logging
 from application import schema
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.c import UUID
 from osaf.pim import (AbstractCollection, ListCollection,
     InclusionExclusionCollection, DifferenceCollection, CalendarEventMixin)
 from repository.item.Item import Item

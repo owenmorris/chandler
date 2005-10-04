@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from os import urandom
-from chandlerdb.util.rijndael import Key, Cipher
+from chandlerdb.util.c import Key, Cipher
 
 from bz2 import BZ2Compressor, BZ2Decompressor
 from zlib import compressobj, decompressobj

@@ -8,8 +8,8 @@ import threading
 
 from struct import pack, unpack
 
-from chandlerdb.util.uuid import UUID, _hash
-from chandlerdb.persistence.container import CValueContainer, CRefContainer
+from chandlerdb.util.c import UUID, _hash
+from chandlerdb.persistence.c import CValueContainer, CRefContainer
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
 from repository.persistence.Repository import Repository

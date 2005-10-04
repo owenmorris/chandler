@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from chandlerdb.item.ItemError import *
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.c import UUID
 
 from repository.schema.TypeHandler import TypeHandler
 from repository.schema.Kind import Kind

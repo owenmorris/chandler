@@ -7,7 +7,6 @@ __parcel__ = "osaf.framework.blocks"
 import application.Globals as Globals
 from application import schema
 from repository.item.Item import Item
-from chandlerdb.util.uuid import UUID
 from osaf.pim.items import ContentItem
 from osaf.pim import AbstractCollection
 import wx

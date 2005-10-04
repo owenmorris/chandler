@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.uuid import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, _hash, _combine
 from chandlerdb.item.c import Nil, Default, CValues
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
@@ -511,11 +511,11 @@ class References(Values):
     def _unloadRef(self, name, other, otherName):
 
         if not (other is None or other._isUUID()):
-            value = self[name]
-            if value._isRefList():
-                value._unloadRef(other)
-            elif value is other:
+            value = self.get(name, None)
+            if value is None or value is other:
                 self[name] = other._uuid
+            elif value._isRefList():
+                value._unloadRef(other)
             elif value._isUUID() and value == other._uuid:
                 pass
             else:

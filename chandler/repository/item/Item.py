@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.uuid import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, _hash, _combine
 from chandlerdb.schema.c import _countAccess
 from chandlerdb.item.c import CItem, Nil, Default, isitem
 from chandlerdb.item.ItemValue import ItemValue
@@ -1966,7 +1966,7 @@ class Item(CItem):
 
         @param spec: a path or UUID
         @type spec: L{Path<repository.util.Path.Path>} or
-                    L{UUID<chandlerdb.util.uuid.UUID>} 
+                    L{UUID<chandlerdb.util.c.UUID>} 
         @param attribute: the attribute for the ref-collections to search
         @type attribute: a string
         @param load: load the item if it not yet loaded, C{True} by default
@@ -2016,7 +2016,7 @@ class Item(CItem):
         See L{find} for more information.
 
         @param uuid: a UUID
-        @type uuid: L{UUID<chandlerdb.util.uuid.UUID>} or a uuid string
+        @type uuid: L{UUID<chandlerdb.util.c.UUID>} or a uuid string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found

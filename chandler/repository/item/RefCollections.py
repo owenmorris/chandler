@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.uuid import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, _hash, _combine
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
@@ -421,7 +421,7 @@ class RefList(LinkedMap, Indexed):
         To get an item through its alias, use L{getByAlias} instead.
 
         @param key: the UUID of the item referenced.
-        @type key: L{UUID<chandlerdb.util.uuid.UUID>}
+        @type key: L{UUID<chandlerdb.util.c.UUID>}
         @param default: the default value to return if there is no reference
         for C{key} in this ref collection, C{None} by default.
         @type default: anything

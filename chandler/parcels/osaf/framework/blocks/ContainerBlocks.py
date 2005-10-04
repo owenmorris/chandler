@@ -8,7 +8,6 @@ from Block import Block, RectangularChild, wxRectangularChild
 from osaf.framework.types.DocumentTypes import PositionType
 import DragAndDrop
 from MenusAndToolbars import Toolbar as Toolbar
-from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
 from application import schema
 import wx

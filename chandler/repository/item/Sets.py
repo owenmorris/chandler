@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from itertools import izip
 
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.c import UUID
 from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors

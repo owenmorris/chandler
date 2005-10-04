@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.uuid import _hash, _combine
+from chandlerdb.util.c import _hash, _combine
 from chandlerdb.schema.c import CAttribute
 from repository.schema.Types import Type
 from repository.schema.TypeHandler import TypeHandler

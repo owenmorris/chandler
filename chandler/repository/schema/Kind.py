@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from new import classobj
 
-from chandlerdb.util.uuid import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, _hash, _combine
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
 from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
@@ -200,7 +200,7 @@ class Kind(Item):
         repository view.
         @type parent: an item or the item's repository view
         @param uuid: The uuid for the item.
-        @type uuid: L{UUID<chandlerdb.util.uuid.UUID>}
+        @type uuid: L{UUID<chandlerdb.util.c.UUID>}
         @param cls: an optional python class to instantiate the item with,
         defaults to the class set on this kind.
         @type cls: a python new style class, that is, a type instance

@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from struct import pack, unpack
 
-from chandlerdb.util.uuid import UUID, _hash
+from chandlerdb.util.c import UUID, _hash
 from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Item import Item

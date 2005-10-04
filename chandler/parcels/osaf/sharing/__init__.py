@@ -457,7 +457,7 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
 
             logger.debug('Checking for write-access to %s...', location)
             # Create a random collection name to create
-            testCollName = u'.%s.tmp' % (chandlerdb.util.uuid.UUID())
+            testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
             try:
                 child = handle.blockUntil(resource.createCollection,
                                           testCollName)
