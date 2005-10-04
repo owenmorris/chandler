@@ -138,6 +138,14 @@ class AbstractCollection(items.ContentItem):
         sharing = schema.Cloud( none = ["displayName"] ),
     )
 
+    def setup(self):
+        """
+        setup the color of a collection
+        """
+        if not hasattr (self, 'color'):
+            self.color = schema.ns('osaf.app', self.itsView).collectionColors.nextColor()
+        return self
+
     def collectionChanged(self, op, item, name, other, *args):
         """
         The method called by the repository level set that backs a collection.
@@ -588,8 +596,7 @@ class InclusionExclusionCollection(DifferenceCollection):
         exclusions = collectionLookup (exclusions)
         trash = collectionLookup (trash)
 
-        if not hasattr (self, 'color'):
-            self.color = appNameSpace.collectionColors.nextColor()
+        super (InclusionExclusionCollection, self).setup()
 
         if source is None:
             innerSource = ListCollection(parent=self,

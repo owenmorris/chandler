@@ -68,8 +68,7 @@ def addSurrogatePairToText(text):
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
     appNameSpace = schema.ns('osaf.app', self)
-    collection = pim.ListCollection(view=view)
-    collection.color = appNameSpace.collectionColors.nextColor()
+    collection = pim.ListCollection(view=view).setup()
     sidebarCollection = appNameSpace.sidebarCollection
 
     if args[0]=='*': # semi-random data

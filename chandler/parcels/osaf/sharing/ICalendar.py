@@ -311,10 +311,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         if self.fileStyle() == self.STYLE_SINGLE:
             if item is None:
-                item = ListCollection(view=view)
+                item = ListCollection(view=view).setup()
             elif isinstance(item, Sharing.Share):
                 if item.contents is None:
-                    item.contents = ListCollection(view=view)
+                    item.contents = ListCollection(view=view).setup()
                 item = item.contents
 
             if not isinstance(item, AbstractCollection):
