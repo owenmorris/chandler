@@ -356,7 +356,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         event.anyTime = False
 
         # collectionList[0] is the currently selected collection
-        self.blockItem.contents.collectionList[0].add(event)
+        event.addToCollection(self.blockItem.contents.collectionList[0])
         self.OnSelectItem(event)
         view.commit()
         return event

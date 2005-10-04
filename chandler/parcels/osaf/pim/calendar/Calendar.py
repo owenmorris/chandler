@@ -729,7 +729,7 @@ class CalendarEventMixin(RemindableMixin):
             self.occurrenceFor = self
             if attr != 'rruleset':
                 self.rruleset = self.rruleset.copy(cloudAlias='copying')
-                # TODO: may need to remove early rdates
+                # TODO: may need to remove early rdates and exdates
             # We have to pass in master because occurrenceFor has been changed
             self._makeGeneralChange()
             # Make this event a separate event from the original rule

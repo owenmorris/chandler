@@ -19,6 +19,7 @@ import datetime
 from datetime import date, time
 from PyICU import ICUtzinfo
 from application import schema
+import itertools
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
@@ -265,6 +266,16 @@ def convertToICUtzinfo(dt):
         
     return dt
 
+def makeNaiveteMatch(dt, tzinfo):
+    if dt.tzinfo is None:
+        if tzinfo is not None:
+            dt = TimeZone.coerceTimeZone(dt, tzinfo)
+    else:
+        if tzinfo is None:
+            dt = TimeZone.stripTimeZone(dt)
+    return dt
+
+
 class ICalendarFormat(Sharing.ImportExportFormat):
 
     schema.kindInfo(displayName=u"iCalendar Import/Export Format Kind")
@@ -335,10 +346,24 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         countNew = 0
         countUpdated = 0
-               
-        # this is just a quick hack to get VTODO working, FIXME write
-        # more readable table driven code to process VEVENTs and VTODOs
-        for event in getattr(calendar, 'vevent', []):
+        
+        modificationQueue = []
+        
+        minusone = itertools.repeat(-1)
+        # This is, essentially: [(-1, event) for event in calendar.vevent]
+        vevents = itertools.izip(minusone, getattr(calendar, 'vevent', []))
+        for i, event in itertools.chain(vevents, enumerate(modificationQueue)):
+            # Queue modifications to recurring events so modifications are
+            # processed after master events in the iCalendar stream.
+            recurrenceID = None
+            try:
+                recurrenceID = event.contents['recurrence-id'][0].value
+                if i < 0: # only add to modificationQueue in initial processing
+                    modificationQueue.append(event)
+                    continue
+            except:
+                pass
+
             try:
                 if DEBUG: logger.debug("got VEVENT")
                 pickKind = eventKind
@@ -418,33 +443,26 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # the same naivete as dtstart
                 tzinfo = dtstart.tzinfo
                 
-                def makeNaiveteMatch(dt):
-                    if dt.tzinfo is None:
-                        if tzinfo is not None:
-                            dt = TimeZone.coerceTimeZone(dt, tzinfo)
-                    else:
-                        if tzinfo is None:
-                            dt = TimeZone.stripTimeZone(dt)
-                    return dt
-     
-                
                 # See if we have a corresponding item already
-                recurrenceID = None
                 uidMatchItem = self.findUID(event.uid[0].value)
                 if uidMatchItem is not None:
                     if DEBUG: logger.debug("matched UID")
-                    try:
-                        recurrenceID = event.contents['recurrence-id'][0].value
+
+                    if recurrenceID:
                         if type(recurrenceID) == date:
                             recurrenceID = datetime.datetime.combine(
                                                         recurrenceID,
                                                         time(tzinfo=tzinfo))
                         else:
                             recurrenceID = makeNaiveteMatch(
-                                                  convertToICUtzinfo(recurrenceID))
-                    except:
-                        pass
-                    if recurrenceID:
+                                               convertToICUtzinfo(recurrenceID),
+                                               tzinfo)
+                        # Oracle creates an EXDATE for modifications,
+                        # delete any such EXDATEs because they don't match
+                        # Chandler's recurrence model
+                        if hasattr(uidMatchItem, 'rruleset'):
+                            uidMatchItem.rruleset.deleteExDate(recurrenceID)
+                            
                         eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
                         if eventItem == None:
                             # our recurrenceID didn't match an item we know
@@ -480,7 +498,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                                                                 time(tzinfo=tzinfo))
                     else:
                         event.rdate[i] = makeNaiveteMatch(convertToICUtzinfo(
-                                                          event.rdate[i]))
+                                                          event.rdate[i]),
+                                                          tzinfo)
                         
                     # get rid of RDATES that match dtstart, created by vobject to
                     # deal with unusual RRULEs correctly

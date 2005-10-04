@@ -724,7 +724,7 @@ class CollectionBlock(Block.RectangularChild):
     def onDeleteEvent(self, event):
         trash = schema.ns('osaf.app', self).TrashCollection
         for item in self.selection:
-            trash.add(item)
+            item.addToCollection(trash)
         self.ClearSelection()
         
     def onRemoveEvent(self, event):
@@ -739,7 +739,7 @@ class CollectionBlock(Block.RectangularChild):
 
     def DeleteSelection(self):
         for item in self.selection:
-            self.contents.collectionList[0].remove(item)
+            item.removeFromCollection(self.contents.collectionList[0])
         self.ClearSelection()
 
     def ClearSelection(self):

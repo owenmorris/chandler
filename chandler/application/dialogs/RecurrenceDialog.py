@@ -207,8 +207,12 @@ class OccurrenceProxy(object):
         elif self.proxiedItem.rruleset is None:
             setattr(self.proxiedItem, name, value)
         else:
-            if hasattr(self.proxiedItem, name) and \
-               getattr(self.proxiedItem, name) == value:
+            try:
+                testedEqual = hasattr(self.proxiedItem, name) and \
+                              getattr(self.proxiedItem, name) == value
+            except TypeError: # datetimes with and without TZs will raise this
+                testedEqual = False
+            if testedEqual:
                 pass
             elif self.currentlyModifying is None:
                 self.changeBuffer.append(('change', name, value))

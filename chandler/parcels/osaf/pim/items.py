@@ -212,6 +212,28 @@ class ContentItem(schema.Item):
         # Let the clipboard handler know we've got a ContentItem to export
         clipboardHandler.ExportItemFormat(self, 'ContentItem')
 
+    def addToCollection(self, collection):
+        """Add self to the given collection.
+        
+        For most items, just call collection.add(self), but for recurring
+        events, this method is intercepted by a proxy and buffered while the
+        user selects from various possible meanings for adding a recurring event
+        to a collection.
+        
+        """
+        collection.add(self)
+        
+    def removeFromCollection(self, collection):
+        """Remove self from the given collection.
+        
+        For most items, just call collection.remove(self), but for recurring
+        events, this method is intercepted by a proxy and buffered while the
+        user selects from various possible meanings for removing a recurring
+        event from a collection.
+        
+        """
+        collection.remove(self)
+
     """
     STAMPING SUPPORT
 

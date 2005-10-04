@@ -15,6 +15,7 @@ from repository.item.PersistentCollections import PersistentList
 from PyICU import ICUtzinfo
 from TimeZone import coerceTimeZone, forceToDateTime
 from i18n import OSAFMessageFactory as _
+from DateTimeUtil import datetimeOp
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
@@ -376,7 +377,7 @@ class RecurrenceRuleSet(items.ContentItem):
         
         """
         if self.hasLocalAttributeValue('rrules'):
-            if len(self.rrules) > 1:
+            if len(self.rrules) != 1:
                 return True # multiple rules
             for recurtype in 'exrules', 'rdates', 'exdates':
                 if self.hasLocalAttributeValue(recurtype) and \
@@ -397,10 +398,25 @@ class RecurrenceRuleSet(items.ContentItem):
         return "not yet implemented"
 
     RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
+    
+    def deleteExDate(self, dt):
+        """Deleting an EXDATE shouldn't trigger onValueChanged."""
+        # We can't safely use "in" to test if dt is in exdates, because naive
+        # vs. not-naive issues may arise, so just iterate over exdates and
+        # compare carefully.
+        for i, exdate in enumerate(getattr(self, 'exdates', [])):
+            if datetimeOp(exdate, '==', dt):
+                self._ignoreChanges = True
+                print "Deleting exdate", dt, self.exdates
+                del self.exdates[i]
+                print "self.exdates is now:", self.exdates
+                self._ignoreChanges = False
+                break
+
 
     def onValueChanged(self, name):
         """If the RuleSet changes, update the associated event."""
-        if name in self.RULENAMES:
+        if name in self.RULENAMES and not getattr(self, '_ignoreChanges',False):
             if self.hasLocalAttributeValue('events'):
                 for event in self.events:
                     event.getFirstInRule().cleanRule()
