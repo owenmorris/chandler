@@ -2997,18 +2997,18 @@ int		sizeX, sizeY, insetX;
 		{
 		long		deltaV;
 
-			deltaV = targetBitmap->GetWidth() - targetBoundsR->width;
+			deltaV = targetBoundsR->width - targetBitmap->GetWidth();
 			if (deltaV > 0)
 			{
 				targetBoundsR->width -= deltaV;
-				targetBoundsR->x += deltaV;
+				targetBoundsR->x += deltaV / 2;
 			}
 
-			deltaV = targetBitmap->GetHeight() - targetBoundsR->height;
+			deltaV = targetBoundsR->height - targetBitmap->GetHeight();
 			if (deltaV > 0)
 			{
 				targetBoundsR->height -= deltaV;
-				targetBoundsR->y += deltaV;
+				targetBoundsR->y += deltaV / 2;
 			}
 		}
 	}
