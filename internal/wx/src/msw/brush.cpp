@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: brush.cpp,v 1.22 2005/09/23 12:54:52 MR Exp $
+// RCS-ID:      $Id: brush.cpp,v 1.24 2005/10/04 18:14:34 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -334,5 +334,3 @@ void wxBrush::SetStipple(const wxBitmap& stipple)
 
     M_BRUSHDATA->SetStipple(stipple);
 }
-
-

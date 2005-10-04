@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: pen.cpp,v 1.9 2005/10/03 16:39:45 ABX Exp $
+// RCS-ID:      $Id: pen.cpp,v 1.11 2005/10/04 18:14:41 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ void wxPen::SetDashes( int number_of_dashes, const wxDash *dash )
     M_PENDATA->m_dash = (wxX11Dash *)dash; // TODO
 }
 
-void wxPen::SetColour( int red, int green, int blue )
+void wxPen::SetColour( unsigned char red, unsigned char green, unsigned char blue )
 {
     AllocExclusive();
 

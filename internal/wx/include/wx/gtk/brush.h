@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        brush.h
+// Name:        wx/gtk/brush.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: brush.h,v 1.21 2005/09/23 12:49:13 MR Exp $
+// Id:          $Id: brush.h,v 1.23 2005/10/04 18:14:08 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

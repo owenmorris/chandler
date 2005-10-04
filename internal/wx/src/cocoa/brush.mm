@@ -4,9 +4,9 @@
 // Author:      David Elliott <dfe@cox.net>
 // Modified by:
 // Created:     2003/07/03
-// RCS-ID:      $Id: brush.mm,v 1.5 2004/05/23 15:10:39 JS Exp $
+// RCS-ID:      $Id: brush.mm,v 1.7 2005/10/04 18:14:22 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
-// Licence:   	wxWidgets licence
+// Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -215,4 +215,3 @@ WX_NSColor wxBrush::GetNSColor()
         return [NSColor clearColor];
     return M_BRUSHDATA->GetNSColor();
 }
-

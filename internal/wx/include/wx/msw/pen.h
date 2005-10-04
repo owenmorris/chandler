@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        wx/pen.h
+// Name:        wx/msw/pen.h
 // Purpose:     wxPen class
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin: fixed operator=(), ==(), !=()
 // Created:     01/02/97
-// RCS-ID:      $Id: pen.h,v 1.25 2005/09/23 12:50:14 MR Exp $
+// RCS-ID:      $Id: pen.h,v 1.27 2005/10/04 18:14:15 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -138,4 +138,3 @@ private:
 };
 
 #endif // _WX_PEN_H_
-

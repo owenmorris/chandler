@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: brush.h,v 1.18 2005/09/23 12:50:07 MR Exp $
+// RCS-ID:      $Id: brush.h,v 1.20 2005/10/04 18:14:14 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

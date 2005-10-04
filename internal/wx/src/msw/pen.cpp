@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/pen.cpp
+// Name:        src/msw/pen.cpp
 // Purpose:     wxPen
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: pen.cpp,v 1.36 2005/09/23 12:55:07 MR Exp $
+// RCS-ID:      $Id: pen.cpp,v 1.38 2005/10/04 18:14:34 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -397,4 +397,3 @@ int wx2msPenStyle(int wx_style)
 #endif
     return PS_SOLID;
 }
-

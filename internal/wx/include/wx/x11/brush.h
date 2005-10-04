@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        brush.h
+// Name:        wx/x11/brush.h
 // Purpose:     wxBrush class
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: brush.h,v 1.12 2005/09/23 12:50:57 MR Exp $
+// RCS-ID:      $Id: brush.h,v 1.14 2005/10/04 18:14:20 ABX Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

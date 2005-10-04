@@ -2,7 +2,7 @@
 // Name:        wx/gtk/pen.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: pen.h,v 1.21 2005/09/23 12:49:17 MR Exp $
+// Id:          $Id: pen.h,v 1.23 2005/10/04 18:14:08 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,28 +36,28 @@ class WXDLLIMPEXP_CORE wxPen: public wxGDIObject
 {
 public:
     wxPen() { }
-    
+
     wxPen( const wxColour &colour, int width = 1, int style = wxSOLID );
     ~wxPen();
-    
+
     wxPen( const wxPen& pen )
         : wxGDIObject()
         { Ref(pen); }
     wxPen& operator = ( const wxPen& pen ) { Ref(pen); return *this; }
-    
+
     bool Ok() const { return m_refData != NULL; }
-    
+
     bool operator == ( const wxPen& pen ) const;
     bool operator != (const wxPen& pen) const { return !(*this == pen); }
 
     void SetColour( const wxColour &colour );
-    void SetColour( int red, int green, int blue );
+    void SetColour( unsigned char red, unsigned char green, unsigned char blue );
     void SetCap( int capStyle );
     void SetJoin( int joinStyle );
     void SetStyle( int style );
     void SetWidth( int width );
     void SetDashes( int number_of_dashes, const wxDash *dash );
-    
+
     wxColour &GetColour() const;
     int GetCap() const;
     int GetJoin() const;
@@ -67,11 +67,11 @@ public:
     int GetDashCount() const;
     wxDash* GetDash() const;
 
-private:    
+private:
     // ref counting code
     virtual wxObjectRefData *CreateRefData() const;
     virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;
-    
+
     DECLARE_DYNAMIC_CLASS(wxPen)
 };
 

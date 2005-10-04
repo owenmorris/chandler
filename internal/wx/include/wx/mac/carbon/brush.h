@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        brush.h
+// Name:        wx/mac/carbon/brush.h
 // Purpose:     wxBrush class
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: brush.h,v 1.8 2005/09/24 21:42:18 VZ Exp $
+// RCS-ID:      $Id: brush.h,v 1.10 2005/10/04 18:14:10 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,8 +40,8 @@ public:
         { Ref(brush); }
     ~wxBrush();
 
-    virtual void SetColour(const wxColour& col)  ;
-    virtual void SetColour(unsigned char r, unsigned char g, unsigned char b)  ;
+    virtual void SetColour(const wxColour& col) ;
+    virtual void SetColour(unsigned char r, unsigned char g, unsigned char b) ;
     virtual void SetStyle(int style)  ;
     virtual void SetStipple(const wxBitmap& stipple)  ;
     virtual void MacSetTheme(short macThemeBrush) ;

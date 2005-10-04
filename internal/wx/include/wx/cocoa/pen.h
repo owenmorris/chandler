@@ -4,9 +4,9 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/08/02 (stubs from 22.03.2003)
-// RCS-ID:      $Id: pen.h,v 1.7 2005/09/24 21:42:03 VZ Exp $
+// RCS-ID:      $Id: pen.h,v 1.9 2005/10/04 18:14:07 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WX_COCOA_PEN_H__

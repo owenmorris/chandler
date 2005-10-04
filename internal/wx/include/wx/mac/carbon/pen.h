@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        wx/mac/pen.h
+// Name:        wx/mac/carbon/pen.h
 // Purpose:     wxPen class
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: pen.h,v 1.6 2005/09/24 21:42:18 VZ Exp $
+// RCS-ID:      $Id: pen.h,v 1.8 2005/10/04 18:14:10 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ public:
 
   // Override in order to recreate the pen
   void SetColour(const wxColour& col) ;
-  void SetColour(unsigned char r, unsigned char g, unsigned char b)  ;
+  void SetColour(unsigned char r, unsigned char g, unsigned char b) ;
 
   void SetWidth(int width)  ;
   void SetStyle(int style)  ;

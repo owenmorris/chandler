@@ -91,6 +91,11 @@
  * Cambridge, MA 02139, USA.
  *
  */
+/* get XmVersion definition */
+#include <Xm/Xm.h>
+
+#if (XmVersion < 2000)
+
 #ifdef __VMS
 #include <wx/vms_x_fix.h>
 #undef XtDisplay
