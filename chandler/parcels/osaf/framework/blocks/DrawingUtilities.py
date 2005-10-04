@@ -6,6 +6,14 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import wx, os, random
 import math
 
+from colorsys import hsv_to_rgb, rgb_to_hsv
+
+def color2rgb(red, green, blue):
+    return red/255.0, green/255.0, blue/255.0
+
+def rgb2color(r, g, b):
+    return r*255, g*255, b*255
+
 def SetTextColorsAndFont(grid, attr, dc, isSelected):
     """
       Set the text foreground, text background, brush and font into the dc
@@ -154,8 +162,10 @@ class Gradients(object):
         # - going through wxImage
         # - individually setting each RGB pixel
         image = wx.EmptyImage(bitmapWidth, 1)
-        leftHSV = wx.Image.RGBtoHSV (wx.Image_RGBValue (*leftColor))
-        rightHSV = wx.Image.RGBtoHSV (wx.Image_RGBValue (*rightColor))
+        leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
+        rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
+        #leftHSV = wx.Image.RGBtoHSV (wx.Image_RGBValue (*leftColor))
+        #rightHSV = wx.Image.RGBtoHSV (wx.Image_RGBValue (*rightColor))
 
         # make sure they are the same hue and brightness
         # XXX: this doesn't quite work, because sometimes division issues
@@ -164,10 +174,10 @@ class Gradients(object):
         #assert leftHSV.hue == rightHSV.hue
         #assert leftHSV.value == rightHSV.value
         
-        hue = leftHSV.hue
-        value = leftHSV.value
-        satStart = leftHSV.saturation
-        satDelta = rightHSV.saturation - leftHSV.saturation
+        hue = leftHSV[0]
+        value = leftHSV[2]
+        satStart = leftHSV[1]
+        satDelta = rightHSV[1] - leftHSV[1]
         if width == 0: width == 1
         satStep = satDelta / width
         
@@ -188,10 +198,10 @@ class Gradients(object):
             gradientIndex %= width
             
             # now calculate the actual color from the gradient index
-            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue,
-                                                        satStart + satStep*gradientIndex,
-                                                        value))
-            image.SetRGB(x,0,rgb.red, rgb.green, rgb.blue)
+            sat = satStart + satStep * gradientIndex
+            color = rgb2color(*hsv_to_rgb(hue, sat, value))
+            rgb = wx.Image_RGBValue(*color)
+            image.SetRGB(x,0, rgb.red, rgb.green, rgb.blue)
             
         # and now we have to go from Image -> Bitmap. Yuck.
         brush = wx.Brush(wx.WHITE, wx.STIPPLE)

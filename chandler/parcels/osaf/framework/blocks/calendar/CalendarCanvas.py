@@ -28,7 +28,8 @@ from osaf.framework.attributeEditors import AttributeEditors
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.calendar import CollectionCanvas
 
-import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
+from colorsys import rgb_to_hsv, hsv_to_rgb
 
 from application import schema
 from itertools import islice
@@ -85,16 +86,13 @@ class ColorInfo(object):
     def __init__(self, collection):
         assert hasattr (collection, 'color')
         color = collection.color
-        rgb = wx.Image_RGBValue (color.red, color.green, color.blue)
-        self.hue = wx.Image.RGBtoHSV (rgb).hue
-                                         
+        self.hue = rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
     
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
     # takes HSV 'S' and 'V' and returns an color based tuple property
     def tintedColor(saturation, value = 1.0):
         def getSaturatedColor(self):
-            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (self.hue, saturation, value))
-            return rgb.red, rgb.green, rgb.blue
+            return rgb2color(*hsv_to_rgb(self.hue, saturation, value))
         return property(getSaturatedColor)
             
     def tupleProperty(*args):
@@ -365,7 +363,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         
                         dc.SetFont(styles.eventTimeFont)	
                         self.timeHeight = \
-                            DrawingUtilities.DrawWrappedText(dc, timeString, timeRect)
+                            DrawWrappedText(dc, timeString, timeRect)
 
                         # add some space below the time
                         self.timeHeight += 3
@@ -383,7 +381,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                    itemRect.height - lostHeight - self.textOffset.y)
        
                 dc.SetFont(styles.eventLabelFont)	
-                DrawingUtilities.DrawWrappedText(dc, item.displayName, textRect)	
+                DrawWrappedText(dc, item.displayName, textRect)	
        
         dc.DestroyClippingRegion()	
         if clipRect:	
@@ -1222,7 +1220,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         self.todayBrush = wx.Brush(wx.Colour(242,242,242))
 
         # gradient cache
-        self.brushes = DrawingUtilities.Gradients()
+        self.brushes = Gradients()
 
     def instantiateWidget(self):
         self.InitializeStyles()
@@ -1484,6 +1482,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         selectedDate = self.blockItem.selectedDate
         startDate = self.blockItem.rangeStart
 
+        # We're just synchronizing the control area,
+        # so we only care if the visible range has changed
         if (selectedDate == self.currentSelectedDate and
             startDate == self.currentStartDate):
             return
@@ -1683,6 +1683,9 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # when dayWidth changes
         styles = self.blockItem.calendarContainer
         if oldDayWidth != self.dayWidth:
+            # Really, the gradients cache should be managing this for us,
+            # so that we may smoothly change sizes without loosing too much
+            # information
             styles.brushes.ClearCache()
         
 
