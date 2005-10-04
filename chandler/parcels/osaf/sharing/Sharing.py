@@ -377,7 +377,8 @@ class ShareConduit(items.ContentItem):
         return self.sharingView
 
 
-    def _conditionalPutItem(self, item):
+
+    def _conditionalPutItem(self, item, changes):
         """
         Put an item if it's not on the server or is out of date
         """
@@ -412,14 +413,12 @@ class ShareConduit(items.ContentItem):
                 # Check to see if the item or any of its itemCloud items have a
                 # more recent version than the last time we synced
                 for relatedItem in item.getItemCloud('sharing'):
-                    itemVersion = relatedItem.getVersion()
-                    if itemVersion > prevVersion:
+                    if relatedItem.itsUUID in changes:
+                        modifiedAttributes = changes[relatedItem.itsUUID]
                         sharedAttributes = \
                             self.share.getSharedAttributes(relatedItem)
-                        changes = changedAttributes(relatedItem, prevVersion,
-                                                    itemVersion)
-                        logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), changes)
-                        for change in changes:
+                        logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), modifiedAttributes)
+                        for change in modifiedAttributes:
                             if change in sharedAttributes:
                                 logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName().encode('ascii', 'replace'))
                                 needsUpdate = True
@@ -504,6 +503,9 @@ class ShareConduit(items.ContentItem):
                         logger.debug(_(u'Removing an unparsable resource from the resourceList: %(path)s') % { 'path' : path })
                         del self.resourceList[path]
 
+            # Build the list of local changes
+            prevVersion = getattr(self, 'syncVersion', view.itsVersion)
+            changes = localChanges(view, prevVersion, view.itsVersion)
 
             # If we're sharing a collection, put the collection's items
             # individually:
@@ -559,11 +561,11 @@ class ShareConduit(items.ContentItem):
                             continue
 
                     # Put the item
-                    stats[ self._conditionalPutItem(item) ] += 1
+                    stats[ self._conditionalPutItem(item, changes) ] += 1
                     
 
             # Put the Share item itself
-            stats[ self._conditionalPutItem(self.share) ] += 1
+            stats[ self._conditionalPutItem(self.share, changes) ] += 1
 
 
         elif style == ImportExportFormat.STYLE_SINGLE:
@@ -1714,6 +1716,24 @@ def changedAttributes(item, fromVersion, toVersion):
     item.itsView.mapHistory(historyCallback, fromVersion, toVersion)
 
     return changes
+
+
+def localChanges(view, fromVersion, toVersion):
+
+    changedItems = {}
+
+    def historyCallback(item, version, status, values, references):
+        if changedItems.has_key(item.itsUUID):
+            changes = changedItems[item.itsUUID]
+        else:
+            changes = set([])
+            changedItems[item.itsUUID] = changes
+        changes.update(values)
+        changes.update(references)
+
+    view.mapHistory(historyCallback, fromVersion, toVersion)
+
+    return changedItems
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
