@@ -695,21 +695,21 @@ class SidebarBlock(ControlBlocks.Table):
         return widget
 
     def onKindParameterizedEvent (self, event):
-        assert self.filterKind != event.kindParameter
-        self.filterKind = event.kindParameter
-        # We need to update the click state of the toolbar as well
-        toolbar = Block.Block.findBlockByName("ApplicationBar")
-        for button in toolbar.childrenBlocks:
-            try:
-                buttonEvent = button.event
-            except:
-                continue
-            if buttonEvent == event:
-                button.widget.selectTool()
-                continue
-        self.widget.Refresh()
-        self.postEventByName("SelectItemsBroadcast",
-                             {'items':[self.selectedItemToView]})
+        if self.filterKind != event.kindParameter:
+            self.filterKind = event.kindParameter
+            # We need to update the click state of the toolbar as well
+            toolbar = Block.Block.findBlockByName("ApplicationBar")
+            for button in toolbar.childrenBlocks:
+                try:
+                    buttonEvent = button.event
+                except:
+                    continue
+                if buttonEvent == event:
+                    button.widget.selectTool()
+                    continue
+            self.widget.Refresh()
+            self.postEventByName("SelectItemsBroadcast",
+                                 {'items':[self.selectedItemToView]})
 
     def onKindParameterizedEventUpdateUI (self, event):
         # check the appropriate menu item
