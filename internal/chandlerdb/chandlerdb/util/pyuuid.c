@@ -8,8 +8,8 @@
 
 #include <Python.h>
 #include "structmember.h"
-#include "fns.h"
-#include "uuid.h"
+
+#include "c.h"
 
 static void t_uuid_dealloc(t_uuid *self);
 static PyObject *t_uuid_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
@@ -21,8 +21,6 @@ static int t_uuid_cmp(t_uuid *o1, t_uuid *o2);
 static PyObject *t_uuid_richcmp(t_uuid *o1, t_uuid *o2, int opid);
 
 static PyObject *format64(t_uuid *self);
-static PyObject *hash(PyObject *self, PyObject *args);
-static PyObject *combine(PyObject *self, PyObject *args);
 static PyObject *_isUUID(PyObject *self);
 static PyObject *_isItem(PyObject *self);
 static PyObject *_isRefList(PyObject *self);
@@ -45,16 +43,10 @@ static PyMethodDef t_uuid_methods[] = {
     { NULL, NULL, 0, NULL }
 };
 
-static PyMethodDef uuid_funcs[] = {
-    { "_hash", (PyCFunction) hash, METH_VARARGS, "hash bytes" },
-    { "_combine", (PyCFunction) combine, METH_VARARGS, "combine two hashes" },
-    { NULL, NULL, 0, NULL }
-};
-
 static PyTypeObject UUIDType = {
     PyObject_HEAD_INIT(NULL)
     0,                           /* ob_size */
-    "chandlerdb.util.uuid.UUID", /* tp_name */
+    "chandlerdb.util.c.UUID",    /* tp_name */
     sizeof(t_uuid),              /* tp_basicsize */
     0,                           /* tp_itemsize */
     (destructor)t_uuid_dealloc,  /* tp_dealloc */
@@ -219,27 +211,6 @@ static PyObject *format64(t_uuid *self)
     return PyString_FromStringAndSize(buf, sizeof(buf));
 }
 
-static PyObject *hash(PyObject *self, PyObject *args)
-{
-    unsigned char *data;
-    unsigned int len = 0;
-
-    if (!PyArg_ParseTuple(args, "s#", &data, &len))
-        return 0;
-
-    return PyInt_FromLong(hash_bytes(data, len));
-}
-
-static PyObject *combine(PyObject *self, PyObject *args)
-{
-    unsigned long h0, h1;
-
-    if (!PyArg_ParseTuple(args, "ll", &h0, &h1))
-        return 0;
-
-    return PyInt_FromLong(combine_longs(h0, h1));
-}
-
 static PyObject *_isUUID(PyObject *self)
 {
     Py_RETURN_TRUE;
@@ -273,18 +244,17 @@ PyObject *PyUUID_Make16(PyObject *str16)
 }
 
 
-void inituuid(void)
+void _init_uuid(PyObject *m)
 {
     if (PyType_Ready(&UUIDType) >= 0)
     {
-        PyObject *m = Py_InitModule3("uuid", uuid_funcs,
-                                     "UUID generation utility");
         if (m)
         {
             PyObject *cobj;
 
             Py_INCREF(&UUIDType);
             PyModule_AddObject(m, "UUID", (PyObject *) &UUIDType);
+            UUID = &UUIDType;
 
             cobj = PyCObject_FromVoidPtr(PyUUID_Check, NULL);
             PyModule_AddObject(m, "PyUUID_Check", cobj);

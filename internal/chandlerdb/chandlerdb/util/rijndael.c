@@ -9,6 +9,7 @@
 #include <Python.h>
 #include "structmember.h"
 
+#include "c.h"
 #include "rijndael-api-fst.h"
 
 
@@ -84,7 +85,7 @@ static PyGetSetDef t_key_properties[] = {
 static PyTypeObject KeyType = {
     PyObject_HEAD_INIT(NULL)
     0,                                                   /* ob_size */
-    "chandlerdb.util.rijndael.Key",                      /* tp_name */
+    "chandlerdb.util.c.Key",                             /* tp_name */
     sizeof(t_key),                                       /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     (destructor)t_key_dealloc,                           /* tp_dealloc */
@@ -221,7 +222,7 @@ static PyGetSetDef t_cipher_properties[] = {
 static PyTypeObject CipherType = {
     PyObject_HEAD_INIT(NULL)
     0,                                                   /* ob_size */
-    "chandlerdb.util.rijndael.Cipher",                   /* tp_name */
+    "chandlerdb.util.c.Cipher",                          /* tp_name */
     sizeof(t_cipher),                                    /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     (destructor)t_cipher_dealloc,                        /* tp_dealloc */
@@ -476,24 +477,8 @@ static PyObject *t_cipher__getIV(t_cipher *self, void *data)
 }
 
 
-static PyMethodDef rijndael_funcs[] = {
-    { NULL, NULL, 0, NULL }
-};
-
-
-static void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
+void _init_rijndael(PyObject *m)
 {
-    PyObject *pyValue = PyInt_FromLong(value);
-
-    PyDict_SetItemString(dict, key, pyValue);
-    Py_DECREF(pyValue);
-}
-
-void initrijndael(void)
-{
-    PyObject *m = Py_InitModule3("rijndael", rijndael_funcs,
-                                 "rijndael API module");
-
     if (PyType_Ready(&KeyType) >= 0)
     {
         if (m)
@@ -502,6 +487,7 @@ void initrijndael(void)
 
             Py_INCREF(&KeyType);
             PyModule_AddObject(m, "Key", (PyObject *) &KeyType);
+            Key = &KeyType;
 
             PyDict_SetItemString_Int(dict, "ENCRYPT", DIR_ENCRYPT);
             PyDict_SetItemString_Int(dict, "DECRYPT", DIR_DECRYPT);
@@ -516,6 +502,7 @@ void initrijndael(void)
 
             Py_INCREF(&CipherType);
             PyModule_AddObject(m, "Cipher", (PyObject *) &CipherType);
+            Cipher = &CipherType;
 
             PyDict_SetItemString_Int(dict, "ECB", MODE_ECB);
             PyDict_SetItemString_Int(dict, "CBC", MODE_CBC);

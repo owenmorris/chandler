@@ -8,6 +8,7 @@
 
 
 #include "../item/item.h"
+#include "../util/uuid.h"
 #include "view.h"
 
 #define LOAD_TYPE(m, name) \
@@ -17,6 +18,9 @@
     { PyObject *cobj = PyObject_GetAttrString(m, #name); \
       name = (name##_fn) PyCObject_AsVoidPtr(cobj); \
       Py_DECREF(cobj); }
+
+#define LOAD_EXC(m, name) \
+    PyExc_##name = PyObject_GetAttrString(m, #name)
 
 
 typedef struct {
@@ -31,6 +35,11 @@ extern PyTypeObject *CRepository;
 extern PyTypeObject *CItem;
 extern PyTypeObject *UUID;
 
+extern PyUUID_Check_fn PyUUID_Check;
+extern PyUUID_Make16_fn PyUUID_Make16;
+
+void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);
+
 void _init_view(PyObject *m);
 void _init_repository(PyObject *m);
-void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);
+void _init_container(PyObject *m);

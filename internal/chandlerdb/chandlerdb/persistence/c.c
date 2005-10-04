@@ -17,6 +17,9 @@ PyTypeObject *CRepository = NULL;
 PyTypeObject *CItem = NULL;
 PyTypeObject *UUID = NULL;
 
+PyUUID_Check_fn PyUUID_Check = NULL;
+PyUUID_Make16_fn PyUUID_Make16 = NULL;
+
 
 static PyMethodDef c_funcs[] = {
     { NULL, NULL, 0, NULL }
@@ -38,8 +41,9 @@ void initc(void)
 
     _init_view(m);
     _init_repository(m);
+    _init_container(m);
 
-    m = PyImport_ImportModule("chandlerdb.util.uuid");
+    m = PyImport_ImportModule("chandlerdb.util.c");
     LOAD_TYPE(m, UUID);
     Py_DECREF(m);
 

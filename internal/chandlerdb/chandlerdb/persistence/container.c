@@ -6,32 +6,11 @@
  * License at http://osafoundation.org/Chandler_0.1_license_terms.htm
  */
 
-#if defined(_MSC_VER)
-#include <winsock2.h>
-#include <malloc.h>
-#elif defined(__MACH__)
-#include <arpa/inet.h>
-#elif defined(linux)
-#include <netinet/in.h>
-#else
-#error system is not linux, os x or winnt
-#endif
-
 #include <db.h>
 #include <Python.h>
 #include "structmember.h"
 
-#include "../util/uuid.h"
-
-
-#define LOAD_EXC(m, name) \
-    PyExc_##name = PyObject_GetAttrString(m, #name)
-
-#define LOAD_FN(m, name) \
-    { PyObject *cobj = PyObject_GetAttrString(m, #name); \
-      name = (name##_fn) PyCObject_AsVoidPtr(cobj); \
-      Py_DECREF(cobj); }
-
+#include "c.h"
 
 typedef struct {
     PyObject_HEAD
@@ -70,9 +49,6 @@ static PyObject *t_container_new(PyTypeObject *type,
                                  PyObject *args, PyObject *kwds);
 static int t_container_init(t_container *self, PyObject *args, PyObject *kwds);
 
-static PyUUID_Check_fn PyUUID_Check;
-static PyUUID_Make16_fn PyUUID_Make16;
-
 static PyMemberDef t_container_members[] = {
     { "db", T_OBJECT, offsetof(t_container, db), READONLY, "" },
     { NULL, 0, 0, 0, NULL }
@@ -82,14 +58,11 @@ static PyMethodDef t_container_methods[] = {
     { NULL, NULL, 0, NULL }
 };
 
-static PyMethodDef container_funcs[] = {
-    { NULL, NULL, 0, NULL }
-};
 
 static PyTypeObject ContainerType = {
     PyObject_HEAD_INIT(NULL)
     0,                                                   /* ob_size */
-    "chandlerdb.persistence.container.CContainer",       /* tp_name */
+    "chandlerdb.persistence.c.CContainer",               /* tp_name */
     sizeof(t_container),                                 /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     (destructor)t_container_dealloc,                     /* tp_dealloc */
@@ -349,7 +322,7 @@ static PyMethodDef t_value_container_methods[] = {
 static PyTypeObject ValueContainerType = {
     PyObject_HEAD_INIT(NULL)
     0,                                                   /* ob_size */
-    "chandlerdb.persistence.container.CValueContainer",  /* tp_name */
+    "chandlerdb.persistence.c.CValueContainer",          /* tp_name */
     sizeof(t_value_container),                           /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     (destructor)t_value_container_dealloc,               /* tp_dealloc */
@@ -540,7 +513,7 @@ static PyMethodDef t_ref_container_methods[] = {
 static PyTypeObject RefContainerType = {
     PyObject_HEAD_INIT(NULL)
     0,                                                   /* ob_size */
-    "chandlerdb.persistence.container.CRefContainer",    /* tp_name */
+    "chandlerdb.persistence.c.CRefContainer",            /* tp_name */
     sizeof(t_ref_container),                             /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     (destructor)t_ref_container_dealloc,                 /* tp_dealloc */
@@ -649,15 +622,12 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
     }
 }
 
-void initcontainer(void)
+void _init_container(PyObject *m)
 {
     if (PyType_Ready(&ContainerType) >= 0 &&
         PyType_Ready(&ValueContainerType) >= 0 &&
         PyType_Ready(&RefContainerType) >= 0)
     {
-        PyObject *m = Py_InitModule3("container", container_funcs,
-                                     "Container C type module");
-
         if (m)
         {
             Py_INCREF(&ContainerType);
@@ -681,7 +651,7 @@ void initcontainer(void)
             LOAD_EXC(m, DBError);
             Py_DECREF(m);
 
-            m = PyImport_ImportModule("chandlerdb.util.uuid");
+            m = PyImport_ImportModule("chandlerdb.util.c");
             LOAD_FN(m, PyUUID_Check);
             LOAD_FN(m, PyUUID_Make16);
             Py_DECREF(m);
