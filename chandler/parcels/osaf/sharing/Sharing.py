@@ -694,6 +694,7 @@ class ShareConduit(items.ContentItem):
             if isinstance(contents, ListCollection) and \
                 not hasattr(contents, 'rep'):
                     contents.rep = Set((contents,'refCollection'))
+                    contents.setup() # make sure a color is assigned
 
             if isinstance(contents, InclusionExclusionCollection) and \
                 not hasattr(contents, 'rep'):

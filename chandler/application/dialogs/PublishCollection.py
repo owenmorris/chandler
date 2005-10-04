@@ -1,7 +1,7 @@
 # The collection publishing dialog
 # Invoke using the ShowPublishDialog( ) method.
 
-import wx
+import wx, twisted
 import M2Crypto
 import traceback, logging
 import os, urlparse, urllib
@@ -340,7 +340,8 @@ class PublishCollectionDialog(wx.Dialog):
 
         except (sharing.SharingError, zanshin.error.Error,
                 M2Crypto.SSL.Checker.WrongHost,
-                Utility.CertificateVerificationError), e:
+                Utility.CertificateVerificationError,
+                twisted.internet.error.TimeoutError), e:
 
             # Display the error
             # self._clearStatus()
