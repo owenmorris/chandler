@@ -63,11 +63,13 @@ if [ "$TBOX" = "yes" ]; then
 fi
 
 HH_DIR=`pwd`
-TBOX_UPDATE=`cygpath -w $HH_DIR/tbox_update.py`
 LOGFILES="svn.log distrib.log install.log tests.log"
 MODES="release debug"
 SLEEP_MINUTES=5
 ENDLOOP="no"
+
+echo $TBOX_UPDATE
+exit
 
 while [ "$ENDLOOP" = "no" ]
 do
@@ -85,9 +87,11 @@ do
     if [ "$OSTYPE" = "cygwin" ]; then
         RUN_CHANDLER=RunChandler.bat
         RUN_PYTHON=RunPython.bat
+        TBOX_UPDATE=`cygpath -w $HH_DIR/tbox_update.py`
     else
         RUN_CHANDLER=RunChandler
         RUN_PYTHON=RunPython
+        TBOX_UPDATE=$HH_DIR/tbox_update.py
     fi
 
     for i in $LOGFILES ; do
