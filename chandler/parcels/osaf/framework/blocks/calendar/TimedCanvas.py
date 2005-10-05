@@ -413,8 +413,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         This timer goes off while we're dragging/resizing
         """
-        scrolledPosition = self.CalcScrolledPosition(self.dragState.currentPosition)
-        self.ScrollIntoView(scrolledPosition)
+        if self.dragState is not None:
+            scrolledPosition = self.CalcScrolledPosition(self.dragState.currentPosition)
+            self.ScrollIntoView(scrolledPosition)
     
     def StartDragTimer(self):
         self.scrollTimer = wx.PyTimer(self.OnDragTimer)

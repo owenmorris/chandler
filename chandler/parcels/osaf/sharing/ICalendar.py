@@ -456,11 +456,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             recurrenceID = makeNaiveteMatch(
                                                convertToICUtzinfo(recurrenceID),
                                                tzinfo)
-                        # Oracle creates an EXDATE for modifications,
-                        # delete any such EXDATEs because they don't match
-                        # Chandler's recurrence model
-                        if hasattr(uidMatchItem, 'rruleset'):
-                            uidMatchItem.rruleset.deleteExDate(recurrenceID)
                             
                         eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
                         if eventItem == None:

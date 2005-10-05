@@ -8,7 +8,7 @@ __parcel__ = "osaf.pim.calendar"
 
 from application import schema
 from osaf.pim import items
-from datetime import datetime
+from datetime import datetime, timedelta
 import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
@@ -379,7 +379,7 @@ class RecurrenceRuleSet(items.ContentItem):
         if self.hasLocalAttributeValue('rrules'):
             if len(self.rrules) != 1:
                 return True # multiple rules
-            for recurtype in 'exrules', 'rdates', 'exdates':
+            for recurtype in 'exrules', 'rdates':
                 if self.hasLocalAttributeValue(recurtype) and \
                        len(getattr(self, recurtype)) != 0:
                     return True # more complicated rules
@@ -397,26 +397,45 @@ class RecurrenceRuleSet(items.ContentItem):
         """Return a string describing custom rules."""
         return "not yet implemented"
 
-    RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
-    
-    def deleteExDate(self, dt):
-        """Deleting an EXDATE shouldn't trigger onValueChanged."""
-        # We can't safely use "in" to test if dt is in exdates, because naive
-        # vs. not-naive issues may arise, so just iterate over exdates and
-        # compare carefully.
-        for i, exdate in enumerate(getattr(self, 'exdates', [])):
-            if datetimeOp(exdate, '==', dt):
-                self._ignoreChanges = True
-                print "Deleting exdate", dt, self.exdates
-                del self.exdates[i]
-                print "self.exdates is now:", self.exdates
-                self._ignoreChanges = False
-                break
+    def moveDates(self, delta):
+        """
+        Move dates in exdates and rdates by delta.
+        """
+        for datetype in 'rdates', 'exdates':
+            datelist = getattr(self, datetype, None)
+            if datelist is not None:
+                setattr(self, datetype, [dt + delta for dt in datelist])
 
+
+    def removeDates(self, cmp, endpoint):
+        """
+        Remove dates in exdates and rdates before or after endpoint.
+        """
+        for datetype in 'rdates', 'exdates':
+            datelist = getattr(self, datetype, None)
+            if datelist is not None:
+                for i, dt in enumerate(datelist):
+                    if datetimeOp(dt, cmp, endpoint):
+                        del datelist[i]
+
+    def moveRuleEndBefore(self, end):
+        """
+        Make self's rules end one minute before end.
+        """
+        newend = end - timedelta(minutes=1)
+        #change the rule, onValueChanged will trigger cleanRule for master
+        for rule in getattr(self, 'rrules', []):
+            if not rule.hasLocalAttributeValue('until') or \
+               datetimeOp(rule.calculatedUntil(), '>', newend):
+                rule.until = newend
+                rule.untilIsDate = False
+        self.removeDates('>', newend)
+
+    RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
 
     def onValueChanged(self, name):
         """If the RuleSet changes, update the associated event."""
-        if name in self.RULENAMES and not getattr(self, '_ignoreChanges',False):
+        if name in self.RULENAMES and not getattr(self, '_ignoreValueChanges', False):
             if self.hasLocalAttributeValue('events'):
                 for event in self.events:
                     event.getFirstInRule().cleanRule()

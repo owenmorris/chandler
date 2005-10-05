@@ -239,7 +239,7 @@ class wxSidebar(ControlBlocks.wxTable):
         for possibleCollection in possibleCollections:
             for item in itemList:
                 try:
-                    possibleCollection.add(item)
+                    item.addToCollection(possibleCollection)
                 except AttributeError:
                     break # possible collection doesn't know how to 'add'
     

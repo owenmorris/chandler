@@ -422,51 +422,129 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(second.icalUID, third.icalUID)
         self.assertEqual(third.modificationFor, second.occurrenceFor)
 
+    def _checkDeleted(self, items, notdeleted):
+        for item in chain(items, notdeleted):
+            if item in notdeleted:
+                self.failIf(item.isDeleted(),
+                            "Item was deleted, but shouldn't have been: %s"
+                            % repr(item))
+            else:
+                self.assert_(item.isDeleted(),
+                             "Item wasn't deleted: %s" % repr(item))
+
     def testDelete(self):
         event = self.event
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
-        
-        def checkDeleted(items, notdeleted):
-            for item in chain(items, notdeleted):
-                if item in notdeleted:
-                    self.failIf(item.isDeleted(),
-                                "Item was deleted, but shouldn't have been: %s"
-                                % repr(item))
-                else:
-                    self.assert_(item.isDeleted(),
-                                 "Item wasn't deleted: %s" % repr(item))
 
         
         # check a simple recurring rule
         event.removeRecurrence()
-        checkDeleted(chain(event.occurrences, [rruleset]), [event])
+        self._checkDeleted(chain(event.occurrences, [rruleset]), [event])
                 
         # THIS modification
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         event.getNextOccurrence().displayName = 'changed'
         event.removeRecurrence()
-        checkDeleted(chain(event.occurrences, [rruleset]), [event])
+        self._checkDeleted(chain(event.occurrences, [rruleset]), [event])
                 
         # THIS modification to master 
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         event.displayName = 'changed'
         event.removeRecurrence()
         master = event.occurrenceFor
-        checkDeleted(chain([master], master.occurrences, [rruleset]), [event])
+        self._checkDeleted(chain([master], master.occurrences, [rruleset]),
+                                 [event])
         
         # THISANDFUTURE modification
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         second = event.getNextOccurrence()
         second.changeThisAndFuture('displayName', 'changed')
         event.removeRecurrence()
-        checkDeleted([rruleset, event, second, second.rruleset], [event, second, second.rruleset])
+        self._checkDeleted([rruleset, event, second, second.rruleset],
+                           [event, second, second.rruleset])
+        
+        # simple deleteThis
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        second = event.getNextOccurrence()
+        second.deleteThis()
+        self.assert_(second.isDeleted())
+        self.assertEqual(rruleset.exdates, [self.start + timedelta(days=7)])
+        event.removeRecurrence()
+
+        # deleteThis on a master
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        event.deleteThis()
+        self.failIf(event.isDeleted())
+        self.assertEqual(rruleset.exdates, [self.start])
+        self.assertEqual(event.occurrenceFor, None)
+        event.removeRecurrence()
+        
+        # deleteThis on a THIS modification
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        second = event.getNextOccurrence()
+        second.changeThis('startTime', self.start + timedelta(hours=1))
+        second.deleteThis()
+        self.assert_(second.isDeleted())
+        self.assertEqual(rruleset.exdates, [self.start + timedelta(days=7)])
+        event.removeRecurrence()
+        
+        # simple deleteAll
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        second = event.getNextOccurrence()
+        second.deleteAll()
+        self._checkDeleted([rruleset, event, second], [])
+
+        # deleteAll on master
+        event = self._createEvent()
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        event.deleteAll()
+        self._checkDeleted([rruleset, event], [])
+
+        # deleteAll on a modification to master
+        event = self._createEvent()
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        event.changeThis('displayName', 'modification to master')
+        newmaster = event.occurrenceFor
+        event.deleteAll()
+        self._checkDeleted([rruleset, event, newmaster], [])
+        
+        # deleteThisAndFuture
+        event = self._createEvent()
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        second =  event.getNextOccurrence()
+        third  = second.getNextOccurrence()
+        third.changeThis('displayName', "Changed title")
+        third.deleteThisAndFuture()
+
+        self._checkDeleted([event, second, third], [event])
+        self.assertEqual(event.getLastUntil(), 
+                         self.start + timedelta(days=14, minutes=-1))
         
         
-        # deleteThis, deleteFuture, deleteAll, removeRecurrence
 
     def testRdatesAndExdates(self):
-        pass
+        event = self.event
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        
+        # create an RDATE and an EXDATE
+        rruleset.rdates = [self.start + timedelta(days=1)]
+        extraDay = event.getNextOccurrence()
+        extraDay.changeThis('displayName', 'Extra day')
+        self.assertEqual(extraDay.startTime, self.start + timedelta(days=1))
+        rruleset.exdates = [self.start + timedelta(days=7)]
+        twoWeeks = extraDay.getNextOccurrence()
+        self.assertEqual(twoWeeks.startTime, self.start + timedelta(days=14))
+        
+        extraDay.changeThisAndFuture('startTime',
+                                     extraDay.startTime + timedelta(hours=1))
+        self.assertEqual(rruleset.rdates,  [])
+        self.assertEqual(rruleset.exdates, [])
 
+        self.assertEqual(extraDay.rruleset.rdates,
+                         [self.start + timedelta(days=1, hours=1)])
+        self.assertEqual(extraDay.rruleset.exdates,
+                         [self.start + timedelta(days=7, hours=1)])
+                         
 
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, view=self.rep.view)

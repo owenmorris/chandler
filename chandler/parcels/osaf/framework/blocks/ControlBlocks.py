@@ -711,7 +711,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         assert collection, "Can't add items to readonly collection - should block before the drop"
         
         for item in itemList:
-            collection.add (item)
+            item.addToCollection(collection)
 
     def OnRightClick(self, event):
         self.blockItem.DisplayContextMenu(event.GetPosition(),

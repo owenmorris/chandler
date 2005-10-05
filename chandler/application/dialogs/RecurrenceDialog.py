@@ -9,8 +9,12 @@ from wx.lib.anchors import LayoutAnchors
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 import logging
+from application import schema
 
 logger = logging.getLogger(__name__)
+DELETE          = 'delete'
+CHANGE          = 'change'
+ADDTOCOLLECTION = 'add to collection'
 
 def create(parent):
     return RecurrenceDialog(parent)
@@ -89,6 +93,7 @@ class RecurrenceDialog(wx.Dialog):
         self.proxy = proxy
         self.cancelCallback = cancelCallback
         self._init_ctrls(parent)
+        
         labels = {self.cancelButton : messages.CANCEL,
                   self.allButton    : _(u'All events'),
                   self.futureButton : _(u'All future events'),
@@ -98,10 +103,16 @@ class RecurrenceDialog(wx.Dialog):
             item.SetLabel(label)
 
         # XXX [i18n] Fixme, how should this be localized?
+        
+        questions = {CHANGE          : _(u'Do you want to change'),
+                     ADDTOCOLLECTION : _(u'What do you want to add to the collection'),
+                     DELETE          : _(u'Do you want to delete')}
+        
         verb = proxy.changeBuffer[0][0]
 
-        txt = _(u'"%(displayName)s" is a recurring event. Do you want to %(needsLocalization)s:' ) % \
-                                  {'displayName': proxy.displayName, 'needsLocalization': verb}
+        txt = _(u'"%(displayName)s" is a recurring event. %(question)s:' ) % \
+                                  {'displayName': proxy.displayName,
+                                   'question'   : questions[verb]}
 
         title = _(u'Recurring event change')
 
@@ -109,8 +120,12 @@ class RecurrenceDialog(wx.Dialog):
 
         self.SetTitle(title)
 
-        if verb == 'change': # changes don't apply to all, hide the all button
-            self.allButton.Show(False)
+        if verb == CHANGE:
+            self.allButton.Enable(False)
+
+        if verb == ADDTOCOLLECTION: # changes don't apply to all, hide the all button
+            self.futureButton.Enable(False)
+            self.thisButton.Enable(False)
 
         self.Layout()
 
@@ -128,7 +143,9 @@ class RecurrenceDialog(wx.Dialog):
         self._end()
 
     def onAll(self, event):
-        event.Skip()
+        self.proxy.currentlyModifying = 'all'
+        self.proxy.propagateBufferChanges()
+        self._end()
 
     def onFuture(self, event):
         self.proxy.currentlyModifying = 'thisandfuture'
@@ -180,6 +197,7 @@ class OccurrenceProxy(object):
         self.__class__ = self.proxiedItem.__class__
         self.dialogUp = False
         self.changeBuffer = []
+        
     
     def __eq__(self, other):
         return self.proxiedItem == other
@@ -196,7 +214,11 @@ class OccurrenceProxy(object):
         
     def __getattr__(self, name):
         """Get the last name version set in changeBuffer, or get from proxy."""
-        for i, attr, value in reversed(self.changeBuffer):
+        for tup in reversed(self.changeBuffer):
+            if tup[0] in (DELETE, ADDTOCOLLECTION):
+                return getattr(self.proxiedItem, name)
+            else:
+                i, attr, value = tup
             if attr == name:
                 return value
         return getattr(self.proxiedItem, name)
@@ -215,7 +237,7 @@ class OccurrenceProxy(object):
             if testedEqual:
                 pass
             elif self.currentlyModifying is None:
-                self.changeBuffer.append(('change', name, value))
+                self.changeBuffer.append((CHANGE, name, value))
                 if not self.dialogUp:
                     # [Bug 4110] Put the dialog on-screen asynchronously
                     # This code can get called while wx is busy changing
@@ -225,7 +247,33 @@ class OccurrenceProxy(object):
                     wx.GetApp().PostAsyncEvent(self.runDialog)
             else:
                 self.propagateChange(name, value)
-    
+
+    def addToCollection(self, collection):
+        """
+        Add self to the given collection, or queue the add.
+        """
+        if self.proxiedItem.rruleset is None:
+            collection.add(self)
+        else:
+            self.changeBuffer.append((ADDTOCOLLECTION, collection))
+            if not self.dialogUp:
+                # [Bug 4110] Put the dialog on-screen asynchronously
+                self.dialogUp = True
+                wx.GetApp().PostAsyncEvent(self.runDialog)
+            
+    def removeFromCollection(self, collection):
+        """
+        Remove self from the given collection, or queue the removal.
+        """
+        if self.proxiedItem.rruleset is None:
+            collection.remove(self)
+        else:
+            self.changeBuffer.append((DELETE, collection))
+            if not self.dialogUp:
+                # [Bug 4110] Put the dialog on-screen asynchronously
+                self.dialogUp = True
+                wx.GetApp().PostAsyncEvent(self.runDialog)
+
     def runDialog(self):
          # Check in case the dialog somehow got cancelled
          if self.dialogUp:
@@ -233,15 +281,31 @@ class OccurrenceProxy(object):
     
     def propagateBufferChanges(self):
         while len(self.changeBuffer) > 0:
-            self.propagateChange(*self.changeBuffer.pop(0)[1:])
-        if self.currentlyModifying == 'thisandfuture':
+            command = self.changeBuffer.pop(0)
+            if   command[0] == CHANGE:
+                self.propagateChange(*command[1:])
+            elif command[0] == DELETE:
+                self.propagateDelete(command[1])
+            elif command[0] == ADDTOCOLLECTION:
+                self.propagateAddToCollection(command[1])
+            
+        if self.currentlyModifying in ('thisandfuture', 'all'):
             self.currentlyModifying = None
     
     def propagateChange(self, name, value):
         table = {'this'          : self.changeThis,
                  'thisandfuture' : self.changeThisAndFuture}
         table[self.currentlyModifying](name, value)
-    
+
+    def propagateDelete(self, collection):
+        table = {'this'          : self.proxiedItem.deleteThis,
+                 'thisandfuture' : self.proxiedItem.deleteThisAndFuture,
+                 'all'           : lambda: collection.remove(self)}
+        table[self.currentlyModifying]()
+
+    def propagateAddToCollection(self, collection):
+        collection.add(self.proxiedItem.getMaster())
+
     def cancelBuffer(self):
         self.changeBuffer = []
     
