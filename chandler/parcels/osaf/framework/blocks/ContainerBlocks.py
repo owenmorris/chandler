@@ -87,6 +87,14 @@ class wxBoxContainer (wxRectangularChild):
                     #print position
                     #print splitter.widget.GetSashPosition()
 
+    @classmethod
+    def CalculateWXStyle(theClass, block):
+        style = wx.TAB_TRAVERSAL
+        if Block.showBorders:
+            style |= wx.SIMPLE_BORDER
+        else:
+            style |= wx.NO_BORDER
+        return style
 
 
 class BoxContainer(RectangularChild):
@@ -95,15 +103,10 @@ class BoxContainer(RectangularChild):
         orientationEnumType, initialValue = 'Horizontal',
     )
 
-    def instantiateWidget (self): 
-        style = wx.TAB_TRAVERSAL
-        if Block.showBorders:
-            style |= wx.SIMPLE_BORDER
-        else:
-            style |= wx.NO_BORDER
-            
+    def instantiateWidget (self):
         return wxBoxContainer (self.parentBlock.widget, Block.getWidgetID(self),
-                               wx.DefaultPosition, wx.DefaultSize, style)
+                               wx.DefaultPosition, wx.DefaultSize, style=wxBoxContainer.CalculateWXStyle(self))
+    
     
 class wxLayoutChooser(wxBoxContainer):
     def __init__(self, *arguments, **keywords):
