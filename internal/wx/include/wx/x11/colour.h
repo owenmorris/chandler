@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        colour.h
+// Name:        wx/x11/colour.h
 // Purpose:     wxColour class
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: colour.h,v 1.12 2005/09/23 12:50:57 MR Exp $
+// RCS-ID:      $Id: colour.h,v 1.13 2005/10/05 16:22:34 ABX Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_COLOUR_H_
@@ -36,10 +36,16 @@ class WXDLLIMPEXP_CORE wxColour;
 class WXDLLEXPORT wxColour: public wxGDIObject
 {
 public:
+    // constructors
+    // ------------
+
+    // default
     wxColour() { }
 
-    // Construct from RGB
+    // from separate RGB
     wxColour( unsigned char red, unsigned char green, unsigned char blue );
+
+    // from packed RGB
     wxColour( unsigned long colRGB ) { Set(colRGB); }
 
     // Implicit conversion from the colour name
@@ -97,4 +103,3 @@ private:
 #endif
 
 // _WX_COLOUR_H_
-

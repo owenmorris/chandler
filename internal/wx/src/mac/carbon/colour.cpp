@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        colour.cpp
+// Name:        src/mac/carbon/colour.cpp
 // Purpose:     wxColour class
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: colour.cpp,v 1.16 2005/09/23 12:54:02 MR Exp $
+// RCS-ID:      $Id: colour.cpp,v 1.17 2005/10/05 16:22:38 ABX Exp $
 // Copyright:   (c) Stefan Csomor
-// Licence:       wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"

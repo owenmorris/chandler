@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        colour.cpp
+// Name:        src/gtk/colour.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: colour.cpp,v 1.50 2005/09/23 12:53:37 MR Exp $
+// Id:          $Id: colour.cpp,v 1.51 2005/10/05 16:22:36 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        colour.cpp
+// Name:        src/msw/colour.cpp
 // Purpose:     wxColour class
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colour.cpp,v 1.22 2005/09/23 12:54:54 MR Exp $
+// RCS-ID:      $Id: colour.cpp,v 1.23 2005/10/05 16:22:41 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -123,4 +123,3 @@ void wxColour::Set(unsigned char r, unsigned char g, unsigned char b)
     m_isInit = true;
     m_pixel = PALETTERGB(m_red, m_green, m_blue);
 }
-

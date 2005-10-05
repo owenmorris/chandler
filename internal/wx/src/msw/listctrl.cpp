@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.237 2005/09/26 19:24:43 KH Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.238 2005/10/05 15:42:16 KH Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -361,6 +361,10 @@ bool wxListCtrl::Create(wxWindow *parent,
     // explicitly say that we want to use Unicode because otherwise we get ANSI
     // versions of _some_ messages (notably LVN_GETDISPINFOA) in MSLU build
     wxSetCCUnicodeFormat(GetHwnd());
+
+    // We must set the default text colour to the system/theme color, otherwise
+    // GetTextColour will always return black
+    SetTextColour(GetDefaultAttributes().colFg);
 
     // for comctl32.dll v 4.70+ we want to have some non default extended
     // styles because it's prettier (and also because wxGTK does it like this)
@@ -1115,9 +1119,9 @@ int wxListCtrl::GetSelectedItemCount() const
 // Gets the text colour of the listview
 wxColour wxListCtrl::GetTextColour() const
 {
-    // Use GetDefaultAttributes instead of ListView_GetTextColor because
-    // the latter seems to return black all the time (instead of the theme color)
-    return GetDefaultAttributes().colFg;
+    COLORREF ref = ListView_GetTextColor(GetHwnd());
+    wxColour col(GetRValue(ref), GetGValue(ref), GetBValue(ref));
+    return col;
 }
 
 // Sets the text colour of the listview

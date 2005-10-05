@@ -124,8 +124,6 @@
 #include <Xm/List.h>
 #include <Xm/LabelP.h>
 
-#if (XmVersion < 2000)
-
 #include <string.h>
 #include <ctype.h> /* define toupper */
 #include "combop.h"

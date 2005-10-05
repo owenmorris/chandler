@@ -8,7 +8,7 @@
  *              Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main Unix and OS/2 file
  * Licence:     The wxWindows licence
- * CVSID:       $Id: gsocket.cpp,v 1.53 2005/09/25 19:59:14 VZ Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.54 2005/10/05 15:38:44 KH Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -327,6 +327,9 @@ void GSocket::Shutdown()
   int evt;
 
   assert(this);
+
+  /* Don't allow events to fire after socket has been closed */
+  gs_gui_functions->Disable_Events(this);
 
   /* If socket has been created, shutdown it */
   if (m_fd != INVALID_SOCKET)

@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        colour.cpp
+// Name:        src/x11/colour.cpp
 // Purpose:     wxColour class
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: colour.cpp,v 1.22 2005/09/23 12:56:03 MR Exp $
+// RCS-ID:      $Id: colour.cpp,v 1.23 2005/10/05 16:22:44 ABX Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/gdicmn.h"
