@@ -227,10 +227,10 @@ do
 
                 cd $C_DIR
                 ./$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
-                cat $T_DIR/test.log $T_DIR/tests.log
+                cat $T_DIR/test.log >> $T_DIR/tests.log
             
                   # scan the test output for the success messge "OK"
-                RESULT=`grep '^OK$' $T_DIR/test.log`
+                RESULT=`grep '^OK' $T_DIR/test.log`
 
                 echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
                 if [ "$RESULT" != "OK" ]; then
