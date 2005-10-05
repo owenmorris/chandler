@@ -97,7 +97,7 @@ do
     done
 
     if [ "$TBOX" = "yes" ]; then
-        $HH_DIR/tbox_update.py -t $TBOX_TREE -b $TBOX_BUILD -s building -T bear -D "@code-bear.com"
+        $HH_DIR/tbox_update.py -t $TBOX_TREE -b $TBOX_BUILD -s building
 
         if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
             MODES="release"
@@ -223,7 +223,7 @@ do
                 echo Running $TESTNAME | tee -a $BUILDLOG
 
                 cd $C_DIR
-                echo ./$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
+                ./$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
                 cat $T_DIR/test.log $T_DIR/tests.log
             
                   # scan the test output for the success messge "OK"
@@ -256,7 +256,7 @@ do
                 echo Running $TESTNAME | tee -a $BUILDLOG
 
                 cd $C_DIR
-                echo ./$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+                ./$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
                 cat $T_DIR/test.log >> $T_DIR/tests.log
             
                   # functional tests output a #TINDERBOX# Status = SUCCESS that we can scan for
@@ -290,7 +290,7 @@ do
             echo Running $TESTNAME | tee -a $BUILDLOG
 
             cd $C_DIR
-            echo ./release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+            ./release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
             cat $T_DIR/test.log >> $T_DIR/tests.log
 
               # performance tests output a #TINDERBOX# Status = SUCCESS that we can scan for
@@ -321,7 +321,7 @@ do
             TBOX_STATUS=success
         fi
 
-        $HH_DIR/tbox_update.py -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $T_DIR -T bear -D "@code-bear.com"
+        $HH_DIR/tbox_update.py -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $T_DIR
     fi
 
     if [ "$TBOX" = "yes" ]; then
