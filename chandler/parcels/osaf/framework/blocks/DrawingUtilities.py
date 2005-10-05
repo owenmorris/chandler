@@ -200,8 +200,7 @@ class Gradients(object):
             # now calculate the actual color from the gradient index
             sat = satStart + satStep * gradientIndex
             color = rgb2color(*hsv_to_rgb(hue, sat, value))
-            rgb = wx.Image_RGBValue(*color)
-            image.SetRGB(x,0, rgb.red, rgb.green, rgb.blue)
+            image.SetRGB(x,0, *color)
             
         # and now we have to go from Image -> Bitmap. Yuck.
         brush = wx.Brush(wx.WHITE, wx.STIPPLE)
