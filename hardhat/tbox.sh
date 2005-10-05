@@ -296,8 +296,8 @@ do
             ./release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
             cat $T_DIR/test.log >> $T_DIR/tests.log
 
-              # performance tests output a #TINDERBOX# Status = SUCCESS that we can scan for
-            RESULT=`grep "#TINDERBOX# Status = SUCCESS" $T_DIR/test.log`
+              # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
+            RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
 
             echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
             if [ "$RESULT" = "#TINDERBOX# Status = SUCCESS" ]; then
@@ -323,8 +323,13 @@ do
         else
             TBOX_STATUS=success
         fi
+        if [ "$OSTYPE" = "cygwin" ]; then
+            LOGPATH=`cygpath -w $T_DIR/`
+        else
+            LOGPATH=$T_DIR/
+        fi
 
-        $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $T_DIR
+        $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $LOGPATH
     fi
 
     if [ "$TBOX" = "yes" ]; then
