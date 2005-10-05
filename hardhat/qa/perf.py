@@ -9,7 +9,7 @@ __version__      = "1.0"
 __svn__          = "$Id$"
 
 
-import sys, os, string, datetime, time
+import sys, os, string, datetime, time, math
 import tarfile
 import ConfigParser, optparse
 
