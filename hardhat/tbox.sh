@@ -167,6 +167,7 @@ do
         REVISION=`tail -n 1 $T_DIR/svn.log`
         REVISION=${REVISION/At revision /}
         REVISION=${REVISION/Updated to revision /}
+        REVISION=${REVISION/Checked out revision /}
         REVISION=${REVISION/./}
 
           # remove any reference to buildRevision (only if at start of line)
