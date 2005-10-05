@@ -266,7 +266,7 @@ do
                 RESULT=`grep "#TINDERBOX# Status = SUCCESS" $T_DIR/test.log`
 
                 echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
-                if [ ! "$RESULT" = "#TINDERBOX# Status = SUCCESS" ]; then
+                if [ ! "$RESULT" != "#TINDERBOX# Status = SUCCESS" ]; then
                     TEST_RESULT="failed"
                 fi
             done
@@ -300,7 +300,7 @@ do
             RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
 
             echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
-            if [ "$RESULT" = "#TINDERBOX# Status = SUCCESS" ]; then
+            if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
                 TEST_RESULT="failed"
             fi
         done
