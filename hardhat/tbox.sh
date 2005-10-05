@@ -68,9 +68,6 @@ MODES="release debug"
 SLEEP_MINUTES=5
 ENDLOOP="no"
 
-echo $TBOX_UPDATE
-exit
-
 while [ "$ENDLOOP" = "no" ]
 do
     BUILDID=`date +%Y%m%d%H%M%S`
