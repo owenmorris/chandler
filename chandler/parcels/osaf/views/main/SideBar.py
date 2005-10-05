@@ -56,7 +56,9 @@ class wxSidebar(ControlBlocks.wxTable):
 
     def wxSynchronizeWidget(self):
         sidebar = self.blockItem
-        for checkedItem in sidebar.checkedItems:
+        # sidebar.checkedItems is a python set,
+        # it cannot be modified while iterating
+        for checkedItem in list(sidebar.checkedItems):
             if checkedItem not in sidebar.contents:
                 sidebar.checkedItems.remove (checkedItem)
         super (wxSidebar, self).wxSynchronizeWidget()
