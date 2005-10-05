@@ -63,6 +63,7 @@ if [ "$TBOX" = "yes" ]; then
 fi
 
 HH_DIR=`pwd`
+TBOX_UPDATE=`cygpath -w $HH_DIR/tbox_update.py`
 LOGFILES="svn.log distrib.log install.log tests.log"
 MODES="release debug"
 SLEEP_MINUTES=5
@@ -97,7 +98,7 @@ do
     done
 
     if [ "$TBOX" = "yes" ]; then
-        $HH_DIR/tbox_update.py -t $TBOX_TREE -b $TBOX_BUILD -s building
+        $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s building
 
         if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
             MODES="release"
@@ -321,7 +322,7 @@ do
             TBOX_STATUS=success
         fi
 
-        $HH_DIR/tbox_update.py -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $T_DIR
+        $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $T_DIR
     fi
 
     if [ "$TBOX" = "yes" ]; then
