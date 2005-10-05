@@ -33,15 +33,23 @@ class perf:
 
     self.verbose = self._options['verbose']
 
-    self.SummaryTestNames = { 'switching_to_all_view_for_performance':    'Switching Views',
-                              'perf_stamp_as_event':                      'Stamping',
-                              'new_event_from_file_menu_for_performance': 'New event creation (file menu)',
-                              'new_event_by_double_clicking_in_the_cal_view_for_performance': 'New event creation (in-place)',
-                              'importing_3000_event_calendar':            'Importing a 3000 event calendar',
-                              'test_new_calendar_for_performance':        'Creating a new calendar',
-                              #'': 'App startup (with existing repository)',
-                            }
-    self.PerformanceTBoxes = ['p_linux', 'p_win', 'p_osx']
+    self.SummaryTestNames = { 
+         #'': '#1 Startup',
+         'new_event_from_file_menu_for_performance':                      '#2 New event (menu)',
+         'new_event_by_double_clicking_in_the_cal_view_for_performance':  '#3 New event (double click)',
+         'test_new_calendar_for_performance':                             '#4 New calendar',
+         'importing_3000_event_calendar':                                 '#5 Import 3000 event calendar',
+         #'': '#6 Startup with 3000 event calendar',
+         'Creating_new_event_from_the_File_Menu_after_large_data_import': '#7 New event (menu) with 3000 event calendar',
+         'Creating_a_new_event_in_the_Cal_view_after_large_data_import':  '#8 New event (double click) with 3000 event calendar',
+         'Creating_a_new_calendar_after_large_data_import':               '#9 New calendar with 3000 event calendar',
+         'switching_to_all_view_for_performance':                         'Switch Views',
+         'perf_stamp_as_event':                                           'Stamp',
+         'Switching_view_after_importing_large_data':                     'Switch Views with 3000 event calendar',
+         'Stamping_after_large_data_import':                              'Stamp with 3000 event calendar',
+        }
+
+    self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
 
     if self._options['debug']:
       print 'Configuration Values:'
