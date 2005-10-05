@@ -97,7 +97,7 @@ def run(options):
     msg += "tinderbox: buildname: %s\n" % buildName
     msg += "tinderbox: starttime: %s\n" % nowTime
     msg += "tinderbox: timenow: %s\n" % nowTime
-    msg += "tinderbox: errorparser: linux\n"
+    msg += "tinderbox: errorparser: unix\n"
     msg += "tinderbox: status: %s\n" % status
     msg += "tinderbox: END\n\n"
 
