@@ -2326,8 +2326,6 @@ long wxColumnHeaderItem::MacDrawItem(
 {
 ThemeButtonDrawInfo		drawInfo;
 Rect					qdBoundsR;
-long					nativeTextJust;
-SInt16					nativeFontID;
 bool					bSelected, bHasButtonArrow, bHasBitmap;
 OSStatus				errStatus;
 
@@ -2396,8 +2394,12 @@ OSStatus				errStatus;
 	{
 	wxString		targetStr;
 	long			startX, originX, maxExtentX;
+	UInt16		nativeFontID;
+	SInt16		nativeTextJust;
+	bool			bIsMultiline;
 
-		nativeTextJust = ConvertJustification( m_TextJust, true );
+		bIsMultiline = false;
+		nativeTextJust = (SInt16)ConvertJustification( m_TextJust, true );
 
 		// calculate and cache text extent
 		CalculateTextExtent( dc, false );
@@ -2421,7 +2423,7 @@ OSStatus				errStatus;
 			errStatus =
 				(OSStatus)DrawThemeTextBox(
 					(CFStringRef)localCFSHolder,
-					nativeFontID, drawInfo.state, true,
+					nativeFontID, drawInfo.state, bIsMultiline,
 					&qdBoundsR, nativeTextJust, NULL );
 		}
 		else
@@ -2437,7 +2439,7 @@ OSStatus				errStatus;
 				errStatus =
 					(OSStatus)DrawThemeTextBox(
 						cfLabelText,
-						nativeFontID, drawInfo.state, true,
+						nativeFontID, drawInfo.state, bIsMultiline,
 						&qdBoundsR, nativeTextJust, NULL );
 
 				CFRelease( cfLabelText );
