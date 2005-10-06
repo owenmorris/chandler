@@ -203,10 +203,12 @@ do
         fi
     done
 
-      # Set TEST_RESULT to initial value of "ok"
+      # Set test result variables to initial value of "ok"
       # if any test fails it will be set to "failed" 
 
-    TEST_RESULT="ok"
+    UNITTEST_RESULT="ok"
+    FUNCTEST_RESULT="ok"
+    PERFTEST_RESULT="ok"
 
       # walk thru all of the test dirs and find the test files
 
@@ -234,7 +236,7 @@ do
 
                 echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
                 if [ "$RESULT" != "OK" ]; then
-                    TEST_RESULT="failed"
+                    UNITTEST_RESULT="failed"
                 fi
             done
         done
@@ -267,7 +269,7 @@ do
 
                 echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
                 if [ ! "$RESULT" != "#TINDERBOX# Status = SUCCESS" ]; then
-                    TEST_RESULT="failed"
+                    FUNCTEST_RESULT="failed"
                 fi
             done
         fi
@@ -301,7 +303,7 @@ do
 
             echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
             if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
-                TEST_RESULT="failed"
+                PERFTEST_RESULT="failed"
             fi
         done
     fi
@@ -317,8 +319,9 @@ do
     echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $BUILDLOG
 
     if [ "$TBOX" = "yes" ]; then
-          # need to add code to figure out if what the final status is
-        if [ "$TEST_RESULT" = "failed" ]; then
+        echo [$UNITTEST_RESULT][$FUNCTEST_RESULT][$PERFTEST_RESULT]
+
+        if [ "$UNITTEST_RESULT" = "failed" -o "$FUNCTEST_RESULT" = "failed" -o "$PERFTEST_RESULT" = "failed" ]; then
             TBOX_STATUS=test_failed
         else
             TBOX_STATUS=success
