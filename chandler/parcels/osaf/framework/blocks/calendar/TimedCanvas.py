@@ -486,7 +486,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         position = self.dragState.currentPosition - (dx, dy)
 
-        return self.getDateTimeFromPosition(position, tzinfo=tzinfo)
+        result = self.getDateTimeFromPosition(position, tzinfo=tzinfo)
+        
+        if tzinfo is None:
+            result = result.replace(tzinfo=None)
+            
+        return result
 
     def GetDragAdjustedTimes(self):
         """
@@ -496,33 +501,33 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         item = self.dragState.originalDragBox.GetItem()
         resizeMode = self.dragState.originalDragBox.resizeMode
+        
+        tzinfo = item.startTime.tzinfo
+
         if resizeMode is None:
             # moving an item, need to adjust just the start time
             # for the relative position of the mouse in the item
-            newStartTime = self.GetDragAdjustedStartTime(item.startTime.tzinfo)
+            newStartTime = self.GetDragAdjustedStartTime(tzinfo)
             newEndTime = newStartTime + item.duration
 
         # top/bottom resizes: just set the appropriate start/end
         # to where the mouse is
-        elif resizeMode == TimedCanvasItem.RESIZE_MODE_START:
-            newStartTime = \
-                self.getDateTimeFromPosition(self.dragState.currentPosition,
-                                             tzinfo=item.startTime.tzinfo)
-            newEndTime = item.endTime
+        else:
+            dragTime = self.getDateTimeFromPosition(
+                                self.dragState.currentPosition,
+                                tzinfo=tzinfo)
             # getDateTimeFromPosition always sets a non-None tzinfo, even if
-            # it's passed tzinfo=None, so newEndTime needs a timezone, too
-            if newEndTime.tzinfo is None:
-                newEndTime = newEndTime.replace(tzinfo=newStartTime.tzinfo)
-            
-        elif resizeMode == TimedCanvasItem.RESIZE_MODE_END:
-            newEndTime = \
-                self.getDateTimeFromPosition(self.dragState.currentPosition,
-                                             tzinfo=item.endTime.tzinfo)
-            newStartTime = item.startTime
-            # getDateTimeFromPosition always sets a non-None tzinfo, even if
-            # it's passed tzinfo=None, so newEndTime needs a timezone, too
-            if newStartTime.tzinfo is None:
-                newStartTime = newStartTime.replace(tzinfo=newEndTime.tzinfo)
+            # it's passed tzinfo=None, so we need to make sure that "floating"
+            # events don't acquire a timezone.
+            if tzinfo is None:
+                dragTime = dragTime.replace(tzinfo=None)
+                
+            if resizeMode == TimedCanvasItem.RESIZE_MODE_START:
+                newStartTime = dragTime
+                newEndTime = item.endTime
+            elif resizeMode == TimedCanvasItem.RESIZE_MODE_END:
+                newEndTime = dragTime
+                newStartTime = item.startTime
 
         if newEndTime < newStartTime:
             newEndTime = newStartTime + timedelta(minutes=15)

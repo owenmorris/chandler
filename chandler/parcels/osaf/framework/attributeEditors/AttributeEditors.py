@@ -1578,7 +1578,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         value = getattr(item, attributeName, None)
         if value is not None:
-            return value.tzinfo or ICUtzinfo.getDefault()
+            return value.tzinfo
         else:
             return None
 
@@ -1601,10 +1601,6 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             selectIndex = -1
             info = TimeZoneInfo.get(view=self.item.itsView)
             
-            # Map "floating" timezones to the user's default for now
-            if value is None:
-                value = info.default
-                
             canonicalTimeZone = info.canonicalTimeZone(value)
 
             # rebuild the list of choices
@@ -1617,10 +1613,10 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
                 else:
                     control.Append(name, clientData=zone)
 
-            # [@@@] grant: Experimental
-            #index = control.Append(_(u"Floating"), clientData=None)
-            #if value is None:
-            #    selectIndex = index
+            # Add an entry for "floating" (a tzinfo of None)
+            index = control.Append(_(u"Floating"), clientData=None)
+            if value is None:
+                selectIndex = index
         
             if selectIndex is -1:
                 control.Insert(unicode(value), 0, clientData=value)
