@@ -162,10 +162,9 @@ class Gradients(object):
         # - going through wxImage
         # - individually setting each RGB pixel
         image = wx.EmptyImage(bitmapWidth, 1)
+        imageBuffer = image.GetDataBuffer()
         leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
         rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
-        #leftHSV = wx.Image.RGBtoHSV (wx.Image_RGBValue (*leftColor))
-        #rightHSV = wx.Image.RGBtoHSV (wx.Image_RGBValue (*rightColor))
 
         # make sure they are the same hue and brightness
         # XXX: this doesn't quite work, because sometimes division issues
@@ -184,6 +183,8 @@ class Gradients(object):
         # assign a sliding scale of floating point values from left to right
         # in the bitmap
         offset %= bitmapWidth
+
+        bufferX = 0
         for x in xrange(bitmapWidth):
             
             # first offset the gradient within the bitmap
@@ -200,7 +201,15 @@ class Gradients(object):
             # now calculate the actual color from the gradient index
             sat = satStart + satStep * gradientIndex
             color = rgb2color(*hsv_to_rgb(hue, sat, value))
-            image.SetRGB(x,0, *color)
+
+            # use the image buffer to write values directly
+            # amazingly, this %c techinque to convert
+            # is actually faster than either of:
+            # chr(color[0]) + chr(color[1]) + chr(color[2])
+            # ''.join(map(chr,color))
+            imageBuffer[bufferX:bufferX+3] = '%c%c%c' % color
+
+            bufferX += 3
             
         # and now we have to go from Image -> Bitmap. Yuck.
         brush = wx.Brush(wx.WHITE, wx.STIPPLE)
