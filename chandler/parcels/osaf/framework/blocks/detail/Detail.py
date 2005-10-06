@@ -1203,25 +1203,14 @@ class ReminderAttributeEditor(ChoiceAttributeEditor):
 
     def GetAttributeValue (self, item, attributeName):
         """ Get the value from the specified attribute of the item. """
-        #@@@ This assumes we've only got 0 or 1 reminders.
-        firstReminder = item.reminders.first()
-        if firstReminder is None or not hasattr(firstReminder, 'delta'):
-            return None # no reminder, or snoozed.
-        else:
-            return firstReminder.delta
+        return item.reminderInterval
 
     def SetAttributeValue (self, item, attributeName, value):
         """ Set the value of the attribute given by the value. """
         if not self.ReadOnly((item, attributeName)) and \
            value != self.GetAttributeValue(item, attributeName):
-            firstReminder = item.reminders.first()
-            if firstReminder is not None:
-                item.reminders.remove(firstReminder)
-                if not (len(firstReminder.reminderItems) or \
-                        len(firstReminder.expiredReminderItems)):
-                    firstReminder.delete()
-            if value is not None:
-                item.makeReminder(value)
+
+            setattr(item, attributeName, value)
             self.AttributeChanged()
 
 class RecurrenceAttributeEditor(ChoiceAttributeEditor):

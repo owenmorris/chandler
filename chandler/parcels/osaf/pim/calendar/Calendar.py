@@ -297,7 +297,8 @@ class CalendarEventMixin(RemindableMixin):
         fset=setEndTime,
         doc="End time, computed from startTime + duration."
     )
-
+    
+        
     def getEffectiveStartTime(self):
         """ 
         Get the effective start time of this event: ignore the time
@@ -472,6 +473,46 @@ class CalendarEventMixin(RemindableMixin):
                             else:
                                 nextEvent = mod
             return nextEvent
+        
+        def fixReminders(event):
+            # When creating generated events, this function is
+            # called so that all reminders in the past are marked
+            # expired, and the rest are not. This helps avoid a
+            # mass of reminders if an event in the past is changed.
+            #
+            now = datetime.now()
+            
+            def expired(reminder):
+                nextTime = reminder.getNextReminderTimeFor(event)
+                return (nextTime is not None and
+                        datetimeOp(nextTime, '<=', now))
+
+
+            # We really don't want to touch event.reminders
+            # or event.expiredReminders if they haven't really
+            # changed. The reason is that that will trigger a
+            # change notification on app idle, which in turn causes
+            # the UI to re-generate all these occurrences, which puts
+            # us back in this # method, etc, etc.
+            
+            # Figure out what (if anything) has changed ...
+            nowExpired = [r for r in event.reminders
+                            if expired(r)]
+                            
+            nowNotExpired = [r for r in event.expiredReminders
+                               if not expired(r)]
+                             
+            # ... and update the collections accordingly
+            for reminder in nowExpired:
+                event.expiredReminders.add(reminder)
+                event.reminders.remove(reminder)
+
+            for reminder in nowNotExpired:
+                event.reminders.add(reminder)
+                event.expiredReminders.remove(reminder)
+                
+            return event
+
                 
         # main getNextOccurrence logic
         if self.rruleset is None:
@@ -563,14 +604,14 @@ class CalendarEventMixin(RemindableMixin):
                             earliest = nextRecurrenceID
                             continue
                         else:
-                            return mod
+                            return fixReminders(mod)
                 else:
                     final = checkModifications(first, before, calculated)
                     if after is None and final == self:
                         earliest = nextRecurrenceID
                         continue
                     else:
-                        return final
+                        return fixReminders(final)
 
 
     def _generateRule(self, after=None, before=None):

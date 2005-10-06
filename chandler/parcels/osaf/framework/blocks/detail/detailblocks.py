@@ -140,7 +140,7 @@ def registerAttributeEditors(parcel, oldVersion):
         'RecurrenceRuleSet+custom': 'RecurrenceCustomAttributeEditor',
         'RecurrenceRuleSet+ends': 'RecurrenceEndsAttributeEditor',
         'RecurrenceRuleSet+occurs': 'RecurrenceAttributeEditor',
-        'Reminder': 'ReminderAttributeEditor',
+        'TimeDelta+reminder': 'ReminderAttributeEditor',
     }
     for typeName, className in aeList.items():
         AttributeEditorMapping.update(parcel, typeName, className=\
@@ -422,14 +422,16 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                 makeLabel(parcel, _(u'alarm'), borderTop=5),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminder',
-                    viewAttribute=u'reminders',
+                    viewAttribute=u'reminderInterval',
                     presentationStyle={
                         # @@@ XXX i18n: the code assumes that if the value
                         # starts with a digit, it's a number of minutes; if not,
                         # it's None.
                         'choices': [_(u'None'), _(u'1 minute'), _(u'5 minutes'), 
                                     _(u'10 minutes'), _(u'30 minutes'), 
-                                    _(u'60 minutes'), _(u'90 minutes')]},
+                                    _(u'60 minutes'), _(u'90 minutes')],
+                        'format' : 'reminder'
+                    },
                     stretchFactor=0.0,
                     minimumSize=SizeType(100, -1))])
  
