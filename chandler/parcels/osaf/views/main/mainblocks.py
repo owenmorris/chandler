@@ -600,7 +600,6 @@ def make_mainview(parcel):
                             MenuItem.template('SelectAllItem',
                                 event=globalevents.SelectAll,
                                 title=messages.SELECT_ALL,
-                                accel=_(u'Ctrl+A'),
                                 helpString=_(u'Select all')),
                             MenuItem.template('EditSeparator2',
                                 menuItemKind='Separator'),
