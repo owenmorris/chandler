@@ -1,15 +1,15 @@
-From bkirsch@osafoundation.org Thu Jan 20 11:08:28 2005
-X-Envelope-From: bkirsch@osafoundation.org
-X-Envelope-To: <bkirsch@osafoundation.org>
-Return-Path: <bkirsch@osafoundation.org>
+From testuser@test1.com Thu Jan 20 11:08:28 2005
+X-Envelope-From: testuser@test1.com
+X-Envelope-To: <testuser@test1.com>
+Return-Path: <testuser@test1.com>
 Received: from ideja.akl.lt (www.akl.lt [193.219.42.13])
 	by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id j0KJ8JaZ007201
-	for <bkirsch@osafoundation.org>; Thu, 20 Jan 2005 11:08:19 -0800
+	for <testuser@test1.com>; Thu, 20 Jan 2005 11:08:19 -0800
 Received: from ideja.akl.lt (localhost [127.0.0.1])
 	by ideja.akl.lt (Postfix) with ESMTP id 4F9B5FEA0
-	for <bkirsch@osafoundation.org>; Thu, 20 Jan 2005 21:08:15 +0200 (EET)
-To: =?utf-8?B?4oCexIXEjcSZxJfEr8WhxbPFq8W+IMSExIzEmMSWxK7FoMWyxarFveKAnCA=?= =?utf-8?B?0LnRhtGD0LrQtdC90LPRiNGJ0LfRhdGKINCZ0KbQo9Ca0JXQndCT0KjQqQ==?= =?utf-8?B?0JfQpdCq?= <bkirsch@osafoundation.org>
-From: =?utf-8?B?4oCexIXEjcSZxJfEr8WhxbPFq8W+IMSExIzEmMSWxK7FoMWyxarFveKAnCA=?= =?utf-8?B?0LnRhtGD0LrQtdC90LPRiNGJ0LfRhdGKINCZ0KbQo9Ca0JXQndCT0KjQqQ==?= =?utf-8?B?0JfQpdCq?= <bkirsch@osafoundation.org>
+	for <testuser@test1.com>; Thu, 20 Jan 2005 21:08:15 +0200 (EET)
+To: =?utf-8?B?4oCexIXEjcSZxJfEr8WhxbPFq8W+IMSExIzEmMSWxK7FoMWyxarFveKAnCA=?= =?utf-8?B?0LnRhtGD0LrQtdC90LPRiNGJ0LfRhdGKINCZ0KbQo9Ca0JXQndCT0KjQqQ==?= =?utf-8?B?0JfQpdCq?= <testuser@test1.com>
+From: =?utf-8?B?4oCexIXEjcSZxJfEr8WhxbPFq8W+IMSExIzEmMSWxK7FoMWyxarFveKAnCA=?= =?utf-8?B?0LnRhtGD0LrQtdC90LPRiNGJ0LfRhdGKINCZ0KbQo9Ca0JXQndCT0KjQqQ==?= =?utf-8?B?0JfQpdCq?= <testuser@test1.com>
 Subject: =?utf-8?B?VVRGLTggdGVzdGFzIOKAnsSFxI3EmcSXxK/FocWzxavFviDEhMSMxJjElg==?= =?utf-8?B?xK7FoMWyxarFveKAnCDQudGG0YPQutC10L3Qs9GI0YnQt9GF0Yog0JnQpg==?= =?utf-8?B?0KPQmtCV0J3Qk9Co0KnQl9Cl0Ko=?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed

@@ -1,9 +1,9 @@
 From MAILER-DAEMON@aol.com Tue Aug 10 13:15:43 2004
-X-Envelope-To: <bkirsch@osafoundation.org>
+X-Envelope-To: <brian@test.com>
 Return-Path: <MAILER-DAEMON@kahuna.osafoundation.org>
 Received: from omr-m09.mx.aol.com (omr-m09.mx.aol.com [64.12.138.21])
 	by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7AKFepo016236
-	for <bkirsch@osafoundation.org>; Tue, 10 Aug 2004 13:15:40 -0700
+	for <brian@test.com>; Tue, 10 Aug 2004 13:15:40 -0700
 Received: from  rly-xl03.mx.aol.com (rly-xl03.mail.aol.com [172.20.83.72]) by omr-m09.mx.aol.com (v98.19) with ESMTP id RELAYIN9-a41192cde2eb; Tue, 10 Aug 2004 16:15:26 -0400
 Received: from localhost (localhost)
 	  by rly-xl03.mx.aol.com (8.8.8/8.8.8/AOL-5.0.0)
@@ -12,7 +12,7 @@ Received: from localhost (localhost)
 Date: Tue, 10 Aug 2004 16:15:26 -0400 (EDT)
 From: Mail Delivery Subsystem <MAILER-DAEMON@aol.com>
 Message-Id: <200408102015.QAA20769@rly-xl03.mx.aol.com>
-To: <bkirsch@osafoundation.org>
+To: <brian@test.com>
 MIME-Version: 1.0
 Content-Type: multipart/report; report-type=delivery-status;
 	boundary="QAA20769.1092168926/rly-xl03.mx.aol.com"
@@ -75,7 +75,7 @@ Last-Attempt-Date: Tue, 10 Aug 2004 16:15:26 -0400 (EDT)
 Content-Type: text/rfc822-headers
 
 Received: from  kahuna.osafoundation.org (kahuna.osafoundation.org [204.152.186.98]) by rly-xl03.mx.aol.com (v101.19) with ESMTP id MAILRELAYINXL35-5c341192cd2e9; Tue, 10 Aug 2004 16:15:15 -0400
-X-Envelope-From: bkirsch@osafoundation.org
+X-Envelope-From: brian@test.com
 X-Envelope-To: <sasasas@aol.com>
 Received: from [192.168.101.208] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2])
 	by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7AKFCpp015739
@@ -86,7 +86,7 @@ Content-Transfer-Encoding: quoted-printable
 Message-Id: <E89DDA0C-EB09-11D8-A4D1-000A95CA1ECC@osafoundation.org>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 To: sasasas@aol.com
-From: Brian Kirsch <bkirsch@osafoundation.org>
+From: Brian Kirsch <brian@test.com>
 Subject: Reject me
 Date: Tue, 10 Aug 2004 13:14:39 -0700
 X-Mailer: Apple Mail (2.618)

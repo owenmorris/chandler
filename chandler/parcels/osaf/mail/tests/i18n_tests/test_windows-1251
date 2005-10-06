@@ -1,15 +1,15 @@
-From bkirsch@osafoundation.org Thu Jan 20 11:08:24 2005
-X-Envelope-From: bkirsch@osafoundation.org
-X-Envelope-To: <bkirsch@osafoundation.org>
-Return-Path: <bkirsch@osafoundation.org>
+From testuser@test1.com Thu Jan 20 11:08:24 2005
+X-Envelope-From: testuser@test1.com
+X-Envelope-To: <testuser@test1.com>
+Return-Path: <testuser@test1.com>
 Received: from ideja.akl.lt (www.akl.lt [193.219.42.13])
 	by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id j0KJ8LaZ007245
-	for <bkirsch@osafoundation.org>; Thu, 20 Jan 2005 11:08:21 -0800
+	for <testuser@test1.com>; Thu, 20 Jan 2005 11:08:21 -0800
 Received: from ideja.akl.lt (localhost [127.0.0.1])
 	by ideja.akl.lt (Postfix) with ESMTP id 49124FEF7
-	for <bkirsch@osafoundation.org>; Thu, 20 Jan 2005 21:08:16 +0200 (EET)
-To: =?windows-1251?Q?=E9=F6=F3=EA=E5=ED=E3=F8=F9=E7=F5=FA_=C9=D6=D3=CA?= =?windows-1251?Q?=C5=CD=C3=D8=D9=C7=D5=DA?= <bkirsch@osafoundation.org>
-From: =?windows-1251?Q?=E9=F6=F3=EA=E5=ED=E3=F8=F9=E7=F5=FA_=C9=D6=D3=CA?= =?windows-1251?Q?=C5=CD=C3=D8=D9=C7=D5=DA?= <bkirsch@osafoundation.org>
+	for <testuser@test1.com>; Thu, 20 Jan 2005 21:08:16 +0200 (EET)
+To: =?windows-1251?Q?=E9=F6=F3=EA=E5=ED=E3=F8=F9=E7=F5=FA_=C9=D6=D3=CA?= =?windows-1251?Q?=C5=CD=C3=D8=D9=C7=D5=DA?= <testuser@test1.com>
+From: =?windows-1251?Q?=E9=F6=F3=EA=E5=ED=E3=F8=F9=E7=F5=FA_=C9=D6=D3=CA?= =?windows-1251?Q?=C5=CD=C3=D8=D9=C7=D5=DA?= <testuser@test1.com>
 Subject: windows-1251 testas =?windows-1251?Q?=E9=F6=F3=EA=E5=ED=E3=F8=F9?=
  =?windows-1251?Q?=E7=F5=FA_=C9=D6=D3=CA=C5=CD=C3=D8=D9=C7=D5=DA?=
 MIME-Version: 1.0

@@ -27,7 +27,7 @@ From: bill@home.net
 Cc: jake@now.com
 Date: Mon, 9 Aug 2004 13:55:15 -0700
 Content-Length: 75
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Mime-Version: 1.0
 Received: from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700
 References: <9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>
@@ -76,7 +76,7 @@ This is the body"""
         m.subject = "test mail"
         m.headers['Content-Length'] = "75"
         m.headers['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
-        m.headers['Content-Transfer-Encoding'] = "7bit"
+        m.headers['Content-Transfer-Encoding'] = "8bit"
         m.headers['Mime-Version'] = "1.0"
 
         m.headers['Received'] = "from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700"

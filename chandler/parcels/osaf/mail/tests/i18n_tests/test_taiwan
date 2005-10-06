@@ -1,17 +1,17 @@
-From bkirsch@osafoundation.org Thu Jan 20 12:07:57 2005
-X-Envelope-From: bkirsch@osafoundation.org
-X-Envelope-To: <bkirsch@osafoundation.org>
-Return-Path: <bkirsch@osafoundation.org>
+From brian@test.com Thu Jan 20 12:07:57 2005
+X-Envelope-From: brian@test.com
+X-Envelope-To: <brian@test.com>
+Return-Path: <brian@test.com>
 Received: from [10.0.1.7] (ip01.oracle.com [148.87.53.130])
 	(authenticated bits=0)
 	by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id j0KK7saa013939
 	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NO)
-	for <bkirsch@osafoundation.org>; Thu, 20 Jan 2005 12:07:55 -0800
+	for <brian@test.com>; Thu, 20 Jan 2005 12:07:55 -0800
 Mime-Version: 1.0 (Apple Message framework v619)
-To: Brian Kirsch <bkirsch@osafoundation.org>
+To: invalidAddress 
 Message-Id: <6120670C-6B1E-11D9-9F21-000A95CA1ECC@osafoundation.org>
 Content-Type: multipart/mixed; boundary=Apple-Mail-1--904798130
-From: Brian Kirsch <bkirsch@osafoundation.org>
+From: invalidAddress2@test.c.v.g.h
 Subject: Taiwan attachment
 Date: Thu, 20 Jan 2005 12:03:40 -0800
 X-Mailer: Apple Mail (2.619)
