@@ -413,6 +413,11 @@ def make_mainview(parcel):
             choice='CPIATestMainView',
             dispatchToBlockName='MainViewRoot').install(parcel)
 
+    TestEvent = \
+        BlockEvent.template('Test',
+                            dispatchEnum='SendToBlockByName',
+                            dispatchToBlockName='MainView').install(parcel)
+
     RequestSelectSidebarItemEvent = \
         BlockEvent.template('RequestSelectSidebarItem',
                             'SendToBlockByName',
@@ -863,7 +868,11 @@ def make_mainview(parcel):
                                         event=AddCPIAViewEvent,
                                         title=u'Add CPIA Viewer',
                                         helpString=u'Adds the CPIA viewer to the sidebar'),
-                                    ]) # Menu AddAdditionalViews
+                                    ]), # Menu AddAdditionalViews
+                            MenuItem.template('TestTItem',
+                                event=TestEvent,
+                                title=u'Testing code',
+                                helpString=u'Testing code')
                             ]), # Menu TestMenu
                     Menu.template('HelpMenu',
                         title=_(u'&Help'),
@@ -988,12 +997,11 @@ def make_mainview(parcel):
 
     MainTrunkDelegate = TrunkDelegate.update(parcel, 'MainTrunkDelegate')
 
-    # needs a new name without 'Detail' in the title
-    MainTPB = TrunkParentBlock.update(parcel, 'MainDetailView',
-                                      TPBDetailItem=mainview,
-                                      TPBSelectedItem=mainview,
-                                      childrenBlocks=[mainview],
-                                      trunkDelegate=MainTrunkDelegate)
+    MainTPB = TrunkParentBlock.template('MainTPB',
+                                        TPBDetailItem=mainview,
+                                        TPBSelectedItem=mainview,
+                                        childrenBlocks=[mainview],
+                                        trunkDelegate=MainTrunkDelegate).install(parcel)
 
     # need to hook up cpia view here, but for now it will come in
     # via parcel.xml

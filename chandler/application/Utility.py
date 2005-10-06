@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "98" # stearns: reverted DV visibility changes
+SCHEMA_VERSION = "99" # john: MainTPB has blockName
 
 logger = None # initialized in initLogging()
 

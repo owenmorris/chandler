@@ -885,12 +885,11 @@ def make_mainview(parcel):
 
     MainTrunkDelegate = TrunkDelegate.update(parcel, 'MainTrunkDelegate')
 
-    # needs a new name without 'Detail' in the title
-    MainTPB = TrunkParentBlock.update(parcel, 'MainDetailView',
-                                      TPBDetailItem=mainview,
-                                      TPBSelectedItem=mainview,
-                                      childrenBlocks=[mainview],
-                                      trunkDelegate=MainTrunkDelegate)
+    MainTPB = TrunkParentBlock.template('MainTPB',
+                                        TPBDetailItem=mainview,
+                                        TPBSelectedItem=mainview,
+                                        childrenBlocks=[mainview],
+                                        trunkDelegate=MainTrunkDelegate).install(parcel)
 
     # need to hook up cpia view here, but for now it will come in
     # via parcel.xml

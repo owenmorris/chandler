@@ -893,9 +893,6 @@ class MainView(View):
         event.arguments['Enable'] = enable
         event.arguments ['Text'] = menuTitle
 
-
-
-
     def onSyncAllEvent (self, event):
         """
         Synchronize Mail and all sharing.
@@ -959,8 +956,6 @@ class MainView(View):
                 return
             self.setStatusMessage (_(u"No shared collections found"))
 
-
-
     def onGetNewMailEvent (self, event):
         """
         Fetch Mail.
@@ -985,3 +980,18 @@ class MainView(View):
             Globals.mailService.getPOPInstance(account).getMail()
 
         view.refresh()
+
+    def onTestEvent (self, event):
+        import time
+        from colorsys import hsv_to_rgb
+
+        hsv = wx.Image_HSVValue (0.5, 0.5, 0.5)
+        start = time.clock()
+        for count in xrange (1000):
+            rgb = wx.Image.HSVtoRGB (hsv)
+        print time.clock() - start
+            
+        start = time.clock()
+        for count in xrange (1000):
+            rgb = hsv_to_rgb (0.5, 0.5, 0.5)
+        print time.clock() - start
