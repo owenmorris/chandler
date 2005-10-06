@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: listbox.cpp,v 1.46 2005/09/27 17:05:13 ABX Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.47 2005/10/06 12:10:42 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -306,7 +306,7 @@ int wxDoFindStringInList(Widget w, const wxString& s)
         return -1;
 }
 
-int wxListBox::FindString(const wxString& s, bool bCase) const
+int wxListBox::FindString(const wxString& s, bool WXUNUSED(bCase)) const
 {
     // FIXME: back to base class for not supported value of bCase
 

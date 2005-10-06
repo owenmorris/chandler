@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        menu.cpp
+// Name:        src/motif/menu.cpp
 // Purpose:     wxMenu, wxMenuBar, wxMenuItem
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: menu.cpp,v 1.56 2005/09/30 09:15:52 MBN Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.57 2005/10/06 12:10:42 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
         item->GetSubMenu()->m_topLevelMenu = m_topLevelMenu;
     }
 
-    return pos == GetMenuItemCount() ? wxMenuBase::DoAppend(item) : 
+    return pos == GetMenuItemCount() ? wxMenuBase::DoAppend(item) :
                                        wxMenuBase::DoInsert(pos, item);
 }
 
@@ -338,12 +338,14 @@ wxMenuItem *wxMenuBar::FindItem(int id, wxMenu ** itemMenu) const
     if (itemMenu)
         *itemMenu = NULL;
 
-    wxMenuItem *item = NULL;
     size_t menuCount = GetMenuCount();
     for (size_t i = 0; i < menuCount; i++)
-        if ((item = m_menus.Item(i)->GetData()->FindItem(id, itemMenu)))
-            return item;
-        return NULL;
+    {
+        wxMenuItem *item = m_menus.Item(i)->GetData()->FindItem(id, itemMenu);
+        if (item) return item;
+    }
+
+    return NULL;
 }
 
 // Create menubar
@@ -465,7 +467,12 @@ void wxMenu::DestroyWidgetAndDetach()
 *
 */
 
-WXWidget wxMenu::CreateMenu (wxMenuBar * menuBar, WXWidget parent, wxMenu * topMenu, size_t index, const wxString& title, bool pullDown)
+WXWidget wxMenu::CreateMenu (wxMenuBar * menuBar,
+                             WXWidget parent,
+                             wxMenu * topMenu,
+                             size_t WXUNUSED(index),
+                             const wxString& title,
+                             bool pullDown)
 {
     Widget menu = (Widget) 0;
     Widget buttonWidget = (Widget) 0;
@@ -671,6 +678,8 @@ void wxMenu::ChangeFont(bool keepOriginalSize)
         if (item->GetSubMenu())
             item->GetSubMenu()->ChangeFont(keepOriginalSize);
     }
+#else
+    wxUnusedVar(keepOriginalSize);
 #endif
 }
 

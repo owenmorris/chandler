@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        dirctrlg.cpp
+// Name:        src/generic/dirctrlg.cpp
 // Purpose:     wxGenericDirCtrl
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlg.cpp,v 1.131 2005/09/26 00:29:37 VZ Exp $
+// RCS-ID:      $Id: dirctrlg.cpp,v 1.132 2005/10/06 11:14:31 ABX Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -166,7 +166,17 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
                 // Note: If _filesys is unsupported by some compilers,
                 //       we can always replace it by DosQueryFSAttach
                 char filesysname[20];
+#ifdef __WATCOMC__
+                ULONG cbBuffer = sizeof(filesysname);
+                PFSQBUFFER2 pfsqBuffer = (PFSQBUFFER2)filesysname;
+                APIRET rc = ::DosQueryFSAttach(name.fn_str(),0,FSAIL_QUERYNAME,pfsqBuffer,&cbBuffer);
+                if (rc != NO_ERROR)
+                {
+                    filesysname[0] = '\0';
+                }
+#else
                 _filesys(name.fn_str(), filesysname, sizeof(filesysname));
+#endif
                 /* FAT, LAN, HPFS, CDFS, NFS */
                 int imageId;
                 if (path == wxT("A:\\") || path == wxT("B:\\"))

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        quantize.cpp
+// Name:        src/common/quantize.cpp
 // Purpose:     wxQuantize implementation
 // Author:      Julian Smart
 // Modified by:
 // Created:     22/6/2000
-// RCS-ID:      $Id: quantize.cpp,v 1.23 2005/09/23 12:53:05 MR Exp $
+// RCS-ID:      $Id: quantize.cpp,v 1.24 2005/10/06 11:14:26 ABX Exp $
 // Copyright:   (c) Thomas G. Lane, Vaclav Slavik, Julian Smart
 // Licence:     wxWindows licence + JPEG library licence
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@
 
 typedef unsigned short UINT16;
 typedef signed short INT16;
-#if !(defined(__WATCOMC__) && defined(__WXMSW__))
+#if !(defined(__WATCOMC__) && (defined(__WXMSW__) || defined(__WXMOTIF__)))
 typedef signed int INT32;
 #endif
 

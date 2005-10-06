@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.36 2005/10/03 16:39:45 ABX Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.37 2005/10/06 11:14:42 ABX Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1561,7 +1561,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxXBMDataHandler, wxBitmapHandler);
 
 bool wxXBMDataHandler::Create( wxBitmap *bitmap, void *bits,
                                long WXUNUSED(flags),
-                               int width, int height, int depth)
+                               int width, int height, int WXUNUSED(depth))
 {
 #if !wxUSE_NANOX
     if (!bitmap->GetRefData())

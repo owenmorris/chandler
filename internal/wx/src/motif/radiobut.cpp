@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        radiobut.cpp
+// Name:        src/motif/radiobut.cpp
 // Purpose:     wxRadioButton
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobut.cpp,v 1.32 2005/09/23 12:54:42 MR Exp $
+// RCS-ID:      $Id: radiobut.cpp,v 1.33 2005/10/06 12:10:42 ABX Exp $
 // Copyright:   (c) Julian Smart
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 // For compilers that support precompilation, includes "wx.h".
@@ -147,7 +147,7 @@ void wxRadioButton::ChangeBackgroundColour()
           NULL);
 }
 
-void wxRadioButtonCallback (Widget w, XtPointer clientData,
+void wxRadioButtonCallback (Widget WXUNUSED(w), XtPointer clientData,
                             XmToggleButtonCallbackStruct * cbs)
 {
     if (!cbs->set)

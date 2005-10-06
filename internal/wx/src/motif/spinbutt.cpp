@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        spinbutt.cpp
+// Name:        src/motif/spinbutt.cpp
 // Purpose:     wxSpinButton
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: spinbutt.cpp,v 1.27 2005/09/24 21:42:50 VZ Exp $
+// RCS-ID:      $Id: spinbutt.cpp,v 1.28 2005/10/06 12:10:43 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,8 @@ void wxArrowButton::StopTimerCallback( Widget w, XtPointer clientData,
     btn->m_timer = 0;
 }
 
-bool wxArrowButton::Create( wxSpinButton* parent, wxWindowID id,
+bool wxArrowButton::Create( wxSpinButton* parent,
+                            wxWindowID WXUNUSED(id),
                             ArrowDirection d,
                             const wxPoint& pos, const wxSize& size )
 {

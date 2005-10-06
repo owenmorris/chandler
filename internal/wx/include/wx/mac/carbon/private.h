@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.41 2005/09/24 21:42:18 VZ Exp $
+// RCS-ID:      $Id: private.h,v 1.42 2005/10/06 12:53:21 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -335,9 +335,13 @@ public :
     {
         return EventTimeToTicks( GetTime() ) ;
     }
-    OSStatus SetTime( EventTime inWhen = 0 /*now*/ ) 
+    OSStatus SetCurrentTime( )
     {
-        return ::SetEventTime( m_eventRef , inWhen ? inWhen : GetCurrentEventTime() ) ;
+        return ::SetEventTime( m_eventRef , GetCurrentEventTime() ) ;
+    }
+    OSStatus SetTime( EventTime when ) 
+    {
+        return ::SetEventTime( m_eventRef , when ) ;
     }
     operator EventRef () { return m_eventRef; }
     

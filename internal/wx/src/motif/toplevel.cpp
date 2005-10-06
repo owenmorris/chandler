@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        motif/toplevel.cpp
+// Name:        src/motif/toplevel.cpp
 // Purpose:     wxTopLevelWindow Motif implementation
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     12/10/2002
-// RCS-ID:      $Id: toplevel.cpp,v 1.21 2005/09/25 20:29:58 VZ Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.22 2005/10/06 12:10:44 ABX Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -270,8 +270,8 @@ WXWidget wxTopLevelWindowMotif::GetShellWidget() const
     return (WXWidget) GetShell( this );
 }
 
-bool wxTopLevelWindowMotif::ShowFullScreen( bool show,
-                                            long style )
+bool wxTopLevelWindowMotif::ShowFullScreen( bool WXUNUSED(show),
+                                            long WXUNUSED(style) )
 {
     // TODO, see wxGTK
     return false;
@@ -318,7 +318,7 @@ bool wxTopLevelWindowMotif::IsIconized() const
                    XmNiconic, &iconic,
                    NULL );
 
-    return iconic;
+    return (iconic == True);
 }
 
 void wxTopLevelWindowMotif::Maximize( bool maximize )

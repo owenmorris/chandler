@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.cpp,v 1.103 2005/09/23 12:54:13 MR Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.104 2005/10/06 12:53:24 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -746,7 +746,7 @@ void wxMacWakeUp()
         {
             if ( IsEventInQueue( GetMainEventQueue() , s_wakeupEvent ) )
                 return ;
-            s_wakeupEvent.SetTime(0) ;
+            s_wakeupEvent.SetCurrentTime() ;
             err = PostEventToQueue(GetMainEventQueue(), s_wakeupEvent,
                                   kEventPriorityHigh);
         }
