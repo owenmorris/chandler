@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: palette.h,v 1.16 2005/05/04 18:52:00 JS Exp $
+// RCS-ID:      $Id: palette.h,v 1.17 2005/10/06 14:37:09 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 #include "wx/object.h"
 #include "wx/gdiobj.h"
 
-// wxBrushBase
+// wxPaletteBase
 class WXDLLEXPORT wxPaletteBase: public wxGDIObject
 {
 public:

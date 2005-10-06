@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: basic.cpp,v 1.26 2005/09/23 12:48:04 MR Exp $
+// RCS-ID:      $Id: basic.cpp,v 1.27 2005/10/06 18:17:21 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,11 +17,11 @@
 #endif
 
 #ifndef WX_PRECOMP
-#include <wx/wx.h>
+#include "wx/wx.h"
 #endif
 
 #if wxUSE_PROLOGIO
-#include <wx/deprecated/wxexpr.h>
+#include "wx/deprecated/wxexpr.h"
 #endif
 
 #ifdef new

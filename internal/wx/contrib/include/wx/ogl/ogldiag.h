@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: ogldiag.h,v 1.11 2005/09/23 12:47:10 MR Exp $
+// RCS-ID:      $Id: ogldiag.h,v 1.12 2005/10/06 18:17:17 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 #include "wx/ogl/basic.h"
 
 #if wxUSE_PROLOGIO
-#include <wx/deprecated/wxexpr.h>
+#include "wx/deprecated/wxexpr.h"
 #endif
 
 

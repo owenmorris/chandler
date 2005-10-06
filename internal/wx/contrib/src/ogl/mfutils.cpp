@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: mfutils.cpp,v 1.17 2005/09/23 12:48:05 MR Exp $
+// RCS-ID:      $Id: mfutils.cpp,v 1.18 2005/10/06 18:17:22 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,11 +17,11 @@
 #endif
 
 #ifndef WX_PRECOMP
-#include <wx/wx.h>
+#include "wx/wx.h"
 #endif
 
-#include <wx/metafile.h>
-#include <wx/utils.h>
+#include "wx/metafile.h"
+#include "wx/utils.h"
 
 #include "wx/ogl/ogl.h"
 

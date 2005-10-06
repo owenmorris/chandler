@@ -1912,6 +1912,15 @@ bool wxWindowMac::Show(bool show)
     }
     if ( former != MacIsReallyShown() )
         MacPropagateVisibilityChanged() ;
+
+#if 0
+    // patch from Sailesh Agrawal
+    wxShowEvent eventShow(GetId(), show);
+    eventShow.SetEventObject(this);
+
+    GetEventHandler()->ProcessEvent(eventShow);
+#endif
+
     return true;
 }
 

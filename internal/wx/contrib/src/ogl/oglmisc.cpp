@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     12/07/98
-// RCS-ID:      $Id: oglmisc.cpp,v 1.20 2005/09/23 12:48:06 MR Exp $
+// RCS-ID:      $Id: oglmisc.cpp,v 1.21 2005/10/06 18:17:23 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,14 +17,14 @@
 #endif
 
 #ifndef WX_PRECOMP
-#include <wx/wx.h>
+#include "wx/wx.h"
 #endif
 
 #if wxUSE_PROLOGIO
-#include <wx/deprecated/wxexpr.h>
+#include "wx/deprecated/wxexpr.h"
 #endif
 
-#include <wx/types.h>
+#include "wx/types.h"
 
 #ifdef new
 #undef new

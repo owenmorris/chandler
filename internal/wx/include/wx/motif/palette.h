@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        palette.h
+// Name:        wx/motif/palette.h
 // Purpose:     wxPalette class
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: palette.h,v 1.13 2005/09/23 12:49:59 MR Exp $
+// RCS-ID:      $Id: palette.h,v 1.14 2005/10/06 14:37:20 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ public:
     wxPalette(int n, const unsigned char *red, const unsigned char *green, const unsigned char *blue);
     ~wxPalette();
     bool Create(int n, const unsigned char *red, const unsigned char *green, const unsigned char *blue);
-    int GetPixel(const unsigned char red, const unsigned char green, const unsigned char blue) const;
+    int GetPixel(unsigned char red, unsigned char green, unsigned char blue) const;
     bool GetRGB(int pixel, unsigned char *red, unsigned char *green, unsigned char *blue) const;
 
     virtual bool Ok() const { return (m_refData != NULL) ; }

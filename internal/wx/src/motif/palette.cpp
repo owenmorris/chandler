@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: palette.cpp,v 1.18 2005/10/06 12:10:42 ABX Exp $
+// RCS-ID:      $Id: palette.cpp,v 1.19 2005/10/06 14:37:37 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -165,15 +165,15 @@ bool wxPalette::Create(int n, const unsigned char *red, const unsigned char *gre
     return true;
 }
 
-int wxPalette::GetPixel(const unsigned char WXUNUSED(red),
-                        const unsigned char WXUNUSED(green),
-                        const unsigned char WXUNUSED(blue)) const
+int wxPalette::GetPixel(unsigned char WXUNUSED(red),
+                        unsigned char WXUNUSED(green),
+                        unsigned char WXUNUSED(blue)) const
 {
     if ( !m_refData )
-        return false;
+        return wxNOT_FOUND;
 
     // TODO
-    return false;
+    return wxNOT_FOUND;
 }
 
 bool wxPalette::GetRGB(int index, unsigned char *WXUNUSED(red), unsigned char *WXUNUSED(green), unsigned char *WXUNUSED(blue)) const
@@ -358,4 +358,3 @@ void wxPalette::PutXColormap(WXDisplay* display, WXColormap cm, bool dp)
 
     M_PALETTEDATA->m_palettes.Append(c);
 }
-
