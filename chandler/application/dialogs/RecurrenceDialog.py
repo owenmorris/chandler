@@ -52,6 +52,8 @@ class RecurrenceDialog(wx.Dialog):
         self._init_coll_buttonSizer_Items(self.buttonSizer)
 
         self.SetSizer(self.verticalSizer)
+        self.SetAutoLayout(True)
+        self.verticalSizer.Fit(self)
 
     def _init_ctrls(self, prnt):
         # generated method
@@ -87,13 +89,6 @@ class RecurrenceDialog(wx.Dialog):
         self.questionText = wx.StaticText(id=wxID_RECURRENCEDIALOGQUESTIONTEXT,
               label=u'', name=u'questionText', parent=self)
 
-        self._init_sizers()
-
-    def __init__(self, parent, proxy, cancelCallback = None):
-        self.proxy = proxy
-        self.cancelCallback = cancelCallback
-        self._init_ctrls(parent)
-        
         labels = {self.cancelButton : messages.CANCEL,
                   self.allButton    : _(u'All events'),
                   self.futureButton : _(u'All future events'),
@@ -102,6 +97,14 @@ class RecurrenceDialog(wx.Dialog):
         for item, label in labels.iteritems():
             item.SetLabel(label)
 
+
+        self._init_sizers()
+
+    def __init__(self, parent, proxy, cancelCallback = None):
+        self.proxy = proxy
+        self.cancelCallback = cancelCallback
+        self._init_ctrls(parent)
+        
         # XXX [i18n] Fixme, how should this be localized?
         
         questions = {CHANGE          : _(u'Do you want to change'),
