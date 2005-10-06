@@ -20,6 +20,9 @@ import i18n
 logger = logging.getLogger(__name__)
 
 
+# SCHEMA_VERSION has moved to Utility.py
+
+
 #@@@Temporary testing tool written by Morgen -- DJA
 import util.timing
 
@@ -258,25 +261,7 @@ class wxApplication (wx.App):
 
         if splash:
             splash.updateGauge('mainview')
-
-
-        import hotshot, hotshot.stats
-
-        fileName = os.path.join(Globals.chandlerDirectory, 'profile.log')
-        if not os.path.isfile(fileName):
-            profile = hotshot.Profile (fileName)
-            profile.runcall(self.RenderMainView)
-            profile.close()
-            stats = hotshot.stats.load("profile.log")
-            stats.strip_dirs()
-            stats.sort_stats('cum')
-            stats.print_stats()
-
-        else:
-            self.RenderMainView ()
-            
-
-        #self.RenderMainView ()
+        self.RenderMainView ()
 
         if Globals.options.profile:
             import hotshot, hotshot.stats
