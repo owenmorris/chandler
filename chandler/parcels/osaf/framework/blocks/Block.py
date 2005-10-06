@@ -1007,10 +1007,17 @@ class BlockTemplate(object):
         # all the instantiated children, to be passed to .update
         attrs = self.attrs.copy()
 
+        # this allows childrenBlocks to actually refer to blocks, or
+        # just to templates
+        def install(templateOrBlock):
+            if isinstance(templateOrBlock, Block):
+                return templateOrBlock
+            return templateOrBlock.install(parent)
+        
         # now hook up the children, and replace the templates
         # with the real things
         if 'childrenBlocks' in attrs:
-            children = [t.install(parent) for t in attrs['childrenBlocks']]
+            children = [install(t) for t in attrs['childrenBlocks']]
             attrs['childrenBlocks'] = children
             
         return self.target_class.update(parent, name, **attrs)
