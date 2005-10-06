@@ -69,12 +69,15 @@ class ICalendarTestCase(unittest.TestCase):
 
     def Import(self, view, filename):
 
-        path = unicode(os.path.join(os.getenv('CHANDLERHOME') or '.',
-                            'parcels', 'osaf', 'sharing', 'tests'))
+        sharePath = os.path.join(os.getenv('CHANDLERHOME') or '.',
+                                 'parcels', 'osaf', 'sharing', 'tests')
+
+        #sharePath is stored as schema.Text so convert to unicode
+        sharePath = unicode(sharePath, sys.getfilesystemencoding())
 
         sandbox = view.findPath("//sandbox")
 
-        conduit = Sharing.FileSystemConduit(parent=sandbox, sharePath=path,
+        conduit = Sharing.FileSystemConduit(parent=sandbox, sharePath=sharePath,
                                             shareName=filename, view=view)
         format = ICalendar.ICalendarFormat(parent=sandbox)
         self.share = Sharing.Share(parent=sandbox, conduit=conduit,

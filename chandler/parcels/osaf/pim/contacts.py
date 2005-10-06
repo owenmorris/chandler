@@ -16,8 +16,8 @@ from i18n import OSAFMessageFactory as _
 class ContactName(items.ContentItem):
     "A very simple (and incomplete) representation of a person's name"
 
-    firstName = schema.One(schema.String, initialValue="")
-    lastName  = schema.One(schema.String, initialValue="")
+    firstName = schema.One(schema.Text, initialValue=u"")
+    lastName  = schema.One(schema.Text, initialValue=u"")
     contact = schema.One("Contact", inverse="contactName")
 
     schema.addClouds(
@@ -47,7 +47,7 @@ class Contact(items.ContentItem):
         ContactName, inverse=ContactName.contact, initialValue=None
     )
 
-    emailAddress = schema.One(schema.String, 
+    emailAddress = schema.One(schema.Text,
         displayName = _(u"Email Address"),
         initialValue = u""
     )

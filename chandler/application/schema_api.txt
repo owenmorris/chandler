@@ -87,7 +87,7 @@ All role objects have at least the following attributes and methods:
     single type::
 
         >>> class Kind(schema.Item):
-        ...     name = schema.One(schema.String)
+        ...     name = schema.One(schema.Text)
         ...     subkinds = schema.Many()
         ...     superkinds = schema.Many(inverse=subkinds)
         ...     def __repr__(self):
@@ -116,7 +116,7 @@ All role objects have at least the following attributes and methods:
          |  Data and other attributes defined here:
          |
          |  name = <Role name of <class 'Kind'>>
-         |      Kind Name -- One(String)
+         |      Kind Name -- One(Text)
          |
          |      This kind's name
          |
@@ -219,8 +219,8 @@ All role objects have at least the following attributes and methods:
     ``schema`` module supplies various pre-configured ``TypeReference``
     objects for your convenience::
 
-        >>> schema.String
-        TypeReference('//Schema/Core/String')
+        >>> schema.Text
+        TypeReference('//Schema/Core/Text')
 
         >>> myType = schema.TypeReference('//Schema/Core/DateTime')
 
@@ -296,7 +296,7 @@ Item Subclasses
 XXX Explain this::
 
     >>> class Person(schema.Item):
-    ...     fullname = schema.One(schema.String)
+    ...     fullname = schema.One(schema.Text)
     ...     age = schema.One(schema.Integer)
     ...     parents = schema.Sequence()
     ...     children = schema.Sequence(inverse=parents)
@@ -308,11 +308,11 @@ XXX Explain this::
     ...     )
     ...     def __repr__(self): return self.fullname
 
-    >>> Joe = Person(fullname="Joe Schmoe", age=39)
+    >>> Joe = Person(fullname=u"Joe Schmoe", age=39)
     >>> Joe
     Joe Schmoe
 
-    >>> Mary = Person(children=[Joe], fullname="Mary Quite Contrary")
+    >>> Mary = Person(children=[Joe], fullname=u"Mary Quite Contrary")
     >>> list(Joe.parents)
     [Mary Quite Contrary]
 
@@ -384,7 +384,7 @@ you can also specify a particular view::
 By default, subclass instances are included in the results::
 
     >>> class StrangePerson(Person): pass
-    >>> stranger = StrangePerson(fullname="The Stranger")
+    >>> stranger = StrangePerson(fullname=u"The Stranger")
     >>> sorted(Person.iterItems(), key=lambda x:x.fullname)
     [Joe Schmoe, Mary Quite Contrary, The Stranger]
 
@@ -829,7 +829,7 @@ To use this method, you must supply a parcel and name to the ``update()``
 method of the class of item you want to create.  For example::
 
     >>> def installParcel(parcel, old_version=None):
-    ...     Person.update(parcel, "Carlos", fullname="Carlos Marron")
+    ...     Person.update(parcel, "Carlos", fullname=u"Carlos Marron")
 
 At the moment, there is no "Carlos" in the api_tests parcel::
 
@@ -848,13 +848,13 @@ So, we'll create him::
 Now, let's change his name, and see what happens if we "update" the parcel::
 
     >>> carlos = api_tests.Carlos
-    >>> carlos.fullname = "Charlie Brown"
+    >>> carlos.fullname = u"Charlie Brown"
     >>> carlos.fullname
-    'Charlie Brown'
+    u'Charlie Brown'
 
     >>> installParcel(api_tests.parcel)
     >>> carlos.fullname
-    'Carlos Marron'
+    u'Carlos Marron'
 
 Notice that on our second call, the object's fullname attribute was updated
 *in place*, instead of creating a new item.  Also, the kind and class are
@@ -890,7 +890,7 @@ created.
 
 Let's create a forward reference to a person::
 
-    >>> stranger = api_tests.fwdRef(Person, 'Stranger')
+    >>> stranger = api_tests.fwdRef(Person, u'Stranger')
 
 At this point, the item exists and can be used::
     
@@ -911,7 +911,7 @@ But the view knows it has unresolved references::
 
 But actually updating the object will resolve the forward reference::
 
-    >>> Person.update(api_tests.parcel, 'Stranger', fullname="Stranger")
+    >>> Person.update(api_tests.parcel, 'Stranger', fullname=u"Stranger")
     Stranger
 
     >>> schema.assertResolved(api_tests.parcel)     # no more errors

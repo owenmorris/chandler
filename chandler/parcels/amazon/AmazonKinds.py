@@ -48,7 +48,6 @@ def CreateCollection(repView, cpiaView):
         return newAmazonCollection
 
     except (AmazonError, AttributeError), e:
-        log.exception(e)
         showError(_(u"No Amazon Wishlist was found for search keywords '%(keywords)s'") % {'keywords': keywords})
 
 def CreateWishListCollection(repView, cpiaView):
@@ -66,7 +65,6 @@ def CreateWishListCollection(repView, cpiaView):
         return newAmazonCollection
 
     except (AmazonError, AttributeError), e:
-        log.exception(e)
         showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") \
                                                             % {'emailAddress': emailAddr})
 

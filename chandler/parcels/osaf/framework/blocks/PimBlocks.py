@@ -110,7 +110,7 @@ class FocusEventHandlers(Item):
             # @@@ BJS: this'll go away when we change 'from' to an
             # account picker popup.
             if isinstance (item, Mail.MailMessageMixin):
-                if item.ItemWhoFromString() == '':
+                if item.ItemWhoFromString() == u'':
                     item.whoFrom = item.getCurrentMeEmailAddress()
             item.shareSend()
 

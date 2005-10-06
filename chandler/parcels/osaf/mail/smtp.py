@@ -28,6 +28,7 @@ import constants
 import errors
 from utils import *
 from message import *
+import message
 
 __all__ = ['SMTPClient']
 
@@ -380,7 +381,7 @@ class SMTPClient(object):
             if recipient[1] != constants.SMTP_SUCCESS:
                 deliveryError = Mail.MailDeliveryError(view=self.view)
                 deliveryError.errorCode = code
-                deliveryError.errorString = "%s: %s" % (email, st)
+                deliveryError.errorString = u"%s: %s" % (email, st)
                 deliveryError.errorDate = errorDate
                 self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
 
@@ -474,7 +475,8 @@ class SMTPClient(object):
 
             return True
         elif str(err.__class__) == errors.M2CRYPTO_CHECKER_ERROR:
-            displayIgnoreSSLErrorDialog(err.pem, str(err),#XXX intl
+            #XXX [i18n] this message needs to be localized
+            displayIgnoreSSLErrorDialog(err.pem, str(err),
                                               reconnect)
 
             return True
@@ -482,9 +484,16 @@ class SMTPClient(object):
 
 
     def _getError(self, err):
-        errorCode   = None
-        errorString = str(err)
+        errorCode = errors.UNKNOWN_CODE
         errorType   = str(err.__class__)
+
+        if errorType == errors.SMTP_EXCEPTION:
+            #SMTPExceptions inherits from ChandlerException
+            #which contains translated unicode error messages
+            errorString = err.__unicode__()
+            errorCode = errors.SMTP_EXCEPTION_CODE
+        else:
+            errorString = unicode(err.__str__())
 
         if isinstance(err, smtp.SMTPClientError):
             """Base type for all SMTP Related Errors.
@@ -550,8 +559,6 @@ class SMTPClient(object):
                 #XXX: pleace holder for future code enhancement
                 pass
 
-        else:
-            errorCode = errors.UNKNOWN_CODE
 
         return (errorCode, errorString)
 
@@ -631,7 +638,7 @@ class SMTPClient(object):
                 errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(bccAddress)})
 
         if len(errs) > 0:
-            self._fatalError("\n".join(errs))
+            self._fatalError(u"\n".join(errs))
             return True
 
         return False

@@ -1,7 +1,7 @@
 # The collection publishing dialog
 # Invoke using the ShowPublishDialog( ) method.
 
-import wx, twisted
+import wx, twisted, sys
 import M2Crypto
 import traceback, logging
 import os, urlparse, urllib
@@ -340,7 +340,7 @@ class PublishCollectionDialog(wx.Dialog):
                 args = { 'username' : account.username, 'ext' : ext }
 
                 # This needs an apostrophe, but Cosmo doesn't support that yet:
-                basename = _(u"%(username)s %(ext)s") % args
+                basename = u"%(username)s %(ext)s" % args
             else:
                 basename = self.collection.displayName
 
@@ -466,6 +466,9 @@ class PublishCollectionDialog(wx.Dialog):
 def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'PublishCollection_wdr.xrc')
+    #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
+    #but can handle unicode
+    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, _(u"Collection Sharing"),
      resources=resources, view=view, collection=collection,

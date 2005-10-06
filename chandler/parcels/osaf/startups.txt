@@ -59,9 +59,9 @@ using attributes of the item.  For example::
     >>> from application import schema
 
     >>> class StartupMessage(Startup):
-    ...     message = schema.One(schema.String, initialValue="Hello, world!")
+    ...     message = schema.One(schema.Text, initialValue=u"Hello, world!")
     ...     def onStart(self):
-    ...         print self.message
+    ...         print self.message.encode('utf8')
 
     >>> hello = StartupMessage(view=rv)
     >>> run_startup(rv)
@@ -80,7 +80,7 @@ sometimes, a startup item needs another item to be started first.  The
 should be started first::
 
     >>> goodbye = StartupMessage(
-    ...     message="Goodbye, world!",
+    ...     message=u"Goodbye, world!",
     ...     requires=[hello],
     ...     view=rv
     ... )

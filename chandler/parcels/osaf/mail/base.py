@@ -240,12 +240,11 @@ class AbstractDownloadClient(object):
 
         @return: C{None}
         """
-        if isinstance(err, failure.Failure):
-            err.printBriefTraceback()
-            err = err.value
-
         if __debug__:
             trace("catchErrors")
+
+        if isinstance(err, failure.Failure):
+            err = err.value
 
 
         errorType   = str(err.__class__)

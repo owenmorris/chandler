@@ -2,7 +2,7 @@ import unittest
 this_module = "i18n.tests.TestI18n"     # change this if it moves
 
 
-"""Very basic tests to make sure message catalogs working will be 
+"""Very basic tests to make sure message catalogs are working. This will be 
    expanded"""
 
 class I18nTestCase(unittest.TestCase):

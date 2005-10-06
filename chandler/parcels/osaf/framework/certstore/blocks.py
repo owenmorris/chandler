@@ -36,7 +36,7 @@ class _EditIntegerAttribute (Detail.EditTextAttribute):
             value = 0
         wiVal = widget.GetValue()
         if not wiVal or int(wiVal) != value:
-            widget.SetValue(str(value))
+            widget.SetValue(unicode(value))
 
 
 class _AsTextAttribute (Detail.EditTextAttribute):
@@ -75,7 +75,7 @@ def installParcel(parcel, oldVersion=None):
     blocks.MenuItem.update(
         parcel, "CertificateView",
         blockName = "CertificateView",
-        title = "Manage Certificates",
+        title = u"Manage Certificates",
         event = CertificateViewEvent,
         eventsForNamedLookup = [CertificateViewEvent],
         parentBlock = main.TestMenu,
@@ -99,7 +99,7 @@ def installParcel(parcel, oldVersion=None):
     blocks.MenuItem.update(
         parcel, "CertificateImport",
         blockName = "CertificateImport",
-        title = "Import Certificate",
+        title = u"Import Certificate",
         event = CertificateImportEvent,
         eventsForNamedLookup = [CertificateImportEvent],
         parentBlock = main.TestMenu,
@@ -112,7 +112,7 @@ def installParcel(parcel, oldVersion=None):
             detail.MarkupBar,
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "TypeArea",
-                position = 0.1, viewAttribute="type",
+                position = 0.1, viewAttribute=u"type",
                 stretchFactor = 0,
                 childrenBlocks = [
                     blocks.StaticText.update(
@@ -126,7 +126,7 @@ def installParcel(parcel, oldVersion=None):
                     ),
                     detail.StaticRedirectAttribute.update(
                         parcel, "TypeAttribute",
-                        title = "author",
+                        title = u"author",
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Left",
@@ -136,7 +136,7 @@ def installParcel(parcel, oldVersion=None):
 
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "TrustArea",
-                position = 0.2, viewAttribute="trust",
+                position = 0.2, viewAttribute=u"trust",
                 stretchFactor = 0,
                 childrenBlocks = [
                     blocks.StaticText.update(
@@ -162,18 +162,18 @@ def installParcel(parcel, oldVersion=None):
 
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "FingerprintArea",
-                position = 0.3, viewAttribute="fingerprint",
+                position = 0.3, viewAttribute=u"fingerprint",
                 stretchFactor = 0,
                 childrenBlocks = [
                     detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                         parcel, "FingerprintLabel",
                         position = 0.3,
-                        viewAttribute="fingerprintAlgorithm",
+                        viewAttribute=u"fingerprintAlgorithm",
                         stretchFactor = 0,
                         childrenBlocks = [
                             detail.StaticRedirectAttribute.update(
                                 parcel, "FingerprintAlgorithmAttribute",
-                                title = "author",   # sic!
+                                title = u"author",   # sic!
                                 characterStyle = blocks.LabelStyle,
                                 stretchFactor = 0.0,
                                 textAlignmentEnum = "Right",
@@ -184,7 +184,7 @@ def installParcel(parcel, oldVersion=None):
                     ),
                     detail.StaticRedirectAttribute.update(
                         parcel, "FingerprintAttribute",
-                        title = "author",   # sic!
+                        title = u"author",   # sic!
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Left",
@@ -194,7 +194,7 @@ def installParcel(parcel, oldVersion=None):
 
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "AsTextArea",
-                position = 0.9, viewAttribute="asText",
+                position = 0.9, viewAttribute=u"asText",
                 stretchFactor = 1,
                 childrenBlocks = [
                     _AsTextAttribute.update(

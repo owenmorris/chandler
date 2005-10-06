@@ -202,7 +202,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.rep.check()
     
     def testIcalUID(self):
-        self.assertEqual(self.event.icalUID, str(self.event.itsUUID))
+        self.assertEqual(self.event.icalUID, unicode(self.event.itsUUID))
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.assertEqual(self.event.icalUID, 
                          self.event.getNextOccurrence().icalUID)
@@ -273,7 +273,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(second.displayName, u'Modified title')
         self.assertEqual(list(second.rruleset.rrules)[0].freq, 'weekly')
         self.assertEqual(second.startTime, second.recurrenceID)
-        self.assertEqual(second.icalUID, str(second.itsUUID))
+        self.assertEqual(second.icalUID, unicode(second.itsUUID))
         self.assertEqual(second.getLastUntil(), lastUntil)
         
         # make sure a backup occurrence is created

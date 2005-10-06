@@ -28,7 +28,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
         # Test the globals
         mailPath = Path('//parcels/osaf/pim/mail')
         view = self.rep.view
-        
+
         self.assertEqual(Mail.AccountBase.getKind(view),
                          view.find(Path(mailPath, 'AccountBase')))
 
@@ -153,7 +153,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
         imapAccountItem = self.__populateAccount(imapAccountItem)
 
         mailDeliveryErrorItem.errorCode = 25
-        mailDeliveryErrorItem.errorString = "Test String"
+        mailDeliveryErrorItem.errorString = u"Test String"
         mailDeliveryErrorItem.errorDate = datetime.now()
 
         smtpDeliveryItem.state = "DRAFT"
@@ -168,11 +168,11 @@ class MailTest(TestContentModel.ContentModelTestCase):
         # Literal properties
         mailMessageItem.dateSent = datetime.now()
         mailMessageItem.dateReceived = datetime.now()
-        mailMessageItem.subject = "Hello"
+        mailMessageItem.subject = u"Hello"
         mailMessageItem.spamScore = 5
 
         # Item Properties
-        emailAddressItem.emailAddress = "test@test.com"
+        emailAddressItem.emailAddress = u"test@test.com"
         mailMessageItem.replyAddress = emailAddressItem
 
         self._reopenRepository()
@@ -188,18 +188,18 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
     def __populateAccount(self, account):
 
-        account.username = "test"
-        account.password = "test"
-        account.host = "test"
+        account.username = u"test"
+        account.password = u"test"
+        account.host = u"test"
 
         if type(account) == Mail.AccountBase:
             account.port = 1
             account.connectionSecurity = "NONE"
 
         if type(account) == Mail.SMTPAccount:
-            account.fullName = "test"
+            account.fullName = u"test"
             account.replyToAddress = Mail.EmailAddress(view=account.itsView)
-            account.replyToAddress.emailAddress = "test@test.com"
+            account.replyToAddress.emailAddress = u"test@test.com"
 
 if __name__ == "__main__":
     unittest.main()

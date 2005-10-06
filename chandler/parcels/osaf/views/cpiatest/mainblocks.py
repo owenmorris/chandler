@@ -31,7 +31,7 @@ def make_mainview(parcel):
                                       displayName=_(u'Reminder Items'),
                                       indexName='reminderTime',
                                       source=app.events,
-                                      filterExpression='item.hasLocalAttributeValue(\'reminderTime\')',
+                                      filterExpression=u'item.hasLocalAttributeValue(\'reminderTime\')',
                                       filterAttributes=['reminderTime'])
 
     # these reference each other... ugh!
@@ -727,8 +727,6 @@ def make_mainview(parcel):
                                 childrenBlocks=[
                                     MenuItem.template('ChandlerSkinMenuItem',
                                         event=ChooseChandlerMainViewEvent,
-                                        #[i18n] Chandler is the name of the application and
-                                        #       does not require localization
                                         title=u'Chandler',
                                         helpString=u'Switch to Chandler'),
                                     MenuItem.template('CPIATestSkinMenuItem',
@@ -776,7 +774,7 @@ def make_mainview(parcel):
             StatusBar.template('StatusBar'),
             ReminderTimer.template('ReminderTimer',
                                    event=ReminderTimerEvent),
-            BoxContainer.template(u'ToolbarContainer',
+            BoxContainer.template('ToolbarContainer',
                 orientationEnum='Vertical',
                 childrenBlocks=[
                     Toolbar.template('ApplicationBar',
@@ -840,7 +838,7 @@ def make_mainview(parcel):
                                 toolbarItemKind='Button',
                                 helpString=_(u'Send the selected Item')),
                             ]), # Toolbar ApplicationBar
-                    BoxContainer.template(u'SidebarContainerContainer',
+                    BoxContainer.template('SidebarContainerContainer',
                         border=RectType(4, 0, 0, 0),
                         childrenBlocks=[
                             SplitterWindow.template('SidebarContainer',
@@ -856,12 +854,12 @@ def make_mainview(parcel):
                                         selection=[[0,0]],
                                         contents=app.sidebarSelectionCollection,
                                         selectedItemToView=app.allCollection,
-                                        elementDelegate=u'osaf.views.main.SideBar.SidebarElementDelegate',
+                                        elementDelegate='osaf.views.main.SideBar.SidebarElementDelegate',
                                         hideColumnHeadings=True,
                                         columnWidths=[150],
                                         columnData=[u'displayName'],
                                         filterKind=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(parcel.itsView)),
-                                    BoxContainer.template(u'PreviewAndMiniCalendar',
+                                    BoxContainer.template('PreviewAndMiniCalendar',
                                         orientationEnum='Vertical',
                                         childrenBlocks=[
                                             PreviewArea.template('PreviewArea',

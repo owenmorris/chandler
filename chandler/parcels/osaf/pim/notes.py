@@ -25,8 +25,8 @@ class Note(items.ContentItem):
     # temporarily make this a real attribute instead of a redirection,
     # because we don't want to redirect this anywhere
     who = schema.One(
-        schema.String,
-        initialValue = ""
+        schema.Text,
+        initialValue = u""
     )
 
     # redirections

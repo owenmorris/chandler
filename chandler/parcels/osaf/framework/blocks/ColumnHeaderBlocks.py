@@ -17,7 +17,7 @@ class ColumnHeader (RectangularChild):
 
     # -- Attributes for ColumnHeader -- #
 
-    columnHeadings       = schema.Sequence(schema.String, required = True) 
+    columnHeadings       = schema.Sequence(schema.Text, required = True) 
     columnWidths         = schema.Sequence(schema.Integer)
     proportionalResizing = schema.One(schema.Boolean)
     visibleSelection     = schema.One(schema.Boolean)

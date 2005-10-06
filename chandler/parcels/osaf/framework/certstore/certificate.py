@@ -10,7 +10,7 @@ __all__ = ['Certificate', 'CertificateStore',
            'importCertificate', 'importCertificateDialog', 'createSidebarView',
            'findCertificate']
 
-import os, logging
+import os, logging, sys
 
 import wx
 import M2Crypto.X509 as X509
@@ -24,13 +24,12 @@ from osaf import messages
 from osaf.pim.collections import FilteredCollection
 from osaf.framework.certstore import utils, dialogs, constants
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 class typeEnum(schema.Enumeration):
     """
     Type enumeration
-    
     @see: U{model<../model/parcels/osaf/framework/certstore/typeEnum/index.html>}
     """
     schema.kindInfo(displayName = u"Type Enumeration")
@@ -40,7 +39,7 @@ class typeEnum(schema.Enumeration):
 class CertificateStore(pim.KindCollection):
     """
     Certificate Store
-    
+
     @see: U{model<../model/parcels/osaf/framework/certstore/CertificateStore/index.html>}
     """
     schema.kindInfo(displayName = _(u"Certificate Store"))
@@ -50,7 +49,7 @@ class CertificateStore(pim.KindCollection):
         self.displayName = _(u'Certificate Store')
 
         self.kind = self.itsView.findPath('//parcels/osaf/framework/certstore/Certificate')
-        
+
         self.color = schema.ns('osaf.app',
                                self.itsView).collectionColors.nextColor()
 
@@ -58,7 +57,7 @@ class CertificateStore(pim.KindCollection):
 class Certificate(pim.ContentItem):
     """
     Certificate
-    
+
     @see: U{model<../model/parcels/osaf/framework/certstore/Certificate/index.html>}
     """
 
@@ -66,8 +65,7 @@ class Certificate(pim.ContentItem):
 
     who = schema.One(redirectTo = 'displayName')
     displayName = schema.One(
-        schema.String,
-        displayName = _(u'Display Name'),
+        schema.Text, displayName = _(u'Display Name'),
         doc = 'Display Name.',
     )
     about = schema.One(
@@ -98,19 +96,19 @@ class Certificate(pim.ContentItem):
         doc = 'An X.509 certificate in human readable format.',
     )
     fingerprintAlgorithm = schema.One(
-        schema.String,
+        schema.Bytes,
         displayName = _(u'fingerprint algorithm'),
         doc = 'A name of a hash algorithm that was used to compute fingerprint.',
     )
     fingerprint = schema.One(
-        schema.String,
+        schema.Bytes,
         doc = 'A hash of the certificate using algorithm named in fingerprintAlgorithm attribute.',
     )
 
     def pemAsString(self):
         """
         Get the pem attribute (which is stored as a LOB) as a str.
-        
+
         @return: pem as str
         @rtype:   str
         """
@@ -120,7 +118,7 @@ class Certificate(pim.ContentItem):
     def asTextAsString(self):
         """
         Get the asText attribute (which is stored as a LOB) as a str.
-        
+
         @return: asText as str
         @rtype:  str
         """
@@ -130,7 +128,7 @@ class Certificate(pim.ContentItem):
         """
         Get the pem (which is stored as a LOB) as a C{M2Crypto.X509.X509}
         instance.
-        
+
         @return: pem as C{M2Crypto.X509.X509}.
         @rtype:  C{M2Crypto.X509.X509}
         """
@@ -168,7 +166,7 @@ def _isSiteCertificate(x509):
             site = True
     except LookupError:
         pass
-        
+
     if not site:
         try:
             commonName = x509.get_subject().CN
@@ -176,7 +174,7 @@ def _isSiteCertificate(x509):
                 site = True
         except AttributeError:
             pass
-            
+
     return site
 
 
@@ -197,10 +195,10 @@ def _certificateType(x509):
             type = constants.TYPE_ROOT
         elif _isSiteCertificate(x509):
             type = constants.TYPE_SITE
-                
+
     if type is None:
-        raise Exception, 'could not determine certificate type'
-        
+        raise utils.CertificateException(_(u'Could not determine certificate type.'))
+
     return type
 
 def findCertificate(repView, pem):
@@ -215,39 +213,44 @@ def findCertificate(repView, pem):
     for cert in q:
         if cert.pemAsString() == pem:
             return cert
-    
+
     return None
 
 def importCertificate(x509, fingerprint, trust, repView):
     """
     Import X.509 certificate.
-    
+
     @param x509:        The X.509 certificate to import
     @param fingerprint: The fingerprint of the certificate (in SHA1)
     @param trust:       The trust value for this certificate
     """
     pem = x509.as_pem()
     if findCertificate(repView, pem) is not None:
-        raise ValueError('X.509 certificate is already in the repository')
-        
+        raise utils.CertificateException(_(u'This certificate has already been imported.'))
+
     commonName = x509.get_subject().CN
+
+    if commonName is None:
+        commonName = ""
+
     asText = x509.as_text()
-    
+
     type = _certificateType(x509)
     if type == constants.TYPE_ROOT:
         if not x509.verify():
-            raise ValueError('X.509 certificate does not verify')
-    
+            raise utils.CertificateException(_(u'Unable to verify the certificate.'))
+
     lobType = schema.itemFor(schema.Lob, repView)
     pem = lobType.makeValue(pem, compression=None)
     text = lobType.makeValue(asText)
-    
+
+    #XXX [i18n] Can a commonName contain non-ascii characters?
     cert = Certificate(view=repView,
                        trust=trust,
                        type=type,
                        fingerprint=fingerprint,
                        fingerprintAlgorithm='sha1',
-                       displayName=commonName,
+                       displayName=unicode(commonName),
                        pem=pem,
                        asText=text)
 
@@ -256,9 +259,9 @@ def importCertificate(x509, fingerprint, trust, repView):
     if q is None:
         q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME, view=repView)
         q.source = utils.getExtent(Certificate, repView)
-        q.filterExpression = 'item.type == "%s" and item.trust == %d' % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY)
+        q.filterExpression = u'item.type == "%s" and item.trust == %d' % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY)
         q.filterAttributes = ['type', 'trust']
-    
+
     repView.commit()
 
 
@@ -280,6 +283,7 @@ def importCertificateDialog(repView):
     if cmd  != wx.ID_OK:
         return
 
+    # dir and filename are unicode
     path = os.path.join(dir, filename)
 
     try: 
@@ -312,10 +316,13 @@ def importCertificateDialog(repView):
             return
 
         importCertificate(x509, fprint, trust, repView)
+
+    except utils.CertificateException, e:
+        application.dialogs.Util.ok(app.mainFrame, messages.ERROR, e.__unicode__())
+        return
+
     except Exception, e:
         log.exception(e)
-        # XXX Inform the user what went wrong so they can figure out how to
-        # XXX fix this.
         application.dialogs.Util.ok(app.mainFrame, messages.ERROR,
             _(u"Could not add certificate from: %(path)s\nCheck the path and try again.") % {'path': path})
         return
@@ -338,7 +345,7 @@ def createSidebarView(repView, cpiaView):
             return
 
     certstore = CertificateStore(view=repView)
-    
+
     cpiaView.postEventByName('ApplicationBarAll', {})
     schema.ns("osaf.app", cpiaView).sidebarCollection.add (certstore)
     # Need to SelectFirstItem -- DJA

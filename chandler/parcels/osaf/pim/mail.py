@@ -125,13 +125,13 @@ class AccountBase(items.ContentItem):
         initialValue = 1,
     )
     username = schema.One(
-        schema.String,
+        schema.Text,
         displayName = messages.USERNAME,
         doc = 'The account login name',
-        initialValue = '',
+        initialValue = u'',
     )
     password = schema.One(
-        schema.String,
+        schema.Text,
         displayName = _(u'Password'),
         doc = 'This could either be a password or some other sort of '
               'authentication info. We can use it for whatever is needed '
@@ -139,13 +139,13 @@ class AccountBase(items.ContentItem):
             'Issues:\n'
             '   This should not be a simple string. We need some solution for '
             'encrypting it.\n',
-        initialValue = '',
+        initialValue = u'',
     )
     host = schema.One(
-        schema.String,
+        schema.Text,
         displayName = _(u'Host'),
         doc = 'The hostname of the account',
-        initialValue = '',
+        initialValue = u'',
     )
     port = schema.One(
         schema.Integer, displayName = _(u'Port'), doc = 'The port number to use',
@@ -261,7 +261,7 @@ class SMTPAccount(AccountBase):
         inverse = DownloadAccountBase.defaultSMTPAccount,
     )
     signature = schema.One(
-        schema.String,
+        schema.Text,
         description =
             "Issues:\n"
             '   Basic signiture addition to an outgoing message will be refined '
@@ -314,7 +314,7 @@ class POPAccount(DownloadAccountBase):
         initialValue = 110,
     )
     downloadedMessageUIDS = schema.Mapping(
-        schema.String,
+        schema.Bytes,
         displayName = u'Downloaded Message UID',
         doc = 'Used for quick look up to discover if a message has already been downloaded',
         initialValue = {},
@@ -341,7 +341,7 @@ class MailDeliveryError(items.ContentItem):
         doc = 'The Error Code returned by the Delivery Transport',
         initialValue = 0,
     )
-    errorString = schema.One(schema.String, initialValue = '')
+    errorString = schema.One(schema.Text, initialValue = u'')
     errorDate = schema.One(schema.DateTime)
     mailDelivery = schema.One(
         'MailDeliveryBase',
@@ -352,13 +352,6 @@ class MailDeliveryError(items.ContentItem):
     )
 
     __default_path__ = MAIL_DEFAULT_PATH
-
-    def __str__(self):
-        if self.isStale():
-            return super(MailDeliveryError, self).__str__()
-            # Stale items shouldn't go through the code below
-
-        return "| %d | %s | %s |" % (self.errorCode, self.errorString, str(self.errorDate))
 
 
 class MailDeliveryBase(items.ContentItem):
@@ -455,7 +448,7 @@ class IMAPDelivery(MailDeliveryBase):
     )
 
     folder = schema.One(
-        schema.String, displayName = u'Folder', initialValue = '',
+        schema.Text, displayName = u'Folder', initialValue = u'',
     )
     uid = schema.One(
         schema.Long,
@@ -464,13 +457,13 @@ class IMAPDelivery(MailDeliveryBase):
         initialValue = 0,
     )
     namespace = schema.One(
-        schema.String,
+        schema.Text,
         displayName = u'Namespace',
         doc = 'The namespace of the message',
-        initialValue = '',
+        initialValue = u'',
     )
     flags = schema.Sequence(
-        schema.String, displayName = u'Flags', initialValue = [],
+        schema.Bytes, displayName = u'Flags', initialValue = [],
     )
 
 
@@ -482,7 +475,7 @@ class POPDelivery(MailDeliveryBase):
     )
 
     uid = schema.One(
-        schema.String,
+        schema.Bytes,
         displayName = u'POP UID',
         doc = 'The unique POP ID for the message',
         initialValue = '',
@@ -495,7 +488,8 @@ class MIMEBase(items.ContentItem):
         description="Super kind for MailMessage and the various MIME kinds",
     )
 
-    mimeType = schema.One(schema.String, initialValue = '')
+    mimeType = schema.One(schema.Bytes, initialValue = '')
+
     mimeContainer = schema.One(
         'MIMEContainer', initialValue = None, inverse = 'mimeParts',
     )
@@ -517,7 +511,7 @@ class MIMENote(MIMEBase):
     )
 
     filename = schema.One(
-        schema.String, displayName = _(u'File name'), initialValue = '',
+        schema.Text, displayName = _(u'File name'), initialValue = u'',
     )
     filesize = schema.One(schema.Long, displayName = _(u'File Size'))
 
@@ -567,9 +561,9 @@ class MailMessageMixin(MIMEContainer):
     )
     spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob)
-    dateSentString = schema.One(schema.String, initialValue = '')
+    dateSentString = schema.One(schema.Bytes, initialValue = '')
     dateSent = schema.One(schema.DateTime, displayName=_(u"date sent"))
-    messageId = schema.One(schema.String, initialValue = '')
+    messageId = schema.One(schema.Bytes, initialValue = '')
     toAddress = schema.Sequence(
         'EmailAddress',
         displayName = _(u'To'),
@@ -591,11 +585,11 @@ class MailMessageMixin(MIMEContainer):
     ccAddress = schema.Sequence(
         'EmailAddress', initialValue = [], inverse = 'messagesCc',
     )
-    subject = schema.One(schema.String, displayName=_(u"subject"))
+    subject = schema.One(schema.Text, displayName=_(u"subject"))
     headers = schema.Mapping(
-        schema.String, doc = 'Catch-all for headers', initialValue = {},
+        schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )
-    chandlerHeaders = schema.Mapping(schema.String, initialValue = {})
+    chandlerHeaders = schema.Mapping(schema.Text, initialValue = {})
     who = schema.One(
         doc = "Redirector to 'toAddress'", redirectTo = 'toAddress',
     )
@@ -609,7 +603,7 @@ class MailMessageMixin(MIMEContainer):
         doc = "Redirector to 'dateSent'", redirectTo = 'dateSent',
     )
 
-    mimeType = schema.One(schema.String, initialValue = 'message/rfc822')
+    mimeType = schema.One(schema.Bytes, initialValue = 'message/rfc822')
 
     schema.addClouds(
         sharing = schema.Cloud(
@@ -749,12 +743,12 @@ class MIMEText(MIMENote):
     schema.kindInfo(displayName = u"MIME Text Kind")
 
     charset = schema.One(
-        schema.String,
+        schema.Bytes,
         displayName = u'Character set encoding',
         initialValue = 'utf-8',
     )
     lang = schema.One(
-        schema.String,
+        schema.Bytes,
         displayName = u'Character set Language',
         initialValue = 'en',
     )
@@ -789,28 +783,28 @@ class EmailAddress(items.ContentItem):
     )
 
     emailAddress = schema.One(
-        schema.String,
+        schema.Text,
         displayName = _(u'Email Address'),
         doc = 'An RFC 822 email address.\n\n'
             "Examples:\n"
             '   "abe@osafoundation.org"\n'
             '   "Abe Lincoln {abe@osafoundation.org}" (except with ;angle '
                 'brackets instead of \'{\' and \'}\')\n',
-        initialValue = '',
+        initialValue = u'',
     )
     fullName = schema.One(
-        schema.String,
+        schema.Text,
         displayName = _(u'Full Name'),
         doc = 'A first and last name associated with this email address',
-        initialValue = '',
+        initialValue = u'',
     )
     vcardType = schema.One(
-        schema.String,
+        schema.Text,
         displayName = u'vCard type',
         doc = "Typical vCard types are values like 'internet', 'x400', and "
               "'pref'. Chandler will use this attribute when doing "
               "import/export of Contact records in vCard format.",
-        initialValue = '',
+        initialValue = u'',
     )
     accounts = schema.Sequence(
         DownloadAccountBase,
@@ -927,7 +921,7 @@ class EmailAddress(items.ContentItem):
         """
 
     @classmethod
-    def getEmailAddress(cls, view, nameOrAddressString, fullName=''):
+    def getEmailAddress(cls, view, nameOrAddressString, fullName='', inbound=False):
         """
         Lookup or create an EmailAddress based on the supplied string.
 
@@ -940,22 +934,32 @@ class EmailAddress(items.ContentItem):
              will be parsed, and no fullName is needed
           2. with an plain email address in the nameOrAddressString, and a
              full name in the fullName field
-             
+
         If a match is found for both name and address then it will be used.
-        
+
         If there is no name specified, a match on address will be returned.
-        
+
         If there is no address specified, a match on name will be returned.
-        
+
         If both name and address are specified, but there's no entry that
         matches both, then a new entry is created.
-        
+
         @param nameOrAddressString: emailAddress string, or fullName for lookup,
         or both in the form "name <address>"
-        @type nameOrAddressString: C{String}
+        @type nameOrAddressString: C{unicode}
         @param fullName: optional explict fullName when not using the
         "name <address>" form of the nameOrAddressString parameter
-        @type fullName: C{String}
+        @type fullName: C{unicode}
+        @param inbound: Indicates that even if the email address is not valid still
+                        save it as an C{EmailAddress} Object. When mail enters Chandler
+                        via IMAP, POP, Sharing, etc the email address may not be valid
+                        or in a valid format ie. "name <emailaddress>". We still want to
+                        capture as much information as possible for display to the user.
+                        When sending, Chandler does not allow a user to send a message
+                        with an invalid email address.
+        @type inbound: C{bool}
+
+
         @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
         not a valid email address.
         """
@@ -1037,9 +1041,13 @@ class EmailAddress(items.ContentItem):
                 return addressMatch
             if nameMatch is not None and address is None:
                 return nameMatch
-            if isValidAddress:
+            if isValidAddress or inbound:
                 # make a new EmailAddress
                 newAddress = EmailAddress(view=view)
+                if address is None:
+                    address = u""
+                if name is None:
+                    name = u""
                 newAddress.emailAddress = address
                 newAddress.fullName = name
                 return newAddress
@@ -1047,11 +1055,15 @@ class EmailAddress(items.ContentItem):
                 return None
 
     @classmethod
-    def format(cls, emailAddress):
+    def format(cls, emailAddress, encode=False):
         assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"
 
         if emailAddress.fullName is not None and len(emailAddress.fullName.strip()) > 0:
-            return emailAddress.fullName + u" <" + emailAddress.emailAddress + u">"
+            if encode:
+                from email.Header import Header
+                return Header(emailAddress.fullName).encode() + u" <" + emailAddress.emailAddress + u">"
+            else:
+                return emailAddress.fullName + u" <" + emailAddress.emailAddress + u">"
 
         return emailAddress.emailAddress
 

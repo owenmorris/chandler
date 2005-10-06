@@ -30,7 +30,8 @@ class WeekdayEnum(schema.Enumeration):
     schema.kindInfo(
         displayName=u"Weekdays"
     )
-    #XXX[i18n] These values shoud come from PyICU
+    #XXX[i18n] Should these values should come from PyICU?
+    #          Are they used for lookup or display?
     values="monday","tuesday","wednesday","thursday","friday", \
            "saturday","sunday"
 

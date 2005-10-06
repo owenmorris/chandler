@@ -26,7 +26,7 @@ def make_summaryblocks(parcel):
                 columnHeadings=
                     [u'', _(u'who'), _(u'about'), _(u'date')],
                 columnData=
-                    ['itsKind', u'who', u'about', u'date'],
+                    [u'itsKind', u'who', u'about', u'date'],
                 columnWidths=
                     [20, 130, 130, 130],
                 columnReadOnly=

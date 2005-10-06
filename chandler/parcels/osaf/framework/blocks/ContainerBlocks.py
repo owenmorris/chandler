@@ -654,12 +654,12 @@ class wxTabbedContainer(DragAndDrop.DropReceiveWidget,
         self.SetSelection(self.selectedTab)
         page = self.GetPage(self.selectedTab)
         self.Thaw()
-                
+
 
 class TabbedContainer(RectangularChild):
 
     tabPosEnum = schema.One(tabPositionEnumType, initialValue = 'Top')
-    tabNames = schema.Sequence(schema.String)
+    tabNames = schema.Sequence(schema.Bytes)
 
     def instantiateWidget (self):
         return wxTabbedContainer (self.parentBlock.widget, 

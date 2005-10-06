@@ -22,9 +22,6 @@ from osaf import messages
 
 logger = logging.getLogger(__name__)
 
-#XXX: [i18n] need to go through this file and determine which fields require translation 
-
-
 class ContentKind(Kind):
     """This kind is a metakind for creating other kinds.  Kinds which are
     an instance of ContentKind will have an attribute 'detailView' of type
@@ -118,7 +115,7 @@ class ContentItem(schema.Item):
         initialValue="normal",
     )
 
-    lastModified = schema.One(schema.String)
+    lastModified = schema.One(schema.Text)
 
     mine = schema.One(schema.Boolean, initialValue=True)
 
@@ -442,14 +439,14 @@ class ContentItem(schema.Item):
     def ItemWhoString (self):
         from osaf.pim.contacts import ContactName
         """
-        return str(item.who)
+        return unicode(item.who)
         @@@DLD - XMLRefDicts that have EmailAddress items should 
                  know how to convert themselves to string
         """
         try:
             whoContacts = self.who # get redirected who list
         except AttributeError:
-            return ''
+            return u''
         try:
             numContacts = len(whoContacts)
         except TypeError:
@@ -459,34 +456,34 @@ class ContentItem(schema.Item):
         if numContacts > 0:
             whoNames = []
             for whom in whoContacts.values():
-                whoNames.append (str (whom))
-            whoString = ', '.join(whoNames)
+                whoNames.append (unicode (whom))
+            whoString = u', '.join(whoNames)
         else:
-            whoString = str (whoContacts)
+            whoString = unicode (whoContacts)
             if isinstance(whoContacts, ContactName):
                 names = []
                 if len (whoContacts.firstName):
                     names.append (whoContacts.firstName)
                 if len (whoContacts.lastName):
                     names.append (whoContacts.lastName)
-                whoString = ' '.join(names)
+                whoString = u' '.join(names)
         return whoString
 
     def ItemWhoFromString (self):
         try:
             whoFrom = self.whoFrom # get redirected whoFrom list
         except AttributeError:
-            return ''
-        return str (whoFrom)
+            return u''
+        return unicode (whoFrom)
 
     def ItemBodyString (self):
         """
-        return str(item.body) converts from text lob to string 
+        return unicode(item.body) converts from text lob to unicode
         """
         try:
             noteBody = self.body
         except AttributeError:
-            noteBody = ''
+            noteBody = u''
         else:
             if isinstance(noteBody, Lob):
                 # Read the unicode stream from the XML
@@ -506,19 +503,19 @@ class ContentItem(schema.Item):
             finally:
                 writer.close()
 
-    bodyString = Calculated(schema.String, u"bodyString", 
+    bodyString = Calculated(schema.Text, u"bodyString",
                             basedOn=('body',),
                             fget=ItemBodyString, fset=SetItemBodyString,
                             doc="body attribute as a string")
-        
+
     def ItemAboutString (self):
         """
-        return str(item.about)
+        return unicode(item.about)
         """
         try:
             about = self.about
         except AttributeError:
-            about = ''
+            about = u''
         return about
 
     def getEmailAddress (self, nameOrAddressString):

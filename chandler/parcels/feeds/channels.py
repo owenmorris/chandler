@@ -16,8 +16,6 @@ from osaf import pim
 from i18n import OSAFMessageFactory as _
 
 
-#XXX [i18n] need to review this file to determine what is translated and what is not
-#    need to test against RSS feed to ensure unicode conversions handled properly
 logger = logging.getLogger(__name__)
 
 
@@ -127,7 +125,7 @@ class FeedChannel(pim.ListCollection):
         #getattr returns a unicode object which needs to be converted to bytes for
         #logging
         logger.info("Updating channel: %s" % getattr(self, 'displayName',
-                    str(self.url)).encode("utf8"))
+                    str(self.url)).encode('ascii', 'replace'))
 
         etag = self.getAttributeValue('etag', default=None)
         lastModified = self.getAttributeValue('lastModified', default=None)

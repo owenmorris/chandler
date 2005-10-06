@@ -234,8 +234,6 @@ class wxApplication (wx.App):
         # (correct) size before rendering and resizing. 
         rememberSize = (mainViewRoot.size.width, mainViewRoot.size.height)
 
-        #XXX: [i18n] The Application name Chandler will remain constant
-        #     across translations.
         self.mainFrame = MainFrame(None,
                                    -1,
                                    u"Chandler",

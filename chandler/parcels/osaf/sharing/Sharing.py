@@ -248,9 +248,9 @@ class Share(items.ContentItem):
 
             # Get the parent directory of the given path:
             # '/dev1/foo/bar' becomes ['dev1', 'foo']
-            parentPath = path.strip(u'/').split(u'/')[:-1]
+            parentPath = path.strip('/').split('/')[:-1]
             # ['dev1', 'foo'] becomes "dev1/foo"
-            parentPath = u"/".join(parentPath)
+            parentPath = "/".join(parentPath)
 
             # Examine the URL for scheme, host, port, path
             frame = wx.GetApp().mainFrame
@@ -270,8 +270,8 @@ class Share(items.ContentItem):
 
         if account is not None:
             # compute shareName relative to the account path:
-            accountPathLen = len(account.path.strip(u"/"))
-            shareName = path.strip(u"/")[accountPathLen:]
+            accountPathLen = len(account.path.strip("/"))
+            shareName = path.strip("/")[accountPathLen:]
 
             self.hidden = False
 
@@ -432,7 +432,7 @@ class ShareConduit(items.ContentItem):
 
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
-             (item.getItemDisplayName().encode('utf8'), item.itsUUID,
+             (item.getItemDisplayName().encode('ascii', 'replace'), item.itsUUID,
               item.getVersion(), prevVersion, externalItemExists))
 
             data = self._putItem(item)
@@ -2276,9 +2276,9 @@ class CloudXMLFormat(ImportExportFormat):
                             valueItem = self._importNode(valueNode)
                             if valueItem is not None:
                                 logger.debug("for %s setting %s to %s" % \
-                                    (item.getItemDisplayName().encode('utf8'),
+                                    (item.getItemDisplayName().encode('ascii', 'replace'),
                                      attrName,
-                                     valueItem.getItemDisplayName().encode('utf8')))
+                                     valueItem.getItemDisplayName().encode('ascii', 'replace')))
                                 item.setAttributeValue(attrName, valueItem)
 
                     elif cardinality == 'list':
@@ -2288,9 +2288,9 @@ class CloudXMLFormat(ImportExportFormat):
                                 valueItem = self._importNode(valueNode)
                                 if valueItem is not None:
                                     logger.debug("for %s setting %s to %s" % \
-                                        (item.getItemDisplayName().encode("utf8"),
+                                        (item.getItemDisplayName().encode('ascii', 'replace'),
                                          attrName,
-                                         valueItem.getItemDisplayName().encode('utf8')))
+                                         valueItem.getItemDisplayName().encode('ascii', 'replace')))
                                     item.addValue(attrName, valueItem)
 
                             valueNode = valueNode.next

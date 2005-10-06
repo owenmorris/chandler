@@ -12,7 +12,7 @@ from repository.item.Item import Item as Item
 from datetime import datetime
 import logging
 import wx
-import os
+import os, sys
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 
@@ -74,6 +74,10 @@ def run_script(scriptText, fileName=u""):
     from scripting.Helpers import *
     """
     assert len(scriptText) > 0, "Empty script"
+    assert fileName is not None
+
+    scriptText = scriptText.encode(sys.getfilesystemencoding())
+    fileName = fileName.encode(sys.getfilesystemencoding())
 
     # compile the code
     scriptCode = compile(scriptText, fileName, 'exec')
@@ -91,7 +95,7 @@ class Script(pim.ContentItem):
     """ Persistent Script Item, to be executed. """
     schema.kindInfo(displayName=_(u"Script"), displayAttribute="displayName")
     lastRan = schema.One(schema.DateTime, displayName = _(u"last ran"))
-    fkey = schema.One(schema.String, initialValue = '')
+    fkey = schema.One(schema.Text, initialValue = u'')
     test = schema.One(schema.Boolean, initialValue = False)
 
     # redirections
@@ -105,7 +109,7 @@ class Script(pim.ContentItem):
         if name is None:
             displayName = messages.UNTITLED
         else:
-            displayName = unicode(name)
+            displayName = name
         super(Script, self).__init__(name, parent, kind, view, displayName=displayName, *args, **keys)
 
         self.lastRan = datetime.now()
@@ -119,7 +123,7 @@ class Script(pim.ContentItem):
         return self.creator is self.getCurrentMeContact(self.itsView)
     """
 
-    def execute(self, fileName=""):
+    def execute(self, fileName=u""):
         self.lastRan = datetime.now()
         run_script(self.bodyString, fileName)
 
@@ -141,7 +145,7 @@ def hotkey_script(event, view):
 
         # maybe we have an existing script?
         script = _findHotKeyScript(targetFKey, view)
-        if script:          
+        if script:
             wx.CallAfter(script.execute)
             return True
 
@@ -151,13 +155,13 @@ def hotkey_script(event, view):
 def _findHotKeyScript(targetFKey, view):
     # find a script that starts with the given name
     for aScript in Script.iterItems(view):
-        if aScript.fkey == targetFKey:          
+        if aScript.fkey == targetFKey:
             return aScript
     return None
 
 def run_startup_script(view):
     script = None
-    fileName = "" # assume no source file
+    fileName = u"" # assume no source file
     if Globals.options.testScripts:
         try:
             for aScript in Script.iterItems(view):
@@ -180,6 +184,9 @@ def run_startup_script(view):
 
 def script_file(fileName, siblingPath=None):
     # fileName relative to the sibling path?
+    #Encode the unicode filename to the system character set encoding
+    fileName = fileName.encode(sys.getfilesystemencoding())
+
     if siblingPath is not None:
         fileName = os.path.join(os.path.dirname(siblingPath), fileName)
     # read the script from a file, and return it.
@@ -356,8 +363,6 @@ class AppProxy(object):
         return None
 
     def _name_of(self, item):
-        #XXX [i18n] Some of these values are unicode. Block name probally 
-        #    does not need to be unicode nor does itsName
         try:
             return item.about
         except AttributeError:
@@ -528,7 +533,7 @@ class User(object):
                                 "Trash":schema.ns('osaf.app', Globals.mainViewRoot).TrashCollection}
         if cellName in chandler_collections.keys():
             cellName = chandler_collections[cellName]
-            
+
         cellRect = None
         for i in range(sidebar.widget.GetNumberRows()):
             item = sidebar.widget.GetTable().GetValue(i,0)[0]

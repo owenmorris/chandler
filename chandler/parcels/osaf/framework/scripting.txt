@@ -20,7 +20,7 @@ You can easily create and run a script through the run_script API::
 For debugging purposes you can pass a fileName parameter, so errors can 
 be reported in the correct file::
 
-    >>> result = Scripting.run_script("print 3*4;", fileName="Calculator.py")
+    >>> result = Scripting.run_script("print 3*4;", fileName=u"Calculator.py")
     12
 
 For many of our examples, we'll need a view.  We'll be using a null
@@ -60,7 +60,7 @@ sibling from the same directory the sibling is in.  We use this
 to bring scripts in to our application from the "scripts" directory::
 
     >>> import osaf.app.scripts as Scripts
-    >>> script_text = Scripting.script_file("NewScript.py", Scripts.__file__)
+    >>> script_text = Scripting.script_file(u"NewScript.py", Scripts.__file__)
     >>> "Script" in script_text
     True
     
@@ -129,7 +129,7 @@ these complications will be hidden over time, and a simple API will emerge.
 The work done here can be considered a proposal for how that simplification could be done.
 I have built a subset of that simple API using "proxy" objects.  These objects
 present the simple API, and anything beyond that gets passed on to the real
-implementation for that object.  
+implementation for that object.
 
 The "app namespace" proxy provides access to key application objects.
 You can call app_ns() with no view parameter and it will default to the view

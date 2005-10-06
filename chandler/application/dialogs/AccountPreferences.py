@@ -1,7 +1,7 @@
 # Account Preferences Dialog
 # Invoke this using the ShowAccountPreferencesDialog() method
 
-import os
+import os, sys
 import wx
 import wx.xrc
 import webbrowser
@@ -1195,6 +1195,10 @@ def ShowAccountPreferencesDialog(parent, account=None, view=None, modal=True):
     # Parse the XRC resource file:
     xrcFile = os.path.join(application.Globals.chandlerDirectory,
      'application', 'dialogs', 'AccountPreferences_wdr.xrc')
+
+    #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
+    #but can handle unicode
+    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
 
     # Display the dialog:

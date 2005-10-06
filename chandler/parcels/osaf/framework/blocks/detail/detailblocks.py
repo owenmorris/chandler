@@ -73,7 +73,7 @@ def makeSpacer(parcel, size=None, width=-1, height=-1,
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     size = size or SizeType(width, height)
     return baseClass.template(name or uniqueName(parcel, 'Spacer'),
-                                title='',
+                                title=u'',
                                 characterStyle=blocks.LabelStyle,
                                 stretchFactor=0.0,
                                 minimumSize=size, **kwds)
@@ -275,7 +275,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
             childrenBlocks=[
                 makeSpacer(parcel, SizeType(0, 22)),
                 makeEditor(parcel, 'CalendarLocation',
-                           viewAttribute='location',
+                           viewAttribute=u'location',
                            presentationStyle={'sampleText': u'',
                                               'editInPlace': True})],
             stretchFactor=0.0,

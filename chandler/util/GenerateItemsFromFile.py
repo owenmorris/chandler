@@ -7,6 +7,7 @@ Generate sample items from a file
 import string
 import random
 import urllib
+import sys
 from datetime import datetime, timedelta
 import logging
 import application.Globals as Globals
@@ -482,6 +483,9 @@ def ComaManager(line):
 
 def GenerateItems(view, mainView, filepath):
     """ Generate the Items defined in a csv file """
+    if isinstance(filepath, unicode):
+        filepath = filepath.encode(sys.getfilesystemencoding())
+
     try:
         File = open(filepath, 'r')
         try:

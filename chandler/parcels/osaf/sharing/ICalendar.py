@@ -480,7 +480,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 else:
                     eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
-                    eventItem.icalUID = event.uid[0].value    
+                    eventItem.icalUID = event.uid[0].value
     
                 # vobject isn't meshing well with dateutil when dtstart isDate;
                 # dtstart is converted to a datetime for dateutil, but rdate

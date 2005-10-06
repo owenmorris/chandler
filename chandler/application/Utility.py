@@ -24,12 +24,13 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "100" # grant: Schema changes for recurrent reminders
+
+SCHEMA_VERSION = "101" # bkirsch: continued migration of schema from String
+                       #          to Text and Bytes
 
 logger = None # initialized in initLogging()
 
 
-#XXX: i18n a users home directory can be non-ascii path
 def locateProfileDir():
     """
     Locate the Chandler repository.
@@ -39,10 +40,9 @@ def locateProfileDir():
 
     def _makeRandomProfileDir(pattern):
         import M2Crypto.BN as BN
-        profileDir = unicode(pattern.replace('*', '%s') % (BN.randfname(8)))
+        profileDir = pattern.replace('*', '%s') % (BN.randfname(8))
         os.makedirs(profileDir, 0700)
         return profileDir
-
 
     if os.name == 'nt':
         dataDir = None
@@ -51,36 +51,36 @@ def locateProfileDir():
             dataDir = os.environ['APPDATA']
         elif os.environ.has_key('USERPROFILE'):
             dataDir = os.environ['USERPROFILE']
-            if os.path.isdir(os.path.join(dataDir, u'Application Data')):
-                dataDir = os.path.join(dataDir, u'Application Data')
+            if os.path.isdir(os.path.join(dataDir, 'Application Data')):
+                dataDir = os.path.join(dataDir, 'Application Data')
 
         if dataDir is None or not os.path.isdir(dataDir):
             if os.environ.has_key('HOMEDRIVE') and \
                 os.environ.has_key('HOMEPATH'):
-                dataDir = u'%s%s' % (os.environ['HOMEDRIVE'],
+                dataDir = '%s%s' % (os.environ['HOMEDRIVE'],
                                     os.environ['HOMEPATH'])
 
         if dataDir is None or not os.path.isdir(dataDir):
-            dataDir = os.path.expanduser(u'~')
+            dataDir = os.path.expanduser('~')
 
         profileDir = os.path.join(dataDir,
-                                  u'Open Source Applications Foundation',
-                                  u'Chandler')
+                                  'Open Source Applications Foundation',
+                                  'Chandler')
 
     elif sys.platform == 'darwin':
-        dataDir = os.path.join(os.path.expanduser(u'~'),
-                               u'Library',
-                               u'Application Support')
+        dataDir = os.path.join(os.path.expanduser('~'),
+                               'Library',
+                               'Application Support')
         profileDir = os.path.join(dataDir,
-                                  u'Open Source Applications Foundation',
-                                  u'Chandler')
+                                  'Open Source Applications Foundation',
+                                  'Chandler')
 
     else:
-        dataDir = os.path.expanduser(u'~')
-        profileDir = os.path.join(dataDir, u'.chandler')
+        dataDir = os.path.expanduser('~')
+        profileDir = os.path.join(dataDir, '.chandler')
 
     # Deal with the random part
-    pattern = u'%s%s*.default' % (profileDir, os.sep)
+    pattern = '%s%s*.default' % (profileDir, os.sep)
     try:
         import glob
         profileDir = glob.glob(pattern)[0]
@@ -248,14 +248,14 @@ def locateChandlerDirectory():
     Find the directory that Chandler lives in by looking up the file that
     the application module lives in.
     """
-    return os.path.dirname(os.path.dirname(unicode(__file__)))
+    return os.path.dirname(os.path.dirname(__file__))
 
 
 def locateRepositoryDirectory(profileDir):
     if profileDir:
-        path = os.sep.join([profileDir, u'__repository__'])
+        path = os.sep.join([profileDir, '__repository__'])
     else:
-        path = u'__repository__'
+        path = '__repository__'
     return path
 
 
@@ -311,7 +311,7 @@ def stopRepository(view):
         try:
             view.commit()
         except VersionConflictError, e:
-            logger.warning(str(e))
+            logger.exception(e)
     finally:
         view.repository.close()
 
@@ -358,6 +358,8 @@ def initParcelEnv(chandlerDirectory, path):
 
     insertionPoint = 1
     for directory in parcelPath:
+        #Convert the directory unicode or str path to the OS's filesystem 
+        #charset encoding
         if directory not in sys.path:
             sys.path.insert(insertionPoint, directory)
             insertionPoint += 1
@@ -387,7 +389,7 @@ def _randpoolPath(profileDir):
     # Return the absolute path for the file that we use to load
     # initial entropy from in startup/store entropy into in
     # shutdown.
-    return os.path.join(profileDir, 'randpool.dat').encode('utf8')
+    return os.path.join(profileDir, 'randpool.dat')
 
 
 def initCrypto(profileDir):

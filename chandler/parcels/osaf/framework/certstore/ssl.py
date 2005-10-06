@@ -35,6 +35,7 @@ import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import M2Crypto.SSL.Checker as Checker
 import twisted
 import twisted.protocols.policies as policies
+from i18n import OSAFMessageFactory as _
 
 import application.Utility as Utility
 from osaf.framework.certstore import constants, utils
@@ -69,7 +70,7 @@ def loadCertificatesToContext(repView, ctx):
         store.add_x509(cert.asX509())
 
 
-class SSLContextError(Exception):
+class SSLContextError(utils.CertificateException):
     """
     Raised when an SSL Context could not be created. Currently happens
     only when cipher list cannot be set.
@@ -124,7 +125,7 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     # cipher.
     if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
         log.error('Could not set cipher list')
-        raise SSLContextError('Could not set cipher list')
+        raise SSLContextError(_(u'Could not set cipher list'))
 
     return ctx
 
@@ -139,7 +140,7 @@ class ContextFactory(object):
         self.protocol = protocol
         self.verify = verify
         self.verifyCallback = verifyCallback
-        
+
     def getContext(self):
         return getContext(self.repositoryView, self.protocol, self.verify,
                           self.verifyCallback)
@@ -201,30 +202,29 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                 return 1
 
             # Check permanently trusted certificates
-            
             # XXX Why does this need to be commit()? refresh() does not
             # XXX seem pick up changes made in main thread.
             self.repositoryView.commit()
-            
+
             q = self.repositoryView.findPath('//userdata/%s' %(constants.TRUSTED_SITE_CERTS_QUERY_NAME))
             if q is not None:
                 for cert in q:
                     if cert.pemAsString() == pem:
                         log.debug('Found permanently trusted site cert')
                         return 1
-                        
+
             self.untrustedCertificates.append(pem)
 
         log.debug('Returning %d' % ok)
         return ok
-        
+
     def dataReceived(self, data):
         log.debug('TwistedProtocolWrapper.dataReceived')
         try:
             wrapper.TLSProtocolWrapper.dataReceived(self, data)
         except M2Crypto.BIO.BIOError, e:
             if e.args[1] == 'certificate verify failed':
-                raise Utility.CertificateVerificationError(e.args[0], e.args[1], 
+                raise Utility.CertificateVerificationError(e.args[0], e.args[1],
                                                    self.untrustedCertificates)
             raise
 

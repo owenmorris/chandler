@@ -36,10 +36,10 @@ class Block(schema.Item):
     contents = schema.One(ContentItem, otherName="contentsOwner")
 
     viewAttribute = schema.One(
-        schema.String,
+        schema.Text,
         doc = 'Specifies which attribute of the selected Item should be '
               'associated with this block.',
-        initialValue = ''
+        initialValue = u''
     )
 
     parentBlock = schema.One("Block",
@@ -74,7 +74,7 @@ class Block(schema.Item):
         otherName = "views"     # ViewContainer/views
     )
 
-    blockName = schema.One(schema.String)
+    blockName = schema.One(schema.Bytes)
     eventsForNamedLookup = schema.Sequence("BlockEvent", defaultValue=None)
 
     parentTrunkSubtrees = schema.Sequence(
@@ -913,9 +913,9 @@ class BlockEvent(schema.Item):
     )
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = False)
     destinationBlockReference = schema.One(Block)
-    dispatchToBlockName = schema.One(schema.String)
-    methodName = schema.One(schema.String)
-    blockName = schema.One(schema.String)
+    dispatchToBlockName = schema.One(schema.Bytes)
+    methodName = schema.One(schema.Bytes)
+    blockName = schema.One(schema.Bytes)
     schema.addClouds(
         copying = schema.Cloud(byCloud=[destinationBlockReference])
     )
@@ -945,7 +945,7 @@ class BlockEvent(schema.Item):
                              dispatchEnum=dispatchEnum,
                              **attrs)
 class ChoiceEvent(BlockEvent):
-    choice = schema.One(schema.String, required = True)
+    choice = schema.One(schema.Bytes, required = True)
 
 class ColorEvent(BlockEvent):
     from osaf.framework.types.DocumentTypes import ColorType
@@ -967,9 +967,9 @@ class operationType(schema.Enumeration):
 
 class ModifyCollectionEvent(BlockEvent):
     items = schema.Sequence(schema.Item, initialValue = [])
-    collectionName = schema.One(schema.String, initialValue = "sidebarCollection")
+    collectionName = schema.One(schema.Bytes, initialValue = "sidebarCollection")
     copyItems = schema.One(schema.Boolean, initialValue=False)
-    selectFirstItemInBlockNamed = schema.One(schema.String, defaultValue = None)
+    selectFirstItemInBlockNamed = schema.One(schema.Bytes, defaultValue = None)
     disambiguateDisplayName = schema.One(schema.Boolean, initialValue=False)
     schema.addClouds(
         copying = schema.Cloud(byRef=[items])

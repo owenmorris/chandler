@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "photos"
 
-import urllib, time, datetime, cStringIO, logging, mimetypes
+import urllib, time, datetime, cStringIO, logging, mimetypes, sys
 from osaf import pim
 import osaf.mail.utils as utils
 from repository.util.URL import URL
@@ -19,8 +19,8 @@ class PhotoMixin(pim.ContentItem):
     schema.kindInfo(displayName=u"Photo Mixin Kind",
                     displayAttribute="displayName")
     dateTaken = schema.One(schema.DateTime, displayName=_(u"taken"))
-    file = schema.One(schema.String)
-    exif = schema.Mapping(schema.String, initialValue={})
+    file = schema.One(schema.Text)
+    exif = schema.Mapping(schema.Bytes, initialValue={})
     photoBody = schema.One(schema.Lob)
 
     about = schema.One(redirectTo = 'displayName')
@@ -30,6 +30,9 @@ class PhotoMixin(pim.ContentItem):
     schema.addClouds(sharing = schema.Cloud(dateTaken, photoBody))
 
     def importFromFile(self, path):
+        if isinstance(path, unicode):
+            path = path.encode(sys.getfilesystemencoding())
+
         data = file(path, "rb").read()
         (mimeType, encoding) = mimetypes.guess_type(path)
         self.photoBody = utils.dataToBinary(self, 'photoBody', data,
@@ -44,6 +47,9 @@ class PhotoMixin(pim.ContentItem):
                                             mimeType=mimeType)
 
     def exportToFile(self, path):
+        if isinstance(path, unicode):
+            path = path.encode(sys.getfilesystemencoding())
+
         data = utils.binaryToData(self.photoBody)
         out = file(path, "wb")
         out.write(data)

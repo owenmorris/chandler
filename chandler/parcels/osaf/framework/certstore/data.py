@@ -5,9 +5,10 @@ Certificate import on startup
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 from application import schema
+import sys
 
 
-def loadCerts(parcel, moduleName, filename='cacert.pem'):
+def loadCerts(parcel, moduleName, filename=u'cacert.pem'):
     # Load cacert.pem into the repository
 
     import os, sys
@@ -15,16 +16,19 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
 
     from M2Crypto import X509, util
     from M2Crypto.EVP import MessageDigest
-    
+
     log = logging.getLogger(__name__)
-    
+
+    #Encode the unicode filename to the system character set encoding
+    filename = filename.encode(sys.getfilesystemencoding())
+
     chop = -1
 
     cert = schema.ns('osaf.framework.certstore', parcel)
     lobType = schema.itemFor(schema.Lob, parcel.itsView)
 
     from osaf.framework.certstore import utils
-        
+
     lastLine = ''
     pem = []
 
@@ -57,8 +61,9 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
                 #print x509.as_text()
                 continue
 
+            #XXX [i18n] Can a commonName contain non-ascii characters?
             cert.Certificate.update(parcel, itsName,
-                displayName = commonName,
+                displayName = unicode(commonName),
                 type='root',#cert.TYPE_ROOT, 
                 trust=3,#cert.TRUST_AUTHENTICITY | cert.TRUST_SITE, 
                 fingerprintAlgorithm='sha1',

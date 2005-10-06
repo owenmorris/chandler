@@ -256,7 +256,7 @@ def MakeCollections(parcel):
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=notes,
-        filterExpression='not getattr(item, \'isGenerated\', False) and not getattr(item, \'modificationFor\', None)',
+        filterExpression=u'not getattr(item, \'isGenerated\', False) and not getattr(item, \'modificationFor\', None)',
         filterAttributes=['isGenerated', 'modificationFor']
     )
 
@@ -306,7 +306,7 @@ def MakeCollections(parcel):
     inSource = \
         FilteredCollection.update(parcel, 'inSource',
             source=mailCollection,
-            filterExpression='getattr(item, \'isInbound\', False)',
+            filterExpression=u'getattr(item, \'isInbound\', False)',
             filterAttributes=['isInbound'])
 
     # The "In" collection
@@ -324,7 +324,7 @@ def MakeCollections(parcel):
     outSource = \
         FilteredCollection.update(parcel, 'outSource',
             source=mailCollection,
-            filterExpression='getattr(item, \'isOutbound\', False)',
+            filterExpression=u'getattr(item, \'isOutbound\', False)',
             filterAttributes=['isOutbound'])
 
     # The "Out" collection

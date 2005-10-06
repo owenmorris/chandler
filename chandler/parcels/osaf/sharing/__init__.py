@@ -44,7 +44,7 @@ class UIDMap(schema.Item):
     def icaluid_changed(self, op, item, attrName, *args, **kwds):
 
         if op == 'set':
-            uid = getattr(item, 'icalUID', '')
+            uid = getattr(item, 'icalUID', u'')
             if uid:
 
                 try:
@@ -68,7 +68,7 @@ def installParcel(parcel, old_version=None):
 
 def getExistingResources(account):
 
-    path = account.path.strip(u"/")
+    path = account.path.strip("/")
     handle = ChandlerServerHandle(account.host,
                                   port=account.port,
                                   username=account.username,
@@ -77,9 +77,9 @@ def getExistingResources(account):
                                   repositoryView=account.itsView)
 
     if len(path) > 0:
-        path = u"/%s/" % path
+        path = "/%s/" % path
     else:
-        path = u"/"
+        path = "/"
 
     existing = []
     parent = handle.getResource(path)
@@ -100,7 +100,7 @@ def _uniqueName(basename, existing):
     name = basename
     counter = 1
     while name in existing:
-        name = u"%s-%d" % (basename, counter)
+        name = "%s-%d" % (basename, counter)
         counter += 1
     return name
 
@@ -116,13 +116,13 @@ def publish(collection, account, classes_to_include=None,
     view = collection.itsView
 
     conduit = WebDAVConduit(view=view, account=account)
-    path = account.path.strip(u"/")
+    path = account.path.strip("/")
 
     # Interrogate the server associated with the account
 
     location = account.getLocation()
-    if not location.endswith(u"/"):
-        location += u"/"
+    if not location.endswith("/"):
+        location += "/"
     handle = conduit._getServerHandle()
     resource = handle.getResource(location)
 
@@ -627,8 +627,8 @@ def restoreFromAccount(account):
     me = pim.Contact.getCurrentMeContact(view)
 
     accountUrl = account.getLocation()
-    if not accountUrl.endswith(u'/'):
-        accountUrl += u"/"
+    if not accountUrl.endswith('/'):
+        accountUrl += "/"
 
     collections = []
     failures = []
@@ -743,7 +743,7 @@ def findMatchingShare(view, url):
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
     # '/dev1/foo/bar' becomes 'bar'
-    shareName = path.strip(u"/").split(u"/")[-1]
+    shareName = path.strip("/").split("/")[-1]
 
     if hasattr(account, 'conduits'):
         for conduit in account.conduits:

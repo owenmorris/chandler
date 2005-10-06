@@ -30,7 +30,10 @@ class Manager(schema.Item):
     os.path.join(Globals.chandlerDirectory, "parcels").
     """
 
-    path = schema.Sequence(schema.String, initialValue = [])
+    #The path attribute contains the path in bytes. These bytes
+    #may be 8bit with a filesystem encoding or may be
+    #7bit ascii
+    path = schema.Sequence(schema.Bytes, initialValue = [])
 
     @classmethod
     def get(cls, view, path=None):
@@ -53,14 +56,15 @@ class Manager(schema.Item):
         parcelRoot = view.findPath("//parcels")
         if parcelRoot is None:
             parcelRoot = Parcel("parcels",view)
-            
+
         manager = view.findPath("//parcels/manager")
         if manager is None:
-            manager = Manager("manager", parcelRoot)           
+            manager = Manager("manager", parcelRoot)
 
         if path:
             manager.path = path
-        elif not manager.path:
+
+        else:
             manager.path = [os.path.join(Globals.chandlerDirectory, "parcels")]
 
         return manager
@@ -138,17 +142,17 @@ class Parcel(schema.Item):
     """
     The parcel item class.
     """
-    author = schema.One(schema.String)
-    publisher = schema.One(schema.String)
-    status = schema.One(schema.String)
-    summary = schema.One(schema.String)
-    icon = schema.One(schema.String)
-    version = schema.One(schema.String)
+    author = schema.One(schema.Text)
+    publisher = schema.One(schema.Text)
+    status = schema.One(schema.Text)
+    summary = schema.One(schema.Text)
+    icon = schema.One(schema.Text)
+    version = schema.One(schema.Bytes)
     createdOn = schema.One(schema.DateTime)
     modifiedOn = schema.One(schema.DateTime)
-    namespace = schema.One(schema.String, defaultValue = '')
-    namespaceMap = schema.Mapping(schema.String, initialValue = {})
-    file = schema.One(schema.String, initialValue = '')
+    namespace = schema.One(schema.Text, defaultValue = u'')
+    namespaceMap = schema.Mapping(schema.Text, initialValue = {})
+    file = schema.One(schema.Text, initialValue = u'')
     originalValues = schema.Mapping(schema.Dictionary, initialValue = {})
 
     def __init__(self, *args, **kw):

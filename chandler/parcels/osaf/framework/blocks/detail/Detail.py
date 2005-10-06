@@ -496,7 +496,7 @@ def GetRedirectAttribute(item, defaultAttr):
         attributeName = defaultAttr
     return attributeName
 
-        
+
 class StaticRedirectAttribute (StaticTextLabel):
     """
       Static text label that displays the attribute value
@@ -506,9 +506,9 @@ class StaticRedirectAttribute (StaticTextLabel):
             value = item.getAttributeValue(GetRedirectAttribute(item, self.whichAttribute()))
             theLabel = unicode(value)
         except AttributeError:
-            theLabel = ""
+            theLabel = u""
         return theLabel
-        
+
 class StaticRedirectAttributeLabel (StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
@@ -793,7 +793,7 @@ class ToMailEditField (EditToAddressTextAttribute):
     def whichAttribute(self):
         # define the attribute to be used
         return 'toAddress'
-                
+
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
     def saveAttributeFromWidget(self, item, widget, validate):  
@@ -1348,10 +1348,11 @@ class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):
         self.selection = item
         # this ensures that getHTMLText() gets called appropriately on the derived class
+
         self.synchronizeWidget()
-        
+
     def getHTMLText(self, item):
-        return "<html><body>" + str(item) + "</body></html>"
+        return u"<html><body>" + item + u"</body></html>"
 
 
 class EmptyPanelBlock(ControlBlocks.ContentItemDetail):

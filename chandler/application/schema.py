@@ -435,7 +435,7 @@ class Cloud:
     example::
 
         class anItem(OtherItem):
-            foo = schema.One(schema.String)
+            foo = schema.One(schema.Text)
             bar = schema.Sequence(Something)
 
             schema.addClouds(
@@ -907,7 +907,7 @@ def addClouds(**clouds):
     whose values are the ``schema.Cloud`` instances.  For example::
 
         class anItem(OtherItem):
-            foo = schema.One(schema.String)
+            foo = schema.One(schema.Text)
             bar = schema.Sequence(Something)
 
             schema.addClouds(

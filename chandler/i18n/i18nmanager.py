@@ -39,10 +39,10 @@ __all__ = ["I18nManager"]
 
 class I18nManager(object):
 
-    RESOURCE_ROOT = u"resources"
-    IMAGE_PATH = u"images"
-    AUDIO_PATH = u"audio"
-    HTML_PATH = u"html"
+    RESOURCE_ROOT = "resources"
+    IMAGE_PATH = "images"
+    AUDIO_PATH = "audio"
+    HTML_PATH = "html"
     #HELP_PATH = u"help"
 
     __slots__ = ['_localeSet', '_cache', "_defaultDomain", "_defaultLocaleSet", "__initialized"]
@@ -167,8 +167,6 @@ class I18nManager(object):
         #XXX: These may throw UnicodeDecodeErrors
         #    which is ok cause the errror will alert the developer 
         #    to the error. I.e. they did not pass in an ascii or unicode string
-        relPath = unicode(relPath)
-        resourceName = unicode(resourceName)
 
         if domain != self._defaultDomain:
             raise i18n.I18nException("Only OSAF domain supported in .6")

@@ -50,7 +50,6 @@ class FlickrPhotoMixin(PhotoMixin):
             self.populate(photo)
 
     def populate(self, photo):
-        #XXX: [i18n] why are these encoding in ascii why not utf-8?
         self.flickrID = photo.id
         self.displayName = photo.title
         self.description = photo.description.encode('utf8')

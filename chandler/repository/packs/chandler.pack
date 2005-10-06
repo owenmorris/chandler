@@ -8,9 +8,7 @@
     <item file="references.attr" />
     <item file="displayName.attr" />
     <item file="Item.kind" />
-<!--
     <item file="String.type" />
-  -->
   </item>
 
 </pack>

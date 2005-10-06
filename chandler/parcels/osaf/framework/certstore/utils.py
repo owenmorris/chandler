@@ -9,6 +9,11 @@ import M2Crypto.EVP as EVP
 import M2Crypto.util as util
 
 from application import schema
+from osaf import ChandlerException
+
+
+class CertificateException(ChandlerException):
+     pass
 
 def fingerprint(x509, md='sha1'):
     """

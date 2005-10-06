@@ -107,7 +107,6 @@ M_BOTH  = u" that has been stamped as a Task and a Calendar Event"
 M_FROM  = None
 
 def GenerateMailMessage(view, tzinfo=None):
-    #XXX [i18n] need to add i18n tests for to and from address
     global M_FROM
     message  = Mail.MailMessage(view=view)
     body     = M_TEXT
@@ -214,7 +213,7 @@ LASTNAMES = [u'Anderson', u'Baillie', u'Baker', u'Botz', u'Brown', u'Burgess',
              u'Capps', u'Cerneka', u'Chang', u'Decker', u'Decrem', u'Denman', u'Desai', u'Dunn', u'Dusseault',
              u'Figueroa', u'Flett', u'Gamble', u'Gravelle',
              u'Hartsook', u'Haurnesser', u'Hernandez', u'Hertzfeld', u'Humpa',
-             u'Kapor', u'Klein', 'Kim', u'Lam', u'Leung', u'McDevitt', u'Montulli', u'Moseley',
+             u'Kapor', u'Klein', u'Kim', u'Lam', u'Leung', u'McDevitt', u'Montulli', u'Moseley',
              u'Okimoto', u'Parlante', u'Parmenter', u'Rosa',
              u'Sagen', u'Sciabica', u'Sherwood', u'Skinner', u'Stearns', u'Sun', u'Surovell',
              u'Tauber', u'Totic', u'Toivonen', u'Toy', u'Tsurutome', u'Vajda', u'Yin']

@@ -90,7 +90,7 @@ class AbstractCollection(items.ContentItem):
     subscribers = schema.Many(initialValue=set())
     # collectionEventHandler is used when a collection subscribes to
     # the results of another collection.
-#    collectionEventHandler = schema.One(schema.String, initialValue="notifySubscribers")
+    #collectionEventHandler = schema.One(schema.Bytes, initialValue="collectionChanged")
 
 
     """
@@ -99,7 +99,7 @@ class AbstractCollection(items.ContentItem):
     """
     renameable              = schema.One(schema.Boolean, defaultValue = True)
     color                   = schema.One(ColorType)
-    iconName                = schema.One(schema.String)
+    iconName                = schema.One(schema.Bytes)
     iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
@@ -107,7 +107,7 @@ class AbstractCollection(items.ContentItem):
     """
       A dictionary mapping a KindName string to a new displayName.
     """
-    displayNameAlternatives = schema.Mapping (schema.String)
+    displayNameAlternatives = schema.Mapping (schema.Text)
 
     collectionList = schema.Sequence(
         'AbstractCollection',
@@ -469,8 +469,8 @@ class FilteredCollection(AbstractCollection):
     )
 
     source = schema.One(AbstractCollection, initialValue=None)
-    filterExpression = schema.One(schema.String, initialValue="")
-    filterAttributes = schema.Sequence(schema.String, initialValue=[])
+    filterExpression = schema.One(schema.Text, initialValue=u"")
+    filterAttributes = schema.Sequence(schema.Bytes, initialValue=[])
 
     schema.addClouds(
         copying = schema.Cloud(byCloud=[source]),
@@ -480,7 +480,7 @@ class FilteredCollection(AbstractCollection):
     def onValueChanged(self, name):
         if name == "source" or name == "filterExpression" or name =="filterAttributes":
             if self.source != None:
-                if self.filterExpression != "" and self.filterAttributes != []:
+                if self.filterExpression != u"" and self.filterAttributes != []:
 
                     # see if the expression contains hasLocalAttributeValue
                     m = delPat.match(self.filterExpression)
@@ -521,13 +521,13 @@ class InclusionExclusionCollection(DifferenceCollection):
         """
 
         logger.debug("Adding %s to %s...",
-            item.getItemDisplayName().encode('utf8'),
-            self.getItemDisplayName().encode('utf8'))
+            item.getItemDisplayName().encode('ascii', 'replace'),
+            self.getItemDisplayName().encode('ascii', 'replace'))
         self.inclusions.add (item)
 
         if item in self.exclusions:
             logger.debug("...removing from exclusions (%s)",
-                self.exclusions.getItemDisplayName().encode('utf8'))
+                self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
             self.exclusions.remove (item)
 
         # If a trash is associated with this collection, remove the item
@@ -536,11 +536,11 @@ class InclusionExclusionCollection(DifferenceCollection):
 
         if self.trash is not None and item in self.trash:
             logger.debug("...removing from trash (%s)",
-                self.trash.getItemDisplayName().encode('utf8'))
+                self.trash.getItemDisplayName().encode('ascii', 'replace'))
             self.trash.remove (item)
 
         logger.debug("...done adding %s to %s",
-            item.getItemDisplayName().encode('utf8'),  self.getItemDisplayName().encode('utf8'))
+            item.getItemDisplayName().encode('ascii', 'replace'),  self.getItemDisplayName().encode('ascii', 'replace'))
 
     def remove (self, item):
         """
@@ -548,16 +548,16 @@ class InclusionExclusionCollection(DifferenceCollection):
         """
 
         logger.debug("Removing %s from %s...",
-            item.getItemDisplayName().encode('utf8'),
-            self.getItemDisplayName().encode('utf8'))
+            item.getItemDisplayName().encode('ascii', 'replace'),
+            self.getItemDisplayName().encode('ascii', 'replace'))
 
         logger.debug("...adding to exclusions (%s)",
-            self.exclusions.getItemDisplayName().encode('utf8'))
+            self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
         self.exclusions.add (item)
 
         if item in self.inclusions:
             logger.debug("...removing from inclusions (%s)",
-                self.inclusions.getItemDisplayName().encode('utf8'))
+                self.inclusions.getItemDisplayName().encode('ascii', 'replace'))
             self.inclusions.remove (item)
 
         # If this item is not in any of the collections that share our trash,
@@ -570,12 +570,12 @@ class InclusionExclusionCollection(DifferenceCollection):
                     break
             if not found:
                 logger.debug("...adding to trash (%s)",
-                    self.trash.getItemDisplayName().encode('utf8'))
+                    self.trash.getItemDisplayName().encode('ascii', 'replace'))
                 self.trash.add(item)
 
         logger.debug("...done removing %s from %s",
-            item.getItemDisplayName().encode('utf8'),
-            self.getItemDisplayName().encode('utf8'))
+            item.getItemDisplayName().encode('ascii', 'replace'),
+            self.getItemDisplayName().encode('ascii', 'replace'))
 
     def setup(self, source=None, exclusions=None,  trash="TrashCollection"):
         """
@@ -650,7 +650,7 @@ class IndexedSelectionCollection (AbstractCollection):
     selection and visiblity attribute to another source collection.
     """
 
-    indexName   = schema.One(schema.String, initialValue="__adhoc__")
+    indexName   = schema.One(schema.Bytes, initialValue="__adhoc__")
     source      = schema.One(AbstractCollection, defaultValue=None)
 
     def moveItemToLocation (self, item, location):

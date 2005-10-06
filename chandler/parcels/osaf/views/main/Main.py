@@ -57,9 +57,11 @@ class MainView(View):
                 errorStrings.append(error.errorString)
 
             if len (errorStrings) == 0:
-                errorMessage = constants.UNKNOWN_ERROR
+                errorMessage = _(u"An unknown error has occurred")
             else:
-                errorMessage = constants.UPLOAD_ERROR % (', '.join(errorStrings))
+                errorMessage = _(u"An error occurred while sending:\n%(translatedErrorStrings)s") % {
+                                  'translatedErrorStrings': u', '.join(errorStrings)}
+
 
             """Clear the status message"""
             self.setStatusMessage(u'')

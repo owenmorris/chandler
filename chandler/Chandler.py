@@ -17,6 +17,7 @@ def main():
     Globals.options = Utility.initOptions()
 
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
+
     os.chdir(Globals.chandlerDirectory)
     Utility.initLogging(Globals.options)
     Utility.initI18n(Globals.options)

@@ -12,7 +12,7 @@ def installParcel(parcel, old_version=None):
         rootBlocks = [
             detail.DetailSynchronizedAttributeEditorBlock.update(
                 parcel, "photo_image",
-                viewAttribute = "photoBody",
+                viewAttribute = u"photoBody",
                 position = 0.86,
                 stretchFactor = 1.0,
                 border = RectType(2.0, 2.0, 2.0, 2.0),

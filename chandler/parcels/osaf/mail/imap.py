@@ -287,7 +287,7 @@ class IMAPClient(base.AbstractDownloadClient):
         repMessage.incomingMessage(self.account)
 
         """Save IMAP Delivery info in Repository"""
-        repMessage.deliveryExtension.folder = "INBOX"
+        repMessage.deliveryExtension.folder = u"INBOX"
         repMessage.deliveryExtension.uid = curMessage[0]
         repMessage.deliveryExtension.flags = curMessage[1]
 

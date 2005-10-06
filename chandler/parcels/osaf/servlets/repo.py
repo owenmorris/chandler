@@ -595,7 +595,7 @@ def RenderItem(repoView, item):
 
     name = item.itsName
     if name is None:
-        name = u'{%s}' % item.itsUUID.str64()
+        name = '{%s}' % item.itsUUID.str64()
     result += "<div class='path'>%s &gt; <span class='itemname'>%s</span>" % (path, name)
 
     try: result += " (<a href=%s>%s</a>)" % (toLink(item.itsKind.itsPath), item.itsKind.itsName)
@@ -927,9 +927,9 @@ def _getSourceTree(coll, depth=0):
 
     info = ""
     if isinstance(coll, pim.KindCollection):
-        info = ", kind=%s" % coll.kind.itsName
+        info = u", kind=%s" % coll.kind.itsName
     if isinstance(coll, pim.FilteredCollection):
-        info = ", filter='%s'" % coll.filterExpression
+        info = u", filter='%s'" % coll.filterExpression
 
     kindInfo = coll.itsKind.itsName
     if coll.itsKind.isMixin():

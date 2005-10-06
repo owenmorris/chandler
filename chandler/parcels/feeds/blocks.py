@@ -170,9 +170,9 @@ def installParcel(parcel, oldVersion=None):
             ),
 
             # URL
-            pair("LinkArea", viewAttribute="link", position=0.3,
+            pair("LinkArea", viewAttribute=u"link", position=0.3,
                 childrenBlocks = [
-                    label("LinkLabel", title="link"),
+                    label("LinkLabel", title=u"link"),
                     LinkDetail.update(parcel, "LinkAttribute",
                         characterStyle = blocks.CharacterStyle.update(
                             parcel, "LinkStyle",
@@ -188,25 +188,25 @@ def installParcel(parcel, oldVersion=None):
                         # ),
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Left",
-                        title = "linkattribute",
+                        title = u"linkattribute",
                     ),
                 ],
             ),
 
             # Author area
-            pair("AuthorArea", viewAttribute="author", position=0.19,
+            pair("AuthorArea", viewAttribute=u"author", position=0.19,
                 childrenBlocks = [
-                    label("AuthorLabel", title="author"),
-                    field("AuthorAttribute", title="author"),
+                    label("AuthorLabel", title=u"author"),
+                    field("AuthorAttribute", title=u"author"),
                 ]
             ),
 
             # Date area
-            pair("DateArea", viewAttribute="date", position=0.4,
+            pair("DateArea", viewAttribute=u"date", position=0.4,
                 childrenBlocks = [
-                    label("DateLabel", title="date"),
+                    label("DateLabel", title=u"date"),
                     DateDetail.update(parcel, "DateAttribute",
-                        title="date",
+                        title=u"date",
                         characterStyle=blocks.LabelStyle,
                         stretchFactor=0.0,
                         textAlignmentEnum="Left",
@@ -215,12 +215,12 @@ def installParcel(parcel, oldVersion=None):
             ),
 
             # Category
-            pair("CategoryArea", viewAttribute="category",
+            pair("CategoryArea", viewAttribute=u"category",
                 position=0.2,
                 childrenBlocks = [
-                    label("CategoryLabel", title="category"),
+                    label("CategoryLabel", title=u"category"),
                     field("CategoryAttribute",
-                        title="category", stretchFactor=1.0
+                        title=u"category", stretchFactor=1.0
                     ),
                 ]
             ),

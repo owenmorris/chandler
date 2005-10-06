@@ -7,13 +7,13 @@ from i18n import OSAFMessageFactory
 class TimeZoneInfo(schema.Item):
     """
     Item that persists:
-    
+
     - A schema.TimeZone attribute that synchronizes
       itself with PyICU's default settings.
-    
+
     - A list of "well-known" timezone names.
     """
-    
+
     schema.kindInfo(
         displayName=u"TimeZone info"
     )

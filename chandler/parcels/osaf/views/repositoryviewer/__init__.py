@@ -6,7 +6,7 @@ from i18n import OSAFMessageFactory as _
 def installParcel(parcel, oldName=None):
 
     SplitterWindow.template('RepositoryView',
-                            displayName=_(u'Repository Viewer'),
+                            displayName=u'Repository Viewer',
                             eventBoundary=True,
                             splitPercentage=0.40,
                             childrenBlocks=[
@@ -15,11 +15,11 @@ def installParcel(parcel, oldName=None):
                   hideRoot=False,
                   noLines=False,
                   columnHeadings=[
-                      _(u'ItemName'),
-                      _(u'Display Name'),
-                      _(u'Kind'),
-                      _(u'UUID'),
-                      _(u'Path'),
+                      u'ItemName',
+                      u'Display Name',
+                      u'Kind',
+                      u'UUID',
+                      u'Path',
                   ],
                   columnWidths=[160, 110, 70, 245, 155],
                   size=SizeType(600,200),
@@ -30,7 +30,7 @@ def installParcel(parcel, oldName=None):
         ]).install(parcel)
         
     SplitterWindow.template('CPIAView',
-                            displayName=_(u'CPIA Viewer'),
+                            displayName=u'CPIA Viewer',
                             eventBoundary=True,
                             splitPercentage=0.4,
                             childrenBlocks=[
@@ -39,11 +39,11 @@ def installParcel(parcel, oldName=None):
                       hideRoot=False,
                       noLines=False,
                       columnHeadings=[
-            _(u'Block Name'),
-            _(u'Kind'),
-            _(u'Display Name'),
-            _(u'UUID'),
-            _(u'Path')
+            u'Block Name',
+            u'Kind',
+            u'Display Name',
+            u'UUID',
+            u'Path'
             ],
                       columnWidths=[160,110,70, 245, 155]),
         RepositoryItemDetail.template('CPIAItemDetail',

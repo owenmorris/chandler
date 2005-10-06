@@ -15,6 +15,7 @@ from datetime import datetime
 
 #Chandler imports
 import osaf.pim.mail as Mail
+from PyICU import UnicodeString
 
 #Chandler Mail Service imports
 import constants
@@ -99,23 +100,20 @@ def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
     assert charset is not None, "A charset must be specified"
 
     try:
-        return unicode(val, charset, 'ignore')
+        # The PyICU UnicodeString is used because
+        # ICU has support for more character set
+        # encodings than Python.
+        return UnicodeString(val, charset).__unicode__()
 
-    except(UnicodeError, UnicodeDecodeError, LookupError):
-        if __debug__ and charset != constants.DEFAULT_CHARSET:
-            trace("Unable to convert charset: %s trying %s" % \
-                          (charset, constants.DEFAULT_CHARSET))
-
+    except Exception:
+        if  charset != constants.DEFAULT_CHARSET:
             return getUnicodeValue(val)
-
-        if __debug__: 
-            trace("Unable to convert charset: %s" % charset)
 
         return constants.EMPTY
 
 def createChandlerHeader(postfix):
     """Creates a chandler header with postfix provided"""
-    assert hasValue(postfix), "You must pass a String"
+    assert isinstance(postfix, str), "You must pass A String"
 
     return constants.CHANDLER_HEADER_PREFIX + postfix
 
@@ -136,25 +134,21 @@ def populateStaticHeaders(messageObject):
     if not messageObject.has_key('MIME-Version'):
         messageObject['MIME-Version'] = "1.0"
 
-    #XXX: Will need to detect the charset when sending i18n messages
     if not messageObject.has_key('Content-Type'):
         messageObject['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
 
-    #XXX: Will need to detect the encoding when sending i18n messages
     if not messageObject.has_key('Content-Transfer-Encoding'):
-        messageObject['Content-Transfer-Encoding'] = "7bit"
+        messageObject['Content-Transfer-Encoding'] = "8bit"
 
 
 def populateHeader(messageObject, param, var, hType='String'):
     if hType == 'String':
         if hasValue(var):
-            #XXX: Willl need to detect i18n charset and encoded if needed
             messageObject[param] = var
 
     elif(hType == 'EmailAddress'):
         if var is not None and hasValue(var.emailAddress):
-            #XXX: Willl need to detect i18n charset and encoded if needed
-            messageObject[param] = Mail.EmailAddress.format(var)
+            messageObject[param] = Mail.EmailAddress.format(var, encode=True)
 
 def populateHeaders(mailMessage, messageObject):
     keys = mailMessage.headers.keys()
@@ -184,7 +178,7 @@ def populateEmailAddressList(emailAddressList, messageObject, key):
 
     for address in emailAddressList:
         if hasValue(address.emailAddress):
-            addrs.append(Mail.EmailAddress.format(address))
+            addrs.append(Mail.EmailAddress.format(address, encode=True))
 
     if len(addrs) > 0:
         messageObject[key] = ", ".join(addrs)
@@ -282,11 +276,6 @@ def kindToMessageObject(mailMessage):
     if not hasValue(mailMessage.messageId):
         mailMessage.messageId = createMessageID()
 
-    """Create a dateSent if none exists"""
-    if not hasValue(mailMessage.dateSentString):
-        mailMessage.dateSent = datetime.now()
-        mailMessage.dateSentString = dateTimeToRFC2882Date(mailMessage.dateSent)
-
     populateHeader(messageObject, 'Message-ID', mailMessage.messageId)
     populateHeader(messageObject, 'Date', mailMessage.dateSentString)
     populateEmailAddresses(mailMessage, messageObject)
@@ -297,18 +286,12 @@ def kindToMessageObject(mailMessage):
 
     try:
         payload = mailMessage.body
-
-        #XXX: Temp hack this should be fixed in GUI level
-        #     investigate with Andi and Bryan
-        if payload.encoding is None:
-            payload.encoding = constants.DEFAULT_CHARSET
-
-        payloadUStr = textToUnicode(payload)
+        payload = textToUnicode(payload).encode('utf8')
 
     except AttributeError:
-        payloadUStr = u""
+        payload = ""
 
-    messageObject.set_payload(payloadUStr)
+    messageObject.set_payload(payload)
 
     return messageObject
 
@@ -374,7 +357,7 @@ def __parseHeaders(view, messageObject, m):
     __assignToKind(view, m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
 
     """Do not decode the message ID as it requires no i18n processing"""
-    __assignToKind(view, m, messageObject, 'Message-ID', 'String', 'messageId', False)
+    __assignToKind(view, m, messageObject, 'Message-ID', 'String', 'messageId', False, False)
 
     m.chandlerHeaders = {}
     m.headers = {}
@@ -384,14 +367,14 @@ def __parseHeaders(view, messageObject, m):
 
     for (key, val) in messageObject.items():
         if isChandlerHeader(key):
-            m.chandlerHeaders[key] = val
+            m.chandlerHeaders[getUnicodeValue(key)] = getUnicodeValue(val)
 
         else:
-            m.headers[key] = val
+            m.headers[getUnicodeValue(key)] = getUnicodeValue(val)
 
         del messageObject[key]
 
-def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=True):
+def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=True, makeUnicode=True):
     header = messageObject.get(key)
 
     if header is None:
@@ -399,6 +382,8 @@ def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=T
 
     if decode:
         header = decodeHeader(header)
+    elif makeUnicode:
+        header = getUnicodeValue(header)
 
     if hType == "String":
         setattr(kindVar, attr, header)
@@ -410,7 +395,7 @@ def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=T
     elif hType == "EmailAddress":
         name, addr = emailUtils.parseaddr(messageObject.get(key))
 
-        ea = __getEmailAddress(view, decodeHeader(name), addr)
+        ea = __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
 
         if ea is not None:
             setattr(kindVar, attr, ea)
@@ -420,7 +405,7 @@ def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=T
 
     elif hType == "EmailAddressList":
         for name, addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
-            ea = __getEmailAddress(view, decodeHeader(name), addr)
+            ea = __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
 
             if ea is not None:
                 kindVar.append(ea)
@@ -432,15 +417,10 @@ def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=T
 
 
 def __getEmailAddress(view, name, addr):
-    keyArgs = {}
-
-    if hasValue(name):
-         keyArgs['fullName'] = name
-
     """ Use any existing EmailAddress, but don't update them
         because that will cause the item to go stale in the UI thread."""
     #XXX: This method needs much better performance
-    return Mail.EmailAddress.getEmailAddress(view, addr, **keyArgs)
+    return Mail.EmailAddress.getEmailAddress(view, addr, name, True)
 
 
 def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level=0):
@@ -685,7 +665,7 @@ def __getFileName(mimePart, counter):
     if not ext:
         ext = '.bin'
 
-    return getUnicodeValue('Attachment-%s%s' % (counter.nextValue(), ext))
+    return u'Attachment-%s%s' % (counter.nextValue(), ext)
 
 def __checkForDefects(mimePart):
     if __debug__ and len(mimePart.defects) > 0:

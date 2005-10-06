@@ -22,7 +22,6 @@ CHANDLER_HEADER_PREFIX = "X-Chandler-"
 
 INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid")
 
-UNKNOWN_ERROR = _(u"An unknown error has occurred")
 
 """Translatable message strings for downloads (POP, IMAP)"""
 DOWNLOAD_ERROR = _(u"An error occurred while downloading:\n%(error)s")

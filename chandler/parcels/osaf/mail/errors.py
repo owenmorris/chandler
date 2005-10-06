@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from i18n import OSAFMessageFactory as _
+from osaf import ChandlerException
 
 __all__ = ['MailException', 'IMAPException', 'SMTPException', 'POPException']
 
@@ -12,7 +13,7 @@ STR_TIMEOUT_ERROR = _(u"Communication with the Server timed out. Please try agai
 
 
 
-class MailException(Exception):
+class MailException(ChandlerException):
     """Base class for all Chandler mail related exceptions"""
 
 class IMAPException(MailException):
@@ -66,3 +67,4 @@ CONNECTION_REFUSED_CODE = __offset + 10
 UNKNOWN_CODE            = __offset + 11
 MISSING_VALUE_CODE      = __offset + 12
 M2CRYPTO_CODE           = __offset + 13
+SMTP_EXCEPTION_CODE     = __offset + 14

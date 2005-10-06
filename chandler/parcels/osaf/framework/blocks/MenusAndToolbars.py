@@ -361,11 +361,11 @@ class DynamicChild(DynamicBlock):
     dynamicParent = schema.One(
         Block.Block, initialValue = None, otherName = 'dynamicChildren',
     )
-    title = schema.One(schema.String, initialValue = '')
+    title = schema.One(schema.Text, initialValue = u'')
     operation = schema.One(operationEnumType, initialValue = 'InsertBefore')
-    location = schema.One(schema.String)
-    itemLocation = schema.One(schema.String, initialValue = '')
-    helpString = schema.One(schema.String, initialValue = '')
+    location = schema.One(schema.Text)
+    itemLocation = schema.One(schema.Text, initialValue = u'')
+    helpString = schema.One(schema.Text, initialValue = u'')
 
     def isDynamicChild (self):
         return True
@@ -655,12 +655,12 @@ class menuItemKindEnumType(schema.Enumeration):
 class MenuItem (Block.Block, DynamicChild):
 
     menuItemKind = schema.One(menuItemKindEnumType, initialValue = 'Normal')
-    accel = schema.One(schema.String, initialValue = '')
+    accel = schema.One(schema.Text, initialValue = u'')
     event = schema.One(Block.BlockEvent)
     schema.addClouds(
         copying = schema.Cloud(byCloud = [event])
     )
-    icon = schema.One(schema.String)
+    icon = schema.One(schema.Bytes)
 
     def instantiateWidget (self):
         # We'll need a dynamicParent's widget in order to instantiate
@@ -669,7 +669,7 @@ class MenuItem (Block.Block, DynamicChild):
                 return wxMenuItem(style=wxMenuItem.CalculateWXStyle(self))
         except AttributeError:
             return None
-        
+
 class MenuBar (Block.Block, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
@@ -685,7 +685,7 @@ class MenuBar (Block.Block, DynamicContainer):
         Used for both Menus and MenuBars.
         """
         menuList = self.widget.getMenuItems () # keep track of menus here
-        
+
         index = 0 # cur menu item index
         # for each new menu
         for menuItem in self.dynamicChildren:
@@ -956,6 +956,7 @@ class ToolbarItem(Block.Block, DynamicChild):
         Block.Block, doc = 'The prototype block to be placed in the Toolbar',
     )
     selected = schema.One(schema.Boolean)
+
     toggle = schema.One(
         schema.Boolean,
         doc = 'For Buttons, makes it stay pressed down until pressed again.',

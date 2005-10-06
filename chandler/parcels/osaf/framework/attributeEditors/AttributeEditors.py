@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # map a string to the editor classname. Each one maps a differe
 
 class AttributeEditorMapping(schema.Item):
-    className = schema.One(schema.String)
+    className = schema.One(schema.Bytes)
 
 def installParcel(parcel, oldVersion=None):
     """ Do initial registry of attribute editors """
@@ -63,8 +63,6 @@ def installParcel(parcel, oldVersion=None):
         'image/jpeg': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
         'SharingStatusEnum': 'EnumAttributeEditor',
-        'String': 'StringAttributeEditor',
-        'String+static': 'StaticStringAttributeEditor',
         'Text': 'StringAttributeEditor',
         'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',

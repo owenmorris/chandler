@@ -42,9 +42,9 @@ class buttonKindEnumType(schema.Enumeration):
 class Button(RectangularChild):
 
     characterStyle = schema.One(Styles.CharacterStyle)
-    title = schema.One(schema.String)
+    title = schema.One(schema.Text)
     buttonKind = schema.One(buttonKindEnumType)
-    icon = schema.One(schema.String)
+    icon = schema.One(schema.Text)
     rightClicked = schema.One(BlockEvent)
     event = schema.One(BlockEvent)
 
@@ -84,14 +84,14 @@ class Button(RectangularChild):
         else:
             self.post(event, {'item':self})
 
-                              
+
 class wxCheckBox(ShownSynchronizer, wx.CheckBox):
     pass
 
 class CheckBox(RectangularChild):
 
     event = schema.One(BlockEvent)
-    title = schema.One(schema.String)
+    title = schema.One(schema.Text)
     schema.addClouds(
         copying = schema.Cloud(byCloud=[event])
     )
@@ -104,7 +104,7 @@ class CheckBox(RectangularChild):
 
         parentWidget = self.parentBlock.widget
         checkbox = wxCheckBox (parentWidget,
-                          id, 
+                          id,
                           self.title,
                           wx.DefaultPosition,
                           (self.minimumSize.width, self.minimumSize.height))
@@ -118,7 +118,7 @@ class Choice(RectangularChild):
 
     characterStyle = schema.One(Styles.CharacterStyle)
     event = schema.One(BlockEvent)
-    choices = schema.Sequence(schema.String)
+    choices = schema.Sequence(schema.Text)
     schema.addClouds(
         copying = schema.Cloud(byCloud=[characterStyle])
     )
@@ -147,8 +147,8 @@ class Choice(RectangularChild):
 
 class ComboBox(RectangularChild):
 
-    selection = schema.One(schema.String)
-    choices = schema.Sequence(schema.String)
+    selection = schema.One(schema.Text)
+    choices = schema.Sequence(schema.Text)
     itemSelected = schema.One(BlockEvent)
 
     def instantiateWidget(self):
@@ -172,7 +172,7 @@ class ContextMenu(RectangularChild):
 class ContextMenuItem(RectangularChild):
 
     event = schema.One(BlockEvent)
-    title = schema.One(schema.String)
+    title = schema.One(schema.Text)
     schema.addClouds(
         copying = schema.Cloud(byCloud=[event])
     )
@@ -238,8 +238,7 @@ class wxHTML(wx.html.HtmlWindow):
 
 
 class HTML(RectangularChild):
-
-    url = schema.One(schema.String)
+    url = schema.One(schema.Bytes)
 
     def instantiateWidget (self):
         htmlWindow = wxHTML (self.parentBlock.widget,
@@ -263,7 +262,7 @@ class ListDelegate (object):
         return len (self.blockItem.contents)
 
     def GetElementType (self, row, column):
-        return "String"
+        return "Text"
 
     def GetColumnHeading (self, column, item):
         return self.blockItem.columnHeadings [column]
@@ -421,10 +420,10 @@ class wxList (DragAndDrop.DraggableWidget,
 
 class List(RectangularChild):
 
-    columnHeadings = schema.Sequence(schema.String, required = True)
-    columnData = schema.Sequence(schema.String)
+    columnHeadings = schema.Sequence(schema.Text, required = True)
+    columnData = schema.Sequence(schema.Text)
     columnWidths = schema.Sequence(schema.Integer, required = True)
-    elementDelegate = schema.One(schema.String, initialValue = '')
+    elementDelegate = schema.One(schema.Bytes, initialValue = '')
     selection = schema.One(schema.Item, initialValue = None)
     schema.addClouds(
         copying = schema.Cloud(byRef=[selection])
@@ -1024,12 +1023,12 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
 
 class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
-    columnHeadings = schema.Sequence(schema.String, required = True)
-    columnHeadingTypes = schema.Sequence(schema.String)
-    columnData = schema.Sequence(schema.String)
+    columnHeadings = schema.Sequence(schema.Text, required = True)
+    columnHeadingTypes = schema.Sequence(schema.Text)
+    columnData = schema.Sequence(schema.Text)
     columnWidths = schema.Sequence(schema.Integer, required = True)
     columnReadOnly = schema.Sequence(schema.Boolean)
-    elementDelegate = schema.One(schema.String, initialValue = '')
+    elementDelegate = schema.One(schema.Bytes, initialValue = '')
     selection = schema.Sequence(schema.List, initialValue = [])
     selectedItemToView = schema.One(schema.Item, initialValue = None)
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
@@ -1164,8 +1163,8 @@ class radioAlignEnumType(schema.Enumeration):
 
 class RadioBox(RectangularChild):
 
-    title = schema.One(schema.String)
-    choices = schema.Sequence(schema.String)
+    title = schema.One(schema.Text)
+    choices = schema.Sequence(schema.Text)
     radioAlignEnum = schema.One(radioAlignEnumType)
     itemsPerLine = schema.One(schema.Integer)
     event = schema.One(BlockEvent)
@@ -1180,7 +1179,7 @@ class RadioBox(RectangularChild):
             dimension = wx.RA_SPECIFY_ROWS
         elif __debug__:
             assert False, "unknown radioAlignEnum"
-                                    
+
         return wx.RadioBox (self.parentBlock.widget,
                             -1,
                             self.title,
@@ -1197,7 +1196,7 @@ class StaticText(RectangularChild):
         textAlignmentEnumType, initialValue = 'Left',
     )
     characterStyle = schema.One(Styles.CharacterStyle)
-    title = schema.One(schema.String)
+    title = schema.One(schema.Text)
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[characterStyle])
@@ -1210,7 +1209,7 @@ class StaticText(RectangularChild):
             style = wx.ALIGN_CENTRE
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
-            
+
         if Block.showBorders:
             style |= wx.SIMPLE_BORDER
 
@@ -1492,10 +1491,10 @@ class wxTreeList(wxTreeAndList, wx.gizmos.TreeListCtrl):
 
 class Tree(RectangularChild):
 
-    columnHeadings = schema.Sequence(schema.String, required = True)
-    columnData = schema.Sequence(schema.String)
+    columnHeadings = schema.Sequence(schema.Text, required = True)
+    columnData = schema.Sequence(schema.Text)
     columnWidths = schema.Sequence(schema.Integer, required = True)
-    elementDelegate = schema.One(schema.String, initialValue = '')
+    elementDelegate = schema.One(schema.Bytes, initialValue = '')
     selection = schema.One(schema.Item, initialValue = None)
     hideRoot = schema.One(schema.Boolean, initialValue = True)
     noLines = schema.One(schema.Boolean, initialValue = True)
@@ -1522,7 +1521,7 @@ class Tree(RectangularChild):
         items = event.arguments['items']
         if len(items)>0:
             self.widget.GoToItem (event.arguments['items'][0])
-                            
+
 
 class wxItemDetail(wx.html.HtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
@@ -1731,15 +1730,15 @@ class PresentationStyle(schema.Item):
         displayName = _(u"Presentation Style")
     )
     sampleText = schema.One(
-        schema.String,
+        schema.Text,
         doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
     )
     format = schema.One(
-        schema.String,
+        schema.Bytes,
         doc = 'customization of presentation format',
     )
     choices = schema.Sequence(
-        schema.String,
+        schema.Text,
         doc = 'options for multiple-choice values',
     )
     editInPlace = schema.One(

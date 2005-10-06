@@ -7,7 +7,7 @@ from repository.persistence.RepositoryView import NullRepositoryView
 
 class Dummy(schema.Item):
     """Just a test fixture"""
-    attr = schema.One(schema.String)
+    attr = schema.One(schema.Text)
     other = schema.Many("Other", inverse="thing")
 
 class Other(schema.Item):
@@ -62,7 +62,7 @@ class SchemaTests(SchemaTestCase):
 
     def testAttrKindType(self):
         self.assertEqual(schema.itemFor(Dummy.attr).getAspect('type'),
-            schema.nrv.findPath('//Schema/Core/String'))
+            schema.nrv.findPath('//Schema/Core/Text'))
         self.assertEqual(schema.itemFor(Other.thing).getAspect('type'),
                          schema.itemFor(Dummy))
         self.assertRaises(TypeError, schema.Role, str)

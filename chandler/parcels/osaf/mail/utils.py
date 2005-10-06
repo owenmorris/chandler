@@ -42,9 +42,9 @@ def trace(printString):
         if caller is not None:
             """Strip off the package path and trailing '> on new style classes"""
             caller = str(caller.__class__).split(".")[-1].rstrip("'>")
-            log.warn("[%s] %s " % (caller, printString))
+            log.debug("[%s] %s " % (caller, printString))
         else:
-            log.warn("%s " % printString)
+            log.debug("%s " % printString)
 
 class Counter:
     def __init__(self, val=0):

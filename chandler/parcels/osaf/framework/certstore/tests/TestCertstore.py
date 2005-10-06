@@ -91,7 +91,7 @@ rZehs7GgIFvKMquNzxPwHynD
         view = self.rep.view
         rootCerts = FilteredCollection('rootCertsQuery', view=view)
         rootCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
-        rootCerts.filterExpression = 'item.type == "%s"' % constants.TYPE_ROOT
+        rootCerts.filterExpression = u'item.type == "%s"' % constants.TYPE_ROOT
         rootCerts.filterAttributes = ['type']
             
         now = time.gmtime()
@@ -110,7 +110,7 @@ rZehs7GgIFvKMquNzxPwHynD
                 assert time.strptime(str(before), format) < now, before
                 assert now < time.strptime(str(after), format), after
             except ValueError:
-                raise ValueError('bad time value in ' + cert.displayName)
+                raise ValueError('bad time value in ' + cert.displayName.encode('utf8'))
         
             self.assertTrue(len(cert.displayName) > 0)
             self.assertTrue(cert.type == constants.TYPE_ROOT)
@@ -131,7 +131,7 @@ rZehs7GgIFvKMquNzxPwHynD
 
         matchingCerts = FilteredCollection('fpCertQuery' + fingerprint, view=view)
         matchingCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
-        matchingCerts.filterExpression = 'item.fingerprint == "%s"' % fingerprint
+        matchingCerts.filterExpression = u'item.fingerprint == "%s"' % fingerprint
         matchingCerts.filterAttributes = ['fingerprint']
         
         #unfortunately len isn't implemented for FilteredCollections
@@ -155,7 +155,7 @@ rZehs7GgIFvKMquNzxPwHynD
         assert cert.fingerprint == '0xFF8013055AAE612AD79C347F06D1B83F93DEB664L'
         assert cert.trust == trust
         assert cert.type == constants.TYPE_SITE
-        assert cert.displayName == 'bugzilla.osafoundation.org'
+        assert cert.displayName == u'bugzilla.osafoundation.org'
 
     def testImportRootCertificate(self):
         trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SITE
@@ -169,7 +169,7 @@ rZehs7GgIFvKMquNzxPwHynD
         assert cert.fingerprint == '0xADACC622C85DF4C2AE471A81EDA1BD28379A6FA9L'
         assert cert.trust == trust
         assert cert.type == constants.TYPE_ROOT
-        assert cert.displayName == 'OSAF CA'
+        assert cert.displayName == u'OSAF CA'
         
     def testImportUnsupportedCertificate(self):
         trust = constants.TRUST_AUTHENTICITY

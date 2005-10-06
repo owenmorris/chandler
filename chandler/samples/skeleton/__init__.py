@@ -4,7 +4,7 @@ from osaf import pim
 class MyKind1(pim.ContentItem):
     """An example content kind"""
     
-    attr1 = schema.One(schema.String, displayName=u"Attribute 1")
+    attr1 = schema.One(schema.Text, displayName=u"Attribute 1")
    
     schema.kindInfo(
         displayName = u"Example Kind"
@@ -13,7 +13,7 @@ class MyKind1(pim.ContentItem):
     # redirection attributes
     who = schema.Role(redirectTo="attr1")
 
-    attr2 = schema.One(schema.String, displayName=u"Attribute 2")
+    attr2 = schema.One(schema.Text, displayName=u"Attribute 2")
   
     # Typical clouds include a "copying" cloud, and a "sharing" cloud
 

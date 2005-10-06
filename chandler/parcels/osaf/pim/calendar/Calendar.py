@@ -32,8 +32,6 @@ from i18n import OSAFMessageFactory as _
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
-#XXX [i18n] this file may require further localization of displayName attributes
-
 class TimeTransparencyEnum(schema.Enumeration):
     """
     Time Transparency Enum
@@ -144,7 +142,7 @@ class CalendarEventMixin(RemindableMixin):
     )
 
     icalUID = schema.One(
-        schema.String,
+        schema.Text,
         displayName=u"UID",
         doc="iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can "
             "set UID to a string representation of UUID, but we need to be "
@@ -228,7 +226,7 @@ class CalendarEventMixin(RemindableMixin):
     def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
         super(CalendarEventMixin, self).__init__(name, parent, kind, view, **kw)
         self.occurrenceFor = self
-        self.icalUID = str(self.itsUUID)
+        self.icalUID = unicode(self.itsUUID)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -269,7 +267,7 @@ class CalendarEventMixin(RemindableMixin):
         self.occurrenceFor = self
 
         if not hasattr(self, 'icalUID'):
-            self.icalUID = str(self.itsUUID)
+            self.icalUID = unicode(self.itsUUID)
             
         
         # TBD - set participants to any existing "who"
@@ -758,7 +756,7 @@ class CalendarEventMixin(RemindableMixin):
             # Make this event a separate event from the original rule
             self.modificationFor = None
             self.recurrenceID = self.startTime
-            self.icalUID = str(self.itsUUID)
+            self.icalUID = unicode(self.itsUUID)
             self.copyCollections(master, self)
                                         
         # determine what type of change to make

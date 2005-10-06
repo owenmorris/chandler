@@ -9,7 +9,7 @@ class NotifyHandler(schema.Item):
     we should change notifications to work on callables -- John is cool with that.
     """
     log = schema.Sequence(initialValue=[])
-    collectionEventHandler = schema.One(schema.String, initialValue="onCollectionEvent")
+    collectionEventHandler = schema.One(schema.Bytes, initialValue="onCollectionEvent")
 
     def checkLog(self, op, item, other, index=-1):
         if len(self.log) == 0:
@@ -33,17 +33,17 @@ class SimpleItem(schema.Item):
     A dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.String, displayName=u"My Label")
+    label = schema.One(schema.Text, displayName=u"My Label")
 
 class ChildSimpleItem(SimpleItem):
-    childData = schema.One(schema.String, displayName=u"Child data")
+    childData = schema.One(schema.Bytes, displayName=u"Child data")
 
 class OtherSimpleItem(schema.Item):
     """
     Another dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.String, displayName=u"My Label")
+    label = schema.One(schema.Text, displayName=u"My Label")
 
 class CollectionTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
@@ -51,7 +51,7 @@ class CollectionTestCase(unittest.TestCase):
     def setUp(self):
         schema.reset()  # clear schema state before starting
         self.chandlerDir = os.environ['CHANDLERHOME']
-        self.repoDir = os.path.join(self.chandlerDir, u'__repository__')
+        self.repoDir = os.path.join(self.chandlerDir, '__repository__')
 
         rep = DBRepository(self.repoDir)
         kwds = { 'create': True, 'refcounted':True, 'ramdb':True }
@@ -268,7 +268,7 @@ class CollectionTests(CollectionTestCase):
     def testFilteredCollection(self):
         f1 = FilteredCollection(view=self.view)
         f1.source = self.b1
-        f1.filterExpression = "len(item.label) > 2"
+        f1.filterExpression = u"len(item.label) > 2"
         f1.filterAttributes = ["label"]
         self.b1.subscribers.add(self.nh)
         f1.subscribers.add(self.nh1)
@@ -297,7 +297,7 @@ class CollectionTests(CollectionTestCase):
         k1.kind = self.i.itsKind
         f2 = FilteredCollection(view=self.view)
         f2.source = k1
-        f2.filterExpression = "len(item.label) > 2"
+        f2.filterExpression = u"len(item.label) > 2"
         f2.filterAttributes = ["label"]
         nh3 = NotifyHandler("nh3", view=self.view)
 
@@ -370,7 +370,7 @@ class CollectionTests(CollectionTestCase):
         k1.kind = self.i.itsKind
         f2 = FilteredCollection(view=self.view)
         f2.source = k1
-        f2.filterExpression = "item.hasLocalAttributeValue('label')"
+        f2.filterExpression = u"item.hasLocalAttributeValue('label')"
         f2.filterAttributes = ["label"]
         nh3 = NotifyHandler("nh3", view=self.view)
 
@@ -415,7 +415,7 @@ class CollectionTests(CollectionTestCase):
 
         f = FilteredCollection(view=self.view)
         f.source = k
-        f.filterExpression = "len(item.label) > 1"
+        f.filterExpression = u"len(item.label) > 1"
         f.filterAttributes = ["label"]
         
         l = ListCollection(view=self.view)
@@ -488,14 +488,14 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(kc.rep is not None)
 
         fc = FilteredCollection(view=self.view)
-        fc.filterExpression = "len(item.label) > 2"
+        fc.filterExpression = u"len(item.label) > 2"
         fc.filterAttributes = [ "label" ]
         fc.source = self.b1
         self.failUnless(fc.rep is not None)
 
         fc1 = FilteredCollection(view=self.view)
         fc1.source = self.b1
-        fc1.filterExpression = "len(item.label) > 2"
+        fc1.filterExpression = u"len(item.label) > 2"
         fc1.filterAttributes = [ "label" ]
         self.failUnless(fc1.rep is not None)
 
