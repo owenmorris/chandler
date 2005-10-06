@@ -127,7 +127,7 @@ class SharingTestCase(testcase.NRVTestCase):
         coll = sandbox.findPath("testcollection")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
-         sharePath=".", shareName="exportedcollection", view=repo.view)
+         sharePath=u".", shareName=u"exportedcollection", view=repo.view)
         format = Sharing.CloudXMLFormat(name="format", parent=sandbox,
                                         view=repo.view)
         self.share1 = Sharing.Share(name="share", parent=sandbox,
@@ -145,7 +145,7 @@ class SharingTestCase(testcase.NRVTestCase):
         coll = sandbox.findPath("testcollection")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
-         sharePath=".", shareName="exportedcollection", view=repo.view)
+         sharePath=u".", shareName=u"exportedcollection", view=repo.view)
         format = Sharing.CloudXMLFormat(name="format", parent=sandbox,
                                         view=repo.view)
         self.share2 = Sharing.Share(name="share", parent=sandbox,
@@ -172,8 +172,8 @@ class SharingTestCase(testcase.NRVTestCase):
         theItem = ContentItem(view=repo.view)
         theItem.displayName = u"I'm an item"
 
-        conduit = Sharing.FileSystemConduit(sharePath=".",
-                                            shareName="exporteditem",
+        conduit = Sharing.FileSystemConduit(sharePath=u".",
+                                            shareName=u"exporteditem",
                                             view=repo.view)
         format = Sharing.CloudXMLFormat(view=repo.view)
         self.share3 = Sharing.Share(contents=theItem, conduit=conduit,
@@ -186,8 +186,8 @@ class SharingTestCase(testcase.NRVTestCase):
         # Import
         repo = self.repos[1]
 
-        conduit = Sharing.FileSystemConduit(sharePath=".",
-                                            shareName="exporteditem",
+        conduit = Sharing.FileSystemConduit(sharePath=u".",
+                                            shareName=u"exporteditem",
                                             view=repo.view)
         format = Sharing.CloudXMLFormat(view=repo.view)
         self.share4 = Sharing.Share(conduit=conduit, format=format,

@@ -69,8 +69,8 @@ class ICalendarTestCase(unittest.TestCase):
 
     def Import(self, view, filename):
 
-        path = os.path.join(os.getenv('CHANDLERHOME') or '.',
-                            'parcels', 'osaf', 'sharing', 'tests')
+        path = unicode(os.path.join(os.getenv('CHANDLERHOME') or '.',
+                            'parcels', 'osaf', 'sharing', 'tests'))
 
         sandbox = view.findPath("//sandbox")
 
@@ -83,7 +83,7 @@ class ICalendarTestCase(unittest.TestCase):
         return format
 
     def SummaryAndDateTimeImported(self):
-        format = self.Import(self.repo.view, 'Chandler.ics')
+        format = self.Import(self.repo.view, u'Chandler.ics')
         event = format.findUID('BED962E5-6042-11D9-BE74-000A95BB2738')
         self.assert_(event.displayName == u'3 hour event',
          "SUMMARY of first VEVENT not imported correctly, displayName is %s"
@@ -94,7 +94,7 @@ class ICalendarTestCase(unittest.TestCase):
          % event.startTime)
 
     def DateImportAsAllDay(self):
-        format = self.Import(self.repo.view, 'AllDay.ics')
+        format = self.Import(self.repo.view, u'AllDay.ics')
         event = format.findUID('testAllDay')
         self.assert_(event.startTime == datetime.datetime(2005,1,1),
          "startTime not set properly for all day event, startTime is %s"
@@ -142,9 +142,9 @@ class ICalendarTestCase(unittest.TestCase):
 
         coll = ListCollection(name="testcollection", parent=self.sandbox)
         coll.add(event)
-        filename = "unicode_export.ics"
+        filename = u"unicode_export.ics"
 
-        conduit = Sharing.FileSystemConduit(name="conduit", sharePath=".",
+        conduit = Sharing.FileSystemConduit(name="conduit", sharePath=u".",
                             shareName=filename, view=self.repo.view)
         format = ICalendar.ICalendarFormat(name="format", view=self.repo.view)
         self.share = Sharing.Share(name="share",contents=coll, conduit=conduit,
@@ -158,7 +158,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.share.destroy()
 
     def importRecurrence(self):
-        format = self.Import(self.repo.view, 'Recurrence.ics')
+        format = self.Import(self.repo.view, u'Recurrence.ics')
         event = format.findUID('5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getNextOccurrence().getNextOccurrence()
         self.assertEqual(third.displayName, u'Changed title')
@@ -167,7 +167,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.assertEqual(event.duration, datetime.timedelta(0))
 
     def importRecurrenceWithTimezone(self):
-        format = self.Import(self.repo.view, 'RecurrenceWithTimezone.ics')
+        format = self.Import(self.repo.view, u'RecurrenceWithTimezone.ics')
         event = format.findUID('FF14A660-02A3-11DA-AA66-000A95DA3228')
         third = event.modifications.first()
         # THISANDFUTURE change creates a new event, so there's nothing in

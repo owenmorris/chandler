@@ -138,26 +138,26 @@ The Chandler Team""")
         # relative to webserver/servers, but you may also put in an
         # absolute path if you wish.
         #
-        path=os.path.join("parcels", "osaf", "app", "webhome"),
+        path=unicode(os.path.join("parcels", "osaf", "app", "webhome")),
 
         resources = [
-            webserver.Resource.update(parcel, "lobsterResource",
+            webserver.Resource.update(parcel, "lobsResource",
                 displayName=u"Lob Server",
-                location="lobs",
+                location=u"lobs",
                 resourceClass=schema.importString(
                     "osaf.servlets.lobviewer.LobViewerResource"
                 ),
             ),
             webserver.Resource.update(parcel, "photoResource",
                 displayName=u"Photo Viewer",
-                location="photos",
+                location=u"photos",
                 resourceClass=schema.importString(
                     "osaf.servlets.photo.PhotosResource"
                 ),
             ),
             webserver.Resource.update(parcel, "repoResource",
                 displayName=u"Repository Viewer",
-                location="repo",
+                location=u"repo",
                 resourceClass=schema.importString(
                     "osaf.servlets.repo.RepoResource"
                 ),

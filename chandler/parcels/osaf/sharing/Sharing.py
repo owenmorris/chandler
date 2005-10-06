@@ -103,9 +103,9 @@ class Share(items.ContentItem):
     )
 
     error = schema.One(
-        schema.String,
+        schema.Text,
         doc = 'A message describing the last error; empty string otherwise',
-        initialValue = ''
+        initialValue = u''
     )
 
     contents = schema.One(items.ContentItem, otherName = 'shares')
@@ -132,12 +132,12 @@ class Share(items.ContentItem):
     )
 
     filterClasses = schema.Sequence(
-        schema.String,
+        schema.Bytes,
         doc = 'The list of classes to import/export',
         initialValue = [],
     )
 
-    filterAttributes = schema.Sequence(schema.String, initialValue=[])
+    filterAttributes = schema.Sequence(schema.Bytes, initialValue=[])
 
     schema.addClouds(
         sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterClasses,
@@ -170,27 +170,31 @@ class Share(items.ContentItem):
     def close(self):
         self.conduit.close()
 
-    def sync(self):
+    def sync(self, updateCallback=None):
         view = self.itsView
+
+        stats = {}
 
         if self.mode in ('get', 'both'):
             view.commit()
-            self.conduit._get()
+            stats['get'] = self.conduit._get(updateCallback=updateCallback)
 
         if self.mode in ('put', 'both'):
-            self.conduit._put()
+            stats['put'] = self.conduit._put(updateCallback=updateCallback)
             view.commit()
 
             # @@@MOR This can probably go away if we use marker again:
             self.conduit.syncVersion = view.itsVersion
 
-    def put(self):
-        if self.mode in ('put', 'both'):
-            self.conduit.put()
+        return stats
 
-    def get(self):
+    def put(self, updateCallback=None):
+        if self.mode in ('put', 'both'):
+            return self.conduit.put(updateCallback=updateCallback)
+
+    def get(self, updateCallback=None):
         if self.mode in ('get', 'both'):
-            self.conduit.get()
+            return self.conduit.get(updateCallback=updateCallback)
 
     def exists(self):
         return self.conduit.exists()
@@ -316,14 +320,14 @@ class OneTimeShare(Share):
         self.format.delete(True)
         self.delete(True)
 
-    def put(self):
-        super(OneTimeShare, self).put()
+    def put(self, updateCallback=None):
+        super(OneTimeShare, self).put(updateCallback=updateCallback)
         collection = self.contents
         self.remove()
         return collection
 
-    def get(self):
-        super(OneTimeShare, self).get()
+    def get(self, updateCallback=None):
+        super(OneTimeShare, self).get(updateCallback=updateCallback)
         collection = self.contents
         self.remove()
         return collection
@@ -340,11 +344,12 @@ class ShareConduit(items.ContentItem):
     share = schema.One(Share, inverse = Share.conduit)
 
     sharePath = schema.One(
-        schema.String, doc = "The parent 'directory' of the share",
+        schema.Text,
+        doc = "The parent 'directory' of the share",
     )
 
     shareName = schema.One(
-        schema.String,
+        schema.Text,
         doc = "The 'directory' name of the share, relative to 'sharePath'",
     )
 
@@ -448,14 +453,14 @@ class ShareConduit(items.ContentItem):
         return result
 
 
-    def put(self):
+    def put(self, updateCallback=None):
         view = self.itsView
 
         # This commit is needed to detect local changes (otherwise
         # those changes won't appear in the changedAttributes list):
         view.commit()
 
-        stats = self._put()
+        stats = self._put(updateCallback=updateCallback)
 
         # Store the view version number, committing first so we actually
         # store the correct version number (it changes after you commit)
@@ -465,7 +470,7 @@ class ShareConduit(items.ContentItem):
         return stats
 
 
-    def _put(self):
+    def _put(self, updateCallback=None):
         """
         Transfer entire 'contents', transformed, to server.
         """
@@ -546,6 +551,9 @@ class ShareConduit(items.ContentItem):
 
                 for item in self.share.contents:
 
+                    if updateCallback and updateCallback():
+                        raise SharingError(_(u"Cancelled by user"))
+
                     # Skip private items
                     if item.private:
                         continue
@@ -614,7 +622,7 @@ class ShareConduit(items.ContentItem):
         return None
 
 
-    def get(self):
+    def get(self, updateCallback=None):
 
         view = self.itsView
 
@@ -622,14 +630,14 @@ class ShareConduit(items.ContentItem):
         # during this Get operation.
         view.commit()
 
-        stats = self._get()
+        stats = self._get(updateCallback=updateCallback)
 
         view.commit()
 
         return stats
 
 
-    def _get(self):
+    def _get(self, updateCallback=None):
 
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
@@ -1019,7 +1027,7 @@ class FileSystemConduit(ShareConduit):
         self.shareName = shareName
 
         if not self.shareName:
-            self.shareName = str(UUID())
+            self.shareName = unicode(UUID())
 
         # @@@MOR What sort of processing should we do on sharePath for this
         # filesystem conduit?
@@ -1161,22 +1169,22 @@ class WebDAVConduit(ShareConduit):
     schema.kindInfo(displayName=u"WebDAV Share Conduit Kind")
 
     account = schema.One('WebDAVAccount', inverse = 'conduits')
-    host = schema.One(schema.String)
+    host = schema.One(schema.Text)
     port = schema.One(schema.Integer)
-    username = schema.One(schema.String)
-    password = schema.One(schema.String)
+    username = schema.One(schema.Text)
+    password = schema.One(schema.Text)
     useSSL = schema.One(schema.Boolean)
 
     # The ticket this conduit will use (we're a sharee and we're using this)
-    ticket = schema.One(schema.String, initialValue="")
+    ticket = schema.One(schema.Bytes, initialValue="")
 
     # The tickets we generated if we're a sharer
-    ticketReadOnly = schema.One(schema.String, initialValue="")
-    ticketReadWrite = schema.One(schema.String, initialValue="")
+    ticketReadOnly = schema.One(schema.Bytes, initialValue="")
+    ticketReadWrite = schema.One(schema.Bytes, initialValue="")
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  shareName=None, account=None, host=None, port=80,
-                 sharePath=None, username="", password="", useSSL=False,
+                 sharePath=None, username=u"", password=u"", useSSL=False,
                  ticket=""):
         super(WebDAVConduit, self).__init__(name, parent, kind, view)
 
@@ -1193,7 +1201,7 @@ class WebDAVConduit(ShareConduit):
             self.ticket = ticket
 
         if shareName is None:
-            self.shareName = str(UUID())
+            self.shareName = unicode(UUID())
         else:
             # @@@MOR Probably should remove any slashes, or warn if there are
             # any?
@@ -1237,29 +1245,29 @@ class WebDAVConduit(ShareConduit):
         (host, port, sharePath, username, password, useSSL) = \
             self._getSettings()
         if useSSL:
-            scheme = "https"
+            scheme = u"https"
             defaultPort = 443
         else:
-            scheme = "http"
+            scheme = u"http"
             defaultPort = 80
 
         if port == defaultPort:
-            url = "%s://%s" % (scheme, host)
+            url = u"%s://%s" % (scheme, host)
         else:
-            url = "%s://%s:%d" % (scheme, host, port)
+            url = u"%s://%s:%d" % (scheme, host, port)
         url = urlparse.urljoin(url, sharePath + "/")
         if includeShare:
             url = urlparse.urljoin(url, self.shareName)
 
         if privilege == 'readonly':
             if self.ticketReadOnly:
-                url = url + "?ticket=%s" % self.ticketReadOnly
+                url = url + u"?ticket=%s" % self.ticketReadOnly
         elif privilege == 'readwrite':
             if self.ticketReadWrite:
-                url = url + "?ticket=%s" % self.ticketReadWrite
+                url = url + u"?ticket=%s" % self.ticketReadWrite
         elif privilege == 'subscribed':
             if self.ticket:
-                url = url + "?ticket=%s" % self.ticket
+                url = url + u"?ticket=%s" % self.ticket
 
         return url
 
@@ -1270,9 +1278,9 @@ class WebDAVConduit(ShareConduit):
         serverHandle = self._getServerHandle()
         sharePath = self._getSharePath()
 
-        if sharePath == "/":
-            sharePath = "" # Avoid double-slashes on next line...
-        resourcePath = "%s/%s" % (sharePath, self.shareName)
+        if sharePath == u"/":
+            sharePath = u"" # Avoid double-slashes on next line...
+        resourcePath = u"%s/%s" % (sharePath, self.shareName)
 
         if self.share.format.fileStyle() == ImportExportFormat.STYLE_DIRECTORY:
             resourcePath += "/" + path
@@ -1286,7 +1294,7 @@ class WebDAVConduit(ShareConduit):
     def exists(self):
         result = super(WebDAVConduit, self).exists()
 
-        resource = self._resourceFromPath("")
+        resource = self._resourceFromPath(u"")
 
         try:
             result = self._getServerHandle().blockUntil(resource.exists)
@@ -1371,7 +1379,7 @@ class WebDAVConduit(ShareConduit):
 
     def destroy(self):
         if self.exists():
-            self._deleteItem("")
+            self._deleteItem(u"")
 
     def open(self):
         super(WebDAVConduit, self).open()
@@ -1615,12 +1623,12 @@ class SimpleHTTPConduit(WebDAVConduit):
 
     schema.kindInfo(displayName=u"Simple HTTP Share Conduit Kind")
 
-    lastModified = schema.One(schema.String, initialValue = '')
+    lastModified = schema.One(schema.Bytes, initialValue = '')
 
-    def get(self):
-        self._get()
+    def get(self, updateCallback=None):
+        self._get(updateCallback=updateCallback)
 
-    def _get(self):
+    def _get(self, updateCallback=None):
         self.connect()
 
         location = self.getLocation()
@@ -1800,27 +1808,27 @@ class WebDAVAccount(items.ContentItem):
             "mappings.\n",
     )
     username = schema.One(
-        schema.String, displayName = messages.USERNAME, initialValue = '',
+        schema.Text, displayName = messages.USERNAME, initialValue = u'',
     )
     password = schema.One(
-        schema.String,
+        schema.Text,
         displayName = messages.PASSWORD,
         description = 
             'Issues: This should not be a simple string. We need some solution for '
             'encrypting it.\n',
-        initialValue = '',
+        initialValue = u'',
     )
     host = schema.One(
-        schema.String,
+        schema.Text,
         displayName = messages.HOST,
         doc = 'The hostname of the account',
-        initialValue = '',
+        initialValue = u'',
     )
     path = schema.One(
-        schema.String,
+        schema.Text,
         displayName = messages.PATH,
         doc = 'Base path on the host to use for publishing',
-        initialValue = '',
+        initialValue = u'',
     )
     port = schema.One(
         schema.Integer,
@@ -1933,7 +1941,7 @@ class CloudXMLFormat(ImportExportFormat):
 
     schema.kindInfo(displayName=u"Cloud XML Import/Export Format Kind")
 
-    cloudAlias = schema.One(schema.String)
+    cloudAlias = schema.One(schema.Bytes)
 
 
     def __init__(self, name=None, parent=None, kind=None, view=None,

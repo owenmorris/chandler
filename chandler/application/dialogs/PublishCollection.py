@@ -5,8 +5,7 @@ import wx, twisted
 import M2Crypto
 import traceback, logging
 import os, urlparse, urllib
-import application.Globals as Globals
-import application.Utility as Utility
+from application import schema, Globals, Utility
 from osaf import sharing
 import zanshin.webdav
 import zanshin.util
@@ -77,8 +76,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         collName = sharing.getFilteredCollectionDisplayName(self.collection,
                                                             self.filterClasses)
-        wx.xrc.XRCCTRL(self,
-                       "TEXT_COLLNAME").SetLabel(collName)
+        wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
 
         self.currentAccount = sharing.getWebDAVAccount(self.view)
 
@@ -176,20 +174,6 @@ class PublishCollectionDialog(wx.Dialog):
         account = self.accountsControl.GetClientData(accountIndex)
         self.currentAccount = account
 
-
-    def _suggestName(self):
-        # Figure out a name that doesn't already exist, by appending a hyphen
-        # and a number
-
-        basename = self.collection.displayName
-        name = basename
-
-        counter = 1
-        while name in self.existing:
-            name = "%s-%d" % (basename, counter)
-            counter += 1
-
-        return name
 
 
     def OnManageDone(self, evt):
@@ -304,9 +288,14 @@ class PublishCollectionDialog(wx.Dialog):
 
         self.RadioItems.SetValue(False)
 
+    def updateCallback(self):
+        wx.Yield()
+        return self.cancelPressed
+
     def OnPublish(self, evt):
         # Publish the collection
 
+        self.cancelPressed = False
 
         # Update the UI by disabling/hiding various panels, and swapping in a
         # new set of buttons
@@ -318,14 +307,13 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
         publishingButton = wx.xrc.XRCCTRL(self, "BUTTON_PUBLISHING")
         publishingButton.Enable(False)
-        self.Bind(wx.EVT_BUTTON, self.OnPublishDone, id=wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.OnStopPublish, id=wx.ID_CANCEL)
 
         self._clearStatus()
         self._resize()
         wx.Yield()
 
         try:
-
 
             attrs_to_exclude = self._getAttributeFilterState()
             classes_to_include = self.filterClasses
@@ -334,8 +322,34 @@ class PublishCollectionDialog(wx.Dialog):
 
             self._showStatus(_(u"Wait for Sharing URLs...\n"))
             self._showStatus(_(u"Publishing collection to server..."))
+
+            if self.collection is schema.ns('osaf.app',
+                self.view).allCollection:
+
+                ext = _(u'items')
+                if classes_to_include:
+                    classString = classes_to_include[0]
+                    if classString == "osaf.pim.tasks.TaskMixin":
+                        ext = _(u'tasks')
+                    elif classString == "osaf.pim.mail.MailMessageMixin":
+                        ext = _(u'mail')
+                    elif classString == \
+                        "osaf.pim.calendar.Calendar.CalendarEventMixin":
+                        ext = _(u'calendar')
+
+                args = { 'username' : account.username, 'ext' : ext }
+
+                # This needs an apostrophe, but Cosmo doesn't support that yet:
+                basename = _(u"%(username)s %(ext)s") % args
+            else:
+                basename = self.collection.displayName
+
             shares = sharing.publish(self.collection, account,
-                                     classes_to_include, attrs_to_exclude)
+                                     classes_to_include=classes_to_include,
+                                     attrs_to_exclude=attrs_to_exclude,
+                                     basename=basename,
+                                     updateCallback=self.updateCallback)
+
             self._showStatus(_(u" done.\n"))
 
         except (sharing.SharingError, zanshin.error.Error,
@@ -384,6 +398,9 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCopy,
                   id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
         self._resize()
+
+    def OnStopPublish(self, evt):
+        self.cancelPressed = True
 
     def OnCancel(self, evt):
         self.EndModal(False)

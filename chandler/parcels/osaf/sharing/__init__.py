@@ -1,4 +1,5 @@
-import logging, urllib, urlparse
+import logging, urlparse
+# import urllib
 from application import schema, Utility
 from osaf import pim
 from repository.item.Monitors import Monitors
@@ -16,11 +17,8 @@ from Sharing import *
 from WebDAV import *
 from ICalendar import *
 
-# A temporary switch to disable CalDAV mode:
-USECALDAV = True
-
 # What to name the CloudXML subcollection on a CalDAV server:
-SUBCOLLECTION = ".chandler"
+SUBCOLLECTION = u".chandler"
 
 # What attributes to filter out in the CloudXML subcollection on a CalDAV
 # server (@@@MOR This should change to using a schema decoration instead
@@ -54,17 +52,10 @@ class UIDMap(schema.Item):
                 except ValueError:
                     # Another event with this uid is in the map.
                     pass
-                    # otherItem = self.items.getByAlias(uid)
-                    # self.items.remove(otherItem)
-                    # self.items.append(item, uid)
-
-                # logger.debug("uid_map -- added item %s, %s",
-                #     item.getItemDisplayName(), uid)
 
         elif op == 'remove':
             self.items.remove(item)
-            # logger.debug("uid_map -- Removed item %s",
-            #     item.getItemDisplayName())
+
 
 
 def installParcel(parcel, old_version=None):
@@ -95,9 +86,9 @@ def getExistingResources(account):
     skipLen = len(path)
     for resource in handle.blockUntil(parent.getAllChildren):
         path = resource.path[skipLen:]
-        path = path.strip("/")
+        path = path.strip(u"/")
         if path:
-            path = urllib.unquote_plus(path).decode('utf-8')
+            # path = urllib.unquote_plus(path).decode('utf-8')
             existing.append(path)
 
     # @@@ [grant] Localized sort?
@@ -115,7 +106,7 @@ def _uniqueName(basename, existing):
 
 
 def publish(collection, account, classes_to_include=None,
-            attrs_to_exclude=None):
+            attrs_to_exclude=None, basename=None, updateCallback=None):
 
     """
     Publish a collection, automatically determining which conduits/formats
@@ -135,11 +126,12 @@ def publish(collection, account, classes_to_include=None,
     handle = conduit._getServerHandle()
     resource = handle.getResource(location)
 
-    logger.debug('Examining %s ...', location)
+    logger.debug('Examining %s ...', location.encode('ascii', 'replace'))
     exists = handle.blockUntil(resource.exists)
     if not exists:
         logger.debug("...doesn't exist")
-        raise NotFound(_(u"%(location)s does not exist") % {'location': location})
+        raise NotFound(_(u"%(location)s does not exist") %
+            {'location': location})
 
     isCalendar = handle.blockUntil(resource.isCalendar)
     logger.debug('...Calendar?  %s', isCalendar)
@@ -164,14 +156,13 @@ def publish(collection, account, classes_to_include=None,
     try:
 
         if isCalendar:
-            # We've been handed a calendar directly.  I think we need to just
-            # publish directly into this calendar collection rather than making
-            # a new one
+            # We've been handed a calendar directly.  Just publish directly
+            # into this calendar collection rather than making a new one.
             # Create a CalDAV share with empty sharename, doing a GET and PUT
 
             share = newOutboundShare(view, collection,
                                      classes=classes_to_include,
-                                     shareName="",
+                                     shareName=u"",
                                      account=account,
                                      useCalDAV=True)
 
@@ -187,16 +178,15 @@ def publish(collection, account, classes_to_include=None,
             shares.append(share)
             share.displayName = collection.displayName
 
-            share.sync()
+            share.sync(updateCallback=updateCallback)
 
         else:
 
             # determine a share name
             existing = getExistingResources(account)
-            name = _uniqueName(collection.displayName, existing)
-            safe_name = urllib.quote_plus(name.encode('utf-8'))
+            name = _uniqueName(basename or collection.displayName, existing)
 
-            if USECALDAV and ('calendar-access' in dav or 'MKCALENDAR' in allowed):
+            if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
 
                 # We're speaking to a CalDAV server
 
@@ -205,7 +195,7 @@ def publish(collection, account, classes_to_include=None,
 
                 share = newOutboundShare(view, collection,
                                          classes=classes_to_include,
-                                         shareName=safe_name,
+                                         shareName=name,
                                          account=account,
                                          useCalDAV=True)
 
@@ -225,7 +215,7 @@ def publish(collection, account, classes_to_include=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put()
+                share.put(updateCallback=updateCallback)
 
                 if supportsTickets:
                     share.conduit.createTickets()
@@ -233,11 +223,11 @@ def publish(collection, account, classes_to_include=None,
                 # Create a subcollection to contain the cloudXML versions of
                 # the shared items
 
-                safe_sub_name = u"%s/%s" % (safe_name, SUBCOLLECTION)
+                sub_name = u"%s/%s" % (name, SUBCOLLECTION)
 
                 share = newOutboundShare(view, collection,
                                          classes=classes_to_include,
-                                         shareName=safe_sub_name,
+                                         shareName=sub_name,
                                          account=account)
 
                 if attrs_to_exclude:
@@ -255,7 +245,7 @@ def publish(collection, account, classes_to_include=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put()
+                share.put(updateCallback=updateCallback)
 
                 # Let's place the xml share first in the ref collection
                 # so that it gets synced before the others
@@ -268,7 +258,7 @@ def publish(collection, account, classes_to_include=None,
                 # Create a WebDAV conduit / cloudxml format
                 share = newOutboundShare(view, collection,
                                          classes=classes_to_include,
-                                         shareName=safe_name,
+                                         shareName=name,
                                          account=account)
 
                 try:
@@ -284,17 +274,17 @@ def publish(collection, account, classes_to_include=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put()
+                share.put(updateCallback=updateCallback)
                 if supportsTickets:
                     share.conduit.createTickets()
 
-                ics_name = "%s.ics" % safe_name
+                ics_name = u"%s.ics" % name
                 share = newOutboundShare(view, collection,
                                          classes=classes_to_include,
                                          shareName=ics_name,
                                          account=account)
                 shares.append(share)
-                share.displayName = "%s.ics" % name
+                share.displayName = u"%s.ics" % name
                 share.format = ICalendarFormat(parent=share)
                 share.mode = "put"
 
@@ -302,7 +292,7 @@ def publish(collection, account, classes_to_include=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put()
+                share.put(updateCallback=updateCallback)
                 if supportsTickets:
                     share.conduit.createTickets()
 
@@ -325,8 +315,8 @@ def publish(collection, account, classes_to_include=None,
 
 
 
-def subscribe(view, url, accountInfoCallback=None, username=None,
-              password=None):
+def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
+              username=None, password=None):
 
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
@@ -335,7 +325,7 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
         for part in query.split('&'):
             (arg, value) = part.split('=')
             if arg == 'ticket':
-                ticket = value
+                ticket = value.encode('utf8')
                 break
 
     if ticket:
@@ -343,10 +333,10 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
 
         # Get the parent directory of the given path:
         # '/dev1/foo/bar' becomes ['dev1', 'foo']
-        pathList = path.strip('/').split('/')
+        pathList = path.strip(u'/').split(u'/')
         parentPath = pathList[:-1]
         # ['dev1', 'foo'] becomes "dev1/foo"
-        parentPath = "/".join(parentPath)
+        parentPath = u"/".join(parentPath)
         shareName = pathList[-1]
 
     else:
@@ -365,9 +355,9 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
 
             # Get the parent directory of the given path:
             # '/dev1/foo/bar' becomes ['dev1', 'foo']
-            parentPath = path.strip('/').split('/')[:-1]
+            parentPath = path.strip(u'/').split(u'/')[:-1]
             # ['dev1', 'foo'] becomes "dev1/foo"
-            parentPath = "/".join(parentPath)
+            parentPath = u"/".join(parentPath)
 
             if accountInfoCallback:
                 # Prompt the user for username/password/description:
@@ -388,8 +378,8 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
             return None
 
         # compute shareName relative to the account path:
-        accountPathLen = len(account.path.strip("/"))
-        shareName = path.strip("/")[accountPathLen:]
+        accountPathLen = len(account.path.strip(u"/"))
+        shareName = path.strip(u"/")[accountPathLen:]
 
     if account:
         conduit = WebDAVConduit(view=view, account=account,
@@ -418,7 +408,7 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
                                               account=account)
             share.mode = "get"
             try:
-                share.sync()
+                share.sync(updateCallback=updateCallback)
 
                 try:
                     share.contents.shares.append(share, 'main')
@@ -520,7 +510,7 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
                 ticket=ticket)
 
         try:
-            share.sync()
+            share.sync(updateCallback=updateCallback)
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -565,7 +555,7 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
                 subShare.filterAttributes.append(attr)
 
             try:
-                subShare.conduit._get()
+                subShare.conduit._get(updateCallback=updateCallback)
                 contents = subShare.contents
 
             except Exception, err:
@@ -591,7 +581,7 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
                 useSSL=useSSL, ticket=ticket)
 
         try:
-            share.conduit._get()
+            share.conduit._get(updateCallback=updateCallback)
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -608,8 +598,8 @@ def subscribe(view, url, accountInfoCallback=None, username=None,
         if not isReadOnly:
             try:
                 if subShare is not None:
-                    subShare.conduit._put()
-                share.conduit._put()
+                    subShare.conduit._put(updateCallback=updateCallback)
+                share.conduit._put(updateCallback=updateCallback)
                 view.commit()
                 if subShare is not None:
                     subShare.conduit.syncVersion = view.itsVersion
@@ -647,6 +637,7 @@ def restoreFromAccount(account):
 
     for name in existing:
 
+        # name = urllib.quote_plus(name).decode('utf-8')
         url = accountUrl + name
 
         share = findMatchingShare(view, url)
@@ -974,6 +965,8 @@ def syncCollection(collection, firstTime=False):
 
     view.commit()
 
+    stats = {}
+
     try:
         # perform the 'get' operations of all associated shares
         for share in collection.shares:
@@ -1047,22 +1040,22 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
     #XXX: [i18n] logic needs to be refactored. It is impossible for a translator to 
     #     determine context from these sentence fragments.
 
-    ext = ""
+    ext = u""
 
     if len(filterClasses) > 0:
         classString = filterClasses[0] # Only look at the first class
-        if classString == "osaf.pim.TaskMixin":
+        if classString == "osaf.pim.tasks.TaskMixin":
            ext = _(u" tasks")
         if classString == "osaf.pim.mail.MailMessageMixin":
            ext = _(u" mail")
-        if classString == "osaf.pim.CalendarEventMixin":
+        if classString == "osaf.pim.calendar.Calendar.CalendarEventMixin":
            ext = _(u" calendar")
 
     name = collection.displayName
 
     if collection is schema.ns('osaf.app', collection.itsView).allCollection:
         name = _(u"My")
-        if ext == "":
+        if ext == u"":
             ext = _(u" items")
 
     name += ext

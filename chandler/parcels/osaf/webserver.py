@@ -36,7 +36,7 @@ class Server(schema.Item):
     )
 
     path = schema.One(
-        schema.String,
+        schema.Text,
         displayName=_(u"Path"),
         doc="The filesystem path pointing to the server's doc root.  This "
             "path is relative to the current working directory, or it can "
@@ -114,7 +114,7 @@ class Resource(schema.Item):
          server.
     """
 
-    location = schema.One(schema.String, displayName=_(u"Location"))
+    location = schema.One(schema.Text, displayName=_(u"Location"))
 
     server = schema.One(
         Server,
@@ -144,9 +144,9 @@ class Directory(schema.Item):
          attribute to a web server item.
     """
 
-    location = schema.One(schema.String, displayName=_(u"Location"))
+    location = schema.One(schema.Text, displayName=_(u"Location"))
 
-    path = schema.One(schema.String, displayName=_(u"Path"))
+    path = schema.One(schema.Text, displayName=_(u"Path"))
 
     server = schema.One(
         Server,

@@ -8,9 +8,7 @@ import sys, os
 from types import GeneratorType
 from code import interact
 
-import application.schema as schema
-import application.Utility as Utility
-import application.Globals as Globals
+from application import schema, Utility, Globals
 from repository.item.Item import Item
 from repository.persistence.DBRefs import DBRefList
 
