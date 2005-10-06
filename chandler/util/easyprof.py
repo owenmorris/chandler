@@ -20,10 +20,16 @@ class Profile(object):
     def __init__(self, profilefile):
         
         self.profiler = hotshot.Profile(profilefile)
+        self.profiler_active = False
 
     def profiled(self, method):
         def profile_me(*args, **kwds):
-            self.profiler.runcall(method, *args, **kwds)
+            if self.profiler_active:
+                method(*args, **kwds)
+            else:
+                self.profiler_active = True
+                self.profiler.runcall(method, *args, **kwds)
+                self.profiler_active = False
         return profile_me
 
 def QuickProfile(profilefile):
