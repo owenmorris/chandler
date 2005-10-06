@@ -702,6 +702,14 @@ class MainView(View):
         for server in webserver.Server.iterItems(view=self.itsView):
             server.startup()
 
+    def onShowLogWindowEvent(self, event):
+        # Test menu item
+        logs = [
+            os.path.join(Globals.options.profileDir, 'chandler.log'),
+            os.path.join(Globals.options.profileDir, 'twisted.log')
+        ]
+        application.dialogs.Util.displayLogWindow(wx.GetApp().mainFrame, logs)
+
     def onLoadLoggingConfigEvent(self, event):
         # Test menu item
         wx.GetApp().ChooseLogConfig()

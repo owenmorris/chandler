@@ -158,6 +158,11 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
+    ShowLogWindowEvent = \
+        BlockEvent.template('ShowLogWindow',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
+    # from //parcels/osaf/views/main
     ActivateWebserverEvent = \
         BlockEvent.template('ActivateWebserver',
             dispatchEnum='SendToBlockByName',
@@ -809,6 +814,10 @@ def make_mainview(parcel):
                                 event=ShowPyCrustEvent,
                                 title=u'Show Python shell with object browser...',
                                 helpString=u'Brings up an interactive Python shell and object browser'),
+                            MenuItem.template('ShowLogWindowItem',
+                                event=ShowLogWindowEvent,
+                                title=u'Show log window',
+                                helpString=u'Displays the contents of chandler.log and twisted.log'),
                             MenuItem.template('ActivateWebserverItem',
                                 event=ActivateWebserverEvent,
                                 title=u'Activate built-in webserver',

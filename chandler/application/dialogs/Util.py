@@ -261,6 +261,75 @@ class promptUserDialog(wx.Dialog):
         return self.textControl.GetValue()
 
 
+def displayLogWindow(frame, logList):
+
+    win = LogWindow(frame, -1, logList)
+    win.CenterOnScreen()
+    win.ShowModal()
+    win.Destroy()
+
+class LogWindow(wx.Dialog):
+    def __init__(self, parent, ID, logList, size=wx.DefaultSize,
+           pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
+
+        # Instead of calling wx.Dialog.__init__ we precreate the dialog
+        # so we can set an extra style that must be set before
+        # creation, and then we create the GUI dialog using the Create
+        # method.
+        pre = wx.PreDialog()
+        pre.Create(parent, ID, "Logs", pos, size, style)
+
+        # This next step is the most important, it turns this Python
+        # object into the real wrapper of the dialog (instead of pre)
+        # as far as the wxPython extension is concerned.
+        self.this = pre.this
+
+        # contents
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.forClipboard = u""
+
+        for log in logList:
+
+            logLines = file(log, "r").readlines()[-500:]
+            combined = "".join(logLines)
+            label = wx.StaticText(self, -1, log)
+            sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+            self.forClipboard += "==> %s <==\n\n" % log
+
+            text = wx.TextCtrl(self, -1,
+             combined,
+             pos=wx.DefaultPosition, size=[800,200], style=wx.TE_MULTILINE)
+            text.ShowPosition(text.GetLastPosition())
+            self.forClipboard += "%s\n\n" % combined
+
+            sizer.Add(text, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        btn = wx.Button(self, wx.ID_OK, u" " + messages.OK + u" ")
+        btn.SetDefault()
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        btn = wx.Button(self, -1, _(u"Copy to Clipboard"))
+        self.Bind(wx.EVT_BUTTON, self.OnCopy, id=btn.GetId())
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        sizer.Fit(self)
+
+    def OnCopy(self, evt):
+        gotClipboard = wx.TheClipboard.Open()
+        if gotClipboard:
+            wx.TheClipboard.SetData(wx.TextDataObject(self.forClipboard))
+            wx.TheClipboard.Close()
+
 
 # A simple "ok/cancel" dialog
 
