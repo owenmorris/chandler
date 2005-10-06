@@ -613,6 +613,17 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         self.widget.wxSynchronizeWidget()
 
 
+    def onSelectAllEvent(self, event):
+        super(CalendarBlock, self).onSelectAllEvent(event)
+
+        currentRange = self.GetCurrentDateRange()
+        newitems = []
+        for item in self.contents:
+            # now add visible generated items to the selection
+            newitems.extend(item.getOccurrencesBetween(*currentRange))
+
+        self.selection.extend(newitems)
+
     def onSelectedDateChangedEvent(self, event):
         """
         Sets the selected date range and synchronizes the widget.
