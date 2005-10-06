@@ -182,6 +182,17 @@ class wxApplication (wx.App):
             splash.updateGauge('repository')
         repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir)
 
+        if Globals.options.askCreate and \
+           not Globals.options.create:
+            dlg = wx.MessageDialog(None, 
+                                   _(u"Destroy existing repository (discarding "
+                                     u"all existing data and preferences) and "
+                                     u"create a new one?"), 
+                                   _(u"You said '--askCreate'..."),
+                                   wx.YES_NO | wx.ICON_QUESTION)
+            Globals.options.create = dlg.ShowModal() == wx.ID_YES
+            dlg.Destroy()
+            
         try:
             view = Utility.initRepository(repoDir, Globals.options)
         except RepositoryVersionError:

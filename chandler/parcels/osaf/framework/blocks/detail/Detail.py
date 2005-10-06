@@ -975,23 +975,28 @@ class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
 
 class CalendarConditionalLabelBlock(StaticTextLabel):
     def shouldShow (self, item):
-        return item.isAttributeModifiable('startTime') \
-               and not (item.allDay or item.anyTime)
+        return not item.allDay and \
+               (item.isAttributeModifiable('startTime') \
+                or not item.anyTime)
         
 class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
-        return item.isAttributeModifiable('startTime') \
-               and not (item.allDay or item.anyTime)
+        return not item.allDay and \
+               (item.isAttributeModifiable('startTime') \
+                or not item.anyTime)
 
 class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('reminders') \
                or len(item.reminders) > 0
 
+class CalendarTimeZoneSpacerBlock (StaticTextLabel):
+    def shouldShow (self, item):
+        return not (item.allDay or item.anyTime)
+
 class CalendarTimeZoneAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
-        return item.isAttributeModifiable('startTime') \
-               and not (item.allDay or item.anyTime)
+        return not (item.allDay or item.anyTime)
 
 
 # Centralize the recurrence blocks' visibility decisions
@@ -1032,6 +1037,10 @@ class CalendarRecurrencePopupAreaBlock(DetailSynchronizedContentItemDetail):
 class CalendarRecurrenceSpacer2Area(DetailSynchronizer, ControlBlocks.StaticText):
     def shouldShow(self, item):
         return (recurrenceVisibility(item) & (showPopup | showEnds)) != 0
+
+class CalendarRecurrenceCustomSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
+    def shouldShow (self, item):
+        return (recurrenceVisibility(item) & showCustom) != 0
 
 class CalendarRecurrenceCustomAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):

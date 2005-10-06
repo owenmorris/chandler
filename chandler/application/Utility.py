@@ -25,8 +25,7 @@ import i18n
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
 
-SCHEMA_VERSION = "101" # bkirsch: continued migration of schema from String
-                       #          to Text and Bytes
+SCHEMA_VERSION = "102" # stearns: DV block changes
 
 logger = None # initialized in initLogging()
 
@@ -111,6 +110,7 @@ def initOptions(**kwds):
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
         'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
+        'askCreate':  ('',   '--askCreate',  'b', False, None, 'Offer to create a new repository'),
         'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
         'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
         'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
