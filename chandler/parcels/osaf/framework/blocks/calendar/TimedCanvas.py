@@ -61,7 +61,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.Refresh()
         event.Skip()
 
-
     def OnInit(self):
         super (wxTimedEventsCanvas, self).OnInit()
         
@@ -70,6 +69,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+
+        self.localeHourStrings = list(self.GetLocaleHourStrings(range(24)))
 
     def ScaledScroll(self, dx, dy):
         (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
@@ -114,10 +115,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         timeFormatter = DateFormat.createTimeInstance()
         hourFP = FieldPosition(DateFormat.HOUR1_FIELD)
         dummyDate = date.today()
-        defaultTzinfo = TimeZoneInfo.get(view=self.blockItem.itsView).default
-        
+                
         for hour in hourrange:
-            timedate = time(hour=hour, tzinfo=defaultTzinfo)
+            timedate = time(hour=hour)
             hourdate = datetime.combine(dummyDate, timedate)
             timeString = timeFormatter.format(hourdate, hourFP)
             (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
@@ -146,7 +146,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         halfHourHeight = self.hourHeight/2
 
         # we'll need these for hour formatting
-        for hour,hourString in self.GetLocaleHourStrings(range(24)):
+        for hour,hourString in self.localeHourStrings:
 
             if hour > 0:
                 # Draw the hour legend
@@ -194,7 +194,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             rects = \
                 TimedCanvasItem.GenerateBoundsRects(self,
                                                     self._bgSelectionStartTime,
-                                                    self._bgSelectionEndTime,	
+                                                    self._bgSelectionEndTime,
                                                     self.dayWidth)
             for rect in rects:
                 dc.DrawRectangleRect(rect)
@@ -263,7 +263,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # sorted by startTime. If no conflicts, this is an O(n) operation
         # (note that as of Python 2.4, sorts are stable, so this remains safe)
         self.canvasItemList.sort(key=TimedCanvasItem.GetIndentLevel)
-        
+
     def DrawCells(self, dc):
         styles = self.blockItem.calendarContainer
         

@@ -1,4 +1,4 @@
-"""
+""
 Canvas for calendaring blocks
 """
 
@@ -603,7 +603,7 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
 
         if item in collections:
             widget.Refresh()
-    
+
     def onSelectWeekEvent(self, event):
         self.dayMode = not event.arguments['doSelectWeek']
         if self.dayMode:
@@ -769,7 +769,6 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         else:
             date = date.astimezone(defaultTzinfo)
 
-        defaultTzinfo = ICUtzinfo.getDefault()
         if nextDate.tzinfo is None:
             nextDate = nextDate.replace(tzinfo=defaultTzinfo)
         else:
@@ -1294,7 +1293,7 @@ class CalendarControl(CalendarBlock):
 
     def onSelectedDateChangedEvent(self, event):
         super(CalendarControl, self).onSelectedDateChangedEvent(event)
-        
+
     def onSelectWeekEvent(self, event):
         """
         I believe, as of now only calctrl sends SelectWeek events anyways.. but just in case...
@@ -1466,8 +1465,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
     def ResizeHeader(self):
         drawInfo = self
+        self.weekColumnHeader.Freeze()
         for (i,width) in enumerate(drawInfo.columnWidths):
             self.weekColumnHeader.SetUIExtent(i, (0,width))
+        self.weekColumnHeader.Thaw()
 
     def OnSize(self, event):
         self._doDrawingCalculations()

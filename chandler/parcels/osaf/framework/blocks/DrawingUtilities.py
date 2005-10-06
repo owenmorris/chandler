@@ -12,7 +12,7 @@ def color2rgb(red, green, blue):
     return red/255.0, green/255.0, blue/255.0
 
 def rgb2color(r, g, b):
-    return r*255, g*255, b*255
+    return int(r*255), int(g*255), int(b*255)
 
 def SetTextColorsAndFont(grid, attr, dc, isSelected):
     """
