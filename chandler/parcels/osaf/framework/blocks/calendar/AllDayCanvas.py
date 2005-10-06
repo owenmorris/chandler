@@ -114,27 +114,36 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         dc.SetFont(styles.eventLabelFont)
         
-        selectedBoxes = []
         brushOffset = self.GetPlatformBrushOffset()
 
         
-        def draw(canvasItem, selected):	
-            pastEnd = Calendar.datetimeOp(canvasItem.GetItem().endTime, '>',
-                                          self.blockItem.rangeEnd)
-            canvasItem.Draw(dc, styles, brushOffset, selected, rightSideCutOff=pastEnd)
+        def drawCanvasItems(canvasItems, selected):
+            for canvasItem in canvasItems:
+                pastEnd = Calendar.datetimeOp(canvasItem.GetItem().endTime,
+                                              '>',
+                                              self.blockItem.rangeEnd)
+                canvasItem.Draw(dc, styles, brushOffset,
+                                selected, rightSideCutOff=pastEnd)
 
-        selection = self.blockItem.selection
-        for canvasItem in self.canvasItemList:
-            # save the selected box to be drawn last
-            item = canvasItem.GetItem()
-            if item in selection:
-                selectedBoxes.append(canvasItem)
-            else:
-                draw(canvasItem, False)
+        unselectedBoxes = []
         
-        for selectedBox in selectedBoxes:
-            draw(selectedBox, True)
+        if self.blockItem.selectAllMode:
+            selectedBoxes = self.canvasItemList
+        else:
+            selection = self.blockItem.selection
+            selectedBoxes = []
+            for canvasItem in self.canvasItemList:
+                
+                # save the selected box to be drawn last
+                item = canvasItem.GetItem()
+                if item in selection:
+                    selectedBoxes.append(canvasItem)
+                else:
+                    unselectedBoxes.append(canvasItem)
 
+        drawCanvasItems(unselectedBoxes, False)
+        drawCanvasItems(selectedBoxes, True)
+            
     @staticmethod
     def GetColumnRange(item, (startDateTime, endDateTime)):
         # get first and last column of its span

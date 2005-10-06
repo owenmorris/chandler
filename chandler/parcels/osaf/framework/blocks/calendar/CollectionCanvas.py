@@ -380,6 +380,10 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 hitBox = box
                 break
 
+        # at the moment, any kind of left-click will change
+        # the selection in some way, taking us out of "select-all" mode
+        self.blockItem.selectAllMode = False
+        
         if hitBox:
             item = hitBox.GetItem()
             if multipleSelection:
@@ -388,6 +392,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 # XXX This it the first time wxCollectionCanvas
                 # knows about selection, is this ok?
                 selection = self.blockItem.selection
+                
                 if item in selection:
                     self.OnRemoveFromSelection(item)
                 else:
@@ -672,6 +677,13 @@ class CollectionBlock(Block.RectangularChild):
                                 doc = "List of currently selected items",
                                 initialValue = [])
 
+    selectAllMode = schema.One(schema.Boolean,
+                               doc = "True if we're selecting all events. "
+                               "This allows the UI to make recurring events "
+                               "look like they're selected even if they "
+                               "don't appear in self.selection",
+                               initialValue=False)
+    
     def __init__(self, *arguments, **keywords):
         super(CollectionBlock, self).__init__(*arguments, **keywords)
         self.selection = []
@@ -697,13 +709,16 @@ class CollectionBlock(Block.RectangularChild):
         NB this allows a selection on an item not in the current range.
         """
         self.selection = event.arguments['items']
+        self.selectAllMode = event.arguments.get('selectAll', False)
 
         
     def postSelectItemsBroadcast(self):
         """
         Convenience method for posting a selection changed event.
         """
-        self.postEventByName('SelectItemsBroadcast', {'items': self.selection})
+        self.postEventByName('SelectItemsBroadcast',
+                             {'items': self.selection,
+                              'selectAll': self.selectAllMode})
 
     def SelectCollectionInSidebar(self, collection):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
@@ -719,6 +734,7 @@ class CollectionBlock(Block.RectangularChild):
 
     def onSelectAllEvent(self, event):
         self.selection = list(self.contents)
+        self.selectAllMode = True
         self.postSelectItemsBroadcast()
 
     def onSelectAllEventUpdateUI(self, event):

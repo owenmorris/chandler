@@ -271,22 +271,30 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dc.SetTextForeground(wx.BLACK)
         dc.SetBrush(wx.WHITE_BRUSH)
 
-        selectedBoxes = []
         # finally, draw the items
         brushOffset = self.GetPlatformBrushOffset()
-        for canvasItem in self.canvasItemList:
 
-            item = canvasItem.GetItem()
-            
-            # save the selected box to be drawn last
-            if item in self.blockItem.selection:
-                selectedBoxes.append(canvasItem)
-            else:
-                canvasItem.Draw(dc, styles,  brushOffset, False)
-            
-        # now draw the current item on top of everything else
-        for selectedBox in selectedBoxes:
-            selectedBox.Draw(dc, styles, brushOffset, True)
+        def drawCanvasItems(canvasItems, selected):
+            for canvasItem in canvasItems:
+                canvasItem.Draw(dc, styles, brushOffset, selected)
+
+        unselectedBoxes = []
+        if self.blockItem.selectAllMode:
+            selectedBoxes = self.canvasItemList
+        else:
+            selectedBoxes = []
+            for canvasItem in self.canvasItemList:
+
+                item = canvasItem.GetItem()
+
+                # save the selected box to be drawn last
+                if item in self.blockItem.selection:
+                    selectedBoxes.append(canvasItem)
+                else:
+                    unselectedBoxes.append(canvasItem)
+
+        drawCanvasItems(unselectedBoxes, False)
+        drawCanvasItems(selectedBoxes, True)
 
     def CheckConflicts(self):
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
