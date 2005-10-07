@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.c import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, SingleRef, _hash, _combine
 from chandlerdb.item.c import Nil, Default, CValues
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
@@ -12,7 +12,6 @@ from chandlerdb.item.ItemValue import ItemValue
 from repository.util.Path import Path
 from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
-from repository.util.SingleRef import SingleRef
 from repository.schema.TypeHandler import TypeHandler
 
 

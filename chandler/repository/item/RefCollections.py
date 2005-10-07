@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.c import UUID, _hash, _combine
 from repository.util.Path import Path
-from repository.util.LinkedMap import LinkedMap
+from repository.util.LinkedMap import LinkedMap, CLink
 from repository.item.Indexed import Indexed
 from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemError import *
@@ -22,22 +22,21 @@ class RefList(LinkedMap, Indexed):
     used to name and access the references contained by a ref list.
     """
     
-    def __init__(self, item, name, otherName, readOnly, new):
+    def __init__(self, item, name, otherName, readOnly, lmflags):
         """
         The constructor for this class. A RefList should not be instantiated
         directly but created through the item and attribute it is going to
         be used with instead, as for example with: C{item.name = []}.
         """
         
-        super(RefList, self).__init__(new)
+        super(RefList, self).__init__(lmflags)
         self._init_indexed()
-
         self._item = None
         self._name = name
         self._otherName = otherName
 
         if item is not None:
-            self._setItem(item, new)
+            self._setItem(item, lmflags & LinkedMap.NEW != 0)
 
         if readOnly:
             self._flags |= RefList.READONLY
@@ -91,14 +90,14 @@ class RefList(LinkedMap, Indexed):
 
         for key in self.iterkeys():
             link = self._get(key)
-            copyOther = copyFn(copyItem, link.getValue(self), policy)
+            copyOther = copyFn(copyItem, link.value, policy)
             if copyOther is not Nil:
                 if copyOther not in refList:
-                    refList.append(copyOther, link._alias)
+                    refList.append(copyOther, link.alias)
                 else:
                     refList.placeItem(copyOther, refList.last()) # copy order
-                    if link._alias is not None:                  # and alias
-                        refList.setAlias(copyOther, link._alias)
+                    if link.alias is not None:                  # and alias
+                        refList.setAlias(copyOther, link.alias)
 
         return refList
 
@@ -224,10 +223,10 @@ class RefList(LinkedMap, Indexed):
 
         try:
             sd = self._setFlag(RefList.SETDIRTY, False)
-            key = self.firstKey()
-            while key is not None:
-                del self[key]
-                key = self.firstKey()
+            item = self.first()
+            while item is not None:
+                self.remove(item)
+                item = self.first()
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 
@@ -240,14 +239,11 @@ class RefList(LinkedMap, Indexed):
         for item in self:
             print item._repr_()
 
-    def _getRef(self, key, load=True):
-
-        return self.__getitem__(key, load)
-
     def _setRef(self, other, alias=None):
 
         key = other.itsUUID
-        link = super(RefList, self).__setitem__(key, other, None, None, alias)
+        link = CLink(self, other, None, None, alias);
+        self[key] = link
 
         if self._indexes:
             for index in self._indexes.itervalues():
@@ -256,10 +252,6 @@ class RefList(LinkedMap, Indexed):
         self._setDirty(True)
 
         return other
-
-    def __setitem__(self, key, value):
-
-        raise AssertionError, '%s: direct set not supported, use append' %(self)
 
     def placeItem(self, item, after, *indexNames):
         """
@@ -352,6 +344,7 @@ class RefList(LinkedMap, Indexed):
 
         self._item._references._removeValue(self._name, self[key],
                                             self._otherName)
+
     def _removeRef_(self, other):
 
         if self._flags & RefList.READONLY:
@@ -386,7 +379,7 @@ class RefList(LinkedMap, Indexed):
         if ref is None:
             return False
         
-        view = self._getView()
+        view = self._item.itsView
             
         try:
             loading = view._setLoading(True)
@@ -394,10 +387,12 @@ class RefList(LinkedMap, Indexed):
                 other = view[key]
             except KeyError:
                 raise DanglingRefError, (self._item, self._name, key)
-            
-            super(RefList, self).__setitem__(key, other,
-                                             ref[0], ref[1], ref[2])
-                    
+
+            previousKey, nextKey, alias = ref
+            self._dict[key] = CLink(self, other, previousKey, nextKey, alias)
+            if alias is not None:
+                self._aliases[alias] = key
+
             return True
         finally:
             view._setLoading(loading, True)
@@ -442,7 +437,7 @@ class RefList(LinkedMap, Indexed):
         @return: the alias string or None if the item is not aliased
         """
 
-        return self._get(item._uuid)._alias
+        return self._get(item._uuid).alias
 
     def setAlias(self, item, alias):
 
@@ -504,10 +499,10 @@ class RefList(LinkedMap, Indexed):
         refs = self._item._references
         for key in self.iterkeys():
             link = self._get(key)
-            refs._xmlRef(key, link.getValue(self),
+            refs._xmlRef(key, link.value,
                          generator, False, version, {},
                          previous=link._previousKey, next=link._nextKey,
-                         alias=link._alias)
+                         alias=link.alias)
 
     def _saveValues(self, version):
         raise NotImplementedError, "%s._saveValues" %(type(self))
@@ -657,13 +652,15 @@ class RefList(LinkedMap, Indexed):
         for key in self.iterkeys():
             link = self._get(key)
             hash = _combine(hash, key._hash)
-            if link._alias is not None:
-                hash = _combine(hash, _hash(link._alias))
+            if link.alias is not None:
+                hash = _combine(hash, _hash(link.alias))
 
         return hash
     
-    SETDIRTY = 0x0002
-    READONLY = 0x0004
+    #   NEW  = 0x0001 (defined on LinkedMap)
+    #   LOAD = 0x0002 (defined on LinkedMap)
+    SETDIRTY = 0x0004
+    READONLY = 0x0008
 
 
 class TransientRefList(RefList):
@@ -674,7 +671,7 @@ class TransientRefList(RefList):
     def __init__(self, item, name, otherName, readOnly):
 
         super(TransientRefList, self).__init__(item, name, otherName, readOnly,
-                                               True)
+                                               LinkedMap.NEW)
 
     def linkChanged(self, link, key):
         pass
@@ -692,11 +689,11 @@ class TransientRefList(RefList):
 
         key = item._uuid
 
-        if self.has_key(key, load=False):
-            link = self._get(key, load=False)
+        if self.has_key(key, False):
+            link = self._get(key, False)
             if link is not None:
-                if link._alias is not None:
-                    del self._aliases[link._alias]
+                if link.alias is not None:
+                    del self._aliases[link.alias]
                     self._remove(key)                   
             else:
                 raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())

@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from new import classobj
 
-from chandlerdb.util.c import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, SingleRef, _hash, _combine
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
 from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
@@ -19,7 +19,6 @@ from repository.item.PersistentCollections import \
     PersistentCollection, PersistentDict
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
-from repository.util.SingleRef import SingleRef
 from repository.schema.TypeHandler import TypeHandler
 from repository.item.Query import KindQuery
 
@@ -490,10 +489,10 @@ class Kind(Item):
 
             for uuid in inheritedAttributes.iterkeys():
                 link = inheritedAttributes._get(uuid)
-                name = link._alias
+                name = link.alias
                 if (attributes is None or
                     attributes.resolveAlias(name) is None):
-                    attribute = link.getValue(self)
+                    attribute = link.value
                     for kind in attribute.getAttributeValue('kinds', attribute._references):
                         if self.isKindOf(kind):
                             break

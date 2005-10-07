@@ -4,89 +4,15 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import cStringIO
+
+from chandlerdb.util.c import CLinkedMap, CLink
 
 
-class LinkedMap(dict):
-
-    class link(object):
-
-        __slots__ = ('_previousKey', '_nextKey', '_value', '_alias')
-
-        def __init__(self, value):
-
-            self._previousKey = self._nextKey = None
-            self._value = value
-            self._alias = None
-
-        def __repr__(self):
-
-            return "<link: %s>" %(self._value.__repr__())
-
-        def _copy_(self, orig):
-
-            self._previousKey = orig._previousKey
-            self._nextKey = orig._nextKey
-            self._alias = orig._alias
-        
-        def _setNext(self, nextKey, key, linkedMap):
-
-            if nextKey is None:
-                linkedMap._lastKey = key
-                linkedMap.linkChanged(linkedMap._head, None)
-
-            self._nextKey = nextKey
-            linkedMap.linkChanged(self, key)
-
-        def _setPrevious(self, previousKey, key, linkedMap):
-
-            if previousKey is None:
-                linkedMap._firstKey = key
-                linkedMap.linkChanged(linkedMap._head, None)
-                
-            self._previousKey = previousKey
-            linkedMap.linkChanged(self, key)
-
-        def getValue(self, linkedMap):
-
-            return self._value
-
-        def setValue(self, linkedMap, value):
-
-            self._value = value
-
-
-    def __init__(self, new):
-
-        self._head = self._makeLink(None)
-        self._aliases = None
-        self._flags = new and LinkedMap.NEW or 0
-
-    def __repr__(self):
-
-        buffer = None
-        
-        try:
-            buffer = cStringIO.StringIO()
-            buffer.write('{')
-            for key, value in self.iteritems():
-                buffer.write(key.__repr__())
-                buffer.write(': ')
-                buffer.write(value.__repr__())
-                if key != self._lastKey:
-                    buffer.write(', ')
-            buffer.write('}')
-            return buffer.getvalue()
-
-        finally:
-            if buffer is not None:
-                buffer.close()
+class LinkedMap(CLinkedMap):
 
     def _clear_(self):
 
         super(LinkedMap, self).clear()
-        if self._aliases is not None:
-            self._aliases.clear()
 
     def clear(self):
 
@@ -98,89 +24,19 @@ class LinkedMap(dict):
 
         self._clear_()
         
-        for key, origLink in super(LinkedMap, orig).iteritems():
-            link = self._makeLink(origLink.getValue(orig))
+        for key, origLink in orig._dict.iteritems():
+            link = CLink(self, origLink.value)
             link._copy_(origLink)
-            self._insert(key, link)
+            self._dict[key] = link
 
         self._firstKey = orig._firstKey
         self._lastKey = orig._lastKey
         
-        if orig._aliases is not None:
-            self._aliases = orig._aliases.copy()
-
-    def linkChanged(self, link, key):
-        pass
-
-    def update(self, dictionary):
-
-        for key, value in dictionary.iteritems():
-            self[key] = value
-
-    def _get(self, key, load=True):
-
-        sup = super(LinkedMap, self)
-        link = sup.get(key)
-
-        if link is None:
-            if load and self._load(key):
-                return sup.__getitem__(key)
-            raise KeyError, key
-
-        return link
-
-    def _load(self, key):
-
-        return False
+        self._aliases.update(orig._aliases)
 
     def _remove(self, key):
 
-        super(LinkedMap, self).__delitem__(key)
-
-    def _insert(self, key, link):
-
-        super(LinkedMap, self).__setitem__(key, link)
-
-    def _makeLink(self, value):
-
-        return LinkedMap.link(value)
-
-    def __getitem__(self, key, load=True):
-
-        return self._get(key, load).getValue(self)
-
-    def __setitem__(self, key, value,
-                    previousKey=None, nextKey=None, alias=None):
-
-        link = super(LinkedMap, self).get(key)
-
-        if link is not None:
-            link.setValue(self, value)
-            self.linkChanged(link, key)
-
-        else:
-            link = self._makeLink(value)
-
-            if previousKey is None and nextKey is None:
-                previousKey = self._lastKey
-                if previousKey is not None and previousKey != key:
-                    self._get(previousKey)._setNext(key, previousKey, self)
-
-            super(LinkedMap, self).__setitem__(key, link)
-
-            if previousKey is None or previousKey != key:
-                link._setPrevious(previousKey, key, self)
-            if nextKey is None or nextKey != key:
-                link._setNext(nextKey, key, self)
-
-        if alias:
-            link._alias = alias
-            if self._aliases is None:
-                self._aliases = { alias: key }
-            else:
-                self._aliases[alias] = key
-
-        return link
+        del self._dict[key]
 
     def place(self, key, afterKey=None):
         "Move a key in this collection after another one."
@@ -208,72 +64,71 @@ class LinkedMap(dict):
             afterNextKey = after._nextKey
 
         if previous is not None:
-            previous._setNext(current._nextKey, current._previousKey, self)
+            previous._nextKey = (current._nextKey, current._previousKey)
         if next is not None:
-            next._setPrevious(current._previousKey, current._nextKey, self)
+            next._previousKey = (current._previousKey, current._nextKey)
 
-        current._setNext(afterNextKey, key, self)
+        current._nextKey = (afterNextKey, key)
         if afterNextKey is not None:
-            self._get(afterNextKey)._setPrevious(key, afterNextKey, self)
+            self._get(afterNextKey)._previousKey = (key, afterNextKey)
         if after is not None:
-            after._setNext(key, afterKey, self)
+            after._nextKey = (key, afterKey)
 
-        current._setPrevious(afterKey, key, self)
+        current._previousKey = (afterKey, key)
             
     def __delitem__(self, key):
 
         link = self._get(key)
 
         if link._previousKey is not None:
-            self._get(link._previousKey)._setNext(link._nextKey,
-                                                  link._previousKey, self)
+            self._get(link._previousKey)._nextKey = (link._nextKey,
+                                                     link._previousKey)
         else:
             self._firstKey = link._nextKey
             self.linkChanged(self._head, None)
             
         if link._nextKey is not None:
-            self._get(link._nextKey)._setPrevious(link._previousKey,
-                                                  link._nextKey, self)
+            self._get(link._nextKey)._previousKey = (link._previousKey,
+                                                     link._nextKey)
         else:
             self._lastKey = link._previousKey
             self.linkChanged(self._head, None)
-                
-        super(LinkedMap, self).__delitem__(key)
 
-        if link._alias is not None:
-            del self._aliases[link._alias]
+        del self._dict[key]
+        self._count -= 1
+
+        if link.alias is not None:
+            del self._aliases[link.alias]
 
         return link
 
     def has_key(self, key, load=True):
 
-        if key is None:
-            return False
-        if super(LinkedMap, self).has_key(key):
+        if self._dict.has_key(key):
             return True
 
         return load and self._load(key)
 
     def _contains_(self, key):
 
-        return super(LinkedMap, self).__contains__(key)
+        return key in self._dict
             
     def __contains__(self, key):
 
-        if super(LinkedMap, self).__contains__(key):
+        if key in self._dict:
             return True
 
         return self._load(key)
 
     def get(self, key, default=None, load=True):
 
-        link = super(LinkedMap, self).get(key, default)
+        link = self._dict.get(key, default)
 
         if link is default and load and self._load(key):
-            link = super(LinkedMap, self).get(key, default)
+            link = self._dict.get(key, default)
         
         if link is not default:
-            return link.getValue(self)
+            return link.value
 
         return default
 
@@ -292,11 +147,7 @@ class LinkedMap(dict):
         @return: a value of the collection or C{default}
         """
         
-        key = None
-
-        if self._aliases is not None:
-            key = self._aliases.get(alias)
-            
+        key = self._aliases.get(alias)
         if key is None and load:
             key = self.resolveAlias(alias, load)
 
@@ -318,10 +169,7 @@ class LinkedMap(dict):
         exist.
         """
 
-        if self._aliases is not None:
-            return self._aliases.get(alias)
-
-        return None
+        return self._aliases.get(alias)
 
     def setAlias(self, key, alias):
         """
@@ -336,7 +184,7 @@ class LinkedMap(dict):
                 raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
 
         link = self._get(key)
-        oldAlias = link._alias
+        oldAlias = link.alias
 
         if oldAlias != alias:
             aliases = self._aliases
@@ -346,41 +194,10 @@ class LinkedMap(dict):
                 if oldAlias is not None and oldAlias in aliases:
                     del aliases[oldAlias]
 
-            link._alias = alias
+            link.alias = alias
 
             if alias is not None:
-                if aliases is None:
-                    self._aliases = {alias: key}
-                else:
-                    aliases[alias] = key
-
-    def firstKey(self):
-        "Return the first key of this mapping."
-
-        return self._head._previousKey
-
-    def __setFirstKey(self, key):
-
-        self._head._previousKey = key
-
-    def lastKey(self):
-        "Return the last key of this mapping."
-
-        return self._head._nextKey
-        
-    def __setLastKey(self, key):
-
-        self._head._nextKey = key
-
-    def nextKey(self, key):
-        "Return the next key relative to key."
-
-        return self._get(key)._nextKey
-
-    def previousKey(self, key):
-        "Return the previous key relative to key."
-
-        return self._get(key)._previousKey
+                aliases[alias] = key
 
     def __iter__(self):
 
@@ -402,7 +219,7 @@ class LinkedMap(dict):
 
     def _iterkeys(self):
 
-        return super(LinkedMap, self).iterkeys()
+        return self._dict.iterkeys()
 
     def keys(self):
 
@@ -410,7 +227,7 @@ class LinkedMap(dict):
 
     def _keys(self):
 
-        return super(LinkedMap, self).keys()
+        return self._dict.keys()
 
     def values(self):
 
@@ -447,9 +264,3 @@ class LinkedMap(dict):
     def _items(self):
 
         return [(key, self._get(key)) for key in self._iterkeys()]
-
-
-    _firstKey = property(firstKey, __setFirstKey)
-    _lastKey = property(lastKey, __setLastKey)
-
-    NEW = 0x0001

@@ -24,8 +24,8 @@ from repository.schema.TypeHandler import TypeHandler
 from repository.util.ClassLoader import ClassLoader
 
 from chandlerdb.util.c import UUID as UUIDType
+from chandlerdb.util.c import SingleRef as SingleRefType
 from repository.util.Path import Path as PathType
-from repository.util.SingleRef import SingleRef as SingleRefType
 from repository.util.URL import URL as URLType
 from repository.item.Sets import AbstractSet as AbstractSetType
 
@@ -310,7 +310,9 @@ class BString(StringType):
 class UString(StringType):
 
     def recognizes(self, value):
-        return type(value) is unicode
+        t = type(value)
+        return (t is unicode or
+                t is str and len(value.decode('ascii', 'ignore')) == len(value))
 
     def getImplementationType(self):
         return unicode
@@ -849,27 +851,23 @@ class Enumeration(Type):
         return value
 
     def recognizes(self, value):
-
-        try:
-            return self.getAttributeValue('values', self._values).index(value) >= 0
-        except ValueError:
-            return False
+        return value in self.values
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if withSchema:
             return itemWriter.writeString(buffer, value)
         else:
-            return itemWriter.writeInteger(buffer, self.getAttributeValue('values', _attrDict=self._values).index(value))
+            return itemWriter.writeInteger(buffer, self.values.index(value))
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
         
         if withSchema:
             return itemReader.readString(offset, data)
-        else:
-            offset, integer = itemReader.readInteger(offset, data)
-            return offset, self.getAttributeValue('values', self._values)[integer]
+
+        offset, integer = itemReader.readInteger(offset, data)
+        return offset, self._values['values'][integer]
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
@@ -891,7 +889,7 @@ class Struct(Type):
 
     def typeXML(self, value, generator, withSchema):
 
-        fields = self.getAttributeValue('fields', self._values, None, None)
+        fields = getattr(self, 'fields', None)
         if fields:
             repository = self.itsView
             generator.startElement('fields', {})

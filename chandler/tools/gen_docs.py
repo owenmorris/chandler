@@ -9,7 +9,7 @@ import repository
 
 from application import Utility
 from repository.item.RefCollections import RefList
-from repository.util.SingleRef import SingleRef
+from chandlerdb.util.c import SingleRef
 
 
 def generateModelDocs(options, outputDir=None):

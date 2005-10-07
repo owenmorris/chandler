@@ -17,7 +17,6 @@ from PyICU import ICUtzinfo
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
-from repository.util.SingleRef import SingleRef
 
 
 class AliasTest(RepositoryTestCase.RepositoryTestCase):

@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from repository.util.SingleRef import SingleRef
+from chandlerdb.util.c import SingleRef
 from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemError import ReadOnlyAttributeError, OwnedValueError
 from chandlerdb.item.ItemValue import ItemValue
@@ -76,7 +76,7 @@ class PersistentCollection(ItemValue):
         elif isinstance(value, set):
             value = PersistentSet(item, attribute, value, setDirty)
         elif isitem(value):
-            value = SingleRef(value._uuid)
+            value = SingleRef(value.itsUUID)
 
         return value
 
@@ -95,7 +95,7 @@ class PersistentCollection(ItemValue):
             return value
 
         if isitem(value):
-            return SingleRef(value._uuid)
+            return SingleRef(value.itsUUID)
         elif isinstance(value, list):
             return [self._useValue(v) for v in value]
         elif isinstance(value, set):
@@ -118,7 +118,7 @@ class PersistentCollection(ItemValue):
             if isinstance(value, SingleRef):
                 value = self._restoreValue(value)
                 if value is not None:
-                    uuid = value._uuid
+                    uuid = value.itsUUID
                     if uuid not in items:
                         items[uuid] = value
                         yield value

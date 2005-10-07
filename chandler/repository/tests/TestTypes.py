@@ -16,8 +16,7 @@ from PyICU import ICUtzinfo
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
-from chandlerdb.util.c import UUID
-from repository.util.SingleRef import SingleRef
+from chandlerdb.util.c import UUID, SingleRef
 from datetime import datetime, timedelta
 
 

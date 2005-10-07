@@ -166,7 +166,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/String</ref>
+         type="path" otherCard="list">/Core/Importable</ref>
 
     <attribute name="cardinality">single</attribute>
   </item>
@@ -183,7 +183,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/String</ref>
+         type="path" otherCard="list">/Core/Importable</ref>
 
     <attribute name="cardinality">single</attribute>
   </item>

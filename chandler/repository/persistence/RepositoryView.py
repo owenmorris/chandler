@@ -108,7 +108,8 @@ class RepositoryView(CView):
         self._deletedRegistry = {}
         self._instanceRegistry = {}
         self._loadingRegistry = set()
-        self._status = RepositoryView.OPEN
+        self._status = ((self._status & RepositoryView.VERIFY) |
+                        RepositoryView.OPEN)
 
         repository = self.repository
         if repository is not None:
@@ -524,7 +525,7 @@ class RepositoryView(CView):
 
         raise NotImplementedError, "%s._unsavedItems" %(type(self))
 
-    def _addItem(self, item, previous=None, next=None):
+    def _addItem(self, item):
 
         name = item.itsName
 
@@ -532,7 +533,7 @@ class RepositoryView(CView):
             self._roots.resolveAlias(name, not self.isLoading()) is not None):
             raise ValueError, "A root named '%s' exists already" %(name)
 
-        self._roots.__setitem__(item._uuid, item, alias=name)
+        self._roots._append(item)
 
         return item
 
@@ -943,9 +944,9 @@ class OnDemandRepositoryView(RepositoryView):
             self._hooks = hooks
             self._setLoading(loading)
 
-    def _addItem(self, item, previous=None, next=None):
+    def _addItem(self, item):
 
-        super(OnDemandRepositoryView, self)._addItem(item, previous, next)
+        super(OnDemandRepositoryView, self)._addItem(item)
 
         item.setPinned(True)
 
@@ -994,7 +995,7 @@ class NullRepositoryView(RepositoryView):
     def __init__(self, verify=False):
 
         self._logger = logging.getLogger(__name__)
-        self._verify = verify
+        self._status |= verify and RepositoryView.VERIFY or 0
 
         super(NullRepositoryView, self).__init__(None, "null view", 0)
 
@@ -1074,10 +1075,6 @@ class NullRepositoryView(RepositoryView):
     def _isNullView(self):
 
         return True
-
-    def _isVerify(self):
-        
-        return self._verify
 
     def _setLoading(self, loading, runHooks=False):
 

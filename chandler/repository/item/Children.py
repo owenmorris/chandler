@@ -6,17 +6,17 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from chandlerdb.item.c import CItem
-from repository.util.LinkedMap import LinkedMap
+from repository.util.LinkedMap import LinkedMap, CLink
 
 
 class Children(LinkedMap):
 
-    def __init__(self, item, new):
+    def __init__(self, item, lmflags):
 
-        super(Children, self).__init__(new)
+        super(Children, self).__init__(lmflags)
 
         self._item = None
-        self._setItem(item, new)
+        self._setItem(item, lmflags & LinkedMap.NEW != 0)
 
     def _setItem(self, item, new):
 
@@ -24,7 +24,7 @@ class Children(LinkedMap):
             assert item._uuid == self._item._uuid
 
             for link in self._itervalues():
-                link.getValue(self)._parent = item
+                link.value._parent = item
 
         if item is not None and item._isItem():
             item._status |= CItem.CONTAINER
@@ -45,7 +45,7 @@ class Children(LinkedMap):
 
     def _append(self, child):
 
-        self.__setitem__(child._uuid, child, None, None, child._name)
+        self[child.itsUUID] = CLink(self, child, None, None, child.itsName)
     
     def __repr__(self):
 
@@ -57,7 +57,7 @@ class Children(LinkedMap):
                 buffer.append(', ')
             else:
                 first = False
-            buffer.append(link.getValue(self)._repr_())
+            buffer.append(link.value._repr_())
         buffer.append('}')
 
         return ''.join(buffer)

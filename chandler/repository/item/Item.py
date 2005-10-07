@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.c import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, SingleRef, _hash, _combine
 from chandlerdb.schema.c import _countAccess
 from chandlerdb.item.c import CItem, Nil, Default, isitem
 from chandlerdb.item.ItemValue import ItemValue
@@ -17,7 +17,6 @@ from repository.item.PersistentCollections import \
      PersistentCollection, PersistentList, PersistentDict, \
      PersistentTuple, PersistentSet
 
-from repository.util.SingleRef import SingleRef
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 
@@ -215,7 +214,7 @@ class Item(CItem):
                 _references._setValue(name, value, otherName)
                 setDirty = False
 
-        elif not isinstance(value, (list, dict, tuple, set)):
+        elif not isinstance(value, (RefList, list, dict, tuple, set)):
 
             if _attrDict is not _values:
                 raise TypeError, ('Expecting an item or a ref collection',
@@ -226,7 +225,7 @@ class Item(CItem):
                     value._setOwner(self, name)
                 dirty = Item.VDIRTY
 
-        elif isinstance(value, list):
+        elif isinstance(value, (RefList, list)):
             if _attrDict is _references:
                 if old is None:
                     _references[name] = refList = self._refList(name)
@@ -312,33 +311,6 @@ class Item(CItem):
             return
 
         getattr(self, name).itemChanged(item, attribute)
-
-    def _collectionChanged(self, op, change, name, other):
-
-        if self._status & Item.NODIRTY:
-            return
-
-        if op == 'remove':
-            if name == 'watchers':
-                dispatch = self._values.get('watcherDispatch', None)
-                if dispatch is not None:
-                    dispatch.filterItem(other, 2)
-
-        dispatch = self._values.get('watcherDispatch', None)
-        if dispatch:
-            watchers = dispatch.get(name, None)
-            if watchers:
-                for (watcher, args) in watchers:
-                    if len(args) == 2:
-                        if args[0] == 'set':
-                            set = getattr(watcher, args[1])
-                            set.sourceChanged(op, change,
-                                              self, name, False, other)
-                            continue
-                        elif args[0] == 'kind':
-                            getattr(watcher, args[1])(op, self.kind, other)
-                            continue
-                    watcher.collectionChanged(op, self, name, other, *args)
 
     def _registerCollectionWatch(self, watcher, name, *args):
 
@@ -620,7 +592,7 @@ class Item(CItem):
         if not load:
             if self._children is not None:
                 for link in self._children._itervalues():
-                    yield link.getValue(self._children)
+                    yield link.value
 
         elif self._children is not None:
             for child in self._children:
@@ -670,21 +642,31 @@ class Item(CItem):
         are logged in the Chandler execution log.
         """
 
+        logger = self.itsView.logger
+
         checkValues = self._values.check()
         checkRefs = self._references.check()
         result = checkValues and checkRefs
 
+        name = self.itsName
+        if name is not None:
+            encoded = name.decode('ascii', 'replace').encode('ascii', 'replace')
+            if encoded != name:
+                logger.error("Name of item with UUID %s, '%s' contains non-ASCII characters", self.itsUUID, encoded)
+                result = False
+
         kind = self._kind
         if kind is not None:
             if kind.itsView is not self.itsView:
-                self.itsView.logger.error("kind %s for item %s is in view %s, not in item's view %s", kind.itsPath, self.itsPath, kind.itsView, self.itsView)
+                logger.error("kind %s for item %s is in view %s, not in item's view %s", kind.itsPath, self.itsPath, kind.itsView, self.itsView)
                 return False
                 
             for name, desc in kind._getDescriptors(type(self)).iteritems():
                 attrDict, required = desc.isValueRequired(self)
-                if required and name not in attrDict:
-                    self.itsView.logger.error("Required value for attribute %s on %s is missing", name, self._repr_())
-                    result = False
+                if attrDict is not None:
+                    if required and name not in attrDict:
+                        logger.error("Required value for attribute %s on %s is missing", name, self._repr_())
+                        result = False
         
         if recursive and self._children is not None:
             l = len(self._children)
@@ -693,7 +675,7 @@ class Item(CItem):
                 check = child.check(True)
                 result = result and check
             if l != 0:
-                self.itsView.logger.error("Iterator on children of %s doesn't match length (%d left for %d total)", self._repr_(), l, len(self._children))
+                logger.error("Iterator on children of %s doesn't match length (%d left for %d total)", self._repr_(), l, len(self._children))
                 return False
 
         return result
@@ -712,7 +694,7 @@ class Item(CItem):
         if latest:
             return self.itsView.getItemVersion(0x7fffffff, self)
 
-        return self._version
+        return self.itsVersion
         
     def getValue(self, attribute, key=None, alias=None,
                  default=None, _attrDict=None):
@@ -1180,7 +1162,7 @@ class Item(CItem):
 
         By default, an attribute's copyPolicy aspect is C{remove} for
         bi-directional references and C{copy} for
-        L{SingleRef<repository.util.SingleRef.SingleRef>} values.
+        L{SingleRef<chandlerdb.util.c.SingleRef>} values.
 
         Attribute copy policies can be overriden with a
         L{Cloud<repository.schema.Cloud.Cloud>} instance to drive the copy
@@ -1700,7 +1682,7 @@ class Item(CItem):
 
             self.setDirty(Item.NDIRTY)
                 
-    def move(self, newParent, previous=None, next=None):
+    def move(self, newParent):
         """
         Move this item under another container.
 
@@ -1715,10 +1697,6 @@ class Item(CItem):
 
         @param newParent: the container to move the item to
         @type newParent: an item or the repository
-        @param previous: the optional item to place this item after
-        @type previous: an item
-        @param next: the optional item to place this item before
-        @type next: an item
         """
 
         if newParent is None:
@@ -1728,17 +1706,17 @@ class Item(CItem):
         if parent is not newParent:
             oldView = parent.itsView
             parent._removeItem(self)
-            self._setParent(newParent, previous, next, oldView)
+            self._setParent(newParent, oldView)
             self.setDirty(Item.NDIRTY)
 
-    def _setParent(self, parent, previous=None, next=None, oldView=None):
+    def _setParent(self, parent, oldView=None):
 
         if parent is not None:
             if self._parent is not parent:
                 if parent._isRepository():
                     parent = parent.view
                 self._parent = parent
-                self._setRoot(parent._addItem(self, previous, next), oldView)
+                self._setRoot(parent._addItem(self), oldView)
             elif parent._isView():
                 self._setRoot(self, oldView)
             else:
@@ -1746,7 +1724,7 @@ class Item(CItem):
         else:
             self._parent = None
 
-    def _addItem(self, item, previous=None, next=None):
+    def _addItem(self, item):
 
         name = item._name
 
@@ -1759,7 +1737,7 @@ class Item(CItem):
         else:
             self._children = self.itsView._createChildren(self, True)
 
-        self._children.__setitem__(item._uuid, item, previous, next, name)
+        self._children._append(item)
 
         return self.itsRoot
 

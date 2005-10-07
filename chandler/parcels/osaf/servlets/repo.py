@@ -17,7 +17,6 @@ from repository.util.URL import URL
 from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
-from repository.util.SingleRef import SingleRef
 
 class RepoResource(resource.Resource):
     isLeaf = True
