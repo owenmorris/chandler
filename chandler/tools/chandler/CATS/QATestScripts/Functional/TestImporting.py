@@ -11,13 +11,15 @@ if not filePath:
     filePath = os.getcwd()
 
 # initialization
-fileName = "TestImporting.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestImporting")
+fileName = u"TestImporting.log"
+#Encode the unicode filename to the system character set encoding
+fileName = fileName.encode(sys.getfilesystemencoding())
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),u"TestImporting")
 
 
-path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
+path = unicode(os.path.join(os.getenv('CHANDLERHOME'),u"util/QATestScripts/DataFiles"))
 print path
-share = Sharing.OneTimeFileSystemShare(path, 'importTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
+share = Sharing.OneTimeFileSystemShare(path, u'importTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
 
 logger.Start("Import Large Calendar")
 try:
