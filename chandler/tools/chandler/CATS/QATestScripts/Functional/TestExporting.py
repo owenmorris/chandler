@@ -13,20 +13,22 @@ if not filePath:
     filePath = os.getcwd()
 
 # initialization
-fileName = u"TestExporting.log"
-#Encode the unicode filename to the system character set encoding
-fileName = fileName.encode(sys.getfilesystemencoding())
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),u"TestExporting")
+fileName = "TestExporting.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestExporting")
 
 
-path = os.path.join(os.getenv('CHANDLERHOME'),u"util/QATestScripts/DataFiles")
-filename = u'exportTest.ics'
-#Encode the unicode filename to the system character set encoding
-fileName = fileName.encode(sys.getfilesystemencoding())
+path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
+filename = 'exportTest.ics'
 fullpath = os.path.join(path, filename)
 if os.path.exists(fullpath):
     os.remove(fullpath)
-share = Sharing.OneTimeFileSystemShare(unicode(path), u'exportTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
+
+#Upcast path to unicode since Sharing requires a unicode path
+#for now. This will change in the next few days
+path = unicode(path, sys.getfilesystemencoding())
+share = Sharing.OneTimeFileSystemShare(path, u'exportTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
+
+
 
 
 

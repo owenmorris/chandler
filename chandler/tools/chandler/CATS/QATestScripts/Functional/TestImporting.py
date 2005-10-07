@@ -11,14 +11,17 @@ if not filePath:
     filePath = os.getcwd()
 
 # initialization
-fileName = u"TestImporting.log"
-#Encode the unicode filename to the system character set encoding
-fileName = fileName.encode(sys.getfilesystemencoding())
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),u"TestImporting")
+fileName = "TestImporting.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestImporting")
 
 
-path = unicode(os.path.join(os.getenv('CHANDLERHOME'),u"util/QATestScripts/DataFiles"))
+path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
 print path
+
+#Upcast path to unicode since Sharing requires a unicode path
+#for now. This will change in the next few days
+path = unicode(path, sys.getfilesystemencoding())
+
 share = Sharing.OneTimeFileSystemShare(path, u'importTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
 
 logger.Start("Import Large Calendar")
