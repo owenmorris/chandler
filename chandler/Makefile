@@ -155,6 +155,9 @@ endif
 purge:
 	python $(CHANDLERHOME)/tools/purge.py $(CHANDLERHOME)
 
+tests:
+	$(CHANDLERHOME)/tools/do_tests.sh $(CHANDLERHOME)
+
 cats:
 	rm -f $(CHANDLERHOME)/util/QALogger.py
 	rm -f $(CHANDLERHOME)/util/QAUITestAppLib.py
