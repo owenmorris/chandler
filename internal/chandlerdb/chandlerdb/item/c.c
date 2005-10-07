@@ -12,6 +12,7 @@
 
 #include "c.h"
 
+PyTypeObject *SingleRef = NULL;
 PyTypeObject *CItem = NULL;
 PyTypeObject *CValues = NULL;
 PyTypeObject *CDescriptor = NULL;
@@ -102,6 +103,10 @@ void initc(void)
 
     _init_item(m);
     _init_values(m);
+
+    m = PyImport_ImportModule("chandlerdb.util.c");
+    LOAD_TYPE(m, SingleRef);
+    Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.item.ItemValue");
     LOAD_TYPE(m, ItemValue);

@@ -10,6 +10,7 @@
 #include "structmember.h"
 
 #include "c.h"
+#include "../util/singleref.h"
 #include "../schema/descriptor.h"
 #include "../schema/attribute.h"
 
@@ -40,6 +41,7 @@ static PyObject *t_item__isMerged(t_item *self, PyObject *args);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
 static PyObject *t_item__fireChanges(t_item *self, PyObject *args);
 static PyObject *t_item_setDirty(t_item *self, PyObject *args);
+static PyObject *t_item__collectionChanged(t_item *self, PyObject *args);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
@@ -69,10 +71,13 @@ static PyObject *onValueChanged_NAME;
 static PyObject *logger_NAME;
 static PyObject *_verifyAssignment_NAME;
 static PyObject *_setDirty_NAME;
-static PyObject *set_NAME;
+static PyObject *set_NAME, *remove_NAME, *kind_NAME;
 static PyObject *_logItem_NAME;
 static PyObject *_clearDirties_NAME;
 static PyObject *_flags_NAME;
+static PyObject *watchers_NAME, *watcherDispatch_NAME;
+static PyObject *filterItem_NAME;
+static PyObject *sourceChanged_NAME, *collectionChanged_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
  * "" docstrings are missing docstrings
@@ -116,6 +121,7 @@ static PyMethodDef t_item_methods[] = {
     { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
     { "_fireChanges", (PyCFunction) t_item__fireChanges, METH_VARARGS, "" },
     { "setDirty", (PyCFunction) t_item_setDirty, METH_VARARGS, NULL },
+    { "_collectionChanged", (PyCFunction) t_item__collectionChanged, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -576,9 +582,11 @@ static int verify(t_item *self, t_view *view,
     if (value != NULL)
     {
         PyObject *logger = PyObject_GetAttr((PyObject *) view, logger_NAME);
-        PyObject *verified = PyObject_CallMethodObjArgs((PyObject *) attrDict,
-                                                        _verifyAssignment_NAME,
-                                                        value, logger, NULL);
+        PyObject *verified =
+            PyObject_CallMethodObjArgs((PyObject *) attrDict,
+                                       _verifyAssignment_NAME,
+                                       attribute, value, logger, NULL);
+
         Py_DECREF(logger);
         if (verified == NULL)
             return -1;
@@ -589,8 +597,7 @@ static int verify(t_item *self, t_view *view,
             PyObject *msgAttr = PyObject_Str(attribute);
             PyObject *msgItem = t_item_repr(self);
                                                 
-            PyErr_Format(PyExc_ValueError,
-                         "Assigning value '%s' to %s on %s didn't match schema",
+            PyErr_Format(PyExc_ValueError, "Assigning %s to attribute '%s' on %s didn't match schema",
                          PyString_AsString(msgValue),
                          PyString_AsString(msgAttr),
                          PyString_AsString(msgItem));
@@ -736,6 +743,147 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
     }
 
     Py_RETURN_FALSE;
+}
+
+static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
+{
+    PyObject *op, *change, *name, *other;
+    PyObject *dispatch, *watchers, *result, *dict, *key, *value;
+    int pos = 0;
+
+    if (self->status & NODIRTY)
+        Py_RETURN_NONE;
+
+    if (!PyArg_ParseTuple(args, "OOOO", &op, &change, &name, &other))
+        return NULL;
+
+    dispatch = PyDict_GetItem(self->values->dict, watcherDispatch_NAME);
+    if (!dispatch)
+        Py_RETURN_NONE;
+            
+    if (!PyObject_Compare(op, remove_NAME) &&
+        !PyObject_Compare(name, watchers_NAME))
+    {
+        PyObject *two = PyInt_FromLong(2);
+
+        result = PyObject_CallMethodObjArgs(dispatch, filterItem_NAME,
+                                            two, NULL);
+        Py_DECREF(two);
+        if (result == NULL)
+            return result;
+        Py_DECREF(result);
+    }
+
+    watchers = PyDict_GetItem(dispatch, name);
+    if (!watchers)
+        Py_RETURN_NONE;
+
+    if (!PyAnySet_Check(watchers))
+    {
+        PyErr_SetObject(PyExc_TypeError, watchers);
+        return NULL;
+    }
+
+    /* a set's dict is organized as { value: True } */
+    dict = ((PySetObject *) watchers)->data;
+
+    while (PyDict_Next(dict, &pos, &key, &value)) {
+        PyObject *watcher = PyTuple_GetItem(key, 0);
+        PyObject *args = PyTuple_GetItem(key, 1);
+        int size;
+
+        if (!watcher || !args)
+            return NULL;
+
+        if (!PyObject_TypeCheck(watcher, SingleRef))
+        {
+            PyErr_SetObject(PyExc_TypeError, watcher);
+            return NULL;
+        }
+        if (!PyTuple_Check(args))
+        {
+            PyErr_SetObject(PyExc_TypeError, args);
+            return NULL;
+        }
+
+        watcher = PyObject_GetItem(((t_item *) self->root)->parent,
+                                   ((t_sr *) watcher)->uuid);
+        if (!watcher)
+            return NULL;
+
+        size = PyTuple_Size(args);
+
+        if (size == 2)
+        {
+            PyObject *arg0 = PyTuple_GetItem(args, 0);
+
+            if (!PyObject_Compare(arg0, set_NAME))
+            {
+                PyObject *attrName = PyTuple_GetItem(args, 1);
+                PyObject *set = PyObject_GetAttr(watcher, attrName);
+
+                if (!set)
+                {
+                    Py_DECREF(watcher);
+                    return NULL;
+                }
+
+                result = PyObject_CallMethodObjArgs(set, sourceChanged_NAME,
+                                                    op, change, self, name,
+                                                    Py_False, other, NULL);
+                Py_DECREF(watcher);
+                Py_DECREF(set);
+
+                if (!result)
+                    return NULL;
+                Py_DECREF(result);
+                continue;
+            }
+            else if (!PyObject_Compare(arg0, kind_NAME))
+            {
+                PyObject *methName = PyTuple_GetItem(args, 1);
+                PyObject *kind = PyObject_GetAttr((PyObject *) self, kind_NAME);
+
+                result = PyObject_CallMethodObjArgs(watcher, methName,
+                                                    op, kind, other, NULL);
+                Py_DECREF(kind);
+                Py_DECREF(watcher);
+
+                if (!result)
+                    return NULL;
+                Py_DECREF(result);
+                continue;
+            }
+        }
+
+        /* else call generic collectionChanged() on watcher */
+        {
+            PyObject *tuple = PyTuple_New(4 + size);
+            PyObject *mth = PyObject_GetAttr(watcher, collectionChanged_NAME);
+            int i;
+
+            PyTuple_SET_ITEM(tuple, 0, op); Py_INCREF(op);
+            PyTuple_SET_ITEM(tuple, 1, (PyObject *) self); Py_INCREF(self);
+            PyTuple_SET_ITEM(tuple, 2, name); Py_INCREF(name);
+            PyTuple_SET_ITEM(tuple, 3, other); Py_INCREF(other);
+
+            for (i = 0; i < size; i++) {
+                PyObject *o = PyTuple_GetItem(args, i);
+                PyTuple_SET_ITEM(tuple, i + 4, o); Py_INCREF(o);
+            }
+
+            result = PyObject_Call(mth, tuple, NULL);
+
+            Py_DECREF(tuple);
+            Py_DECREF(mth);
+            Py_DECREF(watcher);
+            if (!result)
+                return NULL;
+            Py_DECREF(result);
+        }
+    }
+
+    Py_RETURN_NONE;
 }
 
 
@@ -1014,9 +1162,16 @@ void _init_item(PyObject *m)
             _verifyAssignment_NAME = PyString_FromString("_verifyAssignment");
             _setDirty_NAME = PyString_FromString("_setDirty");
             set_NAME = PyString_FromString("set");
+            remove_NAME = PyString_FromString("remove");
+            kind_NAME = PyString_FromString("kind");
             _logItem_NAME = PyString_FromString("_logItem");
             _clearDirties_NAME = PyString_FromString("_clearDirties");
             _flags_NAME = PyString_FromString("_flags");
+            watchers_NAME = PyString_FromString("watchers");
+            watcherDispatch_NAME = PyString_FromString("watcherDispatch");
+            filterItem_NAME = PyString_FromString("filterItem");
+            sourceChanged_NAME = PyString_FromString("sourceChanged");
+            collectionChanged_NAME = PyString_FromString("collectionChanged");
         }
     }
 }

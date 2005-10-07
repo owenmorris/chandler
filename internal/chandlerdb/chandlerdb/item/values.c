@@ -341,8 +341,10 @@ static PyObject *t_values__clearTransient(t_values *self, PyObject *key)
 
 static PyObject *t_values__getDict(t_values *self, void *data)
 {
-    Py_INCREF(self->dict);
-    return self->dict;
+    PyObject *dict = self->dict;
+
+    Py_INCREF(dict);
+    return dict;
 }
 
 /* _item property */

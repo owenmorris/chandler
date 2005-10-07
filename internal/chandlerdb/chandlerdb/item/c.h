@@ -23,6 +23,7 @@
       Py_DECREF(fn); }
 
 
+extern PyTypeObject *SingleRef;
 extern PyTypeObject *CItem;
 extern PyTypeObject *CValues;
 extern PyTypeObject *CDescriptor;

@@ -13,8 +13,11 @@
 #include "c.h"
 
 PyTypeObject *UUID = NULL;
+PyTypeObject *SingleRef = NULL;
 PyTypeObject *Key = NULL;
 PyTypeObject *Cipher = NULL;
+PyTypeObject *CLinkedMap = NULL;
+PyTypeObject *CLink = NULL;
 
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
@@ -69,5 +72,7 @@ void initc(void)
     PyObject *m = Py_InitModule3("c", c_funcs, "C util types module");
 
     _init_uuid(m);
+    _init_singleref(m);
     _init_rijndael(m);
+    _init_linkedmap(m);
 }    

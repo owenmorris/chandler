@@ -297,9 +297,16 @@ static int t_descriptor___set__(t_descriptor *self,
                     if (value == oldValue)
                         return 0;
 
-                    if (flags & SINGLE && !(flags & PROCESS_SET) &&
-                        oldValue && !PyObject_Compare(value, oldValue))
-                        return 0;
+                    if (flags & SINGLE && !(flags & PROCESS_SET) && oldValue)
+                    {
+			int eq = PyObject_RichCompareBool(value, oldValue,
+                                                          Py_EQ);
+
+			if (eq == -1)
+                            PyErr_Clear();
+                        else if (eq == 1)
+                            return 0;
+                    }
                 }
 
                 value = PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict ? (PyObject *) attrDict : Py_None, flags & REF ? attr->otherName : Py_None, Py_True, Py_False, NULL);

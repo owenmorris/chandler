@@ -215,7 +215,16 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
                           &uuid))
         return -1;
 
-    self->status = 0;
+    if (PyObject_TypeCheck(repository, CRepository))
+        self->status = ((t_repository *) repository)->status & VERIFY;
+    else if (repository == Py_None)
+        self->status = 0;
+    else
+    {
+        PyErr_SetObject(PyExc_TypeError, repository);
+        return -1;
+    }
+
     Py_INCREF(name); self->name = name;
     Py_INCREF(repository); self->repository = repository;
     Py_INCREF(Py_None); self->changeNotifications = Py_None;
@@ -310,7 +319,7 @@ static PyObject *t_view_isDebug(t_view *self, PyObject *args)
 
 static PyObject *t_view__isVerify(t_view *self, PyObject *args)
 {
-    if (((t_repository *) self->repository)->status & VERIFY)
+    if (self->status & VERIFY)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
@@ -769,6 +778,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "COMMITTING", COMMITTING);
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
             PyDict_SetItemString_Int(dict, "RECORDING", RECORDING);
+            PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
 
             refresh_NAME = PyString_FromString("refresh");
             logger_NAME = PyString_FromString("logger");

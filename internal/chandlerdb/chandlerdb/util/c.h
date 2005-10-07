@@ -9,12 +9,19 @@
 
 #include "fns.h"
 #include "uuid.h"
+#include "singleref.h"
+#include "linkedmap.h"
 
 extern PyTypeObject *UUID;
+extern PyTypeObject *SingleRef;
 extern PyTypeObject *Key;
 extern PyTypeObject *Cipher;
+extern PyTypeObject *CLinkedMap;
+extern PyTypeObject *CLink;
 
 void PyDict_SetItemString_Int(PyObject *, char *, int);
 
 void _init_uuid(PyObject *m);
+void _init_singleref(PyObject *m);
 void _init_rijndael(PyObject *m);
+void _init_linkedmap(PyObject *m);

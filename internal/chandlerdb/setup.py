@@ -29,6 +29,8 @@ def main():
     extensions.append(Extension('chandlerdb.util.c',
                                 sources=['chandlerdb/util/uuid.c',
                                          'chandlerdb/util/pyuuid.c',
+                                         'chandlerdb/util/singleref.c',
+                                         'chandlerdb/util/linkedmap.c',
                                          'rijndael-3.0/rijndael-api-fst.c',
                                          'rijndael-3.0/rijndael-alg-fst.c',
                                          'chandlerdb/util/rijndael.c',
