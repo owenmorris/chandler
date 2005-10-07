@@ -3,6 +3,7 @@ from application import schema
 from osaf.pim.items import Calculated, ContentItem
 from datetime import datetime, time, timedelta
 from DateTimeUtil import datetimeOp
+from PyICU import ICUtzinfo
 
 
 class Reminder(schema.Item):
@@ -57,8 +58,11 @@ class Reminder(schema.Item):
     
     def getNextReminderTimeFor(self, remindable):
         """ Get the time for this remindable's next reminder """
-        return self.snoozedUntil or \
+        result = self.snoozedUntil or \
                (self.getBaseTimeFor(remindable) + self.delta)
+        if result.tzinfo is None:
+            result = result.replace(tzinfo=ICUtzinfo.getDefault())
+        return result
     
     def getNextFiring(self):
         """ Get a tuple describing this reminder's next firing, or None.
