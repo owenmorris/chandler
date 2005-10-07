@@ -1105,6 +1105,8 @@ class AccountPreferencesDialog(wx.Dialog):
         # if not evt.IsSelection(): return
 
         sel = evt.GetSelection()
+        control = evt.GetEventObject()
+        control.SetSelection(sel)
         self.__SwapDetailPanel(sel)
 
     def OnFocusGained(self, evt):
