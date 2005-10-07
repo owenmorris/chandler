@@ -188,15 +188,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return pen
 
     def GetAnyTimeOrAllDay(self):	
-        item = self.GetItem()	
-        try:	
-            anyTime = item.anyTime	
-        except AttributeError:	
-            anyTime = False	
-        try:	
-            allDay = item.allDay	
-        except AttributeError:	
-            allDay = False	
+        item = self.GetItem()
+        anyTime = getattr(item, 'anyTime', False)
+        allDay = getattr(item, 'allDay', False)
        
         return anyTime or allDay
              
@@ -316,8 +310,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 hasBottomRightRounded = True	
        
             # zero-duration events get fully rounded
-            hasLeftRounded = Calendar.datetimeOp(item.startTime, '==',
-                                             item.endTime)
+            isAllDay = getattr(item, 'allDay', False)
+            hasLeftRounded = ((not isAllDay and
+                               Calendar.datetimeOp(item.startTime, '==',
+                                                   item.endTime)) or
+                              getattr(item, 'anyTime', False))
             
             self.DrawEventRectangle(dc, itemRect,
                                     hasLeftRounded,
