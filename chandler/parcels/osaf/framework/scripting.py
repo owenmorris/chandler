@@ -160,27 +160,20 @@ def _findHotKeyScript(targetFKey, view):
     return None
 
 def run_startup_script(view):
-    script = None
-    fileName = u"" # assume no source file
-    if Globals.options.testScripts:
-        try:
-            for aScript in Script.iterItems(view):
-                if aScript.test:
-                    aScript.execute(fileName=fileName)
-        finally:
-            # run the cleanup script
-            schema.ns('osaf.app', view).CleanupAfterTests.execute()
+   if Globals.options.testScripts:
+       try:
+           for aScript in Script.iterItems(view):
+               if aScript.test:
+                   aScript.execute()
+       finally:
+           # run the cleanup script
+           schema.ns('osaf.app', view).CleanupAfterTests.execute()
 
-    if Globals.options.scriptFile:
-        scriptFileText = script_file(Globals.options.scriptFile)
-        if scriptFileText:
-            scriptParcel = schema.ns('osaf.framework.scripting', view).parcel
-            script = Script.update(scriptParcel, 
-                                   Globals.options.scriptFile, 
-                                   bodyString=scriptFileText)
-            fileName=Globals.options.scriptFile
-    if script:
-        script.execute(fileName=fileName)
+   fileName = Globals.options.scriptFile
+   if fileName:
+       scriptFileText = script_file(fileName)
+       if scriptFileText:
+           run_script(scriptFileText, fileName = fileName)
 
 def script_file(fileName, siblingPath=None):
     # fileName relative to the sibling path?
