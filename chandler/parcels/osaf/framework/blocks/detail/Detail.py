@@ -257,9 +257,18 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
             # which will never get used for a real Item.
             return DetailTrunkSubtree.getKind(self.itsView), False
         else:
-            # The detailView doesn't properly handle a SetContents event and
-            # always requires a rerender. See bug #4009
-            return item.itsKind, True
+            # The detailView doesn't properly handle a SetContents event.
+            # To work around this we rerender when it's contents are changed.
+            # It requires a bit of hackery to figure this out. See bug #4009
+            keyItem = item.itsKind
+            newView = self.getTrunkForKeyItem(keyItem)
+            trunkParentBlock = self.trunkParentBlock
+            TPBSelectedItem = trunkParentBlock.TPBSelectedItem
+            TPBDetailItem = self._getContentsForTrunk (newView, TPBSelectedItem, keyItem)
+            rerender = (hasattr(trunkParentBlock, 'TPBDetailItem') and
+                        TPBDetailItem is not trunkParentBlock.TPBDetailItem)
+
+            return item.itsKind, rerender
     
     def _makeTrunkForCacheKey(self, keyItem):
         """ 
