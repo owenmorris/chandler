@@ -1614,8 +1614,20 @@ long		resultV, i;
 		// FIXME: what about transparency ??
 		dc.Clear();
 
+		// NB: various experiments in graphics state prophylaxis
+		// most don't appear to be necessary, but may be needed in the future;
+		// however, the SetFont is required
 		dc.SetTextForeground( *wxBLACK );
 		dc.SetFont( m_Font );
+#if defined(__WXMAC__)
+		dc.MacInstallFont();
+#endif
+
+		// dc.SetLogicalFunction( wxCOPY );
+		// dc.SetBrush( wxBrush(*wxBLACK, wxSOLID) );
+		// dc.SetPen( wxPen(*wxBLACK, 1, wxSOLID) );
+
+		dc.DestroyClippingRegion();
 
 		for (i=0; i<m_ItemCount; i++)
 			if (GetItemBounds( i, &boundsR ))
@@ -1676,8 +1688,19 @@ long		resultV, i;
 	{
 	wxPaintDC	dc( this );
 
+		// NB: various experiments in graphics state prophylaxis
+		// most don't appear to be necessary, but may be needed in the future;
+		// however, the SetFont is required
+
 		dc.SetTextForeground( *wxBLACK );
 		dc.SetFont( m_Font );
+		dc.MacInstallFont();
+
+		// dc.SetLogicalFunction( wxCOPY );
+		// dc.SetBrush( wxBrush(*wxBLACK, wxSOLID) );
+		// dc.SetPen( wxPen(*wxBLACK, 1, wxSOLID) );
+
+		dc.DestroyClippingRegion();
 
 		for (i=0; i<m_ItemCount; i++)
 			if (GetItemBounds( i, &boundsR ))
@@ -2140,6 +2163,8 @@ wxRect			targetBoundsR;
 	delete m_BitmapRef;
 	m_BitmapRef = NULL;
 
+	// TODO: there may be a graphics state problem on wxMac
+	// in the wxBitmap::ctor code...
 	if ((boundsR != NULL) && ValidBitmapRef( &bitmapRef ))
 	{
 		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, NULL, &targetBoundsR );
