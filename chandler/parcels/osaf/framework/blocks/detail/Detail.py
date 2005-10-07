@@ -257,7 +257,9 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
             # which will never get used for a real Item.
             return DetailTrunkSubtree.getKind(self.itsView), False
         else:
-            return item.itsKind, False
+            # The detailView doesn't properly handle a SetContents event and
+            # always requires a rerender. See bug #4009
+            return item.itsKind, True
     
     def _makeTrunkForCacheKey(self, keyItem):
         """ 

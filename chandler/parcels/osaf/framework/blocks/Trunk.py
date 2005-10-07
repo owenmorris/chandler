@@ -10,7 +10,6 @@ from osaf.framework.blocks import ContainerBlocks
 from repository.item.Item import Item
 from application import schema
 import wx
-import logging
 
 """
 Trunk.py - Classes for dynamically substituting child trees-of-blocks.
@@ -21,8 +20,6 @@ class; whenever wxSynchronizeWidget happens, the appropriate set of child blocks
 mechanism is managed by a TrunkDelegate object, which can be subclassed and/or configured from parcel XML
 to customize its behavior.
 """
-
-logger = logging.getLogger(__name__)
 
 class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
     """ 
@@ -80,11 +77,8 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         the widget is actually created so we'll ignore this first call to 
         wxSynchronizeWidget since it will get called later.
         """
-        try:
-            widget = self.widget
-        except AttributeError:
-            pass
-        else:
+        widget = getattr (self, 'widget', None)
+        if widget is not None:
             widget.wxSynchronizeWidget ()
 
     def installTreeOfBlocks(self):
@@ -106,25 +100,26 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                                 newView, TPBSelectedItem, keyItem)
             contentsChanged = not hasattr(self, 'TPBDetailItem') \
                               or TPBDetailItem is not self.TPBDetailItem
-            rerender = rerender or contentsChanged or not hasattr (newView, "widget")
 
         self.TPBDetailItem = TPBDetailItem
         oldView = self.childrenBlocks.first()
+        treeChanged = newView is not oldView
 
-        if (newView is not oldView) or rerender:
-            logger.debug("%s: changing tree to display %s", getattr(self, 'blockName', '?'), TPBSelectedItem)
+        if treeChanged or rerender:
             if oldView is not None:
                 oldView.unRender()
 
+        if treeChanged:
             self.childrenBlocks = []
-
             if newView is not None:
-                if (newView is not oldView) or contentsChanged:
-                    newView.postEventByName ("SetContents", {'item':TPBDetailItem})
                 self.childrenBlocks.append(newView)
+
+        if newView is not None:
+            if treeChanged or contentsChanged:
+                newView.postEventByName ("SetContents", {'item':TPBDetailItem})
+
+            if not hasattr (newView, "widget"):
                 newView.render()
-        else:
-            logger.debug("%s: NOT changing tree to display %s", getattr(self, 'blockName', '?'), TPBSelectedItem)
 
 
 class TrunkDelegate(schema.Item):
@@ -206,7 +201,6 @@ class TrunkDelegate(schema.Item):
         if onlyIfReadOnly and item.itsParent == userData:
             result = item
         else:
-            # @@@ BJS Morgen has opined that "default" is a bad name for a cloud; use "copy" instead?
             result = item.copy(parent = userData, cloudAlias="copying")
             
         return result
