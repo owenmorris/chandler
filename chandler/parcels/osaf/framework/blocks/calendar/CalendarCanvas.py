@@ -1261,10 +1261,21 @@ class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
         
         #we use a proxy because at this splitter's instantiateWidget time,
         #it's not wise to rely on calctrl's widget existence.
-        wxSplitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
-                        lambda event: self.parentBlock.calendarControl.widget.OnSashPositionChange(event))
+        wxSplitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
+                        self.OnSashPositionChanged)
     
         return wxSplitter
+
+    def OnSashPositionChanged(self, event):
+        # call up to the control
+        calendarControl = list(self.parentBlock.childrenBlocks)[0].widget
+        #would write as assert, but keeps failing during block render()'ing
+        if __debug__:
+            position = self.widget.GetSashPosition()
+            if not position == event.GetSashPosition():
+                logger.debug("event & splitter sash positions MISMATCH")
+        calendarControl.ResetSashState()
+        event.Skip()
 
 
 class CalendarControl(CalendarBlock):
@@ -1552,22 +1563,30 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     # no: procedurally more clear if all here, and some info from the splitter is important
     
     def OnExpandButtonClick(self, event):
-        wxAllDay = self.GetAllDayWidget()
-        wxSplitter = wxAllDay.GetParent()
+        wxAllDay = self.GetAllDayBlock().widget
+        wxSplitter = self.GetSplitterWidget()
         wxTimed = wxSplitter.GetWindow2()
         
         #Would be asserts, but they fail in simple boundary cases (e.g. really
         #short window) until wx's SplitterWindow can be massively bugfixed
         if __debug__:
-            ht = lambda widget: widget.GetSize()[1]
-            sumIsHappy =   ht(wxSplitter)  ==  ht(wxAllDay) + ht(wxTimed) + wxSplitter.GetSashSize()
-            sashIsAllDayHeight =   wxSplitter.GetSashPosition() == ht(wxAllDay)
+            height = lambda widget: widget.GetSize()[1]
+            sumIsHappy = (height(wxSplitter) ==
+                          height(wxAllDay) + height(wxTimed) +
+                          wxSplitter.GetSashSize())
+            sashIsAllDayHeight = (wxSplitter.GetSashPosition() ==
+                                  height(wxAllDay))
             if not (sumIsHappy and sashIsAllDayHeight):
-                logger.debug("Calendar splitter sanity check FAILED.  sumIsHappy: %s\t sashIsAllDayHeight: %s" % (sumIsHappy, sashIsAllDayHeight))
+                logger.debug("Calendar splitter sanity check FAILED. "
+                             "sumIsHappy: %s\t sashIsAllDayHeight: %s" %
+                             (sumIsHappy, sashIsAllDayHeight))
                 return
             logger.debug("min pane size: %s" % wxSplitter.GetMinimumPaneSize())
             logger.debug("wxTimed height: %s" % wxTimed.GetSize()[1])
-            logger.debug("BEFORE: curHeight=%d allday's size=%s  collHeight=%d, expHeight=%d" %(ht(wxAllDay), wxAllDay.GetSize(), wxAllDay.collapsedHeight, wxAllDay.expandedHeight))
+            logger.debug("BEFORE: curHeight=%d allday's size=%s "
+                         "collHeight=%d, expHeight=%d" %
+                         (height(wxAllDay), wxAllDay.GetSize(),
+                          wxAllDay.collapsedHeight, wxAllDay.expandedHeight))
             
         # There are two possible "expanded" heights of the all day area
         #  (1) wxAllDay.expandedHeight, which is the needed size to show all events
@@ -1587,29 +1606,33 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             logger.debug("Expand to %s" % wxAllDay.expandedHeight)
             wxAllDay.GetParent().MoveSash(wxAllDay.expandedHeight)
             wxAllDay.autoExpandMode = True
-            self.OnSashPositionChange()
+            self.ResetSashState()
         else:
             logger.debug("Collapse to %s" %wxAllDay.collapsedHeight)
             wxAllDay.autoExpandMode = False
             wxAllDay.GetParent().MoveSash(wxAllDay.collapsedHeight)
-            self.OnSashPositionChange()
+            self.ResetSashState()
         event.Skip()
     
 
-    def GetAllDayWidget(self):
+    def GetAllDayBlock(self):
         # @@@ hack that depends on tree structure! would be better to have an
         # allDay reference in calcontainer or calctrl, but that causes
         # initialization order weirdness
         # ALTERNATIVE: findBlockByName?
-        return list(list(self.blockItem.parentBlock.childrenBlocks)[1].childrenBlocks)[0].widget
-    
-    def OnSashPositionChange(self, event=None):
-        wxAllDay = self.GetAllDayWidget()
-        position = wxAllDay.GetParent().GetSashPosition()
-        sashsize = wxAllDay.GetParent().GetSashSize()
-        #would write as assert, but keeps failing during block render()'ing
-        if event and not position == event.GetSashPosition():
-            logger.debug("event & splitter sash positions MISMATCH")
+        return list(list(self.blockItem.parentBlock.childrenBlocks)[1].childrenBlocks)[0]
+
+    def GetSplitterWidget(self):
+        # @@@ Another hack. This will all be refactored soon, I
+        # promise -alecf
+        allDayArea = self.GetAllDayBlock()
+        return allDayArea.parentBlock.widget
+
+    def ResetSashState(self):
+        wxAllDay = self.GetAllDayBlock().widget
+        splitter = self.GetSplitterWidget()
+        position = splitter.GetSashPosition()
+        sashsize = splitter.GetSashSize()
  
         if position < 0:
             #yes, this does happen quite a bit during block rendering
@@ -1622,8 +1645,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             wxAllDay.autoExpandMode = True
             self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
         
-        if event: event.Skip()
-    
     def OnDaySelect(self, day):
         """
         Callback when a specific day is selected from column header.

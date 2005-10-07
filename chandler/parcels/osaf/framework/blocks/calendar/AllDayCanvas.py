@@ -218,7 +218,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         currentHeight = self.GetSize()[1]
         if currentHeight < self.expandedHeight:
             self.GetParent().MoveSash(self.expandedHeight)
-            self.blockItem.calendarContainer.calendarControl.widget.OnSashPositionChange()
+            self.blockItem.calendarContainer.calendarControl.widget.ResetSashState()
 
     def GetExpandedHeight(self):
         """
@@ -333,7 +333,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         if tzinfo is None:
             oldStartTime = \
-                item.startTime.tzinfo.replace(tzinfo=ICUtzinfo.getDefault())
+                item.startTime.replace(tzinfo=ICUtzinfo.getDefault())
         else:
             oldStartTime = \
                 item.startTime.astimezone(ICUtzinfo.getDefault())
