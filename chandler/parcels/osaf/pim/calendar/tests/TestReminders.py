@@ -20,7 +20,8 @@ class ReminderTestCase(TestContentModel.ContentModelTestCase):
                         and anEvent.reminders.first() is regularReminder)
         self.failIf(len(anEvent.expiredReminders))        
         self.failUnless(regularReminder.getNextFiring() == \
-                        (datetime(2005,3,8,11,50), anEvent, regularReminder))
+                        (datetime(2005,3,8,11,50, tzinfo = PyICU.ICUtzinfo.getDefault()), 
+                         anEvent, regularReminder))
 
         # Snooze the reminder for 5 minutes.
         snoozeReminder = anEvent.snoozeReminder(regularReminder, 
