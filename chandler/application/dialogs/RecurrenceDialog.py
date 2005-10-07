@@ -105,22 +105,14 @@ class RecurrenceDialog(wx.Dialog):
         self.cancelCallback = cancelCallback
         self._init_ctrls(parent)
         
-        # XXX [i18n] Fixme, how should this be localized?
-        
-        questions = {CHANGE          : _(u'Do you want to change'),
-                     ADDTOCOLLECTION : _(u'What do you want to add to the collection'),
-                     DELETE          : _(u'Do you want to delete')}
+        questions = {CHANGE          : _(u'%(displayName)s" is a recurring event. Do you want to change:'),
+                     ADDTOCOLLECTION : _(u'%(displayName)s" is a recurring event. What do you want to add to the collection:'),
+                     DELETE          : _(u'%(displayName)s" is a recurring event. Do you want to delete:')}
         
         verb = proxy.changeBuffer[0][0]
-
-        txt = _(u'"%(displayName)s" is a recurring event. %(question)s:' ) % \
-                                  {'displayName': proxy.displayName,
-                                   'question'   : questions[verb]}
-
+        txt = questions[verb] % { 'displayName' : proxy.displayName }
         title = _(u'Recurring event change')
-
         self.questionText.SetLabel(txt)
-
         self.SetTitle(title)
 
         if verb == CHANGE:
@@ -131,7 +123,6 @@ class RecurrenceDialog(wx.Dialog):
             self.thisButton.Enable(False)
 
         self.Layout()
-
         self.CenterOnScreen()
         self.Show()
 
