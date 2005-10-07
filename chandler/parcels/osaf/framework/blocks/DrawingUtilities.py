@@ -162,7 +162,6 @@ class Gradients(object):
         # - going through wxImage
         # - individually setting each RGB pixel
         image = wx.EmptyImage(bitmapWidth, 1)
-        imageBuffer = image.GetDataBuffer()
         leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
         rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
 
@@ -184,7 +183,10 @@ class Gradients(object):
         # in the bitmap
         offset %= bitmapWidth
 
+        from struct import pack
         bufferX = 0
+        imageBuffer = image.GetDataBuffer()
+        
         for x in xrange(bitmapWidth):
             
             # first offset the gradient within the bitmap
@@ -207,7 +209,7 @@ class Gradients(object):
             # is actually faster than either of:
             # chr(color[0]) + chr(color[1]) + chr(color[2])
             # ''.join(map(chr,color))
-            imageBuffer[bufferX:bufferX+3] = '%c%c%c' % color
+            imageBuffer[bufferX:bufferX+3] = pack('BBB', *color)
 
             bufferX += 3
             
