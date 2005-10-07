@@ -256,7 +256,7 @@ class OccurrenceProxy(object):
         Add self to the given collection, or queue the add.
         """
         if self.proxiedItem.rruleset is None:
-            collection.add(self)
+            collection.add(self.proxiedItem.getMaster())
         else:
             self.changeBuffer.append((ADDTOCOLLECTION, collection))
             if not self.dialogUp:
@@ -269,7 +269,7 @@ class OccurrenceProxy(object):
         Remove self from the given collection, or queue the removal.
         """
         if self.proxiedItem.rruleset is None:
-            collection.remove(self)
+            collection.remove(self.proxiedItem.getMaster())
         else:
             self.changeBuffer.append((DELETE, collection))
             if not self.dialogUp:
@@ -303,7 +303,9 @@ class OccurrenceProxy(object):
     def propagateDelete(self, collection):
         table = {'this'          : self.proxiedItem.deleteThis,
                  'thisandfuture' : self.proxiedItem.deleteThisAndFuture,
-                 'all'           : lambda: collection.remove(self)}
+                 'all'           : lambda: collection.remove(
+                                                   self.proxiedItem.getMaster())
+                }
         table[self.currentlyModifying]()
 
     def propagateAddToCollection(self, collection):
