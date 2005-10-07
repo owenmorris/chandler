@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: checkbox.cpp,v 1.41 2005/09/28 21:08:47 MBN Exp $
+// RCS-ID:      $Id: checkbox.cpp,v 1.42 2005/10/06 23:02:40 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,7 @@ void wxCheckBox::DoSet3StateValue(wxCheckBoxState state)
                    NULL );
 #else
     XmToggleButtonSetState ((Widget) m_mainWidget,
-                            (Boolean) state == wxCHK_CHECKED, True);
+                            state == wxCHK_CHECKED, True);
 #endif
 
     m_inSetValue = false;

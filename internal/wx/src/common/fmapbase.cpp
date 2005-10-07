@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.06.2003 (extracted from common/fontmap.cpp)
-// RCS-ID:      $Id: fmapbase.cpp,v 1.23 2005/09/26 22:13:41 VZ Exp $
+// RCS-ID:      $Id: fmapbase.cpp,v 1.25 2005/10/06 23:28:03 VZ Exp $
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,23 +154,23 @@ static const wxChar* gs_encodingDescs[] =
 // and the internal names (these are not translated on purpose!)
 static const wxChar* gs_encodingNames[WXSIZEOF(gs_encodingDescs)][10] =
 {
-    // names from the first column are used under Linux, from the second one
-    // under Solaris and IRIX and from the third one -- under AIX
-    { wxT( "ISO-8859-1" ), wxT( "ISO8859-1" ), wxT( "8859-1" ), wxT("iso_8859_1"), NULL },
-    { wxT( "ISO-8859-2" ), wxT( "ISO8859-2" ), wxT( "8859-2" ), NULL },
-    { wxT( "ISO-8859-3" ), wxT( "ISO8859-3" ), wxT( "8859-3" ), NULL },
-    { wxT( "ISO-8859-4" ), wxT( "ISO8859-4" ), wxT( "8859-4" ), NULL },
-    { wxT( "ISO-8859-5" ), wxT( "ISO8859-5" ), wxT( "8859-5" ), NULL },
-    { wxT( "ISO-8859-6" ), wxT( "ISO8859-6" ), wxT( "8859-6" ), NULL },
-    { wxT( "ISO-8859-7" ), wxT( "ISO8859-7" ), wxT( "8859-7" ), NULL },
-    { wxT( "ISO-8859-8" ), wxT( "ISO8859-8" ), wxT( "8859-8" ), NULL },
-    { wxT( "ISO-8859-9" ), wxT( "ISO8859-9" ), wxT( "8859-9" ), NULL },
-    { wxT( "ISO-8859-10" ), wxT( "ISO8859-10" ), wxT( "8859-10" ), NULL },
-    { wxT( "ISO-8859-11" ), wxT( "ISO8859-11" ), wxT( "8859-11" ), NULL },
-    { wxT( "ISO-8859-12" ), wxT( "ISO8859-12" ), wxT( "8859-12" ), NULL },
-    { wxT( "ISO-8859-13" ), wxT( "ISO8859-13" ), wxT( "8859-13" ), NULL },
-    { wxT( "ISO-8859-14" ), wxT( "ISO8859-14" ), wxT( "8859-14" ), NULL },
-    { wxT( "ISO-8859-15" ), wxT( "ISO8859-15" ), wxT( "8859-15" ), NULL },
+    // names from the columns correspond to these OS:
+    //      Linux        Solaris and IRIX       HP-UX             AIX
+    { _T("ISO-8859-1"),  _T("ISO8859-1"),  _T("iso88591"),  _T("8859-1"), wxT("iso_8859_1"), NULL },
+    { _T("ISO-8859-2"),  _T("ISO8859-2"),  _T("iso88592"),  _T("8859-2"), NULL },
+    { _T("ISO-8859-3"),  _T("ISO8859-3"),  _T("iso88593"),  _T("8859-3"), NULL },
+    { _T("ISO-8859-4"),  _T("ISO8859-4"),  _T("iso88594"),  _T("8859-4"), NULL },
+    { _T("ISO-8859-5"),  _T("ISO8859-5"),  _T("iso88595"),  _T("8859-5"), NULL },
+    { _T("ISO-8859-6"),  _T("ISO8859-6"),  _T("iso88596"),  _T("8859-6"), NULL },
+    { _T("ISO-8859-7"),  _T("ISO8859-7"),  _T("iso88597"),  _T("8859-7"), NULL },
+    { _T("ISO-8859-8"),  _T("ISO8859-8"),  _T("iso88598"),  _T("8859-8"), NULL },
+    { _T("ISO-8859-9"),  _T("ISO8859-9"),  _T("iso88599"),  _T("8859-9"), NULL },
+    { _T("ISO-8859-10"), _T("ISO8859-10"), _T("iso885910"), _T("8859-10"), NULL },
+    { _T("ISO-8859-11"), _T("ISO8859-11"), _T("iso885911"), _T("8859-11"), NULL },
+    { _T("ISO-8859-12"), _T("ISO8859-12"), _T("iso885912"), _T("8859-12"), NULL },
+    { _T("ISO-8859-13"), _T("ISO8859-13"), _T("iso885913"), _T("8859-13"), NULL },
+    { _T("ISO-8859-14"), _T("ISO8859-14"), _T("iso885914"), _T("8859-14"), NULL },
+    { _T("ISO-8859-15"), _T("ISO8859-15"), _T("iso885915"), _T("8859-15"), NULL },
 
     // although koi8-ru is not strictly speaking the same as koi8-r,
     // they are similar enough to make mapping it to koi8 better than
@@ -193,8 +193,8 @@ static const wxChar* gs_encodingNames[WXSIZEOF(gs_encodingDescs)][10] =
     { wxT( "WINDOWS-1257" ),wxT( "CP-1257" ), NULL },
     { wxT( "WINDOWS-437" ), wxT( "CP-437" ), NULL },
 
-    { wxT( "UTF-7" ), NULL },
-    { wxT( "UTF-8" ), NULL },
+    { wxT( "UTF-7" ), wxT("utf7"), NULL },
+    { wxT( "UTF-8" ), wxT("utf8"), NULL },
     { wxT( "UTF-16" ), wxT("UCS-2"), wxT("UCS2"), NULL },
     { wxT( "UTF-16BE" ), wxT("UCS-2BE"), NULL },
     { wxT( "UTF-16LE" ), wxT("UCS-2LE"), NULL },
@@ -208,7 +208,7 @@ static const wxChar* gs_encodingNames[WXSIZEOF(gs_encodingDescs)][10] =
     { wxT( "US-ASCII" ), wxT( "ASCII" ), wxT("C"), wxT("POSIX"), wxT("ANSI_X3.4-1968"),
       wxT("646"), wxT("roman8"), wxT( "" ), NULL },
 
-    { wxT( "BIG5" ), NULL },
+    { wxT( "BIG5" ), wxT("big5"), NULL },
     { wxT( "SJIS" ), wxT( "SHIFT-JIS" ), wxT( "SHIFT_JIS" ), NULL },
     { wxT( "GB2312" ), NULL },
 };

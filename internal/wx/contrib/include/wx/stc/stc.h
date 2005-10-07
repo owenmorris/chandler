@@ -12,7 +12,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: stc.h,v 1.68 2005/04/19 22:30:40 RD Exp $
+// RCS-ID:      $Id: stc.h,v 1.69 2005/10/07 08:36:01 ABX Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -21,8 +21,8 @@
 #define __stc_h__
 
 
-#include <wx/wx.h>
-#include <wx/dnd.h>
+#include "wx/wx.h"
+#include "wx/dnd.h"
 
 
 #ifdef WXMAKINGDLL_STC

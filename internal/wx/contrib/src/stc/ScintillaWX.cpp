@@ -9,16 +9,16 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: ScintillaWX.cpp,v 1.85 2005/08/23 16:02:48 ABX Exp $
+// RCS-ID:      $Id: ScintillaWX.cpp,v 1.86 2005/10/07 08:36:07 ABX Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-#include <wx/wx.h>
-#include <wx/textbuf.h>
-#include <wx/dataobj.h>
-#include <wx/clipbrd.h>
-#include <wx/dnd.h>
+#include "wx/wx.h"
+#include "wx/textbuf.h"
+#include "wx/dataobj.h"
+#include "wx/clipbrd.h"
+#include "wx/dnd.h"
 
 #include "ScintillaWX.h"
 #include "ExternalLexer.h"
@@ -27,7 +27,7 @@
 
 #ifdef __WXMSW__
     // GetHwndOf()
-    #include <wx/msw/private.h>
+    #include "wx/msw/private.h"
 #endif
 
 //----------------------------------------------------------------------

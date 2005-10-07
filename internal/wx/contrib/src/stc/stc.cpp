@@ -10,18 +10,18 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: stc.cpp,v 1.97 2005/05/26 18:07:43 RD Exp $
+// RCS-ID:      $Id: stc.cpp,v 1.98 2005/10/07 08:36:08 ABX Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
 #include <ctype.h>
 
-#include <wx/wx.h>
-#include <wx/tokenzr.h>
-#include <wx/mstream.h>
-#include <wx/image.h>
-#include <wx/file.h>
+#include "wx/wx.h"
+#include "wx/tokenzr.h"
+#include "wx/mstream.h"
+#include "wx/image.h"
+#include "wx/file.h"
 
 #include "wx/stc/stc.h"
 #include "ScintillaWX.h"
