@@ -196,7 +196,7 @@ class FocusEventHandlers(Item):
                     # ask the focus to finish changes, if it can
                     focusedWidget = wx.Window_FindFocus()
                     try:
-                        method = focusedWidget.blockItem.finishSelectionChanges()
+                        method = focusedWidget.blockItem.finishSelectionChanges
                     except AttributeError:
                         pass
                     else:
