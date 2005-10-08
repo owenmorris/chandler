@@ -61,7 +61,7 @@ class PersistentRefs(object):
                     del self._aliases[link.alias]
                 op, alias = self._changedRefs.get(key, (-1, link.alias))
                 if op == 0:
-                    link.setValue(self, key)
+                    link.value = key
                 else:
                     self._remove(key)                   
             else:
