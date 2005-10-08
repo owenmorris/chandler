@@ -1733,18 +1733,25 @@ void wxColumnHeader::RefreshItem(
 	bool				bForceRedraw )
 {
 #if defined(__WXMSW__)
-	// NB: need to update native item
-	MSWItemRefresh( itemIndex, false );
-#else
+	if (! m_BUseGenericRenderer)
+	{
+		// NB: need to update native item
+		MSWItemRefresh( itemIndex, false );
+
+		return;
+	}
+#endif
+
 wxRect	wxClientR;
 wxSize	itemExtent;
+
+	// NB: need to set graphics context in some cases!
 
 	wxClientR = GetClientRect();
 	itemExtent = GetUIExtent( itemIndex );
 	wxClientR.x = itemExtent.x;
 	wxClientR.width = itemExtent.y;
 	Refresh( false, &wxClientR );
-#endif
 
 //	if (bForceRedraw)
 //		SetViewDirty();
@@ -2163,8 +2170,6 @@ wxRect			targetBoundsR;
 	delete m_BitmapRef;
 	m_BitmapRef = NULL;
 
-	// TODO: there may be a graphics state problem on wxMac
-	// in the wxBitmap::ctor code...
 	if ((boundsR != NULL) && ValidBitmapRef( &bitmapRef ))
 	{
 		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, NULL, &targetBoundsR );
