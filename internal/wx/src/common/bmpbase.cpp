@@ -3,7 +3,7 @@
 // Purpose:     wxBitmapBase
 // Author:      VaclavSlavik
 // Created:     2001/04/11
-// RCS-ID:      $Id: bmpbase.cpp,v 1.18 2005/09/23 12:52:41 MR Exp $
+// RCS-ID:      $Id: bmpbase.cpp,v 1.19 2005/10/07 21:49:20 VZ Exp $
 // Copyright:   (c) 2001, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,7 +77,7 @@ wxBitmapHandler *wxBitmapBase::FindHandler(const wxString& extension, wxBitmapTy
     {
         wxBitmapHandler *handler = (wxBitmapHandler *)node->GetData();
         if ( handler->GetExtension() == extension &&
-                    (bitmapType == -1 || handler->GetType() == bitmapType) )
+                    (bitmapType == wxBITMAP_TYPE_ANY || handler->GetType() == bitmapType) )
             return handler;
         node = node->GetNext();
     }

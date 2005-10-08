@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: app.cpp,v 1.96 2005/10/03 16:33:02 ABX Exp $
+// RCS-ID:      $Id: app.cpp,v 1.98 2005/10/08 00:36:50 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,11 @@ void wxApp::CleanUp()
          it != end; ++it )
     {
         delete it->second->m_visualInfo;
+        // On Solaris 10 calling XtDestroyWidget on the top level widget
+        // dumps core if the locale is set to something other than "C"
+#ifndef __SUN__
         XtDestroyWidget( it->second->m_topLevelWidget );
+#endif
         delete it->second;
     }
 
@@ -205,6 +209,38 @@ bool wxApp::OnInitGui()
 {
     if( !wxAppBase::OnInitGui() )
         return false;
+
+#ifdef __HPUX__
+    // under HP-UX creating XmFontSet fails when the system locale is C and
+    // we're using a remote DISPLAY, presumably because HP-UX uses its own
+    // names for C and ISO locales (roman8 and iso8859n respectively) and so
+    // its Motif libraries have troubles with non-HP X server
+    //
+    // whatever the reason, the fact is that without this hack any wxMotif
+    // program crashes on startup because it can't create any font (HP programs
+    // still work but they do spit out messages about failing to create font
+    // sets and failing back on "fixed" font too)
+    //
+    // notice that calling setlocale() here is not enough because X(m) init
+    // functions call setlocale() later so we really have to change environment
+    bool fixAll = false; // tweak LC_ALL (or just LC_CTYPE)?
+    const char *loc = getenv("LC_CTYPE");
+    if ( !loc )
+    {
+        loc = getenv("LC_ALL");
+        if ( loc )
+            fixAll = true;
+    }
+
+    if ( !loc ||
+            (loc[0] == 'C' && loc[1] == '\0') ||
+                strcmp(loc, "POSIX") == 0 )
+    {
+        // we're using C locale, "fix" it
+        wxLogDebug(_T("HP-UX fontset hack: forcing locale to en_US.iso88591"));
+        putenv(fixAll ? "LC_ALL=en_US.iso88591" : "LC_CTYPE=en_US.iso88591");
+    }
+#endif // __HPUX__
 
     XtSetLanguageProc(NULL, NULL, NULL);
     XtToolkitInitialize() ;

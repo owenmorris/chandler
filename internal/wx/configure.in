@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1074 2005/10/04 11:11:36 VZ Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1076 2005/10/07 21:56:51 VZ Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1074 2005/10/04 11:11:36 VZ Exp $
+dnl Version: $Id: configure.in,v 1.1076 2005/10/07 21:56:51 VZ Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -134,6 +134,10 @@ case "${host}" in
     NEEDS_D_REENTRANT_FOR_R_FUNCS=1
     SO_SUFFIX=sl
     AC_DEFINE(__HPUX__)
+
+    dnl many standard declarations in HP-UX headers are only included if either
+    dnl _HPUX_SOURCE is defined, see stdsyms(5)
+    CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE"
   ;;
   *-*-linux* )
     USE_LINUX=1
@@ -1938,6 +1942,20 @@ if test "x$SGICC" = "xyes"; then
 fi
 if test "x$SGICXX" = "xyes"; then
     CXXFLAGS="$CXXFLAGS -woff 3970"
+fi
+
+dnl HP-UX c89/aCC compiler warnings
+if test "x$HPCC" = "xyes"; then
+    dnl 2011: "unrecognized preprocessor directive": nice warning but it's given
+    dnl       even for directives inside #if which is not true (i.e. which are
+    dnl       used for other compilers/OS) and so we have no way to get rid of it
+    dnl 2450: "long long is non standard" -- yes, we know
+    CFLAGS="$CFLAGS +W 2011,2450"
+fi
+if test "x$HPCXX" = "xyes"; then
+    dnl 2340: "value copied to temporary, reference to temporary used": very
+    dnl       painful as triggered by any occurrence of user-defined conversion
+    CXXFLAGS="$CXXFLAGS +W 2340"
 fi
 
 dnl check for std::string or std::wstring
@@ -7139,6 +7157,9 @@ if test $GCC_PCH = 1 ; then
     CPPFLAGS="-DWX_PRECOMP $CPPFLAGS"
 fi
 
+dnl TOOLCHAIN_DEFS are used by wx-config but should be also used for wx build
+dnl itself
+CPPFLAGS="$CPPFLAGS $TOOLCHAIN_DEFS"
 
 dnl for convenience, sort the samples in alphabetical order
 dnl

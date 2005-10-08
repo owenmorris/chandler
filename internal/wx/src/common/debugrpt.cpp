@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-17
-// RCS-ID:      $Id: debugrpt.cpp,v 1.20 2005/09/25 19:58:43 VZ Exp $
+// RCS-ID:      $Id: debugrpt.cpp,v 1.21 2005/10/07 21:55:12 VZ Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -80,8 +80,6 @@ protected:
     bool m_isOk;
 };
 
-#endif // wxUSE_STACKWALKER
-
 // ----------------------------------------------------------------------------
 // local functions
 // ----------------------------------------------------------------------------
@@ -115,8 +113,6 @@ HexElement(wxXmlNode *node, const wxChar *name, unsigned long value)
 }
 
 #endif // wxUSE_CRASHREPORT
-
-#if wxUSE_STACKWALKER
 
 // ============================================================================
 // XmlStackWalker implementation

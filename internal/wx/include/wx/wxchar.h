@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.181 2005/09/23 12:48:50 MR Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.182 2005/10/07 21:33:00 VZ Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -1206,13 +1206,13 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
             return szRet;
         }
 
-    #else //!wxUSE_UNICODE
+    #else /* !wxUSE_UNICODE */
     #   define wxTmemchr memchr
     #   define wxTmemcmp memcmp
     #   define wxTmemcpy memcpy
     #   define wxTmemmove memmove
     #   define wxTmemset memset
-    #endif
+    #endif /* wxUSE_UNICODE/!wxUSE_UNICODE */
 
 #endif /*__cplusplus*/
 
