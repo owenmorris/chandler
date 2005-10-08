@@ -87,7 +87,7 @@ static PyGetSetDef t_link_properties[] = {
 static PyTypeObject LinkType = {
     PyObject_HEAD_INIT(NULL)
     0,                                /* ob_size */
-    "chandlerdb.util.c.Link",         /* tp_name */
+    "chandlerdb.util.c.CLink",        /* tp_name */
     sizeof(t_link),                   /* tp_basicsize */
     0,                                /* tp_itemsize */
     (destructor)t_link_dealloc,       /* tp_dealloc */
@@ -366,9 +366,8 @@ static PyObject *t_link_getValue(t_link *self, void *data)
         Py_XDECREF(self->value);
         self->value = value;
     }
-    else
-        Py_INCREF(value);
 
+    Py_INCREF(value);
     return value;
 }
 
@@ -554,7 +553,10 @@ static int t_lm_init(t_lm *self, PyObject *args, PyObject *kwds)
 
         Py_DECREF(tuple);
         if (init < 0)
+        {
+            Py_DECREF(link);
             return -1;
+        }
         
         Py_XDECREF(self->head);
         self->head = link;
@@ -740,6 +742,8 @@ static PyObject *t_lm_previousKey(t_lm *self, PyObject *key)
     else if (!PyObject_TypeCheck(link, &LinkType))
     {
         PyErr_SetObject(PyExc_TypeError, link);
+        Py_DECREF(link);
+
         return NULL;
     }
     else
@@ -762,6 +766,8 @@ static PyObject *t_lm_nextKey(t_lm *self, PyObject *key)
     else if (!PyObject_TypeCheck(link, &LinkType))
     {
         PyErr_SetObject(PyExc_TypeError, link);
+        Py_DECREF(link);
+
         return NULL;
     }
     else
@@ -812,9 +818,8 @@ static PyObject *t_lm__getFirstKey(t_lm *self, void *data)
 static int t_lm___setFirstKey(t_lm *self, PyObject *arg, void *data)
 {
     t_link *head = (t_link *) self->head;
-    PyObject *key = head->previousKey;
 
-    Py_INCREF(arg); Py_XDECREF(key);
+    Py_INCREF(arg); Py_XDECREF(head->previousKey);
     head->previousKey = arg;
 
     return 0;
@@ -835,9 +840,8 @@ static PyObject *t_lm__getLastKey(t_lm *self, void *data)
 static int t_lm___setLastKey(t_lm *self, PyObject *arg, void *data)
 {
     t_link *head = (t_link *) self->head;
-    PyObject *key = head->nextKey;
 
-    Py_INCREF(arg); Py_XDECREF(key);
+    Py_INCREF(arg); Py_XDECREF(head->nextKey);
     head->nextKey = arg;
 
     return 0;
