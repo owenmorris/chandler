@@ -563,7 +563,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
 
     def OnKeyUp(self, event):
-        if event.m_keyCode == wx.WXK_DELETE:
+        if event.m_keyCode in (wx.WXK_DELETE, wx.WXK_BACK):
             self.blockItem.onRemoveEvent(event)
         else:
             event.Skip()

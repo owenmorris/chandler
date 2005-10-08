@@ -287,7 +287,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self._focusWindow.SetFocus()
 
     def OnKeyUp(self, event):
-        if (event.m_keyCode == wx.WXK_DELETE and
+        if (event.m_keyCode in (wx.WXK_DELETE, wx.WXK_BACK) and
             self.blockItem.CanRemove()):
             self.blockItem.onRemoveEvent(event)
         else:
