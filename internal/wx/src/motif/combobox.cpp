@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: combobox.cpp,v 1.35 2005/09/27 17:05:13 ABX Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.36 2005/10/08 17:01:52 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,9 @@ wxComboBox::~wxComboBox()
         m_clientDataDict.DestroyData();
 }
 
-void wxComboBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
+void wxComboBox::DoSetSize(int x, int y,
+                           int width, int WXUNUSED(height),
+                           int sizeFlags)
 {
     // Necessary so it doesn't call wxChoice::SetSize
     wxWindow::DoSetSize(x, y, width, DoGetBestSize().y, sizeFlags);
@@ -144,7 +146,7 @@ void wxComboBox::SetValue(const wxString& value)
     m_inSetValue = false;
 }
 
-void wxComboBox::SetString(int n, const wxString& s)
+void wxComboBox::SetString(int WXUNUSED(n), const wxString& WXUNUSED(s))
 {
     wxFAIL_MSG( wxT("wxComboBox::SetString only implemented for Motif 2.0") );
 }
@@ -222,7 +224,7 @@ wxString wxComboBox::GetString(int n) const
         return wxEmptyString;
 }
 
-int wxComboBox::FindString(const wxString& s, bool bCase) const
+int wxComboBox::FindString(const wxString& s, bool WXUNUSED(bCase)) const
 {
     // FIXME: back to base class for not supported value of bCase
 

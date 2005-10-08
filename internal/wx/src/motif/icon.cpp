@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: icon.cpp,v 1.18 2005/10/06 12:10:41 ABX Exp $
+// RCS-ID:      $Id: icon.cpp,v 1.19 2005/10/08 17:10:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/icon.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxIcon, wxBitmap);
+IMPLEMENT_DYNAMIC_CLASS(wxIcon, wxBitmap)
 
 // ============================================================================
 // Icons

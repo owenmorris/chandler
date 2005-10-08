@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.37 2005/10/06 11:14:42 ABX Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.38 2005/10/08 17:10:09 VZ Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1303,7 +1303,7 @@ int GrGetPixelColor(GR_SCREEN_INFO* sinfo, GR_PALETTE* palette, GR_PIXELVAL pixe
 // Bitmap handlers
 // ============================================================================
 
-IMPLEMENT_ABSTRACT_CLASS(wxBitmapHandler, wxBitmapHandlerBase);
+IMPLEMENT_ABSTRACT_CLASS(wxBitmapHandler, wxBitmapHandlerBase)
 
 #define M_BMPHANDLERDATA ((wxBitmapRefData *)bitmap->GetRefData())
 
@@ -1337,7 +1337,7 @@ public:
         { return false; }
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxXPMFileHandler, wxBitmapHandler);
+IMPLEMENT_DYNAMIC_CLASS(wxXPMFileHandler, wxBitmapHandler)
 
 bool wxXPMFileHandler::LoadFile(wxBitmap *bitmap, const wxString& name,
                                 long WXUNUSED(flags), int WXUNUSED(desiredWidth),
@@ -1451,7 +1451,7 @@ public:
                         int width, int height, int depth = 1);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxXPMDataHandler, wxBitmapHandler);
+IMPLEMENT_DYNAMIC_CLASS(wxXPMDataHandler, wxBitmapHandler)
 
 bool wxXPMDataHandler::Create(wxBitmap *bitmap, void *bits,
                               long WXUNUSED(flags),
@@ -1557,7 +1557,7 @@ public:
                         int width, int height, int depth = 1);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxXBMDataHandler, wxBitmapHandler);
+IMPLEMENT_DYNAMIC_CLASS(wxXBMDataHandler, wxBitmapHandler)
 
 bool wxXBMDataHandler::Create( wxBitmap *bitmap, void *bits,
                                long WXUNUSED(flags),

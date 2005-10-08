@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bmpbuttn.cpp,v 1.29 2005/09/23 12:54:37 MR Exp $
+// RCS-ID:      $Id: bmpbuttn.cpp,v 1.30 2005/10/08 17:10:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -126,13 +126,13 @@ void wxBitmapButton::SetBitmapSelected(const wxBitmap& sel)
     m_bmpSelectedOriginal = sel;
 
     DoSetBitmap();
-};
+}
 
 void wxBitmapButton::SetBitmapFocus(const wxBitmap& focus)
 {
     m_bmpFocus = focus;
     // Not used in Motif
-};
+}
 
 void wxBitmapButton::SetBitmapDisabled(const wxBitmap& disabled)
 {
@@ -140,7 +140,7 @@ void wxBitmapButton::SetBitmapDisabled(const wxBitmap& disabled)
     m_bmpDisabledOriginal = disabled;
 
     DoSetBitmap();
-};
+}
 
 void wxBitmapButton::DoSetBitmap()
 {

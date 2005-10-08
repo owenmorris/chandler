@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     01.11.02
-// RCS-ID:      $Id: evtloop.cpp,v 1.21 2005/10/06 12:10:40 ABX Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.22 2005/10/08 17:10:07 VZ Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -410,7 +410,7 @@ private:
     DECLARE_DYNAMIC_CLASS(wxIdlePipeModule)
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxIdlePipeModule, wxModule);
+IMPLEMENT_DYNAMIC_CLASS(wxIdlePipeModule, wxModule)
 
 static void wxInputCallback( XtPointer, int* fd, XtInputId* )
 {

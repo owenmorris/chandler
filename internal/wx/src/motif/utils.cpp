@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: utils.cpp,v 1.62 2005/10/06 12:10:44 ABX Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.63 2005/10/08 17:10:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -529,7 +529,7 @@ void wxGetMousePosition( int* x, int* y )
     *x = xev.x_root;
     *y = xev.y_root;
 #endif
-};
+}
 
 // Return true if we have a colour display
 bool wxColourDisplay()

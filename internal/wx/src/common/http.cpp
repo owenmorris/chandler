@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     August 1997
-// RCS-ID:      $Id: http.cpp,v 1.76 2005/09/23 12:52:57 MR Exp $
+// RCS-ID:      $Id: http.cpp,v 1.77 2005/10/08 16:54:43 VZ Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -142,13 +142,7 @@ bool wxHTTP::ParseHeaders()
     ClearHeaders();
     m_read = true;
 
-#if defined(__VISAGECPP__)
-// VA just can't stand while(1)
-    bool bOs2var = true;
-    while(bOs2var)
-#else
-    while (1)
-#endif
+    for ( ;; )
     {
         m_perr = ReadLine(this, line);
         if (m_perr != wxPROTO_NOERR)

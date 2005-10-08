@@ -3,7 +3,7 @@
 // Purpose:   Region class
 // Author:    Julian Smart, Robert Roebling
 // Created:   Fri Oct 24 10:46:34 MET 1997
-// RCS-ID:    $Id: region.cpp,v 1.15 2005/10/03 16:39:45 ABX Exp $
+// RCS-ID:    $Id: region.cpp,v 1.16 2005/10/08 17:10:10 VZ Exp $
 // Copyright: (c) 1997 Julian Smart, Robert Roebling
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,8 +58,8 @@ public:
 #define M_REGIONDATA ((wxRegionRefData *)m_refData)
 #define M_REGIONDATA_OF(rgn) ((wxRegionRefData *)(rgn.m_refData))
 
-IMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject);
-IMPLEMENT_DYNAMIC_CLASS(wxRegionIterator,wxObject);
+IMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject)
+IMPLEMENT_DYNAMIC_CLASS(wxRegionIterator,wxObject)
 
 // ----------------------------------------------------------------------------
 // wxRegion construction

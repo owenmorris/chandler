@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: tabg.cpp,v 1.27 2005/09/23 12:53:30 MR Exp $
+// RCS-ID:      $Id: tabg.cpp,v 1.28 2005/10/08 17:10:03 VZ Exp $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@
 #include "wx/tab.h"
 #include "wx/listimpl.cpp"
 
-WX_DEFINE_LIST(wxTabLayerList);
+WX_DEFINE_LIST(wxTabLayerList)
 
 // not defined: use old, square tab implementation (fills in tabs)
 // defined: use new, rounded tab implementation (doesn't colour in tabs)

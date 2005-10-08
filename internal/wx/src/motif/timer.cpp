@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: timer.cpp,v 1.15 2005/09/23 12:54:44 MR Exp $
+// RCS-ID:      $Id: timer.cpp,v 1.16 2005/10/08 17:10:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@
 
 #include "wx/motif/private.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxTimer, wxEvtHandler);
+IMPLEMENT_ABSTRACT_CLASS(wxTimer, wxEvtHandler)
 
 WX_DECLARE_VOIDPTR_HASH_MAP(wxTimer*, wxTimerHashMap);
 

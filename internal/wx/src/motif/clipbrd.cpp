@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Mattia Barbon (added support for generic wxDataObjects)
 // Created:     17/09/98
-// RCS-ID:      $Id: clipbrd.cpp,v 1.29 2005/10/03 16:33:03 ABX Exp $
+// RCS-ID:      $Id: clipbrd.cpp,v 1.30 2005/10/08 17:10:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -168,8 +168,8 @@ struct wxDataIdToDataObject
 
 #include "wx/listimpl.cpp"
 
-WX_DEFINE_LIST(wxDataObjectList);
-WX_DEFINE_LIST(wxDataIdToDataObjectList);
+WX_DEFINE_LIST(wxDataObjectList)
+WX_DEFINE_LIST(wxDataIdToDataObjectList)
 
 extern "C"
 {
@@ -231,8 +231,8 @@ bool wxClipboard::SetData( wxDataObject *data )
     return AddData( data );
 }
 
-wxDECLARE_SCOPED_ARRAY( wxDataFormat, wxDataFormatScopedArray );
-wxDEFINE_SCOPED_ARRAY( wxDataFormat, wxDataFormatScopedArray );
+wxDECLARE_SCOPED_ARRAY( wxDataFormat, wxDataFormatScopedArray )
+wxDEFINE_SCOPED_ARRAY( wxDataFormat, wxDataFormatScopedArray )
 
 #if wxCHECK_LESSTIF()
 void wxClipboardCallback( Widget xwidget, int* data_id,

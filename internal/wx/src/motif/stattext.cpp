@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: stattext.cpp,v 1.31 2005/09/23 12:54:43 MR Exp $
+// RCS-ID:      $Id: stattext.cpp,v 1.32 2005/10/08 17:10:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@
 
 #include "wx/motif/private.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxStaticText, wxControl);
+IMPLEMENT_DYNAMIC_CLASS(wxStaticText, wxControl)
 
 bool wxStaticText::Create(wxWindow *parent, wxWindowID id,
            const wxString& label,

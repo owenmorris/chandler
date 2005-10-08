@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: cursor.cpp,v 1.24 2005/10/03 16:33:03 ABX Exp $
+// RCS-ID:      $Id: cursor.cpp,v 1.25 2005/10/08 17:10:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ public:
 
 WX_DECLARE_LIST(wxXCursor, wxXCursorList);
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxXCursorList);
+WX_DEFINE_LIST(wxXCursorList)
 
 class WXDLLEXPORT wxCursorRefData: public wxObjectRefData
 {
