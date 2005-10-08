@@ -525,7 +525,6 @@ class wxApplication (wx.App):
         the_view.refresh() # pickup changes from other threads
         try:
             import osaf.pim.collections as collections
-            # call mapChanges with flag that prevents seeing changes we've seen before
             collections.deliverNotifications(the_view)
         except MergeError, e:
             if e.getReasonCode() == MergeError.BUG:
