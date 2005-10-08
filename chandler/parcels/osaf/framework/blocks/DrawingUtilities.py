@@ -92,7 +92,7 @@ def DrawWrappedText(dc, text, rect):
             # if we wrapped but we still can't fit the word,
             # just truncate it    
             if (x == rect.x and width > rect.width):
-                DrawClippedText(dc, word, x, y, rect.width)
+                DrawClippedText(dc, word, x, y, rect.width, width)
                 y += height
                 totalHeight += height
                 continue
@@ -107,15 +107,54 @@ def DrawWrappedText(dc, text, rect):
     return totalHeight
 
 
-def DrawClippedText(dc, word, x, y, maxWidth):
-    # keep shortening the word until it fits
-    for i in xrange(len(word), 0, -1):
-        smallWord = word[0:i] ## + "..."
-        (width, height) = dc.GetTextExtent(smallWord)
-        if width <= maxWidth:
-            dc.DrawText(smallWord, x, y)
-            return
+def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
+    """
+    Draw the text, clipping at letter boundaries. This is optimized to
+    reduce the number of calls to GetTextExtent by first estimating
+    the length of the word that will fit in the given width.
 
+    Note that I did consider some sort of complex quicksearch
+    algorithm to find the right fit, but generally you're dealing with
+    less than 20 or so characters at a time and you can actually guess
+    reasonably accurately even with proportional fonts. This means its
+    probably cheaper to just start walking up or down from the guess,
+    rather than trying to do a quicksearch -alecf
+    """
+    if wordWidth < 0:
+        # do some initial measurements
+        wordWidth, wordHeight = dc.GetTextExtent(word)
+
+    # this is easy, so catch this early
+    if wordWidth <= maxWidth:
+        dc.DrawText(word, x, y)
+        return
+
+    # take a guess at how long the word should be
+    testLength = (maxWidth*100/wordWidth)*len(word)/100
+    wordWidth, wordHeight = dc.GetTextExtent(word[0:testLength])
+
+    # now check if the guessed length actually fits
+    if wordWidth < maxWidth:
+        # yep, it fit!
+        # keep increasing word until it won't fit
+        for newLen in range(testLength, len(word)+1, 1):
+            wordWidth, wordHeight = dc.GetTextExtent(word[0:newLen])
+            if wordWidth > maxWidth:
+                dc.DrawText(word[0:newLen-1], x, y)
+                return
+        assert False, "Didn't draw any text!"
+    else:
+        # no, it didn't fit
+        # keep shrinking word until it fits
+        for newLen in range(testLength, 0, -1):
+            wordWidth,wordHeight = dc.GetTextExtent(word[0:newLen])
+            if wordWidth <= maxWidth:
+                dc.DrawText(word[0:newLen], x,y)
+                return
+        assert False, "Didn't draw any text!"
+
+
+        
 class Gradients(object):
     """
     Gradient cache. 
