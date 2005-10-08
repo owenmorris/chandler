@@ -614,7 +614,7 @@ static int verify(t_item *self, t_view *view,
         return 0;
     }
 
-    return -1;
+    return 0;
 }
 
 static PyObject *t_item_setDirty(t_item *self, PyObject *args)
@@ -652,7 +652,9 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
                 return NULL;
             }
 
-            if (view->status & VERIFY && dirty & VDIRTY &&
+            if (view->status & VERIFY &&
+                dirty & VDIRTY &&
+                attrDict == self->values &&
                 verify(self, view, attrDict, attribute) < 0)
                 return NULL;
             else
