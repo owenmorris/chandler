@@ -13,6 +13,7 @@ import wx
 import logging
 import hotshot
 from i18n import OSAFMessageFactory as _
+import osaf.pim.collections as collections
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +197,20 @@ class Block(schema.Item):
         return BlockTemplate(theClass, blockName,
                              blockName=blockName, **attrs)
 
+    def stopNotificationDirt (self):
+        assert (self.ignoreNotifications >= 0)
+        if self.ignoreNotifications == 0:
+            collections.deliverNotifications (self.itsView)
+        self.ignoreNotifications = self.ignoreNotifications + 1
+
+    def startNotificationDirt (self):
+        try:
+            if self.ignoreNotifications == 1:
+                collections.deliverNotifications (self.itsView)
+        finally:
+            assert (self.ignoreNotifications > 0)
+            self.ignoreNotifications = self.ignoreNotifications - 1
+
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)
         if method:
@@ -228,6 +243,9 @@ class Block(schema.Item):
                 contents = getattr (self, 'contents', None)
                 if isinstance (contents, AbstractCollection):
                     contents.subscribers.add (self)
+                    # Add a non-persistent attribute that controls whether or not
+                    # notifications will dirty the block.
+                    self.ignoreNotifications = 0
                 """
                   Add events to name lookup dictionary.
                 """
@@ -302,7 +320,8 @@ class Block(schema.Item):
         """
           When our item collection has changed, we need to synchronize
         """
-        self.synchronizeSoon()
+        if not self.ignoreNotifications:
+            self.synchronizeSoon()
 
     def synchronizeSoon(self):
         """ Invoke our general deferred-synchronization mechanism """
@@ -324,6 +343,9 @@ class Block(schema.Item):
         """
         contents = getattr (self, 'contents', None)
         if isinstance (contents, AbstractCollection):
+            # Remove the non-persistent attribute that controls whether or not
+            # notifications will dirty the block.
+            del self.ignoreNotifications
             contents.subscribers.remove (self)
 
 

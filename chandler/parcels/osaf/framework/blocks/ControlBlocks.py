@@ -613,52 +613,57 @@ class wxTable(DragAndDrop.DraggableWidget,
     
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
-            topLeftList = self.GetSelectionBlockTopLeft()
-            self.blockItem.selection = []
-            for topLeft, bottomRight in zip (topLeftList,
-                                             self.GetSelectionBlockBottomRight()):
-                self.blockItem.selection.append ([topLeft[0], bottomRight[0]])
-           
-            topLeftList.sort()
+            blockItem = self.blockItem
+            # Itnore notifications that arrise as a side effect of changes to the selection
+            blockItem.stopNotificationDirt()
             try:
-                (row, column) = topLeftList [0]
-            except IndexError:
-                item = None
-            else:
-                item = self.blockItem.contents [row]
+                topLeftList = self.GetSelectionBlockTopLeft()
+                blockItem.selection = []
+                for topLeft, bottomRight in zip (topLeftList,
+                                                 self.GetSelectionBlockBottomRight()):
+                    blockItem.selection.append ([topLeft[0], bottomRight[0]])
+               
+                topLeftList.sort()
+                try:
+                    (row, column) = topLeftList [0]
+                except IndexError:
+                    item = None
+                else:
+                    item = blockItem.contents [row]
+    
+                if item is not blockItem.selectedItemToView:
+                    blockItem.selectedItemToView = item
+                    if item is not None:
+                        gridTable = self.GetTable()
+                        for columnIndex in xrange (gridTable.GetNumberCols()):
+                            self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
+                    """
+                      So happens that under some circumstances widgets
+                      needs to clear the selection before setting a new
+                      selection, e.g. when you have some rows in a table
+                      selected and you click on another cell. However, we
+                      need to catch changes to the selection in
+                      OnRangeSelect to keep track of the selection and
+                      broadcast selection changes to other blocks. So
+                      under some circumstances you get two OnRangeSelect
+                      calls, one to clear the selection and another to set
+                      the new selection. When the first OnRangeSelect is
+                      called to clear the selection we used to broadcast a
+                      select item event with None as the selection. This
+                      has two unfortunate side effects: it causes other
+                      views (e.g. the detail view) to draw blank and it
+                      causes the subsequent call to OnRangeSelect to not
+                      occur, causing the selection to vanish.  It turns
+                      out that ignoring all the clear selections except
+                      when control is down skips the extra clear
+                      selections.
+                    """
+                    if (item is not None or event.Selecting() or event.ControlDown()):
+                        blockItem.postEventByName("SelectItemsBroadcast",
+                                                  {'items':[item]})
+            finally:
+                blockItem.startNotificationDirt()
 
-            if item is not self.blockItem.selectedItemToView:
-                self.blockItem.selectedItemToView = item
-                if item is not None:
-                    gridTable = self.GetTable()
-                    for columnIndex in xrange (gridTable.GetNumberCols()):
-                        self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                """
-                  So happens that under some circumstances widgets
-                  needs to clear the selection before setting a new
-                  selection, e.g. when you have some rows in a table
-                  selected and you click on another cell. However, we
-                  need to catch changes to the selection in
-                  OnRangeSelect to keep track of the selection and
-                  broadcast selection changes to other blocks. So
-                  under some circumstances you get two OnRangeSelect
-                  calls, one to clear the selection and another to set
-                  the new selection. When the first OnRangeSelect is
-                  called to clear the selection we used to broadcast a
-                  select item event with None as the selection. This
-                  has two unfortunate side effects: it causes other
-                  views (e.g. the detail view) to draw blank and it
-                  causes the subsequent call to OnRangeSelect to not
-                  occur, causing the selection to vanish.  It turns
-                  out that ignoring all the clear selections except
-                  when control is down skips the extra clear
-                  selections.
-                """
-                if (item is not None or event.Selecting() or
-                    event.ControlDown()):
-                    self.blockItem.postEventByName("SelectItemsBroadcast",
-                                                   {'items':[item]})
-                
         event.Skip()
 
     def OnSize(self, event):

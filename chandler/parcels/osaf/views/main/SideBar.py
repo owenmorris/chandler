@@ -128,94 +128,98 @@ class wxSidebar(ControlBlocks.wxTable):
                         button.buttonState['overButton'] = False
                         method (button, item)
 
-        if (cellRect.InsideXY (x, y) and
-            not self.IsCellEditControlEnabled() and
-            isinstance (item, AbstractCollection)):
-                if not hasattr (self, 'hoverImageRow'):
-                    assert not gridWindow.HasCapture()
-                    gridWindow.CaptureMouse()
-    
-                    self.hoverImageRow = row
-                    self.cellRect = cellRect
-                    self.pressedButton = None
-    
-                    # Initialize the buttons state and store in temporary attributes that don't persist
+        blockItem.stopNotificationDirt()
+        try:
+            if (cellRect.InsideXY (x, y) and
+                not self.IsCellEditControlEnabled() and
+                isinstance (item, AbstractCollection)):
+                    if not hasattr (self, 'hoverImageRow'):
+                        assert not gridWindow.HasCapture()
+                        gridWindow.CaptureMouse()
+        
+                        self.hoverImageRow = row
+                        self.cellRect = cellRect
+                        self.pressedButton = None
+        
+                        # Initialize the buttons state and store in temporary attributes that don't persist
+                        for button in blockItem.buttons:
+                            method = getattr (type (button), "getChecked", False)
+                            checked = method and method (button, item)
+                            imageRect = self.GetRectFromOffsets (cellRect, button.buttonOffsets)
+                            button.buttonState = {'imageRect': imageRect,
+                                                  'screenMouseDown': checked,
+                                                  'blockChecked': checked,
+                                                  'overButton': False}
+                            self.RefreshRect (imageRect)
                     for button in blockItem.buttons:
-                        method = getattr (type (button), "getChecked", False)
-                        checked = method and method (button, item)
-                        imageRect = self.GetRectFromOffsets (cellRect, button.buttonOffsets)
-                        button.buttonState = {'imageRect': imageRect,
-                                              'screenMouseDown': checked,
-                                              'blockChecked': checked,
-                                              'overButton': False}
-                        self.RefreshRect (imageRect)
-                for button in blockItem.buttons:
-                    method = getattr (type (button), "onOverButton", False)
-                    if method:
-                        overButton = button.buttonState['imageRect'].InsideXY (x, y)
-                        if button.buttonState['overButton'] != overButton:
-                            button.buttonState['overButton'] = overButton
-                            method (button, item)
-
-
-        if hasattr (self, 'hoverImageRow'):
-            if event.LeftDown():
-                for button in blockItem.buttons:
-                    buttonState = button.buttonState
-                    if (buttonState['imageRect'].InsideXY (x, y) and
-                        isinstance (item, AbstractCollection)):
-                        
-                        event.Skip (False) #Gobble the event
-                        self.SetFocus()
-
-                        method = getattr (type (button), "getChecked", False)
-                        checked = method and method (button, item)
-
-                        buttonState['blockChecked'] = checked
-                        buttonState['screenMouseDown'] = not checked
-                        self.pressedButton = button
-                        self.RefreshRect (buttonState['imageRect'])
-                        break
-
-            elif event.LeftUp():
-                if self.pressedButton is not None:
-                    imageRect = self.pressedButton.buttonState['imageRect']
-                    if (imageRect.InsideXY (x, y)):
-                        pressedButton = self.pressedButton
-
-                        method = getattr (type (pressedButton), "getChecked", False)
+                        method = getattr (type (button), "onOverButton", False)
                         if method:
-                            checked = not method (pressedButton, item)
-                            pressedButton.setChecked (item, checked)
-                            pressedButton.buttonState['screenMouseDown'] = checked
-                            blockItem.postEventByName ("SelectItemsBroadcast",
-                                                       {'items':[blockItem.selectedItemToView]})
-                            wx.GetApp().UIRepositoryView.commit()
-                        else:
-                            pressedButton.buttonState['screenMouseDown'] = False
-                            self.RefreshRect (pressedButton.buttonState['imageRect'])
-                    elif not self.cellRect.InsideXY (x, y):
-                        self.RefreshRect (imageRect)
-                        stopHovering()
+                            overButton = button.buttonState['imageRect'].InsideXY (x, y)
+                            if button.buttonState['overButton'] != overButton:
+                                button.buttonState['overButton'] = overButton
+                                method (button, item)
+    
+    
+            if hasattr (self, 'hoverImageRow'):
+                if event.LeftDown():
+                    for button in blockItem.buttons:
+                        buttonState = button.buttonState
+                        if (buttonState['imageRect'].InsideXY (x, y) and
+                            isinstance (item, AbstractCollection)):
+                            
+                            event.Skip (False) #Gobble the event
+                            self.SetFocus()
+    
+                            method = getattr (type (button), "getChecked", False)
+                            checked = method and method (button, item)
+    
+                            buttonState['blockChecked'] = checked
+                            buttonState['screenMouseDown'] = not checked
+                            self.pressedButton = button
+                            self.RefreshRect (buttonState['imageRect'])
+                            break
+    
+                elif event.LeftUp():
+                    if self.pressedButton is not None:
+                        imageRect = self.pressedButton.buttonState['imageRect']
+                        if (imageRect.InsideXY (x, y)):
+                            pressedButton = self.pressedButton
+    
+                            method = getattr (type (pressedButton), "getChecked", False)
+                            if method:
+                                checked = not method (pressedButton, item)
+                                pressedButton.setChecked (item, checked)
+                                pressedButton.buttonState['screenMouseDown'] = checked
+                                blockItem.postEventByName ("SelectItemsBroadcast",
+                                                           {'items':[blockItem.selectedItemToView]})
+                                wx.GetApp().UIRepositoryView.commit()
+                            else:
+                                pressedButton.buttonState['screenMouseDown'] = False
+                                self.RefreshRect (pressedButton.buttonState['imageRect'])
+                        elif not self.cellRect.InsideXY (x, y):
+                            self.RefreshRect (imageRect)
+                            stopHovering()
+                        self.pressedButton = None
+    
+                elif event.LeftDClick():
+                    # Stop hover if we're going to edit
+                    stopHovering()
+    
+                elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
+                    for button in blockItem.buttons:
+                        self.RefreshRect (button.buttonState['imageRect'])
                     self.pressedButton = None
-
-            elif event.LeftDClick():
-                # Stop hover if we're going to edit
-                stopHovering()
-
-            elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
-                for button in blockItem.buttons:
-                    self.RefreshRect (button.buttonState['imageRect'])
-                self.pressedButton = None
-                stopHovering()
-
-            elif (self.pressedButton is not None):
-                buttonState = self.pressedButton.buttonState
-                imageRect = buttonState['imageRect']
-                screenMouseDown = buttonState['screenMouseDown']
-                if imageRect.InsideXY (x, y) == (screenMouseDown == buttonState['blockChecked']):
-                    buttonState['screenMouseDown'] = not screenMouseDown
-                    self.RefreshRect (imageRect)
+                    stopHovering()
+    
+                elif (self.pressedButton is not None):
+                    buttonState = self.pressedButton.buttonState
+                    imageRect = buttonState['imageRect']
+                    screenMouseDown = buttonState['screenMouseDown']
+                    if imageRect.InsideXY (x, y) == (screenMouseDown == buttonState['blockChecked']):
+                        buttonState['screenMouseDown'] = not screenMouseDown
+                        self.RefreshRect (imageRect)
+        finally:
+            blockItem.startNotificationDirt()
 
     def OnRequestDrop (self, x, y):
         self.hoverRow = wx.NOT_FOUND
