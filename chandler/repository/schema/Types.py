@@ -1115,6 +1115,40 @@ class DateStruct(Struct):
 
         return int(ss), us
     
+    def writeTime(self, itemWriter, buffer, value):
+
+        seconds = value.hour * 3600 + value.minute * 60 + value.second
+        tzname = value.tzname()
+        size = itemWriter.writeInteger(buffer, seconds)
+        size += itemWriter.writeInteger(buffer, value.microsecond)
+
+        if tzname is not None:
+            buffer.append('\1')
+            size += 1 + itemWriter.writeString(buffer, tzname)
+        else:
+            buffer.append('\0')
+            size += 1
+
+        return size
+
+    def readTime(self, itemReader, offset, data):
+
+        offset, seconds = itemReader.readInteger(offset, data)
+        offset, microsecond = itemReader.readInteger(offset, data) 
+        
+        if data[offset] == '\1':
+            offset, tzname = itemReader.readString(offset + 1, data)
+            tz = ICUtzinfo.getInstance(tzname)
+        else:
+            offset += 1
+            tz = None
+
+        hour = seconds / 3600
+        minute = (seconds % 3600) / 60
+        second = seconds % 60
+
+        return offset, time(hour, minute, second, microsecond, tz)
+
 
 class DateTime(DateStruct):
 
@@ -1188,6 +1222,21 @@ class DateTime(DateStruct):
                         flds['hour'], flds['minute'], flds['second'],
                         flds['microsecond'], tz)
 
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+
+        size = itemWriter.writeInteger(buffer, value.toordinal())
+        size += self.writeTime(itemWriter, buffer, value)
+
+        return size
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+
+        offset, then = itemReader.readInteger(offset, data)
+        offset, time = self.readTime(itemReader, offset, data)
+
+        return offset, datetime.combine(date.fromordinal(then), time)
+
 
 class Date(DateStruct):
 
@@ -1213,6 +1262,16 @@ class Date(DateStruct):
     def _valueFromFields(self, flds):
 
         return date(flds['year'], flds['month'], flds['day'])
+
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+
+        return itemWriter.writeInteger(buffer, value.toordinal())
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+
+        offset, then = itemReader.readInteger(offset, data)
+        return offset, date.fromordinal(then)
 
 
 class Time(DateStruct):
@@ -1278,6 +1337,15 @@ class Time(DateStruct):
         return time(flds['hour'], flds['minute'], flds['second'],
                     flds['microsecond'], tz)
 
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+
+        return self.writeTime(itemWriter, buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+
+        return self.readTime(itemReader, offset, data)
+
 
 class TimeDelta(DateStruct):
 
@@ -1333,7 +1401,24 @@ class TimeDelta(DateStruct):
         return timedelta(flds.get('days', 0),
                          flds.get('seconds', 0),
                          flds.get('microseconds', 0))
-    
+
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+
+        size = itemWriter.writeInteger(buffer, value.days)
+        size += itemWriter.writeInteger(buffer, value.seconds)
+        size += itemWriter.writeInteger(buffer, value.microseconds)
+
+        return size
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+        
+        offset, days = itemReader.readInteger(offset, data)
+        offset, seconds = itemReader.readInteger(offset, data)
+        offset, microseconds = itemReader.readInteger(offset, data)
+
+        return offset, timedelta(days, seconds, microseconds)
+
 
 class TimeZone(Type):
 
