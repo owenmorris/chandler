@@ -25,7 +25,10 @@ import i18n
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
 
-SCHEMA_VERSION = "103" # alecf: added calendarControl attribute to calendar splitter
+# 102: stearns: DV block changes
+# 103: alecf: added calendarControl attribute to calendar splitter
+# 104: vajda: optimized persistence formats of UI structs
+SCHEMA_VERSION = "104"
 
 logger = None # initialized in initLogging()
 
