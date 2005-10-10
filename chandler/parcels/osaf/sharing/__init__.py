@@ -1,21 +1,45 @@
+"""
+
+The sharing package provides a framework for importing, exporting,
+and synchronizing collections of ContentItems.
+
+Use the publish( ) and subscribe( ) methods to set up the sharing
+of a collection and do the initial export/import; use sync( ) to
+update.
+
+"""
+
+__version__ = "$Revision$"
+__date__ = "$Date$"
+__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
+
 import logging, urlparse
-# import urllib
+
 from application import schema, Utility
 from osaf import pim
+from i18n import OSAFMessageFactory as _
+
 from repository.item.Monitors import Monitors
 import chandlerdb
-from i18n import OSAFMessageFactory as _
+
 import zanshin, M2Crypto, twisted
 
 
 import wx          # For the dialogs, but perhaps this is better accomplished
 import application # via callbacks
 
-logger = logging.getLogger(__name__)
 
 from Sharing import *
 from WebDAV import *
 from ICalendar import *
+
+logger = logging.getLogger(__name__)
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# CalDAV settings:
 
 # What to name the CloudXML subcollection on a CalDAV server:
 SUBCOLLECTION = u".chandler"
@@ -31,86 +55,49 @@ CALDAVFILTER = [
     'transparency'
 ]
 
-# The import/export mechanism needs a way to quickly map iCalendar UIDs to
-# Chandler event items, so this singleton exists to store a ref collection
-# containing imported calendar events, aliased by iCalendar UID:
-
-class UIDMap(schema.Item):
-    items = schema.Sequence("osaf.pim.CalendarEventMixin",
-        otherName = "icalUIDMap",
-        initialValue = {}
-    )
-
-    def icaluid_changed(self, op, item, attrName, *args, **kwds):
-
-        if op == 'set':
-            uid = getattr(item, 'icalUID', u'')
-            if uid:
-
-                try:
-                    self.items.append(item, uid)
-                except ValueError:
-                    # Another event with this uid is in the map.
-                    pass
-
-        elif op == 'remove':
-            self.items.remove(item)
-
-
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def installParcel(parcel, old_version=None):
+    """
+    Install an instance of UIDMap which maintains a calendar UID lookup table
+    """
+
     uid_map = UIDMap.update(parcel, 'uid_map')
+
+    # Anytime someone sets/removes an icalUID attribute, the UIDMap will
+    # get updated:
     Monitors.attach(uid_map, 'icaluid_changed', 'set', 'icalUID')
     Monitors.attach(uid_map, 'icaluid_changed', 'remove', 'icalUID')
 
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-
-
-def getExistingResources(account):
-
-    path = account.path.strip("/")
-    handle = ChandlerServerHandle(account.host,
-                                  port=account.port,
-                                  username=account.username,
-                                  password=account.password,
-                                  useSSL=account.useSSL,
-                                  repositoryView=account.itsView)
-
-    if len(path) > 0:
-        path = "/%s/" % path
-    else:
-        path = "/"
-
-    existing = []
-    parent = handle.getResource(path)
-    skipLen = len(path)
-    for resource in handle.blockUntil(parent.getAllChildren):
-        path = resource.path[skipLen:]
-        path = path.strip(u"/")
-        if path:
-            # path = urllib.unquote_plus(path).decode('utf-8')
-            existing.append(path)
-
-    # @@@ [grant] Localized sort?
-    existing.sort( )
-    return existing
-
-
-def _uniqueName(basename, existing):
-    name = basename
-    counter = 1
-    while name in existing:
-        name = "%s-%d" % (basename, counter)
-        counter += 1
-    return name
-
-
-def publish(collection, account, classes_to_include=None,
-            attrs_to_exclude=None, basename=None, updateCallback=None):
-
+def publish(collection, account, classesToInclude=None,
+            attrsToExclude=None, basename=None, updateCallback=None):
     """
     Publish a collection, automatically determining which conduits/formats
     to use, and how many
+
+    @type collection: pim.AbstractCollection
+    @param collection: The collection to publish
+    @type account: WebDAVAccount
+    @param account: The sharing (WebDAV) account to use
+    @type classesToInclude: list of str
+    @param classesToInclude: An optional list of dotted class names;
+                             if provided, then only items matching those
+                             classes will be shared
+    @type attrsToExclude: list of str
+    @param attrsToExclude: An optional list of attribute names to skip when
+                           publishing
+    @type basename: unicode
+    @param basename: An optional name to use for publishing; if not provided,
+                     the collection's displayName will be used as a starting
+                     point.  In either case, to avoid collisions with existing
+                     collections, '-1', '-2', etc., may be appended.
+    @type updateCallback: method
+    @param updateCallback: An optional callback method, which will get called
+                           periodically during the publishing process.  If the
+                           callback returns True, the publishing operation
+                           will stop
     """
 
     view = collection.itsView
@@ -160,8 +147,8 @@ def publish(collection, account, classes_to_include=None,
             # into this calendar collection rather than making a new one.
             # Create a CalDAV share with empty sharename, doing a GET and PUT
 
-            share = newOutboundShare(view, collection,
-                                     classes=classes_to_include,
+            share = _newOutboundShare(view, collection,
+                                     classesToInclude=classesToInclude,
                                      shareName=u"",
                                      account=account,
                                      useCalDAV=True)
@@ -172,8 +159,8 @@ def publish(collection, account, classes_to_include=None,
                 # There is already a 'main' share for this collection
                 collection.shares.append(share)
 
-            if attrs_to_exclude:
-                share.filterAttributes = attrs_to_exclude
+            if attrsToExclude:
+                share.filterAttributes = attrsToExclude
 
             shares.append(share)
             share.displayName = collection.displayName
@@ -183,7 +170,7 @@ def publish(collection, account, classes_to_include=None,
         else:
 
             # determine a share name
-            existing = getExistingResources(account)
+            existing = _getExistingResources(account)
             name = _uniqueName(basename or collection.displayName, existing)
 
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
@@ -193,14 +180,14 @@ def publish(collection, account, classes_to_include=None,
                 # Create a CalDAV conduit / ICalendar format
                 # Potentially create a cloudxml subcollection
 
-                share = newOutboundShare(view, collection,
-                                         classes=classes_to_include,
+                share = _newOutboundShare(view, collection,
+                                         classesToInclude=classesToInclude,
                                          shareName=name,
                                          account=account,
                                          useCalDAV=True)
 
-                if attrs_to_exclude:
-                    share.filterAttributes = attrs_to_exclude
+                if attrsToExclude:
+                    share.filterAttributes = attrsToExclude
 
                 try:
                     collection.shares.append(share, 'main')
@@ -225,13 +212,13 @@ def publish(collection, account, classes_to_include=None,
 
                 sub_name = u"%s/%s" % (name, SUBCOLLECTION)
 
-                share = newOutboundShare(view, collection,
-                                         classes=classes_to_include,
+                share = _newOutboundShare(view, collection,
+                                         classesToInclude=classesToInclude,
                                          shareName=sub_name,
                                          account=account)
 
-                if attrs_to_exclude:
-                    share.filterAttributes = attrs_to_exclude
+                if attrsToExclude:
+                    share.filterAttributes = attrsToExclude
                 else:
                     share.filterAttributes = []
 
@@ -256,8 +243,8 @@ def publish(collection, account, classes_to_include=None,
                 # We're speaking to a WebDAV server
 
                 # Create a WebDAV conduit / cloudxml format
-                share = newOutboundShare(view, collection,
-                                         classes=classes_to_include,
+                share = _newOutboundShare(view, collection,
+                                         classesToInclude=classesToInclude,
                                          shareName=name,
                                          account=account)
 
@@ -279,8 +266,8 @@ def publish(collection, account, classes_to_include=None,
                     share.conduit.createTickets()
 
                 ics_name = u"%s.ics" % name
-                share = newOutboundShare(view, collection,
-                                         classes=classes_to_include,
+                share = _newOutboundShare(view, collection,
+                                         classesToInclude=classesToInclude,
                                          shareName=ics_name,
                                          account=account)
                 shares.append(share)
@@ -312,6 +299,25 @@ def publish(collection, account, classes_to_include=None,
         raise
 
     return shares
+
+
+def unpublish(collection):
+    """
+    Remove a share from the server, and delete all associated Share objects
+
+    @type collection: pim.AbstractCollection
+    @param collection: The shared collection to unpublish
+    """
+
+    for share in collection.shares:
+
+        # Remove from server (or disk, etc.)
+        share.destroy()
+
+        # Clean up sharing-related objects
+        share.conduit.delete(True)
+        share.format.delete(True)
+        share.delete(True)
 
 
 
@@ -616,9 +622,59 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         return share.contents
 
 
+def sync(collection, firstTime=False):
+
+    view = collection.itsView
+
+    view.commit()
+
+    stats = {}
+
+    try:
+        # perform the 'get' operations of all associated shares
+        for share in collection.shares:
+            if share.active and share.mode in ('get', 'both'):
+                share.conduit._get()
+
+        # perform the 'put' operations of all associated shares
+        for share in collection.shares:
+            if share.active and share.mode in ('put', 'both'):
+                share.conduit._put()
+
+    except SharingError, err:
+        share.error = err.message
+
+        try:
+            msgVars = {
+                'collectionName': share.contents.getItemDisplayName(),
+                'accountName': share.conduit.account.getItemDisplayName()
+            }
+
+            msg = _(u"Error syncing the '%(collectionName)s' collection\nusing the '%(accountName)s' account\n\n") % msgVars
+            msg += err.message
+        except:
+            msg = _(u"Error during sync")
+
+        logger.exception("Sharing Error: %s" % msg)
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    _(u"Synchronization Error"), msg)
+
+    view.commit()
+
+    for share in collection.shares:
+        if share.active and share.mode in ('put', 'both'):
+            share.conduit.syncVersion = view.itsVersion
+
+
+def unsubscribe(collection):
+    for share in collection.shares:
+        share.conduit.delete(True)
+        share.format.delete(True)
+        share.delete(True)
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# Public helper methods
 
 def restoreFromAccount(account):
 
@@ -633,7 +689,7 @@ def restoreFromAccount(account):
     collections = []
     failures = []
 
-    existing = getExistingResources(account)
+    existing = _getExistingResources(account)
 
     for name in existing:
 
@@ -656,70 +712,6 @@ def restoreFromAccount(account):
                 failures.append(name)
 
     return (collections, failures)
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-
-def newOutboundShare(view, collection, classes=None, shareName=None,
-                     account=None, useCalDAV=False):
-    """ Create a new Share item for a collection this client is publishing.
-
-    If account is provided, it will be used; otherwise, the default WebDAV
-    account will be used.  If there is no default account, None will be
-    returned.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @param collection: The AbstractCollection that will be shared
-    @type collection: AbstractCollection
-    @param classes: Which classes to share
-    @type classes: A list of dotted class names
-    @param account: The WebDAV Account item to use
-    @type account: An item of kind WebDAVAccount
-    @return: A Share item, or None if no WebDAV account could be found.
-    """
-
-    if account is None:
-        # Find the default WebDAV account
-        account = getWebDAVAccount(view)
-        if account is None:
-            return None
-
-    share = Share(view=view, contents=collection)
-
-    if useCalDAV:
-        conduit = CalDAVConduit(parent=share, account=account,
-                                shareName=shareName)
-        format = CalDAVFormat(parent=share)
-    else:
-        conduit = WebDAVConduit(parent=share, account=account,
-                                shareName=shareName)
-        format = CloudXMLFormat(parent=share)
-
-    share.conduit = conduit
-    share.format = format
-
-
-    if classes is None:
-        share.filterClasses = []
-    else:
-        share.filterClasses = classes
-
-    share.displayName = collection.displayName
-    share.hidden = False # indicates that the DetailView should show this share
-    share.sharer = pim.Contact.getCurrentMeContact(view)
-    return share
-
-
-
-def getWebDAVAccount(view):
-    """ Return the current default WebDAV account item.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @return: An account item, or None if no WebDAV account could be found.
-    """
-    return schema.ns('osaf.app', view).currentWebDAVAccount.item
 
 
 def findMatchingShare(view, url):
@@ -754,6 +746,7 @@ def findMatchingShare(view, url):
     return None
 
 
+
 def isShared(collection):
     """ Return whether an AbstractCollection has a Share item associated with it.
 
@@ -779,6 +772,7 @@ def isSharedByMe(share):
         return False
     me = pim.Contact.getCurrentMeContact(share.itsView)
     return share.sharer is me
+
 
 
 def getUrls(share):
@@ -827,16 +821,184 @@ def isOnline(collection):
         return share.active
     return False
 
+
 def takeOnline(collection):
     for share in collection.shares:
         share.active = True
+
 
 def takeOffline(collection):
     for share in collection.shares:
         share.active = False
 
 
+def isWebDAVSetUp(view):
+    """
+    See if WebDAV is set up.
 
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if accounts are set up; False otherwise.
+    """
+
+    account = schema.ns('osaf.app', view).currentWebDAVAccount.item
+    if account and account.host and account.username and account.password:
+        return True
+    else:
+        return False
+
+
+def syncAll(view):
+    """
+    Synchronize all active shares.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    """
+
+    for collection in pim.AbstractCollection.iterItems(view):
+        sync(collection)
+
+
+def checkForActiveShares(view):
+    """
+    See if there are any non-hidden, active shares.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if there are non-hidden, active shares; False otherwise
+    """
+
+    for share in Share.iterItems(view):
+        if share.active and not share.hidden:
+            return True
+    return False
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# Internal methods
+
+def _getExistingResources(account):
+
+    path = account.path.strip("/")
+    handle = ChandlerServerHandle(account.host,
+                                  port=account.port,
+                                  username=account.username,
+                                  password=account.password,
+                                  useSSL=account.useSSL,
+                                  repositoryView=account.itsView)
+
+    if len(path) > 0:
+        path = "/%s/" % path
+    else:
+        path = "/"
+
+    existing = []
+    parent = handle.getResource(path)
+    skipLen = len(path)
+    for resource in handle.blockUntil(parent.getAllChildren):
+        path = resource.path[skipLen:]
+        path = path.strip(u"/")
+        if path:
+            # path = urllib.unquote_plus(path).decode('utf-8')
+            existing.append(path)
+
+    # @@@ [grant] Localized sort?
+    existing.sort( )
+    return existing
+
+
+def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
+                     account=None, useCalDAV=False):
+    """ Create a new Share item for a collection this client is publishing.
+
+    If account is provided, it will be used; otherwise, the default WebDAV
+    account will be used.  If there is no default account, None will be
+    returned.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @param collection: The AbstractCollection that will be shared
+    @type collection: AbstractCollection
+    @param classesToInclude: Which classes to share
+    @type classesToInclude: A list of dotted class names
+    @param account: The WebDAV Account item to use
+    @type account: An item of kind WebDAVAccount
+    @return: A Share item, or None if no WebDAV account could be found.
+    """
+
+    if account is None:
+        # Find the default WebDAV account
+        account = schema.ns('osaf.app', view).currentWebDAVAccount.item
+        if account is None:
+            return None
+
+    share = Share(view=view, contents=collection)
+
+    if useCalDAV:
+        conduit = CalDAVConduit(parent=share, account=account,
+                                shareName=shareName)
+        format = CalDAVFormat(parent=share)
+    else:
+        conduit = WebDAVConduit(parent=share, account=account,
+                                shareName=shareName)
+        format = CloudXMLFormat(parent=share)
+
+    share.conduit = conduit
+    share.format = format
+
+
+    if classesToInclude is None:
+        share.filterClasses = []
+    else:
+        share.filterClasses = classesToInclude
+
+    share.displayName = collection.displayName
+    share.hidden = False # indicates that the DetailView should show this share
+    share.sharer = pim.Contact.getCurrentMeContact(view)
+    return share
+
+
+def _uniqueName(basename, existing):
+    name = basename
+    counter = 1
+    while name in existing:
+        name = "%s-%d" % (basename, counter)
+        counter += 1
+    return name
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+# The import/export mechanism needs a way to quickly map iCalendar UIDs to
+# Chandler event items, so this singleton exists to store a ref collection
+# containing imported calendar events, aliased by iCalendar UID:
+
+class UIDMap(schema.Item):
+
+    items = schema.Sequence("osaf.pim.CalendarEventMixin",
+        otherName = "icalUIDMap",
+        initialValue = {}
+    )
+
+    def icaluid_changed(self, op, item, attrName, *args, **kwds):
+
+        if op == 'set':
+            uid = getattr(item, 'icalUID', u'')
+            if uid:
+                try:
+                    self.items.append(item, uid)
+                except ValueError:
+                    # Another event with this uid is in the map.
+                    pass
+
+        elif op == 'remove':
+            self.items.remove(item)
+
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# Public methods that belong elsewhere:
 
 def isInboundMailSetUp(view):
     """
@@ -886,21 +1048,6 @@ def isMailSetUp(view):
     return False
 
 
-def isWebDAVSetUp(view):
-    """
-    See if WebDAV is set up.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @return: True if accounts are set up; False otherwise.
-    """
-
-    account = getWebDAVAccount(view)
-    if account and account.host and account.username and account.password:
-        return True
-    else:
-        return False
-
 def ensureAccountSetUp(view, sharing=False, inboundMail=False,
                        outboundMail=False):
     """
@@ -948,7 +1095,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             """ Returns the defaultSMTPAccount or None"""
             account = pim.mail.getCurrentSMTPAccount(view)
         else:
-            account = getWebDAVAccount(view)
+            account = schema.ns('osaf.app', view).currentWebDAVAccount.item
 
         response = \
           application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
@@ -957,77 +1104,6 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
         if response == False:
             return False
 
-
-
-def syncCollection(collection, firstTime=False):
-
-    view = collection.itsView
-
-    view.commit()
-
-    stats = {}
-
-    try:
-        # perform the 'get' operations of all associated shares
-        for share in collection.shares:
-            if share.active and share.mode in ('get', 'both'):
-                share.conduit._get()
-
-        # perform the 'put' operations of all associated shares
-        for share in collection.shares:
-            if share.active and share.mode in ('put', 'both'):
-                share.conduit._put()
-
-    except SharingError, err:
-        share.error = err.message
-
-        try:
-            msgVars = {
-                'collectionName': share.contents.getItemDisplayName(),
-                'accountName': share.conduit.account.getItemDisplayName()
-            }
-
-            msg = _(u"Error syncing the '%(collectionName)s' collection\nusing the '%(accountName)s' account\n\n") % msgVars
-            msg += err.message
-        except:
-            msg = _(u"Error during sync")
-
-        logger.exception("Sharing Error: %s" % msg)
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    _(u"Synchronization Error"), msg)
-
-    view.commit()
-
-    for share in collection.shares:
-        if share.active and share.mode in ('put', 'both'):
-            share.conduit.syncVersion = view.itsVersion
-
-
-def syncAll(view):
-    """
-    Synchronize all active shares.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    """
-
-    for collection in pim.AbstractCollection.iterItems(view):
-        syncCollection(collection)
-
-
-def checkForActiveShares(view):
-    """
-    See if there are any non-hidden, active shares.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @return: True if there are non-hidden, active shares; False otherwise
-    """
-
-    for share in Share.iterItems(view):
-        if share.active and not share.hidden:
-            return True
-    return False
 
 
 
@@ -1061,18 +1137,3 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
     name += ext
 
     return name
-
-
-def unsubscribe(collection):
-    for share in collection.shares:
-        share.conduit.delete(True)
-        share.format.delete(True)
-        share.delete(True)
-
-def unpublish(collection):
-    for share in collection.shares:
-        share.destroy()
-        share.conduit.delete(True)
-        share.format.delete(True)
-        share.delete(True)
-

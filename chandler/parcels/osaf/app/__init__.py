@@ -161,6 +161,7 @@ The Chandler Team""")
                 resourceClass=schema.importString(
                     "osaf.servlets.repo.RepoResource"
                 ),
+                autoView=False
             )
         ]
     )

@@ -2,8 +2,25 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.sharing"
 
+
+import time, urlparse, libxml2, os, base64, logging
+
+from application import schema
+from osaf import pim, messages, ChandlerException
+import application.dialogs.AccountInfoPrompt as AccountInfoPrompt
+from i18n import OSAFMessageFactory as _
+import osaf.mail.utils as utils
+
+from chandlerdb.util.c import UUID
+from repository.item.Item import Item
+from repository.item.Sets import Set
+from repository.schema.Types import Type
+from repository.util.Lob import Lob
+
+import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, wx
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     'AlreadyExists',
@@ -30,35 +47,9 @@ __all__ = [
     'splitUrl',
 ]
 
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
 CLOUD_XML_VERSION = '2'
-
-import time, StringIO, urlparse, libxml2, os, base64, logging
-from application import schema
-from chandlerdb.util.c import UUID
-from osaf.pim import (AbstractCollection, ListCollection,
-    InclusionExclusionCollection, DifferenceCollection, CalendarEventMixin)
-from repository.item.Item import Item
-from repository.item.Sets import Set
-from repository.schema.Types import Type
-from repository.util.Lob import Lob
-import application.dialogs.AccountInfoPrompt as AccountInfoPrompt
-import M2Crypto.BIO
-import WebDAV
-import application.Parcel
-import osaf.pim.items as items
-import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim.contacts import Contact
-import osaf.pim.mail as Mail
-import osaf.mail.utils as utils
-import twisted.web.http
-import wx
-import zanshin.webdav
-from i18n import OSAFMessageFactory as _
-from osaf import messages
-from osaf import ChandlerException
-
-
-logger = logging.getLogger(__name__)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -68,7 +59,7 @@ class modeEnum(schema.Enumeration):
     values = "put", "get", "both"
 
 
-class Share(items.ContentItem):
+class Share(pim.ContentItem):
     """
     Represents a set of shared items, encapsulating contents, location,
     access method, data format, sharer and sharees.
@@ -108,9 +99,9 @@ class Share(items.ContentItem):
         initialValue = u''
     )
 
-    contents = schema.One(items.ContentItem, otherName = 'shares')
+    contents = schema.One(pim.ContentItem, otherName = 'shares')
 
-    items = schema.Sequence(items.ContentItem, initialValue=[],
+    items = schema.Sequence(pim.ContentItem, initialValue=[],
         otherName = 'sharedIn')
 
     conduit = schema.One('ShareConduit', inverse = 'share')
@@ -118,14 +109,14 @@ class Share(items.ContentItem):
     format = schema.One('ImportExportFormat', inverse = 'share')
 
     sharer = schema.One(
-        Contact,
+        pim.Contact,
         doc = 'The contact who initially published this share',
         initialValue = None,
         otherName = 'sharerOf',
     )
 
     sharees = schema.Sequence(
-        Contact,
+        pim.Contact,
         doc = 'The people who were invited to this share',
         initialValue = [],
         otherName = 'shareeOf',
@@ -235,79 +226,6 @@ class Share(items.ContentItem):
 
         return attributes
 
-    def configureInbound(self, url):
-
-        view = self.itsView
-
-        (useSSL, host, port, path, query, fragment) = splitUrl(url)
-
-        account = WebDAVAccount.findMatch(view, url)
-
-        if account is None:
-            # Prompt user for account information then create an account
-
-            # Get the parent directory of the given path:
-            # '/dev1/foo/bar' becomes ['dev1', 'foo']
-            parentPath = path.strip('/').split('/')[:-1]
-            # ['dev1', 'foo'] becomes "dev1/foo"
-            parentPath = "/".join(parentPath)
-
-            # Examine the URL for scheme, host, port, path
-            frame = wx.GetApp().mainFrame
-            info = AccountInfoPrompt.PromptForNewAccountInfo(frame,
-                                                             host=host,
-                                                             path=parentPath)
-            if info is not None:
-                (description, username, password) = info
-                account = WebDAVAccount(view=view)
-                account.displayName = description
-                account.host = host
-                account.path = parentPath
-                account.username = username
-                account.password = password
-                account.useSSL = useSSL
-                account.port = port
-
-        if account is not None:
-            # compute shareName relative to the account path:
-            accountPathLen = len(account.path.strip("/"))
-            shareName = path.strip("/")[accountPathLen:]
-
-            self.hidden = False
-
-            if url.endswith(u".ics"):
-                import ICalendar
-                self.format = ICalendar.ICalendarFormat(parent=self)
-                self.conduit = SimpleHTTPConduit(parent=self,
-                                                 shareName=shareName,
-                                                 account=account)
-                self.mode = "get"
-
-            else:
-                self.conduit = WebDAVConduit(parent=self,
-                                             shareName=shareName,
-                                             account=account)
-                location = self.getLocation()
-                if not location.endswith(u"/"):
-                    location += u"/"
-                handle = self.conduit._getServerHandle()
-                resource = handle.getResource(location)
-                if getattr(self.conduit, 'ticket', False):
-                    resource.ticketId = self.conduit.ticket
-
-                exists = handle.blockUntil(resource.exists)
-                if not exists:
-                    raise NotFound(_(u"%(location)s does not exist") % {'location': location})
-
-                isCalendar = handle.blockUntil(resource.isCalendar)
-                isCollection =  handle.blockUntil(resource.isCollection)
-                if isCalendar:
-                    import ICalendar
-                    self.format = ICalendar.CalDAVFormat(parent=self)
-                else:
-                    self.format = CloudXMLFormat(parent=self)
-                self.mode = "both"
-
 
 
 class OneTimeShare(Share):
@@ -334,7 +252,7 @@ class OneTimeShare(Share):
 
 
 
-class ShareConduit(items.ContentItem):
+class ShareConduit(pim.ContentItem):
     """
     Transfers items in and out.
     """
@@ -514,7 +432,7 @@ class ShareConduit(items.ContentItem):
 
             # If we're sharing a collection, put the collection's items
             # individually:
-            if isinstance(self.share.contents, AbstractCollection):
+            if isinstance(self.share.contents, pim.AbstractCollection):
 
                 #
                 # Remove any resources from the server that aren't in
@@ -691,22 +609,22 @@ class ShareConduit(items.ContentItem):
 
         # Make sure we have a collection to add items to:
         if self.share.contents is None:
-            self.share.contents = InclusionExclusionCollection(view=view).setup()
+            self.share.contents = pim.InclusionExclusionCollection(view=view).setup()
 
         contents = self.share.contents
 
         # If share.contents is an AbstractCollection, treat other resources as
         # items to add to the collection:
-        if isinstance(contents, AbstractCollection):
+        if isinstance(contents, pim.AbstractCollection):
 
             # Make sure the collection item is properly set up:
 
-            if isinstance(contents, ListCollection) and \
+            if isinstance(contents, pim.ListCollection) and \
                 not hasattr(contents, 'rep'):
                     contents.rep = Set((contents,'refCollection'))
                     contents.setup() # make sure a color is assigned
 
-            if isinstance(contents, InclusionExclusionCollection) and \
+            if isinstance(contents, pim.InclusionExclusionCollection) and \
                 not hasattr(contents, 'rep'):
                     contents.setup()
 
@@ -1612,7 +1530,7 @@ class CalDAVConduit(WebDAVConduit):
         return handle.blockUntil(resource.createCalendar, childName)
 
     def _getFilterClasses(self):
-        return [CalendarEventMixin]
+        return [pim.CalendarEventMixin]
 
 
 
@@ -1686,6 +1604,7 @@ class SimpleHTTPConduit(WebDAVConduit):
 class OneTimeFileSystemShare(OneTimeShare):
     def __init__(self, path, name, formatclass, kind=None, view=None,
                  contents=None):
+
         conduit = FileSystemConduit(kind=kind, view=view, sharePath=path,
                                     shareName=name)
         format  = formatclass(view=view)
@@ -1798,7 +1717,7 @@ class VersionMismatch(SharingError):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class WebDAVAccount(items.ContentItem):
+class WebDAVAccount(pim.ContentItem):
     schema.kindInfo(
         displayName=messages.ACCOUNT % {'accountName': 'WebDAV Account'},
         description="A WebDAV 'Account'\n\n"
@@ -1911,7 +1830,7 @@ class WebDAVAccount(items.ContentItem):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class ImportExportFormat(items.ContentItem):
+class ImportExportFormat(pim.ContentItem):
 
     schema.kindInfo(displayName=u"Import/Export Format Kind")
 

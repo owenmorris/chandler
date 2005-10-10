@@ -945,9 +945,13 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
         statusBlock.setStatusMessage( _(u'Subscribing to collection...') )
         wx.Yield()
-        share = sharing.Share(view=self.itsView)
-        share.configureInbound(url)
-        share.get()
+
+        # If this code is ever revived, it should call sharing.subscribe(),
+        # rather than the following:
+        ## share = sharing.Share(view=self.itsView)
+        ## share.configureInbound(url)
+        ## share.get()
+
         statusBlock.setStatusMessage( _(u'Subscribed to collection') )
     
         # @@@ Remove this when the sidebar autodetects new collections

@@ -1,9 +1,9 @@
 
-from twisted.web import resource
+from osaf import webserver
 import traceback
 import os, sys, datetime
 
-class PhotosResource(resource.Resource):
+class PhotosResource(webserver.AuthenticatedResource):
     isLeaf = True
     def render_GET(self, request):
 
@@ -51,4 +51,5 @@ class PhotosResource(resource.Resource):
         except Exception, e:
             output(u"<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback))))
 
-        return result.encode('utf-8', 'replace')
+
+        return "\n".join(result).encode('utf-8', 'replace')

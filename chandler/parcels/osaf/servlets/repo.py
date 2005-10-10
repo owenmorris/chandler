@@ -4,7 +4,7 @@ from twisted.web import resource
 import repository
 import application
 import re
-from osaf import pim
+from osaf import pim, webserver
 from osaf.pim.items import ContentItem
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
@@ -18,7 +18,7 @@ from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
 
-class RepoResource(resource.Resource):
+class RepoResource(webserver.AuthenticatedResource):
     isLeaf = True
     def render_GET(self, request):
 

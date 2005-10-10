@@ -78,7 +78,7 @@ class PublishCollectionDialog(wx.Dialog):
                                                             self.filterClasses)
         wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
 
-        self.currentAccount = sharing.getWebDAVAccount(self.view)
+        self.currentAccount = schema.ns('osaf.app', self.view).currentWebDAVAccount.item
 
         # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()
@@ -315,8 +315,8 @@ class PublishCollectionDialog(wx.Dialog):
 
         try:
 
-            attrs_to_exclude = self._getAttributeFilterState()
-            classes_to_include = self.filterClasses
+            attrsToExclude = self._getAttributeFilterState()
+            classesToInclude = self.filterClasses
             accountIndex = self.accountsControl.GetSelection()
             account = self.accountsControl.GetClientData(accountIndex)
 
@@ -327,8 +327,8 @@ class PublishCollectionDialog(wx.Dialog):
                 self.view).allCollection:
 
                 ext = _(u'items')
-                if classes_to_include:
-                    classString = classes_to_include[0]
+                if classesToInclude:
+                    classString = classesToInclude[0]
                     if classString == "osaf.pim.tasks.TaskMixin":
                         ext = _(u'tasks')
                     elif classString == "osaf.pim.mail.MailMessageMixin":
@@ -345,8 +345,8 @@ class PublishCollectionDialog(wx.Dialog):
                 basename = self.collection.displayName
 
             shares = sharing.publish(self.collection, account,
-                                     classes_to_include=classes_to_include,
-                                     attrs_to_exclude=attrs_to_exclude,
+                                     classesToInclude=classesToInclude,
+                                     attrsToExclude=attrsToExclude,
                                      basename=basename,
                                      updateCallback=self.updateCallback)
 

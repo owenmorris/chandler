@@ -335,7 +335,8 @@ class MainView(View):
         # out and we don't.
         if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
             return
-        webdavAccount = sharing.getWebDAVAccount(self.itsView)
+        webdavAccount = schema.ns('osaf.app',
+                                   self.itsView).currentWebDAVAccount.item
 
         # commit changes, since we'll be switching to Twisted thread
         # @@@DLD bug 1998 - update comment above and use refresh instead?
@@ -347,10 +348,13 @@ class MainView(View):
         # Get or make a share for this item collection
         share = sharing.getShare(itemCollection)
         isNewShare = share is None
-        if isNewShare:
-            share = sharing.newOutboundShare(self.itsView,
-                                             itemCollection,
-                                             account=webdavAccount)
+
+        # When this code is revived, it should use sharing.publish( ) rather
+        # than newOutboundShare:
+        ## if isNewShare:
+        ##     share = sharing.newOutboundShare(self.itsView,
+        ##                                      itemCollection,
+        ##                                      account=webdavAccount)
 
         # Copy the invitee list into the share's list. As we go, collect the 
         # addresses we'll notify.
@@ -825,7 +829,7 @@ class MainView(View):
         self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            sharing.syncCollection(collection)
+            sharing.sync(collection)
 
     def onSyncCollectionEventUpdateUI (self, event):
         """
