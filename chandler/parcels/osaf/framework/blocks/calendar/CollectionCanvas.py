@@ -699,6 +699,8 @@ class CollectionBlock(Block.RectangularChild):
         self.contents = item
 
         self.selection = []
+        self.widget.wxSynchronizeWidget()
+        
         self.postSelectItemsBroadcast()
 
 
