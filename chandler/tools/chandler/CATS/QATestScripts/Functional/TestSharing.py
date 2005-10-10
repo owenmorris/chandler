@@ -45,13 +45,14 @@ logger.Start("Sharing dialog")
 collection = Globals.views[0].getSidebarSelectedCollection()
 if collection is not None:
     if sidebar.filterKind is None:
-        filterKindPath = None 
+        filterClassName = None 
     else:
-        filterKindPath = str(sidebar.filterKind.itsPath)
+        klass = sidebar.filterKind.classes['python']
+        filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
     xrcFile = os.path.join(Globals.chandlerDirectory, 'application', 'dialogs', 'PublishCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollection.PublishCollectionDialog(wx.GetApp().mainFrame, _("Collection Sharing"),resources=resources, view=App_ns.itsView,
-                                                    collection=collection, filterKindPath=filterKindPath)
+                                                    collection=collection, filterClassName=filterClassName)
     win.CenterOnScreen()
     win.Show()
     #Share button call
