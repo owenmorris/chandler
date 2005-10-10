@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     12/10/2002
-// RCS-ID:      $Id: toplevel.cpp,v 1.22 2005/10/06 12:10:44 ABX Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.23 2005/10/08 18:33:28 VZ Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,14 +65,7 @@ static void wxTLWEventHandler( Widget wid,
 
 void wxTopLevelWindowMotif::PreDestroy()
 {
-#ifdef __VMS
-#pragma message disable codcauunr
-#endif
-   if ( (GetWindowStyleFlag() & wxDIALOG_MODAL) != wxDIALOG_MODAL )
-        wxModelessWindows.DeleteObject(this);
-#ifdef __VMS
-#pragma message enable codcauunr
-#endif
+    wxModelessWindows.DeleteObject(this);
 
     m_icons.m_icons.Empty();
 

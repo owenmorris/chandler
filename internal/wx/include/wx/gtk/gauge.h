@@ -2,7 +2,7 @@
 // Name:        gauge.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: gauge.h,v 1.21 2005/09/23 12:49:16 MR Exp $
+// Id:          $Id: gauge.h,v 1.22 2005/10/09 15:48:14 MBN Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,11 +81,6 @@ public:
     // the max and current gauge values
     int m_rangeMax,
         m_gaugePos;
-
-    // obsolete functions, don't use
-#if WXWIN_COMPATIBILITY_2_2
-    bool GetProgressBar() const { return true; }
-#endif // WXWIN_COMPATIBILITY_2_2
 
 protected:
     // common part of all ctors

@@ -2,7 +2,7 @@
 // Name:        htmltag.cpp
 // Purpose:     wxHtmlTag class (represents single tag)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmltag.cpp,v 1.50 2005/09/23 12:53:52 MR Exp $
+// RCS-ID:      $Id: htmltag.cpp,v 1.51 2005/10/09 15:48:35 MBN Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -515,14 +515,5 @@ wxHtmlTag *wxHtmlTag::GetNextTag() const
         cur = cur->m_Parent;
     return cur->m_Next;
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-
-bool wxHtmlTag::IsEnding() const
-{
-    return false;
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 #endif

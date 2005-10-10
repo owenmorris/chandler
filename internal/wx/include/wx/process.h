@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Vadim Zeitlin to check error codes, added Detach() method
 // Created:     24/06/98
-// RCS-ID:      $Id: process.h,v 1.38 2005/09/23 12:48:46 MR Exp $
+// RCS-ID:      $Id: process.h,v 1.39 2005/10/09 15:48:09 MBN Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -100,11 +100,6 @@ public:
                         wxOutputStream *inStream,
                         wxInputStream *errStream);
 #endif // wxUSE_STREAMS
-
-    // for backwards compatibility only, don't use
-#if WXWIN_COMPATIBILITY_2_2
-    wxDEPRECATED( wxProcess(wxEvtHandler *parent, bool redirect) );
-#endif // WXWIN_COMPATIBILITY_2_2
 
 protected:
     void Init(wxEvtHandler *parent, int id, int flags);

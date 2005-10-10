@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treectlg.h,v 1.53 2005/09/23 12:49:09 MR Exp $
+// RCS-ID:      $Id: treectlg.h,v 1.54 2005/10/09 15:48:13 MBN Exp $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -206,14 +206,6 @@ public:
 
         // get the parent of this item (may return NULL if root)
     wxTreeItemId GetItemParent(const wxTreeItemId& item) const;
-
-#if WXWIN_COMPATIBILITY_2_2
-        // deprecated:  Use GetItemParent instead.
-    wxDEPRECATED( wxTreeItemId GetParent(const wxTreeItemId& item) const);
-
-        // Expose the base class method hidden by the one above. Not deprecatable.
-    wxWindow *GetParent() const { return wxScrolledWindow::GetParent(); }
-#endif  // WXWIN_COMPATIBILITY_2_2
 
         // for this enumeration function you must pass in a "cookie" parameter
         // which is opaque for the application but is necessary for the library

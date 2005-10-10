@@ -8,7 +8,7 @@
 //              3) Fixed ShowPage() bug on displaying bitmaps
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.cpp,v 1.66 2005/09/26 13:30:54 ABX Exp $
+// RCS-ID:      $Id: wizard.cpp,v 1.67 2005/10/09 15:48:32 MBN Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -811,25 +811,6 @@ void wxWizard::OnWizEvent(wxWizardEvent& event)
         Destroy();
     }
 }
-
-// ----------------------------------------------------------------------------
-// our public interface
-// ----------------------------------------------------------------------------
-
-#if WXWIN_COMPATIBILITY_2_2
-
-/* static */
-wxWizard *wxWizardBase::Create(wxWindow *parent,
-                               int id,
-                               const wxString& title,
-                               const wxBitmap& bitmap,
-                               const wxPoint& pos,
-                               const wxSize& WXUNUSED(size))
-{
-    return new wxWizard(parent, id, title, bitmap, pos);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 // ----------------------------------------------------------------------------
 // wxWizardEvent

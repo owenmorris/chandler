@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: dobjcmn.cpp,v 1.37 2005/09/25 11:13:31 VZ Exp $
+// RCS-ID:      $Id: dobjcmn.cpp,v 1.38 2005/10/09 12:32:56 VZ Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -276,7 +276,8 @@ static wxMBConvUTF16 sUTF16Converter ;
 
 static inline wxMBConv& GetConv(const wxDataFormat& format)
 {
-    return format == wxDF_UNICODETEXT ? sUTF16Converter : (wxMBConv&) wxConvLocal;
+    return format == wxDF_UNICODETEXT ? (wxMBConv&) sUTF16Converter
+                                      : (wxMBConv&) wxConvLocal;
 }
 
 size_t wxTextDataObject::GetDataSize(const wxDataFormat& format) const

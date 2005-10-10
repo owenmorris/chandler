@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.06.01
-// RCS-ID:      $Id: radiocmn.cpp,v 1.13 2005/09/27 17:04:58 ABX Exp $
+// RCS-ID:      $Id: radiocmn.cpp,v 1.14 2005/10/09 15:48:29 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -143,24 +143,5 @@ void wxRadioBoxBase::SetNumberOfRowsOrCols(int WXUNUSED(n))
 }
 
 #endif // WXWIN_COMPATIBILITY_2_4
-
-#if WXWIN_COMPATIBILITY_2_2
-
-int wxRadioBoxBase::Number() const
-{
-    return GetCount();
-}
-
-wxString wxRadioBoxBase::GetLabel(int n) const
-{
-    return GetString(n);
-}
-
-void wxRadioBoxBase::SetLabel(int n, const wxString& label)
-{
-    SetString(n, label);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 #endif // wxUSE_RADIOBOX

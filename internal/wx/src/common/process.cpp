@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Vadim Zeitlin to check error codes, added Detach() method
 // Created:     24/06/98
-// RCS-ID:      $Id: process.cpp,v 1.25 2005/09/23 12:53:05 MR Exp $
+// RCS-ID:      $Id: process.cpp,v 1.26 2005/10/09 15:48:29 MBN Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,15 +42,6 @@ IMPLEMENT_DYNAMIC_CLASS(wxProcessEvent, wxEvent)
 // ----------------------------------------------------------------------------
 // wxProcess creation
 // ----------------------------------------------------------------------------
-
-#if WXWIN_COMPATIBILITY_2_2
-
-wxProcess::wxProcess(wxEvtHandler *parent, bool redirect)
-{
-    Init(parent, wxID_ANY, redirect ? wxPROCESS_REDIRECT : wxPROCESS_DEFAULT);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 void wxProcess::Init(wxEvtHandler *parent, int id, int flags)
 {

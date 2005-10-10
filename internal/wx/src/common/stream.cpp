@@ -5,7 +5,7 @@
 // Modified by: VZ (23.11.00) to fix realloc()ing new[]ed memory,
 //                            general code review
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.cpp,v 1.98 2005/09/25 19:58:48 VZ Exp $
+// RCS-ID:      $Id: stream.cpp,v 1.99 2005/10/09 15:48:29 MBN Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -678,20 +678,6 @@ wxFileOffset wxStreamBase::OnSysTell() const
 {
     return wxInvalidOffset;
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-
-wxStreamError wxStreamBase::LastError() const
-{
-    return m_lasterror;
-}
-
-size_t wxStreamBase::StreamSize() const
-{
-    return GetSize();
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 // ----------------------------------------------------------------------------
 // wxInputStream

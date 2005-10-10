@@ -2,7 +2,7 @@
 // Name:        htmltag.h
 // Purpose:     wxHtmlTag class (represents single tag)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmltag.h,v 1.21 2005/09/23 12:49:27 MR Exp $
+// RCS-ID:      $Id: htmltag.h,v 1.22 2005/10/09 15:48:16 MBN Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -109,12 +109,6 @@ public:
 
     // Returns string containing all params.
     wxString GetAllParams() const;
-
-#if WXWIN_COMPATIBILITY_2_2
-    // return true if this is ending tag (</something>) or false
-    // if it isn't (<something>)
-    wxDEPRECATED( bool IsEnding() const );
-#endif
 
     // return true if this there is matching ending tag
     inline bool HasEnding() const {return m_End1 >= 0;}

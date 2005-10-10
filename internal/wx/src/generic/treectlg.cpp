@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.175 2005/09/26 00:29:39 VZ Exp $
+// Id:          $Id: treectlg.cpp,v 1.176 2005/10/09 15:48:32 MBN Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -3634,14 +3634,5 @@ void wxGenericTreeCtrl::SetItemSelectedImage(const wxTreeItemId& item, int image
 }
 
 #endif // WXWIN_COMPATIBILITY_2_4
-
-#if WXWIN_COMPATIBILITY_2_2
-
-wxTreeItemId wxGenericTreeCtrl::GetParent(const wxTreeItemId& item) const
-{
-    return GetItemParent( item );
-}
-
-#endif  // WXWIN_COMPATIBILITY_2_2
 
 #endif // wxUSE_TREECTRL

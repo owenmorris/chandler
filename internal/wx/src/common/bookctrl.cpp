@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.cpp,v 1.15 2005/09/23 12:52:41 MR Exp $
+// RCS-ID:      $Id: bookctrl.cpp,v 1.16 2005/10/09 18:40:32 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,14 +114,17 @@ wxSize wxBookCtrlBase::DoGetBestSize() const
     const size_t nCount = m_pages.size();
     for ( size_t nPage = 0; nPage < nCount; nPage++ )
     {
-        wxWindow *pPage = m_pages[nPage];
-        wxSize childBestSize(pPage->GetBestSize());
+        const wxWindow * const pPage = m_pages[nPage];
+        if( pPage )
+        {
+            wxSize childBestSize(pPage->GetBestSize());
 
-        if ( childBestSize.x > bestSize.x )
-            bestSize.x = childBestSize.x;
+            if ( childBestSize.x > bestSize.x )
+                bestSize.x = childBestSize.x;
 
-        if ( childBestSize.y > bestSize.y )
-            bestSize.y = childBestSize.y;
+            if ( childBestSize.y > bestSize.y )
+                bestSize.y = childBestSize.y;
+        }
     }
 
     // convert display area to window area, adding the size necessary for the
@@ -142,7 +145,7 @@ wxBookCtrlBase::InsertPage(size_t nPage,
                            bool WXUNUSED(bSelect),
                            int WXUNUSED(imageId))
 {
-    wxCHECK_MSG( page, false, _T("NULL page in wxBookCtrlBase::InsertPage()") );
+    wxCHECK_MSG( page || AllowNullPage(), false, _T("NULL page in wxBookCtrlBase::InsertPage()") );
     wxCHECK_MSG( nPage <= m_pages.size(), false,
                  _T("invalid page index in wxBookCtrlBase::InsertPage()") );
 
@@ -155,9 +158,10 @@ wxBookCtrlBase::InsertPage(size_t nPage,
 bool wxBookCtrlBase::DeletePage(size_t nPage)
 {
     wxWindow *page = DoRemovePage(nPage);
-    if ( !page )
+    if ( !(page || AllowNullPage()) )
         return false;
 
+    // delete NULL is harmless
     delete page;
 
     return true;

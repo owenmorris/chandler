@@ -3,7 +3,7 @@
 // Purpose:     wxXmlResource::InitAllHandlers
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlrsall.cpp,v 1.21 2005/09/23 12:56:15 MR Exp $
+// RCS-ID:      $Id: xmlrsall.cpp,v 1.22 2005/10/09 18:40:34 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,6 +85,9 @@ void wxXmlResource::InitAllHandlers()
 #endif
 #if wxUSE_CHOICEBOOK
     AddHandler(new wxChoicebookXmlHandler);
+#endif
+#if wxUSE_TREEBOOK
+    AddHandler(new wxTreebookXmlHandler);
 #endif
     AddHandler(new wxTextCtrlXmlHandler);
 #if wxUSE_LISTBOX

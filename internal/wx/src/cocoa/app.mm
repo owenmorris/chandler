@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2002/11/27
-// RCS-ID:      $Id: app.mm,v 1.51 2004/10/19 05:18:02 RN Exp $
+// RCS-ID:      $Id: app.mm,v 1.52 2005/10/09 15:48:26 MBN Exp $
 // Copyright:   (c) David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -232,9 +232,6 @@ wxApp::wxApp()
 {
     m_topWindow = NULL;
 
-#if WXWIN_COMPATIBILITY_2_2
-    m_wantDebugOutput = TRUE;
-#endif
 #ifdef __WXDEBUG__
     m_isInAssert = FALSE;
 #endif // __WXDEBUG__

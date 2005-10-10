@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolwin.h,v 1.44 2005/09/23 12:49:08 MR Exp $
+// RCS-ID:      $Id: scrolwin.h,v 1.45 2005/10/09 22:34:08 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,14 +24,6 @@ extern WXDLLEXPORT_DATA(const wxChar*) wxPanelNameStr;
 // default scrolled window style
 #ifndef wxScrolledWindowStyle
     #define wxScrolledWindowStyle (wxHSCROLL | wxVSCROLL)
-#endif
-
-// avoid triggering this stupid VC++ warning
-#ifdef __VISUALC__
-    #if _MSC_VER > 1100
-        #pragma warning(push)
-    #endif
-    #pragma warning(disable:4355) // 'this' used in base member initializer list
 #endif
 
 // ----------------------------------------------------------------------------
@@ -94,10 +86,5 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-#if defined(__VISUALC__) && (_MSC_VER > 1100)
-    #pragma warning(pop)
-#endif
-
-#endif
-    // _WX_GENERIC_SCROLLWIN_H_
+#endif // _WX_GENERIC_SCROLLWIN_H_
 

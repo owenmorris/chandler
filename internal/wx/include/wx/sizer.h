@@ -4,7 +4,7 @@
 // Author:      Robert Roebling and Robin Dunn
 // Modified by: Ron Lee, Vadim Zeitlin (wxSizerFlags)
 // Created:
-// RCS-ID:      $Id: sizer.h,v 1.73 2005/09/25 14:24:00 MBN Exp $
+// RCS-ID:      $Id: sizer.h,v 1.74 2005/10/09 14:32:53 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,14 @@ public:
     wxSizerFlags& Border(int direction = wxALL)
     {
         // FIXME: default border size shouldn't be hardcoded
+#ifdef __SMARTPHONE__
+        // no borders by default on limited size screen
+        wxUnusedVar(direction);
+
+        return *this;
+#else
         return Border(direction, 5);
+#endif
     }
 
 

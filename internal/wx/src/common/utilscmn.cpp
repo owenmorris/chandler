@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp,v 1.150 2005/09/26 13:37:07 ABX Exp $
+// RCS-ID:      $Id: utilscmn.cpp,v 1.151 2005/10/09 15:48:30 MBN Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -97,11 +97,6 @@
 // ----------------------------------------------------------------------------
 // common data
 // ----------------------------------------------------------------------------
-
-#if WXWIN_COMPATIBILITY_2_2
-    const wxChar *wxInternalErrorStr = wxT("wxWidgets Internal Error");
-    const wxChar *wxFatalErrorStr = wxT("wxWidgets Fatal Error");
-#endif // WXWIN_COMPATIBILITY_2_2
 
 // ============================================================================
 // implementation

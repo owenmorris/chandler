@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1076 2005/10/07 21:56:51 VZ Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1080 2005/10/09 22:24:49 VZ Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1076 2005/10/07 21:56:51 VZ Exp $
+dnl Version: $Id: configure.in,v 1.1080 2005/10/09 22:24:49 VZ Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -527,6 +527,7 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_TOOLBAR=no
   DEFAULT_wxUSE_TOOLBAR_NATIVE=no
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=no
+  DEFAULT_wxUSE_TREEBOOK=no
   DEFAULT_wxUSE_TREECTRL=no
   DEFAULT_wxUSE_POPUPWIN=no
   DEFAULT_wxUSE_TIPWINDOW=no
@@ -723,6 +724,7 @@ else
   DEFAULT_wxUSE_TOOLBAR=yes
   DEFAULT_wxUSE_TOOLBAR_NATIVE=yes
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=yes
+  DEFAULT_wxUSE_TREEBOOK=yes
   DEFAULT_wxUSE_TREECTRL=yes
   DEFAULT_wxUSE_POPUPWIN=yes
   DEFAULT_wxUSE_TIPWINDOW=yes
@@ -857,8 +859,8 @@ WX_ARG_ENABLE(no_exceptions, [  --enable-no_exceptions  create code without C++ 
 WX_ARG_ENABLE(permissive,    [  --enable-permissive     compile code disregarding strict ANSI], wxUSE_PERMISSIVE)
 WX_ARG_ENABLE(no_deps,       [  --enable-no_deps        create code without dependency information], wxUSE_NO_DEPS)
 
-WX_ARG_ENABLE(compat22,      [  --enable-compat22       enable wxWidgets 2.2 compatibility], WXWIN_COMPATIBILITY_2_2)
-WX_ARG_ENABLE(compat24,      [  --disable-compat24      disable wxWidgets 2.4 compatibility], WXWIN_COMPATIBILITY_2_4, disable)
+WX_ARG_ENABLE(compat24,      [  --enable-compat24       enable wxWidgets 2.4 compatibility], WXWIN_COMPATIBILITY_2_4, enable)
+WX_ARG_ENABLE(compat26,      [  --disable-compat26      disable wxWidgets 2.6 compatibility], WXWIN_COMPATIBILITY_2_6, disable)
 
 WX_ARG_ENABLE(rpath,         [  --disable-rpath         disable use of rpath for uninstalled builds], wxUSE_RPATH)
 
@@ -1025,6 +1027,7 @@ if test "$wxUSE_CONTROLS" = "yes"; then
   DEFAULT_wxUSE_TOOLBAR_NATIVE=yes
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=yes
   DEFAULT_wxUSE_TOOLTIPS=yes
+  DEFAULT_wxUSE_TREEBOOK=yes
   DEFAULT_wxUSE_TREECTRL=yes
   DEFAULT_wxUSE_POPUPWIN=yes
   DEFAULT_wxUSE_TIPWINDOW=yes
@@ -1065,6 +1068,7 @@ elif test "$wxUSE_CONTROLS" = "no"; then
   DEFAULT_wxUSE_TOOLBAR_NATIVE=no
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=no
   DEFAULT_wxUSE_TOOLTIPS=no
+  DEFAULT_wxUSE_TREEBOOK=no
   DEFAULT_wxUSE_TREECTRL=no
   DEFAULT_wxUSE_POPUPWIN=no
   DEFAULT_wxUSE_TIPWINDOW=no
@@ -1108,6 +1112,7 @@ WX_ARG_ENABLE(togglebtn,   [  --enable-togglebtn      use wxToggleButton class],
 WX_ARG_ENABLE(toolbar,     [  --enable-toolbar        use wxToolBar class], wxUSE_TOOLBAR)
 WX_ARG_ENABLE(tbarnative,  [  --enable-tbarnative     use native wxToolBar class], wxUSE_TOOLBAR_NATIVE)
 WX_ARG_ENABLE(tbarsmpl,    [  --enable-tbarsmpl       use wxToolBarSimple class], wxUSE_TOOLBAR_SIMPLE)
+WX_ARG_ENABLE(treebook,    [  --enable-treebook       use wxTreebook class], wxUSE_TREEBOOK)
 WX_ARG_ENABLE(treectrl,    [  --enable-treectrl       use wxTreeCtrl class], wxUSE_TREECTRL)
 WX_ARG_ENABLE(tipwindow,   [  --enable-tipwindow      use wxTipWindow class], wxUSE_TIPWINDOW)
 WX_ARG_ENABLE(popupwin,    [  --enable-popupwin       use wxPopUpWindow class], wxUSE_POPUPWIN)
@@ -1956,6 +1961,18 @@ if test "x$HPCXX" = "xyes"; then
     dnl 2340: "value copied to temporary, reference to temporary used": very
     dnl       painful as triggered by any occurrence of user-defined conversion
     CXXFLAGS="$CXXFLAGS +W 2340"
+fi
+
+dnl DEC/Compaq/HP cxx warnings
+if test "x$COMPAQCXX" = "xyes"; then
+    dnl -w0 enables all warnings, then we disable some of them:
+    dnl basclsnondto: base class dtor non virtual (sometimes we do want this)
+    dnl unrimpret:  "end of routine block may be unreachable" is given for
+    dnl             every "if ( ) return ...; else return ...;"
+    dnl intconlosbit: "conversion to integral type of smaller size could lose
+    dnl               data" this is a useful warning but there are too many of
+    dnl               them for now
+    CXXFLAGS="-w0 -msg_disable basclsnondto,unrimpret,intconlosbit"
 fi
 
 dnl check for std::string or std::wstring
@@ -4654,10 +4671,9 @@ if test "$TOOLKIT" != "MSW" -a "$USE_OS2" != 1; then
                     $CXX -dumpspecs | grep 'pthread:' >/dev/null ||
                         THREAD_OPTS="" 
                 else
-                    dnl HP-UX aCC only gives a warning, not an error about
-                    dnl -pthread but it doesn't work and we have to use
-                    dnl -lpthread there
-                    THREAD_OPTS=""
+                    dnl HP-UX aCC (tested with version B3910B A.06.05 [Jul 25
+                    dnl 2005]) supports -mt
+                    THREAD_OPTS="-mt"
                 fi
                 ;;
 
@@ -5081,14 +5097,14 @@ dnl ---------------------------------------------------------------------------
 dnl compatibility level
 dnl ---------------------------------------------------------------------------
 
-if test "x$WXWIN_COMPATIBILITY_2_2" = "xyes"; then
-    AC_DEFINE(WXWIN_COMPATIBILITY_2_2)
+if test "x$WXWIN_COMPATIBILITY_2_4" = "xyes"; then
+    AC_DEFINE(WXWIN_COMPATIBILITY_2_4)
 
-    WXWIN_COMPATIBILITY_2_4="yes"
+    WXWIN_COMPATIBILITY_2_6="yes"
 fi
 
-if test "x$WXWIN_COMPATIBILITY_2_4" != "xno"; then
-    AC_DEFINE(WXWIN_COMPATIBILITY_2_4)
+if test "x$WXWIN_COMPATIBILITY_2_6" != "xno"; then
+    AC_DEFINE(WXWIN_COMPATIBILITY_2_6)
 fi
 
 dnl ---------------------------------------------------------------------------
@@ -6381,6 +6397,11 @@ if test "$wxUSE_TOOLTIPS" = "yes"; then
     fi
 fi
 
+if test "$wxUSE_TREEBOOK" = "yes"; then
+    AC_DEFINE(wxUSE_TREEBOOK)
+    USES_CONTROLS=1
+fi
+
 if test "$wxUSE_TREECTRL" = "yes"; then
     if test "$wxUSE_IMAGLIST" = "yes"; then
         AC_DEFINE(wxUSE_TREECTRL)
@@ -7354,8 +7375,8 @@ echo "  Should wxWidgets be linked as a shared library?         ${wxUSE_SHARED:-
 echo "  Should wxWidgets be compiled in Unicode mode?           ${wxUSE_UNICODE:-no}"
 
 echo "  What level of wxWidgets compatibility should be enabled?"
-echo "                                       wxWidgets 2.2      ${WXWIN_COMPATIBILITY_2_2:-no}"
-echo "                                       wxWidgets 2.4      ${WXWIN_COMPATIBILITY_2_4:-yes}"
+echo "                                       wxWidgets 2.4      ${WXWIN_COMPATIBILITY_2_4:-no}"
+echo "                                       wxWidgets 2.6      ${WXWIN_COMPATIBILITY_2_6:-yes}"
 
 echo "  Which libraries should wxWidgets use?"
 echo "                                       jpeg               ${wxUSE_LIBJPEG-none}"

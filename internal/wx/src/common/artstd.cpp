@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     18/03/2002
-// RCS-ID:      $Id: artstd.cpp,v 1.23 2005/06/10 17:53:12 ABX Exp $
+// RCS-ID:      $Id: artstd.cpp,v 1.24 2005/10/09 15:48:28 MBN Exp $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,12 +18,6 @@
 
 #if defined(__BORLANDC__)
     #pragma hdrstop
-#endif
-
-#ifndef WX_PRECOMP
-    #if WXWIN_COMPATIBILITY_2_2
-        #include "wx/app.h"
-    #endif
 #endif
 
 #include "wx/artprov.h"

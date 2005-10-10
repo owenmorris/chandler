@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.30 2005/09/27 16:54:19 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.31 2005/10/09 15:48:09 MBN Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,13 +45,6 @@ public:
     wxDEPRECATED( int GetNumberOfRowsOrCols() const );
     wxDEPRECATED( void SetNumberOfRowsOrCols(int n) );
 #endif // WXWIN_COMPATIBILITY_2_4
-
-    // for compatibility only, don't use these methods in new code!
-#if WXWIN_COMPATIBILITY_2_2
-    wxDEPRECATED( int Number() const );
-    wxDEPRECATED( wxString GetLabel(int n) const );
-    wxDEPRECATED( void SetLabel(int n, const wxString& label) );
-#endif // WXWIN_COMPATIBILITY_2_2
 };
 
 #if defined(__WXUNIVERSAL__)

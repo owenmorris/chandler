@@ -2,7 +2,7 @@
 // Name:        src/gtk/radiobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.cpp,v 1.102 2005/09/27 17:05:02 ABX Exp $
+// Id:          $Id: radiobox.cpp,v 1.103 2005/10/09 15:48:33 MBN Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -657,24 +657,5 @@ wxRadioBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
     gtk_widget_destroy(wnd);
     return attr;
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-
-int wxRadioBox::Number() const
-{
-    return GetCount();
-}
-
-wxString wxRadioBox::GetLabel(int n) const
-{
-    return GetString(n);
-}
-
-void wxRadioBox::SetLabel( int item, const wxString& label )
-{
-    SetString(item, label);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 #endif // wxUSE_RADIOBOX

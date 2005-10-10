@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.11.99
-// RCS-ID:      $Id: frame.h,v 1.56 2005/09/23 12:48:39 MR Exp $
+// RCS-ID:      $Id: frame.h,v 1.57 2005/10/09 15:48:09 MBN Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -172,11 +172,6 @@ public:
     // show help text (typically in the statusbar); show is false
     // if you are hiding the help, true otherwise
     virtual void DoGiveHelp(const wxString& text, bool show);
-
-#if WXWIN_COMPATIBILITY_2_2
-    // call this to simulate a menu command
-    wxDEPRECATED( bool Command(int winid) );
-#endif // WXWIN_COMPATIBILITY_2_2
 
 protected:
     // the frame main menu/status/tool bars

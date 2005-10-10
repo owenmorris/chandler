@@ -3,7 +3,7 @@
 // Purpose:     includes all xh_*.h files
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xh_all.h,v 1.10 2005/04/02 22:22:25 VS Exp $
+// RCS-ID:      $Id: xh_all.h,v 1.11 2005/10/09 18:40:26 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,7 @@
 #include "wx/xrc/xh_notbk.h"
 #include "wx/xrc/xh_listbk.h"
 #include "wx/xrc/xh_choicbk.h"
+#include "wx/xrc/xh_treebk.h"
 #include "wx/xrc/xh_text.h"
 #include "wx/xrc/xh_listb.h"
 #include "wx/xrc/xh_toolb.h"

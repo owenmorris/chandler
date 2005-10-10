@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dccg.cpp,v 1.27 2005/09/23 12:54:04 MR Exp $
+// RCS-ID:      $Id: dccg.cpp,v 1.28 2005/10/09 12:23:58 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,9 +24,11 @@
 #include "wx/log.h"
 
 
-#if __MSL__ >= 0x6000
-#include "math.h"
-using namespace std ;
+#ifdef __MSL__
+    #if __MSL__ >= 0x6000
+        #include "math.h"
+        using namespace std ;
+    #endif
 #endif
 
 #include "wx/mac/private.h"

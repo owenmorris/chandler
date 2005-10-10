@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: tbarbase.h,v 1.58 2005/09/23 12:48:47 MR Exp $
+// RCS-ID:      $Id: tbarbase.h,v 1.59 2005/10/09 15:48:10 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -193,15 +193,6 @@ public:
     // add tool to/remove it from a toolbar
     virtual void Detach() { m_tbar = (wxToolBarBase *)NULL; }
     virtual void Attach(wxToolBarBase *tbar) { m_tbar = tbar; }
-
-    // compatibility only, don't use
-#if WXWIN_COMPATIBILITY_2_2
-    wxDEPRECATED( const wxBitmap& GetBitmap1() const );
-    wxDEPRECATED( const wxBitmap& GetBitmap2() const );
-
-    wxDEPRECATED( void SetBitmap1(const wxBitmap& bmp) );
-    wxDEPRECATED( void SetBitmap2(const wxBitmap& bmp) );
-#endif // WXWIN_COMPATIBILITY_2_2
 
 protected:
     wxToolBarBase *m_tbar;  // the toolbar to which we belong (may be NULL)

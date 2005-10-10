@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: notebook.cpp,v 1.38 2005/10/06 11:14:32 ABX Exp $
+// RCS-ID:      $Id: notebook.cpp,v 1.39 2005/10/08 21:24:28 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -207,7 +207,7 @@ wxString wxNotebook::GetPageText(size_t nPage) const
         return wxEmptyString;
 }
 
-int wxNotebook::GetPageImage(size_t nPage) const
+int wxNotebook::GetPageImage(size_t WXUNUSED_UNLESS_DEBUG(nPage)) const
 {
     wxASSERT( IS_VALID_PAGE(nPage) );
 
@@ -215,7 +215,8 @@ int wxNotebook::GetPageImage(size_t nPage) const
     return 0;
 }
 
-bool wxNotebook::SetPageImage(size_t nPage, int WXUNUSED(nImage))
+bool wxNotebook::SetPageImage(size_t WXUNUSED_UNLESS_DEBUG(nPage),
+                              int WXUNUSED(nImage))
 {
     wxASSERT( IS_VALID_PAGE(nPage) );
 

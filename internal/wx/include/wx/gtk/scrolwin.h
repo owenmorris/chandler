@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolwin.h,v 1.23 2005/09/23 12:49:18 MR Exp $
+// RCS-ID:      $Id: scrolwin.h,v 1.24 2005/10/09 15:48:15 MBN Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -162,11 +162,6 @@ public:
 
     // Overridden from wxWidgets due callback being static
     virtual void SetScrollPos( int orient, int pos, bool refresh = TRUE );
-
-#if WXWIN_COMPATIBILITY_2_2
-    // Compatibility
-    void ViewStart(int *x, int *y) const { GetViewStart( x, y ); }
-#endif // WXWIN_COMPATIBILITY_2_2
 
     virtual void DoPrepareDC(wxDC& dc);
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Created:     01/02/97
 // Modified:
-// Id:          $Id: treebase.cpp,v 1.19 2005/09/23 12:53:10 MR Exp $
+// Id:          $Id: treebase.cpp,v 1.20 2005/10/09 15:48:30 MBN Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart et al
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,15 +85,6 @@ wxTreeEvent::wxTreeEvent(const wxTreeEvent & event)
     m_label = event.m_label;
     m_editCancelled = event.m_editCancelled;
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-
-int wxTreeEvent::GetCode() const
-{
-    return m_evtKey.GetKeyCode();
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 #endif // wxUSE_TREECTRL
 

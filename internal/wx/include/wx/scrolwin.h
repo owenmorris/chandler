@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: scrolwin.h,v 1.28 2005/04/05 07:09:42 ABX Exp $
+// RCS-ID:      $Id: scrolwin.h,v 1.29 2005/10/09 15:48:09 MBN Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -139,11 +139,6 @@ public:
     // FIXME: this is needed for now for wxPlot compilation, should be removed
     //        once it is fixed!
     void OnScroll(wxScrollWinEvent& event) { HandleOnScroll(event); }
-
-#if WXWIN_COMPATIBILITY_2_2
-    // Compatibility only, don't use
-    wxDEPRECATED( void ViewStart(int *x, int *y) const );
-#endif // WXWIN_COMPATIBILITY_2_2
 
 protected:
     // get pointer to our scroll rect if we use it or NULL

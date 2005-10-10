@@ -9,7 +9,7 @@
 //              Added wxWIZARD_HELP event
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.h,v 1.46 2005/09/25 20:49:25 MW Exp $
+// RCS-ID:      $Id: wizard.h,v 1.47 2005/10/09 15:48:11 MBN Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -221,16 +221,6 @@ public:
     // Set border around page area. Default is 0 if you add at least one
     // page to GetPageAreaSizer and 5 if you don't.
     virtual void SetBorder(int border) = 0;
-
-    // wxWizard should be created using "new wxWizard" now, not with Create()
-#if WXWIN_COMPATIBILITY_2_2
-    wxDEPRECATED( static wxWizard *Create(wxWindow *parent,
-                                          int id = wxID_ANY,
-                                          const wxString& title = wxEmptyString,
-                                          const wxBitmap& bitmap = wxNullBitmap,
-                                          const wxPoint& pos = wxDefaultPosition,
-                                          const wxSize& size = wxDefaultSize) );
-#endif // WXWIN_COMPATIBILITY_2_2
 
     // the methods below may be overridden by the derived classes to provide
     // custom logic for determining the pages order

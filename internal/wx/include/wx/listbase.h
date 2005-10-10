@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.12.99
-// RCS-ID:      $Id: listbase.h,v 1.21 2005/09/23 12:48:43 MR Exp $
+// RCS-ID:      $Id: listbase.h,v 1.22 2005/10/09 15:48:09 MBN Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -380,15 +380,6 @@ public:
     // was label editing canceled? (for wxEVT_COMMAND_LIST_END_LABEL_EDIT only)
     bool IsEditCancelled() const { return m_editCancelled; }
     void SetEditCanceled(bool editCancelled) { m_editCancelled = editCancelled; }
-
-#if WXWIN_COMPATIBILITY_2_2
-    // these methods don't do anything at all
-    long GetOldIndex() const { return 0; }
-    long GetOldItem() const { return 0; }
-
-    // this one is superseded by GetKeyCode()
-    int GetCode() const { return GetKeyCode(); }
-#endif // WXWIN_COMPATIBILITY_2_2
 
     virtual wxEvent *Clone() const { return new wxListEvent(*this); }
 

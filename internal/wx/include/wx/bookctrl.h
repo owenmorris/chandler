@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.h,v 1.20 2005/09/23 12:48:31 MR Exp $
+// RCS-ID:      $Id: bookctrl.h,v 1.22 2005/10/09 18:40:20 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,14 +73,14 @@ public:
     virtual size_t GetPageCount() const { return m_pages.size(); }
 
     // get the panel which represents the given page
-    virtual wxWindow *GetPage(size_t n) { return m_pages[n]; }
+    wxWindow *GetPage(size_t n) { return m_pages[n]; }
+    wxWindow *GetPage(size_t n) const { return m_pages[n]; }
 
     // get the current page or NULL if none
     wxWindow *GetCurrentPage() const
     {
-        int n = GetSelection();
-        return n == wxNOT_FOUND ? NULL
-                                : wx_const_cast(wxBookCtrlBase *, this)->GetPage(n);
+        const int n = GetSelection();
+        return n == wxNOT_FOUND ? NULL : GetPage(n);
     }
 
     // get the currently selected page or wxNOT_FOUND if none
@@ -176,6 +176,13 @@ public:
     }
 
 protected:
+    // Should we accept NULL page pointers in Add/InsertPage()?
+    //
+    // Default is no but derived classes may override it if they can treat NULL
+    // pages in some sensible way (e.g. wxTreebook overrides this to allow
+    // having nodes without any associated page)
+    virtual bool AllowNullPage() const { return false; }
+
     // remove the page and return a pointer to it
     virtual wxWindow *DoRemovePage(size_t page) = 0;
 
@@ -190,6 +197,7 @@ protected:
 
     // Always rely on GetBestSize, which will look at all the pages
     virtual void SetInitialBestSize(const wxSize& WXUNUSED(size)) { }
+
 
     // the array of all pages of this control
     wxArrayPages m_pages;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10.10.98
 // Created:     1997
-// RCS-ID:      $Id: treectrl.cpp,v 1.210 2005/10/03 17:54:09 VZ Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.213 2005/10/09 17:19:43 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2137,6 +2137,38 @@ bool wxTreeCtrl::GetBoundingRect(const wxTreeItemId& item,
     }
 }
 
+wxSize wxTreeCtrl::DoGetBestSize() const
+{
+    wxSize size;
+
+    // this doesn't really compute the total bounding rectangle of all items
+    // but a not too bad guess of it which has the advantage of not having to
+    // examine all (potentially hundreds or thousands) items in the control
+    for ( wxTreeItemId item = GetRootItem();
+          item.IsOk();
+          item = GetLastChild(item) )
+    {
+        wxRect rect;
+
+        // last parameter is "true" to get only the dimensions of the text
+        // label, we don't want to get the entire item width as it's determined
+        // by the current size
+        if ( GetBoundingRect(item, rect, true) )
+        {
+            if ( size.x < rect.x + rect.width )
+                size.x = rect.x + rect.width;
+            if ( size.y < rect.y + rect.height )
+                size.y = rect.y + rect.height;
+        }
+    }
+
+    // need some minimal size even for empty tree
+    if ( !size.x || !size.y )
+        size = wxControl::DoGetBestSize();
+
+    return size;
+}
+
 // ----------------------------------------------------------------------------
 // sorting stuff
 // ----------------------------------------------------------------------------
@@ -3222,15 +3254,6 @@ int wxTreeCtrl::GetState(const wxTreeItemId& node)
 
     return STATEIMAGEMASKTOINDEX(tvi.state);
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-
-wxTreeItemId wxTreeCtrl::GetParent(const wxTreeItemId& item) const
-{
-    return GetItemParent( item );
-}
-
-#endif  // WXWIN_COMPATIBILITY_2_2
 
 #endif // wxUSE_TREECTRL
 

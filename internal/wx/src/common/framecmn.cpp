@@ -3,7 +3,7 @@
 // Purpose:     common (for all platforms) wxFrame functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: framecmn.cpp,v 1.66 2005/09/23 12:52:54 MR Exp $
+// Id:          $Id: framecmn.cpp,v 1.67 2005/10/09 15:48:28 MBN Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -568,12 +568,3 @@ void wxFrameBase::SetMenuBar(wxMenuBar *menubar)
 }
 
 #endif // wxUSE_MENUS
-
-#if WXWIN_COMPATIBILITY_2_2
-
-bool wxFrameBase::Command(int winid)
-{
-    return ProcessCommand(winid);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2

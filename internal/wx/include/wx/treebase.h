@@ -4,7 +4,7 @@
 // Author:      Julian Smart et al
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treebase.h,v 1.54 2005/10/03 17:54:06 VZ Exp $
+// RCS-ID:      $Id: treebase.h,v 1.55 2005/10/09 15:48:10 MBN Exp $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -299,11 +299,6 @@ public:
         // Set the tooltip for the item (for EVT\_TREE\_ITEM\_GETTOOLTIP events)
     void SetToolTip(const wxString& toolTip) { m_label = toolTip; }
     wxString GetToolTip() { return m_label; }
-
-#if WXWIN_COMPATIBILITY_2_2
-    // for compatibility only, don't use
-    wxDEPRECATED( int GetCode() const);
-#endif // WXWIN_COMPATIBILITY_2_2
 
 private:
     // not all of the members are used (or initialized) for all events

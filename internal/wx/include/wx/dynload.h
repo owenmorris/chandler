@@ -5,7 +5,7 @@
 //               (derived in part from dynlib.cpp (c) 1998 Guilhem Lavaux)
 // Modified by:
 // Created:      03/12/01
-// RCS-ID:       $Id: dynload.h,v 1.25 2005/09/23 12:48:37 MR Exp $
+// RCS-ID:       $Id: dynload.h,v 1.26 2005/10/09 15:48:09 MBN Exp $
 // Copyright:    (c) 2001 Ron Lee <ron@debian.org>
 // Licence:      wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -107,13 +107,6 @@ public:
     static wxPluginLibrary    *LoadLibrary( const wxString &libname,
                                             int flags = wxDL_DEFAULT );
     static bool                UnloadLibrary(const wxString &libname);
-
-        // This is used by wxDllLoader.  It's wrapped in the compatibility
-        // macro because it's of arguable use outside of that.
-
-#if WXWIN_COMPATIBILITY_2_2
-    wxDEPRECATED( static wxPluginLibrary *GetObjectFromHandle(wxDllType handle) );
-#endif
 
         // Instance methods.
 

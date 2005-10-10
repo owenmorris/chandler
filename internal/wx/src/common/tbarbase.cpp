@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 11.12.99 (wxScrollableToolBar split off)
 // Created:     04/01/98
-// RCS-ID:      $Id: tbarbase.cpp,v 1.81 2005/09/26 00:29:33 VZ Exp $
+// RCS-ID:      $Id: tbarbase.cpp,v 1.82 2005/10/09 15:48:29 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -112,30 +112,6 @@ bool wxToolBarToolBase::SetLongHelp(const wxString& help)
 
     return true;
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-
-const wxBitmap& wxToolBarToolBase::GetBitmap1() const
-{
-    return GetNormalBitmap();
-}
-
-const wxBitmap& wxToolBarToolBase::GetBitmap2() const
-{
-    return GetDisabledBitmap();
-}
-
-void wxToolBarToolBase::SetBitmap1(const wxBitmap& bmp)
-{
-    SetNormalBitmap(bmp);
-}
-
-void wxToolBarToolBase::SetBitmap2(const wxBitmap& bmp)
-{
-    SetDisabledBitmap(bmp);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 // ----------------------------------------------------------------------------
 // wxToolBarBase adding/deleting items

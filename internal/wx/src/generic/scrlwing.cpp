@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 31.08.00: wxScrollHelper allows to implement.
 //              Ron Lee on 10.4.02:  virtual size / auto scrollbars et al.
 // Created:     01/02/97
-// RCS-ID:      $Id: scrlwing.cpp,v 1.70 2005/09/23 12:53:29 MR Exp $
+// RCS-ID:      $Id: scrlwing.cpp,v 1.71 2005/10/09 15:48:32 MBN Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -939,15 +939,6 @@ void wxScrollHelper::GetViewStart (int *x, int *y) const
     if ( y )
         *y = m_yScrollPosition;
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-
-void wxScrollHelper::ViewStart(int *x, int *y) const
-{
-    GetViewStart( x, y );
-}
-
-#endif // WXWIN_COMPATIBILITY_2_2
 
 void wxScrollHelper::DoCalcScrolledPosition(int x, int y, int *xx, int *yy) const
 {

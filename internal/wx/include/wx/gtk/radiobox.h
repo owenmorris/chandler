@@ -2,7 +2,7 @@
 // Name:        wx/gtk/radiobox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.h,v 1.44 2005/09/27 16:54:25 ABX Exp $
+// Id:          $Id: radiobox.h,v 1.45 2005/10/09 15:48:14 MBN Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,13 +89,6 @@ public:
     virtual bool SetStringSelection( const wxString& s );
 
     int GetCount() const;
-
-    // for compatibility only, don't use these methods in new code!
-#if WXWIN_COMPATIBILITY_2_2
-    wxDEPRECATED( int Number() const );
-    wxDEPRECATED( wxString GetLabel(int n) const );
-    wxDEPRECATED( void SetLabel( int item, const wxString& label ) );
-#endif // WXWIN_COMPATIBILITY_2_2
 
     // we have to override those to avoid virtual function name hiding
     virtual wxString GetLabel() const { return wxControl::GetLabel(); }

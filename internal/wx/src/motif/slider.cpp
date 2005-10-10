@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: slider.cpp,v 1.25 2005/09/23 12:54:43 MR Exp $
+// RCS-ID:      $Id: slider.cpp,v 1.26 2005/10/08 18:35:36 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 
 #include "wx/motif/private.h"
 
-void wxSliderCallback (Widget widget, XtPointer clientData, XmScaleCallbackStruct * cbs);
+static void wxSliderCallback (Widget widget, XtPointer clientData, XmScaleCallbackStruct * cbs);
 
 IMPLEMENT_DYNAMIC_CLASS(wxSlider, wxControl)
 
@@ -89,21 +89,7 @@ bool wxSlider::Create(wxWindow *parent, wxWindowID id,
 
     m_mainWidget = (WXWidget) sliderWidget;
 
-#ifdef __VMS__
-#pragma message disable codcauunr
-   // VMS gives here the compiler warning :
-   // statement either is unreachable or causes unreachable code
-#endif
-    if(style & wxSL_NOTIFY_DRAG)
-        XtAddCallback (sliderWidget, XmNdragCallback,
-        (XtCallbackProc) wxSliderCallback, (XtPointer) this);
-    else
-        XtAddCallback (sliderWidget, XmNvalueChangedCallback,
-        (XtCallbackProc) wxSliderCallback, (XtPointer) this);
-#ifdef __VMS__
-#pragma message enable codcauunr
-#endif
-
+    XtAddCallback (sliderWidget, XmNvalueChangedCallback, (XtCallbackProc) wxSliderCallback, (XtPointer) this);
     XtAddCallback (sliderWidget, XmNdragCallback, (XtCallbackProc) wxSliderCallback, (XtPointer) this);
 
     ChangeFont(false);

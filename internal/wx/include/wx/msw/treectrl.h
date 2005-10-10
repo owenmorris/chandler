@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10/10/98
 // Created:     01/02/97
-// RCS-ID:      $Id: treectrl.h,v 1.75 2005/09/23 12:50:17 MR Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.77 2005/10/09 15:48:20 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -208,14 +208,6 @@ public:
 
         // get the parent of this item (may return NULL if root)
     wxTreeItemId GetItemParent(const wxTreeItemId& item) const;
-
-#if WXWIN_COMPATIBILITY_2_2
-        // deprecated:  Use GetItemParent instead.
-    wxDEPRECATED( wxTreeItemId GetParent(const wxTreeItemId& item) const);
-
-        // Expose the base class method hidden by the one above. Not deprecatable.
-    wxWindow *GetParent() const { return wxControl::GetParent(); }
-#endif  // WXWIN_COMPATIBILITY_2_2
 
         // for this enumeration function you must pass in a "cookie" parameter
         // which is opaque for the application but is necessary for the library
@@ -429,6 +421,9 @@ public:
     int GetState(const wxTreeItemId& node);
 
 protected:
+    virtual wxSize DoGetBestSize() const;
+
+    
     // SetImageList helper
     void SetAnyImageList(wxImageList *imageList, int which);
 

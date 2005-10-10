@@ -5,7 +5,7 @@
 // Author:      Vaclav Slavik, Julian Smart
 // Modified by:
 // Created:     2002-07-09
-// RCS-ID:      $Id: helpview.cpp,v 1.15 2005/09/23 12:56:28 MR Exp $
+// RCS-ID:      $Id: helpview.cpp,v 1.16 2005/10/09 15:48:42 MBN Exp $
 // Copyright:   (c) 2002 Vaclav Slavik, Julian Smart and others
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -301,22 +301,7 @@ void hvApp::MacOpenFile(const wxString& filename)
 #define ART(artId, xpmRc) \
 if ( id == artId ) return wxBitmap(xpmRc##_xpm);
 
-// Compatibility hack to use wxApp::GetStdIcon of overriden by the user
-#if WXWIN_COMPATIBILITY_2_2
-#define GET_STD_ICON_FROM_APP(iconId) \
-    if ( client == wxART_MESSAGE_BOX ) \
-{ \
-    wxIcon icon = wxTheApp->GetStdIcon(iconId); \
-    if ( icon.Ok() ) \
-{ \
-    wxBitmap bmp; \
-    bmp.CopyFromIcon(icon); \
-    return bmp; \
-} \
-}
-#else
 #define GET_STD_ICON_FROM_APP(iconId)
-#endif
 
 // There are two ways of getting the standard icon: either via XPMs or via
 // wxIcon ctor. This depends on the platform:

@@ -4,7 +4,7 @@
 // Author:      Marcel Rasche, Vaclav Slavik
 // Modified by:
 // Created:     25/10/98
-// RCS-ID:      $Id: sound.cpp,v 1.13 2005/09/23 12:55:59 MR Exp $
+// RCS-ID:      $Id: sound.cpp,v 1.14 2005/10/08 21:24:32 VZ Exp $
 // Copyright:   (c) Julian Smart, Open Source Applications Foundation
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -447,7 +447,8 @@ wxSound::~wxSound()
     Free();
 }
 
-bool wxSound::Create(const wxString& fileName, bool isResource)
+bool wxSound::Create(const wxString& fileName,
+                     bool WXUNUSED_UNLESS_DEBUG(isResource))
 {
     wxASSERT_MSG( !isResource,
              _T("Loading sound from resources is only supported on Windows") );

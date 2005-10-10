@@ -2,7 +2,7 @@
 // Name:        utils.cpp
 // Purpose:     DOS implementations of utility functions
 // Author:      Vaclav Slavik, M.J.Wetherell
-// Id:          $Id: utilsdos.cpp,v 1.2 2005/08/18 10:52:10 MW Exp $
+// Id:          $Id: utilsdos.cpp,v 1.3 2005/10/09 15:48:36 MBN Exp $
 // Copyright:   (c) 2001-2002 SciTech Software, Inc. (www.scitechsoft.com)
 //              (c) 2005 M.J.Wetherell
 // Licence:     wxWindows licence
@@ -206,17 +206,6 @@ wxChar *wxGetUserHome(const wxString& user)
     else
         return _T("");
 }
-
-#if WXWIN_COMPATIBILITY_2_2
-void wxFatalError(const wxString &msg, const wxString &title)
-{
-    wxFprintf( stderr, _("Error ") );
-    if (!title.IsNull()) wxFprintf( stderr, wxT("%s "), WXSTRINGCAST(title) );
-    if (!msg.IsNull()) wxFprintf( stderr, wxT(": %s"), WXSTRINGCAST(msg) );
-    wxFprintf( stderr, wxT(".\n") );
-    exit(3); // the same exit code as for abort()
-}
-#endif // WXWIN_COMPATIBILITY_2_2
 
 // returns %UserName%, $USER or just "user"
 //
