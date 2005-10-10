@@ -113,8 +113,8 @@ def RenderKinds(view, urlRoot):
     #    print item
     #    items[item.itsPath] = item
     #    _insertItem(tree, item.itsPath[1:], item)
-    base = view.findPath("//Schema/Core")
-    for child in base.iterChildren():
+    base = view.findPath("//Schema/Core/Kind")
+    for child in base.iterItems():
         items[child.itsPath] = child
         _insertItem(tree, child.itsPath[1:], child)
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
