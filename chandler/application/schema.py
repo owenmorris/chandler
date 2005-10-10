@@ -770,6 +770,24 @@ class SchemaStruct(Types.Struct):
     def makeValue(self,value):
         return self.getImplementationType()(*eval(value)) # XXX
 
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+        writeValue = getattr(self.getImplementationType(), 'writeValue', None)
+        if writeValue is not None:
+            return writeValue(value, itemWriter, buffer)
+        else:
+            return super(SchemaStruct, self).writeValue(itemWriter, buffer,
+                                                        item, version, value,
+                                                        withSchema)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+        readValue = getattr(self.getImplementationType(), 'readValue', None)
+        if readValue is not None:
+            return readValue(itemReader, offset, data)
+        else:
+            return super(SchemaStruct, self).readValue(itemReader, offset, data,
+                                                       withSchema, view, name,
+                                                       afterLoadHooks)
 
 class Struct(object):
     __metaclass__ = StructClass
