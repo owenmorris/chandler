@@ -101,6 +101,7 @@ def make_summaryblocks(parcel):
                         splitPercentage=0.06,
                         orientationEnum='Horizontal',
                         stretchFactor=1,
+                        calendarControl=MainCalendarControl,
                         childrenBlocks=[
                             calendar.AllDayEventsCanvas.template('AllDayEvents',
                                 calendarContainer=CalendarSummaryView,

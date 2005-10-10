@@ -150,6 +150,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # this is supposed to be set in Draw(), but sometimes this
         # object seems to exist before Draw() is called
         self.textOffset = wx.Point(self.textMargin, self.textMargin)
+
+        # use PyICU to pre-cache the time string
+        self.timeString = formatTime(self._item.startTime)
                         
     def GetEditorPosition(self):
         """
@@ -273,9 +276,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         if item.isDeleted():
             return
 
-        # the canvasItem may override the actual item
-        startTime = getattr(self, 'startTime', item.startTime)
-
         isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
         # Draw one event - an event consists of one or more bounds	
        
@@ -350,7 +350,15 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             if drawEventText:
                 # only draw time on timed events
                 if not isAnyTimeOrAllDay:
-                    timeString = formatTime(startTime)
+                    
+                    # allow self.startTime to override the
+                    # pre-formatted time string
+                    startTime = getattr(self, 'startTime', None)
+                    if startTime:
+                        timeString = formatTime(startTime)
+                    else:
+                        timeString = self.timeString
+                        
                     te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)	
                     timeHeight = te[1]	
        
@@ -1256,25 +1264,22 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
             return [newEvent]
     
 class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
+    calendarControl = schema.One(schema.Item, required=True)
     def instantiateWidget(self):
         wxSplitter = super(CanvasSplitterWindow, self).instantiateWidget()
         
-        #we use a proxy because at this splitter's instantiateWidget time,
-        #it's not wise to rely on calctrl's widget existence.
         wxSplitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
                         self.OnSashPositionChanged)
     
         return wxSplitter
 
     def OnSashPositionChanged(self, event):
-        # call up to the control
-        calendarControl = list(self.parentBlock.childrenBlocks)[0].widget
         #would write as assert, but keeps failing during block render()'ing
         if __debug__:
             position = self.widget.GetSashPosition()
             if not position == event.GetSashPosition():
                 logger.debug("event & splitter sash positions MISMATCH")
-        calendarControl.ResetSashState()
+        self.calendarControl.widget.ResetSashState()
         event.Skip()
 
 
@@ -1401,7 +1406,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         for header in headerLabels:
             weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center,
                                         0, bSortEnabled=False)
-
+            
         expandoColumn = len(headerLabels) - 1
         weekColumnHeader.SetBitmapJustification(expandoColumn,
                                                 wx.colheader.CH_JUST_Center)
@@ -1659,7 +1664,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
     def OnWeekSelect(self):
         """
-        Callback when the "week" button is clicked on column header.
+        Callback when the 'week' button is clicked on column header.
         """
         self.blockItem.postSelectWeek(True)
         self.blockItem.postDateChanged(self.blockItem.rangeStart)
