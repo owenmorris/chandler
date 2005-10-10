@@ -16,7 +16,7 @@ Trunk.py - Classes for dynamically substituting child trees-of-blocks.
 
 The idea is that you've got a block that wants different sets of child blocks substituted within itself,
 based on some key (like a content item to be displayed). The block inherits from this TrunkParentBlock
-class; whenever wxSynchronizeWidget happens, the appropriate set of child blocks will be swapped in. This
+class; whenever synchronizeWidget happens, the appropriate set of child blocks will be swapped in. This
 mechanism is managed by a TrunkDelegate object, which can be subclassed and/or configured from parcel XML
 to customize its behavior.
 """
@@ -70,16 +70,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             self.TPBSelectedItem = items[0]
         else:
             self.TPBSelectedItem = None
-        """
-          Occasionally a block that contains a TrunkParentBlock will send
-        a selectItem event to set TPBSelectedItem when it can't be set in parcel
-        XML (for example when it isn't yet created). This can happen before
-        the widget is actually created so we'll ignore this first call to 
-        wxSynchronizeWidget since it will get called later.
-        """
-        widget = getattr (self, 'widget', None)
-        if widget is not None:
-            widget.wxSynchronizeWidget ()
+        self.synchronizeWidget ()
 
     def installTreeOfBlocks(self):
         """
@@ -116,11 +107,16 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
 
         if newView is not None:
             if treeChanged or contentsChanged:
-                newView.postEventByName ("SetContents", {'item':TPBDetailItem})
+                app = wx.GetApp()
+                oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+                app.ignoreSynchronizeWidget = False
+                try:
+                    newView.postEventByName ("SetContents", {'item':TPBDetailItem})
+                finally:
+                    app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
             if not hasattr (newView, "widget"):
                 newView.render()
-
 
 class TrunkDelegate(schema.Item):
     """

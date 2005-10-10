@@ -459,8 +459,9 @@ class wxTabbedViewContainer(DragAndDrop.DropReceiveWidget,
         newIndex = event.GetSelection()
         oldIndex = self.blockItem.selectionIndex
         if newIndex != oldIndex:
-            self.blockItem.selectionIndex = newIndex
-            self.wxSynchronizeWidget()
+            blockItem = self.blockItem
+            blockItem.selectionIndex = newIndex
+            blockItem.synchronizeWidget()
 
     def wxSynchronizeWidget(self):
         self.Freeze()
@@ -540,7 +541,7 @@ class ViewContainer(BoxContainer):
             if view.getItemDisplayName() == choice:
                 if self.hasTabs:
                     self.selectionIndex = selectionIndex
-                    self.widget.wxSynchronizeWidget()
+                    self.synchronizeWidget()
                 else:
                     """
                       If the view points to the read only section replace it with a copy

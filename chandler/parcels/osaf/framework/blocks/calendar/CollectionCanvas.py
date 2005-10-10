@@ -633,17 +633,18 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         else:
             self.blockItem.selection = []
         self.blockItem.postSelectItemsBroadcast()
-        self.wxSynchronizeWidget()
+        self.synchronizeWidget()
 
     def OnAddToSelection(self, item):
         self.blockItem.selection.append(item)
         self.blockItem.postSelectItemsBroadcast()
-        self.wxSynchronizeWidget()
+        self.synchronizeWidget()
 
     def OnRemoveFromSelection(self, item):
-        self.blockItem.selection.remove(item)
-        self.blockItem.postSelectItemsBroadcast()
-        self.wxSynchronizeWidget()
+        blockItem = self.blockItem
+        blockItem.selection.remove(item)
+        blockItem.postSelectItemsBroadcast()
+        blockItem.synchronizeWidget()
         
     def OnSelectNone(self, unscrolledPosition):
         """
@@ -699,7 +700,7 @@ class CollectionBlock(Block.RectangularChild):
         self.contents = item
 
         self.selection = []
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
         
         self.postSelectItemsBroadcast()
 

@@ -815,6 +815,8 @@ class wxTable(DragAndDrop.DraggableWidget,
     def DeleteSelection (self, DeleteItemCallback=None):
         def DefaultCallback(item, collection=self.blockItem.contents):
             collection.remove(item)
+            
+        blockItem = self.blockItem
         if DeleteItemCallback is None:
             DeleteItemCallback = DefaultCallback
         topLeftList = self.GetSelectionBlockTopLeft()
@@ -843,15 +845,15 @@ class wxTable(DragAndDrop.DraggableWidget,
         # (that probably can't be fixed until ItemCollection
         # becomes Collection and notifications work again)
         newRowSelection = 0
-        contents = self.blockItem.contents
+        contents = blockItem.contents
         for range in selectionRanges:
             for row in xrange (range[1], range [0] - 1, -1):
                 DeleteItemCallback(contents[row])
                 newRowSelection = row
 
-        self.blockItem.selection = []
-        self.blockItem.selectedItemToView = None
-        self.blockItem.itsView.commit()
+        blockItem.selection = []
+        blockItem.selectedItemToView = None
+        blockItem.itsView.commit()
         
         # now select the "next" item
         totalItems = len(contents)
@@ -865,14 +867,14 @@ class wxTable(DragAndDrop.DraggableWidget,
           DetailView and instead let the notifications cause
           wxSynchronizeWidget to be called. -- DJA
         """
-        self.wxSynchronizeWidget()
+        blockItem.synchronizeWidget()
         if totalItems > 0:
             newRowSelection = min(newRowSelection, totalItems - 1)
-            self.blockItem.postEventByName("SelectItemsBroadcast",
-                                           {'items':[contents[newRowSelection]]})
+            blockItem.postEventByName("SelectItemsBroadcast",
+                                      {'items':[contents[newRowSelection]]})
         else:
-            self.blockItem.postEventByName("SelectItemsBroadcast",
-                                           {'items': []})
+            blockItem.postEventByName("SelectItemsBroadcast",
+                                      {'items': []})
 
     def SelectedItems(self):
         """

@@ -336,12 +336,7 @@ class DynamicBlock(schema.Item):
             Can't call synchronizeWidget because IgnoreSynchronizeWidget
             is true because we're in Tab's synchronizeWidget.
             """
-            try:
-                barWidget = bar.widget
-            except AttributeError:
-                pass
-            else:
-                bar.widget.wxSynchronizeWidget()
+            bar.synchronizeWidget()
 
         # Since menus have changed, we need to reissue UpdateUI events
         wx.GetApp().needsUpdateUI = True
@@ -692,9 +687,12 @@ class MenuBar (Block.Block, DynamicContainer):
             # ensure that the menuItem has been instantiated
             if not hasattr (menuItem, "widget"):
                 # @@@DLD - use framework block/widget linkage
-                menuItem.widget = menuItem.instantiateWidget()
-                menuItem.widget.blockItem = menuItem
-                menuItem.widget.wxSynchronizeWidget()
+                widget = menuItem.widget
+                widget = menuItem.instantiateWidget()
+                widget.blockItem = menuItem
+                # We need to call wxSynchronizeWidget here instead of synchronizeWidget
+                # becuase syncrhonizeItems is called from synchronizeWidget
+                widget.wxSynchronizeWidget()
 
             # get the current item installed in the menu, if any
             try:
@@ -872,13 +870,13 @@ class wxToolbarItem (wx.ToolBarToolBase):
             index = blockIndex - 1
             while index >= 0 and children [index].toolbarItemKind == "Radio":
                 children [index].selected = False
-                children [index].widget.wxSynchronizeWidget()
+                children [index].synchronizeWidget()
                 index -= 1
             """
               Select this toolbar item
             """
             children [blockIndex].selected = True
-            children [blockIndex].widget.wxSynchronizeWidget()
+            children [blockIndex].synchronizeWidget()
             
             """
               Unselect all the items in the radio group after this toolbar item
@@ -886,7 +884,7 @@ class wxToolbarItem (wx.ToolBarToolBase):
             index = blockIndex + 1
             while index < len (children) and children [index].toolbarItemKind == "Radio":
                 children [index].selected = False
-                children [index].widget.wxSynchronizeWidget()
+                children [index].synchronizeWidget()
                 index += 1
 
     def OnToolEvent (self,event):

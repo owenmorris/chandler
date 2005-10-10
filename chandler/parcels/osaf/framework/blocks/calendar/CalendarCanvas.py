@@ -459,21 +459,24 @@ class CalendarEventHandler(object):
     """
 
     def OnPrev(self, event):
-        self.blockItem.decrementRange()
-        self.blockItem.postDateChanged()
-        self.wxSynchronizeWidget()
+        blockItem = self.blockItem
+        blockItem.decrementRange()
+        blockItem.postDateChanged()
+        blockItem.synchronizeWidget()
 
     def OnNext(self, event):
-        self.blockItem.incrementRange()
-        self.blockItem.postDateChanged()
-        self.wxSynchronizeWidget()
+        blockItem = self.blockItem
+        blockItem.incrementRange()
+        blockItem.postDateChanged()
+        blockItem.synchronizeWidget()
 
     def OnToday(self, event):
+        blockItem = self.blockItem
         today = CalendarBlock.startOfToday()
         
-        self.blockItem.setRange(today)
-        self.blockItem.postDateChanged()
-        self.wxSynchronizeWidget()
+        blockItem.setRange(today)
+        blockItem.postDateChanged()
+        blockItem.wynchronizeWidget()
         
     def OnTZChoice(self, event):
         control = event.GetEventObject()
@@ -595,7 +598,7 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
     # Event handling
 
     def onTimeZoneChangeEvent(self, event):
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
 
     def onColorChanged(self, op, item, attribute):
         try:
@@ -615,7 +618,7 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
             self.rangeIncrement = timedelta(days=1)
         else:
             self.rangeIncrement = timedelta(days=7)
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
 
 
     def onSelectedDateChangedEvent(self, event):
@@ -628,7 +631,7 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         @type event.arguments['start']: datetime
         """
         self.setRange(event.arguments['start'])
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
 
     def postDateChanged(self, newdate=None):
         """
@@ -879,7 +882,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         # coll = self.blockItem.getContainingCollection(item)
         # if coll and coll != self.blockItem.contents.collectionList[0]:
         #     self.blockItem.SelectCollectionInSidebar(coll)
-        # self.wxSynchronizeWidget()
+        # self.blockItem.synchronizeWidget()
 
 
     def OnEditItem(self, box):
@@ -1313,7 +1316,7 @@ class CalendarControl(CalendarBlock):
         this code probably wont work from external SW events right now.
         """
         self.dayMode = not event.arguments['doSelectWeek']
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
 
     def setRange(self, date):
         """

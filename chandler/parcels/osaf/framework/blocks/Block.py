@@ -469,19 +469,18 @@ class Block(schema.Item):
         changed events. We use this flag in other similar situations, for example,
         during shutdown to ignore events caused by the framework tearing down wxWidgets.
         """
-        try:
-            method = getattr (type (self.widget), 'wxSynchronizeWidget')
-        except AttributeError:
-            pass
-        else:
-            app = wx.GetApp()
-            if not app.ignoreSynchronizeWidget:
-                oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-                app.ignoreSynchronizeWidget = True
-                try:
-                    method (self.widget)
-                finally:
-                    app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+        widget = getattr (self, "widget", None)
+        if widget is not None:
+            method = getattr (type (widget), 'wxSynchronizeWidget', None)
+            if method is not None:
+                app = wx.GetApp()
+                if not app.ignoreSynchronizeWidget:
+                    oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+                    app.ignoreSynchronizeWidget = True
+                    try:
+                        method (widget)
+                    finally:
+                        app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     def pushView (self):
         """ 

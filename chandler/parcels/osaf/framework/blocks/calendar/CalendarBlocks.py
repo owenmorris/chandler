@@ -207,11 +207,11 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         
     def onSelectWeekEvent(self, event):
         self.doSelectWeek = event.arguments['doSelectWeek']
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
         self.widget.Refresh()
 
     def onSelectItemsEvent(self, event):
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
         self.widget.Refresh()        
 
     def onSetContentsEvent(self, event):
@@ -233,7 +233,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
         self.rangeIncrement = timedelta(days=1)
 
     def onSelectItemsEvent(self, event):
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
         #self.widget.Refresh() 
     def onSetContentsEvent(self, event):
         #We want to ignore, because view changes could come in here, and we
