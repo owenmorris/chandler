@@ -103,6 +103,10 @@ void wxMenuItem::UpdateItemStatus()
     if ( !m_parentMenu )
         return ;
 
+    // OSAF - added to fix a bug (this fix needs work)
+    if ( IsSeparator() )
+        return ;
+
 #if TARGET_CARBON
     if ( UMAGetSystemVersion() >= 0x1000 && GetId() == wxApp::s_macPreferencesMenuItemId)
     {
@@ -185,7 +189,7 @@ void wxMenuItem::UncheckRadio()
 
 void wxMenuItem::Check(bool bDoCheck)
 {
-    wxCHECK_RET( IsCheckable(), wxT("only checkable items may be checked") );
+    wxCHECK_RET( IsCheckable() && !IsSeparator(), wxT("only checkable items may be checked") );
 
     if ( m_isChecked != bDoCheck )
     {
