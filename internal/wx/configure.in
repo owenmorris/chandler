@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1080 2005/10/09 22:24:49 VZ Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1081 2005/10/10 16:28:58 MW Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1080 2005/10/09 22:24:49 VZ Exp $
+dnl Version: $Id: configure.in,v 1.1081 2005/10/10 16:28:58 MW Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -1516,6 +1516,12 @@ fi dnl not GNU make
 
 dnl needed for making link to setup.h
 AC_PROG_LN_S
+
+dnl lndir can be used by "make dist" to save copying files
+CP_PR='cp -pR'
+AC_CHECK_PROGS(LNDIR, lndir, [$CP_PR])
+AC_SUBST(CP_PR)
+
 
 dnl ------------------------------------------------------------------------
 dnl Platform specific tests
