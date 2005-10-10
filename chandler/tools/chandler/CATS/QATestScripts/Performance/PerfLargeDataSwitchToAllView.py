@@ -1,7 +1,7 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import util.QAUITestAppLib as QAUITestAppLib
-import os, wx
+import os, wx, sys
 import osaf.pim as pim
 
 App_ns = QAUITestAppLib.App_ns
@@ -17,7 +17,12 @@ testView = QAUITestAppLib.UITestView(logger)
 
 path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
 print path
-share = Sharing.OneTimeFileSystemShare(path, 'Generated3000.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
+
+#Upcast path to unicode since Sharing requires a unicode path
+#for now. This will change in the next few days
+path = unicode(path, sys.getfilesystemencoding())
+
+share = Sharing.OneTimeFileSystemShare(path, u'Generated3000.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
 
 #logger.Start("Import a large calendar and create a new event")
 try:
