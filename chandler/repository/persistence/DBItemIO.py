@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from struct import pack, unpack
 
-from chandlerdb.util.c import UUID, _hash
+from chandlerdb.util.c import UUID, _hash, isuuid
 from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Item import Item
@@ -355,7 +355,7 @@ class DBItemWriter(ItemWriter):
         if value is None:
             buffer.append(chr(DBItemWriter.NONE | DBItemWriter.REF))
 
-        elif value._isUUID():
+        elif isuuid(value):
             if withSchema:
                 raise AssertionError, 'withSchema is True'
             buffer.append(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
@@ -848,7 +848,7 @@ class DBItemVMergeReader(DBItemMergeReader):
 
         if self.item._references._isDirty(name):
             if origRef is not None:
-                if origRef._isUUID():
+                if isuuid(origRef):
                     if origRef == itemRef:
                         return offset, Nil
                     origRef = origItem._references._getRef(name, origRef)
@@ -863,8 +863,8 @@ class DBItemVMergeReader(DBItemMergeReader):
 
         if origRef is not None:
             if not (isitem(origRef) and origRef._uuid == itemRef or
-                    origRef._isUUID() and origRef == itemRef):
-                if origRef._isUUID():
+                    isuuid(origRef) and origRef == itemRef):
+                if isuuid(origRef):
                     origRef = origItem._references._getRef(name, origRef)
                 origItem._references._unloadValue(name, origRef,
                                                   kind.getOtherName(name, None))

@@ -234,15 +234,18 @@ class DBRefList(RefList, PersistentRefs):
     def _saveValues(self, version):
 
         store = self.store
-
+        uuid = self.uuid
         item = self._item
-        if not (self._flags & LinkedMap.NEW or
-                item.isAttributeDirty(self._name, item._references) or
-                len(self._changedRefs) == 0):
-            raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
-                                                             self._name)
+        aliases = self._aliases
 
-        size = self._writeRef(self.uuid, version,
+        if __debug__:
+            if not (self._flags & LinkedMap.NEW or
+                    item.isAttributeDirty(self._name, item._references) or
+                    len(self._changedRefs) == 0):
+                raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
+                                                                 self._name)
+
+        size = self._writeRef(uuid, version,
                               self._firstKey, self._lastKey, self._count)
             
         for key, (op, oldAlias) in self._changedRefs.iteritems():
@@ -256,15 +259,15 @@ class DBRefList(RefList, PersistentRefs):
                 size += self._writeRef(key, version, previous, next, alias)
                 if (oldAlias is not None and
                     oldAlias != alias and
-                    oldAlias not in self._aliases):
-                    size += store.writeName(version, self.uuid, oldAlias, None)
+                    oldAlias not in aliases):
+                    size += store.writeName(version, uuid, oldAlias, None)
                 if alias is not None:
-                    size += store.writeName(version, self.uuid, alias, key)
+                    size += store.writeName(version, uuid, alias, key)
                         
             elif op == 1:             # remove
                 size += self._deleteRef(key, version)
-                if oldAlias is not None and oldAlias not in self._aliases:
-                    size += store.writeName(version, self.uuid, oldAlias, None)
+                if oldAlias is not None and oldAlias not in aliases:
+                    size += store.writeName(version, uuid, oldAlias, None)
 
             else:                     # error
                 raise ValueError, op

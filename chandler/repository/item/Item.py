@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.c import UUID, SingleRef, _hash, _combine
+from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, isuuid
 from chandlerdb.schema.c import _countAccess
 from chandlerdb.item.c import CItem, Nil, Default, isitem
 from chandlerdb.item.ItemValue import ItemValue
@@ -619,7 +619,7 @@ class Item(CItem):
 
         if not valuesOnly:
             for name, ref in self._references._dict.iteritems():
-                if ref is not None and ref._isUUID():
+                if ref is not None and isuuid(ref):
                     ref = self._references._getRef(name, ref)
                 yield name, ref
 
@@ -1118,7 +1118,7 @@ class Item(CItem):
                             for other in value:
                                 collectOther(other)
                         else:
-                            if value._isUUID():
+                            if isuuid(value):
                                 value = self.find(value)
                             collectOther(value)
 

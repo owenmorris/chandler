@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.c import UUID, SingleRef, _hash, _combine
+from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, isuuid
 from chandlerdb.item.c import Nil, Default, CValues
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
@@ -427,7 +427,7 @@ class References(Values):
                 raise KeyError, name
             if value is None or isitem(value) or value._isRefList():
                 return value
-            if value._isUUID():
+            if isuuid(value):
                 try:
                     other = item.itsView[value]
                 except KeyError:
@@ -444,7 +444,7 @@ class References(Values):
             raise TypeError, '%s, type: %s' %(value, type(value))
 
         if value is other:
-            if value._isUUID():
+            if isuuid(value):
                 try:
                     other = item.itsView[value]
                 except KeyError:
@@ -492,7 +492,7 @@ class References(Values):
                 dirty = self._item.VDIRTY
             del self[name]
             self._item.setDirty(dirty, name, self, True)
-        elif value._isUUID() and isitem(other) and value == other._uuid:
+        elif isuuid(value) and isitem(other) and value == other._uuid:
             del self[name]
             self._item.setDirty(self._item.VDIRTY, name, self, True)
         elif value._isRefList():
@@ -509,13 +509,13 @@ class References(Values):
 
     def _unloadRef(self, name, other, otherName):
 
-        if not (other is None or other._isUUID()):
+        if not (other is None or isuuid(other)):
             value = self.get(name, None)
             if value is None or value is other:
                 self[name] = other._uuid
             elif value._isRefList():
                 value._unloadRef(other)
-            elif value._isUUID() and value == other._uuid:
+            elif isuuid(value) and value == other._uuid:
                 pass
             else:
                 raise BadRefError, (self._item, name, other, value)
@@ -547,7 +547,7 @@ class References(Values):
                     count += 1
                 elif value._isRefList():
                     count += value.refCount(loaded)
-                elif not loaded and value._isUUID():
+                elif not loaded and isuuid(value):
                     count += 1
 
         return count
@@ -641,7 +641,7 @@ class References(Values):
             if otherCard != 'single':
                 attrs['otherCard'] = otherCard
             uuid = other._uuid
-        elif other._isUUID():
+        elif isuuid(other):
             uuid = other
         else:
             uuid = other._uuid
@@ -679,7 +679,7 @@ class References(Values):
             if value is Nil:
                 raise ValueError, 'Cannot persist Nil'
 
-            if withSchema and value is not None and value._isUUID():
+            if withSchema and value is not None and isuuid(value):
                 value = self._getRef(name, value, attribute.c.otherName)
 
             size += itemWriter._ref(item, name, value,
@@ -707,7 +707,7 @@ class References(Values):
                     generator.startElement('ref', attrs)
                     generator.endElement('ref')
                 else:
-                    if withSchema and value._isUUID():
+                    if withSchema and isuuid(value):
                         value = self._getRef(name, value)
                     
                     if value._isRefList():
@@ -737,7 +737,7 @@ class References(Values):
                 
                 if value is None:
                     hash = _combine(hash, 0)
-                elif value._isUUID():
+                elif isuuid(value):
                     hash = _combine(hash, value._hash)
                 elif isitem(value):
                     hash = _combine(hash, value._uuid._hash)
@@ -860,7 +860,7 @@ class References(Values):
         result = True
 
         for key, value in self._dict.iteritems():
-            if value is not None and value._isUUID():
+            if value is not None and isuuid(value):
                 value = self._getRef(key, value)
                 
             attrCard = item.getAttributeAspect(key, 'cardinality',
@@ -922,7 +922,7 @@ class References(Values):
                                 value.remove(other)
                         item._references[key] = localValue
                 else:
-                    if value._isUUID():
+                    if isuuid(value):
                         value = itemView.find(value)
                     if value not in items:
                         localOther = value.findMatch(view, replace)
