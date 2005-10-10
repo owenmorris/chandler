@@ -25,7 +25,7 @@ import i18n
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
 
-SCHEMA_VERSION = "102" # stearns: DV block changes
+SCHEMA_VERSION = "103" # alecf: added calendarControl attribute to calendar splitter
 
 logger = None # initialized in initLogging()
 
