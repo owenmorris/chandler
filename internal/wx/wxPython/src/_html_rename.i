@@ -68,9 +68,6 @@
 %rename(HtmlPrintout)                       wxHtmlPrintout;
 %rename(HtmlEasyPrinting)                   wxHtmlEasyPrinting;
 %rename(HtmlBookRecord)                     wxHtmlBookRecord;
-%rename(HtmlContentsItem)                   wxHtmlContentsItem;
-%rename(HtmlSearchStatus)                   wxHtmlSearchStatus;
-%rename(HtmlHelpData)                       wxHtmlHelpData;
 %rename(HtmlHelpFrame)                      wxHtmlHelpFrame;
 %rename(HF_TOOLBAR)                         wxHF_TOOLBAR;
 %rename(HF_FLATTOOLBAR)                     wxHF_FLATTOOLBAR;

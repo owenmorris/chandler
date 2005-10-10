@@ -1112,57 +1112,58 @@ public:
 
 //---------------------------------------------------------------------------
 
-struct wxHtmlContentsItem
-{
-    %extend {
-        int GetLevel() { return self->m_Level; }
-        int GetID() { return self->m_ID; }
-        wxString GetName() { return self->m_Name; }
-        wxString GetPage() { return self->m_Page; }
-        wxHtmlBookRecord* GetBook() { return self->m_Book; }
-    }
-};
+// WXWIN_COMPATIBILITY_2_4
+//struct wxHtmlContentsItem
+//{
+//    %extend {
+//        int GetLevel() { return self->m_Level; }
+//        int GetID() { return self->m_ID; }
+//        wxString GetName() { return self->m_Name; }
+//        wxString GetPage() { return self->m_Page; }
+//        wxHtmlBookRecord* GetBook() { return self->m_Book; }
+//    }
+//};
 
 //---------------------------------------------------------------------------
 
-class wxHtmlSearchStatus
-{
-public:
-    //wxHtmlSearchStatus(wxHtmlHelpData* base, const wxString& keyword,
-    //                   const wxString& book = wxPyEmptyString);
-    bool Search();
-    bool IsActive();
-    int GetCurIndex();
-    int GetMaxIndex();
-    const wxString& GetName();
-    wxHtmlContentsItem* GetContentsItem();
-};
+//class wxHtmlSearchStatus
+//{
+//public:
+//    //wxHtmlSearchStatus(wxHtmlHelpData* base, const wxString& keyword,
+//    //                   const wxString& book = wxPyEmptyString);
+//    bool Search();
+//    bool IsActive();
+//    int GetCurIndex();
+//    int GetMaxIndex();
+//    const wxString& GetName();
+//    wxHtmlContentsItem* GetContentsItem();
+//};
 
 //---------------------------------------------------------------------------
 
-class wxHtmlHelpData {
-public:
-    wxHtmlHelpData();
-    ~wxHtmlHelpData();
-
-    void SetTempDir(const wxString& path);
-    bool AddBook(const wxString& book);
-//      bool AddBookParam(const wxString& title, const wxString& contfile,
-//  		      const wxString& indexfile=wxPyEmptyString,
-//  		      const wxString& deftopic=wxPyEmptyString,
-//  		      const wxString& path=wxPyEmptyString);
-
-    wxString FindPageByName(const wxString& page);
-    wxString FindPageById(int id);
-
-    // TODO: this one needs fixed...
-    const wxHtmlBookRecArray& GetBookRecArray();
-
-    wxHtmlContentsItem* GetContents();
-    int GetContentsCnt();
-    wxHtmlContentsItem* GetIndex();
-    int GetIndexCnt();
-};
+//class wxHtmlHelpData {
+//public:
+//    wxHtmlHelpData();
+//    ~wxHtmlHelpData();
+//
+//    void SetTempDir(const wxString& path);
+//    bool AddBook(const wxString& book);
+////      bool AddBookParam(const wxString& title, const wxString& contfile,
+////  		      const wxString& indexfile=wxPyEmptyString,
+////  		      const wxString& deftopic=wxPyEmptyString,
+////  		      const wxString& path=wxPyEmptyString);
+//
+//    wxString FindPageByName(const wxString& page);
+//    wxString FindPageById(int id);
+//
+//    // TODO: this one needs fixed...
+//    const wxHtmlBookRecArray& GetBookRecArray();
+//
+//    wxHtmlContentsItem* GetContents();
+//    int GetContentsCnt();
+//    wxHtmlContentsItem* GetIndex();
+//    int GetIndexCnt();
+//};
 
 //---------------------------------------------------------------------------
 

@@ -417,32 +417,32 @@ public:
 
 // WXWIN_COMPATIBILITY_2_4
 
-class wxBookCtrlSizer: public wxSizer
-{
-public:
-    %pythonAppend wxBookCtrlSizer "self._setOORInfo(self)"
-
-    wxBookCtrlSizer( wxBookCtrlBase *nb );
-
-    void RecalcSizes();
-    wxSize CalcMin();
-    wxBookCtrlBase *GetControl();
-};
-
-
-class wxNotebookSizer: public wxSizer {
-public:
-    %pythonAppend wxNotebookSizer "self._setOORInfo(self)"
-
-    wxNotebookSizer( wxNotebook *nb );
-
-    void RecalcSizes();
-    wxSize CalcMin();
-    wxNotebook *GetNotebook();
-};
-
-%pythoncode { NotebookSizer.__init__ = wx._deprecated(NotebookSizer.__init__, "NotebookSizer is no longer needed.") }
-%pythoncode { BookCtrlSizer.__init__ = wx._deprecated(BookCtrlSizer.__init__, "BookCtrlSizer is no longer needed.") }
+//class wxBookCtrlSizer: public wxSizer
+//{
+//public:
+//    %pythonAppend wxBookCtrlSizer "self._setOORInfo(self)"
+//
+//    wxBookCtrlSizer( wxBookCtrlBase *nb );
+//
+//    void RecalcSizes();
+//    wxSize CalcMin();
+//    wxBookCtrlBase *GetControl();
+//};
+//
+//
+//class wxNotebookSizer: public wxSizer {
+//public:
+//    %pythonAppend wxNotebookSizer "self._setOORInfo(self)"
+//
+//    wxNotebookSizer( wxNotebook *nb );
+//
+//    void RecalcSizes();
+//    wxSize CalcMin();
+//    wxNotebook *GetNotebook();
+//};
+//
+//%pythoncode { NotebookSizer.__init__ = wx._deprecated(NotebookSizer.__init__, "NotebookSizer is no longer needed.") }
+//%pythoncode { BookCtrlSizer.__init__ = wx._deprecated(BookCtrlSizer.__init__, "BookCtrlSizer is no longer needed.") }
 
 
 //---------------------------------------------------------------------------

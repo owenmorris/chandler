@@ -205,14 +205,14 @@ int wxMessageBox(const wxString& message,
                  int x = -1, int y = -1);
 
 // WXWIN_COMPATIBILITY_2_4
-MustHaveApp(wxGetNumberFromUser);
-long wxGetNumberFromUser(const wxString& message,
-                         const wxString& prompt,
-                         const wxString& caption,
-                         long value,
-                         long min = 0, long max = 100,
-                         wxWindow *parent = NULL,
-                         const wxPoint& pos = wxDefaultPosition);
+//MustHaveApp(wxGetNumberFromUser);
+//long wxGetNumberFromUser(const wxString& message,
+//                         const wxString& prompt,
+//                         const wxString& caption,
+//                         long value,
+//                         long min = 0, long max = 100,
+//                         wxWindow *parent = NULL,
+//                         const wxPoint& pos = wxDefaultPosition);
 
 // GDI Functions
 

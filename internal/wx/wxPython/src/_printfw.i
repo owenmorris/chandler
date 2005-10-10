@@ -132,25 +132,24 @@ public:
     //       prepared to remove them...
     
     // PostScript-specific data
-    const wxString& GetPrinterCommand();
-    const wxString& GetPrinterOptions();
-    const wxString& GetPreviewCommand();
-    const wxString& GetFontMetricPath();
-    double GetPrinterScaleX();
-    double GetPrinterScaleY();
-    long GetPrinterTranslateX();
-    long GetPrinterTranslateY();
-    void SetPrinterCommand(const wxString& command);
-    void SetPrinterOptions(const wxString& options);
-    void SetPreviewCommand(const wxString& command);
-    void SetFontMetricPath(const wxString& path);
-    void SetPrinterScaleX(double x);
-    void SetPrinterScaleY(double y);
-    void SetPrinterScaling(double x, double y);
-    void SetPrinterTranslateX(long x);
-    void SetPrinterTranslateY(long y);
-    void SetPrinterTranslation(long x, long y);
-
+//    const wxString& GetPrinterCommand();
+//    const wxString& GetPrinterOptions();
+//    const wxString& GetPreviewCommand();
+//    const wxString& GetFontMetricPath();
+//    double GetPrinterScaleX();
+//    double GetPrinterScaleY();
+//    long GetPrinterTranslateX();
+//    long GetPrinterTranslateY();
+//    void SetPrinterCommand(const wxString& command);
+//    void SetPrinterOptions(const wxString& options);
+//    void SetPreviewCommand(const wxString& command);
+//    void SetFontMetricPath(const wxString& path);
+//    void SetPrinterScaleX(double x);
+//    void SetPrinterScaleY(double y);
+//    void SetPrinterScaling(double x, double y);
+//    void SetPrinterTranslateX(long x);
+//    void SetPrinterTranslateY(long y);
+//    void SetPrinterTranslation(long x, long y);
 };
 
 //---------------------------------------------------------------------------
@@ -248,8 +247,8 @@ public:
     bool GetPrintToFile() const;
 
     // WXWIN_COMPATIBILITY_2_4
-    bool GetSetupDialog() const;
-    void SetSetupDialog(bool flag);
+//    bool GetSetupDialog() const;
+//    void SetSetupDialog(bool flag);
 
     void SetFromPage(int v);
     void SetToPage(int v);

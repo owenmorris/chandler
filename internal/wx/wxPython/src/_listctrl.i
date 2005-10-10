@@ -304,8 +304,8 @@ public:
 %constant wxEventType wxEVT_COMMAND_LIST_ITEM_FOCUSED;
 
 // WXWIN_COMPATIBILITY_2_4
-%constant wxEventType wxEVT_COMMAND_LIST_GET_INFO;
-%constant wxEventType wxEVT_COMMAND_LIST_SET_INFO;
+//%constant wxEventType wxEVT_COMMAND_LIST_GET_INFO;
+//%constant wxEventType wxEVT_COMMAND_LIST_SET_INFO;
 
 
 %pythoncode {
@@ -316,8 +316,8 @@ EVT_LIST_BEGIN_LABEL_EDIT  = wx.PyEventBinder(wxEVT_COMMAND_LIST_BEGIN_LABEL_EDI
 EVT_LIST_END_LABEL_EDIT    = wx.PyEventBinder(wxEVT_COMMAND_LIST_END_LABEL_EDIT   , 1)
 EVT_LIST_DELETE_ITEM       = wx.PyEventBinder(wxEVT_COMMAND_LIST_DELETE_ITEM      , 1)
 EVT_LIST_DELETE_ALL_ITEMS  = wx.PyEventBinder(wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS , 1)
-EVT_LIST_GET_INFO          = wx.PyEventBinder(wxEVT_COMMAND_LIST_GET_INFO         , 1)
-EVT_LIST_SET_INFO          = wx.PyEventBinder(wxEVT_COMMAND_LIST_SET_INFO         , 1)
+//EVT_LIST_GET_INFO          = wx.PyEventBinder(wxEVT_COMMAND_LIST_GET_INFO         , 1)
+//EVT_LIST_SET_INFO          = wx.PyEventBinder(wxEVT_COMMAND_LIST_SET_INFO         , 1)
 EVT_LIST_ITEM_SELECTED     = wx.PyEventBinder(wxEVT_COMMAND_LIST_ITEM_SELECTED    , 1)
 EVT_LIST_ITEM_DESELECTED   = wx.PyEventBinder(wxEVT_COMMAND_LIST_ITEM_DESELECTED  , 1)
 EVT_LIST_KEY_DOWN          = wx.PyEventBinder(wxEVT_COMMAND_LIST_KEY_DOWN         , 1)
