@@ -29,6 +29,11 @@ else
     fi
 fi
 
+if [ "$CHANDLERBIN" = "" ]
+then
+    CHANDLERBIN="$C_DIR"
+fi
+
 HH_DIR=`pwd`
 MODES="release debug"
 
@@ -107,7 +112,7 @@ for mode in $MODES ; do
             echo Running $TESTNAME
 
             cd $C_DIR
-            ./$mode/$RUN_PYTHON $TESTNAME
+            $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME
         done
     done
 
@@ -131,7 +136,7 @@ for mode in $MODES ; do
             echo Running $TESTNAME
 
             cd $C_DIR
-            ./$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME"
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME"
         done
     fi
 done
@@ -156,6 +161,6 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
         echo Running $TESTNAME
 
         cd $C_DIR
-        ./release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME"
+        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME"
     done
 fi
