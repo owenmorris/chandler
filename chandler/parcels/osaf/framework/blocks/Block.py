@@ -211,6 +211,18 @@ class Block(schema.Item):
             assert (self.ignoreNotifications > 0)
             self.ignoreNotifications = self.ignoreNotifications - 1
 
+    def setContentsOnBlock (self, item):
+        """
+        A utility routine for onSetContents handlers that sets the
+        contents of a block and updates the contents subscribers
+        """
+        assert isinstance (item, AbstractCollection)
+        contents = getattr (self, 'contents', None)
+        if contents is not None and self in contents.subscribers:
+            contents.subscribers.remove (self)
+            item.subscribers.add (self)
+        self.contents = item
+
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)
         if method:

@@ -692,13 +692,11 @@ class CollectionBlock(Block.RectangularChild):
     # Event handling
     
     def onSetContentsEvent (self, event):
+        self.setContentsOnBlock (event.arguments ['item'])
         """
-        Clear the selection each time we view a new contents
+        Clear the selection each time we view a new contents until we get
+        a selection added to the contents item -- DJA
         """
-        item = event.arguments ['item']
-        assert isinstance (item, AbstractCollection)
-        self.contents = item
-
         self.selection = []
         self.synchronizeWidget()
         
