@@ -283,8 +283,10 @@ the ``type`` parameter.", "");
     
 #ifdef __WXMSW__
     bool CopyFromCursor(const wxCursor& cursor);
-    int GetQuality();
-    void SetQuality(int q);
+
+// WXWIN_COMPATIBILITY_2_4
+//    int GetQuality();
+//    void SetQuality(int q);
 #endif
 
     %pythoncode { def __nonzero__(self): return self.Ok() }
