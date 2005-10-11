@@ -339,15 +339,14 @@ class PublishCollectionDialog(wx.Dialog):
 
                 args = { 'username' : account.username, 'ext' : ext }
 
-                # This needs an apostrophe, but Cosmo doesn't support that yet:
-                basename = u"%(username)s %(ext)s" % args
+                displayName = u"%(username)s's %(ext)s" % args
             else:
-                basename = self.collection.displayName
+                displayName = self.collection.displayName
 
             shares = sharing.publish(self.collection, account,
                                      classesToInclude=classesToInclude,
                                      attrsToExclude=attrsToExclude,
-                                     basename=basename,
+                                     displayName=displayName,
                                      updateCallback=self.updateCallback)
 
             self._showStatus(_(u" done.\n"))

@@ -72,7 +72,7 @@ def installParcel(parcel, old_version=None):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def publish(collection, account, classesToInclude=None,
-            attrsToExclude=None, basename=None, updateCallback=None):
+            attrsToExclude=None, displayName=None, updateCallback=None):
     """
     Publish a collection, automatically determining which conduits/formats
     to use, and how many
@@ -88,9 +88,9 @@ def publish(collection, account, classesToInclude=None,
     @type attrsToExclude: list of str
     @param attrsToExclude: An optional list of attribute names to skip when
                            publishing
-    @type basename: unicode
-    @param basename: An optional name to use for publishing; if not provided,
-                     the collection's displayName will be used as a starting
+    @type displayName: unicode
+    @param displayName: An optional name to use for publishing; if not provided,
+                        the collection's displayName will be used as a starting
                      point.  In either case, to avoid collisions with existing
                      collections, '-1', '-2', etc., may be appended.
     @type updateCallback: method
@@ -171,7 +171,10 @@ def publish(collection, account, classesToInclude=None,
 
             # determine a share name
             existing = _getExistingResources(account)
-            name = _uniqueName(basename or collection.displayName, existing)
+            displayName = displayName or collection.displayName
+            shareName = displayName.replace(" ", "_")
+            shareName = shareName.replace("'", "_")
+            shareName = _uniqueName(shareName, existing)
 
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
 
@@ -182,7 +185,8 @@ def publish(collection, account, classesToInclude=None,
 
                 share = _newOutboundShare(view, collection,
                                          classesToInclude=classesToInclude,
-                                         shareName=name,
+                                         shareName=shareName,
+                                         displayName=displayName,
                                          account=account,
                                          useCalDAV=True)
 
@@ -196,7 +200,6 @@ def publish(collection, account, classesToInclude=None,
                     collection.shares.append(share)
 
                 shares.append(share)
-                share.displayName = name
 
                 if share.exists():
                     raise SharingError(_(u"Share already exists"))
@@ -210,11 +213,12 @@ def publish(collection, account, classesToInclude=None,
                 # Create a subcollection to contain the cloudXML versions of
                 # the shared items
 
-                sub_name = u"%s/%s" % (name, SUBCOLLECTION)
+                subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
 
                 share = _newOutboundShare(view, collection,
                                          classesToInclude=classesToInclude,
-                                         shareName=sub_name,
+                                         shareName=subShareName,
+                                         displayName=displayName,
                                          account=account)
 
                 if attrsToExclude:
@@ -226,7 +230,6 @@ def publish(collection, account, classesToInclude=None,
                     share.filterAttributes.append(attr)
 
                 shares.append(share)
-                share.displayName = name
 
                 if share.exists():
                     raise SharingError(_(u"Share already exists"))
@@ -245,7 +248,8 @@ def publish(collection, account, classesToInclude=None,
                 # Create a WebDAV conduit / cloudxml format
                 share = _newOutboundShare(view, collection,
                                          classesToInclude=classesToInclude,
-                                         shareName=name,
+                                         shareName=shareName,
+                                         displayName=displayName,
                                          account=account)
 
                 try:
@@ -255,7 +259,6 @@ def publish(collection, account, classesToInclude=None,
                     collection.shares.append(share)
 
                 shares.append(share)
-                share.displayName = name
 
                 if share.exists():
                     raise SharingError(_(u"Share already exists"))
@@ -265,13 +268,14 @@ def publish(collection, account, classesToInclude=None,
                 if supportsTickets:
                     share.conduit.createTickets()
 
-                ics_name = u"%s.ics" % name
+                icsShareName = u"%s.ics" % shareName
                 share = _newOutboundShare(view, collection,
                                          classesToInclude=classesToInclude,
-                                         shareName=ics_name,
+                                         shareName=icsShareName,
+                                         displayName=displayName,
                                          account=account)
                 shares.append(share)
-                share.displayName = u"%s.ics" % name
+                share.displayName = u"%s.ics" % displayName
                 share.format = ICalendarFormat(parent=share)
                 share.mode = "put"
 
@@ -909,7 +913,7 @@ def _getExistingResources(account):
 
 
 def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
-                     account=None, useCalDAV=False):
+        displayName=None, account=None, useCalDAV=False):
     """ Create a new Share item for a collection this client is publishing.
 
     If account is provided, it will be used; otherwise, the default WebDAV
@@ -953,7 +957,7 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
     else:
         share.filterClasses = classesToInclude
 
-    share.displayName = collection.displayName
+    share.displayName = displayName or collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
     share.sharer = pim.Contact.getCurrentMeContact(view)
     return share
