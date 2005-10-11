@@ -632,3 +632,6 @@ pyicu timezone -> rrule
 # update spec: lots of other new methods :)
 
 """
+
+if __name__ == "__main__":
+    unittest.main()

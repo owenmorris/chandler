@@ -214,5 +214,5 @@ Check behavior when bad enums are set
 
 """
 
-
-
+if __name__ == "__main__":
+    unittest.main()
