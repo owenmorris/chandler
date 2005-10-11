@@ -6,7 +6,7 @@ import util.QAUITestAppLib as QAUITestAppLib
 import os
 
 filePath = os.getenv('CATSREPORTDIR')
-functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/Functional")
+functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/Functional")
 if not filePath:
     filePath = os.getcwd()
 
