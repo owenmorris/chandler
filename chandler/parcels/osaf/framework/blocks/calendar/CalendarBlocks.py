@@ -251,7 +251,6 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
 
 
 class wxPreviewArea(wx.Panel):
-    _redrawCount = 1
     vMargin = 4 # space above & below text
     hMargin = 6 # space on sides
     midMargin = 6 # space between time & date
@@ -267,7 +266,6 @@ class wxPreviewArea(wx.Panel):
         self.labelPosition = -1 # Note that we haven't measured things yet.
                 
     def OnPaint(self, event):
-        self._checkRedraw()
         dc = wx.PaintDC(self)
         self.Draw(dc)
 
@@ -379,26 +377,28 @@ class wxPreviewArea(wx.Panel):
         self.GetParent().GetParent().Thaw()
         
     def wxSynchronizeWidget(self):
-        self._redrawCount += 1
-        
-    def _checkRedraw(self):
-        if self._redrawCount > 0:
-            self._redrawCount = 0
+        # We now want the preview area to always appear.  If the calendar is visible, however, we always want the
+        # preview area to describe today, rather than the currently selected day.
+        minical = Block.Block.findBlockByName("MiniCalendar")
+        if isMainCalendarVisible() or not minical:
+            startDay = datetime.today()
+            endDay = datetime(startDay.year,
+                              startDay.month,
+                              startDay.day + 1)
+        else:
+            startDay = minical.widget.getSelectedDate()
+            endDay = datetime(startDay.year,
+                              startDay.month,
+                              startDay.day + 1)
 
-            if isMainCalendarVisible():
-                # disappear!
-                self.ChangeHeightAndAdjustContainers(0)
-                return
-
-            inRange = list(self.blockItem.getItemsInCurrentRange(dayItems=True,
-                                                               timedItems=True))
-            self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
+        inRange = list(self.blockItem.getItemsInRange((startDay, endDay), dayItems=True, timedItems=True))
+        self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
-            self.currentDaysItems.sort(cmp = self.SortForPreview)
-            dc = wx.ClientDC(self)
-            drawnHeight = self.Draw(dc)
+        self.currentDaysItems.sort(cmp = self.SortForPreview)
+        dc = wx.ClientDC(self)
+        drawnHeight = self.Draw(dc)
         
-            self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
+        self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
 
 
     @staticmethod
