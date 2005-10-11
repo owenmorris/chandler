@@ -381,7 +381,8 @@ class wxPreviewArea(wx.Panel):
         # preview area to describe today, rather than the currently selected day.
         minical = Block.Block.findBlockByName("MiniCalendar")
         if isMainCalendarVisible() or not minical:
-            startDay = datetime.today()
+            today = datetime.today()
+            startDay = datetime.combine(today, time(0))
             endDay = datetime(startDay.year,
                               startDay.month,
                               startDay.day + 1)
