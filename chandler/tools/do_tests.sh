@@ -66,10 +66,6 @@ for item in 0 1 2 3 ; do
     L_EXCLUDES[$item]=${#EXCLUDES[$item]}
 done
 
-echo Running \"make -C $C_DIR cats\" 
-
-make -C $C_DIR cats
-
 DIRS=`find $C_DIR -type d -name tests -print`
 
   # this code walks thru all the dirs with "tests" in their name
@@ -122,7 +118,7 @@ for mode in $MODES ; do
     echo Running $mode functional tests 
 
     if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
-        TESTS=`find $C_DIR/util/QATestScripts/Functional -name 'Test*.py' -print`
+        TESTS=`find $C_DIR/tools/QATestScripts/Functional -name 'Test*.py' -print`
 
         for test in $TESTS ; do
             if [ "$OSTYPE" = "cygwin" ]; then
@@ -147,7 +143,7 @@ done
 if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     echo Running performance tests 
 
-    TESTS=`find $C_DIR/util/QATestScripts/Performance -name 'Perf*.py' -print`
+    TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
 
     for test in $TESTS ; do
         if [ "$OSTYPE" = "cygwin" ]; then
