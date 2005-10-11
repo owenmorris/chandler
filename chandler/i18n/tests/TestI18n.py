@@ -22,3 +22,6 @@ class I18nTestCase(unittest.TestCase):
 
         test = _(u"test is good %s %s") % ("one", "two")
         self.assertEqual(test, u"test is good one two")
+
+if __name__ == "__main__":
+    unittest.main()
