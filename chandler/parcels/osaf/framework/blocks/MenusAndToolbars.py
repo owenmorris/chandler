@@ -687,8 +687,8 @@ class MenuBar (Block.Block, DynamicContainer):
             # ensure that the menuItem has been instantiated
             if not hasattr (menuItem, "widget"):
                 # @@@DLD - use framework block/widget linkage
-                widget = menuItem.widget
                 widget = menuItem.instantiateWidget()
+                menuItem.widget = widget
                 widget.blockItem = menuItem
                 # We need to call wxSynchronizeWidget here instead of synchronizeWidget
                 # becuase syncrhonizeItems is called from synchronizeWidget
