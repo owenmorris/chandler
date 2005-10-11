@@ -476,7 +476,7 @@ class CalendarEventHandler(object):
         
         blockItem.setRange(today)
         blockItem.postDateChanged()
-        blockItem.wynchronizeWidget()
+        blockItem.synchronizeWidget()
         
     def OnTZChoice(self, event):
         control = event.GetEventObject()
@@ -839,7 +839,7 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         if firstSpecialCollection:
             return firstSpecialCollection
 
-        assert False, "Don't have color info"
+        assert False, "Don't have color info for %s" % event
         
     def setCurrentCalendarColor(self, color):
 
