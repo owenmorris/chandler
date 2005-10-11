@@ -62,6 +62,11 @@ if [ "$TBOX" = "yes" ]; then
     fi
 fi
 
+if [ "$CHANDLERBIN" = "" ]
+then
+    CHANDLERBIN="$C_DIR"
+fi
+
 HH_DIR=`pwd`
 LOGFILES="svn.log distrib.log install.log tests.log"
 MODES="release debug"
@@ -175,10 +180,6 @@ do
         echo buildRevision = \"$REVISION\" >> $C_DIR/version.py
     fi
 
-    echo Running \"make -C $C_DIR cats\" | tee -a $BUILDLOG
-
-    make -C $C_DIR cats
-
     DIRS=`find $C_DIR -type d -name tests -print`
 
       # this code walks thru all the dirs with "tests" in their name
@@ -228,7 +229,7 @@ do
                 echo Running $TESTNAME | tee -a $BUILDLOG
 
                 cd $C_DIR
-                ./$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
+                $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
                 cat $T_DIR/test.log >> $T_DIR/tests.log
             
                   # scan the test output for the success messge "OK"
@@ -247,7 +248,7 @@ do
         echo Running $mode functional tests | tee -a $BUILDLOG
 
         if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
-            TESTS=`find $C_DIR/util/QATestScripts/Functional -name 'Test*.py' -print`
+            TESTS=`find $C_DIR/tools/QATestScripts/Functional -name 'Test*.py' -print`
 
             for test in $TESTS ; do
                 if [ "$OSTYPE" = "cygwin" ]; then
@@ -261,7 +262,7 @@ do
                 echo Running $TESTNAME | tee -a $BUILDLOG
 
                 cd $C_DIR
-                ./$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+                $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
                 cat $T_DIR/test.log >> $T_DIR/tests.log
             
                   # functional tests output a #TINDERBOX# Status = SUCCESS that we can scan for
@@ -281,7 +282,7 @@ do
     if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
         echo Running performance tests | tee -a $BUILDLOG
 
-        TESTS=`find $C_DIR/util/QATestScripts/Performance -name 'Perf*.py' -print`
+        TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
 
         for test in $TESTS ; do
             if [ "$OSTYPE" = "cygwin" ]; then
@@ -295,7 +296,7 @@ do
             echo Running $TESTNAME | tee -a $BUILDLOG
 
             cd $C_DIR
-            ./release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+            $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
             cat $T_DIR/test.log >> $T_DIR/tests.log
 
               # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
