@@ -33,21 +33,20 @@ class perf:
 
     self.verbose = self._options['verbose']
 
-    self.SummaryTestNames = { 
-         #'': '#1 Startup',
-         'new_event_from_file_menu_for_performance':                      '#2 New event (menu)',
-         'new_event_by_double_clicking_in_the_cal_view_for_performance':  '#3 New event (double click)',
-         'test_new_calendar_for_performance':                             '#4 New calendar',
-         'importing_3000_event_calendar':                                 '#5 Import 3000 event calendar',
-         #'': '#6 Startup with 3000 event calendar',
-         'Creating_new_event_from_the_File_Menu_after_large_data_import': '#7 New event (menu) with 3000 event calendar',
-         'Creating_a_new_event_in_the_Cal_view_after_large_data_import':  '#8 New event (double click) with 3000 event calendar',
-         'Creating_a_new_calendar_after_large_data_import':               '#9 New calendar with 3000 event calendar',
-         'switching_to_all_view_for_performance':                         'Switch Views',
-         'perf_stamp_as_event':                                           'Stamp',
-         'Switching_view_after_importing_large_data':                     'Switch Views with 3000 event calendar',
-         'Stamping_after_large_data_import':                              'Stamp with 3000 event calendar',
-        }
+    self.SummaryTests = [#('', '#1 Startup'),
+                         ('new_event_from_file_menu_for_performance',                      '#2 New event (menu)'),
+                         ('new_event_by_double_clicking_in_the_cal_view_for_performance',  '#3 New event (double click)'),
+                         ('test_new_calendar_for_performance',                             '#4 New calendar'),
+                         ('importing_3000_event_calendar',                                 '#5 Import 3000 event calendar'),
+                         #('', '#6'),
+                         ('Creating_new_event_from_the_File_Menu_after_large_data_import', '#7 New event (menu) with 3000 event calendar'),
+                         ('Creating_a_new_event_in_the_Cal_view_after_large_data_import',  '#8 New event (double click) with 3000 event calendar'),
+                         ('Creating_a_new_calendar_after_large_data_import',               '#9 New calendar with 3000 event calendar'),
+                         ('switching_to_all_view_for_performance',                         'Switch Views'),
+                         ('perf_stamp_as_event',                                           'Stamp'),
+                         ('Switching_view_after_importing_large_data',                     'Switch Views with 3000 event calendar'),
+                         ('Stamping_after_large_data_import',                              'Stamp with 3000 event calendar'),
+                        ]
 
     self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
 
@@ -115,7 +114,6 @@ class perf:
 
   def loadPerfData(self):
     if self._options['debug']:
-      import time
       t = time.time()
 
     datafiles = {}
@@ -282,7 +280,12 @@ class perf:
           sum = sum + item*item
 
       avg = avg / n
-      v = sqrt((sum - n*avg*avg)/n*n)
+      x   = (sum - n*avg*avg) / n*n
+
+      if x < 0:
+          x = abs(x)
+
+      v = math.sqrt(x)
 
     else:
       avg = values[0]
@@ -486,14 +489,17 @@ class perf:
       line  = '<tr><td><a href="detail_%s.html#%s">%s</a></td>' % (enddate, testkey, testDisplayName)
       graph = []
 
-      for key in ['linux', 'osx', 'win']:
-        if testkey in targets[key].keys():
-          targetAvg = targets[key][testkey] * 60 # convert to seconds
-        else:
-          targetAvg = 0.0
+      for key in ['win', 'osx', 'linux']:
+        #if testkey in targets[key].keys():
+        #  targetAvg = targets[key][testkey] * 60 # convert to seconds
+        #else:
+        #  targetAvg = 0.0
+         
+        targetAvg = targets[key] * 60 # convert to seconds
 
         avg      = platforms[key]['avg'] * 60 # convert to seconds
         revision = platforms[key]['revision']
+        variance = platforms[key]['var']
 
         c_diff = targetAvg - avg
 
@@ -502,24 +508,37 @@ class perf:
         else:
           c_perc = 0
 
-        s = 'ok'
+#If the result falls within the standard deviation (m5-std dev < current
+#< m5+std dev), don't color the results. After all, we don't really know
+#if it is a real change or just noise.
+#
+#If the test has gotten faster than the std dev limit, color it green.
+#If the test has gotten slower, but less than 10%, color it orange.
+#If the test has gotten slower by more than 10%, color it red.
 
-        if c_perc < 0.0:
-          if abs(c_perc) > self._options['p_alert']:
-            s = 'alert'
-          else:
-            s = 'warn'
+        if ((targetAvg - variance) < avg) and (avg < (targetAvg + variance)):
+          s = 'ok'
         else:
-            if c_perc > 10.0:
-                s = 'good'
+          if c_perc < 0.0:
+            if abs(c_perc) > self._options['p_alert']:
+              s = 'alert'
+            else:
+              s = 'warn'
+          else:
+              if c_perc > 10.0:
+                  s = 'good'
+              else:
+                  s = 'ok'
 
         graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, avg, c_diff, c_perc))
 
+        print key, testkey, targetAvg, avg, c_perc, c_diff, s, variance
+
         line += '<td class="number">%2.0fs</td>' % targetAvg
         line += '<td class="number">%2.2fs</td>' % avg
-        line += '<td class="%s">%3.0f%</td>' % (s, c_perc)
-        line += '<td class="%s">%1.2fs</td>' % (s, c_diff)
-        line += '<td>%01.4fs</td>' % platforms[key]['var']
+        line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
+        line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
+        line += '<td>%01.2fs</td>' % variance
 
       line += '</tr>\n'
 
@@ -542,49 +561,51 @@ class perf:
     tbox   = []
     graph  = []
 
-    revisions = { 'osx':   '',
-                  'linux': '',
-                  'win':   '', }
+    revisions = { 'osx':   ['', ''],
+                  'linux': ['', ''],
+                  'win':   ['', ''], }
+
+    targets = { 'osx':   0,
+                'linux': 0,
+                'win':   0, }
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
     detail.append('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
     detail.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
 
-    for testkey in tests.keys():
-      if testkey in self.SummaryTestNames.keys():
-        testitem        = tests[testkey]
-        testDisplayName = self.SummaryTestNames[testkey]
+    for (testkey, testDisplayName) in self.SummaryTests:
+      if testkey in tests.keys():
+        testitem = tests[testkey]
 
         detail.append('<h2>%s: %s</h2>\n' % (testDisplayName, testkey))
 
           # taken from QA testing m5
-
-        targets = { 'osx':   { 'switching_to_all_view_for_performance':    0.0129,
-                               'perf_stamp_as_event':                      0.0224,
-                               'new_event_from_file_menu_for_performance': 0.3655,
-                               'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0372,
-                               'importing_3000_event_calendar':            2.6833,
-                               'test_new_calendar_for_performance':        0.0237,
-                               #'': ,
-                             },
-                    'linux': { 'switching_to_all_view_for_performance':    0.0099,
-                               'perf_stamp_as_event':                      0.0157,
-                               'new_event_from_file_menu_for_performance': 0.0268,
-                               'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0255,
-                               'importing_3000_event_calendar':            2.6500,
-                               'test_new_calendar_for_performance':        0.0112,
-                               #'': ,
-                             },
-                    'win':   { 'switching_to_all_view_for_performance':    0.0055,
-                               'perf_stamp_as_event':                      0.0232,
-                               'new_event_from_file_menu_for_performance': 0.0229,
-                               'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0274,
-                               'importing_3000_event_calendar':            1.1616,
-                               'test_new_calendar_for_performance':        0.0159,
-                               #'': ,
-                             },
-                  }
+        #targets = { 'osx':   { 'switching_to_all_view_for_performance':    0.0129,
+        #                       'perf_stamp_as_event':                      0.0224,
+        #                       'new_event_from_file_menu_for_performance': 0.3655,
+        #                       'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0372,
+        #                       'importing_3000_event_calendar':            2.6833,
+        #                       'test_new_calendar_for_performance':        0.0237,
+        #                       #'': ,
+        #                     },
+        #            'linux': { 'switching_to_all_view_for_performance':    0.0099,
+        #                       'perf_stamp_as_event':                      0.0157,
+        #                       'new_event_from_file_menu_for_performance': 0.0268,
+        #                       'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0255,
+        #                       'importing_3000_event_calendar':            2.6500,
+        #                       'test_new_calendar_for_performance':        0.0112,
+        #                       #'': ,
+        #                     },
+        #            'win':   { 'switching_to_all_view_for_performance':    0.0055,
+        #                       'perf_stamp_as_event':                      0.0232,
+        #                       'new_event_from_file_menu_for_performance': 0.0229,
+        #                       'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0274,
+        #                       'importing_3000_event_calendar':            1.1616,
+        #                       'test_new_calendar_for_performance':        0.0159,
+        #                       #'': ,
+        #                     },
+        #          }
 
         platforms = { 'osx':   { 'var':      0,
                                  'avg':      0,
@@ -606,11 +627,8 @@ class perf:
                                  'revision': '' },
                     }
 
-        k_builds = testitem.keys()
-        k_builds.sort()
-
-        for buildkey in k_builds:
-          if buildkey in self.PerformanceTBoxes:
+        for buildkey in self.PerformanceTBoxes:
+          if buildkey in testitem.keys():
             builditem = testitem[buildkey]
 
             if 'osx' in buildkey:
@@ -650,7 +668,7 @@ class perf:
                               (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
                                revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
                 detail.append('<!-- revision %s runs %d time %02.5f -->\n' % (revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
-                
+
                 #print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
 
             (v, n, avg) = self.variance(platformdata['values'])
@@ -667,7 +685,12 @@ class perf:
             platformdata['count']    = n
             platformdata['revision'] = revision
 
-            revisions[platformkey] = revision
+            if len(k_hours) > 2:
+                revisions[platformkey] = [revision, dateitem[k_hours[-2]][0][DP_REVISION]]
+            else:
+                revisions[platformkey] = [revision, revision]
+
+            targets[platformkey] = dateitem[k_hours[-1]][0][DP_AVERAGE]
 
         (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, targets, testkey, enddate, testDisplayName)
 
@@ -675,6 +698,8 @@ class perf:
         tbox.append(summaryline)
 
         graph += graphdata
+
+    #print revisions
 
     page.append('</table>\n')
                                       
@@ -706,9 +731,9 @@ class perf:
 
     pagefile.write('<table>\n')
     pagefile.write('<tr><th></th>')
-    pagefile.write('<th colspan="5">Linux (r %s)</th>' % revisions['linux'])
-    pagefile.write('<th colspan="5">OS X (r %s)</th>' % revisions['osx'])
-    pagefile.write('<th colspan="5">Windows (r %s)</th></tr>\n' % revisions['win'])
+    pagefile.write('<th colspan="5">Windows (r %s)</th>' % revisions['win'][0])
+    pagefile.write('<th colspan="5">OS X (r %s)</th>' % revisions['osx'][0])
+    pagefile.write('<th colspan="5">Linux (r %s)</th></tr>\n' % revisions['linux'][0])
     pagefile.write('<tr><th>Test</th>')
     pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
@@ -754,9 +779,9 @@ class perf:
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table>\n')
     tboxfile.write('<tr><th></th>')
-    tboxfile.write('<th colspan="5">Linux (r %s)</th>' % revisions['linux'])
-    tboxfile.write('<th colspan="5">OS X (r %s)</th>' % revisions['osx'])
-    tboxfile.write('<th colspan="5">Windows (r %s)</th></tr>\n' % revisions['win'])
+    tboxfile.write('<th colspan="5">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
+    tboxfile.write('<th colspan="5">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
+    tboxfile.write('<th colspan="5">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
     tboxfile.write('<tr><th>Test</th>')
     tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
