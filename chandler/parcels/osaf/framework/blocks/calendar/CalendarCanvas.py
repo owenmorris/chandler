@@ -1648,10 +1648,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         elif position - sashsize <= wxAllDay.collapsedHeight:
             #change just the bitmap?  or autoExpandMode as well?
             wxAllDay.autoExpandMode = False
-            self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
+            if not '__WXMAC__' in wx.PlatformInfo:
+                self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
         elif position - sashsize > wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = True
-            self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
+            if not '__WXMAC__' in wx.PlatformInfo:
+                self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
         
     def OnDaySelect(self, day):
         """
