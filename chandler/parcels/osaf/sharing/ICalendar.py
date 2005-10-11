@@ -32,63 +32,6 @@ def translateToTimezone(dt, tzinfo):
     else:
         return dt.astimezone(tzinfo)
 
-class RecurrenceToVObject:
-    """
-    Temporary home for creating vobject objects that can be serialized.
-    
-    These functions currently force all recurrence into the US-Pacific, and
-    only support a small subset of possible recurrence rules.  Eventually,
-    all this functionality should move (in a more general form) to vobject.
-    
-    """
-    def __init__(self):
-        pacificVTimezoneString = """BEGIN:VTIMEZONE
-TZID:US/Pacific
-LAST-MODIFIED:19870101T000000Z
-BEGIN:STANDARD
-DTSTART:19671029T020000
-RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10
-TZOFFSETFROM:-0700
-TZOFFSETTO:-0800
-TZNAME:PST
-END:STANDARD
-BEGIN:DAYLIGHT
-DTSTART:19870405T020000
-RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=4
-TZOFFSETFROM:-0800
-TZOFFSETTO:-0700
-TZNAME:PDT
-END:DAYLIGHT
-END:VTIMEZONE"""
-        buffer = StringIO.StringIO(pacificVTimezoneString)
-        buffer.seek(0)
-        self.pacificTZ = dateutil.tz.tzical(buffer).get()
-        buffer.seek(0)
-        self.pacificVTimezone = vobject.readComponents(buffer).next()
-        self.pacificVTimezone.behavior = vobject.icalendar.VTimezone
-
-    def addRRule(self, vevent, rule):
-        """
-        Adds an RRULE line to a Component.
-        
-        Because native vobject vevents are RecurringComponents, use the
-        transformFromNative method before calling addRRule.
-        
-        """
-        freq = rule.freq
-        until = rule.calculatedUntil()
-        interval = rule.interval
-        
-        val = "FREQ=" + freq.upper()
-        if until is not None:
-            until = translateToTimezone(until, utc) # until must be in UTC
-            val += ";UNTIL=" + vobject.serializing.dateTimeToString(until)
-        if interval != 1:
-            val += ";INTERVAL=" + str(interval)
-        vevent.add('RRULE').value = val
-
-RecurrenceHelper = RecurrenceToVObject()
-
 def dateForVObject(dt, asDate = False):
     """
     Convert the given datetime into a date or datetime in Pacific time.
@@ -96,13 +39,7 @@ def dateForVObject(dt, asDate = False):
     if asDate:
         return dt.date()
     else:
-        return translateToTimezone(dt, RecurrenceHelper.pacificTZ)
-
-def preserveTimezone(dtContentLine):
-    """
-    Timezones in vobject lines are converted to UTC by default.
-    """
-    dtContentLine.params['X-VOBJ-PRESERVE-TZID'] = ['TRUE']
+        return dt
 
 def itemsToVObject(view, items, cal=None, filters=None):
     """
@@ -112,7 +49,6 @@ def itemsToVObject(view, items, cal=None, filters=None):
     set all timezones to Pacific.
 
     """
-    tzidsUsed = {'US-Pacific' : True }
     def populate(comp, item):
         """Populate the given vobject vevent with data from item."""
         if item.getAttributeValue('icalUID', default=None) is None:
@@ -127,9 +63,6 @@ def itemsToVObject(view, items, cal=None, filters=None):
         try:
             dtstartLine = comp.add('dtstart')
             dtstartLine.value = dateForVObject(item.startTime, item.allDay)
-            preserveTimezone(dtstartLine)
-            # placeholder until we deal with different timezones
-            tzidsUsed['US-Pacific'] = True 
         except AttributeError:
             pass
         
@@ -141,10 +74,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
                                                  datetime.timedelta(days=1)
             else:
                 dtendLine.value = dateForVObject(item.endTime,item.allDay)
-            preserveTimezone(dtendLine)
-            
-            # placeholder until we deal with different timezones
-            tzidsUsed['US-Pacific'] = True 
+
         except AttributeError:
             comp.dtend = [] # delete the dtend that was added
             
@@ -177,14 +107,12 @@ def itemsToVObject(view, items, cal=None, filters=None):
             recurrenceid.value = dateForVObject(item.recurrenceID,item.allDay)
             if item.modifies != 'this':
                 recurrenceid.params['RANGE'] = [item.modifies.upper()]
-            preserveTimezone(recurrenceid)
         
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative
             if item.modifies == 'thisandfuture' or item.getMaster() == item:
-                rule = item.rruleset.rrules.first() # only dealing with one rrule right now
-                comp = cal.vevent[-1] = comp.transformFromNative()
-                RecurrenceHelper.addRRule(comp, rule)
+                x = item.createDateUtilFromRule()
+                cal.vevent[-1].rruleset = item.createDateUtilFromRule()
         except AttributeError:
             pass
         # end of populate function
@@ -209,10 +137,6 @@ def itemsToVObject(view, items, cal=None, filters=None):
             continue
         
         populateModifications(item, cal)
-
-    # placeholder until we deal with different timezones
-    if tzidsUsed.get('US-Pacific') == True:
-        cal.vtimezone = [RecurrenceHelper.pacificVTimezone]
 
     return cal
 
@@ -481,24 +405,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
                     eventItem.icalUID = event.uid[0].value
-    
-                # vobject isn't meshing well with dateutil when dtstart isDate;
-                # dtstart is converted to a datetime for dateutil, but rdate
-                # isn't.  To make dateutil happy, convert rdates which are dates to
-                # datetimes until vobject is fixed.
-                for i, rdate in enumerate(event.rdate):
-                    if type(rdate) == date:
-                        event.rdate[i] = datetime.datetime.combine(rdate,
-                                                                time(tzinfo=tzinfo))
-                    else:
-                        event.rdate[i] = makeNaiveteMatch(convertToICUtzinfo(
-                                                          event.rdate[i]),
-                                                          tzinfo)
-                        
-                    # get rid of RDATES that match dtstart, created by vobject to
-                    # deal with unusual RRULEs correctly
-                    if event.rdate[i] == dtstart:
-                        del event.rdate[i]
                     
                 if DEBUG: logger.debug("eventItem is %s" % str(eventItem))
                 
@@ -526,15 +432,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if not filters or "reminders" not in filters:
                     if reminderDelta is not None:
                         eventItem.makeReminder(reminderDelta)
-    
-                if len(event.rdate) > 0 or len(event.rrule) > 0:
-                    # make until to have no timezone if the event is all day, since
-                    # dtstart for all day events has no timezone
-                    if isDate:
-                        for rule in event.rrule:
-                            if rule._until and rule._until.tzinfo is not None:
-                                rule._until = rule._until.astimezone(localtime).replace(tzinfo=None)
-                    eventItem.setRuleFromDateUtil(event.rruleset)
+                
+                rruleset = event.rruleset
+                if rruleset is not None:
+                    eventItem.setRuleFromDateUtil(rruleset)
                 elif recurrenceID is None: # delete any existing rule
                     eventItem.removeRecurrence()
     

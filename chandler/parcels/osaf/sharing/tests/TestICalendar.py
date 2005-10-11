@@ -119,7 +119,7 @@ class ICalendarTestCase(unittest.TestCase):
          "summary not set properly, summary is %s"
          % cal.vevent[0].summary[0].value)
 
-        start = event.startTime.replace(tzinfo=ICalendar.localtime)
+        start = event.startTime
 
         self.assert_(cal.vevent[0].dtstart[0].value == start,
          "dtstart not set properly, dtstart is %s"
@@ -179,40 +179,30 @@ class ICalendarTestCase(unittest.TestCase):
         #self.assertEqual(third.rruleset.rrules.first().freq, 'daily')
         
     def exportRecurrence(self):
-        helper = ICalendar.RecurrenceHelper
-        start = datetime.datetime(2005,2,1)
-        self.assertEqual(helper.pacificTZ.utcoffset(start),
-                         datetime.timedelta(hours=-8))                         
+        eastern = ICUtzinfo.getInstance("US/Eastern")
+        start = datetime.datetime(2005,2,1, tzinfo = eastern)            
         vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
         vevent.behavior = vobject.icalendar.VEvent
         
-        # dateForVObject should take a naive datetime and assume it's in Pacific
-        vevent.setDtstart(ICalendar.dateForVObject(start))
-        self.assertEqual(vevent.getDtstart().tzinfo, helper.pacificTZ)
+        vevent.add('dtstart').value = ICalendar.dateForVObject(start)
 
         # not creating a RuleSetItem, although it would be required for an item
         ruleItem = RecurrenceRule(None, view=self.repo.view)
         ruleItem.freq = 'daily'
+        ruleSetItem = RecurrenceRuleSet(None, view=self.repo.view)
+        ruleSetItem.addRule(ruleItem)
         
-        vevent = vevent.transformFromNative()
-        helper.addRRule(vevent, ruleItem)
+        vevent.rruleset = ruleSetItem.createDateUtilFromRule(start)
         self.assertEqual(vevent.rrule[0].value, 'FREQ=DAILY')
     
-        # addRRule should treat until as being in Pacific time if it has no TZ
-        vevent.rrule=[]
-        ruleItem.until = datetime.datetime(2005,3,1)
-        ruleItem.untilIsDate = False
-        helper.addRRule(vevent, ruleItem)
-        self.assertEqual(vevent.rrule[0].value,
-                         'FREQ=DAILY;UNTIL=20050301T080000Z')
                          
         event = Calendar.CalendarEvent(view = self.repo.view)
         event.displayName = u"blah"
         event.startTime = start
-        event.endTime = datetime.datetime(2005,3,1,1)
+        event.endTime = datetime.datetime(2005,3,1,1, tzinfo = eastern)
         
         ruleItem = RecurrenceRule(None, view=self.repo.view)
-        ruleItem.until = datetime.datetime(2005,3,1)
+        ruleItem.until = datetime.datetime(2005,3,1, tzinfo = eastern)
         ruleSetItem = RecurrenceRuleSet(None, view=self.repo.view)
         ruleSetItem.addRule(ruleItem)
         event.rruleset = ruleSetItem
@@ -220,21 +210,28 @@ class ICalendarTestCase(unittest.TestCase):
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
         
         self.assertEqual(vcalendar.vevent[0].dtstart[0].serialize(),
-                         'DTSTART;TZID=US/Pacific:20050201T000000\r\n')
+                         'DTSTART;TZID=US/Eastern:20050201T000000\r\n')
         vcalendar.vevent[0] = vcalendar.vevent[0].transformFromNative()
         self.assertEqual(vcalendar.vevent[0].rrule[0].serialize(),
-                         'RRULE:FREQ=WEEKLY;UNTIL=20050302T075900Z\r\n')
+                         'RRULE:FREQ=WEEKLY;UNTIL=20050302T045900Z\r\n')
         
         # move the second occurrence one day later
         nextEvent = event.getNextOccurrence()
         nextEvent.changeThis('startTime', datetime.datetime(2005,2,9))
+        
+        nextEvent.getNextOccurrence().deleteThis()
 
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
         modified = vcalendar.vevent[1]
         self.assertEqual(modified.dtstart[0].serialize(),
-                         'DTSTART;TZID=US/Pacific:20050209T000000\r\n')
+                         'DTSTART:20050209T000000\r\n')
         self.assertEqual(modified.contents['recurrence-id'][0].serialize(),
-                         'RECURRENCE-ID;TZID=US/Pacific:20050208T000000\r\n')
+                         'RECURRENCE-ID;TZID=US/Eastern:20050208T000000\r\n')
+        self.assertEqual(vcalendar.vevent[0].exdate[0].serialize(),
+                         'EXDATE;TZID=US/Eastern:20050215T000000\r\n')
+        vcalendar.behavior.generateImplicitParameters(vcalendar)
+        self.assertEqual(vcalendar.vtimezone[0].tzid[0].value, "US/Eastern")
+        
         
         
         
