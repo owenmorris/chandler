@@ -15,7 +15,8 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_XRC && wxUSE_TREEBOOK
+#if 1
+//#if wxUSE_XRC && wxUSE_TREEBOOK
 
 #include "wx/xrc/xh_treebk.h"
 
