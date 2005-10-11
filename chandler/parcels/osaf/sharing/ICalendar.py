@@ -62,18 +62,30 @@ def itemsToVObject(view, items, cal=None, filters=None):
         
         try:
             dtstartLine = comp.add('dtstart')
-            dtstartLine.value = dateForVObject(item.startTime, item.allDay)
+            allDay = item.allDay
+            if item.anyTime:
+                dtstartLine.params['X-OSAF-ANYTIME']=['TRUE']
+                allDay = True # anyTime should be exported as allDay
+            dtstartLine.value = dateForVObject(item.startTime, allDay)
+
         except AttributeError:
             pass
         
         try:
-            dtendLine = comp.add('dtend')
-            #convert Chandler's notion of allDay duration to iCalendar's
-            if item.allDay:
-                dtendLine.value = dateForVObject(item.endTime,item.allDay) + \
-                                                 datetime.timedelta(days=1)
-            else:
-                dtendLine.value = dateForVObject(item.endTime,item.allDay)
+            if not (item.duration == datetime.timedelta(0) or (
+                    (item.anyTime or item.allDay) and 
+                    item.duration <= datetime.timedelta(days=1))):
+                dtendLine = comp.add('dtend')
+                #convert Chandler's notion of allDay duration to iCalendar's
+                allDay = item.allDay
+                if item.anyTime:
+                    dtendLine.params['X-OSAF-ANYTIME']=['TRUE']
+                    allDay = True # anyTime should be exported as allDay
+                if allDay:
+                    dtendLine.value = dateForVObject(item.endTime, allDay) + \
+                                                     datetime.timedelta(days=1)
+                else:
+                    dtendLine.value = dateForVObject(item.endTime, allDay)
 
         except AttributeError:
             comp.dtend = [] # delete the dtend that was added
@@ -326,7 +338,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
                 # what that would mean, so we won't catch an exception if there's no
                 # dtstart.
-                dtstart  = event.dtstart[0].value 
+                dtstartLine = event.dtstart[0]
+                dtstart = dtstartLine.value
+                anyTime = dtstartLine.params.get('X-OSAF-ANYTIME', [None])[0] == 'TRUE'
                 isDate = type(dtstart) == date
 
                 try:
@@ -345,7 +359,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         try:
                             duration = event.due[0].value - dtstart
                         except AttributeError:
-                            if isDate: 
+                            if anyTime:
+                                # anyTime with duration of 1 days displays as
+                                # two days, so use 0 (after dtstart correction)
+                                duration = datetime.timedelta(days=1)
+                            elif isDate: 
                                 # make it two days long, our conversion from 
                                 # iCalendar to sane changes it to 2 days long later
                                 duration = datetime.timedelta(days=2)
@@ -412,10 +430,15 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 eventItem.anyTime = False
                 
                 eventItem.displayName = displayName
-                if isDate:
+                
+                if anyTime:
+                    eventItem.anyTime = True
+                elif isDate:
+                    # anyTime events will look like allDay, but they aren't
                     eventItem.allDay = True
-                eventItem.startTime   = dtstart
-                eventItem.endTime = dtstart + duration
+                    
+                eventItem.startTime = dtstart
+                eventItem.duration  = duration
                 
                 if not filters or "transparency" not in filters:
                     eventItem.transparency = status

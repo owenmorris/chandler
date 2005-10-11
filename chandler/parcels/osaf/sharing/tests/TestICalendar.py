@@ -109,6 +109,7 @@ class ICalendarTestCase(unittest.TestCase):
     def ItemsToVobject(self):
         """Tests itemsToVObject, which converts Chandler items to vobject."""
         event = Calendar.CalendarEvent(view = self.repo.view)
+        event.anyTime = False
         event.displayName = u"test"
         event.startTime = datetime.datetime(2010, 1, 1, 10)
         event.endTime = datetime.datetime(2010, 1, 1, 11)        
@@ -120,7 +121,6 @@ class ICalendarTestCase(unittest.TestCase):
          % cal.vevent[0].summary[0].value)
 
         start = event.startTime
-
         self.assert_(cal.vevent[0].dtstart[0].value == start,
          "dtstart not set properly, dtstart is %s"
          % cal.vevent[0].summary[0].value)
@@ -197,6 +197,7 @@ class ICalendarTestCase(unittest.TestCase):
     
                          
         event = Calendar.CalendarEvent(view = self.repo.view)
+        event.anyTime = False
         event.displayName = u"blah"
         event.startTime = start
         event.endTime = datetime.datetime(2005,3,1,1, tzinfo = eastern)
