@@ -585,7 +585,10 @@ static PyObject *t_view_setSingleton(t_view *self, PyObject *args)
         return NULL;
 
     if (item == Py_None)
-        PyDict_DelItem(self->singletons, key);
+    {
+        if (PyDict_Contains(self->singletons, key))
+            PyDict_DelItem(self->singletons, key);
+    }
     else if (PyObject_TypeCheck(item, CItem))
         PyDict_SetItem(self->singletons, key, ((t_item *) item)->uuid);
     else if (PyUUID_Check(item))
