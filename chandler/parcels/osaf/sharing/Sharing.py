@@ -1290,6 +1290,10 @@ class WebDAVConduit(ShareConduit):
                     # the server doesn't allow the creation of a collection here
                     message = _(u"Server doesn't allow the creation of collections at %(url)s") % {'url': url}
                     raise IllegalOperation(message)
+                    
+                if err.status == twisted.web.http.PRECONDITION_FAILED:
+                    message = _(u"The contents of %(url)s were modified unexpectedly on the server while trying to share.") % {'url':url}
+                    raise IllegalOperation(message)
 
                 if err.status != twisted.web.http.CREATED:
                      message = _(u"WebDAV error, status = %(statusCode)d") % {'statusCode': err.status}
@@ -1349,10 +1353,28 @@ class WebDAVConduit(ShareConduit):
             # newResource == None as another indicator that it failed to
             # create the resource
             newResource = None
+            serverHandle = self._getServerHandle()
 
-            newResource = self._getServerHandle().blockUntil(
+            # Here, if the resource doesn't exist on the server, we're
+            # going to call container.createFile(), which will fail
+            # with a 412 (PRECONDITION_FAILED) iff something already
+            # exists at that location.
+            #
+            # If the resource does exist, we get hold of it, and
+            # call resource.put(), which fails with a 412 iff the
+            # etag of the resource changed.
+            if not self.resourceList.has_key(itemName):
+                newResource = serverHandle.blockUntil(
                                     container.createFile, itemName, body=text,
                                     type=contentType)
+            else:
+                resourcePath = container.path + itemName
+                resource = serverHandle.getResource(resourcePath)
+                
+                serverHandle.blockUntil(resource.put, text, checkETag=False,
+                                        contentType=contentType)
+                # We're using newResource of None to track errors
+                newResource = resource 
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
@@ -1365,8 +1387,11 @@ class WebDAVConduit(ShareConduit):
 
         except zanshin.webdav.WebDAVError, err:
 
-            if err.status == twisted.web.http.FORBIDDEN or \
-               err.status == twisted.web.http.CONFLICT:
+            if err.status in (twisted.web.http.FORBIDDEN,
+                              twisted.web.http.CONFLICT,
+                              twisted.web.http.PRECONDITION_FAILED):
+                # [@@@] grant: Should probably come up with a better message
+                # for PRECONDITION_FAILED (an ETag conflict).
                 # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
                 message = _(u"Publishing %(itemName)s failed; server rejected our request with status %(status)d") % {'itemName': itemName, 'status': err.status}
                 raise NotAllowed(message)
