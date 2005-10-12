@@ -115,11 +115,11 @@ def RenderKinds(view, urlRoot):
     #    _insertItem(tree, item.itsPath[1:], item)
     base = view.findPath("//Schema/Core/Kind")
     for child in base.iterItems():
-        print child.itsName, child.itsPath
+        #print child.itsName, child.itsPath
         items[child.itsPath] = child
         _insertItem(tree, child.itsPath[1:], child)
 
-    print tree
+    #print tree
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
@@ -613,6 +613,7 @@ def generateDocs(options, outputDir):
     source_modules += find_packages('i18n',        exclude=['*.tests'])
     source_modules += find_packages('repository',  exclude=['*.tests'])
     source_modules += find_packages('parcels',     exclude=['*.tests'])
+    source_modules += find_packages('tools',       exclude=['*.tests'])
 
     print 'find_packages: ', source_modules
 
@@ -754,6 +755,6 @@ if __name__ == '__main__':
             _mkdirs(outputDir)
 
         generateModelDocs(options, outputDir)
-        #generateDocs(options, outputDir)
+        generateDocs(options, outputDir)
     else:
         print "Error: Currently gen_docs.py assumes it is running in the chandler/ directory"
