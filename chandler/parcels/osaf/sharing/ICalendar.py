@@ -116,7 +116,9 @@ def itemsToVObject(view, items, cal=None, filters=None):
         
         if item.getAttributeValue('modificationFor', default=None) is not None:
             recurrenceid = comp.add('recurrence-id')
-            recurrenceid.value = dateForVObject(item.recurrenceID,item.allDay)
+            master = item.getMaster()
+            allDay = master.allDay or master.anyTime
+            recurrenceid.value = dateForVObject(item.recurrenceID, allDay)
             if item.modifies != 'this':
                 recurrenceid.params['RANGE'] = [item.modifies.upper()]
         
@@ -359,14 +361,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         try:
                             duration = event.due[0].value - dtstart
                         except AttributeError:
-                            if anyTime:
-                                # anyTime with duration of 1 days displays as
-                                # two days, so use 0 (after dtstart correction)
+                            if anyTime or isDate:
                                 duration = datetime.timedelta(days=1)
-                            elif isDate: 
-                                # make it two days long, our conversion from 
-                                # iCalendar to sane changes it to 2 days long later
-                                duration = datetime.timedelta(days=2)
                             else:
                                 duration = datetime.timedelta(0)
                                 
@@ -433,10 +429,16 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 
                 if anyTime:
                     eventItem.anyTime = True
-                elif isDate:
-                    # anyTime events will look like allDay, but they aren't
-                    eventItem.allDay = True
-                    
+                    eventItem.allDay  = False                    
+                else:
+                    eventItem.anyTime = False
+                    # anyTime events will look like allDay, but they aren't, so
+                    # only set allDay if allDay is False
+                    if isDate:
+                        eventItem.allDay = True
+                    else:
+                        eventItem.allDay = False
+
                 eventItem.startTime = dtstart
                 eventItem.duration  = duration
                 
