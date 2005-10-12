@@ -501,7 +501,7 @@ class perf:
     detailfile.close()
 
 
-  def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName):
+  def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName, previousTargets):
       line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
       graph = []
       
@@ -515,10 +515,12 @@ class perf:
         revision = platforms[key]['revision']
         variance = platforms[key]['var']
 
-        c_diff = targetAvg - avg
+        previous = previousTargets[key] * 60 #convert to seconds
 
-        if targetAvg <> 0:
-          c_perc = (c_diff / targetAvg) * 100
+        c_diff = previous - avg
+
+        if previous <> 0:
+          c_perc = (c_diff / previous) * 100
         else:
           c_perc = 0
 
@@ -530,7 +532,7 @@ class perf:
 #If the test has gotten slower, but less than 10%, color it orange.
 #If the test has gotten slower by more than 10%, color it red.
 
-        if ((targetAvg - variance) < avg) and (avg < (targetAvg + variance)):
+        if ((previous - variance) < avg) and (avg < (previous + variance)):
           s = 'ok'
         else:
           if c_perc < 0.0:
@@ -578,6 +580,11 @@ class perf:
     revisions = { 'osx':   ['', ''],
                   'linux': ['', ''],
                   'win':   ['', ''], }
+
+    previousRun = { 'osx':   0,
+                    'linux': 0,
+                    'win':   0,
+                  }
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
@@ -673,7 +680,9 @@ class perf:
             else:
                 revisions[platformkey] = [revision, revision]
 
-        (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName)
+            previousRun[platformkey] = dateitem[k_hours[-1]][0][DP_AVERAGE]
+
+        (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName, previousRun)
 
         page.append(summaryline)
         tbox.append(summaryline)
