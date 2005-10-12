@@ -112,28 +112,25 @@ for mode in $MODES ; do
         done
     done
 
-      # if Functional Tests are needed - walk the CATS directory
-      # and create a list of all valid tests
+      # if Functional Tests are needed - find the FunctionalTestSuite and run it
 
     echo Running $mode functional tests 
 
     if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
-        TESTS=`find $C_DIR/tools/QATestScripts/Functional -name 'Test*.py' -print`
+        test="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
+        
+        if [ "$OSTYPE" = "cygwin" ]; then
+            TESTNAME=`cygpath -w $test`
+            P_DIR=`cygpath -w $C_DIR`
+        else
+            TESTNAME=$test
+            P_DIR=$C_DIR
+        fi
 
-        for test in $TESTS ; do
-            if [ "$OSTYPE" = "cygwin" ]; then
-                TESTNAME=`cygpath -w $test`
-                P_DIR=`cygpath -w $C_DIR`
-            else
-                TESTNAME=$test
-                P_DIR=$C_DIR
-            fi
+        echo Running $TESTNAME
 
-            echo Running $TESTNAME
-
-            cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME"
-        done
+        cd $C_DIR
+        $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME"
     fi
 done
 
