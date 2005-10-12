@@ -877,19 +877,14 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def OnSelectItem(self, item):
         super(wxCalendarCanvas, self).OnSelectItem(item)
-
-        # The following was removed for 0.5.04 because it causes the view
-        # to be torn down and rerendered, whenever you were clicking around
-        # multiple overlayed calendars. This was causing PyDeadObjectErrors
-        # on the widgets. yuck.
-        
-        # tell the sidebar to select the collection    that contains
+        # tell the sidebar to select the collection that contains
         # this event - makes the sidebar track the "current" calendar
         # as well as update the gradients correctly
-        # coll = self.blockItem.getContainingCollection(item)
-        # if coll and coll != self.blockItem.contents.collectionList[0]:
-        #     self.blockItem.SelectCollectionInSidebar(coll)
-        # self.blockItem.synchronizeWidget()
+        if item is not None:
+            collection = self.blockItem.getContainingCollection(item)
+            if (collection is not None and
+                collection != self.blockItem.contents.collectionList[0]):
+                self.blockItem.SelectCollectionInSidebar(collection)
 
 
     def OnEditItem(self, box):

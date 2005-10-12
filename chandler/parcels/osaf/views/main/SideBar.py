@@ -857,7 +857,6 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
     def _mapItemToCacheKeyItem(self, item, includeCheckedItems=True):
         key = item
-        rerender = False
         sidebar = Block.Block.findBlockByName ("Sidebar")
         """
         collectionList should be in the order that the source items
@@ -927,20 +926,14 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                 order of the collections as they overlay one
                 another in the Calendar.  We don't bother to
                 reorder when we're looking up a collection that
-                isn't displayed in the summary view, both because
-                it's not necessary and because it causes the
-                source attribute to change which causes a
-                notification to update the sidebar, which causes
-                the order to change, causing a notification,
-                ... repeating forever.
+                isn't displayed in the summary view.
                 """
                 if sidebar.selectedItemToView is item:
                     for new, old in map (None, key.collectionList, collectionList):
                         if new is not old:
                             key.collectionList = collectionList
-                            rerender = True
                             break
-        return key, rerender
+        return key, False
 
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, AbstractCollection):

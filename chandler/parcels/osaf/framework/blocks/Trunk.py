@@ -81,7 +81,6 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
         if keyItem is None:
             TPBDetailItem = None
-            contentsChanged = False
         else:
             """
               Seems like we should always mark new views with an event boundary
@@ -89,8 +88,6 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             assert newView.eventBoundary
             TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
                                 newView, TPBSelectedItem, keyItem)
-            contentsChanged = not hasattr(self, 'TPBDetailItem') \
-                              or TPBDetailItem is not self.TPBDetailItem
 
         self.TPBDetailItem = TPBDetailItem
         oldView = self.childrenBlocks.first()
@@ -106,14 +103,19 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 self.childrenBlocks.append(newView)
 
         if newView is not None:
-            if treeChanged or contentsChanged:
-                app = wx.GetApp()
-                oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-                app.ignoreSynchronizeWidget = False
-                try:
-                    newView.postEventByName ("SetContents", {'item':TPBDetailItem})
-                finally:
-                    app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+            # We're now always calling SetContents, event when the contents
+            # doesn't change becuase the Calendar needs to redraw when the
+            # order of contents.collectionList changes. So if other views
+            # want to optimize the case where nothing needs to be done
+            # when the contents doesn't change they are responsible for
+            # doing it themselves.
+            app = wx.GetApp()
+            oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+            app.ignoreSynchronizeWidget = False
+            try:
+                newView.postEventByName ("SetContents", {'item':TPBDetailItem})
+            finally:
+                app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
             if not hasattr (newView, "widget"):
                 newView.render()
