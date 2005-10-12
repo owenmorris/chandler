@@ -12,17 +12,9 @@ import logging
 from application import schema
 
 logger = logging.getLogger(__name__)
-DELETE          = 'delete'
-CHANGE          = 'change'
-ADDTOCOLLECTION = 'add to collection'
 
 def create(parent):
     return RecurrenceDialog(parent)
-
-[wxID_RECURRENCEDIALOG, wxID_RECURRENCEDIALOGALLBUTTON, 
- wxID_RECURRENCEDIALOGCANCELBUTTON, wxID_RECURRENCEDIALOGFUTUREBUTTON, 
- wxID_RECURRENCEDIALOGQUESTIONTEXT, wxID_RECURRENCEDIALOGTHISBUTTON, 
-] = [wx.NewId() for _init_ctrls in range(6)]
 
 class RecurrenceDialog(wx.Dialog):
     def _init_coll_buttonSizer_Items(self, parent):
@@ -57,7 +49,7 @@ class RecurrenceDialog(wx.Dialog):
 
     def _init_ctrls(self, prnt):
         # generated method
-        wx.Dialog.__init__(self, id=wxID_RECURRENCEDIALOG,
+        wx.Dialog.__init__(self, id=-1,
               name=u'RecurrenceDialog', parent=prnt, pos=wx.Point(533, 294),
               size=wx.Size(443, 121),
               style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
@@ -66,27 +58,26 @@ class RecurrenceDialog(wx.Dialog):
         self.SetClientSize(wx.Size(435, 87))
         self.Bind(wx.EVT_CLOSE, self.onCancel)
 
-        self.cancelButton = wx.Button(id=wxID_RECURRENCEDIALOGCANCELBUTTON,
+        self.cancelButton = wx.Button(id=-1,
               label=u'', name=u'cancelButton', parent=self)
-        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel,
-              id=wxID_RECURRENCEDIALOGCANCELBUTTON)
+        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel)
 
-        self.allButton = wx.Button(id=wxID_RECURRENCEDIALOGALLBUTTON, label=u'',
+        self.allButton = wx.Button(id=-1, label=u'',
               name=u'allButton', parent=self)
         self.allButton.Bind(wx.EVT_BUTTON, self.onAll,
-              id=wxID_RECURRENCEDIALOGALLBUTTON)
+              id=-1)
 
-        self.futureButton = wx.Button(id=wxID_RECURRENCEDIALOGFUTUREBUTTON,
+        self.futureButton = wx.Button(id=-1,
               label=u'', name=u'futureButton', parent=self)
         self.futureButton.Bind(wx.EVT_BUTTON, self.onFuture,
-              id=wxID_RECURRENCEDIALOGFUTUREBUTTON)
+              id=-1)
 
-        self.thisButton = wx.Button(id=wxID_RECURRENCEDIALOGTHISBUTTON,
+        self.thisButton = wx.Button(id=-1,
               label=u'', name=u'thisButton', parent=self)
         self.thisButton.Bind(wx.EVT_BUTTON, self.onThis,
-              id=wxID_RECURRENCEDIALOGTHISBUTTON)
+              id=-1)
 
-        self.questionText = wx.StaticText(id=wxID_RECURRENCEDIALOGQUESTIONTEXT,
+        self.questionText = wx.StaticText(id=-1,
               label=u'', name=u'questionText', parent=self)
 
         labels = {self.cancelButton : messages.CANCEL,
@@ -104,24 +95,19 @@ class RecurrenceDialog(wx.Dialog):
         self.proxy = proxy
         self.cancelCallback = cancelCallback
         self._init_ctrls(parent)
-        
-        questions = {CHANGE          : _(u'%(displayName)s" is a recurring event. Do you want to change:'),
-                     ADDTOCOLLECTION : _(u'%(displayName)s" is a recurring event. What do you want to add to the collection:'),
-                     DELETE          : _(u'%(displayName)s" is a recurring event. Do you want to delete:')}
-        
-        verb = proxy.changeBuffer[0][0]
-        txt = questions[verb] % { 'displayName' : proxy.displayName }
+
+        # use the first action to determine the UI
+        change = proxy.changeBuffer[0]
+        question = change['question']
+        txt = question % { 'displayName' : proxy.displayName }
         title = _(u'Recurring event change')
         self.questionText.SetLabel(txt)
         self.SetTitle(title)
 
-        if verb == CHANGE:
-            self.allButton.Enable(False)
-
-        if verb == ADDTOCOLLECTION: # changes don't apply to all, hide the all button
-            self.futureButton.Enable(False)
-            self.thisButton.Enable(False)
-
+        for buttonName in change.get('disabled_buttons', []):
+            button = getattr(self, buttonName + 'Button')
+            button.Enable(False)
+            
         self.Layout()
         self.CenterOnScreen()
         self.Show()
@@ -190,6 +176,9 @@ class OccurrenceProxy(object):
         self.currentlyModifying = None
         self.__class__ = self.proxiedItem.__class__
         self.dialogUp = False
+
+        # change buffer is an array of dicts, where each dict contains
+        # information required to propagate the change
         self.changeBuffer = []
         
     
@@ -208,11 +197,11 @@ class OccurrenceProxy(object):
         
     def __getattr__(self, name):
         """Get the last name version set in changeBuffer, or get from proxy."""
-        for tup in reversed(self.changeBuffer):
-            if tup[0] in (DELETE, ADDTOCOLLECTION):
-                return getattr(self.proxiedItem, name)
+        for change in reversed(self.changeBuffer):
+            if change.get('affects_getattr', False) is False:
+                continue
             else:
-                i, attr, value = tup
+                (attr, value) = change.get('args')
             if attr == name:
                 return value
         return getattr(self.proxiedItem, name)
@@ -231,14 +220,12 @@ class OccurrenceProxy(object):
             if testedEqual:
                 pass
             elif self.currentlyModifying is None:
-                self.changeBuffer.append((CHANGE, name, value))
-                if not self.dialogUp:
-                    # [Bug 4110] Put the dialog on-screen asynchronously
-                    # This code can get called while wx is busy changing
-                    # focus, etc, and popping a new window onscreen seems
-                    # to get it into a weird state.
-                    self.dialogUp = True
-                    wx.GetApp().PostAsyncEvent(self.runDialog)
+                change = dict(method=self.propagateChange,
+                              args = (name, value),
+                              question = _(u'"%(displayName)s" is a recurring event. Do you want to change:'),
+                              affects_getattr = True,
+                              disabled_buttons=('all',))
+                self.delayChange(change)
             else:
                 self.propagateChange(name, value)
 
@@ -249,11 +236,12 @@ class OccurrenceProxy(object):
         if self.proxiedItem.rruleset is None:
             collection.add(self.proxiedItem.getMaster())
         else:
-            self.changeBuffer.append((ADDTOCOLLECTION, collection))
-            if not self.dialogUp:
-                # [Bug 4110] Put the dialog on-screen asynchronously
-                self.dialogUp = True
-                wx.GetApp().PostAsyncEvent(self.runDialog)
+            change = dict(method=self.propagateAddToCollection,
+                          args=(collection,),
+                          question = _(u'"%(displayName)s" is a recurring event. What do you want to add to the collection:'),
+                          disabled_buttons=('future', 'this'))
+
+            self.delayChange(change)
             
     def removeFromCollection(self, collection):
         """
@@ -262,12 +250,46 @@ class OccurrenceProxy(object):
         if self.proxiedItem.rruleset is None:
             collection.remove(self.proxiedItem.getMaster())
         else:
-            self.changeBuffer.append((DELETE, collection))
-            if not self.dialogUp:
-                # [Bug 4110] Put the dialog on-screen asynchronously
-                self.dialogUp = True
-                wx.GetApp().PostAsyncEvent(self.runDialog)
+            change = dict(method=self.propagateDelete,
+                          args=(collection,),
+                          question=_(u'"%(displayName)s" is a recurring event. Do you want to delete:'))
+            self.delayChange(change)
 
+    def StampKind(self, *args, **kwds):
+        """
+        We have to make sure to propagate the change to __class__ even on
+        non-recurring events.
+        
+        For recurring events, propagate StampKind()
+        """
+        if self.proxiedItem.rruleset is None:
+            self.proxiedItem.StampKind(*args, **kwds)
+
+            # need to make sure our __class__ matches the newly stamped item
+            self.__class__ = self.proxiedItem.__class__
+            assert self.__class__ is self.proxiedItem.__class__, "couldn't make the conversion from %s to %s" % (self.__class__.__name__, self.proxiedItem.__class__)
+        else:
+            change = dict(method=self.propagateStampKind,
+                          args = args,
+                          kwds = kwds,
+                          question = _(u'"%(displayName)s" is a recurring event. Do you want to stamp:'),
+                          disabled_buttons=('all','future'))
+
+            self.delayChange(change)
+
+    def delayChange(self, change):
+        """
+        Given a change dict, queue it up and pop up a dialog if necessary
+        """
+        self.changeBuffer.append(change)
+        if not self.dialogUp:
+            # [Bug 4110] Put the dialog on-screen asynchronously
+            # This code can get called while wx is busy changing
+            # focus, etc, and popping a new window onscreen seems
+            # to get it into a weird state.
+            self.dialogUp = True
+            wx.GetApp().PostAsyncEvent(self.runDialog)
+        
     def runDialog(self):
          # Check in case the dialog somehow got cancelled
          if self.dialogUp:
@@ -275,13 +297,14 @@ class OccurrenceProxy(object):
     
     def propagateBufferChanges(self):
         while len(self.changeBuffer) > 0:
-            command = self.changeBuffer.pop(0)
-            if   command[0] == CHANGE:
-                self.propagateChange(*command[1:])
-            elif command[0] == DELETE:
-                self.propagateDelete(command[1])
-            elif command[0] == ADDTOCOLLECTION:
-                self.propagateAddToCollection(command[1])
+            change = self.changeBuffer.pop(0)
+
+            # unpack the call
+            method = change['method']
+            args = change.get('args', [])
+            kwds = change.get('kwds', {})
+
+            method(*args, **kwds)
             
         if self.currentlyModifying in ('thisandfuture', 'all'):
             self.currentlyModifying = None
@@ -301,6 +324,11 @@ class OccurrenceProxy(object):
 
     def propagateAddToCollection(self, collection):
         collection.add(self.proxiedItem.getMaster())
+
+    def propagateStampKind(self, *args, **kwds):
+        # todo: process currentlyModifying
+        self.proxiedItem.changeThis()
+        self.proxiedItem.StampKind(*args, **kwds)
 
     def cancelBuffer(self):
         self.changeBuffer = []
