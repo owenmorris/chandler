@@ -2,7 +2,7 @@
 ## Author : Olivier Giroussens
 ## Description: This test suite runs the 4 basic testcases of generating event, mail, task and note items in chandler
  
-import util.QAUITestAppLib as QAUITestAppLib
+import tools.QAUITestAppLib as QAUITestAppLib
 import os
 
 filePath = os.getenv('CATSREPORTDIR')

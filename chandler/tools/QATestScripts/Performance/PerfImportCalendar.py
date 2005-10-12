@@ -1,6 +1,6 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
-import util.QAUITestAppLib as QAUITestAppLib
+import tools.QAUITestAppLib as QAUITestAppLib
 import os, wx, sys
 import osaf.pim as pim
 

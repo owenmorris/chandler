@@ -1,4 +1,4 @@
-import util.QAUITestAppLib as QAUITestAppLib
+import tools.QAUITestAppLib as QAUITestAppLib
 import os
 import application.dialogs.SubscribeCollection as SubscribeCollection
 import application.Globals as Globals

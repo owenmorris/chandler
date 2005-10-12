@@ -1,4 +1,4 @@
-import util.QAUITestAppLib as QAUITestAppLib
+import tools.QAUITestAppLib as QAUITestAppLib
 import os
 
 filePath = os.getenv('CATSREPORTDIR')
