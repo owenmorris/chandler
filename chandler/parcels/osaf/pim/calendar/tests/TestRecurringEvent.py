@@ -196,7 +196,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
         twoWeeks = self.start + timedelta(days=14)
         occurs = self.event.getOccurrencesBetween(twoWeeks + 
-                                timedelta(minutes=30), datetime(2005, 8, 1, 13))
+                                timedelta(minutes=30), datetime(2005, 8, 1, 14))
         self.assertEqual(list(occurs)[0].startTime, twoWeeks)
         self.assertEqual(list(occurs)[1].startTime, datetime(2005, 8, 1, 13))
         self.rep.check()
@@ -544,7 +544,17 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
                          [self.start + timedelta(days=1, hours=1)])
         self.assertEqual(extraDay.rruleset.exdates,
                          [self.start + timedelta(days=7, hours=1)])
-                         
+        
+    def testAllDay(self):
+        event = self.event
+        event.allDay = True
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        self.assert_(event.allDay)
+        self.assertEqual(self.start, event.startTime)
+        second = event.getNextOccurrence()
+        self.assert_(second.allDay)
+        second.changeThis('allDay', False)
+        self.assert_(not second.allDay)        
 
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, view=self.rep.view)

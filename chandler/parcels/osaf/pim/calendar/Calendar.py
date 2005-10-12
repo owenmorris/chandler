@@ -330,7 +330,7 @@ class CalendarEventMixin(RemindableMixin):
         else:
             result = self.endTime
         return result
-    
+
     # begin recurrence related methods
 
     def getFirstInRule(self):
@@ -361,9 +361,13 @@ class CalendarEventMixin(RemindableMixin):
             return self.occurrenceFor.getMaster()
             
 
-    def isBetween(self, after=None, before=None):
+    def isBetween(self, after=None, before=None, inclusive = True):
         #TODO: deal with allDay and anyTime events
-        return (before is None or datetimeOp(self.startTime, '<=', before)) and \
+        if inclusive:
+            compare = '<='
+        else:
+            compare = '<'
+        return (before is None or datetimeOp(self.startTime, compare, before)) and \
                (after is None or datetimeOp(self.endTime, '>=', after))
 
     def createDateUtilFromRule(self):
@@ -612,7 +616,7 @@ class CalendarEventMixin(RemindableMixin):
                         return fixReminders(final)
 
 
-    def _generateRule(self, after=None, before=None):
+    def _generateRule(self, after=None, before=None, inclusive=False):
         """Yield all occurrences in this rule."""
         event = first = self.getFirstInRule()
         # check for modifications taking place before first, but only if
@@ -628,7 +632,7 @@ class CalendarEventMixin(RemindableMixin):
             event = first.getNextOccurrence(after, before)
             
         while event is not None:
-            if event.isBetween(after, before):
+            if event.isBetween(after, before, inclusive):
                 if event.occurrenceFor is not None:
                     yield event
                 
@@ -665,7 +669,7 @@ class CalendarEventMixin(RemindableMixin):
         # no generated occurrences
         return None
 
-    def getOccurrencesBetween(self, after, before):
+    def getOccurrencesBetween(self, after, before, inclusive = False):
         """Return a list of events ordered by startTime.
         
         Get events starting on or before "before", ending on or after "after".
@@ -679,7 +683,7 @@ class CalendarEventMixin(RemindableMixin):
                 return [master]
             else: return []
 
-        return list(master._generateRule(after, before))
+        return list(master._generateRule(after, before, inclusive))
 
     def getExistingOccurrence(self, recurrenceID):
         first = self.getFirstInRule()
@@ -700,7 +704,7 @@ class CalendarEventMixin(RemindableMixin):
             return existing
 
         # no existing matches, see if one can be generated:
-        for occurrence in self.getOccurrencesBetween(recurrenceID,recurrenceID):
+        for occurrence in self.getOccurrencesBetween(recurrenceID,recurrenceID,True):
             if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
                 return occurrence
 
