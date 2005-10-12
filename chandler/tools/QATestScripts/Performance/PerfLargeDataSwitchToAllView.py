@@ -15,7 +15,7 @@ fileName = "PerfLargeDataiSwitchToAllView.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Switching view after importing large data") 
 testView = QAUITestAppLib.UITestView(logger)
 
-path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
+path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
 print path
 
 #Upcast path to unicode since Sharing requires a unicode path

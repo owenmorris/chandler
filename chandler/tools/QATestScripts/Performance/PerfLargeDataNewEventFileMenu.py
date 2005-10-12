@@ -15,7 +15,7 @@ fileName = "PerfLargeDataNewEventFileMenu.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Creating new event from the File Menu after large data import") 
 
 
-path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
+path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
 print path
 
 #Upcast path to unicode since Sharing requires a unicode path

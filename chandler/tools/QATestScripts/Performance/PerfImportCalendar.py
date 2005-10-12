@@ -15,7 +15,7 @@ fileName = "PerfImporting.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Importing 3000 event calendar")
 
 
-path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
+path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
 print path
 
 #Upcast path to unicode since Sharing requires a unicode path
