@@ -230,12 +230,14 @@ do
 
                 cd $C_DIR
                 $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
-                cat $T_DIR/test.log >> $T_DIR/tests.log
             
                   # scan the test output for the success messge "OK"
                 RESULT=`grep '^OK' $T_DIR/test.log`
 
-                echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
+                echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+                echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+                cat $T_DIR/test.log      >> $T_DIR/tests.log
+
                 if [ "$RESULT" != "OK" ]; then
                     UNITTEST_RESULT="failed"
                 fi
@@ -248,31 +250,31 @@ do
         echo Running $mode functional tests | tee -a $BUILDLOG
 
         if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
-            TESTS=`find $C_DIR/tools/QATestScripts/Functional -name 'Test*.py' -print`
+            test="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
 
-            for test in $TESTS ; do
-                if [ "$OSTYPE" = "cygwin" ]; then
-                    TESTNAME=`cygpath -w $test`
-                    P_DIR=`cygpath -w $C_DIR`
-                else
-                    TESTNAME=$test
-                    P_DIR=$C_DIR
-                fi
+            if [ "$OSTYPE" = "cygwin" ]; then
+                TESTNAME=`cygpath -w $test`
+                P_DIR=`cygpath -w $C_DIR`
+            else
+                TESTNAME=$test
+                P_DIR=$C_DIR
+            fi
 
-                echo Running $TESTNAME | tee -a $BUILDLOG
+            echo Running $TESTNAME | tee -a $BUILDLOG
 
-                cd $C_DIR
-                $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
-                cat $T_DIR/test.log >> $T_DIR/tests.log
-            
-                  # functional tests output a #TINDERBOX# Status = SUCCESS that we can scan for
-                RESULT=`grep "#TINDERBOX# Status = SUCCESS" $T_DIR/test.log`
+            cd $C_DIR
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
 
-                echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
-                if [ ! "$RESULT" != "#TINDERBOX# Status = SUCCESS" ]; then
-                    FUNCTEST_RESULT="failed"
-                fi
-            done
+              # functional tests output a #TINDERBOX# Status = PASSED that we can scan for
+            RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
+
+            echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+            echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+            cat $T_DIR/test.log      >> $T_DIR/tests.log
+
+            if [ ! "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+                FUNCTEST_RESULT="failed"
+            fi
         fi
     done
 
@@ -297,12 +299,14 @@ do
 
             cd $C_DIR
             $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
-            cat $T_DIR/test.log >> $T_DIR/tests.log
 
               # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
             RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
 
-            echo $TESTNAME [$RESULT] >> $T_DIR/foo_test.log
+            echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+            echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+            cat $T_DIR/test.log      >> $T_DIR/tests.log
+
             if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
                 PERFTEST_RESULT="failed"
             fi
@@ -320,7 +324,7 @@ do
     echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $BUILDLOG
 
     if [ "$TBOX" = "yes" ]; then
-        echo [$UNITTEST_RESULT][$FUNCTEST_RESULT][$PERFTEST_RESULT]
+        echo Unit Tests [$UNITTEST_RESULT] Functional [$FUNCTEST_RESULT] Performance [$PERFTEST_RESULT] | tee -a $BUILDLOG
 
         if [ "$UNITTEST_RESULT" = "failed" -o "$FUNCTEST_RESULT" = "failed" -o "$PERFTEST_RESULT" = "failed" ]; then
             TBOX_STATUS=test_failed
