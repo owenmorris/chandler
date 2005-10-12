@@ -48,6 +48,22 @@ class perf:
                          ('Stamping_after_large_data_import',                              'Stamp with 3000 event calendar'),
                         ]
 
+      # all times are in seconds
+    self.SummaryTargets = {#'': 10, 
+                           'new_event_from_file_menu_for_performance':                      1,
+                           'new_event_by_double_clicking_in_the_cal_view_for_performance':  1,
+                           'test_new_calendar_for_performance':                             1,
+                           'importing_3000_event_calendar':                                 30,
+                           #'': 1,
+                           'creating_new_event_from_the_file_menu_after_large_data_import': 1,
+                           'creating_a_new_event_in_the_cal_view_after_large_data_import':  1,
+                           'creating_a_new_calendar_after_large_data_import':               1,
+                           'switching_to_all_view_for_performance':                         1,
+                           'perf_stamp_as_event':                                           1,
+                           'Switching_view_after_importing_large_data':                     1,
+                           'Stamping_after_large_data_import':                              1,
+                          }
+
     self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
 
     if self._options['debug']:
@@ -485,18 +501,16 @@ class perf:
     detailfile.close()
 
 
-  def _generateSummaryDetailLine(self, platforms, targets, testkey, enddate, testDisplayName):
+  def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName):
       line  = '<tr><td><a href="detail_%s.html#%s">%s</a></td>' % (enddate, testkey, testDisplayName)
       graph = []
+      
+      if testkey in self.SummaryTargets.keys():
+        targetAvg = self.SummaryTargets[testkey]
+      else:
+        targetAvg = 0.0
 
       for key in ['win', 'osx', 'linux']:
-        #if testkey in targets[key].keys():
-        #  targetAvg = targets[key][testkey] * 60 # convert to seconds
-        #else:
-        #  targetAvg = 0.0
-         
-        targetAvg = targets[key] * 60 # convert to seconds
-
         avg      = platforms[key]['avg'] * 60 # convert to seconds
         revision = platforms[key]['revision']
         variance = platforms[key]['var']
@@ -532,7 +546,7 @@ class perf:
 
         graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, avg, c_diff, c_perc))
 
-        print key, testkey, targetAvg, avg, c_perc, c_diff, s, variance
+        #print key, testkey, targetAvg, avg, c_perc, c_diff, s, variance
 
         line += '<td class="number">%2.0fs</td>' % targetAvg
         line += '<td class="number">%2.2fs</td>' % avg
@@ -565,10 +579,6 @@ class perf:
                   'linux': ['', ''],
                   'win':   ['', ''], }
 
-    targets = { 'osx':   0,
-                'linux': 0,
-                'win':   0, }
-
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
     detail.append('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
@@ -579,33 +589,6 @@ class perf:
         testitem = tests[testkey]
 
         detail.append('<h2>%s: %s</h2>\n' % (testDisplayName, testkey))
-
-          # taken from QA testing m5
-        #targets = { 'osx':   { 'switching_to_all_view_for_performance':    0.0129,
-        #                       'perf_stamp_as_event':                      0.0224,
-        #                       'new_event_from_file_menu_for_performance': 0.3655,
-        #                       'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0372,
-        #                       'importing_3000_event_calendar':            2.6833,
-        #                       'test_new_calendar_for_performance':        0.0237,
-        #                       #'': ,
-        #                     },
-        #            'linux': { 'switching_to_all_view_for_performance':    0.0099,
-        #                       'perf_stamp_as_event':                      0.0157,
-        #                       'new_event_from_file_menu_for_performance': 0.0268,
-        #                       'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0255,
-        #                       'importing_3000_event_calendar':            2.6500,
-        #                       'test_new_calendar_for_performance':        0.0112,
-        #                       #'': ,
-        #                     },
-        #            'win':   { 'switching_to_all_view_for_performance':    0.0055,
-        #                       'perf_stamp_as_event':                      0.0232,
-        #                       'new_event_from_file_menu_for_performance': 0.0229,
-        #                       'new_event_by_double_clicking_in_the_cal_view_for_performance': 0.0274,
-        #                       'importing_3000_event_calendar':            1.1616,
-        #                       'test_new_calendar_for_performance':        0.0159,
-        #                       #'': ,
-        #                     },
-        #          }
 
         platforms = { 'osx':   { 'var':      0,
                                  'avg':      0,
@@ -669,7 +652,7 @@ class perf:
                                revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
                 detail.append('<!-- revision %s runs %d time %02.5f -->\n' % (revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
 
-                #print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
+                print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
 
             (v, n, avg) = self.variance(platformdata['values'])
 
@@ -690,9 +673,7 @@ class perf:
             else:
                 revisions[platformkey] = [revision, revision]
 
-            targets[platformkey] = dateitem[k_hours[-1]][0][DP_AVERAGE]
-
-        (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, targets, testkey, enddate, testDisplayName)
+        (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName)
 
         page.append(summaryline)
         tbox.append(summaryline)
@@ -783,9 +764,9 @@ class perf:
     tboxfile.write('<th colspan="5">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
     tboxfile.write('<th colspan="5">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
     tboxfile.write('<tr><th>Test</th>')
-    tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    tboxfile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
+    tboxfile.write('<th>0.6 Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    tboxfile.write('<th>0.6 Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    tboxfile.write('<th>0.6 Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
 
     if os.path.isfile(os.path.join(self._options['perf_data'], 'tbox.html.header')):
       for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
