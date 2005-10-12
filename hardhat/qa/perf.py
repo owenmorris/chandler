@@ -502,7 +502,7 @@ class perf:
 
 
   def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName):
-      line  = '<tr><td><a href="detail_%s.html#%s">%s</a></td>' % (enddate, testkey, testDisplayName)
+      line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
       graph = []
       
       if testkey in self.SummaryTargets.keys():
