@@ -816,9 +816,8 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
 
     def getContainingCollection(self, event):
         """
-        Get the eventColors object which contains all the right color tints
-        for the given event. If the given event doesn't have color data,
-        then we return the default one associated with the view
+        Get the collection which contains the event, since it has
+        all the right color information.
         """
 
         # generated events need to defer to their parent event
@@ -838,6 +837,14 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
                     
         if firstSpecialCollection:
             return firstSpecialCollection
+
+        # temporary check for M6
+        # really, we should have gotten a wxSynchronizeWidget by now
+        # so that if the event isn't in the above collections,
+        # we shouldn't even be trying to draw it.
+        trash = schema.ns('osaf.app', self.itsView).TrashCollection
+        if event in trash:
+            return trash
 
         assert False, "Don't have color info for %s" % event
         

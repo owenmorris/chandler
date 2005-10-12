@@ -446,6 +446,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             else:
                 self.dragState.ResetDrag()
                 self.DoDragAndDrop(copyOnly=True)
+                self.dragState.HandleDragEnd()
+                self.dragState = None
 
         elif event.LeftDClick():
             # cancel/stop any drag in progress
