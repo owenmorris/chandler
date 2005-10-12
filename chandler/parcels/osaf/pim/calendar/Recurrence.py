@@ -398,14 +398,22 @@ class RecurrenceRuleSet(items.ContentItem):
         """Return a string describing custom rules."""
         return "not yet implemented"
 
-    def moveDates(self, delta):
+    def moveDatesAfter(self, after, delta):
         """
-        Move dates in exdates and rdates by delta.
+        Move dates (later than "after") in exdates and rdates by delta.
         """
+        self._ignoreValueChanges = True
         for datetype in 'rdates', 'exdates':
             datelist = getattr(self, datetype, None)
             if datelist is not None:
-                setattr(self, datetype, [dt + delta for dt in datelist])
+                l = []
+                for dt in datelist:
+                    if datetimeOp(dt, ">=", after):
+                        l.append(dt + delta)
+                    else:
+                        l.append(dt)
+                setattr(self, datetype, l)
+        del self._ignoreValueChanges
 
 
     def removeDates(self, cmp, endpoint):

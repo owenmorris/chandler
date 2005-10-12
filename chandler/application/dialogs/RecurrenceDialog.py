@@ -287,8 +287,8 @@ class OccurrenceProxy(object):
             self.currentlyModifying = None
     
     def propagateChange(self, name, value):
-        table = {'this'          : self.changeThis,
-                 'thisandfuture' : self.changeThisAndFuture}
+        table = {'this'          : self.proxiedItem.changeThis,
+                 'thisandfuture' : self.proxiedItem.changeThisAndFuture}
         table[self.currentlyModifying](name, value)
 
     def propagateDelete(self, collection):

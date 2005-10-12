@@ -743,7 +743,7 @@ class CalendarEventMixin(RemindableMixin):
         
         if attr == 'startTime':
             startTimeDelta = datetimeOp(value, '-', self.startTime)
-            self.rruleset.moveDates(startTimeDelta)
+            self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
         
         setattr(self, attr, value)
         
