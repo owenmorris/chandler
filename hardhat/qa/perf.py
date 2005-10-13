@@ -591,7 +591,7 @@ class perf:
         current  = currentValue[key]  * 60 # convert to seconds
         previous = previousValue[key] * 60 # convert to seconds
         revision = platforms[key]['revision']
-        stdDev   = platforms[key]['stddev']
+        stdDev   = platforms[key]['stddev'] * 60 # convert to seconds
 
         c_diff = current - previous
 
@@ -611,8 +611,8 @@ class perf:
         line += '<td class="number"><span class="%s">%2.2fs</span></td>' % (timeClass, current)
         line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
         line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
-        #line += '<td>%01.2fs</td>' % stdDev
-        line += '<td>%0.2es</td>' % stdDev
+        line += '<td>%01.2fs</td>' % stdDev
+        #line += '<td>%0.2es</td>' % stdDev
 
       line += '</tr>\n'
 
