@@ -1156,62 +1156,74 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
 
     def SetAttributeValue(self, item, attributeName, valueString):
         newValueString = valueString.replace('?','').strip()
+        iAmStart = attributeName == 'startTime'
+        changed = False
+        forceReload = False
         if len(newValueString) == 0:
-            # Clearing an event's start or end time (removing the value in it, causing 
+            # Clearing an event's start time (removing the value in it, causing 
             # it to show "HH:MM") will remove both time values (making it an 
             # anytime event).
-            if not item.anyTime:
-                item.anyTime = True
-                self.AttributeChanged()
-            return
-        
-        # We have _something_; parse it.
-        oldValue = getattr(item, attributeName)
-
-        try:
-            time = DateTimeAttributeEditor.shortTimeFormat.parse(
-                newValueString, referenceDate=oldValue)
-        except ICUError, ValueError:
-            self._changeTextQuietly(self.control, "%s ?" % newValueString)
-            return
-
-        # If we got a new value, put it back.
-        value = datetime.combine(oldValue.date(), time.timetz())
-        # Preserve the time zone!
-        value = value.replace(tzinfo=oldValue.tzinfo)
-        if item.anyTime or oldValue != value:
-            # Something changed.                
-            # Implement the rules for changing one of the four values:
-            iAmStart = attributeName == 'startTime'
-            if item.anyTime:
-                # On an anytime event (single or multi-day; both times 
-                # blank & showing the "HH:MM" hint), entering a valid time 
-                # in either time field will set the other date and time 
-                # field to effect a one-hour event on the corresponding date. 
-                item.anyTime = False
-                if iAmStart:
-                    item.startTime = value
-                else:
-                    item.startTime = value - timedelta(hours=1)
-                item.duration = timedelta(hours=1)
+            if iAmStart:
+                if not item.anyTime:
+                    item.anyTime = True
+                    changed = True
             else:
-                if not iAmStart:
-                    # Changing the end date or time such that it becomes 
-                    # earlier than the existing start date+time will change 
-                    # the start date+time to be the same as the end 
-                    # date+time (that is, an @time event, or a single-day 
-                    # anytime event if the event had already been an 
-                    # anytime event).
-                    if value < item.startTime:
+                # Clearing an event's end time will make it an at-time event
+                zeroTime = timedelta()
+                if item.duration != zeroTime:
+                    item.duration = zeroTime
+                    changed = True
+            forceReload = True
+        else:
+            # We have _something_; parse it.
+            oldValue = getattr(item, attributeName)
+
+            try:
+                time = DateTimeAttributeEditor.shortTimeFormat.parse(
+                    newValueString, referenceDate=oldValue)
+            except ICUError, ValueError:
+                self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                return
+
+            # If we got a new value, put it back.
+            value = datetime.combine(oldValue.date(), time.timetz())
+            # Preserve the time zone!
+            value = value.replace(tzinfo=oldValue.tzinfo)
+            if item.anyTime or oldValue != value:
+                # Something changed.                
+                # Implement the rules for changing one of the four values:
+                if item.anyTime:
+                    # On an anytime event (single or multi-day; both times 
+                    # blank & showing the "HH:MM" hint), entering a valid time 
+                    # in either time field will set the other date and time 
+                    # field to effect a one-hour event on the corresponding date. 
+                    item.anyTime = False
+                    if iAmStart:
                         item.startTime = value
-                setattr (item, attributeName, value)
-                item.anyTime = False
+                    else:
+                        item.startTime = value - timedelta(hours=1)
+                    item.duration = timedelta(hours=1)
+                else:
+                    if not iAmStart:
+                        # Changing the end date or time such that it becomes 
+                        # earlier than the existing start date+time will change 
+                        # the start date+time to be the same as the end 
+                        # date+time (that is, an @time event, or a single-day 
+                        # anytime event if the event had already been an 
+                        # anytime event).
+                        if value < item.startTime:
+                            item.startTime = value
+                    setattr (item, attributeName, value)
+                    item.anyTime = False
+                changed = True
             
+        if changed:
             self.AttributeChanged()
             
-        # Refresh the value in the control
-        self.SetControlValue(self.control, 
-                         self.GetAttributeValue(item, attributeName))
+        if changed or forceReload:
+            # Refresh the value in the control
+            self.SetControlValue(self.control, 
+                             self.GetAttributeValue(item, attributeName))
 
 class ReminderAttributeEditor(ChoiceAttributeEditor):
     def GetControlValue (self, control):
