@@ -12,6 +12,7 @@
     td.number      { text-align: right; }
     td.number_left { text-align: right; border-left: 2px solid black; }
     th             { text-align: center; background: lightgrey; }
+    td.numberok    { text-align: right; }
     td.numbergood  { text-align: right; border: solid 1px #11DD11; }
     td.numberwarn  { text-align: right; border: dashed 1px orange; }
     td.numberalert { text-align: right; border: solid 1px red; }
