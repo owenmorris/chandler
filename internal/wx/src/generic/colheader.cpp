@@ -1745,7 +1745,13 @@ void wxColumnHeader::RefreshItem(
 wxRect	wxClientR;
 wxSize	itemExtent;
 
-	// NB: need to set graphics context in some cases!
+	// NB: may need to set graphics context in some cases!
+	// NB: is Freeze-Thaw needed only for wxMac?
+
+#if defined(__WXMAC__)
+	if (bForceRedraw)
+		Freeze();
+#endif
 
 	wxClientR = GetClientRect();
 	itemExtent = GetUIExtent( itemIndex );
@@ -1753,8 +1759,10 @@ wxSize	itemExtent;
 	wxClientR.width = itemExtent.y;
 	Refresh( false, &wxClientR );
 
-//	if (bForceRedraw)
-//		SetViewDirty();
+#if defined(__WXMAC__)
+	if (bForceRedraw)
+		Thaw();
+#endif
 }
 
 void wxColumnHeader::RecalculateItemExtents( void )
