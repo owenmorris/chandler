@@ -834,6 +834,10 @@ class perf:
 
     tboxfile = file(os.path.join(self._options['html_data'], 'tbox.html'), 'w')
 
+    if os.path.isfile(os.path.join(self._options['perf_data'], 'tbox.html.header')):
+      for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
+        tboxfile.write(line)
+
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
     tboxfile.write('<tr><th rowspan="2">Test</th><th rowspan="2">0.6<br/>Target</th>')
@@ -844,10 +848,6 @@ class perf:
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
-
-    if os.path.isfile(os.path.join(self._options['perf_data'], 'tbox.html.header')):
-      for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
-        tboxfile.write(line)
 
     for line in tbox:
       tboxfile.write(line)
