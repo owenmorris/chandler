@@ -320,10 +320,9 @@ class wxPreviewArea(wx.Panel):
         y = self.vMargin
         for i, item in enumerate(self.currentDaysItems):
             if i == self.blockItem.maximumEventsDisplayed:
-                #XXX: [i18n] what is this text for?
-                #     It will be hard for a translator to work with
-                #     since it is vague
                 dc.SetFont(self.eventFont)
+                # this is the number of events that are not displayed
+                # in the preview pane because there wasn't enough room
                 dc.DrawText(_(u"%(unknownValue)d more confirmed...") % {'unknownValue': (len(self.currentDaysItems) - i)},
                             self.hMargin, y + self.eventFontOffset)
                 y += self.lineHeight  #For end calculation

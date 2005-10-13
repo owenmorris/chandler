@@ -50,15 +50,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
                                                                 timedItems=True))
         self._doDrawingCalculations()
-        self.RebuildCanvasItems(resort=True)
-        self.Refresh()
+        self.RefreshCanvasItems(resort=True)
 
     def OnSize(self, event):
         # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self._doDrawingCalculations()
-            
-        self.RebuildCanvasItems()
-        self.Refresh()
+
+        self.RefreshCanvasItems()
         event.Skip()
 
     def OnInit(self):
@@ -416,8 +414,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.dragState.originalDragBox.ResetResizeMode()
         
     def OnResizingItem(self, unscrolledPosition):
-        self.RebuildCanvasItems()
-        self.Refresh()
+        self.RefreshCanvasItems()
     
     def OnDragTimer(self):
         """
@@ -443,7 +440,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if not currentCanvasItem.CanDrag():
             return
 
-        proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.GetItem())
+        proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.GetItem(),
+                                          cancelCallback=self.RefreshCanvasItems)
         
         (startTime, endTime) = self.GetDragAdjustedTimes()
         duration = endTime - startTime
@@ -457,8 +455,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         finally:
             # make sure the drag timer stops no matter what!
             self.StopDragTimer()
-        self.RebuildCanvasItems()
-        self.Refresh()
+        self.RefreshCanvasItems()
         
     def OnDraggingNone(self, unscrolledPosition):
         dragDateTime = self.getDateTimeFromPosition(unscrolledPosition)
@@ -477,8 +474,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
         
     def OnDraggingItem(self, unscrolledPosition):
-        self.RebuildCanvasItems()
-        self.Refresh()
+        self.RefreshCanvasItems()
 
     def GetDragAdjustedStartTime(self, tzinfo):
         """
@@ -749,7 +745,7 @@ class TimedCanvasItem(CalendarCanvasItem):
         # instead similar to getPositionFromDateTime where we pass in a duration
         duration = (endTime - startTime)
         duration = duration.days * 24 + duration.seconds / float(3600)
-        if duration == 0:
+        if duration <= 0:
             duration = 0.5;
         (cellWidth, cellHeight) = \
                     (calendarCanvas.dayWidth,

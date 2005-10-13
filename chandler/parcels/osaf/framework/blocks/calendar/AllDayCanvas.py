@@ -77,9 +77,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
     def OnSize(self, event):
         self.size = self.GetSize()
-        self.RebuildCanvasItems()
-        
-        self.Refresh()
+        self.RefreshCanvasItems()
         event.Skip()
 
     def wxSynchronizeWidget(self):
@@ -87,8 +85,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         currentRange = self.GetCurrentDateRange()
         self.visibleItems = list(self.blockItem.getItemsInRange(currentRange,
                                                                 dayItems=True))
-        self.RebuildCanvasItems(resort=True)
-        self.Refresh()
+        self.RefreshCanvasItems(resort=True)
 
     def DrawBackground(self, dc):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget

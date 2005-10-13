@@ -901,6 +901,10 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.editor.SaveItem()
         self.editor.Hide()
         
+    def RefreshCanvasItems(self, resort=False):
+        self.RebuildCanvasItems(resort)
+        self.Refresh()
+        
     def GetCurrentDateRange(self):
         return self.blockItem.GetCurrentDateRange()
 
@@ -1123,7 +1127,8 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
     def SaveItem(self):
         if ((self.item != None) and (not self.IsBeingDeleted())):
             if self.item.displayName != self.GetValue():
-                proxy = RecurrenceDialog.getProxy(u'ui', self.item)
+                parentBlock = self.GetParent()
+                proxy = RecurrenceDialog.getProxy(u'ui', self.item, cancelCallback=parentBlock.RefreshCanvasItems)
                 proxy.displayName = self.GetValue()
 
     def OnEnterPressed(self, event):
@@ -1492,7 +1497,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self._doDrawingCalculations()
         self.ResizeHeader()
         event.Skip()
-        
+
     def wxSynchronizeWidget(self):
         selectedDate = self.blockItem.selectedDate
         startDate = self.blockItem.rangeStart
@@ -1648,14 +1653,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             #yes, this does happen quite a bit during block rendering
             pass
         elif position - sashsize <= wxAllDay.collapsedHeight:
-            #change just the bitmap?  or autoExpandMode as well?
             wxAllDay.autoExpandMode = False
-            if not '__WXMAC__' in wx.PlatformInfo:
-                self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
+            self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
+            
         elif position - sashsize > wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = True
-            if not '__WXMAC__' in wx.PlatformInfo:
-                self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
+            self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
         
     def OnDaySelect(self, day):
         """

@@ -91,9 +91,9 @@ class RecurrenceDialog(wx.Dialog):
 
         self._init_sizers()
 
-    def __init__(self, parent, proxy, cancelCallback = None):
+    def __init__(self, parent, proxy, cancelCallbacks):
         self.proxy = proxy
-        self.cancelCallback = cancelCallback
+        self.cancelCallbacks = cancelCallbacks
         self._init_ctrls(parent)
 
         # use the first action to determine the UI
@@ -118,8 +118,8 @@ class RecurrenceDialog(wx.Dialog):
         
     def onCancel(self, event):
         self.proxy.cancelBuffer()
-        if self.cancelCallback is not None:
-            self.cancelCallback()
+        for method in self.cancelCallbacks:
+            method()
         self._end()
 
     def onAll(self, event):
@@ -141,7 +141,7 @@ class RecurrenceDialog(wx.Dialog):
 
 _proxies = {}
 
-def getProxy(context, obj, createNew=True):
+def getProxy(context, obj, createNew=True, cancelCallback=None):
     """Return a proxy for obj, reusing cached proxies in the same context.
         
     Return obj if obj doesn't support the changeThis and changeThisAndFuture
@@ -155,13 +155,23 @@ def getProxy(context, obj, createNew=True):
     
     """
     if hasattr(obj, 'changeThis') and hasattr(obj, 'changeThisAndFuture'):      
-        if not _proxies.has_key(context) or _proxies[context][0] != obj.itsUUID:
+        if (not _proxies.has_key(context) or
+            _proxies[context][0] != obj.itsUUID):
             if createNew:
                 logger.info('creating proxy in context: %s, for uuid: %s' % (context, obj.itsUUID))
-                _proxies[context] = (obj.itsUUID, OccurrenceProxy(obj))
+                proxy = OccurrenceProxy(obj)
+                _proxies[context] = (obj.itsUUID, proxy)
             else:
                 return obj
-        return _proxies[context][1]
+        else:
+            proxy = _proxies[context][1]
+
+        # sometimes a cancel requires that some UI element needs to
+        # be "reset" to the original state.. so queue up the cancel changes
+        if (cancelCallback is not None and
+            cancelCallback not in proxy.cancelCallbacks):
+            proxy.cancelCallbacks.append(cancelCallback)
+        return proxy
     else:
         return obj
 
@@ -169,13 +179,14 @@ class OccurrenceProxy(object):
     """Proxy which pops up a RecurrenceDialog when it's changed."""
     __class__ = 'temp'
     proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__', \
-                      'dialogUp', 'changeBuffer'
+                      'dialogUp', 'changeBuffer', 'cancelCallbacks'
     
     def __init__(self, item):
         self.proxiedItem = item
         self.currentlyModifying = None
         self.__class__ = self.proxiedItem.__class__
         self.dialogUp = False
+        self.cancelCallbacks = []
 
         # change buffer is an array of dicts, where each dict contains
         # information required to propagate the change
@@ -293,7 +304,7 @@ class OccurrenceProxy(object):
     def runDialog(self):
          # Check in case the dialog somehow got cancelled
          if self.dialogUp:
-            RecurrenceDialog(wx.GetApp().mainFrame, self)
+            RecurrenceDialog(wx.GetApp().mainFrame, self, self.cancelCallbacks)
     
     def propagateBufferChanges(self):
         while len(self.changeBuffer) > 0:
