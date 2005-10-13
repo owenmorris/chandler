@@ -606,12 +606,13 @@ class perf:
         graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, current, c_diff, c_perc))
 
         if self._options['debug']:
-          print key, testkey, targetAvg, current, c_perc, c_diff, s, stdDev
+          print key, testkey, targetAvg, current, previous, c_perc, c_diff, s, stdDev
 
         line += '<td class="number"><span class="%s">%2.2fs</span></td>' % (timeClass, current)
         line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
         line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
-        line += '<td>%01.2fs</td>' % stdDev
+        #line += '<td>%01.2fs</td>' % stdDev
+        line += '<td>%0.2es</td>' % stdDev
 
       line += '</tr>\n'
 
@@ -746,10 +747,10 @@ class perf:
             p = len(k_hours)
             if n > 1:
               currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_AVERAGE]
-              previousValue[platformkey] = dateitem[k_hours[p-1]][0][DP_AVERAGE]
+              previousValue[platformkey] = dateitem[k_hours[p-2]][0][DP_AVERAGE]
             else:
               currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_AVERAGE]
-              previousValue[platformkey] = dateitem[k_hours[p-2]][0][DP_AVERAGE]
+              previousValue[platformkey] = dateitem[k_hours[p-1]][0][DP_AVERAGE]
 
         (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName, currentValue, previousValue)
 
