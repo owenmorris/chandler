@@ -13,6 +13,49 @@ import sys, os, string, datetime, time, math
 import tarfile
 import ConfigParser, optparse
 
+def colorDelta(current, prev, stdDev):
+    """
+    Return the color for the deltas.
+
+    Changes are within std dev, no coloring:
+    
+    >>> colorDelta(1, 1, 0.01)
+    'ok'
+    >>> colorDelta(1.05, 1, 0.1)
+    'ok'
+    >>> colorDelta(1, 1.05, 0.1)
+    'ok'
+    
+    Significant improvement:
+    
+    >>> colorDelta(1, 2, 0.01)
+    'good'
+
+    More than 10% slowdown:
+    
+    >>> colorDelta(2, 1, 0.01)
+    'alert'
+
+    Less than 10% slowdown:
+    
+    >>> colorDelta(1.05, 1, 0.01)
+    'warn'
+    """
+    delta = prev - current
+    
+    if delta - stdDev > 0:
+        return 'good'
+    
+    if delta + stdDev < 0:
+        percentage = delta / prev * -1 # * -1 makes it positive
+        if percentage < 0.1:
+            return 'warn'
+        
+        return 'alert'
+    
+    return 'ok'
+
+
 class perf:
   def __init__(self):
     self._app_path = os.getcwd()
@@ -38,7 +81,7 @@ class perf:
                          ('new_event_by_double_clicking_in_the_cal_view_for_performance',  '#3 New event (double click)'),
                          ('test_new_calendar_for_performance',                             '#4 New calendar'),
                          ('importing_3000_event_calendar',                                 '#5 Import 3000 event calendar'),
-                         #('', '#6'),
+                         #('', '#6 Startup with 3000 event calendar'),
                          ('Creating_new_event_from_the_File_Menu_after_large_data_import', '#7 New event (menu) with 3000 event calendar'),
                          ('Creating_a_new_event_in_the_Cal_view_after_large_data_import',  '#8 New event (double click) with 3000 event calendar'),
                          ('Creating_a_new_calendar_after_large_data_import',               '#9 New calendar with 3000 event calendar'),
@@ -54,7 +97,7 @@ class perf:
                            'new_event_by_double_clicking_in_the_cal_view_for_performance':  1,
                            'test_new_calendar_for_performance':                             1,
                            'importing_3000_event_calendar':                                 30,
-                           #'': 1,
+                           #'': 10,
                            'creating_new_event_from_the_file_menu_after_large_data_import': 1,
                            'creating_a_new_event_in_the_cal_view_after_large_data_import':  1,
                            'creating_a_new_calendar_after_large_data_import':               1,
@@ -70,6 +113,51 @@ class perf:
       print 'Configuration Values:'
       for key in self._options:
         print '\t%s: [%r]' % (key, self._options[key])
+
+  def colorTime(self, testName, testTime, stdDev):
+        """
+        Return the color for the test time.
+    
+        Times within std dev of acceptable, no coloring:
+    
+        >>> perf = perf() #doctest: +ELLIPSIS
+        ...
+        >>> perf.colorTime('perf_stamp_as_event', 1, 0.01)
+        'ok'
+        >>> perf.colorTime('perf_stamp_as_event', 1.05, 0.1)
+        'ok'
+        >>> perf.colorTime('perf_stamp_as_event', 0.95, 0.1)
+        'ok'
+    
+        Significantly better than acceptable:
+    
+        >>> perf.colorTime('perf_stamp_as_event', 0.95, 0.01)
+        'good'
+    
+        Significantly slower than acceptable:
+    
+        >>> perf.colorTime('perf_stamp_as_event', 1.05, 0.01)
+        'warn'
+        >>> perf.colorTime('perf_stamp_as_event', 2.05, 0.1)
+        'warn'
+    
+        Twice as slow as acceptable:
+    
+        >>> perf.colorTime('perf_stamp_as_event', 2.05, 0.01)
+        'alert'
+        """
+        acceptable = self.SummaryTargets[testName]
+        
+        if testTime < (acceptable - stdDev):
+            return 'good'
+        
+        if testTime > (2 * acceptable + stdDev):
+            return 'alert'
+        
+        if testTime > (acceptable + stdDev):
+            return 'warn'
+    
+        return 'ok'
 
   def loadConfiguration(self):
     items = { 'configfile': ('-c', '--config',   's', self._options['configfile'], '', ''),
@@ -517,7 +605,7 @@ class perf:
 
         previous = previousTargets[key] * 60 #convert to seconds
 
-        c_diff = previous - avg
+        c_diff = avg - previous
 
         if previous <> 0:
           c_perc = (c_diff / previous) * 100
@@ -532,26 +620,15 @@ class perf:
 #If the test has gotten slower, but less than 10%, color it orange.
 #If the test has gotten slower by more than 10%, color it red.
 
-        if ((previous - variance) < avg) and (avg < (previous + variance)):
-          s = 'ok'
-        else:
-          if c_perc < 0.0:
-            if abs(c_perc) > self._options['p_alert']:
-              s = 'alert'
-            else:
-              s = 'warn'
-          else:
-              if c_perc > 10.0:
-                  s = 'good'
-              else:
-                  s = 'ok'
-
+        s = colorDelta(avg, previous, variance) # XXX Should be current and stdDev
+        timeClass = self.colorTime(testkey, avg, variance) # XXX Should be current and stdDev
+        
         graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, avg, c_diff, c_perc))
 
         #print key, testkey, targetAvg, avg, c_perc, c_diff, s, variance
 
         line += '<td class="number">%2.0fs</td>' % targetAvg
-        line += '<td class="number">%2.2fs</td>' % avg
+        line += '<td class="number"><span class="%s">%2.2fs</span></td>' % (timeClass, avg)
         line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
         line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
         line += '<td>%01.2fs</td>' % variance
@@ -807,5 +884,7 @@ class perf:
 
 if __name__ == "__main__":
   p = perf()
-
   p.process()
+
+  #import doctest
+  #doctest.testmod()
