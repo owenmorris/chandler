@@ -577,13 +577,15 @@ class perf:
 
 
   def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName, currentValue, previousValue):
-      line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
       graph = []
       
       if testkey in self.SummaryTargets.keys():
         targetAvg = self.SummaryTargets[testkey]
       else:
         targetAvg = 0.0
+
+      line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
+      line += '<td class="number">%2.0fs</td>' % targetAvg
 
       for key in ['win', 'osx', 'linux']:
         current  = currentValue[key]  * 60 # convert to seconds
@@ -606,7 +608,6 @@ class perf:
         if self._options['debug']:
           print key, testkey, targetAvg, current, c_perc, c_diff, s, stdDev
 
-        line += '<td class="number">%2.0fs</td>' % targetAvg
         line += '<td class="number"><span class="%s">%2.2fs</span></td>' % (timeClass, current)
         line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
         line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
@@ -834,14 +835,14 @@ class perf:
 
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table>\n')
-    tboxfile.write('<tr><th></th>')
-    tboxfile.write('<th colspan="5">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
-    tboxfile.write('<th colspan="5">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
-    tboxfile.write('<th colspan="5">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
-    tboxfile.write('<tr><th>Test</th>')
-    tboxfile.write('<th>0.6 Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    tboxfile.write('<th>0.6 Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    tboxfile.write('<th>0.6 Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
+    tboxfile.write('<tr><th></th><th></th>')
+    tboxfile.write('<th colspan="4">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
+    tboxfile.write('<th colspan="4">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
+    tboxfile.write('<th colspan="4">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
+    tboxfile.write('<tr><th>Test</th><th>0.6 Target</th>')
+    tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
 
     if os.path.isfile(os.path.join(self._options['perf_data'], 'tbox.html.header')):
       for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
