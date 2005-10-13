@@ -402,6 +402,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 # finally, just throw it in the middle of the current view
                 newTime = startDay + timedelta(days=3, hours=12)
                 
+        newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
+                
         return newTime, duration
             
 

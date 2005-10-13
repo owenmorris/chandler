@@ -4,6 +4,7 @@ from application.Parcel import Reference
 from repository.schema.Types import Lob
 import scripts as Scripts
 from i18n import OSAFMessageFactory as _
+from PyICU import ICUtzinfo
 from osaf import pim
 from osaf import messages
 from osaf.framework.types.DocumentTypes import ColorType
@@ -87,10 +88,13 @@ def installParcel(parcel, oldVersion=None):
         )
     )
 
+    noonToday = datetime.datetime.combine(
+        datetime.date.today(),
+        datetime.time(12, tzinfo=ICUtzinfo.getDefault()))
+        
     welcome = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
         displayName=_(u'Welcome to Chandler 0.5'),
-        startTime=datetime.datetime.combine(datetime.date.today(),
-                                            datetime.time(12)),
+        startTime=noonToday,
         duration=datetime.timedelta(minutes=120),
         anyTime=False,
         creator=osafDev,
