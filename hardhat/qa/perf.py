@@ -80,15 +80,15 @@ class perf:
                          ('new_event_from_file_menu_for_performance',                      '#2 New event (menu)'),
                          ('new_event_by_double_clicking_in_the_cal_view_for_performance',  '#3 New event (double click)'),
                          ('test_new_calendar_for_performance',                             '#4 New calendar'),
-                         ('importing_3000_event_calendar',                                 '#5 Import 3000 event calendar'),
+                         ('importing_3000_event_calendar',                                 '#5 Import 3k event calendar'),
                          #('', '#6 Startup with 3000 event calendar'),
-                         ('Creating_new_event_from_the_File_Menu_after_large_data_import', '#7 New event (menu) with 3000 event calendar'),
-                         ('Creating_a_new_event_in_the_Cal_view_after_large_data_import',  '#8 New event (double click) with 3000 event calendar'),
-                         ('Creating_a_new_calendar_after_large_data_import',               '#9 New calendar with 3000 event calendar'),
+                         ('creating_new_event_from_the_file_menu_after_large_data_import', '#7 New event (menu) with 3k event calendar'),
+                         ('creating_a_new_event_in_the_cal_view_after_large_data_import',  '#8 New event (double click) with 3k event calendar'),
+                         ('creating_a_new_calendar_after_large_data_import',               '#9 New calendar with 3k event calendar'),
                          ('switching_to_all_view_for_performance',                         'Switch Views'),
                          ('perf_stamp_as_event',                                           'Stamp'),
-                         ('Switching_view_after_importing_large_data',                     'Switch Views with 3000 event calendar'),
-                         ('Stamping_after_large_data_import',                              'Stamp with 3000 event calendar'),
+                         ('switching_view_after_importing_large_data',                     'Switch Views with 3k event calendar'),
+                         ('stamping_after_large_data_import',                              'Stamp with 3k event calendar'),
                         ]
 
       # all times are in seconds
@@ -103,8 +103,8 @@ class perf:
                            'creating_a_new_calendar_after_large_data_import':               1,
                            'switching_to_all_view_for_performance':                         1,
                            'perf_stamp_as_event':                                           1,
-                           'Switching_view_after_importing_large_data':                     1,
-                           'Stamping_after_large_data_import':                              1,
+                           'switching_view_after_importing_large_data':                     1,
+                           'stamping_after_large_data_import':                              1,
                           }
 
     self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
@@ -196,8 +196,6 @@ class perf:
     config = ConfigParser.ConfigParser()
 
     if os.path.isfile(self._options['configfile']):
-      print 'loading %s' % self._options['configfile']
-
       config.read(self._options['configfile'])
 
       if config.has_section(self._options['section']):
@@ -258,8 +256,6 @@ class perf:
             p = 0
           else:
             p = p / 2
-
-          print '%s: %d %d' % (buildname, len(lines), p)
 
           for line in lines[p:]:
             item = string.split(string.lower(line[:-1]), '|')
@@ -364,40 +360,29 @@ class perf:
 
     return (tests, startdate, enddate)
 
-  def variance(self, values):
-    n   = len(values)
-    v   = 0
-    avg = 0
+  def standardDeviation(self, values):
+    count  = len(values)
+    stdDev = 0.0
+    mean   = 0.0
+    s      = 0.0
 
-    if n > 1:
-      sum = 0
-
+    if count > 1:
         # algorithm is from http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        # first pass to calculate average of all data points
-        # Note: Code modified on 3 Oct 2005 from the original based on a code review by
-        #       Philippe and Grant as they both pointed out the single pass method and
-        #       Philippe pointed out an error in my implementation that was causing
-        #       erronious results
 
-      for item in values:
-          avg = avg + item
-          sum = sum + item*item
+      for n in xrange(1, count + 1):
+        delta = values[n - 1] - mean
+        mean  = mean + delta / float(n)
+        s     = s + delta * (values[n - 1] - mean)
 
-      avg = avg / n
-      x   = (sum - n*avg*avg) / n*n
-
-      if x < 0:
-          x = abs(x)
-
-      v = math.sqrt(x)
+      var    = s / (n - 1)
+      stdDev = math.sqrt(var)
 
     else:
-      avg = values[0]
+      mean = values[0]
 
-    return (v, n, avg)
+    return (stdDev, count, mean)
 
-
-  def generateVarianceDetailPage(self, pagename, tests, startdate, enddate):
+  def generateDetailPage(self, pagename, tests, startdate, enddate):
     # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runs, total, average) ] }}}}
 
       # some 'constants' to make it easier to add items to the data structure
@@ -410,13 +395,13 @@ class perf:
     indexpage  = []
     detailpage = []
 
-    indexpage.append('<h1>Performance Variance for the previous 7 days</h1>\n')
+    indexpage.append('<h1>Performance Standard Deviation for the previous 7 days</h1>\n')
     indexpage.append('<div id="summary">\n')
     indexpage.append('<p>From %s-%s-%s to %s-%s-%s<br/>\n' % (startdate[:4], startdate[4:6], startdate[6:8],
                                                               enddate[:4], enddate[4:6], enddate[6:8]))
     indexpage.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
 
-    detailpage.append('<h1>Performance Variance for the previous 7 days</h1>\n')
+    detailpage.append('<h1>Performance Standard Deviation for the previous 7 days</h1>\n')
     detailpage.append('<div id="detail">\n')
 
     for testkey in tests.keys():
@@ -433,7 +418,7 @@ class perf:
         indexpage.append('<table>\n')
         indexpage.append('<colgroup><col class="build"></col><col></col><col class="size"></col><col class="avg"></col></colgroup>\n')
         indexpage.append('<tr><th></th><th></th><th colspan="2">Sample</th><th colspan="9">Difference of Sample Average to Prior Day (avg - pd)</th>')
-        indexpage.append('<tr><th>Build</th><th>Variance</th><th>Count</th><th>Average</th><th>0</th><th>-1</th><th>-2</th><th>-3</th><th>-4</th><th>-5</th><th>-6</th><th>-7</th><th>-8</th></tr>\n')
+        indexpage.append('<tr><th>Build</th><th>Std.Dev.</th><th>Count</th><th>Average</th><th>0</th><th>-1</th><th>-2</th><th>-3</th><th>-4</th><th>-5</th><th>-6</th><th>-7</th><th>-8</th></tr>\n')
 
         for buildkey in k_builds:
           builditem = testitem[buildkey]
@@ -452,7 +437,8 @@ class perf:
 
             for hour in k_hours:
               for datapoint in dateitem[hour]:
-                #print "%s %s %s %s %f" % (testkey, buildkey, datekey, hour, datapoint[DP_AVERAGE])
+                if self._options['debug']:
+                  print "%s %s %s %s %f" % (testkey, buildkey, datekey, hour, datapoint[DP_AVERAGE])
                 values.append(datapoint[DP_AVERAGE])
                 date_values.append(datapoint[DP_AVERAGE])
 
@@ -465,9 +451,10 @@ class perf:
 
             day_values[datekey] = (dv_count, dv_total)
 
-          (v, n, avg) = self.variance(values)
+          (v, n, avg) = self.standardDeviation(values)
 
-          #print "variance: %02.5f average: %02.3f count: %d" % (v, avg, n)
+          if self._options['debug']:
+            print "std.dev: %02.5f average: %02.3f count: %d" % (v, avg, n)
 
           tv_dates = []
 
@@ -477,8 +464,8 @@ class perf:
           k_dates.reverse()
 
           detailpage.append('<h3 id="%s_%s">%s</h3>\n' % (testkey, buildkey, buildkey))
-          detailpage.append('<p>Sample Average is %2.3f and variance is %2.3f</p>\n' % (avg, v))
-          detailpage.append('<!-- avg: %02.5f count: %d var: %02.5f -->\n' % (avg, n, v))
+          detailpage.append('<p>Sample Average is %2.3f and std.dev is %2.3f</p>\n' % (avg, v))
+          detailpage.append('<!-- avg: %02.5f count: %d stddev: %02.5f -->\n' % (avg, n, v))
 
           for datekey in k_dates:
             dateitem = builditem[datekey]
@@ -589,7 +576,7 @@ class perf:
     detailfile.close()
 
 
-  def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName, previousTargets):
+  def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName, currentValue, previousValue):
       line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
       graph = []
       
@@ -599,39 +586,31 @@ class perf:
         targetAvg = 0.0
 
       for key in ['win', 'osx', 'linux']:
-        avg      = platforms[key]['avg'] * 60 # convert to seconds
+        current  = currentValue[key]  * 60 # convert to seconds
+        previous = previousValue[key] * 60 # convert to seconds
         revision = platforms[key]['revision']
-        variance = platforms[key]['var']
+        stdDev   = platforms[key]['stddev']
 
-        previous = previousTargets[key] * 60 #convert to seconds
-
-        c_diff = avg - previous
+        c_diff = current - previous
 
         if previous <> 0:
           c_perc = (c_diff / previous) * 100
         else:
           c_perc = 0
 
-#If the result falls within the standard deviation (m5-std dev < current
-#< m5+std dev), don't color the results. After all, we don't really know
-#if it is a real change or just noise.
-#
-#If the test has gotten faster than the std dev limit, color it green.
-#If the test has gotten slower, but less than 10%, color it orange.
-#If the test has gotten slower by more than 10%, color it red.
+        s         = colorDelta(current, previous, stdDev)
+        timeClass = self.colorTime(testkey, current, stdDev)
 
-        s = colorDelta(avg, previous, variance) # XXX Should be current and stdDev
-        timeClass = self.colorTime(testkey, avg, variance) # XXX Should be current and stdDev
-        
-        graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, avg, c_diff, c_perc))
+        graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, current, c_diff, c_perc))
 
-        #print key, testkey, targetAvg, avg, c_perc, c_diff, s, variance
+        if self._options['debug']:
+          print key, testkey, targetAvg, current, c_perc, c_diff, s, stdDev
 
         line += '<td class="number">%2.0fs</td>' % targetAvg
-        line += '<td class="number"><span class="%s">%2.2fs</span></td>' % (timeClass, avg)
+        line += '<td class="number"><span class="%s">%2.2fs</span></td>' % (timeClass, current)
         line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
         line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
-        line += '<td>%01.2fs</td>' % variance
+        line += '<td>%01.2fs</td>' % stdDev
 
       line += '</tr>\n'
 
@@ -654,14 +633,19 @@ class perf:
     tbox   = []
     graph  = []
 
-    revisions = { 'osx':   ['', ''],
-                  'linux': ['', ''],
-                  'win':   ['', ''], }
+    revisions     = { 'osx':   ['', ''],
+                      'linux': ['', ''],
+                      'win':   ['', ''], }
 
-    previousRun = { 'osx':   0,
-                    'linux': 0,
-                    'win':   0,
-                  }
+    currentValue  = { 'osx':   0,
+                      'linux': 0,
+                      'win':   0,
+                    }
+
+    previousValue = { 'osx':   0,
+                      'linux': 0,
+                      'win':   0,
+                    }
 
     detail.append('<h1>Use Case Performance Detail</h1>\n')
     detail.append('<div id="detail">\n')
@@ -674,19 +658,19 @@ class perf:
 
         detail.append('<h2>%s: %s</h2>\n' % (testDisplayName, testkey))
 
-        platforms = { 'osx':   { 'var':      0,
+        platforms = { 'osx':   { 'stddev':   0,
                                  'avg':      0,
                                  'count':    0,
                                  'total':    0,
                                  'values':   [],
                                  'revision': '' },
-                      'linux': { 'var':      0,
+                      'linux': { 'stddev':   0,
                                  'avg':      0,
                                  'count':    0,
                                  'total':    0,
                                  'values':   [],
                                  'revision': '' },
-                      'win':   { 'var':      0,
+                      'win':   { 'stddev':   0,
                                  'avg':      0,
                                  'count':    0,
                                  'total':    0,
@@ -736,44 +720,49 @@ class perf:
                                revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
                 detail.append('<!-- revision %s runs %d time %02.5f -->\n' % (revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
 
-                print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
+                if self._options['debug']:
+                  print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
 
-            (v, n, avg) = self.variance(platformdata['values'])
+            (v, n, avg) = self.standardDeviation(platformdata['values'])
 
-            #print "average: %02.5f count: %d variance: %02.5f" % (avg, n, v)
-            page.append('<!-- build: %s avg: %02.5f count: %d variance: %02.5f -->\n' % (buildkey, avg, n, v))
+            #print "average: %02.5f count: %d stddev: %02.5f" % (avg, n, v)
+            page.append('<!-- build: %s avg: %02.5f count: %d stddev: %02.5f -->\n' % (buildkey, avg, n, v))
 
             detail.append('</table>\n')
-            detail.append('<p>%d items in days sample for an median of %02.5f and a variance of %02.5f</p>\n' % (n, avg, v))
+            detail.append('<p>%d items in days sample for an median of %02.5f and a standard deviation of %02.5f</p>\n' % (n, avg, v))
 
-            platformdata['var']      = v
+            platformdata['stddev']   = v
             platformdata['avg']      = avg
             platformdata['total']    = dv_total
             platformdata['count']    = n
             platformdata['revision'] = revision
 
             if len(k_hours) > 2:
-                revisions[platformkey] = [revision, dateitem[k_hours[-2]][0][DP_REVISION]]
+              revisions[platformkey] = [revision, dateitem[k_hours[-2]][0][DP_REVISION]]
             else:
-                revisions[platformkey] = [revision, revision]
+              revisions[platformkey] = [revision, revision]
 
-            previousRun[platformkey] = dateitem[k_hours[-1]][0][DP_AVERAGE]
+            p = len(k_hours)
+            if n > 1:
+              currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_AVERAGE]
+              previousValue[platformkey] = dateitem[k_hours[p-1]][0][DP_AVERAGE]
+            else:
+              currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_AVERAGE]
+              previousValue[platformkey] = dateitem[k_hours[p-2]][0][DP_AVERAGE]
 
-        (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName, previousRun)
+        (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName, currentValue, previousValue)
 
         page.append(summaryline)
         tbox.append(summaryline)
 
         graph += graphdata
 
-    #print revisions
-
     page.append('</table>\n')
                                       
     page.append('<p>The Test name link will take you to the detail information that was \n')
     page.append('used to generate the summary numbers for that test<br/>\n')
-    page.append('The original <a href="variance.html">variance page</a> shows the other test \n')
-    page.append('data that is captured and the variance data for the last 7 days</p>\n')
+    page.append('The original <a href="stddev.html">standard deviation page</a> shows the other test \n')
+    page.append('data that is captured and the standard deviation data for the last 7 days</p>\n')
 
     page.append('</div>\n')
 
@@ -869,7 +858,7 @@ class perf:
 
 
   def generateOutput(self, tests, startdate, enddate):
-    self.generateVarianceDetailPage('variance.html', tests, startdate, enddate)
+    self.generateDetailPage('stddev.html', tests, startdate, enddate)
     self.generateSummaryPage('index.html', tests, startdate, enddate)
 
   def process(self):
@@ -885,6 +874,3 @@ class perf:
 if __name__ == "__main__":
   p = perf()
   p.process()
-
-  #import doctest
-  #doctest.testmod()
