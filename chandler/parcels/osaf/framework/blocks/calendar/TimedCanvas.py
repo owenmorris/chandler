@@ -745,7 +745,7 @@ class TimedCanvasItem(CalendarCanvasItem):
         # instead similar to getPositionFromDateTime where we pass in a duration
         duration = (endTime - startTime)
         duration = duration.days * 24 + duration.seconds / float(3600)
-        if duration <= 0:
+        if duration <= 0.5:
             duration = 0.5;
         (cellWidth, cellHeight) = \
                     (calendarCanvas.dayWidth,
