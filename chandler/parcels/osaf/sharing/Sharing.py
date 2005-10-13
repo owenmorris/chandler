@@ -607,6 +607,12 @@ class ShareConduit(pim.ContentItem):
             except:
                 pass
 
+        # Make sure we don't subscribe to a KindCollection, since some evil
+        # person could slip you a KindCollection that would fill itself with
+        # your items.
+        if isinstance(self.share.contents, pim.KindCollection):
+            raise SharingError(_(u"Subscribing to KindCollections prohibited"))
+
         # Make sure we have a collection to add items to:
         if self.share.contents is None:
             self.share.contents = pim.InclusionExclusionCollection(view=view).setup()
@@ -1363,18 +1369,20 @@ class WebDAVConduit(ShareConduit):
             # If the resource does exist, we get hold of it, and
             # call resource.put(), which fails with a 412 iff the
             # etag of the resource changed.
-            if not self.resourceList.has_key(itemName):
-                newResource = serverHandle.blockUntil(
-                                    container.createFile, itemName, body=text,
-                                    type=contentType)
-            else:
-                resourcePath = container.path + itemName
-                resource = serverHandle.getResource(resourcePath)
-                
-                serverHandle.blockUntil(resource.put, text, checkETag=False,
-                                        contentType=contentType)
-                # We're using newResource of None to track errors
-                newResource = resource 
+
+            ## if not self.resourceList.has_key(itemName):
+            ##     newResource = serverHandle.blockUntil(
+            ##                       container.createFile, itemName, body=text,
+            ##                       type=contentType)
+            ## else:
+            resourcePath = container.path + itemName
+            resource = serverHandle.getResource(resourcePath)
+
+            serverHandle.blockUntil(resource.put, text, checkETag=False,
+                                    contentType=contentType)
+            # We're using newResource of None to track errors
+            newResource = resource
+
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:

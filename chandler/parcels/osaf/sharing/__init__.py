@@ -24,7 +24,7 @@ from i18n import OSAFMessageFactory as _
 from repository.item.Monitors import Monitors
 import chandlerdb
 
-import zanshin, M2Crypto, twisted
+import zanshin, M2Crypto, twisted, re
 
 
 import wx          # For the dialogs, but perhaps this is better accomplished
@@ -172,8 +172,17 @@ def publish(collection, account, classesToInclude=None,
             # determine a share name
             existing = _getExistingResources(account)
             displayName = displayName or collection.displayName
-            shareName = displayName.replace(" ", "_")
-            shareName = shareName.replace("'", "_")
+
+            shareName = displayName
+
+            # See if there are any non-ascii characters, if so, just use UUID
+            try:
+                shareName.encode('ascii')
+                pattern = re.compile('[^A-Za-z0-9]')
+                shareName = re.sub(pattern, "_", shareName)
+            except UnicodeEncodeError:
+                shareName = unicode(collection.itsUUID)
+
             shareName = _uniqueName(shareName, existing)
 
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
