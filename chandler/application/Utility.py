@@ -20,15 +20,11 @@ from repository.item.RefCollections import RefList
 import i18n
 
 
-# Increment this value whenever the schema changes and edit its comment 
-#    to let others know what changed.  
-# Your comment also helps Subversion detect a conflict, in case 
-#    someone else changes it at about the same time.
-
-# 102: stearns: DV block changes
-# 103: alecf: added calendarControl attribute to calendar splitter
-# 104: vajda: optimized persistence formats of UI structs
-SCHEMA_VERSION = "104"
+# Increment this value whenever the schema changes, and replace the comment
+# with your name (and some helpful text). The comment's really there just to
+# cause Subversion to warn you of a conflict when you update, in case someone 
+# else changes it at the same time you do (that's why it's on the same line).
+SCHEMA_VERSION = "105" # jed/stearns: added AppearsInBlock
 
 logger = None # initialized in initLogging()
 

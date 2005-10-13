@@ -976,6 +976,31 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
                 enabled = False
         event.arguments['Enable'] = enabled
 
+
+class AppearsInFieldBlock(EditTextAttribute):
+    """
+    A read-only list of collections that this item appears in, for now.
+    """
+    def loadAttributeIntoWidget (self, item, widget):
+        # For now, just list the item's containing collections
+        if item is None:
+            value = u""
+        else:
+            item = getattr(item, 'proxiedItem', item)
+            app = schema.ns('osaf.app', self.itsView)
+            sidebarCollection = app.sidebarCollection
+            allCollection = app.allCollection
+            collectionList = [coll.displayName for coll in sidebarCollection
+                              if coll is not allCollection and item in coll]
+            collectionList.sort()
+            value = ", ".join(collectionList)
+        widget.SetValue(value)
+    
+    def saveAttributeFromWidget (self, item, widget, validate):  
+        # It's read-only, but we have to override this method.
+        pass
+
+
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values
 

@@ -250,6 +250,17 @@ def makeNoteSubtree(parcel, oldVersion):
             position=0.5,
             border=RectType(0,6,0,6)).install(parcel)
 
+    # Appears in block
+    appearsInArea = \
+        makeArea(parcel, 'AppearsInArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'appears in')),
+                makeSpacer(parcel, width=8),
+                AppearsInFieldBlock.template('AppearsInEditField',
+                                             lineStyleEnum='MultiLine',
+                                             readOnly=True).install(parcel)],
+            position=0.85).install(parcel)    
+
     # Then, the Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
                             viewAttribute=u'bodyString',
@@ -264,6 +275,8 @@ def makeNoteSubtree(parcel, oldVersion):
                 makeSpacer(parcel, height=6, position=0.01).install(parcel),
                 parcel['MarkupBar'],
                 headlineArea, 
+                makeSpacer(parcel, height=7, position=0.8).install(parcel),
+                appearsInArea,
                 makeSpacer(parcel, height=7, position=0.8999).install(parcel),
                 notesBlock])
 
