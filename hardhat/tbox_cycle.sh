@@ -1,6 +1,8 @@
 HHDIR=`pwd`
 while true; do
   cd $HHDIR
+  svn up
+
   $HHDIR/tbox.sh "$*"
 
   echo Sleeping for 5 minutes
