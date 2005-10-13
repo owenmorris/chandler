@@ -77,35 +77,35 @@ class perf:
     self.verbose = self._options['verbose']
 
     self.SummaryTests = [#('', '#1 Startup'),
-                         ('new_event_from_file_menu_for_performance',                      '#2 New event (menu)'),
-                         ('new_event_by_double_clicking_in_the_cal_view_for_performance',  '#3 New event (double click)'),
-                         ('test_new_calendar_for_performance',                             '#4 New calendar'),
-                         ('importing_3000_event_calendar',                                 '#5 Import 3k event calendar'),
-                         #('', '#6 Startup with 3000 event calendar'),
-                         ('creating_new_event_from_the_file_menu_after_large_data_import', '#7 New event (menu) with 3k event calendar'),
-                         ('creating_a_new_event_in_the_cal_view_after_large_data_import',  '#8 New event (double click) with 3k event calendar'),
-                         ('creating_a_new_calendar_after_large_data_import',               '#9 New calendar with 3k event calendar'),
-                         ('switching_to_all_view_for_performance',                         'Switch Views'),
-                         ('perf_stamp_as_event',                                           'Stamp'),
-                         ('switching_view_after_importing_large_data',                     'Switch Views with 3k event calendar'),
-                         ('stamping_after_large_data_import',                              'Stamp with 3k event calendar'),
-                        ]
+         ('new_event_from_file_menu_for_performance',                            '#2 New event (menu)'),
+         ('new_event_by_double_clicking_in_the_cal_view_for_performance',        '#3 New event (double click)'),
+         ('test_new_calendar_for_performance',                                   '#4 New calendar'),
+         ('importing_3000_event_calendar',                                       '#5 Import 3k event calendar'),
+         #('', '#6 Startup with 3000 event calendar'),
+         ('creating_new_event_from_the_file_menu_after_large_data_import',       '#7 New event (menu) with 3k event calendar'),
+         ('creating_a_new_event_in_the_cal_view_after_large_data_import',        '#8 New event (double click) with 3k event calendar'),
+         ('creating_a_new_calendar_after_large_data_import.collection_creation', '#9 New calendar with 3k event calendar'),
+         ('switching_to_all_view_for_performance.switch_to_allview',             'Switch Views'),
+         ('perf_stamp_as_event',                                                 'Stamp'),
+         ('switching_view_after_importing_large_data.switch_to_allview',         'Switch Views with 3k event calendar'),
+         ('stamping_after_large_data_import.change_the_event_stamp',             'Stamp with 3k event calendar'),
+        ]
 
       # all times are in seconds
     self.SummaryTargets = {#'': 10, 
-                           'new_event_from_file_menu_for_performance':                      1,
-                           'new_event_by_double_clicking_in_the_cal_view_for_performance':  1,
-                           'test_new_calendar_for_performance':                             1,
-                           'importing_3000_event_calendar':                                 30,
-                           #'': 10,
-                           'creating_new_event_from_the_file_menu_after_large_data_import': 1,
-                           'creating_a_new_event_in_the_cal_view_after_large_data_import':  1,
-                           'creating_a_new_calendar_after_large_data_import':               1,
-                           'switching_to_all_view_for_performance':                         1,
-                           'perf_stamp_as_event':                                           1,
-                           'switching_view_after_importing_large_data':                     1,
-                           'stamping_after_large_data_import':                              1,
-                          }
+         'new_event_from_file_menu_for_performance':                            1,
+         'new_event_by_double_clicking_in_the_cal_view_for_performance':        1,
+         'test_new_calendar_for_performance':                                   1,
+         'importing_3000_event_calendar':                                      30,
+         #'': 10,
+         'creating_new_event_from_the_file_menu_after_large_data_import':       1,
+         'creating_a_new_event_in_the_cal_view_after_large_data_import':        1,
+         'creating_a_new_calendar_after_large_data_import.collection_creation': 1,
+         'switching_to_all_view_for_performance.switch_to_allview':             1,
+         'perf_stamp_as_event':                                                 1,
+         'switching_view_after_importing_large_data.switch_to_allview':         1,
+         'stamping_after_large_data_import.change_the_event_stamp':             1,
+        }
 
     self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
 
