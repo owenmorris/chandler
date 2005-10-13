@@ -12,9 +12,9 @@
     td.number      { text-align: right; }
     td.number_left { text-align: right; border-left: 2px solid black; }
     th             { text-align: center; background: lightgrey; }
-    span.good      { color: #11DD11; }
-    span.warn      { color: orange; }
-    span.alert     { color: red; }
+    td.numbergood  { color: #11DD11; }
+    td.numberwarn  { color: orange; }
+    td.numberalert { color: red; }
   </style>
 </head>
 <body>

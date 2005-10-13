@@ -585,7 +585,7 @@ class perf:
         targetAvg = 0.0
 
       line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
-      line += '<td class="number">%2.0fs</td>' % targetAvg
+      line += '<td class="centered">%2.0fs</td>' % targetAvg
 
       for key in ['win', 'osx', 'linux']:
         current  = currentValue[key]  * 60 # convert to seconds
@@ -608,7 +608,7 @@ class perf:
         if self._options['debug']:
           print key, testkey, targetAvg, current, previous, c_perc, c_diff, s, stdDev
 
-        line += '<td class="number"><span class="%s">%2.2fs</span></td>' % (timeClass, current)
+        line += '<td class="number%s">%2.2fs</td>' % (timeClass, current)
         line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
         line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
         line += '<td>%01.2fs</td>' % stdDev
@@ -835,12 +835,12 @@ class perf:
     tboxfile = file(os.path.join(self._options['html_data'], 'tbox.html'), 'w')
 
     tboxfile.write('<div id="tbox">\n')
-    tboxfile.write('<table>\n')
-    tboxfile.write('<tr><th></th><th></th>')
+    tboxfile.write('<table cellspacing="1">\n')
+    tboxfile.write('<tr><th rowspan="2">Test</th><th rowspan="2">0.6<br/>Target</th>')
     tboxfile.write('<th colspan="4">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
     tboxfile.write('<th colspan="4">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
     tboxfile.write('<th colspan="4">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
-    tboxfile.write('<tr><th>Test</th><th>0.6 Target</th>')
+    tboxfile.write('<tr>')
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
