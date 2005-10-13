@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.239 2005/09/25 23:30:08 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.240 2005/10/10 18:15:34 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -579,7 +579,7 @@ wxSize wxWindowBase::DoGetBestSize() const
 
     if ( m_windowSizer )
     {
-        best = m_windowSizer->GetMinSize();
+        best = GetWindowSizeForVirtualSize(m_windowSizer->GetMinSize());
     }
 #if wxUSE_CONSTRAINTS
     else if ( m_constraints )

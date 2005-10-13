@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.278 2005/10/09 18:40:16 VZ Exp $ -->
+<!-- $Id: files.bkl,v 1.279 2005/10/11 15:51:10 VZ Exp $ -->
 <makefile>
 
 <!--
@@ -2665,6 +2665,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/xrc/xh_tglbtn.h
     wx/xrc/xh_toolb.h
     wx/xrc/xh_tree.h
+    wx/xrc/xh_treebk.h
     wx/xrc/xh_unkwn.h
     wx/xrc/xh_wizrd.h
     wx/xrc/xmlres.h

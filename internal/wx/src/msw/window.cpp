@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.642 2005/10/09 16:52:41 VZ Exp $
+// RCS-ID:      $Id: window.cpp,v 1.643 2005/10/11 15:01:50 DS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ static bool gs_hasStdCmap = false;
 
 // last mouse event information we need to filter out the duplicates
 #if wxUSE_MOUSEEVENT_HACK
-static struct
+static struct MouseEventInfoDummy
 {
     // mouse position (in screen coordinates)
     wxPoint pos;

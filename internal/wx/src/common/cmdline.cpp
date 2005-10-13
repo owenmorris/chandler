@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.01.00
-// RCS-ID:      $Id: cmdline.cpp,v 1.45 2005/09/24 21:42:31 VZ Exp $
+// RCS-ID:      $Id: cmdline.cpp,v 1.46 2005/10/11 15:05:03 DS Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -241,7 +241,8 @@ void wxCmdLineParserData::SetArguments(const wxString& cmdLine)
 {
     m_arguments.clear();
 
-    m_arguments.push_back(wxTheApp ? wxTheApp->argv[0] : _T(""));
+    m_arguments.push_back(
+        (wxTheApp && wxTheApp->argc > 0) ? wxTheApp->argv[0] : wxEmptyString);
 
     wxArrayString args = wxCmdLineParser::ConvertStringToArgs(cmdLine);
 

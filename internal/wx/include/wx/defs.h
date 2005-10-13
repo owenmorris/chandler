@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.518 2005/10/09 22:34:04 VZ Exp $
+*  RCS-ID:      $Id: defs.h,v 1.520 2005/10/12 15:03:16 MW Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -298,18 +298,35 @@ typedef int wxWindowID;
     inline T wx_truncate_cast_impl(X x)
     {
         #pragma warning(push)
-        /* explicit conversion of a 64-bit integral type to a smaller integral type */
-        #pragma warning(disable: 1683)
+        /* implicit conversion of a 64-bit integral type to a smaller integral type */
+        #pragma warning(disable: 1682)
+        /* conversion from "X" to "T" may lose significant bits */
+        #pragma warning(disable: 810)
 
-        return (T)x;
+        return x;
 
         #pragma warning(pop)
     }
 
     #define wx_truncate_cast(t, x) wx_truncate_cast_impl<t>(x)
-#else /* !__INTELC__ */
+
+#elif defined(__cplusplus) && defined(__VISUALC__) && __VISUALC__ >= 1310
+    template <typename T, typename X>
+    inline T wx_truncate_cast_impl(X x)
+    {
+        #pragma warning(push)
+        /* conversion from 'X' to 'T', possible loss of data */
+        #pragma warning(disable: 4267)
+
+        return x;
+
+        #pragma warning(pop)
+    }
+
+    #define wx_truncate_cast(t, x) wx_truncate_cast_impl<t>(x)
+#else
     #define wx_truncate_cast(t, x) ((t)(x))
-#endif /* __INTELC__/!__INTELC__ */
+#endif
 
 /* for consistency with wxStatic/DynamicCast defined in wx/object.h */
 #define wxConstCast(obj, className) wx_const_cast(className *, obj)

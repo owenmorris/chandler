@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-18
-// RCS-ID:      $Id: stackwalk.cpp,v 1.5 2005/07/14 09:14:31 VZ Exp $
+// RCS-ID:      $Id: stackwalk.cpp,v 1.6 2005/10/10 20:11:29 VZ Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -225,12 +225,13 @@ void wxStackWalker::Walk(size_t skip)
 
     char **symbols = backtrace_symbols(addresses, depth);
 
-    if (skip > (size_t) depth)
-        skip = (size_t) depth;
+    // we have 3 more "intermediate" frames which the calling code doesn't know
+    // about., account for them
+    skip += 3;
 
     for ( int n = skip; n < depth; n++ )
     {
-        wxStackFrame frame(n, addresses[n-skip], symbols[n-skip]);
+        wxStackFrame frame(n - skip, addresses[n], symbols[n]);
         OnStackFrame(frame);
     }
 }

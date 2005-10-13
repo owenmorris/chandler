@@ -2,7 +2,7 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h,v 1.129 2005/09/23 12:49:20 MR Exp $
+// Id:          $Id: window.h,v 1.130 2005/10/10 18:22:45 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -172,6 +172,10 @@ public:
 #if wxUSE_TOOLTIPS
     virtual void ApplyToolTip( GtkTooltips *tips, const wxChar *tip );
 #endif // wxUSE_TOOLTIPS
+
+    // Call after modifing the value of m_hAdjust or m_vAdjust to bring the
+    // scrolbar in sync (this does not generate any wx events)
+    void GtkUpdateScrollbar(int orient);
 
     // Called from GTK signales handlers. it indicates that
     // the layouting functions have to be called later on

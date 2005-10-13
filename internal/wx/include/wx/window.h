@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.190 2005/09/23 12:48:50 MR Exp $
+// RCS-ID:      $Id: window.h,v 1.191 2005/10/10 18:15:31 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1278,6 +1278,14 @@ protected:
     // the minimal size which doesn't truncate the control, for a panel - the
     // same size as it would have after a call to Fit()
     virtual wxSize DoGetBestSize() const;
+
+    // called from DoGetBestSize() to convert best virtual size (returned by
+    // the window sizer) to the best size for the window itself; this is
+    // overridden at wxScrolledWindow level to clump down virtual size to real
+    virtual wxSize GetWindowSizeForVirtualSize(const wxSize& size) const
+    {
+        return size;
+    }
 
     // this is the virtual function to be overriden in any derived class which
     // wants to change how SetSize() or Move() works - it is called by all
