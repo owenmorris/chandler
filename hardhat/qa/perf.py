@@ -261,7 +261,7 @@ class perf:
             item = string.split(string.lower(line[:-1]), '|')
 
               # each line of a .perf file has the following format
-              # treename | buildname | date | time | testname | svn rev # | run count | total time | average time
+              # treename | buildname | date | time | testname | svn rev # | time
 
             if not datafiles.has_key(buildname):
               datafiles[buildname] = file(os.path.join(self._options['perf_data'], ('%s.dat' % buildname)), 'a')
@@ -312,7 +312,7 @@ class perf:
           print 'Processing file %s' % filename
 
         for line in file(datafile):
-          (itemDate, itemTime, testname, revision, runs, total, average) = string.split(string.lower(line[:-1]), '|')
+          (itemDate, itemTime, testname, revision, runtime) = string.split(string.lower(line[:-1]), '|')
 
           itemDateTime = datetime.datetime(int(itemDate[:4]), int(itemDate[4:6]), int(itemDate[6:8]), int(itemTime[:2]), int(itemTime[2:4]), int(itemTime[4:6]))
 
@@ -321,9 +321,7 @@ class perf:
           if delta.days < 8:
             testname = string.strip(testname)
             hour     = itemTime[:2]
-            runs     = int(runs)
-            total    = float(total)
-            average  = float(average)
+            runtime  = float(runtime)
 
             if itemDate < startdate:
               startdate = itemDate
@@ -336,7 +334,7 @@ class perf:
               #   each build has a dictionary of dates
               #   each date has a dictionary of times (hour resolution)
               #   each time is a list of data points
-              # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, revision, runs, total, average) ] }}}}
+              # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, revision, runtime) ] }}}}
 
             if not tests.has_key(testname):
               tests[testname] = {}
@@ -356,7 +354,7 @@ class perf:
             if not dateitem.has_key(hour):
               dateitem[hour] = []
 
-            dateitem[hour].append((testname, itemDateTime, delta.days, buildname, hour, revision, runs, total, average))
+            dateitem[hour].append((testname, itemDateTime, delta.days, buildname, hour, revision, runtime))
 
     return (tests, startdate, enddate)
 
@@ -388,9 +386,7 @@ class perf:
       # some 'constants' to make it easier to add items to the data structure
       # without having to track down all occurances of 7 to change it to 8 :)
     DP_REVISION = 5
-    DP_RUNS     = 6
-    DP_TOTAL    = 7
-    DP_AVERAGE  = 8
+    DP_RUNTIME  = 6
 
     indexpage  = []
     detailpage = []
@@ -438,9 +434,9 @@ class perf:
             for hour in k_hours:
               for datapoint in dateitem[hour]:
                 if self._options['debug']:
-                  print "%s %s %s %s %f" % (testkey, buildkey, datekey, hour, datapoint[DP_AVERAGE])
-                values.append(datapoint[DP_AVERAGE])
-                date_values.append(datapoint[DP_AVERAGE])
+                  print "%s %s %s %s %f" % (testkey, buildkey, datekey, hour, datapoint[DP_RUNTIME])
+                values.append(datapoint[DP_RUNTIME])
+                date_values.append(datapoint[DP_RUNTIME])
 
             dv_count = len(date_values)
             dv_total = 0
@@ -489,7 +485,7 @@ class perf:
             detailpage.append('<table>\n')
             detailpage.append('<colgroup><col class="time"></col><col class="run"></col><col class="avg"></col></colgroup>\n')
             detailpage.append('<tr><th></th><th></th><th></th><th></th><th colspan="2">Change (Day)</th>')
-            detailpage.append('<tr><th>Time</th><th>Runs</th><th>Average</th><th>Percent</th><th>Percent</th><th>Value</th></tr>\n')
+            detailpage.append('<tr><th>Time</th><th>Run Time</th><th>Percent</th><th>Percent</th><th>Value</th></tr>\n')
 
             k_hours = dateitem.keys()
             k_hours.sort()
@@ -500,7 +496,7 @@ class perf:
                 perc = 0
 
                 if avg > 0:
-                  perc = abs((avg - datapoint[DP_AVERAGE]) / avg) * 100
+                  perc = abs((avg - datapoint[DP_RUNTIME]) / avg) * 100
 
                   if perc > 66:
                     s = 'alert'
@@ -509,15 +505,15 @@ class perf:
                       s = 'warn'
 
                 if dv_avg <> 0:
-                  c_perc = (dv_avg - datapoint[DP_AVERAGE]) / dv_avg
-                c_diff = datapoint[DP_AVERAGE] - dv_avg
+                  c_perc = (dv_avg - datapoint[DP_RUNTIME]) / dv_avg
+                c_diff = datapoint[DP_RUNTIME] - dv_avg
 
-                detailpage.append('<tr><td>%02d:%02d:%02d</td><td class="number_left">%d</td><td class="%s">%02.3f</td>' \
+                detailpage.append('<tr><td>%02d:%02d:%02d</td><td class="%s">%02.3f</td>' \
                                   '<td class="number">%d</td><td class="number_left">%02.3f</td><td class="number">%02.3f</td></tr>\n' %
                                   (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
-                                   datapoint[DP_RUNS], s, datapoint[DP_AVERAGE], perc, c_perc, c_diff))
+                                   s, datapoint[DP_RUNTIME], perc, c_perc, c_diff))
                 detailpage.append('<!-- value: %02.5f count: %d avg: %02.5f %02.5f c_perc: %02.5f c_diff: %02.5f -->\n' %
-                                  (datapoint[DP_AVERAGE], n, avg, perc, c_perc, c_diff))
+                                  (datapoint[DP_RUNTIME], n, avg, perc, c_perc, c_diff))
 
             detailpage.append('</table>\n')
 
@@ -588,10 +584,10 @@ class perf:
       line += '<td class="centered">%2.0fs</td>' % targetAvg
 
       for key in ['win', 'osx', 'linux']:
-        current  = currentValue[key]  * 60 # convert to seconds
-        previous = previousValue[key] * 60 # convert to seconds
+        current  = currentValue[key]
+        previous = previousValue[key]
         revision = platforms[key]['revision']
-        stdDev   = platforms[key]['stddev'] * 60 # convert to seconds
+        stdDev   = platforms[key]['stddev']
 
         c_diff = current - previous
 
@@ -619,16 +615,14 @@ class perf:
       return (line, graph)
 
   def generateSummaryPage(self, pagename, tests, startdate, enddate):
-    # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runs, total, average) ] }}}}
+    # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runtime) ] }}}}
 
     # This code assumes that there will only be a single buildkey (i.e. tinderbox) for each platform
 
       # some 'constants' to make it easier to add items to the data structure
       # without having to track down all occurances of 7 to change it to 8 :)
     DP_REVISION = 5
-    DP_RUNS     = 6
-    DP_TOTAL    = 7
-    DP_AVERAGE  = 8
+    DP_RUNTIME  = 6
 
     page   = []
     detail = []
@@ -715,8 +709,8 @@ class perf:
             
             for hour in k_hours:
               for datapoint in dateitem[hour]:
-                current = datapoint[DP_AVERAGE]
-                revision =  datapoint[DP_REVISION]
+                current   = datapoint[DP_RUNTIME]
+                revision  = datapoint[DP_REVISION]
                 dv_total += current
 
                 platformdata['values'].append(current)
@@ -725,29 +719,29 @@ class perf:
 
                 if previous <> 0:
                   c_perc = (c_diff / previous) * 100
-                  deltaClass = colorDelta(current, previous, 0.02/60.0)# bogus std dev
+                  deltaClass = colorDelta(current, previous, 0.02) # bogus std dev
                 else:
                   c_perc = 0
                   deltaClass = 'ok'
-                timeClass = self.colorTime(testkey, current*60, 0.02)# bogus std dev, Convert to seconds
+                timeClass = self.colorTime(testkey, current, 0.02)# bogus std dev
                 
                 detail.append('<tr><td>%02d:%02d:%02d</td><td>%s</td><td class="number%s">%02.2fs</td><td class="%s">%+3.0f%%</td><td class="%s">%+1.2fs</td></tr>\n' %
                               (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
-                               revision, timeClass, current*60, deltaClass, c_perc, deltaClass, c_diff*60))# Convert to seconds
-                detail.append('<!-- revision %s runs %d time %02.5f -->\n' % (revision, datapoint[DP_RUNS], current*60))# Convert to seconds
+                               revision, timeClass, current, deltaClass, c_perc, deltaClass, c_diff))
+                detail.append('<!-- revision %s runtime %02.5f -->\n' % (revision, current))
 
                 if self._options['debug']:
-                  print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, current*60) # Convert to seconds
+                  print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, current)
                 
                 previous = current
 
             (v, n, avg) = self.standardDeviation(platformdata['values'])
 
             #print "average: %02.5f count: %d stddev: %02.5f" % (avg, n, v)
-            page.append('<!-- build: %s avg: %02.5fs count: %d stddev: %02.5fs -->\n' % (buildkey, avg*60, n, v*60))# Convert to seconds
+            page.append('<!-- build: %s avg: %02.5fs count: %d stddev: %02.5fs -->\n' % (buildkey, avg, n, v))
 
             detail.append('</table>\n')
-            detail.append('<p>%d items in days sample for an average of %02.2fs and a standard deviation of %02.2fs</p>\n' % (n, avg*60, v*60))# Convert to seconds
+            detail.append('<p>%d items in days sample for an average of %02.2fs and a standard deviation of %02.2fs</p>\n' % (n, avg, v))
 
             platformdata['stddev']   = v
             platformdata['avg']      = avg
@@ -762,11 +756,11 @@ class perf:
 
             p = len(k_hours)
             if n > 1:
-              currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_AVERAGE]
-              previousValue[platformkey] = dateitem[k_hours[p-2]][0][DP_AVERAGE]
+              currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_RUNTIME]
+              previousValue[platformkey] = dateitem[k_hours[p-2]][0][DP_RUNTIME]
             else:
-              currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_AVERAGE]
-              previousValue[platformkey] = dateitem[k_hours[p-1]][0][DP_AVERAGE]
+              currentValue[platformkey]  = dateitem[k_hours[p-1]][0][DP_RUNTIME]
+              previousValue[platformkey] = dateitem[k_hours[p-1]][0][DP_RUNTIME]
 
         (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName, currentValue, previousValue)
 
@@ -875,9 +869,120 @@ class perf:
     tboxfile.close()
 
 
+  def generatePerfDetailPage(self, pagename, tests, startdate, enddate):
+    # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runtime) ] }}}}
+
+      # some 'constants' to make it easier to add items to the data structure
+      # without having to track down all occurances of 7 to change it to 8 :)
+    DP_REVISION = 5
+    DP_RUNTIME  = 6
+
+    page = []
+
+    page.append('<h1>Performance Detail Summary</h1>\n')
+    page.append('<div id="detail">\n')
+    page.append('<p>Sample Date: %s-%s-%s to %s-%s-%s<br/>\n' % (startdate[:4], startdate[4:6], startdate[6:8],
+                                                                 enddate[:4], enddate[4:6], enddate[6:8]))
+    page.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
+
+    for (testkey, testDisplayName) in self.SummaryTests:
+      if testkey in tests.keys():
+        testitem = tests[testkey]
+
+        page.append('<h2 id="%s">%s: %s</h2>\n' % (testkey, testDisplayName, testkey))
+
+        for buildkey in self.PerformanceTBoxes:
+          if buildkey in testitem.keys():
+            builditem = testitem[buildkey]
+
+            if 'osx' in buildkey:
+              platformkey = 'osx'
+            elif 'win' in buildkey:
+              platformkey = 'win'
+            else:
+              platformkey = 'linux'
+
+            page.append('<h3>%s</h3>' % platformkey)
+            page.append('<table>\n')
+            page.append('<tr><th>Time</th><th>Rev #</th><th>Run Time</th><th>&Delta; %</th><th>&Delta; Time</th></tr>\n')
+
+            previousRevision = ''
+            previousTime     = 0
+
+            details = []
+
+            k_dates = builditem.keys()
+            k_dates.sort()
+
+            for datekey in k_dates:
+              dateitem = builditem[datekey]
+
+              k_hours = dateitem.keys()
+              k_hours.sort()
+
+              for hour in k_hours:
+                for datapoint in dateitem[hour]:
+                  revision = datapoint[DP_REVISION]
+                  current  = datapoint[DP_RUNTIME]
+
+                  if previousTime == 0:
+                    previousTime = current
+
+                  c_diff = current - previousTime
+
+                  if previousTime <> 0:
+                    c_perc = (c_diff / previousTime) * 100
+                  else:
+                    c_perc = 0
+
+                  s         = colorDelta(current, previousTime, 0.2)
+                  timeClass = self.colorTime(testkey, current, 0.2)
+
+                    #Time     | Rev # | Run Time | &Delta; % | &Delta; time
+                    #======================================================
+                    #00:43:49 | 7846  | 0.02s    |           |
+                    #01:32:02 | 7856  | 0.01s    | -50%      | -0.01s
+
+                  line =  '<tr><td>%02d:%02d:%02d</td><td>%s</td>' % (datapoint[1].hour,
+                                                                      datapoint[1].minute,
+                                                                      datapoint[1].second, revision)
+                  line += '<td class="number%s">%2.2fs</td>' % (timeClass, current)
+                  line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
+                  line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
+                  line += '</tr>\n'
+
+                  details.append(line)
+
+                  previousTime     = current
+                  previousRevision = revision
+
+            details.reverse()
+            page += details
+
+            page.append('</table>\n')
+                                      
+    page.append('</div>\n')
+
+    pagefile = file(os.path.join(self._options['html_data'], pagename), 'w')
+
+    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.header')):
+      for line in file(os.path.join(self._options['perf_data'], 'index.html.header')):
+        pagefile.write(line)
+
+    for line in page:
+      pagefile.write(line)
+
+    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.footer')):
+      for line in file(os.path.join(self._options['perf_data'], 'index.html.footer')):
+        pagefile.write(line)
+
+    pagefile.close()
+
+
   def generateOutput(self, tests, startdate, enddate):
     self.generateDetailPage('stddev.html', tests, startdate, enddate)
     self.generateSummaryPage('index.html', tests, startdate, enddate)
+    self.generatePerfDetailPage('perfdetail.html', tests, startdate, enddate)
 
   def process(self):
       # check for new .perf files
