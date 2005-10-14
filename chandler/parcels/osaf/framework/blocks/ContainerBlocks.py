@@ -39,6 +39,7 @@ class wxBoxContainer (wxRectangularChild):
             sizer.Clear()
             for childBlock in self.blockItem.childrenBlocks:
                 if childBlock.isShown and isinstance (childBlock, RectangularChild):
+                    assert childBlock.widget, "Trying to add an unrendered block of type %s to the current block" % childBlock.blockName
                     sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 
                                wxRectangularChild.CalculateWXFlag(childBlock), 
