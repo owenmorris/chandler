@@ -76,12 +76,12 @@ class perf:
 
     self.verbose = self._options['verbose']
 
-    self.SummaryTests = [#('', '#1 Startup'),
+    self.SummaryTests = [('startup',                                             '#1 Startup'),
          ('new_event_from_file_menu_for_performance.event_creation',             '#2 New event (menu)'),
          ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', '#3 New event (double click)'),
          ('test_new_calendar_for_performance.collection_creation',               '#4 New calendar'),
          ('importing_3000_event_calendar.import_large_calendar',                 '#5 Import 3k event calendar'),
-         #('', '#6 Startup with 3000 event calendar'),
+         ('startup_with_large_calendar',                                         '#6 Startup with 3k event calendar'),
          ('creating_new_event_from_the_file_menu_after_large_data_import.event_creation', '#7 New event (menu) with 3k event calendar'),
          ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', '#8 New event (double click) with 3k event calendar'),
          ('creating_a_new_calendar_after_large_data_import.collection_creation', '#9 New calendar with 3k event calendar'),
@@ -92,12 +92,12 @@ class perf:
         ]
 
       # all times are in seconds
-    self.SummaryTargets = {#'': 10, 
+    self.SummaryTargets = {'startup':                                           10, 
          'new_event_from_file_menu_for_performance.event_creation':             1,
          'new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view': 1,
          'test_new_calendar_for_performance.collection_creation':               1,
          'importing_3000_event_calendar.import_large_calendar':                 30,
-         #'': 10,
+         'startup_with_large_calendar':                                         10,
          'creating_new_event_from_the_file_menu_after_large_data_import.event_creation': 1,
          'creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view': 1,
          'creating_a_new_calendar_after_large_data_import.collection_creation': 1,
@@ -658,7 +658,8 @@ class perf:
       if testkey in tests.keys():
         testitem = tests[testkey]
 
-        detail.append('<h2>%s: %s</h2>\n' % (testDisplayName, testkey))
+        detail.append('<hr>\n')
+        detail.append('<h2>%s</h2>\n' % (testDisplayName))
 
         platforms = { 'osx':   { 'stddev':   0,
                                  'avg':      0,
@@ -708,30 +709,45 @@ class perf:
 
             detail.append('\n<h3 id="%s_%s">%s</h3>\n' % (testkey, buildkey, buildkey))
             detail.append('<table>\n')
-            detail.append('<tr><th>Time</th><th>Rev #</th><th>Runs</th><th>Median</th></tr>\n')
+            detail.append('<tr><th>Run at</th><th>Rev #</th><th>Time</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
+            previous = 0
+            
             for hour in k_hours:
               for datapoint in dateitem[hour]:
+                current = datapoint[DP_AVERAGE]
                 revision =  datapoint[DP_REVISION]
-                dv_total += datapoint[DP_AVERAGE]
+                dv_total += current
 
-                platformdata['values'].append(datapoint[DP_AVERAGE])
+                platformdata['values'].append(current)
 
-                detail.append('<tr><td>%02d:%02d:%02d</td><td>%s</td><td class="number">%d</td><td class="number">%02.5f</td></tr>\n' %
+                c_diff = current - previous
+
+                if previous <> 0:
+                  c_perc = (c_diff / previous) * 100
+                  deltaClass = colorDelta(current, previous, 0.02/60.0)# bogus std dev
+                else:
+                  c_perc = 0
+                  deltaClass = 'ok'
+                timeClass = self.colorTime(testkey, current*60, 0.02)# bogus std dev, Convert to seconds
+                
+                detail.append('<tr><td>%02d:%02d:%02d</td><td>%s</td><td class="number%s">%02.2fs</td><td class="%s">%+3.0f%%</td><td class="%s">%+1.2fs</td></tr>\n' %
                               (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
-                               revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
-                detail.append('<!-- revision %s runs %d time %02.5f -->\n' % (revision, datapoint[DP_RUNS], datapoint[DP_AVERAGE]))
+                               revision, timeClass, current*60, deltaClass, c_perc, deltaClass, c_diff*60))# Convert to seconds
+                detail.append('<!-- revision %s runs %d time %02.5f -->\n' % (revision, datapoint[DP_RUNS], current*60))# Convert to seconds
 
                 if self._options['debug']:
-                  print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, datapoint[DP_AVERAGE])
+                  print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, current*60) # Convert to seconds
+                
+                previous = current
 
             (v, n, avg) = self.standardDeviation(platformdata['values'])
 
             #print "average: %02.5f count: %d stddev: %02.5f" % (avg, n, v)
-            page.append('<!-- build: %s avg: %02.5f count: %d stddev: %02.5f -->\n' % (buildkey, avg, n, v))
+            page.append('<!-- build: %s avg: %02.5fs count: %d stddev: %02.5fs -->\n' % (buildkey, avg*60, n, v*60))# Convert to seconds
 
             detail.append('</table>\n')
-            detail.append('<p>%d items in days sample for an median of %02.5f and a standard deviation of %02.5f</p>\n' % (n, avg, v))
+            detail.append('<p>%d items in days sample for an average of %02.2fs and a standard deviation of %02.2fs</p>\n' % (n, avg*60, v*60))# Convert to seconds
 
             platformdata['stddev']   = v
             platformdata['avg']      = avg
@@ -758,7 +774,7 @@ class perf:
         tbox.append(summaryline)
 
         graph += graphdata
-
+        
     page.append('</table>\n')
                                       
     page.append('<p>The Test name link will take you to the detail information that was \n')
