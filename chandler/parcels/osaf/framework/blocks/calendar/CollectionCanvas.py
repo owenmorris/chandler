@@ -431,7 +431,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # solutions...
         if event.ButtonDown():
             self.GrabFocusHack()
-            self.SetPanelFocus()
 
         position = event.GetPosition()
         unscrolledPosition = self.CalcUnscrolledPosition(position)

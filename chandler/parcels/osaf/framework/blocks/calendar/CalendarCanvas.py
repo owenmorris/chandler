@@ -819,7 +819,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
     def OnInit(self):
         super(wxCalendarCanvas, self).OnInit()
-        self.editor = wxInPlaceEditor(self, -1, "", wx.DefaultPosition, (-1,-1))
+        self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus)
         
     def OnScroll(self, event):
         self.Refresh()
@@ -848,8 +848,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.editor.SetItem(box.GetItem(), position, size, styles.eventLabelFont.GetPointSize())
 
     def GrabFocusHack(self):
-        self.editor.SaveItem()
-        self.editor.Hide()
+        self.editor.SaveAndHide()
         
     def RefreshCanvasItems(self, resort=False):
         self.RebuildCanvasItems(resort)
@@ -1026,7 +1025,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
-    def __init__(self, *arguments, **keywords):
+    def __init__(self, parent, defocusCallback=None, *arguments, **keywords):
         
         # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
         # and GTK does not. Further, if GTK is not multiline, then the single
@@ -1065,10 +1064,15 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
                 style |= wx.TE_PROCESS_ENTER 
                                              
 
-        super(wxInPlaceEditor, self).__init__(style=style,
+        super(wxInPlaceEditor, self).__init__(parent,
+                                              -1, "", wx.DefaultPosition,
+                                              (-1, -1),
+                                              style=style,
                                               *arguments, **keywords)
-        
+
+        self.defocusCallback = defocusCallback
         self.item = None
+        self._unfocusing = False
         self.Hide()
 
         #self.editor.Bind(wx.EVT_CHAR, self.OnChar)
@@ -1082,17 +1086,28 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
                 proxy = RecurrenceDialog.getProxy(u'ui', self.item, cancelCallback=parentBlock.RefreshCanvasItems)
                 proxy.displayName = self.GetValue()
 
+    def ResetFocus(self):
+        if self.defocusCallback:
+            self.defocusCallback()
+        
+    def SaveAndHide(self):
+        self.SaveItem()
+        self._unfocusing = True
+        self.Hide()
+        self.ResetFocus()
+        self._unfocusing = False
+        
     def OnEnterPressed(self, event):
         """
         for now, no need to display
         """
-        self.SaveItem()
-        self.Hide()
+        self.SaveAndHide()
         event.Skip()
 
     def OnKillFocus(self, event):
         super(wxInPlaceEditor, self).OnKillFocus(event)
-        self.OnEnterPressed(event)
+        if not self._unfocusing:
+            self.SaveAndHide()
 
     def OnChar(self, event):
         if (event.KeyCode() == wx.WXK_RETURN):
