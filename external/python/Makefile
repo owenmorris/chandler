@@ -1,7 +1,7 @@
 
 VERSION=2.4.1
 RELVER=$(VERSION)-2
-BZIP2VERSION=1.0.2
+BZIP2VERSION=1.0.3
 ZLIBVERSION=1.2.1
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -115,12 +115,11 @@ binaries:
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyc" | xargs rm -f
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyo" | xargs rm -f
 	cd $(BUILD_ROOT); \
-      tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
-          $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
-          --exclude site-packages \
-          --exclude test
-	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+        tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
+            --exclude site-packages \
+            --exclude test \
+                  $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
+                  $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib
 
 else
 
@@ -146,10 +145,9 @@ binaries:
 	find $(BUILD_ROOT)/$(SNAP)/Library/Frameworks/Python.framework -name "*.pyo" | xargs rm -f
 	tar -C $(BUILD_ROOT) \
             -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/Library/Frameworks/Python.framework \
             --exclude site-packages \
-            --exclude test
-	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+            --exclude test \
+                  $(SNAP)/Library/Frameworks/Python.framework
 
 else
 
@@ -170,15 +168,14 @@ build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 
 binaries: 
 	cd $(BUILD_ROOT); \
-      find $(SNAP)/lib/python*/ -name "*.pyc" | xargs rm -f; \
-      find $(SNAP)/lib/python*/ -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/bin/idle $(SNAP)/bin/python* \
-          $(SNAP)/lib/python* \
-          $(SNAP)/include/python* \
-          --exclude site-packages \
-          --exclude test;
-	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+	find $(SNAP)/lib/python*/ -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/lib/python*/ -name "*.pyo" | xargs rm -f; \
+        tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
+            --exclude site-packages \
+            --exclude test \
+                  $(SNAP)/bin/idle $(SNAP)/bin/python* \
+                  $(SNAP)/lib/python* \
+                  $(SNAP)/include/python*
 
 sources:: bzip2-$(BZIP2VERSION).tar.gz
 
@@ -197,15 +194,12 @@ apply: patches-$(VERSION)
 
 Python-$(VERSION).tar.bz2:
 	$(CURL) http://builds.o11n.org/external/Python-$(VERSION).tar.bz2
-#	$(CURL) http://builds.o11n.org/external/Python-$(VERSION).tar.bz2.md5
 
 bzip2-$(BZIP2VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/bzip2-$(BZIP2VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/bzip2-$(BZIP2VERSION).tar.gz.md5
 
 zlib-$(ZLIBVERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/zlib-$(ZLIBVERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/zlib-$(ZLIBVERSION).tar.gz.md5
 
 Python-$(VERSION)-expanded: Python-$(VERSION).tar.bz2
 	bunzip2 -c Python-$(VERSION).tar.bz2 | tar -xvf -
@@ -221,7 +215,6 @@ zlib-$(ZLIBVERSION)-expanded: zlib-$(ZLIBVERSION).tar.gz
 
 upload: python-$(SNAP)-$(RELVER).tar.gz
 	scp python-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp python-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 install: python-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf python-$(SNAP)-$(RELVER).tar.gz
