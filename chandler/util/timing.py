@@ -104,18 +104,18 @@ def results(verbose=True):
     totalCounts = 0
     totalTime = 0.0
     revision = getattr(version, 'buildRevision', '0')
-    bannerFormat = "         %-30s   %6s   %6s   %8s   %8s"
+    bannerFormat = "         %-30s   %6s   %8s"
     lines = bannerFormat % \
-     ("-----------------------------", "------", "------", "--------", "--------")
-    dataFormat = "OSAF_QA: %-30s | %s | %6d | %6.5f | %6.5f"
+     ("-----------------------------", "------", "--------")
+    dataFormat = "OSAF_QA: %-30s | %s | %6.5f"
     if verbose:
-        print bannerFormat % ("Operation", "Rev #", "Count", "Total", "Avg")
+        print bannerFormat % ("Operation", "Rev #", "Total")
         print lines
     for key in keys:
         (name, count, time, avg) = trackers[key].results()
         totalCounts += count
         totalTime += time
-        print dataFormat % (name, revision, count, time, avg)
+        print dataFormat % (name, revision, time / 60)
     if verbose:
         print lines
-        print dataFormat % ("Totals:", revision, totalCounts, totalTime, totalTime/totalCounts)
+        print dataFormat % ("Totals:", revision, totalTime / 60)
