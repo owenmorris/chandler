@@ -371,7 +371,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             DrawWrappedText(dc, timeString, timeRect)
 
                         # add some space below the time
-                        self.timeHeight += 3
+                        # (but on linux there isn't any room)
+                        if '__WXGTK__' not in wx.PlatformInfo:
+                            self.timeHeight += 3
                         y += self.timeHeight
                     else:	
                         self.timeHeight = 0	
