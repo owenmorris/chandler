@@ -679,7 +679,7 @@ class CalendarEventMixin(RemindableMixin):
         master = self.getMaster()
 
         if not master.hasLocalAttributeValue('rruleset'):
-            if master.isBetween(after, before):
+            if master.isBetween(after, before, inclusive):
                 return [master]
             else: return []
 
