@@ -963,9 +963,10 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         # the legend border is major
         dc.SetPen(wx.Pen(styles.majorLineColor, self.legendBorderWidth))
         
-        # thick pens with the line centered at x. Offset the legend border
-        # because we want the righthand side of the line to be at X
-        legendBorderX = drawInfo.dividerPositions[0] - self.legendBorderWidth/2
+        # thick pens with the line centered at x - 1. Offset the
+        # legend border because we want the righthand side of the line
+        # to be at x - 1
+        legendBorderX = drawInfo.dividerPositions[0] - self.legendBorderWidth/2 - 1
         dc.DrawLine(legendBorderX, 0,
                     legendBorderX, self.size.height)
         

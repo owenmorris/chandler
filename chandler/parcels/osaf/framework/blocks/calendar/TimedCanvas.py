@@ -169,7 +169,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         self.DrawDayLines(dc)
         
-        legendBorderX = self.xOffset - self.legendBorderWidth/2
+        legendBorderX = self.xOffset - self.legendBorderWidth/2 - 1
         pen = wx.Pen(styles.legendColor, self.legendBorderWidth)
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
