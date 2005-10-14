@@ -107,6 +107,8 @@ def initOptions(**kwds):
         'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
         'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
+        'catsProfile':('',   '--catsProfile','b', False, None, 'boolean to generate hotshot profile'),
+        'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
         'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
         'askCreate':  ('',   '--askCreate',  'b', False, None, 'Offer to create a new repository'),

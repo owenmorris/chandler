@@ -2,26 +2,24 @@ from datetime import datetime, timedelta
 import time
 import string
 import version
-
+import application.Globals as Globals
+import hotshot
 
 def QALogger(filepath=None,description="No description"):
     ''' Factory method for QALogger '''
-    try:
-        TestLogger.logger
-    except AttributeError:
+    qaLogger = getattr(TestLogger, 'logger', None)
+    if qaLogger is None:
+        # never created, or already destructed by Close()
         return TestLogger(filepath=filepath,description=description)
     else:
-        if TestLogger.logger == None: # TestLogger has been destructed by the Close() method
-            return TestLogger(filepath=filepath,description=description)
-        else:
-            TestLogger.logger.toClose = False
-            TestLogger.logger.testcaseStartDate = datetime.now()
-            TestLogger.logger.Print("")
-            TestLogger.logger.Print("----- Testcase %s = %s -----" %(len(TestLogger.logger.testcaseList)+1, description))
-            TestLogger.logger.subTestcaseDesc = description
-            return TestLogger.logger
+        qaLogger.toClose = False
+        qaLogger.Print("")
+        qaLogger.Print("----- Testcase %s = %s -----" %(len(qaLogger.testcaseList)+1, description))
+        qaLogger.subTestcaseDesc = description
+        qaLogger.testcaseStartDate = datetime.now()
+        return qaLogger
 
-class TestLogger:        
+class TestLogger:
     def __init__(self,filepath=None,description="No description"):
         self.startDate = datetime.now()
         if filepath:
@@ -53,6 +51,16 @@ class TestLogger:
         self.Print("******* Test Script : %s (date : %s) *******" %(self.mainDescription, self.startDate))
         # TestLogger.logger init
         TestLogger.logger = self
+        # Turn on profiler if in profile mode
+        if Globals.options.catsProfile:
+            self.profiler = hotshot.Profile('CATS.prof')
+        else:
+            self.profiler = None
+        # Open the cats log if requested
+        if Globals.options.catsPerfLog:
+            self.catsPerfLog = open(Globals.options.catsPerfLog, 'wt')
+        else:
+            self.catsPerfLog = None
 
     def Reset(self):
         ''' Reset all the attributes relative to a testcase '''
@@ -84,9 +92,9 @@ class TestLogger:
                 testcaseDesc = string.join(string.split(self.subTestcaseDesc, " "), "_")
                 description = "%s.%s" %(description, testcaseDesc)
             description = "%s.%s" %(description, actionDesc)
-        elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
-        self.Print("OSAF_QA: %s | %s | %s | %s | %s" %(description, version.buildRevision, 1, elapsed_min, elapsed_min)) 
-        print("OSAF_QA: %s | %s | %s | %s | %s" %(description, version.buildRevision, 1, elapsed_min, elapsed_min))
+        elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
+        self.Print("OSAF_QA: %s | %s | %s" %(description, version.buildRevision, elapsed_secs)) 
+        print("OSAF_QA: %s | %s | %s" %(description, version.buildRevision, elapsed_secs))
         
     def Start(self,string):
         ''' Start the action timer  '''
@@ -96,24 +104,32 @@ class TestLogger:
         self.checked = False
         self.nbAction = self.nbAction + 1
         self.actionDescription = string
-        self.actionStartDate = self.actionEndDate = datetime.now()
         #some init printing
         self.Print("")
         self.Print("-------------------------------------------------------------------------------------------------")
+        if self.profiler is not None:
+            self.profiler.start()
+        self.actionStartDate = self.actionEndDate = datetime.now()
 
     def Stop(self):
         ''' Stop the action timer  '''
         self.actionEndDate = datetime.now()
+        if self.profiler is not None:
+            self.profiler.stop()
         #report the timing information
         self.Print("Action = "+self.actionDescription)
         if self.actionStartDate == None: # Start method has not been called
             self.Print("!!! No time informations available !!!")
         else:
             elapsed = self.actionEndDate - self.actionStartDate
+            elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
             self.Print("Start date (before %s) = %s" %(self.actionDescription, self.actionStartDate))
             self.Print("End date (after %s) = %s" %(self.actionDescription, self.actionEndDate))
-            self.Print("Time Elapsed = %s.%s seconds" %(elapsed.seconds, elapsed.microseconds))
+            self.Print("Time Elapsed = %s seconds" % elapsed_secs)
             self.PrintTBOX(elapsed, "Action")
+            if self.catsPerfLog is not None:
+                self.catsPerfLog.write("%s" % elapsed_secs)
+                self.catsPerfLog.close()
         #reset timing infos
         self.actionStartDate = self.actionEndDate = None
         
@@ -156,15 +172,19 @@ class TestLogger:
         self.checked = bool
     
     def Close(self, quit=True):
+        now = datetime.now()
+        if self.profiler is not None:
+            self.profiler.close()
+            self.profiler = None
         if self.toClose: # The file must close (time to report a summary)
             TestLogger.logger = None
-            now = datetime.now()
             elapsed = now - self.startDate
+            elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
             self.Print("")
             self.Print("++++++++++++++++++++++++SUMMARY++++++++++++++++++++++++")
             self.Print("Start date (before %s test script) = %s" %(self.mainDescription, self.startDate))
             self.Print("End date (after %s test script) = %s" %(self.mainDescription, now))
-            self.Print("Time Elapsed = %s.%s seconds" %(elapsed.seconds, elapsed.microseconds))
+            self.Print("Time Elapsed = %s seconds" % elapsed_secs)
             self.Print("")
             #display the TestSuite status summary
             if not len(self.testcaseList) == 0:
@@ -205,19 +225,19 @@ class TestLogger:
                 self.Print("Status : %s testcase %s" %(self.mainDescription, status))
 
             # Tindebox printing
-            # convert the elapsed time in minutes
-            elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
+            # compute the elapsed time in seconds
+            elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
             description = string.join(string.split(self.mainDescription, " "), "_")
             self.Print("")
             self.Print("#TINDERBOX# Testname = %s" %description)    
             self.Print("#TINDERBOX# Status = %s" %status)
-            self.Print("#TINDERBOX# Time elapsed = %s (minutes)" %elapsed_min)
+            self.Print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
             self.PrintTBOX(elapsed)
             self.Print("")
             self.Print("*******               End of Report               *******")
             print("#TINDERBOX# Testname = %s" %description)    
             print("#TINDERBOX# Status = %s" %status)
-            print("#TINDERBOX# Time elapsed = %s (minutes)" %elapsed_min)
+            print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
             if not self.inTerminal:
                 # close the file
                 self.File.close()
@@ -235,12 +255,12 @@ class TestLogger:
                     status = "FAIL"
                 self.testcaseList.append((self.subTestcaseDesc,status))
             # Test case status
-            now = datetime.now()
             elapsed = now - self.testcaseStartDate
+            elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
             self.Print("-----  %s summary  -----" %self.subTestcaseDesc)
             self.Print("Start date (before %s testcase) = %s" %(self.subTestcaseDesc, self.testcaseStartDate))
             self.Print("End date (after %s testcase) = %s" %(self.subTestcaseDesc, now))
-            self.Print("Time Elapsed = %s.%s seconds" %(elapsed.seconds, elapsed.microseconds))
+            self.Print("Time Elapsed = %s seconds" % elapsed_secs)
             self.Print("Testcase Name= %s" %self.subTestcaseDesc)
             self.Print("Testcase Status = %s" %status)
             self.PrintTBOX(elapsed, "Testcase")
