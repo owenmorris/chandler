@@ -134,18 +134,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     Base class for calendar items. Covers:
      - editor position & size
      - text wrapping
-     - conflict management
     """
     
     timeHeight = 0
     
     def __init__(self, *args, **keywords):
         super(CalendarCanvasItem, self).__init__(*args, **keywords)
-        self._parentConflicts = []
-        self._childConflicts = []
-        # the rating of conflicts - i.e. how far to indent this.  Just
-        # a simple zero-based ordering - not a pixel count!
-        self._conflictDepth = 0
 
         # this is supposed to be set in Draw(), but sometimes this
         # object seems to exist before Draw() is called
@@ -198,17 +192,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return anyTime or allDay
              
                 
-    def AddConflict(self, child):	
-        """	
-        Register a conflict with another event - this should only be done	
-        to add conflicts with 'child' events, because the child is notified	
-        about the parent conflicts	
-        """
-        # we might want to keep track of the inverse conflict as well,
-        # for conflict bars
-        child._parentConflicts.append(self)
-        self._childConflicts.append(child)
-        
     @staticmethod
     def FindFirstGapInSequence(seq):
         """
@@ -226,41 +209,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # didn't find any gaps, so just put it one higher
         return index+1
         
-    def CalculateConflictDepth(self):
-        """
-        Calculate the 'depth', or indentation level, of the current item	
-        This is done with the assumption that all parent conflicts have	
-        already had their conflict depths calculated.	
-        """
-        # We'll find out the depth of all our parents, and then
-        # see if there's an empty gap we can fill
-        # this relies on parentDepths being sorted, which 
-        # is true because the conflicts are added in 
-        # the same order as the they appear in the calendar
-        parentDepths = [parent._conflictDepth for parent in self._parentConflicts]
-        self._conflictDepth = self.FindFirstGapInSequence(parentDepths)
-        return self._conflictDepth
-        
-    def GetIndentLevel(self):
-        """
-        The calculated conflictdepth is the indentation level
-        """
-        return self._conflictDepth
-        
-    def GetMaxDepth(self):	
-        """	
-        This determines how 'deep' this item is: the maximum	
-        Indent Level of ALL items that CONFLICT with this one.	
-        e.g. 3 items might conflict, and they all might be indented by	
-        one due to an earlier conflict, so the maximum 'depth' is 4.	
-        """
-        maxparents = maxchildren = 0
-        if self._childConflicts:
-            maxchildren = max([child.GetIndentLevel() for child in self._childConflicts])
-        if self._parentConflicts:
-            maxparents = max([parent.GetIndentLevel() for parent in self._parentConflicts])
-        return max(self.GetIndentLevel(), maxchildren, maxparents)
-
     def CanDrag(self):
         item = self.GetItem()
         return (item.isAttributeModifiable('startTime') and

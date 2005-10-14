@@ -298,22 +298,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
             # since these are sorted, we only have to check the items 
             # that come after the current one
-            for innerItem in self.canvasItemList[itemIndex+1:]:
-                # we know we're done when we stop hitting conflicts
-                # 
-                # have a guarantee that innerItem.startTime >= item.endTime
-                # Since item.endTime < item.startTime, we know we're
-                # done
-                if Calendar.datetimeOp(innerItem.GetItem().startTime, '>=',
-                             canvasItem.GetItem().endTime):
-                     break
-                
-                # item and innerItem MUST conflict now
-                canvasItem.AddConflict(innerItem)
-            
-            # we've now found all conflicts for item, do we need to calculate
-            # depth or anything?
-            # first theory: leaf children have a maximum conflict depth?
+
+            # XXX should I use itertools to avoid excess temp lists?
+            # That would be islice(self.canvasItemList, itemIndex+1, None)
+            canvasItem.FindConflicts(self.canvasItemList[itemIndex+1:])
+
+            # We've found all past and future conflicts of this one,
+            # so count of up the conflicts
             canvasItem.CalculateConflictDepth()
 
     def OnKeyPressed(self, event):
@@ -581,6 +572,16 @@ class TimedCanvasItem(CalendarCanvasItem):
         # need it for drawing hints.. is there a better way?
         self._calendarCanvas = calendarCanvas
 
+        # conflict management - the list of items that this item
+        # conflicts with, that begin either before or after this event
+        # begins
+        self._beforeConflicts = []
+        self._afterConflicts = []
+        
+        # the rating of conflicts - i.e. how far to indent this.  Just
+        # a simple zero-based ordering - not a pixel count!
+        self._conflictDepth = 0
+
     def UpdateDrawingRects(self, startTime=None, endTime=None):
 
         # allow caller to override start/end time
@@ -752,4 +753,74 @@ class TimedCanvasItem(CalendarCanvasItem):
                      int(duration * calendarCanvas.hourHeight))
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
+
+    def FindConflicts(self, possibleConflicts):
+        """
+        Search through the list of possible conflicts, which need to
+        be sorted such that any possible conflicts are at the start of
+        the list
+        """
+        for conflict in possibleConflicts:
+            # we know we're done when we stop hitting conflicts
+            # 
+            # have a guarantee that conflict.startTime >= item.endTime
+            # Since item.endTime < item.startTime, we know we're
+            # done
+
+            # plus, we also have to make sure that two zero-length
+            # events that have the same start time still conflict
+            if (Calendar.datetimeOp(conflict.GetItem().startTime, '>=',
+                                   self.GetItem().endTime) and
+                Calendar.datetimeOp(conflict.GetItem().startTime, '!=',
+                                    self.GetItem().startTime)):
+                 break
+
+            # item and conflict MUST conflict now
+            self.AddConflict(conflict)
+            
+    def AddConflict(self, child):	
+        """	
+        Register a conflict with another event - this should only be done
+        to add conflicts with 'child' events, because the child is notified
+        about the parent conflicts	
+        """
+        # we might want to keep track of the inverse conflict as well,
+        # for conflict bars
+        child._beforeConflicts.append(self)
+        self._afterConflicts.append(child)
+        
+    def CalculateConflictDepth(self):
+        """
+        Calculate the 'depth', or indentation level, of the current item
+        This is done with the assumption that all parent conflicts have	
+        already had their conflict depths calculated.	
+        """
+        # We'll find out the depth of all our parents, and then
+        # see if there's an empty gap we can fill
+        # this relies on parentDepths being sorted, which 
+        # is true because the conflicts are added in 
+        # the same order as the they appear in the calendar
+        parentDepths = [parent._conflictDepth for parent in self._beforeConflicts]
+        self._conflictDepth = self.FindFirstGapInSequence(parentDepths)
+        return self._conflictDepth
+        
+    def GetIndentLevel(self):
+        """
+        The calculated conflictdepth is the indentation level
+        """
+        return self._conflictDepth
+        
+    def GetMaxDepth(self):	
+        """	
+        This determines how 'deep' this item is: the maximum	
+        Indent Level of ALL items that CONFLICT with this one.	
+        e.g. 3 items might conflict, and they all might be indented by	
+        one due to an earlier conflict, so the maximum 'depth' is 4.	
+        """
+        maxparents = maxchildren = 0
+        if self._afterConflicts:
+            maxchildren = max([child.GetIndentLevel() for child in self._afterConflicts])
+        if self._beforeConflicts:
+            maxparents = max([parent.GetIndentLevel() for parent in self._beforeConflicts])
+        return max(self.GetIndentLevel(), maxchildren, maxparents)
 
