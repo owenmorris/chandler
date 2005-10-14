@@ -213,6 +213,10 @@ class RefList(LinkedMap, Indexed):
             if alias is not None:
                 self.setAlias(item, alias)
         else:
+            if alias is not None:
+                aliasedKey = self.resolveAlias(alias)
+                if aliasedKey is not None:
+                    raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
             self._item._references._setValue(self._name, item, self._otherName,
                                              False, 'list', alias)
 

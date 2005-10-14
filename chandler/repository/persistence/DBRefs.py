@@ -208,7 +208,7 @@ class DBRefList(RefList, PersistentRefs):
     def resolveAlias(self, alias, load=True):
 
         key = RefList.resolveAlias(self, alias, load)
-        if key is None and not self._flags & LinkedMap.NEW:
+        if key is None and load and not self._flags & LinkedMap.NEW:
             key = PersistentRefs.resolveAlias(self, alias, load)
 
         return key

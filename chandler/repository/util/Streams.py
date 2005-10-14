@@ -295,6 +295,7 @@ class CompressedInputStream(object):
 
     def close(self):
 
+        self.decompressor = None
         self.inputStream.close()
 
 

@@ -189,8 +189,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                     self._mergeItems(self._version, newVersion,
                                      histNotifications, unloads, also, mergeFn)
                 except:
-                    self.logger.warn('merge failed, canceling changes')
-                    self.cancel()
                     raise
                 else:
                     # unload items unchanged until changed by merging
