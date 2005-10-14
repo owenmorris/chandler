@@ -1,5 +1,7 @@
 
 import hotshot
+from time import clock
+from datetime import timedelta
 
 class Profile(object):
     """
@@ -57,4 +59,14 @@ def QuickProfile(profilefile):
         return profiled_caller
 
     return profiled_descriptor
+
+def Timed(method):
+    def timed_call(*args, **kwds):
+        oldtime = clock()
+        result = method(*args, **kwds)
+        newtime = clock()
+        print "Call to %s = %.3f" % (method.__name__, newtime-oldtime)
+        return result
+    timed_call.__name__ = method.__name__
+    return timed_call
 
