@@ -209,8 +209,10 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     # Now, we try to PUT a small test file on the server. If that
     # fails, we're going to say the user only has read-only access.
     try:
-        tmpResource = handle.blockUntil(topLevelResource.createFile,
-                                testFilename, body='Write access test')
+        tmpResource = handle.getResource(topLevelResource.path + testFilename)
+        body = "Write access test"
+        handle.blockUntil(tmpResource.put, body, checkETag=False,
+                          contentType="text/plain")
     except zanshin.webdav.WebDAVError, e:
         return (READ_ONLY, e.status)
         
