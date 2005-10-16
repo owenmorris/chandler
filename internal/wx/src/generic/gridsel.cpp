@@ -800,10 +800,10 @@ void wxGridSelection::ClearSelection()
     wxRect r;
     wxGridCellCoords coords1, coords2;
 
-    // deselect all invidiual cells and update the screen
+    // deselect all individual cells and update the screen
     if ( m_selectionMode == wxGrid::wxGridSelectCells )
     {
-        while( ( n = m_cellSelection.GetCount() ) > 0)
+        while ( ( n = m_cellSelection.GetCount() ) > 0)
         {
             n--;
             coords1 = m_cellSelection[n];
@@ -812,15 +812,16 @@ void wxGridSelection::ClearSelection()
             {
                 r = m_grid->BlockToDeviceRect( coords1, coords1 );
                 ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
+
 #ifdef __WXMAC__
-                ((wxWindow *)m_grid->m_gridWin)->Update();
+//                ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
             }
         }
     }
 
     // deselect all blocks and update the screen
-    while( ( n = m_blockSelectionTopLeft.GetCount() ) > 0)
+    while ( ( n = m_blockSelectionTopLeft.GetCount() ) > 0)
     {
         n--;
         coords1 = m_blockSelectionTopLeft[n];
@@ -831,8 +832,9 @@ void wxGridSelection::ClearSelection()
         {
             r = m_grid->BlockToDeviceRect( coords1, coords2 );
             ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
+
 #ifdef __WXMAC__
-            ((wxWindow *)m_grid->m_gridWin)->Update();
+//            ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
         }
     }
@@ -840,7 +842,7 @@ void wxGridSelection::ClearSelection()
     // deselect all rows and update the screen
     if ( m_selectionMode != wxGrid::wxGridSelectColumns )
     {
-        while( ( n = m_rowSelection.GetCount() ) > 0)
+        while ( ( n = m_rowSelection.GetCount() ) > 0)
         {
             n--;
             int row = m_rowSelection[n];
@@ -850,8 +852,9 @@ void wxGridSelection::ClearSelection()
                 r = m_grid->BlockToDeviceRect( wxGridCellCoords( row, 0 ),
                                                wxGridCellCoords( row, m_grid->GetNumberCols() - 1 ) );
                 ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
+
 #ifdef __WXMAC__
-                ((wxWindow *)m_grid->m_gridWin)->Update();
+//                ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
             }
         }
@@ -860,7 +863,7 @@ void wxGridSelection::ClearSelection()
     // deselect all columns and update the screen
     if ( m_selectionMode != wxGrid::wxGridSelectRows )
     {
-        while( ( n = m_colSelection.GetCount() ) > 0)
+        while ( ( n = m_colSelection.GetCount() ) > 0)
         {
             n--;
             int col = m_colSelection[n];
@@ -870,8 +873,9 @@ void wxGridSelection::ClearSelection()
                 r = m_grid->BlockToDeviceRect( wxGridCellCoords( 0, col ),
                                                wxGridCellCoords( m_grid->GetNumberRows() - 1, col ) );
                 ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
+
 #ifdef __WXMAC__
-                ((wxWindow *)m_grid->m_gridWin)->Update();
+//                ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
             }
         }
