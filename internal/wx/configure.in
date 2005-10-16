@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1081 2005/10/10 16:28:58 MW Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1082 2005/10/15 19:16:59 MW Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1081 2005/10/10 16:28:58 MW Exp $
+dnl Version: $Id: configure.in,v 1.1082 2005/10/15 19:16:59 MW Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -6969,6 +6969,15 @@ if test "x$INTELCXX" = "xyes" ; then
 elif test "$GXX" = yes ; then
     dnl CXXWARNINGS="-Wall -W -Wcast-qual -Werror"
     CXXWARNINGS="-Wall -Wundef -Wno-ctor-dtor-privacy" 
+
+    dnl -Wno-format is a terrifically useful warning, however mingw warns
+    dnl whenever the I64 format specifier is used for long long.
+    dnl FIXME: it we detected when cygwin is using -mno-cygwin we could avoid
+    dnl disabling it for cygwin.
+    case "${host}" in
+        *-*-cygwin* | *-*-mingw32* )
+            CXXWARNINGS="$CXXWARNINGS -Wno-format"
+    esac
 fi
 
 EXTRA_CFLAGS="$WXDEBUG $WXODBCFLAG $PROFILE $OPTIMISE"

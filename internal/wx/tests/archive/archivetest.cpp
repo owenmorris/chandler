@@ -2,7 +2,7 @@
 // Name:        tests/archive/archive.cpp
 // Purpose:     Test the archive classes
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: archivetest.cpp,v 1.12 2005/04/05 16:10:48 ABX Exp $
+// RCS-ID:      $Id: archivetest.cpp,v 1.13 2005/10/15 19:00:12 MW Exp $
 // Copyright:   (c) 2004 Mike Wetherell
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ using std::auto_ptr;
     (__GNUC__ >= 3 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95))
 #   define WXARC_MEMBER_TEMPLATES
 #endif
-#if defined _MSC_VER && _MSC_VER >= 1310
+#if defined _MSC_VER && _MSC_VER >= 1310 && !defined __WIN64__
 #   define WXARC_MEMBER_TEMPLATES
 #endif
 #if defined __BORLANDC__ && __BORLANDC__ >= 0x530

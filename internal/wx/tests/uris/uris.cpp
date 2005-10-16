@@ -3,7 +3,7 @@
 // Purpose:     wxURI unit test
 // Author:      Ryan Norton
 // Created:     2004-08-14
-// RCS-ID:      $Id: uris.cpp,v 1.13 2005/06/17 11:27:43 ABX Exp $
+// RCS-ID:      $Id: uris.cpp,v 1.14 2005/10/15 19:04:29 MW Exp $
 // Copyright:   (c) 2004 Ryan Norton
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -345,6 +345,9 @@ void URITestCase::URLCompat()
     CPPUNIT_ASSERT( test.GetScheme() == wxT("file") );
     CPPUNIT_ASSERT( test.GetPath() == wxT("%22myf%22ile.txt") );
 
+    // these could be put under a named registry since they take some
+    // time to complete
+#if 0
     // Test problem urls (reported not to work some time ago by a user...)
     for ( size_t i = 0; i < WXSIZEOF(pszProblemUrls); ++i )
     {
@@ -370,6 +373,7 @@ void URITestCase::URLCompat()
 
         delete is;
     }
+#endif
 }
 
 #if wxUSE_PROTOCOL_HTTP

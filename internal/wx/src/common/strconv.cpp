@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.169 2005/09/26 13:48:01 ABX Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.171 2005/10/15 19:11:05 MW Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -77,6 +77,10 @@
 #endif
 
 #define TRACE_STRCONV _T("strconv")
+
+#if SIZEOF_WCHAR_T == 2
+    #define WC_UTF16
+#endif
 
 // ============================================================================
 // implementation

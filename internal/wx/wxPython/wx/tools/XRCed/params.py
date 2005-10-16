@@ -2,7 +2,7 @@
 # Purpose:      Classes for parameter introduction
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      22.08.2001
-# RCS-ID:       $Id: params.py,v 1.16 2005/05/26 21:14:05 RD Exp $
+# RCS-ID:       $Id: params.py,v 1.17 2005/10/14 16:16:37 ROL Exp $
 
 import string
 import os.path
@@ -598,7 +598,7 @@ class ParamContentCheckList(ParamContent):
         if dlg.ShowModal() == wxID_OK:
             value = []
             for i in range(dlg.list.GetCount()):
-                value.append((dlg.list.GetString(i), dlg.list.IsChecked(i)))
+                value.append((dlg.list.GetString(i), int(dlg.list.IsChecked(i))))
             # Add ignored flags
             self.SetValue(value)
             self.SetModified()

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.h,v 1.206 2005/08/10 21:24:42 MW Exp $
+// RCS-ID:      $Id: string.h,v 1.207 2005/10/15 19:16:49 MW Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -955,6 +955,14 @@ public:
       // insert an unsigned long into string
   wxString& operator<<(unsigned long ul)
     { return (*this) << Format(_T("%lu"), ul); }
+#if defined wxLongLong_t && !defined wxLongLongIsLong
+      // insert a long long if they exist and aren't longs
+  wxString& operator<<(wxLongLong_t ll)
+    { return (*this) << Format(_T("%") wxLongLongFmtSpec _T("d"), ll); }
+      // insert an unsigned long long
+  wxString& operator<<(wxULongLong_t ull)
+    { return (*this) << Format(_T("%") wxLongLongFmtSpec _T("u"), ull); }
+#endif
       // insert a float into string
   wxString& operator<<(float f)
     { return (*this) << Format(_T("%f"), f); }
