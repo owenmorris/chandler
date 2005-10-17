@@ -231,6 +231,7 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
         self.Bind(wx.EVT_TOOL, self.OnCommand, id=-1)
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
