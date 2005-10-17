@@ -3,7 +3,7 @@ include ../Makefile.inc
 
 # version info
 VERSION=2.6.2.0
-RELVER=$(VERSION)-19
+RELVER=$(VERSION)-20
 WXMAJORVERSIONCOMPACT=26
 
 SRC=$(INTERNAL)/wx
