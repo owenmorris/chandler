@@ -1661,7 +1661,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         Sets a bunch of drawing variables.  Some more drawing variables are created lazily
         outside of this function.
         """
-        self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
 
         self.size = self.GetSize()
         

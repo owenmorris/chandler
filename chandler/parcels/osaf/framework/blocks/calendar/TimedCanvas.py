@@ -37,7 +37,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self._bgSelectionDragEnd = True
 
         self.size = self.GetSize()
-        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
         self.size.height = self.hourHeight * 24
         self.SetVirtualSize(self.size)
 
@@ -91,7 +91,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # FIXME: on wxPython-Mac v2.6.0, this returns negative and otherwise bogus dimension values: e.g., [-15, 960]
         #self.size = self.GetVirtualSize()
         self.size = self.GetSize()
-        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) +1
         self.size.height = self.hourHeight * 24
         self.SetVirtualSize(self.size)
 
@@ -131,7 +131,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         # Paint the entire background
         dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
+        dc.DrawRectangle(0, 0, self.size.width+1, self.size.height + 10)
 
         self.ShadeToday(dc)
         self.DrawBackgroundSelection(dc)
@@ -606,7 +606,7 @@ class TimedCanvasItem(CalendarCanvasItem):
 
         self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
                                                           startTime, endTime,
-                                                          width, indent))
+                                                          width+1, indent))
         self._bounds = self._boundsRects[0]
 
         r = self._boundsRects[-1]
@@ -752,7 +752,7 @@ class TimedCanvasItem(CalendarCanvasItem):
                     (calendarCanvas.dayWidth,
                      int(duration * calendarCanvas.hourHeight))
         
-        return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
+        return wx.Rect(startPosition.x, startPosition.y, cellWidth+1, cellHeight+1)
 
     def FindConflicts(self, possibleConflicts):
         """
