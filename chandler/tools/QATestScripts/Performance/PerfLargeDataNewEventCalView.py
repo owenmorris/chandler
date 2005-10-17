@@ -15,7 +15,7 @@ fileName = "PerfLargeDataNewEventCalView.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Creating a new event in the Cal view after large data import")
 
 
-path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
+path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
 print path
 
 #Upcast path to unicode since Sharing requires a unicode path
