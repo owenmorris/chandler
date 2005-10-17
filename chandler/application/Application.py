@@ -227,6 +227,13 @@ class wxApplication (wx.App):
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_TOOL, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
         # The Twisted Reactor should be started before other Managers
         # and stopped last.
         
@@ -291,15 +298,6 @@ class wxApplication (wx.App):
             
         if splash:
             splash.Destroy()
-
-        # OnDestroyWindow Binding has to appear after splash.Destroy
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
-        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_TOOL, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
-        self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         # resize to intended size. (bug 3411)
         self.mainFrame.SetSize(rememberSize)
