@@ -814,6 +814,7 @@ void wxGridSelection::ClearSelection()
                 ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
 
 #ifdef __WXMAC__
+// OSAF - deleted
 //                ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
             }
@@ -834,6 +835,7 @@ void wxGridSelection::ClearSelection()
             ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
 
 #ifdef __WXMAC__
+// OSAF - deleted
 //            ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
         }
@@ -854,6 +856,7 @@ void wxGridSelection::ClearSelection()
                 ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
 
 #ifdef __WXMAC__
+// OSAF - deleted
 //                ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
             }
@@ -875,6 +878,7 @@ void wxGridSelection::ClearSelection()
                 ((wxWindow *)m_grid->m_gridWin)->Refresh( false, &r );
 
 #ifdef __WXMAC__
+// OSAF - deleted
 //                ((wxWindow *)m_grid->m_gridWin)->Update();
 #endif
             }
