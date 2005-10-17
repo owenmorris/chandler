@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     08/09/2000
-// RCS-ID:      $Id: cshelp.cpp,v 1.37 2005/09/25 19:58:42 VZ Exp $
+// RCS-ID:      $Id: cshelp.cpp,v 1.38 2005/10/17 22:11:49 MW Exp $
 // Copyright:   (c) 2000 Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -334,7 +334,7 @@ wxHelpProvider::~wxHelpProvider()
 
 wxString wxSimpleHelpProvider::GetHelp(const wxWindowBase *window)
 {
-    wxLongToStringHashMap::iterator it = m_hashWindows.find(WINHASH_KEY(window));
+    wxSimpleHelpProviderHashMap::iterator it = m_hashWindows.find(WINHASH_KEY(window));
 
     if ( it == m_hashWindows.end() )
     {
@@ -354,7 +354,7 @@ void wxSimpleHelpProvider::AddHelp(wxWindowBase *window, const wxString& text)
 
 void wxSimpleHelpProvider::AddHelp(wxWindowID id, const wxString& text)
 {
-    wxLongToStringHashMap::key_type key = (wxLongToStringHashMap::key_type)id;
+    wxSimpleHelpProviderHashMap::key_type key = (wxSimpleHelpProviderHashMap::key_type)id;
     m_hashIds.erase(key);
     m_hashIds[key] = text;
 }

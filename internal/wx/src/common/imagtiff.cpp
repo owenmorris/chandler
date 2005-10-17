@@ -2,7 +2,7 @@
 // Name:        src/common/imagtiff.cpp
 // Purpose:     wxImage TIFF handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagtiff.cpp,v 1.40 2005/09/26 13:48:01 ABX Exp $
+// RCS-ID:      $Id: imagtiff.cpp,v 1.41 2005/10/17 22:07:56 MW Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -94,7 +94,7 @@ _tiffReadProc(thandle_t handle, tdata_t buf, tsize_t size)
 {
     wxInputStream *stream = (wxInputStream*) handle;
     stream->Read( (void*) buf, (size_t) size );
-    return stream->LastRead();
+    return wx_truncate_cast(tsize_t, stream->LastRead());
 }
 
 tsize_t TIFFLINKAGEMODE
@@ -102,7 +102,7 @@ _tiffWriteProc(thandle_t handle, tdata_t buf, tsize_t size)
 {
     wxOutputStream *stream = (wxOutputStream*) handle;
     stream->Write( (void*) buf, (size_t) size );
-    return stream->LastWrite();
+    return wx_truncate_cast(tsize_t, stream->LastWrite());
 }
 
 toff_t TIFFLINKAGEMODE

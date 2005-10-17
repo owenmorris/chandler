@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Wlodzimierz ABX Skiba from generic/listbkg.cpp
 // Created:     15.09.04
-// RCS-ID:      $Id: choicbkg.cpp,v 1.9 2005/09/23 12:53:25 MR Exp $
+// RCS-ID:      $Id: choicbkg.cpp,v 1.10 2005/10/17 22:07:59 MW Exp $
 // Copyright:   (c) Vadim Zeitlin, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -364,7 +364,7 @@ wxChoicebook::InsertPage(size_t n,
 
 wxWindow *wxChoicebook::DoRemovePage(size_t page)
 {
-    const int page_count = GetPageCount();
+    const size_t page_count = GetPageCount();
     wxWindow *win = wxBookCtrlBase::DoRemovePage(page);
 
     if ( win )

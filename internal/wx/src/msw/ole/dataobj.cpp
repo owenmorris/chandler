@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.05.98
-// RCS-ID:      $Id: dataobj.cpp,v 1.88 2005/09/23 12:55:23 MR Exp $
+// RCS-ID:      $Id: dataobj.cpp,v 1.89 2005/10/17 22:08:05 MW Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -620,7 +620,7 @@ STDMETHODIMP wxIDataObject::EnumFormatEtc(DWORD dwDir,
     wxDataObject::Direction dir = dwDir == DATADIR_GET ? wxDataObject::Get
                                                        : wxDataObject::Set;
 
-    size_t nFormatCount = m_pDataObject->GetFormatCount(dir);
+    ULONG nFormatCount = wx_truncate_cast(ULONG, m_pDataObject->GetFormatCount(dir));
     wxDataFormat format;
     wxDataFormat *formats;
     formats = nFormatCount == 1 ? &format : new wxDataFormat[nFormatCount];

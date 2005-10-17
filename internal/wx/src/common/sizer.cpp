@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp,v 1.129 2005/09/26 00:31:47 VZ Exp $
+// RCS-ID:      $Id: sizer.cpp,v 1.130 2005/10/17 22:07:56 MW Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1324,10 +1324,12 @@ void wxFlexGridSizer::AdjustForFlexDirection()
         wxArrayInt& array = m_flexDirection == wxVERTICAL ? m_colWidths
                                                           : m_rowHeights;
 
-        const int count = array.GetCount();
+        const size_t count = array.GetCount();
 
         // find the largest value in this array
-        int n, largest = 0;
+        size_t n;
+        int largest = 0;
+
         for ( n = 0; n < count; ++n )
         {
             if ( array[n] > largest )

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.158 2005/09/23 12:55:12 MR Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.159 2005/10/17 22:08:03 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -599,7 +599,8 @@ bool wxToolBar::Realize()
         sizeBmp.x = m_defaultWidth;
         sizeBmp.y = m_defaultHeight;
 
-        const wxCoord totalBitmapWidth = m_defaultWidth * nTools,
+        const wxCoord totalBitmapWidth  = m_defaultWidth *
+                                          wx_truncate_cast(wxCoord, nTools),
                       totalBitmapHeight = m_defaultHeight;
 
         // Create a bitmap and copy all the tool bitmaps to it

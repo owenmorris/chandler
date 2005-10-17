@@ -4,7 +4,7 @@
 // Author:      Paul Gammans, Roger Gammans
 // Modified by:
 // Created:     11/04/2001
-// RCS-ID:      $Id: gridctrl.cpp,v 1.19 2005/09/24 21:42:37 VZ Exp $
+// RCS-ID:      $Id: gridctrl.cpp,v 1.20 2005/10/17 22:08:00 MW Exp $
 // Copyright:   (c) The Computer Surgery (paul@compsurg.co.uk)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -390,7 +390,7 @@ wxGridCellAutoWrapStringRenderer::GetBestSize(wxGrid& grid,
     {
         width+=10;
         rect.SetWidth(width);
-        height = y *( GetTextLines(grid,dc,attr,rect,row,col).GetCount());
+        height = y * (wx_truncate_cast(wxCoord, GetTextLines(grid,dc,attr,rect,row,col).GetCount()));
         count--;
     // Search for a shape no taller than the golden ratio.
     } while (count && (width  < (height*1.68)) );

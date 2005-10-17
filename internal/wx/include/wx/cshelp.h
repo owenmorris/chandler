@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     08/09/2000
-// RCS-ID:      $Id: cshelp.h,v 1.17 2005/09/23 12:48:34 MR Exp $
+// RCS-ID:      $Id: cshelp.h,v 1.18 2005/10/17 22:11:45 MW Exp $
 // Copyright:   (c) 2000 Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -137,8 +137,8 @@ private:
     static wxHelpProvider *ms_helpProvider;
 };
 
-WX_DECLARE_EXPORTED_HASH_MAP( long, wxString, wxIntegerHash, wxIntegerEqual,
-                              wxLongToStringHashMap );
+WX_DECLARE_EXPORTED_HASH_MAP( wxUIntPtr, wxString, wxIntegerHash,
+                              wxIntegerEqual, wxSimpleHelpProviderHashMap );
 
 // wxSimpleHelpProvider is an implementation of wxHelpProvider which supports
 // only plain text help strings and shows the string associated with the
@@ -156,8 +156,8 @@ public:
 protected:
     // we use 2 hashes for storing the help strings associated with windows
     // and the ids
-    wxLongToStringHashMap m_hashWindows,
-                          m_hashIds;
+    wxSimpleHelpProviderHashMap m_hashWindows,
+                                m_hashIds;
 };
 
 // wxHelpControllerHelpProvider is an implementation of wxHelpProvider which supports

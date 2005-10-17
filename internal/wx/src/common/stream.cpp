@@ -5,7 +5,7 @@
 // Modified by: VZ (23.11.00) to fix realloc()ing new[]ed memory,
 //                            general code review
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.cpp,v 1.99 2005/10/09 15:48:29 MBN Exp $
+// RCS-ID:      $Id: stream.cpp,v 1.100 2005/10/17 22:07:57 MW Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -664,7 +664,7 @@ size_t wxStreamBase::GetSize() const
         return 0;
 
     const size_t len = wx_truncate_cast(size_t, length);
-    wxASSERT_MSG( len == length, _T("large files not supported") );
+    wxASSERT_MSG( len == length + size_t(0), _T("large files not supported") );
 
     return len;
 }

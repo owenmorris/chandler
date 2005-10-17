@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: VZ (23.11.00): general code review
 // Created:     04/01/98
-// RCS-ID:      $Id: mstream.cpp,v 1.36 2005/09/25 19:58:46 VZ Exp $
+// RCS-ID:      $Id: mstream.cpp,v 1.37 2005/10/17 22:07:56 MW Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ wxMemoryInputStream::wxMemoryInputStream(const wxMemoryOutputStream& stream)
     }
 
     const size_t len = wx_truncate_cast(size_t, lenFile);
-    wxASSERT_MSG( len == lenFile, _T("huge files not supported") );
+    wxASSERT_MSG( len == lenFile + size_t(0), _T("huge files not supported") );
 
     m_i_streambuf = new wxStreamBuffer(wxStreamBuffer::read);
     m_i_streambuf->SetBufferIO(len); // create buffer

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (owner drawn stuff)
 // Created:
-// RCS-ID:      $Id: listbox.cpp,v 1.125 2005/09/27 17:05:17 ABX Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.126 2005/10/17 22:08:03 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -354,7 +354,7 @@ int wxListBox::FindString(const wxString& s, bool bCase) const
     if (bCase)
        return wxItemContainerImmutable::FindString( s, bCase );
 
-    int pos = ListBox_FindStringExact(GetHwnd(), (WPARAM)-1, s);
+    int pos = ListBox_FindStringExact(GetHwnd(), -1, s);
     if (pos == LB_ERR)
         return wxNOT_FOUND;
     else

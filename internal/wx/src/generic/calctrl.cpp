@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrl.cpp,v 1.72 2005/09/26 00:29:37 VZ Exp $
+// RCS-ID:      $Id: calctrl.cpp,v 1.73 2005/10/17 22:07:59 MW Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -974,7 +974,7 @@ void wxCalendarCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
         dc.DrawRectangle(0, y, GetClientSize().x, m_heightRow);
 
         bool startOnMonday = (GetWindowStyle() & wxCAL_MONDAY_FIRST) != 0;
-        for ( size_t wd = 0; wd < 7; wd++ )
+        for ( int wd = 0; wd < 7; wd++ )
         {
             size_t n;
             if ( startOnMonday )
@@ -1014,7 +1014,7 @@ void wxCalendarCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
         wxLogDebug("painting week %d at y = %d\n", nWeek, y);
 #endif
 
-        for ( size_t wd = 0; wd < 7; wd++ )
+        for ( int wd = 0; wd < 7; wd++ )
         {
             if ( IsDateShown(date) )
             {

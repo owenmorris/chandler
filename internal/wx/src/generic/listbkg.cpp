@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: listbkg.cpp,v 1.30 2005/09/23 12:53:27 MR Exp $
+// RCS-ID:      $Id: listbkg.cpp,v 1.31 2005/10/17 22:08:00 MW Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -437,7 +437,7 @@ wxListbook::InsertPage(size_t n,
 
 wxWindow *wxListbook::DoRemovePage(size_t page)
 {
-    const int page_count = GetPageCount();
+    const size_t page_count = GetPageCount();
     wxWindow *win = wxBookCtrlBase::DoRemovePage(page);
 
     if ( win )
