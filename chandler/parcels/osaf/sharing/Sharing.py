@@ -1377,9 +1377,15 @@ class WebDAVConduit(ShareConduit):
             ## else:
             resourcePath = container.path + itemName
             resource = serverHandle.getResource(resourcePath)
+            if getattr(self, 'ticket', False):
+                extraHeaders = { 'Ticket' : self.ticket }
+            else:
+                extraHeaders = None
 
             serverHandle.blockUntil(resource.put, text, checkETag=False,
-                                    contentType=contentType)
+                                    contentType=contentType,
+                                    extraHeaders=extraHeaders)
+
             # We're using newResource of None to track errors
             newResource = resource
 
