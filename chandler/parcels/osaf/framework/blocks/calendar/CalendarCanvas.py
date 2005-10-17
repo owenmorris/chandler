@@ -279,8 +279,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             itemRect.x+1, itemRect.y + itemRect.height)
 
  
-            dc.SetPen(wx.BLACK_PEN)	
-       
             self.textOffset = wx.Point(self.textMargin, self.textMargin)
             
             if hasLeftRounded:
@@ -318,14 +316,24 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         self.timeHeight = \
                             DrawWrappedText(dc, timeString, timeRect)
 
+                        y += self.timeHeight
+
+                        # divider line after the time
+                        dc.SetPen(wx.Pen(outlineColor))
+                        dc.DrawLine(itemRect.x, y + 1,
+                                    itemRect.x + itemRect.width, y + 1)
+                        
                         # add some space below the time
                         # (but on linux there isn't any room)
-                        if '__WXGTK__' not in wx.PlatformInfo:
-                            self.timeHeight += 3
-                        y += self.timeHeight
+                        if '__WXGTK__' in wx.PlatformInfo:
+                            y += 1
+                        else:
+                            y += 3
+
+                        
                     else:	
                         self.timeHeight = 0	
-        
+
                 # we may have lost some room in the rectangle from	
                 # drawing the time	
                 lostHeight = y - itemRect.y                        
@@ -1363,7 +1371,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         navigationRow.Add(self.prevButton, 0, wx.ALIGN_CENTER)
         navigationRow.Add((5,5), 0)
         navigationRow.Add(self.nextButton, 0, wx.ALIGN_CENTER)
-        navigationRow.Add((5,5), 0)
+        navigationRow.Add((10,1), 0)
         navigationRow.Add(self.monthText, 0, wx.ALIGN_CENTER)
         navigationRow.Add((0,0), 1)
         
