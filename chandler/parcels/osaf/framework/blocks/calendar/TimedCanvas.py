@@ -91,6 +91,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # FIXME: on wxPython-Mac v2.6.0, this returns negative and otherwise bogus dimension values: e.g., [-15, 960]
         #self.size = self.GetVirtualSize()
         self.size = self.GetSize()
+
+        # account for the scrollbar, but also for the extra one pixel
+        # on the right side of the canvas that is used to draw the
+        # whole event lozenge
+        
+        # when drawing the BACKGROUND, be sure to account for this
+        # extra 1 pixel
         self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) +1
         self.size.height = self.hourHeight * 24
         self.SetVirtualSize(self.size)
@@ -157,14 +164,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             dc.SetPen(styles.majorLinePen)
             dc.DrawLine(self.xOffset,
                         hour * self.hourHeight,
-                        self.size.width,
+                        self.size.width+1,
                         hour * self.hourHeight)
 
             # Draw the line between half hours
             dc.SetPen(styles.minorLinePen)
             dc.DrawLine(self.xOffset,
                         hour * self.hourHeight + halfHourHeight,
-                        self.size.width,
+                        self.size.width+1,
                         hour * self.hourHeight + halfHourHeight)
 
         self.DrawDayLines(dc)
