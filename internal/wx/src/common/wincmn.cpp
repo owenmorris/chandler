@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.240 2005/10/10 18:15:34 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.241 2005/10/17 22:41:48 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -528,9 +528,9 @@ void wxWindowBase::Centre(int direction)
 // fits the window around the children
 void wxWindowBase::Fit()
 {
-    if ( GetChildren().GetCount() > 0 )
+    if ( !GetChildren().empty() )
     {
-        SetSize(GetBestSize());
+        SetClientSize(GetBestSize());
     }
     //else: do nothing if we have no children
 }
