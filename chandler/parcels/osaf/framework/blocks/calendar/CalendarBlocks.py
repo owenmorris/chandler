@@ -323,7 +323,7 @@ class wxPreviewArea(wx.Panel):
                 dc.SetFont(self.eventFont)
                 # this is the number of events that are not displayed
                 # in the preview pane because there wasn't enough room
-                dc.DrawText(_(u"%(unknownValue)d more confirmed...") % {'unknownValue': (len(self.currentDaysItems) - i)},
+                dc.DrawText(_(u"%(numberOfEvents)d more confirmed...") % {'numberOfEvents': (len(self.currentDaysItems) - i)},
                             self.hMargin, y + self.eventFontOffset)
                 y += self.lineHeight  #For end calculation
                 break

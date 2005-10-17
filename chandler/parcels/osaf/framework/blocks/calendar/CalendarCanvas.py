@@ -1378,7 +1378,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         #these labels get overriden by wxSynchronizeWidget()
         #XXX: [i18n] These Header labels need to leverage PyICU for the display names
-        headerLabels = ["Week", "S", "M", "Tu", "W", "Th", "F", "S", '']
+        headerLabels = [_(u"Week"), "S", "M", "Tu", "W", "Th", "F", "S", '']
         for header in headerLabels:
             weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center,
                                         0, bSortEnabled=False)
