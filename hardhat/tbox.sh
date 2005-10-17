@@ -12,6 +12,7 @@
 #
 # if CHANDLER_PERFORMANCE_TEST=yes then CATS Performance Tests are run
 # if CHANDLER_FUNCTIONAL_TEST=no then CATS Functional Tests are skipped
+# if CHANDLER_UNIT_TEST=no then Unit Tests are skipped
 #
 # For tbox operation, define TBOX=yes and if you want it to cycle define TBOX_CYCLE=yes
 # tbox operation changes the meaning of the path parameter - under tbox it should point
@@ -174,6 +175,8 @@ if [ "$TBOX" = "yes" ]; then
       # remove any reference to buildRevision (only if at start of line)
     sed -i "/^buildRevision/d" $C_DIR/version.py
     echo buildRevision = \"$REVISION\" >> $C_DIR/version.py
+else
+    REVISION=0000
 fi
 
 DIRS=`find $C_DIR -type d -name tests -print`
@@ -209,70 +212,72 @@ PERFTEST_RESULT="ok"
 
   # walk thru all of the test dirs and find the test files
 
-for mode in $MODES ; do
-    echo Running $mode unit tests | tee -a $BUILDLOG
-
-    for testdir in $TESTDIRS ; do
-        TESTS=`find $testdir -name 'Test*.py' -print`
-
-        for test in $TESTS ; do
+if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
+    for mode in $MODES ; do
+        echo Running $mode unit tests | tee -a $BUILDLOG
+    
+        for testdir in $TESTDIRS ; do
+            TESTS=`find $testdir -name 'Test*.py' -print`
+    
+            for test in $TESTS ; do
+                if [ "$OSTYPE" = "cygwin" ]; then
+                    TESTNAME=`cygpath -w $test`
+                else
+                    TESTNAME=$test
+                fi
+    
+                echo Running $TESTNAME | tee -a $BUILDLOG
+    
+                cd $C_DIR
+                $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
+            
+                  # scan the test output for the success messge "OK"
+                RESULT=`grep '^OK' $T_DIR/test.log`
+    
+                echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+                echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+                cat $T_DIR/test.log      >> $T_DIR/tests.log
+    
+                if [ "$RESULT" != "OK" ]; then
+                    UNITTEST_RESULT="failed"
+                fi
+            done
+        done
+    
+          # if Functional Tests are needed - walk the CATS directory
+          # and create a list of all valid tests
+    
+        echo Running $mode functional tests | tee -a $BUILDLOG
+    
+        if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
+            test="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
+    
             if [ "$OSTYPE" = "cygwin" ]; then
                 TESTNAME=`cygpath -w $test`
+                P_DIR=`cygpath -w $C_DIR`
             else
                 TESTNAME=$test
+                P_DIR=$C_DIR
             fi
-
+    
             echo Running $TESTNAME | tee -a $BUILDLOG
-
+    
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
-        
-              # scan the test output for the success messge "OK"
-            RESULT=`grep '^OK' $T_DIR/test.log`
-
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+    
+              # functional tests output a #TINDERBOX# Status = PASSED that we can scan for
+            RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
+    
             echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
             echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
             cat $T_DIR/test.log      >> $T_DIR/tests.log
-
-            if [ "$RESULT" != "OK" ]; then
-                UNITTEST_RESULT="failed"
+    
+            if [ ! "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+                FUNCTEST_RESULT="failed"
             fi
-        done
+        fi
     done
-
-      # if Functional Tests are needed - walk the CATS directory
-      # and create a list of all valid tests
-
-    echo Running $mode functional tests | tee -a $BUILDLOG
-
-    if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
-        test="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
-
-        if [ "$OSTYPE" = "cygwin" ]; then
-            TESTNAME=`cygpath -w $test`
-            P_DIR=`cygpath -w $C_DIR`
-        else
-            TESTNAME=$test
-            P_DIR=$C_DIR
-        fi
-
-        echo Running $TESTNAME | tee -a $BUILDLOG
-
-        cd $C_DIR
-        $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
-
-          # functional tests output a #TINDERBOX# Status = PASSED that we can scan for
-        RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
-
-        echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
-        echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
-        cat $T_DIR/test.log      >> $T_DIR/tests.log
-
-        if [ ! "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
-            FUNCTEST_RESULT="failed"
-        fi
-    fi
-done
+fi
 
   # if Performance Tests are needed - walk the CATS directory
   # and create a list of all valid tests
@@ -307,6 +312,68 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
             PERFTEST_RESULT="failed"
         fi
     done
+    
+    echo Running startup time tests | tee -a $BUILDLOG
+
+    if [ "$OSTYPE" = "cygwin" ]; then
+        TESTNAME=`cygpath -w $C_DIR/tools/QATestScripts/Performance/end.py`
+        CREATE3KREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py`
+        P_DIR=`cygpath -w $C_DIR`
+        TIME='time.exe --format=%e'
+    else
+        TESTNAME=$C_DIR/tools/QATestScripts/Performance/end.py
+        CREATE3KREPO=$C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py
+        P_DIR=$C_DIR
+        TIME='time --format=%e'
+    fi
+
+    cd $C_DIR
+
+    if [ "$OSTYPE" = "cygwin" ]; then    
+        echo Creating new empty repository | tee -a $BUILDLOG
+        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        
+        echo Timing 3 runs | tee -a $BUILDLOG
+        for run in 1 2 3 ; do
+            echo -n .
+            $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        done
+    
+        echo
+        echo Creating new large repository | tee -a $BUILDLOG
+        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$CREATE3KREPO" &> $T_DIR/test.log
+        
+        echo Timing 3 runs | tee -a $BUILDLOG
+        for run in 1 2 3 ; do
+            echo -n .
+            $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        done
+        
+        echo
+        echo Getting medians from startup runs | tee -a $BUILDLOG
+        
+        STARTUP=`cat $T_DIR/start1.1.log $T_DIR/start1.2.log $T_DIR/start1.3.log | sort -n | head -n 2 | tail -n 1`        
+        STARTUP_LARGE=`cat $T_DIR/start6.1.log $T_DIR/start6.2.log $T_DIR/start6.3.log | sort -n | head -n 2 | tail -n 1`
+    else
+        echo Startup tests not implement on Linux or OS X | tee -a $BUILDLOG
+        STARTUP=0
+        STARTUP_LARGE=0
+    fi
+    
+    echo Printing results | tee -a $BUILDLOG
+
+    echo OSAF_QA: Startup \| $REVISION \| $STARTUP         >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Testname = Startup                  >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Status = PASSED                     >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Time elapsed = $STARTUP \(seconds\) >> $T_DIR/tests.log
+
+    echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+
+    echo OSAF_QA: Startup_with_large_calendar \| $REVISION \| $STARTUP_LARGE >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Testname = Startup_with_large_calendar                >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Status = PASSED                                       >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Time elapsed = $STARTUP_LARGE \(seconds\)             >> $T_DIR/tests.log
+
 fi
 
 echo - - - - svn.log - - - - - - - - - - - - - - - - - - - - - - | tee -a $BUILDLOG
