@@ -81,10 +81,10 @@ class I18nManager(object):
         assert len(localeSet) > 0
 
         #The 'test' locale is used in .6 for testing non-ascii translations
-        #The defaultLocale set is still used so that ICU can be leveraged
-        #since 'test' is a made up locale and ICU does not know how to display its dates.
-        if localeSet[0] == 'test':
-            self._localeSet = self._defaultLocaleSet
+        #However in test mode, the French Canadian locale is leveraged by ICU.
+        #This is done to test Chandler ICU support against a non-english locale.
+        if 'test' in localeSet:
+            self._localeSet = ['fr_CA', 'fr']
             self._localeSet.extend(localeSet)
         else:
             self._localeSet = localeSet
