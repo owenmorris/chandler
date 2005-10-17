@@ -3,7 +3,7 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-import wingdbstub
+#import wingdbstub
 import os, sys, re, string, errno, shutil, time
 import repository
 
