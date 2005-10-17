@@ -848,7 +848,8 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.editor.SetItem(box.GetItem(), position, size, styles.eventLabelFont.GetPointSize())
 
     def GrabFocusHack(self):
-        self.editor.SaveAndHide()
+        if self.editor.IsShown():
+            self.editor.SaveAndHide()
         
     def RefreshCanvasItems(self, resort=False):
         self.RebuildCanvasItems(resort)
@@ -1091,6 +1092,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
             self.defocusCallback()
         
     def SaveAndHide(self):
+        assert self.IsShown(), "Shouldn't be saving the editor value if it isn't visible!"
         self.SaveItem()
         self._unfocusing = True
         self.Hide()
