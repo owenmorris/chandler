@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.83 2005/10/03 16:25:49 ABX Exp $
+* RCS-ID:      $Id: platform.h,v 1.84 2005/10/17 17:46:11 MW Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -493,9 +493,11 @@
 #   define __STDC_EXT__ 1
 #endif
 
-/* Force linking against required libraries under Windows CE: */
+/* Force linking against required libraries under Windows: */
 #ifdef __WXWINCE__
 #   include "wx/msw/wince/libraries.h"
+#elif defined __WINDOWS__
+#   include "wx/msw/libraries.h"
 #endif
 
 /*

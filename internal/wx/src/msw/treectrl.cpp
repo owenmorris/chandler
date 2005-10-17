@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10.10.98
 // Created:     1997
-// RCS-ID:      $Id: treectrl.cpp,v 1.216 2005/10/10 21:46:24 VZ Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.217 2005/10/17 19:31:40 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2014,7 +2014,7 @@ void wxTreeCtrl::DoEndEditLabel(bool discardChanges)
     DeleteTextCtrl();
 }
 
-wxTreeItemId wxTreeCtrl::DoHitTest(const wxPoint& point, int& flags)
+wxTreeItemId wxTreeCtrl::DoTreeHitTest(const wxPoint& point, int& flags)
 {
     TV_HITTESTINFO hitTestInfo;
     hitTestInfo.pt.x = (int)point.x;

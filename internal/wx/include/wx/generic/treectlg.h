@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treectlg.h,v 1.56 2005/10/10 22:29:36 VZ Exp $
+// RCS-ID:      $Id: treectlg.h,v 1.57 2005/10/17 19:31:37 VZ Exp $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -304,7 +304,7 @@ protected:
                                        const wxString& text,
                                        int image = -1, int selImage = -1,
                                        wxTreeItemData *data = NULL);
-    virtual wxTreeItemId DoHitTest(const wxPoint& point, int& flags);
+    virtual wxTreeItemId DoTreeHitTest(const wxPoint& point, int& flags);
 
     // called by wxTextTreeCtrl when it marks itself for deletion
     void ResetTextControl();

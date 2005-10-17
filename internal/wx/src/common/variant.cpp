@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/09/98
-// RCS-ID:      $Id: variant.cpp,v 1.72 2005/09/25 20:45:02 VZ Exp $
+// RCS-ID:      $Id: variant.cpp,v 1.73 2005/10/17 17:08:28 MW Exp $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -706,7 +706,7 @@ bool wxVariantDataChar::Read(wxInputStream& str)
 
 bool wxVariantDataChar::Read(wxString& str)
 {
-    m_value = str.ToAscii()[0u];
+    m_value = str.ToAscii()[size_t(0)];
     return true;
 }
 

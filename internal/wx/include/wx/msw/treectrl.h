@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10/10/98
 // Created:     01/02/97
-// RCS-ID:      $Id: treectrl.h,v 1.80 2005/10/10 21:49:23 VZ Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.81 2005/10/17 19:31:35 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -271,7 +271,7 @@ private:
                                        const wxString& text,
                                        int image = -1, int selImage = -1,
                                        wxTreeItemData *data = NULL);
-    virtual wxTreeItemId DoHitTest(const wxPoint& point, int& flags);
+    virtual wxTreeItemId DoTreeHitTest(const wxPoint& point, int& flags);
 
     int DoGetItemImageFromData(const wxTreeItemId& item,
                                wxTreeItemIcon which) const;

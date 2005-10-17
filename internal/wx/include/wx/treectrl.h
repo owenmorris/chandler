@@ -5,12 +5,20 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Karsten Ballueder
-// RCS-ID:      $Id: treectrl.h,v 1.38 2005/10/12 07:49:14 MR Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.40 2005/10/17 19:31:32 VZ Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TREECTRL_H_BASE_
 #define _WX_TREECTRL_H_BASE_
+
+// ----------------------------------------------------------------------------
+// headers
+// ----------------------------------------------------------------------------
+
+#include "wx/defs.h"
+
+#if wxUSE_TREECTRL
 
 #include "wx/control.h"
 #include "wx/treebase.h"
@@ -343,9 +351,9 @@ public:
         // and, in the second variant, fill the flags parameter with a bitmask
         // of wxTREE_HITTEST_xxx constants.
     wxTreeItemId HitTest(const wxPoint& point)
-        { int dummy; return DoHitTest(point, dummy); }
+        { int dummy; return DoTreeHitTest(point, dummy); }
     wxTreeItemId HitTest(const wxPoint& point, int& flags)
-        { return DoHitTest(point, flags); }
+        { return DoTreeHitTest(point, flags); }
 
         // get the bounding rectangle of the item (or of its label only)
     virtual bool GetBoundingRect(const wxTreeItemId& item,
@@ -382,7 +390,8 @@ protected:
 
     // real HitTest() implementation: again, can't be called just HitTest()
     // because it's overloaded and so the non-virtual overload would be hidden
-    virtual wxTreeItemId DoHitTest(const wxPoint& point, int& flags) = 0;
+    // (and can't be called DoHitTest() because this is already in wxWindow)
+    virtual wxTreeItemId DoTreeHitTest(const wxPoint& point, int& flags) = 0;
 
 
     wxImageList *m_imageListNormal, // images for tree elements
@@ -391,7 +400,7 @@ protected:
                  m_ownsImageListState;
 
     // spacing between left border and the text
-    unsigned short m_spacing;
+    unsigned int m_spacing;
 
 
     DECLARE_NO_COPY_CLASS(wxTreeCtrlBase)
@@ -404,9 +413,9 @@ protected:
 #if defined(__WXUNIVERSAL__)
     #include "wx/generic/treectlg.h"
 #elif defined(__WXPALMOS__)
-        #include "wx/palmos/treectrl.h"
+    #include "wx/palmos/treectrl.h"
 #elif defined(__WXMSW__)
-        #include "wx/msw/treectrl.h"
+    #include "wx/msw/treectrl.h"
 #elif defined(__WXMOTIF__)
     #include "wx/generic/treectlg.h"
 #elif defined(__WXGTK__)
@@ -419,5 +428,6 @@ protected:
     #include "wx/generic/treectlg.h"
 #endif
 
-#endif // _WX_TREECTRL_H_BASE_
+#endif // wxUSE_TREECTRL
 
+#endif // _WX_TREECTRL_H_BASE_

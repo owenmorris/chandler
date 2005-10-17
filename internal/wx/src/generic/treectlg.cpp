@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.179 2005/10/10 22:29:39 VZ Exp $
+// Id:          $Id: treectlg.cpp,v 1.180 2005/10/17 19:31:38 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2838,7 +2838,7 @@ void wxGenericTreeCtrl::OnChar( wxKeyEvent &event )
     }
 }
 
-wxTreeItemId wxGenericTreeCtrl::DoHitTest(const wxPoint& point, int& flags)
+wxTreeItemId wxGenericTreeCtrl::DoTreeHitTest(const wxPoint& point, int& flags)
 {
     // JACS: removed wxYieldIfNeeded() because it can cause the window
     // to be deleted from under us if a close window event is pending
