@@ -682,9 +682,9 @@ class MainView(View):
         sidebar = Block.findBlockByName ("Sidebar").contents
         scriptsSet = schema.ns('osaf.app', self.itsView).scriptsCollection
         if scriptsSet in sidebar:
-            menuTitle = _(u'Show Scripts')
+            menuTitle = u'Show Scripts'
         else:
-            menuTitle = _(u'Add Scripts to Sidebar')
+            menuTitle = u'Add Scripts to Sidebar'
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
