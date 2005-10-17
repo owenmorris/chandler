@@ -7,16 +7,16 @@ class Profile(object):
     """
     A quick 'n easy class for profiling a set of methods in a file
 
-    Simple use:
+    Simple use::
 
-    p = Profile('mymethods.prof')
+        p = Profile('mymethods.prof')
 
-    class A(object):
-        @p.profiled
-        def SomeMethod(self, ...)
+        class A(object)::
+            @p.profiled
+            def SomeMethod(self, ...)
 
-        @p.profiled
-        def AnotherMethod(self, ...)
+            @p.profiled
+            def AnotherMethod(self, ...)
     """
     
     def __init__(self, profilefile):
@@ -38,12 +38,11 @@ def QuickProfile(profilefile):
     """
     A quick 'n dirty way to profile a single method
 
-    use:
+    use::
 
-    class B(object):
-        @QuickProfile('mymethods.prof')
-        def SomeMethod(self, ...)
-
+        class B(object)::
+            @QuickProfile('mymethods.prof')
+            def SomeMethod(self, ...)
     """
 
     profile = hotshot.Profile(profilefile)

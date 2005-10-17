@@ -91,8 +91,8 @@ def publish(collection, account, classesToInclude=None,
     @type displayName: unicode
     @param displayName: An optional name to use for publishing; if not provided,
                         the collection's displayName will be used as a starting
-                     point.  In either case, to avoid collisions with existing
-                     collections, '-1', '-2', etc., may be appended.
+                        point.  In either case, to avoid collisions with existing
+                        collections, '-1', '-2', etc., may be appended.
     @type updateCallback: method
     @param updateCallback: An optional callback method, which will get called
                            periodically during the publishing process.  If the

@@ -90,8 +90,10 @@ def indentlog(message):
     log.flush()
 
 def shortstr(obj):
-    """Where to put gritty heuristics to make an object appear in most useful
-    form. defaults to __str__."""
+    """
+    Where to put gritty heuristics to make an object appear in most useful
+    form. defaults to __str__.
+    """
     if "wx." in str(obj.__class__)  or  obj.__class__.__name__.startswith("wx"):
         shortclassname = obj.__class__.__name__
         ##shortclassname = str(obj.__class__).split('.')[-1]
@@ -104,7 +106,9 @@ def shortstr(obj):
         return str(obj)
 
 def formatAllArgs(args, kwds):
-    "makes a nice string representation of all the arguments"
+    """
+    makes a nice string representation of all the arguments
+    """
     allargs = []
     for item in args:
         allargs.append('%s' % shortstr(item))
@@ -126,11 +130,10 @@ def logmodule(module, logMatch=".*", logNotMatch="nomatchasfdasdf"):
     directly into the module namespace ... logclass() creates weirdness when
     used on them, for some reason.
     
-    @param module could be either an actual module object, or the string
-    you can import (which seems to be the same thing as its __name__)
-    
-    so you can say   logmodule(__name__)
-    at the end of a module definition, to log all of it.
+    @param module: could be either an actual module object, or the string
+                   you can import (which seems to be the same thing as its
+                   __name__).  So you can say logmodule(__name__) at the end
+                   of a module definition, to log all of it.
     """
     
     allow = lambda s: re.match(logMatch, s) and not re.match(logNotMatch, s)
