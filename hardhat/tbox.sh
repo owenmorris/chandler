@@ -285,6 +285,11 @@ fi
 if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     echo Running performance tests | tee -a $BUILDLOG
 
+    # How many times to run each test
+    # NOTE: Currently the median calculations assume 3 runs, so if you
+    # change this you will also have to change the median calculations.
+    RUNS="1 2 3"
+
     TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
 
     for test in $TESTS ; do
@@ -299,8 +304,21 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
         echo Running $TESTNAME | tee -a $BUILDLOG
 
         cd $C_DIR
-        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
-
+        
+        for run in $RUNS ; do
+            $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$T_DIR/time$run.log" --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+			echo `<"$T_DIR/time$run.log"` | tee -a $BUILDLOG
+        done
+        
+        # Pick the median
+        MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
+        for run in $RUNS ; do
+            if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
+                cat $T_DIR/test$run.log > $T_DIR/test.log
+                break
+            fi
+        done
+        
           # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
         RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
 
@@ -324,51 +342,52 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
         TESTNAME=$C_DIR/tools/QATestScripts/Performance/end.py
         CREATE3KREPO=$C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py
         P_DIR=$C_DIR
-        TIME='time --format=%e'
+        if [ "${OSTYPE:0:6}" = "darwin" ]; then
+            # NOTE: gtime is not part of OS X, you need to compile one
+            # yourself (get source from http://directory.fsf.org/time.html)
+            # or get it from darwinports project.
+            TIME='gtime --format=%e'
+        else
+            TIME='/usr/bin/time --format=%e'
+        fi
     fi
 
     cd $C_DIR
 
-    if [ "$OSTYPE" = "cygwin" ]; then    
-        echo Creating new empty repository | tee -a $BUILDLOG
-        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
-        
-        echo Timing 3 runs | tee -a $BUILDLOG
-        for run in 1 2 3 ; do
-            echo -n .
-            $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
-        done
+    echo Creating new empty repository | tee -a $BUILDLOG
+    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
     
-        echo
-        echo Creating new large repository | tee -a $BUILDLOG
-        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$CREATE3KREPO" &> $T_DIR/test.log
-        
-        echo Timing 3 runs | tee -a $BUILDLOG
-        for run in 1 2 3 ; do
-            echo -n .
-            $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
-        done
-        
-        echo
-        echo Getting medians from startup runs | tee -a $BUILDLOG
-        
-        STARTUP=`cat $T_DIR/start1.1.log $T_DIR/start1.2.log $T_DIR/start1.3.log | sort -n | head -n 2 | tail -n 1`        
-        STARTUP_LARGE=`cat $T_DIR/start6.1.log $T_DIR/start6.2.log $T_DIR/start6.3.log | sort -n | head -n 2 | tail -n 1`
-    else
-        echo Startup tests not implement on Linux or OS X | tee -a $BUILDLOG
-        STARTUP=0
-        STARTUP_LARGE=0
-    fi
+    echo Timing startup | tee -a $BUILDLOG
+    for run in $RUNS ; do
+        $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        echo `<"$T_DIR/start1.$run.log"` | tee -a $BUILDLOG
+    done
+
+    echo Creating new large repository | tee -a $BUILDLOG
+    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$CREATE3KREPO" &> $T_DIR/test.log
+    
+    echo Timing startup | tee -a $BUILDLOG
+    for run in $RUNS ; do
+        $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        echo `<"$T_DIR/start6.$run.log"` | tee -a $BUILDLOG
+    done
+    
+    echo Getting medians from startup runs | tee -a $BUILDLOG
+    
+    STARTUP=`cat $T_DIR/start1.1.log $T_DIR/start1.2.log $T_DIR/start1.3.log | sort -n | head -n 2 | tail -n 1`        
+    STARTUP_LARGE=`cat $T_DIR/start6.1.log $T_DIR/start6.2.log $T_DIR/start6.3.log | sort -n | head -n 2 | tail -n 1`
     
     echo Printing results | tee -a $BUILDLOG
 
-    echo OSAF_QA: Startup \| $REVISION \| $STARTUP         >> $T_DIR/tests.log
-    echo \#TINDERBOX\# Testname = Startup                  >> $T_DIR/tests.log
-    echo \#TINDERBOX\# Status = PASSED                     >> $T_DIR/tests.log
-    echo \#TINDERBOX\# Time elapsed = $STARTUP \(seconds\) >> $T_DIR/tests.log
-
     echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+    echo $TESTNAME \[\#TINDERBOX\# Status = PASSED\]         >> $T_DIR/tests.log
+    echo OSAF_QA: Startup \| $REVISION \| $STARTUP           >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Testname = Startup                    >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Status = PASSED                       >> $T_DIR/tests.log
+    echo \#TINDERBOX\# Time elapsed = $STARTUP \(seconds\)   >> $T_DIR/tests.log
 
+    echo - - - - - - - - - - - - - - - - - - - - - - - - - -                 >> $T_DIR/tests.log
+    echo $TESTNAME \[\#TINDERBOX\# Status = PASSED\]                         >> $T_DIR/tests.log
     echo OSAF_QA: Startup_with_large_calendar \| $REVISION \| $STARTUP_LARGE >> $T_DIR/tests.log
     echo \#TINDERBOX\# Testname = Startup_with_large_calendar                >> $T_DIR/tests.log
     echo \#TINDERBOX\# Status = PASSED                                       >> $T_DIR/tests.log
