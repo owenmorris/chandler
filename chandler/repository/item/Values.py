@@ -879,6 +879,10 @@ class References(Values):
                 logger.error("Attribute %s on %s is using deprecated 'dict' cardinality, use 'list' instead", key, self._item.itsPath)
                 check = value.check(logger, key, item)
                 check = False
+
+            else:
+                logger.error("Attribute %s on %s is using a cardinality, '%s', which is not supported, use 'list' instead", key, self._item.itsPath, attrCard)
+                check = False
                 
             result = result and check
 
