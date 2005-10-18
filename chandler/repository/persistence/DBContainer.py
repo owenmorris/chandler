@@ -941,26 +941,36 @@ class ItemContainer(DBContainer):
 
         return None
 
-    def kindQuery(self, view, version, uuid, fn):
+    def kindQuery(self, view, version, uuid):
 
         store = self.store
-        
-        while True:
-            txnStatus = 0
-            cursor = None
 
-            try:
-                txnStatus = store.startTransaction(view)
-                cursor = self.openCursor(self._index)
+        class _query(object):
 
+            def __init__(_self):
+
+                _self.txnStatus = 0
+                _self.cursor = None
+
+            def __del__(_self):
+
+                self.closeCursor(_self.cursor, self._index)
+                store.abortTransaction(view, _self.txnStatus)
+                _self.cursor = None
+
+            def run(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor(self._index)
+                
                 try:
-                    value = cursor.set_range(uuid._uuid, self._flags)
+                    value = _self.cursor.set_range(uuid._uuid, self._flags)
                 except DBNotFoundError:
-                    return
+                    yield False
                 except DBLockDeadlockError:
-                    if txnStatus & store.TXNSTARTED:
+                    if _self.txnStatus & store.TXNSTARTED:
                         self._logDL(22)
-                        continue
+                        yield True
                     else:
                         raise
 
@@ -974,25 +984,27 @@ class ItemContainer(DBContainer):
                         vItem = ~vItem
                         if vItem <= version and uItem != lastItem:
                             args = self._readItem(vItem, value[1])
-                            if not fn(UUID(uItem), *args):
-                                break
-                            else:
-                                lastItem = uItem
+                            yield (UUID(uItem), args)
+                            lastItem = uItem
 
-                        value = cursor.next()
+                        value = _self.cursor.next()
+
+                    yield False
 
                 except DBLockDeadlockError:
-                    if txnStatus & store.TXNSTARTED:
+                    if _self.txnStatus & store.TXNSTARTED:
                         self._logDL(23)
-                        continue
+                        yield True
                     else:
                         raise
 
-                return
-
-            finally:
-                self.closeCursor(cursor, self._index)
-                store.abortTransaction(view, txnStatus)
+        while True:
+            for result in _query().run():
+                if result is True:
+                    break
+                if result is False:
+                    return
+                yield result
 
     def applyHistory(self, view, fn, oldVersion, newVersion):
 

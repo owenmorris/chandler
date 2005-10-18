@@ -79,7 +79,6 @@ class DBRepositoryView(OnDemandRepositoryView):
     def queryItems(self, kind=None, attribute=None, load=True):
 
         store = self.store
-        items = []
         
         for itemReader in store.queryItems(self, self._version,
                                            kind, attribute):
@@ -88,9 +87,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 # load and itemReader, trick to pass reader directly to find
                 item = self.find(uuid, load and itemReader)
                 if item is not None:
-                    items.append(item)
-
-        return items
+                    yield item
 
     def searchItems(self, query, attribute=None, load=True):
 

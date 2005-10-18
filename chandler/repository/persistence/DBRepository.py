@@ -573,19 +573,12 @@ class DBStore(Store):
     def queryItems(self, view, version, kind=None, attribute=None):
 
         if kind is not None:
-            results = []
-            
-            def fn(*args):
-                itemReader = DBItemReader(self, *args)
+            for uuid, args in self._items.kindQuery(view, version, kind._uuid):
+                itemReader = DBItemReader(self, uuid, *args)
                 if (self._items.getItemVersion(view, version,
                                                itemReader.getUUID()) ==
                     itemReader.getVersion()):
-                    results.append(itemReader)
-                return True
-
-            self._items.kindQuery(view, version, kind._uuid, fn)
-
-            return results
+                    yield itemReader
 
         elif attribute is not None:
             raise NotImplementedError, 'attribute query'
