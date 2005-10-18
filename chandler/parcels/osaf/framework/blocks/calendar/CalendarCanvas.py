@@ -290,7 +290,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             # Shift text to account for rounded corners
             x = itemRect.x + self.textOffset.x
             y = itemRect.y + self.textOffset.y
-            width = itemRect.width - self.textOffset.x - (self.textMargin + 10)
+
+            width = itemRect.width - self.textOffset.x - (self.textMargin)
             
             # only draw date/time on first item	
             if drawEventText:
@@ -308,8 +309,19 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)	
                     timeHeight = te[1]	
        
-                    # draw the time if there is room	
-                    if (timeHeight < itemRect.height/2):	
+                    # add some space below the time
+                    # (but on linux there isn't any room)
+                    if '__WXGTK__' in wx.PlatformInfo:
+                        timeBottomMargin = 1
+                    else:
+                        timeBottomMargin = 3
+
+                    # draw the time if there is room for the time and at least
+                    # one other line of text
+                    # we need to precalculate how much room we have left
+                    availableSpace = timeHeight*2 + timeBottomMargin + \
+                                     self.textOffset.y*2
+                    if (availableSpace < itemRect.height):
                         timeRect = wx.Rect(x, y, width, timeHeight)
                         
                         dc.SetFont(styles.eventTimeFont)	
@@ -323,13 +335,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         dc.DrawLine(itemRect.x, y + 1,
                                     itemRect.x + itemRect.width, y + 1)
                         
-                        # add some space below the time
-                        # (but on linux there isn't any room)
-                        if '__WXGTK__' in wx.PlatformInfo:
-                            y += 1
-                        else:
-                            y += 3
-
+                        y += timeBottomMargin
                         
                     else:	
                         self.timeHeight = 0	
