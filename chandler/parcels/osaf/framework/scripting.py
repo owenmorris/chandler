@@ -7,17 +7,25 @@ import application.Globals as Globals
 import application.schema as schema
 import osaf.pim as pim
 import osaf.framework.blocks.Block as Block
+import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.types.DocumentTypes as DocumentTypes
+import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
+import osaf.framework.blocks.detail.Detail as Detail
+import application.dialogs.Util as Util
+from application.dialogs import ImportExport
 from repository.item.Item import Item as Item
 from datetime import datetime
 import logging
 import wx
 import os, sys
+import hotshot
+import hotshot.stats as stats
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 
 __all__ = [
-    'app_ns', 'hotkey_script', 'run_script', 'run_startup_script', 'Script', 'script_file',
+    'app_ns', 'cats_profiler', 'hotkey_script', 
+    'run_script', 'run_startup_script', 'Script', 'script_file',
     'User'
 ]
 
@@ -25,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 def installParcel(parcel, oldVersion=None):
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
+    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
     # UI Elements:
     # -----------
@@ -40,6 +49,37 @@ def installParcel(parcel, oldVersion=None):
                                 detail.makeSpacer(parcel, width=60),
                                 ]).install(parcel)
 
+    saveFileEvent = Block.BlockEvent.template('SaveFile',
+                                              dispatchEnum='SendToSender',
+                                              ).install(parcel)
+
+    openFileButton = OpenFileButton.template('openFileButton',
+                                             title=_(u'Open'),
+                                             buttonKind='Text',
+                                             characterStyle=blocks.LabelStyle,
+                                             stretchFactor=0.0,
+                                             size=DocumentTypes.SizeType(100, -1),
+                                             event=saveFileEvent
+                                             ).install(parcel)
+
+    saveFileButton = SaveFileButton.template('saveFileButton',
+                                             title=_(u'Save'), 
+                                             buttonKind='Text',
+                                             characterStyle=blocks.LabelStyle,
+                                             stretchFactor=0.0,
+                                             size=DocumentTypes.SizeType(100, -1),
+                                             event=saveFileEvent
+                                             ).install(parcel)
+
+    saveAsFileButton = SaveAsFileButton.template('saveAsFileButton',
+                                             title=_(u'Save As'), # fill in title later
+                                             buttonKind='Text',
+                                             characterStyle=blocks.LabelStyle,
+                                             stretchFactor=0.0,
+                                             size=DocumentTypes.SizeType(100, -1),
+                                             event=saveFileEvent
+                                             ).install(parcel)
+
     testCheckboxArea = detail.makeArea(parcel, 'TestCheckboxArea',
                             position=0.7,
                             childrenBlocks=[
@@ -48,8 +88,29 @@ def installParcel(parcel, oldVersion=None):
                                 detail.makeEditor(parcel, 'EditTest',
                                            viewAttribute=u'test',
                                            stretchFactor=0.0,
-                                           minimumSize=DocumentTypes.SizeType(16,-1))
+                                           minimumSize=DocumentTypes.SizeType(16,-1)),
+                                detail.makeSpacer(parcel, width=6),
+                                openFileButton, saveFileButton, saveAsFileButton,
                                 ]).install(parcel)
+
+    scriptTextArea = detail.makeEditor(parcel, 'NotesBlock',
+                                       viewAttribute=u'bodyString',
+                                       presentationStyle={'lineStyleEnum': 'MultiLine',
+                                                          'format': 'fileSynchronized'},
+                                       position=0.9).install(parcel)
+
+    filePathArea = detail.makeArea(parcel, 'FilePathArea',
+                                   baseClass=FilePathAreaBlock,
+                                   position=0.8,
+                                   childrenBlocks=[
+                                       detail.makeLabel(parcel, _(u'path'), borderTop=4),
+                                       detail.makeSpacer(parcel, width=6),
+                                       detail.makeEditor(parcel, 'EditFilePath',
+                                                         viewAttribute=u'filePath',
+                                                         presentationStyle={'format': 'static'}
+                                                         )
+                                       ]).install(parcel)
+
 
     # Block Subtree for the Detail View of a Script
     # ------------
@@ -60,14 +121,19 @@ def installParcel(parcel, oldVersion=None):
                                          detail.HeadlineArea,
                                          hotkeyArea,
                                          testCheckboxArea,
+                                         filePathArea,
                                          detail.makeSpacer(parcel, height=7, position=0.8).install(parcel),
-                                         detail.NotesBlock
+                                         scriptTextArea
                                          ])
+
+    AttributeEditors.AttributeEditorMapping.update(parcel, 
+                                                   'Text+fileSynchronized',
+                                                   className=__name__ + '.' + 'FileSynchronizedAttributeEditor')
 
 """
 Handle running a Script.
 """
-def run_script(scriptText, fileName=u""):
+def run_script(scriptText, fileName=u"", profiler=None):
     """
     exec the supplied script, in an environment equivalent to
     what you get when you say:
@@ -75,6 +141,9 @@ def run_script(scriptText, fileName=u""):
     """
     assert len(scriptText) > 0, "Empty script"
     assert fileName is not None
+
+    if profiler:
+        profiler.stop() # start with the profile turned off
 
     scriptText = scriptText.encode(sys.getfilesystemencoding())
     fileName = fileName.encode(sys.getfilesystemencoding())
@@ -98,6 +167,9 @@ class Script(pim.ContentItem):
     fkey = schema.One(schema.Text, initialValue = u'')
     test = schema.One(schema.Boolean, initialValue = False)
 
+    filePath = schema.One(schema.Text, initialValue = u'')
+    lastSync = schema.One(schema.DateTime)
+
     # redirections
 
     about = schema.One(redirectTo = 'displayName')
@@ -106,26 +178,198 @@ class Script(pim.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  bodyString=None, *args, **keys):
-        if name is None:
-            displayName = messages.UNTITLED
-        else:
-            displayName = name
-        super(Script, self).__init__(name, parent, kind, view, displayName=displayName, *args, **keys)
+        keys.setdefault('displayName', messages.UNTITLED)
+        super(Script, self).__init__(name, parent, kind, view, *args, **keys)
 
         self.lastRan = datetime.now()
+        self.lastSync = self.lastRan
         if bodyString is not None:
             self.bodyString = bodyString # property for the body LOB
         self.private = False # can share scripts
 
-    """
-    def isAttributeModifiable(self, attribute):
-        # To allow attributes to be modified only if Script was created by "me":
-        return self.creator is self.getCurrentMeContact(self.itsView)
-    """
-
-    def execute(self, fileName=u""):
+    def execute(self):
+        self.sync_file_with_model()
         self.lastRan = datetime.now()
-        run_script(self.bodyString, fileName)
+        run_script(self.bodyString, fileName=self.filePath)
+
+    def set_body_quietly(self, newValue):
+        if newValue != self.bodyString:
+            oldQuiet = getattr(self, '_change_quietly', False)
+            self._change_quietly = True
+            self.bodyString = newValue
+            self._change_quietly = oldQuiet
+
+    def onValueChanged(self, name):
+        if name == 'body':
+            self.model_data_changed()
+
+    def model_data_changed(self):
+        if self.filePath and not getattr(self, '_change_quietly', False):
+            self.modelModTime = datetime.now()
+
+    def sync_file_with_model(self, preferFile=False):
+        """
+        Synchronize file and model - which ever is latest wins, with
+        conflict dialogs possible if both have changed since the last sync.
+        """
+        if self.filePath and not getattr(self, '_change_quietly', False):
+            writeFile = False
+            # make sure we have a model modification time
+            if not hasattr(self, 'modelModTime'):
+                self.modelModTime = self.lastSync
+            # get modification date for the file
+            try:
+                fileModTime = datetime.fromtimestamp(os.stat(self.filePath)[8])
+            except OSError:
+                fileModTime = self.lastSync
+                writeFile = True
+            if preferFile or fileModTime > self.modelModTime:
+                self.set_body_quietly(self.file_contents(self.filePath))
+            elif writeFile or fileModTime < self.modelModTime:
+                # model is newer
+                latest = self.modelModTime
+                if fileModTime > self.lastSync:
+                    caption = _(u"Overwrite script file?")
+                    msg = _(u"The file associated with this script has been changed,"
+                            "\nbut those changes are older than your recent edits.\n\n"
+                            "Do you want to overwrite those file changes with your\n"
+                            "recent edits of this script?")
+                    if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                        return
+                self.write_file(self.bodyString)
+                fileModTime = datetime.fromtimestamp(os.stat(self.filePath)[8])
+            # now the file and model match
+            self.lastSync = self.modelModTime = fileModTime
+
+    def file_contents(self, filePath):
+        """
+        return the contents of our script file
+        """
+        scriptFile = open(filePath, 'rt')
+        try:
+            scriptText = scriptFile.read(-1)
+        finally:
+            scriptFile.close()
+        return scriptText
+
+    def write_file(self, scriptText):
+        """
+        write the contents of our script file into the file
+        """
+        scriptFile = open(self.filePath, 'wt')
+        try:
+            scriptText = scriptFile.write(scriptText)
+        finally:
+            scriptFile.close()
+
+    def set_file(self, fileName, siblingPath):
+        fileName = fileName.encode(sys.getfilesystemencoding())
+        filePath = unicode(os.path.join(os.path.dirname(siblingPath), fileName))
+        self.bodyString = self.file_contents(filePath)
+        self.filePath = filePath
+
+class FileSynchronizedAttributeEditor(AttributeEditors.StringAttributeEditor):
+    """
+    Delegate for an Attribute Editor that synchronizes the attribute with
+    a file's contents.
+    """
+    def BeginControlEdit (self, item, attributeName, control):
+        """ 
+        Prepare to edit this value. 
+        """
+        # sync first, then we'll have the right value
+        item.sync_file_with_model()
+        return super(FileSynchronizedAttributeEditor, self).BeginControlEdit(item, attributeName, control)
+
+    def SetAttributeValue (self, item, attributeName, value):
+        """ Set the value of the attribute given by the value. """
+        # has the data really changed?
+        if value != self.GetAttributeValue(item, attributeName):
+            # update the model data
+            super(FileSynchronizedAttributeEditor, 
+                         self).SetAttributeValue(item, attributeName, value)
+            # update the file data too
+            item.sync_file_with_model()
+
+class FilePathAreaBlock(Detail.DetailSynchronizedContentItemDetail):
+    """
+    Block to show (or hide) the File Path area of the script.
+    """
+    def shouldShow(self, item):
+        return len(item.filePath) > 0
+
+class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
+    """
+    Block to show (or hide) the "Open File" button, and
+    to handle that event.
+    """
+    def shouldShow(self, item):
+        self._item = item
+        return len(item.bodyString) == 0
+
+    def onSaveFileEvent(self, event):
+        """
+        Open a file to associate with this script, or save an existing
+        script to a file.
+        """
+        if not self._item.bodyString:
+            # no script body, open and overwrite existing model data
+            title = _(u"Open a script file")
+            message = _(u"Open an existing script file, or choose a name\n"
+                        "for a new file for this script.")
+            flags = wx.OPEN
+        else:
+            # model data exists, we need a place to write it
+            title =_(u"Save this script file as")
+            message = _(u"Choose an existing script file, or enter a name\n"
+                        "for a new file for this script.")
+            flags = wx.SAVE | wx.OVERWRITE_PROMPT
+
+        if self._item.filePath:
+            # already have a file, default to that name and path
+            path = os.path.dirname(self._item.filePath)
+            name = self._item.filePath.split(os.sep)[-1]
+        else:
+            # no file yet, point to scripts directory, use display name
+            name = self._item.displayName+u".py"
+            path = os.path.dirname(schema.ns('osaf.app', self).scripts.__file__)
+
+        # present the Open/Save dialog
+        result = ImportExport.showFileDialog(wx.GetApp().mainFrame, 
+                                             title, 
+                                             path,
+                                             name, 
+                                             _(u"Python files|*.py|All files (*.*)|*.*"),
+                                             flags)
+        cmd, dir, fileName = result
+
+        if cmd == wx.ID_OK:
+            preferFile = len(self._item.bodyString) == 0
+            writeFile = not preferFile
+            self._item.filePath = os.path.join(dir, fileName)
+            self._item.sync_file_with_model(preferFile=preferFile)
+            resyncEvent = schema.ns('osaf.framework.blocks.detail', self).Resynchronize
+            self.post(resyncEvent, {})
+            self.postEventByName('ResyncDetailParent', {})
+
+class SaveFileButton(OpenFileButton):
+    """
+    Block to show (or hide) the "Save" button, and
+    to handle that event.
+    """
+    def shouldShow(self, item):
+        self._item = item
+        return len(item.bodyString) > 0 and len(item.filePath) == 0
+
+class SaveAsFileButton(OpenFileButton):
+    """
+    Block to show (or hide) the "Save As" button, and
+    to handle that event.
+    """
+    def shouldShow(self, item):
+        self._item = item
+        return len(item.bodyString) > 0 and len(item.filePath) > 0
+
 
 def hotkey_script(event, view):
     """
@@ -159,40 +403,53 @@ def _findHotKeyScript(targetFKey, view):
             return aScript
     return None
 
-def run_startup_script(view):
-   if Globals.options.testScripts:
-       try:
-           for aScript in Script.iterItems(view):
-               if aScript.test:
-                   aScript.execute()
-       finally:
-           # run the cleanup script
-           schema.ns('osaf.app', view).CleanupAfterTests.execute()
+global_cats_profiler = None # remember the CATS profiler here
 
-   fileName = Globals.options.scriptFile
-   if fileName:
-       scriptFileText = script_file(fileName)
-       if scriptFileText:
-           run_script(scriptFileText, fileName = fileName)
+def run_startup_script(view):
+    global global_cats_profiler
+    if Globals.options.testScripts:
+        try:
+            for aScript in Script.iterItems(view):
+                if aScript.test:
+                    aScript.execute()
+        finally:
+            # run the cleanup script
+            schema.ns('osaf.app', view).CleanupAfterTests.execute()
+
+    fileName = Globals.options.scriptFile
+    if fileName:
+        scriptFileText = script_file(fileName)
+        if scriptFileText:
+            # check if we should turn on the profiler for this script
+            if Globals.options.catsProfile:
+                profiler = hotshot.Profile(Globals.options.catsProfile)
+                global_cats_profiler = profiler
+                profiler.runcall(run_script, scriptFileText, fileName=fileName, 
+                                               profiler=profiler)
+                profiler.close()
+                global_cats_profiler = None
+            else:
+                run_script(scriptFileText, fileName = fileName)
+
+def cats_profiler():
+    return global_cats_profiler
 
 def script_file(fileName, siblingPath=None):
-    # fileName relative to the sibling path?
+    """
+    Return the script from the file, given a file name
+    and a path to a sibling file.
+    """
     #Encode the unicode filename to the system character set encoding
     fileName = fileName.encode(sys.getfilesystemencoding())
 
     if siblingPath is not None:
         fileName = os.path.join(os.path.dirname(siblingPath), fileName)
     # read the script from a file, and return it.
-    scriptText = None
+    scriptFile = open(fileName, 'rt')
     try:
-        scriptFile = open(fileName, 'rt')
-        try:
-            scriptText = scriptFile.read(-1)
-        finally:
-            scriptFile.close()
-    except IOError:
-        logger.warning("Unable to open script file '%s'" % fileName)
-        raise
+        scriptText = scriptFile.read(-1)
+    finally:
+        scriptFile.close()
     return scriptText
 
 class EventTiming(dict):

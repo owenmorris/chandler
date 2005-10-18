@@ -3,6 +3,7 @@ import time
 import string
 import version
 import application.Globals as Globals
+import osaf.framework.scripting as scripting
 import hotshot
 
 def QALogger(filepath=None,description="No description"):
@@ -51,16 +52,8 @@ class TestLogger:
         self.Print("******* Test Script : %s (date : %s) *******" %(self.mainDescription, self.startDate))
         # TestLogger.logger init
         TestLogger.logger = self
-        # Turn on profiler if in profile mode
-        if Globals.options.catsProfile:
-            self.profiler = hotshot.Profile('CATS.prof')
-        else:
-            self.profiler = None
-        # Open the cats log if requested
-        if Globals.options.catsPerfLog:
-            self.catsPerfLog = open(Globals.options.catsPerfLog, 'wt')
-        else:
-            self.catsPerfLog = None
+        # Check if we're profiling
+        self.profiler = scripting.cats_profiler()
 
     def Reset(self):
         ''' Reset all the attributes relative to a testcase '''
@@ -119,7 +112,7 @@ class TestLogger:
         #report the timing information
         self.Print("Action = "+self.actionDescription)
         if self.actionStartDate == None: # Start method has not been called
-            self.Print("!!! No time informations available !!!")
+            self.Print("!!! No time information available !!!")
         else:
             elapsed = self.actionEndDate - self.actionStartDate
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
@@ -127,9 +120,13 @@ class TestLogger:
             self.Print("End date (after %s) = %s" %(self.actionDescription, self.actionEndDate))
             self.Print("Time Elapsed = %s seconds" % elapsed_secs)
             self.PrintTBOX(elapsed, "Action")
-            if self.catsPerfLog is not None:
-                self.catsPerfLog.write("%s" % elapsed_secs)
-                self.catsPerfLog.close()
+            # Open the cats log if that was requested
+            if Globals.options.catsPerfLog:
+                catsPerfLog = open(Globals.options.catsPerfLog, 'wt')
+                try:
+                    catsPerfLog.write("%s" % elapsed_secs)
+                finally:
+                    catsPerfLog.close()
         #reset timing infos
         self.actionStartDate = self.actionEndDate = None
         
@@ -173,9 +170,6 @@ class TestLogger:
     
     def Close(self, quit=True):
         now = datetime.now()
-        if self.profiler is not None:
-            self.profiler.close()
-            self.profiler = None
         if self.toClose: # The file must close (time to report a summary)
             TestLogger.logger = None
             elapsed = now - self.startDate

@@ -174,50 +174,57 @@ The Chandler Team""")
     Scripts.  These files are located in our Scripts parcel.
     """
     # Script to create a new user script item
-    scripting.Script.update(parcel, _(u"F1 - Create a New Script"),
-                            fkey=_(u"F1"),
-                            creator = osafDev,
-                            bodyString=scripting.script_file("NewScript.py", Scripts.__file__)
-                            )
+    newScript = scripting.Script.update(parcel, 'New Script',
+                                        displayName=_(u"F1 - Create a New Script"),
+                                        fkey=_(u"F1"),
+                                        creator = osafDev
+                                        )
+    newScript.set_file(u"NewScript.py", Scripts.__file__)
 
     # Block Inspector
-    scripting.Script.update(parcel, _(u"F2 - Block under cursor"),
+    scripting.Script.update(parcel, 'Block Inspector',
+                            displayName=_(u"F2 - Block under cursor"),
                             fkey=_(u"F2"),
                             creator = osafDev,
-                            bodyString=scripting.script_file("BlockInspector.py", Scripts.__file__)
+                            bodyString=scripting.script_file(u"BlockInspector.py", Scripts.__file__)
                             )
 
     # Item Inspector
-    scripting.Script.update(parcel, _(u"F3 - Item selected"),
+    scripting.Script.update(parcel, 'Item Inspector',
+                            displayName=_(u"F3 - Item selected"),
                             fkey=_(u"F3"),
                             creator = osafDev,
-                            bodyString=scripting.script_file("ItemInspector.py", Scripts.__file__)
+                            bodyString=scripting.script_file(u"ItemInspector.py", Scripts.__file__)
                             )
 
     # Browse selected item
-    scripting.Script.update(parcel, _(u"F4 - Browse selected item"),
+    scripting.Script.update(parcel, 'Browse Selected',
+                            displayName=_(u"F4 - Browse selected item"),
                             fkey=_(u"F4"),
                             creator = osafDev,
-                            bodyString=scripting.script_file("BrowseSelected.py", Scripts.__file__)
+                            bodyString=scripting.script_file(u"BrowseSelected.py", Scripts.__file__)
                             )
 
     # Scripts whose name starts with "test" can all be run through a command-line option
-    scripting.Script.update(parcel, _(u"Test - Reload Parcels"),
+    scripting.Script.update(parcel, 'Reload Parcels',
+                            displayName=_(u"Test - Reload Parcels"),
                             test=True,
                             creator = osafDev,
-                            bodyString=scripting.script_file("ReloadParcels.py", Scripts.__file__)
+                            bodyString=scripting.script_file(u"ReloadParcels.py", Scripts.__file__)
                             )
 
-    scripting.Script.update(parcel, _(u"Test - Event timing example"),
+    scripting.Script.update(parcel, 'Event Timing',
+                            displayName=_(u"Test - Event timing example"),
                             test=True,
                             creator = osafDev,
-                            bodyString=scripting.script_file("EventTiming.py", Scripts.__file__)
+                            bodyString=scripting.script_file(u"EventTiming.py", Scripts.__file__)
                             )
 
     # The cleanup script, run after all the test scripts
-    scripting.Script.update(parcel, _(u"CleanupAfterTests"),
+    scripting.Script.update(parcel, 'CleanupAfterTests',
+                            displayName=_(u"CleanupAfterTests"),
                             creator = osafDev,
-                            bodyString=scripting.script_file("CleanupAfterTests.py", Scripts.__file__)
+                            bodyString=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
                             )
 
 
