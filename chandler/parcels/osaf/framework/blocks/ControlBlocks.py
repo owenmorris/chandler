@@ -1677,11 +1677,11 @@ class ReminderTimer(Timer):
         for attr in ('reminders', 'startTime', 'duration'):
             Monitors.attach(self, 'onRemindersChanged', 'set', attr)
             
-    def unRender(self, *args, **kwds):
+    def onDestroyWidget(self, *args, **kwds):
         # Get rid of the monitors
         for attr in ('reminders', 'startTime', 'duration'):
             Monitors.detach(self, 'onRemindersChanged', 'set', attr)
-        super(ReminderTimer, self).unRender(*args, **kwds)
+        super(ReminderTimer, self).onDestroyWidget(*args, **kwds)
 
     def onRemindersChanged(self, op, item, attribute):
         self.synchronizeSoon()

@@ -509,9 +509,9 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         super(CalendarBlock, self).render(*args, **kwds)
         Monitors.attach(self, 'onColorChanged', 'set', 'color')
 
-    def unRender(self, *args, **kwds):
+    def onDestroyWidget(self, *args, **kwds):
         Monitors.detach(self, 'onColorChanged', 'set', 'color')
-        super(CalendarBlock, self).unRender(*args, **kwds)
+        super(CalendarBlock, self).onDestroyWidget(*args, **kwds)
         
     #This is interesting. By Bug 3415 we want to reset the cal block's current
     #date to today at each chandler startup. CPIA has no general mechanism for
