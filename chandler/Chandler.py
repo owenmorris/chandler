@@ -90,10 +90,13 @@ def main():
             logging.exception(message)
             # @@@ 25Issue - Cannot create wxItems if the app failed to 
             # @@@           initialize
-            dialog = wx.MessageDialog(None, message, "Chandler", 
-                                      wx.OK | wx.ICON_INFORMATION)
-            dialog.ShowModal()
-            dialog.Destroy()
+            try:
+                dialog = wx.MessageDialog(None, message, "Chandler", 
+                                          wx.OK | wx.ICON_INFORMATION)
+                dialog.ShowModal()
+                dialog.Destroy()
+            except:
+                pass
 
             #Reraising the exception, so wing catches it.
             raise
