@@ -244,11 +244,6 @@ class wxApplication (wx.App):
 
         mainViewRoot = self.LoadMainViewRoot(delete=Globals.options.refreshui)
 
-        if (mainViewRoot.position.x == -1 and mainViewRoot.position.y == -1):
-            position = wx.DefaultPosition
-        else:
-            position = (mainViewRoot.position.x, mainViewRoot.position.y)
-
         # arel: fix for bug involving window size and toolbar on MacOS (bug 3411).
         # The problem is that mainFrame gets resized when it is rendered
         # (particularly when the toolbar gets rendered), increasing the window's
@@ -259,7 +254,7 @@ class wxApplication (wx.App):
         self.mainFrame = MainFrame(None,
                                    -1,
                                    u"Chandler",
-                                   pos=position,
+                                   pos=(mainViewRoot.position.x, mainViewRoot.position.y),
                                    size=(mainViewRoot.size.width, mainViewRoot.size.height),
                                    style=wx.DEFAULT_FRAME_STYLE)
  
