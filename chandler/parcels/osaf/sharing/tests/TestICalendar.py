@@ -31,6 +31,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.writeICalendarUnicodeBug3338()
         self.importRecurrence()
         self.importRecurrenceWithTimezone()
+        self.importReminders()
         self.exportRecurrence()
         self._teardown()
 
@@ -172,12 +173,25 @@ class ICalendarTestCase(unittest.TestCase):
     def importRecurrenceWithTimezone(self):
         format = self.Import(self.repo.view, u'RecurrenceWithTimezone.ics')
         event = format.findUID('FF14A660-02A3-11DA-AA66-000A95DA3228')
-        third = event.modifications.first()
         # THISANDFUTURE change creates a new event, so there's nothing in
         # event.modifications
-        self.assertEqual(third, None)
-        #self.assertEqual(third.rruleset.rrules.first().freq, 'daily')
+        self.assertEqual(event.modifications, None)
         
+    def importReminders(self):
+        format = self.Import(self.repo.view, u'RecurrenceWithAlarm.ics')
+        future = format.findUID('RecurringAlarmFuture')
+        reminder = future.reminders.first()
+        # this will start failing in 2015...
+        self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
+        second = future.getNextOccurrence()
+        self.assert_(reminder in second.reminders)
+        
+        past = format.findUID('RecurringAlarmPast')
+        reminder = past.expiredReminders.first()
+        self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
+        second = past.getNextOccurrence()
+        self.assert_(reminder in second.expiredReminders)
+    
     def exportRecurrence(self):
         eastern = ICUtzinfo.getInstance("US/Eastern")
         start = datetime.datetime(2005,2,1, tzinfo = eastern)            

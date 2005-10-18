@@ -9,6 +9,7 @@ import Sharing
 import application.Parcel
 from osaf.pim import AbstractCollection, ListCollection, CalendarEventMixin
 import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
 import StringIO
 import vobject
@@ -379,6 +380,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # to have to make sure all the datetimes we create have
                 # the same naivete as dtstart
                 tzinfo = dtstart.tzinfo
+
+                # method to call to make changes to the event
+                change = None                
                 
                 # See if we have a corresponding item already
                 uidMatchItem = self.findUID(event.uid[0].value)
@@ -404,6 +408,22 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             logger.info("RECURRENCE-ID didn't match rule. " \
                                         "RECURRENCE-ID = %s" % recurrenceID)
                             continue
+                        recurrenceLine = event.contents['recurrence-id'][0]
+                        range = recurrenceLine.params.get('RANGE', 'THIS')
+                        if range == 'THISANDPRIOR':
+                            # ignore THISANDPRIOR changes for now
+                            logger.info("RECURRENCE-ID RANGE of THISANDPRIOR " \
+                                        "not supported")
+                            continue
+                        elif range == 'THIS':
+                            pass                        
+                        elif range == 'THISANDFUTURE':
+                            change = eventItem.changeThisAndFuture
+                        else:
+                            logger.info("RECURRENCE-ID RANGE not recognized. " \
+                                        "RANGE = %s" % range)
+                            continue
+                        
                     else:
                         eventItem = uidMatchItem
                         if (eventItem.occurrenceFor is None and
@@ -419,48 +439,52 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
                     eventItem.icalUID = event.uid[0].value
+                
+                if change is None:
+                    change = eventItem.changeThis
                     
                 if DEBUG: logger.debug("eventItem is %s" % str(eventItem))
                 
                 #Default to NOT any time
-                eventItem.anyTime = False
+                change('anyTime', False)
                 
-                eventItem.displayName = displayName
+                change('displayName', displayName)
                 
                 if anyTime:
-                    eventItem.anyTime = True
-                    eventItem.allDay  = False                    
+                    change('anyTime', True)
+                    change('allDay', False)
                 else:
-                    eventItem.anyTime = False
+                    change('anyTime', False)
                     # anyTime events will look like allDay, but they aren't, so
                     # only set allDay if allDay is False
                     if isDate:
-                        eventItem.allDay = True
+                        change('allDay', True)
                     else:
-                        eventItem.allDay = False
+                        change('allDay', False)
 
-                eventItem.startTime = dtstart
-                eventItem.duration  = duration
+                change('startTime', dtstart)
+                change('duration', duration)
                 
                 if not filters or "transparency" not in filters:
-                    eventItem.transparency = status
+                    change('transparency', status)
                 
-                # I think Item.description describes a Kind, not userdata, so
-                # I'm using DESCRIPTION <-> body  
+                # DESCRIPTION <-> body  
                 if description is not None:
-                    eventItem.body = textKind.makeValue(description)
+                    change('body', textKind.makeValue(description))
                 
                 if location:
-                    eventItem.location = Calendar.Location.getLocation(view,
-                                                                       location)
+                    change('location', Calendar.Location.getLocation(view,
+                                                                     location))
                 
                 if not filters or "reminders" not in filters:
                     if reminderDelta is not None:
-                        eventItem.makeReminder(reminderDelta)
+                        change('reminderInterval', reminderDelta)
                 
                 rruleset = event.rruleset
                 if rruleset is not None:
-                    eventItem.setRuleFromDateUtil(rruleset)
+                    ruleSetItem = RecurrenceRuleSet(None, view=view)
+                    ruleSetItem.setRuleFromDateUtil(rruleset)
+                    change('rruleset', ruleSetItem)
                 elif recurrenceID is None: # delete any existing rule
                     eventItem.removeRecurrence()
     
