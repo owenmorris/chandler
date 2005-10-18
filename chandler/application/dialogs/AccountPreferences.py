@@ -365,12 +365,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
-         account=None, view=None):
+         account=None, view=None, modal=True):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.resources = resources
         self.view = view
+        self.modal = modal
 
         # outerSizer will have two children to manage: on top is innerSizer,
         # and below that is the okCancelSizer
@@ -924,14 +925,16 @@ class AccountPreferencesDialog(wx.Dialog):
                         # Add the item and locate it in the sidebar collection
                         sidebarCollection.add (collection)
                         sidebarSelectionCollection.moveItemToLocation (collection, 1)
-            self.EndModal(True)
+            if self.modal:
+                self.EndModal(True)
             self.view.commit()
             application.Globals.mailService.refreshMailServiceCache()
             self.Destroy()
 
     def OnCancel(self, evt):
         self.__ApplyCancellations()
-        self.EndModal(False)
+        if self.modal:
+            self.EndModal(False)
         self.Destroy()
 
     def OnNewAccount(self, evt):
@@ -1205,7 +1208,7 @@ def ShowAccountPreferencesDialog(parent, account=None, view=None, modal=True):
 
     # Display the dialog:
     win = AccountPreferencesDialog(parent, messages.ACCOUNT_PREFERENCES,
-     resources=resources, account=account, view=view)
+     resources=resources, account=account, view=view, modal=modal)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()
