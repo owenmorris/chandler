@@ -178,7 +178,10 @@ class Script(pim.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  bodyString=None, *args, **keys):
-        keys.setdefault('displayName', messages.UNTITLED)
+        defaultName = messages.UNTITLED
+        if name is not None:
+            defaultName = unicode(name)
+        keys.setdefault('displayName', defaultName)
         super(Script, self).__init__(name, parent, kind, view, *args, **keys)
 
         self.lastRan = datetime.now()

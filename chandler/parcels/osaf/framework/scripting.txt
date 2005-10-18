@@ -84,9 +84,9 @@ We initialize scripts without any name to Untitled::
 Like any repository Item, you can name the script using the name parameter
 if you want to give it a unique name::
 
-    >>> namedScript = Scripting.Script(view=rv, name=u"Empty")
+    >>> namedScript = Scripting.Script(view=rv, name="Empty")
     >>> namedScript.itsName
-    u'Empty'
+    'Empty'
 
 This also becomes its displayName::
 
