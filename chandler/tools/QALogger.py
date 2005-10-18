@@ -124,7 +124,7 @@ class TestLogger:
             if Globals.options.catsPerfLog:
                 catsPerfLog = open(Globals.options.catsPerfLog, 'wt')
                 try:
-                    catsPerfLog.write("%s" % elapsed_secs)
+                    catsPerfLog.write("%s\n" % elapsed_secs)
                 finally:
                     catsPerfLog.close()
         #reset timing infos
