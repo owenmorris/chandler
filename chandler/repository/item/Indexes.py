@@ -228,7 +228,7 @@ class SortedIndex(DelegatingIndex):
 
     def getInitKeywords(self):
 
-        return {'descending': self._descending }
+        return { 'descending': self._descending }
 
     def compare(self, k0, k1):
 

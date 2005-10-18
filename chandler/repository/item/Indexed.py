@@ -54,6 +54,17 @@ class Indexed(object):
             item, name = self._getOwner()
             raise NoSuchIndexError, (item, name, indexName)
 
+    def hasIndex(self, name):
+        """
+        Tell whether this indexed collection has an index by a given name.
+
+        @param name: the name of the index sought
+        @type name: string
+        @return: boolean
+        """
+
+        return self._indexes and name in self._indexes
+
     def addIndex(self, indexName, indexType, **kwds):
         """
         Add an index to this collection.
@@ -183,6 +194,67 @@ class Indexed(object):
 
         return index._readValue(itemReader, offset, data)
 
+    def findInIndex(self, indexName, mode, callable, *args, **kwds):
+        """
+        Find a key in an index via binary search and callable predicate.
+
+        The C{mode} argument determines how the search is directed and can
+        take the following values:
+            - C{exact}: as soon as a match is found it is returned
+            - C{first}: the lowest match in sort order is returned
+            - C{last}: the highest match in sort order is returned
+
+        The notion of match is defined by the C{callable}
+        implementation. For example, a collection of events sorted by start
+        time can be searched to return the first or the last match in a date
+        range.
+
+        The predicate implementation provided by C{callable} better be
+        consistent with the sort order of the index.
+
+        @param indexName: the name of the index to search
+        @type indexName: a string
+        @param mode: the mode of the search (see above)
+        @type mode: a string
+        @param callable: the predicate implementation
+        @type callable: a python callable function or method
+        @param *args: extra arguments to pass to the predicate
+        @param *kwds: extra keyword arguments to pass to the predicate
+        @return: a C{UUID} key or C{None} if no match was found
+        """
+
+        index = self._indexes[indexName]
+        pos = lo = 0
+        hi = len(index) - 1
+        match = None
+
+        while lo <= hi:
+            pos = (lo + hi) / 2
+            key = index.getKey(pos)
+            diff = callable(key, *args, **kwds)
+
+            if diff == 0:
+                if mode == 'exact':
+                    return key
+
+                match = key
+                if mode == 'first':
+                    hi = pos - 1
+                elif mode == 'last':
+                    pos += 1
+                    lo = pos
+                else:
+                    raise ValueError, mode
+
+            elif diff < 0:
+                hi = pos - 1
+
+            else:
+                pos += 1
+                lo = pos
+
+        return match
+
     def getByIndex(self, indexName, position):
         """
         Get an item through its position in an index.
@@ -281,24 +353,27 @@ class Indexed(object):
 
         self._setDirty(True)
 
-    def iterindexkeys(self, indexName):
+    def iterindexkeys(self, indexName, first=None, last=None):
 
         index = self._index(indexName)
-        nextKey = index.getFirstKey()
+        nextKey = first or index.getFirstKey()
 
-        while nextKey is not None:
+        while nextKey != last:
             key = nextKey
             nextKey = index.getNextKey(nextKey)
             yield key
 
-    def iterindexvalues(self, indexName):
+        if last is not None:
+            yield last
 
-        for key in self.iterindexkeys(indexName):
+    def iterindexvalues(self, indexName, first=None, last=None):
+
+        for key in self.iterindexkeys(indexName, first, last):
             yield self[key]
 
-    def iterindexitems(self, indexName):
+    def iterindexitems(self, indexName, first=None, last=None):
 
-        for key in self.iterindexkeys(indexName):
+        for key in self.iterindexkeys(indexName, first, last):
             yield (key, self[key])
 
     def getIndexEntryValue(self, indexName, item):
