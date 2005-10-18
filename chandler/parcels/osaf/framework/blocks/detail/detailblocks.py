@@ -219,12 +219,21 @@ def makeMarkupBar(parcel, oldVersion):
                                     helpString=messages.PRIVATE,
                                     event=togglePrivate)
 
+    readOnlyIcon = \
+        ReadOnlyIconBlock.template('ReadOnlyIcon',
+                                    title=messages.READONLY,
+                                    bitmap="MarkupBarReadOnly.png",
+                                    disabledBitmap="MarkupBarReadWrite.png",
+                                    toolbarItemKind='Status',
+                                    helpString=messages.READONLY)
+
     # Finally, (re-)do the bar itself.
     markupBar = MarkupBarBlock.template('MarkupBar',
                                         childrenBlocks=[mailMessageButton,
                                                         taskStamp,
                                                         calendarStamp,
-                                                        privateSwitchButton],
+                                                        privateSwitchButton,
+                                                        readOnlyIcon],
                                         position=0.0,
                                         toolSize=SizeType(20, 20),
                                         separatorWidth=16,

@@ -25,6 +25,7 @@ STAMP_TASK = _(u"Put on Task list")
 STAMP_CALENDAR = _(u"Put on Calendar")
 PRIVATE = _(u"Never share this item")
 NOT_PRIVATE = _(u"Allow sharing this item")
+READONLY = _(u"Read only")
 
 STAMP_MAIL_HELP = _(u"Prepare this item as a mail message")
 STAMP_TASK_HELP = _(u"Put this item onto the Taskpad")

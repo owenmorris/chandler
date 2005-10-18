@@ -6,6 +6,7 @@ __parcel__ = "osaf.framework.blocks"
 
 import application.Globals as Globals
 from application import schema
+from application.Application import mixinAClass
 import Block as Block
 import logging
 import wx
@@ -808,9 +809,9 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
             toolbarItem = self._item_named (name)
         return toolbarItem.post(toolbarItem.event, {})
         
-class wxToolbarItem (wx.ToolBarToolBase):
+class wxToolbarMixin (object):
     """
-    Toolbar Tool Widget.
+    Toolbar Tool Widget mixin, for various items that can appear in a Toolbar.
 
     ToolbarItems are a CPIA concept, that are roughly equivalent to the
     wx object ToolbarTool.  In CPIA, ToolbarItems are children of Toolbars,
@@ -891,6 +892,11 @@ class wxToolbarItem (wx.ToolBarToolBase):
         self.selectTool()
         event.Skip()
 
+class wxToolbarItem (wxToolbarMixin, wx.ToolBarToolBase):
+    """
+    Toolbar Tool Item widget.
+    """
+    pass
 
 class Toolbar(Block.RectangularChild, DynamicContainer):
 
@@ -943,8 +949,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         return self.widget.press (toolbarItem, name)
 
 class toolbarItemKindEnumType(schema.Enumeration):
-    values = "Button", "Separator", "Check", "Radio", "Text", "Combo", "Choice"
-
+    values = "Button", "Separator", "Check", "Radio", "Text", "Combo", "Choice", "Status"
 
 class ToolbarItem(Block.Block, DynamicChild):
     """
@@ -1013,7 +1018,8 @@ class ToolbarItem(Block.Block, DynamicChild):
                                         kind = theKind,
                                         shortHelp=shortHelp,
                                         longHelp=longHelp)
-            tool.__class__ = wxToolbarItem
+            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarMixin'
+            mixinAClass (tool, toolWidgetMixin)
             theToolbar.SetToolLongHelp(id, longHelp)
             theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)            
         elif self.toolbarItemKind == 'Separator':
@@ -1038,6 +1044,14 @@ class ToolbarItem(Block.Block, DynamicChild):
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_TEXT_ENTER, app.OnCommand, id=id)
+        elif self.toolbarItemKind == 'Status':
+            bitmap, disabledBitmap = getBitmaps (self)
+            tool = wx.StaticBitmap(theToolbar, id, bitmap)
+
+            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarMixin'
+            mixinAClass (tool, toolWidgetMixin)
+            theToolbar.AddControl (tool)
+            theToolbar.SetToolLongHelp(id, self.helpString)
         elif self.toolbarItemKind == 'Combo':
             proto = self.prototype
             choices = proto.choices
@@ -1063,10 +1077,10 @@ class ToolbarItem(Block.Block, DynamicChild):
         elif __debug__:
             assert False, "unknown toolbarItemKind"
         
-        if tool is not None and tool.__class__ != wxToolbarItem:
-            # convert this object from a wx.ToolBarTool to a wxToolBarItem,
-            # so we can call methods on that widget class.
-            assert tool.__class__ is wx.ToolBarToolBase, "wx ToolBarTool class mismatch with ToolbarItem"
-            tool.__class__ = wxToolbarItem
+        # downcast the item created by wx into a toolbarMixin, so
+        # it has the extra methods needed by CPIA.
+        if tool is not None and not isinstance(tool, wxToolbarMixin):
+            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarMixin'
+            mixinAClass (tool, toolWidgetMixin)
         return tool
 

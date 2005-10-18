@@ -687,7 +687,28 @@ class PrivateSwitchButtonBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem)
             self.dynamicParent.show (True) # if we're toggling a button down, the bar must be shown
         self.dynamicParent.widget.ToggleTool(self.toolID, item.private)
         return False
-        
+
+class ReadOnlyIconBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
+    """
+      "Read Only" icon in the Markup Bar
+    """
+    def synchronizeItemDetail (self, item):
+        # toggle this icon to reflect the read only status of the selected item
+        app = wx.GetApp()
+
+        if item.getSharedState() == ContentItem.READONLY:
+            bitmap = app.GetImage(self.bitmap)
+            self.widget.SetBitmap(bitmap)
+        else:
+            try:
+                disabledBitmapName = self.disabledBitmap
+            except AttributeError:
+                disabledBitmap = wx.NullBitmap
+            else:
+                disabledBitmap = app.GetImage (disabledBitmapName)                
+            self.widget.SetBitmap(disabledBitmap)
+        return False
+            
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
