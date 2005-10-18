@@ -666,6 +666,10 @@ class Block(schema.Item):
         if dispatchEnum == 'SendToBlockByReference':
             callMethod (event.destinationBlockReference, methodName, event)
 
+        elif dispatchEnum == 'SendToSender':
+            block = event.arguments['sender']
+            callMethod (block, methodName, event)
+
         elif dispatchEnum == 'SendToBlockByName':
             callMethod (Block.findBlockByName (event.dispatchToBlockName), methodName, event)
 
@@ -937,7 +941,7 @@ class dispatchEnumType(schema.Enumeration):
         "BroadcastInsideMyEventBoundary",
         "BroadcastInsideActiveViewEventBoundary",
         "BroadcastEverywhere", "FocusBubbleUp", "ActiveViewBubbleUp",
-        "SendToBlockByReference", "SendToBlockByName",
+        "SendToBlockByReference", "SendToBlockByName", "SendToSender",
     )
 
 class BlockEvent(schema.Item):
