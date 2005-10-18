@@ -307,7 +307,7 @@ class ListCollection(AbstractCollection):
 
     refCollection = schema.Sequence(otherName='collections',initialValue=[])
 
-    trashFor = schema.Many('InclusionExclusionCollection', otherName='trash', initialValue=[])
+    trashFor = schema.Sequence('InclusionExclusionCollection', otherName='trash', initialValue=[])
 
     def __init__(self, *args, **kw):
         super(ListCollection, self).__init__(*args, **kw)
