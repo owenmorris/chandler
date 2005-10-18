@@ -1,8 +1,6 @@
 
-from struct import pack, unpack
-
-import repository.schema.Types as CoreTypes
 import wx
+from struct import pack, unpack
 from application import schema
 
 
