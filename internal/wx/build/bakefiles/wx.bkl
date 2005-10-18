@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: wx.bkl,v 1.46 2005/09/29 13:54:37 ABX Exp $ -->
+<!-- $Id: wx.bkl,v 1.47 2005/10/18 20:50:37 MW Exp $ -->
 
 
 <!-- Master bakefile for wxWidgets -->
@@ -218,7 +218,7 @@
 
         <!-- add "make dist" target to autoconf: -->
         <set var="VARS_DONT_ELIMINATE" append="1">
-            ALL_BASE_HEADERS ALL_BASE_SOURCES WX_VERSION
+            ALL_PORTS_BASE_HEADERS ALL_BASE_SOURCES WX_VERSION
         </set>
         <fragment format="autoconf" file="make_dist.mk"/>
 

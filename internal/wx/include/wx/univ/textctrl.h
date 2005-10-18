@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.09.00
-// RCS-ID:      $Id: textctrl.h,v 1.20 2005/09/23 12:50:49 MR Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.21 2005/10/18 00:03:33 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,13 +66,14 @@ class WXDLLEXPORT wxTextCtrlCommandProcessor;
 // wxTextCtrl
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxTextCtrl : public wxTextCtrlBase, public wxScrollHelper
+class WXDLLEXPORT wxTextCtrl : public wxTextCtrlBase,
+                               public wxScrollHelper
 {
 public:
     // creation
     // --------
 
-    wxTextCtrl() { Init(); }
+    wxTextCtrl() : wxScrollHelper(this) { Init(); }
 
     wxTextCtrl(wxWindow *parent,
                wxWindowID id,
@@ -82,6 +83,7 @@ public:
                long style = 0,
                const wxValidator& validator = wxDefaultValidator,
                const wxString& name = wxTextCtrlNameStr)
+        : wxScrollHelper(this) 
     {
         Init();
 

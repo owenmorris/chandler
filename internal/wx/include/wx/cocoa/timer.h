@@ -2,7 +2,7 @@
 // Name:        timer.h
 // Purpose:     Cocoa wxTimer class
 // Author:      Ryan Norton
-// Id:          $Id: timer.h,v 1.2 2005/09/23 12:49:02 MR Exp $
+// Id:          $Id: timer.h,v 1.3 2005/10/18 16:02:47 DE Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,6 @@ protected:
 
 private:
     WX_NSTimer m_cocoaNSTimer;
-    static const wxObjcAutoRefFromAlloc<struct objc_object *> sm_cocoaDelegate;
 
     DECLARE_ABSTRACT_CLASS(wxTimer)
 };

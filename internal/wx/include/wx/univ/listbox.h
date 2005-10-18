@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: listbox.h,v 1.24 2005/09/27 16:54:43 ABX Exp $
+// RCS-ID:      $Id: listbox.h,v 1.25 2005/10/18 11:13:29 ABX Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ class WXDLLEXPORT wxListBox : public wxListBoxBase, public wxScrollHelper
 {
 public:
     // ctors and such
-    wxListBox() { Init(); }
+    wxListBox() : wxScrollHelper(this) { Init(); }
     wxListBox(wxWindow *parent,
               wxWindowID id,
               const wxPoint& pos = wxDefaultPosition,
@@ -61,6 +61,7 @@ public:
               long style = 0,
               const wxValidator& validator = wxDefaultValidator,
               const wxString& name = wxListBoxNameStr )
+        : wxScrollHelper(this)
     {
         Init();
 

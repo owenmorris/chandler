@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.h,v 1.22 2005/10/09 18:40:20 VZ Exp $
+// RCS-ID:      $Id: bookctrl.h,v 1.23 2005/10/18 12:31:09 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,6 +118,15 @@ public:
     // calculate the size of the control from the size of its page
     virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const = 0;
 
+    // get/set size of area between book control area and page area
+    inline unsigned int GetInternalBorder() const
+    {
+        return m_internalBorder;
+    }
+    void SetInternalBorder(unsigned int internalBorder)
+    {
+        m_internalBorder = internalBorder;
+    }
 
     // operations
     // ----------
@@ -192,12 +201,8 @@ protected:
     // helper: get the next page wrapping if we reached the end
     int GetNextPage(bool forward) const;
 
-    // common part of all ctors
-    void Init();
-
     // Always rely on GetBestSize, which will look at all the pages
     virtual void SetInitialBestSize(const wxSize& WXUNUSED(size)) { }
-
 
     // the array of all pages of this control
     wxArrayPages m_pages;
@@ -208,6 +213,13 @@ protected:
     // true if we must delete m_imageList
     bool m_ownsImageList;
 
+private:
+
+    // common part of all ctors
+    void Init();
+
+    // internal border
+    unsigned int m_internalBorder;
 
     DECLARE_NO_COPY_CLASS(wxBookCtrlBase)
 };

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.279 2005/10/11 15:51:10 VZ Exp $ -->
+<!-- $Id: files.bkl,v 1.280 2005/10/18 20:50:37 MW Exp $ -->
 <makefile>
 
 <!--
@@ -2975,16 +2975,18 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     </set>
 
     <!-- for 'make install', only the headers needed for the installed port -->
-    <set var="ALL_HEADERS" make_var="1" hints="files">
+    <set var="ALL_BASE_HEADERS" make_var="1" hints="files">
         $(BASE_CMN_HDR) $(BASE_PLATFORM_HDR)
         $(NET_CMN_HDR) $(NET_PLATFORM_HDR)
         $(XML_HDR) $(ODBC_HDR)
-        $(ALL_GUI_HEADERS)
+    </set>
+    <set var="ALL_HEADERS" make_var="1" hints="files">
+        $(ALL_BASE_HEADERS) $(ALL_GUI_HEADERS)
     </set>
 
 
     <!-- used by 'make dist', should include wxBase headers for all ports -->
-    <set var="ALL_BASE_HEADERS" make_var="1" hints="files">
+    <set var="ALL_PORTS_BASE_HEADERS" make_var="1" hints="files">
         $(BASE_CMN_HDR)
         $(BASE_UNIX_HDR)
         $(BASE_WIN32_HDR) $(BASE_WINCE_HDR)

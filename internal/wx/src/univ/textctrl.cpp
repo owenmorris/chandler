@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.09.00
-// RCS-ID:      $Id: textctrl.cpp,v 1.36 2005/09/23 12:55:55 MR Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.37 2005/10/18 00:03:36 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -634,9 +634,6 @@ void wxTextCtrl::Init()
 
     m_heightLine =
     m_widthAvg = -1;
-
-    // init wxScrollHelper
-    SetWindow(this);
 
     // init the undo manager
     m_cmdProcessor = new wxTextCtrlCommandProcessor(this);

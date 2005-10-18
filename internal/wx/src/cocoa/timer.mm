@@ -2,9 +2,9 @@
 // Name:        src/cocoa/timer.mm
 // Purpose:     wxTimer for wxCocoa
 // Author:      Ryan Norton
-// Modified by:
+// Modified by: David Elliott
 // Created:     2005-02-04
-// RCS-ID:      $Id: timer.mm,v 1.2 2005/02/04 17:56:49 RN Exp $
+// RCS-ID:      $Id: timer.mm,v 1.4 2005/10/18 16:02:51 DE Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,16 +37,6 @@
 IMPLEMENT_CLASS(wxTimer, wxTimerBase)
 
 // ========================================================================
-// wxNSTimerDelegate
-// ========================================================================
-@interface wxNSTimerDelegate : NSObject
-{
-}
-
-- (void)onNotify:(NSTimer *)theTimer;
-@end // interface wxNSTimerDelegate : NSObject
-
-// ========================================================================
 // wxNSTimerData
 // ========================================================================
 @interface wxNSTimerData : NSObject
@@ -54,35 +44,43 @@ IMPLEMENT_CLASS(wxTimer, wxTimerBase)
     wxTimer* m_timer;
 }
 
-- (id)setTimer:(wxTimer*)theTimer;
+- (id)init;
+- (id)initWithWxTimer:(wxTimer*)theTimer;
 - (wxTimer*)timer;
+- (void)onNotify:(NSTimer *)theTimer;
 @end // interface wxNSTimerData : NSObject
 
 @implementation wxNSTimerData : NSObject
-- (id)setTimer:(wxTimer*)theTimer;
+- (id)init
 {
+    if(!(self = [super init]))
+        return nil;
+    m_timer = NULL;
+    return self;
+}
+
+- (id)initWithWxTimer:(wxTimer*)theTimer;
+{
+    if(!(self = [super init]))
+        return nil;
     m_timer = theTimer;
     return self;
 }
+
 - (wxTimer*)timer
 {
     return m_timer;
 }
-@end 
 
-@implementation wxNSTimerDelegate : NSObject
 - (void)onNotify:(NSTimer *)theTimer
 {
-    wxNSTimerData* theData = [theTimer userInfo];
-    [theData timer]->Notify(); //wxTimerBase method
+    m_timer->Notify(); //wxTimerBase method
 }
 @end 
 
 // ----------------------------------------------------------------------------
 // wxTimer
 // ----------------------------------------------------------------------------
-
-const wxObjcAutoRefFromAlloc<struct objc_object*> wxTimer::sm_cocoaDelegate = [[wxNSTimerDelegate alloc] init];
 
 wxTimer::~wxTimer()
 {
@@ -100,12 +98,14 @@ bool wxTimer::Start(int millisecs, bool oneShot)
     
     wxAutoNSAutoreleasePool thePool;
 
+    wxNSTimerData *timerData = [[wxNSTimerData alloc] initWithWxTimer:this];
     m_cocoaNSTimer =     [[NSTimer 
             scheduledTimerWithTimeInterval: millisecs / 1000.0 //seconds
-            target:		wxTimer::sm_cocoaDelegate
+            target:	timerData
             selector:	@selector(onNotify:) 
-            userInfo:	[[wxNSTimerData alloc] setTimer:this]
+            userInfo:	nil
             repeats:	oneShot == false] retain];
+    [timerData release];
                        
     return IsRunning();
 }
@@ -114,9 +114,8 @@ void wxTimer::Stop()
 {
     if (m_cocoaNSTimer)
     {
-        NSObject* theUserInfo = [m_cocoaNSTimer userInfo];
+        // FIXME: Is this safe to do if !isValid ?
         [m_cocoaNSTimer invalidate];
-        [theUserInfo release];
         [m_cocoaNSTimer release];
         m_cocoaNSTimer = NULL;
     }

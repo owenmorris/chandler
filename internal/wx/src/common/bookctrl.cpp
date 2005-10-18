@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.cpp,v 1.16 2005/10/09 18:40:32 VZ Exp $
+// RCS-ID:      $Id: bookctrl.cpp,v 1.17 2005/10/18 12:31:10 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,6 +42,12 @@ void wxBookCtrlBase::Init()
 {
     m_imageList = NULL;
     m_ownsImageList = false;
+
+#if defined(__WXWINCE__)
+    m_internalBorder = 1;
+#else
+    m_internalBorder = 5;
+#endif
 }
 
 bool
@@ -196,11 +202,10 @@ int wxBookCtrlBase::GetNextPage(bool forward) const
     }
     else // notebook is empty, no next page
     {
-        nPage = -1;
+        nPage = wxNOT_FOUND;
     }
 
     return nPage;
 }
 
 #endif // wxUSE_BOOKCTRL
-

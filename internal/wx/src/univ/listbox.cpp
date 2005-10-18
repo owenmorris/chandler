@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: listbox.cpp,v 1.32 2005/09/23 12:55:52 MR Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.33 2005/10/18 11:13:34 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -84,6 +84,7 @@ wxListBox::wxListBox(wxWindow *parent,
                      long style,
                      const wxValidator& validator,
                      const wxString &name)
+          :wxScrollHelper(this)
 {
     Init();
 
@@ -134,8 +135,6 @@ bool wxListBox::Create(wxWindow *parent,
     if ( !wxControl::Create(parent, id, pos, size, style,
                             validator, name) )
         return false;
-
-    SetWindow(this);
 
     m_strings = new wxArrayString;
 
