@@ -515,17 +515,8 @@ class AETypeOverTextCtrl(wxRectangularChild):
             else:
                 sizeChangedMethod()
 
-    # Delegate selected methods to our shown control.
-    # (This only works for methods that aren't implemented in our own base
-    # classes - those we'll need to override specifically, because __getattr__
-    # won't be called for them. See them below.)
-    delegatedAttributes = ('GetValue', 'SetValue', 'SetStyle')
-    def __getattr__(self, attr):
-        if attr in self.delegatedAttributes:
-            return getattr(self.shownControl, attr)
-        else:
-            raise AttributeError, "%s has no attribute named '%s'" % (self, attr)
-    
+    def GetValue(self): return self.shownControl.GetValue()
+    def SetValue(self, *args): return self.shownControl.SetValue(*args)
     def SetForegroundColour(self, *args): self.shownControl.SetForegroundColour(*args)
     def CanUndo(self): return self.shownControl.CanUndo()
     def CanRedo(self): return self.shownControl.CanRedo()
