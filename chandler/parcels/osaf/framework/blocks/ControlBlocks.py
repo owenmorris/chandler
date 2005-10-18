@@ -1886,35 +1886,59 @@ class AEBlock(BoxContainer):
         
         # Get the parameters we'll use to pick an editor
         typeName = self.getItemAttributeTypeName()
-        readOnly = self.isReadOnly(item, self.attributeName)
+        attributeName = self.attributeName
+        readOnly = self.isReadOnly(item, attributeName)
         try:
             presentationStyle = self.presentationStyle
         except AttributeError:
             presentationStyle = None
         
-        # If we have one already, and it's the right one, return it.
+        # If we have an editor already, and it's the right one, return it.
         try:
             oldEditor = self.widget.editor
         except AttributeError:
             pass
         else:
-            if (oldEditor is not None) and (oldEditor.typeName == typeName) \
-               and (oldEditor.attributeName == self.attributeName) \
-               and (oldEditor.readOnly == readOnly) and \
-               (oldEditor.presentationStyle is presentationStyle):
-                # this shouldn't've changed:
-                assert oldEditor.item in (item, getattr(item, 'proxiedItem', None))
-                return oldEditor
+            if (oldEditor is not None):
+                if (oldEditor.typeName == typeName
+                   and oldEditor.attributeName == attributeName
+                   and oldEditor.readOnly == readOnly and
+                   oldEditor.presentationStyle is presentationStyle):
+                    # Yep, it's good enough - use it.
+                    oldEditor.item = item # note that the item may have changed.
+                    return oldEditor
 
+                # It's not good enough, so we'll be changing editors.
+                # unRender(), then re-render(); lookupEditor will get called
+                # from within render() and will install the right editor; once
+                # it returns, we can just return that.
+                # @@@ Note:
+                # - I don't know of a case where this can happen now (it would
+                #   require a contentitem kind containing an attribute whose
+                #   value could have different types, and whose different types
+                #   have different attribute editors registered for them), 
+                #   so this hasn't been tested.
+                # - If this does happen in a situation where this code is called
+                #   from within a wx event handler on this item's widget, a
+                #   crash would result (because wx won't be happy if we return
+                #   through it after that widget has been destroyed).
+                assert False, "Please let Bryan know you've found a case where this happens!"
+                logger.debug("AEBlock.lookupEditor %s: Rerendering", 
+                             getattr(self, 'blockName', '?'))
+                self.unRender()
+                self.render()
+                return getattr(self.widget, 'editor', None)
+                    
         # We need a new editor - create one.
-        # logger.debug("Creating new AE for %s (%s.%s), ro=%s", typeName, item, attributeName, readOnly)
+        #logger.debug("Creating new AE for %s (%s.%s), ro=%s", 
+                     #typeName, item, attributeName, readOnly)
         selectedEditor = AttributeEditors.getInstance\
-                       (typeName, item, self.attributeName, readOnly, presentationStyle)
+                       (typeName, item, attributeName, readOnly, presentationStyle)
         
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
         selectedEditor.item = item
-        selectedEditor.attributeName = self.attributeName
+        selectedEditor.attributeName = attributeName
         selectedEditor.readOnly = readOnly
         selectedEditor.presentationStyle = presentationStyle
 
@@ -2023,7 +2047,7 @@ class AEBlock(BoxContainer):
         # Make sure the value is written back to the item. 
         widget = getattr(self, 'widget', None)
         if widget is not None:
-            editor = self.lookupEditor()
+            editor = self.widget.editor
             if editor is not None:
                 editor.EndControlEdit(self.item, self.attributeName, widget)
 

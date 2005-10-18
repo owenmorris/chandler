@@ -55,6 +55,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
       Root of the Detail View.
     """
     def onSetContentsEvent (self, event):
+        self.finishSelectionChanges()
         item = event.arguments['item']
         logger.debug("DetailRoot.onSetContentsEvent: %s", item)
         self.contents = item
@@ -256,19 +257,10 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
             # particular tree of blocks defined in parcel.xml for this Kind,
             # which will never get used for a real Item.
             return DetailTrunkSubtree.getKind(self.itsView), False
-        else:
-            # The detailView doesn't properly handle a SetContents event.
-            # To work around this we rerender when it's contents are changed.
-            # It requires a bit of hackery to figure this out. See bug #4009
-            keyItem = item.itsKind
-            newView = self.getTrunkForKeyItem(keyItem)
-            trunkParentBlock = self.trunkParentBlock
-            TPBSelectedItem = trunkParentBlock.TPBSelectedItem
-            TPBDetailItem = self._getContentsForTrunk (newView, TPBSelectedItem, keyItem)
-            rerender = (hasattr(trunkParentBlock, 'TPBDetailItem') and
-                        TPBDetailItem is not trunkParentBlock.TPBDetailItem)
 
-            return item.itsKind, rerender
+        # The normal case: we have an item, so use its Kind
+        # as the key.
+        return item.itsKind, False
     
     def _makeTrunkForCacheKey(self, keyItem):
         """ 
@@ -338,8 +330,10 @@ class DetailSynchronizer(Item):
         
 
     def onSetContentsEvent (self, event):
-        logger.debug("DetailSynchronizer: onSetContentsEvent")
+        #logger.debug("DetailSynchronizer %s: onSetContentsEvent",
+                     #getattr(self, 'blockName', '?'))
         self.contents = event.arguments['item']
+        self.synchronizeWidget()
 
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
                     doc="Return the selected item, or None")
@@ -413,20 +407,25 @@ class DetailSynchronizer(Item):
                         Monitors.attach(self, 'onMonitoredValueChanged', 'set', attr)
                     self.widget.monitoredAttributes = basedAttributes
 
-    def unRender(self):
+    def onDestroyWidget(self):
         # Stop monitoring
-        try:
-            monitoredAttributes = self.widget.monitoredAttributes
-        except AttributeError:
-            pass
-        else:
+        monitoredAttributes = getattr(self.widget, 'monitoredAttributes', None)
+        if monitoredAttributes is not None:
             logger.debug("DetailSynchronizer (%s): Detaching monitors for %s", 
                          getattr(self, 'blockName', '?'),
                          ', '.join(self.widget.monitoredAttributes))
             for attr in monitoredAttributes:
                 Monitors.detach(self, 'onMonitoredValueChanged', 'set', attr)
-
-        super(DetailSynchronizer, self).unRender()
+        
+        # @@@ BJS: this didn't work as a fix for bug 3960 (change to title 
+        # not saved upon quitting chandler): see the bug comments.
+        ## Write back data if we need to, to handle the case where the user 
+        ## quits by closing the main window
+        #saver = getattr(self, 'saveTextValue', None) 
+        #if saver is not None:
+            #saver()
+            
+        super(DetailSynchronizer, self).onDestroyWidget()
 
     def onMonitoredValueChanged(self, op, item, attribute):
         # Ignore notifications that aren't for us. (Yes, it's not ideal to have 
