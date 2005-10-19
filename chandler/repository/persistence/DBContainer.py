@@ -954,8 +954,12 @@ class ItemContainer(DBContainer):
 
             def __del__(_self):
 
-                self.closeCursor(_self.cursor, self._index)
-                store.abortTransaction(view, _self.txnStatus)
+                try:
+                    self.closeCursor(_self.cursor, self._index)
+                    store.abortTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in __del__, %s: %s",
+                                                  e.__class__.__name__, e)
                 _self.cursor = None
 
             def run(_self):

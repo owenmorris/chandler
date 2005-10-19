@@ -609,7 +609,7 @@ class DBStore(Store):
 
         if view is not None and view._exclusive.acquire():
             status = DBStore.EXCLUSIVE
-        
+
         if not self._ramdb:
             if self.txn is None:
                 self.txn = repository._env.txn_begin(None)

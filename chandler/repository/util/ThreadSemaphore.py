@@ -18,10 +18,8 @@ class ThreadSemaphore(object):
     def acquire(self, wait=True):
 
         if self._thread is not currentThread():
-            #print currentThread(), 'acquiring'
             result = self._semaphore.acquire(wait)
             if result:
-                #print currentThread(), 'got it'
                 self._thread = currentThread()
 
             return result
@@ -30,9 +28,6 @@ class ThreadSemaphore(object):
 
     def release(self):
 
-        if self._thread is not currentThread():
-            raise ValueError, 'current thread did not acquire semaphore'
-        else:
+        if self._thread is currentThread():
             self._thread = None
             self._semaphore.release()
-            #print currentThread(), 'released it'
