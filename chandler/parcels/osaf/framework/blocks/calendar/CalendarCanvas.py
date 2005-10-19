@@ -584,10 +584,15 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         
         # make sure there are indexes
         # This will be enabled soon, just checking in so andi can play with it
-        #for attr in ('startTime', 'endTime'):
-        #    if not (events._indexes and attr in events._indexes):
-        #        print "Creating index for %s on %s" % (attr, self.contents)
-        #        events.addIndex(attr, 'attribute', attribute=attr)
+        #if not (events._indexes and 'startTime' in events._indexes):
+        #    print "Creating index for %s on %s" % ('startTime', self.contents)
+        #    events.addIndex('startTime', 'attribute', attribute='startTime')
+        #
+        #if not (events._indexes and 'endTime' in events._indexes):
+        #    print "Creating index for %s on %s" % ('endTime', self.contents)
+        #    # endTime is actually dependent on startTime/duration
+        #    events.addIndex('endTime', 'attribute', attribute='endTime',
+                            monitor=('startTime', 'duration'))
 
         # and make sure there is a FilteredCollection for
         # master events
