@@ -31,3 +31,5 @@ class ThreadSemaphore(object):
         if self._thread is currentThread():
             self._thread = None
             self._semaphore.release()
+        else:
+            raise ValueError, 'current thread did not acquire semaphore'

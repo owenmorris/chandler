@@ -619,6 +619,13 @@ class DBStore(Store):
 
         return status
 
+    def createTransaction(self):
+
+        if not self._ramdb:
+            return self.repository._env.txn_begin(None)
+
+        return None
+
     def commitTransaction(self, view, status):
 
         try:

@@ -949,23 +949,25 @@ class ItemContainer(DBContainer):
 
             def __init__(_self):
 
-                _self.txnStatus = 0
                 _self.cursor = None
+                _self.txn = None
 
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor, self._index)
-                    store.abortTransaction(view, _self.txnStatus)
+                    _self.cursor.close()
+                    if _self.txn is not None:  # no transactions in ramdb
+                        _self.txn.abort()
                 except Exception, e:
                     store.repository.logger.error("in __del__, %s: %s",
                                                   e.__class__.__name__, e)
                 _self.cursor = None
+                _self.txn = None
 
             def run(_self):
 
-                _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor(self._index)
+                _self.txn = store.createTransaction()
+                _self.cursor = self._index.cursor(_self.txn, self._flags)
                 
                 try:
                     value = _self.cursor.set_range(uuid._uuid, self._flags)
