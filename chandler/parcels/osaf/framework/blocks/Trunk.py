@@ -114,11 +114,16 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             app.ignoreSynchronizeWidget = False
             try:
                 newView.postEventByName ("SetContents", {'item':TPBDetailItem})
+
+                if not hasattr (newView, "widget"):
+                    newView.render()
+                else:
+                    layoutMethod = getattr(newView, 'Layout', None)
+                    if layoutMethod is not None: 
+                        layoutMethod()
             finally:
                 app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
-            if not hasattr (newView, "widget"):
-                newView.render()
 
 class TrunkDelegate(schema.Item):
     """

@@ -103,12 +103,16 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
                     notifySelf = reNotifyInside (child, item) or notifySelf
             except AttributeError:
                 pass
-            try:
-                syncMethod = type(block).synchronizeItemDetail
-            except AttributeError:
-                if notifySelf:
-                    block.synchronizeWidget()
-            else:
+            
+            if notifySelf:
+                #logger.debug("SyncDetailView: syncWidgeting %s",
+                             #getattr(block, 'blockName', '?'))
+                block.synchronizeWidget()
+                
+            syncMethod = getattr(type(block), 'synchronizeItemDetail', None)
+            if syncMethod is not None:
+                #logger.debug("SyncDetailView: syncItemDetailing %s",
+                             #getattr(block, 'blockName', '?'))
                 notifySelf = syncMethod(block, item) or notifySelf
             return notifySelf
 
@@ -118,13 +122,19 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             needsLayout = reNotifyInside(child, item) or needsLayout
         wx.GetApp().needsUpdateUI = True
         if needsLayout:
-            try:
-                sizer = self.widget.GetSizer()
-            except AttributeError:
-                pass
-            else:
-                if sizer:
-                    sizer.Layout()
+            self.relayoutSizer()
+
+    def relayoutSizer(self):
+        try:
+            sizer = self.widget.GetSizer()
+        except AttributeError:
+            pass
+        else:
+            if sizer:
+                sizer.Layout()
+                    
+    def Layout(self):
+        self.synchronizeDetailView(self.item)
 
     if __debug__:
         def dumpShownHierarchy (self, methodName=''):
@@ -333,7 +343,6 @@ class DetailSynchronizer(Item):
         #logger.debug("DetailSynchronizer %s: onSetContentsEvent",
                      #getattr(self, 'blockName', '?'))
         self.contents = event.arguments['item']
-        self.synchronizeWidget()
 
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
                     doc="Return the selected item, or None")
@@ -400,9 +409,9 @@ class DetailSynchronizer(Item):
                     if a:
                         basedAttributes.update(item.getBasedAttributes(a))
                 if len(basedAttributes):
-                    logger.debug("DetailSynchronizer (%s): Attaching monitors for %s",
-                                 getattr(self, 'blockName', '?'),
-                                 ', '.join(basedAttributes))
+                    #logger.debug("DetailSynchronizer (%s): Attaching monitors for %s",
+                                 #getattr(self, 'blockName', '?'),
+                                 #', '.join(basedAttributes))
                     for attr in basedAttributes:
                         Monitors.attach(self, 'onMonitoredValueChanged', 'set', attr)
                     self.widget.monitoredAttributes = basedAttributes
@@ -411,9 +420,9 @@ class DetailSynchronizer(Item):
         # Stop monitoring
         monitoredAttributes = getattr(self.widget, 'monitoredAttributes', None)
         if monitoredAttributes is not None:
-            logger.debug("DetailSynchronizer (%s): Detaching monitors for %s", 
-                         getattr(self, 'blockName', '?'),
-                         ', '.join(self.widget.monitoredAttributes))
+            #logger.debug("DetailSynchronizer (%s): Detaching monitors for %s", 
+                         #getattr(self, 'blockName', '?'),
+                         #', '.join(self.widget.monitoredAttributes))
             for attr in monitoredAttributes:
                 Monitors.detach(self, 'onMonitoredValueChanged', 'set', attr)
         
@@ -438,6 +447,8 @@ class DetailSynchronizer(Item):
             logger.debug("DetailSynchronizer (%s): Monitor on %s fired; syncing.", 
                          self.blockName, attribute)
             self.synchronizeWidget()
+            if self.synchronizeItemDetail(ourItem):
+                self.detailRoot.relayoutSizer()
 
     def parseEmailAddresses(self, item, addressesString):
         """
@@ -565,6 +576,7 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
         self.saveValue()
 
     def OnDataChanged (self):
+        # (this is how we find out about drag-and-dropped text changes!)
         self.saveTextValue()
 
     def OnFinishChangesEvent (self, event):

@@ -599,12 +599,12 @@ class Block(schema.Item):
             except AttributeError:
                 return False
             else:
-                if __debug__ and not methodName.endswith("UpdateUI"):
-                    # show dispatched events
-                    logger.debug("Calling %s on %s (%s): %s" % \
-                                 (methodName, getattr(block, "blockName", "?"),
-                                  block, getattr(event, "arguments", 
-                                                 "(no arguments)")))
+                #if __debug__ and not methodName.endswith("UpdateUI"):
+                    ## show dispatched events
+                    #logger.debug("Calling %s on %s (%s): %s" % \
+                                 #(methodName, getattr(block, "blockName", "?"),
+                                  #block, getattr(event, "arguments", 
+                                                 #"(no arguments)")))
 
                 event.arguments ['results'] = member (block, event)
                 return True
@@ -681,8 +681,7 @@ class Block(schema.Item):
             broadcast (block,
                        methodName,
                        event,
-                       lambda child: (child is not None and
-                                      child.isShown and 
+                       lambda child: (child is not None and 
                                       not child.eventBoundary))
 
         elif dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
@@ -694,15 +693,14 @@ class Block(schema.Item):
                 broadcast (block,
                            methodName,
                            event,
-                           lambda child: (child is not None and
-                                          child.isShown and 
+                           lambda child: (child is not None and 
                                           not child.eventBoundary))
 
         elif dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.views[0],
                        methodName,
                        event,
-                       lambda child: (child is not None and child.isShown))
+                       lambda child: (child is not None))
 
         elif dispatchEnum == 'FocusBubbleUp':
             block = theClass.getFocusBlock()
