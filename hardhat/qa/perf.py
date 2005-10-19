@@ -321,7 +321,11 @@ class perf:
           if delta.days < 8:
             testname = string.strip(testname)
             hour     = itemTime[:2]
-            runtime  = float(runtime)
+
+            try:
+              runtime  = float(runtime)
+            except ValueError:
+              runtime = 0.0
 
             if itemDate < startdate:
               startdate = itemDate
