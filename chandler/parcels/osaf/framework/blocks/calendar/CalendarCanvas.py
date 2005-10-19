@@ -14,18 +14,15 @@ from repository.item.Monitors import Monitors
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
-from osaf.pim.calendar import Calendar
-from osaf.pim.calendar.TimeZone import TimeZoneInfo, formatTime
+from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime
+from osaf.pim import FilteredCollection, AbstractCollection
 from application.dialogs import RecurrenceDialog
-# import osaf.pim.items as items
 
-from osaf.framework.blocks import DragAndDrop
-from osaf.framework.blocks import Block
-from osaf.framework.blocks import ContainerBlocks
-from osaf.framework.blocks import Styles
-from osaf.framework.blocks import FocusEventHandlers
+from osaf.framework.blocks import (
+    DragAndDrop, Block, SplitterWindow, Styles,
+    FocusEventHandlers, BoxContainer
+    )
 from osaf.framework.attributeEditors import AttributeEditors
-import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.calendar import CollectionCanvas
 
 from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
@@ -128,6 +125,11 @@ class ColorInfo(object):
     visibleOutlineColor = tintedColor(0.3)
     visibleTextColor = tintedColor(0.4, 0.85)
     visibleColors = tupleProperty(visibleGradientLeft, visibleGradientRight, visibleOutlineColor, visibleTextColor)
+
+
+class CalendarCollections(schema.Annotation):
+    schema.kindInfo(annotates=AbstractCollection)
+    masterEvents = schema.One(FilteredCollection)
         
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
@@ -576,6 +578,29 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         if item in collections:
             widget.Refresh()
 
+    def onSetContentsEvent(self, event):
+        super(CalendarBlock, self).onSetContentsEvent(event)
+        events = self.contents.rep
+        
+        # make sure there are indexes
+        # This will be enabled soon, just checking in so andi can play with it
+        #for attr in ('startTime', 'endTime'):
+        #    if not (events._indexes and attr in events._indexes):
+        #        print "Creating index for %s on %s" % (attr, self.contents)
+        #        events.addIndex(attr, 'attribute', attribute=attr)
+
+        # and make sure there is a FilteredCollection for
+        # master events
+
+        calendarCollections = CalendarCollections(self.contents)
+        if getattr(calendarCollections, 'masterEvents', None) is None:
+            masterEvents = FilteredCollection(parent=self.contents)
+            masterEvents.filterExpression = 'item.occurrences is not None'
+            masterEvents.filterAttributes = ['occurrences']
+            masterEvents.source = self.contents
+            calendarCollections.masterEvents = masterEvents
+        
+
     def onSelectWeekEvent(self, event):
         self.dayMode = not event.arguments['doSelectWeek']
         if self.dayMode:
@@ -948,7 +973,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         also forces consumers to specify important fields	
         """	
         view = self.blockItem.itsView	
-        event = Calendar.CalendarEvent(view=view)	
+        event = Calendar.CalendarEvent(view=view, startTime=startTime, duration=duration)
         event.InitOutgoingAttributes()	
        
         # start time is "optional" - callers still must specify None	
@@ -1165,7 +1190,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         event.Skip()
 
         
-class CalendarContainer(ContainerBlocks.BoxContainer):
+class CalendarContainer(BoxContainer):
     """
     The highlevel container that holds:
     - the controller
@@ -1255,7 +1280,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
             # return the list of items created
             return [newEvent]
     
-class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
+class CanvasSplitterWindow(SplitterWindow):
     calendarControl = schema.One(schema.Item, required=True)
     def instantiateWidget(self):
         wxSplitter = super(CanvasSplitterWindow, self).instantiateWidget()
