@@ -71,10 +71,12 @@ def DrawWrappedText(dc, text, rect):
     lines = text.splitlines()
     y = rect.y
     totalHeight = 0
+    ignored, lineHeight = dc.GetTextExtent('M') #in case there are no words in the line
+    assert rect.height < lineHeight, "Don't have enough room to write anything (have %d, need %d)" % (rect.height, lineHeight)
     for line in lines:
         x = rect.x
         wrap = 0
-        _, height = dc.GetTextExtent('M') #in case there are no words in the line
+        height = lineHeight
         for word in line.split():
             width, height = dc.GetTextExtent(word)
 
