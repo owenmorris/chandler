@@ -857,62 +857,38 @@ class RectangularChild (Block):
             return
         else:
             self.contextMenu.displayContextMenu(self.widget, position, data)
-                
-        
+
+    # tuple of action, changesData where changesData tells us if
+    # the action would cause a change
+    genericEditActions = [('Cut', True),
+                          ('Copy', False),
+                          ('Paste', True),
+                          ('Clear', True),
+                          ('SelectAll', True),
+                          ('Undo', False),
+                          ('Redo', False)]
+    
+def _GenericEditDelegate(methodName, changesData=True):
     """
-    Edit Menu enabling and handling.
-    
-    If our widget knows how to do the edit, we handle the event
-        by delegating to our widget.
-    Otherwise we let the event continue to bubble up the container
-        hierarchy.
+    Generic Edit handling - given an action, like 'Cut', etc,
+    return a tuple of onXXXEvent/onXXXEventUpdateUI methods that
+    handle that and delegate to the respective method, updating
+    event.arguments appropriately
+
+    If our widget knows how to do the edit, we handle the event by
+    delegating to our widget. Otherwise we let the event continue
+    to bubble up the container hierarchy.  For example,
+
+    onCutEvent, onCutEventUpdateUI = _GenericEditDelegate('Cut')
+
+    will ensure that onCutEvent delegates to self.widget.Cut(), and
+    onCutEventUpdateUI delegates to self.widget.CanCut()
     """
-    def onCopyEventUpdateUI(self, event):
-        return self._GenericEditUpdateUI(event, 'CanCopy')
 
-    def onCopyEvent(self, event):
-        return self._GenericEditEvent(event, 'Copy', changesData=False)
-
-    def onCutEventUpdateUI(self, event):
-        return self._GenericEditUpdateUI(event, 'CanCut')
-
-    def onCutEvent(self, event):
-        return self._GenericEditEvent(event, 'Cut')
-
-    def onPasteEventUpdateUI(self, event):
-        return self._GenericEditUpdateUI(event, 'CanPaste')
-
-    def onPasteEvent(self, event):
-        return self._GenericEditEvent(event, 'Paste')
-
-    def onClearEventUpdateUI(self, event):
-        return self._GenericEditUpdateUI(event, 'CanClear')
-    
-    def onClearEvent(self, event):
-        return self._GenericEditEvent(event, 'Clear')
-    
-    def onSelectAllEventUpdateUI(self, event):
-        return self._GenericEditUpdateUI(event, 'CanSelectAll')
-
-    def onSelectAllEvent(self, event):
-        return self._GenericEditEvent(event, 'SelectAll', changesData=False)
-        
-    def onRedoEventUpdateUI(self, event):
-        return self._GenericEditUpdateUI(event, 'CanRedo')
-
-    def onRedoEvent(self, event):
-        return self._GenericEditEvent(event, 'Redo')
-
-    def onUndoEventUpdateUI(self, event):
-        return self._GenericEditUpdateUI(event, 'CanUndo')
-    
-    def onUndoEvent(self, event):
-        return self._GenericEditEvent(event, 'Undo')
-
-    def _GenericEditUpdateUI(self, event, methodName):
+    def GenericEditUpdateUI(self, event):
         try:
             # get the method bound to the widget
-            method = getattr (self.widget, methodName)
+            method = getattr (self.widget, 'Can' + methodName)
         except AttributeError:
             # don't know, so BubbleUp
             event.arguments['continueBubbleUp'] = True
@@ -920,7 +896,7 @@ class RectangularChild (Block):
             # We know if we can, so enable or disable menu item
             event.arguments['Enable'] = method()
 
-    def _GenericEditEvent(self, event, methodName, changesData=True):
+    def GenericEdit(self, event):
         try:
             method = getattr (self.widget, methodName)
         except AttributeError:
@@ -935,6 +911,14 @@ class RectangularChild (Block):
                 if method is not None:
                     method(self)
             return result
+    return (GenericEdit, GenericEditUpdateUI)
+
+# dynamically attach methods to RectangularChild
+for action,changesData in RectangularChild.genericEditActions:
+    onEvent, onEventUpdateUI = _GenericEditDelegate(action, changesData)
+    
+    setattr(RectangularChild, 'on' + action + 'Event', onEvent)
+    setattr(RectangularChild, 'on' + action + 'EventUpdateUI', onEventUpdateUI)
 
 class dispatchEnumType(schema.Enumeration):
     values = (
