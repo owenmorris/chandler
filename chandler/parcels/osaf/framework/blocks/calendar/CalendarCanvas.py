@@ -592,7 +592,7 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         #    print "Creating index for %s on %s" % ('endTime', self.contents)
         #    # endTime is actually dependent on startTime/duration
         #    events.addIndex('endTime', 'attribute', attribute='endTime',
-                            monitor=('startTime', 'duration'))
+        #                    monitor=('startTime', 'duration'))
 
         # and make sure there is a FilteredCollection for
         # master events
