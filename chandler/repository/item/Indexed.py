@@ -107,8 +107,8 @@ class Indexed(object):
         attribute(s) are monitored can be overriden by specifying one or
         more attribute names via the C{monitor} keyword.
 
-        The C{attribute} and C{string} sorted indexes treat a missing value
-        as infinitely large.
+        The C{attribute} and C{string} sorted indexes treat a missing or
+        C{None} value as infinitely large.
 
         @param indexName: the name of the index
         @type indexName: a string

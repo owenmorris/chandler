@@ -159,9 +159,12 @@ class NumericIndex(Index, SkipList):
             
     def moveKey(self, key, afterKey):
 
-        self.move(self, key, afterKey)
-        self._keyChanged(key)
-        super(NumericIndex, self).moveKey(key, afterKey)
+        if key not in self:
+            self.insertKey(key, afterKey)
+        else:
+            self.move(self, key, afterKey)
+            self._keyChanged(key)
+            super(NumericIndex, self).moveKey(key, afterKey)
             
     def removeKey(self, key):
 
@@ -269,8 +272,10 @@ class SortedIndex(DelegatingIndex):
             
     def moveKey(self, key, afterKey):
 
-        self._index.removeKey(key)
-        self._index.insertKey(key, self.afterKey(key))
+        index = self._index
+        if key in index:
+            index.removeKey(key)
+        index.insertKey(key, self.afterKey(key))
 
     def setDescending(self, descending=True):
 
@@ -364,16 +369,16 @@ class AttributeIndex(SortedIndex):
         valueMap = self._valueMap
         attribute = self._attribute
 
-        v0 = getattr(valueMap[k0], attribute, Nil)
-        v1 = getattr(valueMap[k1], attribute, Nil)
+        v0 = getattr(valueMap[k0], attribute, None)
+        v1 = getattr(valueMap[k1], attribute, None)
 
         if v0 is v1:
             return 0
 
-        if v0 is Nil:
+        if v0 is None:
             return 1
 
-        if v1 is Nil:
+        if v1 is None:
             return -1
 
         if v0 == v1:
@@ -446,16 +451,16 @@ class StringIndex(AttributeIndex):
         valueMap = self._valueMap
         attribute = self._attribute
 
-        v0 = getattr(valueMap[k0], attribute, Nil)
-        v1 = getattr(valueMap[k1], attribute, Nil)
+        v0 = getattr(valueMap[k0], attribute, None)
+        v1 = getattr(valueMap[k1], attribute, None)
 
         if v0 is v1:
             return 0
 
-        if v0 is Nil:
+        if v0 is None:
             return 1
 
-        if v1 is Nil:
+        if v1 is None:
             return -1
 
         return self._collator.compare(v0, v1)
