@@ -8311,14 +8311,11 @@ bool wxGrid::MoveCursorUp( bool expandSelection )
         }
         else if ( m_currentCellCoords.GetRow() > 0 )
         {
-            // OSAF (25-Sept-05) - John Anderson, please review this change
-            // the commented-out line is your old code
-            // SelectCell (m_currentCellCoords.GetRow() - 1, m_currentCellCoords.GetCol() );
+            int row = m_currentCellCoords.GetRow() - 1;
+            int col = m_currentCellCoords.GetCol();
             ClearSelection();
-            MakeCellVisible( m_currentCellCoords.GetRow() - 1,
-                             m_currentCellCoords.GetCol() );
-            SetCurrentCell( m_currentCellCoords.GetRow() - 1,
-                            m_currentCellCoords.GetCol() );
+            MakeCellVisible( row, col );
+            SetCurrentCell( row, col );
         }
         else
             return false;
@@ -8349,14 +8346,11 @@ bool wxGrid::MoveCursorDown( bool expandSelection )
         }
         else if ( m_currentCellCoords.GetRow() < m_numRows - 1 )
         {
-            // OSAF (25-Sept-05) - John Anderson, please review this change
-            // the commented-out line is your old code
-            // SelectCell (m_currentCellCoords.GetRow() + 1, m_currentCellCoords.GetCol() );
+            int row = m_currentCellCoords.GetRow() + 1;
+            int col = m_currentCellCoords.GetCol();
             ClearSelection();
-            MakeCellVisible( m_currentCellCoords.GetRow() + 1,
-                             m_currentCellCoords.GetCol() );
-            SetCurrentCell( m_currentCellCoords.GetRow() + 1,
-                            m_currentCellCoords.GetCol() );
+            MakeCellVisible( row, col );
+            SetCurrentCell( row, col );
         }
         else
             return false;
@@ -8386,14 +8380,11 @@ bool wxGrid::MoveCursorLeft( bool expandSelection )
         }
         else if ( m_currentCellCoords.GetCol() > 0 )
         {
-            // OSAF (25-Sept-05) - John Anderson, please review this change
-            // the commented-out line is your old code
-            // SelectCell (m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() - 1 );
+            int row = m_currentCellCoords.GetRow();
+            int col = m_currentCellCoords.GetCol() - 1;
             ClearSelection();
-            MakeCellVisible( m_currentCellCoords.GetRow(),
-                             m_currentCellCoords.GetCol() - 1 );
-            SetCurrentCell( m_currentCellCoords.GetRow(),
-                            m_currentCellCoords.GetCol() - 1 );
+            MakeCellVisible( row, col );
+            SetCurrentCell( row, col );
         }
         else
             return false;
@@ -8423,14 +8414,11 @@ bool wxGrid::MoveCursorRight( bool expandSelection )
         }
         else if ( m_currentCellCoords.GetCol() < m_numCols - 1 )
         {
-            // OSAF (25-Sept-05) - John Anderson, please review this change
-            // the commented-out line is your old code
-            // SelectCell (m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() + 1 );
+            int row = m_currentCellCoords.GetRow();
+            int col = m_currentCellCoords.GetCol() + 1;
             ClearSelection();
-            MakeCellVisible( m_currentCellCoords.GetRow(),
-                             m_currentCellCoords.GetCol() + 1 );
-            SetCurrentCell( m_currentCellCoords.GetRow(),
-                            m_currentCellCoords.GetCol() + 1 );
+            MakeCellVisible( row, col );
+            SetCurrentCell( row, col );
         }
         else
             return false;
