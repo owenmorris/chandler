@@ -364,15 +364,25 @@ class AttributeIndex(SortedIndex):
         valueMap = self._valueMap
         attribute = self._attribute
 
-        v0 = getattr(valueMap[k0], attribute)
-        v1 = getattr(valueMap[k1], attribute)
+        v0 = getattr(valueMap[k0], attribute, Nil)
+        v1 = getattr(valueMap[k1], attribute, Nil)
 
-        if v0 < v1:
+        if v0 is v1:
+            return 0
+
+        if v0 is Nil:
+            return 1
+
+        if v1 is Nil:
             return -1
+
+        if v0 == v1:
+            return 0
+
         if v0 > v1:
             return 1
 
-        return 0
+        return -1
 
     def _xmlValues(self, generator, version, attrs, mode):
 
@@ -433,8 +443,20 @@ class StringIndex(AttributeIndex):
 
     def compare(self, k0, k1):
 
-        v0 = self._valueMap[k0].getAttributeValue(self._attribute)
-        v1 = self._valueMap[k1].getAttributeValue(self._attribute)
+        valueMap = self._valueMap
+        attribute = self._attribute
+
+        v0 = getattr(valueMap[k0], attribute, Nil)
+        v1 = getattr(valueMap[k1], attribute, Nil)
+
+        if v0 is v1:
+            return 0
+
+        if v0 is Nil:
+            return 1
+
+        if v1 is Nil:
+            return -1
 
         return self._collator.compare(v0, v1)
 

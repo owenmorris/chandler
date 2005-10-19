@@ -7,5 +7,4 @@
     <ref name="type" type="path">//Schema/Core/Bytes</ref>
     <attribute name="cardinality">single</attribute>
     <attribute name="required">True</attribute>
-    <attribute name="defaultValue">a default title</attribute>
 </item>

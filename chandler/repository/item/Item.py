@@ -300,7 +300,7 @@ class Item(CItem):
 
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
-        if op == 'set':
+        if op in ('set', 'remove'):
             collection = getattr(self, collectionName, None)
             if collection is not None and item in collection:
                 collection.placeInIndex(item, None, indexName)

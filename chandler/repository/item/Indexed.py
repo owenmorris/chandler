@@ -89,6 +89,11 @@ class Indexed(object):
               of items in the collection. The name of the attribute is
               provided via the C{attribute} keyword.
 
+            - C{string}: an index sorted by locale-specific collation on the
+              value of a string attribute of items in the collection. The
+              name of the attribute is provided via the C{attribute}
+              keyword. The locale name is provided via the C{locale} keyword.
+
             - C{compare}: an index sorted on the return value of a method
               invoked on items in the collection. The method is a comparison
               method whose name is provided with the C{compare} keyword, and
@@ -96,6 +101,14 @@ class Indexed(object):
               C{i1}, and is expected to return a positive number if, in the
               context of this index, C{i0 > i1}, a negative number if C{i0 <
               i1}, or zero if C{i0 == i1}.
+
+        By default, the C{attribute} and C{string} indexes monitor the
+        attribute by which they are sorted in order to remain sorted. Which
+        attribute(s) are monitored can be overriden by specifying one or
+        more attribute names via the C{monitor} keyword.
+
+        The C{attribute} and C{string} sorted indexes treat a missing value
+        as infinitely large.
 
         @param indexName: the name of the index
         @type indexName: a string
@@ -117,11 +130,28 @@ class Indexed(object):
         if not (self._getView().isLoading() or kwds.get('loading', False)):
             self.fillIndex(index)
             self._setDirty(True) # noMonitors=True
+            monitor = kwds.get('monitor')
 
-            if indexType in ('attribute', 'string'):
+            if monitor is not None:
+                from repository.item.Monitors import Monitors
+                if isinstance(monitor, (str, unicode)):
+                    Monitors.attach(item, '_reIndex',
+                                    'set', monitor, name, indexName)
+                    Monitors.attach(item, '_reIndex',
+                                    'remove', monitor, name, indexName)
+                else:
+                    for m in monitor:
+                        Monitors.attach(item, '_reIndex',
+                                        'set', m, name, indexName)
+                        Monitors.attach(item, '_reIndex',
+                                        'remove', m, name, indexName)
+                    
+            elif indexType in ('attribute', 'string'):
                 from repository.item.Monitors import Monitors
                 Monitors.attach(item, '_reIndex',
                                 'set', kwds['attribute'], name, indexName)
+                Monitors.attach(item, '_reIndex',
+                                'remove', kwds['attribute'], name, indexName)
 
         return index
 
