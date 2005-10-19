@@ -11,9 +11,11 @@ from osaf.pim import AbstractCollection, IntersectionCollection, KindCollection,
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
-from osaf import sharing
+from osaf import sharing, pim
 from application import schema
 from i18n import OSAFMessageFactory as _
+
+from colorsys import rgb_to_hsv
 
 class SidebarElementDelegate (ControlBlocks.ListDelegate):
     def ReadOnly (self, row, column):
@@ -505,8 +507,9 @@ class SSSidebarIconButton (SSSidebarButton):
         if image is not None and colorizeIcon:
             color = getattr (item, 'color', None)
             if color is not None:
-                hsvValue = wx.Image.RGBtoHSV (wx.Image_RGBValue (color.red, color.green, color.blue))
-                image.RotateHue (hsvValue.hue)
+                rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
+                hsvValue = rgb_to_hsv(*rgbValue)
+                image.RotateHue (hsvValue[0])
 
         if image is not None:
             image = wx.BitmapFromImage (image)
@@ -863,12 +866,16 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         are overlayed in the Calendar view
         """
         if includeCheckedItems:
-            collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
+            collectionList = [theItem for theItem in sidebar.contents
+                              if ((theItem in sidebar.checkedItems) and
+                                  (theItem is not item))]
         else:
             collectionList = []
+
+        # the current item goes at the head of the list
         if isinstance (item, AbstractCollection):
             collectionList.insert (0, item)
-            
+
         if len (collectionList) > 0:
             """
             tupleList is sorted so we always end up with on collection
@@ -886,6 +893,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
             try:
                 key = self.itemTupleKeyToCacheKey [tupleKey]
             except KeyError:
+                # we don't have a cached version of this key, so we'll
+                # create a new one
                 if len (collectionList) == 1:
                     key = collectionList [0]
                 else:
@@ -893,8 +902,12 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     for col in collectionList:
                         key.addSource(col)
 
+                # create an INTERNAL name for this collection, just
+                # for debugging purposes
                 displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
 
+                # Handle filtered collections by intersecting with
+                # the kind collection
                 if filterKind is not None:
                     newKey = IntersectionCollection(view=self.itsView)
                     try:
@@ -910,6 +923,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     displayName += u" filtered by " + filterKind.displayName
                     key = newKey
 
+                # Finally, create a UI wrapper collection to manage
+                # things like selection and sorting
                 newKey = IndexedSelectionCollection (view=self.itsView)
                 newKey.source = key
                 newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
@@ -921,12 +936,12 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                 self.itemTupleKeyToCacheKey [tupleKey] = key
             else: # try/except
                 """
-                Check to see if we need to reorder
-                collectionList. The list is kept sorted by the
-                order of the collections as they overlay one
-                another in the Calendar.  We don't bother to
-                reorder when we're looking up a collection that
-                isn't displayed in the summary view.
+                We found the key, but we might still need to reorder
+                collectionList. The list is kept sorted by the order
+                of the collections as they overlay one another in the
+                Calendar.  We don't bother to reorder when we're
+                looking up a collection that isn't displayed in the
+                summary view.
                 """
                 if sidebar.selectedItemToView is item:
                     for new, old in map (None, key.collectionList, collectionList):
