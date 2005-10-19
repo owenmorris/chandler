@@ -636,7 +636,7 @@ class DetailStampButton (DetailSynchronizer, MenusAndToolbars.ToolbarItem):
         shouldToggleBasedOnClass = isinstance(item, self.stampMixinClass())
         shouldToggleBasedOnKind = item.isItemOf(self.stampMixinKind())
         assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
-               "Class/Kind mismatch for class %s, kind %s" % (item.__class__, item.itsKind)
+               "Class/Kind mismatch for class %s, kind %s" % (item.__class__.__name__, item.itsKind.itsName)
         # @@@DLD remove workaround for bug 1712 - ToogleTool doesn't work on mac when bar hidden
         if shouldToggleBasedOnKind:
             self.dynamicParent.show (True) # if we're toggling a button down, the bar must be shown
