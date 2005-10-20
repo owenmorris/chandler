@@ -54,6 +54,13 @@ class Indexed(object):
             item, name = self._getOwner()
             raise NoSuchIndexError, (item, name, indexName)
 
+    def _anIndex(self):
+
+        if self._indexes:
+            return self._indexes.itervalues().next()
+
+        return None
+
     def hasIndex(self, name):
         """
         Tell whether this indexed collection has an index by a given name.
@@ -125,7 +132,6 @@ class Indexed(object):
             self._indexes = {}
 
         index = self._createIndex(indexType, **kwds)
-        self._indexes[indexName] = index
 
         if not (self._getView().isLoading() or kwds.get('loading', False)):
             self.fillIndex(index)
@@ -153,6 +159,7 @@ class Indexed(object):
                 Monitors.attach(item, '_reIndex',
                                 'remove', kwds['attribute'], name, indexName)
 
+        self._indexes[indexName] = index
         return index
 
     def setDescending(self, indexName, descending=True):

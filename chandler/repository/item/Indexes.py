@@ -18,6 +18,14 @@ class Index(dict):
         self._count = 0
         self._valid = True
 
+    def __iter__(self):
+
+        nextKey = self.getFirstKey()
+        while nextKey is not None:
+            key = nextKey
+            nextKey = self.getNextKey(nextKey)
+            yield key
+
     def clear(self):
 
         self._count = 0
@@ -203,6 +211,9 @@ class DelegatingIndex(object):
 
     def __len__(self):
         return len(self._index)
+
+    def __iter__(self):
+        return iter(self._index)
 
     def __getattr__(self, name):
         return getattr(self._index, name)

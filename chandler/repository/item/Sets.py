@@ -41,8 +41,9 @@ class AbstractSet(ItemValue, Indexed):
 
     def __len__(self):
 
-        if self._indexes:
-            return len(self._indexes.itervalues().next())
+        index = self._anIndex()
+        if index is not None:
+            return len(index)
 
         raise ValueError, "set has no indexes, length is unknown"
 
@@ -263,12 +264,25 @@ class Set(AbstractSet):
 
     def __contains__(self, item):
 
+        if item is None:
+            return False
+
+        index = self._anIndex()
+        if index is not None:
+            return item.itsUUID in index
+
         return self._sourceContains(item, self._source)
 
     def __iter__(self):
 
-        for item in self._iterSource(self._source):
-            yield item
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            for item in self._iterSource(self._source):
+                yield item
 
     def _repr_(self, replace=None):
 
@@ -362,18 +376,30 @@ class Union(BiSet):
 
     def __contains__(self, item):
         
+        if item is None:
+            return False
+
+        index = self._anIndex()
+        if index is not None:
+            return item.itsUUID in index
+
         return (self._sourceContains(item, self._left) or
                 self._sourceContains(item, self._right))
 
     def __iter__(self):
 
-        left = self._left
-        for item in self._iterSource(left):
-            yield item
-
-        for item in self._iterSource(self._right):
-            if not self._sourceContains(item, left):
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            left = self._left
+            for item in self._iterSource(left):
                 yield item
+            for item in self._iterSource(self._right):
+                if not self._sourceContains(item, left):
+                    yield item
 
     def _op(self, leftOp, rightOp, other):
 
@@ -394,17 +420,30 @@ class Intersection(BiSet):
 
     def __contains__(self, item):
         
+        if item is None:
+            return False
+
+        index = self._anIndex()
+        if index is not None:
+            return item.itsUUID in index
+
         return (self._sourceContains(item, self._left) and
                 self._sourceContains(item, self._right))
 
     def __iter__(self):
 
-        left = self._left
-        right = self._right
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            left = self._left
+            right = self._right
 
-        for item in self._iterSource(left):
-            if self._sourceContains(item, right):
-                yield item
+            for item in self._iterSource(left):
+                if self._sourceContains(item, right):
+                    yield item
 
     def _op(self, leftOp, rightOp, other):
 
@@ -425,17 +464,30 @@ class Difference(BiSet):
 
     def __contains__(self, item):
         
+        if item is None:
+            return False
+
+        index = self._anIndex()
+        if index is not None:
+            return item.itsUUID in index
+
         return (self._sourceContains(item, self._left) and
                 not self._sourceContains(item, self._right))
 
     def __iter__(self):
 
-        left = self._left
-        right = self._right
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            left = self._left
+            right = self._right
 
-        for item in self._iterSource(left):
-            if not self._sourceContains(item, right):
-                yield item
+            for item in self._iterSource(left):
+                if not self._sourceContains(item, right):
+                    yield item
 
     def _op(self, leftOp, rightOp, other):
 
@@ -512,6 +564,13 @@ class MultiUnion(MultiSet):
 
     def __contains__(self, item):
 
+        if item is None:
+            return False
+
+        index = self._anIndex()
+        if index is not None:
+            return item.itsUUID in index
+
         for source in self._sources:
             if self._sourceContains(item, source):
                 return True
@@ -520,18 +579,24 @@ class MultiUnion(MultiSet):
 
     def __iter__(self):
 
-        sources = self._sources
-        for source in sources:
-            for item in self._iterSource(source):
-                unique = True
-                for src in sources:
-                    if src is source:
-                        break
-                    if self._sourceContains(item, src):
-                        unique = False
-                        break
-                if unique:
-                    yield item
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            sources = self._sources
+            for source in sources:
+                for item in self._iterSource(source):
+                    unique = True
+                    for src in sources:
+                        if src is source:
+                            break
+                        if self._sourceContains(item, src):
+                            unique = False
+                            break
+                    if unique:
+                        yield item
 
     def _op(self, ops, other):
 
@@ -555,6 +620,13 @@ class MultiIntersection(MultiSet):
 
     def __contains__(self, item):
 
+        if item is None:
+            return False
+
+        index = self._anIndex()
+        if index is not None:
+            return item.itsUUID in index
+
         for source in self._sources:
             if not self._sourceContains(item, source):
                 return False
@@ -563,19 +635,25 @@ class MultiIntersection(MultiSet):
 
     def __iter__(self):
 
-        sources = self._sources
-        if sources:
-            source = sources[0]
-            for item in self._iterSource(source):
-                everywhere = True
-                for src in sources:
-                    if src is source:
-                        continue
-                    if not self._sourceContains(item, src):
-                        everywhere = False
-                        break
-                if everywhere:
-                    yield item
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            sources = self._sources
+            if sources:
+                source = sources[0]
+                for item in self._iterSource(source):
+                    everywhere = True
+                    for src in sources:
+                        if src is source:
+                            continue
+                        if not self._sourceContains(item, src):
+                            everywhere = False
+                            break
+                    if everywhere:
+                        yield item
 
     def _op(self, ops, other):
 
@@ -622,8 +700,14 @@ class KindSet(Set):
 
     def __iter__(self):
 
-        for item in self._view[self._extent].iterItems(self._recursive):
-            yield item
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            for item in self._view[self._extent].iterItems(self._recursive):
+                yield item
 
     def _repr_(self, replace=None):
 
@@ -667,13 +751,26 @@ class FilteredSet(Set):
 
     def __contains__(self, item):
 
+        if item is None:
+            return False
+
+        index = self._anIndex()
+        if index is not None:
+            return item.itsUUID in index
+
         return self._sourceContains(item, self._source) and self.filter(item)
 
     def __iter__(self):
 
-        for item in self._iterSource(self._source):
-            if self.filter(item):
-                yield item
+        index = self._anIndex()
+        if index is not None:
+            view = self._view
+            for key in index:
+                yield view[key]
+        else:
+            for item in self._iterSource(self._source):
+                if self.filter(item):
+                    yield item
 
     def _setOwner(self, item, attribute):
 
