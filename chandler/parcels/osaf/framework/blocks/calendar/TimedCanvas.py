@@ -386,10 +386,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if startDay <= now <= endDay:
                 # if today is in view, try to create the time about an
                 # hour from now.
-                nowMinute = now.minute
-                nowHour = now.hour
-                newTime = now.replace(minute=roundTo(nowMinute,15),
-                                      hour=nowHour + 1)
+                newTime = now + timedelta(hours=1)
+                newTime = newTime.replace(minute=roundTo(now.minute,15))
             elif self.blockItem.dayMode:
                 # create the time at noon on the current day
                 newTime = startDay + timedelta(hours=12)
