@@ -209,49 +209,19 @@ def main():
                 print "skipping rsync to staging area"
                 log.write("skipping rsync to staging area")
             else:
-                timestamp = nowString.replace("-", "")
-                timestamp = timestamp.replace(":", "")
-                timestamp = timestamp.replace(" ", "")
-
-                if not os.path.isdir(timestamp):
-                    print "skipping rsync to staging area, no dir", timestamp
-                    log.write("skipping rsync to staging area, no dir")
-                else:
-                    if os.name == 'nt' or sys.platform == 'cygwin':
-                        platform = 'windows'
-                    elif sys.platform == 'darwin':
-                        platform = 'macosx'
-                    else:
-                        platform = 'linux'
-
-                    print "Rsyncing to staging area..."
-                    log.write('rsync -e ssh -avzp ' + timestamp + ' ' +
-                              options.rsyncServer + ':staging/' +
-                              platform)
-                    outputList = hardhatutil.executeCommandReturnOutputRetry(
-                     [rsyncProgram, "-e", "ssh", "-avzp",
-                     timestamp,
-                     options.rsyncServer + ":staging/" + platform])
-                    hardhatutil.dumpOutputList(outputList, log)
-
-                    completedFile = timestamp + os.sep + "completed"
-                    open(completedFile, "w").close()
-
-                    log.write('rsync -e ssh -avzp ' + completedFile + ' ' +
-                              options.rsyncServer + ':staging/' +
-                              platform + "/" + timestamp)
-                    outputList = hardhatutil.executeCommandReturnOutputRetry(
-                     [rsyncProgram, "-e", "ssh", "-avzp",
-                     completedFile,
-                     options.rsyncServer + ":staging/" + platform + "/" + timestamp])
-                    hardhatutil.dumpOutputList(outputList, log)
-
-                    hardhatutil.rmdirRecursive(timestamp)
+                UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
 
         elif ret[:12] == "build_failed":
             print "The build failed"
             log.write("The build failed\n")
             status = "build_failed"
+
+            if not uploadStaging:
+                print "skipping rsync to staging area"
+                log.write("skipping rsync to staging area")
+            else:
+                UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
+
             log.close()
 
             log = open(logFile, "r")
@@ -268,6 +238,13 @@ def main():
             print "Unit tests failed"
             log.write("Unit tests failed\n")
             status = "test_failed"
+
+            if not uploadStaging:
+                print "skipping rsync to staging area"
+                log.write("skipping rsync to staging area")
+            else:
+                UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
+
             log.close()
 
             log = open(logFile, "r")
@@ -302,6 +279,47 @@ def main():
         if sleepMinutes:
             print "Sleeping %d minutes" % sleepMinutes
             time.sleep(sleepMinutes * 60)
+
+
+def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
+    timestamp = nowString.replace("-", "")
+    timestamp = timestamp.replace(":", "")
+    timestamp = timestamp.replace(" ", "")
+
+    if not os.path.isdir(timestamp):
+        print "skipping rsync to staging area, no dir", timestamp
+        log.write("skipping rsync to staging area, no dir")
+    else:
+        if os.name == 'nt' or sys.platform == 'cygwin':
+            platform = 'windows'
+        elif sys.platform == 'darwin':
+            platform = 'macosx'
+        else:
+            platform = 'linux'
+
+        print "Rsyncing to staging area..."
+        log.write('rsync -e ssh -avzp ' + timestamp + ' ' +
+                  rsyncServer + ':staging/' +
+                  platform)
+        outputList = hardhatutil.executeCommandReturnOutputRetry(
+         [rsyncProgram, "-e", "ssh", "-avzp",
+         timestamp,
+         rsyncServer + ":staging/" + platform])
+        hardhatutil.dumpOutputList(outputList, log)
+
+        completedFile = timestamp + os.sep + "completed"
+        open(completedFile, "w").close()
+
+        log.write('rsync -e ssh -avzp ' + completedFile + ' ' +
+                  rsyncServer + ':staging/' +
+                  platform + "/" + timestamp)
+        outputList = hardhatutil.executeCommandReturnOutputRetry(
+         [rsyncProgram, "-e", "ssh", "-avzp",
+         completedFile,
+         rsyncServer + ":staging/" + platform + "/" + timestamp])
+        hardhatutil.dumpOutputList(outputList, log)
+
+        hardhatutil.rmdirRecursive(timestamp)
 
 
 def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents):
