@@ -335,11 +335,13 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
 
     if [ "$OSTYPE" = "cygwin" ]; then
         TESTNAME=`cygpath -w $C_DIR/tools/QATestScripts/Performance/end.py`
+        CREATEREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/quit.py`
         CREATE3KREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py`
         P_DIR=`cygpath -w $C_DIR`
         TIME='time.exe --format=%e'
     else
         TESTNAME=$C_DIR/tools/QATestScripts/Performance/end.py
+        CREATEREPO=$C_DIR/tools/QATestScripts/Performance/quit.py
         CREATE3KREPO=$C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py
         P_DIR=$C_DIR
         if [ "${OSTYPE:0:6}" = "darwin" ]; then
@@ -355,7 +357,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     cd $C_DIR
 
     echo Creating new empty repository | tee -a $BUILDLOG
-    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$CREATEREPO" &> $T_DIR/test.log
     
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
