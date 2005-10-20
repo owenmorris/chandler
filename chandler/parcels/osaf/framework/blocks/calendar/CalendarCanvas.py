@@ -29,7 +29,7 @@ from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, c
 from colorsys import rgb_to_hsv, hsv_to_rgb
 
 from application import schema
-from itertools import islice
+from itertools import islice, chain
 import copy
 import logging
 
@@ -578,21 +578,18 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         if item in collections:
             widget.Refresh()
 
-    def onSetContentsEvent(self, event):
-        super(CalendarBlock, self).onSetContentsEvent(event)
+    def EnsureIndexes(self):
         events = self.contents.rep
+        # make sure there are indexes. 'compare' indexes use methods
+        # on the items being compared, i.e. CalendarEventMixin
+        if not events.hasIndex('startTime'):
+            events.addIndex('startTime', 'compare', compare='cmpStartTime',
+                            monitor=('startTime'))
         
-        # make sure there are indexes
-        # This will be enabled soon, just checking in so andi can play with it
-        #if not (events._indexes and 'startTime' in events._indexes):
-        #    print "Creating index for %s on %s" % ('startTime', self.contents)
-        #    events.addIndex('startTime', 'attribute', attribute='startTime')
-        #
-        #if not (events._indexes and 'endTime' in events._indexes):
-        #    print "Creating index for %s on %s" % ('endTime', self.contents)
-        #    # endTime is actually dependent on startTime/duration
-        #    events.addIndex('endTime', 'attribute', attribute='endTime',
-        #                    monitor=('startTime', 'duration'))
+        if not events.hasIndex('endTime'):
+            # endTime is actually dependent on startTime/duration
+            events.addIndex('endTime', 'compare', compare='cmpEndTime',
+                            monitor=('startTime', 'duration'))
 
         # and make sure there is a FilteredCollection for
         # master events
@@ -600,11 +597,15 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         calendarCollections = CalendarCollections(self.contents)
         if getattr(calendarCollections, 'masterEvents', None) is None:
             masterEvents = FilteredCollection(parent=self.contents)
-            masterEvents.filterExpression = 'item.occurrences is not None'
-            masterEvents.filterAttributes = ['occurrences']
+            masterEvents.filterExpression = 'item.occurrences is not None and item.rruleset is not None'
+            masterEvents.filterAttributes = ['occurrences', 'rruleset']
             masterEvents.source = self.contents
             calendarCollections.masterEvents = masterEvents
-        
+
+    def setContentsOnBlock(self, item):
+        super(CalendarBlock, self).setContentsOnBlock(item)
+
+        self.EnsureIndexes()
 
     def onSelectWeekEvent(self, event):
         self.dayMode = not event.arguments['doSelectWeek']
@@ -720,34 +721,101 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         Helpful utility to determine if an item is within a given range
         Assumes the item has a startTime and endTime attribute
         """
-        # three possible cases where we're "in range"
-        # 1) start time is within range
-        # 2) end time is within range
-        # 3) start time before range, end time after
-        return ((Calendar.datetimeOp(item.startTime, '>=', start) and
-                 Calendar.datetimeOp(item.startTime, '<', end)) or 
-                (Calendar.datetimeOp(item.endTime, '>=', start) and
-                 Calendar.datetimeOp(item.endTime, '<', end)) or 
-                (Calendar.datetimeOp(item.startTime, '<=', start) and
-                 Calendar.datetimeOp(item.endTime, '>=', end)))
+        return (Calendar.datetimeOp(item.startTime, '<=', end) and
+                Calendar.datetimeOp(item.endTime, '>=', start))
 
+    def eventsInRange(self, date, nextDate, dayItems, timedItems):
+        """
+        An efficient generator to find all the items to be displayed
+        between date and nextDate. This returns only actual events in the
+        collection, and does not take recurring event occurences into
+        account. (though any recurrence masters will of course be
+        included in the result)
+
+        The trick here is to use indexes on startTime/endTime to make
+        sure that we don't access (and thus load) items more than we
+        have to.
+
+        We're looking for the intersection of:
+        [All items that end after date] and
+        [All items that start after nextDate]
+
+        We find these subsets by looking for the first/last occurrence
+        in the index of the end/starttime, and taking the first/last
+        items from that list. This gives us two lists, which we intersect.
+        """
+        
+        events = self.contents.rep
+        view = self.itsView
+
+        # callbacks to use for searching the indexes
+        def mStart(key):
+            # gets the last event starting before nextDate
+            if Calendar.datetimeOp(nextDate, '>=', view[key].startTime):
+                return 0
+            return -1
+
+        def mEnd(key):
+            # gets the first event ending after date
+            if Calendar.datetimeOp(date, '<=', view[key].endTime):
+                return 0
+            return 1
+
+        assert events.hasIndex('startTime') and events.hasIndex('endTime')
+        
+        # do binary searches of the index to minimize the number of
+        # times we test startTime/endTime
+        lastStartKey = events.findInIndex('startTime', 'last', mStart)
+        firstEndKey = events.findInIndex('endTime', 'first', mEnd)
+
+        # we now have two lists of events:
+        # [0..lastStartKey] in the 'startTime' index
+        # [firstEndKey.. -1] in the 'endTime' index
+        # lets find the intersections, based purely on UUID
+
+        # we'll use the keys, which are UUIDs, to find the intersection, 
+        # which prevents the actual item from loading
+        if lastStartKey and firstEndKey:
+            endItems = set(events.iterindexkeys('endTime',
+                                                firstEndKey, None))
+            for key in events.iterindexkeys('startTime',
+                                            None, lastStartKey):
+                # possible optimization, to also index allDay/anyTime
+                # attributes as well
+                if (key in endItems and
+                    ((dayItems and timedItems) or
+                     self.isDayItem(view[key]) == dayItems)):
+                    yield view[key]
+
+    def recurringEventsInRange(self, date, nextDate, dayItems, timedItems):
+        masterEvents = CalendarCollections(self.contents).masterEvents
+        for masterEvent in masterEvents:
+            for event in masterEvent.getOccurrencesBetween(date, nextDate):
+                # One or both of dayItems and timedItems must be
+                # True. If both, then there's no need to test the
+                # item's day-ness.  If only one is True, then
+                # dayItems' value must match the return of
+                # isDayItem.
+                if ((event != masterEvent) and
+                    (event.occurrenceFor is not None) and
+                    ((dayItems and timedItems) or
+                     self.isDayItem(event) == dayItems)):
+
+                    # For the moment, master events can be
+                    # overridden.  Until this is changed, don't
+                    # display events for which occurrenceFor is None
+                    if event.occurrenceFor is not None:
+                        yield event
+
+        
     def generateItemsInRange(self, date, nextDate, dayItems, timedItems):
-        for item in self.contents:
-            try:
-                for newItem in item.getOccurrencesBetween(date, nextDate):
-                    # One or both of dayItems and timedItems must be True,
-                    # if both, no need to test the item's day-ness.  If only one
-                    # is True, then dayItems' value must match the return of
-                    # isDayItem.
-                    if (dayItems and timedItems or
-                        self.isDayItem(newItem) == dayItems):
-                            # For the moment, master events can be
-                            # overridden.  Until this is changed, don't
-                            # display events for which occurrenceFor is None
-                            if newItem.occurrenceFor is not None:
-                                yield newItem
-            except AttributeError:
-                continue
+        # wish we could put this somewhere more useful, but
+        # self.contents can be set upon object initialization
+        self.EnsureIndexes()
+
+        normalEvents = self.eventsInRange(date, nextDate, dayItems, timedItems)
+        recurringEvents = self.recurringEventsInRange(date, nextDate, dayItems, timedItems)
+        return chain(normalEvents, recurringEvents)
 
     def getItemsInRange(self, (date, nextDate), dayItems=False, timedItems=False):
         """

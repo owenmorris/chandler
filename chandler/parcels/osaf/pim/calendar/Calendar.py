@@ -1135,6 +1135,26 @@ class CalendarEventMixin(RemindableMixin):
         """Is this a proxy of an event?"""
         return False
 
+    def cmpTimeAttribute(self, item, attr):
+        """
+        Use the timezone-safe comparison, based on the startTime
+        """
+        itemTime = getattr(item, attr, None)
+        if itemTime is None:
+            return -1
+
+        selfTime = getattr(self, attr, None)
+        if selfTime is None:
+            return 1
+        
+        return datetimeOp(selfTime, 'cmp', itemTime)
+        
+    # for use in indexing CalendarEventMixins
+    def cmpStartTime(self, item):
+        return self.cmpTimeAttribute(item, 'startTime')
+
+    def cmpEndTime(self, item):
+        return self.cmpTimeAttribute(item, 'endTime')
 
 class CalendarEvent(CalendarEventMixin, Note):
     """
