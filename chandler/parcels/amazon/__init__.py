@@ -1,5 +1,5 @@
 from AmazonKinds import AmazonCollection, AmazonItem
-from AmazonBlocks import AmazonController, ImageBlock
+from AmazonBlocks import AmazonController, AmazonDetailBlock
 
 from application import schema
 from i18n import OSAFMessageFactory as _
@@ -12,10 +12,10 @@ def installParcel(parcel, version=None):
     blocks = schema.ns('osaf.framework.blocks', parcel)
     main   = schema.ns('osaf.views.main', parcel)
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
-    
+
     blocks.MenuItem.update(parcel, "NewAmazonCollection",
         blockName = "NewAmazonCollectionMenu",
-        title = _(u"New Amazon Collection"),
+        title = _(u"Amazon Keyword Search"),
         event = blocks.BlockEvent.update(parcel, "NewAmazonCollectionEvent",
             blockName = "NewAmazonCollection",
             dispatchEnum = "SendToBlockByReference",
@@ -25,10 +25,10 @@ def installParcel(parcel, version=None):
         eventsForNamedLookup = [parcel["NewAmazonCollectionEvent"]],
         parentBlock = main.NewItemMenu,
     )
-    
+
     blocks.MenuItem.update(parcel, "NewAmazonWishList",
         blockName = "NewAmazonWishListMenu",
-        title = _(u"New Amazon Wish List"),
+        title = _(u"Amazon Wish List Search"),
         event = blocks.BlockEvent.update(parcel, "NewAmazonWishListEvent",
             blockName = "NewAmazonWishList",
             dispatchEnum = "SendToBlockByReference",
@@ -43,32 +43,8 @@ def installParcel(parcel, version=None):
         key = AmazonItem.getKind(parcel.itsView),
         rootBlocks = [
             detail.MarkupBar,
-            detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-                parcel, "ProductArea",
-                position = 1,
-                viewAttribute = u"ProductName",
-                stretchFactor = 0,
-                childrenBlocks = [
-                    detail.StaticRedirectAttributeLabel.update(
-                        parcel, "AuthorLabel",
-                        title = u"author",
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Right",
-                        minimumSize = SizeType(70, 24),
-                        border = RectType(0.0, 0.0, 0.0, 5.0),
-                    ),
-                    detail.StaticRedirectAttribute.update(
-                        parcel, "AuthorAttribute",
-                        title = u"about",
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Left",
-                    ),
-                ],
-            ),
-            ImageBlock.update(parcel, "image",
-                blockName = "product image",
+            AmazonDetailBlock.update(parcel, "amazonDetail",
+                blockName = "amazonDetail",
                 size = SizeType(100,50),
                 minimumSize = SizeType(100,50),
             ),

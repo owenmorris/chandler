@@ -3,19 +3,17 @@ __parcel__ = "amazon"
 import amazon
 from amazon import AmazonError
 import application
+import sgmllib
 from osaf.pim import ContentItem, ListCollection
 from repository.util.URL import URL
 import wx
-from application import schema
+from application import schema, Globals
 from i18n import OSAFMessageFactory as _
-import logging
 import string
-
-log = logging.getLogger(__name__)
+import AmazonDialog
 
 
 amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
-
 
 
 def isEmpty(text):
@@ -24,6 +22,14 @@ def isEmpty(text):
 
     return False
 
+def setStatusMessage(message, view):
+
+    wxApp = Globals.wxApplication
+
+    if wxApp is None:
+        return
+
+    wxApp.CallItemMethodAsync(view, 'setStatusMessage', message)
 
 
 def showError(errText):
@@ -31,42 +37,70 @@ def showError(errText):
                 _(u"Amazon Error"), errText)
 
 
-def CreateCollection(repView, cpiaView):
-    keywords = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-        _(u"New Amazon Collection"),
-        _(u"Enter your Amazon search keywords:"),
-          u"Theodore Leung")
+def SearchByKeyword(repView, cpiaView):
+    keywords, countryCode, category = AmazonDialog.promptKeywords()
+
 
     if isEmpty(keywords):
         """The user did not enter any text to search on or hit the cancel button"""
         return
 
     try:
-        results = amazon.searchByKeyword(keywords)
-        newAmazonCollection = AmazonCollection(results, view=repView, keywords=keywords).setup()
-        schema.ns("osaf.app", cpiaView).sidebarCollection.add (newAmazonCollection)
-        return newAmazonCollection
+        bags = amazon.searchByKeyword(keywords, locale=countryCode, product_line=category)
+        return AddToCollection(repView, cpiaView, keywords, countryCode, bags) 
 
     except (AmazonError, AttributeError), e:
-        showError(_(u"No Amazon Wishlist was found for search keywords '%(keywords)s'") % {'keywords': keywords})
+        dt = {'keywords': keywords}
+        showError(_(u"No Amazon products were found for keywords '%(keywords)s'") % dt)
 
-def CreateWishListCollection(repView, cpiaView):
-    emailAddr = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-        _(u"New Amazon Wish List"),
-        _(u"What is the Amazon email address of the wish list?"),
-          u"")
+
+def SearchWishListByEmail(repView, cpiaView):
+    emailAddr, countryCode = AmazonDialog.promptEmail()
 
     if isEmpty(emailAddr):
         return
+
     try:
-        results = amazon.searchWishListByEmail(emailAddr)
-        newAmazonCollection = AmazonCollection(results, view=repView, email=emailAddr).setup()
-        schema.ns("osaf.app", cpiaView).sidebarCollection.add (newAmazonCollection)
-        return newAmazonCollection
+        customerName, bags = amazon.searchWishListByEmail(emailAddr, locale=countryCode)
+        return AddToCollection(repView, cpiaView, customerName, countryCode, bags) 
 
     except (AmazonError, AttributeError), e:
-        showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") \
-                                                            % {'emailAddress': emailAddr})
+        dt = {'emailAddress': emailAddr}
+        showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") % dt)
+
+
+def AddToCollection(repView, cpiaView, text, countryCode, bags):
+    col, d = AmazonCollection.getCollection(repView, cpiaView, text, countryCode)
+
+    counter = 0
+
+    for aBag in bags:
+        #printBag(aBag, 0)
+        #print "\n----------------------\n\n"
+
+        #XXX This is temp for .6.
+        # A dict of unique Amazon URLs is
+        # returned with the collection.
+        # The dict is searched and if an item with
+        # the same URL exists a new item is not created.
+        if not d.has_key(str(aBag.URL)):
+            counter += 1
+            col.add(AmazonItem(aBag, view=repView))
+
+    d = {'collectionName': col.displayName, 'numOf': counter}
+
+    if counter == 0:
+        msg = _(u"No new products were found for collection '%(collectionName)s'") % d
+    elif counter == 1:
+        msg = _(u"Added 1 product to collection '%(collectionName)s'") % d
+    else:
+        msg = _(u"Added %(numOf)s products to collection '%(collectionName)s'") % d
+
+    setStatusMessage(msg, cpiaView)
+
+    repView.commit()
+
+    return col
 
 
 class AmazonCollection(ListCollection):
@@ -78,22 +112,42 @@ class AmazonCollection(ListCollection):
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonCollection"
 
-    def __init__(self, results, keywords=None,email=None, name=None, parent=None, kind=None, view=None):
-        super(AmazonCollection, self).__init__(name, parent, kind, view)
-        if keywords:
-            self.displayName = u'Amzn: ' + keywords
-            bags = results
 
-        elif email:
-            customerName = results[0]
-            bags = results[1]
-            self.displayName = u'Amzn: ' + customerName
+    @classmethod
+    def getCollection(cls, repView, cpiaView, text, countryCode):
+        displayName = AmazonCollection.makeCollectionName(text, countryCode)
+
+        for collection in schema.ns("osaf.app", cpiaView).sidebarCollection:
+            if collection.displayName.lower() == displayName.lower():
+                #XXX: Create a dict of the productURL's of all items
+                # of AmazonItem kind. If a url in the dict matches a 
+                # new url that is downloaded it is not added to the 
+                # collection
+
+                d = {}
+                for item in collection:
+                    if isinstance(item, AmazonItem):
+                        d[str(item.ProductURL)] = ''
+
+                return collection, d
+
+        collection = AmazonCollection(view=repView).setup()
+        collection.displayName = displayName
+        schema.ns("osaf.app", cpiaView).sidebarCollection.add (collection)
+
+        return collection, {}
+
+
+    @classmethod
+    def makeCollectionName(cls, text, countryCode):
+        if countryCode == 'gb':
+            #The country code for the United Kingdom is 'GB' but
+            #the web domain for the United Kingdom is .uk
+            return u'Amzn.uk:' + text
+        elif countryCode != 'us':
+            return u'Amzn.' + countryCode + ': ' + text
         else:
-            bags = {}
-
-        for aBag in bags:
-            self.add(AmazonItem(aBag, view=view))
-
+            return u'Amzn:' + text
 
 class AmazonItem(ContentItem):
 
@@ -102,10 +156,20 @@ class AmazonItem(ContentItem):
     amazonCollection = schema.One(
         AmazonCollection, displayName = u'Amazon Collection',
     )
+
     ProductName = schema.One(schema.Text, displayName = _(u'Product Name'))
+    ProductDescription = schema.One(schema.Text, displayName = _(u'Product Description'))
     Author = schema.One(schema.Text, displayName = _(u'Author(s)'))
+    Media = schema.One(schema.Text, displayName = _(u'Media'))
     ReleaseDate = schema.One(schema.Text, displayName = _(u'Release Date'))
-    imageURL = schema.One(schema.URL, displayName = u'image path')
+    ImageURL = schema.One(schema.URL, displayName = u'image path')
+    ProductURL = schema.One(schema.URL, displayName = u'product url')
+    NewPrice = schema.One(schema.Text, displayName = _(u'New Price'))
+    UsedPrice = schema.One(schema.Text, displayName = _(u'Used Price'))
+    Availability = schema.One(schema.Text, displayName = _(u'Availability'))
+    Manufacturer = schema.One(schema.Text, displayName = _(u'Manufacturer'))
+    AverageCustomerRating = schema.One(schema.Text, displayName = _(u'Average Customer Review'))
+    NumberOfReviews = schema.One(schema.Text, displayName = u'Number of people who reviewed the item')
     about = schema.One(redirectTo = 'ProductName')
     who = schema.One(redirectTo = 'Author')
     date = schema.One(redirectTo = 'ReleaseDate')
@@ -117,8 +181,26 @@ class AmazonItem(ContentItem):
         super(AmazonItem, self).__init__(name, parent, kind, view)
         if bag:
             self.ProductName = bag.ProductName
-            self.imageURL = URL(str(bag.ImageUrlLarge))
+            desc = getattr(bag, 'ProductDescription', '')
+
+            if desc != '':
+                # The HTML is stripped because some descriptions
+                # contain img src links to images as part of the description.
+                # In theory this would be a nice feature but since the wx
+                # HTML widget is slow and does not render till everything is
+                # downloaded it impacts the display of the product considerably.
+                desc = stripHTML(desc)
+
+            self.ProductDescription = desc
+            self.Media = getattr(bag, 'Media', '')
+            self.Manufacturer = getattr(bag, 'Manufacturer', '')
+            self.NewPrice = getattr(bag, 'OurPrice', '')
+            self.UsedPrice = getattr(bag, 'UsedPrice', '')
+            self.Availability = getattr(bag, 'Availability', '')
+            self.ImageURL = URL(bag.ImageUrlMedium.encode('ascii'))
+            self.ProductURL = URL(bag.URL.encode('ascii'))
             self.ReleaseDate = getattr(bag, 'ReleaseDate','')
+
             if hasattr(bag,'Authors'):
                 if type(bag.Authors.Author) == type([]):
                     self.Author = u', '.join(bag.Authors.Author)
@@ -135,5 +217,66 @@ class AmazonItem(ContentItem):
                 else:
                     self.Author = bag.Artists.Artist
             else:
-                self.Author = u''
+                # If no artist, author, or directory use the Manufacturer which
+                # will either have a value or be '' by default
+                self.Author = self.Manufacturer
+
+            if hasattr(bag,'Reviews'):
+                self.AverageCustomerRating = getattr(bag.Reviews, 'AvgCustomerRating', '')
+                self.NumberOfReviews = getattr(bag.Reviews, 'TotalCustomerReviews', '')
+            else:
+                self.AverageCustomerRating = ''
+                self.NumberOfReviews = ''
+
             self.displayName = self.ProductName
+
+
+def printBag(aBag, level):
+    """This is used for debugging the incoming Amazon XML which is
+       parsed by amazon.py in to c{amazon.Bags}"""
+    for at in dir(aBag):
+        val = getattr(aBag, at)
+
+        if isinstance(val, unicode):
+            val = val.encode('utf8')
+
+        print "%s%s: %s" % ('\t'*level, at, val)
+
+        if isinstance(val, amazon.Bag):
+            printBag(val, level+1)
+        elif isinstance(val, list) and len(val) > 0 and isinstance(val[0], amazon.Bag):
+            for bag in val:
+                printBag(bag, level+1)
+
+
+class Cleaner(sgmllib.SGMLParser):
+    entitydefs={"nbsp": " "} 
+
+    def __init__(self):
+        sgmllib.SGMLParser.__init__(self)
+        self.result = []
+    def do_p(self, *junk):
+        self.result.append(u'<p>')
+    def do_br(self, *junk):
+        self.result.append(u'<br>')
+    def handle_data(self, data):
+        self.result.append(data)
+    def cleaned_text(self):
+        txt = u''
+        for uniText in self.result:
+            if isinstance(uniText, str):
+                uniText = unicode(uniText, 'utf8', 'ignore')
+
+            txt += uniText
+        return txt
+
+def stripHTML(text):
+  c=Cleaner()
+  try:
+    c.feed(text)
+  except sgmllib.SGMLParseError:
+    gLogger.add("Unable to parse HTML, can't remove tags")
+    return text
+  else:
+    t=c.cleaned_text()
+    return t

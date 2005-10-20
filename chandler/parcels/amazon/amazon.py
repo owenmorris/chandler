@@ -103,9 +103,11 @@ _licenseLocations = (
     (lambda key: _contentsOf(_getScriptDir(), _amazonfile2), '%s in the amazon.py directory' % _amazonfile2)
     )
 _supportedLocales = {
-        "us" : (None, "xml.amazon.com"),   
-        "uk" : ("uk", "xml-eu.amazon.com"),
-        "de" : ("de", "xml-eu.amazon.com"),
+        "us" : (None, "xml.amazon.com"),
+        "uk" : ('uk', "xml-eu.amazon.com"),
+        #Alternate Country code for United Kingdom
+        "gb" : ('uk', "xml-eu.amazon.com"),
+        "de" : ('de', "xml-eu.amazon.com"),
         "jp" : ("jp", "xml.amazon.co.jp")
     }
 
