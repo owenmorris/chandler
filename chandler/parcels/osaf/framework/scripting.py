@@ -266,8 +266,12 @@ class Script(pim.ContentItem):
             scriptFile.close()
 
     def set_file(self, fileName, siblingPath):
+        #Convert fileName with the system charset encoding
+        #to bytes to prevent the join function from trying to downcast
+        #the unicode fileName to ascii
         fileName = fileName.encode(sys.getfilesystemencoding())
-        filePath = unicode(os.path.join(os.path.dirname(siblingPath), fileName))
+        #Convert the filePath bytes to unicode for storage
+        filePath = unicode(os.path.join(os.path.dirname(siblingPath), fileName), sys.getfilesystemencoding())
         self.bodyString = self.file_contents(filePath)
         self.filePath = filePath
 
@@ -330,19 +334,23 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
 
         if self._item.filePath:
             # already have a file, default to that name and path
+            # dirname returns unicode here since the filePath variable is unicode
             path = os.path.dirname(self._item.filePath)
             name = self._item.filePath.split(os.sep)[-1]
         else:
             # no file yet, point to scripts directory, use display name
             name = self._item.displayName+u".py"
+            # dirname returns an str of bytes since the __file__ variable is bytes
             path = os.path.dirname(schema.ns('osaf.app', self).scripts.__file__)
+            # convert the path bytes to unicode
+            path = unicode(path, sys.getfilesystemencoding())
 
         # present the Open/Save dialog
         result = ImportExport.showFileDialog(wx.GetApp().mainFrame, 
-                                             title, 
+                                             title,
                                              path,
-                                             name, 
-                                             _(u"Python files|*.py|All files (*.*)|*.*"),
+                                             name,
+                                             _(u"Python files|*.py|") + _(u"All files (*.*)|*.*"),
                                              flags)
         cmd, dir, fileName = result
 
