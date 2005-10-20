@@ -19,7 +19,6 @@ import i18n
 
 logger = logging.getLogger(__name__)
 
-
 # SCHEMA_VERSION has moved to Utility.py
 
 
@@ -122,6 +121,8 @@ class MainFrame(wx.Frame):
 
 
 class wxApplication (wx.App):
+
+    __CHANDLER_STARTED_UP = False # workaround for bug 4362
 
     def OnInit(self):
         """
@@ -317,7 +318,8 @@ class wxApplication (wx.App):
         if Globals.options.createData:
             import util.GenerateItemsFromFile as GenerateItemsFromFile
             GenerateItemsFromFile.RunScript(Globals.mainViewRoot.itsView, Globals.views[0])
-
+        
+        self.__CHANDLER_STARTED_UP = True # workaround for bug 4362
         return True    # indicates we succeeded with initialization
 
 
@@ -508,6 +510,8 @@ class wxApplication (wx.App):
         # so we check for focus changes in OnIdle. Also call UpdateUI when
         # focus changes.
 
+        if not self.__CHANDLER_STARTED_UP: return # workaround for bug 4362
+        
         focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus
