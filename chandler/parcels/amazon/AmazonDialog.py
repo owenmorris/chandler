@@ -1,0 +1,147 @@
+__version__ = "$Revision: 7662 $"
+__date__ = "$Date: 2005-10-06 09:04:40 -1000 (Thu, 06 Oct 2005) $"
+__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
+import wx
+from i18n import OSAFMessageFactory as _
+from osaf import messages
+import i18n
+
+SITE_CODES = ['us', 'gb', 'de', 'jp']
+SITE_LIST = [
+             _(u"Amazon USA"),
+             _(u"Amazon UK"),
+             _(u"Amazon Germany"),
+             _(u"Amazon Japan")
+            ]
+
+CAT_CODES = ['books', 'dvd', 'music']
+CAT_LIST = [
+            _(u"Books"),
+            _(u"DVD"),
+            _(u"Music")
+           ]
+
+
+def promptEmail():
+    return _showDialog(_(u"New Amazon Wish List"),
+                       _(u"What is the Amazon email address of the wish list?"),
+                         u"", False)
+
+def promptKeywords():
+    return _showDialog(_(u"New Amazon Collection"),
+                       _(u"Enter your Amazon search keywords:"),
+                         u"Theodore Leung")
+
+
+def _showDialog(title, message, value, showCategories=True):
+    win = promptAmazonDialog(wx.GetApp().mainFrame, -1, title, message, value, showCategories)
+    win.CenterOnScreen()
+    val = win.ShowModal()
+
+    if val == wx.ID_OK:
+       # Assign the new values
+       value = win.GetValue()
+
+    elif showCategories:
+       value = (None, None, None)
+    else:
+       value = (None, None)
+
+    win.Destroy()
+
+    return value
+
+
+class promptAmazonDialog(wx.Dialog):
+    def __init__(self, parent, ID, title, message, value, showCategories):
+        # Instead of calling wx.Dialog.__init__ we precreate the dialog
+        # so we can set an extra style that must be set before
+        # creation, and then we create the GUI dialog using the Create
+        # method.
+        pre = wx.PreDialog()
+        pre.Create(parent, ID, title, wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
+
+        # This next step is the most important, it turns this Python
+        # object into the real wrapper of the dialog (instead of pre)
+        # as far as the wxPython extension is concerned.
+        self.this = pre.this
+        self.showCategories = showCategories
+
+        # Now continue with the normal construction of the dialog
+        # contents
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        label = wx.StaticText(self, -1, message)
+        sizer.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [350,-1])
+        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        if self.showCategories:
+            box = wx.BoxSizer(wx.HORIZONTAL)
+            label = wx.StaticText(self, -1, _(u"Browse by category"))
+            box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+            catChoice = wx.Choice(self, -1, choices=CAT_LIST)
+            box.Add(catChoice, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+            sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            catChoice.SetSelection(0)
+            self.catChoiceControl = catChoice
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(self, -1, _(u"Select a site to search"))
+        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        siteChoice = wx.Choice(self, -1, choices=SITE_LIST)
+        box.Add(siteChoice, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        btn = wx.Button(self, wx.ID_OK, u" " +  messages.OK + u" ")
+        btn.SetDefault()
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        sizer.Fit(self)
+
+        # Store these, using attribute names that hopefully wont collide with
+        # any wx attributes
+        self.textControl = text
+        self.siteChoiceControl = siteChoice
+
+        siteChoice.SetSelection(self.GetSelectionPosition())
+
+    def GetValue(self):
+        if self.showCategories:
+            return (
+                     self.textControl.GetValue(),
+                     SITE_CODES[self.siteChoiceControl.GetSelection()],
+                     CAT_CODES[self.catChoiceControl.GetSelection()]
+                    )
+
+        return (self.textControl.GetValue(), SITE_CODES[self.siteChoiceControl.GetSelection()])
+
+
+    def GetSelectionPosition(self):
+        localeSet = i18n.getLocaleSet()
+
+        for loc in localeSet:
+            try:
+                #raises a ValueError if the string does not contain a '_'
+                loc.index("_")
+                #Strip the country code from the locale string
+                loc = loc.split("_")[1]
+            except ValueError:
+                pass
+
+            for i in xrange(len(SITE_CODES)):
+                if SITE_CODES[i] == loc.lower():
+                    return i
+        return 0
