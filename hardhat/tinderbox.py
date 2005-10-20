@@ -216,12 +216,6 @@ def main():
             log.write("The build failed\n")
             status = "build_failed"
 
-            if not uploadStaging:
-                print "skipping rsync to staging area"
-                log.write("skipping rsync to staging area")
-            else:
-                UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
-
             log.close()
 
             log = open(logFile, "r")
