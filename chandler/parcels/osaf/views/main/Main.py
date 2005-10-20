@@ -460,10 +460,10 @@ class MainView(View):
 
     def onImportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
-        #XXX: need to migrate this to application dialogs utilsA
+        #XXX: need to migrate this to application dialogs utils
 
         res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
-                                          "import.ics", _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
+                                          _(u"import.ics"), _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
                                           wx.OPEN | wx.HIDE_READONLY)
 
         (cmd, dir, filename) = res
@@ -578,7 +578,7 @@ class MainView(View):
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu
         res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
-                                          "import.csv", _(u"CSV files|*.csv"),
+                                          _(u"import.csv"), _(u"CSV files|*.csv"),
                                           wx.OPEN | wx.HIDE_READONLY)
 
         (cmd, dir, filename) = res
@@ -893,7 +893,7 @@ class MainView(View):
 
     def onTakeOnlineOfflineEventUpdateUI(self, event):
         enable = False
-        menuTitle = "Toggle online/offline"
+        menuTitle = _(u"Toggle online/offline")
 
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
