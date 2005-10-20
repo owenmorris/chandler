@@ -135,7 +135,6 @@ $(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
 	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
 	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(CHANDLERBIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
 
-
 ifeq ($(OS),Cygwin)
 strip:
 else
@@ -143,12 +142,17 @@ ifeq ($(DEBUG),1)
 strip:
 else
 ifeq ($(OS),Darwin)
+  # we could use -x as an option to strip but it needs testing to
+  # see if it gives any performance gains
 STRIP_OPTIONS=-S
+STRIP_EXT=dylib
 else
 STRIP_OPTIONS=
+STRIP_EXT=so
 endif
 strip:
-	find $(CHANDLERBIN)/release -name "*.so" |xargs strip $(STRIP_OPTIONS)
+	find $(CHANDLERBIN)/release -name "*.$(STRIP_EXT)" | xargs chmod +w
+	find $(CHANDLERBIN)/release -name "*.$(STRIP_EXT)" | xargs strip $(STRIP_OPTIONS)
 endif
 endif
 
