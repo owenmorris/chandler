@@ -144,7 +144,7 @@ def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
             if wordWidth > maxWidth:
                 dc.DrawText(word[0:newLen-1], x, y)
                 return
-        assert False, "Didn't draw any text!"
+        #assert False, "Didn't draw any text!"
     else:
         # no, it didn't fit
         # keep shrinking word until it fits
