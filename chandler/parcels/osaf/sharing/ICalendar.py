@@ -497,7 +497,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     caldavReturn = eventItem.getMaster()
             except Exception, e:
                 if __debug__:
-                    raise e
+                    raise
                 else:
                     logger.exception("import failed to import one event with \
                                      exception: %s" % str(e))
