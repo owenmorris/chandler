@@ -13,6 +13,228 @@ import sys, os, string, datetime, time, math
 import tarfile
 import ConfigParser, optparse
 
+try:
+    from pychart import *
+    theme.get_options()
+    theme.use_color = 1
+    theme.scale_factor = 2
+    theme.reinitialize()
+    
+    doChart = True
+except ImportError:
+    doChart = False
+    
+def drawGraph(data, platforms, filename):
+    """
+    Draw a picture in png format.
+    
+    @param data:     Format: [(x1, winy1, osxy1, linuxy1, acceptabley1), ...]
+    @param platforms:Platforms tuple
+    @param filename: A PNG filename (so it should end in '.png').
+    """
+    if not doChart or len(data) < 1:
+        return False
+
+    def ticX(data):
+        return int(len(data)/10) + 1
+            
+    myCanvas = canvas.init(filename, format='png')
+
+    myXAxis = axis.X(format='/a-45/hL%s',
+                     tic_interval = ticX(data),
+                     label='Revision')
+    myYAxis = axis.Y(#tic_interval = ticY,
+                     label='Seconds')
+
+    myArea = area.T(x_coord=category_coord.T(data, 0),
+                    size=(132, 132), # about 480x420 image w/ our settings
+                    x_axis=myXAxis,
+                    y_axis=myYAxis,
+                    y_range=(0, None))
+
+    col = 1
+    if 'win' in platforms:
+        myArea.add_plot(line_plot.T(label='win',
+                                    data=data,
+                                    ycol=col,
+                                    line_style=line_style.darkseagreen,
+                                    tick_mark=tick_mark.circle3))
+        col += 1
+    if 'osx' in platforms:
+        myArea.add_plot(line_plot.T(label='osx',
+                                    data=data,
+                                    ycol=col,
+                                    line_style=line_style.red_dash1,
+                                    tick_mark=tick_mark.square))
+        col += 1
+    if 'linux' in platforms:
+        myArea.add_plot(line_plot.T(label='linux',
+                                    data=data,
+                                    ycol=col,
+                                    line_style=line_style.darkblue_dash2,
+                                    tick_mark=tick_mark.tri))
+        col += 1
+    myArea.add_plot(line_plot.T(label='acceptable',
+                                data=data,
+                                ycol=col,
+                                line_style=line_style.black_dash2,
+                                tick_mark=tick_mark.default))
+
+    myArea.draw(myCanvas)
+    
+    return True
+
+# http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52560/index_txt
+def unique(s):
+    """
+    Return a list of the elements in s, but without duplicates.
+
+    For example, unique([1,2,3,1,2,3]) is some permutation of [1,2,3],
+    unique("abcabc") some permutation of ["a", "b", "c"], and
+    unique(([1, 2], [2, 3], [1, 2])) some permutation of
+    [[2, 3], [1, 2]].
+
+    For best speed, all sequence elements should be hashable.  Then
+    unique() will usually work in linear time.
+
+    If not possible, the sequence elements should enjoy a total
+    ordering, and if list(s).sort() doesn't raise TypeError it's
+    assumed that they do enjoy a total ordering.  Then unique() will
+    usually work in O(N*log2(N)) time.
+
+    If that's not possible either, the sequence elements must support
+    equality-testing.  Then unique() will usually work in quadratic
+    time.
+    """
+
+    n = len(s)
+    if n == 0:
+        return []
+
+    # Try using a dict first, as that's the fastest and will usually
+    # work.  If it doesn't work, it will usually fail quickly, so it
+    # usually doesn't cost much to *try* it.  It requires that all the
+    # sequence elements be hashable, and support equality comparison.
+    u = {}
+    try:
+        for x in s:
+            u[x] = 1
+    except TypeError:
+        del u  # move on to the next method
+    else:
+        return u.keys()
+
+    # We can't hash all the elements.  Second fastest is to sort,
+    # which brings the equal elements together; then duplicates are
+    # easy to weed out in a single pass.
+    # NOTE:  Python's list.sort() was designed to be efficient in the
+    # presence of many duplicate elements.  This isn't true of all
+    # sort functions in all languages or libraries, so this approach
+    # is more effective in Python than it may be elsewhere.
+    try:
+        t = list(s)
+        t.sort()
+    except TypeError:
+        del t  # move on to the next method
+    else:
+        assert n > 0
+        last = t[0]
+        lasti = i = 1
+        while i < n:
+            if t[i] != last:
+                t[lasti] = last = t[i]
+                lasti += 1
+            i += 1
+        return t[:lasti]
+
+    # Brute force is all that's left.
+    u = []
+    for x in s:
+        if x not in u:
+            u.append(x)
+    return u
+
+def platforms2GraphData(platforms, acceptable):
+    """
+    Convert the platforms structure and acceptable value into a list of
+    tuples needed by drawGraph function.
+    
+    @return: [(x1, winy1, osxy1, linuxy1, acceptabley1), ...], (win, osx, linux)
+    """
+    ret = []
+    
+    osAvgs = {'win': {}, 'osx': {}, 'linux': {}}
+    
+    def average(values):
+        """
+        Return the average of the values, but ignore 0s as they signify
+        a non-value. Also, None is returned if the average would be 0, because
+        None is a special value that is ignored by PyChart.
+        """
+        if len(values) == 0:
+            avg = None
+        else:
+            values = [x for x in values if x != 0] # Skip 0s
+            s = sum(values)
+            if s == 0:
+                avg = None
+            else:
+                avg = s/(len(values)*1.0)
+        return avg
+    
+    for platform in ('win', 'osx', 'linux'):
+        i = 0
+        lastRev = 0
+        values = []
+
+        for (time, rev) in platforms[platform]['timesRevs']:
+            rev = int(rev)
+            if rev != lastRev and lastRev != 0:
+                osAvgs[platform][lastRev] = average(values)
+                values = [platforms[platform]['values'][i]]
+            else:
+                values.append(platforms[platform]['values'][i])
+            i += 1
+            lastRev = rev
+        if  len(values) != 0: # Handle the last value separately
+            osAvgs[platform][rev] = average(values)
+            
+    # Find out which platforms have values other than None
+    plats = ()
+    revs = []
+    for value in osAvgs['win'].itervalues():
+        if value is not None:
+            plats += ('win',)
+            revs.extend(osAvgs['win'].keys())
+            break
+    for value in osAvgs['osx'].itervalues():
+        if value is not None:
+            plats += ('osx',)
+            revs.extend(osAvgs['osx'].keys())
+            break
+    for value in osAvgs['win'].itervalues():
+        if value is not None:
+            plats += ('linux',)
+            revs.extend(osAvgs['linux'].keys())
+            break
+
+    revs = unique(revs)
+    revs.sort()
+        
+    for rev in revs:
+        item = (rev,)
+        if 'win' in plats:
+            item += (osAvgs['win'].get(rev, None), )
+        if 'osx' in plats:
+            item += (osAvgs['osx'].get(rev, None), )
+        if 'linux' in plats:
+            item += (osAvgs['linux'].get(rev, None), )
+        item += (acceptable, )
+        ret.append(item)
+    
+    return ret, plats
+    
+                         
 def colorDelta(current, prev, stdDev):
     """
     Return the color for the deltas.
@@ -664,18 +886,21 @@ class perf:
                                  'count':    0,
                                  'total':    0,
                                  'values':   [],
+                                 'timesRevs':[],
                                  'revision': '' },
                       'linux': { 'stddev':   0,
                                  'avg':      0,
                                  'count':    0,
                                  'total':    0,
                                  'values':   [],
+                                 'timesRevs':[],
                                  'revision': '' },
                       'win':   { 'stddev':   0,
                                  'avg':      0,
                                  'count':    0,
                                  'total':    0,
                                  'values':   [],
+                                 'timesRevs':[],
                                  'revision': '' },
                     }
 
@@ -718,6 +943,8 @@ class perf:
                 dv_total += current
 
                 platformdata['values'].append(current)
+                platformdata['timesRevs'].append(('%02d:%02d:%02d' % (datapoint[1].hour, datapoint[1].minute, datapoint[1].second),
+                                                  revision))
 
                 c_diff = current - previous
 
@@ -772,6 +999,13 @@ class perf:
         tbox.append(summaryline)
 
         graph += graphdata
+        
+        (data, plats) = platforms2GraphData(platforms,
+                                            self.SummaryTargets[testkey])
+        filename = 'day_%s.png' % testkey.replace('.', '_')
+        if drawGraph(data, plats, os.path.join(self._options['html_data'],
+                                               filename)):
+            detail.append('<img src="%s">' % filename)
         
     page.append('</table>\n')
                                       
