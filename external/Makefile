@@ -69,14 +69,14 @@ ifeq ($(OS),Darwin)
   # we could use -x as an option to strip but it needs testing to
   # see if it gives any performance gains
 STRIP_OPTIONS=-S
-STRIP_EXT=dylib
+STRIP_OP=\( -name '*.dylib' -o -name '*.so' \)
 else
 STRIP_OPTIONS=
-STRIP_EXT=so
+STRIP_OP=-name '*.so'
 endif
 strip:
-	find release -name "*.$(STRIP_EXT)" | xargs chmod +w
-	find release -name "*.$(STRIP_EXT)" | xargs strip $(STRIP_OPTIONS)
+	find release $(STRIP_OP) | xargs chmod +w
+	find release $(STRIP_OP) | xargs strip $(STRIP_OPTIONS)
 endif
 endif
 
