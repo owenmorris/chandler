@@ -13,6 +13,7 @@
     td.numbergood  { text-align: right; border: solid 1px #11DD11; }
     td.numberwarn  { text-align: right; border: dashed 1px orange; }
     td.numberalert { text-align: right; border: solid 1px red; }
+    img.daygraph   { float: right; }
   </style>
 </head>
 <body>

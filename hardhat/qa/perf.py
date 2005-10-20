@@ -879,6 +879,9 @@ class perf:
         testitem = tests[testkey]
 
         detail.append('<hr>\n')
+        detail.append('<div class="section">\n')
+        graphfile = 'day_%s.png' % testkey.replace('.', '_')
+        detail.append('<img class="daygraph" src="%s" alt="graph">' % graphfile)
         detail.append('<h2>%s</h2>\n' % (testDisplayName))
 
         platforms = { 'osx':   { 'stddev':   0,
@@ -1002,10 +1005,12 @@ class perf:
         
         (data, plats) = platforms2GraphData(platforms,
                                             self.SummaryTargets[testkey])
-        filename = 'day_%s.png' % testkey.replace('.', '_')
+        #graphfile = 'day_%s.png' % testkey.replace('.', '_')
         if drawGraph(data, plats, os.path.join(self._options['html_data'],
-                                               filename)):
-            detail.append('<img src="%s">' % filename)
+                                               graphfile)):
+            #detail.append('<img src="%s">' % graphfile)
+            pass
+        detail.append('</div>')
         
     page.append('</table>\n')
                                       
