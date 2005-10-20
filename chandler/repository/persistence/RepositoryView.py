@@ -860,6 +860,14 @@ class OnDemandRepositoryView(RepositoryView):
 
         return self._version == 0
 
+    def _acquireExclusive(self):
+
+        return self._exclusive.acquire()
+
+    def _releaseExclusive(self):
+
+        return self._exclusive.release()
+
     def _setLoading(self, loading, runHooks=False):
 
         if not loading and self.isLoading() and runHooks:
@@ -878,7 +886,7 @@ class OnDemandRepositoryView(RepositoryView):
             loading = self.isLoading()
             debug = self.isDebug()
             if not loading:
-                release = self._exclusive.acquire()
+                release = self._acquireExclusive()
                 self._setLoading(True)
                 self._hooks = []
 
@@ -897,14 +905,14 @@ class OnDemandRepositoryView(RepositoryView):
                 self._setLoading(False, False)
                 self._hooks = []
             if release:
-                self._exclusive.release()
+                self._releaseExclusive()
             raise
         
         else:
             if not loading:
                 self._setLoading(False, True)
             if release:
-                self._exclusive.release()
+                self._releaseExclusive()
 
         return item
 

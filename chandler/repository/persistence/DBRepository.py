@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, shutil, atexit, cStringIO
 
-from threading import Thread, Lock, Condition, local
+from threading import Thread, Lock, Condition, local, currentThread
 from datetime import datetime
 from struct import pack
 
@@ -33,14 +33,14 @@ from bsddb.db import \
     DB_LOCK_WRITE, DB_ENCRYPT_AES, \
     DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS, \
     DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN, \
-    DB_ARCH_LOG, DB_ARCH_DATA
+    DB_ARCH_LOG, DB_ARCH_DATA, DB_TXN_NOWAIT
 from bsddb.db import \
     DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError, \
     DBLockDeadlockError, DBPermissionsError, DBInvalidArgError
 
 # missing from python interface at the moment
 DB_DSYNC_LOG = 0x00008000
-
+DB_DEGREE_2  = 0x02000000
 
 class DBRepository(OnDemandRepository):
     """
@@ -250,7 +250,7 @@ class DBRepository(OnDemandRepository):
         try:
             lock = store.acquireLock()
             for view in self.getOpenViews():
-                view._exclusive.acquire()
+                view._acquireExclusive()
 
             env.txn_checkpoint()
 
@@ -271,7 +271,7 @@ class DBRepository(OnDemandRepository):
             
         finally:
             for view in self.getOpenViews():
-                view._exclusive.acquire()
+                view._releaseExclusive()
             if lock is not None:
                 store.releaseLock(lock)
 
@@ -427,6 +427,7 @@ class DBStore(Store):
     def __init__(self, repository):
 
         self._threaded = local()
+        self._threaded.txns = []
 
         self._items = ItemContainer(self)
         self._values = ValueContainer(self)
@@ -602,55 +603,58 @@ class DBStore(Store):
 
         return self._values.getVersionInfo(self.repository.itsUUID)
 
-    def startTransaction(self, view):
+    def startTransaction(self, view, nested=False):
 
         status = 0
         repository = self.repository
 
-        if view is not None and view._exclusive.acquire():
+        if view is not None and view._acquireExclusive():
             status = DBStore.EXCLUSIVE
 
         if not self._ramdb:
             if self.txn is None:
                 self.txn = repository._env.txn_begin(None)
-                status |= DBStore.TXNSTARTED
+                status |= DBStore.TXN_STARTED
+            elif nested:
+                self._threaded.txns.append(self.txn)
+                self.txn = repository._env.txn_begin(self.txn)
+                status |= DBStore.TXN_STARTED | DBStore.TXN_NESTED
         else:
             self.txn = None
 
         return status
 
-    def createTransaction(self):
-
-        if not self._ramdb:
-            return self.repository._env.txn_begin(None)
-
-        return None
-
     def commitTransaction(self, view, status):
 
         try:
-            if status & DBStore.TXNSTARTED:
+            if status & DBStore.TXN_STARTED:
                 if self.txn is None:
                     raise AssertionError, 'txn is None'
                 self.txn.commit()
-                self.txn = None
+                if status & DBStore.TXN_NESTED:
+                    self.txn = self._threaded.txns.pop()
+                else:
+                    self.txn = None
         finally:
             if status & DBStore.EXCLUSIVE:
-                view._exclusive.release()
+                view._releaseExclusive()
 
         return status
 
     def abortTransaction(self, view, status):
 
         try:
-            if status & DBStore.TXNSTARTED:
+            if status & DBStore.TXN_STARTED:
                 if self.txn is None:
                     raise AssertionError, 'txn is None'
                 self.txn.abort()
-                self.txn = None
+                if status & DBStore.TXN_NESTED:
+                    self.txn = self._threaded.txns.pop()
+                else:
+                    self.txn = None
         finally:
             if status & DBStore.EXCLUSIVE:
-                view._exclusive.release()
+                view._releaseExclusive()
 
         return status
 
@@ -739,8 +743,9 @@ class DBStore(Store):
 
         return self.serveItem(version, uuid, cloudAlias)
 
-    TXNSTARTED = 0x0001
-    EXCLUSIVE  = 0x0002
+    TXN_STARTED = 0x0001
+    TXN_NESTED  = 0x0002
+    EXCLUSIVE   = 0x0004
 
     env = property(_getEnv)
     txn = property(_getTxn, _setTxn)
@@ -774,13 +779,13 @@ class DBCheckpointThread(Thread):
 
             try:
                 for view in repository.getOpenViews():
-                    view._exclusive.acquire()
+                    view._acquireExclusive()
                 repository._env.txn_checkpoint()
                 repository.logger.info('%s: %s, completed checkpoint',
                                        repository, datetime.now())
             finally:
                 for view in repository.getOpenViews():
-                    view._exclusive.release()
+                    view._releaseExclusive()
 
     def terminate(self):
         

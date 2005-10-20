@@ -28,8 +28,8 @@ class ThreadSemaphore(object):
 
     def release(self):
 
-        if self._thread is currentThread():
+        if self._thread is not currentThread():
+            raise ValueError, 'current thread did not acquire semaphore'
+        else:
             self._thread = None
             self._semaphore.release()
-        else:
-            raise ValueError, 'current thread did not acquire semaphore'

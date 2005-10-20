@@ -18,8 +18,10 @@ from repository.persistence.RepositoryError import \
     RepositoryFormatVersionError, RepositorySchemaVersionError
 
 from bsddb.db import DB
-from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
+from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_DIRTY_READ
 from bsddb.db import DBNotFoundError, DBLockDeadlockError
+
+DB_DEGREE_2  = 0x02000000
 
 
 class DBContainer(object):
@@ -950,24 +952,23 @@ class ItemContainer(DBContainer):
             def __init__(_self):
 
                 _self.cursor = None
-                _self.txn = None
+                _self.txnStatus = 0
 
             def __del__(_self):
 
                 try:
-                    _self.cursor.close()
-                    if _self.txn is not None:  # no transactions in ramdb
-                        _self.txn.abort()
+                    self.closeCursor(_self.cursor, self._index)
+                    store.commitTransaction(view, _self.txnStatus)
                 except Exception, e:
                     store.repository.logger.error("in __del__, %s: %s",
                                                   e.__class__.__name__, e)
                 _self.cursor = None
-                _self.txn = None
+                _self.txnStatus = 0
 
             def run(_self):
 
-                _self.txn = store.createTransaction()
-                _self.cursor = self._index.cursor(_self.txn, self._flags)
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor(self._index)
                 
                 try:
                     value = _self.cursor.set_range(uuid._uuid, self._flags)

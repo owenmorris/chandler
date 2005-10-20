@@ -134,9 +134,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return DBLob
 
-    def _startTransaction(self):
+    def _startTransaction(self, nested=False):
 
-        return self.store.startTransaction(self)
+        return self.store.startTransaction(self, nested)
 
     def _commitTransaction(self, status):
 
@@ -239,7 +239,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         if self._status & RepositoryView.COMMITTING == 0:
             notifications = RepositoryNotifications()
             try:
-                self._exclusive.acquire()
+                release = self._acquireExclusive()
                 self._status |= RepositoryView.COMMITTING
                 
                 store = self.store
@@ -274,7 +274,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             self.logger.info('%s committing %d items...',
                                              self, count)
 
-                        txnStatus = self._startTransaction()
+                        txnStatus = self._startTransaction(True)
 
                         if count > 0:
                             newVersion += 1
@@ -335,7 +335,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             finally:
                 self._status &= ~RepositoryView.COMMITTING
-                self._exclusive.release()
+                if release:
+                    self._releaseExclusive()
 
             if len(notifications) > 0:
                 notifications.dispatchHistory(self)
