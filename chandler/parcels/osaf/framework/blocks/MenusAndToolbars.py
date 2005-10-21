@@ -446,7 +446,7 @@ class wxMenuItem (wx.MenuItem):
     def Destroy(self):
         self.GetMenu().DestroyItem (self)
 
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         # placeholder in case Menu Items change
         pass
 
@@ -498,7 +498,7 @@ class wxMenu(wx.Menu):
     def __init__(self, *arguments, **keywords):
         super (wxMenu, self).__init__ (*arguments, **keywords)
 
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         self.blockItem.synchronizeItems()
 
     def Destroy(self):
@@ -602,7 +602,7 @@ class wxMenuBar (wx.MenuBar):
         self.blockItem.getFrame().SetMenuBar(None)
         super (wxMenuBar, self).Destroy()
 
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         self.blockItem.synchronizeItems()
 
     """
@@ -739,7 +739,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         self.toolItemList = [] # non-persistent list
         self.toolItems = 0
         
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         super (wxToolbar, self).wxSynchronizeWidget()
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
@@ -826,7 +826,7 @@ class wxToolbarMixin (object):
     call the onDestroy method on each ToolbarItem to unhook that
     block from its widget. 
     """
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         """
           Currently, we only synchronize radio buttons, eventually we
         need to synchronize other kinds, e.g. Text, Combo, and Choice types

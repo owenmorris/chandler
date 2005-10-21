@@ -41,7 +41,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.setFreeBusy)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.minical.CAL_SHOW_BUSY
         if '__WXMAC__' in wx.PlatformInfo:
             style |= wx.BORDER_SIMPLE
@@ -375,7 +375,7 @@ class wxPreviewArea(wx.Panel):
         self.GetParent().Thaw()
         self.GetParent().GetParent().Thaw()
         
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         # We now want the preview area to always appear.  If the calendar is visible, however, we always want the
         # preview area to describe today, rather than the currently selected day.
         minical = Block.Block.findBlockByName("MiniCalendar")

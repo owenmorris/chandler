@@ -167,14 +167,14 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             reNotifyInside(self, item, '')
             print
 
-    def synchronizeWidget (self):
+    def synchronizeWidget (self, **hints):
         item = self.item
         logger.debug("DetailRoot.synchronizeWidget: %s", item)
         # If we're being synchronized on "None", it might be because we're really
         # displaying the None view, or because our selected item got 
         # deleted. Discern by looking at our TrunkParentBlock.
         if item is not None or hasattr(self.parentBlock, 'TPBSelectedItem'):
-            super(DetailRootBlock, self).synchronizeWidget ()
+            super(DetailRootBlock, self).synchronizeWidget (**hints)
             self.synchronizeDetailView(item)
             if __debug__:
                 dumpSynchronizeWidget = False
@@ -446,6 +446,7 @@ class DetailSynchronizer(Item):
             # It's for us - reload the widget
             logger.debug("DetailSynchronizer (%s): Monitor on %s fired; syncing.", 
                          self.blockName, attribute)
+            # XXX put a monitor hint here
             self.synchronizeWidget()
             if self.synchronizeItemDetail(ourItem):
                 self.detailRoot.relayoutSizer()

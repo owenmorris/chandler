@@ -26,7 +26,7 @@ class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
     A widget block that gives its TrunkParentBlock a chance to change 
     the tree of blocks within it. 
     """
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         if self.blockItem.isShown:
             self.blockItem.installTreeOfBlocks()
         super(wxTrunkParentBlock, self).wxSynchronizeWidget()

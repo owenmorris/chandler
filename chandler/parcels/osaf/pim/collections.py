@@ -657,7 +657,7 @@ class IndexedSelectionCollection (AbstractCollection):
         assert self.indexName == "__adhoc__"
         if location == 0:
             if not self.rep._indexes.has_key (self.indexName):
-                self._createIndex
+                self._createIndex()
             before = None
         else:
             before = self [location - 1]

@@ -41,8 +41,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.size.height = self.hourHeight * 24
         self.SetVirtualSize(self.size)
 
-    def wxSynchronizeWidget(self):
-        #print "%s rebuilding canvas items" % self
+    def wxSynchronizeWidget(self, **hints):
         # we sort the items so that when drawn, the later events are drawn last
         # so that we get proper stacking
         # print "TimedEventsCanvas.wxSynchronizeWidget()"

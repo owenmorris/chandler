@@ -333,11 +333,16 @@ class Block(schema.Item):
           When our item collection has changed, we need to synchronize
         """
         if not self.ignoreNotifications:
-            self.synchronizeSoon()
+            self.synchronizeSoon(collectionChange=(op, item, name, other, args))
 
-    def synchronizeSoon(self):
+    def synchronizeSoon(self, **hints):
         """ Invoke our general deferred-synchronization mechanism """
-        self.dirtyBlocks [self.itsUUID] = True
+        # each block should have a hints dictionary
+        blockHints = self.dirtyBlocks.setdefault(self.itsUUID, {})
+
+        # add these hints
+        for key,value in hints.iteritems():
+            blockHints.setdefault(key, []).append(value)
 
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
@@ -468,7 +473,7 @@ class Block(schema.Item):
         # Need to SelectFirstItem -- DJA based on self.selectInBlock
         return itemList
 
-    def synchronizeWidget (self):
+    def synchronizeWidget (self, **hints):
         """
           synchronizeWidget's job is to make the wxWidget match the state of
         the data persisted in the block. There's a tricky problem that occurs: Often
@@ -491,7 +496,7 @@ class Block(schema.Item):
                     oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
                     app.ignoreSynchronizeWidget = True
                     try:
-                        method (widget)
+                        method (widget, **hints)
                     finally:
                         app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
@@ -763,7 +768,7 @@ class ShownSynchronizer:
     A mixin that handles isShown-ness: Make sure my visibility
     matches my block's.
     """
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
 

@@ -390,7 +390,7 @@ class wxList (DragAndDrop.DraggableWidget,
                 break
         return itemList
 
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         self.Freeze()
         self.ClearAll()
         self.SetItemCount (self.GetElementCount())
@@ -714,7 +714,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.blockItem.DisplayContextMenu(event.GetPosition(),
                                           self.blockItem.contents [event.GetRow()])
 
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         """
           A Grid can't easily redisplay its contents, so we write the following
         helper function to readjust everything after the contents change
@@ -1179,7 +1179,7 @@ class wxStatusBar (ShownSynchronizer, wx.StatusBar):
         self.blockItem.getFrame().SetStatusBar(None)
         super (wxStatusBar, self).Destroy()
         
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         super (wxStatusBar, self).wxSynchronizeWidget()
         self.blockItem.getFrame().Layout()
 
@@ -1337,7 +1337,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
     def OnItemDrag(self, event):
         self.DoDragAndDrop()
         
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         def ExpandContainer (self, openedContainers, id):
             try:
                 expand = openedContainers [self.GetItemData(id).GetData()]
@@ -1483,7 +1483,7 @@ class wxItemDetail(wx.html.HtmlWindow):
             self.blockItem.postEventByName("SelectItemsBroadcast",
                                            {'items':[item]})
 
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, **hints):
         if self.blockItem.selection is not None:
             self.SetPage (self.blockItem.getHTMLText (self.blockItem.selection))
         else:
@@ -1593,9 +1593,9 @@ class Timer(Block):
 class ReminderTimer(Timer):
     """ Watches for reminders & drives the reminder dialog. """
     
-    def synchronizeWidget (self):
+    def synchronizeWidget (self, **hints):
         # logger.debug("*** Synchronizing ReminderTimer widget!")
-        super(ReminderTimer, self).synchronizeWidget()
+        super(ReminderTimer, self).synchronizeWidget(**hints)
         if not wx.GetApp().ignoreSynchronizeWidget:
             pending = self.getPendingReminders()
             closeIt = False
@@ -1786,7 +1786,7 @@ class AEBlock(BoxContainer):
                     
         return widget
         
-    def synchronizeWidget (self):
+    def synchronizeWidget (self, **hints):
         """
         Override to call the editor to do the synchronization
         """
