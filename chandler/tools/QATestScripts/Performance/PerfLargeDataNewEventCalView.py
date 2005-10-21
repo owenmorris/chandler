@@ -3,6 +3,7 @@ import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
 import os, wx, sys
 import osaf.pim as pim
+from datetime import datetime
 
 App_ns = QAUITestAppLib.App_ns
 
@@ -57,10 +58,10 @@ else:
 
 #action
 #double click in the calendar view => event creation or selection
-# try to pick a place with no existing Calendar Event
-x=200
-y=70
-ev = testView.DoubleClickInCalView(x, y)
+#first we need to go to a known date, so our click will be reproducable
+testdate=datetime(2005, 12, 24)
+App_ns.root.SelectedDateChanged(start=testdate)
+ev = testView.DoubleClickInCalView()
 
 #check the detail view of the created event
 ev.Check_DetailView({"displayName":"New Event"})

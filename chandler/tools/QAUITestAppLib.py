@@ -1208,6 +1208,7 @@ class UITestView:
                 self.logger.Start("Double click in the calendar view")
                 self.timedCanvas.widget.ProcessEvent(click)
                 wx.GetApp().Yield()
+                wx.GetApp().ProcessEvent(wx.IdleEvent())
                 self.logger.Stop()
             
             #it's a new event
