@@ -1355,7 +1355,15 @@ void wxToolBar::OnPaint(wxPaintEvent& event)
     {
         // leave the background as it is (striped or metal)
     }
+
 #else
+
+    // OSAF: (21-Oct-05)
+    // this has the visual result of frame (outline) border;
+    // Chandler's mark-up bar is specified as non-bordered,
+    // it's NOPped out for the time being...
+    if (false)
+    {
     wxMacPortSetter helper(&dc) ;
 
     Rect toolbarrect = { dc.YLOG2DEVMAC(0) , dc.XLOG2DEVMAC(0) ,
@@ -1403,6 +1411,7 @@ void wxToolBar::OnPaint(wxPaintEvent& event)
 #endif
     }
 #endif
+    }
 
     event.Skip() ;
 }
