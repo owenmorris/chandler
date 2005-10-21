@@ -111,7 +111,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
             pass
 
         if not filters or "reminders" not in filters:
-            firstReminder = item.reminders.first()
+            firstReminder = item.reminders.first() or item.expiredReminders.first()
             if firstReminder is not None:
                 comp.add('valarm').add('trigger').value = firstReminder.delta
         

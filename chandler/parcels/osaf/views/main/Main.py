@@ -460,59 +460,72 @@ class MainView(View):
         # triggered from "File | Import/Export" menu
         #XXX: need to migrate this to application dialogs utils
 
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
-                                          _(u"import.ics"), _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
-                                          wx.OPEN | wx.HIDE_READONLY)
+        options = [dict(name='reminders', checked = True, label = _(u"Import reminders")),
+                   dict(name='transparency', checked = True, label = _(u"Import event status"))]
+        res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
+                                          _(u"Choose a file to import"), "",
+                            _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
+                                                 wx.OPEN | wx.HIDE_READONLY, 
+                                                                    options)
+        
+        (ok, fullpath, optionResults) = res
 
-        (cmd, dir, filename) = res
-
-        if cmd  != wx.ID_OK:
+        if not ok:
             self.setStatusMessage(_(u"Import aborted"))
-            return
-
-        self.setStatusMessage (_(u"Importing from %(filename)s") % {'filename': filename})
-        try:
-            share = sharing.OneTimeFileSystemShare(dir, filename,
-                            ICalendar.ICalendarFormat, view=self.itsView)
-            collection = share.get()
-            assert (hasattr (collection, 'color'))
-            schema.ns("osaf.app", self).sidebarCollection.add (collection)
-            # Need to SelectFirstItem -- DJA
-            self.setStatusMessage (_(u"Import completed"))
-        except:
-            logger.exception("Failed importFile %s" % \
-                os.path.join(dir, filename))
-            self.setStatusMessage(_(u"Import failed"))
+        else:
+            try:
+                (dir, filename) = os.path.split(fullpath)
+                self.setStatusMessage (_(u"Importing from %(filename)s") % {'filename': filename})
+                share = sharing.OneTimeFileSystemShare(dir, filename,
+                                ICalendar.ICalendarFormat, view=self.itsView)
+                if not optionResults['reminders']:
+                    share.filterAttributes.append('reminders')
+                if not optionResults['transparency']:
+                    share.filterAttributes.append('transparency')
+                collection = share.get()
+                assert (hasattr (collection, 'color'))
+                schema.ns("osaf.app", self).sidebarCollection.add (collection)
+                # Need to SelectFirstItem -- DJA
+                self.setStatusMessage (_(u"Import completed"))
+            except:
+                logger.exception("Failed importFile %s" % fullpath)
+                self.setStatusMessage(_(u"Import failed"))
 
     def onExportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
         collection = Block.findBlockByName("Sidebar").selectedItemToView
 
-        res = ImportExport.showFileDialog(
-                wx.GetApp().mainFrame,
-                _("Choose a filename to export to"),
-                "",
-                u"%s.ics" % (collection.displayName),
-                _("iCalendar files|*.ics|All files (*.*)|*.*"),
-                wx.SAVE | wx.OVERWRITE_PROMPT)
+        options = [dict(name='reminders', checked = True, label = _(u"Export reminders")),
+                   dict(name='transparency', checked = True, label = _(u"Export event status"))]
+        res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
+                                       _(u"Choose a filename to export to"),
+                                       u"%s.ics" % (collection.displayName),
+                            _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
+                                              wx.SAVE | wx.OVERWRITE_PROMPT, 
+                                                                    options)
 
-        (cmd, dir, filename) = res
+        (ok, fullpath, optionResults) = res
 
-        if cmd != wx.ID_OK:
+        if not ok:
             self.setStatusMessage(_(u"Export aborted"))
-            return
+        else:
+            try:
+                (dir, filename) = os.path.split(fullpath)
+                self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
 
-        self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
-        try:
-            share = sharing.OneTimeFileSystemShare(dir, filename,
-                            ICalendar.ICalendarFormat, view=self.itsView)
-            share.contents = collection
-            share.put()
-            self.setStatusMessage(_(u"Export completed"))
-        except:
-            trace = "".join(traceback.format_exception (*sys.exc_info()))
-            logger.info("Failed exportFile:\n%s" % trace)
-            self.setStatusMessage(_(u"Export failed"))
+                share = sharing.OneTimeFileSystemShare(dir, filename,
+                                ICalendar.ICalendarFormat, view=self.itsView)
+                if not optionResults['reminders']:
+                    share.filterAttributes.append('reminders')
+                if not optionResults['transparency']:
+                    share.filterAttributes.append('transparency')
+                share.contents = collection
+                share.put()
+                self.setStatusMessage(_(u"Export completed"))
+            except:
+                trace = "".join(traceback.format_exception (*sys.exc_info()))
+                logger.info("Failed exportFile:\n%s" % trace)
+                self.setStatusMessage(_(u"Export failed"))
 
 
     def onImportImageEvent(self, event):
