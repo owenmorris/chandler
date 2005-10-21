@@ -661,7 +661,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         else:
             self.blockItem.selection = []
         self.blockItem.postSelectItemsBroadcast()
-        self.wxSynchronizeWidget()
+        self.Refresh()
 
     def OnAddToSelection(self, item):
         self.blockItem.selection.append(item)
