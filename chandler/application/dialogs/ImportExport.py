@@ -74,7 +74,7 @@ class FileChooserWithOptions(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         buttonText = _('Browse')
-        labelText = _('File location')
+        labelText = _('File location: ')
         initialPath = os.path.join(os.path.realpath(os.path.curdir), defaultFile)
         self.filechooser = FileBrowseButton(self, -1, size=(400, -1),
                                    labelText=labelText, buttonText=buttonText,
@@ -91,14 +91,16 @@ class FileChooserWithOptions(wx.Dialog):
             sizer.Add(cb, 0, wx.ALL, 3)
         
         buttonSizer = wx.FlexGridSizer(cols=0, hgap=0, rows=1, vgap=0)
-        buttonSizer.AddWindow(wx.Button(self, id=wx.ID_OK, label=messages.OK),
-                              0, border=5, flag=wx.ALL)
-        buttonSizer.AddSpacer(wx.Size(10, 10), border=0, flag=0)
+        okButton = wx.Button(self, id=wx.ID_OK, label=messages.OK)
+        buttonSizer.AddWindow(okButton, 0, border=5, flag=wx.ALL)
         buttonSizer.AddWindow(wx.Button(self, id=wx.ID_CANCEL, label=messages.CANCEL),
                               2, border=5, flag=wx.ALL)
 
-        sizer.Add(buttonSizer, 0, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        sizer.Add(buttonSizer, 0, flag=wx.ALIGN_RIGHT)
 
+        # begin with the OK button selected
+        okButton.SetFocus()
+        
         box = wx.BoxSizer()
         box.Add(sizer, 0, wx.ALL, 10)
         self.SetSizer(box)
