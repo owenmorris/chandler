@@ -232,7 +232,7 @@ def CreateCollectionFromTag(repView, cpiaView):
 
 class UpdateTask:
     def __init__(self, item):
-        self.view = item.itsView
+        self.view = item.itsView.repository.createView("Flickr")
 
     def run(self):
         logger.info("receiveWakeupCall()")

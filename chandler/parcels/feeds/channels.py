@@ -354,7 +354,7 @@ class FeedItem(pim.ContentItem):
 class FeedUpdateTaskClass:
 
     def __init__(self, item):
-        self.view = item.itsView
+        self.view = item.itsView.repository.createView("Feeds")
 
     def run(self):
         self.view.refresh()
