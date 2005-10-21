@@ -592,7 +592,7 @@ class CalendarEventMixin(RemindableMixin):
                     calculated = self._createOccurrence(nextRecurrenceID)
 
                 # now we have an event calculated from nextRecurrenceID.  It's
-                # actual startTime may be too early, or there may be a
+                # actual startTime may be too early or too late, or there may be a
                 # modification which is even earlier.
                 
                 if (after == None and \
@@ -600,11 +600,17 @@ class CalendarEventMixin(RemindableMixin):
                   or (
                       after is not None
                       and not calculated.isBetween(after, before)):
-                        # too early, but there may be a later modification
+                        # too early or too late, but there may be a matching modification
                         mod = checkModifications(first, nextRecurrenceID)
                         if mod is None:
-                            earliest = nextRecurrenceID
-                            continue
+                            if before is not None and \
+                               datetimeOp(calculated.startTime, '>', before):
+                                # this modification is too late and we've checked for
+                                # earlier matching modifications and generated events
+                                return None
+                            else:
+                                earliest = nextRecurrenceID
+                                continue
                         else:
                             return fixReminders(mod)
                 else:
