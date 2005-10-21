@@ -408,10 +408,11 @@ class Block(schema.Item):
     def getFocusBlock (theClass):
         focusWindow = wx.Window_FindFocus()
         while (focusWindow):
-            try:
-                return focusWindow.blockItem
-            except AttributeError:
+            block = getattr (focusWindow, "blockItem", None)
+            if block is None:
                 focusWindow = focusWindow.GetParent()
+            else:
+                return block
         return Globals.views[0]
 
     def onShowHideEvent(self, event):
@@ -569,7 +570,7 @@ class Block(schema.Item):
     @classmethod
     def dispatchEvent (theClass, event):
         
-        def callProfiledMethod(block, methodName, event):
+        def callProfiledMethod(blockOrWidget, methodName, event):
             """
             Wrap callNamedMethod with a profiler runcall()
             """
@@ -583,20 +584,19 @@ class Block(schema.Item):
                     #
                     # run the call inside the profiler
                     #
-                    return Block.__profiler.runcall(callNamedMethod, block, methodName, event)
+                    return Block.__profiler.runcall(callNamedMethod, blockOrWidget, methodName, event)
                 finally:
                     # make sure that we turn off reentrancy check no matter what
                     Block.__profilerActive = False
             else:
-                return callNamedMethod(block, methodName, event)
+                return callNamedMethod(blockOrWidget, methodName, event)
                             
-        def callNamedMethod (block, methodName, event):
+        def callNamedMethod (blockOrWidget, methodName, event):
             """
-              Call method named methodName on block
+              Call method named methodName on block or widget
             """
-            try:
-                member = getattr (type(block), methodName)
-            except AttributeError:
+            member = getattr (type(blockOrWidget), methodName, None)
+            if member is None:
                 return False
             else:
                 #if __debug__ and not methodName.endswith("UpdateUI"):
@@ -606,7 +606,7 @@ class Block(schema.Item):
                                   #block, getattr(event, "arguments", 
                                                  #"(no arguments)")))
 
-                event.arguments ['results'] = member (block, event)
+                event.arguments ['results'] = member (blockOrWidget, event)
                 return True
 
         if Block.profileEvents:
@@ -616,18 +616,30 @@ class Block(schema.Item):
             # Not profiling, use the straight-up call
             callMethod = callNamedMethod
 
-        def bubbleUpCallMethod (block, methodName, event):
+        def bubbleUpCallMethod (blockOrWidget, methodName, event):
             """
-              Call a method on a block or if it doesn't handle it try it's parents
+              Call a method on a block or widget or if it doesn't handle it try it's parents
             """
             event.arguments ['continueBubbleUp'] = False # default to stop bubbling
-            while (block):
-                if callMethod (block, methodName, event): # method called?
+            while (blockOrWidget):
+                if callMethod (blockOrWidget, methodName, event): # method called?
                     if event.arguments ['continueBubbleUp']: # overwrote the default?  
                         event.arguments ['continueBubbleUp'] = False # reset the default
                     else:
                         break
-                block = block.parentBlock
+                if isinstance (blockOrWidget, Block):
+                    blockOrWidget = blockOrWidget.parentBlock
+                else:
+                    # We should have a widget
+                    assert isinstance (blockOrWidget, wx.Window)
+                    # Try the block if the widget has one, otherwise
+                    # try the widget's parent
+                    block = getattr (blockOrWidget, 'blockItem', None)
+                    if block is None:
+                        blockOrWidget = blockOrWidget.GetParent()
+                    else:
+                        blockOrWidget = block
+
         
         def broadcast (block, methodName, event, childTest):
             callMethod (block, methodName, event)
@@ -703,8 +715,17 @@ class Block(schema.Item):
                        lambda child: (child is not None))
 
         elif dispatchEnum == 'FocusBubbleUp':
-            block = theClass.getFocusBlock()
-            bubbleUpCallMethod (block, methodName, event)
+            """
+            FocusBubbleUp dispatches the event bubbling up from focused
+            widget, or main view if there isn't a focus widget.
+            
+            Focused widgets are included so that attribute editors, which
+            don't always have block counterparts, get a crack at handling events.
+            """
+            blockOrWidget = wx.Window_FindFocus()
+            if blockOrWidget is None:
+                blockOrWidget = Globals.views[0]
+            bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
             try:
@@ -801,36 +822,6 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
 
         return flag
     
-    """
-    Can't do any kind of edit operation by default.
-    Override the ones that you can do.
-    The presence of these methods disables the
-      associated menu items if the message
-      bubbles all the way up to us.  
-    BoxContainer uses this class, so containers
-      will halt the bubble up.
-    """
-    def CanCopy(self):
-        return False
-
-    def CanCut(self):
-        return False
-
-    def CanPaste(self):
-        return False
-
-    def CanUndo(self):
-        return False
-
-    def CanRedo(self):
-        return False
-    
-    def CanClear(self):
-        return False
-    
-    def CanSelectAll(self):
-        return False
-
 class alignmentEnumType(schema.Enumeration):
     values = (
         "grow", "growConstrainAspectRatio", "alignCenter", "alignTopCenter",
@@ -855,69 +846,7 @@ class RectangularChild (Block):
             return
         else:
             self.contextMenu.displayContextMenu(self.widget, position, data)
-
-    # tuple of action, changesData where changesData tells us if
-    # the action would cause a change
-    genericEditActions = [('Cut', True),
-                          ('Copy', False),
-                          ('Paste', True),
-                          ('Clear', True),
-                          ('SelectAll', True),
-                          ('Undo', False),
-                          ('Redo', False)]
-    
-def _GenericEditDelegate(methodName, changesData=True):
-    """
-    Generic Edit handling - given an action, like 'Cut', etc,
-    return a tuple of onXXXEvent/onXXXEventUpdateUI methods that
-    handle that and delegate to the respective method, updating
-    event.arguments appropriately
-
-    If our widget knows how to do the edit, we handle the event by
-    delegating to our widget. Otherwise we let the event continue
-    to bubble up the container hierarchy.  For example,
-
-    onCutEvent, onCutEventUpdateUI = _GenericEditDelegate('Cut')
-
-    will ensure that onCutEvent delegates to self.widget.Cut(), and
-    onCutEventUpdateUI delegates to self.widget.CanCut()
-    """
-
-    def GenericEditUpdateUI(self, event):
-        try:
-            # get the method bound to the widget
-            method = getattr (self.widget, 'Can' + methodName)
-        except AttributeError:
-            # don't know, so BubbleUp
-            event.arguments['continueBubbleUp'] = True
-        else:
-            # We know if we can, so enable or disable menu item
-            event.arguments['Enable'] = method()
-
-    def GenericEdit(self, event):
-        try:
-            method = getattr (self.widget, methodName)
-        except AttributeError:
-            # don't know, so BubbleUp
-            event.arguments['continueBubbleUp'] = True
-        else:
-            result = method()
-            if changesData:
-                # notify that data has changed, if we can
-                # use type() to skip repository lookup and get an unbound method
-                method = getattr(type(self), 'OnDataChanged', None)
-                if method is not None:
-                    method(self)
-            return result
-    return (GenericEdit, GenericEditUpdateUI)
-
-# dynamically attach methods to RectangularChild
-for action,changesData in RectangularChild.genericEditActions:
-    onEvent, onEventUpdateUI = _GenericEditDelegate(action, changesData)
-    
-    setattr(RectangularChild, 'on' + action + 'Event', onEvent)
-    setattr(RectangularChild, 'on' + action + 'EventUpdateUI', onEventUpdateUI)
-
+ 
 class dispatchEnumType(schema.Enumeration):
     values = (
         "BroadcastInsideMyEventBoundary",

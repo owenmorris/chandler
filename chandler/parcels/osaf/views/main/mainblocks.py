@@ -611,6 +611,7 @@ def make_mainview(parcel):
                             MenuItem.template('RemoveItem',
                                 event=globalevents.Remove,
                                 title=_(u'Remove'),
+                                accel=_(u'DELETE'),
                                 helpString=_(u'Move the current item to the trash')),
                             MenuItem.template('DeleteItem',
                                 event=DeleteEvent,

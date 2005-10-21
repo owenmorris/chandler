@@ -34,9 +34,10 @@ It's easy to write new ClipboardHandlers for your own kind of data:
     - PasteData() - place data from a DataObject into your widget
     - ClipboardDataFormat() - define the format of your DataObject
     - ClipboardDataObject() - create your data object
-    - CanCopy(), CanCut(), CanPaste() - return booleans
-    - Cut(), Copy(), Paste() - interact with the clipboard calling 
-        CopyData() or PasteData().
+    - onCutEventUpdateUI(), onCopyEventUpdateUI(), onPasteEventUpdateUI()
+        used for menu enabling
+    - onCutEvent(), onCopyEvent(), onPasteEvent()
+        interact with the clipboard calling CopyData() or PasteData().
 
 What's going on inside
 ----------------------
@@ -400,19 +401,17 @@ class ItemClipboardHandler(_ClipboardHandler):
         format = self.ClipboardDataFormat()
         return wx.CustomDataObject(wx.CustomDataFormat(format))
 
-    def CanCopy(self):
-        try:
-            items = self.SelectedItems()
-        except AttributeError:
-            return False
-        return len(items) > 0
+    def onCopyEventUpdateUI(self, event):
+        items = self.SelectedItems()
+        event.arguments['Enable'] = len(items) > 0
 
-    def CanCut(self):
+    def onCutEventUpdateUI(self, event):
         if not hasattr (self, 'DeleteSelection'):
-            return False
-        return self.CanCopy()
+            event.arguments['Enable'] = False
+        else:
+            self.onCopyEventUpdateUI(event)
 
-    def Copy(self):
+    def onCopyEvent(self, event):
         items = []
         clipboard = wx.TheClipboard
         if clipboard.Open():
@@ -422,21 +421,19 @@ class ItemClipboardHandler(_ClipboardHandler):
             clipboard.Close()
         return items
 
-    def Cut(self):
+    def onCutEvent(self, event):
         result = self.Copy()
-        try:
-            self.DeleteSelection()
-        except AttributeError:
-            pass # doesn't know DeleteSelection()
+        # call self.DeleteSelection() if it is defined
+        getattr(self, 'DeleteSelection', lambda: None)()
         return result
 
-    def CanPaste(self):
+    def onPasteEventUpdateUI(self, event):
         clipboard = wx.TheClipboard
         formatWeCanPaste = self.DataObjectFormat()
         supportsOurKinds = clipboard.IsSupported(formatWeCanPaste)
-        return supportsOurKinds
+        event.arguments['Enable'] = supportsOurKinds
 
-    def Paste(self):
+    def onPasteEvent(self, event):
         clipboard = wx.TheClipboard
         if clipboard.Open():
             dataToPaste = self.ClipboardDataObject()

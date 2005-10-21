@@ -556,18 +556,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
 
-    def OnKeyUp(self, event):
-        if event.m_keyCode in (wx.WXK_DELETE, wx.WXK_BACK):
-            self.blockItem.onRemoveEvent(event)
-        else:
-            event.Skip()
-            
     def OnGainFocus (self, event):
         self.SetSelectionBackground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT))
         self.InvalidateSelection ()
@@ -893,60 +886,6 @@ class wxTable(DragAndDrop.DraggableWidget,
                 itemList.append(self.blockItem.contents [index])
         return itemList
 
-    """
-    Cut and Paste support for Grid cells.
-    When a single cell is selected, these methods delegate the
-        cut and paste operations to the attribute editor.
-    """
-    def _DelegateCellEdit(self, operation, method=None):
-        # maybe we're in grid select - see if the widget there can do it.
-        method = method or getattr(super(wxTable, self), operation, None) # super method to fall back on
-        cursorPos = (self.GetGridCursorRow(), self.GetGridCursorCol())
-        editor = self.GetCellEditor(*cursorPos)
-        try:
-            editingCell = editor.editingCell
-        except AttributeError:
-            pass
-        else:
-            if editingCell == cursorPos:
-                try:
-                    method = getattr(editor.control, operation)
-                except AttributeError:
-                    method = None
-        return (method is not None) and method()
-
-    def CanCopy(self):
-        return self._DelegateCellEdit('CanCopy')
-
-    def Copy(self):
-        return self._DelegateCellEdit('Copy')
-
-    def CanCut(self):
-        return self._DelegateCellEdit('CanCut')
-
-    def Cut(self):
-        return self._DelegateCellEdit('Cut')
-
-    def CanPaste(self):
-        return self._DelegateCellEdit('CanPaste')
-
-    def Paste(self):
-        return self._DelegateCellEdit('Paste')
-
-    def CanClear(self):
-        # Disallow Clear if we're not editing. (Remove works instead)
-        return self._DelegateCellEdit('CanCut', lambda: False)
-
-    def Clear(self):
-        return self._DelegateCellEdit('Clear', lambda: False)
-
-    def CanSelectAll(self):
-        return self._DelegateCellEdit('CanSelectAll',
-                                      lambda: self.GetNumberRows() > 0)
-
-    def SelectAll(self):
-        return self._DelegateCellEdit('SelectAll')
-    
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
     def __init__(self, type):
         super (GridCellAttributeRenderer, self).__init__ ()

@@ -41,6 +41,25 @@ class MainView(View):
     """
       Main Chandler view contains event handlers for Chandler
     """
+    """
+    Can't do any kind of edit operation by default.
+    Override the ones that you can do.
+    The presence of these methods disables the
+    associated menu items if the message
+    bubbles all the way up to us.  
+    """
+    def _Method_CantEdit(self, event):
+        event.arguments['Enable'] = False
+
+    onCopyEventUpdateUI = _Method_CantEdit
+    onCutEventUpdateUI = _Method_CantEdit
+    onRemoveEventUpdateUI = _Method_CantEdit
+    onPasteEventUpdateUI = _Method_CantEdit
+    onUndoEventUpdateUI = _Method_CantEdit
+    onRedoEventUpdateUI = _Method_CantEdit
+    onClearEventUpdateUI = _Method_CantEdit
+    onSelectAllEventUpdateUI = _Method_CantEdit
+
     def displayMailError (self, message, account):
         application.dialogs.Util.mailError(wx.GetApp().mainFrame, self.itsView, message, account)
 
@@ -105,15 +124,6 @@ class MainView(View):
         splash.Show(True)
         return splash
 
-    def onCopyEventUpdateUI (self, event):
-        event.arguments ['Enable'] = False
-
-    def onCutEventUpdateUI (self, event):
-        event.arguments ['Enable'] = False
-
-    def onRemoveEventUpdateUI (self, event):
-        event.arguments ['Enable'] = False
-
     def onEmptyTrashEvent(self, event):
         trash = schema.ns("osaf.app", self).TrashCollection
         trash.empty()
@@ -170,9 +180,6 @@ class MainView(View):
 
         return [newItem]
 
-    def onPasteEventUpdateUI (self, event):
-        event.arguments ['Enable'] = False
-
     def onPrintPreviewEvent (self, event):
         self.printEvent(True)
 
@@ -212,15 +219,6 @@ class MainView(View):
         while not curWindow.IsTopLevel():
             curWindow = curWindow.GetParent()
         curWindow.Close()
-
-    def onRedoEventUpdateUI (self, event):
-        event.arguments ['Enable'] = False
-
-    def onUndoEventUpdateUI (self, event):
-        # BJS: commented out - see rant in Block.py, 
-        # RectangularChild.onUndoEventUpdateUI
-        #event.arguments ['Text'] = _(u"Can't Undo\tCtrl+Z")
-        event.arguments ['Enable'] = False
 
     def RepositoryCommitWithStatus (self):
         """

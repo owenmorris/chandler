@@ -350,12 +350,66 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         super(DragAndDropTextCtrl, self).Copy()
         return result
     
-    def CanSelectAll(self):
-        return self.GetLastPosition() > 0
+    def onCopyEventUpdateUI(self, event):
+        event.arguments ['Enable'] = self.CanCopy()
+
+    def onCopyEvent(self, event):
+        self.Copy()
+
+    def onCutEventUpdateUI(self, event):
+        event.arguments ['Enable'] = self.CanCut()
+
+    def onCutEvent(self, event):
+        self.Cut()
+
+    def onPasteEventUpdateUI(self, event):
+        event.arguments ['Enable'] = self.CanPaste()
+
+    def onPasteEvent(self, event):
+        self.Paste()
+
+    def onClearEventUpdateUI(self, event):
+        event.arguments ['Enable'] = self.CanClear()
     
-    def SelectAll(self):
+    def onClearEvent(self, event):
+        self.Clear()
+    
+    def onRedoEventUpdateUI(self, event):
+        event.arguments ['Enable'] = self.CanRedo()
+
+    def onRedoEvent(self, event):
+        self.Redo()
+
+    def onUndoEventUpdateUI(self, event):
+        event.arguments ['Enable'] = self.CanUndo()
+    
+    def onUndoEvent(self, event):
+        self.Undo()
+
+    def onRemoveEventUpdateUI(self, event):
+        (startSelect, endSelect) = self.GetSelection()
+        event.arguments ['Enable'] = startSelect < self.GetLastPosition()
+    
+    def onRemoveEvent(self, event):
+        # I tried the following code, but apparently a SWIG bug (#3978)
+        # prevents EmulateKeyPress from accepting it's argument. So
+        # alternatively, I tried to duplicat the code that handles
+        # delete in EmulateKeyPress, however it didn't work correctly -- DJA
+        #keyEvent = wx.KeyEvent
+        #keyEvent.m_keyCode = wx.WXK_DELETE
+        #self.EmulateKeyPress (keyEvent)
+        (startSelect, endSelect) = self.GetSelection()
+        if startSelect < self.GetLastPosition():
+            if startSelect == endSelect:
+                endSelect += 1
+            self.Remove (startSelect, endSelect)
+
+    def onSelectAllEventUpdateUI(self, event):
+        event.arguments ['Enable'] = self.GetLastPosition() > 0
+
+    def onSelectAllEvent(self, event):
         self.SetSelection(-1, -1)
-    
+        
 class wxEditText(DragAndDropTextCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxEditText, self).__init__ (*arguments, **keywords)
@@ -518,19 +572,22 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def GetValue(self): return self.shownControl.GetValue()
     def SetValue(self, *args): return self.shownControl.SetValue(*args)
     def SetForegroundColour(self, *args): self.shownControl.SetForegroundColour(*args)
-    def CanUndo(self): return self.shownControl.CanUndo()
-    def CanRedo(self): return self.shownControl.CanRedo()
-    def CanCut(self): return self.shownControl.CanCut()
-    def CanCopy(self): return self.shownControl.CanCopy()
-    def CanPaste(self): return self.shownControl.CanPaste()
-    def CanClear(self): return self.shownControl.CanClear()
-    def CanSelectAll(self): return self.shownControl.CanSelectAll()
-    def Undo(self): return self.shownControl.Undo()
-    def Redo(self): return self.shownControl.Redo()
-    def Cut(self): return self.shownControl.Cut()
-    def Copy(self): return self.shownControl.Copy()
-    def Paste(self): return self.shownControl.Paste()
-    def Clear(self): return self.shownControl.Clear()
+    def onCopyEventUpdateUI(self, *args): self.shownControl.onCopyEventUpdateUI(*args)
+    def onCopyEvent(self, *args): self.shownControl.onCopyEvent(*args)
+    def onCutEventUpdateUI(self, *args): self.shownControl.onCutEventUpdateUI(*args)
+    def onCutEvent(self, *args): self.shownControl.onCutEvent(*args)
+    def onPasteEventUpdateUI(self, *args): self.shownControl.onPasteEventUpdateUI(*args)
+    def onPasteEvent(self, *args): self.shownControl.onPasteEvent(*args)
+    def onClearEventUpdateUI(self, *args): self.shownControl.onClearEventUpdateUI(*args)
+    def onClearEvent(self, *args): self.shownControl.onClearEvent(*args)
+    def onSelectAllEventUpdateUI(self, *args): self.shownControl.onSelectAllEventUpdateUI(*args)
+    def onSelectAllEvent(self, *args): self.shownControl.onSelectAllEvent(*args)
+    def onRedoEventUpdateUI(self, *args): self.shownControl.onRedoEventUpdateUI(*args)
+    def onRedoEvent(self, *args): self.shownControl.onRedoEvent(*args)
+    def onUndoEventUpdateUI(self, *args): self.shownControl.onUndoEventUpdateUI(*args)
+    def onUndoEvent(self, *args): self.shownControl.onUndoEvent(*args)
+    def onRemoveEventUpdateUI(self, *args): self.shownControl.onRemoveEventUpdateUI(*args)
+    def onRemoveEvent(self, *args): self.shownControl.onRemoveEvent(*args)
 
     def SetFont(self, font):
         self.editControl.SetFont(font)
