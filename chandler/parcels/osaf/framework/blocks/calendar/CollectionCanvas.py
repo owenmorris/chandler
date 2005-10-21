@@ -299,6 +299,11 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         middleText = textExtent[0] / 2
         dc.DrawText(text, rect.x + middleRect - middleText, rect.y)
 
+    def GetCanvasItemAt(self, unscrolledPosition):
+        for canvasItem in reversed(self.canvasItemList):
+            if canvasItem.isHit(unscrolledPosition):
+                return canvasItem
+        return None
 
     def _initiateDrag(self, hitBox, unscrolledPosition):
         """
@@ -336,11 +341,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         This is potentially expensive, since we're iterating all the canvasItems
         """
-        hitBox = None
-        for box in reversed(self.canvasItemList):
-            if box.isHit(unscrolledPosition):
-                hitBox = box
-                break
+        hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox and hitBox.isHitResize(unscrolledPosition):
             self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
         else:
@@ -355,11 +356,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             OnEditItem()
             OnCreateItem()
         """
-        hitBox = None
-        for box in reversed(self.canvasItemList):
-            if box.isHit(unscrolledPosition):
-                hitBox = box
-                break
+        hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox:
             self.OnEditItem(hitBox)
         elif self.blockItem.CanAdd():
@@ -374,16 +371,12 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             OnSelectItem()
             OnSelectNone()
         """
-        hitBox = None
-        for box in reversed(self.canvasItemList):
-            if box.isHit(unscrolledPosition):
-                hitBox = box
-                break
 
         # at the moment, any kind of left-click will change
         # the selection in some way, taking us out of "select-all" mode
         self.blockItem.selectAllMode = False
         
+        hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox:
             item = hitBox.GetItem()
             if multipleSelection:
@@ -770,9 +763,9 @@ class CollectionBlock(Block.RectangularChild):
         return len(self.contents) > 0
 
     def DeleteSelection(self):
+        self.ClearSelection()
         for item in self.selection:
             item.removeFromCollection(self.contents.collectionList[0])
-        self.ClearSelection()
 
     def ClearSelection(self):
         self.selection = []

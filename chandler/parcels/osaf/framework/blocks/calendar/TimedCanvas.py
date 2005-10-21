@@ -398,7 +398,31 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
                 
         return newTime, duration
-            
+
+    def GetCanvasItemAt(self, unscrolledPosition):
+        """
+        Similar to the one in CollectionCanvas, but take selection
+        into account, because sometimes items on the bottom of a stack
+        of conflicting events is the currently selected one.
+        """
+        firstHit = None
+        selection = self.blockItem.selection
+        for canvasItem in reversed(self.canvasItemList):
+            if canvasItem.isHit(unscrolledPosition):
+                # this one is in the selection, so we can return
+                # immediately
+                if canvasItem.GetItem() in selection:
+                    return canvasItem
+                
+                # otherwise, save the first hit for later, in case we
+                # don't hit a selected item
+                if not firstHit:
+                    firstHit = canvasItem
+
+        # if we got this far, none of the items at unscrolledPosition
+        # were selected, so we can just return the first one we hit,
+        # if any
+        return firstHit
 
     def OnBeginResizeItem(self):
         self.StartDragTimer()
