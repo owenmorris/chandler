@@ -39,7 +39,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
     colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
 
     trunkDelegate = schema.One(
-        'TrunkDelegate', inverse = 'trunkParentBlock', required = True
+        'TrunkDelegate', inverse = 'trunkParentBlocks', required = True
     )
     TPBDetailItem = schema.One(
         schema.Item, initialValue = None, otherName = 'TPBDetailItemOwner'
@@ -50,8 +50,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byCloud=[trunkDelegate],
-            byRef = [colorStyle,TPBDetailItem,TPBSelectedItem]
+            byRef = [trunkDelegate,colorStyle,TPBDetailItem,TPBSelectedItem]
         )
     )
 
@@ -139,17 +138,13 @@ class TrunkDelegate(schema.Item):
        would work.
     """
 
-    trunkParentBlock = schema.One(
+    trunkParentBlocks = schema.Sequence(
         TrunkParentBlock,
         inverse = TrunkParentBlock.trunkDelegate,
         required = True,
     )
 
     keyUUIDToTrunk = schema.Mapping(Block.Block, initialValue = {})
-
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[trunkParentBlock])
-    )
 
     def getTrunkForKeyItem(self, keyItem):
         """ 

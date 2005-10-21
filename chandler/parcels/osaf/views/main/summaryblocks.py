@@ -5,13 +5,21 @@ from osaf.framework.blocks.calendar import (
     AllDayEventsCanvas, TimedEventsCanvas
     )
 
+from osaf import pim
 from osaf.framework.blocks import *
+from osaf.framework.blocks.detail import DetailTrunkSubtree
 
 def make_summaryblocks(parcel):
     view = parcel.itsView
     detailblocks = schema.ns('osaf.framework.blocks.detail', view)
     app = schema.ns('osaf.app', view)
     blocks = schema.ns('osaf.framework.blocks', view)
+    
+    # Our detail views share the same delegate instance
+    detailTrunkDelegate = \
+        detail.DetailTrunkDelegate.update(parcel,
+                                          'DetailTrunkDelegateInstance',
+                                          trunkStub=detailblocks.DetailRoot)
     
     SplitterWindow.template('TableSummaryViewTemplate',
         eventBoundary=True,
@@ -33,10 +41,7 @@ def make_summaryblocks(parcel):
                     [True, True, False, True],
                 selection=[[0,0]]),
             TrunkParentBlock.template('TableSummaryDetailTPB',
-                trunkDelegate=\
-                    detail.DetailTrunkDelegate.update(parcel,
-                        'TableSummaryDetailTrunkDelegate',
-                         trunkStub=detailblocks.DetailRoot))
+                trunkDelegate=detailTrunkDelegate)
             ]).install(parcel) # SplitterWindow TableSummaryViewTemplate
 
 
@@ -112,13 +117,15 @@ def make_summaryblocks(parcel):
                             ]),
                     ]),
             TrunkParentBlock.template('CalendarDetailTPB',
-                trunkDelegate= \
-                    detail.DetailTrunkDelegate.update(parcel,
-                        'CalendarDetailTrunkDelegate',
-                        trunkStub=detailblocks.DetailRoot))
+                trunkDelegate=detailTrunkDelegate)
             ]).install(parcel)
     
     CalendarControl.update(parcel, 'MainCalendarControl',
                            calendarContainer=CalendarSummaryView)
                                 
-        
+    # Precache detail views for the basic pim types (and "DetailTrunkSubtree",
+    # which is the key used for the None item)
+    for keyType in (pim.Note, pim.CalendarEvent, pim.Task,
+                    pim.mail.MailMessage, DetailTrunkSubtree):
+        detailTrunkDelegate.getTrunkForKeyItem(keyType.getKind(view))
+    
