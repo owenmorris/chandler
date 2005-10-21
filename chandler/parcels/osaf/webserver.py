@@ -85,13 +85,11 @@ class Server(schema.Item):
 
         # Hook up all associated directories to a location under the docroot
         for directory in self.directories:
-            # First, find this directory's parcel, then determine that parcel's
-            # directory, then join the directory.path.
-            parcel = application.Parcel.Manager.getParentParcel(directory)
-            parcelDir = os.path.dirname(parcel.file)
-            docRoot = os.path.join(parcelDir, directory.path)
-            logger.info(u"   Hooking up /%s to directory %s" % \
-             (directory.location, docRoot))
+            module = schema.importString(directory.module)
+            moduleDir = os.path.dirname(module.__file__)
+            docRoot = os.path.join(moduleDir, directory.path)
+            logger.info(u"   Hooking up /%s to directory %s" %
+                (directory.location, docRoot))
             root.putChild(directory.location, static.File(docRoot))
 
         site = server.Site(root)
@@ -261,13 +259,21 @@ class Directory(schema.Item):
          if you want HTTP requests for the /images/ location to not be
          served from the server's docroot/images directory, but rather from
          some other directory, you can define a Directory item with location
-         of "/images" and path of /path/to/your/images/ and set its server
-         attribute to a web server item.
+         of "/images" and path of relativepath/to/your/images/ and set its
+         server attribute to a web server item.
     """
 
     location = schema.One(schema.Text, displayName=_(u"Location"))
 
     path = schema.One(schema.Text, displayName=_(u"Path"))
+
+    module = schema.One(schema.Text,
+        doc = "In order to find the filesystem directory to associate with "
+              "this Directory resource, we need to know the python module "
+              "(dotted name) the resource came from. Set it in this attribute. "
+              "The filesystem directory the module lives in will be determined "
+              "and then the 'path' attribute is relative to that directory."
+    )
 
     server = schema.One(
         Server,
