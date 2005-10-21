@@ -90,16 +90,9 @@ class FileChooserWithOptions(wx.Dialog):
             cb.SetValue(opt['checked'])
             sizer.Add(cb, 0, wx.ALL, 3)
         
-        buttonSizer = wx.FlexGridSizer(cols=0, hgap=0, rows=1, vgap=0)
-        okButton = wx.Button(self, id=wx.ID_OK, label=messages.OK)
-        buttonSizer.AddWindow(okButton, 0, border=5, flag=wx.ALL)
-        buttonSizer.AddWindow(wx.Button(self, id=wx.ID_CANCEL, label=messages.CANCEL),
-                              2, border=5, flag=wx.ALL)
+        buttonSizer = self.CreateStdDialogButtonSizer(wx.OK|wx.CANCEL)
 
         sizer.Add(buttonSizer, 0, flag=wx.ALIGN_RIGHT)
-
-        # begin with the OK button selected
-        okButton.SetFocus()
         
         box = wx.BoxSizer()
         box.Add(sizer, 0, wx.ALL, 10)
