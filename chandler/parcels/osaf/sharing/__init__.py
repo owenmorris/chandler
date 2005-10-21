@@ -22,6 +22,7 @@ from osaf import pim
 from i18n import OSAFMessageFactory as _
 
 from repository.item.Monitors import Monitors
+from repository.item.Item import Item
 import chandlerdb
 
 import zanshin, M2Crypto, twisted, re
@@ -54,6 +55,10 @@ CALDAVFILTER = [
     'recurrenceID', 'reminders', 'rruleset', 'startTime',
     'transparency'
 ]
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+PUBLISH_MONOLITHIC_ICS = False
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -190,7 +195,7 @@ def publish(collection, account, classesToInclude=None,
                 # We're speaking to a CalDAV server
 
                 # Create a CalDAV conduit / ICalendar format
-                # Potentially create a cloudxml subcollection
+                # Create a cloudxml subcollection
 
                 share = _newOutboundShare(view, collection,
                                          classesToInclude=classesToInclude,
@@ -214,7 +219,6 @@ def publish(collection, account, classesToInclude=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put(updateCallback=updateCallback)
 
                 if supportsTickets:
                     share.conduit.createTickets()
@@ -224,31 +228,32 @@ def publish(collection, account, classesToInclude=None,
 
                 subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
 
-                share = _newOutboundShare(view, collection,
-                                         classesToInclude=classesToInclude,
-                                         shareName=subShareName,
-                                         displayName=displayName,
-                                         account=account)
+                subShare = _newOutboundShare(view, collection,
+                                             classesToInclude=classesToInclude,
+                                             shareName=subShareName,
+                                             displayName=displayName,
+                                             account=account)
 
                 if attrsToExclude:
-                    share.filterAttributes = attrsToExclude
+                    subShare.filterAttributes = attrsToExclude
                 else:
-                    share.filterAttributes = []
+                    subShare.filterAttributes = []
 
                 for attr in CALDAVFILTER:
-                    share.filterAttributes.append(attr)
+                    subShare.filterAttributes.append(attr)
 
-                shares.append(share)
+                shares.append(subShare)
 
-                if share.exists():
+                if subShare.exists():
                     raise SharingError(_(u"Share already exists"))
 
-                share.create()
+                subShare.create()
+
+                # sync the subShare before the CalDAV share
+                share.follows = subShare
+
                 share.put(updateCallback=updateCallback)
 
-                # Let's place the xml share first in the ref collection
-                # so that it gets synced before the others
-                collection.shares.placeItem(share, None)
 
             elif dav is not None:
 
@@ -277,24 +282,25 @@ def publish(collection, account, classesToInclude=None,
                 if supportsTickets:
                     share.conduit.createTickets()
 
-                icsShareName = u"%s.ics" % shareName
-                share = _newOutboundShare(view, collection,
-                                         classesToInclude=classesToInclude,
-                                         shareName=icsShareName,
-                                         displayName=displayName,
-                                         account=account)
-                shares.append(share)
-                share.displayName = u"%s.ics" % displayName
-                share.format = ICalendarFormat(parent=share)
-                share.mode = "put"
+                if PUBLISH_MONOLITHIC_ICS:
+                    icsShareName = u"%s.ics" % shareName
+                    share = _newOutboundShare(view, collection,
+                                             classesToInclude=classesToInclude,
+                                             shareName=icsShareName,
+                                             displayName=displayName,
+                                             account=account)
+                    shares.append(share)
+                    share.displayName = u"%s.ics" % displayName
+                    share.format = ICalendarFormat(parent=share)
+                    share.mode = "put"
 
-                if share.exists():
-                    raise SharingError(_(u"Share already exists"))
+                    if share.exists():
+                        raise SharingError(_(u"Share already exists"))
 
-                share.create()
-                share.put(updateCallback=updateCallback)
-                if supportsTickets:
-                    share.conduit.createTickets()
+                    share.create()
+                    share.put(updateCallback=updateCallback)
+                    if supportsTickets:
+                        share.conduit.createTickets()
 
     except (SharingError,
             zanshin.error.Error,
@@ -325,7 +331,8 @@ def unpublish(collection):
     for share in collection.shares:
 
         # Remove from server (or disk, etc.)
-        share.destroy()
+        if share.exists():
+            share.destroy()
 
         # Clean up sharing-related objects
         share.conduit.delete(True)
@@ -359,7 +366,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         shareName = pathList[-1]
 
     else:
-        account = WebDAVAccount.findMatch(view, url)
+        account = WebDAVAccount.findMatchingAccount(view, url)
 
         # Allow the caller to override (and set) new username/password; helpful
         # from a 'subscribe' dialog:
@@ -426,8 +433,11 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                                               shareName=shareName,
                                               account=account)
             share.mode = "get"
+            if updateCallback:
+                updateCallback(msg=_(u"Subscribing to calendar..."))
+
             try:
-                share.sync(updateCallback=updateCallback)
+                share.get(updateCallback=updateCallback)
 
                 try:
                     share.contents.shares.append(share, 'main')
@@ -442,7 +452,8 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 share.delete(True)
                 raise
 
-
+        if updateCallback:
+            updateCallback(msg=_(u"Detecting share settings..."))
 
         # Interrogate the server
 
@@ -462,20 +473,20 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         isReadOnly = False
         shareMode = 'both'
 
-        if ticket:
-            # @@@MOR:  Grant -- canWrite( ) would be used here, hint hint
+        # if ticket:
+        # @@@MOR:  Grant -- canWrite( ) would be used here, hint hint
 
-            logger.debug('Checking for write-access to %s...', location)
-            # Create a random collection name to create
-            testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
-            try:
-                child = handle.blockUntil(resource.createCollection,
-                                          testCollName)
-                handle.blockUntil(child.delete)
-            except zanshin.http.HTTPError, err:
-                logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
-                isReadOnly = True
-                shareMode = 'get'
+        logger.debug('Checking for write-access to %s...', location)
+        # Create a random collection name to create
+        testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
+        try:
+            child = handle.blockUntil(resource.createCollection,
+                                      testCollName)
+            handle.blockUntil(child.delete)
+        except zanshin.http.HTTPError, err:
+            logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
+            isReadOnly = True
+            shareMode = 'get'
 
         logger.debug('...Read Only?  %s', isReadOnly)
 
@@ -506,6 +517,10 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         logger.debug('...DAV:  %s', dav)
         allowed = response.headers.getHeader('Allow')
         logger.debug('...Allow:  %s', allowed)
+
+        if updateCallback:
+            updateCallback(msg=_(u"Share settings detected; ready to subscribe"))
+
 
     finally:
         conduit.delete(True) # Clean up the temporary conduit
@@ -549,10 +564,6 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
         # This is a CalDAV calendar, possibly containing an XML subcollection
 
-        # We need to perform two syncs as one, so wrap these operations in
-        # commit calls, and call the lower-level _get and _put methods directly
-        view.commit()
-
         if hasSubCollection:
             # Here is the Share for the subcollection with cloudXML
             subShare = Share(view=view)
@@ -573,21 +584,10 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             for attr in CALDAVFILTER:
                 subShare.filterAttributes.append(attr)
 
-            try:
-                subShare.conduit._get(updateCallback=updateCallback)
-                contents = subShare.contents
-
-            except Exception, err:
-                location = subShare.getLocation()
-                logger.exception("Failed to subscribe to %s", location)
-                subShare.delete(True)
-                raise
-
         else:
             subShare = None
-            contents = None
 
-        share = Share(view=view, contents=contents)
+        share = Share(view=view)
         share.mode = shareMode
         share.format = CalDAVFormat(parent=share)
         if account:
@@ -600,7 +600,16 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 useSSL=useSSL, ticket=ticket)
 
         try:
-            share.conduit._get(updateCallback=updateCallback)
+            if subShare is not None:
+                share.follows = subShare
+
+            share.sync(updateCallback=updateCallback)
+
+            if subShare is not None:
+                # If this is a partial share, we need to store that fact
+                # into this Share object
+                if hasattr(subShare, 'filterClasses'):
+                    share.filterClasses = list(subShare.filterClasses)
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -611,72 +620,14 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         except Exception, err:
             location = share.getLocation()
             logger.exception("Failed to subscribe to %s", location)
+
             share.delete(True)
+            if subShare:
+                subShare.delete(True)
             raise
-
-        if not isReadOnly:
-            try:
-                if subShare is not None:
-                    subShare.conduit._put(updateCallback=updateCallback)
-                share.conduit._put(updateCallback=updateCallback)
-                view.commit()
-                if subShare is not None:
-                    subShare.conduit.syncVersion = view.itsVersion
-                share.conduit.syncVersion = view.itsVersion
-
-            except Exception, err:
-                location = share.getLocation()
-                logger.exception("Failed to subscribe to %s", location)
-                if subShare is not None:
-                    subShare.delete(True)
-                share.delete(True)
-                raise
 
         return share.contents
 
-
-def sync(collection, firstTime=False):
-
-    view = collection.itsView
-
-    view.commit()
-
-    stats = {}
-
-    try:
-        # perform the 'get' operations of all associated shares
-        for share in collection.shares:
-            if share.active and share.mode in ('get', 'both'):
-                share.conduit._get()
-
-        # perform the 'put' operations of all associated shares
-        for share in collection.shares:
-            if share.active and share.mode in ('put', 'both'):
-                share.conduit._put()
-
-    except SharingError, err:
-        share.error = err.message
-
-        try:
-            msgVars = {
-                'collectionName': share.contents.getItemDisplayName(),
-                'accountName': share.conduit.account.getItemDisplayName()
-            }
-
-            msg = _(u"Error syncing the '%(collectionName)s' collection\nusing the '%(accountName)s' account\n\n") % msgVars
-            msg += err.message
-        except:
-            msg = _(u"Error during sync")
-
-        logger.exception("Sharing Error: %s" % msg)
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    _(u"Synchronization Error"), msg)
-
-    view.commit()
-
-    for share in collection.shares:
-        if share.active and share.mode in ('put', 'both'):
-            share.conduit.syncVersion = view.itsVersion
 
 
 def unsubscribe(collection):
@@ -693,7 +644,7 @@ def restoreFromAccount(account):
 
     view = account.itsView
 
-    me = pim.Contact.getCurrentMeContact(view)
+    me = schema.ns("osaf.app", view).currentContact.item
 
     accountUrl = account.getLocation()
     if not accountUrl.endswith('/'):
@@ -737,7 +688,7 @@ def findMatchingShare(view, url):
     @return: A Share item, or None
     """
 
-    account = WebDAVAccount.findMatch(view, url)
+    account = WebDAVAccount.findMatchingAccount(view, url)
     if account is None:
         return None
 
@@ -760,30 +711,10 @@ def findMatchingShare(view, url):
 
 
 
-def isShared(collection):
-    """ Return whether an AbstractCollection has a Share item associated with it.
-
-    @param collection: an AbstractCollection
-    @type collection: AbstractCollection
-    @return: True if collection does have a Share associated with it; False
-        otherwise.
-    """
-
-    # See if any non-hidden shares are associated with the collection.
-    # A "hidden" share is one that was not requested by the DetailView,
-    # This is to support shares that don't participate in the whole
-    # invitation process (such as transient import/export shares, or shares
-    # for publishing an .ics file to a webdav server).
-
-    for share in collection.shares:
-        if share.hidden == False:
-            return True
-    return False
-
 def isSharedByMe(share):
     if share is None:
         return False
-    me = pim.Contact.getCurrentMeContact(share.itsView)
+    me = schema.ns("osaf.app", share.itsView).currentContact.item
     return share.sharer is me
 
 
@@ -861,7 +792,7 @@ def isWebDAVSetUp(view):
         return False
 
 
-def syncAll(view):
+def syncAll(view, updateCallback=None):
     """
     Synchronize all active shares.
 
@@ -869,8 +800,16 @@ def syncAll(view):
     @type view: L{repository.persistence.RepositoryView}
     """
 
-    for collection in pim.AbstractCollection.iterItems(view):
-        sync(collection)
+    sharedCollections = []
+    for share in Share.iterItems(view):
+        if share.active and not share.hidden and (share.contents not in
+            sharedCollections):
+            sharedCollections.append(share.contents)
+
+    stats = []
+    for collection in sharedCollections:
+        stats.extend(sync(collection, updateCallback=updateCallback))
+    return stats
 
 
 def checkForActiveShares(view):
@@ -968,7 +907,7 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
 
     share.displayName = displayName or collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
-    share.sharer = pim.Contact.getCurrentMeContact(view)
+    share.sharer = schema.ns("osaf.app", view).currentContact.item
     return share
 
 

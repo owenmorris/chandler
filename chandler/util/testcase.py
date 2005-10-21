@@ -16,5 +16,20 @@ class NRVTestCase(unittest.TestCase):
         Utility.initLogging(Globals.options)
         self.view = NullRepositoryView()
 
+
+class DualRepositoryTestCase(unittest.TestCase):
+
+    def setUp(self):
+        Globals.options = Utility.initOptions()
+        Globals.options.ramdb = True
+        profileDir = Globals.options.profileDir
+        Utility.initLogging(Globals.options)
+        self.views = []
+        for i in xrange(2):
+            view = Utility.initRepository("", Globals.options)
+            view.name = "test_view_%d" % i
+            self.views.append(view)
+
+
 if __name__ == "__main__":
     unittest.main()

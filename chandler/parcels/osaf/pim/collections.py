@@ -22,7 +22,11 @@ def deliverNotifications(view, updates = True):
     while not notificationQueue.empty():
         (collection, op, item, name, other, args) = notificationQueue.get()
         logger.debug("dequeued: %s %s %s %s" % (collection, op, item, other))
-        collection.notifySubscribers(op, collection, name, other, *args)
+
+        # If the view was cancelled, we could be trying to deliver to stale
+        # items:
+        if not collection.isStale():
+            collection.notifySubscribers(op, collection, name, other, *args)
 
     if updates:
         view.mapChanges(mapChangesCallable, True)

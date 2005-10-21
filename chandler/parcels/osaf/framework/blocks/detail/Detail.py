@@ -863,7 +863,8 @@ class FromEditField (EditTextAttribute):
                     type = item.getAttributeAspect('whoFrom', 'type')
                     contactKind = pim.Contact.getKind(self.itsView)
                     if type is contactKind:
-                        item.whoFrom = item.getCurrentMeContact(item.itsView)
+                        item.whoFrom = schema.ns("osaf.app",
+                            self.itsView).currentContact.item
                     else:
                         emailAddressKind = Mail.EmailAddress.getKind(self.itsView)
                         if type is emailAddressKind:

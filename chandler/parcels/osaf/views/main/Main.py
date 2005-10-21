@@ -10,7 +10,7 @@ from datetime import timedelta
 from time import time
 import wx, os, sys, traceback, logging
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, ShareTool
+    SubscribeCollection, ShareTool, SyncProgress
 )
 import application.dialogs.Util
 from  application.dialogs import ImportExport
@@ -551,6 +551,7 @@ class MainView(View):
         self.setStatusMessage (_(u"Importing %(filePath)s") % {'filePath': path})
         photo = Photo(view=self.itsView)
         photo.displayName = filename
+        photo.creator = schema.ns("osaf.app", self.itsView).currentContact.item
         photo.importFromFile(path)
         self.setStatusMessage(u"")
 
@@ -846,7 +847,8 @@ class MainView(View):
         self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            sharing.sync(collection)
+            SyncProgress.Show(wx.GetApp().mainFrame, view=self.itsView,
+                collection=collection)
 
     def onSyncCollectionEventUpdateUI (self, event):
         """
@@ -952,7 +954,7 @@ class MainView(View):
         # find all the shared collections and sync them.
         if activeShares:
             self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            sharing.syncAll(view)
+            SyncProgress.Show(wx.GetApp().mainFrame, view=self.itsView)
             self.setStatusMessage (_(u"Shared collections synchronized"))
         else:
             if DAVReady:
@@ -975,7 +977,7 @@ class MainView(View):
         if activeShares:
             # find all the shared collections and sync them.
             self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            sharing.syncAll(view)
+            SyncProgress.Show(wx.GetApp().mainFrame, view=self.itsView)
             self.setStatusMessage (_(u"Shared collections synchronized"))
 
         else:

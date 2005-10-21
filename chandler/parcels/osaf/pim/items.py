@@ -170,9 +170,6 @@ class ContentItem(schema.Item):
         if view is None:
             view = self.itsView
 
-        if not hasattr(self, 'creator'):
-            self.creator = self.getCurrentMeContact(view)
-
     def __str__ (self):
         if self.isStale():
             return super(ContentItem, self).__str__()
@@ -538,12 +535,6 @@ class ContentItem(schema.Item):
         from mail import EmailAddress
         return EmailAddress.getCurrentMeEmailAddress (self.itsView)
 
-    def getCurrentMeContact(self, view):
-        """
-          Lookup the current "me" Contact.
-        """
-        from contacts import Contact
-        return Contact.getCurrentMeContact(view)
 
     READWRITE = 'read-write'
     READONLY = 'read-only'
@@ -599,7 +590,7 @@ class ContentItem(schema.Item):
         # those inbound shares are read-only, but none of those shares
         # actually *share* that attribute (i.e., it's being filtered either
         # by sharing cloud or explicit filter), then it's modifiable.
-        me = self.getCurrentMeContact(self.itsView)
+        me = schema.ns("osaf.app", self.itsView).currentContact.item
         basedAttributeNames = None # we'll look these up if necessary
         isSharedInAnyReadOnlyShares = False
         for share in self.sharedIn:

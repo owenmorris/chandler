@@ -1,9 +1,9 @@
-__revision__  = "$Revision$"
-__date__      = "$Date$"
+__revision__  = "$Revision: 7653 $"
+__date__      = "$Date: 2005-10-06 00:58:58 -0700 (Thu, 06 Oct 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, sys, os, logging, datetime, time
+import unittest, sys, os, logging, datetime
 from osaf import pim, sharing
 from repository.item.Item import Item
 from util import testcase
@@ -18,14 +18,14 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
     def runTest(self):
         self.setUp()
-        self.PrepareTestData()
-        self.PrepareShares()
+        self.prepareTestData()
+        self.prepareCosmoAccount()
         self.RoundTrip()
         self.Modify()
         self.Remove()
         self.Unpublish()
 
-    def PrepareTestData(self):
+    def prepareTestData(self):
 
         # Make sure these are initialized, otherwise they won't be tracking
         # icalUIDs
@@ -80,25 +80,35 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
             self.uuids[c.itsUUID] = c.displayName
             coll.add(c)
 
-    def PrepareShares(self):
-        view0 = self.views[0]
-        sandbox0 = view0.findPath("//sandbox")
-        coll0 = sandbox0.findPath("testCollection")
-        conduit = sharing.FileSystemConduit(name="conduit", view=view0,
-            sharePath=".", shareName="exportedCollection")
-        format = sharing.CloudXMLFormat(name="format", view=view0)
-        self.share0 = sharing.Share(name="share", view=view0,
-            contents=coll0, conduit=conduit, format=format)
+    def prepareCosmoAccount(self):
+        view = self.views[0]
 
-        if self.share0.exists():
-            self.share0.destroy()
+        host='morgen.com'
+        port=8080
+        useSSL=False
+        username='unittest'
+        password='private'
 
-        view1 = self.views[1]
-        conduit = sharing.FileSystemConduit(name="conduit", view=view1,
-            sharePath=".", shareName="exportedCollection")
-        format = sharing.CloudXMLFormat(name="format", view=view1)
-        self.share1 = sharing.Share(name="share", view=view1,
-            conduit=conduit, format=format)
+        sharing.createCosmoAccount(host=host,
+                                   port=port,
+                                   useSSL=useSSL,
+                                   admin='root',
+                                   adminpw='cosmo',
+                                   username=username,
+                                   password=password,
+                                   firstName='unit',
+                                   lastName='test',
+                                   email='unittest@example.com',
+                                   repositoryView=view)
+
+        sandbox = view.findPath("//sandbox")
+        account = sharing.WebDAVAccount(name='account', parent=sandbox,
+                                        username=username,
+                                        password=password,
+                                        host=host,
+                                        port=port,
+                                        path='/home/%s' % username,
+                                        useSSL=useSSL)
 
     def RoundTrip(self):
 
@@ -106,12 +116,18 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
-        self.share0.create()
-        self.share0.sync()
+        account = sandbox0.findPath("account")
+
+        shares = sharing.publish(coll0, account)
+        self.assert_(len(shares) == 2, "Wrong number of shares created")
+        share = sharing.getShare(coll0) # Get the 'main' share
+        urls = sharing.getUrls(share)
+        self.assert_(len(urls) == 2, "Wrong number of sharing urls")
+        url = urls[0] # The read/write ticket url
 
         # Import
-        self.share1.sync()
-        coll1 = self.share1.contents
+        view1 = self.views[1]
+        coll1 = sharing.subscribe(view1, url)
 
         self.assertEqual(coll0.itsUUID, coll1.itsUUID, "Collection UUIDs "
             "don't match")
@@ -162,12 +178,10 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         item1.startTime = newStart
 
         sharing.sync(coll0)
-        time.sleep(1)
         sharing.sync(coll1)
-        time.sleep(1)
         sharing.sync(coll0)
-        time.sleep(1)
 
+        # Make sure our changes were merged:
         self.assertEqual(item0.displayName, u"meeting rescheduled",
          u"displayName is %s" % (item0.displayName))
         self.assertEqual(item1.displayName, u"meeting rescheduled",
@@ -204,7 +218,6 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         coll0.remove(item0)
 
         sharing.sync(coll0)
-        time.sleep(1)
 
         self.assert_(item1 in coll1)
         sharing.sync(coll1)

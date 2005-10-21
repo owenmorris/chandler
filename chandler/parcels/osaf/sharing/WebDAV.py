@@ -6,6 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __all__ = [
     'ChandlerServerHandle',
     'checkAccess',
+    'createCosmoAccount',
     'CANT_CONNECT',
     'NO_ACCESS',
     'READ_ONLY',
@@ -15,6 +16,7 @@ __all__ = [
 
 import zanshin.webdav
 import zanshin.util
+import zanshin.http
 
 import M2Crypto.BIO
 import M2Crypto.SSL.Checker
@@ -225,3 +227,33 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         
     # Success!
     return (READ_WRITE, None)
+
+
+
+def createCosmoAccount(host, port=80, useSSL=False,
+    admin="root", adminpw="cosmo",
+    username="username", password="password",
+    firstName="First", lastName="Last",
+    email="user@example.com", repositoryView=None):
+
+    body = """<?xml version="1.0" encoding="utf-8" ?>
+<user xmlns="http://osafoundation.org/cosmo">
+  <username>%s</username>
+  <password>%s</password>
+  <firstName>%s</firstName>
+  <lastName>%s</lastName>
+  <email>%s</email>
+</user>
+""" % (username, password, firstName, lastName, email)
+
+    handle = ChandlerServerHandle(host=host, port=port, username=admin,
+                   password=adminpw, useSSL=useSSL,
+                   repositoryView=repositoryView)
+
+    resource = handle.getResource("/api/user/%s" % username)
+    try:
+        handle.blockUntil(resource.put, body, checkETag=False,
+                          contentType="text/xml; charset='utf-8'")
+    except zanshin.http.HTTPError, e:
+        pass # ignore these for now, since we'll always get a 501 on the
+             # followup PROPFIND

@@ -109,14 +109,6 @@ class Contact(items.ContentItem):
         sharing = schema.Cloud(emailAddress, byCloud=[contactName])
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
-        super (Contact, self).__init__(name, parent, kind, view, **kw)
-
-        # If I didn't get assigned a creator, then I must be the "me" contact
-        # and I want to be my own creator:
-        if self.creator is None:
-            self.creator = self
-
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
@@ -133,31 +125,6 @@ class Contact(items.ContentItem):
 
     # Cache "me" for fast lookup; used by getCurrentMeContact()
     meContactID = None
-
-    @classmethod
-    def getCurrentMeContact(cls, view):
-        """ Lookup the current "me" Contact """
-
-        # cls.meContactID caches the Contact representing the user.  One will
-        # be created if it doesn't yet exist.
-
-        if cls.meContactID is not None:
-            me = view.findUUID(cls.meContactID)
-            if me is not None:
-                return me
-            # Our cached UUID is invalid
-            cls.meContactID is None
-
-        parent = cls.getDefaultParent(view)
-        me = parent.getItemChild("me")
-        if me is None:
-            me = Contact(name="me", parent=parent, displayName=_(u"Me"))
-            me.contactName = ContactName(
-                parent=parent, firstName=_(u"Chandler"), lastName = _(u"User")
-            )
-
-        cls.meContactID = me.itsUUID
-        return me
 
 
     def getContactForEmailAddress(cls, view, address):

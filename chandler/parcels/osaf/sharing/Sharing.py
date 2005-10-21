@@ -44,7 +44,9 @@ __all__ = [
     'WebDAVAccount',
     'WebDAVConduit',
     'changedAttributes',
+    'isShared',
     'splitUrl',
+    'sync',
 ]
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -52,6 +54,109 @@ __all__ = [
 CLOUD_XML_VERSION = '2'
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+USE_MERGING = False
+
+def sync(collectionOrShares, modeOverride=None, updateCallback=None,
+    merging=USE_MERGING):
+
+    if isinstance(collectionOrShares, list):
+        # a list of Shares
+        shares = collectionOrShares
+        view = shares[0].itsView
+        marker = shares[0].conduit.marker
+
+    elif isinstance(collectionOrShares, Share):
+        # just one Share
+        shares = [collectionOrShares]
+        view = collectionOrShares.itsView
+        marker = collectionOrShares.conduit.marker
+
+    else:
+        # just a collection
+        if not isShared(collectionOrShares):
+            return
+        shares = getLinkedShares(collectionOrShares.shares.first())
+        view = collectionOrShares.itsView
+        marker = shares[0].conduit.marker
+
+    # Make main view changes available for sharing
+    view.commit()
+
+    stats = []
+
+    sharingView = view
+    workingShares = shares
+
+    try:
+
+        if not modeOverride or modeOverride == 'get':
+
+            # perform the 'get' operations of all associated shares, applying
+            # remote changes locally
+            contents = None
+            for share in workingShares:
+                if share.active and share.mode in ('get', 'both'):
+                    if contents:
+                        # If there are multiple shares involved, we take the
+                        # resulting contents from the first Share and hand that
+                        # to the remaining Shares:
+                        share.contents = contents
+                    stat = share.conduit._get(updateCallback=updateCallback)
+                    stats.append(stat)
+                    contents = share.contents
+
+        if not modeOverride or modeOverride == 'put':
+
+            # perform the 'put' operations of all associated shares, putting
+            # local changes to server
+            for share in workingShares:
+                if share.active and share.mode in ('put', 'both'):
+                    stat = share.conduit._put(updateCallback=updateCallback)
+                    stats.append(stat)
+
+        for share in workingShares:
+            share.conduit.marker.setDirty(Item.NDIRTY)
+
+        # Demarcate the end of sync (bumps up the marker version)
+        view.commit()
+
+    except Exception, e:
+        logger.exception("Sharing Error: %s" % e)
+
+        sharingView.cancel()
+
+        for share in shares:
+            if hasattr(e, 'message'): # Sharing Error
+                share.error = e.message
+            else:
+                share.error = str(e)
+        raise
+
+    return stats
+
+def getLinkedShares(share):
+
+    def getFollowers(share):
+        if hasattr(share, 'leads'):
+            for follower in share.leads:
+                yield follower
+                for subfollower in getFollowers(follower):
+                    yield subfollower
+
+    # Find the root leader
+    root = share
+    leader = getattr(root, 'follows', None)
+    while leader is not None:
+        root = leader
+        leader = getattr(root, 'follows', None)
+
+    shares = [root]
+    for follower in getFollowers(root):
+        shares.append(follower)
+
+    return shares
+
 
 
 class modeEnum(schema.Enumeration):
@@ -130,6 +235,9 @@ class Share(pim.ContentItem):
 
     filterAttributes = schema.Sequence(schema.Bytes, initialValue=[])
 
+    leads = schema.Sequence('Share', initialValue=[], otherName='follows')
+    follows = schema.One('Share', otherName='leads')
+
     schema.addClouds(
         sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterClasses,
                                         filterAttributes])
@@ -161,31 +269,17 @@ class Share(pim.ContentItem):
     def close(self):
         self.conduit.close()
 
-    def sync(self, updateCallback=None):
-        view = self.itsView
-
-        stats = {}
-
-        if self.mode in ('get', 'both'):
-            view.commit()
-            stats['get'] = self.conduit._get(updateCallback=updateCallback)
-
-        if self.mode in ('put', 'both'):
-            stats['put'] = self.conduit._put(updateCallback=updateCallback)
-            view.commit()
-
-            # @@@MOR This can probably go away if we use marker again:
-            self.conduit.syncVersion = view.itsVersion
-
-        return stats
+    def sync(self, modeOverride=None, updateCallback=None):
+        return sync(getLinkedShares(self), modeOverride=modeOverride,
+            updateCallback=updateCallback)
 
     def put(self, updateCallback=None):
-        if self.mode in ('put', 'both'):
-            return self.conduit.put(updateCallback=updateCallback)
+        return sync(getLinkedShares(self), modeOverride='put',
+             updateCallback=updateCallback)
 
     def get(self, updateCallback=None):
-        if self.mode in ('get', 'both'):
-            return self.conduit.get(updateCallback=updateCallback)
+        return sync(getLinkedShares(self), modeOverride='get',
+             updateCallback=updateCallback)
 
     def exists(self):
         return self.conduit.exists()
@@ -257,6 +351,10 @@ class ShareConduit(pim.ContentItem):
     Transfers items in and out.
     """
 
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super(ShareConduit, self).__init__(name, parent, kind, view)
+        self.marker = Item('marker', self, None)
+
     schema.kindInfo(displayName = u"Share Conduit Kind")
 
     share = schema.One(Share, inverse = Share.conduit)
@@ -278,30 +376,12 @@ class ShareConduit(pim.ContentItem):
         initialValue = {}
     )
 
-    syncVersion = schema.One(schema.Integer,
-        doc = "Keeps track of the repository view version at the time of "
-              "the last Put"
-    )
-
-
-    @classmethod
-    def getSharingView(self, repo, version=None):
-        # @@@MOR -- This is not used until I can revisit view merging
-
-        # Until we can switch over to using view merging, returning None
-        # here is a sign that no view switching should take place.  When
-        # we can use view merging, this 'return None' should be removed.
-        return None
-
-        if not hasattr(self, 'sharingView'):
-            self.sharingView = repo.createView("Sharing", version)
-            logger.info("Created sharing view (version %d)" % \
-                self.sharingView._version)
-        return self.sharingView
+    marker = schema.One(schema.SingleRef)
 
 
 
-    def _conditionalPutItem(self, item, changes):
+
+    def _conditionalPutItem(self, item, changes, updateCallback=None):
         """
         Put an item if it's not on the server or is out of date
         """
@@ -314,12 +394,9 @@ class ShareConduit(pim.ContentItem):
         # Assumes that self.resourceList has been populated:
         externalItemExists = self._externalItemExists(item)
 
-        prevVersion = getattr(self, 'syncVersion', self.itsView.itsVersion)
-
         logger.debug("Examining for put: %s, version=%d",
             item.getItemDisplayName().encode('ascii', 'replace'),
             item.getVersion())
-        logger.debug("Previous Sync version: %s", prevVersion)
 
         if not externalItemExists:
             result = 'added'
@@ -329,7 +406,8 @@ class ShareConduit(pim.ContentItem):
             needsUpdate = False
 
             # Did we fetch this item during the previous GET?
-            if self._wasFetched(self._getItemPath(item)):
+            # Only check this if *not* using merging...
+            if not USE_MERGING and self._wasFetched(self._getItemPath(item)):
                 logger.debug("Skipping PUT of %s since we just GOT it",
                     item.getItemDisplayName().encode('ascii', 'replace'))
             else:
@@ -351,7 +429,10 @@ class ShareConduit(pim.ContentItem):
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
              (item.getItemDisplayName().encode('ascii', 'replace'), item.itsUUID,
-              item.getVersion(), prevVersion, externalItemExists))
+              item.getVersion(), self.marker.getVersion(), externalItemExists))
+
+            if updateCallback and updateCallback(msg="Putting '%s'" % item.getItemDisplayName()):
+                raise SharingError(_(u"Cancelled by user"))
 
             data = self._putItem(item)
 
@@ -371,22 +452,6 @@ class ShareConduit(pim.ContentItem):
         return result
 
 
-    def put(self, updateCallback=None):
-        view = self.itsView
-
-        # This commit is needed to detect local changes (otherwise
-        # those changes won't appear in the changedAttributes list):
-        view.commit()
-
-        stats = self._put(updateCallback=updateCallback)
-
-        # Store the view version number, committing first so we actually
-        # store the correct version number (it changes after you commit)
-        view.commit()
-        self.syncVersion = view.itsVersion
-
-        return stats
-
 
     def _put(self, updateCallback=None):
         """
@@ -398,7 +463,17 @@ class ShareConduit(pim.ContentItem):
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
-        stats = { 'added' : 0, 'modified' : 0, 'removed' : 0, 'skipped' : 0 }
+        if updateCallback and updateCallback(msg="Publishing items to %s" %
+            location):
+            raise SharingError(_(u"Cancelled by user"))
+
+        stats = {
+            'share' : self.itsUUID,
+            'op' : 'put',
+            'added' : [],
+            'modified' : [],
+            'removed' : []
+        }
 
         self.connect()
 
@@ -409,13 +484,16 @@ class ShareConduit(pim.ContentItem):
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
 
+            if updateCallback and updateCallback(msg=_(u"Fetching items list...")):
+                raise SharingError(_(u"Cancelled by user"))
+
             self.resourceList = \
                 self._getResourceList(location)
 
-            logger.debug(_(u"Resources on server: %(resources)s") % \
-                {'resources':self.resourceList})
-            logger.debug(_(u"Manifest: %(manifest)s") % \
-                {'manifest':self.manifest})
+            # logger.debug(_(u"Resources on server: %(resources)s") % \
+            #     {'resources':self.resourceList})
+            # logger.debug(_(u"Manifest: %(manifest)s") % \
+            #     {'manifest':self.manifest})
 
             # Ignore any resources which we weren't able to parse during
             # a previous GET -- they're the ones in our manifest with
@@ -427,7 +505,7 @@ class ShareConduit(pim.ContentItem):
                         del self.resourceList[path]
 
             # Build the list of local changes
-            prevVersion = getattr(self, 'syncVersion', view.itsVersion)
+            prevVersion = self.marker.getVersion()
             changes = localChanges(view, prevVersion, view.itsVersion)
 
             # If we're sharing a collection, put the collection's items
@@ -454,18 +532,23 @@ class ShareConduit(pim.ContentItem):
                             if item is not self.share and \
                                 (item is None or \
                                 item not in self.share.contents):
+                                if updateCallback and updateCallback(msg=_(u"Removing item from server: '%s'") % path):
+                                    raise SharingError(_(u"Cancelled by user"))
                                 self._deleteItem(path)
                                 del self.resourceList[path]
                                 removeFromManifest.append(path)
                                 logger.debug(_(u'Item removed locally, so removing from server: %(path)s') % { 'path' : path })
-                                stats['removed'] += 1
+                                stats['removed'].append(uuid)
 
                 for path in removeFromManifest:
                     self._removeFromManifest(path)
 
-                logger.debug(_(u"Manifest: %(manifest)s") % \
-                    {'manifest':self.manifest})
+                # logger.debug(_(u"Manifest: %(manifest)s") % \
+                #     {'manifest':self.manifest})
 
+
+                if updateCallback and updateCallback(msg=_(u"Looking for items to publish...")):
+                    raise SharingError(_(u"Cancelled by user"))
 
                 for item in self.share.contents:
 
@@ -487,11 +570,17 @@ class ShareConduit(pim.ContentItem):
                             continue
 
                     # Put the item
-                    stats[ self._conditionalPutItem(item, changes) ] += 1
+                    result = self._conditionalPutItem(item, changes,
+                        updateCallback=updateCallback)
+                    if result in ('added', 'modified'):
+                        stats[result].append(item.itsUUID)
                     
 
             # Put the Share item itself
-            stats[ self._conditionalPutItem(self.share, changes) ] += 1
+            result = self._conditionalPutItem(self.share, changes,
+                updateCallback=updateCallback)
+            if result in ('added', 'modified'):
+                stats[result].append(self.share.itsUUID)
 
 
         elif style == ImportExportFormat.STYLE_SINGLE:
@@ -507,7 +596,7 @@ class ShareConduit(pim.ContentItem):
 
         return stats
 
-    def _conditionalGetItem(self, itemPath, into=None):
+    def _conditionalGetItem(self, itemPath, into=None, updateCallback=None):
         """
         Get an item from the server if we don't yet have it or our copy
         is out of date
@@ -521,15 +610,20 @@ class ShareConduit(pim.ContentItem):
 
         if not self._haveLatest(itemPath):
             # logger.info("...getting: %s" % itemPath)
+
             (item, data) = self._getItem(itemPath, into)
 
             if item is not None:
                 self._addToManifest(itemPath, item, data)
                 self._setFetched(itemPath)
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
-                 (itemPath, item.getItemDisplayName().encode('ascii', 'replace'), item, data))
+                 (itemPath, item.getItemDisplayName().encode('ascii',
+                    'replace'), item, data))
 
                 self.share.items.append(item)
+                if updateCallback and updateCallback(msg="Fetched '%s'" %
+                    item.getItemDisplayName()):
+                    raise SharingError(_(u"Cancelled by user"))
 
                 return item
 
@@ -540,19 +634,6 @@ class ShareConduit(pim.ContentItem):
         return None
 
 
-    def get(self, updateCallback=None):
-
-        view = self.itsView
-
-        # This commit demarcates local changes from those that will be made
-        # during this Get operation.
-        view.commit()
-
-        stats = self._get(updateCallback=updateCallback)
-
-        view.commit()
-
-        return stats
 
 
     def _get(self, updateCallback=None):
@@ -560,9 +641,19 @@ class ShareConduit(pim.ContentItem):
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
 
+        if updateCallback and updateCallback(msg="Fetching items from %s" %
+            location):
+            raise SharingError(_(u"Cancelled by user"))
+
         view = self.itsView
 
-        stats = { 'added' : 0, 'modified' : 0, 'removed' : 0, 'skipped' : 0 }
+        stats = {
+            'share' : self.itsUUID,
+            'op' : 'get',
+            'added' : [],
+            'modified' : [],
+            'removed' : []
+        }
 
         self.connect()
 
@@ -570,12 +661,15 @@ class ShareConduit(pim.ContentItem):
             raise NotFound(_(u"%(location)s does not exist") %
                 {'location': location})
 
+        if updateCallback and updateCallback(msg=_(u"Fetching items list...")):
+            raise SharingError(_(u"Cancelled by user"))
+
         self.resourceList = self._getResourceList(location)
 
-        logger.debug(_(u"Resources on server: %(resources)s") % \
-            {'resources':self.resourceList})
-        logger.debug(_(u"Manifest: %(manifest)s") % \
-            {'manifest':self.manifest})
+        # logger.debug(_(u"Resources on server: %(resources)s") % \
+        #     {'resources':self.resourceList})
+        # logger.debug(_(u"Manifest: %(manifest)s") % \
+        #     {'manifest':self.manifest})
 
         # We need to keep track of which items we've seen on the server so
         # we can tell when one has disappeared.  Also we keep track of which
@@ -589,15 +683,14 @@ class ShareConduit(pim.ContentItem):
 
         if itemPath:
             # Get the file that represents the Share item
-            item = self._conditionalGetItem(itemPath, into=self.share)
+            item = self._conditionalGetItem(itemPath, into=self.share,
+                updateCallback=updateCallback)
 
-            if item is None:
-                stats['skipped'] += 1
-            else:
+            if item is not None:
                 if item.itsVersion > 0 :
-                    stats['added'] += 1
+                    stats['added'].append(item.itsUUID)
                 else:
-                    stats['modified'] += 1
+                    stats['modified'].append(item.itsUUID)
 
             # Whenever we get an item, mark it seen in our manifest and remove
             # it from the server resource list:
@@ -654,17 +747,16 @@ class ShareConduit(pim.ContentItem):
 
             # Conditionally fetch items, and add them to collection
             for itemPath in self.resourceList:
-                item = self._conditionalGetItem(itemPath)
+                item = self._conditionalGetItem(itemPath,
+                    updateCallback=updateCallback)
 
-                if item is None:
-                    stats['skipped'] += 1
-                else:
+                if item is not None:
                     self.share.contents.add(item)
 
                     if item.itsVersion == 0 :
-                        stats['added'] += 1
+                        stats['added'].append(item.itsUUID)
                     else:
-                        stats['modified'] += 1
+                        stats['modified'].append(item.itsUUID)
 
                 self._setSeen(itemPath)
 
@@ -700,10 +792,14 @@ class ShareConduit(pim.ContentItem):
 
                         if removeLocally:
                             logger.info("...removing %s from collection" % item)
-                            self.share.contents.remove(item)
+                            if item in self.share.contents:
+                                self.share.contents.remove(item)
                             if item in self.share.items:
                                 self.share.items.remove(item)
-                            stats['removed'] += 1
+                            stats['removed'].append(item.itsUUID)
+                            if updateCallback and updateCallback(msg=_(u"Removing from collection: '%s'") % item.getItemDisplayName()):
+                                raise SharingError(_(u"Cancelled by user"))
+
                 else:
                     logger.info("Removed an unparsable resource manifest entry for %s", unseenPath)
 
@@ -712,20 +808,6 @@ class ShareConduit(pim.ContentItem):
 
             for removePath in toRemove:
                 self._removeFromManifest(removePath)
-
-        ## @@@MOR Repo view merging will be revisited later, but leaving this
-        ## code here in the meantime.
-        ##
-        ## # This is where merge conflicts will happen:
-        ##
-        ##         def tmpMergeFn(code, item, attribute, value):
-        ##             # print "Conflict:", code, item, attribute, value
-        ##             logger.info("Sharing conflict: Item=%s, Attribute=%s, Local=%s, Remote=%s" % (item.displayName.encode('utf8'), attribute, str(item.getAttributeValue(attribute)), str(value)))
-        ##             return value # let the user win
-        ##             # return item.getAttributeValue(attribute) # let the server win
-        ##
-        ##         view.refresh(tmpMergeFn)
-
 
         self.disconnect()
 
@@ -863,7 +945,7 @@ class ShareConduit(pim.ContentItem):
 
     # Methods that subclasses *must* implement:
 
-    def getLocation(self):
+    def getLocation(self, privilege=None):
         """
         Return a string representing where the share is being exported
         to or imported from, such as a URL or a filesystem path
@@ -959,7 +1041,7 @@ class FileSystemConduit(ShareConduit):
         # @@@MOR Probably should remove any slashes, or warn if there are any?
         self.shareName = self.shareName.strip("/")
 
-    def getLocation(self):
+    def getLocation(self, privilege=None):
         if self.hasLocalAttributeValue("sharePath") and \
          self.hasLocalAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
@@ -1148,7 +1230,7 @@ class WebDAVConduit(ShareConduit):
     def _getServerHandle(self):
         # @@@ [grant] Collections and the trailing / issue.
         if self.serverHandle == None:
-            logger.debug("...creating new webdav ServerHandle")
+            # logger.debug("...creating new webdav ServerHandle")
             (host, port, sharePath, username, password, useSSL) = \
             self._getSettings()
 
@@ -1161,7 +1243,7 @@ class WebDAVConduit(ShareConduit):
     def _releaseServerHandle(self):
         self.serverHandle = None
 
-    def getLocation(self, privilege=None, includeShare=True):
+    def getLocation(self, privilege=None):
         """
         Return the url of the share
         """
@@ -1180,8 +1262,7 @@ class WebDAVConduit(ShareConduit):
         else:
             url = u"%s://%s:%d" % (scheme, host, port)
         url = urlparse.urljoin(url, sharePath + "/")
-        if includeShare:
-            url = urlparse.urljoin(url, self.shareName)
+        url = urlparse.urljoin(url, self.shareName)
 
         if privilege == 'readonly':
             if self.ticketReadOnly:
@@ -1382,6 +1463,14 @@ class WebDAVConduit(ShareConduit):
             else:
                 extraHeaders = None
 
+            # Doesn't seem to have an effect, so using extraHeaders...
+            if getattr(self, 'ticket', False):
+                resource.ticketId = self.ticket
+
+                extraHeaders = { 'Ticket' : self.ticket }
+            else:
+                extraHeaders = None
+
             serverHandle.blockUntil(resource.put, text, checkETag=False,
                                     contentType=contentType,
                                     extraHeaders=extraHeaders)
@@ -1460,8 +1549,8 @@ class WebDAVConduit(ShareConduit):
         except VersionMismatch:
             raise
         except Exception, e:
-            logger.exception("Failed to parse XML for item %s: '%s'" % (itemPath,
-                                                                    text))
+            logger.exception("Failed to parse XML for item %s: '%s'" %
+                (itemPath, text.encode('ascii', 'replace')))
             raise TransformationFailed(_(u"%(itemPath)s %(error)s (See chandler.log for text)") % \
                                        {'itemPath': itemPath, 'error': e})
 
@@ -1703,6 +1792,28 @@ def localChanges(view, fromVersion, toVersion):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+def isShared(collection):
+    """ Return whether an AbstractCollection has a Share item associated with it.
+
+    @param collection: an AbstractCollection
+    @type collection: AbstractCollection
+    @return: True if collection does have a Share associated with it; False
+        otherwise.
+    """
+
+    # See if any non-hidden shares are associated with the collection.
+    # A "hidden" share is one that was not requested by the DetailView,
+    # This is to support shares that don't participate in the whole
+    # invitation process (such as transient import/export shares, or shares
+    # for publishing an .ics file to a webdav server).
+
+    for share in collection.shares:
+        if share.hidden == False:
+            return True
+    return False
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
 class SharingError(ChandlerException):
     pass
 
@@ -1827,7 +1938,7 @@ class WebDAVAccount(pim.ContentItem):
         return url
 
     @classmethod
-    def findMatch(cls, view, url):
+    def findMatchingAccount(cls, view, url):
         """
         Find a WebDAV account which corresponds to a URL.
 
@@ -1937,32 +2048,27 @@ class CloudXMLFormat(ImportExportFormat):
 
         return item
 
+
+    def serializeLiteral(self, attrValue, attrType):
+
+        mimeType = None
+        encoding = None
+
+        if isinstance(attrValue, Lob):
+            mimeType = getattr(attrValue, 'mimetype', None)
+            encoding = getattr(attrValue, 'encoding', None)
+            data = attrValue.getInputStream().read()
+            attrValue = base64.b64encode(data)
+
+        if type(attrValue) is unicode:
+            attrValue = attrValue.encode('utf-8')
+        elif type(attrValue) is not str:
+            attrValue = attrType.makeString(attrValue)
+
+        return (mimeType, encoding, attrValue)
+
+
     def exportProcess(self, item, depth=0, items=None):
-
-
-        def serializeLiteral(attrValue, attrType):
-
-            mimeType = None
-            encoding = None
-
-            if isinstance(attrValue, Lob):
-                mimeType = getattr(attrValue, 'mimetype', None)
-                encoding = getattr(attrValue, 'encoding', None)
-                data = attrValue.getInputStream().read()
-                attrValue = base64.b64encode(data)
-
-            if type(attrValue) is unicode:
-                attrValue = attrValue.encode('utf-8')
-            elif type(attrValue) is not str:
-                attrValue = attrType.makeString(attrValue)
-
-            attrValue = attrValue.replace('&', '&amp;')
-            attrValue = attrValue.replace('<', '&lt;')
-            attrValue = attrValue.replace('>', '&gt;')
-
-            return (mimeType, encoding, attrValue)
-
-
 
         if items is None:
             items = {}
@@ -2051,7 +2157,10 @@ class CloudXMLFormat(ImportExportFormat):
                         result += self.exportProcess(attrValue, depth+1, items)
                     else:
                         (mimeType, encoding, attrValue) = \
-                            serializeLiteral(attrValue, attrType)
+                            self.serializeLiteral(attrValue, attrType)
+                        attrValue = attrValue.replace('&', '&amp;')
+                        attrValue = attrValue.replace('<', '&lt;')
+                        attrValue = attrValue.replace('>', '&gt;')
 
                         if mimeType:
                             result += " mimetype='%s'" % mimeType
@@ -2073,7 +2182,10 @@ class CloudXMLFormat(ImportExportFormat):
                         result += "<value"
 
                         (mimeType, encoding, value) = \
-                            serializeLiteral(value, attrType)
+                            self.serializeLiteral(value, attrType)
+                        value = value.replace('&', '&amp;')
+                        value = value.replace('<', '&lt;')
+                        value = value.replace('>', '&gt;')
 
                         if mimeType:
                             result += " mimetype='%s'" % mimeType
@@ -2233,11 +2345,12 @@ class CloudXMLFormat(ImportExportFormat):
                         if valueNode:
                             valueItem = self._importNode(valueNode)
                             if valueItem is not None:
-                                logger.debug("for %s setting %s to %s" % \
+                                logger.debug("for '%s' setting '%s' ref to '%s'" % \
                                     (item.getItemDisplayName().encode('ascii', 'replace'),
                                      attrName,
                                      valueItem.getItemDisplayName().encode('ascii', 'replace')))
-                                item.setAttributeValue(attrName, valueItem)
+                                setattr(item, attrName, valueItem)
+                                # item.setAttributeValue(attrName, valueItem)
 
                     elif cardinality == 'list':
                         valueNode = attrNode.children
@@ -2245,7 +2358,7 @@ class CloudXMLFormat(ImportExportFormat):
                             if valueNode.type == "element":
                                 valueItem = self._importNode(valueNode)
                                 if valueItem is not None:
-                                    logger.debug("for %s setting %s to %s" % \
+                                    logger.debug("for '%s' setting '%s' ref to '%s'" % \
                                         (item.getItemDisplayName().encode('ascii', 'replace'),
                                          attrName,
                                          valueItem.getItemDisplayName().encode('ascii', 'replace')))
@@ -2277,10 +2390,29 @@ class CloudXMLFormat(ImportExportFormat):
                             content = unicode(content, 'utf-8')
                             value = attrType.makeValue(content)
 
-                        logger.debug( "for %s setting %s to %s" % \
-                            (item.getItemDisplayName().encode('ascii',
-                            'replace'), attrName, value))
-                        item.setAttributeValue(attrName, value)
+
+                        needsSet = False
+
+                        if getattr(item, attrName, None) is None:
+                            needsSet = True
+                        else:
+                            existing = getattr(item, attrName)
+
+                            if type(value) in (str, unicode, int, float):
+                                if existing != value:
+                                    needsSet = True
+                            else:
+                                (mimeType, encoding, serialized) = \
+                                    self.serializeLiteral(getattr(item,
+                                    attrName, ""), attrType)
+                                if serialized != attrNode.content:
+                                    needsSet = True
+
+                        if needsSet:
+                            logger.debug( "Item '%s' setting '%s' to '%s'" % \
+                                (item.getItemDisplayName().encode('ascii',
+                                'replace'), attrName, value))
+                            setattr(item, attrName, value)
 
 
                     elif cardinality == 'list':
@@ -2314,7 +2446,8 @@ class CloudXMLFormat(ImportExportFormat):
                         logger.debug("for %s setting %s to %s" % \
                             (item.getItemDisplayName().encode('ascii',
                             'replace'), attrName, values))
-                        item.setAttributeValue(attrName, values)
+                        setattr(item, attrName, values)
+                        # item.setAttributeValue(attrName, values)
 
                     elif cardinality == 'dict':
                         pass

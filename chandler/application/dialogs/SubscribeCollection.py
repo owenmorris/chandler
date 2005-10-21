@@ -65,22 +65,29 @@ class SubscribeDialog(wx.Dialog):
 
         self.textUrl.SetFocus()
         self.textUrl.SetInsertionPointEnd()
+        self.subscribing = False
 
 
     def accountInfoCallback(self, host, path):
         return PromptForNewAccountInfo(self, host=host, path=path)
 
+    def updateCallback(self, msg=None):
+        if msg is not None:
+            self.__showStatus(msg)
+        wx.Yield()
+        return self.cancelPressed
+
     def OnSubscribe(self, evt):
         view = self.view
         url = self.textUrl.GetValue()
+        url = url.strip()
         if url.startswith('webcal:'):
             url = 'http:' + url[7:]
 
-            self.__showStatus(_(u"You are already subscribed"))
-            return
-
         try:
 
+            self.subscribing = True
+            self.cancelPressed = False
             self.__showStatus(_(u"In progress..."))
             wx.Yield()
 
@@ -89,13 +96,16 @@ class SubscribeDialog(wx.Dialog):
                 password = self.textPassword.GetValue()
                 collection = sharing.subscribe(view, url,
                     accountInfoCallback=self.accountInfoCallback,
+                    updateCallback=self.updateCallback,
                     username=username, password=password)
             else:
                 collection = sharing.subscribe(view, url,
-                    accountInfoCallback=self.accountInfoCallback)
+                    accountInfoCallback=self.accountInfoCallback,
+                    updateCallback=self.updateCallback)
 
             if collection is None:
                 # user cancelled out of account dialog
+                self.subscribing = False
                 return
 
             # Keep this collection out of "My items" if checked:
@@ -134,6 +144,9 @@ class SubscribeDialog(wx.Dialog):
         except Exception, e:
             logger.exception("Error during subscribe for %s" % url)
             self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
+
+        self.subscribing = False
+
 
     def OnTyping(self, evt):
         self.__hideStatus()
@@ -180,7 +193,10 @@ class SubscribeDialog(wx.Dialog):
 
 
     def OnCancel(self, evt):
-        self.EndModal(False)
+        if self.subscribing:
+            self.cancelPressed = True
+        else:
+            self.EndModal(False)
 
 def Show(parent, view=None, url=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,

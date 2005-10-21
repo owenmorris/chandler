@@ -22,6 +22,15 @@ def installParcel(parcel, oldVersion=None):
     curSmtp = Reference.update(parcel, 'currentSMTPAccount')
     curCon = Reference.update(parcel, 'currentContact')
 
+    me = pim.Contact.update(parcel, 'me',
+        displayName=_(u'Me'),
+        contactName=pim.ContactName.update(parcel, 'meName',
+           firstName=_(u'Chandler'),
+           lastName=_(u'User')
+        ),
+        references=[curCon]
+    )
+
     # Items created in osaf.app (this parcel):
 
     MakeCollections(parcel)

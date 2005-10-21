@@ -24,7 +24,7 @@ import i18n
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "107" # stearns: prebuild detail views, and use one cache
+SCHEMA_VERSION = "108" # morgen:  moved 'me' to osaf.app from //userdata; added 'module' attribute to webserver.Directory
 
 logger = None # initialized in initLogging()
 
@@ -302,7 +302,9 @@ def initRepository(directory, options):
     view = repository.view
 
     if not view.getRoot("Packs").hasChild("Chandler"):
-        view.loadPack("repository/packs/chandler.pack")
+        pack = os.path.join(locateChandlerDirectory(), "repository", "packs",
+            "chandler.pack")
+        view.loadPack(pack)
 
     return view
 

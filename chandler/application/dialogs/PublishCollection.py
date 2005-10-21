@@ -288,7 +288,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         self.RadioItems.SetValue(False)
 
-    def updateCallback(self):
+    def updateCallback(self, msg=None):
         wx.Yield()
         return self.cancelPressed
 
@@ -351,19 +351,21 @@ class PublishCollectionDialog(wx.Dialog):
 
             self._showStatus(_(u" done.\n"))
 
-        except (sharing.SharingError, zanshin.error.Error,
-                M2Crypto.SSL.Checker.WrongHost,
-                Utility.CertificateVerificationError,
-                twisted.internet.error.TimeoutError), e:
+        except Exception, e:
+
+            # except (sharing.SharingError, zanshin.error.Error,
+            #         M2Crypto.SSL.Checker.WrongHost,
+            #         Utility.CertificateVerificationError,
+            #         twisted.internet.error.TimeoutError), e:
 
             # Display the error
             # self._clearStatus()
+            logger.exception("Failed to publish collection")
             try:
                 #XXX: [i18n] Will need to capture and translate m2crypto and zanshin errors
                 self._showStatus(_(u"\nSharing error:\n%(error)s\n") % {'error': e})
-            except AttributeError:
-                pass
-            logger.exception("Failed to publish collection")
+            except:
+                self._showStatus(_(u"\nSharing error:\n(Can't display error message;\nSee chandler.log for more details)\n"))
             # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
             # Re-enable the main panel and switch back to the "Share" button

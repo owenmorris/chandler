@@ -256,7 +256,7 @@ class CalendarEventMixin(RemindableMixin):
         self.duration = timedelta(hours=1)
 
         # set the organizer to "me"
-        self.organizer = self.getCurrentMeContact(self.itsView)
+        self.organizer = schema.ns("osaf.app", self.itsView).currentContact.item
 
         # give a starting display name
         try:

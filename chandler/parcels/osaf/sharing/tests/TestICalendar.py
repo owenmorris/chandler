@@ -10,7 +10,8 @@ import unittest, sys, os
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
-import osaf.sharing.Sharing as Sharing
+from application import schema
+from osaf import pim, sharing
 import osaf.sharing.ICalendar as ICalendar
 from osaf.pim import ListCollection
 import osaf.pim.calendar.Calendar as Calendar
@@ -78,12 +79,12 @@ class ICalendarTestCase(unittest.TestCase):
 
         sandbox = view.findPath("//sandbox")
 
-        conduit = Sharing.FileSystemConduit(parent=sandbox, sharePath=sharePath,
+        conduit = sharing.FileSystemConduit(parent=sandbox, sharePath=sharePath,
                                             shareName=filename, view=view)
         format = ICalendar.ICalendarFormat(parent=sandbox)
-        self.share = Sharing.Share(parent=sandbox, conduit=conduit,
+        self.share = sharing.Share(parent=sandbox, conduit=conduit,
                                    format=format)
-        self.share.get()
+        self.share.sync(modeOverride='get')
         return format
 
     def SummaryAndDateTimeImported(self):
@@ -148,15 +149,15 @@ class ICalendarTestCase(unittest.TestCase):
         coll.add(event)
         filename = u"unicode_export.ics"
 
-        conduit = Sharing.FileSystemConduit(name="conduit", sharePath=u".",
+        conduit = sharing.FileSystemConduit(name="conduit", sharePath=u".",
                             shareName=filename, view=self.repo.view)
         format = ICalendar.ICalendarFormat(name="format", view=self.repo.view)
-        self.share = Sharing.Share(name="share",contents=coll, conduit=conduit,
+        self.share = sharing.Share(name="share",contents=coll, conduit=conduit,
                                     format=format, view=self.repo.view)
         if self.share.exists():
             self.share.destroy()
         self.share.create()
-        self.share.put()
+        self.share.sync(modeOverride='put')
         cal=vobject.readComponents(file(filename, 'rb')).next()
         self.assertEqual(cal.vevent[0].summary[0].value, event.displayName)
         self.share.destroy()

@@ -102,9 +102,6 @@ class TaskMixin(items.ContentItem):
         except AttributeError:
             pass
 
-        # set the requestor to "me"
-        self.requestor = self.getCurrentMeContact(self.itsView)
-
         # TBD - default the requestee to any super class "who" definition
         # requestee attribute is currently not implemented.
 
