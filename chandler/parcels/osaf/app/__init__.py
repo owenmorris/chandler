@@ -233,7 +233,7 @@ def MakeCollections(parcel):
     from osaf.pim import (
         KindCollection, ListCollection, FilteredCollection,
         DifferenceCollection, InclusionExclusionCollection, KindCollection,
-        UnionCollection, CollectionColors
+        UnionCollection, CollectionColors, IntersectionCollection
     )
     
     def GetColorForHue (hue):
@@ -377,3 +377,5 @@ def MakeCollections(parcel):
     InclusionExclusionCollection.update (parcel,
                                          'untitledCollection',
                                          displayName=messages.UNTITLED)
+
+    allEventsCollection = IntersectionCollection.update(parcel, 'allEventsCollection', sources=[allCollection, events])

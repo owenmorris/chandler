@@ -109,11 +109,9 @@ def make_summaryblocks(parcel):
                         calendarControl=MainCalendarControl,
                         childrenBlocks=[
                             calendar.AllDayEventsCanvas.template('AllDayEvents',
-                                calendarContainer=CalendarSummaryView,
-                                contents=app.allCollection),
+                                calendarContainer=CalendarSummaryView),
                             calendar.TimedEventsCanvas.template('TimedEvents',
-                                calendarContainer=CalendarSummaryView,
-                                contents=app.allCollection)
+                                calendarContainer=CalendarSummaryView)
                             ]),
                     ]),
             TrunkParentBlock.template('CalendarDetailTPB',

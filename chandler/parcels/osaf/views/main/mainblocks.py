@@ -975,7 +975,7 @@ def make_mainview(parcel):
                                         orientationEnum='Vertical',
                                         childrenBlocks=[
                                             PreviewArea.template('PreviewArea',
-                                                contents=app.allCollection,
+                                                contents=app.allEventsCollection,
                                                 calendarContainer=None,
                                                 timeCharacterStyle = \
                                                     CharacterStyle.update(parcel, 
@@ -988,7 +988,7 @@ def make_mainview(parcel):
                                                                           fontSize=11),
                                                 stretchFactor=0.0),
                                             MiniCalendar.template('MiniCalendar',
-                                                contents=app.allCollection,
+                                                contents=app.allEventsCollection,
                                                 calendarContainer = None,
                                                 stretchFactor=0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
