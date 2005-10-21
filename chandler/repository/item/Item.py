@@ -95,6 +95,8 @@ class Item(CItem):
         self._uuid = kwds['uuid']
         self._name = name or None
         self._kind = kind
+        if self._version == 0:
+            self._status |= Item.NEW
 
         self._setParent(parent)
         self._values._setItem(self)
