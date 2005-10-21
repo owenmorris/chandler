@@ -457,7 +457,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         elif event.LeftDown():
             self._handleLeftClick(unscrolledPosition,
-                                  event.ControlDown())
+                                  event.ControlDown() or event.CmdDown())
             
         elif event.LeftUp():
             self.SetPanelFocus()
@@ -666,7 +666,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     def OnAddToSelection(self, item):
         self.blockItem.selection.append(item)
         self.blockItem.postSelectItemsBroadcast()
-        self.synchronizeWidget()
+        self.blockItem.synchronizeWidget()
 
     def OnRemoveFromSelection(self, item):
         blockItem = self.blockItem
