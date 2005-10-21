@@ -536,10 +536,8 @@ class SSSidebarSharingButton (SSSidebarButton):
         The ButtonName is followed by IconName. IconName may take on
         the following values depending upon the state of the collection
 
-        "UploadOffline"
-        "UploadOfflineNotMine"
-        "DownloadOffline"
-        "DownloadOfflineNotMine"
+        "Offline"
+        "OfflineNotMine"
         
         "Error"
         "ErrorNotMine"
@@ -628,7 +626,7 @@ class SSSidebarSharingButton (SSSidebarButton):
         if shared:
             # First check to see if we're offline
             if not sharing.isOnline (item):
-                iconName = shared + "Offline"
+                iconName = "Offline"
 
             # If we're not Offline, check to see if we have an error
             # Don't have an error indicator yet
