@@ -48,11 +48,12 @@ class Indexed(object):
             item, name = self._getOwner()
             raise NoSuchIndexError, (item, name, indexName)
 
-        try:
-            return self._indexes[indexName]
-        except KeyError:
+        index = self._indexes.get(indexName)
+        if index is None:
             item, name = self._getOwner()
             raise NoSuchIndexError, (item, name, indexName)
+
+        return index
 
     def _anIndex(self):
 

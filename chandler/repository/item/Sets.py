@@ -13,7 +13,6 @@ from repository.item.Monitors import Monitors
 from repository.item.Query import KindQuery
 from repository.item.Indexed import Indexed
 
-
 class AbstractSet(ItemValue, Indexed):
 
     def __init__(self, view):
@@ -197,7 +196,7 @@ class AbstractSet(ItemValue, Indexed):
                         raise ValueError, op
 
                     if dirty:
-                        self._setDirty()
+                        self._setDirty(True)
 
             item.collectionChanged(op, item, attribute, other)
             item._collectionChanged(op, change, attribute, other)
@@ -690,7 +689,7 @@ class KindSet(Set):
 
     def __contains__(self, item):
 
-        if item is None:
+        if item is None or item._isMutating():
             return False
 
         if self._recursive:
@@ -719,7 +718,7 @@ class KindSet(Set):
         if (change == 'collection' and sourceName != 'extent'):
             op = None
 
-        if not (op is None or other in self):
+        if not (op is None or change != 'notification' or other in self):
             op = None
 
         if not (inner is True or op is None):

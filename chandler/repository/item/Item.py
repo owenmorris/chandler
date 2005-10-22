@@ -74,13 +74,21 @@ class Item(CItem):
 
         self._setParent(itsParent)
 
-        self.setDirty(Item.NDIRTY)
+        try:
+            self.setDirty(Item.NDIRTY | Item.NODIRTY)
 
-        if itsKind is not None:
-            itsKind.getInitialValues(self, True)
+            if itsKind is not None:
+                itsKind.getInitialValues(self, True)
 
-        for name, value in values.iteritems():
-            setattr(self, name, value)
+            for name, value in values.iteritems():
+                setattr(self, name, value)
+
+            onValueChanged = getattr(self, 'onValueChanged', None)
+            if onValueChanged is not None:
+                for name in values.iterkeys():
+                    onValueChanged(name)
+        finally:
+            self._status &= ~Item.NODIRTY
 
         if not (_noMonitors or (itsKind is None)):
             self.itsView._notifyChange(itsKind.extent._collectionChanged,
@@ -95,6 +103,7 @@ class Item(CItem):
         self._uuid = kwds['uuid']
         self._name = name or None
         self._kind = kind
+        
         if self._version == 0:
             self._status |= Item.NEW
 
@@ -1485,7 +1494,7 @@ class Item(CItem):
     def _setKind(self, kind, _noMonitors=False):
 
         if kind is not self._kind:
-            self.setDirty(Item.NDIRTY)
+            self.setDirty(Item.NDIRTY | Item.MUTATING)
             view = self.itsView
 
             prevKind = self._kind
@@ -1512,6 +1521,7 @@ class Item(CItem):
                     removeOrphans(self._references)
 
             self._kind = kind
+            self._status &= ~Item.MUTATING
 
             if kind is None:
                 self.__class__ = Item

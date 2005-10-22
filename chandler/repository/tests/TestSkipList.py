@@ -22,10 +22,10 @@ class TestSkipList(TestCase):
         
         sl, map = self._fill(1000)
         
-        for level in xrange(1, sl.getLevel() + 1):
-            key = sl._head.getPoint(level).nextKey
+        for level in xrange(1, sl.level + 1):
+            key = sl._head[level].nextKey
             while key is not None:
-                point = map[key].getPoint(level)
+                point = map[key][level]
                 if point.nextKey is not None:
                     if key + point.dist != point.nextKey:
                         raise ValueError, "%d+%d" %(key, point.dist)
@@ -48,9 +48,9 @@ class TestSkipList(TestCase):
         for n in xrange(0, 25):
             keys = map.keys()
 
-            self._shuffle(keys, sl, map)
-            self._walk(sl, map)
-            self._step(sl, map)
+            self._shuffle(keys, sl)
+            self._walk(sl)
+            self._step(sl)
 
     def testRemove(self):
 
@@ -58,13 +58,13 @@ class TestSkipList(TestCase):
 
         for n in xrange(0, 25):
             keys = map.keys()
-            self._shuffle(keys, sl, map)
+            self._shuffle(keys, sl)
 
             for i in xrange(0, 10):
-                sl.remove(map, keys.pop())
+                sl.remove(keys.pop())
 
-            self._walk(sl, map)
-            self._step(sl, map)
+            self._walk(sl)
+            self._step(sl)
 
         self.assert_(len(map) == 250)
 
@@ -77,53 +77,58 @@ class TestSkipList(TestCase):
             print i
 
             keys = map.keys()
-            self._shuffle(keys, sl, map)
+            self._shuffle(keys, sl)
 
             r = randint(0, len(keys))
             print 'removing', r, 'elements'
             for j in xrange(0, r):
-                sl.remove(map, keys.pop())
+                sl.remove(keys.pop())
 
             r = randint(0, 500)
             print 'inserting', r, 'elements'
             max = len(keys) - 1
             if max >= 0:
                 for j in xrange(0, r):
-                    sl.insert(map, count, keys[randint(0, max)])
+                    sl.insert(count, keys[randint(0, max)])
                     count += 1
             else:
                 for j in xrange(0, r):
-                    sl.insert(map, count, None)
+                    sl.insert(count, None)
                     count += 1
         
-            self._walk(sl, map)
-            self._step(sl, map)
+            self._walk(sl)
+            self._step(sl)
 
     def _fill(self, count):
 
         p = None
-        sl = SkipList()
-        map = {}
+        class _index(dict):
+            def _keyChanged(self, key):
+                pass
+
+        map = _index()
+        sl = SkipList(map)
         
         for i in xrange(0, count):
-            sl.insert(map, i, p)
+            sl.insert(i, p)
             p = i
 
         return (sl, map)
 
-    def _shuffle(self, keys, sl, map):
+    def _shuffle(self, keys, sl):
         
         shuffle(keys)
         prev = None
         for key in keys:
-            sl.move(map, key, prev)
+            sl.move(key, prev)
             prev = key
 
-    def _walk(self, sl, map):
+    def _walk(self, sl):
         
-        for lvl in xrange(1, sl.getLevel() + 1):
+        map = sl.map
+        for lvl in xrange(1, sl.level + 1):
             node = sl._head
-            point = node.getPoint(lvl)
+            point = node[lvl]
             key = None
             d = -1
             while node is not sl._tail:
@@ -134,7 +139,7 @@ class TestSkipList(TestCase):
                 else:
                     node = sl._tail
 
-                point = node.getPoint(lvl)
+                point = node[lvl]
                 if key is not point.prevKey:
                     raise ValueError, "level %d key %d" %(lvl, key)
                 key = nextKey
@@ -142,11 +147,12 @@ class TestSkipList(TestCase):
             if d + 1 != len(map):
                 raise ValueError, 'incorrect length %d' %(d + 1)
 
-    def _step(self, sl, map):
+    def _step(self, sl):
 
-        for lvl in xrange(1, sl.getLevel() + 1):
+        map = sl.map
+        for lvl in xrange(1, sl.level + 1):
             node = sl._head
-            point = node.getPoint(lvl)
+            point = node[lvl]
             key = None
 
             while node is not sl._tail:
@@ -155,7 +161,7 @@ class TestSkipList(TestCase):
 
                 stepKey = None
                 for i in xrange(0, point.dist):
-                    stepKey = step.getPoint(1).nextKey
+                    stepKey = step[1].nextKey
                     step = map[stepKey]
 
                 if nextKey is not None:
@@ -165,13 +171,13 @@ class TestSkipList(TestCase):
 
                 if step is not node:
                     if node is sl._tail:
-                        prevKey = node.getPoint(1).prevKey
+                        prevKey = node[1].prevKey
                         if prevKey is not None and step is not map[prevKey]:
                             raise ValueError, "level %d key %d" %(lvl, key)
                     else:
                         raise ValueError, "level %d key %d" %(lvl, key)
 
-                point = node.getPoint(lvl)
+                point = node[lvl]
                 key = nextKey
 
 

@@ -270,13 +270,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 break
 
                         count = len(self._log) + len(self._deletedRegistry)
-                        if count > 1000:
+                        if count > 500:
                             self.logger.info('%s committing %d items...',
                                              self, count)
 
-                        txnStatus = self._startTransaction(True)
-
                         if count > 0:
+                            txnStatus = self._startTransaction(True)
                             newVersion += 1
                             store._values.setVersion(newVersion)
                             itemWriter = DBItemWriter(store)

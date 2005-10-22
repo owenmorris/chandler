@@ -351,16 +351,32 @@ class DBNumericIndex(NumericIndex):
 
     def __getitem__(self, key):
 
-        try:
-            return super(DBNumericIndex, self).__getitem__(key)
-        except KeyError:
-            if self._loadKey(key):
-                return super(DBNumericIndex, self).__getitem__(key)
-            raise
+        node = super(DBNumericIndex, self).get(key, Nil)
+        if node is Nil:
+            node = self._loadKey(key)
+            if node is None:
+                raise KeyError, key
+
+        return node
+
+    def get(self, key, default=None):
+
+        node = super(DBNumericIndex, self).get(key, Nil)
+        if node is Nil:
+            node = self._loadKey(key)
+            if node is None:
+                node = default
+
+        return node
 
     def __contains__(self, key):
 
-        return self.has_key(key)
+        contains = super(DBNumericIndex, self).__contains__(key)
+        if not contains:
+            node = self._loadKey(key)
+            contains = node is not None
+
+        return contains
 
     def has_key(self, key):
 
@@ -370,16 +386,6 @@ class DBNumericIndex(NumericIndex):
             has = node is not None
 
         return has
-
-    def get(self, key, default=None):
-
-        node = super(DBNumericIndex, self).get(key, default)
-        if node is default:
-            node = self._loadKey(key)
-            if node is None:
-                node = default
-
-        return node
 
     def isPersistent(self):
 
@@ -395,9 +401,9 @@ class DBNumericIndex(NumericIndex):
         tail = indexes.loadKey(view, self, self._key, version, self._tailKey)
 
         if head is not None:
-            self._head = head
+            self.skipList._head = head
         if tail is not None:
-            self._tail = tail
+            self.skipList._tail = tail
 
     def _loadKey(self, key):
 
@@ -445,8 +451,10 @@ class DBNumericIndex(NumericIndex):
 
         indexes = self.view.store._indexes
 
-        size = indexes.saveKey(self._key, version, self._headKey, self._head)
-        size += indexes.saveKey(self._key, version, self._tailKey, self._tail)
+        size = indexes.saveKey(self._key, version, self._headKey,
+                               self.skipList._head)
+        size += indexes.saveKey(self._key, version, self._tailKey,
+                                self.skipList._tail)
         for key, node in self._changedKeys.iteritems():
             size += indexes.saveKey(self._key, version, key, node)
 

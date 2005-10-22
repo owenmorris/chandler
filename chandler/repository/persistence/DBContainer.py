@@ -8,7 +8,7 @@ import threading
 
 from struct import pack, unpack
 
-from chandlerdb.util.c import UUID, _hash
+from chandlerdb.util.c import UUID, _hash, CNode
 from chandlerdb.persistence.c import CValueContainer, CRefContainer
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
@@ -699,7 +699,7 @@ class IndexesContainer(DBContainer):
                             if level == 0:
                                 return None
                     
-                            node = index._createNode(level)
+                            node = CNode(level)
                             node._entryValue = unpack('>l', value[1:5])[0]
                             offset = 5
                             

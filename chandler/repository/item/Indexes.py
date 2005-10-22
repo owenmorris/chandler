@@ -92,31 +92,20 @@ class Index(dict):
         raise NotImplementedError, "%s._xmlValues" %(type(self))
 
 
-class NumericIndex(Index, SkipList):
+class NumericIndex(Index):
     """
     This implementation of a numeric index is not persisted, it is
     reconstructed when the owning item is loaded. The persistence layer is
     responsible for providing persisted implementations.
     """
 
-    class node(SkipList.node):
-
-        __slots__ = ('_entryValue')
-
-        def __init__(self, level, skipList):
-
-            super(NumericIndex.node, self).__init__(level, skipList)
-            self._entryValue = 0
-
-
     def __init__(self, **kwds):
 
-        Index.__init__(self, **kwds)
-        SkipList.__init__(self)
+        super(NumericIndex, self).__init__(**kwds)
+        self.skipList = SkipList(self)
 
-    def _createNode(self, level):
-
-        return NumericIndex.node(level, self)
+    def _keyChanged(self, key):
+        pass
 
     def getEntryValue(self, key):
 
@@ -129,27 +118,27 @@ class NumericIndex(Index, SkipList):
 
     def getKey(self, n):
 
-        return self.access(self, n)
+        return self.skipList[n]
 
     def getPosition(self, key):
 
-        return self.position(self, key)
+        return self.skipList.position(key)
 
     def getFirstKey(self):
 
-        return self.first(self)
+        return self.skipList.first()
 
     def getNextKey(self, key):
 
-        return self.next(self, key)
+        return self.skipList.next(key)
 
     def getPreviousKey(self, key):
 
-        return self.previous(self, key)
+        return self.skipList.previous(key)
 
     def getLastKey(self):
 
-        return self.last(self)
+        return self.skipList.last()
 
     def getIndexType(self):
 
@@ -161,28 +150,31 @@ class NumericIndex(Index, SkipList):
 
     def insertKey(self, key, afterKey):
 
-        self.insert(self, key, afterKey)
+        self.skipList.insert(key, afterKey)
         self._keyChanged(key)
+
         super(NumericIndex, self).insertKey(key, afterKey)
             
     def moveKey(self, key, afterKey):
 
         if key not in self:
             self.insertKey(key, afterKey)
+
         else:
-            self.move(self, key, afterKey)
+            self.skipList.move(key, afterKey)
             self._keyChanged(key)
+
             super(NumericIndex, self).moveKey(key, afterKey)
             
     def removeKey(self, key):
 
-        self.remove(self, key)
+        self.skipList.remove(key)
         super(NumericIndex, self).removeKey(key)
 
     def _clear_(self):
 
         super(NumericIndex, self).clear()
-        super(NumericIndex, self)._clear_()
+        self.skipList._clear_()
 
     def clear(self):
 
@@ -219,6 +211,9 @@ class DelegatingIndex(object):
         return getattr(self._index, name)
 
     def __contains__(self, key):
+        return key in self._index
+
+    def has_key(self, key):
         return key in self._index
 
     def _writeValue(self, itemWriter, buffer, version):
