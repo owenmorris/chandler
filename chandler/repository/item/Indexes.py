@@ -329,6 +329,39 @@ class SortedIndex(DelegatingIndex):
         else:
             return self._index.getLastKey()
 
+    def findKey(self, mode, callable, *args):
+
+        pos = lo = 0
+        hi = len(self) - 1
+        match = None
+
+        while lo <= hi:
+            pos = (lo + hi) / 2
+            key = self.getKey(pos)
+            diff = callable(key, *args)
+
+            if diff == 0:
+                if mode == 'exact':
+                    return key
+
+                match = key
+                if mode == 'first':
+                    hi = pos - 1
+                elif mode == 'last':
+                    pos += 1
+                    lo = pos
+                else:
+                    raise ValueError, mode
+
+            elif diff < 0:
+                hi = pos - 1
+
+            else:
+                pos += 1
+                lo = pos
+
+        return match
+
     def _xmlValues(self, generator, version, attrs, mode):
 
         if self._descending:

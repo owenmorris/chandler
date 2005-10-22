@@ -232,9 +232,9 @@ class Indexed(object):
 
         return index._readValue(itemReader, offset, data)
 
-    def findInIndex(self, indexName, mode, callable, *args, **kwds):
+    def findInIndex(self, indexName, mode, callable, *args):
         """
-        Find a key in an index via binary search and callable predicate.
+        Find a key in a sorted index via binary search.
 
         The C{mode} argument determines how the search is directed and can
         take the following values:
@@ -257,41 +257,10 @@ class Indexed(object):
         @param callable: the predicate implementation
         @type callable: a python callable function or method
         @param *args: extra arguments to pass to the predicate
-        @param *kwds: extra keyword arguments to pass to the predicate
         @return: a C{UUID} key or C{None} if no match was found
         """
 
-        index = self._indexes[indexName]
-        pos = lo = 0
-        hi = len(index) - 1
-        match = None
-
-        while lo <= hi:
-            pos = (lo + hi) / 2
-            key = index.getKey(pos)
-            diff = callable(key, *args, **kwds)
-
-            if diff == 0:
-                if mode == 'exact':
-                    return key
-
-                match = key
-                if mode == 'first':
-                    hi = pos - 1
-                elif mode == 'last':
-                    pos += 1
-                    lo = pos
-                else:
-                    raise ValueError, mode
-
-            elif diff < 0:
-                hi = pos - 1
-
-            else:
-                pos += 1
-                lo = pos
-
-        return match
+        return self._indexes[indexName].findKey(mode, callable, *args)
 
     def getByIndex(self, indexName, position):
         """
