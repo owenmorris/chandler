@@ -56,9 +56,24 @@ CLOUD_XML_VERSION = '2'
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 USE_MERGING = False
+LOCAL_CHANGES_WIN = True
+
 
 def sync(collectionOrShares, modeOverride=None, updateCallback=None,
     merging=USE_MERGING):
+
+    def mergeFunction(code, item, attribute, value):
+
+        logger.debug(_(u"Conflict during sync on item %(item)s, attribute "
+            "%(attribute)s") % {
+                'item' : item,
+                'attribute' : attribute,
+            })
+
+        if LOCAL_CHANGES_WIN:
+            return value
+        else:
+            return item.getAttributeValue(attribute)
 
     if isinstance(collectionOrShares, list):
         # a list of Shares
@@ -85,8 +100,27 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
 
     stats = []
 
-    sharingView = view
-    workingShares = shares
+    if merging:
+        syncVersion = marker.getVersion()
+
+        sharingView = None
+        for existingView in view.repository.views:
+            if existingView.name == 'Sharing':
+                sharingView = existingView
+
+        if sharingView is None:
+            sharingView = view.repository.createView("Sharing", syncVersion)
+        else:
+            sharingView.itsVersion = syncVersion
+
+        workingShares = []
+        for share in shares:
+            workingShares.append(sharingView.findUUID(share.itsUUID))
+
+    else:
+        # Not using merging
+        sharingView = view
+        workingShares = shares
 
     try:
 
@@ -106,6 +140,10 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                     stats.append(stat)
                     contents = share.contents
 
+        if merging:
+            # Pull in local changes from main view
+            sharingView.refresh(mergeFunction)
+
         if not modeOverride or modeOverride == 'put':
 
             # perform the 'put' operations of all associated shares, putting
@@ -118,13 +156,22 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         for share in workingShares:
             share.conduit.marker.setDirty(Item.NDIRTY)
 
-        # Demarcate the end of sync (bumps up the marker version)
-        view.commit()
+        if merging:
+            # Make remote changes available to main view
+            sharingView.commit()
+            # Pull remote changes into main view
+            view.refresh()
+        else:
+            # Demarcate the end of sync (bumps up the marker version)
+            view.commit()
 
     except Exception, e:
         logger.exception("Sharing Error: %s" % e)
 
         sharingView.cancel()
+
+        if merging:
+            sharingView.clear()
 
         for share in shares:
             if hasattr(e, 'message'): # Sharing Error
