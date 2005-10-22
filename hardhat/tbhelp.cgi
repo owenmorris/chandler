@@ -69,6 +69,7 @@ debug = False
     s = sha.new()
     s.update('somelogin' + 'somepassword')
     hash = s.hexdigest()
+    print "'%s': '%s'" % (somelogin, hash)
 """
 
 rootDir = '/home/builder/www/docs/external'
