@@ -38,7 +38,10 @@ class wxBoxContainer (wxRectangularChild):
                 self.SetSizer (sizer)
             sizer.Clear()
             for childBlock in self.blockItem.childrenBlocks:
-                if childBlock.isShown and isinstance (childBlock, RectangularChild):
+                # (we used to test for childBlock.isShown here, but it turns out that we
+                # want to add non-visible blocks to the sizer too, just in case they become
+                # visible later.)
+                if isinstance (childBlock, RectangularChild):
                     assert childBlock.widget, "Trying to add an unrendered block of type %s to the current block" % childBlock.blockName
                     sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 

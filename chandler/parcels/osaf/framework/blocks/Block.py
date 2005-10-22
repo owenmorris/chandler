@@ -216,11 +216,17 @@ class Block(schema.Item):
         A utility routine for onSetContents handlers that sets the
         contents of a block and updates the contents subscribers
         """
-        assert isinstance (item, AbstractCollection)
-        contents = getattr (self, 'contents', None)
-        if contents is not None and self in contents.subscribers:
-            contents.subscribers.remove (self)
-            item.subscribers.add (self)
+        oldContents = getattr (self, 'contents', None)
+        if oldContents is item:
+            return
+        if oldContents is not None:
+            oldSubscribers = getattr(oldContents, 'subscribers', None)
+            if oldSubscribers is not None and self in oldSubscribers:
+                oldSubscribers.remove(self)
+        if item is not None:
+            newSubscribers = getattr(item, 'subscribers', None)
+            if newSubscribers is not None:
+                newSubscribers.add(self)
         self.contents = item
 
     def render (self):
@@ -763,7 +769,7 @@ class Block(schema.Item):
     __profiler = None              # The hotshot profiler
     
     
-class ShownSynchronizer:
+class ShownSynchronizer(object):
     """
     A mixin that handles isShown-ness: Make sure my visibility
     matches my block's.

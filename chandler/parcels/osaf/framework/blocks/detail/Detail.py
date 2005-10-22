@@ -56,9 +56,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
     def onSetContentsEvent (self, event):
         self.finishSelectionChanges()
-        item = event.arguments['item']
-        logger.debug("DetailRoot.onSetContentsEvent: %s", item)
-        self.contents = item
+        # logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
+        self.setContentsOnBlock(event.arguments['item'])
 
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
                     doc="Return the selected item, or None")
@@ -134,6 +133,10 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
                 sizer.Layout()
                     
     def Layout(self):
+        """ 
+        Called (by installTreeOfBlocks) when the detail view's contents
+        changes without rerendering
+        """
         self.synchronizeDetailView(self.item)
 
     if __debug__:
@@ -142,11 +145,24 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             blocks are currently shown.
             """
             def reNotifyInside(block, item, indent):
-                if not isinstance(block, MenusAndToolbars.ToolbarItem):
-                    if block.isShown:
-                        print indent + '+' + block.blockName
-                    else:
-                        print indent + '-' + block.blockName
+                blockName = getattr(block, 'blockName', '?')
+                vis = block.isShown and '+' or '-'
+                sizerVis = '_'
+                widget = getattr(block, 'widget', None)
+                if widget is not None:
+                    sizer = widget.GetContainingSizer()
+                    if sizer is not None:
+                        sizerItem = sizer.GetItem(widget)
+                        if sizerItem is None:
+                            sizerVis = '?' # weird: didn't find a sizeritem for this widget?
+                        else:
+                            sizerVis = sizerItem.IsShown() and '+' or '-'
+                logger.debug('%s%s%s %s' % (indent, vis, sizerVis, blockName))
+                #if not isinstance(block, MenusAndToolbars.ToolbarItem):
+                    #if block.isShown:
+                        #print indent + '+' + block.blockName
+                    #else:
+                        #print indent + '-' + block.blockName
                 try:
                     # process from the children up
                     for child in block.childrenBlocks:
@@ -162,14 +178,17 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
                 itemDescription += str (item)
             except:
                 itemDescription += str (item.itsName)
-            print methodName + " " + itemDescription
-            print "-------------------------------"
+            logger.debug(methodName + " " + itemDescription)
+            logger.debug("-------------------------------")
+            #print methodName + " " + itemDescription
+            #print "-------------------------------"
             reNotifyInside(self, item, '')
-            print
+            logger.debug(" ")
+            #print
 
     def synchronizeWidget (self, **hints):
         item = self.item
-        logger.debug("DetailRoot.synchronizeWidget: %s", item)
+        # logger.debug("DetailRoot.synchronizeWidget: %s", item)
         # If we're being synchronized on "None", it might be because we're really
         # displaying the None view, or because our selected item got 
         # deleted. Discern by looking at our TrunkParentBlock.
@@ -342,7 +361,7 @@ class DetailSynchronizer(Item):
     def onSetContentsEvent (self, event):
         #logger.debug("DetailSynchronizer %s: onSetContentsEvent",
                      #getattr(self, 'blockName', '?'))
-        self.contents = event.arguments['item']
+        self.setContentsOnBlock(event.arguments['item'])
 
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
                     doc="Return the selected item, or None")
@@ -376,9 +395,9 @@ class DetailSynchronizer(Item):
             else:
                 widget.Hide()
             self.isShown = shouldShow
-            logger.debug("DetailSync.show %s: now %s",
-                         getattr(self, 'blockName', '?'),
-                         shouldShow and "visible" or "hidden")
+            #logger.debug("DetailSync.show %s: now %s",
+                         #getattr(self, 'blockName', '?'),
+                         #shouldShow and "visible" or "hidden")
             return True
         return False
 
@@ -1010,29 +1029,67 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
                 enabled = False
         event.arguments['Enable'] = enabled
 
+def getItemCollectionNames(item, justOne=False):
+    """ 
+    Get the names of collections that this item belongs to, or just
+    the first one (which we use for visibility management) 
+    """
+    if (item is None or not hasattr(item, 'collections') 
+        or item.collections.first() is None):
+        return []
 
-class AppearsInFieldBlock(EditTextAttribute):
+    item = getattr(item, 'proxiedItem', item)
+    app = schema.ns('osaf.app', item.itsView)
+    sidebarCollection = app.sidebarCollection
+    allCollection = app.allCollection
+    collectionList = []
+    for coll in sidebarCollection:
+        if coll is allCollection or not item in coll:
+            continue
+        if justOne:
+            return [ coll.displayName ]
+        collectionList.append(coll.displayName)
+    collectionList.sort()
+    return collectionList
+
+class AppearsInAreaBlock(DetailSynchronizedContentItemDetail):
     """
-    A read-only list of collections that this item appears in, for now.
-    """
-    def loadAttributeIntoWidget (self, item, widget):
-        # For now, just list the item's containing collections
-        if item is None:
-            value = u""
-        else:
-            item = getattr(item, 'proxiedItem', item)
-            app = schema.ns('osaf.app', self.itsView)
-            sidebarCollection = app.sidebarCollection
-            allCollection = app.allCollection
-            collectionList = [coll.displayName for coll in sidebarCollection
-                              if coll is not allCollection and item in coll]
-            collectionList.sort()
-            value = ", ".join(collectionList)
-        widget.SetValue(value)
-    
-    def saveAttributeFromWidget (self, item, widget, validate):  
-        # It's read-only, but we have to override this method.
-        pass
+    A block that holds a label, horizontal spacer, and static string 
+    listing the collections this item belongs to (presented by the
+    AppearsInAttributeEditor, below)
+    """    
+    def shouldShow(self, item):
+        return len(getItemCollectionNames(self.detailRoot().item, True)) > 0
+
+    def onMonitoredValueChanged(self, op, item, attribute):
+        # Ignore notifications that aren't for us. (Yes, it's not ideal to have 
+        # awareness of proxies here, but I'm expecting _lots_ of notifications, 
+        # and this seems like the quickest way to reduce overhead, and seems
+        # safer than a deeper '==' comparison.)
+        ourItem = self.item
+        if item in (ourItem, getattr(ourItem, 'proxiedItem', None)):            
+            # It's for us - reload the widget
+            haveCollections = len(getItemCollectionNames(ourItem, True)) > 0
+            if haveCollections != self.isShown:
+                # We need to change visibility; redo the whole detail view 
+                # to relayout its sizer.
+                #logger.debug("AppearsIn got notification; vis now %s" % haveCollections)
+                self.detailRoot().synchronizeDetailView(ourItem)
+            elif haveCollections:
+                # We already have proper visibility: just update our content
+                #logger.debug("AppearsIn got notification; updating value")
+                self.synchronizeWidget()
+            else:
+                pass #logger.debug("AppearsIn got notification; ignoring")
+
+class AppearsInAttributeEditor(StaticStringAttributeEditor):
+    """ A read-only list of collections that this item appears in, for now. """
+    def GetAttributeValue(self, item, attributeName):
+        # @@@ I18N: FYI: I expect the label & names to be separate fields before too long...
+        collectionNames = _(", ").join(getItemCollectionNames(item))
+        # logger.debug("Returning new appearsin list: %s" % collectionNames)
+        return _(u"Appears in: %(collectionNames)s") \
+               % {'collectionNames': collectionNames }
 
 
 # Classes to support CalendarEvent details - first, areas that show/hide

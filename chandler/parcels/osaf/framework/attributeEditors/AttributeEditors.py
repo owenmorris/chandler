@@ -94,9 +94,9 @@ def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
     if typeName == "Lob" and hasattr(item, attributeName):
         typeName = getattr(item, attributeName).mimetype
     aeClass = _getAEClass(typeName, readOnly, format)
-    logger.debug("getAEClass(%s [%s, %s]%s) --> %s", 
-                 attributeName, typeName, format, 
-                 readOnly and ", readOnly" or "", aeClass)
+    #logger.debug("getAEClass(%s [%s, %s]%s) --> %s", 
+                 #attributeName, typeName, format, 
+                 #readOnly and ", readOnly" or "", aeClass)
     instance = aeClass()        
     return instance
 
@@ -123,6 +123,8 @@ def _getAEClass (type, readOnly=False, format=None):
         if readOnly:
             yield "%s+readOnly" % type
         yield type
+        logger.warn("AttributeEditors.getAEClass: using %s for %s/%s",
+                    _TypeToEditorClasses['_default'], type, format)
         yield "_default"
     classPath = None
     for key in generateEditorTags():

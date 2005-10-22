@@ -1880,6 +1880,7 @@ class AEBlock(BoxContainer):
         selectedEditor.attributeName = attributeName
         selectedEditor.readOnly = readOnly
         selectedEditor.presentationStyle = presentationStyle
+        selectedEditor.parentBlock = self
 
         # Register for value changes
         selectedEditor.SetChangeCallback(self.onAttributeEditorValueChange)
@@ -1896,7 +1897,7 @@ class AEBlock(BoxContainer):
         return result
         
     def onSetContentsEvent (self, event):
-        self.item = event.arguments['item']            
+        self.setContentsOnBlock(event.arguments['item'])
         assert not hasattr(self, 'widget')
             
     def getItemAttributeTypeName(self):

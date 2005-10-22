@@ -137,6 +137,8 @@ def registerAttributeEditors(parcel, oldVersion):
         'DateTime+calendarDateOnly': 'CalendarDateAttributeEditor',
         'DateTime+calendarTimeOnly': 'CalendarTimeAttributeEditor',
         'EmailAddress+outgoing': 'OutgoingEmailAddressAttributeEditor',
+        'NoneType+appearsIn': 'AppearsInAttributeEditor',
+        'ListCollection+appearsIn': 'AppearsInAttributeEditor',
         'RecurrenceRuleSet+custom': 'RecurrenceCustomAttributeEditor',
         'RecurrenceRuleSet+ends': 'RecurrenceEndsAttributeEditor',
         'RecurrenceRuleSet+occurs': 'RecurrenceAttributeEditor',
@@ -262,13 +264,18 @@ def makeNoteSubtree(parcel, oldVersion):
     # Appears in block
     appearsInArea = \
         makeArea(parcel, 'AppearsInArea',
+            baseClass=AppearsInAreaBlock,
+            viewAttribute=u'collections',
+            border=RectType(0,0,0,0),
             childrenBlocks=[
-                makeLabel(parcel, _(u'appears in')),
-                makeSpacer(parcel, width=8),
-                AppearsInFieldBlock.template('AppearsInEditField',
-                                             lineStyleEnum='MultiLine',
-                                             readOnly=True).install(parcel)],
-            position=0.85).install(parcel)    
+                # (the label is added as part of the string for now)
+                #makeLabel(parcel, _(u'appears in'), borderTop=2),
+                #makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'AppearsIn',
+                           viewAttribute=u'collections',
+                           border=RectType(0,2,2,2),
+                           presentationStyle={'format': 'appearsIn'})],
+            position=0.95).install(parcel)    
 
     # Then, the Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
@@ -284,10 +291,10 @@ def makeNoteSubtree(parcel, oldVersion):
                 makeSpacer(parcel, height=6, position=0.01).install(parcel),
                 parcel['MarkupBar'],
                 headlineArea, 
-                makeSpacer(parcel, height=7, position=0.8).install(parcel),
-                appearsInArea,
                 makeSpacer(parcel, height=7, position=0.8999).install(parcel),
-                notesBlock])
+                notesBlock,
+                appearsInArea,
+            ])
 
 def makeCalendarEventSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
