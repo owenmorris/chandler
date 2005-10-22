@@ -31,6 +31,7 @@ def main():
                                          'chandlerdb/util/pyuuid.c',
                                          'chandlerdb/util/singleref.c',
                                          'chandlerdb/util/linkedmap.c',
+                                         'chandlerdb/util/skiplist.c',
                                          'rijndael-3.0/rijndael-api-fst.c',
                                          'rijndael-3.0/rijndael-alg-fst.c',
                                          'chandlerdb/util/rijndael.c',

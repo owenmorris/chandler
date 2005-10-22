@@ -32,6 +32,7 @@ static PyObject *t_item__isNDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isNoDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isCopyExport(t_item *self, PyObject *args);
 static PyObject *t_item__isImporting(t_item *self, PyObject *args);
+static PyObject *t_item__isMutating(t_item *self, PyObject *args);
 static PyObject *t_item__isRepository(t_item *self, PyObject *args);
 static PyObject *t_item__isView(t_item *self, PyObject *args);
 static PyObject *t_item__isItem(t_item *self, PyObject *args);
@@ -112,6 +113,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isNoDirty", (PyCFunction) t_item__isNoDirty, METH_NOARGS, "" },
     { "_isCopyExport", (PyCFunction) t_item__isCopyExport, METH_NOARGS, "" },
     { "_isImporting", (PyCFunction) t_item__isImporting, METH_NOARGS, "" },
+    { "_isMutating", (PyCFunction) t_item__isMutating, METH_NOARGS, NULL },
     { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_item__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
@@ -385,6 +387,14 @@ static PyObject *t_item__isCopyExport(t_item *self, PyObject *args)
 static PyObject *t_item__isImporting(t_item *self, PyObject *args)
 {
     if (self->status & IMPORTING)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item__isMutating(t_item *self, PyObject *args)
+{
+    if (self->status & MUTATING)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
@@ -1141,6 +1151,7 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "CMERGED", CMERGED);
             PyDict_SetItemString_Int(dict, "COPYEXPORT", COPYEXPORT);
             PyDict_SetItemString_Int(dict, "IMPORTING", IMPORTING);
+            PyDict_SetItemString_Int(dict, "MUTATING", MUTATING);
 
             PyDict_SetItemString_Int(dict, "VRDIRTY", VRDIRTY);
             PyDict_SetItemString_Int(dict, "DIRTY", DIRTY);

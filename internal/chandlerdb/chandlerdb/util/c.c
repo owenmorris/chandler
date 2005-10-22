@@ -18,6 +18,9 @@ PyTypeObject *Key = NULL;
 PyTypeObject *Cipher = NULL;
 PyTypeObject *CLinkedMap = NULL;
 PyTypeObject *CLink = NULL;
+PyTypeObject *CPoint = NULL;
+PyTypeObject *CNode = NULL;
+PyTypeObject *CSkipList = NULL;
 
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
@@ -75,4 +78,5 @@ void initc(void)
     _init_singleref(m);
     _init_rijndael(m);
     _init_linkedmap(m);
+    _init_skiplist(m);
 }    

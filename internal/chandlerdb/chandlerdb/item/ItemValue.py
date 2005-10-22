@@ -55,9 +55,6 @@ class ItemValue(object):
 
     def _setDirty(self, noMonitors=False):
 
-        if self._isReadOnly():
-            raise ReadOnlyAttributeError, (self._item, self._attribute)
-
         self._dirty = True
         item = self._item
         if item is not None:

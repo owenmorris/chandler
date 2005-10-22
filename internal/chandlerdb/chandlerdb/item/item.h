@@ -66,6 +66,7 @@ enum {
     CMERGED    = 0x00080000,
     COPYEXPORT = 0x00100000,          /* item instance is copied on export */
     IMPORTING  = 0x00200000,          /* item is being imported */
+    MUTATING   = 0x00400000,          /* kind is being removed */
 };
 
 enum {
