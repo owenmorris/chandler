@@ -488,11 +488,15 @@ class MainView(View):
                     share.filterAttributes.append('reminders')
                 if not optionResults['transparency']:
                     share.filterAttributes.append('transparency')
+
+                before = time()
                 collection = share.get()
+                elapsed = timedelta(seconds = time() - before)
+
                 assert (hasattr (collection, 'color'))
                 schema.ns("osaf.app", self).sidebarCollection.add (collection)
                 # Need to SelectFirstItem -- DJA
-                self.setStatusMessage (_(u"Import completed"))
+                self.setStatusMessage(_(u"Import completed in %(elapsed)s" %{'elapsed': elapsed}))
             except:
                 logger.exception("Failed importFile %s" % fullpath)
                 self.setStatusMessage(_(u"Import failed"))
