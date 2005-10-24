@@ -59,8 +59,9 @@ USE_MERGING = False
 LOCAL_CHANGES_WIN = True
 
 
-def sync(collectionOrShares, modeOverride=None, updateCallback=None,
-    merging=USE_MERGING):
+def sync(collectionOrShares, modeOverride=None, updateCallback=None):
+
+    merging = USE_MERGING # May be enabled via Test menu
 
     def mergeFunction(code, item, attribute, value):
 
@@ -101,6 +102,10 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
     stats = []
 
     if merging:
+
+        if updateCallback:
+            updateCallback(msg=_(u"Using share merging"))
+
         syncVersion = marker.getVersion()
 
         sharingView = None

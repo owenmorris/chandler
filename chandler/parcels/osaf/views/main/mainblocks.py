@@ -168,6 +168,11 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
+    ActivateShareMergingEvent = \
+        BlockEvent.template('ActivateShareMerging',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
+    # from //parcels/osaf/views/main
     CommitRepositoryEvent = \
         BlockEvent.template('CommitRepository',
             dispatchEnum='SendToBlockByName',
@@ -823,6 +828,10 @@ def make_mainview(parcel):
                                 event=ActivateWebserverEvent,
                                 title=u'Activate built-in webserver',
                                 helpString=u'Activates the built-in webserver at localhost:1888'),
+                            MenuItem.template('ActivateShareMergingItem',
+                                event=ActivateShareMergingEvent,
+                                title=u'Activate Share Merging',
+                                helpString=u'Activates merging of non-overlapping sharing changes'),
                             MenuItem.template('LoadLoggingConfigItem',
                                 event=LoadLoggingConfigEvent,
                                 title=u'Load logging configuration file...',
