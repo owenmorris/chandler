@@ -83,6 +83,10 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_MOVE, self.OnMove)
 
+        # for wxMSW, disable system palette color mapping in toolbar icons
+        if '__WXMSW__' in wx.PlatformInfo:
+            wx.SystemOptions.SetOptionInt( "msw.remap", 0 )
+
     def OnClose(self, event):
         # For some strange reason when there's an idle handler on the
         # application the mainFrame windows doesn't get destroyed, so
