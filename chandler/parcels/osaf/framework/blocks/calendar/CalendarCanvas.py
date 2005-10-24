@@ -140,8 +140,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     
     timeHeight = 0
     
-    def __init__(self, *args, **keywords):
-        super(CalendarCanvasItem, self).__init__(*args, **keywords)
+    def __init__(self, collection, primaryCollection, bounds, item, *args, **keywords):
+        super(CalendarCanvasItem, self).__init__(bounds, item, *args, **keywords)
 
         # this is supposed to be set in Draw(), but sometimes this
         # object seems to exist before Draw() is called
@@ -149,6 +149,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # use PyICU to pre-cache the time string
         self.timeString = formatTime(self._item.startTime)
+
+        self.colorInfo = ColorInfo(collection)
+
+        self.isActive = primaryCollection is collection
                         
     def GetEditorPosition(self):
         """
@@ -186,6 +190,18 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         return pen
 
+    def getEventColors(self, selected):
+        """
+        returns the appropriate tuple of selected, normal, and visible colors
+        """
+        
+        if selected:
+            return self.colorInfo.selectedColors
+        elif self.isActive:
+            return self.colorInfo.defaultColors
+        
+        return self.colorInfo.visibleColors
+    
     def GetAnyTimeOrAllDay(self):	
         item = self.GetItem()
         anyTime = getattr(item, 'anyTime', False)
@@ -233,9 +249,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         (cx,cy,cwidth,cheight) = dc.GetClippingBox()	
         if not cwidth == cheight == 0:	
             clipRect = wx.Rect(cx,cy,cwidth,cheight)	
-       
+        
         gradientLeft, gradientRight, outlineColor, textColor = \
-            styles.calendarControl.getEventColors(item, selected)
+            self.getEventColors(selected)
        
         dc.SetTextForeground(textColor)
        
@@ -858,24 +874,6 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
     def GetCurrentDateRange(self):
         return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
 
-    #
-    # Color stuff
-    #
-    def getEventColors(self, event, selected):
-        """
-        returns the appropriate tuple of selected, normal, and visible colors
-        """
-        collection = self.getContainingCollection(event)
-        colorInfo = ColorInfo(collection)
-        
-        if selected:
-            return colorInfo.selectedColors
-        # collectionList[0] is the currently selected collection
-        elif collection == self.contents.collectionList[0]:
-            return colorInfo.defaultColors
-        
-        return colorInfo.visibleColors
-
     def getContainingCollection(self, event):
         """
         Get the collection which contains the event, since it has
@@ -962,7 +960,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def GrabFocusHack(self):
         if self.editor.IsShown():
             self.editor.SaveAndHide()
-        
+
     def RefreshCanvasItems(self, resort=False):
         self.RebuildCanvasItems(resort)
         self.Refresh()

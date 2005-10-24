@@ -231,10 +231,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
         currentDragBox = None
 
+        primaryCollection = self.blockItem.contents.collectionList[0]
+        
         # First generate a sorted list of TimedCanvasItems
         for item in self.visibleItems:
-                                               
-            canvasItem = TimedCanvasItem(item, self)
+
+            collection = self.blockItem.getContainingCollection(item)
+            canvasItem = TimedCanvasItem(collection, primaryCollection,
+                                         item, self)
             self.canvasItemList.append(canvasItem)
 
             # if we're dragging, update the drag state to reflect the
@@ -354,8 +358,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # now try to insert the event onto the canvas without too many
         # redraws, and allow the user to start dragging if they are
         # still holding down the mouse button (doesn't quite work yet)
-        
-        canvasItem = TimedCanvasItem(event, self)
+        collection = self.blockItem.contents.collectionList[0]
+        canvasItem = TimedCanvasItem(collection, collection, event, self)
         
         # only problem here is that we haven't checked for conflicts
         canvasItem.UpdateDrawingRects()
@@ -592,8 +596,10 @@ class TimedCanvasItem(CalendarCanvasItem):
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2
     
-    def __init__(self, item, calendarCanvas, *arguments, **keywords):
-        super(TimedCanvasItem, self).__init__(None, item)
+    def __init__(self, collection, primaryCollection, item, calendarCanvas, *arguments, **keywords):
+        super(TimedCanvasItem, self).__init__(collection, primaryCollection,
+                                              None, item,
+                                              *arguments, **keywords)
         
         # this is really annoying that we need to keep a reference back to 
         # the calendar canvas in every single TimedCanvasItem, but we

@@ -238,13 +238,17 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         but all the other paramters though are grid-based, NOT datetime or pixel-based.
         """
         size = self.GetSize()
-        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        calendarBlock = self.blockItem
+        drawInfo = calendarBlock.calendarContainer.calendarControl.widget
         rect = wx.Rect((drawInfo.dayWidth * dayStart) + drawInfo.xOffset,
                        self.eventHeight * gridRow,
                        columnWidth * (dayEnd - dayStart + 1),
                        self.eventHeight)
- 
-        canvasItem = AllDayCanvasItem(rect, item)
+
+        collection = calendarBlock.getContainingCollection(item)
+        canvasItem = AllDayCanvasItem(collection,
+                                      calendarBlock.contents.collectionList[0],
+                                      rect, item)
         self.canvasItemList.append(canvasItem)
         
         # keep track of the current drag/resize box
@@ -376,9 +380,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
 class AllDayCanvasItem(CalendarCanvasItem):
     textMargin = 2
-    def __init__(self, *args, **kwargs):
-        super(AllDayCanvasItem, self).__init__(*args, **kwargs)
-
     def GetBoundsRects(self):
         return [self._bounds]
 
