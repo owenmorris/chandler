@@ -746,7 +746,7 @@ def getShare(collection):
     # return the first "non-hidden" share for this collection -- see isShared()
     # method for further details.
 
-    if collection.shares:
+    if hasattr(collection, 'shares') and collection.shares:
 
         share = collection.shares.getByAlias('main')
         if share is not None:
