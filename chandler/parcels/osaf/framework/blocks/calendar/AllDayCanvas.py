@@ -117,7 +117,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         def drawCanvasItems(canvasItems, selected):
             for canvasItem in canvasItems:
                 pastEnd = Calendar.datetimeOp(canvasItem.GetItem().endTime,
-                                              '>',
+                                              '>=',
                                               self.blockItem.rangeEnd)
                 canvasItem.Draw(dc, styles, brushOffset,
                                 selected, rightSideCutOff=pastEnd)
@@ -149,10 +149,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         else:
             dayStart = wxAllDayEventsCanvas.DayOfWeekNumber(item.startTime)
 
-        if Calendar.datetimeOp(item.endTime, '>', endDateTime):
+        if Calendar.datetimeOp(item.endTime, '>=', endDateTime):
             dayEnd = 6
         else:
             dayEnd = wxAllDayEventsCanvas.DayOfWeekNumber(item.endTime)
+
         return (dayStart, dayEnd)
         
 
