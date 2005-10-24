@@ -180,6 +180,10 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                 share.error = str(e)
         raise
 
+    for share in shares:
+        if hasattr(share, 'error'):
+            del share.error
+
     return stats
 
 def getLinkedShares(share):
