@@ -1608,13 +1608,9 @@ WXHBITMAP wxToolBar::MapBitmap(WXHBITMAP bitmap, int width, int height)
         return bitmap;
     }
 
- #if 0
-	// OSAF: this block ruins the appearance of icons
-	// with gray gradients, so diable it until we get
-	// an explanation from the wx group.
     wxCOLORMAP *cmap = wxGetStdColourMap();
 
-   for ( int i = 0; i < width; i++ )
+    for ( int i = 0; i < width; i++ )
     {
         for ( int j = 0; j < height; j++ )
         {
@@ -1633,7 +1629,6 @@ WXHBITMAP wxToolBar::MapBitmap(WXHBITMAP bitmap, int width, int height)
             }
         }
     }
-#endif
 
     return bitmap;
 
