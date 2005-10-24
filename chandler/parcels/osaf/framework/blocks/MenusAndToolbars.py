@@ -911,7 +911,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
 
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
-        heightGutter = 23
+        heightGutter = self.buttonsLabeled and 23 or 6
         toolbar = wxToolbar(self.parentBlock.widget, 
                          Block.Block.getWidgetID(self),
                          wx.DefaultPosition,
