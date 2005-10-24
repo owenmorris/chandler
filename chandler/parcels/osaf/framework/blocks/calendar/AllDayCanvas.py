@@ -149,6 +149,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         else:
             dayStart = wxAllDayEventsCanvas.DayOfWeekNumber(item.startTime)
 
+        # this is a really wacky corner case. Since all day events
+        # tend to end at midnight on their last day, it sometimes
+        # appears as if they don't actually extend into that day. This
+        # means that events that 'end' on midnight, on exactly
+        # endDateTime, need to be thought of as extending PAST
+        # endDateTime.
         if Calendar.datetimeOp(item.endTime, '>=', endDateTime):
             dayEnd = 6
         else:
