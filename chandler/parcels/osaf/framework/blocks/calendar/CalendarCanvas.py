@@ -785,7 +785,8 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
                 # attributes as well
                 if (key in endItems and
                     ((dayItems and timedItems) or
-                     self.isDayItem(view[key]) == dayItems)):
+                     self.isDayItem(view[key]) == dayItems) and
+                     view[key].rruleset is None):
                     yield view[key]
 
     def recurringEventsInRange(self, date, nextDate, dayItems, timedItems):
@@ -797,15 +798,9 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
                 # item's day-ness.  If only one is True, then
                 # dayItems' value must match the return of
                 # isDayItem.
-                if ((event != masterEvent) and
-                    (event.occurrenceFor is not None) and
+                if ((event.occurrenceFor is not None) and
                     ((dayItems and timedItems) or
                      self.isDayItem(event) == dayItems)):
-
-                    # For the moment, master events can be
-                    # overridden.  Until this is changed, don't
-                    # display events for which occurrenceFor is None
-                    if event.occurrenceFor is not None:
                         yield event
 
         
