@@ -83,7 +83,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
     def prepareCosmoAccount(self):
         view = self.views[0]
 
-        host='morgen.com'
+        host='cosmo-demo.osafoundation.org'
         port=8080
         useSSL=False
         username='unittest'
