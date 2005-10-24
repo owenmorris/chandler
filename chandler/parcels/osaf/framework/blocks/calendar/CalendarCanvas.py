@@ -351,8 +351,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                    width,	
                                    itemRect.height - lostHeight - self.textOffset.y)
        
-                dc.SetFont(styles.eventLabelFont)	
-                DrawWrappedText(dc, item.displayName, textRect)	
+                dc.SetFont(styles.eventLabelFont)
+                if selected:
+                    proxy = RecurrenceDialog.getProxy(u'ui', item)
+                    DrawWrappedText(dc, proxy.displayName, textRect)
+                else:
+                    DrawWrappedText(dc, item.displayName, textRect)
        
         dc.DestroyClippingRegion()	
         if clipRect:	
