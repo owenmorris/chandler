@@ -306,7 +306,7 @@ class CalendarEventMixin(RemindableMixin):
         # If startTime's time is invalid, ignore it.
         if self.anyTime or self.allDay:
             result = datetime.combine(self.startTime,
-                time(0, tzinfo=self.startTime.tzinfo))
+                time(0, tzinfo=None))
         else:
             result = self.startTime
         return result

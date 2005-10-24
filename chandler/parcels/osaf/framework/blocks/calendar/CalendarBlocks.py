@@ -319,6 +319,11 @@ class wxPreviewArea(wx.Panel):
         # Draw each event            
         y = self.vMargin
         for i, item in enumerate(self.currentDaysItems):
+            if item.isDeleted():
+                # This is to fix bug 4322, after removing recurrence,
+                # OnPaint gets called before wxSynchronizeWidget, so
+                # self.currentDaysItems has deleted items in it.
+                continue
             if i == self.blockItem.maximumEventsDisplayed:
                 dc.SetFont(self.eventFont)
                 # this is the number of events that are not displayed
