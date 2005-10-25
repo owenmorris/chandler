@@ -124,7 +124,7 @@ class I18nManager(object):
         #if not self.__initialized:
         #raise i18n.I18nException("I18nManager.translate called before locale set created")
 
-        if 'test' in self._localeSet and not "Ctrl+" in defaultText:
+        if 'test' in self._localeSet and not "Ctrl+" in defaultText and not "DELETE" == defaultText:
             """If the 'test' locale is used return a surrogate pair at the 
                start of the defaultText block. However, if the text contains
                accelerator key info return the default as changing it will
