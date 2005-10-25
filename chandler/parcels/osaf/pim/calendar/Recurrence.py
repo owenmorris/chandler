@@ -361,7 +361,7 @@ class RecurrenceRuleSet(items.ContentItem):
             if rules is None: rules = []
             itemlist = []
             for rule in rules:
-                ruleItem=RecurrenceRule(parent=self)
+                ruleItem=RecurrenceRule()
                 ruleItem.setRuleFromDateUtil(rule)
                 itemlist.append(ruleItem)
             setattr(self, rtype + 's', itemlist)

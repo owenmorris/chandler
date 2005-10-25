@@ -221,9 +221,13 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         third = self.event.getNextOccurrence().getNextOccurrence()
         third.changeThisAndFuture('startTime', third.startTime + timedelta(hours=1))
         second = self.event.getNextOccurrence()
+        
+        rule = third.rruleset.rrules.first()
+        
         third.removeRecurrence()
         self.assertEqual(len(third.occurrences), 1)
         self.failIf(second.isDeleted())
+        self.assert_(rule.isDeleted())
         
         # test a THIS modification to master, then removing recurrence
         self.event.rruleset = self._createRuleSetItem('weekly')

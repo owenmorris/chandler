@@ -1084,9 +1084,9 @@ class CalendarEventMixin(RemindableMixin):
                     event.modificationFor = None
                     event.occurrenceFor = event
                     masterHadModification = True
-                    
-            master.rruleset = None
-            rruleset.delete(recursive=True)
+            
+            rruleset._ignoreValueChanges = True
+            rruleset.delete()
             
             if masterHadModification:
                 master.delete()
