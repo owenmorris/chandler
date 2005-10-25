@@ -51,6 +51,8 @@ class RepositoryView(CView):
         implementation for the repository be used.
         """
 
+        self._notifications = []
+
         if not name:
             name = threading.currentThread().getName()
 
@@ -838,6 +840,44 @@ class RepositoryView(CView):
                     item._parent = localParent
                     setRoot(root, item)
 
+    def addNotificationCallback(self, callable):
+        """
+        Add a callback to receive view notifications.
+
+        After a view refreshes changes that happened in other views
+        successfully, it sends out a number of notifications to the
+        callbacks registered through this method.
+
+        The callback needs to be able to accept the following arguments:
+
+            - the view instance refresh() was called on
+            - a an array of tuples (UUID, reason, kwds)
+              - UUID, representing an item
+              - a string, representing the reason
+              - kwds, an arbitrary C{**kwds} dictionary containing more
+                notification-specific values.
+            - a string, one of C{ItemChanged}, C{CollectionChanged}, or
+              C{History} 
+
+        @param callable: the callback to add
+        @type callable: a python callable
+        """
+
+        if not callable in self._notifications:
+            self._notifications.append(callable)
+
+    def removeNotificationCallback(self, callable):
+        """
+        Remove a callback to receive view notifications.
+
+        @param callable: the callback to remove
+        @type callable: a python callable
+        """
+
+        if callable in self._notifications:
+            self._notifications.remove(callable)
+
+
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     itsPath = property(_getPath)
     
@@ -1146,3 +1186,26 @@ class NullViewRefList(TransientRefList):
     def _isTransient(self):
 
         return self._transient
+
+
+class ViewNotifications(dict):
+
+    def changed(self, uuid, reason, **kwds):
+
+        self[uuid] = (reason, kwds)
+
+    def history(self, uuid, reason, **kwds):
+
+        self[uuid] = (reason, kwds)
+    
+    def dispatchHistory(self, view):
+
+        callbacks = view._notifications
+        if callbacks:
+            changes = []
+            for uuid, (reason, kwds) in self.iteritems():
+                changes.append( (uuid, reason, kwds) )
+            for callback in callbacks:
+                callback(view, changes, 'History')
+
+        self.clear()

@@ -14,9 +14,8 @@ from repository.item.RefCollections import TransientRefList
 from repository.persistence.RepositoryError \
      import RepositoryError, MergeError, VersionConflictError
 from repository.persistence.RepositoryView \
-     import RepositoryView, OnDemandRepositoryView
-from repository.persistence.Repository \
-     import Repository, RepositoryNotifications
+     import RepositoryView, OnDemandRepositoryView, ViewNotifications
+from repository.persistence.Repository import Repository
 from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
 from repository.persistence.DBContainer import HashTuple
@@ -174,7 +173,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         newVersion = version or store.getVersion()
         
         if newVersion > self._version:
-            histNotifications = RepositoryNotifications()
+            histNotifications = ViewNotifications()
 
             unloads = {}
             also = set()
@@ -237,7 +236,6 @@ class DBRepositoryView(OnDemandRepositoryView):
     def commit(self, mergeFn=None):
 
         if self._status & RepositoryView.COMMITTING == 0:
-            notifications = RepositoryNotifications()
             try:
                 release = self._acquireExclusive()
                 self._status |= RepositoryView.COMMITTING
@@ -281,12 +279,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                             itemWriter = DBItemWriter(store)
                             for item in self._log:
                                 size += self._saveItem(item, newVersion,
-                                                       itemWriter,
-                                                       notifications)
+                                                       itemWriter)
                             for item in self._deletedRegistry.itervalues():
                                 size += self._saveItem(item, newVersion,
-                                                       itemWriter,
-                                                       notifications)
+                                                       itemWriter)
                             if self.isDirty():
                                 size += self._roots._saveValues(newVersion)
 
@@ -337,23 +333,14 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if release:
                     self._releaseExclusive()
 
-            if len(notifications) > 0:
-                notifications.dispatchHistory(self)
-
-    def _saveItem(self, item, newVersion, itemWriter, notifications):
+    def _saveItem(self, item, newVersion, itemWriter):
 
         if self.isDebug():
             self.logger.debug('saving version %d of %s',
                               newVersion, item.itsPath)
 
-        if item.isDeleted():
-            if item.isNew():
-                return 0
-            notifications.changed(item._uuid, 'deleted')
-        elif item.isNew():
-            notifications.changed(item._uuid, 'added')
-        else:
-            notifications.changed(item._uuid, 'changed')
+        if item.isDeleted() and item.isNew():
+            return 0
                     
         return itemWriter.writeItem(item, newVersion)
 

@@ -18,6 +18,7 @@ def deliverNotifications(view, updates = True):
     # first play back the notification queue
     if not hasattr(view,'notificationQueue'):
         view.notificationQueue = Queue.Queue()
+        view.addNotificationCallback(repositoryViewCallback)
     notificationQueue = view.notificationQueue
     while not notificationQueue.empty():
         (collection, op, item, name, other, args) = notificationQueue.get()
@@ -54,7 +55,20 @@ def mapChangesCallable(item, version, status, literals, references):
     kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
     for i in kc.collections:
         if item in i:
-            i.contentsUpdated (item)
+            i.contentsUpdated(item)
+
+def repositoryViewCallback(view, changes, reason):
+    
+    kc = schema.ns("osaf.pim.collections", view).kind_collections
+    for (uuid, reason, kwds) in changes:
+        item = view.findUUID(uuid)
+        if item is not None and hasattr(item, 'collections'):
+            for i in item.collections:
+                i.contentsUpdated(item)
+
+        for i in kc.collections:
+            if item in i:
+                i.contentsUpdated(item)
 
 class CollectionColors(schema.Item):
     """
@@ -163,6 +177,7 @@ class AbstractCollection(items.ContentItem):
         logger.debug("Collection Changed on %s: %s %s %s %s" % (self, op, item, name, other))
         if not hasattr(self.itsView,'notificationQueue'):
             self.itsView.notificationQueue = Queue.Queue()
+            self.itsView.addNotificationCallback(repositoryViewCallback)
         logger.debug("%s is queuing %s %s" % (self, op, other))
         self.itsView.notificationQueue.put((self, op, item, name, other, args))
 

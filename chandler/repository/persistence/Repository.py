@@ -32,7 +32,6 @@ class Repository(CRepository):
 
         self.dbHome = dbHome
         self._threaded = threading.local()
-        self._notifications = []
         self._openViews = []
 
     def __repr__(self):
@@ -208,42 +207,6 @@ class Repository(CRepository):
         
         return self.view.check()
 
-    def addNotificationCallback(self, fn):
-        """
-        Add a callback to receive repository notifications.
-
-        After a view commits changes successfully, it sends out a number of
-        notifications to the callbacks registered through this method.
-
-        The callback needs to be able to accept the following arguments:
-
-            - a an array of tuples (UUID, reason, kwds)
-              - UUID, representing an item
-              - a string, representing the reason
-              - kwds, an arbitrary C{**kwds} dictionary containing more
-                notification-specific values.
-            - a string, one of C{ItemChanged}, C{CollectionChanged}, or
-              C{History} 
-
-        @param fn: the callback to add
-        @type fn: a python callable
-        """
-
-        self._notifications.append(fn)
-
-    def removeNotificationCallback(self, fn):
-        """
-        Remove a callback to receive repository notifications.
-
-        @param fn: the callback to remove
-        @type fn: a python callable
-        """
-
-        try:
-            return self._notifications.pop(self._notifications.index(fn))
-        except ValueError:
-            return None
-
     def setDebug(self, debug):
 
         if debug:
@@ -316,29 +279,6 @@ class Store(object):
 
     def detachView(self, view):
         pass
-
-
-class RepositoryNotifications(dict):
-
-    def changed(self, uuid, reason, **kwds):
-
-        self[uuid] = (reason, kwds)
-
-    def history(self, uuid, reason, **kwds):
-
-        self[uuid] = (reason, kwds)
-    
-    def dispatchHistory(self, view):
-
-        callbacks = view.repository._notifications
-        if callbacks:
-            changes = []
-            for uuid, (reason, kwds) in self.iteritems():
-                changes.append( (uuid, reason, kwds) )
-            for callback in callbacks:
-                callback(view, changes, 'History')
-
-        self.clear()
 
 
 class RepositoryThread(PyLucene.PythonThread):
