@@ -157,7 +157,21 @@ def initOptions(**kwds):
                               default=defaultValue,
                               help=helpText)
 
-    (options, args) = parser.parse_args()
+    if sys.platform == 'darwin':
+        # [Bug:2464]
+        # On the Mac, double-clicked apps are launched with an extra
+        # argument, '-psn_x_y', where x & y are unsigned integers. This
+        # is used to rendezvous between the launched app and the Window Server.
+        #
+        # We remove it from parser's arguments because it conflicts with
+        # the -p (parcel path) option, overriding the PARCELPATH environment
+        # variable if set.
+        args = [arg for arg in sys.argv[1:] if not arg.startswith('-psn_')]
+        (options, args) = parser.parse_args(args=args)
+    else:
+        (options, args) = parser.parse_args()
+        
+
 
     #XXX: i18n a users home directory can be non-ascii path
     if not options.profileDir:
