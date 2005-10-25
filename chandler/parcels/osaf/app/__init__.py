@@ -241,7 +241,7 @@ def MakeCollections(parcel):
 
     from osaf.pim import (
         KindCollection, ListCollection, FilteredCollection,
-        DifferenceCollection, InclusionExclusionCollection, KindCollection,
+        DifferenceCollection, InclusionExclusionCollection,
         UnionCollection, CollectionColors, IntersectionCollection
     )
     
@@ -317,6 +317,12 @@ def MakeCollections(parcel):
     events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
     events.recursive=True
 
+    locations = \
+       KindCollection.update(parcel, 'locations')
+    # workaround bug 3892
+    locations.kind = pim.Location.getKind(parcel.itsView)
+    locations.recursive = True
+    locations.rep.addIndex('locationName', 'attribute', attribute = 'displayName')
 
     mailCollection = \
          KindCollection.update(parcel, 'mail')

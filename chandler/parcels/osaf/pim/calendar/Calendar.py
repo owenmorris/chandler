@@ -1200,6 +1200,7 @@ class Location(ContentItem):
     )
 
 
+    @classmethod
     def getLocation (cls, view, locationName):
         """
         Factory Method for getting a Location.
@@ -1217,17 +1218,23 @@ class Location(ContentItem):
         # make sure the locationName looks reasonable
         assert locationName, "Invalid locationName passed to getLocation factory"
 
-        # get all Location objects whose displayName match the param
-        for item in Location.iterItems(view, exact=True):
-            if item.displayName == locationName:
-                return item
+        # This introduces a dependence on osaf.app into Location, which is
+        # perhaps not ideal.  If anyone thinks of a better separation of
+        # getLocation and the basic Location Kind, that would be welcome
+        locations = schema.ns('osaf.app', view).locations
 
-        # make a new Location
-        newLocation = Location(view=view)
-        newLocation.displayName = locationName
-        return newLocation
+        def callback(key):
+            return cmp(locationName, view[key].displayName)
+        
+        existing = locations.rep.findInIndex('locationName', 'exact', callback)
+        if existing is not None:
+            return view[existing]
+        else:
+            # make a new Location
+            newLocation = Location(view=view)
+            newLocation.displayName = locationName
+            return newLocation
 
-    getLocation = classmethod (getLocation)
 
 class RecurrencePattern(ContentItem):
     """
