@@ -29,13 +29,35 @@ logger = logging.getLogger(__name__)
 #
 # The attribute editor registration mechanism:
 # For each editor, there's one or more AttributeEditorMapping objects that
-# map a string to the editor classname. Each one maps a differe
+# map a string to the editor classname. Each one maps a different type (and
+# possibly format & readonlyness). The AttributeEditorMapping's constructor
+# makes sure that all the instances are referenced from the 
+# AttributeEditorMappingCollection, which we use to find them at runtime.
 
+class AttributeEditorMappingCollection(schema.Item):
+    editors = schema.Sequence("AttributeEditorMapping", 
+                              inverse="mappingCollection", 
+                              initialValue=[])
+    
 class AttributeEditorMapping(schema.Item):
     className = schema.One(schema.Bytes)
+    mappingCollection = schema.One(AttributeEditorMappingCollection, inverse="editors")
+
+    def __init__(self, *args, **kwds):
+        super(AttributeEditorMapping, self).__init__(*args, **kwds)
+      
+        aeMappings = schema.ns("osaf.framework.attributeEditors", self.itsView).aeMappings
+        # @@@ Hack to work around duplicate item creation..
+        if aeMappings.editors.resolveAlias(self.itsName) is None:
+            aeMappings.editors.append(self, alias=self.itsName)
 
 def installParcel(parcel, oldVersion=None):
     """ Do initial registry of attribute editors """
+
+    # Create our one collection of attribute editor mappings; when each gets
+    # created, its __init__ will add it to this collection automagically.
+    AttributeEditorMappingCollection.update(parcel, "aeMappings")
+    
     # This creates individual AttributeEditor objects, which map
     # a type string (their itsName attribute) to a class name.
     # The resulting AttributeEditor objects are found each runtime using
@@ -68,12 +90,12 @@ def installParcel(parcel, oldVersion=None):
         'Timedelta': 'TimeDeltaAttributeEditor',
         'TimeTransparencyEnum': 'ChoiceAttributeEditor',
     }
-    for typeName, className in aeList.items():
-        AttributeEditorMapping.update(parcel, typeName, className=\
+    for characteristics, className in aeList.items():
+        AttributeEditorMapping.update(parcel, characteristics, 
+                                      className=\
                                       __name__ + '.' + className)
 
 _TypeToEditorInstances = {}
-_TypeToEditorClasses = {}
 
 def getSingleton (typeName):
     """ Get (and cache) a single shared Attribute Editor for this type. """
@@ -102,14 +124,6 @@ def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
 
 def _getAEClass (type, readOnly=False, format=None):
     """ Return the attribute editor class for this type """
-    # Once per run, build a map of type -> class
-    global _TypeToEditorClasses
-    if len(_TypeToEditorClasses) == 0:
-        aeKind = AttributeEditorMapping.getKind(wx.GetApp().UIRepositoryView)
-        for ae in aeKind.iterItems():
-            _TypeToEditorClasses[ae.itsName] = ae.className
-        assert _TypeToEditorClasses['_default'] is not None, "Default AttributeEditorMapping doesn't exist ('_default')"
-            
     # Try several ways to find an appropriate editor:
     # - If we're readOnly, try "+readOnly" before we try without it.
     # - If we have a format, try "+format" before we try without it.
@@ -123,13 +137,17 @@ def _getAEClass (type, readOnly=False, format=None):
         if readOnly:
             yield "%s+readOnly" % type
         yield type
-        logger.warn("AttributeEditors.getAEClass: using %s for %s/%s",
-                    _TypeToEditorClasses['_default'], type, format)
+        logger.warn("AttributeEditors.getAEClass: using _default for %s/%s",
+                    type, format)
         yield "_default"
+
+    uiView = wx.GetApp().UIRepositoryView
+    aeMappings = schema.ns("osaf.framework.attributeEditors", uiView).aeMappings
     classPath = None
     for key in generateEditorTags():
-        classPath = _TypeToEditorClasses.get(key)
-        if classPath is not None:
+        key = aeMappings.editors.resolveAlias(key) # either a UUID or None
+        if key is not None:
+            classPath = aeMappings.editors[key].className
             break
     assert classPath is not None
     
@@ -147,7 +165,12 @@ class BaseAttributeEditor (object):
     def ReadOnly (self, (item, attribute)):
         """ Return True if this Attribute Editor refuses to edit """
         # By default, everything's editable if the item says it is.
-        return not item.isAttributeModifiable(attribute)
+        try:
+            isAttrModifiable = item.isAttributeModifiable
+        except AttributeError:
+            return False
+        else:
+            return not isAttrModifiable(attribute)
 
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         """ Draw the value of the attribute in the specified rect of the dc """
@@ -933,10 +956,14 @@ class StringAttributeEditor (BaseAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         """ Get the attribute's current value """
         try:
-            theValue = unicode(getattr(item, attributeName))
+            theValue = getattr(item, attributeName)
         except AttributeError:
             valueString = u""
         else:
+            if theValue is None:
+                theValue = u""
+            else:
+                theValue = unicode(theValue)
             try:
                 cardinality = item.getAttributeAspect (attributeName, "cardinality")
             except AttributeError:
@@ -1318,10 +1345,9 @@ class LocationAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is a Location. """
     def SetAttributeValue (self, item, attributeName, valueString):
         if not valueString:
-            try:
-                delattr(item, attributeName)
-            except AttributeError:
+            if getattr(item, attributeName, None) is None:
                 return # no change
+            setattr(item, attributeName, None)
         else:
             # lookup an existing item by name, if we can find it, 
             newValue = Calendar.Location.getLocation (item.itsView, valueString)

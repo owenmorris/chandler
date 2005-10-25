@@ -767,6 +767,23 @@ class Block(schema.Item):
     profileEvents = False        # Make "True" to profile events
     __profilerActive = False       # to prevent reentrancy, if the profiler is currently active
     __profiler = None              # The hotshot profiler
+
+def debugName(thing):
+    """
+    Debug method to get a useful name for this thing, which can be a 
+    block or a widget, to use in a logging message.      
+    """
+    if thing is None:
+        return '(None)'
+    
+    if isinstance(thing, Block):
+        return getattr(thing, 'blockName', '(unnamed %s)' % thing.__class__.__name__)
+    
+    blockItem = getattr(thing, 'blockItem', None)
+    if blockItem is not None:
+        return '%s on %s' % (thing.__class__.__name__, debugName(blockItem))
+    
+    return '(unknown)'
     
     
 class ShownSynchronizer(object):

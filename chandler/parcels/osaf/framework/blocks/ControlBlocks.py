@@ -1887,11 +1887,19 @@ class AEBlock(BoxContainer):
         return selectedEditor
 
     def isReadOnly(self, item, attributeName):
-        # This used to be this (but I want to be more verbose when debugging for now):
-        # return self.readOnly or not item.isAttributeModifiable(attributeName)
-        if self.readOnly: return True
+        # Return true if this presentation is always supposed to be readonly
+        if self.readOnly: 
+            return True
         
-        result = not item.isAttributeModifiable(attributeName)
+        # Return true if the content model says this attribute should be R/O
+        # (we might not be editing an item, so we check the method presence)
+        try:
+            isAttrModifiable = item.isAttributeModifiable
+        except AttributeError:
+            result = False
+        else:
+            result = not isAttrModifiable(attributeName)
+
         #logger.debug("AEBlock: %s %s readonly", attributeName,
                      #result and "is" or "is not")
         return result
