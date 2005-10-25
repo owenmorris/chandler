@@ -767,9 +767,9 @@ class CollectionBlock(Block.RectangularChild):
         return len(self.contents) > 0
 
     def DeleteSelection(self):
-        self.ClearSelection()
         for item in self.selection:
             item.removeFromCollection(self.contents.collectionList[0])
+        self.ClearSelection()
 
     def ClearSelection(self):
         self.selection = []
