@@ -1038,25 +1038,16 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             drawDayLine(dayNum)
 
 
-    def CreateEmptyEvent(self, startTime, duration, allDay, anyTime):	
+    def CreateEmptyEvent(self, **initialValues):
         """	
         shared routine to create an event, using the current view	
         also forces consumers to specify important fields	
         """	
-        view = self.blockItem.itsView	
-        event = Calendar.CalendarEvent(view=view, startTime=startTime, duration=duration)
+        view = self.blockItem.itsView
+
+        event = Calendar.CalendarEvent(view=view, **initialValues)
         event.InitOutgoingAttributes()	
        
-        # start time is "optional" - callers still must specify None	
-        # to be explicit that they want the default time	
-        if startTime is not None:
-            event.startTime = startTime
-        if duration is not None:
-            event.duration = duration
-            
-        event.allDay = allDay	
-        event.anyTime = anyTime
-        
         # collectionList[0] is the currently selected collection
         self.blockItem.contents.collectionList[0].add (event)
         
@@ -1346,7 +1337,9 @@ class CalendarContainer(BoxContainer):
             timedEventsCanvas = timedEventsBlock.widget
     
             startTime, duration = timedEventsCanvas.GetNewEventTime()
-            newEvent = timedEventsCanvas.CreateEmptyEvent(startTime, duration, False, False)
+            newEvent = timedEventsCanvas.CreateEmptyEvent(startTime=startTime,
+                                                          duration=duration,
+                                                          anyTime=False)
             
             # return the list of items created
             return [newEvent]

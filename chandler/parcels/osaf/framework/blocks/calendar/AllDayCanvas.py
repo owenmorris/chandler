@@ -361,19 +361,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     def OnCreateItem(self, unscrolledPosition):
         view = self.blockItem.itsView
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        event = Calendar.CalendarEvent(view=view)
-        event.InitOutgoingAttributes()
         
-        startTimetz = time(hour=event.startTime.hour,
-                        minute=event.startTime.minute,
-                        tzinfo=ICUtzinfo.getDefault())
-        event.startTime = datetime.combine(newTime, startTimetz)
-        event.duration = timedelta(hours=1)
-        event.allDay = True
-        event.anyTime = False
+        event = self.CreateEmptyEvent(startTime=newTime, allDay=True, anyTime=False)
 
         # collectionList[0] is the currently selected collection
-        event.addToCollection(self.blockItem.contents.collectionList[0])
         self.OnSelectItem(event)
         view.commit()
         return event

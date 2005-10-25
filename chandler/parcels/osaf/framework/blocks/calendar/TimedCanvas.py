@@ -348,12 +348,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.Refresh()
 
     def OnCreateItem(self, unscrolledPosition):
-        # @@@ this code might want to live somewhere else, refactored
         
         # if a region is selected, then use that for the event span
         newTime, duration = self.GetNewEventTime(unscrolledPosition)
             
-        event = self.CreateEmptyEvent(newTime, duration, False, False)
+        event = self.CreateEmptyEvent(startTime=newTime, duration=duration, anyTime=False)
 
         # now try to insert the event onto the canvas without too many
         # redraws, and allow the user to start dragging if they are

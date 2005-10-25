@@ -453,11 +453,15 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                                   event.ControlDown() or event.CmdDown())
             
         elif event.LeftUp():
-            self.SetPanelFocus()
             # we need to make sure we have a  dragState, because we
             # sometimes get extra LeftUp's if the user does a
             # double-click and drag
             if self.dragState:
+                
+                # We want to set focus only if a drag isn't in progress
+                if not self.dragState._dragStarted:
+                    self.SetPanelFocus()
+                    
                 self.dragState.HandleDragEnd()
                 self.dragState = None
 

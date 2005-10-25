@@ -249,11 +249,13 @@ class CalendarEventMixin(RemindableMixin):
         """
         # start at the nearest half hour, duration of an hour
         now = datetime.now(ICUtzinfo.getDefault())
-        self.startTime = datetime.combine(now,
-                                  time(hour=now.hour,
-                                       minute=((now.minute/30) * 30),
-                                       tzinfo=now.tzinfo))
-        self.duration = timedelta(hours=1)
+        if not self.hasLocalAttributeValue('startTime'):
+            self.startTime = datetime.combine(now,
+                                              time(hour=now.hour,
+                                                   minute=((now.minute/30) * 30),
+                                                   tzinfo=now.tzinfo))
+        if not self.hasLocalAttributeValue('duration'):
+            self.duration = timedelta(hours=1)
 
         # set the organizer to "me"
         self.organizer = schema.ns("osaf.app", self.itsView).currentContact.item
