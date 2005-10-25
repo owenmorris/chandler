@@ -36,6 +36,7 @@ class TestLogger:
                 print "Unable to open file %s" % filepath
                 print "log report in default_test.log"
                 self.File = open("default_test.log", 'a')
+            print "log file is:%s" % filepath
         else:
             self.inTerminal = True
         # new testcase inits
