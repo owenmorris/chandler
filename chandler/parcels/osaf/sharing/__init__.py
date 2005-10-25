@@ -433,6 +433,9 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                                               shareName=shareName,
                                               account=account)
             share.mode = "get"
+            share.filterClasses = \
+                ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
+
             if updateCallback:
                 updateCallback(msg=_(u"Subscribing to calendar..."))
 
