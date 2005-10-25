@@ -228,12 +228,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return index+1
         
     def CanDrag(self):
-        item = self.GetItem()
+        item = self.GetItem().getMaster()
         return (item.isAttributeModifiable('startTime') and
                 item.isAttributeModifiable('duration'))
 
     def CanChangeTitle(self):
-        item = self.GetItem()
+        item = self.GetItem().getMaster()
         return item.isAttributeModifiable('displayName')
     
     def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
