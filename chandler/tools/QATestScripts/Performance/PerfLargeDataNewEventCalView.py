@@ -66,7 +66,6 @@ ev = testView.DoubleClickInCalView()
 #check the detail view of the created event
 ev.Check_DetailView({"displayName":"New Event"})
 
-
 #logger.SetChecked(True)
 #logger.Report("Import")
 logger.Close()
