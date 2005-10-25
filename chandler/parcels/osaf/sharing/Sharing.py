@@ -1731,9 +1731,23 @@ class SimpleHTTPConduit(WebDAVConduit):
         self._get(updateCallback=updateCallback)
 
     def _get(self, updateCallback=None):
-        self.connect()
+
+        # @@@MOR: we need to have importProcess return stats about what it did.
+        # Otherwise, since this is a monolithic .ics file, we don't know the
+        # details other than we either fetched the .ics file or we didn't
+        stats = {
+            'share' : self.itsUUID,
+            'op' : 'get',
+            'added' : [],
+            'modified' : [],
+            'removed' : []
+        }
 
         location = self.getLocation()
+        if updateCallback and updateCallback(msg=_(u"Checking for update: '%s'") % location):
+            raise SharingError(_(u"Cancelled by user"))
+
+        self.connect()
         logger.info("Starting GET of %s" % (location))
         extraHeaders = { }
         if self.lastModified:
@@ -1747,8 +1761,14 @@ class SimpleHTTPConduit(WebDAVConduit):
 
             if resp.status == twisted.web.http.NOT_MODIFIED:
                 # The remote resource is as we saw it before
+                if updateCallback and updateCallback(msg=_(u"Not modified")):
+                    raise SharingError(_(u"Cancelled by user"))
                 logger.info("...not modified")
-                return
+                return stats
+
+            if updateCallback and updateCallback(msg=_(u"Fetching: '%s'") %
+                location):
+                raise SharingError(_(u"Cancelled by user"))
 
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
@@ -1763,6 +1783,8 @@ class SimpleHTTPConduit(WebDAVConduit):
             raise NotAllowed(message)
 
         logger.info("...received; processing...")
+        if updateCallback and updateCallback(msg=_(u"Processing: '%s'") % location):
+            raise SharingError(_(u"Cancelled by user"))
 
         try:
             text = resp.body
@@ -1779,6 +1801,8 @@ class SimpleHTTPConduit(WebDAVConduit):
         lastModified = resp.headers.getHeader('Last-Modified')
         self.lastModified = lastModified[-1]
         logger.info("...imported, new last modified: %s" % self.lastModified)
+
+        return stats
 
     def put(self):
         logger.info("'put( )' not support in SimpleHTTPConduit")
