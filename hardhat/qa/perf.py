@@ -212,7 +212,7 @@ def platforms2GraphData(platforms, acceptable):
             plats += ('osx',)
             revs.extend(osAvgs['osx'].keys())
             break
-    for value in osAvgs['win'].itervalues():
+    for value in osAvgs['linux'].itervalues():
         if value is not None:
             plats += ('linux',)
             revs.extend(osAvgs['linux'].keys())
@@ -248,6 +248,11 @@ def colorDelta(current, prev, stdDev):
     >>> colorDelta(1, 1.05, 0.1)
     'ok'
     
+    Previous run had no result (0), so no coloring:
+    
+    >>> colorDelta(1, 0.0, 0.01)
+    'ok'
+    
     Significant improvement:
     
     >>> colorDelta(1, 2, 0.01)
@@ -263,6 +268,9 @@ def colorDelta(current, prev, stdDev):
     >>> colorDelta(1.05, 1, 0.01)
     'warn'
     """
+    if prev == 0:
+        return 'ok'
+    
     delta = prev - current
     
     if delta - stdDev > 0:
