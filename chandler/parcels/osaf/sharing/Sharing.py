@@ -97,6 +97,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
         marker = shares[0].conduit.marker
 
     # Make main view changes available for sharing
+    if updateCallback:
+        updateCallback(msg=_(u"Saving changes..."))
     view.commit()
 
     stats = []
@@ -134,6 +136,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
             # perform the 'get' operations of all associated shares, applying
             # remote changes locally
             contents = None
+            filterClasses = None
             for share in workingShares:
                 if share.active and share.mode in ('get', 'both'):
                     if contents:
@@ -141,12 +144,19 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                         # resulting contents from the first Share and hand that
                         # to the remaining Shares:
                         share.contents = contents
+                    if filterClasses is not None:
+                        # like 'contents' above, the filterClasses of a master
+                        # share needs to be replicated to the slaves:
+                        share.filterClasses = filterClasses
                     stat = share.conduit._get(updateCallback=updateCallback)
                     stats.append(stat)
                     contents = share.contents
+                    filterClasses = share.filterClasses
 
         if merging:
             # Pull in local changes from main view
+            if updateCallback:
+                updateCallback(msg=_(u"Merging local changes..."))
             sharingView.refresh(mergeFunction)
 
         if not modeOverride or modeOverride == 'put':
@@ -160,6 +170,9 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
         for share in workingShares:
             share.conduit.marker.setDirty(Item.NDIRTY)
+
+        if updateCallback:
+            updateCallback(msg=_(u"Saving changes..."))
 
         if merging:
             # Make remote changes available to main view
