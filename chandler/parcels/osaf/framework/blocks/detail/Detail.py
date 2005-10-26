@@ -330,13 +330,24 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
     
     def _getSubtrees(self):
         """
-        Get a list of mappings from kind to subtree; by default, we generate it once at startup
+        Get a list of mappings from kind to subtree
         """
-        try:
-            subtrees = self.subtreeList
-        except AttributeError:
-            subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
-            self.subtreeList = subtrees
+        # @@@ Note: we used to cache this here, but when we started
+        # caching prebuilt detail views from detailblocks' installParcel, 
+        # this list was getting built & cached before all parcels had been
+        # loaded, so some subtrees weren't put into the list -- this broke
+        # all the non-PIM items (flickr, feeds, amazon), bug 4433.
+        # For now, we're going to iterItems every time we need the 
+        # list; if this isn't performant, we'll build a refcollection at 
+        # installParcel time and add an __init__ DetailTrunkSubtree to 
+        # add all new ones to the refcollection (Andi says this would be faster).
+        #try:
+            #subtrees = self.subtreeList
+        #except AttributeError:
+            #subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
+            #self.subtreeList = subtrees
+        
+        subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
         return subtrees
         
 class DetailSynchronizer(Item):
