@@ -547,7 +547,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 ticket=ticket)
 
         try:
-            share.sync(updateCallback=updateCallback)
+            share.sync(updateCallback=updateCallback, modeOverride='get')
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -610,7 +610,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             if subShare is not None:
                 share.follows = subShare
 
-            share.sync(updateCallback=updateCallback)
+            share.sync(updateCallback=updateCallback, modeOverride='get')
 
             if subShare is not None:
                 # If this is a partial share, we need to store that fact
