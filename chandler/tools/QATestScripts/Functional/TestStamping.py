@@ -1,35 +1,34 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
-
-filePath = os.getenv('CATSREPORTDIR')
-if not filePath:
-    filePath = os.getcwd()
 
 #initialization
 fileName = "TestStamping.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestStamping")
-note = QAUITestAppLib.UITestItem("Note", logger)
+logger = QAUITestAppLib.QALogger(fileName, "TestStamping")
 
-#action
-#stamp as a mail
-note.StampAsMailMessage(True)
-#verification
-note.Check_DetailView({"stampMail":True,"stampTask":False, "stampEvent":False})
-#stamp as a task
-note.StampAsTask(True)
-#stamp as an event
-note.StampAsCalendarEvent(True)
-#verification
-note.Check_DetailView({"stampMail":True,"stampTask":True, "stampEvent":True})
-#remove all stamp
-note.logger.Start("Remove all stamps")
-note.StampAsCalendarEvent(False, timeInfo=False)
-note.StampAsTask(False, timeInfo=False)
-note.StampAsMailMessage(False, timeInfo=False)
-note.logger.Stop()
+try:
+    # creation
+    note = QAUITestAppLib.UITestItem("Note", logger)
+    
+    # action
+    # stamp as a mail
+    note.StampAsMailMessage(True)
+    # verification
+    note.Check_DetailView({"stampMail":True,"stampTask":False, "stampEvent":False})
+    # stamp as a task
+    note.StampAsTask(True)
+    # stamp as an event
+    note.StampAsCalendarEvent(True)
+    # verification
+    note.Check_DetailView({"stampMail":True,"stampTask":True, "stampEvent":True})
+    # remove all stamps
+    note.logger.Start("Remove all stamps")
+    note.StampAsCalendarEvent(False, timeInfo=False)
+    note.StampAsTask(False, timeInfo=False)
+    note.StampAsMailMessage(False, timeInfo=False)
+    note.logger.Stop()
+    
+    # verification
+    note.Check_DetailView({"stampMail":False,"stampTask":False, "stampEvent":False})
 
-#verification
-note.Check_DetailView({"stampMail":False,"stampTask":False, "stampEvent":False})
-
-#cleaning
-logger.Close()
+finally:
+    # cleaning
+    logger.Close()

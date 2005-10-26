@@ -8,6 +8,9 @@ import application.Globals as Globals
 import wx
 import string
 import osaf.framework.scripting as scripting
+import osaf.sharing.ICalendar as ICalendar
+import os
+import sys
 
 #Global AppProxy instance
 App_ns = scripting.app_ns()
@@ -1080,11 +1083,32 @@ class UITestAccounts:
 
 
 class UITestView:
-    def __init__(self, logger):
+    def __init__(self, logger, environmentFile=None):
         self.logger = logger
         self.view = App_ns.itsView
         #get the current view state
         self.state = self.GetCurrentState()
+
+        # setup the test environment if an environment file was specified
+        if environmentFile is not None:
+            path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
+            #Upcast path to unicode since Sharing requires a unicode path
+            path = unicode(path, sys.getfilesystemencoding())
+            share = Sharing.Sharing.OneTimeFileSystemShare(path, 
+                            environmentFile, 
+                            ICalendar.ICalendarFormat, 
+                            view=App_ns.itsView)
+            try:
+                collection = share.get()
+            except:
+                logger.Stop()
+                logger.ReportFailure("Importing calendar: exception raised")
+            else:
+                App_ns.sidebarCollection.add(collection)
+                wx.GetApp().Yield()
+                ev = wx.IdleEvent()
+                wx.GetApp().ProcessEvent(ev)
+                logger.ReportPass("Importing calendar")
 
     def GetCurrentState(self):
         """
@@ -1163,7 +1187,7 @@ class UITestView:
         #report the checkings
         self.logger.Report("View")
         
-    def DoubleClickInCalView(self, x=300, y=100):
+    def DoubleClickInCalView(self, x=100, y=100, gotoTestDate=True):
         """
         Emulate a double click in the calendar a the given position
         @type x : int
@@ -1172,6 +1196,14 @@ class UITestView:
         @param y : the y coordinate
         """
         if self.state == "CalendarView":
+            # move to a known date, otherwise we'll just be operating
+            #  on whatever shows up on Today's calendar
+            if gotoTestDate:
+                if gotoTestDate is True:
+                    # True sends us to the default test date
+                    gotoTestDate = datetime(2005, 12, 24) # Dec has some free days
+                App_ns.root.SelectedDateChanged(start=gotoTestDate)
+
             self.timedCanvas = App_ns.TimedEvents
             canvasItem = None
             #process the corresponding event

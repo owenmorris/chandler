@@ -1,20 +1,19 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
 
-filePath = os.getenv('CATSREPORTDIR')
-if not filePath:
-    filePath = os.getcwd()
-    
-#initialization
+# initialization
 fileName = "TestDeleteCollection.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestDeleteCollection")
+logger = QAUITestAppLib.QALogger(fileName, "TestDeleteCollection")
 
-#actions
-col = QAUITestAppLib.UITestItem("Collection", logger)
-col.DeleteCollection()
-#verification
-col.Check_CollectionExistance(expectedResult=False)
+try:
+    # creation
+    col = QAUITestAppLib.UITestItem("Collection", logger)
 
+    # action
+    col.DeleteCollection()
 
-#cleaning
-logger.Close()
+    # verification
+    col.Check_CollectionExistance(expectedResult=False)
+
+finally:
+    #cleaning
+    logger.Close()

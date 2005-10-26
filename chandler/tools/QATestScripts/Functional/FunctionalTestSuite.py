@@ -5,15 +5,11 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 import os
 
-filePath = os.getenv('CATSREPORTDIR')
 functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/Functional")
-if not filePath:
-    filePath = os.getcwd()
-
 
 #initialization
 fileName = "FunctionalTestSuite.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"FunctionalTestSuite")
+logger = QAUITestAppLib.QALogger(fileName,"FunctionalTestSuite")
 
 #actions
 execfile(os.path.join(functional_dir,"TestCreateAccounts.py"))

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 import time
 import string
 import version
@@ -6,13 +7,18 @@ import application.Globals as Globals
 import osaf.framework.scripting as scripting
 import hotshot
 
-def QALogger(filepath=None,description="No description"):
+def QALogger(fileName=None, description="No description"):
     ''' Factory method for QALogger '''
     qaLogger = getattr(TestLogger, 'logger', None)
     if qaLogger is None:
         # never created, or already destructed by Close()
-        return TestLogger(filepath=filepath,description=description)
+        filePath = os.getenv('CATSREPORTDIR')
+        if not filePath:
+            filePath = os.getcwd()
+        filePath = os.path.join(filePath, fileName)
+        return TestLogger(filepath=filePath, description=description)
     else:
+        # reinitialize existing logger
         qaLogger.toClose = False
         qaLogger.Print("")
         qaLogger.Print("----- Testcase %s = %s -----" %(len(qaLogger.testcaseList)+1, description))
@@ -112,7 +118,7 @@ class TestLogger:
         #report the timing information
         self.Print("Action = "+self.actionDescription)
         if self.actionStartDate == None: # Start method has not been called
-            self.Print("!!! No time information available !!!")
+            self.Print("!!! No timing information available !!!")
         else:
             elapsed = self.actionEndDate - self.actionStartDate
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
@@ -127,7 +133,7 @@ class TestLogger:
                     catsPerfLog.write("%s\n" % elapsed_secs)
                 finally:
                     catsPerfLog.close()
-        #reset timing infos
+        #reset timing info
         self.actionStartDate = self.actionEndDate = None
         
     def Report(self,description="Unknown"):
@@ -218,7 +224,7 @@ class TestLogger:
                 #Test case status
                 self.Print("Status : %s testcase %s" %(self.mainDescription, status))
 
-            # Tindebox printing
+            # Tinderbox printing
             # compute the elapsed time in seconds
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
             description = string.join(string.split(self.mainDescription, " "), "_")
@@ -226,7 +232,8 @@ class TestLogger:
             self.Print("#TINDERBOX# Testname = %s" %description)    
             self.Print("#TINDERBOX# Status = %s" %status)
             self.Print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
-            self.PrintTBOX(elapsed)
+            if status == "PASSED":
+                self.PrintTBOX(elapsed)
             self.Print("")
             self.Print("*******               End of Report               *******")
             print("#TINDERBOX# Testname = %s" %description)    
@@ -257,7 +264,8 @@ class TestLogger:
             self.Print("Time Elapsed = %s seconds" % elapsed_secs)
             self.Print("Testcase Name= %s" %self.subTestcaseDesc)
             self.Print("Testcase Status = %s" %status)
-            self.PrintTBOX(elapsed, "Testcase")
+            if status == "PASSED":
+                self.PrintTBOX(elapsed, "Testcase")
             # new testcase inits
             self.Reset()
             

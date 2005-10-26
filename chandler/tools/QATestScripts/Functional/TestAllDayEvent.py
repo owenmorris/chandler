@@ -1,21 +1,20 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
 
-filePath = os.getenv('CATSREPORTDIR')
-if not filePath:
-    filePath = os.getcwd()
-
-#initialization
+# initialization
 fileName = "TestAllDayEvent.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestAllDayEvent")
-event = QAUITestAppLib.UITestItem("Event", logger)
+logger = QAUITestAppLib.QALogger(fileName,"TestAllDayEvent")
 
-#action
-event.SetAllDay(True)
+try:
+    # creation
+    event = QAUITestAppLib.UITestItem("Event", logger)
 
-#verification
-event.Check_DetailView({"allDay":True})
-event.Check_Object({"allDay":True})
+    # action
+    event.SetAllDay(True)
+    
+    # verification
+    event.Check_DetailView({"allDay":True})
+    event.Check_Object({"allDay":True})
 
-#cleaning
-logger.Close()
+finally:
+    # cleaning
+    logger.Close()

@@ -1,20 +1,16 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
 
-filePath = os.getenv('CATSREPORTDIR')
-if not filePath:
-    filePath = os.getcwd()
-    
-#initialization
+# initialization
 fileName = "PerfNewCalendar.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Test New Calendar for performance")
+logger = QAUITestAppLib.QALogger(fileName, "Test New Calendar for performance")
 
-#action
-col = QAUITestAppLib.UITestItem("Collection", logger)
-
-#action
-col.Check_CollectionExistance("Untitled")
-
-
-#cleaning
-logger.Close()
+try:
+    # action
+    col = QAUITestAppLib.UITestItem("Collection", logger)
+    
+    # verfication
+    col.Check_CollectionExistance("Untitled")
+    
+finally:
+    # cleaning
+    logger.Close()

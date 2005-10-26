@@ -1,20 +1,16 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
-
-filePath = os.getenv('CATSREPORTDIR')
-if not filePath:
-    filePath = os.getcwd()
 
 #initialization
 fileName = "PerfNewEventFileMenu.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"New Event from File Menu for Performance")
+logger = QAUITestAppLib.QALogger(fileName, "New Event from File Menu for Performance")
 
-#action
-event = QAUITestAppLib.UITestItem("Event", logger)
-
-#verification
-event.Check_DetailView({"displayName":"New Event"})
-
-
-#cleaning
-logger.Close()
+try:
+    #action
+    event = QAUITestAppLib.UITestItem("Event", logger)
+    
+    #verification
+    event.Check_DetailView({"displayName":"New Event"})
+    
+finally:
+    #cleaning
+    logger.Close()
