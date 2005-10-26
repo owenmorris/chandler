@@ -14,7 +14,7 @@
 NO_ARGS=0 
 E_OPTERROR=65
 
-USAGE="Usage: `basename $0` [-fpu] [-t test_name] chandler-base-path"
+USAGE="Usage: `basename $0` -fpu [-t test_name] chandler-base-path"
 
 if [ ! -n "$1" ]; then
     echo $USAGE
@@ -110,36 +110,42 @@ done
 if [ -n "$TEST_TO_RUN" ]; then
     DIRS=`find $C_DIR -name $TEST_TO_RUN -print`
 
-    for mode in $MODES ; do
-        echo Running $mode | tee -a $TESTLOG
+    if [ "$DIRS" = "" ]; then
+        echo "Error: The test(s) you requested were not found:" ["$TEST_TO_RUN"]
+        FAILED_TESTS="$TEST_TO_RUN"
+    else
+        for mode in $MODES ; do
+            echo Running $mode | tee -a $TESTLOG
 
-        for test in $DIRS ; do
-            if [ "$OSTYPE" = "cygwin" ]; then
-                TESTNAME=`cygpath -w $test`
-            else
-                TESTNAME=$test
-            fi
+            for test in $DIRS ; do
+                if [ "$OSTYPE" = "cygwin" ]; then
+                    TESTNAME=`cygpath -w $test`
+                else
+                    TESTNAME=$test
+                fi
 
-            echo Running $TESTNAME | tee -a $TESTLOG
+                echo Running $TESTNAME | tee -a $TESTLOG
 
-            cd $C_DIR
+                cd $C_DIR
 
-            if echo "$TESTNAME" | grep -q "QATestScripts/" ; then
-                $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
-                SUCCESS="#TINDERBOX# Status = PASSED"
-            else
-                $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
-                SUCCESS="^OK"
-            fi
+                if echo "$TESTNAME" | grep -q "QATestScripts/" ; then
+                    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                    SUCCESS="#TINDERBOX# Status = PASSED"
+                else
+                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
+                    SUCCESS="^OK"
+                fi
 
-            echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
-            cat $C_DIR/test.log | tee -a $TESTLOG
+                echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
+                cat $C_DIR/test.log | tee -a $TESTLOG
 
-            if echo "$SUCCESS" | grep $C_DIR/test.log ; then
-                FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
-            fi
+                RESULT=`echo "$SUCCESS" | grep $C_DIR/test.log`
+                if [ "$RESULT" = "" ]; then
+                    FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
+                fi
+            done
         done
-    done
+    fi
 else
     if [ "$RUN_UNIT" = "yes" ]; then
         DIRS=`find $C_DIR -type d -name tests -print`
@@ -193,7 +199,7 @@ else
                     echo $TESTNAME [$RESULT] | tee -a $TESTLOG
                     cat $C_DIR/test.log      | tee -a $TESTLOG
 
-                    if [ "$RESULT" != "OK" ]; then
+                    if [ "$RESULT" = "" ]; then
                         FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
                     fi
                 done
@@ -216,11 +222,16 @@ else
                 TESTNAME=$test
                 P_DIR=$C_DIR
             fi
+            if [ "$mode" = "debug" ]; then
+                STDERR_FLAG="--stderr"
+            else
+                STDERR_FLAG=""
+            fi
 
             echo Running $TESTNAME | tee -a $TESTLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --stderr --scriptFile="$TESTNAME" &> $C_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create $STDERR_FLAG --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
@@ -229,7 +240,7 @@ else
             echo $TESTNAME [$RESULT] | tee -a $TESTLOG
             cat $C_DIR/test.log      | tee -a $TESTLOG
 
-            if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+            if [ "$RESULT" = "" ]; then
                 FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
             fi
         done
@@ -264,7 +275,7 @@ else
             echo $TESTNAME [$RESULT] | tee -a $TESTLOG
             cat $C_DIR/test.log      | tee -a $TESTLOG
 
-            if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+            if [ "$RESULT" = "" ]; then
                 FAILED_TESTS="$FAILED_TESTS $TESTNAME"
             fi
         done
@@ -273,12 +284,12 @@ fi
 
 echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $TESTLOG
 
-if [ -n "$FAILED_TESTS" ]; then
+if [ "$FAILED_TESTS" = "" ]; then
+    echo All tests passed | tee -a $TESTLOG
+else
     echo The following tests failed | tee -a $TESTLOG
 
     for item in $FAILED_TESTS ; do
         echo "    $item" | tee -a $TESTLOG
     done
-else
-    echo All tests passed | tee -a $TESTLOG
 fi
