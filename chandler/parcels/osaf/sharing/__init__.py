@@ -589,6 +589,10 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
         else:
             subShare = None
+            # Since this is strictly a CalDAV collection, set the filter
+            # appropriately:
+            share.filterClasses = \
+                ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
 
         share = Share(view=view)
         share.mode = shareMode
