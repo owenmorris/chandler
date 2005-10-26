@@ -293,23 +293,26 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
 
     for test in $TESTS ; do
+        TESTNAME=$test
+        P_DIR=$C_DIR
         if [ "$OSTYPE" = "cygwin" ]; then
-            TESTNAME=`cygpath -w $test`
-            P_DIR=`cygpath -w $C_DIR`
-        else
-            TESTNAME=$test
-            P_DIR=$C_DIR
+            TESTNAME=`cygpath -w $TESTNAME`
+            P_DIR=`cygpath -w $P_DIR`
         fi
 
         echo Running $TESTNAME | tee -a $BUILDLOG
 
         cd $C_DIR
-        
-        for run in $RUNS ; do
-            $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$T_DIR/time$run.log" --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
-			echo `<"$T_DIR/time$run.log"` | tee -a $BUILDLOG
+
+        for run in $RUNS ; do 
+            T_LOG="$T_DIR/time$run.log"
+            if [ "$OSTYPE" = "cygwin" ]; then
+                T_LOG=`cygpath -w $T_LOG`
+            fi
+            $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+            echo `<"$T_LOG"` | tee -a $BUILDLOG
         done
-        
+
         # Pick the median
         MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
         for run in $RUNS ; do
@@ -318,7 +321,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
                 break
             fi
         done
-        
+
           # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
         RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
 
