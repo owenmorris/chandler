@@ -340,9 +340,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     availableSpace = timeHeight*2 + timeBottomMargin + \
                                      self.textOffset.y*2
                     if (availableSpace < itemRect.height):
-                        timeRect = wx.Rect(x, y, width, timeHeight)
+                        timeRect = (x, y, width, timeHeight)
                         
-                        dc.SetFont(styles.eventTimeFont)	
+                        dc.SetFont(styles.eventTimeFont)
                         self.timeHeight = \
                             DrawWrappedText(dc, timeString, timeRect)
 
@@ -362,10 +362,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # drawing the time	
                 lostHeight = y - itemRect.y                        
        
-                # now draw the text of the event	
-                textRect = wx.Rect(x, y,	
-                                   width,	
-                                   itemRect.height - lostHeight - self.textOffset.y)
+                # now draw the text of the event
+                textRect = (x,y,width,
+                            itemRect.height - lostHeight - self.textOffset.y)
        
                 dc.SetFont(styles.eventLabelFont)
                 if selected:

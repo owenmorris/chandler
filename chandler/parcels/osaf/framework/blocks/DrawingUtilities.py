@@ -66,47 +66,39 @@ def DrawWrappedText(dc, text, rect):
     returns the height of the text that was written
     """
     
-    result = [] #what's this supposed to do? is unused -brendano
-    
-    lines = text.splitlines()
-    y = rect.y
-    totalHeight = 0
     ignored, lineHeight = dc.GetTextExtent('M') #in case there are no words in the line
-    assert rect.height >= lineHeight, "Don't have enough room to write anything (have %d, need %d)" % (rect.height, lineHeight)
-    for line in lines:
-        x = rect.x
-        wrap = 0
-        height = lineHeight
+    spaceWidth, ignored = dc.GetTextExtent(' ')
+    (rectX, rectY, rectWidth, rectHeight) = rect
+    y = rectY
+    rectRight = rectX + rectWidth
+    rectBottom = rectY + rectHeight
+    assert rectHeight >= lineHeight, "Don't have enough room to write anything (have %d, need %d)" % (rectHeight, lineHeight)
+    for line in text.splitlines():
+        x = rectX
         for word in line.split():
-            width, height = dc.GetTextExtent(word)
+            width, ignored = dc.GetTextExtent(word)
 
-            # first see if we want to jump to the next line
-            # (careful not to jump if we're already at the beginning of the line)
-            if (x != rect.x and x + width > rect.x + rect.width):
-                y += height
-                totalHeight += height
-                x = rect.x
-            
-            # if we're out of vertical space, just return
-            if (y + height > rect.y + rect.height):
-                return totalHeight
-               
             # if we wrapped but we still can't fit the word,
             # just truncate it    
-            if (x == rect.x and width > rect.width):
-                DrawClippedText(dc, word, x, y, rect.width, width)
-                y += height
-                totalHeight += height
+            if (width > rectWidth and x == rectX):
+                DrawClippedText(dc, word, x, y, rectWidth, width)
+                y += lineHeight
                 continue
+
+            # see if we want to jump to the next line
+            if (x + width > rectRight):
+                y += lineHeight
+                x = rectX
             
-            dc.DrawText(word, x, y)
-            x += width
-            width, height = dc.GetTextExtent(' ')
-            dc.DrawText(' ', x, y)
-            x += width
-        totalHeight += height
-        y += height
-    return totalHeight
+            # if we're out of vertical space, just return
+            if (y + lineHeight > rectBottom):
+                return y - rectY # total height
+            
+            wordWithSpace = word + ' '
+            dc.DrawText(wordWithSpace, x, y)
+            x += width + spaceWidth
+        y += lineHeight
+    return y - rectY # total height
 
 
 def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
