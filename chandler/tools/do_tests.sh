@@ -220,7 +220,7 @@ else
             echo Running $TESTNAME | tee -a $TESTLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --stderr --scriptFile="$TESTNAME" &> $C_DIR/test.log
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
