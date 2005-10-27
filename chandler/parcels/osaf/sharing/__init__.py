@@ -76,6 +76,24 @@ def installParcel(parcel, old_version=None):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+class ProgressMonitor:
+
+    def __init__(self, totalWork, callback):
+        self.totalWork = totalWork
+        self.updateCallback = callback
+        self.workDone = 0
+
+    def callback(self, msg=None, work=None):
+        if work is True:
+            self.workDone += 1
+            percent = int(self.workDone * 100 / self.totalWork)
+        else:
+            percent = None
+
+        return self.updateCallback(msg, percent)
+
+
+
 def publish(collection, account, classesToInclude=None,
             attrsToExclude=None, displayName=None, updateCallback=None):
     """
@@ -104,6 +122,18 @@ def publish(collection, account, classesToInclude=None,
                            callback returns True, the publishing operation
                            will stop
     """
+
+    try:
+        totalWork = len(collection)
+    except TypeError: # Some collection classes don't support len( )
+        totalWork = len(list(collection))
+
+    if updateCallback:
+        progressMonitor = ProgressMonitor(totalWork, updateCallback)
+        callback = progressMonitor.callback
+    else:
+        progressMonitor = None
+        callback = None
 
     view = collection.itsView
 
@@ -170,7 +200,7 @@ def publish(collection, account, classesToInclude=None,
             shares.append(share)
             share.displayName = collection.displayName
 
-            share.sync(updateCallback=updateCallback)
+            share.sync(updateCallback=callback)
 
         else:
 
@@ -226,6 +256,10 @@ def publish(collection, account, classesToInclude=None,
                 # Create a subcollection to contain the cloudXML versions of
                 # the shared items
 
+                # Since we're publishing twice as many resources:
+                if progressMonitor:
+                    progressMonitor.totalWork *= 2
+
                 subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
 
                 subShare = _newOutboundShare(view, collection,
@@ -252,7 +286,7 @@ def publish(collection, account, classesToInclude=None,
                 # sync the subShare before the CalDAV share
                 share.follows = subShare
 
-                share.put(updateCallback=updateCallback)
+                share.put(updateCallback=callback)
 
 
             elif dav is not None:
@@ -278,7 +312,7 @@ def publish(collection, account, classesToInclude=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put(updateCallback=updateCallback)
+                share.put(updateCallback=callback)
                 if supportsTickets:
                     share.conduit.createTickets()
 
@@ -298,7 +332,7 @@ def publish(collection, account, classesToInclude=None,
                         raise SharingError(_(u"Share already exists"))
 
                     share.create()
-                    share.put(updateCallback=updateCallback)
+                    share.put(updateCallback=callback)
                     if supportsTickets:
                         share.conduit.createTickets()
 
@@ -343,6 +377,14 @@ def unpublish(collection):
 
 def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
               username=None, password=None):
+
+    if updateCallback:
+        progressMonitor = ProgressMonitor(0, updateCallback)
+        callback = progressMonitor.callback
+    else:
+        progressMonitor = None
+        callback = None
+
 
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
@@ -547,7 +589,9 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 ticket=ticket)
 
         try:
-            share.sync(updateCallback=updateCallback, modeOverride='get')
+            if progressMonitor:
+                progressMonitor.totalWork = share.getCount()
+            share.sync(updateCallback=callback, modeOverride='get')
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -566,6 +610,8 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
     else:
 
         # This is a CalDAV calendar, possibly containing an XML subcollection
+
+        totalWork = 0
 
         if hasSubCollection:
             # Here is the Share for the subcollection with cloudXML
@@ -587,6 +633,8 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             for attr in CALDAVFILTER:
                 subShare.filterAttributes.append(attr)
 
+            totalWork += subShare.getCount()
+
         else:
             subShare = None
             # Since this is strictly a CalDAV collection, set the filter
@@ -606,11 +654,15 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 port=port, sharePath=parentPath, shareName=shareName,
                 useSSL=useSSL, ticket=ticket)
 
+        totalWork += share.getCount()
+
         try:
             if subShare is not None:
                 share.follows = subShare
 
-            share.sync(updateCallback=updateCallback, modeOverride='get')
+            if progressMonitor:
+                progressMonitor.totalWork = totalWork
+            share.sync(updateCallback=callback, modeOverride='get')
 
             if subShare is not None:
                 # If this is a partial share, we need to store that fact

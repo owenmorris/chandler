@@ -13,6 +13,8 @@ from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
+MAX_UPDATE_MESSAGE_LENGTH = 50
+
 class PublishCollectionDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
@@ -54,6 +56,12 @@ class PublishCollectionDialog(wx.Dialog):
         self.statusPanel = self.resources.LoadPanel(self, "StatusPanel")
         self.statusPanel.Hide()
         self.textStatus = wx.xrc.XRCCTRL(self, "TEXT_STATUS")
+
+        self.updatePanel = self.resources.LoadPanel(self, "UpdatePanel")
+        self.updatePanel.Hide()
+        self.textUpdate = wx.xrc.XRCCTRL(self, "TEXT_UPDATE")
+        self.gauge = wx.xrc.XRCCTRL(self, "GAUGE")
+        self.gauge.SetRange(100)
 
         # Fit all the pieces together
         self.mySizer.Add(self.mainPanel, 0, wx.GROW|wx.ALL, 5)
@@ -288,7 +296,15 @@ class PublishCollectionDialog(wx.Dialog):
 
         self.RadioItems.SetValue(False)
 
-    def updateCallback(self, msg=None):
+    def updateCallback(self, msg=None, percent=None):
+        if msg is not None:
+            msg = msg.replace('\n', ' ')
+            # @@@MOR: This is unicode unsafe:
+            if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
+                msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]
+            self._showUpdate(msg)
+        if percent is not None:
+            self.gauge.SetValue(percent)
         wx.Yield()
         return self.cancelPressed
 
@@ -350,6 +366,7 @@ class PublishCollectionDialog(wx.Dialog):
                                      updateCallback=self.updateCallback)
 
             self._showStatus(_(u" done.\n"))
+            self._hideUpdate()
 
         except Exception, e:
 
@@ -359,7 +376,7 @@ class PublishCollectionDialog(wx.Dialog):
             #         twisted.internet.error.TimeoutError), e:
 
             # Display the error
-            # self._clearStatus()
+            self._hideUpdate()
             logger.exception("Failed to publish collection")
             try:
                 #XXX: [i18n] Will need to capture and translate m2crypto and zanshin errors
@@ -451,6 +468,20 @@ class PublishCollectionDialog(wx.Dialog):
             self._resize()
             wx.Yield()
         pass
+
+    def _showUpdate(self, text):
+        if not self.updatePanel.IsShown():
+            self.mySizer.Add(self.updatePanel, 0, wx.GROW, 5)
+            self.updatePanel.Show()
+
+        self.textUpdate.SetLabel(text)
+        self._resize()
+
+    def _hideUpdate(self):
+        if self.updatePanel.IsShown():
+            self.updatePanel.Hide()
+            self.mySizer.Detach(self.updatePanel)
+            self._resize()
 
     def _resize(self):
         self.mySizer.Layout()

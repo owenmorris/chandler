@@ -53,19 +53,32 @@ class SyncDialog(wx.Dialog):
 
         try:
             if self.collection is None:
-                self.addMessage("Syncing all shares\n")
+                # self.addMessage("Synchronizing all shares\n")
                 stats = sharing.syncAll(view, updateCallback=self.updateCallback)
             else:
-                self.addMessage("Syncing one collection\n")
+                # self.addMessage("Synchoronizing collection\n")
                 stats = sharing.sync(self.collection,
                     updateCallback=self.updateCallback)
-            
+
+            uploaded = 0
+            downloaded = 0
+            removedLocally = 0
+            removedRemotely = 0
+
             for stat in stats:
-                self.addMessage("%s (%s) added:%d modified:%d removed:%d\n" %
-                    (view.findUUID(stat['share']).getLocation(), stat['op'],
-                    len(stat['added']),
-                    len(stat['modified']),
-                    len(stat['removed'])))
+                if stat['op'] == 'put':
+                    uploaded += len(stat['added'])
+                    uploaded += len(stat['modified'])
+                    removedRemotely += len(stat['removed'])
+                elif stat['op'] == 'get':
+                    downloaded += len(stat['added'])
+                    downloaded += len(stat['modified'])
+                    removedLocally += len(stat['removed'])
+
+            if uploaded:
+                self.addMessage(_(u"%d items that were modified by you have been uploaded\n") % uploaded)
+            if downloaded:
+                self.addMessage(_(u"%d items that were modified by others have been downloaded\n") % downloaded)
 
         except sharing.SharingError, err:
             logger.exception("Error during sync")
@@ -76,7 +89,7 @@ class SyncDialog(wx.Dialog):
 
         self.btnOk.Enable(True)
         self.btnCancel.Enable(False)
-        self.addMessage("\nDone\n")
+        self.addMessage(_(u"Done\n"))
 
     def OnOk(self, evt):
         self.EndModal(False)
@@ -84,7 +97,7 @@ class SyncDialog(wx.Dialog):
     def OnCancel(self, evt):
         self.cancelPressed = True
 
-    def updateCallback(self, msg=None):
+    def updateCallback(self, msg=None, work=None):
         if msg is not None:
             self.addMessage(msg + "\n")
 

@@ -148,6 +148,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                         # like 'contents' above, the filterClasses of a master
                         # share needs to be replicated to the slaves:
                         share.filterClasses = filterClasses
+
                     stat = share.conduit._get(updateCallback=updateCallback)
                     stats.append(stat)
                     contents = share.contents
@@ -225,7 +226,6 @@ def getLinkedShares(share):
         shares.append(follower)
 
     return shares
-
 
 
 class modeEnum(schema.Enumeration):
@@ -355,6 +355,9 @@ class Share(pim.ContentItem):
 
     def getLocation(self, privilege=None):
         return self.conduit.getLocation(privilege=privilege)
+
+    def getCount(self):
+        return self.conduit.getCount()
 
     def getSharedAttributes(self, item, cloudAlias='sharing'):
         """
@@ -500,7 +503,7 @@ class ShareConduit(pim.ContentItem):
              (item.getItemDisplayName().encode('ascii', 'replace'), item.itsUUID,
               item.getVersion(), self.marker.getVersion(), externalItemExists))
 
-            if updateCallback and updateCallback(msg="Putting '%s'" % item.getItemDisplayName()):
+            if updateCallback and updateCallback(msg="'%s'" % item.getItemDisplayName()):
                 raise SharingError(_(u"Cancelled by user"))
 
             data = self._putItem(item)
@@ -532,8 +535,15 @@ class ShareConduit(pim.ContentItem):
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
-        if updateCallback and updateCallback(msg="Publishing items to %s" %
-            location):
+        try:
+            contentsName = "'%s' (%s)" % (self.share.contents.displayName,
+                location)
+        except:
+            # contents is either not set, is None, or has no displayName
+            contentsName = location
+
+        if updateCallback and updateCallback(msg=_(u"Uploading to %s...") %
+            contentsName):
             raise SharingError(_(u"Cancelled by user"))
 
         stats = {
@@ -552,9 +562,6 @@ class ShareConduit(pim.ContentItem):
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
-
-            if updateCallback and updateCallback(msg=_(u"Fetching items list...")):
-                raise SharingError(_(u"Cancelled by user"))
 
             self.resourceList = \
                 self._getResourceList(location)
@@ -616,12 +623,9 @@ class ShareConduit(pim.ContentItem):
                 #     {'manifest':self.manifest})
 
 
-                if updateCallback and updateCallback(msg=_(u"Looking for items to publish...")):
-                    raise SharingError(_(u"Cancelled by user"))
-
                 for item in self.share.contents:
 
-                    if updateCallback and updateCallback():
+                    if updateCallback and updateCallback(work=True):
                         raise SharingError(_(u"Cancelled by user"))
 
                     # Skip private items
@@ -643,7 +647,7 @@ class ShareConduit(pim.ContentItem):
                         updateCallback=updateCallback)
                     if result in ('added', 'modified'):
                         stats[result].append(item.itsUUID)
-                    
+
 
             # Put the Share item itself
             result = self._conditionalPutItem(self.share, changes,
@@ -690,7 +694,7 @@ class ShareConduit(pim.ContentItem):
                     'replace'), item, data))
 
                 self.share.items.append(item)
-                if updateCallback and updateCallback(msg="Fetched '%s'" %
+                if updateCallback and updateCallback(msg="'%s'" %
                     item.getItemDisplayName()):
                     raise SharingError(_(u"Cancelled by user"))
 
@@ -710,8 +714,15 @@ class ShareConduit(pim.ContentItem):
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
 
-        if updateCallback and updateCallback(msg="Fetching items from %s" %
-            location):
+        try:
+            contentsName = "'%s' (%s)" % (self.share.contents.displayName,
+                location)
+        except:
+            # contents is either not set, is None, or has no displayName
+            contentsName = location
+
+        if updateCallback and updateCallback(msg=_(u"Downloading from %s...") %
+            contentsName):
             raise SharingError(_(u"Cancelled by user"))
 
         view = self.itsView
@@ -729,9 +740,6 @@ class ShareConduit(pim.ContentItem):
         if not self.exists():
             raise NotFound(_(u"%(location)s does not exist") %
                 {'location': location})
-
-        if updateCallback and updateCallback(msg=_(u"Fetching items list...")):
-            raise SharingError(_(u"Cancelled by user"))
 
         self.resourceList = self._getResourceList(location)
 
@@ -752,6 +760,10 @@ class ShareConduit(pim.ContentItem):
 
         if itemPath:
             # Get the file that represents the Share item
+
+            if updateCallback and updateCallback(work=True):
+                raise SharingError(_(u"Cancelled by user"))
+
             item = self._conditionalGetItem(itemPath, into=self.share,
                 updateCallback=updateCallback)
 
@@ -816,6 +828,10 @@ class ShareConduit(pim.ContentItem):
 
             # Conditionally fetch items, and add them to collection
             for itemPath in self.resourceList:
+
+                if updateCallback and updateCallback(work=True):
+                    raise SharingError(_(u"Cancelled by user"))
+
                 item = self._conditionalGetItem(itemPath,
                     updateCallback=updateCallback)
 
@@ -1011,6 +1027,9 @@ class ShareConduit(pim.ContentItem):
             if not value['seen']:
                 yield path
 
+
+    def getCount(self):
+        return len(self._getResourceList(self.getLocation()))
 
     # Methods that subclasses *must* implement:
 
@@ -1726,9 +1745,6 @@ class CalDAVConduit(WebDAVConduit):
     def _createCollectionResource(self, handle, resource, childName):
         return handle.blockUntil(resource.createCalendar, childName)
 
-    def _getFilterClasses(self):
-        return [pim.CalendarEventMixin]
-
 
 
 class SimpleHTTPConduit(WebDAVConduit):
@@ -1779,7 +1795,7 @@ class SimpleHTTPConduit(WebDAVConduit):
                 logger.info("...not modified")
                 return stats
 
-            if updateCallback and updateCallback(msg=_(u"Fetching: '%s'") %
+            if updateCallback and updateCallback(msg=_(u"'%s'") %
                 location):
                 raise SharingError(_(u"Cancelled by user"))
 

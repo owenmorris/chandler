@@ -13,6 +13,7 @@ from AccountInfoPrompt import PromptForNewAccountInfo
 
 logger = logging.getLogger(__name__)
 
+MAX_UPDATE_MESSAGE_LENGTH = 50
 SHARING = "osaf.sharing"
 CONTENTMODEL = "osaf.pim"
 
@@ -53,9 +54,12 @@ class SubscribeDialog(wx.Dialog):
         self.Bind(wx.EVT_TEXT, self.OnTyping, self.textUrl)
 
         self.textStatus = wx.xrc.XRCCTRL(self, "TEXT_STATUS")
+        self.gauge = wx.xrc.XRCCTRL(self, "GAUGE")
+        self.gauge.SetRange(100)
         self.textUsername = wx.xrc.XRCCTRL(self, "TEXT_USERNAME")
         self.textPassword = wx.xrc.XRCCTRL(self, "TEXT_PASSWORD")
         self.checkboxKeepOut = wx.xrc.XRCCTRL(self, "CHECKBOX_KEEPOUT")
+        self.subscribeButton = wx.xrc.XRCCTRL(self, "wxID_OK")
 
         self.Bind(wx.EVT_BUTTON, self.OnSubscribe, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
@@ -71,9 +75,15 @@ class SubscribeDialog(wx.Dialog):
     def accountInfoCallback(self, host, path):
         return PromptForNewAccountInfo(self, host=host, path=path)
 
-    def updateCallback(self, msg=None):
+    def updateCallback(self, msg=None, percent=None):
         if msg is not None:
+            msg = msg.replace('\n', ' ')
+            # @@@MOR: This is unicode unsafe:
+            if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
+                msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]
             self.__showStatus(msg)
+        if percent is not None:
+            self.gauge.SetValue(percent)
         wx.Yield()
         return self.cancelPressed
 
@@ -86,6 +96,8 @@ class SubscribeDialog(wx.Dialog):
 
         try:
 
+            self.subscribeButton.Enable(False)
+            self.gauge.SetValue(0)
             self.subscribing = True
             self.cancelPressed = False
             self.__showStatus(_(u"In progress..."))
@@ -132,18 +144,19 @@ class SubscribeDialog(wx.Dialog):
 
             self.EndModal(True)
 
-        except sharing.NotAllowed, err:
-            self.__showAccountInfo()
-        except sharing.NotFound, err:
-            self.__showStatus(_(u"That collection was not found"))
-        except sharing.AlreadySubscribed, err:
-            self.__showStatus(_(u"You are already subscribed"))
-        except sharing.SharingError, err:
-            logger.exception("Error during subscribe for %s" % url)
-            self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
         except Exception, e:
-            logger.exception("Error during subscribe for %s" % url)
-            self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
+            self.subscribeButton.Enable(True)
+            self.gauge.SetValue(0)
+
+            if isinstance(e, sharing.NotAllowed):
+                self.__showAccountInfo()
+            elif isinstance(e, sharing.NotFound):
+                self.__showStatus(_(u"That collection was not found"))
+            elif isinstance(e, sharing.AlreadySubscribed):
+                self.__showStatus(_(u"You are already subscribed"))
+            else:
+                logger.exception("Error during subscribe for %s" % url)
+                self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
 
         self.subscribing = False
 
@@ -151,7 +164,6 @@ class SubscribeDialog(wx.Dialog):
     def OnTyping(self, evt):
         self.__hideStatus()
         self.__hideAccountInfo()
-
 
     def __showAccountInfo(self):
         self.__hideStatus()
