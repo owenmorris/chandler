@@ -89,6 +89,7 @@ wxPython:
 	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/chandler.exe.manifest; \
 	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest; \
 	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest; \
+	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/chandler.exe.manifest; \
 	$(PYTHON) setup.py BUILD_BASE=$(BUILD) \
                 UNICODE=1 BUILD_ACTIVEX=0 BUILD_GLCANVAS=0 \
                 USE_SWIG=$(SWIG_OPTION) \
