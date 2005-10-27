@@ -416,11 +416,9 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         event.arguments ['Enable'] = startSelect < self.GetLastPosition()
     
     def onRemoveEvent(self, event):
-        # I tried the following code, but apparently a SWIG bug (#3978)
-        # prevents EmulateKeyPress from accepting it's argument. So
-        # alternatively, I tried to duplicat the code that handles
-        # delete in EmulateKeyPress, however it didn't work correctly -- DJA
-        #keyEvent = wx.KeyEvent
+        # I tried the following code, but it didn't work. Perhaps it's
+        # related to bug (#3978). So I rolled my own. -- DJA
+        #keyEvent = wx.KeyEvent()
         #keyEvent.m_keyCode = wx.WXK_DELETE
         #self.EmulateKeyPress (keyEvent)
         (startSelect, endSelect) = self.GetSelection()
