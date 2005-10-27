@@ -365,6 +365,8 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
         $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        cat $T_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $T_DIR/test.log
+        cat $T_DIR/test.log > $T_DIR/start1.$run.log
         echo `<"$T_DIR/start1.$run.log"` | tee -a $BUILDLOG
     done
 
@@ -374,6 +376,8 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
         $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        cat $T_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $T_DIR/test.log
+        cat $T_DIR/test.log > $T_DIR/start6.$run.log
         echo `<"$T_DIR/start6.$run.log"` | tee -a $BUILDLOG
     done
     
