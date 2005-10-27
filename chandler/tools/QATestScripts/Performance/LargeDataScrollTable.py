@@ -16,12 +16,13 @@ logger = QAUITestAppLib.QALogger("PerfLargeDataScrollTable.log",
                                  "Scrolling a table")
 
 try:
-    # Switch views to the table before we load
-    App_ns.root.ApplicationBarAll()
-    wx.GetApp().Yield()
-    
     # Load a large calendar so we have events to scroll 
     testView = QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+
+    # Switch views to the table after we load
+    # Its currently important to do this after we load due
+    # to a linux bug (4461)-- we want to make sure we have a scrollbar
+    App_ns.root.ApplicationBarAll()
     
     # Process idle and paint cycles, make sure we're only
     # measuring scrolling performance, and not accidentally
