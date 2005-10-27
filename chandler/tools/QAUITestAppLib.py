@@ -1108,6 +1108,11 @@ class UITestView:
                 wx.GetApp().Yield()
                 ev = wx.IdleEvent()
                 wx.GetApp().ProcessEvent(ev)
+                # this is probably too much "waiting", but let's be conservative, for now.
+                wx.GetApp().Yield()
+                ev = wx.IdleEvent()
+                wx.GetApp().ProcessEvent(ev)
+                wx.GetApp().Yield()
                 logger.ReportPass("Importing calendar")
 
     def GetCurrentState(self):
