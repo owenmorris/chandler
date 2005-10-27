@@ -93,10 +93,17 @@ def DrawWrappedText(dc, text, rect):
             # if we're out of vertical space, just return
             if (y + lineHeight > rectBottom):
                 return y - rectY # total height
-            
-            wordWithSpace = word + ' '
-            dc.DrawText(wordWithSpace, x, y)
-            x += width + spaceWidth
+
+            availableWidth = rectRight - x
+            if width > availableWidth:
+                DrawClippedText(dc, word, x, y, availableWidth, width)
+                x += width
+                # x is now past rectRight, so this will force a wrap
+            else:
+                wordWithSpace = word + ' '
+                dc.DrawText(wordWithSpace, x, y)
+                x += width + spaceWidth
+                
         y += lineHeight
     return y - rectY # total height
 
