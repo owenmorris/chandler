@@ -115,14 +115,10 @@ class wxSidebar(ControlBlocks.wxTable):
         def stopHovering():
             del self.hoverImageRow
             """
-            @@@ this comment is applicable for all 3 ReleaseMouse calls in this routine
-            A possible bug (either here in SideBar or perhaps within wxWidgets) causes
-            this window to not have the mouse capture event though it never explicit released it.
-            You can verify this by enabling (i.e., commenting in) this assert:
-            assert gridWindow.HasCapture()
+            If we've got hoverImageRow that we must have captured the mouse
             """
-            if (gridWindow.HasCapture()):
-                gridWindow.ReleaseMouse()
+            assert gridWindow.HasCapture()
+            gridWindow.ReleaseMouse()
             for button in blockItem.buttons:
                 method = getattr (type (button), "onOverButton", False)
                 if method:
@@ -136,7 +132,6 @@ class wxSidebar(ControlBlocks.wxTable):
                 not self.IsCellEditControlEnabled() and
                 isinstance (item, AbstractCollection)):
                     if not hasattr (self, 'hoverImageRow'):
-                        assert not gridWindow.HasCapture()
                         gridWindow.CaptureMouse()
         
                         self.hoverImageRow = row
