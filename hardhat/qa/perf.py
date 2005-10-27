@@ -548,7 +548,7 @@ class perf:
 
           delta = today - itemDateTime
 
-          if delta.days < 8:
+          if delta.days < 14:
             testname = string.strip(testname)
             hour     = itemTime[:2]
 
@@ -557,38 +557,41 @@ class perf:
             except ValueError:
               runtime = 0.0
 
-            if itemDate < startdate:
-              startdate = itemDate
+              # only work with data that have positive runtimes
+              # as all other values are from bogus/broken runs
+            if runtime > 0.0:
+              if itemDate < startdate:
+                startdate = itemDate
 
-            if itemDate > enddate:
-              enddate = itemDate
+              if itemDate > enddate:
+                enddate = itemDate
 
-              # data points are put into test and date buckets
-              #   each test has a dictionary of builds
-              #   each build has a dictionary of dates
-              #   each date has a dictionary of times (hour resolution)
-              #   each time is a list of data points
-              # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, revision, runtime) ] }}}}
+                # data points are put into test and date buckets
+                #   each test has a dictionary of builds
+                #   each build has a dictionary of dates
+                #   each date has a dictionary of times (hour resolution)
+                #   each time is a list of data points
+                # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, revision, runtime) ] }}}}
 
-            if not tests.has_key(testname):
-              tests[testname] = {}
+              if not tests.has_key(testname):
+                tests[testname] = {}
 
-            testitem = tests[testname]
+              testitem = tests[testname]
 
-            if not testitem.has_key(buildname):
-              testitem[buildname] = {}
+              if not testitem.has_key(buildname):
+                testitem[buildname] = {}
 
-            builditem = testitem[buildname]
+              builditem = testitem[buildname]
 
-            if not builditem.has_key(itemDate):
-              builditem[itemDate] = {}
+              if not builditem.has_key(itemDate):
+                builditem[itemDate] = {}
 
-            dateitem = builditem[itemDate]
+              dateitem = builditem[itemDate]
 
-            if not dateitem.has_key(hour):
-              dateitem[hour] = []
+              if not dateitem.has_key(hour):
+                dateitem[hour] = []
 
-            dateitem[hour].append((testname, itemDateTime, delta.days, buildname, hour, revision, runtime))
+              dateitem[hour].append((testname, itemDateTime, delta.days, buildname, hour, revision, runtime))
 
     return (tests, startdate, enddate)
 
@@ -855,6 +858,7 @@ class perf:
 
       # some 'constants' to make it easier to add items to the data structure
       # without having to track down all occurances of 7 to change it to 8 :)
+    DP_DATETIME = 1
     DP_REVISION = 5
     DP_RUNTIME  = 6
 
@@ -866,6 +870,11 @@ class perf:
     revisions     = { 'osx':   ['', ''],
                       'linux': ['', ''],
                       'win':   ['', ''], }
+
+    updates       = { 'osx':   '',
+                      'linux': '',
+                      'win':   ''
+                    }
 
     currentValue  = { 'osx':   0,
                       'linux': 0,
@@ -951,6 +960,7 @@ class perf:
               for datapoint in dateitem[hour]:
                 current   = datapoint[DP_RUNTIME]
                 revision  = datapoint[DP_REVISION]
+                update    = datapoint[DP_DATETIME]
                 dv_total += current
 
                 platformdata['values'].append(current)
@@ -990,6 +1000,8 @@ class perf:
             platformdata['total']    = dv_total
             platformdata['count']    = n
             platformdata['revision'] = revision
+
+            updates[platformkey] = update
 
             if len(k_hours) > 2:
               revisions[platformkey] = [revision, dateitem[k_hours[-2]][0][DP_REVISION]]
@@ -1099,9 +1111,19 @@ class perf:
       for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
         tboxfile.write(line)
 
+    latestUpdate = {}
+    for key in ['win', 'osx', 'linux']:
+      update          = updates[key]
+      s               = '%02d%02d%02d%02d' % (update.month, update.day, update.hour, update.minute)
+      latestUpdate[s] = '%d/%02d %d:%02d' % (update.month, update.day, update.hour, update.minute)
+
+    keys = latestUpdate.keys()
+    keys.sort()
+    latest = latestUpdate[keys[2]]
+
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
-    tboxfile.write('<tr><th rowspan="2">Test</th><th rowspan="2">0.6<br/>Target</th>')
+    tboxfile.write('<tr><th rowspan="2">Test<br/>Latest results as of %s</th><th rowspan="2">0.6<br/>Target</th>' % latest)
     tboxfile.write('<th colspan="4">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
     tboxfile.write('<th colspan="4">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
     tboxfile.write('<th colspan="4">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
@@ -1110,6 +1132,11 @@ class perf:
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
 
+    tbox.append('<p>Windows: %d/%02d %d:%02d<br/>OS X: %d/%02d %d:%02d<br/>Linux: %d/%02d %d:%02d</p>' % 
+                    (updates['win'].month, updates['win'].day ,updates['win'].hour, updates['win'].minute,
+                     updates['osx'].month, updates['osx'].day ,updates['osx'].hour, updates['osx'].minute,
+                     updates['linux'].month, updates['linux'].day ,updates['linux'].hour, updates['linux'].minute))
+                     
     for line in tbox:
       tboxfile.write(line)
 
