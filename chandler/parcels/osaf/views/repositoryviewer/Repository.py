@@ -9,6 +9,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import wx
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
+from repository.item.RefCollections import RefList
+
 class RepositoryDelegate (ControlBlocks.ListDelegate):
     """ Used by the tree in the repository view
     """
@@ -106,7 +108,9 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
 
             refAttrs = []
             for k, v in item.iterAttributeValues(referencesOnly=True):
-                if isinstance(v, dict) or isinstance(v, list):
+                if (isinstance(v, dict) or
+                    isinstance(v, list) or
+                    isinstance(v, RefList)):
                     tmpList = [u"<li><b>%s:</b></li><ul>" % k]
                     for attr in v:
                         tmpList.append(u"<li>%s</li>" % formatReference(attr))
