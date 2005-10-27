@@ -85,7 +85,7 @@ def make_summaryblocks(parcel):
     CalendarSummaryView = \
         CalendarContainer.template('CalendarSummaryView',
                 calendarControl=MainCalendarControl,
-                monthLabelStyle=DefaultBigBoldStyle,
+                monthLabelStyle=blocks.BigTextStyle,
                 eventLabelStyle=DefaultCharacterStyle,
                 eventTimeStyle=DefaultSmallBoldStyle,
                 legendStyle=DefaultCharacterStyle,
