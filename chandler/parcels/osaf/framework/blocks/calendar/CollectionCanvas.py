@@ -722,7 +722,9 @@ class CollectionBlock(Block.RectangularChild):
         Clear the selection each time we view a new contents until we get
         a selection added to the contents item -- DJA
         """
-        self.selection = []
+        for item in self.selection:
+            if item not in self.contents:
+                selection.remove(item)
         self.synchronizeWidget()
         
         self.postSelectItemsBroadcast()
