@@ -594,15 +594,15 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
 
     def onColorChanged(self, op, item, attribute):
         try:
-            collections = self.contents.collectionList
-            widget = self.widget
-        except AttributeError, e:
-            # sometimes self.contents hasn't been set yet,
-            # or the widget hasn't been rendered yet
+            collections = getattr(self.contents, 'collectionList',
+                                  [self.contents])
+            if item in collections:
+                self.widget.RefreshCanvasItems()
+        except AttributeError:
+            # sometimes self.contents hasn't been set yet, or the
+            # widget hasn't been rendered yet, or the widget doesn't
+            # support RefreshCanvasItems. That's fine.
             return
-
-        if item in collections:
-            widget.Refresh()
 
     def EnsureIndexes(self):
         events = self.contents.rep
