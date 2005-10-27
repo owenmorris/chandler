@@ -248,7 +248,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         clipRect = None	
         (cx,cy,cwidth,cheight) = dc.GetClippingBox()	
         if not cwidth == cheight == 0:	
-            clipRect = wx.Rect(cx,cy,cwidth,cheight)	
+            clipRect = (cx,cy,cwidth,cheight)	
         
         gradientLeft, gradientRight, outlineColor, textColor = \
             self.getEventColors(selected)
@@ -361,9 +361,17 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # we may have lost some room in the rectangle from	
                 # drawing the time	
                 lostHeight = y - itemRect.y                        
-       
+
+                # for some reason text measurement on the mac is off,
+                # and text tends to look smooshed to the edge, so we
+                # give it a 5 pixel buffer there
+                if ('__WXMAC__' in wx.PlatformInfo):
+                    margin = 5
+                else:
+                    margin = 0
+                    
                 # now draw the text of the event
-                textRect = (x,y,width,
+                textRect = (x,y,width - margin, 
                             itemRect.height - lostHeight - self.textOffset.y)
        
                 dc.SetFont(styles.eventLabelFont)
@@ -375,7 +383,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
        
         dc.DestroyClippingRegion()	
         if clipRect:	
-            dc.SetClippingRect(clipRect)	
+            dc.SetClippingRegion(*clipRect)	
        
     def DrawEventRectangle(self, dc, rect,
                            hasLeftRounded=False,
@@ -400,30 +408,29 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         dc.DestroyClippingRegion()
         dc.SetClippingRect(rect)
-        
-        roundRect = wx.Rect(*rect)
+
+        (x,y,width,height) = rect
 
         # left/right clipping
         if not hasLeftRounded:
-            roundRect.x -= radius
-            roundRect.width += radius
+            x -= radius
+            width += radius
 
         if clipRightSide:
-            roundRect.width += radius;
+            width += radius;
             
         # top/bottom clipping
         if not hasBottomRightRounded:
-            roundRect.height += radius
+            height += radius
 
         if not hasTopRightRounded:
-            roundRect.y -= radius
-            roundRect.height += radius
+            y -= radius
+            height += radius
 
         # finally draw the clipped rounded rect
-        dc.DrawRoundedRectangleRect(roundRect, radius)
+        dc.DrawRoundedRectangle(x,y,width,height,radius)
         
         # draw the lefthand and possibly top & bottom borders
-        (x,y,width,height) = rect
         if not hasLeftRounded:
             # vertical line down left side
             dc.DrawLine(x, y,  x, y + height)
