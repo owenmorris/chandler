@@ -253,6 +253,11 @@ def colorDelta(current, prev, stdDev):
     >>> colorDelta(1, 0.0, 0.01)
     'ok'
     
+    Current run had no result (0), so no coloring:
+    
+    >>> colorDelta(0, 1, 0.01)
+    'ok'
+    
     Significant improvement:
     
     >>> colorDelta(1, 2, 0.01)
@@ -268,7 +273,7 @@ def colorDelta(current, prev, stdDev):
     >>> colorDelta(1.05, 1, 0.01)
     'warn'
     """
-    if prev == 0:
+    if prev == 0 or current == 0:
         return 'ok'
     
     delta = prev - current
@@ -319,6 +324,8 @@ class perf:
          ('perf_stamp_as_event.change_the_event_stamp',                          'Stamp'),
          ('switching_view_after_importing_large_data.switch_to_allview',         'Switch Views with 3k event calendar'),
          ('stamping_after_large_data_import.change_the_event_stamp',             'Stamp with 3k event calendar'),
+         ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   'Scroll calendar with 3k event calendar'),
+         ('scrolling_a_table.scroll_table_25_scroll_units',                      'Scroll table with 3k event calendar'),
         ]
 
       # all times are in seconds
@@ -335,6 +342,8 @@ class perf:
          'perf_stamp_as_event.change_the_event_stamp':                          1,
          'switching_view_after_importing_large_data.switch_to_allview':         1,
          'stamping_after_large_data_import.change_the_event_stamp':             1,
+         'scroll_calendar_one_unit.scroll_calendar_one_unit':                   0.1,
+         'scrolling_a_table.scroll_table_25_scroll_units':                      0.1,
         }
 
     self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
@@ -358,7 +367,12 @@ class perf:
         'ok'
         >>> perf.colorTime('perf_stamp_as_event', 0.95, 0.1)
         'ok'
+
+        No result (0 time):
     
+        >>> perf.colorTime('perf_stamp_as_event', 0.0, 0.1)
+        'ok'
+
         Significantly better than acceptable:
     
         >>> perf.colorTime('perf_stamp_as_event', 0.95, 0.01)
@@ -376,6 +390,9 @@ class perf:
         >>> perf.colorTime('perf_stamp_as_event', 2.05, 0.01)
         'alert'
         """
+        if testTime == 0:
+            return 'ok'
+        
         acceptable = self.SummaryTargets[testName]
         
         if testTime < (acceptable - stdDev):
@@ -818,7 +835,7 @@ class perf:
         targetAvg = 0.0
 
       line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
-      line += '<td class="centered">%2.0fs</td>' % targetAvg
+      line += '<td class="number">%2.1fs</td>' % targetAvg
 
       for key in ['win', 'osx', 'linux']:
         current  = currentValue[key]
@@ -899,7 +916,7 @@ class perf:
         detail.append('<div class="section">\n')
         graphfile = 'day_%s.png' % testkey.replace('.', '_')
         detail.append('<img class="daygraph" src="%s" alt="graph">' % graphfile)
-        detail.append('<h2>%s</h2>\n' % (testDisplayName))
+        detail.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
 
         platforms = { 'osx':   { 'stddev':   0,
                                  'avg':      0,
