@@ -325,7 +325,7 @@ class perf:
          ('switching_view_after_importing_large_data.switch_to_allview',         'Switch Views with 3k event calendar'),
          ('stamping_after_large_data_import.change_the_event_stamp',             'Stamp with 3k event calendar'),
          ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   'Scroll calendar with 3k event calendar'),
-         ('scrolling_a_table.scroll_table_25_scroll_units',                      'Scroll table with 3k event calendar'),
+         #('scrolling_a_table.scroll_table_25_scroll_units',                      'Scroll table with 3k event calendar'),
         ]
 
       # all times are in seconds
@@ -343,7 +343,7 @@ class perf:
          'switching_view_after_importing_large_data.switch_to_allview':         1,
          'stamping_after_large_data_import.change_the_event_stamp':             1,
          'scroll_calendar_one_unit.scroll_calendar_one_unit':                   0.1,
-         'scrolling_a_table.scroll_table_25_scroll_units':                      0.1,
+         #'scrolling_a_table.scroll_table_25_scroll_units':                      0.1,
         }
 
     self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
