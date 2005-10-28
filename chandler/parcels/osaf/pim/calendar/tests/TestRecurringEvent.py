@@ -184,7 +184,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         
         self.event.setRuleFromDateUtil(newRule)
         self.assertEqual(self.event.isCustomRule(), True)
-        self.assertEqual(self.event.getCustomDescription(), "not yet implemented")
+        self.assertEqual(self.event.getCustomDescription(), "every 2 weeks until 8/1/05")
 
         # changing the rule for the master, modifies should stay None
         self.assertEqual(self.event.modifies, None)
