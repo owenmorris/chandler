@@ -281,6 +281,8 @@ class wxSidebar(ControlBlocks.wxTable):
             if possibleCollection is theTrash:
                 if self.GetDragData() is not None: # make sure the data is the kind we want.
                     dragResult = wx.DragMove
+            elif possibleCollection.isReadOnly():
+                dragResult = wx.DragNone
     
         return dragResult
 
