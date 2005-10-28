@@ -623,7 +623,7 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         calendarCollections = CalendarCollections(self.contents)
         if getattr(calendarCollections, 'masterEvents', None) is None:
             masterEvents = FilteredCollection(parent=self.contents)
-            masterEvents.filterExpression = "getattr(item, 'occurrences', None) is not None and getattr(item, 'rruleset', None) is not None"
+            masterEvents.filterExpression = "item.hasLocalAttributeValue('occurrences') and item.hasLocalAttributeValue('rruleset')"
             masterEvents.filterAttributes = ['occurrences', 'rruleset']
             masterEvents.source = self.contents
             masterEvents.rep.addIndex('__adhoc__', 'numeric')
