@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
-from PyICU import ICUtzinfo
+from PyICU import ICUtzinfo, DateFormat
 from TimeZone import coerceTimeZone, forceToDateTime
 from i18n import OSAFMessageFactory as _
 from DateTimeUtil import datetimeOp
@@ -34,6 +34,31 @@ class WeekdayEnum(schema.Enumeration):
     #          Are they used for lookup or display?
     values="monday","tuesday","wednesday","thursday","friday", \
            "saturday","sunday"
+
+weekdayAbbrevMap = dict(monday    = _(u"Mo"),
+                        tuesday   = _(u"Tu"),
+                        wednesday = _(u"We"),
+                        thursday  = _(u"Th"),
+                        friday    = _(u"Fr"),
+                        saturday  = _(u"Sa"),
+                        sunday    = _(u"Su"))
+
+singularFrequencyMap = dict(yearly  = _(u"year"),
+                            monthly = _(u"month"),
+                            weekly  = _(u"week"),
+                            daily   = _(u"day"),
+                            hourly  = _(u"hour"),
+                            minutely = _(u"minute"),
+                            secondly = _(u"second"))
+
+pluralFrequencyMap =   dict(yearly  = _(u"years"),
+                            monthly = _(u"months"),
+                            weekly  = _(u"weeks"),
+                            daily   = _(u"days"),
+                            hourly  = _(u"hours"),
+                            minutely = _(u"minutes"),
+                            secondly = _(u"seconds"))
+
 
 class WeekdayAndPositionStruct(schema.Struct):
     """Weekday and an integer selecting the first, last, etc. day.
@@ -368,6 +393,28 @@ class RecurrenceRuleSet(items.ContentItem):
         for typ in 'rdate', 'exdate':
             datetimes = [forceToDateTime(d) for d in getattr(ruleSetOrRule, '_' + typ, [])]
             setattr(self, typ + 's', datetimes)
+    
+    def isComplex(self):
+        if hasattr(self, 'rrules'):
+            if len(self.rrules) != 1:
+                return True # multiple rules
+            for recurtype in 'exrules', 'rdates':
+                if self.hasLocalAttributeValue(recurtype) and \
+                       len(getattr(self, recurtype)) != 0:
+                    return True # more complicated rules
+            rule = self.rrules.first()
+            for attr in RecurrenceRule.listNames:
+                if getattr(rule, attr) not in (None, []):
+                    return True
+            if rule.byweekday is not None:
+                # treat nth weekday of the month as complex
+                for daystruct in rule.byweekday:
+                    if daystruct.selector != 0:
+                        return True
+            return False 
+        else:
+            return True
+        
 
     def isCustomRule(self):
         """Determine if this is a custom rule.
@@ -377,26 +424,52 @@ class RecurrenceRuleSet(items.ContentItem):
         rules which are not custom.
         
         """
-        if self.hasLocalAttributeValue('rrules'):
-            if len(self.rrules) != 1:
-                return True # multiple rules
-            for recurtype in 'exrules', 'rdates':
-                if self.hasLocalAttributeValue(recurtype) and \
-                       len(getattr(self, recurtype)) != 0:
-                    return True # more complicated rules
-            rule = list(self.rrules)[0]
-            if rule.interval != 1:
-                return True
-            for attr in RecurrenceRule.listNames:
-                if getattr(rule, attr):
-                    return True
-            if rule.byweekday:
-                return True
-        return False
+        if self.isComplex():
+            return True
+        # isComplex has already tested for most custom things, but
+        # not intervals greater than 1 and multiple weekdays
+        rule = self.rrules.first()
+        if rule.interval != 1:
+            return True
+        elif rule.byweekday:
+            return True
+        else:
+            return False
 
     def getCustomDescription(self):
         """Return a string describing custom rules."""
-        return "not yet implemented"
+        if self.isComplex():
+            return _(u"complex rule - no description available")
+        else:
+            rule = self.rrules.first()
+            freq = rule.freq
+            interval = rule.interval
+            
+            #@@@ This would be tricky to internationalize, bug 4464
+            dct = {}
+            dct['weekdays'] = u""
+            if freq == 'weekly' and rule.byweekday is not None:
+                daylist = [weekdayAbbrevMap[i.weekday] for i in rule.byweekday]
+                if len(daylist) > 0:
+                    daylist.append(u" ")
+                    dct['weekdays'] = u"".join(daylist)
+                    
+            if rule.interval != 1:
+                dct['interval'] = str(rule.interval)
+                dct['freq'] = pluralFrequencyMap[freq]
+            else:
+                dct['interval'] = u""
+                dct['freq'] = singularFrequencyMap[freq]
+                
+            until = rule.calculatedUntil()
+            if until is None:
+                dct['until'] = u""
+            else:
+                formatter = DateFormat.createDateInstance(DateFormat.kShort)
+                dct['until'] = _(u"until ") + unicode(formatter.format(until))
+            
+            return "%(weekdays)severy %(interval)s %(freq)s %(until)s" % dct
+            
 
     def moveDatesAfter(self, after, delta):
         """
@@ -425,7 +498,9 @@ class RecurrenceRuleSet(items.ContentItem):
             if datelist is not None:
                 for i, dt in enumerate(datelist):
                     if datetimeOp(dt, cmp, endpoint):
+                        self._ignoreValueChanges = True
                         del datelist[i]
+                        self._ignoreValueChanges = False
 
     def moveRuleEndBefore(self, end):
         """
