@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, isuuid
-from chandlerdb.item.c import Nil, Default, CValues
+from chandlerdb.item.c import Nil, Default, CValues, CItem
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
 
@@ -399,6 +399,7 @@ class References(Values):
 
         item = self._item
         value = self.get(name)
+
         if value is None:
             if cardinality is None:
                 cardinality = item.getAttributeAspect(name, 'cardinality',
@@ -484,17 +485,20 @@ class References(Values):
         if value is self:
             raise AssertionError, '_removeRef: no value for %s' %(name)
 
+        item = self._item
         if value is other:
             if other is not None and other._isRefList():
                 other.clear()
-                dirty = self._item.RDIRTY
+                dirty = CItem.RDIRTY
             else:
-                dirty = self._item.VDIRTY
+                dirty = CItem.VDIRTY
             del self[name]
-            self._item.setDirty(dirty, name, self, True)
+            item.setDirty(dirty, name, self, True)
+            item._fireChanges('remove', name)
         elif isuuid(value) and isitem(other) and value == other._uuid:
             del self[name]
-            self._item.setDirty(self._item.VDIRTY, name, self, True)
+            item.setDirty(CItem.VDIRTY, name, self, True)
+            item._fireChanges('remove', name)
         elif value._isRefList():
             value._removeRef(other)
         else:
