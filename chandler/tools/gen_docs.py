@@ -1,9 +1,9 @@
-"""
-@copyright: Copyright (c) 2005 Open Source Applications Foundation
-@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
-"""
+__version__   = "$Revision: $"
+__date__      = "$Date: $"
+__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
+__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-#import wingdbstub
+
 import os, sys, re, string, errno, shutil, time
 import repository
 
@@ -26,6 +26,8 @@ def generateModelDocs(options, outputDir=None):
 
     parcelPath = Utility.initParcelEnv(chandlerDir, options.parcelPath)
     view       = Utility.initRepository(repositoryDir, options)
+
+    Utility.initParcels(view, parcelPath)
 
     if not os.path.isdir(modelDir):
         _mkdirs(modelDir)
@@ -106,20 +108,31 @@ def generateTimestamp():
 
 
 def RenderKinds(view, urlRoot):
-    result = ""
-    items = {}
-    tree = {}
-    #for item in view.findPath("//Schema/Core/Kind").iterItems(view):
-    #    print item
-    #    items[item.itsPath] = item
-    #    _insertItem(tree, item.itsPath[1:], item)
-    base = view.findPath("//Schema/Core/Kind")
-    for child in base.iterItems():
-        #print child.itsName, child.itsPath
-        items[child.itsPath] = child
-        _insertItem(tree, child.itsPath[1:], child)
+    def getKind(kindName):
+        kindKind = view.findPath("//Schema/Core/Kind")
+        matching = []
 
-    #print tree
+        for kind in kindKind.iterItems():
+            if kind.itsName == kindName:
+                matching.append(kind)
+
+        if len(matching) == 0:
+            return None
+
+        return matching[0]
+
+    def ofKind(kindName, recursive=True):
+        kind = getKind(kindName)
+        for item in kind.iterItems(recursive=recursive):
+            yield item
+
+    result = ""
+    items  = {}
+    tree   = {}
+
+    for item in ofKind('Kind'):
+        items[item.itsPath] = item
+        _insertItem(tree, item.itsPath[1:], item)
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
