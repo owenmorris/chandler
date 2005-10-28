@@ -634,8 +634,8 @@ class TimedCanvasItem(CalendarCanvasItem):
             indent = width * self.GetIndentLevel()	
         else:	
             # in week mode, stagger the canvasitems by 5 pixels            
-            indent = self.GetIndentLevel() * 5
-            width = dayWidth - self.GetMaxDepth() * 5
+            indent = self.GetIndentLevel() * 10
+            width = dayWidth - self.GetMaxDepth() * 10
 
         self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
                                                           startTime, endTime,
