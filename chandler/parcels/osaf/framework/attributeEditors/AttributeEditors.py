@@ -35,13 +35,11 @@ logger = logging.getLogger(__name__)
 # AttributeEditorMappingCollection, which we use to find them at runtime.
 
 class AttributeEditorMappingCollection(schema.Item):
-    editors = schema.Sequence("AttributeEditorMapping", 
-                              inverse="mappingCollection", 
-                              initialValue=[])
+    editors = schema.Sequence(otherName="mappingCollection", initialValue=[])
     
 class AttributeEditorMapping(schema.Item):
     className = schema.One(schema.Bytes)
-    mappingCollection = schema.One(AttributeEditorMappingCollection, inverse="editors")
+    mappingCollection = schema.One(otherName="editors")
 
     def __init__(self, *args, **kwds):
         super(AttributeEditorMapping, self).__init__(*args, **kwds)
