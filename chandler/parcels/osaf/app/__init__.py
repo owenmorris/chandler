@@ -264,8 +264,6 @@ def MakeCollections(parcel):
         ListCollection.update(parcel, 'TrashCollection',
             displayName=_(u"Trash"),
             renameable=False,
-            iconName="Trash",
-            colorizeIcon = False,
             dontDisplayAsCalendar=True,
             outOfTheBoxCollection = True
         )
@@ -298,9 +296,6 @@ def MakeCollections(parcel):
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_(u"All My Items"),
         renameable = False,
-        iconName = "All",
-        colorizeIcon = False,
-        iconNameHasKindVariant = True,
         color = collectionColors.nextColor(),
         outOfTheBoxCollection = True,
 
@@ -340,10 +335,8 @@ def MakeCollections(parcel):
     inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',
         displayName=_(u"In"),
         renameable=False,
-        iconName="In",
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
-        colorizeIcon = False,
         outOfTheBoxCollection = True,
         visible = False
     ).setup(source=inSource)
@@ -358,10 +351,8 @@ def MakeCollections(parcel):
     outCollection = InclusionExclusionCollection.update(parcel, 'outCollection',
         displayName=_(u"Out"),
         renameable=False,
-        iconName="Out",
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
-        colorizeIcon = False,
         outOfTheBoxCollection = True,
         visible = False
     ).setup(source=outSource)
@@ -374,10 +365,8 @@ def MakeCollections(parcel):
         displayName = _(u"Scripts"),
         renameable = False,
         private = False,
-        iconName="Script",
         dontDisplayAsCalendar=True,
         color = collectionColors.nextColor(),
-        colorizeIcon = False
         ).setup(source=scriptsCollection)
 
     # The Sidebar collection

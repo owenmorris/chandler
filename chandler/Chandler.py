@@ -64,7 +64,6 @@ def main():
             import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 
         try:
-            import logging, wx
             realMain()
 
         except (RepositoryOpenDeniedError, ExclusiveOpenDeniedError):
