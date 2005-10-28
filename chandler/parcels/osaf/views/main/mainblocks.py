@@ -70,7 +70,7 @@ def make_mainview(parcel):
     
     ReminderTimer.update(parcel, 'ReminderTimer',
                          event=ReminderTimerEvent,
-                         contents=app.reminders)
+                         contents=app.pendingReminders)
 
     # from //parcels/osaf/views/main
     NewNoteEvent = \

@@ -275,7 +275,7 @@ def MakeCollections(parcel):
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=notes,
-        filterExpression=u'not getattr(item, \'isGenerated\', False) and not getattr(item, \'modificationFor\', None)',
+        filterExpression=u"(not item.hasLocalAttributeValue('isGenerated') or not getattr(item, 'isGenerated', False)) and not item.hasLocalAttributeValue('modificationFor')",
         filterAttributes=['isGenerated', 'modificationFor']
     )
 
@@ -291,7 +291,14 @@ def MakeCollections(parcel):
         KindCollection.update(parcel, 'reminders')
     reminders.kind = pim.Reminder.getKind(parcel.itsView)
     reminders.recursive = True
-    
+
+    pendingReminders = \
+        FilteredCollection.update(parcel, 'pendingReminders',
+                                  source=reminders,
+                                  filterExpression='len(item.reminderItems) > 0',
+                                  filterAttributes=['reminderItems'])
+    pendingReminders.rep.addIndex('n', 'numeric')
+
     # the "All" collection
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_(u"All My Items"),
