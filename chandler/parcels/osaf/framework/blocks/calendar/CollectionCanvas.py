@@ -724,7 +724,7 @@ class CollectionBlock(Block.RectangularChild):
         """
         for item in self.selection:
             if item not in self.contents:
-                selection.remove(item)
+                self.selection.remove(item)
         self.synchronizeWidget()
         
         self.postSelectItemsBroadcast()
