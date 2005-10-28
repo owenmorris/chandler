@@ -738,7 +738,8 @@ class CollectionBlock(Block.RectangularChild):
         """
         self.selection = event.arguments['items']
         self.selectAllMode = event.arguments.get('selectAll', False)
-        self.widget.Refresh()
+        if hasattr(self, 'widget'):
+            self.widget.Refresh()
 
         
     def postSelectItemsBroadcast(self):
