@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 
 #include <windows.h>
 #include <assert.h>
@@ -7,25 +8,37 @@
 #include "atlstr.h"
 
 #ifdef _DEBUG
-	#define LAUNCHER _T("\\debug\\bin\\chandler.exe")
+    #define LAUNCHER _T("\\debug\\bin\\chandler.exe")
 #else
-	#define LAUNCHER _T("\\release\\bin\\chandler.exe")
+    #define LAUNCHER _T("\\release\\bin\\chandler.exe")
 #endif
+
+void PathTooLongErrorDialog (LPCSTR  path)
+{
+    CString  message;
+
+    message.Format (_T("Chandler can't start because the path is too long: "
+                       "\"%s\". To fix the problem, "
+                       "try reinstalling Chandler into another location."),
+                    path);
+    MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
+}
+
 
 int APIENTRY WinMain (HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,
                       LPSTR     lpCmdLine,
                       int       nCmdShow)
 {
-    LPSTR       		bufferPtr;
-    CString     		commandLine;
-    int         		index;
-    DWORD       		length;
-    CString     		pathToChandler;
-    CString				pathToExe;
-    PROCESS_INFORMATION	processInfo;
-    STARTUPINFO			startupInfo;
-    BOOL				success;
+    LPSTR               bufferPtr;
+    CString             commandLine;
+    int                 index;
+    DWORD               length;
+    CString             pathToChandler;
+    CString                pathToExe;
+    PROCESS_INFORMATION    processInfo;
+    STARTUPINFO            startupInfo;
+    BOOL                success;
 
     /*
      * Get the path to the directory of our executable
@@ -34,6 +47,15 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     length = GetModuleFileName (NULL, bufferPtr, _MAX_PATH);
     assert (length);
     pathToExe.ReleaseBuffer();
+
+    /*
+     * See if we need to exit because of problems.
+     */
+    if (!length) return EXIT_FAILURE;
+    if (length == _MAX_PATH && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        PathTooLongErrorDialog(_T(""));
+	return EXIT_FAILURE;
+    }
     
     index = pathToExe.ReverseFind (TCHAR ('\\'));
     pathToExe.Truncate (index);
@@ -42,30 +64,45 @@ int APIENTRY WinMain (HINSTANCE hInstance,
      */
     pathToChandler = pathToExe + _T(LAUNCHER);
 
-	commandLine = pathToChandler + _T(" ") + lpCmdLine;
+    /*
+     * See if we need to exit because of problems.
+     */
+    if (pathToChandler.GetLength() > _MAX_PATH) {
+        PathTooLongErrorDialog (pathToChandler);
+        return EXIT_FAILURE;
+    }
+    
+    /*
+     * Wrap the exe path in quotes in case the path contains spaces,
+     * so that we get the right number of arguments.
+     */
+    commandLine = _T("\"") + pathToChandler + _T("\"") + _T(" ") + lpCmdLine;
 
-	GetStartupInfo (&startupInfo);
-	startupInfo.dwFlags &= ~STARTF_USESHOWWINDOW;
+    GetStartupInfo (&startupInfo);
+    startupInfo.dwFlags &= ~STARTF_USESHOWWINDOW;
 
-	success = CreateProcess (pathToChandler,		// Path to executable
-							 LPSTR (LPCSTR (commandLine)),	// command line
-							 NULL,					// Default process security attributes
-							 NULL,					// Default thread security attributes
-							 true,					// inherit handles from the parent
-							 0,						// Normal priority
-							 NULL,					// Use the same environment as the parent
-							 NULL,					// Launch in the current directory
-							 &startupInfo,			// Startup Information
-							 &processInfo);			// Process information stored upon return
-	if (!success) {
-		int error = GetLastError();
-		CString  message;
+    success = CreateProcess (pathToChandler,        // Path to executable
+                             LPSTR (LPCSTR (commandLine)),    // command line
+                             NULL,                    // Default process security attributes
+                             NULL,                    // Default thread security attributes
+                             true,                    // inherit handles from the parent
+                             0,                        // Normal priority
+                             NULL,                    // Use the same environment as the parent
+                             NULL,                    // Launch in the current directory
+                             &startupInfo,            // Startup Information
+                             &processInfo);            // Process information stored upon return
+    if (!success) {
+        int error = GetLastError();
+        CString  message;
 
-		message.Format (_T("Chandler couldn't be started because of an unexpected problem "
-						"(launching \"%s\" failed). To fix the problem, "
-						"try reinstalling Chandler."), pathToChandler);
-		MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
-	}
+        message.Format (_T("Chandler couldn't be started because of an "
+                           "unexpected problem "
+                           "(launching \"%s\" failed, error code %d). "
+                           "To fix the problem, "
+                           "try reinstalling Chandler."),
+                        pathToChandler, error);
+        MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
+    }
 
-	return 0;
+    return EXIT_SUCCESS;
 }

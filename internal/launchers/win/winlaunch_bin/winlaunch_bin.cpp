@@ -1,4 +1,4 @@
-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 //Turn on Windows XP SP1 APIs
 #define _WIN32_WINNT 0x0502
 
@@ -11,6 +11,17 @@
 
 typedef void (CALLBACK* LPFNSETDLLDIRECTORY)(LPCTSTR);
 static LPFNSETDLLDIRECTORY MySetDllDirectory = NULL;
+
+void PathTooLongErrorDialog (LPCSTR  path)
+{
+    CString  message;
+
+    message.Format (_T("Chandler can't start because the path is too long: "
+                       "\"%s\". To fix the problem, "
+                       "try reinstalling Chandler into another location."),
+                    path);
+    MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
+}
 
 void MissingFileOrFolderErrorDialog (LPCSTR  missingFileOrFolder)
 {
@@ -34,8 +45,8 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     HMODULE     module;
     CString     path;
     CString     pathToChandler;
-    CString     pathToExe;	
-    int         result = -1;
+    CString     pathToExe;    
+    int         result = EXIT_FAILURE;
     BOOL        success;
 
     /*
@@ -45,6 +56,15 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     length = GetModuleFileName (NULL, bufferPtr, _MAX_PATH);
     assert (length);
     pathToExe.ReleaseBuffer();
+
+    /*
+     * See if we need to exit because of problems.
+     */
+    if (!length) return EXIT_FAILURE;
+    if (length == _MAX_PATH && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        PathTooLongErrorDialog(_T(""));
+        return EXIT_FAILURE;
+    }
     
     index = pathToExe.ReverseFind (TCHAR ('\\'));
     pathToExe.Truncate (index);
@@ -104,9 +124,9 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     }
     /*
      * PYTHONCASEOK must be removed because we treat import paths as
-		 * case sensitive.
+     * case sensitive.
      */
-		_putenv(_T("PYTHONCASEOK="));
+    _putenv(_T("PYTHONCASEOK="));
     /*
      * PYTHONHOME must be set because that's what Python
      * uses to to find Lib, the module directory
@@ -115,7 +135,8 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     path += pathToExe;
     _putenv (path);
     /*
-     * PYTHONPATH must be set because otherwise Chandler won't find application.
+     * PYTHONPATH must be set because otherwise Chandler won't find
+     * application.
      */
     path = _T("PYTHONPATH=");
     path += pathToChandler;
@@ -137,27 +158,45 @@ int APIENTRY WinMain (HINSTANCE hInstance,
         /*
          * Pass along the command line arguments to chandler.
          */
-		int argc = __argc;
-		char ** argv = __argv;
+        int argc = __argc;
+        char ** argv = __argv;
 
-		path = pathToChandler;
-        path += _T("\\Chandler.py");
-		argv [0] = LPSTR (LPCSTR (path));
+        path = pathToChandler;
+        path = path + _T("\\Chandler.py");
+
+	/*
+	 * See if we need to exit because of problems.
+	 */
+        if (path.GetLength() > _MAX_PATH) {
+            /*
+             * This should not really be possible, but just in case.
+             */
+            PathTooLongErrorDialog (path);
+            return EXIT_FAILURE;
+        }
+
+        argv [0] = LPSTR (LPCSTR (path));
 
         filePtr = fopen (path, "r");
         if (!filePtr) {
             MissingFileOrFolderErrorDialog (path);
         } else {
-			Py_Initialize();
-			PySys_SetArgv (argc, argv);
-            result = PyRun_SimpleFileEx (filePtr, path, /*close file is */ true);
+            Py_Initialize();
+            PySys_SetArgv (argc, argv);
+            result = PyRun_SimpleFileEx (filePtr, path,
+                                         /*close file is */ true);
+	    if (result) {
+	        result = EXIT_FAILURE;
+	    } else {
+	        result = EXIT_SUCCESS;
+	    }
             /*
              * We don't write out a message when PyRun_SimpleFile returns failure
              * because Chandler is repsponsible for printing errors. There is a
              * rare case in which Chandler is so broken that an error dialog can't
              * be displayed that will result in no indication of failure. -- DJA
              */
-            if (!result) {
+            if (result == EXIT_SUCCESS) {
                 Py_Finalize();
             }
         }
