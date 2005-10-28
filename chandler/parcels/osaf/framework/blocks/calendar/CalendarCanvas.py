@@ -1440,8 +1440,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         app = wx.GetApp()
         self.allDayCloseArrowImage = app.GetImage("AllDayCloseArrow_whitebg.png")
         self.allDayOpenArrowImage = app.GetImage("AllDayOpenArrow_whitebg.png")
-        self.allDayBlankArrowImage = app.GetImage("AllDayBlankArrow_whitebg.png")
-
 
         self.currentSelectedDate = None
         self.currentStartDate = None
@@ -1497,7 +1495,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         expandoColumn = len(headerLabels) - 1
         weekColumnHeader.SetBitmapJustification(expandoColumn,
                                                 wx.colheader.CH_JUST_Center)
-        weekColumnHeader.SetBitmapRef(expandoColumn, self.allDayBlankArrowImage)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED,
                   self.OnDayColumnSelect, weekColumnHeader)
 
@@ -1518,6 +1515,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.monthText.SetFont(styles.monthLabelFont)
         self.monthText.SetForegroundColour(styles.monthLabelColor)
         
+        self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
         self.UpdateHeader()
         self._doDrawingCalculations() #hopefully this is early enough
 
