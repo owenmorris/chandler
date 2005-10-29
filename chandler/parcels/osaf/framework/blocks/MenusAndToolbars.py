@@ -1001,6 +1001,7 @@ class ToolbarItem(Block.Block, DynamicChild):
         longHelp = self.helpString
         app = wx.GetApp()
         if (self.toolbarItemKind == 'Button' or
+            self.toolbarItemKind == 'Status' or # @@@ WORKAROUND for bug 4356 - see 45 lines below for the explanation
             self.toolbarItemKind == 'Radio'):
 
             bitmap, disabledBitmap = getBitmaps (self)
@@ -1045,6 +1046,8 @@ class ToolbarItem(Block.Block, DynamicChild):
             theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_TEXT_ENTER, app.OnCommand, id=id)
         elif self.toolbarItemKind == 'Status':
+            # @@@ this case needs to be removed; it's shadowed out by the
+            # @@@ the workaround 45 lines above [self.toolbarItemKind == 'Status']
             bitmap, disabledBitmap = getBitmaps (self)
             tool = wx.StaticBitmap(theToolbar, id, bitmap)
 
