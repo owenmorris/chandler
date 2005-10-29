@@ -137,6 +137,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         # Paint the entire background
         dc.SetBrush(wx.WHITE_BRUSH)
+        # add an extra 10 pixels because wx is adding 4-5 extra pixels
+        # at the bottom of the virtual window.
         dc.DrawRectangle(0, 0, self.size.width+1, self.size.height + 10)
 
         self.ShadeToday(dc)
@@ -173,6 +175,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         self.size.width+1,
                         hour * self.hourHeight + halfHourHeight)
 
+        # Draw a final, bottom hour line
+        dc.SetPen(styles.majorLinePen)
+        dc.DrawLine(self.xOffset,
+                    self.size.height,
+                    self.size.width+1,
+                    self.size.height)
         self.DrawDayLines(dc)
         
         legendBorderX = self.xOffset - self.legendBorderWidth/2 - 1
