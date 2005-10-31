@@ -21,6 +21,21 @@ all_aspects = Attribute.valueAspects + Attribute.refAspects + \
 global_lock = threading.RLock()
 
 
+# The next two functions are abominable hacks to work around the
+# absence of generic functions.  Maybe this can be cleaned up in 0.7
+# by adding RuleDispatch to the mix?  Or alternately, by defining
+# Chandler's core schema using the schema API, rather than packs.
+#
+def _is_schema(ob):
+    return hasattr(ob,'_find_schema_item') or ob in (Base,Kind)
+
+def _target_type(ob):
+    if ob is Base or ob is Kind:
+        return ob
+    else:
+        return ob.targetType()
+
+
 class TypeReference:
     """Reference a core schema type (e.g. Integer) by its repository path"""
 
@@ -177,13 +192,13 @@ class Role(ActiveDescriptor,CDescriptor):
         if self.owner is None:
             self.owner = cls
             CDescriptor.__init__(self,name)
-            if cls.targetType() and self.inverse is not None:
+            if _target_type(cls) and self.inverse is not None:
                 if isinstance(self.inverse,ForwardReference):
                     return
                 elif isinstance(self.inverse.inverse,ForwardReference):
                     self.inverse.inverse = self
                 if set_type:
-                    self.inverse.type = cls.targetType()
+                    self.inverse.type = _target_type(cls)
 
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
@@ -208,14 +223,14 @@ class Role(ActiveDescriptor,CDescriptor):
         self._setattr(attr, value)
 
         if attr=='type' and value is not None:
-            if not hasattr(value,"_find_schema_item"):
+            if not _is_schema(value):
                 self._setattr(attr,old) # roll it back
                 raise TypeError(
                     "Attribute type must be Item/Enumeration class or "
                     "TypeReference",value
                 )
-            if value.targetType():
-                self._setattr(attr, value.targetType())
+            if _target_type(value):
+                self._setattr(attr, _target_type(value))
             self.setDoc()   # update docstring
 
     def __setInverse(self,inverse):
@@ -237,8 +252,8 @@ class Role(ActiveDescriptor,CDescriptor):
                     self._setattr('_inverse',None)  # roll back the change
                     raise
 
-                if self.owner and self.owner.targetType():
-                    inverse.type = self.owner.targetType()
+                if self.owner and _target_type(self.owner):
+                    inverse.type = _target_type(self.owner)
 
     inverse = property(
         lambda s: s._inverse, __setInverse, doc="""The inverse of this role"""
@@ -324,7 +339,8 @@ class Role(ActiveDescriptor,CDescriptor):
                 cls = self.owner
                 self.inverse.activateInClass(
                     cls, "%s.%s.%s.inverse" % (
-                        parcel_name(cls.__module__), cls.__name__, self.name
+                        parcel_name(cls.__module__), cls.__name__,
+                        self.name.split('.')[-1]
                     ), False
                 )
             attr.otherName = self.inverse.name
@@ -673,7 +689,7 @@ class AnnotationClass(type):
         for name,ob in cdict.items():
             if isinstance(ob,Role):
                 basename = "%s.%s." % (parcel_name(cls.__module__), cls.__name__)
-                ob.annotates = cls.targetType(),
+                ob.annotates = _target_type(cls),
                 ob.activateInClass(cls,basename+name)
                 setattr(cls,name,Redirector(ob))
             elif isinstance(ob,ActiveDescriptor):

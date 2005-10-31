@@ -19,6 +19,11 @@ class Mixed(Dummy, Types.Type):
 class AnEnum(schema.Enumeration):
     values = "yes", "no"
 
+class CoreAnnotation(schema.Annotation):
+    schema.kindInfo(annotates=schema.Kind)
+    extraInfo = schema.One(schema.Text)
+    otherItem = schema.One(schema.Item, inverse=schema.Sequence())
+
 class SchemaTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
 
@@ -75,6 +80,17 @@ class SchemaTests(SchemaTestCase):
         self.assertNotEqual( rv.findPath(path+'Dummy'), None)
         self.assertNotEqual( rv.findPath(path+'AnEnum'), None)
 
+    def testAnnotateKind(self):
+        kind_kind = schema.itemFor(schema.Kind)
+        CoreAnnotation(kind_kind).extraInfo = u"Foo"
+        self.assertEqual(CoreAnnotation(kind_kind).extraInfo, u"Foo")
+        parcel = schema.parcel_for_module(__name__)
+        CoreAnnotation(kind_kind).otherItem = parcel
+        self.assertEqual(
+            list(getattr(parcel, __name__+".CoreAnnotation.otherItem.inverse")),
+            [kind_kind]
+        )
+            
 
 def test_schema_api():
     import doctest

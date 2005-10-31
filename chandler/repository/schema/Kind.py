@@ -686,8 +686,6 @@ class Kind(Item):
         if reason is not None:
             logger = self.itsView.logger
             for cls in Kind._kinds.get(self._uuid, []):
-                if not silent:
-                    logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', reason, cls.__module__, cls.__name__, self.itsPath)
                 self._setupDescriptors(cls, reason)
 
         if 'schemaHash' in self._values:
