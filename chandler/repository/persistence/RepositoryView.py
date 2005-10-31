@@ -371,7 +371,15 @@ class RepositoryView(CView):
         from repository.persistence.PackHandler import PackHandler
 
         handler = PackHandler(path, parent, self)
-        handler.parseFile(path)
+        verify = self._isVerify()
+
+        try:
+            if verify:
+                self._status &= ~RepositoryView.VERIFY
+            handler.parseFile(path)
+        finally:
+            if verify:
+                self._status |= RepositoryView.VERIFY
 
         return handler.pack
 

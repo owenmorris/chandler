@@ -400,6 +400,11 @@ class References(Values):
         item = self._item
         value = self.get(name)
 
+        if item.itsView._isVerify():
+            logger = item.itsView.logger
+            if not self._verifyAssignment(name, other, logger):
+                raise ValueError, "Assigning %s to attribute '%s' on %s didn't match schema" %(other._repr_(), name, item._repr_())
+
         if value is None:
             if cardinality is None:
                 cardinality = item.getAttributeAspect(name, 'cardinality',
@@ -887,12 +892,19 @@ class References(Values):
             else:
                 logger.error("Attribute %s on %s is using a cardinality, '%s', which is not supported, use 'list' instead", key, self._item.itsPath, attrCard)
                 check = False
-                
+
             result = result and check
 
         return result
 
-    def _verifyAssignment(self, key, value, logger):
+    def _verifyAssignment(self, name, other, logger):
+
+        item = self._item
+        kind = item.itsKind
+
+        if kind is not None and kind.getAttribute(name, True, item) is None:
+            logger.error("setting bi-ref on attribute '%s' of %s, but '%s' is not defined for Kind %s", name, item._repr_(), name, kind.itsPath)
+            return False
 
         return True
 
