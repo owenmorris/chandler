@@ -387,14 +387,9 @@ class wxPreviewArea(wx.Panel):
         if isMainCalendarVisible() or not minical:
             today = datetime.today()
             startDay = datetime.combine(today, time(0))
-            endDay = datetime(startDay.year,
-                              startDay.month,
-                              startDay.day + 1)
         else:
             startDay = minical.widget.getSelectedDate()
-            endDay = datetime(startDay.year,
-                              startDay.month,
-                              startDay.day + 1)
+        endDay = startDay + timedelta(days=1)
 
         inRange = list(self.blockItem.getItemsInRange((startDay, endDay), dayItems=True, timedItems=True))
         self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
