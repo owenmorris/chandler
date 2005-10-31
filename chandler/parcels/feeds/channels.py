@@ -124,8 +124,14 @@ class FeedChannel(pim.ListCollection):
     def Update(self, data=None):
         #getattr returns a unicode object which needs to be converted to bytes for
         #logging
-        logger.info("Updating channel: %s" % getattr(self, 'displayName',
-                    str(self.url)).encode('ascii', 'replace'))
+        channel = getattr(self, 'displayName', None)
+
+        if channel is None:
+            channel = str(self.url)
+        else:
+            channel = channel.encode('ascii', 'replace')
+
+        logger.info("Updating channel: %s" % channel)
 
         etag = self.getAttributeValue('etag', default=None)
         lastModified = self.getAttributeValue('lastModified', default=None)
