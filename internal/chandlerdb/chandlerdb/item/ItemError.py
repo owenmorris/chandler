@@ -6,6 +6,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.item.c import isitem
 
+#
+# __doc__ strings need to be explicitely set in order not to be removed by -OO
+#
+
+
 class ItemError(Exception):
 
     def getItem(self):
@@ -19,42 +24,42 @@ class ItemError(Exception):
 
 
 class StaleItemError(ValueError, ItemError):
-    "Item is stale"
+    __doc__ = "Item is stale"
 
     def __str__(self):
         return self.getItem()._repr_()
 
 
 class DirtyItemError(ValueError, ItemError):
-    "Item %s has changed, cannot be unloaded"
+    __doc__ = "Item %s has changed, cannot be unloaded"
 
     def __str__(self):
         return self.getItem().itsPath
 
     
 class InvalidChildError(ValueError, ItemError):
-    '%s not a child of %s'
+    __doc__ = '%s not a child of %s'
 
     def __str__(self):
         return self.__doc__ %(self.args[1].itsPath, self.getItem().itsPath)
 
 
 class ChildNameError(ValueError, ItemError):
-    "%s already has a child named '%s'"
+    __doc__ = "%s already has a child named '%s'"
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath, self.args[1])
 
 
 class AnonymousRootError(ValueError, ItemError):
-    'repository root %s may not be anonymous'
+    __doc__ = 'repository root %s may not be anonymous'
     
     def __str__(self):
         return self.__doc__ %(self.getItem()._repr_())
 
 
 class OwnedValueError(ValueError, ItemError):
-    "Value %s is already owned by item %s on attribute '%s'"
+    __doc__ = "Value %s is already owned by item %s on attribute '%s'"
 
     def __str__(self):
         return self.__doc__ %(self.args[2],
@@ -63,14 +68,14 @@ class OwnedValueError(ValueError, ItemError):
 
 
 class RecursiveDeleteError(ValueError, ItemError):
-    'Item %s has children, delete must be recursive'
+    __doc__ = 'Item %s has children, delete must be recursive'
 
     def __str__(self):
         return self.__doc__ %(self.getItem()._repr_())
 
 
 class NoSuchItemInCollectionError(ValueError, ItemError):
-    "Item %s: no item %s in collection on attribute '%s'"
+    __doc__ = "Item %s: no item %s in collection on attribute '%s'"
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
@@ -79,14 +84,14 @@ class NoSuchItemInCollectionError(ValueError, ItemError):
 
 
 class NoSuchAttributeError(AttributeError, ItemError):
-    "Kind %s has no definition for attribute '%s'"
+    __doc__ = "Kind %s has no definition for attribute '%s'"
     
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath, self.args[1])
 
 
 class IndirectAttributeError(AttributeError, ItemError):
-    "Indirect values on item %s, attribute '%s' via '%s' are not supported"
+    __doc__ = "Indirect values on item %s, attribute '%s' via '%s' are not supported"
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
@@ -95,7 +100,7 @@ class IndirectAttributeError(AttributeError, ItemError):
 
 
 class NoValueForAttributeError(AttributeError, ItemError):
-    "%s (Kind: %s) has no value for '%s'"
+    __doc__ = "%s (Kind: %s) has no value for '%s'"
 
     def getAttribute(self):
         return self.args[1]
@@ -107,7 +112,7 @@ class NoValueForAttributeError(AttributeError, ItemError):
 
 
 class NoLocalValueForAttributeError(NoValueForAttributeError):
-    "%s (Kind: %s) has no local value for '%s'"
+    __doc__ = "%s (Kind: %s) has no local value for '%s'"
     
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
@@ -116,21 +121,21 @@ class NoLocalValueForAttributeError(NoValueForAttributeError):
 
 
 class ReadOnlyAttributeError(AttributeError, ItemError):
-    'Item %s: value for %s is read-only'
+    __doc__ = 'Item %s: value for %s is read-only'
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath, self.args[1])
 
 
 class KindlessItemError(TypeError, ItemError):
-    "Item is kindless"
+    __doc__ = "Item is kindless"
 
     def __str__(self):
         return self.getItem()._repr_()
 
 
 class CardinalityError(TypeError, ItemError):
-    "Item %s (kind: %s), attribute '%s' is not %s"
+    __doc__ = "Item %s (kind: %s), attribute '%s' is not %s"
 
     def __str__(self):
         return self.__doc__ %(self.args[1],
@@ -140,7 +145,7 @@ class CardinalityError(TypeError, ItemError):
 
 
 class BadRefError(ValueError, ItemError):
-    "Item %s, attribute '%s': ref is: %s, but should be: %s"
+    __doc__ = "Item %s, attribute '%s': ref is: %s, but should be: %s"
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
@@ -150,7 +155,7 @@ class BadRefError(ValueError, ItemError):
 
 
 class DanglingRefError(BadRefError):
-    "Item %s, attribute '%s': referred item %s not found"
+    __doc__ = "Item %s, attribute '%s': referred item %s not found"
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
@@ -159,7 +164,7 @@ class DanglingRefError(BadRefError):
 
 
 class ViewMismatchError(BadRefError):
-    "Error establishing bidirectional ref, item views don't match: %s is in %s but %s is in %s"
+    __doc__ = "Error establishing bidirectional ref, item views don't match: %s is in %s but %s is in %s"
 
     def __str__(self):
         return self.__doc__ %(self.args[0]._repr_(), self.args[0].itsView,
@@ -176,7 +181,7 @@ class IndexError(ItemError):
     
 
 class NoSuchIndexError(KeyError, IndexError):
-    "Item %s: no index named '%s' on attribute '%s'"
+    __doc__ = "Item %s: no index named '%s' on attribute '%s'"
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
@@ -185,7 +190,7 @@ class NoSuchIndexError(KeyError, IndexError):
 
 
 class IndexAlreadyExists(KeyError, IndexError):
-    "Item %s: an index named '%s' already exists on attribute '%s'"
+    __doc__ = "Item %s: an index named '%s' already exists on attribute '%s'"
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
