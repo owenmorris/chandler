@@ -110,8 +110,8 @@ class FocusEventHandlers(Item):
             # @@@ BJS: this'll go away when we change 'from' to an
             # account picker popup.
             if isinstance (item, Mail.MailMessageMixin):
-                if item.ItemWhoFromString() == u'':
-                    item.whoFrom = item.getCurrentMeEmailAddress()
+                if item.fromAddress == u'':
+                    item.fromAddress = item.getCurrentMeEmailAddress()
             item.shareSend()
 
     def onFocusTogglePrivateEvent(self, event):
