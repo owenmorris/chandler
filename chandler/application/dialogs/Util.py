@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
+import os, sys, codecs
 import application.Globals
 import AccountPreferences
 import wx
@@ -290,18 +290,22 @@ class LogWindow(wx.Dialog):
         self.forClipboard = u""
 
         for log in logList:
+            if not isinstance(log, unicode):
+                log = unicode(log, sys.getfilesystemencoding())
 
-            logLines = file(log, "r").readlines()[-500:]
-            combined = "".join(logLines)
+            f = codecs.open(log, encoding='utf-8', mode="r", errors="ignore")
+            #combined is a list of unicode text
+            combined = u"".join(f.readlines()[-500:])
             label = wx.StaticText(self, -1, log)
             sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
-            self.forClipboard += "==> %s <==\n\n" % log
+
+            self.forClipboard += u"==> %s <==\n\n" % log
 
             text = wx.TextCtrl(self, -1,
              combined,
              pos=wx.DefaultPosition, size=[800,200], style=wx.TE_MULTILINE)
             text.ShowPosition(text.GetLastPosition())
-            self.forClipboard += "%s\n\n" % combined
+            self.forClipboard += u"%s\n\n" % combined
 
             sizer.Add(text, 1, wx.ALIGN_LEFT|wx.ALL, 5)
 
