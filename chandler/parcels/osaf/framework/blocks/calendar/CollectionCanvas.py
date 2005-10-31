@@ -208,11 +208,12 @@ class DragState(object):
         self.currentPosition = unscrolledPosition
         self._dragDirty = True
 
-    def HandleDragEnd(self):
+    def HandleDragEnd(self, runHandler=True):
         if self._dragStarted:
             self._dragTimer.Stop()
             del self._dragTimer
-            self.dragEndHandler()
+            if runHandler:
+                self.dragEndHandler()
             self._window.ReleaseMouse()
 
 class wxCollectionCanvas(DragAndDrop.DropReceiveWidget, 
@@ -438,7 +439,9 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             else:
                 self.dragState.ResetDrag()
                 self.DoDragAndDrop(copyOnly=True)
-                self.dragState.HandleDragEnd()
+                # We've interrupted the drag within the calendar,
+                # so the handler should not be run
+                self.dragState.HandleDragEnd(runHandler=False)
                 self.dragState = None
 
         elif event.LeftDClick():

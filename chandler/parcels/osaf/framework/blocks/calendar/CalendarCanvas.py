@@ -904,14 +904,6 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         if firstSpecialCollection:
             return firstSpecialCollection
 
-        # temporary check for M6
-        # really, we should have gotten a wxSynchronizeWidget by now
-        # so that if the event isn't in the above collections,
-        # we shouldn't even be trying to draw it.
-        trash = schema.ns('osaf.app', self.itsView).TrashCollection
-        if event in trash:
-            return trash
-
         assert False, "Don't have color info for %s" % event
         
     def setCurrentCalendarColor(self, color):
