@@ -422,9 +422,9 @@ class ItemClipboardHandler(_ClipboardHandler):
         return items
 
     def onCutEvent(self, event):
-        result = self.Copy()
-        # call self.DeleteSelection() if it is defined
-        getattr(self, 'DeleteSelection', lambda: None)()
+        result = self.onCopyEvent(event)
+        # call self.DeleteSelection if it is defined
+        getattr(type(self), 'DeleteSelection', lambda s: None)(self)
         return result
 
     def onPasteEventUpdateUI(self, event):
