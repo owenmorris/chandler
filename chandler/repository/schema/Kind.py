@@ -893,9 +893,10 @@ class Kind(Item):
 class SchemaMonitor(Monitor):
 
     def schemaChange(self, op, kind, attrName):
-        
-        if isinstance(kind, Kind) and kind.monitorSchema:
-            kind.flushCaches(attrName)
+
+        if isinstance(kind, Kind):
+            if kind.monitorSchema or kind.attributesCached:
+                kind.flushCaches(attrName)
 
 
 class Extent(Item):
