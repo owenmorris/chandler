@@ -395,7 +395,7 @@ class ItemClipboardHandler(_ClipboardHandler):
         """
         Override to define which kind you allow to be dropped.
         """
-        return "Note" # Default is any kind of Note or subclass of Note.
+        return "ContentItem" # Default is any kind of ContentItem or subclass of ContentItem.
     
     def ClipboardDataObject(self):
         format = self.ClipboardDataFormat()
