@@ -68,7 +68,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         
         self.eventHeight = \
-            self.blockItem.calendarContainer.eventLabelHeight + \
+            self.blockItem.calendarContainer.eventLabelMeasurements.height + \
             AllDayCanvasItem.textMargin * 2 + 2
 
         self.collapsedHeight = int(0.5 * self.eventHeight)

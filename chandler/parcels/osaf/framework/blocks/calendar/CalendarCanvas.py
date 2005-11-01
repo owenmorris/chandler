@@ -349,7 +349,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         dc.SetFont(styles.eventTimeFont)
                         self.timeHeight = \
                             DrawWrappedText(dc, timeString, timeRect,
-                                            styles.eventTimeMeasurementCache)
+                                            styles.eventTimeMeasurements)
 
                         y += self.timeHeight
 
@@ -383,10 +383,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 if selected:
                     proxy = RecurrenceDialog.getProxy(u'ui', item)
                     DrawWrappedText(dc, proxy.displayName, textRect,
-                                    styles.eventLabelMeasurementCache)
+                                    styles.eventLabelMeasurements)
                 else:
                     DrawWrappedText(dc, item.displayName, textRect,
-                                    styles.eventLabelMeasurementCache)
+                                    styles.eventLabelMeasurements)
        
         dc.DestroyClippingRegion()	
         if clipRect:	
@@ -1292,8 +1292,8 @@ class CalendarContainer(BoxContainer):
         self.monthLabelColor = wx.Colour(64, 64, 64)
 
         self.eventLabelColor = wx.BLACK
-        self.eventLabelHeight = \
-            Styles.getMeasurements(self.eventLabelFont).height
+        self.eventLabelMeasurements=Styles.getMeasurements(self.eventLabelFont)
+        self.eventTimeMeasurements =Styles.getMeasurements(self.eventTimeFont)
         
         self.legendColor = wx.Colour(128,128,128)
 
@@ -1310,8 +1310,6 @@ class CalendarContainer(BoxContainer):
         # gradient cache
         self.brushes = Gradients()
 
-        self.eventLabelMeasurementCache = {}
-        self.eventTimeMeasurementCache = {}
 
     def instantiateWidget(self):
         self.InitializeStyles()

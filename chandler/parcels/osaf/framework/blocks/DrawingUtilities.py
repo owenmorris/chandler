@@ -7,6 +7,7 @@ import wx, os, random
 import math
 
 from colorsys import hsv_to_rgb, rgb_to_hsv
+import Styles
 
 def color2rgb(red, green, blue):
     return red/255.0, green/255.0, blue/255.0
@@ -59,25 +60,21 @@ def DrawClippedTextWithDots(dc, string, rect):
         y += lineHeight
         
 
-def DrawWrappedText(dc, text, rect, measurementCache=None):
+def DrawWrappedText(dc, text, rect, measurements=None):
     """
     Simple wordwrap - draws the text into the current DC
     
     returns the height of the text that was written
+
+    measurements is a FontMeasurements object as returned by
+    Styles.getMeasurements()
     """
 
-    if measurementCache is None:
-        ignored, lineHeight = dc.GetTextExtent('M') #in case there are no words in the line
-        spaceWidth, ignored = dc.GetTextExtent(' ')
-    else:
-        if not measurementCache.has_key('lineHeight'):
-            ignored, measurementCache['lineHeight'] = dc.GetTextExtent('M')
-        
-        if not measurementCache.has_key('spaceWidth'):
-            measurementCache['spaceWidth'], ignored = dc.GetTextExtent(' ')
-        
-        lineHeight = measurementCache['lineHeight']
-        spaceWidth = measurementCache['spaceWidth']
+    if measurements is None:
+        measurements = Styles.getMeasurements(dc.GetFont())
+
+    lineHeight = measurements.height
+    spaceWidth = measurements.spaceWidth
         
     (rectX, rectY, rectWidth, rectHeight) = rect
     y = rectY

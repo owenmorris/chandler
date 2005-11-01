@@ -165,6 +165,7 @@ class FontMeasurements(object):
             self.height = self.descent = self.leading = 0
             (ignored, self.height, self.descent, self.leading) = \
              dc.GetFullTextExtent("M", font)
+            self.spaceWidth = dc.GetFullTextExtent(" ", font)[0]
 
             # @@@ These result in too-big boxes - so fake it.
             if False:
