@@ -317,16 +317,20 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 if not isAnyTimeOrAllDay:
                     
                     # allow self.startTime to override the
-                    # pre-formatted time string
+                    # pre-formatted time string, and use that to
+                    # decide if we should measure the time or not
                     startTime = getattr(self, 'startTime', None)
                     if startTime:
                         timeString = formatTime(startTime)
+                        timeHeight = dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
                     else:
                         timeString = self.timeString
+                        # cache the timeHeight
+                        if self.timeHeight == 0:
+                            self.timeHeight = \
+                                dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
+                        timeHeight = self.timeHeight
                         
-                    te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)	
-                    timeHeight = te[1]	
-       
                     # add some space below the time
                     # (but on linux there isn't any room)
                     if '__WXGTK__' in wx.PlatformInfo:
@@ -344,7 +348,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         
                         dc.SetFont(styles.eventTimeFont)
                         self.timeHeight = \
-                            DrawWrappedText(dc, timeString, timeRect)
+                            DrawWrappedText(dc, timeString, timeRect,
+                                            styles.eventTimeMeasurementCache)
 
                         y += self.timeHeight
 
@@ -377,9 +382,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.SetFont(styles.eventLabelFont)
                 if selected:
                     proxy = RecurrenceDialog.getProxy(u'ui', item)
-                    DrawWrappedText(dc, proxy.displayName, textRect)
+                    DrawWrappedText(dc, proxy.displayName, textRect,
+                                    styles.eventLabelMeasurementCache)
                 else:
-                    DrawWrappedText(dc, item.displayName, textRect)
+                    DrawWrappedText(dc, item.displayName, textRect,
+                                    styles.eventLabelMeasurementCache)
        
         dc.DestroyClippingRegion()	
         if clipRect:	
@@ -1302,6 +1309,9 @@ class CalendarContainer(BoxContainer):
 
         # gradient cache
         self.brushes = Gradients()
+
+        self.eventLabelMeasurementCache = {}
+        self.eventTimeMeasurementCache = {}
 
     def instantiateWidget(self):
         self.InitializeStyles()
