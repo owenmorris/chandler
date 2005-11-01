@@ -508,6 +508,18 @@ class AETypeOverTextCtrl(wxRectangularChild):
         return showingSample
 
     def OnStaticClick(self, event):
+        try:
+            readOnlyMethod = self.editor.ReadOnly
+            item = self.editor.item
+            attributeName = self.editor.attributeName
+        except AttributeError:
+            pass
+        else:
+            # If we're read-only, we want to ignore the click and not turn 
+            # editable. (Also, note: no Skip())
+            if readOnlyMethod((item, attributeName)):
+                return 
+            
         editControl = self.editControl
         editControl.SetFocus()
         # if we're currently displaying the "sample text", select
@@ -1022,9 +1034,12 @@ class StaticStringAttributeEditor(StringAttributeEditor):
     def CreateControl(self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         return super(StaticStringAttributeEditor, self).\
-               CreateControl(False, readOnly, parentWidget, id, parentBlock, font)
+               CreateControl(False, True, parentWidget, id, parentBlock, font)
     
     def EditInPlace(self):
+        return True
+
+    def ReadOnly (self, (item, attribute)):
         return True
 
 class LobImageAttributeEditor (BaseAttributeEditor):
