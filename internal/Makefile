@@ -33,10 +33,11 @@ realclean: env
 	    $(MAKE) -C $$system -k realclean; \
 	done
 
-upload:
+# this should only be called by the full tbox client
+uploadstaging:
 	@for system in $(SYSTEMS); \
 	do \
-		$(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
+	    $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
 
 install:
