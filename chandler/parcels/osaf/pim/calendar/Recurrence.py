@@ -429,7 +429,8 @@ class RecurrenceRuleSet(items.ContentItem):
         # isComplex has already tested for most custom things, but
         # not intervals greater than 1 and multiple weekdays
         rule = self.rrules.first()
-        if rule.interval != 1:
+        if not (rule.interval == 1 or (rule.interval == 2 and
+                                       rule.freq == 'weekly')):
             return True
         elif rule.byweekday:
             return True

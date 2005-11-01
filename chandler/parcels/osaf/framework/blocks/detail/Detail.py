@@ -1352,10 +1352,14 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # This is a list of the frequency enumeration names (defined in 
     # Recurrence.py's FrequencyEnum) in the order we present
     # them in the menu... plus "once" at the beginning and "custom" at the end.
+    # Note that biweekly is not, in fact, a valid FrequencyEnum frequency, it's a
+    # special case.
     # These should not be localized!
-    menuFrequencies = [ 'once', 'daily', 'weekly', 'monthly', 'yearly', 'custom']
+    menuFrequencies = [ 'once', 'daily', 'weekly', 'biweekly', 'monthly', 'yearly', 'custom']
     onceIndex = menuFrequencies.index('once')
     customIndex = menuFrequencies.index('custom')
+    biweeklyIndex = menuFrequencies.index('biweekly')
+    weeklyIndex = menuFrequencies.index('weekly')
     
     @classmethod
     def mapRecurrenceFrequency(theClass, item):
@@ -1364,7 +1368,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             return RecurrenceAttributeEditor.customIndex
         # Otherwise, try to map its frequency to our menu list
         try:
-            freq = item.rruleset.rrules.first().freq
+            rrule = item.rruleset.rrules.first() 
+            freq = rrule.freq
+            # deal with biweekly special case
+            if freq == 'weekly' and rrule.interval == 2:
+                return RecurrenceAttributeEditor.biweeklyIndex
         except AttributeError:
             # Can't get to the freq attribute, or there aren't any rrules
             # So it's once.
@@ -1409,10 +1417,15 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         if value == RecurrenceAttributeEditor.onceIndex:
             item.removeRecurrence()
         else:
+            interval = 1
+            if value == RecurrenceAttributeEditor.biweeklyIndex:
+                interval = 2
+                value = RecurrenceAttributeEditor.weeklyIndex
             duFreq = Recurrence.toDateUtilFrequency(\
                 RecurrenceAttributeEditor.menuFrequencies[value])
             rruleset = Recurrence.RecurrenceRuleSet(None, view=item.itsView)
-            rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq))
+            rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq,
+                                         interval=interval))
             until = item.getLastUntil()
             if until is not None:
                 rruleset.rrules.first().until = until

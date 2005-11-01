@@ -416,7 +416,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                         # These choices must match the enumerated indexes in the
                         # RecurrenceAttributeEditor python code
                         'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'),
-                                    _(u'Monthly'), _(u'Yearly'),
+                                    _(u'Biweekly'), _(u'Monthly'), _(u'Yearly'),
                                     _(u'Custom...')]},
                     stretchFactor=0.0,
                     minimumSize=SizeType(100, -1))])
