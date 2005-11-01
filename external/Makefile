@@ -116,5 +116,6 @@ realcleanworld: $(addprefix realclean-, $(SYSTEMS))
 uploadstaging:
 	@for system in $(SYSTEMS); \
 	do \
-		$(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
+	   $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
+	$(MAKE) -C ../internal DEBUG=$(DEBUG) uploadstaging
