@@ -67,8 +67,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
-        self.localeHourStrings = list(self.GetLocaleHourStrings(range(24)))
-
     def ScaledScroll(self, dx, dy):
         (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
         scrollX += dx
@@ -111,7 +109,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         else:
             self.dayWidth = drawInfo.dayWidth
     
-    def GetLocaleHourStrings(self, hourrange):
+    def GetLocaleHourStrings(self, hourrange, dc):
         """
         use PyICU to format the hour, because some locales
         use a 24 hour clock
@@ -126,7 +124,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             timeString = timeFormatter.format(hourdate, hourFP)
             (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
             hourString = str(timeString)[start:end]
-            yield hour, hourString
+            textExtent = dc.GetTextExtent(hourString)
+            yield hour, hourString, textExtent
 
     def DrawBackground(self, dc):
         styles = self.blockItem.calendarContainer
@@ -151,12 +150,16 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # Draw the lines separating hours
         halfHourHeight = self.hourHeight/2
 
+        if not hasattr(self, 'localeHourStrings'):
+            self.localeHourStrings = \
+                list(self.GetLocaleHourStrings(range(24), dc))
+
         # we'll need these for hour formatting
-        for hour,hourString in self.localeHourStrings:
+        for hour,hourString,textExtent in self.localeHourStrings:
 
             if hour > 0:
                 # Draw the hour legend
-                wText, hText = dc.GetTextExtent(hourString)
+                wText, hText = textExtent
                 dc.DrawText(hourString,
                             self.xOffset - wText - 5,
                             hour * self.hourHeight - (hText/2))
