@@ -25,11 +25,13 @@ from osaf.framework.types.DocumentTypes import SizeType, RectType
 logger = logging.getLogger(__name__)
 
 def showError(errText):
+    """
+    Utility routine to display internationalized error messages
+    """
     application.dialogs.Util.ok(wx.GetApp().mainFrame, _(u"Flickr Error"), errText)
 
 
 class FlickrPhotoMixin(PhotoMixin):
-
     schema.kindInfo(displayName=u"Flickr Photo Mixin",
                     displayAttribute="displayName")
 
@@ -164,26 +166,19 @@ class PhotoCollection(pim.ContentItem):
 
 class FlickrCollectionController(Block.Block):
     def onNewFlickrCollectionByOwnerEvent(self, event):
-        return CreateCollectionFromUsername(self.itsView, Globals.views[0])
+        return CreateCollectionFromUsernamePrompter(self.itsView, Globals.views[0])
 
     def onNewFlickrCollectionByTagEvent(self, event):
-        return CreateCollectionFromTag(self.itsView, Globals.views[0])
+        return CreateCollectionFromTagPrompter(self.itsView, Globals.views[0])
 
-def CreateCollectionFromUsername(repView, cpiaView):
+def CreateCollectionFromUsernamePrompter(repView, cpiaView):
     username = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
                                                    messages.USERNAME,
                                                    _(u"Enter a Flickr Username"),
                                                    u"")
     if username:
-        myPhotoCollection = PhotoCollection(view = repView)
-        myPhotoCollection.username = username
-
         try:
-            myPhotoCollection.getCollectionFromFlickr(repView)
-
-            # Add the channel to the sidebar
-            schema.ns("osaf.app", cpiaView).sidebarCollection.add (myPhotoCollection.sidebarCollection)
-            return myPhotoCollection.sidebarCollection
+            return CreateCollectionFromUsername(username, repView, cpiaView)
         except flickr.FlickrError, fe:
             if "User not found" in str(fe):
                 errMsg = _(u"Username '%(username)s' was not found.") % {'username': username}
@@ -197,34 +192,43 @@ def CreateCollectionFromUsername(repView, cpiaView):
 
         showError(errMsg)
 
-def CreateCollectionFromTag(repView, cpiaView):
+def CreateCollectionFromUsername(username, repView, cpiaView):
+    myPhotoCollection = PhotoCollection(view = repView)
+    myPhotoCollection.username = username
+    myPhotoCollection.getCollectionFromFlickr(repView)
+
+    # Add the channel to the sidebar
+    schema.ns("osaf.app", cpiaView).sidebarCollection.add(myPhotoCollection.sidebarCollection)
+    return myPhotoCollection.sidebarCollection
+
+    
+
+def CreateCollectionFromTagPrompter(repView, cpiaView):
     tagstring = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
                                                    _(u"Tag"),
                                                    _(u"Enter a Flickr Tag"),
                                                    u"")
     if tagstring:
-        myPhotoCollection = PhotoCollection(view = repView)
-        myPhotoCollection.tag = Tag.getTag(repView, tagstring)
-
         try:
-            myPhotoCollection.getCollectionFromFlickr(repView)
-
-            # Add the channel to the sidebar
-            schema.ns("osaf.app", cpiaView).sidebarCollection.add (myPhotoCollection.sidebarCollection)
-            return myPhotoCollection.sidebarCollection
-
+            return CreateCollectionFromTag(tagstring, repView, cpiaView)
         except flickr.FlickrError, fe:
             logger.exception(fe)
             errMsg = _(u"An error occurred communicating with Flickr server.\nPlease see log for more details.")
-
         except AttributeError:
             errMsg = _(u"No Flickr items found for tag '%(tag)s'.") % {'tag': tagstring}
-
         except Exception, e:
             logger.exception(e)
             errMsg = _(u"Unable to communicate with Flickr server.\nPlease see log for more details.")
-
         showError(errMsg)
+
+def CreateCollectionFromTag(tagstring, repView, cpiaView):
+    myPhotoCollection = PhotoCollection(view = repView)
+    myPhotoCollection.tag = Tag.getTag(repView, tagstring)
+    myPhotoCollection.getCollectionFromFlickr(repView)
+
+    # Add the channel to the sidebar
+    schema.ns("osaf.app", cpiaView).sidebarCollection.add(myPhotoCollection.sidebarCollection)
+    return myPhotoCollection.sidebarCollection
 
 #
 # Wakeup caller
@@ -275,12 +279,14 @@ def installParcel(parcel, oldVersion=None):
                     blockName = 'NewFlickrCollectionByOwnerItem',
                     title = _(u'New Flickr Collection by Owner'),
                     event = ownerEvent,
+                    eventsForNamedLookup = [ ownerEvent ],
                     parentBlock = newItemMenu)
  
     MenuItem.update(parcel, 'NewFlickrCollectionByTag',
                     blockName = 'NewFlickrCollectionByTagItem',
                     title = _(u'New Flickr Collection by Tag'),
                     event = tagEvent,
+                    eventsForNamedLookup = [ tagEvent ],
                     parentBlock = newItemMenu)
 
 

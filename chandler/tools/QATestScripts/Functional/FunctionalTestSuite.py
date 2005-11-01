@@ -24,6 +24,6 @@ execfile(os.path.join(functional_dir,"TestDeleteCollection.py"))
 execfile(os.path.join(functional_dir,"TestCalView.py"))
 execfile(os.path.join(functional_dir,"TestSwitchingViews.py"))
 execfile(os.path.join(functional_dir,"TestExporting.py"))
-
+execfile(os.path.join(functional_dir,"TestFlickr.py"))
 #cleaning
 logger.Close()
