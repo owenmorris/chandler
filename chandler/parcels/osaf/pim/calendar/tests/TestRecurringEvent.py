@@ -180,11 +180,11 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
         count = 3
         newRule = dateutil.rrule.rrule(dateutil.rrule.WEEKLY, count = count,
-                                       interval = 2, dtstart = self.start)
+                                       interval = 3, dtstart = self.start)
         
         self.event.setRuleFromDateUtil(newRule)
         self.assertEqual(self.event.isCustomRule(), True)
-        self.assertEqual(self.event.getCustomDescription(), "every 2 weeks until 8/1/05")
+        self.assertEqual(self.event.getCustomDescription(), "every 3 weeks until 8/15/05")
 
         # changing the rule for the master, modifies should stay None
         self.assertEqual(self.event.modifies, None)
@@ -194,11 +194,11 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(len(self.event.occurrences), 2)
         self.assertEqual(len(list(self.event._generateRule())), count)
 
-        twoWeeks = self.start + timedelta(days=14)
-        occurs = self.event.getOccurrencesBetween(twoWeeks + 
-                                timedelta(minutes=30), datetime(2005, 8, 1, 14))
-        self.assertEqual(list(occurs)[0].startTime, twoWeeks)
-        self.assertEqual(list(occurs)[1].startTime, datetime(2005, 8, 1, 13))
+        threeWeeks = self.start + timedelta(days=21)
+        occurs = self.event.getOccurrencesBetween(threeWeeks + 
+                                timedelta(minutes=30), datetime(2005, 8, 15, 14))
+        self.assertEqual(list(occurs)[0].startTime, threeWeeks)
+        self.assertEqual(list(occurs)[1].startTime, datetime(2005, 8, 15, 13))
         self.rep.check()
     
     def testIcalUID(self):
