@@ -861,8 +861,10 @@ def syncAll(view, updateCallback=None):
 
     sharedCollections = []
     for share in Share.iterItems(view):
-        if share.active and not share.hidden and (share.contents not in
-            sharedCollections):
+        if (share.active and
+            not share.hidden and
+            share.contents is not None and
+            share.contents not in sharedCollections):
             sharedCollections.append(share.contents)
 
     stats = []
