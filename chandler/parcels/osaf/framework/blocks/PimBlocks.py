@@ -13,7 +13,7 @@ from osaf.pim import ContentItem, Note
 import application.dialogs.Util as Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages
-from osaf.framework.blocks import BlockEvent
+from osaf.framework.blocks import Block, BlockEvent, debugName
 from application import schema
 
 """
@@ -194,13 +194,8 @@ class FocusEventHandlers(Item):
                 if hasattr(item, 'execute'):
                     # in case the user was just editing the script,
                     # ask the focus to finish changes, if it can
-                    focusedWidget = wx.Window_FindFocus()
-                    try:
-                        method = focusedWidget.blockItem.finishSelectionChanges
-                    except AttributeError:
-                        pass
-                    else:
-                        method()
+                    Block.finishEdits()
+
                     # run the script from the item's body
                     item.execute()
 

@@ -14,7 +14,7 @@ from osaf.framework.attributeEditors import \
      ChoiceAttributeEditor, StaticStringAttributeEditor
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
-     FocusEventHandlers, Trunk, TrunkSubtree
+     FocusEventHandlers, Trunk, TrunkSubtree, debugName
 from osaf import sharing
 import osaf.pim.mail as Mail
 import osaf.pim.items as items
@@ -55,8 +55,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
       Root of the Detail View.
     """
     def onSetContentsEvent (self, event):
-        self.finishSelectionChanges()
         # logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
+        Block.Block.finishEdits()
         self.setContentsOnBlock(event.arguments['item'])
 
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
@@ -69,7 +69,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         # does nothing in its EVT_KILL_FOCUS handler if it's being deleted,
         # and we'll force the final update here.
         #logger.debug("DetailRoot: unrendering.")
-        self.finishSelectionChanges() 
+        Block.Block.finishEdits()
         
         # then call our parent which'll do the actual unrender, triggering the
         # no-op EVT_KILL_FOCUS.
@@ -236,21 +236,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     def onSendShareItemEvent (self, event):
         """ Send or Share the current item. """
         # finish changes to previous selected item, then do it.
-        self.finishSelectionChanges()
+        Block.Block.finishEdits()
         super(DetailRootBlock, self).onSendShareItemEvent(event)
-
-    def finishSelectionChanges (self):
-        """ 
-        Need to finish any changes to the selected item
-        that are in progress.
-        @@@DLD - use an event for notification:
-        self.postEventByName('BroadcastFinishChanges', {})
-        """
-        focusBlock = self.getFocusBlock()
-        try:
-            focusBlock.saveTextValue (validate=True)
-        except AttributeError:
-            pass
     
     def focus(self):
         """
@@ -377,10 +364,6 @@ class DetailSynchronizer(Item):
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
                     doc="Return the selected item, or None")
 
-    def finishSelectionChanges (self):
-        # finish any changes in progress in editable text fields.
-        self.detailRoot().finishSelectionChanges ()
-
     def synchronizeItemDetail (self, item):
         # if there is an item, we should show ourself, else hide
         if item is None:
@@ -456,14 +439,6 @@ class DetailSynchronizer(Item):
             for attr in monitoredAttributes:
                 Monitors.detach(self, 'onMonitoredValueChanged', 'set', attr)
         
-        # @@@ BJS: this didn't work as a fix for bug 3960 (change to title 
-        # not saved upon quitting chandler): see the bug comments.
-        ## Write back data if we need to, to handle the case where the user 
-        ## quits by closing the main window
-        #saver = getattr(self, 'saveTextValue', None) 
-        #if saver is not None:
-            #saver()
-            
         super(DetailSynchronizer, self).onDestroyWidget()
 
     def onMonitoredValueChanged(self, op, item, attribute):
@@ -602,16 +577,12 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
         if self.isShown:
             self.synchronizeWidget()
 
-    def saveTextValue (self, validate=False):
-        # Tell the AE to save itself
-        self.saveValue()
-
     def OnDataChanged (self):
         # (this is how we find out about drag-and-dropped text changes!)
-        self.saveTextValue()
+        self.saveValue()
 
     def OnFinishChangesEvent (self, event):
-        self.saveTextValue(validate=True)
+        self.saveValue(validate=True)
 
 class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
     """
@@ -621,7 +592,7 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
     """
     def onButtonPressedEvent (self, event):
         # Rekind the item by adding or removing the associated Mixin Kind
-        self.finishSelectionChanges () # finish changes to editable fields 
+        Block.Block.finishEdits()
         tool = event.arguments['sender']
         item = self.item
         
@@ -764,7 +735,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         widget.Bind(wx.EVT_KEY_UP, self.onKeyPressed)
         return widget
 
-    def saveTextValue (self, validate=False):
+    def saveValue(self, validate=False):
         # save the user's edits into item's attibute
         item = self.item
         try:
@@ -784,20 +755,20 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     
     def onLoseFocus (self, event):
         # called when we get an event; to saves away the data and skips the event
-        self.saveTextValue (validate=True)
+        self.saveValue(validate=True)
         event.Skip()
         
     def onKeyPressed (self, event):
         # called when we get an event; to saves away the data and skips the event
-        self.saveTextValue(validate = event.m_keyCode == wx.WXK_RETURN and self.lineStyleEnum != "MultiLine")
+        self.saveValue(validate = event.m_keyCode == wx.WXK_RETURN and self.lineStyleEnum != "MultiLine")
         event.Skip()
         
     def OnDataChanged (self):
         # event that an edit operation has taken place
-        self.saveTextValue()
+        self.saveValue()
 
     def OnFinishChangesEvent (self, event):
-        self.saveTextValue(validate=True)
+        self.saveValue(validate=True)
 
     def synchronizeItemDetail (self, item):
         self.loadTextValue(item)

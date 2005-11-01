@@ -9,7 +9,7 @@ from application.Application import mixinAClass
 from application import schema
 from Block import ( 
     Block, RectangularChild, BlockEvent, 
-    ShownSynchronizer, lineStyleEnumType, logger
+    ShownSynchronizer, lineStyleEnumType, logger, debugName
 )
 from ContainerBlocks import BoxContainer
 from osaf.pim import AbstractCollection
@@ -1956,17 +1956,7 @@ class AEBlock(BoxContainer):
         # on popups when you click on them (or tab to them!)
         oldFocus = self.getFocusBlock()
         if oldFocus is not self:
-            # Find our view - if it has a finishSelectionChanges method, call it.
-            b = self
-            while b is not None and not b.eventBoundary:
-                b = b.parentBlock
-            if b is not None:
-                try:
-                    method = b.finishSelectionChanges
-                except AttributeError:
-                    pass
-                else:
-                    method()
+            Block.finishEdits(oldFocus) # finish any edits in progress
         
             #logger.debug("Grabbing focus.")
             wx.Window.SetFocus(self.widget)
@@ -1991,7 +1981,7 @@ class AEBlock(BoxContainer):
         # Make sure the value is written back to the item. 
         self.saveValue()
 
-    def saveValue(self):
+    def saveValue(self, validate=False):
         # Make sure the value is written back to the item. 
         widget = getattr(self, 'widget', None)
         if widget is not None:

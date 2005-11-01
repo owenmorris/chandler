@@ -426,6 +426,19 @@ class Block(schema.Item):
                 return block
         return Globals.views[0]
 
+    @classmethod
+    def finishEdits(theClass, onBlock=None):
+        """ 
+        If the given block, or the focus block if no block given, has a 
+        saveValue method, call it to write pending edits back.
+        """
+        if onBlock is None:
+            onBlock = Block.getFocusBlock()
+        if onBlock is not None:
+            saveValueMethod = getattr(onBlock, 'saveValue', None)
+            if saveValueMethod is not None:
+                saveValueMethod()
+        
     def onShowHideEvent(self, event):
         self.isShown = not self.isShown
         self.synchronizeWidget()

@@ -2,6 +2,7 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.attributeEditors"
 
 import os, cStringIO
 import wx
@@ -18,7 +19,7 @@ import logging
 from operator import itemgetter
 from datetime import datetime, time, timedelta
 from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition, ICUtzinfo
-from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild
+from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild, debugName
 from osaf.pim.items import ContentItem
 from application import schema
 from i18n import OSAFMessageFactory as _
@@ -45,9 +46,7 @@ class AttributeEditorMapping(schema.Item):
         super(AttributeEditorMapping, self).__init__(*args, **kwds)
       
         aeMappings = schema.ns("osaf.framework.attributeEditors", self.itsView).aeMappings
-        # @@@ Hack to work around duplicate item creation..
-        if aeMappings.editors.resolveAlias(self.itsName) is None:
-            aeMappings.editors.append(self, alias=self.itsName)
+        aeMappings.editors.append(self, alias=self.itsName)
 
 def installParcel(parcel, oldVersion=None):
     """ Do initial registry of attribute editors """

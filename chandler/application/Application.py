@@ -88,6 +88,10 @@ class MainFrame(wx.Frame):
             wx.SystemOptions.SetOptionInt( "msw.remap", 0 )
 
     def OnClose(self, event):
+        # Finish any edits in progress.
+        from osaf.framework.blocks.Block import Block
+        Block.finishEdits()
+
         # For some strange reason when there's an idle handler on the
         # application the mainFrame windows doesn't get destroyed, so
         # we'll remove the handler
