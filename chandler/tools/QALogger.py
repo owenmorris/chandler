@@ -60,6 +60,8 @@ class TestLogger:
         TestLogger.logger = self
         # Check if we're profiling
         self.profiler = scripting.cats_profiler()
+        # By default, enable profiling
+        self.enableProfiling = True
 
     def Reset(self):
         ''' Reset all the attributes relative to a testcase '''
@@ -95,6 +97,22 @@ class TestLogger:
         self.Print("OSAF_QA: %s | %s | %s" %(description, version.buildRevision, elapsed_secs)) 
         print("OSAF_QA: %s | %s | %s" %(description, version.buildRevision, elapsed_secs))
         
+    def SuspendProfiling(self):
+        """
+        Suspend profiling of code between Start()/Stop() calls
+        (profiling is usually enabled via the --catsProfile
+        command-line option).
+        """
+        self.enableProfiling = False
+        
+    def ResumeProfiling(self):
+        """
+        Resume profiling of code between Start()/Stop() calls.
+        (profiling is usually enabled via the --catsProfile
+        command-line option)
+        """
+        self.enableProfiling = True
+        
     def Start(self,string):
         ''' Start the action timer  '''
         # usefull inits
@@ -106,14 +124,14 @@ class TestLogger:
         #some init printing
         self.Print("")
         self.Print("-------------------------------------------------------------------------------------------------")
-        if self.profiler is not None:
+        if self.enableProfiling and self.profiler is not None:
             self.profiler.start()
         self.actionStartDate = self.actionEndDate = datetime.now()
 
     def Stop(self):
         ''' Stop the action timer  '''
         self.actionEndDate = datetime.now()
-        if self.profiler is not None:
+        if self.enableProfiling and self.profiler is not None:
             self.profiler.stop()
         #report the timing information
         self.Print("Action = "+self.actionDescription)
