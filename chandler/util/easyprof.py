@@ -26,12 +26,15 @@ class Profile(object):
 
     def profiled(self, method):
         def profile_me(*args, **kwds):
+            # Make sure we actually return the original
+            # method's return value.
             if self.profiler_active:
-                method(*args, **kwds)
+                result = method(*args, **kwds)
             else:
                 self.profiler_active = True
-                self.profiler.runcall(method, *args, **kwds)
+                result = self.profiler.runcall(method, *args, **kwds)
                 self.profiler_active = False
+            return result
         return profile_me
 
 def QuickProfile(profilefile):
