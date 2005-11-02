@@ -21,16 +21,17 @@
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
+SetCompressor lzma
+
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
 
-; MUI Settings
 !define MUI_ABORTWARNING
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
-; Wizard pages
 !insertmacro MUI_PAGE_WELCOME
+Page custom PageReinstall PageLeaveReinstall
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
@@ -58,9 +59,72 @@ InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
 ShowUnInstDetails nevershow
 
+Function .onInit
+
+  ; look for another instance of the installer
+  ; if found, bring it to the front
+  System::Call "kernel32::CreateMutexA(i 0, i 0, t '$(^Name)') i .r0 ?e"
+  Pop $0
+  StrCmp $0 0 launch
+  StrLen $0 "$(^Name)"
+  IntOp $0 $0 + 1
+  loop:
+    FindWindow $1 '#32770' '' 0 $1
+    IntCmp $1 0 +4
+    System::Call "user32::GetWindowText(i r1, t .r2, i r0) i."
+    StrCmp $2 "$(^Name)" 0 loop
+    System::Call "user32::SetForegroundWindow(i r1) i."
+    Abort
+  launch:
+
+  !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "uninstall_dialog.ini" "uninstall_dialog.ini"
+
+FunctionEnd
+
 Function change_cancel_text
 
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Settings" "CancelEnabled" "0"
+
+FunctionEnd
+
+Function PageReinstall
+
+  ReadRegStr $R0 HKLM "Software\OSAF" "Version"
+
+  ; If the Version key is empty, abort the dialog
+  StrCmp $R0 "" 0 +2
+    Abort
+
+  !insertmacro MUI_HEADER_TEXT "Already Installed" "Choose how you want to install Chandler."
+  !insertmacro MUI_INSTALLOPTIONS_DISPLAY "uninstall_dialog.ini"
+
+FunctionEnd
+
+Function PageLeaveReinstall
+
+  !insertmacro MUI_INSTALLOPTIONS_READ $R1 "uninstall_dialog.ini" "Field 2" "State"
+  StrCmp $R1 "1" uninstall_chandler do_nothing
+
+  uninstall_chandler:
+    ReadRegStr $R1 HKLM "${PRODUCT_UNINST_KEY}" "UninstallString"
+    HideWindow
+    ClearErrors
+
+    ExecWait '$R1 _?=$INSTDIR'
+
+    IfErrors uninstall_failed
+    IfFileExists "$INSTDIR\chandler.exe" uninstall_failed
+    
+    Delete $R1
+    RMDIR $INSTDIR
+
+    Goto do_nothing
+
+  uninstall_failed:
+    Quit
+
+  do_nothing:
+    BringToFront
 
 FunctionEnd
 
@@ -102,13 +166,17 @@ SectionEnd
   
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
+
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${PRODUCT_BINARY}"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\${PRODUCT_BINARY}"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\${PRODUCT_BINARY}"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
+  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+
+  WriteRegStr HKLM "Software\OSAF" "Version" "${PRODUCT_VERSION}"
 SectionEnd
 
 Function un.onUninstSuccess
@@ -145,7 +213,8 @@ Section Uninstall
 
   RMDir "$INSTDIR"
 
-  DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+  DeleteRegKey HKLM "Software\OSAF"
   SetAutoClose true
 SectionEnd
