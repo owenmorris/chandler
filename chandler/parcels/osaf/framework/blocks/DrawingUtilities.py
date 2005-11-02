@@ -83,35 +83,47 @@ def DrawWrappedText(dc, text, rect, measurements=None):
     assert rectHeight >= lineHeight, "Don't have enough room to write anything (have %d, need %d)" % (rectHeight, lineHeight)
     for line in text.splitlines():
         x = rectX
+        # accumulate text to be written on a line
+        thisLine = u''
         for word in line.split():
             width, ignored = dc.GetTextExtent(word)
 
             # if we wrapped but we still can't fit the word,
             # just truncate it    
             if (width > rectWidth and x == rectX):
-                DrawClippedText(dc, word, x, y, rectWidth, width)
+                assert thisLine == u'', "Should be drawing first long word"
+                DrawClippedText(dc, word, rectX, y, rectWidth, width)
                 y += lineHeight
                 continue
 
             # see if we want to jump to the next line
             if (x + width > rectRight):
+                assert thisLine, "Should have text if we're wrapping"
+                # wrapping, so draw the previous accumulated line
+                dc.DrawText(thisLine, rectX, y)
+                thisLine = u''
                 y += lineHeight
                 x = rectX
             
             # if we're out of vertical space, just return
             if (y + lineHeight > rectBottom):
+                assert thisLine == u'', "shouldn't have any more to draw"
                 return y - rectY # total height
 
             availableWidth = rectRight - x
             if width > availableWidth:
-                DrawClippedText(dc, word, x, y, availableWidth, width)
+                assert x == rectX and thisLine == u'', "should be writing a long word at the beginning of a line"
+                DrawClippedText(dc, word, rectX, y, availableWidth, width)
                 x += width
                 # x is now past rectRight, so this will force a wrap
             else:
-                wordWithSpace = word + ' '
-                dc.DrawText(wordWithSpace, x, y)
+                # rather than draw it, just accumulate it
+                thisLine += word + u' '
                 x += width + spaceWidth
-                
+        
+        # draw the last words on this line, if any
+        if thisLine:
+            dc.DrawText(thisLine, rectX, y)        
         y += lineHeight
     return y - rectY # total height
 
