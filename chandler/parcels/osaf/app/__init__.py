@@ -236,6 +236,14 @@ The Chandler Team""")
                             bodyString=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
                             )
 
+    # Script to paste the clipboard into a new menu item
+    newScript = scripting.Script.update(parcel, 'Paste New Item',
+                                        displayName=_(u"F5 - Paste new item"),
+                                        fkey=_(u"F5"),
+                                        creator = osafDev
+                                        )
+    newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
+
 
 def MakeCollections(parcel):
 

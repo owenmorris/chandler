@@ -5,12 +5,13 @@ from osaf import webserver
 import webbrowser
 
 f = Block.Block.getFocusBlock()
-try:
-  i = f.selectedItemToView
-except AttributeError:
-  i = f.selection
-
-if i:
+i = getattr(f, "selectedItemToView", None)
+if i is None:
+    try:
+        i = f.selection[0]
+    except (IndexError, AttributeError):
+        i = None
+if i is not None:
     for server in webserver.Server.iterItems(view=i.itsView):
         if not server.isActivated():
             server.startup()
