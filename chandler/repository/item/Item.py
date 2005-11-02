@@ -1494,6 +1494,10 @@ class Item(CItem):
     def _setKind(self, kind, _noMonitors=False):
 
         if kind is not self._kind:
+            if self._status & Item.MUTATING:
+                raise NotImplementedError, 'recursive kind change'
+
+            self._futureKind = kind
             self.setDirty(Item.NDIRTY | Item.MUTATING)
             view = self.itsView
 
@@ -1522,6 +1526,7 @@ class Item(CItem):
 
             self._kind = kind
             self._status &= ~Item.MUTATING
+            del self._futureKind
 
             if kind is None:
                 self.__class__ = Item

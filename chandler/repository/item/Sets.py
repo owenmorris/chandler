@@ -689,13 +689,23 @@ class KindSet(Set):
 
     def __contains__(self, item):
 
-        if item is None or item._isMutating():
+        if item is None:
             return False
 
+        kind = self._view[self._extent].kind
+
         if self._recursive:
-            return item.isItemOf(self._view[self._extent].kind)
+            contains = item.isItemOf(kind)
         else:
-            return item.itsKind is self._view[self._extent].kind
+            contains = item.itsKind is kind
+
+        if contains:
+            if item._isMutating() and (item._futureKind is None or
+                                       not item._futureKind.isKindOf(kind)):
+                return False
+            return True
+        
+        return False
 
     def __iter__(self):
 
