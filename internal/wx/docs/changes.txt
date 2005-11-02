@@ -11,22 +11,34 @@ All:
 
 All (GUI):
 
-- added wxTreeBook
-- added wxDialog::SetEscapeId()
+- Added wxTreeBook.
+- Added wxDialog::SetEscapeId().
 - wxItemContainerImmutable::FindString unified (affects wxRadioBox, wxListBox,
-  wxComboBox and wxChoice)
-- wxWindow::Fit() now works correctly for frames and dialogs too
-- added access to the border size between pages and controller in book
-  based controls (wxBookCtrlBase::Get/SetInternalBorder)
+  wxComboBox and wxChoice).
+- wxWindow::Fit() now works correctly for frames and dialogs too.
+- Added access to the border size between pages and controller in book
+  based controls (wxBookCtrlBase::Get/SetInternalBorder).
+- Added initial wxRichTextCtrl implementation.
+- All book based controls (notebook, treebook etc.) share now the same
+  options for orientation (wxBK_TOP, wxBK_DEFAULT, ...) instead of duplicated
+  wxLB_TOP, wxNB_TOP, wxCHB_TOP, wxTBK_TOP.
+- Added parent window parameter to wxHelpController constructor
+  and added SetParentWindow/GetParentWindow.
+- wxMultiChoiceDialog uses now wxCheckListBox if possible, wxListBox if not.
 
 wxMSW:
 
-- wxFileDialog respects absence of wxCHANGE_DIR flag under NT (Brad Anderson)
-- Switching page of a hidden notebook doesn't lose focus (Jamie Gadd)
+- wxFileDialog respects absence of wxCHANGE_DIR flag under NT (Brad Anderson).
+- Switching page of a hidden notebook doesn't lose focus (Jamie Gadd).
+- Removed wxImageList *GetImageList(int) const.
+
+wxWinCE:
+
+- Pressing build-in joystick on WinCE phones fires wxEVT_JOY_BUTTON_DOWN event.
 
 Unix:
 
-- NO_GCC_PRAGMA is not used any more, remove checks for it if you used it
+- NO_GCC_PRAGMA is not used any more, remove checks for it if you used it.
 
 
 2.6.2
@@ -2519,5 +2531,3 @@ At this point, the following has been achieved:
 - utils/wxprop classes working (except maybe wxPropertyFormView)
   in preparation for use in Dialog Editor.
 - GNU-WIN32 compilation verified (a month or so ago).
-
-
