@@ -27,9 +27,13 @@ toAddr           = 'builder-admin'
 defaultDomain    = 'osafoundation.org'
 startDir         = '/home/builder/www/docs/chandler/continuous'
 tboxDirGlob      = ['*-win', '*-osx', '*-linux']
-cosmoLatestFile  = 'cosmo-continuous-latest.tar.gz'
 
-symlinkTargets   = ['cosmo-full-osx']
+symlinkTargets   = ['cosmo-full-osx', 'cosmo-0.2-osx', 'scooby-full-osx']
+
+symlinkNames     = { 'cosmo-full-osx':  'cosmo-continuous-latest.tar.gz',
+                     'cosmo-0.2-osx':   'cosmo-0.2-continuous-latest.tar.gz',
+                     'scooby-full-osx': 'scooby-continuous-latest.tar.gz',
+                   }
 
 import datetime, time, smtplib, os, glob
 
@@ -66,7 +70,6 @@ def rmdirRecursive(dir):
         if os.path.isdir(full_name):
             rmdirRecursive(full_name)
         else:
-            #print "removing file", full_name
             os.remove(full_name)
     os.rmdir(dir)
 
@@ -109,7 +112,7 @@ def prune_and_link():
         # now the real pruning happens here
         betweenDays = {}
         archivedirs = glob.glob('[0-9]*')
-        symlinkDir  = archivedirs[0]
+        symlinkDirs = []
 
         for archive in archivedirs[:-1]: # [:-1] means 'leave latest'
             if len(archive) != 14 or not os.path.isdir(archive):
@@ -122,6 +125,7 @@ def prune_and_link():
 
             if archive > tooNewStr:
                 #print 'leave', os.path.join(startDir, dir, archive)
+                symlinkDirs.append(archive)
                 continue
 
             # Now all we have left are those in-betweens...
@@ -134,22 +138,25 @@ def prune_and_link():
 
             betweenDays[day] = 1
             #print 'leave', os.path.join(startDir, dir, archive)
+            symlinkDirs.append(archive)
 
         if dir in symlinkTargets:
-            #print 'symlink check', dir
-            #print 'last found', archivedirs[-1]
-            symlinkDir = checkArchiveDir(archive,archivedirs[-1])
+            print 'symlink check', dir
+            symlinkDirs.sort()
+            print 'last found', symlinkDirs[-1]
+
+            symlinkDir = checkArchiveDir(archive, symlinkDirs[-1])
             sympath    = os.path.join(startDir, dir, symlinkDir, '*.tar.gz')
             symFiles   = glob.glob(sympath)
 
-            #print 'sympath, symFiles:', sympath, symFiles
+            print 'sympath, symFiles:', sympath, symFiles
 
             for symSource in symFiles:
-                symTarget = os.path.join(startDir, cosmoLatestFile)
+                symTarget = os.path.join(startDir, symlinkNames[dir])
                 if os.path.isfile(symTarget) or os.path.islink(symTarget):
                     #print 'removing', symTarget
                     os.unlink(symTarget)
-                #print 'linking', symSource, symTarget
+                print 'linking', symSource, symTarget
                 os.symlink(symSource, symTarget)
 
 def main():
