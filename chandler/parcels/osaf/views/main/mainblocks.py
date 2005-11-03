@@ -54,11 +54,10 @@ def make_color_blocks(parcel, cls, hues):
     
 def make_mainview(parcel):
 
-    # calling this 'events' for now because we might move
-    # these specific events to their own place
-    globalevents = schema.ns("osaf.framework.blocks", parcel.itsView)
-    repositoryViewer = schema.ns("osaf.views.repositoryviewer", parcel.itsView)
-    app  = schema.ns("osaf.app", parcel.itsView)
+    repositoryView = parcel.itsView
+    globalBlocks = schema.ns("osaf.framework.blocks", repositoryView)
+    repositoryViewer = schema.ns("osaf.views.repositoryviewer", repositoryView)
+    app  = schema.ns("osaf.app", repositoryView)
 
     # these reference each other... ugh!
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
@@ -76,7 +75,7 @@ def make_mainview(parcel):
     NewNoteEvent = \
         KindParameterizedEvent.template('NewNote',
             methodName='onNewEvent',
-            kindParameter=osaf.pim.notes.Note.getKind(parcel.itsView),
+            kindParameter=osaf.pim.notes.Note.getKind(repositoryView),
             commitAfterDispatch=True,
             dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
@@ -107,7 +106,7 @@ def make_mainview(parcel):
     ApplicationBarMailEvent = \
         KindParameterizedEvent.template('ApplicationBarMail',
             methodName='onKindParameterizedEvent',
-            kindParameter=osaf.pim.mail.MailMessageMixin.getKind(parcel.itsView),
+            kindParameter=osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='Sidebar').install(parcel)
     # from //parcels/osaf/views/main
@@ -123,17 +122,17 @@ def make_mainview(parcel):
     FocusStampMessageEvent = \
         KindParameterizedEvent.template('FocusStampMessage',
             methodName='onFocusStampEvent',
-            kindParameter=osaf.pim.mail.MailMessageMixin.getKind(parcel.itsView),
+            kindParameter=osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
             dispatchEnum='FocusBubbleUp').install(parcel)
     FocusStampTaskEvent = \
         KindParameterizedEvent.template('FocusStampTask',
             methodName='onFocusStampEvent',
-            kindParameter=osaf.pim.tasks.TaskMixin.getKind(parcel.itsView),
+            kindParameter=osaf.pim.tasks.TaskMixin.getKind(repositoryView),
             dispatchEnum='FocusBubbleUp').install(parcel)
     FocusStampCalendarEvent = \
         KindParameterizedEvent.template('FocusStampCalendar',
             methodName='onFocusStampEvent',
-            kindParameter=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(parcel.itsView),
+            kindParameter=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
             dispatchEnum='FocusBubbleUp').install(parcel)
     # Event to reload the detail view after stamping
     # workaround for bug 4091
@@ -225,21 +224,21 @@ def make_mainview(parcel):
     NewMailMessageEvent = \
         KindParameterizedEvent.template('NewMailMessage',
             methodName='onNewEvent',
-            kindParameter=osaf.pim.mail.MailMessage.getKind(parcel.itsView),
+            kindParameter=osaf.pim.mail.MailMessage.getKind(repositoryView),
             commitAfterDispatch=True,
             dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
     ApplicationBarEventEvent = \
         KindParameterizedEvent.template('ApplicationBarEvent',
             methodName='onKindParameterizedEvent',
-            kindParameter=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(parcel.itsView),
+            kindParameter=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='Sidebar').install(parcel)
     # from //parcels/osaf/views/main
     NewCalendarEvent = \
         KindParameterizedEvent.template('NewCalendar',
             methodName='onNewEvent',
-            kindParameter=osaf.pim.calendar.Calendar.CalendarEvent.getKind(parcel.itsView),
+            kindParameter=osaf.pim.calendar.Calendar.CalendarEvent.getKind(repositoryView),
             commitAfterDispatch=True,
             dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
@@ -299,7 +298,7 @@ def make_mainview(parcel):
     NewTaskEvent = \
         KindParameterizedEvent.template('NewTask',
             methodName='onNewEvent',
-            kindParameter=osaf.pim.tasks.Task.getKind(parcel.itsView),
+            kindParameter=osaf.pim.tasks.Task.getKind(repositoryView),
             commitAfterDispatch=True,
             dispatchEnum='ActiveViewBubbleUp').install(parcel)
     # from //parcels/osaf/views/main
@@ -371,7 +370,7 @@ def make_mainview(parcel):
     ApplicationBarTaskEvent = \
         KindParameterizedEvent.template('ApplicationBarTask',
             methodName='onKindParameterizedEvent',
-            kindParameter=osaf.pim.tasks.TaskMixin.getKind(parcel.itsView),
+            kindParameter=osaf.pim.tasks.TaskMixin.getKind(repositoryView),
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='Sidebar').install(parcel)
     # from //parcels/osaf/views/main
@@ -524,10 +523,10 @@ def make_mainview(parcel):
                             MenuItem.template('FileSeparator2',
                                 menuItemKind='Separator'),
                             MenuItem.template('PrintPreviewItem',
-                                event=globalevents.PrintPreview,
+                                event=globalBlocks.PrintPreview,
                                 title=_(u'Print Preview')),
                             MenuItem.template('PrintItem',
-                                event=globalevents.Print,
+                                event=globalBlocks.Print,
                                 title=_(u'Print...'),
                                 accel=_(u'Ctrl+P'),
                                 helpString=_(u'Print the current calendar')),
@@ -572,7 +571,7 @@ def make_mainview(parcel):
                             MenuItem.template('FileSeparator4',
                                 menuItemKind='Separator'),
                             MenuItem.template('QuitItem',
-                                event=globalevents.Quit,
+                                event=globalBlocks.Quit,
                                 title=_(u'Quit'),
                                 accel=_(u'Ctrl+Q'),
                                 helpString=_(u'Quit Chandler')),
@@ -581,40 +580,40 @@ def make_mainview(parcel):
                         title=_(u'&Edit'),
                         childrenBlocks=[
                             MenuItem.template('UndoItem',
-                                event=globalevents.Undo,
+                                event=globalBlocks.Undo,
                                 title=messages.UNDO,
                                 accel=_(u'Ctrl+Z'),
                                 helpString=_(u"Can't Undo")),
                             MenuItem.template('RedoItem',
-                                event=globalevents.Redo,
+                                event=globalBlocks.Redo,
                                 title=messages.REDO,
                                 accel=_(u'Ctrl+Y'),
                                 helpString=_(u"Can't Redo")),
                             MenuItem.template('EditSeparator1',
                                 menuItemKind='Separator'),
                             MenuItem.template('CutItem',
-                                event=globalevents.Cut,
+                                event=globalBlocks.Cut,
                                 title=messages.CUT,
                                 accel=_(u'Ctrl+X')),
                             MenuItem.template('CopyItem',
-                                event=globalevents.Copy,
+                                event=globalBlocks.Copy,
                                 title=messages.COPY,
                                 accel=_(u'Ctrl+C')),
                             MenuItem.template('PasteItem',
-                                event=globalevents.Paste,
+                                event=globalBlocks.Paste,
                                 title=messages.PASTE,
                                 accel=_(u'Ctrl+V')),
                             MenuItem.template('ClearItem',
-                                event=globalevents.Clear,
+                                event=globalBlocks.Clear,
                                 title=messages.CLEAR),
                             MenuItem.template('SelectAllItem',
-                                event=globalevents.SelectAll,
+                                event=globalBlocks.SelectAll,
                                 title=messages.SELECT_ALL,
                                 helpString=_(u'Select all')),
                             MenuItem.template('EditSeparator2',
                                 menuItemKind='Separator'),
                             MenuItem.template('RemoveItem',
-                                event=globalevents.Remove,
+                                event=globalBlocks.Remove,
                                 title=_(u'Remove'),
                                 accel=_(u'DELETE'),
                                 helpString=_(u'Move the current item to the trash')),
@@ -672,7 +671,7 @@ def make_mainview(parcel):
                         title=_(u'&Item'),
                         childrenBlocks=[
                             MenuItem.template('SendMessageItem',
-                                event=globalevents.SendShareItem,
+                                event=globalBlocks.SendShareItem,
                                 title=messages.SEND,
                                 helpString=_(u'Send the selected Mail Message')),
                             MenuItem.template('ItemSeparator1',
@@ -736,7 +735,7 @@ def make_mainview(parcel):
                                 title=_(u'Sync collection'),
                                 helpString=_(u'Synchronize a shared collection')),
                             MenuItem.template('RenameItem',
-                                event=globalevents.Rename,
+                                event=globalBlocks.Rename,
                                 title=_(u'Rename'),
                                 helpString=_(u'Rename the selected collection')),
                             Menu.template('CollectionColorMenu',
@@ -894,7 +893,7 @@ def make_mainview(parcel):
                         title=_(u'&Help'),
                         childrenBlocks=[
                             MenuItem.template('AboutChandlerItem',
-                                event=globalevents.About,
+                                event=globalBlocks.About,
                                 title=_(u'About Chandler'),
                                 helpString=_(u'About Chandler...')),
                             ]) # Menu HelpMenu
@@ -953,7 +952,7 @@ def make_mainview(parcel):
                             ToolbarItem.template('ApplicationSeparator2',
                                 toolbarItemKind='Separator'),
                             ToolbarItem.template('ApplicationBarSendButton',
-                                event=globalevents.SendShareItem,
+                                event=globalBlocks.SendShareItem,
                                 bitmap='ApplicationBarSend.png',
                                 title=messages.SEND,
                                 toolbarItemKind='Button',
@@ -967,6 +966,7 @@ def make_mainview(parcel):
                                 border=RectType(0, 0, 0, 4.0),
                                 childrenBlocks=[
                                     SidebarBlock.template('Sidebar',
+                                        characterStyle=globalBlocks.SidebarRowStyle,
                                         columnReadOnly=[False],
                                         columnHeadings=[u''],
                                         border=RectType(0, 0, 4, 0),
@@ -1028,7 +1028,7 @@ def make_mainview(parcel):
 
 
     # Add certstore UI
-    schema.synchronize(parcel.itsView, "osaf.framework.certstore.blocks")
+    schema.synchronize(repositoryView, "osaf.framework.certstore.blocks")
 
     return mainview
 

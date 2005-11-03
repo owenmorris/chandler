@@ -690,10 +690,7 @@ class SidebarBlock(ControlBlocks.Table):
     )
 
     def instantiateWidget (self):
-        if '__WXMAC__' in wx.PlatformInfo:
-            widget = wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self), style=wx.BORDER_SIMPLE)
-        else:
-            widget = wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self), style = wx.BORDER_STATIC)
+        widget = super (SidebarBlock, self).instantiateWidget()
         widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
         return widget
 

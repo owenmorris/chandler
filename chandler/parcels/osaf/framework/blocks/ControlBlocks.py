@@ -603,7 +603,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.currentColumns = gridTable.GetNumberCols()
         self.EnableGridLines (self.blockItem.hasGridLines)
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
-    
+
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
             blockItem = self.blockItem
@@ -993,9 +993,10 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     def instantiateWidget (self):
         if '__WXMAC__' in wx.PlatformInfo:
-            widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=wx.BORDER_SIMPLE)
+            theStyle=wx.BORDER_SIMPLE
         else:
-            widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=wx.BORDER_STATIC)                
+            theStyle=wx.BORDER_STATIC
+        widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=theStyle)
         widget.SetDefaultCellFont(Styles.getFont(getattr(self, "characterStyle", None)))
         widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
         defaultName = "_default"

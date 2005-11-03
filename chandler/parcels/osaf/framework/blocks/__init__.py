@@ -1,5 +1,7 @@
 from Styles import CharacterStyle, ColorStyle, Style
 from Block import Block as __Block
+import wx
+
 
 from Block import (
     RectangularChild, TrunkSubtree, BlockEvent, ChoiceEvent, ColorEvent,
@@ -120,3 +122,10 @@ def installParcel(parcel, oldName=None):
     )
 
     CharacterStyle.update(parcel, "SummaryRowStyle", fontFamily="DefaultUIFont")
+
+    if '__WXMSW__' in wx.PlatformInfo:
+        theFontSize = 12
+    else:
+        theFontSize = 11
+
+    CharacterStyle.update(parcel, "SidebarRowStyle", fontFamily="DefaultUIFont", fontSize=theFontSize)
