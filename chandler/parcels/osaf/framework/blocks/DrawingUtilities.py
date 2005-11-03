@@ -98,10 +98,10 @@ def DrawWrappedText(dc, text, rect, measurements=None):
 
             # see if we want to jump to the next line
             if (x + width > rectRight):
-                assert thisLine, "Should have text if we're wrapping"
-                # wrapping, so draw the previous accumulated line
-                dc.DrawText(thisLine, rectX, y)
-                thisLine = u''
+                # wrapping, so draw the previous accumulated line if any
+                if thisLine:
+                    dc.DrawText(thisLine, rectX, y)
+                    thisLine = u''
                 y += lineHeight
                 x = rectX
             
