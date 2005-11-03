@@ -594,7 +594,7 @@ class ContentItem(schema.Item):
         basedAttributeNames = None # we'll look these up if necessary
         isSharedInAnyReadOnlyShares = False
         for share in self.sharedIn:
-            if share.sharer is not me:          # inbound share
+            if getattr(share, 'sharer', None) is not me:   # inbound share
                 if share.mode in ('put', 'both'):   # writable share
                     return True
                 else:                               # read-only share

@@ -774,7 +774,8 @@ def isSharedByMe(share):
     if share is None:
         return False
     me = schema.ns("osaf.app", share.itsView).currentContact.item
-    return share.sharer is me
+    sharer = getattr(share, 'sharer', None)
+    return sharer is me
 
 
 
