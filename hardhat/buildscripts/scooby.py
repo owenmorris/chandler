@@ -21,7 +21,7 @@ sleepMinutes = 30
 reposRoot    = 'http://svn.osafoundation.org/server'
 reposModules = [('scooby',  'scooby/trunk',),
                ]
-reposBuild   = [('scooby',  'clean build'),
+reposBuild   = [('scooby',  'clean'),
                ]
 reposTest    = [('scooby',  'test'),
                ]
