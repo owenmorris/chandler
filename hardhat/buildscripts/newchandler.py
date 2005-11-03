@@ -184,6 +184,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                         if ret != 'success':
                             break
 
+
     return ret + changes
 
 
