@@ -6,16 +6,15 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, sys, threading, time, logging, cStringIO
 
 from new import classobj
-import wx
-import Globals
+
+import wx, Globals, Utility
+
+from i18n import OSAFMessageFactory as _, getImage
+
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError import \
     VersionConflictError, MergeError, RepositoryPasswordError, \
     RepositoryVersionError
-import Utility
-import schema
-from i18n import OSAFMessageFactory as _
-import i18n
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +137,6 @@ class wxApplication (wx.App):
         """
         util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
-        self.needsUpdateUI = True
         self.ignoreSynchronizeWidget = True
         self.focus = None
 
@@ -284,7 +282,8 @@ class wxApplication (wx.App):
 
         if splash:
             splash.updateGauge('mainview')
-        self.RenderMainView ()
+        
+        self.RenderMainView()
 
         if Globals.options.profile:
             import hotshot, hotshot.stats
@@ -301,16 +300,7 @@ class wxApplication (wx.App):
             wx.Yield()
             self.UIRepositoryView.commit()
             
-        if splash:
-            splash.Destroy()
-
-        # resize to intended size. (bug 3411)
-        self.mainFrame.SetSize(rememberSize)
-        
-        self.mainFrame.Show()
-
         # Start the WakeupCaller Service
-
         Utility.initWakeup(self.UIRepositoryView)
 
         # Start the Chandler Mail Service
@@ -320,7 +310,8 @@ class wxApplication (wx.App):
         Globals.mailService = MailService(self.UIRepositoryView)
         Globals.mailService.startup()
 
-        util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
+        if splash:
+            splash.Destroy()
 
         # data loading script execution
         if Globals.options.createData:
@@ -328,8 +319,26 @@ class wxApplication (wx.App):
             GenerateItemsFromFile.RunScript(Globals.mainViewRoot.itsView, Globals.views[0])
         
         self.__CHANDLER_STARTED_UP = True # workaround for bug 4362
-        return True    # indicates we succeeded with initialization
 
+        # resize to intended size. (bug 3411)
+        self.mainFrame.SetSize(rememberSize)
+
+        # Call UpdateWindowUI before we show the window. UPDATE_UI_FROMIDLE
+        # should be set so we don't update menus, since they are done
+        # when the menu is pulled down (mac may handle this slightly differently,
+        # except we still want UPDATE_UI_FROMIDLE on mac) -- DJA
+        self.mainFrame.UpdateWindowUI (wx.UPDATE_UI_FROMIDLE | wx.UPDATE_UI_RECURSE)
+        self.needsUpdateUI = False
+
+        self.mainFrame.Show()
+
+        # Set focs so OnIdle won't trigger an unnecessary UpdateWindowUI the
+        # first time through. -- DJA
+        self.focus = wx.Window_FindFocus()
+    
+        util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
+
+        return True    # indicates we succeeded with initialization
 
     def LoadMainViewRoot (self, delete=False):
         """
@@ -405,10 +414,10 @@ class wxApplication (wx.App):
 
         root, extension = os.path.splitext (name)
 
-        file = i18n.getImage(root + "-" + sys.platform + extension)
+        file = getImage(root + "-" + sys.platform + extension)
 
         if file is None:
-            file = i18n.getImage(name)
+            file = getImage(name)
 
             if file is None:
                 return None
@@ -519,7 +528,7 @@ class wxApplication (wx.App):
         # focus changes.
 
         if not self.__CHANDLER_STARTED_UP: return # workaround for bug 4362
-        
+
         focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus
@@ -549,7 +558,8 @@ class wxApplication (wx.App):
 
         if self.needsUpdateUI:
             try:
-                self.mainFrame.UpdateWindowUI (wx.UPDATE_UI_FROMIDLE | wx.UPDATE_UI_RECURSE)
+                self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_FROMIDLE |
+                                              wx.UPDATE_UI_RECURSE)
             finally:
                 self.needsUpdateUI = False
 
