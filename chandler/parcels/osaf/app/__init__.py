@@ -217,7 +217,7 @@ The Chandler Team""")
     # Scripts whose name starts with "test" can all be run through a command-line option
     scripting.Script.update(parcel, 'Reload Parcels',
                             displayName=_(u"Test - Reload Parcels"),
-                            test=True,
+                            #test=True, # @@@ reenable this line when bug 4554 is fixed
                             creator = osafDev,
                             bodyString=scripting.script_file(u"ReloadParcels.py", Scripts.__file__)
                             )
