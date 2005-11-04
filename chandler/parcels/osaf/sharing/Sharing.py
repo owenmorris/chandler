@@ -154,6 +154,41 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                     contents = share.contents
                     filterClasses = share.filterClasses
 
+            # Bug 4564 -- half baked calendar events (those with .xml resources
+            # but not .ics resources)
+            #
+            # We need to detect/delete them from the repository.  This means
+            # looking through the stats to find the items we just got, seeing
+            # which ones are CalendarEventMixin, and removing any that don't
+            # have a startTime.  Next, we need to adjust the manifests so that
+            # during the PUT phase we don't remove the .xml resources from
+            # the server
+            #
+            halfBakedEvents = []
+            for stat in stats:
+                share = sharingView.findUUID(stat['share'])
+                for uuid in stat['added']:
+                    item = sharingView.findUUID(uuid)
+                    if isinstance(item, pim.CalendarEventMixin):
+                        if not hasattr(item, 'startTime'):
+                            if updateCallback:
+                                updateCallback(msg=_(u"Incomplete Event Detected: '%s'") % item.getItemDisplayName())
+
+                            # This indicates the resource is to be ignored
+                            # during PUT (otherwise we would remove the .xml
+                            # resource since the item isn't in our local copy
+                            # of the collection:
+                            itemPath = share.conduit._getItemPath(item)
+                            share.conduit._addToManifest(itemPath, None)
+
+                            # There is another bug we're working around,
+                            # bug 4578, which requires I move the event to
+                            # the trash before deleting it:
+                            if hasattr(share.contents, 'trash'):
+                                share.contents.trash.add(item)
+
+                            item.delete(True)
+
         if merging:
             # Pull in local changes from main view
             if updateCallback:
@@ -547,7 +582,7 @@ class ShareConduit(pim.ContentItem):
             raise SharingError(_(u"Cancelled by user"))
 
         stats = {
-            'share' : self.itsUUID,
+            'share' : self.share.itsUUID,
             'op' : 'put',
             'added' : [],
             'modified' : [],
@@ -728,7 +763,7 @@ class ShareConduit(pim.ContentItem):
         view = self.itsView
 
         stats = {
-            'share' : self.itsUUID,
+            'share' : self.share.itsUUID,
             'op' : 'get',
             'added' : [],
             'modified' : [],
@@ -1765,7 +1800,7 @@ class SimpleHTTPConduit(WebDAVConduit):
         # Otherwise, since this is a monolithic .ics file, we don't know the
         # details other than we either fetched the .ics file or we didn't
         stats = {
-            'share' : self.itsUUID,
+            'share' : self.share.itsUUID,
             'op' : 'get',
             'added' : [],
             'modified' : [],
