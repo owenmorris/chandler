@@ -8,9 +8,8 @@ import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Trunk as Trunk
 from osaf.pim import AbstractCollection, IntersectionCollection, KindCollection, UnionCollection, IndexedSelectionCollection
-import wx
+import wx, os
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
-import os
 from osaf import sharing, pim
 from application import schema
 from i18n import OSAFMessageFactory as _
@@ -690,7 +689,10 @@ class SidebarBlock(ControlBlocks.Table):
     )
 
     def instantiateWidget (self):
-        widget = super (SidebarBlock, self).instantiateWidget()
+        widget = wxSidebar (self.parentBlock.widget, 
+                            Block.Block.getWidgetID(self), 
+                            characterStyle=getattr(self, "characterStyle", None),
+                            headerCharacterStyle=getattr(self, "headerCharacterStyle", None))
         widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
         return widget
 

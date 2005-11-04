@@ -522,7 +522,11 @@ class wxTable(DragAndDrop.DraggableWidget,
               DragAndDrop.DropReceiveWidget, 
               DragAndDrop.ItemClipboardHandler,
               wx.grid.Grid):
-    def __init__(self, *arguments, **keywords):
+    def __init__(self, parent, widgetID, characterStyle, headerCharacterStyle, *arguments, **keywords):
+        if '__WXMAC__' in wx.PlatformInfo:
+            theStyle=wx.BORDER_SIMPLE
+        else:
+            theStyle=wx.BORDER_STATIC
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
         object is being created cause the object to get the wrong type because of a
@@ -532,10 +536,12 @@ class wxTable(DragAndDrop.DraggableWidget,
         oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
         app.ignoreSynchronizeWidget = True
         try:
-            super (wxTable, self).__init__ (*arguments, **keywords)
+            super (wxTable, self).__init__ (parent, widgetID, style=theStyle, *arguments, **keywords)
         finally:
             app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
+        self.SetDefaultCellFont(Styles.getFont(characterStyle))
+        self.SetLabelFont(Styles.getFont(headerCharacterStyle))
         self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
         self.SetRowLabelSize(0)
         self.AutoSizeRows()
@@ -992,13 +998,10 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         super (Table, self).__init__ (*arguments, **keywords)
 
     def instantiateWidget (self):
-        if '__WXMAC__' in wx.PlatformInfo:
-            theStyle=wx.BORDER_SIMPLE
-        else:
-            theStyle=wx.BORDER_STATIC
-        widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=theStyle)
-        widget.SetDefaultCellFont(Styles.getFont(getattr(self, "characterStyle", None)))
-        widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
+        widget = wxTable (self.parentBlock.widget, 
+                          Block.getWidgetID(self),
+                          characterStyle=getattr(self, "characterStyle", None),
+                          headerCharacterStyle=getattr(self, "headerCharacterStyle", None))        
         defaultName = "_default"
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
         aeKind = AttributeEditors.AttributeEditorMapping.getKind(\

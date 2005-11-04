@@ -123,9 +123,4 @@ def installParcel(parcel, oldName=None):
 
     CharacterStyle.update(parcel, "SummaryRowStyle", fontFamily="DefaultUIFont")
 
-    if '__WXMSW__' in wx.PlatformInfo:
-        theFontSize = 12
-    else:
-        theFontSize = 11
-
-    CharacterStyle.update(parcel, "SidebarRowStyle", fontFamily="DefaultUIFont", fontSize=theFontSize)
+    CharacterStyle.update(parcel, "SidebarRowStyle", fontFamily="DefaultUIFont", fontSize=12)
