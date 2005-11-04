@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, sys, re, string, errno, shutil, time
 import repository
 
-from application import Utility
+from application import Utility, schema
 from repository.item.RefCollections import RefList
 from chandlerdb.util.c import SingleRef
 
@@ -626,10 +626,14 @@ def generateDocs(options, outputDir):
     source_modules += find_packages('application', exclude=['*.tests'])
     source_modules += find_packages('i18n',        exclude=['*.tests'])
     source_modules += find_packages('repository',  exclude=['*.tests'])
-    source_modules += find_packages('parcels',     exclude=['*.tests'])
     source_modules += find_packages('tools',       exclude=['*.tests'])
 
-    print 'find_packages: ', source_modules
+    parcels = find_packages('parcels', exclude=['*.tests'])
+
+    map(schema.importString, parcels)
+    for name,module in sys.modules.items():
+        if module is not None and name.rsplit('.', 1)[0] in parcels:
+            source_modules += [name]
 
     e_options = { 'target':       targetDir,
                   'verbosity':    verbosity,
