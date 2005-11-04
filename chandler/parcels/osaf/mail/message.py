@@ -141,11 +141,15 @@ def populateStaticHeaders(messageObject):
         messageObject['Content-Transfer-Encoding'] = "8bit"
 
 
-def populateHeader(messageObject, param, var, hType='String'):
+def populateHeader(messageObject, param, var, hType='String', encode=False):
     if hType == 'String':
         if hasValue(var):
-            messageObject[param] = var
-
+            if encode:
+                messageObject[param] = Header.Header(var).encode()
+              
+            else:
+                messageObject[param] = var
+              
     elif(hType == 'EmailAddress'):
         if var is not None and hasValue(var.emailAddress):
             messageObject[param] = Mail.EmailAddress.format(var, encode=True)
@@ -282,11 +286,10 @@ def kindToMessageObject(mailMessage):
     populateStaticHeaders(messageObject)
     populateChandlerHeaders(mailMessage, messageObject)
     populateHeaders(mailMessage, messageObject)
-    populateHeader(messageObject, 'Subject', mailMessage.subject)
+    populateHeader(messageObject, 'Subject', mailMessage.subject, encode=True)
 
     try:
-        payload = mailMessage.body
-        payload = textToUnicode(payload).encode('utf8')
+        payload = textToUnicode(mailMessage.body).encode('utf8')
 
     except AttributeError:
         payload = ""
