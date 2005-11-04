@@ -570,6 +570,22 @@ class InclusionExclusionCollection(DifferenceCollection):
             item.getItemDisplayName().encode('ascii', 'replace'),
             self.getItemDisplayName().encode('ascii', 'replace'))
 
+        # Before we actually add this item to our exclusions list, let's see
+        # how many other collections (that share our trash) this item is in.
+        # If the item is only in this collection, we'll add it to the trash
+        # later on.  We need to make this check now because in the following
+        # step when we add the item to our exclusions list, that could
+        # immediately add the item to the All collection which would be bad.
+        # Bug 4551
+
+        addToTrash = False
+        if self.trash is not None:
+            addToTrash = True
+            for collection in self.trash.trashFor:
+                if collection is not self and item in collection:
+                    addToTrash = False
+                    break
+
         logger.debug("...adding to exclusions (%s)",
             self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
         self.exclusions.add (item)
@@ -579,18 +595,10 @@ class InclusionExclusionCollection(DifferenceCollection):
                 self.inclusions.getItemDisplayName().encode('ascii', 'replace'))
             self.inclusions.remove (item)
 
-        # If this item is not in any of the collections that share our trash,
-        # add the item to the trash
-        if self.trash is not None:
-            found = False
-            for collection in self.trash.trashFor:
-                if item in collection:
-                    found = True
-                    break
-            if not found:
-                logger.debug("...adding to trash (%s)",
-                    self.trash.getItemDisplayName().encode('ascii', 'replace'))
-                self.trash.add(item)
+        if addToTrash:
+            logger.debug("...adding to trash (%s)",
+                self.trash.getItemDisplayName().encode('ascii', 'replace'))
+            self.trash.add(item)
 
         logger.debug("...done removing %s from %s",
             item.getItemDisplayName().encode('ascii', 'replace'),

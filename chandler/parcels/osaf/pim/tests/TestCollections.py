@@ -548,6 +548,74 @@ class CollectionTests(CollectionTestCase):
         self.assert_(note in coll2)
         self.assert_(note not in coll3)
 
+    def testRemoveItem(self):
+        # Simulate removing an item from a not-mine collection, ensuring it
+        # doesn't go into the All collection, but rather moves to the Trash
+        # if it's not in any other collections
+
+        trash = ListCollection(view=self.view)
+        notes = KindCollection(view=self.view)
+        notes.kind = pim.Note.getKind(self.view)
+        notes.recursive = True
+        notMine = UnionCollection(view=self.view)
+        notMine._sourcesChanged()
+        mine = DifferenceCollection(view=self.view,
+            sources=[notes, notMine]
+        )
+        all = InclusionExclusionCollection(view=self.view).setup(source=mine,
+            exclusions=trash, trash=None)
+        coll1 = InclusionExclusionCollection(view=self.view).setup(trash=trash)
+        coll2 = InclusionExclusionCollection(view=self.view).setup(trash=trash)
+        coll3 = InclusionExclusionCollection(view=self.view).setup(trash=trash)
+        notMine.addSource(coll1)
+        note = pim.Note(view=self.view)
+
+        # note is only in a not-mine collection, so removing it from that
+        # collection should put it in the trash, and not appear in all
+        coll1.add(note)
+        self.assert_(note in coll1)
+        self.assert_(note not in all)
+        coll1.remove(note)
+        self.assert_(note not in coll1)
+        self.assert_(note not in all)
+        self.assert_(note in trash)
+
+        # note is in two collections, one of them a not-mine, so it shouldn't
+        # be in either trash nor all
+        coll1.add(note)
+        coll2.add(note)
+        self.assert_(note in coll1)
+        self.assert_(note in coll2)
+        self.assert_(note not in trash)
+        self.assert_(note not in all)
+
+        # removing note from the only not-mine collection should not move the
+        # item to trash, and the item should appear in all
+        coll1.remove(note)
+        self.assert_(note not in coll1)
+        self.assert_(note in coll2)
+        self.assert_(note not in trash)
+        self.assert_(note in all)
+
+        # removing note from one not-mine collection, but having it still
+        # remain in another not-mine collection should not have the item go
+        # to trash, nor appear in all
+        coll1.add(note)
+        coll3.add(note)
+        notMine.addSource(coll3)
+        self.assert_(note in coll1)
+        self.assert_(note in coll2)
+        self.assert_(note in coll3)
+        self.assert_(note not in trash)
+        self.assert_(note not in all)
+        coll3.remove(note)
+        self.assert_(note in coll1)
+        self.assert_(note in coll2)
+        self.assert_(note not in coll3)
+        self.assert_(note not in trash)
+        self.assert_(note not in all)
+
+
 if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
