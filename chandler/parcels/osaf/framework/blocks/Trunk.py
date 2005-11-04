@@ -69,7 +69,9 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             self.TPBSelectedItem = items[0]
         else:
             self.TPBSelectedItem = None
-        self.synchronizeWidget ()
+        widget = getattr (self, 'widget', None)
+        if widget is not None:
+            widget.wxSynchronizeWidget ()
 
     def installTreeOfBlocks(self):
         """
