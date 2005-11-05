@@ -395,6 +395,9 @@ class SSSidebarButton (schema.Item):
                              inverse="buttons",
                              initialValue = None)
 
+    schema.addClouds(
+        copying = schema.Cloud (byCloud = [buttonOwner])
+    )
 
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
@@ -685,7 +688,10 @@ class SidebarBlock(ControlBlocks.Table):
     editRectOffsets = schema.Sequence (schema.Integer, required = True)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[filterKind, buttons])
+        copying = schema.Cloud(
+            byRef = [filterKind],
+            byCloud = [buttons]
+        )
     )
 
     def instantiateWidget (self):

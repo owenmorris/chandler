@@ -86,7 +86,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             """
               Seems like we should always mark new views with an event boundary
             """
-            assert newView.eventBoundary
+            assert newView is None or newView.eventBoundary
             TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
                                 newView, TPBSelectedItem, keyItem)
 
@@ -147,6 +147,12 @@ class TrunkDelegate(schema.Item):
     )
 
     keyUUIDToTrunk = schema.Mapping(Block.Block, initialValue = {})
+
+    def deleteCache(self):
+        for item in self.keyUUIDToTrunk.itervalues():
+            if item is not None:
+                item.delete (cloudAlias="copying")
+        self.keyUUIDToTrunk = {}
 
     def getTrunkForKeyItem(self, keyItem):
         """ 

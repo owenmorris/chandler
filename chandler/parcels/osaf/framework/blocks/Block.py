@@ -304,11 +304,8 @@ class Block(schema.Item):
     def unRender (self):
         for child in self.childrenBlocks:
             child.unRender()
-        try:
-            widget = self.widget
-        except AttributeError:
-            pass
-        else:
+        widget = getattr (self, 'widget', None)
+        if widget is not None:
             if (not isinstance (widget, wx.ToolBarToolBase)):
                 """
                   Remove child from parent before destroying child.

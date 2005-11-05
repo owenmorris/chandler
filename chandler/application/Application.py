@@ -341,31 +341,49 @@ class wxApplication (wx.App):
         return True    # indicates we succeeded with initialization
 
     def LoadMainViewRoot (self, delete=False):
-        """
-        The main view's root is the only item in the soup (e.g. //userdata) with a name
-        that isn't it's UUID. We need the name to look it up. If the main view's root
-        isn't found then make a copy into the soup with the right name.
-        """
-
+        frame = None
         mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
         if mainViewRoot and delete:
-            try:
-                frame = mainViewRoot.frame
-            except AttributeError:
-                pass
+            # We need to delete the mainViewRoot. Ideally we'd have automatic
+            # garbage colleciton so that all the garbage resulting from the
+            # deletion of the mainViewRoot would be cleaned up automatically.
+            # However, I haven't been able to convince OSAF of the importance
+            # of automatic garbage collection, so the deletion is going to
+            # be problematic until we implement a garbage collector.
+            #
+            # Currently, I'm going to try deleting all BranchPoint block
+            # delegate's caches, then all the Blocks in the userdata.
+            # Chances are this will leave some lingering garbage, but it's
+            # too difficult to track it down for now, and isn't worth it yet
+            # since this code is used mostly for debugging. And in any event,
+            # it would be easier to implement a garbage collector.
+            def deleteAllTrunkCaches (block):
+                for child in block.childrenBlocks:
+                    deleteAllTrunkCaches (child)
+                import osaf.framework.blocks.Trunk as Trunk
+                if isinstance (block, Trunk.TrunkParentBlock):
+                    block.trunkDelegate.deleteCache()
+
+            frame = getattr (mainViewRoot, 'frame', None)
             self.UIRepositoryView.refresh()
-            mainViewRoot.delete (cloudAlias="copying")
+            
+            deleteAllTrunkCaches (mainViewRoot)
+
+            from osaf.framework.blocks import Block
+            for item in self.UIRepositoryView.findPath('//userdata/').iterChildren():
+                if isinstance (item, Block.Block):
+                    item.delete()
+            
             self.UIRepositoryView.commit()
+            assert self.UIRepositoryView.findPath('//userdata/MainViewRoot') == None
             mainViewRoot = None
         if mainViewRoot is None:
             template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
             mainViewRoot = template.copy (parent = self.UIRepositoryView.findPath ("//userdata"),
                                           name = "MainViewRoot",
                                           cloudAlias="copying")
-            try:
+            if frame is not None:
                 mainViewRoot.frame = frame
-            except UnboundLocalError:
-                pass
         Globals.mainViewRoot = mainViewRoot
         return mainViewRoot
 
