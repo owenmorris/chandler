@@ -223,16 +223,6 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     def onResynchronizeParentEvent(self, event):
         self.parentBlock.synchronizeWidget()
 
-    def onDestroyWidget (self):
-        # Hack - @@@DLD - remove when wxWidgets issue is resolved.
-        # set ourself to be shown, to work around Windows DetailView garbage problem.
-        def showReentrant (block):
-            block.isShown = True
-            for child in block.childrenBlocks:
-                showReentrant (child)
-        super(DetailRootBlock, self).onDestroyWidget ()
-        showReentrant (self)
-            
     def onSendShareItemEvent (self, event):
         """ Send or Share the current item. """
         # finish changes to previous selected item, then do it.
