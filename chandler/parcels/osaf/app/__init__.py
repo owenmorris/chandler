@@ -332,7 +332,7 @@ def MakeCollections(parcel):
         FilteredCollection.update(parcel, 'eventsWithReminders',
                                   source=events,
                                   filterExpression='item.reminders',
-                                  filterAttributes=('reminders',))
+                                  filterAttributes=['reminders'])
 
     # the monitor list assumes all reminders will be relativeTo
     # effectiveStartTime, which is true in 0.6, but may not be in the future
