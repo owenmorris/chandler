@@ -336,7 +336,6 @@ class MainView(View):
                                    self.itsView).currentWebDAVAccount.item
 
         # commit changes, since we'll be switching to Twisted thread
-        # @@@DLD bug 1998 - update comment above and use refresh instead?
         self.RepositoryCommitWithStatus()
 
         # show status
@@ -1008,8 +1007,6 @@ class MainView(View):
         if not sharing.ensureAccountSetUp(view, inboundMail=True):
             return
 
-        # @@@DLD bug 1998 - why do we have to commit here?  Are we pushing our changes
-        # over to mail?
         view.commit()
 
         for account in Mail.IMAPAccount.getActiveAccounts(view):
