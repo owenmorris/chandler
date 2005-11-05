@@ -63,26 +63,6 @@ class Reminder(schema.Item):
         if result.tzinfo is None:
             result = result.replace(tzinfo=ICUtzinfo.getDefault())
         return result
-    
-    def getNextFiring(self):
-        """ Get a tuple describing this reminder's next firing, or None.
-        
-        The tuple contains (firingTime, remindable, self); returns None if 
-        no reminders are pending.
-        """
-        pending = [ (self.getNextReminderTimeFor(r), r, self ) \
-                          for r in self.reminderItems ]
-        try:
-            return sorted(pending, Reminder.TupleComparer)[0]
-        except IndexError:
-            return None
-
-    @staticmethod
-    def TupleComparer(tuple1, tuple2):
-        """ Compare reminder tuples as returned by getNextFiring """
-        return datetimeOp(tuple1[0], 'cmp', tuple2[0]) \
-               or cmp(tuple1[1], tuple2[1]) \
-               or cmp(tuple1[2], tuple2[2])
 
 class RemindableMixin(ContentItem):
     schema.kindInfo(
@@ -147,6 +127,24 @@ class RemindableMixin(ContentItem):
         fset=setReminderInterval,
         doc="Reminder interval, computed from the first unexpired reminder."
     )
+
+    def getReminderFireTime(self):
+        """
+        A simplification of the possible complexity of reminder, assumes one
+        or zero reminders.  Returns a datetime or None.
+        """
+        reminder = self.reminders.first()
+        if reminder is None:
+            return None
+        else:
+            return reminder.getNextReminderTimeFor(self)
+
+    reminderFireTime = Calculated(
+        schema.DateTime,
+        displayName=u"Reminder fire time",
+        basedOn=('startTime', 'allDay', 'anyTime', 'reminders'),
+        fget=getReminderFireTime,
+        doc="Reminder fire time, or None for no unexpired reminders")
 
     def makeReminder(self, delta, checkExpired=False):
         # @@@ I think the proxy code should override calls to this method

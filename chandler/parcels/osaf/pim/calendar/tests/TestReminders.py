@@ -19,9 +19,8 @@ class ReminderTestCase(TestContentModel.ContentModelTestCase):
         self.failUnless(len(anEvent.reminders) == 1 \
                         and anEvent.reminders.first() is regularReminder)
         self.failIf(len(anEvent.expiredReminders))        
-        self.failUnless(regularReminder.getNextFiring() == \
-                        (datetime(2005,3,8,11,50, tzinfo = PyICU.ICUtzinfo.getDefault()), 
-                         anEvent, regularReminder))
+        self.failUnless(anEvent.reminderFireTime == datetime(2005,3,8,11,50, 
+                                 tzinfo = PyICU.ICUtzinfo.getDefault()))
 
         # Snooze the reminder for 5 minutes.
         snoozeReminder = anEvent.snoozeReminder(regularReminder, 
@@ -29,14 +28,14 @@ class ReminderTestCase(TestContentModel.ContentModelTestCase):
         # (should move the old reminder to expired)
         self.failUnless(list(anEvent.expiredReminders) == [ regularReminder ])
         self.failUnless(list(anEvent.reminders) == [ snoozeReminder ])
-        self.failUnless(snoozeReminder.getNextFiring() is not None)
+        self.failUnless(snoozeReminder.reminderItems.first() is not None)
         
         # Dismiss the snoozed reminder
         anEvent.dismissReminder(snoozeReminder)
         # (should destroy the snoozed reminder, leaving only the expired one)
         self.failIf(len(anEvent.reminders))
         self.failUnless(list(anEvent.expiredReminders) == [ regularReminder ])
-        self.failUnless(regularReminder.getNextFiring() is None)
+        self.failUnless(regularReminder.reminderItems.first() is None)
 
 if __name__ == "__main__":
     unittest.main()

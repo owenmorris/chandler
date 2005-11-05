@@ -546,7 +546,8 @@ class CalendarEventMixin(RemindableMixin):
             except IndexError:
                 tzinfo = self.startTime.tzinfo
             while True:
-                
+                # was this instance just created?
+                created = False
                 earliestWithTz = coerceTimeZone(earliest, tzinfo)
                 
                 # the after method is the call to dateutil's machinery
@@ -591,6 +592,7 @@ class CalendarEventMixin(RemindableMixin):
                         
                 # If no occurrence already exists, create one
                 else:
+                    created = True
                     calculated = self._createOccurrence(nextRecurrenceID)
 
                 # now we have an event calculated from nextRecurrenceID.  It's
@@ -614,14 +616,20 @@ class CalendarEventMixin(RemindableMixin):
                                 earliest = nextRecurrenceID
                                 continue
                         else:
-                            return fixReminders(mod)
+                            if created:
+                                return fixReminders(mod)
+                            else:
+                                return mod
                 else:
                     final = checkModifications(first, before, calculated)
                     if after is None and final == self:
                         earliest = nextRecurrenceID
                         continue
                     else:
-                        return fixReminders(final)
+                        if created:
+                            return fixReminders(final)
+                        else:
+                            return final
 
 
     def _generateRule(self, after=None, before=None, inclusive=False):
@@ -1163,6 +1171,10 @@ class CalendarEventMixin(RemindableMixin):
 
     def cmpEndTime(self, item):
         return self.cmpTimeAttribute(item, 'endTime')
+
+    def cmpReminderTime(self, item):
+        # reminderFireTime always adds a timezone, so we don't use datetimeOp
+        return cmp(self.reminderFireTime, item.reminderFireTime)
 
 class CalendarEvent(CalendarEventMixin, Note):
     """

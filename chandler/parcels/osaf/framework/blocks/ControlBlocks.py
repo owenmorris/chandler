@@ -21,6 +21,7 @@ import wx.html
 import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
+import PyICU
 
 from osaf.framework.blocks import DrawingUtilities
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
@@ -1617,12 +1618,12 @@ class ReminderTimer(Timer):
     def render(self, *args, **kwds):
         super(ReminderTimer, self).render(*args, **kwds)
         # Create a monitor to watch for changes that affect reminders
-        for attr in ('reminders', 'startTime', 'duration'):
+        for attr in ('reminders', 'startTime'):
             Monitors.attach(self, 'onRemindersChanged', 'set', attr)
             
     def onDestroyWidget(self, *args, **kwds):
         # Get rid of the monitors
-        for attr in ('reminders', 'startTime', 'duration'):
+        for attr in ('reminders', 'startTime'):
             Monitors.detach(self, 'onRemindersChanged', 'set', attr)
         super(ReminderTimer, self).onDestroyWidget(*args, **kwds)
 
@@ -1634,9 +1635,25 @@ class ReminderTimer(Timer):
 
         Each tuple contains (reminderTime, remindable, reminder) 
         """
-        timesAndRemindables = filter(None, map(Reminder.getNextFiring, self.contents))
-        timesAndRemindables.sort(cmp=Reminder.TupleComparer)
-        return timesAndRemindables
+
+        view = self.itsView
+        # reminderFireTime always adds a timezone, so add one to now 
+        now = datetime.now(PyICU.ICUtzinfo.getDefault())
+
+        def matches(key):
+            if view[key].reminderFireTime <= now:
+                return 0
+            return 1
+
+        events = schema.ns('osaf.app', view).eventsWithReminders.rep
+        lastKey = events.findInIndex('reminderTime', 'last', matches)
+
+        if lastKey is not None:
+            return [(ev.reminderFireTime, ev ,ev.reminders.first()) 
+                    for ev in (view[key] for key in 
+                     events.iterindexkeys('reminderTime', None, lastKey))]
+
+        return []
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary

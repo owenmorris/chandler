@@ -327,6 +327,20 @@ def MakeCollections(parcel):
     events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
     events.recursive=True
 
+    # bug 4477
+    eventsWithReminders = \
+        FilteredCollection.update(parcel, 'eventsWithReminders',
+                                  source=events,
+                                  filterExpression='item.reminders',
+                                  filterAttributes=('reminders',))
+
+    # the monitor list assumes all reminders will be relativeTo
+    # effectiveStartTime, which is true in 0.6, but may not be in the future
+    eventsWithReminders.rep.addIndex('reminderTime', 'compare',
+                                     compare='cmpReminderTime',
+                                     monitor=('startTime', 'allDay', 'anyTime'
+                                              'reminders'))
+
     locations = \
        KindCollection.update(parcel, 'locations')
     # workaround bug 3892
