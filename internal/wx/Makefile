@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-# version info
+# version info 
 VERSION=2.6.2.0
 RELVER=$(VERSION)-22
 WXMAJORVERSIONCOMPACT=26
