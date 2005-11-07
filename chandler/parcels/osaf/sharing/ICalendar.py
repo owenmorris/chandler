@@ -70,7 +70,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
             dtstartLine.value = dateForVObject(item.startTime, allDay)
 
         except AttributeError:
-            pass
+            comp.dtstart = [] # delete the dtstart that was added
         
         try:
             if not (item.duration == datetime.timedelta(0) or (
@@ -120,8 +120,6 @@ def itemsToVObject(view, items, cal=None, filters=None):
             master = item.getMaster()
             allDay = master.allDay or master.anyTime
             recurrenceid.value = dateForVObject(item.recurrenceID, allDay)
-            if item.modifies != 'this':
-                recurrenceid.params['RANGE'] = [item.modifies.upper()]
         
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative

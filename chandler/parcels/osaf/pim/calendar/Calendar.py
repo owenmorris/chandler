@@ -380,7 +380,8 @@ class CalendarEventMixin(RemindableMixin):
         if self.rruleset is None:
             return self.endTime
         last = self.getLastUntil()
-        for dt in self.rruleset.rdates:
+        rdates = getattr(self.rruleset, 'rdates', [])
+        for dt in rdates:
             if datetimeOp(last, '<', dt):
                 last = dt
         # @@@ we're not doing anything with anyTime or allDay

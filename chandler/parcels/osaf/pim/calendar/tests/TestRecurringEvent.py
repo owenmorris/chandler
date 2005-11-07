@@ -137,7 +137,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         calmod.changeThis('displayName', u'Modified occurrence')
 
         self.assertEqual(calmod.modificationFor, self.event)
-        self.assertEqual(calmod.modifies, 'this')
         self.assertEqual(calmod.getFirstInRule(), self.event)
             
         self.assertEqual(list(self.event.modifications), [calmod])
@@ -148,14 +147,12 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         
         # changes to an event should, by default, create a THIS modification
         self.assertEqual(evtaskmod.modificationFor, self.event)
-        self.assertEqual(evtaskmod.modifies, 'this')
         self.assertEqual(evtaskmod.getFirstInRule(), self.event)
 
         for modOrMaster in [calmod, evtaskmod, self.event]:
             self.assertEqual(modOrMaster.getMaster(), self.event)
             
         self.event.displayName = u"Modification to master"
-        self.assertEqual(self.event.modifies, 'this')
         self.assertNotEqual(None, self.event.occurrenceFor)
         self.assertNotEqual(self.event, self.event.occurrenceFor)
         
@@ -270,7 +267,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         #one simple THISANDFUTURE modification
         second.changeThisAndFuture('displayName', u'Modified title')
         
-        self.assertEqual(second.modifies, 'this')
         self.assertEqual(second.modificationFor, None)
         
         self.assert_(list(self.event.rruleset.rrules)[0].until < second.startTime)
@@ -342,7 +338,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         third = second.getNextOccurrence()
         self.assertNotEqual(newthird, third)
         self.assertEqual(third.endTime, datetime(2005, 7, 18, 15))
-        self.assertEqual(second.modifies, 'this')
         # FIXME: these should work after time change preservation is implemented
         #self.assertEqual(second.displayName, u'Twice modified title')
         #self.assertEqual(third.displayName, u'Twice modified title')
@@ -350,7 +345,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
         # check if modificationRecurrenceID works for changeThis mod
         second.startTime = datetime(2005, 7, 12, 13) #implicit THIS mod
-        self.assertEqual(second.modifies, 'this')
         self.assertEqual(second.getNextOccurrence().startTime,
                          datetime(2005, 7, 18, 13))
                          
@@ -372,7 +366,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         
         self.assertEqual(third.displayName, u'Yet another title')
         self.failIf(third.hasLocalAttributeValue('lastModified'))
-        self.assertEqual(thirdModified.modifies, 'this')
         self.assertEqual(thirdModified.lastModified, 'Changed lastModified.')
 
         self.assertEqual(fourth.modificationFor, third)
