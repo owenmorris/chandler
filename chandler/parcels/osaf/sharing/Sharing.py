@@ -129,6 +129,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
         sharingView = view
         workingShares = shares
 
+
     try:
 
         if not modeOverride or modeOverride == 'get':
@@ -704,7 +705,10 @@ class ShareConduit(pim.ContentItem):
 
         return stats
 
-    def _conditionalGetItem(self, itemPath, into=None, updateCallback=None):
+
+
+    def _conditionalGetItem(self, itemPath, into=None, changes=None,
+        previousView=None, updateCallback=None):
         """
         Get an item from the server if we don't yet have it or our copy
         is out of date
@@ -719,7 +723,8 @@ class ShareConduit(pim.ContentItem):
         if not self._haveLatest(itemPath):
             # logger.info("...getting: %s" % itemPath)
 
-            (item, data) = self._getItem(itemPath, into)
+            (item, data) = self._getItem(itemPath, into=into, changes=changes,
+                previousView=previousView, updateCallback=updateCallback)
 
             if item is not None:
                 self._addToManifest(itemPath, item, data)
@@ -744,7 +749,7 @@ class ShareConduit(pim.ContentItem):
 
 
 
-    def _get(self, updateCallback=None):
+    def _get(self, previousView=None, updateCallback=None):
 
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
@@ -769,6 +774,10 @@ class ShareConduit(pim.ContentItem):
             'modified' : [],
             'removed' : []
         }
+
+        # Build the list of local changes
+        prevVersion = self.marker.getVersion()
+        changes = localChanges(view, prevVersion, view.itsVersion)
 
         self.connect()
 
@@ -800,6 +809,7 @@ class ShareConduit(pim.ContentItem):
                 raise SharingError(_(u"Cancelled by user"))
 
             item = self._conditionalGetItem(itemPath, into=self.share,
+                changes=changes, previousView=previousView,
                 updateCallback=updateCallback)
 
             if item is not None:
@@ -867,7 +877,8 @@ class ShareConduit(pim.ContentItem):
                 if updateCallback and updateCallback(work=True):
                     raise SharingError(_(u"Cancelled by user"))
 
-                item = self._conditionalGetItem(itemPath,
+                item = self._conditionalGetItem(itemPath, changes=changes,
+                    previousView=previousView,
                     updateCallback=updateCallback)
 
                 if item is not None:
@@ -1101,7 +1112,8 @@ class ShareConduit(pim.ContentItem):
         """
         pass
 
-    def _getItem(self, itemPath, into=None):
+    def _getItem(self, itemPath, into=None, changes=None, previousView=None,
+        updateCallback=None):
         """
         Must implement
         """
@@ -1193,7 +1205,9 @@ class FileSystemConduit(ShareConduit):
         logger.info("...removing from disk: %s" % path)
         os.remove(path)
 
-    def _getItem(self, itemPath, into=None):
+    def _getItem(self, itemPath, into=None, changes=None, previousView=None,
+        updateCallback=None):
+
         view = self.itsView
 
         # logger.info("Getting item: %s" % itemPath)
@@ -1204,7 +1218,9 @@ class FileSystemConduit(ShareConduit):
 
         try:
             item = self.share.format.importProcess(text,
-                extension=extension, item=into)
+                extension=extension, item=into, changes=changes,
+                previousView=previousView,
+                updateCallback=updateCallback)
         except Exception, e:
             logging.exception(e)
             raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
@@ -1643,7 +1659,8 @@ class WebDAVConduit(ShareConduit):
             except M2Crypto.BIO.BIOError, err:
                 raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
-    def _getItem(self, itemPath, into=None):
+    def _getItem(self, itemPath, into=None, changes=None, previousView=None,
+        updateCallback=None):
         view = self.itsView
         resource = self._resourceFromPath(itemPath)
 
@@ -1668,7 +1685,9 @@ class WebDAVConduit(ShareConduit):
         etag = resource.etag
 
         try:
-            item = self.share.format.importProcess(text, item=into)
+            item = self.share.format.importProcess(text, item=into,
+                changes=changes, previousView=previousView,
+                updateCallback=updateCallback)
         except VersionMismatch:
             raise
         except Exception, e:
@@ -1794,7 +1813,7 @@ class SimpleHTTPConduit(WebDAVConduit):
     def get(self, updateCallback=None):
         self._get(updateCallback=updateCallback)
 
-    def _get(self, updateCallback=None):
+    def _get(self, previousView=None, updateCallback=None):
 
         # @@@MOR: we need to have importProcess return stats about what it did.
         # Otherwise, since this is a monolithic .ics file, we don't know the
@@ -1806,6 +1825,10 @@ class SimpleHTTPConduit(WebDAVConduit):
             'modified' : [],
             'removed' : []
         }
+
+        prevVersion = self.marker.getVersion()
+        view = self.itsView
+        changes = localChanges(view, prevVersion, view.itsVersion)
 
         location = self.getLocation()
         if updateCallback and updateCallback(msg=_(u"Checking for update: '%s'") % location):
@@ -1852,7 +1875,9 @@ class SimpleHTTPConduit(WebDAVConduit):
 
         try:
             text = resp.body
-            self.share.format.importProcess(text, item=self.share)
+            self.share.format.importProcess(text, item=self.share,
+                changes=changes, previousView=previousView,
+                updateCallback=updateCallback)
 
             # The share maintains bi-di-refs between Share and Item:
             for item in self.share.contents:
@@ -1933,6 +1958,27 @@ def localChanges(view, fromVersion, toVersion):
     view.mapHistory(historyCallback, fromVersion, toVersion)
 
     return changedItems
+
+
+def serializeLiteral(attrValue, attrType):
+
+    mimeType = None
+    encoding = None
+
+    if isinstance(attrValue, Lob):
+        mimeType = getattr(attrValue, 'mimetype', None)
+        encoding = getattr(attrValue, 'encoding', None)
+        data = attrValue.getInputStream().read()
+        attrValue = base64.b64encode(data)
+
+    if type(attrValue) is unicode:
+        attrValue = attrValue.encode('utf-8')
+    elif type(attrValue) is not str:
+        attrValue = attrType.makeString(attrValue)
+
+    return (mimeType, encoding, attrValue)
+
+
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -2171,7 +2217,8 @@ class CloudXMLFormat(ImportExportFormat):
     def shareItemPath(self):
         return "share.xml"
 
-    def importProcess(self, text, extension=None, item=None):
+    def importProcess(self, text, extension=None, item=None, changes=None,
+        previousView=None, updateCallback=None):
         doc = libxml2.parseDoc(text)
         node = doc.children
         try:
@@ -2182,7 +2229,8 @@ class CloudXMLFormat(ImportExportFormat):
 
             # self.itsView.recordChangeNotifications()
 
-            item = self._importNode(node, item)
+            item = self._importNode(node, item=item, changes=changes,
+                previousView=previousView, updateCallback=updateCallback)
 
         finally:
 
@@ -2192,24 +2240,6 @@ class CloudXMLFormat(ImportExportFormat):
 
         return item
 
-
-    def serializeLiteral(self, attrValue, attrType):
-
-        mimeType = None
-        encoding = None
-
-        if isinstance(attrValue, Lob):
-            mimeType = getattr(attrValue, 'mimetype', None)
-            encoding = getattr(attrValue, 'encoding', None)
-            data = attrValue.getInputStream().read()
-            attrValue = base64.b64encode(data)
-
-        if type(attrValue) is unicode:
-            attrValue = attrValue.encode('utf-8')
-        elif type(attrValue) is not str:
-            attrValue = attrType.makeString(attrValue)
-
-        return (mimeType, encoding, attrValue)
 
 
     def exportProcess(self, item, depth=0, items=None):
@@ -2301,7 +2331,7 @@ class CloudXMLFormat(ImportExportFormat):
                         result += self.exportProcess(attrValue, depth+1, items)
                     else:
                         (mimeType, encoding, attrValue) = \
-                            self.serializeLiteral(attrValue, attrType)
+                            serializeLiteral(attrValue, attrType)
                         attrValue = attrValue.replace('&', '&amp;')
                         attrValue = attrValue.replace('<', '&lt;')
                         attrValue = attrValue.replace('>', '&gt;')
@@ -2326,7 +2356,7 @@ class CloudXMLFormat(ImportExportFormat):
                         result += "<value"
 
                         (mimeType, encoding, value) = \
-                            self.serializeLiteral(value, attrType)
+                            serializeLiteral(value, attrType)
                         value = value.replace('&', '&amp;')
                         value = value.replace('<', '&lt;')
                         value = value.replace('>', '&gt;')
@@ -2389,7 +2419,8 @@ class CloudXMLFormat(ImportExportFormat):
         return None
 
 
-    def _importNode(self, node, item=None):
+    def _importNode(self, node, item=None, changes=None,
+        previousView=None, updateCallback=None):
 
         view = self.itsView
         kind = None
@@ -2487,25 +2518,21 @@ class CloudXMLFormat(ImportExportFormat):
                             # skip over non-elements
                             valueNode = valueNode.next
                         if valueNode:
-                            valueItem = self._importNode(valueNode)
+                            valueItem = self._importNode(valueNode,
+                                changes=changes, previousView=previousView,
+                                updateCallback=updateCallback)
                             if valueItem is not None:
-                                logger.debug("for '%s' setting '%s' ref to '%s'" % \
-                                    (item.getItemDisplayName().encode('ascii', 'replace'),
-                                     attrName,
-                                     valueItem.getItemDisplayName().encode('ascii', 'replace')))
                                 setattr(item, attrName, valueItem)
-                                # item.setAttributeValue(attrName, valueItem)
 
                     elif cardinality == 'list':
                         valueNode = attrNode.children
                         while valueNode:
                             if valueNode.type == "element":
-                                valueItem = self._importNode(valueNode)
+                                valueItem = self._importNode(valueNode,
+                                    changes=changes,
+                                    previousView=previousView,
+                                    updateCallback=updateCallback)
                                 if valueItem is not None:
-                                    logger.debug("for '%s' setting '%s' ref to '%s'" % \
-                                        (item.getItemDisplayName().encode('ascii', 'replace'),
-                                         attrName,
-                                         valueItem.getItemDisplayName().encode('ascii', 'replace')))
                                     item.addValue(attrName, valueItem)
 
                             valueNode = valueNode.next
@@ -2547,8 +2574,8 @@ class CloudXMLFormat(ImportExportFormat):
                                     needsSet = True
                             else:
                                 (mimeType, encoding, serialized) = \
-                                    self.serializeLiteral(getattr(item,
-                                    attrName, ""), attrType)
+                                    serializeLiteral(getattr(item, attrName,
+                                    ""), attrType)
                                 if serialized != attrNode.content:
                                     needsSet = True
 
@@ -2591,7 +2618,6 @@ class CloudXMLFormat(ImportExportFormat):
                             (item.getItemDisplayName().encode('ascii',
                             'replace'), attrName, values))
                         setattr(item, attrName, values)
-                        # item.setAttributeValue(attrName, values)
 
                     elif cardinality == 'dict':
                         pass

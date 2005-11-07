@@ -7,7 +7,7 @@ __all__ = [
 
 import Sharing
 import application.Parcel
-from osaf.pim import AbstractCollection, ListCollection, CalendarEventMixin
+from osaf.pim import AbstractCollection, InclusionExclusionCollection, CalendarEventMixin
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
@@ -20,6 +20,7 @@ from datetime import date, time
 from PyICU import ICUtzinfo
 from application import schema
 import itertools
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
@@ -240,7 +241,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         else:
             return match.getMaster()
 
-    def importProcess(self, text, extension=None, item=None):
+    def importProcess(self, text, extension=None, item=None, changes=None,
+        previousView=None, updateCallback=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
 
@@ -258,10 +260,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         if self.fileStyle() == self.STYLE_SINGLE:
             if item is None:
-                item = ListCollection(view=view).setup()
+                item = InclusionExclusionCollection(view=view).setup()
             elif isinstance(item, Sharing.Share):
                 if item.contents is None:
-                    item.contents = ListCollection(view=view).setup()
+                    item.contents = \
+                        InclusionExclusionCollection(view=view).setup()
                 item = item.contents
 
             if not isinstance(item, AbstractCollection):
@@ -447,7 +450,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 change('anyTime', False)
                 
                 change('displayName', displayName)
-                
+
+                if updateCallback and \
+                    updateCallback(msg="'%s'" % eventItem.getItemDisplayName()):
+                    raise Sharing.SharingError(_(u"Cancelled by user"))
+
                 if anyTime:
                     change('anyTime', True)
                     change('allDay', False)
@@ -493,6 +500,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     item.add(eventItem.getMaster())
                 else:
                     caldavReturn = eventItem.getMaster()
+
+            except Sharing.SharingError:
+                raise
+
             except Exception, e:
                 if __debug__:
                     raise
