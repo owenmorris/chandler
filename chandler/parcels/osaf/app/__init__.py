@@ -295,18 +295,6 @@ def MakeCollections(parcel):
         sources=[nonRecurringNotes, notMine]
     )
 
-    reminders = \
-        KindCollection.update(parcel, 'reminders')
-    reminders.kind = pim.Reminder.getKind(parcel.itsView)
-    reminders.recursive = True
-
-    pendingReminders = \
-        FilteredCollection.update(parcel, 'pendingReminders',
-                                  source=reminders,
-                                  filterExpression='len(item.reminderItems) > 0',
-                                  filterAttributes=['reminderItems'])
-    pendingReminders.rep.addIndex('n', 'numeric')
-
     # the "All" collection
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_(u"All My Items"),
@@ -326,7 +314,11 @@ def MakeCollections(parcel):
     # workaround bug 3892
     events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
     events.recursive=True
-
+    events.rep.addIndex("effectiveStart", 'compare', compare='cmpStartTime',
+                        monitor=('startTime', 'allDay', 'anyTime'))
+    events.rep.addIndex('effectiveEnd', 'compare', compare='cmpEndTime',
+                    monitor=('startTime', 'allDay', 'anyTime', 'duration'))
+    
     # bug 4477
     eventsWithReminders = \
         FilteredCollection.update(parcel, 'eventsWithReminders',
@@ -340,6 +332,16 @@ def MakeCollections(parcel):
                                      compare='cmpReminderTime',
                                      monitor=('startTime', 'allDay', 'anyTime'
                                               'reminders'))
+    
+    masterFilter = "item.hasLocalAttributeValue('occurrences') and "\
+                   "item.hasLocalAttributeValue('rruleset')"
+    masterEvents = \
+        FilteredCollection.update(parcel, 'masterEvents',
+                                  source = events,
+                                  filterExpression = masterFilter,
+                                  filterAttributes = ['occurrences', 'rruleset'])
+    masterEvents.rep.addIndex("recurrenceEnd", 'compare', compare='cmpRecurEnd',
+                        monitor=('recurrenceEnd'))
 
     locations = \
        KindCollection.update(parcel, 'locations')

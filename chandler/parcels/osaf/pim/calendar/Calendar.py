@@ -206,6 +206,14 @@ class CalendarEventMixin(RemindableMixin):
         displayName=u"Generated",
         defaultValue=False
     )
+    
+    recurrenceEnd = schema.One(
+        schema.DateTime,
+        displayName=u"Recurrence End",
+        defaultValue = None,
+        doc="End time for recurrence, or None, kept up to date by "
+            "onValueChange.  Note that this attribute is only meaningful "
+            "on master events")
 
     schema.addClouds(
         copying = schema.Cloud(organizer,location,rruleset,participants),
@@ -306,12 +314,13 @@ class CalendarEventMixin(RemindableMixin):
         or anyTime event.
         """
         # If startTime's time is invalid, ignore it.
-        if self.anyTime or self.allDay:
-            result = datetime.combine(self.startTime,
-                time(0, tzinfo=None))
+        if not self.hasLocalAttributeValue('startTime'):
+            return None
+        elif self.anyTime or self.allDay:
+            return datetime.combine(self.startTime, time(0, tzinfo=None))
         else:
-            result = self.startTime
-        return result
+            return self.startTime
+
     effectiveStartTime = Calculated(
         schema.DateTime,
         displayName=u"EffectiveStartTime",
@@ -325,13 +334,21 @@ class CalendarEventMixin(RemindableMixin):
         component of the endTime attribute if this is an allDay 
         or anyTime event.
         """
-        # If endTime's time is invalid, ignore it.
-        if self.anyTime or self.allDay:
-            result = datetime.combine(self.endTime, 
-                        time(0, tzinfo=self.endTime.tzinfo))
+        endTime = self.endTime
+        if endTime is None:
+            return self.effectiveStartTime
+        elif self.anyTime or self.allDay:
+            return datetime.combine(endTime, time(0, tzinfo=endTime.tzinfo))
         else:
-            result = self.endTime
-        return result
+            return endTime
+
+    effectiveEndTime = Calculated(
+        schema.DateTime,
+        displayName=u"EffectiveEndTime",
+        basedOn=('startTime', 'allDay', 'anyTime', 'duration'),
+        fget=getEffectiveEndTime,
+        doc="End time, without time if allDay/anyTime")
+
 
     # begin recurrence related methods
 
@@ -348,10 +365,45 @@ class CalendarEventMixin(RemindableMixin):
     def getLastUntil(self):
         """Find the last modification's rruleset, return it's until value."""
         # for no-THISANDFUTURE, this is just return until
-        try:
-            return self.rruleset.rrules.first().until
-        except:
+        if self.rruleset is None:
             return None
+        last = None
+        for rule in self.rruleset.rrules:
+            until = getattr(rule, 'until', None)
+            if until is not None:
+                if last is None or datetimeOp(last, '<', until):
+                    last = until
+        return last
+    
+    def getRecurrenceEnd(self):
+        """Return (last until or RDATE) + duration, or None."""
+        if self.rruleset is None:
+            return self.endTime
+        last = self.getLastUntil()
+        for dt in self.rruleset.rdates:
+            if datetimeOp(last, '<', dt):
+                last = dt
+        # @@@ we're not doing anything with anyTime or allDay
+        if last is None:
+            return None
+        duration = getattr(self, 'duration', None) or timedelta(0)
+        return last + duration
+
+    def setRecurrenceEnd(self):
+        """
+        NOT a setter, just calculate what recurrenceEnd should be and set it or
+        delete it if it's None.
+        """
+        if self != self.getMaster():
+            end = None
+        else:
+            end = self.getRecurrenceEnd()
+
+        if end is None:
+            if self.recurrenceEnd is not None:
+                del self.recurrenceEnd
+        else:
+            self.recurrenceEnd = end
         
     def getMaster(self):
         """Return the master event in modifications or occurrences."""
@@ -420,6 +472,7 @@ class CalendarEventMixin(RemindableMixin):
                 if inverseAttr.cardinality != 'single':
                     setattr(new, attr, val)
         del new._ignoreValueChanges
+        new.setRecurrenceEnd()
         return new
     
     def _createOccurrence(self, recurrenceID):
@@ -434,7 +487,6 @@ class CalendarEventMixin(RemindableMixin):
         new.startTime = new.recurrenceID = recurrenceID
         new.occurrenceFor = first
         new.modificationFor = None
-        new.modifies = 'this' # it doesn't work with the rep to make this None
         
         del new._ignoreValueChanges
         return new
@@ -764,7 +816,6 @@ class CalendarEventMixin(RemindableMixin):
         setattr(self, attr, value)
         
         def makeThisAndFutureMod():
-            self.modifies='this'
             # Changing occurrenceFor before changing rruleset is important, it
             # keeps the rruleset change from propagating inappropriately
             self.occurrenceFor = self
@@ -815,7 +866,6 @@ class CalendarEventMixin(RemindableMixin):
                     self.rruleset = newfirst.rruleset
                     newfirst.startTime = self.recurrenceID
                     newfirst.occurrenceFor = None #self overrides newfirst
-                    newfirst.modifies = 'this'
                     newfirst.icalUID = self.icalUID = str(newfirst.itsUUID)
                     newfirst._makeGeneralChange()
                     self.occurrenceFor = self.modificationFor = newfirst
@@ -823,13 +873,12 @@ class CalendarEventMixin(RemindableMixin):
                     # move THIS modifications after self to newfirst
                     if first.hasLocalAttributeValue('modifications'):
                         for mod in first.modifications:
-                            if mod.modifies == 'this':
-                                if datetimeOp(mod.recurrenceID, '>', newfirst.startTime):
-                                    mod.occurrenceFor = newfirst
-                                    mod.modificationFor = newfirst
-                                    mod.icalUID = newfirst.icalUID
-                                    mod.rruleset = newfirst.rruleset
-                                    #rruleset needs to change, so does icalUID
+                            if datetimeOp(mod.recurrenceID, '>', newfirst.startTime):
+                                mod.occurrenceFor = newfirst
+                                mod.modificationFor = newfirst
+                                mod.icalUID = newfirst.icalUID
+                                mod.rruleset = newfirst.rruleset
+                                #rruleset needs to change, so does icalUID
                     del newfirst._ignoreValueChanges
                 else:
                     # self was a THIS modification to the master, setattr needs
@@ -888,7 +937,7 @@ class CalendarEventMixin(RemindableMixin):
         modification.
         
         """
-        if self.modifies == 'this' and self.modificationFor is not None:
+        if self.modificationFor is not None:
             pass
         elif self.rruleset is not None:
             first = self.getFirstInRule()
@@ -910,12 +959,10 @@ class CalendarEventMixin(RemindableMixin):
                             occ.occurrenceFor = newfirst
                     newfirst.occurrenceFor = None #self overrides newfirst
                     newfirst.modificationFor = self.modificationFor
-                    newfirst.modifies = 'this'
                     # Unnecessary when we switch endTime->duration
                     newfirst.duration = backup.duration
                     self.occurrenceFor = self.modificationFor = newfirst
                     newfirst._makeGeneralChange()
-                    self.modifies = 'this'
                     self.recurrenceID = newfirst.startTime
                     if self.hasLocalAttributeValue('modificationRecurrenceID'):
                         del self.modificationRecurrenceID
@@ -932,7 +979,6 @@ class CalendarEventMixin(RemindableMixin):
             else:
                 self.modificationFor = first
                 self._makeGeneralChange()
-                self.modifies = 'this'
                 self._getFirstGeneratedOccurrence(True)
         if attr is not None:
             setattr(self, attr, value)
@@ -964,7 +1010,7 @@ class CalendarEventMixin(RemindableMixin):
         else:
             RecurrenceDialog.getProxy(u'ui', self).removeFromCollection(collection)
 
-    changeNames = ('displayName', 'startTime', 'endTime', 'location', 'body',
+    changeNames = ('displayName', 'startTime', 'duration', 'location', 'body',
                    'lastModified', 'allDay')
 
     def onValueChanged(self, name):
@@ -988,6 +1034,7 @@ class CalendarEventMixin(RemindableMixin):
             if self == self.getFirstInRule():
                 self.modificationRecurrenceID = self.startTime
                 self.recurrenceID = self.startTime
+                self.setRecurrenceEnd()
                 
         # the changeName kludge should be replaced with the new domain attribute
         # aspect, just using a fixed list of attributes which should trigger
@@ -996,6 +1043,8 @@ class CalendarEventMixin(RemindableMixin):
             if DEBUG:
                 logger.debug("about to changeThis in onValueChanged(name=%s) for %s", name, str(self))
                 logger.debug("value is: %s", getattr(self, name))
+            if name == 'duration' and self == self.getFirstInRule():
+                self.setRecurrenceEnd()
             self.changeThis()
 
     def _deleteGeneratedOccurrences(self):
@@ -1020,6 +1069,7 @@ class CalendarEventMixin(RemindableMixin):
                     
         # create a backup
         first._getFirstGeneratedOccurrence(True)
+        first.setRecurrenceEnd()
 
     def deleteThisAndFuture(self):
         """Delete self and all future occurrences and modifications."""
@@ -1124,29 +1174,6 @@ class CalendarEventMixin(RemindableMixin):
             return rruleset.getCustomDescription()
         else: return ''
 
-    def serializeMods(self, level=0, buf=None):
-        """Pretty print the list of modifications as a debugging aid."""
-        if buf is None:
-            buf = StringIO.StringIO()
-        pad = "  " * level
-        try:
-            if level:
-                buf.write(pad + "modification.  modifies: %s modificationFor: %s\n"\
-                                 % (self.modifies, self.modificationFor.startTime))
-            buf.write(pad + "event is: %s %s\n" % (self.displayName.encode("utf8"),  self.startTime))
-        except:
-            pass
-        if self.modifies == 'thisandfuture' or self.modificationFor is None:
-            try:
-                buf.write(pad + "until: %s\n" % getattr(self.rruleset.rrules.first(), 'until', None))
-            except:
-                pass
-        buf.write('\n')
-        if self.hasLocalAttributeValue('modifications'):
-            for mod in self.modifications:
-                mod.serializeMods(level + 1, buf)
-        return buf
-
     def isProxy(self):
         """Is this a proxy of an event?"""
         return False
@@ -1167,10 +1194,13 @@ class CalendarEventMixin(RemindableMixin):
         
     # for use in indexing CalendarEventMixins
     def cmpStartTime(self, item):
-        return self.cmpTimeAttribute(item, 'startTime')
+        return self.cmpTimeAttribute(item, 'effectiveStartTime')
 
     def cmpEndTime(self, item):
-        return self.cmpTimeAttribute(item, 'endTime')
+        return self.cmpTimeAttribute(item, 'effectiveEndTime')
+
+    def cmpRecurEnd(self, item):
+        return self.cmpTimeAttribute(item, 'recurrenceEnd')
 
     def cmpReminderTime(self, item):
         # reminderFireTime always adds a timezone, so we don't use datetimeOp

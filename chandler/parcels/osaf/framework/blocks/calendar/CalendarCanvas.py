@@ -613,28 +613,11 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
 
     def EnsureIndexes(self):
         events = self.contents.rep
-        # make sure there are indexes. 'compare' indexes use methods
-        # on the items being compared, i.e. CalendarEventMixin
-        if not events.hasIndex('startTime'):
-            events.addIndex('startTime', 'compare', compare='cmpStartTime',
-                            monitor=('startTime'))
-        
-        if not events.hasIndex('endTime'):
-            # endTime is actually dependent on startTime/duration
-            events.addIndex('endTime', 'compare', compare='cmpEndTime',
-                            monitor=('startTime', 'duration'))
+        # events needs to have an index or iterindexkeys will load items,
+        # is that true?
+        if not events.hasIndex('__adhoc__'):
+            events.addIndex('__adhoc__', 'numeric')
 
-        # and make sure there is a FilteredCollection for
-        # master events
-
-        calendarCollections = CalendarCollections(self.contents)
-        if getattr(calendarCollections, 'masterEvents', None) is None:
-            masterEvents = FilteredCollection(parent=self.contents)
-            masterEvents.filterExpression = "item.hasLocalAttributeValue('occurrences') and item.hasLocalAttributeValue('rruleset')"
-            masterEvents.filterAttributes = ['occurrences', 'rruleset']
-            masterEvents.source = self.contents
-            masterEvents.rep.addIndex('__adhoc__', 'numeric')
-            calendarCollections.masterEvents = masterEvents
 
     def setContentsOnBlock(self, item):
         super(CalendarBlock, self).setContentsOnBlock(item)
@@ -758,13 +741,58 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         return (Calendar.datetimeOp(item.startTime, '<=', end) and
                 Calendar.datetimeOp(item.endTime, '>=', start))
 
+    def getKeysInRange(self, startVal, startAttrName, startIndex, startColl,
+                             endVal,   endAttrName,   endIndex,   endColl,
+                             filterColl, filterIndex):
+        """
+        This is more general than is really necessary, but it seems like it 
+        might be useful in other contexts.  Take an index of starts, ends,
+        and a filter collection, don't load items, just find relevant keys.
+        """
+
+        view = self.itsView
+        
+        # callbacks to use for searching the indexes
+        def mStart(key):
+            # gets the last item starting before endVal
+            testVal = getattr(view[key], startAttrName)
+            if testVal is None:
+                return -1 # interpret None as negative infinity
+            # note that we're NOT using >=, if we did, we'd include all day
+            # events starting at the beginning of the next week
+            if Calendar.datetimeOp(endVal, '>', testVal):
+                return 0
+            return -1
+
+        def mEnd(key):
+            # gets the first item starting after startVal
+            testVal = getattr(view[key], endAttrName)
+            if testVal is None:
+                return 0 # interpret None as positive infinity, thus, a match
+            if Calendar.datetimeOp(startVal, '<=', testVal):
+                return 0
+            return 1
+        
+        lastStartKey = startColl.findInIndex(startIndex, 'last', mStart)
+        if lastStartKey is None:
+            return #there were no keys ending after start
+        firstEndKey = endColl.findInIndex(endIndex, 'first', mEnd)
+        if firstEndKey is None:
+            return #there were no keys ending before end
+        keys = set(endColl.iterindexkeys(endIndex, firstEndKey, None))
+
+        # generate keys, starting from the earliest according to startIndex
+        for key in startColl.iterindexkeys(startIndex, None, lastStartKey):
+            if key in keys and key in filterColl._indexes[filterIndex]:
+                yield key
+
+
     def eventsInRange(self, date, nextDate, dayItems, timedItems):
         """
         An efficient generator to find all the items to be displayed
         between date and nextDate. This returns only actual events in the
-        collection, and does not take recurring event occurences into
-        account. (though any recurrence masters will of course be
-        included in the result)
+        collection, and does not yield recurring event occurences, including
+        masters.
 
         The trick here is to use indexes on startTime/endTime to make
         sure that we don't access (and thus load) items more than we
@@ -778,53 +806,32 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         in the index of the end/starttime, and taking the first/last
         items from that list. This gives us two lists, which we intersect.
         """
-        
+
         events = self.contents.rep
         view = self.itsView
-
-        # callbacks to use for searching the indexes
-        def mStart(key):
-            # gets the last event starting before nextDate
-            if Calendar.datetimeOp(nextDate, '>=', view[key].startTime):
-                return 0
-            return -1
-
-        def mEnd(key):
-            # gets the first event ending after date
-            if Calendar.datetimeOp(date, '<=', view[key].endTime):
-                return 0
-            return 1
-
-        assert events.hasIndex('startTime') and events.hasIndex('endTime')
-        
-        # do binary searches of the index to minimize the number of
-        # times we test startTime/endTime
-        lastStartKey = events.findInIndex('startTime', 'last', mStart)
-        firstEndKey = events.findInIndex('endTime', 'first', mEnd)
-
-        # we now have two lists of events:
-        # [0..lastStartKey] in the 'startTime' index
-        # [firstEndKey.. -1] in the 'endTime' index
-        # lets find the intersections, based purely on UUID
-
-        # we'll use the keys, which are UUIDs, to find the intersection, 
-        # which prevents the actual item from loading
-        if lastStartKey and firstEndKey:
-            endItems = set(events.iterindexkeys('endTime',
-                                                firstEndKey, None))
-            for key in events.iterindexkeys('startTime',
-                                            None, lastStartKey):
-                # possible optimization, to also index allDay/anyTime
-                # attributes as well
-                if (key in endItems and
-                    ((dayItems and timedItems) or
-                     self.isDayItem(view[key]) == dayItems) and
-                     view[key].rruleset is None):
-                    yield view[key]
+        allEvents = schema.ns("osaf.app", view).events.rep
+        keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
+                                   allEvents, nextDate,'effectiveEndTime',
+                                   'effectiveEnd', allEvents,
+                                   events, '__adhoc__')
+        for key in keys:
+            if (((dayItems and timedItems) or
+                 self.isDayItem(view[key]) == dayItems) and
+                 view[key].rruleset is None):
+                yield view[key]
 
     def recurringEventsInRange(self, date, nextDate, dayItems, timedItems):
-        masterEvents = CalendarCollections(self.contents).masterEvents
-        for masterEvent in masterEvents:
+        events = self.contents.rep
+        view = self.itsView
+        app = schema.ns("osaf.app", view)
+        allEvents = app.events.rep
+        masterEvents = app.masterEvents.rep
+        keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
+                                   allEvents, nextDate, 'recurrenceEnd',
+                                   'recurrenceEnd', masterEvents,
+                                   events, '__adhoc__')
+        for key in keys:
+            masterEvent = view[key]
             for event in masterEvent.getOccurrencesBetween(date, nextDate):
                 # One or both of dayItems and timedItems must be
                 # True. If both, then there's no need to test the
