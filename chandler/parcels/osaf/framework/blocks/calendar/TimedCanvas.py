@@ -114,16 +114,34 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         use PyICU to format the hour, because some locales
         use a 24 hour clock
         """
-        timeFormatter = DateFormat.createTimeInstance()
-        hourFP = FieldPosition(DateFormat.HOUR1_FIELD)
+        timeFormatter = DateFormat.createTimeInstance(DateFormat.SHORT)
         dummyDate = date.today()
-                
+
+        # This is nasty - we have to try the different formats to see
+        # which one the current locale uses, we'll use 4pm as an
+        # example, since its in the afternoon
+        for fieldID in (DateFormat.HOUR1_FIELD,
+                        DateFormat.HOUR_OF_DAY1_FIELD,
+                        DateFormat.HOUR0_FIELD,
+                        DateFormat.HOUR_OF_DAY0_FIELD):
+
+            hourFP = FieldPosition(fieldID)
+            timeString = timeFormatter.format(datetime.combine(dummyDate,
+                                                               time(hour=16)),
+                                              hourFP)
+            # stop when we get a valid string
+            if hourFP.getBeginIndex() != hourFP.getEndIndex():
+                break
+
+        assert hourFP.getBeginIndex() != hourFP.getEndIndex(), \
+               "Dont' have an hour in the current locale's time format"
+
         for hour in hourrange:
             timedate = time(hour=hour)
             hourdate = datetime.combine(dummyDate, timedate)
             timeString = timeFormatter.format(hourdate, hourFP)
             (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
-            hourString = str(timeString)[start:end]
+            hourString = unicode(timeString)[start:end]
             textExtent = dc.GetTextExtent(hourString)
             yield hour, hourString, textExtent
 
