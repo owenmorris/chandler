@@ -80,7 +80,11 @@ def DrawWrappedText(dc, text, rect, measurements=None):
     y = rectY
     rectRight = rectX + rectWidth
     rectBottom = rectY + rectHeight
-    assert rectHeight >= lineHeight, "Don't have enough room to write anything (have %d, need %d)" % (rectHeight, lineHeight)
+
+    # we hit this if if you narrow the main window enough:
+    # assert rectHeight >= lineHeight, "Don't have enough room to write anything (have %d, need %d)" % (rectHeight, lineHeight)
+    if rectHeight < lineHeight: return 0 # Can't draw anything    
+    
     for line in text.splitlines():
         x = rectX
         # accumulate text to be written on a line
@@ -172,7 +176,7 @@ def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
             if wordWidth <= maxWidth:
                 dc.DrawText(word[0:newLen], x,y)
                 return
-        assert False, "Didn't draw any text!"
+        #assert False, "Didn't draw any text!"
 
 
         
@@ -236,7 +240,7 @@ class Gradients(object):
         value = leftHSV[2]
         satStart = leftHSV[1]
         satDelta = rightHSV[1] - leftHSV[1]
-        if width == 0: width == 1
+        if width == 0: width = 1
         satStep = satDelta / width
         
         # assign a sliding scale of floating point values from left to right
