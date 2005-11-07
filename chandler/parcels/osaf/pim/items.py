@@ -22,18 +22,6 @@ from osaf import messages
 
 logger = logging.getLogger(__name__)
 
-class ContentKind(Kind):
-    """This kind is a metakind for creating other kinds.  Kinds which are
-    an instance of ContentKind will have an attribute 'detailView' of type
-    Block.  We could also make this attribute a bidiref."""
-
-    __metaclass__ = schema.ItemClass
-
-    schema.kindInfo(displayName=u"Metakind 'Content Kind'")
-
-    detailView = schema.One()   # Block
-
-
 class ImportanceEnum(schema.Enumeration):
     """Importance Enum"""
     schema.kindInfo(
