@@ -251,7 +251,10 @@ def copyWanted(wantedCopyList):
 
             if os.path.exists(dstDir + relFileMd):
                 raise Exception, 'file exists'
-            shutil.copy(srcDir + relFileMd, dstDir + relFileMd)
+            try:
+                shutil.copy(srcDir + relFileMd, dstDir + relFileMd)
+            except IOError:
+                pass # .md5 are optional
 
             if os.path.exists(dstDir + debFile):
                 raise Exception, 'file exists'
@@ -259,7 +262,10 @@ def copyWanted(wantedCopyList):
 
             if os.path.exists(dstDir + debFileMd):
                 raise Exception, 'file exists'
-            shutil.copy(srcDir + debFileMd, dstDir + debFileMd)
+            try:
+                shutil.copy(srcDir + debFileMd, dstDir + debFileMd)
+            except IOError:
+                pass # .md5 are optional
 
 def buildSubmitPage(form):
     """
