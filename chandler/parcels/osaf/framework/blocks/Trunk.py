@@ -21,14 +21,6 @@ mechanism is managed by a TrunkDelegate object, which can be subclassed and/or c
 to customize its behavior.
 """
 
-class ViewableKind(schema.Annotation):
-     """
-     Annotate the Kind class to add a detailView attribute which is the detailView to
-     use when displaying the Items of this class
-     """
-     schema.kindInfo(annotates=schema.Kind) 
-     detailView  = schema.One(Block.Block)
-
 class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
     """ 
     A widget block that gives its TrunkParentBlock a chance to change 

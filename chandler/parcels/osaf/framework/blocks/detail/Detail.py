@@ -285,26 +285,24 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         # (Yes, I wrote this as a double nested list comprehension with filtering, 
         # but I couldn't decide how to work in a lambda function, so I backed off and
         # opted for clarity.)
-        trunk = getattr (Trunk.ViewableKind(keyItem), "detailView", None)
-        if trunk is None:
-            decoratedSubtreeList = [] # each entry will be (position, path, subtreechild)
-            for subtree in self._getSubtrees():
-                if keyItem.isKindOf(subtree.key) and subtree.hasLocalAttributeValue('rootBlocks'):
-                    for block in subtree.rootBlocks:
-                        entryTobeSorted = (block.getAttributeValue('position', default=sys.maxint), 
-                                           block.itsPath,
-                                           self._copyItem(block))
-                        decoratedSubtreeList.append(entryTobeSorted) 
-                    
-            if len(decoratedSubtreeList) == 0:
-                assert False, "Don't know how to build a trunk for this kind!"
-                # (We can continue here - we'll end up just caching an empty view.)
-    
-            decoratedSubtreeList.sort()
-            
-            # Copy our stub block and move the new kids on(to) the block
-            trunk = self._copyItem(self.trunkStub)
-            trunk.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
+        decoratedSubtreeList = [] # each entry will be (position, path, subtreechild)
+        for subtree in self._getSubtrees():
+            if keyItem.isKindOf(subtree.key) and subtree.hasLocalAttributeValue('rootBlocks'):
+                for block in subtree.rootBlocks:
+                    entryTobeSorted = (block.getAttributeValue('position', default=sys.maxint), 
+                                       block.itsPath,
+                                       self._copyItem(block))
+                    decoratedSubtreeList.append(entryTobeSorted) 
+                
+        if len(decoratedSubtreeList) == 0:
+            assert False, "Don't know how to build a trunk for this kind!"
+            # (We can continue here - we'll end up just caching an empty view.)
+
+        decoratedSubtreeList.sort()
+        
+        # Copy our stub block and move the new kids on(to) the block
+        trunk = self._copyItem(self.trunkStub)
+        trunk.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
         return trunk
     
     def _getSubtrees(self):

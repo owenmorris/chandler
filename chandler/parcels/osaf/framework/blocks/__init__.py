@@ -13,7 +13,8 @@ from ContainerBlocks import (
     SplitterWindow, TabbedContainer, ViewContainer
 )
 
-from Trunk import TrunkDelegate, TrunkParentBlock, ViewableKind
+from Trunk import TrunkDelegate, TrunkParentBlock
+from Views import View
 
 from ControlBlocks import (
     AEBlock, Button, CheckBox, Choice, ComboBox, ContentItemDetail,

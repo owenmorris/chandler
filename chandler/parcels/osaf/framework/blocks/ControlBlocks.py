@@ -44,7 +44,7 @@ class Button(RectangularChild):
 
     characterStyle = schema.One(Styles.CharacterStyle)
     title = schema.One(schema.Text)
-    buttonKind = schema.One(buttonKindEnumType, initialValue="Text")
+    buttonKind = schema.One(buttonKindEnumType)
     icon = schema.One(schema.Text)
     rightClicked = schema.One(BlockEvent)
     event = schema.One(BlockEvent)
