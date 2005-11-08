@@ -66,10 +66,17 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     
                 if err.args[0] in ssl.unknown_issuer:
                     handler = lambda: \
-                        Globals.views[0].askTrustSiteCertificate(err.untrustedCertificates[0], retry)
+                        Globals.views[0].callAnyCallable(ssl.askTrustSiteCertificate, 
+                                                         True, 
+                                                         err.untrustedCertificates[0], 
+                                                         retry)
                 else:
                     handler = lambda: \
-                        Globals.views[0].askIgnoreSSLError(err.untrustedCertificates[0], err.args[0], retry)
+                        Globals.views[0].callAnyCallable(ssl.askIgnoreSSLError,
+                                                         False, 
+                                                         err.untrustedCertificates[0], 
+                                                         err.args[0], 
+                                                         retry)
     
                 self._handleSSLError(handler, err, callable, *args, **keywds)
                         
@@ -77,9 +84,11 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
                 retry = (lambda: setattr(self, '_retry', True))
     
                 handler = lambda: \
-                    Globals.views[0].askIgnoreSSLError(err.pem, 
-                                                       str(err), # XXX intl
-                                                       retry)
+                    Globals.views[0].callAnyCallable(ssl.askIgnoreSSLError,
+                                                     False,
+                                                     err.pem, 
+                                                     str(err), # XXX intl
+                                                     retry)
                 self._handleSSLError(handler, err, callable, *args, **keywds)
     
             except M2Crypto.BIO.BIOError, error:

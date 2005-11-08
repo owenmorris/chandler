@@ -28,11 +28,13 @@ SSL/TLS.
 
 import logging
 
+import wx
 import M2Crypto
 import M2Crypto.m2 as m2
 import M2Crypto.SSL as SSL
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import M2Crypto.SSL.Checker as Checker
+import M2Crypto.X509 as X509
 import twisted
 import twisted.protocols.policies as policies
 from i18n import OSAFMessageFactory as _
@@ -303,3 +305,53 @@ def connectTCP(host, port, factory, repositoryView,
                                client=1)
     return reactor.connectTCP(host, port, wrappingFactory, timeout,
                               bindAddress)    
+
+def askTrustSiteCertificate(repositoryView, pem, reconnect):
+    from osaf.framework.certstore import dialogs, certificate
+    global trusted_until_shutdown_site_certs, \
+           trusted_until_shutdown_invalid_site_certs, \
+           unknown_issuer
+    x509 = X509.load_cert_string(pem)
+    untrustedCertificate = certificate.findCertificate(repositoryView, pem)
+    dlg = dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
+                                             x509,
+                                             untrustedCertificate)
+    try:
+        if dlg.ShowModal() == wx.ID_OK:
+            selection = dlg.GetSelection()
+
+            if selection == 0:
+                trusted_until_shutdown_site_certs += [pem]
+            else:
+                if untrustedCertificate is not None:
+                    untrustedCertificate.trust |= constants.TRUST_AUTHENTICITY
+                else:
+                    fingerprint = utils.fingerprint(x509)
+                    certificate.importCertificate(x509, fingerprint, 
+                                                  constants.TRUST_AUTHENTICITY,
+                                                  repositoryView)
+
+            reconnect()
+    finally:
+        dlg.Destroy()
+
+def askIgnoreSSLError(pem, err, reconnect):
+    from osaf.framework.certstore import dialogs
+    global trusted_until_shutdown_site_certs, \
+           trusted_until_shutdown_invalid_site_certs, \
+           unknown_issuer
+    x509 = X509.load_cert_string(pem)
+    dlg = dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
+                                       x509,
+                                       err)
+    try:
+        if dlg.ShowModal() == wx.ID_OK:
+            acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
+            if acceptedErrList is None:
+                trusted_until_shutdown_invalid_site_certs[pem] = [err]
+            else:
+                trusted_until_shutdown_invalid_site_certs[pem].append(err)
+            reconnect()
+    finally:
+        dlg.Destroy()
+

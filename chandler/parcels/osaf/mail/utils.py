@@ -131,12 +131,21 @@ def alertMailError(message, account, args):
 
 def displaySSLCertDialog(cert, reconnectMethod):
     """Displays the Do you want to add this cert dialog"""
-    NotifyUIAsync(cert, None, 'askTrustSiteCertificate', reconnectMethod)
+    from osaf.framework.certstore import ssl
+    wxApplication = Globals.wxApplication
+    if wxApplication is not None: # test framework has no wxApplication
+        wxApplication.CallItemMethodAsync(Globals.views[0], 'callAnyCallable', 
+                                          ssl.askTrustSiteCertificate, True,
+                                          cert, reconnectMethod)
 
 def displayIgnoreSSLErrorDialog(cert, err, reconnectMethod):
     """Displays the invalid cert dialog"""
-    NotifyUIAsync(cert, None, 'askIgnoreSSLError', err, 
-                  reconnectMethod)
+    from osaf.framework.certstore import ssl
+    wxApplication = Globals.wxApplication
+    if wxApplication is not None: # test framework has no wxApplication
+        wxApplication.CallItemMethodAsync(Globals.views[0], 'callAnyCallable',
+                                          ssl.askIgnoreSSLError, False, cert,
+                                          err, reconnectMethod)
 
 def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
     """Temp method for posting a event to the CPIA layer. This

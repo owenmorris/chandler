@@ -251,56 +251,27 @@ class MainView(View):
              "", statusMessage)
             self.setStatusMessage ('')
 
-    def askTrustSiteCertificate(self, pem, reconnect):
-        # XXX It's wrong for the MainView to depend on certstore
-        import M2Crypto.X509 as X509
-        from osaf.framework.certstore import dialogs, certificate
-        x509 = X509.load_cert_string(pem)
-        untrustedCertificate = certificate.findCertificate(self.itsView, pem)
-        dlg = dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
-                                                 x509,
-                                                 untrustedCertificate)
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                selection = dlg.GetSelection()
-
-                if selection == 0:
-                    from osaf.framework.certstore import ssl
-                    ssl.trusted_until_shutdown_site_certs += [pem]
-                else:
-                    from osaf.framework.certstore import constants
-                    if untrustedCertificate is not None:
-                        untrustedCertificate.trust |= constants.TRUST_AUTHENTICITY
-                    else:
-                        from osaf.framework.certstore import utils
-                        fingerprint = utils.fingerprint(x509)
-                        certificate.importCertificate(x509, fingerprint, 
-                                                      constants.TRUST_AUTHENTICITY,
-                                                      self.itsView)
-
-                reconnect()
-        finally:
-            dlg.Destroy()
-
-    def askIgnoreSSLError(self, pem, err, reconnect):
-        # XXX It's wrong for the MainView to depend on certstore
-        import M2Crypto.X509 as X509
-        from osaf.framework.certstore import dialogs
-        x509 = X509.load_cert_string(pem)
-        dlg = dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
-                                           x509,
-                                           err)
-        try:
-            if dlg.ShowModal() == wx.ID_OK:
-                from osaf.framework.certstore import ssl
-                acceptedErrList = ssl.trusted_until_shutdown_invalid_site_certs.get(pem)
-                if acceptedErrList is None:
-                    ssl.trusted_until_shutdown_invalid_site_certs[pem] = [err]
-                else:
-                    ssl.trusted_until_shutdown_invalid_site_certs[pem].append(err)
-                reconnect()
-        finally:
-            dlg.Destroy()
+    def callAnyCallable(self, callable, withView, *args, **kw):
+        """
+        Call any callable. The idea with this method is that any object
+        in any view and any thread can put in a request in the application
+        async method list with
+            
+        wxApplication.CallItemMethodAsync(Globals.views[0], 'callAnyCallable',
+                                          withView, myMethod, myArg1, ...)
+                                  
+        and get a method of their choice be called back on the main thread with
+        the main repository view (if they so like).
+        
+        @param withView: Should be true if the first argument for the callable
+                         should be the main view, before *args and **kw.
+        @param callable: A Python callable
+        @param *args:    Arguments for callable
+        @param **kw:     Keyword arguments for callable
+        """
+        if withView:
+            return callable(self.itsView, *args, **kw)
+        return callable(*args, **kw)
 
     def onSendShareItemEventUpdateUI(self, event):
         # If we get asked about this, and it hasn't already been set, there's no selected 
