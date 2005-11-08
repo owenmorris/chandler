@@ -107,7 +107,8 @@ class RecurrenceDialog(wx.Dialog):
         for buttonName in change.get('disabled_buttons', []):
             button = getattr(self, buttonName + 'Button')
             button.Enable(False)
-            
+        
+        self.Fit()
         self.Layout()
         self.CenterOnScreen()
         self.Show()
