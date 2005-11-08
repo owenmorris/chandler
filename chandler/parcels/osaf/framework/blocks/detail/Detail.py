@@ -486,6 +486,9 @@ class DetailSynchronizer(Item):
 
         return (processedResultString, validAddresses)
 
+class SpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
+    """ Generic Spacer Block class """
+
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue (self, item):
         theLabel = self.title
@@ -1088,12 +1091,17 @@ class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
                (item.isAttributeModifiable('startTime') \
                 or not item.anyTime)
 
+class CalendarReminderSpacerBlock (SpacerBlock):
+    def shouldShow (self, item):
+        return item.isAttributeModifiable('reminders') \
+               or len(item.reminders) > 0
+
 class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('reminders') \
                or len(item.reminders) > 0
 
-class CalendarTimeZoneSpacerBlock (StaticTextLabel):
+class CalendarTimeZoneSpacerBlock(SpacerBlock):
     def shouldShow (self, item):
         return not (item.allDay or item.anyTime)
 
@@ -1132,6 +1140,10 @@ def recurrenceVisibility(item):
             else:
                 result |= showEnds
     return result
+
+class CalendarRecurrencePopupSpacerBlock(SpacerBlock):
+    def shouldShow (self, item):
+        return (recurrenceVisibility(item) & showPopup) != 0
     
 class CalendarRecurrencePopupAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
@@ -1141,7 +1153,7 @@ class CalendarRecurrenceSpacer2Area(DetailSynchronizer, ControlBlocks.StaticText
     def shouldShow(self, item):
         return (recurrenceVisibility(item) & (showPopup | showEnds)) != 0
 
-class CalendarRecurrenceCustomSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
+class CalendarRecurrenceCustomSpacerBlock(SpacerBlock):
     def shouldShow (self, item):
         return (recurrenceVisibility(item) & showCustom) != 0
 

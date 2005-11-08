@@ -65,7 +65,7 @@ def makeLabel(parcel, label=u'', borderTop=5, border=None):
                                border=border)
 
 def makeSpacer(parcel, size=None, width=-1, height=-1, 
-               name=None, baseClass=StaticText, **kwds):
+               name=None, baseClass=SpacerBlock, **kwds):
     """ 
     Make a spacer block template. Size can be specified as a SizeType, or as
     individual height or width. 
@@ -481,13 +481,15 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                 timeZoneArea,
                 makeSpacer(parcel, height=7),
                 transparencyArea,
-                makeSpacer(parcel, height=7),
+                makeSpacer(parcel, height=7,
+                           baseClass=CalendarRecurrencePopupSpacerBlock),
                 recurrencePopupArea,
                 makeSpacer(parcel, height=1,
                            baseClass=CalendarRecurrenceCustomSpacerBlock),
                 recurrenceCustomArea,
                 recurrenceEndArea,
-                makeSpacer(parcel, height=7),
+                makeSpacer(parcel, height=7,
+                           baseClass=CalendarReminderSpacerBlock),
                 reminderArea]).install(parcel)
 
     calendarEventSubtree = \
