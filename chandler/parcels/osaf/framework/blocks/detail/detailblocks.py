@@ -264,7 +264,6 @@ def makeNoteSubtree(parcel, oldVersion):
     # Appears in block
     appearsInArea = \
         makeArea(parcel, 'AppearsInArea',
-            baseClass=AppearsInAreaBlock,
             viewAttribute=u'collections',
             border=RectType(0,0,0,0),
             childrenBlocks=[

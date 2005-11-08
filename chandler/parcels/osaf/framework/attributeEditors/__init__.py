@@ -5,6 +5,7 @@ from AttributeEditors import (
     getSingleton,
     getInstance,
 
+    BaseAttributeEditor,
     CheckboxAttributeEditor,
     ChoiceAttributeEditor, 
     ContactAttributeEditor,

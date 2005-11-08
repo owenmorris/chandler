@@ -792,7 +792,12 @@ def debugName(thing):
     blockItem = getattr(thing, 'blockItem', None)
     if blockItem is not None:
         return '%s on %s' % (thing.__class__.__name__, debugName(blockItem))
-    
+
+    from osaf.framework.attributeEditors import BaseAttributeEditor
+    if isinstance(thing, BaseAttributeEditor):
+        widget = getattr(thing, 'control', None)
+        return '%s on %s' % (thing.__class__.__name__, debugName(widget))
+
     return '(unknown)'
     
     

@@ -1004,65 +1004,25 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
                 enabled = False
         event.arguments['Enable'] = enabled
 
-def getItemCollectionNames(item, justOne=False):
-    """ 
-    Get the names of collections that this item belongs to, or just
-    the first one (which we use for visibility management) 
-    """
-    if (item is None or not hasattr(item, 'collections') 
-        or item.collections.first() is None):
-        return []
-
-    item = getattr(item, 'proxiedItem', item)
-    app = schema.ns('osaf.app', item.itsView)
-    sidebarCollection = app.sidebarCollection
-    allCollection = app.allCollection
-    collectionList = []
-    for coll in sidebarCollection:
-        if coll is allCollection or not item in coll:
-            continue
-        if justOne:
-            return [ coll.displayName ]
-        collectionList.append(coll.displayName)
-    collectionList.sort()
-    return collectionList
-
-class AppearsInAreaBlock(DetailSynchronizedContentItemDetail):
-    """
-    A block that holds a label, horizontal spacer, and static string 
-    listing the collections this item belongs to (presented by the
-    AppearsInAttributeEditor, below)
-    """    
-    def shouldShow(self, item):
-        return len(getItemCollectionNames(self.detailRoot().item, True)) > 0
-
-    def onMonitoredValueChanged(self, op, item, attribute):
-        # Ignore notifications that aren't for us. (Yes, it's not ideal to have 
-        # awareness of proxies here, but I'm expecting _lots_ of notifications, 
-        # and this seems like the quickest way to reduce overhead, and seems
-        # safer than a deeper '==' comparison.)
-        ourItem = self.item
-        if item in (ourItem, getattr(ourItem, 'proxiedItem', None)):            
-            # It's for us - reload the widget
-            haveCollections = len(getItemCollectionNames(ourItem, True)) > 0
-            if haveCollections != self.isShown:
-                # We need to change visibility; redo the whole detail view 
-                # to relayout its sizer.
-                #logger.debug("AppearsIn got notification; vis now %s" % haveCollections)
-                self.detailRoot().synchronizeDetailView(ourItem)
-            elif haveCollections:
-                # We already have proper visibility: just update our content
-                #logger.debug("AppearsIn got notification; updating value")
-                self.synchronizeWidget()
-            else:
-                pass #logger.debug("AppearsIn got notification; ignoring")
-
 class AppearsInAttributeEditor(StaticStringAttributeEditor):
     """ A read-only list of collections that this item appears in, for now. """
     def GetAttributeValue(self, item, attributeName):
-        # @@@ I18N: FYI: I expect the label & names to be separate fields before too long...
-        collectionNames = _(", ").join(getItemCollectionNames(item))
+        # We'll be doing 'in' tests below, so if this is a proxy, get the real item.
+        item = getattr(item, 'proxiedItem', item)
+        # Likewise, only a recurrence master appears 'in' the collection (for 0.6, anyway)
+        # so if this item lets us get its master, do so and use that instead.
+        getMasterMethod = getattr(item, 'getMaster', None)
+        if getMasterMethod is not None:
+            item = getMasterMethod()
+        
+        # Ask each sidebar collection if this item's in it.
+        app = schema.ns('osaf.app', item.itsView)
+        sidebarCollection = app.sidebarCollection
+        collectionNames = _(", ").join(sorted([coll.displayName
+                                               for coll in sidebarCollection
+                                               if item in coll]))
         # logger.debug("Returning new appearsin list: %s" % collectionNames)
+        # @@@ I18N: FYI: I expect the label & names to be separate fields before too long...
         return _(u"Appears in: %(collectionNames)s") \
                % {'collectionNames': collectionNames }
 

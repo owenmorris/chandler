@@ -546,7 +546,8 @@ def RenderBlock(repoView, block):
         result += "<table class=block width=100%%>"
     else:
         result += "<table class=childlessblock width=100%%>"
-    result += "<tr class=block><td class=block valign=top><a href=%s?mode=blocks>%s</a><a href=%s>.</a></td></tr>" % (toLink(block.itsPath), name, toLink(block.itsPath))
+    result += "<tr class=block><td class=block valign=top><a href=%s?mode=blocks>%s</a><a href=%s>%s</a></td></tr>" % (
+        toLink(block.itsPath), name, toLink(block.itsPath), block.isShown and ' +' or ' -')
 
     if block.itsKind.itsName.lower().endswith('bar'):
         mode = 'horizontal'
