@@ -108,14 +108,14 @@ class ColorInfo(object):
     # these are all for when this calendar is the 'current' one
     gradientLeft = tintedColor(0.4)
     gradientRight = tintedColor(0.2)
-    outlineColor = tintedColor(0.5)
+    outlineColor = tintedColor(0.6)
     textColor = tintedColor(0.67, 0.6)
     defaultColors = tupleProperty(gradientLeft, gradientRight, outlineColor, textColor)
     
     # when a user selects a calendar event, use these
     selectedGradientLeft = tintedColor(0.15)
     selectedGradientRight = tintedColor(0.05)
-    selectedOutlineColor = tintedColor(0.5)
+    selectedOutlineColor = tintedColor(0.6)
     selectedTextColor = tintedColor(0.67, 0.6)
     selectedColors = tupleProperty(selectedGradientLeft, selectedGradientRight, selectedOutlineColor, selectedTextColor)
     
@@ -334,9 +334,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # add some space below the time
                     # (but on linux there isn't any room)
                     if '__WXGTK__' in wx.PlatformInfo:
-                        timeBottomMargin = 1
+                        timeBottomMargin = 0
                     else:
-                        timeBottomMargin = 3
+                        timeBottomMargin = 2
 
                     # draw the time if there is room for the time and at least
                     # one other line of text
@@ -351,15 +351,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             DrawWrappedText(dc, timeString, timeRect,
                                             styles.eventTimeMeasurements)
 
-                        y += self.timeHeight
+                        y += self.timeHeight + timeBottomMargin
 
-                        # divider line after the time
-                        dc.SetPen(wx.Pen(outlineColor))
-                        dc.DrawLine(itemRect.x, y + 1,
-                                    itemRect.x + itemRect.width, y + 1)
-                        
-                        y += timeBottomMargin
-                        
                     else:	
                         self.timeHeight = 0	
 
