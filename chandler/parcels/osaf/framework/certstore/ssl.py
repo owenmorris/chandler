@@ -45,7 +45,9 @@ from osaf.framework.certstore import constants, utils
 __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
            'connectSSL', 'connectTCP', 'unknown_issuer',
            'trusted_until_shutdown_site_certs',
-           'trusted_until_shutdown_invalid_site_certs']
+           'trusted_until_shutdown_invalid_site_certs',
+           'askTrustSiteCertificate',
+           'askIgnoreSSLError']
 
 log = logging.getLogger(__name__)
 
@@ -307,6 +309,16 @@ def connectTCP(host, port, factory, repositoryView,
                               bindAddress)    
 
 def askTrustSiteCertificate(repositoryView, pem, reconnect):
+    """
+    Ask user if they would like to trust the certificate that was returned by
+    the server. This will only happen if the certificate is not already
+    trusted, either by trust chain or explicitly.
+    
+    @param repositoryView: Should be the main view.
+    @param pem:            The certificate in PEM format.
+    @param reconnect:      The reconnect callback that will be called if the
+                           used chooses to trust the certificate.
+    """
     from osaf.framework.certstore import dialogs, certificate
     global trusted_until_shutdown_site_certs, \
            trusted_until_shutdown_invalid_site_certs, \
@@ -336,6 +348,21 @@ def askTrustSiteCertificate(repositoryView, pem, reconnect):
         dlg.Destroy()
 
 def askIgnoreSSLError(pem, err, reconnect):
+    """
+    Ask user if they would like to ignore an error with the SSL connection,
+    and if so, reconnect automatically.
+    
+    Strictly speaking we should not ask and just fail. In practice that
+    wouldn't be very helpful because there are lots of misconfigured servers
+    out there.
+    
+    @param pem:       The certificate with which we noticed the error (the
+                      error could be in the certificate itself, or it could be
+                      a mismatch between the certificate and the server).
+    @param err:       Error.
+    @param reconnect: The reconnect callback that will be called if the used
+                      chooses to ignore the error.
+    """
     from osaf.framework.certstore import dialogs
     global trusted_until_shutdown_site_certs, \
            trusted_until_shutdown_invalid_site_certs, \
