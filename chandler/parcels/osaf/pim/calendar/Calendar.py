@@ -808,7 +808,7 @@ class CalendarEventMixin(RemindableMixin):
         master = self.getMaster()
         first = master # Changed for no-THISANDFUTURE-style
         recurrenceID = self.recurrenceID
-        isFirst = recurrenceID == master.startTime
+        isFirst = datetimeOp(recurrenceID, '==', master.startTime)
         self._ignoreValueChanges = True
         
         if attr == 'startTime':

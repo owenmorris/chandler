@@ -1,14 +1,15 @@
-
+from datetime import datetime
 def removeTypeError(f):
     def g(dt1, dt2):
-        naive1 = (dt1.tzinfo is None)
-        naive2 = (dt2.tzinfo is None)
-        
-        if naive1 != naive2:
-            if naive1:
-                dt2 = dt2.replace(tzinfo=None)
-            else:
-                dt1 = dt1.replace(tzinfo=None)
+        if isinstance(dt2, datetime) and isinstance(dt1, datetime):
+            naive1 = (dt1.tzinfo is None)
+            naive2 = (dt2.tzinfo is None)
+            
+            if naive1 != naive2:
+                if naive1:
+                    dt2 = dt2.replace(tzinfo=None)
+                else:
+                    dt1 = dt1.replace(tzinfo=None)
         return f(dt1, dt2)
     return g
 
