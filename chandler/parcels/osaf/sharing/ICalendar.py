@@ -274,7 +274,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             caldavReturn = None
 
         input = StringIO.StringIO(text)
-        calendar = vobject.readComponents(input, validate=True).next()
+        calendar = list(vobject.readComponents(input, validate=True))
+        if len(calendar) == 0:
+            # an empty ics file, what to do?
+            return
+        else:
+            calendar = calendar[0]
+        
 
         if self.fileStyle() == self.STYLE_SINGLE:
             try:
@@ -381,10 +387,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # to have to make sure all the datetimes we create have
                 # the same naivete as dtstart
                 tzinfo = dtstart.tzinfo
-
-                # method to call to make changes to the event
-                change = None                
                 
+                # by default, we'll create a new item, not change existing items
+                itemChangeCallback = None
+               
                 # See if we have a corresponding item already
                 uidMatchItem = self.findUID(event.uid[0].value)
                 if uidMatchItem is not None:
@@ -396,9 +402,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                                                         recurrenceID,
                                                         time(tzinfo=tzinfo))
                         else:
-                            recurrenceID = makeNaiveteMatch(
-                                               convertToICUtzinfo(recurrenceID),
-                                               tzinfo)
+                            recurrenceID = convertToICUtzinfo(
+                                               makeNaiveteMatch(recurrenceID,
+                                               tzinfo))
                             
                         eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
                         if eventItem == None:
@@ -410,16 +416,16 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                                         "RECURRENCE-ID = %s" % recurrenceID)
                             continue
                         recurrenceLine = event.contents['recurrence-id'][0]
-                        range = recurrenceLine.params.get('RANGE', 'THIS')
+                        range = recurrenceLine.params.get('RANGE', ['THIS'])[0]
                         if range == 'THISANDPRIOR':
                             # ignore THISANDPRIOR changes for now
                             logger.info("RECURRENCE-ID RANGE of THISANDPRIOR " \
                                         "not supported")
                             continue
                         elif range == 'THIS':
-                            pass                        
+                            itemChangeCallback = eventItem.changeThis                   
                         elif range == 'THISANDFUTURE':
-                            change = eventItem.changeThisAndFuture
+                            itemChangeCallback = eventItem.changeThisAndFuture
                         else:
                             logger.info("RECURRENCE-ID RANGE not recognized. " \
                                         "RANGE = %s" % range)
@@ -434,26 +440,18 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             # re-creating a recurring item from scratch, delete 
                             # old recurrence information
                             eventItem.removeRecurrence()
-
+                            
+                        itemChangeCallback = eventItem.changeThis
                         countUpdated += 1
-                else:
-                    eventItem = pickKind.newItem(None, newItemParent)
-                    countNew += 1
-                    eventItem.icalUID = event.uid[0].value
-                
-                if change is None:
-                    change = eventItem.changeThis
+                    if DEBUG: logger.debug("Changing eventItem: %s" % str(eventItem))
                     
-                if DEBUG: logger.debug("eventItem is %s" % str(eventItem))
+                changesDict = {}
+                change = changesDict.__setitem__
                 
                 #Default to NOT any time
                 change('anyTime', False)
                 
                 change('displayName', displayName)
-
-                if updateCallback and \
-                    updateCallback(msg="'%s'" % eventItem.getItemDisplayName()):
-                    raise Sharing.SharingError(_(u"Cancelled by user"))
 
                 if anyTime:
                     change('anyTime', True)
@@ -480,22 +478,49 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if location:
                     change('location', Calendar.Location.getLocation(view,
                                                                      location))
-                
+                    
+                # rruleset and reminderInterval need to be set last
+                changeLast = []
                 if not filters or "reminders" not in filters:
                     if reminderDelta is not None:
-                        change('reminderInterval', reminderDelta)
+                        changeLast.append(('reminderInterval', reminderDelta))
                 
                 rruleset = event.rruleset
                 if rruleset is not None:
                     ruleSetItem = RecurrenceRuleSet(None, view=view)
                     ruleSetItem.setRuleFromDateUtil(rruleset)
-                    change('rruleset', ruleSetItem)
-                elif recurrenceID is None: # delete any existing rule
-                    eventItem.removeRecurrence()
-    
+                    changeLast.append(('rruleset', ruleSetItem))
+                
+                if itemChangeCallback is None:
+                    # create a new item
+                    # setting icalUID in the constructor doesn't seem to work
+                    #change('icalUID', event.uid[0].value)
+                    eventItem = pickKind.newItem(None, newItemParent, **changesDict)
+                    # set icalUID seperately to make sure uid_map gets set
+                    eventItem.icalUID = event.uid[0].value
+                    for tup in changeLast:
+                        eventItem.changeThis(*tup)
+                    countNew += 1
+                else:
+                    # update an existing item
+                    if rruleset is None and recurrenceID is None:
+                        # no recurrenceId or rruleset, but the existing item
+                        # may have recurrence, so delete it
+                        eventItem.removeRecurrence()
+
+                    for attr, val in changesDict.iteritems():
+                        # Here's the place for Morgen to use importValue
+                        itemChangeCallback(attr, val)
+                    for tup in changeLast:
+                        itemChangeCallback(*tup)       
+
                 if DEBUG: logger.debug(u"Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
-    
+
+                if updateCallback and \
+                    updateCallback(msg="'%s'" % eventItem.getItemDisplayName()):
+                    raise Sharing.SharingError(_(u"Cancelled by user"))
+
                 if self.fileStyle() == self.STYLE_SINGLE:
                     item.add(eventItem.getMaster())
                 else:

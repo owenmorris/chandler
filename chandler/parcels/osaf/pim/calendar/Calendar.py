@@ -234,7 +234,8 @@ class CalendarEventMixin(RemindableMixin):
     def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
         super(CalendarEventMixin, self).__init__(name, parent, kind, view, **kw)
         self.occurrenceFor = self
-        self.icalUID = unicode(self.itsUUID)
+        if not kw.has_key('icalUID'):
+            self.icalUID = unicode(self.itsUUID)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
