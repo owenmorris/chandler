@@ -89,9 +89,7 @@ class UITestItem :
                 
             self.item = item
             # Give the Yield
-            wx.GetApp().Yield()
-            ev = wx.IdleEvent()
-            wx.GetApp().ProcessEvent(ev)
+            scripting.User.idle()
             self.logger.Stop()
     
     def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, body=None,
@@ -154,9 +152,7 @@ class UITestItem :
         else: # the item is a collection (sidebar selection)
             App_ns.sidebar.select(self.item)
             App_ns.sidebar.focus()
-            wx.GetApp().Yield()
-            ev = wx.IdleEvent()
-            wx.GetApp().ProcessEvent(ev)
+            scripting.User.idle()
            
             
     def SetEditableBlock(self, blockName, description, value, timeInfo):
@@ -1105,14 +1101,9 @@ class UITestView:
                 logger.ReportFailure("Importing calendar: exception raised")
             else:
                 App_ns.sidebarCollection.add(collection)
-                wx.GetApp().Yield()
-                ev = wx.IdleEvent()
-                wx.GetApp().ProcessEvent(ev)
-                # this is probably too much "waiting", but let's be conservative, for now.
-                wx.GetApp().Yield()
-                ev = wx.IdleEvent()
-                wx.GetApp().ProcessEvent(ev)
-                wx.GetApp().Yield()
+                scripting.User.idle()
+                # do another idle and yield to make sure the calendar is up.
+                scripting.User.idle()
                 logger.ReportPass("Importing calendar")
 
     def GetCurrentState(self):
@@ -1244,8 +1235,7 @@ class UITestView:
             else:
                 self.logger.Start("Double click in the calendar view")
                 self.timedCanvas.widget.ProcessEvent(click)
-                wx.GetApp().Yield()
-                wx.GetApp().ProcessEvent(wx.IdleEvent())
+                scripting.User.idle()
                 self.logger.Stop()
             
             #it's a new event

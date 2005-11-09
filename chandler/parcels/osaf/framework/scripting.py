@@ -778,10 +778,7 @@ class User(object):
             widget.ProcessEvent(ret_d)
             widget.ProcessEvent(ret_up)
             # Give Yield & Idle to the App
-            app = wx.GetApp()
-            app.Yield()
-            ev = wx.IdleEvent()
-            app.ProcessEvent(ev)
+            cls.idle()
             return True
 
     @classmethod
@@ -810,6 +807,12 @@ class User(object):
         else:
             return False
 
+    @classmethod
+    def idle(cls):
+        app = wx.GetApp()
+        app.Yield()
+        app.ProcessEvent(wx.IdleEvent())
+        app.Yield()
 
 def app_ns(view=None):
     if view is None:

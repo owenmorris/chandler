@@ -49,9 +49,7 @@ try:
     QAUITestAppLib.scripting.User.emulate_typing("webcal://qacosmo.osafoundation.org:8080/home/demo1/importTest.ics")
     window.OnSubscribe(None)
     win.Destroy()
-    wx.GetApp().Yield()
-    ev = wx.IdleEvent()
-    wx.GetApp().ProcessEvent(ev)
+    User.idle()
     logger.Stop()
 
     # verification
