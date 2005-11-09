@@ -108,62 +108,143 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
     def _checkRedraw(self):
         if self._redrawCount > 0:
             self._redrawCount = 0
-
-            startWxDate = self.GetStartDate();
-            endWxDate = startWxDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
-
-            startDate = date(startWxDate.GetYear(),
-                            startWxDate.GetMonth() + 1,
-                            startWxDate.GetDay())
-
-            month = startDate.month + 3
-            if month > 12:
-                endDate = startDate.replace(year=startDate.year+1,
-                                            month=month - 12)
-            else:
-                endDate = startDate.replace(month=month)
-
-            numDays = (endDate - startDate).days
-            busyFractions = {}
-            defaultTzinfo = ICUtzinfo.getDefault()
+            self._doDrawing()
             
-            # The exact algorithm for the busy state is yet to be determined.  For now, just 
-            # get the confirmed items on a given day and calculate their total duration.  As long
-            # as there is at least one event the busy bar should be at least 1/4 height (so that it
-            # is visible).  A 100% full day is assumed to be 12 hours worth of appointments.
-            for item in self.blockItem.getItemsInRange(
-                (datetime.combine(startDate, time(0)),
-                 datetime.combine(endDate, time(0))),
-                timedItems=True, dayItems=True):
-    
-                if item.transparency == "confirmed":
-                    # @@@ Multiday events -- Grant???
-                    if item.startTime.tzinfo is not None:
-                        startTime = item.startTime.astimezone(defaultTzinfo)
-                    else:
-                        startTime = item.startTime
-                    offset = (startTime.date() - startDate).days
-                    
-                    # We set a minimum "Busy" value of 0.25 for any
-                    # day with a confirmed event.
-                    fraction = busyFractions.get(offset, 0.25)
+    def _doDrawing(self):
+
+        startWxDate = self.GetStartDate();
+        endWxDate = startWxDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
+
+        startDate = date(startWxDate.GetYear(),
+                        startWxDate.GetMonth() + 1,
+                        startWxDate.GetDay())
+
+        month = startDate.month + 3
+        if month > 12:
+            endDate = startDate.replace(year=startDate.year+1,
+                                        month=month - 12)
+        else:
+            endDate = startDate.replace(month=month)
+
+        numDays = (endDate - startDate).days
+        busyFractions = {}
+        defaultTzinfo = ICUtzinfo.getDefault()
+        
+        # The exact algorithm for the busy state is yet to be determined.
+        # For now, just  get the confirmed items on a given day and calculate
+        # their total duration.  As long as there is at least one event the
+        # busy bar should be at least 1/4 height (so that it is visible).
+        # A 100% full day is assumed to be 12 hours worth of appointments.
+
+        def updateBusy(event, start):
+            # Broken out into a separate function because we're going
+            # to call it for each non-recurring events, and for each
+            # individual occurrence of all the recurring events.
+            # In the case of the latter, event may be the master, or
+            # a modification; we're trying to avoid creating all the
+            # items for individual computed occurrences.
+            if event.transparency == "confirmed":
+
+                if event.allDay:
+                    hours = 12.0
+                else:
+                    # @@@ Wrong for multiday events -- Grant
+                    hours = event.duration.seconds / (60 * 60)
+
+                if start.tzinfo is not None:
+                    start = start.astimezone(defaultTzinfo)
             
-                    if item.allDay:
-                        hours = 12.0
-                    else:
-                        # Seems wrong for events > 1 day in duration
-                        hours = (item.duration.seconds / (60 * 60) )
+                # @@@ Again, multiday events -- Grant???
+                offset = (start.date() - startDate).days
+                
+                # We set a minimum "Busy" value of 0.25 for any
+                # day with a confirmed event.
+                fraction = busyFractions.get(offset, 0.25)
+                fraction += (hours / 12.0)
+                
+                busyFractions[offset] = min(fraction, 1.0)
+
+        # Largely, this code is stolen from CalendarCanvas.py; it
+        # would be good to refactor it at some point.
+        self.blockItem.EnsureIndexes()
+        
+        # First, look at all non-generated events
+        startDatetime = datetime.combine(startDate, time(0))
+        endDatetime = datetime.combine(endDate, time(0))
+
+        for item in self.blockItem.eventsInRange(startDatetime, endDatetime,
+                                            dayItems=True, timedItems=True):
+                updateBusy(item, item.startTime)
+
+        # Next, try to find all generated events in the given
+        # datetime range
+        
+        # The following iteration over keys comes from CalendarCanvas.py
+        events = self.blockItem.contents.rep
+        view = self.blockItem.itsView
+        app = schema.ns("osaf.app", view)
+        
+        allEvents = app.events.rep
+        masterEvents = app.masterEvents.rep
+
+        keys = self.blockItem.getKeysInRange(startDatetime, 'effectiveStartTime', 'effectiveStart',
+                                   allEvents, endDatetime, 'recurrenceEnd',
+                                   'recurrenceEnd', masterEvents,
+                                   events, '__adhoc__')
+        for key in keys:
+            masterEvent = view[key]
+            rruleset = masterEvent.createDateUtilFromRule()
+            
+            # We need to make sure that we hand off events with
+            # the same tzinfo to rruleset.between, because dateutil's
+            # datetime comparisons aren't safe with naive and non-naive
+            # datetimes.
+            tzinfo = masterEvent.startTime.tzinfo
+            startDatetime = startDatetime.replace(tzinfo=tzinfo)
+            endDatetime = endDatetime.replace(tzinfo=tzinfo)
+            
+            modifications = list(masterEvent.modifications or [])
+            
+            for recurDatetime in rruleset.between(startDatetime, endDatetime, True):
+                # Now see if recurDatetime matches any of our modifications
+                matchingMod = None
+                
+                for mod in modifications:
+                    if Calendar.datetimeOp(recurDatetime, '==', mod.recurrenceID):
+                        matchingMod = mod
+                        break
                         
-                    fraction += (hours / 12.0)
+                
+                if matchingMod is None:
+                    # OK, an unmodified occurrence. Just
+                    # go ahead and update
+                    updateBusy(masterEvent, recurDatetime)
+                else:
+                    # Aha, we found a matching modification. We
+                    # need to make sure it still falls inside the
+                    # range of datetimes we're interested in.
+                    modStart = matchingMod.startTime
                     
-                    busyFractions[offset] = min(fraction, 1.0)
-    
-            offset = 0
-            while (startDate < endDate):
-                self.SetBusy(startWxDate, busyFractions.get(offset, 0.0))
-                startWxDate += wx.DateSpan.Day()
-                startDate += timedelta(days=1)
-                offset += 1
+                    # To do the comparison, we need to make sure
+                    # the naivetes of modStart, startDatetime and
+                    # endDatetime all match.
+                    if modStart.tzinfo is None:
+                        modStart = modStart.replace(tzinfo=tzinfo)
+                    else:
+                        modStart = modStart.astimezone(tzinfo)
+                        
+                    if (modStart >= startDatetime and
+                        modStart <= endDatetime):
+                        
+                        updateBusy(matchingMod, modStart)
+
+        offset = 0
+        while (startDate < endDate):
+            self.SetBusy(startWxDate, busyFractions.get(offset, 0.0))
+            startWxDate += wx.DateSpan.Day()
+            startDate += timedelta(days=1)
+            offset += 1
+            
     
     def AdjustSplit(self, splitter, height):
         headerHeight = self.GetHeaderSize().height
