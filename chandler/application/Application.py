@@ -81,6 +81,15 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_MOVE, self.OnMove)
+        
+        # Fix for Bug 4156: On the Mac, when the app activates,
+        # un-minimize the main window if necessary
+        if wx.Platform == '__WXMAC__':
+            wx.GetApp().Bind(wx.EVT_ACTIVATE_APP, self.OnAppActivate)
+ 
+    def OnAppActivate(self, event):
+        if event.GetActive() and self.IsIconized():
+            self.Iconize(False)
 
         # for wxMSW, disable system palette color mapping in toolbar icons
         if '__WXMSW__' in wx.PlatformInfo:
