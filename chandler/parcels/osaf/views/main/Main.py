@@ -694,13 +694,13 @@ class MainView(View):
             server.startup()
 
     def onActivateShareMergingEventUpdateUI (self, event):
-        if sharing.Sharing.USE_MERGING:
-            event.arguments['Text'] = _(u'Disable share merging')
+        if sharing.Sharing.USE_VIEW_MERGING:
+            event.arguments['Text'] = _(u'Disable share view merging')
         else:
-            event.arguments['Text'] = _(u'Enable share merging')
+            event.arguments['Text'] = _(u'Enable share view merging')
 
     def onActivateShareMergingEvent(self, event):
-        sharing.Sharing.USE_MERGING = not sharing.Sharing.USE_MERGING
+        sharing.Sharing.USE_VIEW_MERGING = not sharing.Sharing.USE_VIEW_MERGING
 
     def onShowLogWindowEvent(self, event):
         # Test menu item

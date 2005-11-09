@@ -44,6 +44,7 @@ __all__ = [
     'WebDAVAccount',
     'WebDAVConduit',
     'changedAttributes',
+    'importValue',
     'isShared',
     'splitUrl',
     'sync',
@@ -55,13 +56,12 @@ CLOUD_XML_VERSION = '2'
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-USE_MERGING = False
-LOCAL_CHANGES_WIN = True
+USE_VIEW_MERGING = False
 
 
 def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
-    merging = USE_MERGING # May be enabled via Test menu
+    view_merging = USE_VIEW_MERGING # May be enabled via Test menu
 
     def mergeFunction(code, item, attribute, value):
 
@@ -71,10 +71,12 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                 'attribute' : attribute,
             })
 
+        LOCAL_CHANGES_WIN = False
         if LOCAL_CHANGES_WIN:
             return value
         else:
             return item.getAttributeValue(attribute)
+
 
     if isinstance(collectionOrShares, list):
         # a list of Shares
@@ -103,10 +105,15 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
     stats = []
 
-    if merging:
+    # previousView will be used by importValue() to look back in time to see
+    # if changes we've received from the server are really new or whether they
+    # are attributes along for the ride when importing a modified resource.
+    previousView = None
+
+    if view_merging:
 
         if updateCallback:
-            updateCallback(msg=_(u"Using share merging"))
+            updateCallback(msg=_(u"Using view merging"))
 
         syncVersion = marker.getVersion()
 
@@ -125,9 +132,27 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
             workingShares.append(sharingView.findUUID(share.itsUUID))
 
     else:
-        # Not using merging
+        # Not using view merging, but we have another form of merging, via
+        # the importValue( ) method.
+
         sharingView = view
         workingShares = shares
+
+        syncVersion = marker.getVersion()
+
+        # Here we get a view as things were the last time we synced, so that
+        # importValue( ) can determine whether imported changes are real;
+        # We either create a new view or use our existing one, and set its
+        # version back in time.
+
+        for existingView in view.repository.views:
+            if existingView.name == 'Sharing':
+                previousView = existingView
+
+        if previousView is None:
+            previousView = view.repository.createView("Sharing", syncVersion)
+        else:
+            previousView.itsVersion = syncVersion
 
 
     try:
@@ -150,7 +175,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                         # share needs to be replicated to the slaves:
                         share.filterClasses = filterClasses
 
-                    stat = share.conduit._get(updateCallback=updateCallback)
+                    stat = share.conduit._get(previousView=previousView,
+                        updateCallback=updateCallback)
                     stats.append(stat)
                     contents = share.contents
                     filterClasses = share.filterClasses
@@ -190,7 +216,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
                             item.delete(True)
 
-        if merging:
+        if view_merging:
             # Pull in local changes from main view
             if updateCallback:
                 updateCallback(msg=_(u"Merging local changes..."))
@@ -211,7 +237,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
         if updateCallback:
             updateCallback(msg=_(u"Saving changes..."))
 
-        if merging:
+        if view_merging:
             # Make remote changes available to main view
             sharingView.commit()
             # Pull remote changes into main view
@@ -225,7 +251,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
         sharingView.cancel()
 
-        if merging:
+        if view_merging:
             sharingView.clear()
 
         for share in shares:
@@ -513,26 +539,20 @@ class ShareConduit(pim.ContentItem):
         else:
             needsUpdate = False
 
-            # Did we fetch this item during the previous GET?
-            # Only check this if *not* using merging...
-            if not USE_MERGING and self._wasFetched(self._getItemPath(item)):
-                logger.debug("Skipping PUT of %s since we just GOT it",
-                    item.getItemDisplayName().encode('ascii', 'replace'))
-            else:
-                # Check to see if the item or any of its itemCloud items have a
-                # more recent version than the last time we synced
-                for relatedItem in item.getItemCloud('sharing'):
-                    if relatedItem.itsUUID in changes:
-                        modifiedAttributes = changes[relatedItem.itsUUID]
-                        sharedAttributes = \
-                            self.share.getSharedAttributes(relatedItem)
-                        logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), modifiedAttributes)
-                        for change in modifiedAttributes:
-                            if change in sharedAttributes:
-                                logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName().encode('ascii', 'replace'))
-                                needsUpdate = True
-                                result = 'modified'
-                                break
+            # Check to see if the item or any of its itemCloud items have a
+            # more recent version than the last time we synced
+            for relatedItem in item.getItemCloud('sharing'):
+                if relatedItem.itsUUID in changes:
+                    modifiedAttributes = changes[relatedItem.itsUUID]
+                    sharedAttributes = \
+                        self.share.getSharedAttributes(relatedItem)
+                    logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), modifiedAttributes)
+                    for change in modifiedAttributes:
+                        if change in sharedAttributes:
+                            logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName().encode('ascii', 'replace'))
+                            needsUpdate = True
+                            result = 'modified'
+                            break
 
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
@@ -793,9 +813,7 @@ class ShareConduit(pim.ContentItem):
         #     {'manifest':self.manifest})
 
         # We need to keep track of which items we've seen on the server so
-        # we can tell when one has disappeared.  Also we keep track of which
-        # items have been downloaded during this GET so we avoid putting
-        # them during the following PUT (until view merging works)
+        # we can tell when one has disappeared.
         self._resetFlags()
 
         itemPath = self._getItemPath(self.share)
@@ -1960,6 +1978,119 @@ def localChanges(view, fromVersion, toVersion):
     return changedItems
 
 
+def importValue(item, changes, attribute, value, previousView,
+    updateCallback=None, setCallback=None):
+    """
+    Conditionally set a value (brought in via the sharing layer) on an item,
+    depending on whether the new value is different than the old one, and
+    whether the value has really changed remotely since the last sync.
+    Conflicts are logged and are passed to the updateCallback, but remote
+    changes win.  setCallback takes an item, an attribute name, and a value.
+    """
+
+    if isinstance(value, Item) or previousView is None:
+        # For non-literals, just go ahead and set the new value; we don't
+        # merge reference changes; if previousView is None, then we must
+        # be trying to use view merging
+
+        if setCallback is None:
+            setattr(item, attribute, value)
+        else:
+            setCallback(item, attribute, value)
+        return
+
+
+    try:
+        conflict = False
+        attrType = item.getAttributeAspect(attribute, 'type')
+
+        if type(value) in (str, unicode, int, float):
+            needSerialized = False
+        else:
+            needSerialized = True
+            (mimeType, encoding, curSerialized) = serializeLiteral(getattr(item,
+                attribute, ""), attrType)
+            (mimeType, encoding, newSerialized) = serializeLiteral(value,
+                attrType)
+
+
+        # First see if the new value equals the current value.  If it's the same
+        # then we can skip the rest:
+
+        if hasattr(item, attribute):
+            if needSerialized:
+                if curSerialized == newSerialized:
+                    return
+            else:
+                currentValue = getattr(item, attribute)
+                if currentValue == value:
+                    return
+
+
+        if changes and item.itsUUID in changes:
+            modifiedAttributes = changes[item.itsUUID]
+            if attribute in modifiedAttributes:
+
+                # A potential conflict, but let's see if this wasn't really a
+                # remote change.  What could have happened is the user changed
+                # this attribute locally, but another user changed a different
+                # attribute remotely.  We import the remote resource and start
+                # assigning the attribute values, but we don't know from the server
+                # which attributes were really modified remotely, just that at
+                # least one attribute changed.  Here we can use the previousView
+                # which is turned back in time to how things looked when we last
+                # finished syncing.  We can compare this "new" value with how
+                # things were back then.
+
+                oldItem = previousView.findUUID(item.itsUUID)
+                if oldItem is not None:
+                    oldValue = getattr(oldItem, attribute, None)
+                    # compare oldValue with value
+                    if needSerialized:
+                        (mimeType, encoding, oldSerialized) = \
+                            serializeLiteral(oldValue, attrType)
+                        if oldSerialized == newSerialized:
+                            # there was no change to this value, ignore it
+                            return
+                    else:
+                        if oldValue == value:
+                            # there was no change to this value, ignore it
+                            return
+
+                    conflict = True
+
+
+        if conflict:
+
+            logger.warning(_(u"Sharing conflict: item '%s', attr '%s', local '%s', remote '%s'") % (item.getItemDisplayName().encode('ascii', 'replace'),
+                    attribute,
+                    getattr(item, attribute, None),
+                    value))
+
+            if updateCallback:
+                updateCallback(msg=_(u"Conflict for item '%s' attribute: %s '%s' vs '%s'" % (item.getItemDisplayName(),
+                    attribute,
+                    getattr(item, attribute),
+                    value)))
+        else:
+
+            logger.info(_(u"Sharing change: item '%s', attr '%s', value '%s'") % (item.getItemDisplayName(), attribute, value))
+
+
+    except Exception, e:
+        # To be safe, if anything goes wrong then simply continue on and set
+        # the value (just as if importValue( ) weren't being used), logging
+        # the exception:
+        logger.exception(_(u"importValue failed"))
+
+
+    # Currently, set the value regardless of conflict (server wins)
+    if setCallback is None:
+        setattr(item, attribute, value)
+    else:
+        setCallback(item, attribute, value)
+
+
 def serializeLiteral(attrValue, attrType):
 
     mimeType = None
@@ -2562,28 +2693,9 @@ class CloudXMLFormat(ImportExportFormat):
                             value = attrType.makeValue(content)
 
 
-                        needsSet = False
-
-                        if getattr(item, attrName, None) is None:
-                            needsSet = True
-                        else:
-                            existing = getattr(item, attrName)
-
-                            if type(value) in (str, unicode, int, float):
-                                if existing != value:
-                                    needsSet = True
-                            else:
-                                (mimeType, encoding, serialized) = \
-                                    serializeLiteral(getattr(item, attrName,
-                                    ""), attrType)
-                                if serialized != attrNode.content:
-                                    needsSet = True
-
-                        if needsSet:
-                            logger.debug( "Item '%s' setting '%s' to '%s'" % \
-                                (item.getItemDisplayName().encode('ascii',
-                                'replace'), attrName, value))
-                            setattr(item, attrName, value)
+                        importValue(item, changes, attrName,
+                            value, previousView=previousView,
+                            updateCallback=updateCallback)
 
 
                     elif cardinality == 'list':

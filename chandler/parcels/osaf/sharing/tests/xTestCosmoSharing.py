@@ -10,8 +10,6 @@ from util import testcase
 from PyICU import ICUtzinfo
 from application import schema
 
-USE_MERGING = sharing.Sharing.USE_MERGING
-
 logger = logging.getLogger(__name__)
 
 class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
@@ -83,7 +81,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
     def prepareCosmoAccount(self):
         view = self.views[0]
 
-        host='cosmo-demo.osafoundation.org'
+        host='morgen.com'
         port=8080
         useSSL=False
         username='unittest'
@@ -187,16 +185,10 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.displayName, u"meeting rescheduled",
          u"displayName is %s" % (item1.displayName))
 
-        if USE_MERGING:
-            self.assertEqual(item0.startTime, newStart,
-             u"startTime is %s" % (item0.startTime))
-            self.assertEqual(item1.startTime, newStart,
-             u"startTime is %s" % (item1.startTime))
-        else:
-            self.assertEqual(item0.startTime, oldStart,
-             u"startTime is %s" % (item0.startTime))
-            self.assertEqual(item1.startTime, oldStart,
-             u"startTime is %s" % (item1.startTime))
+        self.assertEqual(item0.startTime, newStart,
+         u"startTime is %s" % (item0.startTime))
+        self.assertEqual(item1.startTime, newStart,
+         u"startTime is %s" % (item1.startTime))
 
     def Remove(self):
 

@@ -423,9 +423,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                                         "not supported")
                             continue
                         elif range == 'THIS':
-                            itemChangeCallback = eventItem.changeThis                   
+                            itemChangeCallback = CalendarEventMixin.changeThis
                         elif range == 'THISANDFUTURE':
-                            itemChangeCallback = eventItem.changeThisAndFuture
+                            itemChangeCallback = CalendarEventMixin.changeThisAndFuture
                         else:
                             logger.info("RECURRENCE-ID RANGE not recognized. " \
                                         "RANGE = %s" % range)
@@ -441,7 +441,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             # old recurrence information
                             eventItem.removeRecurrence()
                             
-                        itemChangeCallback = eventItem.changeThis
+                        itemChangeCallback = CalendarEventMixin.changeThis
                         countUpdated += 1
                     if DEBUG: logger.debug("Changing eventItem: %s" % str(eventItem))
                     
@@ -510,10 +510,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         eventItem.removeRecurrence()
 
                     for attr, val in changesDict.iteritems():
-                        # Here's the place for Morgen to use importValue
-                        itemChangeCallback(attr, val)
-                    for tup in changeLast:
-                        itemChangeCallback(*tup)       
+                        Sharing.importValue(eventItem, changes, attr,
+                            val, previousView, updateCallback,
+                            itemChangeCallback)
+                    for (attr, val) in changeLast:
+                        Sharing.importValue(eventItem, changes, attr,
+                            val, previousView, updateCallback,
+                            itemChangeCallback)
 
                 if DEBUG: logger.debug(u"Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
