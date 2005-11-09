@@ -248,12 +248,16 @@ class OccurrenceProxy(object):
         if self.proxiedItem.rruleset is None:
             collection.add(self.proxiedItem.getMaster())
         else:
-            change = dict(method=self.propagateAddToCollection,
-                          args=(collection,),
-                          question = _(u'"%(displayName)s" is a recurring event. What do you want to add to the collection:'),
-                          disabled_buttons=('future', 'this'))
-
-            self.delayChange(change)
+            trash = schema.ns('osaf.app', self.proxiedItem.itsView).TrashCollection
+            if collection == trash:
+                self.removeFromCollection(collection)
+            else:
+                change = dict(method=self.propagateAddToCollection,
+                              args=(collection,),
+                              question = _(u'"%(displayName)s" is a recurring event. What do you want to add to the collection:'),
+                              disabled_buttons=('future', 'this'))
+    
+                self.delayChange(change)
             
     def removeFromCollection(self, collection):
         """
@@ -329,10 +333,27 @@ class OccurrenceProxy(object):
     def propagateDelete(self, collection):
         table = {'this'          : self.proxiedItem.deleteThis,
                  'thisandfuture' : self.proxiedItem.deleteThisAndFuture,
-                 'all'           : lambda: collection.remove(
-                                                   self.proxiedItem.getMaster())
+                 'all'           : lambda: self.trashAddOrDelete(collection)
                 }
         table[self.currentlyModifying]()
+
+    def trashAddOrDelete(self, collection):
+        """
+        If collection is trash, deletion action was triggered by adding to
+        trash, so add self.proxiedItem to trash, which appears to the user as
+        removing the item from all collections it was in.
+        
+        If collection isn't trash, then this was called from a normal delete,
+        just remove self.proxiedItem from that collection.
+
+        """
+        trash = schema.ns('osaf.app', self.proxiedItem.itsView).TrashCollection
+        master = self.proxiedItem.getMaster()
+        if collection == trash:
+            collection.add(master)
+        else:
+            collection.remove(master)
+
 
     def propagateAddToCollection(self, collection):
         collection.add(self.proxiedItem.getMaster())
