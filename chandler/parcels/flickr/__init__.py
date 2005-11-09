@@ -130,7 +130,7 @@ class PhotoCollection(pim.ContentItem):
         schema.Text, displayName=messages.USERNAME, initialValue=u''
     )
     tag = schema.One(
-        Tag, otherName="itemsWithTag", displayName=u"Tag", initialValue=None
+        Tag, displayName=u"Tag", initialValue=None
     )
 
     def getCollectionFromFlickr(self,repView):
