@@ -20,11 +20,11 @@ from osaf import messages
 # in the form 'Color', _('LocalizableColorString'), 360-degree based hue
 collection_hues = [('Blue', _(u'Blue'), 210),
                    ('Green', (u'Green'), 120),
-                   ('Red', _(u'Red'), 0),
-                   ('Orange', _(u'Orange'), 30),
+                   ('Rose', _(u'Rose'), 0),
+                   ('Salmon', _(u'Salmon'), 30),
                    ('Purple', _(u'Purple'), 270),
-                   ('Navy', _(u'Navy'), 240),
-                   ('Pink', _(u'Pink'), 330)]
+                   ('Violet', _(u'Violet'), 240),
+                   ('Fuschia', _(u'Fuschia'), 330)]
 
 def make_color_blocks(parcel, cls, hues):
     """
