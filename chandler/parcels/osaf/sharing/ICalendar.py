@@ -503,7 +503,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     countNew += 1
                 else:
                     # update an existing item
-                    if rruleset is None and recurrenceID is None:
+                    if rruleset is None and recurrenceID is None \
+                       and eventItem.rruleset is not None:
                         # no recurrenceId or rruleset, but the existing item
                         # may have recurrence, so delete it
                         eventItem.removeRecurrence()
