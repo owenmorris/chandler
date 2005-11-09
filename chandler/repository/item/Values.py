@@ -81,7 +81,7 @@ class Values(CValues):
         if flags != 0:
             self._flags[name] = flags
 
-    def _unload(self):
+    def _unload(self, clean=True):
 
         self._dict.clear()
         self._flags.clear()
@@ -596,18 +596,19 @@ class References(Values):
                 orig._copyRef(item, name, value, policy, copyFn)
             self._copyFlags(orig, name)
 
-    def _unload(self):
+    def _unload(self, clean=True):
 
-        for name, value in self._dict.iteritems():
-            if value is not None:
-                if value._isRefList():
-                    value._unload()
-                elif isitem(value):
-                    item = self._item
-                    otherName = item.itsKind.getOtherName(name, item)
-                    self._unloadValue(name, value, otherName)
+        if clean:
+            for name, value in self._dict.iteritems():
+                if value is not None:
+                    if value._isRefList():
+                        value._unload()
+                    elif isitem(value):
+                        item = self._item
+                        otherName = item.itsKind.getOtherName(name, item)
+                        self._unloadValue(name, value, otherName)
 
-        super(References, self)._unload()
+        super(References, self)._unload(clean)
 
     def _isRefList(self, name):
 

@@ -55,7 +55,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         for item in self._log:
             item.setDirty(0)
-            item._unloadItem(not item.isNew(), self)
+            item._unloadItem(not item.isNew(), self, False)
 
         self._instanceRegistry.update(self._deletedRegistry)
         self._log.update(self._deletedRegistry.itervalues())

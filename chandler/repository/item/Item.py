@@ -2042,20 +2042,20 @@ class Item(CItem):
 
         return match
 
-    def _unloadItem(self, reloadable, view):
+    def _unloadItem(self, reloadable, view, clean=True):
 
         if self.isDirty():
             raise DirtyItemError, self
 
-        if hasattr(type(self), 'onItemUnload'):
+        if clean and hasattr(type(self), 'onItemUnload'):
             self.onItemUnload(view)
 
         if not self.isStale():
 
             if self._values:
-                self._values._unload()
+                self._values._unload(clean)
             if self._references:
-                self._references._unload()
+                self._references._unload(clean)
 
             self._parent._unloadChild(self)
             if self._children is not None:
