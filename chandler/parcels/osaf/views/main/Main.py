@@ -21,7 +21,7 @@ import osaf.pim.mail as Mail
 from osaf.pim import Contact
 from osaf import pim, sharing
 from photos import Photo
-import osaf.pim.tests.GenerateItems as GenerateItems
+import osaf.pim.generate as generate
 import util.GenerateItemsFromFile as GenerateItemsFromFile
 from repository.item.Item import Item
 import application.Printing as Printing
@@ -558,7 +558,7 @@ class MainView(View):
         count = event.arguments['sender'].blockName == 'GenerateMuchDataItem' and 100 or 4
         sidebarCollection = schema.ns("osaf.app").sidebarCollection
         mainView = Globals.views[0]
-        return GenerateItems.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
+        return generate.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
 
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu

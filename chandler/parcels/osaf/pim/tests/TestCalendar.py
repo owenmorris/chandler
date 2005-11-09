@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.tests.TestContentModel as TestContentModel
-import osaf.pim.tests.GenerateItems as GenerateItems
+import osaf.pim.generate as generate
 import repository.item
 
 from repository.util.Path import Path
@@ -162,7 +162,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("osaf.pim.calendar")
 
         view = self.rep.view
-        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateCalendarEvent, days=100)
+        generate.GenerateItems(view, 100, generate.GenerateCalendarEvent, days=100)
         view.commit()
 
 if __name__ == "__main__":

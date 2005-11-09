@@ -13,7 +13,7 @@ import osaf.pim.tests.TestContentModel as TestContentModel
 from osaf import pim
 import osaf.pim.mail as Mail
 import osaf.pim.calendar.Calendar as Calendar
-import osaf.pim.tests.GenerateItems as GenerateItems
+import osaf.pim.generate as generate
 import logging
 
 from datetime import datetime
@@ -41,8 +41,8 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         aWhoList = []
         view = item.itsView
         if doWho:
-            aWhoList.append(GenerateItems.GenerateCalendarParticipant(view))
-            aWhoList.append(GenerateItems.GenerateCalendarParticipant(view))
+            aWhoList.append(generate.GenerateCalendarParticipant(view))
+            aWhoList.append(generate.GenerateCalendarParticipant(view))
         if compareWhos:
             item.who = aWhoList
 

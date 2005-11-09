@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, unittest
 import repository.tests.RepositoryTestCase as RepositoryTestCase
-import osaf.pim.tests.GenerateItems as GenerateItems
+import osaf.pim.generate as generate
 import util.timing
 
 class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
@@ -19,7 +19,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
 
         view = self.rep.view
         util.timing.begin("application.tests.testParcelPerf.testContacts-generate")
-        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)
+        generate.GenerateItems(view, 100, generate.GenerateContact)
         util.timing.end("application.tests.testParcelPerf.testContacts-generate")
 
         util.timing.begin("application.tests.testParcelPerf.testContacts-commit")
@@ -37,7 +37,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
 
         view = self.rep.view
         util.timing.begin("application.tests.testParcelPerf.testCalendarEvents-generate")
-        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateCalendarEvent)
+        generate.GenerateItems(view, 100, generate.GenerateCalendarEvent)
         util.timing.end("application.tests.testParcelPerf.testCalendarEvents-generate")
 
         util.timing.begin("application.tests.testParcelPerf.testCalendarEvents-commit")

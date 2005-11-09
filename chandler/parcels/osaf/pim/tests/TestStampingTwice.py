@@ -13,7 +13,6 @@ import osaf.pim.tests.TestContentModel as TestContentModel
 from osaf.pim.tasks import Task, TaskMixin
 import osaf.pim.mail as Mail
 import osaf.pim.calendar.Calendar as Calendar
-import osaf.pim.tests.GenerateItems as GenerateItems
 import logging
 
 #import wingdbstub

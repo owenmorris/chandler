@@ -10,7 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 import osaf.pim.tests.TestContentModel as TestContentModel
-import osaf.pim.tests.GenerateItems as GenerateItems
+import osaf.pim.generate as generate
 from osaf.pim.contacts import Contact, ContactName
 
 from repository.util.Path import Path
@@ -65,7 +65,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         self.loadParcels(["osaf.pim.contacts", "osaf.pim.mail"])
 
         view = self.rep.view
-        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)
+        generate.GenerateItems(view, 100, generate.GenerateContact)
         view.commit()
         
 
