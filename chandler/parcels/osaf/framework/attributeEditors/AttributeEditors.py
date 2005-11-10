@@ -633,6 +633,12 @@ class AETypeOverTextCtrl(wxRectangularChild):
         self._swapControls(self.editControl)
         self.editControl.SelectAll()
 
+    def IsEditable(self):
+        return self.editControl.IsEditable()
+    
+    def SetEditable(self, editable):
+        self.editControl.SetEditable(editable)
+        
 class StringAttributeEditor (BaseAttributeEditor):
     """ 
     Uses a Text Control to edit attributes in string form. 
@@ -895,6 +901,8 @@ class StringAttributeEditor (BaseAttributeEditor):
                 if oldValue != text:
                     control.SetValue(text)
     
+            control.SetEditable(not self.ReadOnly((self.item, self.attributeName)))
+
             if hasattr(control, 'SetStyle'):
                 # Trying to make the text in the editbox gray doesn't seem to work on Win.
                 # (I'm doing it anyway, because it seems to work on Mac.)
@@ -1533,6 +1541,7 @@ class BasePermanentAttributeEditor (BaseAttributeEditor):
     def BeginControlEdit (self, item, attributeName, control):
         value = self.GetAttributeValue(item, attributeName)
         self.SetControlValue(control, value)
+        control.Enable(not self.ReadOnly((item, attributeName)))
 
 class AECheckBox(ShownSynchronizer, wx.CheckBox):
     pass
@@ -1608,8 +1617,6 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
         style = wx.TAB_TRAVERSAL
         control = AEChoice(parentWidget, id, wx.DefaultPosition, size, [], style)
         control.Bind(wx.EVT_CHOICE, self.onChoice)
-        if readOnly:
-            control.Enable(False)
         return control
         
     def onChoice(self, event):

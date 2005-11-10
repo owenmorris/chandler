@@ -1879,8 +1879,8 @@ class AEBlock(BoxContainer):
             if (oldEditor is not None):
                 if (oldEditor.typeName == typeName
                    and oldEditor.attributeName == attributeName
-                   and oldEditor.readOnly == readOnly and
-                   oldEditor.presentationStyle is presentationStyle):
+                   # see bug 4553 note below: was "and oldEditor.readOnly == readOnly"
+                   and oldEditor.presentationStyle is presentationStyle):
                     # Yep, it's good enough - use it.
                     oldEditor.item = item # note that the item may have changed.
                     return oldEditor
@@ -1899,11 +1899,22 @@ class AEBlock(BoxContainer):
                 #   from within a wx event handler on this item's widget, a
                 #   crash would result (because wx won't be happy if we return
                 #   through it after that widget has been destroyed).
+                # Additional note from work on bug 4553:
+                # - Prior to bug 4553, we included read-onlyness in the test 
+                #   above for whether the existing editor was still suitable 
+                #   for editing this attribute. Unfortunately, that bug
+                #   presented a case where this (a need to change widgets, which 
+                #   the code below wants to do, but which doesn't work right)
+                #   happened. Since this case only happens in 0.6 when readonly-
+                #   ness is the issue on text ctrls, I'm fixing the problem by 
+                #   making BeginControlEdit on those ctrls call wx.SetEditable
+                #   (or not) when appropriate.
                 assert False, "Please let Bryan know you've found a case where this happens!"
                 logger.debug("AEBlock.lookupEditor %s: Rerendering", 
                              getattr(self, 'blockName', '?'))
                 self.unRender()
                 self.render()
+                self.onWidgetChangedSize(item)
                 return getattr(self.widget, 'editor', None)
                     
         # We need a new editor - create one.

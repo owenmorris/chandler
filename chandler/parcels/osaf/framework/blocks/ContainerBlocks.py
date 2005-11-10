@@ -30,25 +30,22 @@ class wxBoxContainer (wxRectangularChild):
             self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
             self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
 
-        if self.blockItem.isShown:
-            sizer = self.GetSizer()
-            if not sizer:
-                sizer = wx.BoxSizer ({'Horizontal': wx.HORIZONTAL,
-                                    'Vertical': wx.VERTICAL} [self.blockItem.orientationEnum])
-                self.SetSizer (sizer)
-            sizer.Clear()
-            for childBlock in self.blockItem.childrenBlocks:
-                # (we used to test for childBlock.isShown here, but it turns out that we
-                # want to add non-visible blocks to the sizer too, just in case they become
-                # visible later.)
-                if isinstance (childBlock, RectangularChild):
-                    assert childBlock.widget, "Trying to add an unrendered block of type %s to the current block" % childBlock.blockName
-                    sizer.Add (childBlock.widget,
-                               childBlock.stretchFactor, 
-                               wxRectangularChild.CalculateWXFlag(childBlock), 
-                               wxRectangularChild.CalculateWXBorder(childBlock))
-            self.Layout()
+        sizer = self.GetSizer()
+        if not sizer:
+            sizer = wx.BoxSizer ({'Horizontal': wx.HORIZONTAL,
+                                'Vertical': wx.VERTICAL} [self.blockItem.orientationEnum])
+            self.SetSizer (sizer)
+        sizer.Clear()
+        for childBlock in self.blockItem.childrenBlocks:
+            if isinstance (childBlock, RectangularChild):
+                assert childBlock.widget, "Trying to add an unrendered block of type %s to the current block" % childBlock.blockName
+                sizer.Add (childBlock.widget,
+                           childBlock.stretchFactor, 
+                           wxRectangularChild.CalculateWXFlag(childBlock), 
+                           wxRectangularChild.CalculateWXBorder(childBlock))
+        self.Layout()
 
+        if self.blockItem.isShown:
             # @@@ this hack is so evil it belongs in a conrad novel
             #
             # to fix the mysterious negative sash position: bug 3497

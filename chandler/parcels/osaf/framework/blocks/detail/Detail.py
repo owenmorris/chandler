@@ -115,6 +115,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
                 notifySelf = syncMethod(block, item) or notifySelf
             return notifySelf
 
+        self.widget.Freeze()
         needsLayout = False
         children = self.childrenBlocks
         for child in children:
@@ -122,6 +123,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         wx.GetApp().needsUpdateUI = True
         if needsLayout:
             self.relayoutSizer()
+        self.widget.Thaw()
 
     def relayoutSizer(self):
         try:
@@ -561,15 +563,6 @@ class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.Cont
     pass
 
 class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
-    
-    # temporary fix until AEBlocks update themselves automatically
-    def synchronizeItemDetail(self, item):
-        super(DetailSynchronizedAttributeEditorBlock, self).synchronizeItemDetail(item)
-        
-        # tell the AE block to update itself
-        if self.isShown:
-            self.synchronizeWidget()
-
     def OnDataChanged (self):
         # (this is how we find out about drag-and-dropped text changes!)
         self.saveValue()
