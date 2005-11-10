@@ -101,7 +101,7 @@ def installParcel(parcel, oldVersion=None):
         datetime.date.today(),
         datetime.time(12, tzinfo=ICUtzinfo.getDefault()))
         
-    welcome = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
+    WelcomeEvent = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
         displayName=_(u'Welcome to Chandler 0.5'),
         startTime=noonToday,
         duration=datetime.timedelta(minutes=120),
@@ -133,7 +133,7 @@ Thank you for trying Chandler. Your feedback is welcome on our mail lists:
 
 The Chandler Team""")
 
-    welcome.body = welcome.getAttributeAspect('body', 'type').makeValue(body)
+    WelcomeEvent.body = WelcomeEvent.getAttributeAspect('body', 'type').makeValue(body)
 
 
     # Set up the main web server

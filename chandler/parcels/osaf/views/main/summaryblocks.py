@@ -81,7 +81,13 @@ def make_summaryblocks(parcel):
                                           tzCharacterStyle=DefaultCharacterStyle,
                                           stretchFactor=0)
     MainCalendarControl = MainCalendarControlT.install(parcel)
+    WelcomeEvent = schema.ns("osaf.app", view).WelcomeEvent
+    MainCalendarControl.selection = [WelcomeEvent]
     
+    CalendarDetailTPB = TrunkParentBlock.template('CalendarDetailTPB',
+                                                  trunkDelegate=detailTrunkDelegate).install(parcel)
+    CalendarDetailTPB.TPBSelectedItem = WelcomeEvent
+
     CalendarSummaryView = \
         CalendarContainer.template('CalendarSummaryView',
                 calendarControl=MainCalendarControl,
