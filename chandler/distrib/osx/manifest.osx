@@ -53,10 +53,7 @@ Chandler-project.wpr
 recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem
 application
-# XXX parcels depend on contentmodel tests
-exclude=.svn,*.pyo,*.pyc
 parcels
-exclude=.svn,tests,*.pyo,*.pyc
 util
 
 glob=*
