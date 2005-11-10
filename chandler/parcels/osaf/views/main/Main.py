@@ -823,17 +823,9 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
 
-            sidebar = Block.findBlockByName("Sidebar")
-            filterClasses = []
-            if sidebar.filterKind is not None:
-                klass = sidebar.filterKind.classes['python']
-                className = "%s.%s" % (klass.__module__, klass.__name__)
-                filterClasses.append(className)
-
-            collName = sharing.getFilteredCollectionDisplayName(collection,
-                                                                filterClasses)
-
-            menuTitle = _(u'Sync "%(collectionName)s"') % {'collectionName': collName}
+            collName = collection.getItemDisplayName()
+            menuTitle = _(u'Sync "%(collectionName)s"') % \
+                {'collectionName': collName}
             if sharing.isShared(collection):
                 event.arguments['Enable'] = True
             else:
