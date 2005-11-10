@@ -253,7 +253,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         copying = schema.Cloud(byRef=[trunkStub])
     )
 
-    def _mapItemToCacheKeyItem(self, item):
+    def _mapItemToCacheKeyItem(self, item, hints):
         """ 
         Overrides to use the item's kind as our cache key
         """
@@ -262,11 +262,11 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
             # Mimi wants a particular look when no item is selected; we've got a 
             # particular tree of blocks defined in parcel.xml for this Kind,
             # which will never get used for a real Item.
-            return DetailTrunkSubtree.getKind(self.itsView), False
+            return DetailTrunkSubtree.getKind(self.itsView)
 
         # The normal case: we have an item, so use its Kind
         # as the key.
-        return item.itsKind, False
+        return item.itsKind
     
     def _makeTrunkForCacheKey(self, keyItem):
         """ 

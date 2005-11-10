@@ -332,7 +332,8 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             """
             sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
             if sidebarTPB is not None:
-                (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item, False)
+                filteredCollection = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item,
+                                                                                     {"getOnlySelectedCollection": True})
                 if filteredCollection.isEmpty():
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
             """
@@ -857,14 +858,14 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
     )
 
-    def _mapItemToCacheKeyItem(self, item, includeCheckedItems=True):
+    def _mapItemToCacheKeyItem(self, item, hints):
         key = item
         sidebar = Block.Block.findBlockByName ("Sidebar")
         """
         collectionList should be in the order that the source items
         are overlayed in the Calendar view
         """
-        if includeCheckedItems:
+        if not hints.get ("getOnlySelectedCollection", False):
             collectionList = [theItem for theItem in sidebar.contents
                               if ((theItem in sidebar.checkedItems) and
                                   (theItem is not item))]
@@ -946,8 +947,11 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     for new, old in map (None, key.collectionList, collectionList):
                         if new is not old:
                             key.collectionList = collectionList
+                            # Force setContents to be true even it the contents hasn't
+                            # changed since the order of collectionList has changed
+                            hints["sendSetContents"] = True
                             break
-        return key, False
+        return key
 
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, AbstractCollection):

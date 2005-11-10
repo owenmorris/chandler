@@ -78,7 +78,8 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
           If necessary, replace our children with a trunk of blocks appropriate for our content
         """
         TPBSelectedItem = self.TPBSelectedItem
-        (keyItem, rerender) = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem)
+        hints = {}
+        keyItem = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem, hints)
         newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
         if keyItem is None:
             TPBDetailItem = None
@@ -90,11 +91,13 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
                                 newView, TPBSelectedItem, keyItem)
 
+        detailItemChanged = self.TPBDetailItem != TPBDetailItem
+            
         self.TPBDetailItem = TPBDetailItem
         oldView = self.childrenBlocks.first()
         treeChanged = newView is not oldView
 
-        if treeChanged or rerender:
+        if treeChanged:
             if oldView is not None:
                 oldView.unRender()
 
@@ -104,17 +107,14 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 self.childrenBlocks.append(newView)
 
         if newView is not None:
-            # We're now always calling SetContents, event when the contents
-            # doesn't change becuase the Calendar needs to redraw when the
-            # order of contents.collectionList changes. So if other views
-            # want to optimize the case where nothing needs to be done
-            # when the contents doesn't change they are responsible for
-            # doing it themselves.
             app = wx.GetApp()
             oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
             app.ignoreSynchronizeWidget = False
             try:
-                newView.postEventByName ("SetContents", {'item':TPBDetailItem})
+                if (detailItemChanged or
+                    treeChanged or
+                    hints.get ("sendSetContents", False)):
+                    newView.postEventByName ("SetContents", {'item':TPBDetailItem})
 
                 if not hasattr (newView, "widget"):
                     newView.render()
@@ -172,15 +172,15 @@ class TrunkDelegate(schema.Item):
                 self.keyUUIDToTrunk[keyUUID] = trunk
         return trunk
 
-    def _mapItemToCacheKeyItem(self, item):
+    def _mapItemToCacheKeyItem(self, item, hints):
         """ 
-        Given an item, determine the item to be used as the cache key, and a boolean,
-        which if True forces the view to be rerendered, otherwise it will only
-        be rerendered if the view or it's contents change.
-
-        Can be overridden; defaults to using the item itself.
+        Given an item, determine the item to be used as the cache key.
+        Can be overridden; defaults to using the item itself. hints is
+        a dictionary that includes domain specific information. See
+        the other implementations of _mapItemToCacheKeyItem for more
+        information.
         """
-        return item, False
+        return item
 
     def _makeTrunkForCacheKey(self, keyItem):
         """ 
