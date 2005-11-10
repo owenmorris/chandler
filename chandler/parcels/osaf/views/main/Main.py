@@ -10,7 +10,7 @@ from datetime import timedelta
 from time import time
 import wx, os, sys, traceback, logging
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, ShareTool, SyncProgress
+    SubscribeCollection, ShareTool, SyncProgress, RestoreShares
 )
 import application.dialogs.Util
 from  application.dialogs import ImportExport
@@ -716,17 +716,7 @@ class MainView(View):
 
     def onRestoreSharesEvent(self, event):
         # Test menu item
-        account = schema.ns("osaf.app", self).currentWebDAVAccount.item
-        if account is not None:
-            self.setStatusMessage (_(u"Restoring published shares..."))
-            (collections, failures) = sharing.restoreFromAccount(account)
-            for collection in collections:
-                assert (hasattr (collection, 'color'))
-                schema.ns("osaf.app", self).sidebarCollection.add (collection)
-
-            self.setStatusMessage (_(u"Restoring shares completed"))
-        else:
-            self.setStatusMessage (_(u"No default sharing account"))
+        RestoreShares.Show(wx.GetApp().mainFrame, self.itsView)
 
     def onShareSidebarCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)

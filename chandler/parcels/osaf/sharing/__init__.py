@@ -83,7 +83,11 @@ class ProgressMonitor:
         self.updateCallback = callback
         self.workDone = 0
 
-    def callback(self, msg=None, work=None):
+    def callback(self, msg=None, work=None, totalWork=None):
+
+        if totalWork is not None:
+            self.totalWork = totalWork
+
         if work is True:
             self.workDone += 1
             percent = int(self.workDone * 100 / self.totalWork)
@@ -205,7 +209,7 @@ def publish(collection, account, classesToInclude=None,
         else:
 
             # determine a share name
-            existing = _getExistingResources(account)
+            existing = getExistingResources(account)
             displayName = displayName or collection.displayName
 
             shareName = displayName
@@ -482,7 +486,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 updateCallback(msg=_(u"Subscribing to calendar..."))
 
             try:
-                share.get(updateCallback=updateCallback)
+                share.get(updateCallback=callback)
 
                 try:
                     share.contents.shares.append(share, 'main')
@@ -712,7 +716,7 @@ def restoreFromAccount(account):
     collections = []
     failures = []
 
-    existing = _getExistingResources(account)
+    existing = getExistingResources(account)
 
     for name in existing:
 
@@ -889,10 +893,7 @@ def checkForActiveShares(view):
     return False
 
 
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Internal methods
-
-def _getExistingResources(account):
+def getExistingResources(account):
 
     path = account.path.strip("/")
     handle = ChandlerServerHandle(account.host,
@@ -920,6 +921,10 @@ def _getExistingResources(account):
     # @@@ [grant] Localized sort?
     existing.sort( )
     return existing
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# Internal methods
 
 
 def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,

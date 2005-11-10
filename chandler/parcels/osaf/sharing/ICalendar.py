@@ -296,7 +296,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         
         minusone = itertools.repeat(-1)
         # This is, essentially: [(-1, event) for event in calendar.vevent]
-        vevents = itertools.izip(minusone, getattr(calendar, 'vevent', []))
+        rawVevents = getattr(calendar, 'vevent', [])
+        numVevents = len(rawVevents)
+        if updateCallback and self.fileStyle() == self.STYLE_SINGLE:
+            updateCallback(msg=_(u"Calendar contains %d events") % numVevents,
+                totalWork=numVevents)
+            
+        vevents = itertools.izip(minusone, rawVevents)
         for i, event in itertools.chain(vevents, enumerate(modificationQueue)):
             # Queue modifications to recurring events so modifications are
             # processed after master events in the iCalendar stream.
@@ -522,7 +528,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                  eventItem.startTime))
 
                 if updateCallback and \
-                    updateCallback(msg="'%s'" % eventItem.getItemDisplayName()):
+                    updateCallback(msg="'%s'" % eventItem.getItemDisplayName(),
+                        work=True):
                     raise Sharing.SharingError(_(u"Cancelled by user"))
 
                 if self.fileStyle() == self.STYLE_SINGLE:
