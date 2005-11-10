@@ -481,8 +481,10 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetColLabelValue (self, column):
         grid = self.GetView()
-        if grid.GetElementCount():
-            item = grid.blockItem.contents [grid.GetGridCursorRow()]
+        elements = grid.GetElementCount()
+        cursorRow = grid.GetGridCursorRow()
+        if elements and elements > cursorRow:
+            item = grid.blockItem.contents [cursorRow]
         else:
             item = None
         return grid.GetColumnHeading (column, item)
@@ -737,6 +739,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         newRows = gridTable.GetNumberRows()
         newColumns = gridTable.GetNumberCols()
 
+        # update the widget to reflect the new or removed rows or
+        # columns. Note that we're only telling the grid HOW MANY rows
+        # or columns to add/remove - the per-cell callbacks will
+        # determine what actual text to display in each cell
         self.BeginBatch()
         for current, new, deleteMessage, addMessage in [
             (self.currentRows, newRows, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED), 
@@ -765,12 +771,23 @@ class wxTable(DragAndDrop.DraggableWidget,
         
         self.ClearSelection()
         firstSelectedRow = None
+
+        # now update the ranges to reflect the new selection (this
+        # should probably be done before the GridTableMessage that
+        # removes rows, above (but for 0.6, this is the less risky place)
         if len (self.blockItem.contents) > 0:
+            invalidRanges = []
             for range in self.blockItem.selection:
-                if firstSelectedRow is None:
-                    firstSelectedRow = range[0]
-                    self.SetGridCursor (firstSelectedRow, 0)
-                self.SelectBlock (range[0], 0, range[1], newColumns, True)
+                if range[0] < self.currentRows:
+                    if firstSelectedRow is None:
+                        firstSelectedRow = range[0]
+                        self.SetGridCursor (firstSelectedRow, 0)
+                    self.SelectBlock (range[0], 0, range[1], newColumns, True)
+                else:
+                    invalidRanges.append(range)
+                    
+            for badRange in invalidRanges:
+                self.blockItem.selection.remove(badRange)
         else:
             self.blockItem.selection = []
         self.EndBatch() 
