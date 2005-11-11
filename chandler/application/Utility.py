@@ -227,7 +227,7 @@ def initLogging(options):
             fileHandler.setFormatter(fileFormatter)
 
             logger.addHandler(fileHandler)
-            logger.setLevel(logging.WARNING)
+            logger.setLevel(logging.INFO)
 
         logger = logging.getLogger(__name__)
 
