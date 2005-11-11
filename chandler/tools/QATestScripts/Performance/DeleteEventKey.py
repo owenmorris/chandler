@@ -5,23 +5,14 @@ import os, wx
 # by simulating the user hitting the delete key.
 
 # Globals
-App_ns = QAUITestAppLib.App_ns
+App_ns = app_ns()
 wxApp = wx.GetApp()
-
-
-# Utility...(This should go in QAUITestLib.py)
-def processNextIdle():
-    wxApp.Yield()
-    ev = wx.IdleEvent()
-    wxApp.ProcessEvent(ev)
-    wxApp.Yield()
-
 
 
 def removeEvent():
     # Could try to simulate the user hitting delete by the following:
     QAUITestAppLib.scripting.User.emulate_typing("\x08")
-    processNextIdle()
+    User.idle()
 
 # Test Phase: Initialization
 logger = QAUITestAppLib.QALogger(
@@ -45,7 +36,7 @@ try:
     
     # Attempt to wait for the UI activity from changing the selection
     # to die down.
-    processNextIdle()
+    User.idle()
 
     # Test Phase: Action
     # ResumeProfiling() will make the logger start profiling

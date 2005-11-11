@@ -3,13 +3,6 @@ import tools.QAUITestAppLib as QAUITestAppLib
 import wx
 from datetime import datetime
 
-# Utilities
-def processNextIdle():
-    wx.GetApp().Yield()
-    ev = wx.IdleEvent()
-    wx.GetApp().ProcessEvent(ev)
-    wx.GetApp().Yield()
-
 # Test Phase: Initialization
 App_ns = app_ns()
 
@@ -29,7 +22,7 @@ try:
     # Process idle and paint cycles, make sure we're only
     # measuring scrolling performance, and not accidentally
     # measuring the consequences of a large import
-    processNextIdle()
+    User.idle()
 
     # Fetch the calendar widget
     calendarWidget = App_ns.TimedEvents.widget

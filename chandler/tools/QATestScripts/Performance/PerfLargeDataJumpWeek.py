@@ -1,5 +1,4 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import osaf.framework.scripting as scripting
 
 from datetime import datetime
 
@@ -17,14 +16,14 @@ try:
 
     # Load a large calendar
     testView = QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
-    scripting.User.idle()
+    User.idle()
 
     # Test Phase: Action
 
     logger.Start("Jump calendar by one week")
     testdate = datetime(2005, 12, 4)
     App_ns.root.SelectedDateChanged(start=testdate)
-    scripting.User.idle()
+    User.idle()
     logger.Stop()
 
     # Test Phase: Verification

@@ -1,5 +1,4 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import osaf.framework.scripting as scripting
 import flickr
 import application.Globals as Globals
 
@@ -10,7 +9,6 @@ logger = QAUITestAppLib.QALogger(fileName, "TestFlickr")
 try:
     logger.Start("Flickr parcel")
 
-    app_ns = QAUITestAppLib.App_ns
     # switch to the all view
     testView = QAUITestAppLib.UITestView(logger)
 
@@ -19,11 +17,11 @@ try:
 
     # can't do the next two steps because modal dialogs don't work
     # with emulate_typing
-#    app_ns.root.NewFlickrCollectionByTag()
-#    scripting.User.emulate_typing("oscon2005")
+#    app_ns().root.NewFlickrCollectionByTag()
+#    User.emulate_typing("oscon2005")
 
     # this is what we do instead
-    repView = app_ns.itsView
+    repView = app_ns().itsView
     cpiaView = Globals.views[0]
     # get a collection of photos from the oscon2005 tag
     fc = flickr.CreateCollectionFromTag("oscon2005", repView, cpiaView)
@@ -32,22 +30,15 @@ try:
         """
         Look for a sidebar collection with name, otherwise return False
         """
-        sidebarWidget = app_ns.sidebar.widget
+        sidebarWidget = app_ns().sidebar.widget
         for i in range(sidebarWidget.GetNumberRows()):
             collection = sidebarWidget.GetTable().GetValue(i,0)[0]
             if collection.displayName == "oscon2005":
                 return collection
         return False
 
-    import wx
-    def processNextIdle():
-        wx.GetApp().Yield()
-        ev = wx.IdleEvent()
-        wx.GetApp().ProcessEvent(ev)
-        wx.GetApp().Yield()
-
     # force sidebar to update
-    processNextIdle()
+    User.idle()
 
     # check results
     col = sidebarCollectionNamed("oscon2005")
