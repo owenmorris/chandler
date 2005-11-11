@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.5-5
+RELVER=0.5-6
 LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
@@ -43,15 +43,10 @@ ARCHIVE: $(LAUNCHERS)/win/
 clean:
 	$(MAKE) -C win -k DEBUG=$(DEBUG) clean
 
-build: apply
+build: 
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
 	make -C $(LAUNCHERS)/win
-
-apply:
-ifeq ($(PYTHON_VER),2.4)
-	patch -Nup0 < patches-2.4; echo ok
-endif
 
 endif
 

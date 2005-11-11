@@ -136,10 +136,19 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
+			<File
+				RelativePath=".\resource.h">
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			<File
+				RelativePath="..\..\..\..\chandler\resources\images\Chandler.ico">
+			</File>
+			<File
+				RelativePath=".\winlaunch_bin.rc">
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
