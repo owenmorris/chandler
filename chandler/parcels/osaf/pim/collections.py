@@ -339,7 +339,7 @@ class ListCollection(AbstractCollection):
         self.refCollection.clear()
 
     def first(self):
-        self.refCollection.first()
+        return self.refCollection.first()
 
     def remove(self, item):
         self.refCollection.remove(item)
@@ -749,7 +749,7 @@ class IndexedSelectionCollection (AbstractCollection):
         self.source.clear()
 
     def first(self):
-        self.source.first()
+        return self.source.first()
 
     def remove(self, item):
         self.source.remove(item)

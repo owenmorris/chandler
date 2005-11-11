@@ -15,11 +15,13 @@ def make_summaryblocks(parcel):
     app = schema.ns('osaf.app', view)
     blocks = schema.ns('osaf.framework.blocks', view)
     
-    # Our detail views share the same delegate instance
+    # Our detail views share the same delegate instance and contents collection
     detailTrunkDelegate = \
         detail.DetailTrunkDelegate.update(parcel,
                                           'DetailTrunkDelegateInstance',
                                           trunkStub=detailblocks.DetailRoot)
+    detailContentsCollection = \
+        pim.ListCollection.update(parcel, 'DetailContentsCollection')
     
     SplitterWindow.template('TableSummaryViewTemplate',
         eventBoundary=True,
@@ -41,7 +43,8 @@ def make_summaryblocks(parcel):
                     [True, True, False, True],
                 selection=[[0,0]]),
             TrunkParentBlock.template('TableSummaryDetailTPB',
-                trunkDelegate=detailTrunkDelegate)
+                trunkDelegate=detailTrunkDelegate,
+                contents=detailContentsCollection)
             ]).install(parcel) # SplitterWindow TableSummaryViewTemplate
 
 
@@ -85,8 +88,12 @@ def make_summaryblocks(parcel):
     MainCalendarControl.selection = [WelcomeEvent]
     
     CalendarDetailTPB = TrunkParentBlock.template('CalendarDetailTPB',
-                                                  trunkDelegate=detailTrunkDelegate).install(parcel)
+        trunkDelegate=detailTrunkDelegate,
+        contents=detailContentsCollection).install(parcel)
+    
     CalendarDetailTPB.TPBSelectedItem = WelcomeEvent
+    detailContentsCollection.clear()
+    detailContentsCollection.add(WelcomeEvent)
 
     CalendarSummaryView = \
         CalendarContainer.template('CalendarSummaryView',

@@ -191,21 +191,12 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     def synchronizeWidget (self, **hints):
         item = self.item
         # logger.debug("DetailRoot.synchronizeWidget: %s", item)
-        # If we're being synchronized on "None", it might be because we're really
-        # displaying the None view, or because our selected item got 
-        # deleted. Discern by looking at our TrunkParentBlock.
-        if item is not None or hasattr(self.parentBlock, 'TPBSelectedItem'):
-            super(DetailRootBlock, self).synchronizeWidget (**hints)
-            self.synchronizeDetailView(item)
-            if __debug__:
-                dumpSynchronizeWidget = False
-                if dumpSynchronizeWidget:
-                    self.dumpShownHierarchy ('synchronizeWidget')
-        else:
-            # Yep, our item went away. Cheat and tell our parent to 
-            # pick a different tree of blocks
-            self.parentBlock.postEventByName('SelectItemsBroadcast', 
-                                             {'items': []})
+        super(DetailRootBlock, self).synchronizeWidget (**hints)
+        self.synchronizeDetailView(item)
+        if __debug__:
+            dumpSynchronizeWidget = False
+            if dumpSynchronizeWidget:
+                self.dumpShownHierarchy ('synchronizeWidget')
 
     def SelectedItems(self):
         """ 

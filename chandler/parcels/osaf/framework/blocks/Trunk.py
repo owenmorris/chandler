@@ -77,7 +77,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         """
           If necessary, replace our children with a trunk of blocks appropriate for our content
         """
-        TPBSelectedItem = self.TPBSelectedItem
+        TPBSelectedItem = getattr(self, 'TPBSelectedItem', None)
         hints = {}
         keyItem = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem, hints)
         newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
@@ -91,9 +91,18 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
                                 newView, TPBSelectedItem, keyItem)
 
-        detailItemChanged = self.TPBDetailItem != TPBDetailItem
+        detailItemChanged = getattr(self, 'TPBDetailItem', None) != TPBDetailItem
             
         self.TPBDetailItem = TPBDetailItem
+        # For bug 4269 in 0.6: If we've been given a contents collection,
+        # it's so that we can put our TPBDetailItem in it, to get a notification
+        # when that item is deleted. Update the collection if necessary.
+        contents = getattr(self, 'contents', None)
+        if (contents is not None and contents.first() is not TPBDetailItem):
+            contents.clear()
+            if TPBDetailItem is not None:
+                contents.add(self.TPBDetailItem)
+
         oldView = self.childrenBlocks.first()
         treeChanged = newView is not oldView
 
