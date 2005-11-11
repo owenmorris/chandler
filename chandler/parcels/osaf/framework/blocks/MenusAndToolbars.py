@@ -555,15 +555,10 @@ class wxMenu(wx.Menu):
     """
       wxWindows doesn't implement convenient methods for dealing
     with menus, so we'll write our own: getMenuItems, removeItem
-    getItemTitle, and setMenuItem
+    and setMenuItem
     """
     def getMenuItems (self):
         return self.GetMenuItems()
-    
-    def getItemTitle (self, index, item):
-        id = item.GetId()
-        title = self.GetLabel (id)
-        return title
     
     def removeItem (self, index, oldItem):
         self.RemoveItem (oldItem)
@@ -608,7 +603,7 @@ class wxMenuBar (wx.MenuBar):
     """
       wxWindows doesn't implement convenient menthods for dealing
     with menus, so we'll write our own: getMenuItems, removeItem
-    getItemTitle, and setMenuItem
+    and setMenuItem
     """
     def getMenuItems (self):
         menuList = []
@@ -616,11 +611,6 @@ class wxMenuBar (wx.MenuBar):
             menuList.append (self.GetMenu (index))
         return menuList
         
-    def getItemTitle (self, index, item):
-        # @@@DLD - wxMenuObject needs to be set up here!
-        title = wxMenuObject.GetLabelTop (index)
-        return title
-    
     def removeItem (self, index, oldItem):
         oldMenu = self.Remove (index)
         
