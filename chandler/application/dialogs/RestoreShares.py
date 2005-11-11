@@ -127,7 +127,10 @@ class RestoreSharesDialog(wx.Dialog):
             name =  self.listShares.GetString(index)
             url = accountUrl + name
             share = sharing.findMatchingShare(view, url)
-            if share is None:
+            if share is not None:
+                # Skip it, but deselect first
+                self.listShares.Deselect(index)
+            else:
                 try:
 
                     self.restoreButton.Enable(False)

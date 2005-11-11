@@ -1059,7 +1059,7 @@ class ShareConduit(pim.ContentItem):
                 return False
         except KeyError:
             pass
-            # print "%s is not in manifest" % path
+
         logger.info("...don't yet have %s" % path)
         return False
 
@@ -1800,12 +1800,52 @@ class WebDAVConduit(ShareConduit):
 
         return (self.ticketReadOnly, self.ticketReadWrite)
 
+    def getTickets(self):
+        handle = self._getServerHandle()
+        location = self.getLocation()
+        if not location.endswith("/"):
+            location += "/"
+        resource = handle.getResource(location)
+
+        try:
+            tickets = handle.blockUntil(resource.getTickets)
+            for ticket in tickets:
+                if ticket.readonly:
+                    self.ticketReadOnly = ticket.ticketId
+                else:
+                    self.ticketReadWrite = ticket.ticketId
+
+        except Exception, e:
+            # Couldn't get tickets due to permissions problem, or there were
+            # no tickets
+            pass
+
+    def setDisplayName(self, name):
+        handle = self._getServerHandle()
+        location = self.getLocation()
+        if not location.endswith("/"):
+            location += "/"
+        resource = handle.getResource(location)
+        handle.blockUntil(resource.setDisplayName, name)
 
 
 class CalDAVConduit(WebDAVConduit):
 
     def _createCollectionResource(self, handle, resource, childName):
         return handle.blockUntil(resource.createCalendar, childName)
+
+    def _putItem(self, item):
+        result = super(CalDAVConduit, self)._putItem(item)
+
+        displayName = item.getItemDisplayName()
+        itemName = self._getItemPath(item)
+        serverHandle = self._getServerHandle()
+        container = self._getContainerResource()
+        resourcePath = container.path + itemName
+        resource = serverHandle.getResource(resourcePath)
+        serverHandle.blockUntil(resource.setDisplayName, displayName)
+
+        return result
 
 
 

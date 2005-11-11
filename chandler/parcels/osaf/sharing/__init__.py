@@ -254,6 +254,8 @@ def publish(collection, account, classesToInclude=None,
 
                 share.create()
 
+                share.conduit.setDisplayName(displayName)
+
                 if supportsTickets:
                     share.conduit.createTickets()
 
@@ -596,6 +598,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             if progressMonitor:
                 progressMonitor.totalWork = share.getCount()
             share.sync(updateCallback=callback, modeOverride='get')
+            share.conduit.getTickets()
 
             try:
                 share.contents.shares.append(share, 'main')
@@ -667,6 +670,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             if progressMonitor:
                 progressMonitor.totalWork = totalWork
             share.sync(updateCallback=callback, modeOverride='get')
+            share.conduit.getTickets()
 
             if subShare is not None:
                 # If this is a partial share, we need to store that fact
