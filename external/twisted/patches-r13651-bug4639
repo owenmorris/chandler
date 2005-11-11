@@ -1,0 +1,16 @@
+--- Twisted-r13651-orig/twisted/mail/smtp.py	2005-04-16 17:18:31.000000000 -1000
++++ Twisted-r13651/twisted/mail/smtp.py	2005-11-10 13:06:22.000000000 -1000
+@@ -47,7 +47,12 @@
+ except ImportError:
+     from StringIO import StringIO
+ 
+-DNSNAME = socket.getfqdn() # Cache the hostname
++if sys.platform == 'darwin':
++    DNSNAME = socket.gethostname() # Cache the hostname but do not do a true DNS lookup.
++                                   # Calling socket.getfdqn() on OS X takes over 2 seconds to
++                                   # return a value
++else:
++    DNSNAME = socket.getfqdn() # Cache the hostname
+ 
+ # Used for fast success code lookup
+ SUCCESS = dict(map(None, range(200, 300), []))

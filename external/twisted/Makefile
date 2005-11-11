@@ -1,6 +1,6 @@
 
 VERSION=r13651
-RELVER=$(VERSION)-9
+RELVER=$(VERSION)-10
 TWISTED=$(BUILD_ROOT)/twisted
 SRC=$(TWISTED)/Twisted-$(VERSION)
 
@@ -11,6 +11,7 @@ BUILD=build_$(SNAP)
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 	patch -Nup0 < patches-$(VERSION)-bug3394;echo ok
+	patch -Nup0 < patches-$(VERSION)-bug4639;echo ok
 
 build: expand apply
 	cd $(SRC); \
