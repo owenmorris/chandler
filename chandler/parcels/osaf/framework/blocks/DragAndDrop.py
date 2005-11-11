@@ -405,6 +405,13 @@ class ItemClipboardHandler(_ClipboardHandler):
         items = self.SelectedItems()
         event.arguments['Enable'] = len(items) > 0
 
+    def onClearEventUpdateUI(self, event):
+        event.arguments['Enable'] = hasattr(self, 'DeleteSelection')
+
+    def onClearEvent(self, event):
+        # call self.DeleteSelection if it is defined
+        getattr(type(self), 'DeleteSelection', lambda s: None)(self)
+
     def onCutEventUpdateUI(self, event):
         if not hasattr (self, 'DeleteSelection'):
             event.arguments['Enable'] = False
@@ -423,8 +430,7 @@ class ItemClipboardHandler(_ClipboardHandler):
 
     def onCutEvent(self, event):
         result = self.onCopyEvent(event)
-        # call self.DeleteSelection if it is defined
-        getattr(type(self), 'DeleteSelection', lambda s: None)(self)
+        self.onClearEvent(self, event)
         return result
 
     def onPasteEventUpdateUI(self, event):

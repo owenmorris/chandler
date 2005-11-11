@@ -247,9 +247,12 @@ class wxSidebar(ControlBlocks.wxTable):
         # @@@ You currently can't drag out of the sidebar
         pass
 
-    def CanCopy(self):
-        # You also can't Cut or Copy items from the sidebar
-        return False
+    def onCopyEventUpdateUI(self, event):
+        # You can't Cut or Copy items from the sidebar
+        event.arguments['Enable'] = False
+        
+    def onClearEventUpdateUI(self, event):
+        event.arguments['Enable'] = self.blockItem.canRenameSelection()
 
     def OnHover (self, x, y, dragResult):
         hoverRow = self.YToRow(y)
@@ -773,8 +776,8 @@ class SidebarBlock(ControlBlocks.Table):
         """
         this is enabled if any user item is selected in the sidebar
         """
-        event.arguments['Enable'] = (self.selectedItemToView is not None and
-                                     getattr(self.selectedItemToView, 'renameable', True))
+        event.arguments['Enable'] = self.canRenameSelection()
+
             
     def onCollectionColorEvent(self, event):
         self.selectedItemToView.color = event.color
@@ -790,9 +793,12 @@ class SidebarBlock(ControlBlocks.Table):
         # ColorType's to tuples
         event.arguments['Check'] = color is not None and color.toTuple() == event.color.toTuple()
 
+    def canRenameSelection(self):
+        return (self.selectedItemToView is not None and
+                getattr(self.selectedItemToView, 'renameable', True))
+
     def onRenameEventUpdateUI (self, event):
-        event.arguments['Enable'] = (self.selectedItemToView is not None and
-                                     getattr(self.selectedItemToView, 'renameable', True))
+        event.arguments['Enable'] = self.canRenameSelection()
 
     def onRenameEvent (self, event):
         self.widget.EnableCellEditControl()
