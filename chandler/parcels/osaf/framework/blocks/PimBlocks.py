@@ -194,7 +194,7 @@ class FocusEventHandlers(Item):
                 if hasattr(item, 'execute'):
                     # in case the user was just editing the script,
                     # ask the focus to finish changes, if it can
-                    Block.finishEdits()
+                    Block.Block.finishEdits()
 
                     # run the script from the item's body
                     item.execute()
