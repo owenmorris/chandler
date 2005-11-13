@@ -21,13 +21,13 @@ def deliverNotifications(view, updates = True):
         view.addNotificationCallback(repositoryViewCallback)
     notificationQueue = view.notificationQueue
     while not notificationQueue.empty():
-        (collection, op, item, name, other, args) = notificationQueue.get()
+        (collection, op, item, name, other, positions) = notificationQueue.get()
         logger.debug("dequeued: %s %s %s %s" % (collection, op, item, other))
 
         # If the view was cancelled, we could be trying to deliver to stale
         # items:
         if not collection.isStale():
-            collection.notifySubscribers(op, collection, name, other, *args)
+            collection.notifySubscribers(op, collection, name, other, positions)
 
     if updates:
         view.mapChanges(mapChangesCallable, True)
@@ -164,7 +164,7 @@ class AbstractCollection(items.ContentItem):
             self.color = schema.ns('osaf.app', self.itsView).collectionColors.nextColor()
         return self
 
-    def collectionChanged(self, op, item, name, other, *args):
+    def collectionChanged(self, op, item, name, other, positions):
         """
         The method called by the repository level set that backs a collection.
 
@@ -179,9 +179,9 @@ class AbstractCollection(items.ContentItem):
             self.itsView.notificationQueue = Queue.Queue()
             self.itsView.addNotificationCallback(repositoryViewCallback)
         logger.debug("%s is queuing %s %s" % (self, op, other))
-        self.itsView.notificationQueue.put((self, op, item, name, other, args))
+        self.itsView.notificationQueue.put((self, op, item, name, other, positions))
 
-    def notifySubscribers(self, op, item, name, other, *args):
+    def notifySubscribers(self, op, item, name, other, positions):
         """
         Deliver notifications to all subscribers
 
@@ -204,7 +204,7 @@ class AbstractCollection(items.ContentItem):
                 method = getattr(type(i), method_name, None)
                 if method != None:
                     logger.debug("Delivering %s [%s] %s to %s from %s using %s" % (op, item, other, i, self.itsName, method_name))
-                    method(i, op, self, name, other, *args)
+                    method(i, op, self, name, other, positions)
                 else:
                     logger.debug("Didn't find the specified notification handler named %s for %s" % (method_name, i))
             else:

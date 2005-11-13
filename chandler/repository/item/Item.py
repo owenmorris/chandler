@@ -346,7 +346,7 @@ class Item(CItem):
             if watchers:
                 watchers.remove(watcher)
 
-    def collectionChanged(self, op, item, name, other, *args):
+    def collectionChanged(self, op, item, name, other, positions):
         pass
 
     def watchCollection(self, owner, name, *args):

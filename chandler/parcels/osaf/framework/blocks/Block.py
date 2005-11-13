@@ -331,12 +331,12 @@ class Block(schema.Item):
             if lastView == self:
                 Globals.views.pop()
 
-    def onCollectionEvent (self, op, item, name, other, *args):
+    def onCollectionEvent (self, op, item, name, other, positions):
         """
           When our item collection has changed, we need to synchronize
         """
         if not self.ignoreNotifications:
-            self.synchronizeSoon(collectionChange=(op, item, name, other, args))
+            self.synchronizeSoon(collectionChange=(op, item, name, other, positions))
 
     def synchronizeSoon(self, **hints):
         """ Invoke our general deferred-synchronization mechanism """
