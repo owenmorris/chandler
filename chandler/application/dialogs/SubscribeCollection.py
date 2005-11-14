@@ -96,6 +96,13 @@ class SubscribeDialog(wx.Dialog):
 
         try:
 
+            if self.accountPanel.IsShown():
+                username = self.textUsername.GetValue()
+                password = self.textPassword.GetValue()
+            else:
+                username = None
+                password = None
+
             self.subscribeButton.Enable(False)
             self.gauge.SetValue(0)
             self.subscribing = True
@@ -103,21 +110,15 @@ class SubscribeDialog(wx.Dialog):
             self.__showStatus(_(u"In progress..."))
             wx.Yield()
 
-            if self.accountPanel.IsShown():
-                username = self.textUsername.GetValue()
-                password = self.textPassword.GetValue()
-                collection = sharing.subscribe(view, url,
-                    accountInfoCallback=self.accountInfoCallback,
-                    updateCallback=self.updateCallback,
-                    username=username, password=password)
-            else:
-                collection = sharing.subscribe(view, url,
-                    accountInfoCallback=self.accountInfoCallback,
-                    updateCallback=self.updateCallback)
+            collection = sharing.subscribe(view, url,
+                accountInfoCallback=self.accountInfoCallback,
+                updateCallback=self.updateCallback,
+                username=username, password=password)
 
             if collection is None:
                 # user cancelled out of account dialog
                 self.subscribing = False
+                self.EndModal(True)
                 return
 
             # Keep this collection out of "My items" if checked:
