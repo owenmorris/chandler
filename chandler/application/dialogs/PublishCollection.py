@@ -10,6 +10,7 @@ from osaf import sharing
 import zanshin.webdav
 import zanshin.util
 from i18n import OSAFMessageFactory as _
+import SyncProgress
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
         self.CheckboxShareStatus.Enable(False)
 
-        self.filterClasses = share.filterClasses
+        self.originalFilterClasses = self.filterClasses = share.filterClasses
 
         self._loadClassFilterState()
         self._loadAttributeFilterState(share)
@@ -186,9 +187,16 @@ class PublishCollectionDialog(wx.Dialog):
 
     def OnManageDone(self, evt):
         self._saveClassFilterState()
+
         for share in self.collection.shares:
             self._saveAttributeFilterState(share)
+
         self.EndModal(False)
+
+        if share.filterClasses != self.originalFilterClasses:
+            SyncProgress.Show(wx.GetApp().mainFrame, view=self.view,
+                collection=share.contents)
+
 
     def _loadAttributeFilterState(self, share):
         # @@@ Jeffrey: Needs updating for new reminders?
