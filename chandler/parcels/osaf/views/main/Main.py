@@ -25,7 +25,7 @@ import osaf.pim.generate as generate
 import util.GenerateItemsFromFile as GenerateItemsFromFile
 from repository.item.Item import Item
 import application.Printing as Printing
-import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
+import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
 import osaf.mail.sharing as MailSharing
 from osaf.framework.blocks.Block import Block
 from osaf.pim import AbstractCollection
@@ -198,18 +198,20 @@ class MainView(View):
         except IndexError:
             pass
         else:
-            for canvas in activeView.childrenBlocks:
-                if isinstance(canvas, CollectionCanvas.CollectionBlock):
-                    printObject = Printing.Printing(wx.GetApp().mainFrame, canvas.widget)
+            for viewChild in activeView.childrenBlocks:
+                if isinstance(viewChild, CalendarCanvas.CalendarContainer):
+                    for calendarChild in viewChild.childrenBlocks:
+                        if isinstance(calendarChild, CalendarCanvas.CanvasSplitterWindow):
+                            window = calendarChild.widget.GetWindow2()
+                    printObject = Printing.Printing(wx.GetApp().mainFrame, window)
                     if isPreview:
                         printObject.OnPrintPreview()
                     else:
                         printObject.OnPrint()
                     return
-        message = _(u"Printing is currently only supported when viewing week or \
-                    day view of the calendar.")
+        message = _(u"Chandler")
 
-        title = _(u"chandler")
+        title = _(u"Printing is currently only supported when viewing in calendar view.")
         application.dialogs.Util.ok(None, message, title)
 
     def onQuitEvent (self, event):

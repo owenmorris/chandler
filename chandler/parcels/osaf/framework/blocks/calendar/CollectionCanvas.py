@@ -592,7 +592,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     def PrintCanvas(self, dc):
         dc.BeginDrawing()
         self.DrawBackground(dc)
-        self.DrawCells(dc, None)
+        self.DrawCells(dc)
         dc.EndDrawing()
 
     def DrawCells(self, dc):
