@@ -256,6 +256,13 @@ class AbstractSet(ItemValue, Indexed):
 
         return copy
 
+    def _clone(self, item, attribute):
+
+        clone = eval(self._repr_())
+        clone._setView(item.itsView)
+
+        return clone
+
     def _merge(self, value):
 
         if (type(value) is type(self) and

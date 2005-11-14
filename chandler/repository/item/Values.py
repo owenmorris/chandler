@@ -75,6 +75,18 @@ class Values(CValues):
 
             self._copyFlags(orig, name)
 
+    def _clone(self, orig, exclude):
+
+        item = self._item
+        for name, value in orig._dict.iteritems():
+            if name not in exclude:
+                if isinstance(value, ItemValue):
+                    value = value._clone(item, name)
+                    value._setOwner(item, name)
+
+                self[name] = value
+                self._copyFlags(orig, name)
+
     def _copyFlags(self, orig, name):
 
         flags = orig._flags.get(name, 0) & Values.COPYMASK
@@ -595,6 +607,51 @@ class References(Values):
             else:
                 orig._copyRef(item, name, value, policy, copyFn)
             self._copyFlags(orig, name)
+
+    def _clone(self, orig, exclude):
+
+        item = self._item
+        kind = item.itsKind
+
+        for name, value in orig._dict.iteritems():
+            if name in exclude:
+                continue
+
+            self._copyFlags(orig, name)
+
+            if value is None:
+                self[name] = None
+                continue
+
+            otherName = kind.getOtherName(name, item)
+            if value._isRefList():
+                self[name] = clone = item._refList(name, otherName)
+                if not value:
+                    continue
+
+                otherKind = item.getAttributeAspect(name, 'type',
+                                                    False, None, None)
+                if otherKind is not None:
+                    otherAttr = otherKind.getAttribute(otherName)
+                    if otherAttr.getAspect('cardinality', 'single') == 'list':
+                        clone.extend(value)
+                    continue
+
+                for other in value:
+                    otherCard = other.getAttributeAspect(otherName,
+                                                         'cardinality', False,
+                                                         None, 'single')
+                    if otherCard == 'list':
+                        clone.append(other)
+                continue
+
+            if isuuid(value):
+                value = item.itsView[value]
+
+            otherCard = value.getAttributeAspect(otherName, 'cardinality',
+                                                 False, None, 'single')
+            if otherCard == 'list':
+                self._setValue(name, value, otherName)
 
     def _unload(self, clean=True):
 

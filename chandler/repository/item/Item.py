@@ -25,7 +25,8 @@ class Item(CItem):
     'The root class for all items.'
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
-                 _uuid=None, _noMonitors=False, **values):
+                 _uuid=None, _noMonitors=False, fireOnValueChanged=True,
+                 **values):
         """
         Construct an Item.
 
@@ -80,13 +81,8 @@ class Item(CItem):
             if itsKind is not None:
                 itsKind.getInitialValues(self, True)
 
-            for name, value in values.iteritems():
-                setattr(self, name, value)
-
-            onValueChanged = getattr(self, 'onValueChanged', None)
-            if onValueChanged is not None:
-                for name in values.iterkeys():
-                    onValueChanged(name)
+            if values:
+                self._setInitialValues(values, fireOnValueChanged)
         finally:
             self._status &= ~Item.NODIRTY
 
@@ -115,6 +111,17 @@ class Item(CItem):
             raise AssertionError, 'stale or None parent'
         if self._root is None or self._root.isStale():
             raise AssertionError, 'stale or None root'
+
+    def _setInitialValues(self, values, fireOnValueChanged):
+
+        for name, value in values.iteritems():
+            setattr(self, name, value)
+
+        if fireOnValueChanged:
+            onValueChanged = getattr(self, 'onValueChanged', None)
+            if onValueChanged is not None:
+                for name in values.iterkeys():
+                    onValueChanged(name)
 
     def __iter__(self):
         """
@@ -1263,6 +1270,46 @@ class Item(CItem):
                                'add', 'collection', 'extent', item)
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(view, self)
+
+        return item
+
+    def clone(self, name=None, parent=None,
+              exclude=(), fireOnValueChanged=True, **values):
+
+        cls = type(self)
+        item = cls.__new__(cls)
+        kind = self._kind
+        if kind is not None:
+            kind._setupClass(cls)
+
+        if parent is None:
+            parent = self.itsParent
+        hooks = []
+        item._fillItem(name, parent, kind, uuid = UUID(), version = 0,
+                       values = Values(item), references = References(item),
+                       afterLoadHooks = hooks)
+        item._status |= Item.NEW
+
+        try:
+            item._status |= Item.NODIRTY
+            item._values._clone(self._values, exclude)
+            item._references._clone(self._references, exclude)
+
+            if values:
+                item._setInitialValues(values, fireOnValueChanged)
+        finally:
+            item._status &= ~Item.NODIRTY
+            
+        item.setDirty(Item.NDIRTY)
+
+        view = item.itsView
+        for hook in hooks:
+            hook(view)
+        if kind is not None:
+            view._notifyChange(kind.extent._collectionChanged,
+                               'add', 'collection', 'extent', item)
+        if hasattr(cls, 'onItemClone'):
+            item.onItemClone(view, self)
 
         return item
 

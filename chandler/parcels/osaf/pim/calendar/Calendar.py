@@ -458,40 +458,27 @@ class CalendarEventMixin(RemindableMixin):
                 self.rruleset.setRuleFromDateUtil(rule)
 
     def _cloneEvent(self):
-        new = self.copy()
-        new._ignoreValueChanges = True
-        
-        #now get all reference attributes whose inverse has multiple cardinality 
-        for attr, val in self.iterAttributeValues(referencesOnly=True):
-            # exclude collections so generated occurrences don't
-            # appear in the collection
-            if attr == 'collections':
-                continue
-            inversekind = self.getAttributeAspect(attr, 'type')
-            inverse = self.getAttributeAspect(attr, 'otherName')
-            if inversekind is not None:
-                inverseAttr=inversekind.getAttribute(inverse)
-                if inverseAttr.cardinality != 'single':
-                    setattr(new, attr, val)
-        del new._ignoreValueChanges
-        new.setRecurrenceEnd()
-        return new
+
+        clone = self.clone(None, None, ('collection',))
+        clone.setRecurrenceEnd()
+
+        return clone
     
     def _createOccurrence(self, recurrenceID):
-        """Generate an occurrence for recurrenceID, return it."""
+        """
+        Generate an occurrence for recurrenceID, return it.
+        """
+
         first = self.getFirstInRule()
-        if first != self:
+        if first is not self:
             return first._createOccurrence(recurrenceID)
-        new = self._cloneEvent()
-        new._ignoreValueChanges = True
-        
-        new.isGenerated = True
-        new.startTime = new.recurrenceID = recurrenceID
-        new.occurrenceFor = first
-        new.modificationFor = None
-        
-        del new._ignoreValueChanges
-        return new
+
+        return self.clone(None, None, ('collections', 'recurrenceEnd'), False,
+                          isGenerated=True,
+                          recurrenceID=recurrenceID,
+                          startTime=recurrenceID,
+                          occurrenceFor=first,
+                          modificationFor=None)
 
     def getNextOccurrence(self, after=None, before=None):
         """Return the next occurrence for the recurring event self is part of.

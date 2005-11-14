@@ -192,6 +192,17 @@ class PersistentList(list, PersistentCollection):
 
         return copy
 
+    def _clone(self, item, attribute):
+
+        clone = type(self)(item, attribute)
+
+        for value in self:
+            if isinstance(value, ItemValue):
+                value = value._clone(item, attribute)
+            clone.append(value, False)
+
+        return clone
+
     def __contains__(self, value):
 
         return super(PersistentList, self).__contains__(self._useValue(value))
@@ -386,6 +397,17 @@ class PersistentDict(dict, PersistentCollection):
 
         return copy
 
+    def _clone(self, item, attribute):
+
+        clone = type(self)(item, attribute)
+
+        for key, value in self.iteritems():
+            if isinstance(value, ItemValue):
+                value = value._clone(item, attribute)
+            clone.__setitem__(key, value, False)
+
+        return clone
+
     def __delitem__(self, key):
 
         super(PersistentDict, self).__delitem__(key)
@@ -534,6 +556,17 @@ class PersistentTuple(tuple, PersistentCollection):
 
         return type(self)(item, attribute, copy, False)
 
+    def _clone(self, item, attribute):
+
+        clone = []
+
+        for value in self:
+            if isinstance(value, ItemValue):
+                value = value._clone(item, attribute)
+            clone.append(value)
+
+        return type(self)(item, attribute, clone, False)
+
     def __getitem__(self, key):
 
         value = super(PersistentTuple, self).__getitem__(key)
@@ -611,6 +644,17 @@ class PersistentSet(set, PersistentCollection):
                 copy.add(value, False)
 
         return copy
+
+    def _clone(self, item, attribute):
+
+        clone = type(self)(item, attribute)
+
+        for value in self:
+            if isinstance(value, ItemValue):
+                value = value._clone(item, attribute)
+            clone.add(value, False)
+
+        return clone
 
     def __contains__(self, value):
 

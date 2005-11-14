@@ -38,6 +38,10 @@ class DBLob(Lob, ItemValue):
 
         return self.copy(item.itsView, key)
 
+    def _clone(self, item, attribute):
+
+        return self.copy(item.itsView, None)
+
     def _writeData(self, uuid, store, db):
 
         if self._dirty or self._version == 0:
