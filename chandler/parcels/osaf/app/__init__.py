@@ -297,7 +297,7 @@ def MakeCollections(parcel):
 
     # the "All" collection
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
-        displayName=_(u"All My Items"),
+        displayName=_(u"My items"),
         renameable = False,
         color = collectionColors.nextColor(),
         outOfTheBoxCollection = True,
