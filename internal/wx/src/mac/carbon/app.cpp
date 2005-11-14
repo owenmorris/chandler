@@ -575,11 +575,28 @@ pascal OSStatus wxMacAppEventHandler( EventHandlerCallRef handler , EventRef eve
 
                 WindowRef window ;
                 Point screenMouseLocation = cEvent.GetParameter<Point>(kEventParamMouseLocation) ;
-                ::FindWindow(screenMouseLocation, &window);
+                short windowPart = ::FindWindow(screenMouseLocation, &window);
                 // only send this event in case it had not already been sent to a tlw, as we get
                 // double events otherwise (in case event.skip) was called
-                if ( window == NULL )
+                if (window == NULL)
+                {
+                    // ensure that the menu item states are current
+                    if (windowPart == inMenuBar)
+                    {
+                        // NB: IMO, this should be performed regardless of CanUpdate
+                        // if (wxUpdateUIEvent::CanUpdate( NULL ))
+                        {
+                            wxMenuBar* bar = wxMenuBar::MacGetInstalledMenuBar();
+                            if (bar != NULL)
+                            {
+                                //wxLogDebug( wxT("wxApp - force UpdateUI( menu ) before MenuSelect") );
+                                bar->UpdateMenus();
+                            }
+                        }
+                    }
+
                     result = wxMacTopLevelMouseEventHandler( handler , event , NULL ) ;
+                }
             }
             break ;
         case kEventClassAppleEvent :

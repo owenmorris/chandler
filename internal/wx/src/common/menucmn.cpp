@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        common/menucmn.cpp
+// Name:        src/common/menucmn.cpp
 // Purpose:     wxMenu and wxMenuBar methods common to all ports
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.10.99
-// RCS-ID:      $Id: menucmn.cpp,v 1.56 2005/09/25 11:13:31 VZ Exp $
+// RCS-ID:      $Id: menucmn.cpp,v 1.57 2005/10/21 19:06:45 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -189,7 +189,7 @@ wxAcceleratorEntry *wxGetAccelFromString(const wxString& label)
                         keyCode = WXK_HOME;
                     else if ( current == wxT("END") )
                         keyCode = WXK_END;
-                    else if ( current == wxT("SPACE") )
+                    else if ( current == wxT("SPACE") || current == _("SPACE") )
                         keyCode = WXK_SPACE;
                     else if ( current == wxT("TAB") )
                         keyCode = WXK_TAB;
@@ -1056,6 +1056,23 @@ wxString wxMenuBarBase::GetHelpString(int id) const
                  wxT("wxMenuBar::GetHelpString(): no such item") );
 
     return item->GetHelp();
+}
+
+void wxMenuBarBase::UpdateMenus( void )
+{
+    wxEvtHandler* source;
+    wxMenu* menu;
+    int nCount = GetMenuCount();
+    for (int n = 0; n < nCount; n++)
+    {
+        menu = GetMenu( n );
+        if (menu != NULL)
+        {
+            source = menu->GetEventHandler();
+            if (source != NULL)
+                menu->UpdateUI( source );
+        }
+    }
 }
 
 #endif // wxUSE_MENUS
