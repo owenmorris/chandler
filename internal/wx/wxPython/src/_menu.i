@@ -394,6 +394,9 @@ public:
     static int GetDefaultMarginWidth();
     bool IsOwnerDrawn();
 
+    void SetBitmap(const wxBitmap& bitmap);
+    const wxBitmap& GetBitmap();
+
     // switch on/off owner-drawing the item
     void SetOwnerDrawn(bool ownerDrawn = true);
     void ResetOwnerDrawn();
@@ -405,8 +408,10 @@ public:
         wxColour GetTextColour() { return wxNullColour; }
         void SetBackgroundColour(const wxColour& colBack) {}
         wxColour GetBackgroundColour() { return wxNullColour; }
+
+        // OSAF: added the SetBitmap implementation
         void SetBitmaps(const wxBitmap& bmpChecked,
-                        const wxBitmap& bmpUnchecked = wxNullBitmap) {}
+                        const wxBitmap& bmpUnchecked = wxNullBitmap) { self->SetBitmap( bmpChecked ); }
     
         void SetDisabledBitmap( const wxBitmap& bmpDisabled ) {}
         const wxBitmap& GetDisabledBitmap() const { return wxNullBitmap; }
@@ -419,9 +424,6 @@ public:
         void ResetOwnerDrawn() {}
     }
 #endif
-
-    void SetBitmap(const wxBitmap& bitmap);
-    const wxBitmap& GetBitmap();
 };
 
 //---------------------------------------------------------------------------
