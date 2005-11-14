@@ -183,7 +183,12 @@ def makeMarkupBar(parcel, oldVersion):
         BlockEvent.template('TogglePrivate',
                             'SendToBlockByReference',
                             destinationBlockReference=markupBar).install(parcel)
-    
+
+    readOnly = \
+        BlockEvent.template('ReadOnly',
+                            'SendToBlockByReference',
+                            destinationBlockReference=markupBar).install(parcel)
+
     # The buttons.
     mailMessageButton = \
         MailMessageButtonBlock.template('MailMessageButton',
@@ -227,7 +232,8 @@ def makeMarkupBar(parcel, oldVersion):
                                     bitmap="MarkupBarReadOnly.png",
                                     disabledBitmap="MarkupBarReadWrite.png",
                                     toolbarItemKind='Status',
-                                    helpString=messages.READONLY)
+                                    helpString=messages.READONLY,
+                                   event=readOnly)
 
     # Finally, (re-)do the bar itself.
     markupBar = MarkupBarBlock.template('MarkupBar',

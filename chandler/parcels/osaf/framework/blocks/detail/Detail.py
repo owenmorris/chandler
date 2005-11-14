@@ -699,6 +699,14 @@ class ReadOnlyIconBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
             self.widget.SetBitmap(disabledBitmap)
         return False
             
+    def onReadOnlyEvent(self, event):
+        # We don't actually allow the read only state to be toggled
+        pass
+
+    def onReadOnlyEventUpdateUI(self, event):
+        # We don't want to update the status of the button
+        pass
+
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
