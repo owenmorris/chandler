@@ -169,8 +169,6 @@ class FocusEventHandlers(Item):
                 operation = 'add'
             for item in selectedItems:
                 item.StampKind(operation, event.kindParameter)
-            # the Detail View gets upset when we stamp without giving it a chance to update
-            self.postEventByName('ResyncDetailParent', {}) # workaround for bug 4091
 
     def onFocusStampEventUpdateUI(self, event):
         selectedItems = self.__getSelectedItems()

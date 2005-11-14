@@ -134,13 +134,6 @@ def make_mainview(parcel):
             methodName='onFocusStampEvent',
             kindParameter=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
             dispatchEnum='FocusBubbleUp').install(parcel)
-    # Event to reload the detail view after stamping
-    # workaround for bug 4091
-    ResyncDetailParentEvent = \
-        BlockEvent.template('ResyncDetailParent',
-            methodName='onResynchronizeParentEvent',
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='DetailRoot').install(parcel)
     # from //parcels/osaf/views/main
     SharingSubscribeToCollectionEvent = \
         BlockEvent.template('SharingSubscribeToCollection',
@@ -478,7 +471,6 @@ def make_mainview(parcel):
             ApplicationBarTaskEvent,
             ApplicationBarMailEvent,
             ApplicationBarAllEvent,
-            ResyncDetailParentEvent, # workaround for bug 4091
         ],
         childrenBlocks=[
             MenuBar.template('MenuBar',

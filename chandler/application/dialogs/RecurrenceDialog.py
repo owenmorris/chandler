@@ -165,7 +165,12 @@ def getProxy(context, obj, createNew=True, cancelCallback=None):
             else:
                 return obj
         else:
+            # We've already got a proxy for this item - we'll reuse it.
             proxy = _proxies[context][1]
+            
+            # Before we return it, update its __class__ in case it was stamped
+            # since the last time it got used. (see bug 4660)
+            proxy.__class__ = obj.__class__
 
         # sometimes a cancel requires that some UI element needs to
         # be "reset" to the original state.. so queue up the cancel changes

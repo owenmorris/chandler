@@ -91,7 +91,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
                                 newView, TPBSelectedItem, keyItem)
 
-        detailItemChanged = getattr(self, 'TPBDetailItem', None) != TPBDetailItem
+        detailItemChanged = getattr(self, 'TPBDetailItem', None) is not TPBDetailItem
             
         self.TPBDetailItem = TPBDetailItem
         # For bug 4269 in 0.6: If we've been given a contents collection,

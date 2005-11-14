@@ -212,10 +212,6 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     def onResynchronizeEventUpdateUI(self, event):
         pass
 
-    # needed to work around bug 4091
-    def onResynchronizeParentEvent(self, event):
-        self.parentBlock.synchronizeWidget()
-
     def onSendShareItemEvent (self, event):
         """ Send or Share the current item. """
         # finish changes to previous selected item, then do it.
@@ -584,10 +580,6 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
         
         # Now change the kind and class of this item
         item.StampKind(operation, mixinKind)
-        
-        # notify the world that the item has a new kind.
-        # This code can be removed when bug 4091 is fixed.
-        self.postEventByName('ResyncDetailParent', {})
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item
@@ -627,7 +619,12 @@ class DetailStampButton (DetailSynchronizer, MenusAndToolbars.ToolbarItem):
         shouldToggleBasedOnClass = isinstance(item, self.stampMixinClass())
         shouldToggleBasedOnKind = item.isItemOf(self.stampMixinKind())
         assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
-               "Class/Kind mismatch for class %s, kind %s" % (item.__class__.__name__, item.itsKind.itsName)
+            "Class/Kind mismatch! Item is class %s, kind %s; " \
+            "stamping with class %s, kind %s" % (
+             item.__class__.__name__, 
+             item.itsKind.itsName,
+             self.stampMixinClass().__name__, 
+             self.stampMixinKind().itsName)
         # @@@DLD remove workaround for bug 1712 - ToogleTool doesn't work on mac when bar hidden
         if shouldToggleBasedOnKind:
             self.dynamicParent.show (True) # if we're toggling a button down, the bar must be shown
