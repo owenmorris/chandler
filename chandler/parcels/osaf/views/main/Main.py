@@ -34,6 +34,7 @@ from i18n import OSAFMessageFactory as _
 import i18n
 from osaf import messages
 from application.Utility import getDesktopDir
+from application.dialogs import ImportExport
 logger = logging.getLogger(__name__)
 
 class MainView(View):
