@@ -6,7 +6,7 @@ from i18n import OSAFMessageFactory as _
 from application.Utility import getDesktopDir
 from application import schema
 import itertools
-#import osaf.sharing
+import osaf.sharing
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
