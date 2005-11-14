@@ -521,8 +521,7 @@ class ShareConduit(pim.ContentItem):
         """
         result = 'skipped'
 
-        if self._getItemPath(item) is None:
-            # According to the Format, we don't export this item
+        if not self.share.format.acceptsItem(item):
             return result
 
         # Assumes that self.resourceList has been populated:
@@ -559,7 +558,8 @@ class ShareConduit(pim.ContentItem):
              (item.getItemDisplayName().encode('ascii', 'replace'), item.itsUUID,
               item.getVersion(), self.marker.getVersion(), externalItemExists))
 
-            if updateCallback and updateCallback(msg="'%s'" % item.getItemDisplayName()):
+            if updateCallback and updateCallback(msg="'%s'" %
+                item.getItemDisplayName()):
                 raise SharingError(_(u"Cancelled by user"))
 
             data = self._putItem(item)
@@ -569,7 +569,9 @@ class ShareConduit(pim.ContentItem):
                 logger.info("...done, data: %s, version: %d" %
                  (data, item.getVersion()))
 
-            self.share.items.append(item)
+                self.share.items.append(item)
+            else:
+                return 'skipped'
 
         try:
             del self.resourceList[self._getItemPath(item)]
@@ -661,9 +663,15 @@ class ShareConduit(pim.ContentItem):
                         uuid = record['uuid']
                         if uuid:
                             item = view.findUUID(uuid)
-                            if item is not self.share and \
-                                (item is None or \
-                                item not in self.share.contents):
+
+                            if item is not self.share and (
+                                item is None or
+                                item not in self.share.contents or (
+                                    filterClasses and
+                                    not isinstance(item, filterClasses)
+                                )
+                            ):
+
                                 if updateCallback and updateCallback(msg=_(u"Removing item from server: '%s'") % path):
                                     raise SharingError(_(u"Cancelled by user"))
                                 self._deleteItem(path)
@@ -688,15 +696,9 @@ class ShareConduit(pim.ContentItem):
                     if item.private:
                         continue
 
-                    # Skip any items matching the filtered classes
-                    if filterClasses is not None:
-                        match = False
-                        for klass in filterClasses:
-                            if isinstance(item, klass):
-                                match = True
-                                break
-                        if not match:
-                            continue
+                    # Skip any items not matching the filtered classes
+                    if filterClasses and not isinstance(item, filterClasses):
+                        continue
 
                     # Put the item
                     result = self._conditionalPutItem(item, changes,
@@ -928,18 +930,8 @@ class ShareConduit(pim.ContentItem):
                         # remove it locally if it matches the current share
                         # filter.
 
-                        removeLocally = True
+                        if not filterClasses or isinstance(item, filterClasses):
 
-                        if filterClasses is not None:
-                            match = False
-                            for klass in filterClasses:
-                                if isinstance(item, klass):
-                                    match = True
-                                    break
-                            if match is False:
-                                removeLocally = False
-
-                        if removeLocally:
                             logger.info("...removing %s from collection" % item)
                             if item in self.share.contents:
                                 self.share.contents.remove(item)
@@ -965,15 +957,9 @@ class ShareConduit(pim.ContentItem):
         return stats
 
 
-
     def _getFilterClasses(self):
-        filterClasses = None
-        if len(self.share.filterClasses) > 0:
-            filterClasses = []
-            for classString in self.share.filterClasses:
-                filterClasses.append(schema.importString(classString))
-        return filterClasses
-
+        return tuple(schema.importString(classString) for classString in
+            self.share.filterClasses)
 
 
     def _getItemPath(self, item):
@@ -2356,6 +2342,10 @@ class ImportExportFormat(pim.ContentItem):
 
     def contentType(self, item):
         return "text/plain"
+
+    def acceptsItem(self, item):
+        return True
+
 
 class CloudXMLFormat(ImportExportFormat):
 

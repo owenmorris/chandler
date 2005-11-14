@@ -230,6 +230,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     def contentType(self, item):
         return "text/calendar"
 
+    def acceptsItem(self, item):
+        return isinstance(item, (CalendarEventMixin, Sharing.Share))
+
     def findUID(self, uid):
         """
         Return the master event whose icalUID matched uid, or None.
@@ -573,6 +576,9 @@ class CalDAVFormat(ICalendarFormat):
     
     def fileStyle(self):
         return self.STYLE_DIRECTORY
+
+    def acceptsItem(self, item):
+        return isinstance(item, CalendarEventMixin)
 
     def exportProcess(self, item, depth=0):
         """
