@@ -1205,8 +1205,7 @@ class CalendarEventMixin(RemindableMixin):
         return self.cmpTimeAttribute(item, 'recurrenceEnd')
 
     def cmpReminderTime(self, item):
-        # reminderFireTime always adds a timezone, so we don't use datetimeOp
-        return cmp(self.reminderFireTime, item.reminderFireTime)
+        return self.cmpTimeAttribute(item, 'reminderFireTime')
 
 class CalendarEvent(CalendarEventMixin, Note):
     """

@@ -58,8 +58,16 @@ class AbstractSet(ItemValue, Indexed):
 
     def iterkeys(self):
 
-        for item in self:
-            yield item.itsUUID
+        index = self._anIndex()
+        if index is not None:
+            return index.__iter__()
+
+        return self._iterkeys()
+
+    # the slow way, via items, to be overridden by some implementations
+    def _iterkeys(self):
+
+        return (item.itsUUID for item in self)
 
     def iterSources(self):
 
@@ -120,6 +128,13 @@ class AbstractSet(ItemValue, Indexed):
         else:
             for item in getattr(self._view[source[0]], source[1]):
                 yield item
+
+    def _iterSourceKeys(self, source):
+
+        if isinstance(source, AbstractSet):
+            return source.iterkeys()
+
+        return getattr(self._view[source[0]], source[1]).iterkeys()
 
     def _reprSource(self, source, replace):
 
@@ -288,6 +303,10 @@ class Set(AbstractSet):
         else:
             for item in self._iterSource(self._source):
                 yield item
+
+    def _iterkeys(self):
+
+        return self._iterSourceKeys(self._source)
 
     def _repr_(self, replace=None):
 
@@ -723,6 +742,10 @@ class KindSet(Set):
         else:
             for item in self._view[self._extent].iterItems(self._recursive):
                 yield item
+
+    def _iterkeys(self):
+
+        return (item.itsUUID for item in self)
 
     def _repr_(self, replace=None):
 

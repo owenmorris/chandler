@@ -307,7 +307,8 @@ def MakeCollections(parcel):
                                    'CalendarEventMixin': _(u'My calendar'),
                                    'TaskMixin': _(u'My tasks')}
     ).setup(source=mine, exclusions=TrashCollection, trash=None)
-
+    # kludge to improve on bug 4144 (not a good long term fix but fine for 0.6)
+    allCollection.rep.addIndex('__adhoc__', 'numeric')
 
     events = \
         KindCollection.update(parcel, 'events')
