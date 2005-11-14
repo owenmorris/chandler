@@ -114,14 +114,13 @@ class MainView(View):
         """
         import version
         html = ''
-        for line in i18n.getHTML('welcome.html'):
+        for line in i18n.getHTML('about.html'):
             if line.find('@@buildid@@') >= 0:
                 line = "<p>Version: %s (rev %s build %s)</p>" % \
                         (version.release, version.buildRevision, version.build)
             html += line
         splash = SplashScreen(None, _(u"About Chandler"),
                                    None, html, True, False)
-        splash.Show(True)
         return splash
 
     def onEmptyTrashEvent(self, event):
