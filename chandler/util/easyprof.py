@@ -67,7 +67,7 @@ def Timed(method):
         oldtime = clock()
         result = method(*args, **kwds)
         newtime = clock()
-        print "Call to %s = %.3f" % (method.__name__, newtime-oldtime)
+        print "Call to %s = %.3fs" % (method.__name__, newtime-oldtime)
         return result
     timed_call.__name__ = method.__name__
     return timed_call
