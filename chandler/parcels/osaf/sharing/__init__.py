@@ -35,6 +35,7 @@ import application # via callbacks
 from Sharing import *
 from WebDAV import *
 from ICalendar import *
+from application.Utility import getDesktopDir
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,9 @@ PUBLISH_MONOLITHIC_ICS = False
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+class SharingPreferences(schema.Item):
+    import_dir = schema.One(schema.Text, defaultValue = getDesktopDir())
+
 def installParcel(parcel, old_version=None):
     """
     Install an instance of UIDMap which maintains a calendar UID lookup table
@@ -73,6 +77,8 @@ def installParcel(parcel, old_version=None):
     # get updated:
     Monitors.attach(uid_map, 'icaluid_changed', 'set', 'icalUID')
     Monitors.attach(uid_map, 'icaluid_changed', 'remove', 'icalUID')
+    
+    SharingPreferences.update(parcel, "prefs")
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

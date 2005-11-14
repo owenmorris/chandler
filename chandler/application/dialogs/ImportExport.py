@@ -1,22 +1,15 @@
 import wx
 from wx.lib.filebrowsebutton import FileBrowseButton
-import os
+import os, logging
 from osaf import messages
 from i18n import OSAFMessageFactory as _
+from application.Utility import getDesktopDir
+from application import schema
+import itertools
+#import osaf.sharing
 
-def showFileDialog(parent, message, defaultDir, defaultFile, wildcard, style):
-    if defaultDir is None:
-        defaultDir = u""
-
-    dlg = wx.FileDialog(parent, message, unicode(defaultDir), unicode(defaultFile),
-                        wildcard, style)
-
-    """Blocking call"""
-    cmd = dlg.ShowModal()
-    (dir, filename) = os.path.split(dlg.GetPath())
-    dlg.Destroy()
-
-    return (cmd, dir, filename)
+logger = logging.getLogger(__name__)
+MAX_UPDATE_MESSAGE_LENGTH = 50
 
 def showFileChooserWithOptions(parent, dialogTitle, defaultFile, fileMask,
                               fileMode, optionsList):
@@ -91,13 +84,110 @@ class FileChooserWithOptions(wx.Dialog):
             sizer.Add(cb, 0, wx.ALL, 3)
         
         buttonSizer = self.CreateStdDialogButtonSizer(wx.OK|wx.CANCEL)
-
-        sizer.Add(buttonSizer, 0, flag=wx.ALIGN_RIGHT)
-        
-        box = wx.BoxSizer()
-        box.Add(sizer, 0, wx.ALL, 10)
+                
+        self.box = box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(sizer)
+        box.Add(buttonSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         self.SetSizer(box)
         box.Fit(self)
 
         self.Layout()
         self.CenterOnScreen()
+
+
+class ImportDialog(FileChooserWithOptions):
+    def __init__(self, parent, dialogTitle, view):
+
+        options = [dict(name='reminders', checked = True, 
+                        label = _(u"Import reminders")),
+                   dict(name='transparency', checked = True,
+                        label = _(u"Import event status"))]
+        
+        FileChooserWithOptions.__init__(
+            self, parent, dialogTitle,
+            schema.ns("osaf.sharing", view).prefs.import_dir,
+            _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
+            wx.OPEN | wx.HIDE_READONLY, options
+        )
+        
+        self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.onCancel, id=wx.ID_CANCEL)
+
+        self.feedbackBox = wx.BoxSizer(wx.VERTICAL)
+        
+        self.gauge = wx.Gauge(self, size=(360, 15))
+        self.feedbackBox.Add(self.gauge, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+        
+        self.progressText = wx.StaticText(self, -1, _(u"Starting import"))
+        self.feedbackBox.Add(self.progressText, wx.ALIGN_LEFT)
+        
+        self.box.Insert(1, self.feedbackBox, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+        self.box.Hide(self.feedbackBox)
+        
+        self.cancelling = False
+        
+        self.view = view
+        
+
+    def onOK(self, event):
+
+        self.box.Show(self.feedbackBox, recursive=True)
+        self.box.Fit(self)
+
+        widgets = (self.filechooser, self.FindWindowById(wx.ID_OK))
+        for widget in itertools.chain(widgets, self.options.itervalues()):
+            widget.Disable()
+        
+        # simplifying wrapper for complicated callbacks from sharing
+        if self.importFile():
+            event.Skip(True)
+            
+
+    def onCancel(self, event):
+        self.cancelling = True
+        event.Skip(True)
+        
+    
+    def updateCallback(self, msg = None, percent = None):
+        if percent is not None:
+            self.gauge.SetValue(percent)
+        if msg is not None:
+            # @@@MOR: This is unicode unsafe:
+            if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
+                msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]            
+            self.progressText.SetLabel(msg)
+        wx.Yield()
+        return self.cancelling
+
+    def fail(self, msg):
+        self.updateCallback(msg, 100)
+        self.gauge.Disable()
+
+    def importFile(self):
+        fullpath = self.filechooser.GetValue()
+        if not os.path.isfile(fullpath):
+            self.fail(_(u"File does not exist, import cancelled."))
+            return False
+        
+        (dir, filename) = os.path.split(fullpath)
+        schema.ns("osaf.sharing", self.view).prefs.import_dir = dir
+        
+        share = osaf.sharing.OneTimeFileSystemShare(
+            dir, filename, osaf.sharing.ICalendarFormat, view=self.view
+        )
+
+        for key, val in self.options.iteritems():
+            if not val.IsChecked():
+                share.filterAttributes.append(key)
+
+        try:
+            monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
+            collection = share.get(monitor.callback)
+            assert (hasattr (collection, 'color'))
+            schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
+        except:
+            logger.exception("Failed importFile %s" % fullpath)
+            self.fail(_(u"Unable to parse the chosen file, import cancelled."))
+            return False
+        
+        return True # Successful import

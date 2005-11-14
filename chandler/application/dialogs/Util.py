@@ -5,7 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, sys, codecs
 import application.Globals
-import AccountPreferences
 import wx
 from i18n import OSAFMessageFactory as _
 from osaf import messages
@@ -150,6 +149,10 @@ def promptUser(frame, title, message, value):
     return value
 
 def mailError(frame, view, message, account):
+    # importing AccountPreferences imports osaf.sharing, but Util is loaded
+    # by a sharing dependency, so to avoid import loops, only import
+    # AccountPreferences when we need it
+    import AccountPreferences
     win = mailErrorDialog(frame, message, account)
     win.CenterOnScreen()
     val = win.ShowModal()
@@ -386,7 +389,21 @@ def yesNo(parent, caption, message):
     dlg.Destroy()
     return value
 
+# A simple file selection dialog
 
+def showFileDialog(parent, message, defaultDir, defaultFile, wildcard, style):
+    if defaultDir is None:
+        defaultDir = u""
+
+    dlg = wx.FileDialog(parent, message, unicode(defaultDir), unicode(defaultFile),
+                        wildcard, style)
+
+    """Blocking call"""
+    cmd = dlg.ShowModal()
+    (dir, filename) = os.path.split(dlg.GetPath())
+    dlg.Destroy()
+
+    return (cmd, dir, filename)
 
 # A simple alert dialog
 

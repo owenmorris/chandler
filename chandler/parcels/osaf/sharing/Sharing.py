@@ -771,7 +771,7 @@ class ShareConduit(pim.ContentItem):
 
 
 
-    def _get(self, previousView=None, updateCallback=None):
+    def _get(self, previousView=None, updateCallback=None, getPhrase = None):
 
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
@@ -782,8 +782,10 @@ class ShareConduit(pim.ContentItem):
         except:
             # contents is either not set, is None, or has no displayName
             contentsName = location
-
-        if updateCallback and updateCallback(msg=_(u"Downloading from %s...") %
+        
+        if getPhrase is None:
+            getPhrase = _(u"Downloading from %s...")
+        if updateCallback and updateCallback(msg=getPhrase %
             contentsName):
             raise SharingError(_(u"Cancelled by user"))
 
@@ -1185,6 +1187,12 @@ class FileSystemConduit(ShareConduit):
          self.hasLocalAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
         raise Misconfigured(_(u"A misconfiguration error was encountered"))
+
+    def _get(self, previousView=None, updateCallback=None, getPhrase = None):
+        if getPhrase is None:
+            getPhrase = _(u"Importing from %s...")
+        return super(FileSystemConduit, self)._get(previousView, updateCallback,
+                                                   getPhrase)
 
     def _putItem(self, item):
         path = self._getItemFullPath(self._getItemPath(item))

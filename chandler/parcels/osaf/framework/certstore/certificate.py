@@ -18,7 +18,7 @@ import M2Crypto.X509 as X509
 import application
 from application import schema
 from osaf import pim
-from application.dialogs import ImportExport
+from application.dialogs import Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 from osaf.pim.collections import FilteredCollection
@@ -271,12 +271,12 @@ def importCertificateDialog(repView):
     dialog, then asks for trust settings for the certificate being imported.
     """
     app = wx.GetApp()
-    res = ImportExport.showFileDialog(app.mainFrame,
-                                      _(u"Choose a certificate to import"),
-                                      u"", 
-                                      u"", 
-                                      _(u"PEM files|*.pem;*.crt|All files (*.*)|*.*"),
-                                      wx.OPEN | wx.HIDE_READONLY)
+    res = Util.showFileDialog(app.mainFrame,
+                              _(u"Choose a certificate to import"),
+                              u"", 
+                              u"", 
+                              _(u"PEM files|*.pem;*.crt|All files (*.*)|*.*"),
+                              wx.OPEN | wx.HIDE_READONLY)
 
     (cmd, dir, filename) = res
 

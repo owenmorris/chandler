@@ -13,7 +13,6 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, ShareTool, SyncProgress, RestoreShares
 )
 import application.dialogs.Util
-from  application.dialogs import ImportExport
 import osaf.mail.constants as constants
 from application.SplashScreen import SplashScreen
 import application.Parcel
@@ -34,7 +33,7 @@ from osaf import webserver
 from i18n import OSAFMessageFactory as _
 import i18n
 from osaf import messages
-
+from application.Utility import getDesktopDir
 logger = logging.getLogger(__name__)
 
 class MainView(View):
@@ -429,42 +428,16 @@ class MainView(View):
 
     def onImportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
-        #XXX: need to migrate this to application dialogs utils
+        prefs = schema.ns("osaf.sharing", self.itsView).prefs
 
-        options = [dict(name='reminders', checked = True, label = _(u"Import reminders")),
-                   dict(name='transparency', checked = True, label = _(u"Import event status"))]
-        res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
-                                          _(u"Choose a file to import"), "",
-                            _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
-                                                 wx.OPEN | wx.HIDE_READONLY, 
-                                                                    options)
+        dialog = ImportExport.ImportDialog(wx.GetApp().mainFrame,
+                                           _(u"Choose a file to import"),
+                                           self.itsView)
         
-        (ok, fullpath, optionResults) = res
-
-        if not ok:
-            self.setStatusMessage(_(u"Import aborted"))
-        else:
-            try:
-                (dir, filename) = os.path.split(fullpath)
-                self.setStatusMessage (_(u"Importing from %(filename)s") % {'filename': filename})
-                share = sharing.OneTimeFileSystemShare(dir, filename,
-                                ICalendar.ICalendarFormat, view=self.itsView)
-                if not optionResults['reminders']:
-                    share.filterAttributes.append('reminders')
-                if not optionResults['transparency']:
-                    share.filterAttributes.append('transparency')
-
-                before = time()
-                collection = share.get()
-                elapsed = timedelta(seconds = time() - before)
-
-                assert (hasattr (collection, 'color'))
-                schema.ns("osaf.app", self).sidebarCollection.add (collection)
-                # Need to SelectFirstItem -- DJA
-                self.setStatusMessage(_(u"Import completed in %(elapsed)s" %{'elapsed': elapsed}))
-            except:
-                logger.exception("Failed importFile %s" % fullpath)
-                self.setStatusMessage(_(u"Import failed"))
+        ret = dialog.ShowModal()
+        if ret == wx.ID_OK:
+            self.setStatusMessage(_(u"Import completed"))
+        dialog.Destroy()
 
     def onExportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
@@ -474,7 +447,8 @@ class MainView(View):
                    dict(name='transparency', checked = True, label = _(u"Export event status"))]
         res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
                                        _(u"Choose a filename to export to"),
-                                       u"%s.ics" % (collection.displayName),
+                                            os.path.join(getDesktopDir(),
+                                      u"%s.ics" % (collection.displayName)),
                             _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
                                               wx.SAVE | wx.OVERWRITE_PROMPT, 
                                                                     options)
@@ -505,9 +479,11 @@ class MainView(View):
 
     def onImportImageEvent(self, event):
         # triggered from "File | Import/Export" Menu
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose an image to import"), "",
-                                          "", _(u"Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
-                                          wx.OPEN)
+        res = application.dialogs.Util.showFileDialog(
+            wx.GetApp().mainFrame, _(u"Choose an image to import"), "",
+            "", _(u"Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
+            wx.OPEN
+        )
 
         (cmd, dir, filename) = res
 
@@ -564,9 +540,10 @@ class MainView(View):
 
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
-                                          _(u"import.csv"), _(u"CSV files|*.csv"),
-                                          wx.OPEN | wx.HIDE_READONLY)
+        res = application.dialogs.Util.showFileDialog(
+            wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
+            _(u"import.csv"), _(u"CSV files|*.csv"),
+            wx.OPEN | wx.HIDE_READONLY)
 
         (cmd, dir, filename) = res
 

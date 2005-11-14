@@ -12,7 +12,6 @@ import osaf.framework.types.DocumentTypes as DocumentTypes
 import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
 import osaf.framework.blocks.detail.Detail as Detail
 import application.dialogs.Util as Util
-from application.dialogs import ImportExport
 from repository.item.Item import Item as Item
 from datetime import datetime
 import logging
@@ -346,12 +345,12 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
             path = unicode(path, sys.getfilesystemencoding())
 
         # present the Open/Save dialog
-        result = ImportExport.showFileDialog(wx.GetApp().mainFrame, 
-                                             title,
-                                             path,
-                                             name,
-                                             _(u"Python files|*.py|") + _(u"All files (*.*)|*.*"),
-                                             flags)
+        result = Util.showFileDialog(wx.GetApp().mainFrame, 
+                                     title,
+                                     path,
+                                     name,
+                                     _(u"Python files|*.py|") + _(u"All files (*.*)|*.*"),
+                                     flags)
         cmd, dir, fileName = result
 
         if cmd == wx.ID_OK:
