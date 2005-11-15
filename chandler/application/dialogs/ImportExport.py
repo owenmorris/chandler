@@ -7,6 +7,7 @@ from application.Utility import getDesktopDir
 from application import schema
 import itertools
 import osaf.sharing
+from time import time
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -182,7 +183,9 @@ class ImportDialog(FileChooserWithOptions):
 
         try:
             monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
+            before = time()
             collection = share.get(monitor.callback)
+            logger.info("Imported collection in", time() - before, "seconds")
             assert (hasattr (collection, 'color'))
             schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
         except:
