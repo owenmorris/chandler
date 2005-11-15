@@ -318,7 +318,6 @@ Section "MainSection" SEC01
   File "..\..\..\${DISTRIB_DIR}\${PRODUCT_BINARY}"
   File "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
   File "..\..\..\${DISTRIB_DIR}\README.win.txt"
-  File "..\..\..\${DISTRIB_DIR}\chandler.ico"
 
     ; this could be handled completely by the above line
     ; if the /r option was used - I kept them as individual
