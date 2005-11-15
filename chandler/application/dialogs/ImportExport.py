@@ -185,7 +185,7 @@ class ImportDialog(FileChooserWithOptions):
             monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
             before = time()
             collection = share.get(monitor.callback)
-            logger.info("Imported collection in", time() - before, "seconds")
+            logger.info("Imported collection in %s seconds" % (time() - before))
             assert (hasattr (collection, 'color'))
             schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
         except:
