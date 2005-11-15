@@ -51,6 +51,7 @@ glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*
 application
 parcels
 util
+tools
 
 glob=*
 repository
@@ -58,10 +59,9 @@ resources
 i18n
 
 
-# Grab the launchers, icon file and windows README
+# Grab the launchers and windows README
 src=chandler/distrib/win
 README.win.txt
-chandler.ico
 
 src=chandler
 dest=
