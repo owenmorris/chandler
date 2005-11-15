@@ -113,8 +113,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
     def _doDrawing(self):
 
         startWxDate = self.GetStartDate();
-        endWxDate = startWxDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
-
+        endWxDate = startWxDate + wx.DateSpan.Month() * 3
+        
         startDate = date(startWxDate.GetYear(),
                         startWxDate.GetMonth() + 1,
                         startWxDate.GetDay())
@@ -239,10 +239,12 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                         updateBusy(matchingMod, modStart)
 
         offset = 0
+        wxDay = wx.DateSpan.Day()
+        timeDeltaDay = timedelta(days=1)
         while (startDate < endDate):
             self.SetBusy(startWxDate, busyFractions.get(offset, 0.0))
-            startWxDate += wx.DateSpan.Day()
-            startDate += timedelta(days=1)
+            startWxDate += wxDay
+            startDate += timeDeltaDay
             offset += 1
             
     
