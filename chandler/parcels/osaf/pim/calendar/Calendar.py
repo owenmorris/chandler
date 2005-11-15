@@ -1167,6 +1167,16 @@ class CalendarEventMixin(RemindableMixin):
         """Is this a proxy of an event?"""
         return False
 
+    def isAttributeModifiable(self, attribute):
+        """ Is this attribute modifiable? """
+        master = self.getMaster()
+        if self is not master:
+            # This is a recurring event that isn't the master;
+            # go ask the master.
+            return master.isAttributeModifiable(attribute)
+        # Otherwise, just do it the normal way.
+        return super(CalendarEventMixin, self).isAttributeModifiable(attribute)
+
     def cmpTimeAttribute(self, item, attr):
         """
         Use the timezone-safe comparison, based on the startTime
