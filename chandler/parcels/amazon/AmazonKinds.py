@@ -15,7 +15,6 @@ import AmazonDialog
 
 amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
 
-
 def isEmpty(text):
     if text is None or len(string.strip(text)) == 0:
         return True
@@ -23,27 +22,27 @@ def isEmpty(text):
     return False
 
 def setStatusMessage(message, view):
-
-    wxApp = Globals.wxApplication
-
-    if wxApp is None:
+    if Globals.wxApplication is None:
         return
 
-    wxApp.CallItemMethodAsync(view, 'setStatusMessage', message)
+    Globals.wxApplication.CallItemMethodAsync(view, 'setStatusMessage', message)
 
 
 def showError(errText):
+    if Globals.wxApplication is None:
+        return
+
     application.dialogs.Util.ok(wx.GetApp().mainFrame,
                 _(u"Amazon Error"), errText)
 
 
-def SearchByKeyword(repView, cpiaView):
-    keywords, countryCode, category = AmazonDialog.promptKeywords()
-
+def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category=None):
+    if keywords is None or countryCode is None or category is None:
+        keywords, countryCode, category = AmazonDialog.promptKeywords()
 
     if isEmpty(keywords):
         """The user did not enter any text to search on or hit the cancel button"""
-        return
+        return None
 
     try:
         bags = amazon.searchByKeyword(keywords, locale=countryCode, product_line=category)
@@ -52,13 +51,15 @@ def SearchByKeyword(repView, cpiaView):
     except (AmazonError, AttributeError), e:
         dt = {'keywords': keywords}
         showError(_(u"No Amazon products were found for keywords '%(keywords)s'") % dt)
+        return None
 
 
-def SearchWishListByEmail(repView, cpiaView):
-    emailAddr, countryCode = AmazonDialog.promptEmail()
+def SearchWishListByEmail(repView, cpiaView, emailAddr=None, countryCode=None):
+    if emailAddr is None or countryCode is None:
+        emailAddr, countryCode = AmazonDialog.promptEmail()
 
     if isEmpty(emailAddr):
-        return
+        return None
 
     try:
         customerName, bags = amazon.searchWishListByEmail(emailAddr, locale=countryCode)
@@ -67,6 +68,7 @@ def SearchWishListByEmail(repView, cpiaView):
     except (AmazonError, AttributeError), e:
         dt = {'emailAddress': emailAddr}
         showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") % dt)
+        return None
 
 
 def AddToCollection(repView, cpiaView, text, countryCode, bags):
