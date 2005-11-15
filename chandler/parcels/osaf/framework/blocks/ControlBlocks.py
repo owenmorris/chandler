@@ -956,6 +956,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         self.initialValue = self.delegate.GetAttributeValue (item, attributeName)
         self.delegate.BeginControlEdit (item, attributeName, self.control)
         self.control.SetFocus()
+        self.control.SelectAll()
 
     def EndEdit (self, row, column, grid):
         assert self.editingCell == (row, column)
