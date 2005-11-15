@@ -15,27 +15,30 @@ def main():
     extensions = []
     modules = ['chandlerdb.__init__',
                'chandlerdb.util.__init__',
+               'chandlerdb.util.lock',
                'chandlerdb.schema.__init__',
                'chandlerdb.item.__init__',
                'chandlerdb.item.ItemError',
                'chandlerdb.item.ItemValue',
                'chandlerdb.persistence.__init__']
 
-    if os.name in ('nt', 'posix'):
-        modules.append('chandlerdb.util.lock')
-    else:
-        raise ValueError, 'unsupported os: %s' %(os.name)
+    defines = []
+    sources=['chandlerdb/util/uuid.c',
+             'chandlerdb/util/pyuuid.c',
+             'chandlerdb/util/singleref.c',
+             'chandlerdb/util/linkedmap.c',
+             'chandlerdb/util/skiplist.c',
+             'rijndael-3.0/rijndael-api-fst.c',
+             'rijndael-3.0/rijndael-alg-fst.c',
+             'chandlerdb/util/rijndael.c',
+             'chandlerdb/util/c.c']
+    if os.name == 'nt':
+        defines = ['-DWINDOWS']
+        sources.append('chandlerdb/util/lock.c')
 
     extensions.append(Extension('chandlerdb.util.c',
-                                sources=['chandlerdb/util/uuid.c',
-                                         'chandlerdb/util/pyuuid.c',
-                                         'chandlerdb/util/singleref.c',
-                                         'chandlerdb/util/linkedmap.c',
-                                         'chandlerdb/util/skiplist.c',
-                                         'rijndael-3.0/rijndael-api-fst.c',
-                                         'rijndael-3.0/rijndael-alg-fst.c',
-                                         'chandlerdb/util/rijndael.c',
-                                         'chandlerdb/util/c.c'],
+                                sources = sources,
+                                extra_compile_args = defines,
                                 include_dirs=['rijndael-3.0']))
 
     extensions.append(Extension('chandlerdb.schema.c',

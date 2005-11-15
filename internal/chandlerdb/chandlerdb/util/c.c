@@ -57,6 +57,12 @@ static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
     { "_hash", (PyCFunction) hash, METH_VARARGS, "hash bytes" },
     { "_combine", (PyCFunction) combine, METH_VARARGS, "combine two hashes" },
+#ifdef WINDOWS
+    { "openHFILE", (PyCFunction) openHFILE, METH_VARARGS, "open HFILE" },
+    { "closeHFILE", (PyCFunction) closeHFILE, METH_VARARGS, "close HFILE" },
+    { "lockHFILE", (PyCFunction) lockHFILE, METH_VARARGS,
+      "lock, unlock, upgrade or downgrade lock on an HFILE" },
+#endif
     { NULL, NULL, 0, NULL }
 };
 
@@ -79,4 +85,7 @@ void initc(void)
     _init_rijndael(m);
     _init_linkedmap(m);
     _init_skiplist(m);
+#ifdef WINDOWS
+    _init_lock(m);
+#endif
 }    
