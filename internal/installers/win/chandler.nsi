@@ -58,8 +58,8 @@ Page custom PageOldVersion
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
-;Icon path\to\foo.ico
-;UninstallIcon path\to\foo.ico
+Icon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
+UninstallIcon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
 InstallDir "$PROGRAMFILES\Chandler"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
@@ -333,6 +333,7 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\parcels"
   File /r "..\..\..\${DISTRIB_DIR}\repository"
   File /r "..\..\..\${DISTRIB_DIR}\util"
+  File /r "..\..\..\${DISTRIB_DIR}\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
   CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\chandler.ico" 
@@ -412,6 +413,7 @@ Section Uninstall
   RMDir /r "$INSTDIR\parcels"
   RMDir /r "$INSTDIR\repository"
   RMDir /r "$INSTDIR\util"
+  RMDir /r "$INSTDIR\tools"
 
   Delete "$INSTDIR\*.*"
 
