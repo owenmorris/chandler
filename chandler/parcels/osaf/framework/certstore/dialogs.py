@@ -17,6 +17,10 @@ from osaf.framework.certstore import utils, errors
 log = logging.getLogger(__name__)
 
 class ImportCertificateDialog(wx.Dialog):
+    """
+    Import cerificate dialog.
+    """
+
     def __init__(self, parent, type, fingerprint, x509, choices, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
