@@ -421,7 +421,7 @@ class UITestItem :
                 if timeInfo :
                     self.logger.Start("Change the %s stamp" %type)
                 App_ns.markupbar.press(name=buttonDict[type])
-                wx.GetApp().Yield()
+                scripting.User.idle()
                 if timeInfo:
                     self.logger.Stop()
         else:
