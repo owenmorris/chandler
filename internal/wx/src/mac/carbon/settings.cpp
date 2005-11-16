@@ -47,13 +47,12 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
             break ;
 
         case wxSYS_COLOUR_LISTBOX :
-        {
             if (major >= 10)
                 return *wxWHITE ;
             else
                 return wxColor( 0xEE , 0xEE , 0xEE ) ;
             break ;
-        }
+
         case wxSYS_COLOUR_BTNSHADOW:
             if (major >= 10)
                 return wxColor( 0xBE , 0xBE , 0xBE ) ;
@@ -69,13 +68,24 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_INACTIVECAPTIONTEXT:
             return *wxBLACK;
             break ;
+
         case wxSYS_COLOUR_HIGHLIGHT:
             {
                 RGBColor hilite ;
-                GetThemeBrushAsColor( kThemeBrushPrimaryHighlightColor, 32, true, &hilite );
+                ThemeBrush colorBrushID;
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
+                // OSAF - added
+                colorBrushID = kThemeBrushAlternatePrimaryHighlightColor;
+#else
+                colorBrushID = kThemeBrushPrimaryHighlightColor;
+#endif
+
+                GetThemeBrushAsColor( colorBrushID, 32, true, &hilite );
                 return wxColor( hilite.red >> 8 , hilite.green >> 8  , hilite.blue >> 8  ) ;
             }
             break ;
+
         case wxSYS_COLOUR_BTNHIGHLIGHT:
         case wxSYS_COLOUR_GRAYTEXT:
             // OSAF: changed from 0xCC
@@ -85,10 +95,16 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_3DDKSHADOW:
             return wxColor( 0x44 , 0x44 , 0x44 ) ;
             break ;
+
         case wxSYS_COLOUR_3DLIGHT:
             return wxColor( 0xCC , 0xCC , 0xCC ) ;
             break ;
+
         case wxSYS_COLOUR_HIGHLIGHTTEXT :
+#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
+            // OSAF - added
+            return *wxWHITE ;
+#else
             {
                 RGBColor hilite ;
                 GetThemeBrushAsColor( kThemeBrushPrimaryHighlightColor, 32, true, &hilite );
@@ -97,7 +113,9 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
                 else
                         return *wxBLACK ;
             }
+#endif
             break ;
+
         case wxSYS_COLOUR_INFOBK :
         case wxSYS_COLOUR_APPWORKSPACE:
             return *wxWHITE ;
@@ -109,11 +127,13 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_MENUHILIGHT:
             // TODO
             return *wxBLACK;
+            break ;
 
         case wxSYS_COLOUR_MAX:
             wxFAIL_MSG( _T("unknown system colour index") );
             break ;
     }
+
     return *wxWHITE;
 }
 
@@ -129,14 +149,13 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
         case wxSYS_SYSTEM_FONT :
         case wxSYS_DEVICE_DEFAULT_FONT :
         case wxSYS_DEFAULT_GUI_FONT :
-            {
-                return *wxSMALL_FONT ;
-            } ;
+            return *wxSMALL_FONT ;
             break ;
 
         default :
             break ;
     }
+
     return *wxNORMAL_FONT;
 }
 
@@ -152,7 +171,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
     switch ( index)
     {
         case wxSYS_MOUSE_BUTTONS:
-            // we emulate a two button mouse (ctrl + click = right button )
+            // we emulate a two button mouse (ctrl + click = right button)
             return 2;
 
         // TODO case wxSYS_BORDER_X:
@@ -167,9 +186,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         // TODO case wxSYS_EDGE_Y:
 
         case wxSYS_HSCROLL_ARROW_X:
-            return 16;
         case wxSYS_HSCROLL_ARROW_Y:
-            return 16;
         case wxSYS_HTHUMB_X:
             return 16;
 
@@ -183,6 +200,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         case wxSYS_SCREEN_X:
             wxDisplaySize(&value, NULL);
             return value;
+ 
         case wxSYS_SCREEN_Y:
             wxDisplaySize(NULL, &value);
             return value;
@@ -193,13 +211,9 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         // TODO case wxSYS_SMALLICON_Y:
 
         case wxSYS_HSCROLL_Y:
-            return 16;
         case wxSYS_VSCROLL_X:
-            return 16;
         case wxSYS_VSCROLL_ARROW_X:
-            return 16;
         case wxSYS_VSCROLL_ARROW_Y:
-            return 16;
         case wxSYS_VTHUMB_Y:
             return 16;
 
@@ -218,6 +232,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         default:
             break;  // unsupported metric
     }
+
     return -1;
 }
 
