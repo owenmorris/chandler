@@ -1139,8 +1139,8 @@ class perf:
       latestUpdate[s] = '%d/%02d %d:%02d' % (update.month, update.day, update.hour, update.minute)
 
     keys = latestUpdate.keys()
-    keys.sort()
-    latest = latestUpdate[keys[2]]
+    keys.reverse()
+    latest = latestUpdate[keys[0]]
 
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
