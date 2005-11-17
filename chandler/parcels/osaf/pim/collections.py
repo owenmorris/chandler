@@ -14,48 +14,49 @@ from osaf.framework.types.DocumentTypes import ColorType
 
 logger = logging.getLogger(__name__)
 
-def deliverNotifications(view, updates = True):
+def deliverNotifications(view):
     # first play back the notification queue
     if not hasattr(view,'notificationQueue'):
         view.notificationQueue = Queue.Queue()
         view.addNotificationCallback(repositoryViewCallback)
     notificationQueue = view.notificationQueue
-    while not notificationQueue.empty():
-        (collection, op, item, name, other, positions) = notificationQueue.get()
-        logger.debug("dequeued: %s %s %s %s" % (collection, op, item, other))
 
-        # If the view was cancelled, we could be trying to deliver to stale
-        # items:
-        if not collection.isStale():
-            collection.notifySubscribers(op, collection, name, other, positions)
+    kc = schema.ns("osaf.pim.collections", view).kind_collections
 
-    if updates:
-        view.mapChanges(mapChangesCallable, True)
+    while True:
+        while not notificationQueue.empty():
+            (collection, op, item, name, other, positions) = notificationQueue.get()
+            logger.debug("dequeued: %s %s %s %s", collection, op, item, other)
 
-def mapChangesCallable(item, version, status, literals, references):
-    """
-    Pick up changes to items in C{ListCollections} and C{KindCollections}. 
+            # If the view was cancelled, we could be trying to deliver to stale
+            # items:
+            if not collection.isStale():
+                collection.notifySubscribers(op, collection, name, other,
+                                             positions)
 
-    These changes are then passed along to the contentsUpdated method
-    of any collection containing the modified items. 
 
-    This is a callback for
-    C{repository.persistence.DBRepositoryView.mapChanges}
-    
-    C{mapChangesCallable} is called from the application's idle loop:
-    C{application.Application.wxApplication.OnIdle}
-    """
-    # handle changes to items in a ListCollection
-    if hasattr(item,'collections'):
-        for i in item.collections:
-            i.contentsUpdated(item)
+        # Pick up changes to items in C{ListCollections} and
+        # C{KindCollections}.  
+        # These changes are then passed along to the contentsUpdated method
+        # of any collection containing the modified items. 
 
-    # handle changes to items in an existing KindCollection
-    # is the item in a kind collection?
-    kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
-    for i in kc.collections:
-        if item in i:
-            i.contentsUpdated(item)
+        while view.isDirtyAgain():
+            for item, version, status, literals, references in view.mapChanges(True):
+                # handle changes to items in a ListCollection
+                collections = getattr(item, 'collections', None)
+                if collections is not None:
+                    for i in collections:
+                        i.contentsUpdated(item)
+
+                # handle changes to items in an existing KindCollection
+                # is the item in a kind collection?
+                for i in kc.collections:
+                    if item in i:
+                        i.contentsUpdated(item)
+
+        if notificationQueue.empty():
+            break
+
 
 def repositoryViewCallback(view, changes, reason):
     
@@ -291,7 +292,6 @@ class KindCollection(AbstractCollection):
 
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
-        deliverNotifications(self.itsView)
 
     def onValueChanged(self, name):
         if name == "kind" or name == "recursive":
@@ -346,7 +346,6 @@ class ListCollection(AbstractCollection):
 
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
-        deliverNotifications(self.itsView)
 
     def empty(self):
         for item in self:
@@ -756,7 +755,6 @@ class IndexedSelectionCollection (AbstractCollection):
 
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
-        deliverNotifications(self.itsView)
 
     def empty(self):
         self.source.empty()

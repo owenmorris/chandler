@@ -156,6 +156,13 @@ class RepositoryView(CView):
 
         return self._status & CItem.CDIRTY != 0
 
+    def isDirtyAgain(self):
+        """
+        Tell if changes were made since last time L{mapChanges} was called.
+        """
+
+        return self._status & RepositoryView.FDIRTY != 0
+
     def closeView(self):
         """
         Close this repository view.
@@ -678,12 +685,12 @@ class RepositoryView(CView):
     def _loadRoot(self, name):
         raise NotImplementedError, "%s._loadRoot" %(type(self))
 
-    def mapChanges(self, callable, freshOnly=False):
+    def mapChanges(self, freshOnly=False):
         """
-        Invoke a callable for every item changed in this view.
+        Generate a change tuple for every item changed in this view.
 
         For each item that was changed in this view since it last committed
-        a callable is invoked with the following arguments:
+        a tuple is generated with the following elements:
 
             - the item
 
@@ -695,11 +702,7 @@ class RepositoryView(CView):
 
             - a list of changed references attribute names
 
-        The return value of C{callable} is not used.
-
-        @param callable: the function or method to be invoked.
-        @type callable: a python callable
-        @param freshOnly: optionally limit invocation of C{callable} to
+        @param freshOnly: optionally limit tuple generation to
         items that were changed since last time this method was called or
         since the last commit, whichever came last; C{False} by default.
         @type freshOnly: boolean
