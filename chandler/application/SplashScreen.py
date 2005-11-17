@@ -101,7 +101,7 @@ class HTMLPanel(wx.html.HtmlWindow):
         url in the user's default web browser.
         """
         self.linked = True
-        webbrowser.open(link.GetHref())
+        wx.LaunchDefaultBrowser(link.GetHref())
     
 class SplashTimer(wx.Timer):
     """
