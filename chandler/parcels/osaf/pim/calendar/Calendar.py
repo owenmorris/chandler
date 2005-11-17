@@ -426,7 +426,7 @@ class CalendarEventMixin(RemindableMixin):
         return (before is None or datetimeOp(self.startTime, compare, before)) and \
                (after is None or datetimeOp(self.endTime, '>=', after))
 
-    def createDateUtilFromRule(self):
+    def createDateUtilFromRule(self, ignoreIsCount = True):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
         
         The resulting rruleset will apply only to the modification or master
@@ -437,10 +437,10 @@ class CalendarEventMixin(RemindableMixin):
         
         """
         if self.getFirstInRule() != self:
-            return self.getFirstInRule().createDateUtilFromRule()
+            return self.getFirstInRule().createDateUtilFromRule(ignoreIsCount)
         else:
             dtstart = self.getEffectiveStartTime()
-            return self.rruleset.createDateUtilFromRule(dtstart)
+            return self.rruleset.createDateUtilFromRule(dtstart, ignoreIsCount)
 
     def setRuleFromDateUtil(self, rule):
         """Set self.rruleset from rule.  Rule may be an rrule or rruleset."""

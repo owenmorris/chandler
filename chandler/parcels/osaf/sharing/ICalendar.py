@@ -125,8 +125,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative
             if item.modifies == 'thisandfuture' or item.getMaster() == item:
-                x = item.createDateUtilFromRule()
-                cal.vevent[-1].rruleset = item.createDateUtilFromRule()
+                # False because we don't want to ignore isCount for export
+                cal.vevent[-1].rruleset = item.createDateUtilFromRule(False)
         except AttributeError:
             pass
         # end of populate function

@@ -99,7 +99,7 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
 
         # make sure setRuleFromDateUtil(rrule).createDateUtilFromRule(dtstart)
         # represents the same dates as rrule
-        identityTransformedRule = ruleItem.createDateUtilFromRule(self.start)
+        identityTransformedRule = ruleItem.createDateUtilFromRule(self.start, False)
         
         # make sure the transform sets count, not until, since isCount==True
         self.assertEqual(identityTransformedRule._until, None)

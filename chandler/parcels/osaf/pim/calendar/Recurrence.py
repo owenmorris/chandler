@@ -222,7 +222,7 @@ class RecurrenceRule(items.ContentItem):
             return until
             
 
-    def createDateUtilFromRule(self, dtstart):
+    def createDateUtilFromRule(self, dtstart, ignoreIsCount = True):
         """Return an appropriate dateutil.rrule.rrule."""
 
         tzinfo = dtstart.tzinfo
@@ -241,14 +241,14 @@ class RecurrenceRule(items.ContentItem):
         if hasattr(self, 'until'):
             kwargs['until'] = coerceIfDatetime(self.calculatedUntil())
         rule = rrule(dtstart=dtstart, **kwargs)
-        if not self.isCount or not hasattr(self, 'until'):
+        if ignoreIsCount or not self.isCount or not hasattr(self, 'until'):
             return rule
         else:
             # modifying in place may screw up cache, fix when we turn
             # on caching
             rule._count =  rule.count()
             rule._until = None
-            return rule       
+            return rule
 
     def setRuleFromDateUtil(self, rrule):
         """Extract attributes from rrule, set them in self."""
@@ -356,12 +356,12 @@ class RecurrenceRuleSet(items.ContentItem):
         except AttributeError:
             setattr(self, rrulesorexrules, [rule])
         
-    def createDateUtilFromRule(self, dtstart):
+    def createDateUtilFromRule(self, dtstart, ignoreIsCount = True):
         """Return an appropriate dateutil.rrule.rruleset."""
         ruleset = rruleset()
         for rtype in 'rrule', 'exrule':
             for rule in getattr(self, rtype + 's', []):
-                getattr(ruleset, rtype)(rule.createDateUtilFromRule(dtstart))
+                getattr(ruleset, rtype)(rule.createDateUtilFromRule(dtstart, ignoreIsCount))
         for datetype in 'rdate', 'exdate':
             for date in getattr(self, datetype + 's', []):
                 date = coerceTimeZone(date, dtstart.tzinfo)
