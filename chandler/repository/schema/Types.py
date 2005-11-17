@@ -39,8 +39,6 @@ class TypeKind(Kind):
         except KeyError:
             TypeHandler.typeHandlers[view] = { None: self }
 
-        super(TypeKind, self).onItemLoad(view)
-
     def _collectTypes(self, view):  # run when loading core schema pack
 
         self.types = [item for item in view._unsavedItems()

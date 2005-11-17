@@ -9,8 +9,7 @@
     <ref name="endpoints">
       <!-- 
          - plus local endpoints below:
-         -     attributes, inheritedAttributes, allAttributes,
-	 -     superKinds, clouds
+         -     attributes, superKinds, clouds
         -->
     </ref>
 
@@ -29,36 +28,6 @@
 
     <attribute name="attribute">
       <value>attributes</value>
-    </attribute>
-    <attribute name="includePolicy">byCloud</attribute>
-  </item>
-
-  <item>
-    <name>inheritedAttributes</name>
-    <kind type="path">//Schema/Core/Endpoint</kind>
-    <parent type="path">//Schema/Core/Clouds/Kind</parent>
-
-    <ref name="clouds">
-      <ref otherAlias="inheritedAttributes" type="path">..</ref>
-    </ref>
-
-    <attribute name="attribute">
-      <value>inheritedAttributes</value>
-    </attribute>
-    <attribute name="includePolicy">byCloud</attribute>
-  </item>
-
-  <item>
-    <name>allAttributes</name>
-    <kind type="path">//Schema/Core/Endpoint</kind>
-    <parent type="path">//Schema/Core/Clouds/Kind</parent>
-
-    <ref name="clouds">
-      <ref otherAlias="allAttributes" type="path">..</ref>
-    </ref>
-
-    <attribute name="attribute">
-      <value>allAttributes</value>
     </attribute>
     <attribute name="includePolicy">byCloud</attribute>
   </item>

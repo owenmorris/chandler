@@ -462,7 +462,7 @@ class PersistentDict(dict, PersistentCollection):
         
         return value
 
-    def get(self, key, default):
+    def get(self, key, default=None):
 
         value = super(PersistentDict, self).get(key, default)
         value = self._restoreValue(value)

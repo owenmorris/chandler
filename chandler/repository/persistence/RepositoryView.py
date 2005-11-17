@@ -38,8 +38,9 @@ class RepositoryView(CView):
     # 0.5.8: added complete attribute cache
     # 0.5.9: removed repository.query.Query and Query kind
     # 0.5.10: added Importable type
+    # 0.5.11: removed inheritedAttributes transient cache
     
-    CORE_SCHEMA_VERSION = 0x00050a00
+    CORE_SCHEMA_VERSION = 0x00050b00
 
     def __init__(self, repository, name, version):
         """

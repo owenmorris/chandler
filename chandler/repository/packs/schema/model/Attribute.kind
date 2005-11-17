@@ -18,7 +18,7 @@
 	 -     defaultValue, initialValue,
          -     inheritFrom, redirectTo, otherName,
 	 -     deletePolicy, copyPolicy, countPolicy,
-         -     inheritingKinds, kinds, superAttribute, subAttributes,
+         -     kinds, superAttribute, subAttributes,
 	 -     root, roots, domains
         -->
     </ref>
@@ -257,22 +257,6 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue">none</attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>inheritingKinds</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Attribute</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="inheritingKinds">..</ref>
-    </ref>
-
-    <attribute name="cardinality">list</attribute>
-    <attribute name="persisted" type="bool">False</attribute>
-    <attribute name="otherName">inheritedAttributes</attribute>
   </item>
 
   <item withSchema="True">

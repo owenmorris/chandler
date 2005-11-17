@@ -14,7 +14,6 @@
 
       <!-- 
          - plus local attributes below:
-         -     inheritedAttributes, allAttributes,
 	 -     inheritedSuperKinds, inheritingSubKinds,
          -     superKinds, subKinds, attributes, classes,
          -     displayAttribute, clouds, otherNames, mixins
@@ -30,37 +29,6 @@
     <attribute name="classes" cardinality="dict" type="class">
       <value name="python">repository.schema.Kind.Kind</value>
     </attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>inheritedAttributes</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Kind</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="inheritedAttributes">..</ref>
-    </ref>
-
-    <attribute name="cardinality">list</attribute>
-    <attribute name="persisted" type="bool">False</attribute>
-    <attribute name="otherName">inheritingKinds</attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>allAttributes</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Kind</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="allAttributes">..</ref>
-    </ref>
-
-    <attribute name="cardinality">dict</attribute>
-    <attribute name="persisted" type="bool">False</attribute>
   </item>
 
   <item withSchema="True">

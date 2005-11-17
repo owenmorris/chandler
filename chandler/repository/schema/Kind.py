@@ -39,17 +39,15 @@ class Kind(Item):
         self.monitorSchema = False
         self.attributesCached = False
         self.superKindsCached = False
-        self.notFoundAttributes = []
+        self._notFoundAttributes = []
         self._initialValues = None
         self._initialReferences = None
+        self._inheritedAttributes = {}
+        self._allAttributes = {}
 
         references = self._references
 
         # recursion avoidance
-        refList = self._refList('inheritedAttributes',
-                                'inheritingKinds', False)
-        references['inheritedAttributes'] = refList
-
         refList = self._refList('inheritedSuperKinds',
                                 'inheritingSubKinds', False)
         references['inheritedSuperKinds'] = refList
@@ -76,13 +74,6 @@ class Kind(Item):
         self._references._setValue('extent', extent, 'kind')
 
         return extent
-
-    def onItemLoad(self, view):
-
-        # force-load attributes for schema bootstrapping
-        if 'attributes' in self._references:
-            for attribute in self._references['attributes']:
-                pass
 
     def _setupClass(self, cls):
 
@@ -369,6 +360,14 @@ class Kind(Item):
         instance
         """
 
+        if self.attributesCached:
+            attr = self._allAttributes.get(name)
+            if attr is None:
+                if noError:
+                    return None
+                raise NoSuchAttributeError, (self, name)
+            return self.itsView[attr[0]]
+
         if item is not None:
             attribute = self.c.getAttribute(item, name)
             if attribute is not None:
@@ -383,17 +382,19 @@ class Kind(Item):
             attribute = None
             
         if attribute is None:
-            attribute = refs['inheritedAttributes'].getByAlias(name)
-
-            if attribute is None:
-                if not self.attributesCached:                
-                    attribute = self._inheritAttribute(name)
-                if attribute is None and noError is False:
-                    raise NoSuchAttributeError, (self, name)
+            attribute = self._inheritedAttributes.get(name)
+            if attribute is not None:
+                return self.itsView[attribute]
+            attribute = self._inheritAttribute(name)
+            if attribute is None and noError is False:
+                raise NoSuchAttributeError, (self, name)
 
         return attribute
 
     def hasAttribute(self, name):
+
+        if self.attributesCached:
+            return name in self._allAttributes
 
         attributes = self._references.get('attributes', None)
         if attributes is not None:
@@ -403,12 +404,10 @@ class Kind(Item):
 
         if uuid is not None:
             return True
-        elif self.inheritedAttributes.resolveAlias(name):
+        elif name in self._inheritedAttributes:
             return True
-        elif not self.attributesCached:
-            return self._inheritAttribute(name) is not None
-        
-        return False
+
+        return self._inheritAttribute(name) is not None
 
     def getOtherName(self, name, item, default=Default):
 
@@ -457,54 +456,32 @@ class Kind(Item):
         @type globalOnly: boolean
         """
 
-        allAttributes = self._values.get('allAttributes', Nil)
+        allAttributes = self._allAttributes
 
         if not self.attributesCached:
-            if allAttributes is Nil:
-                self._values['allAttributes'] = PersistentDict(self, 'allAttributes')
-                allAttributes = self._values['allAttributes']
-            else:
-                allAttributes.clear()
+            allAttributes.clear()
 
             references = self._references
+
+            for superKind in references['superKinds']:
+                for name, attribute, kind in superKind.iterAttributes():
+                    if name not in allAttributes:
+                        allAttributes[name] = (attribute.itsUUID, kind.itsUUID, False, False)
+
             attributes = references.get('attributes', None)
-
             if attributes is not None:
-
+                uuid = self.itsUUID
                 for attribute in attributes:
-                    if attribute.itsParent is self:
-                        allAttributes[attributes.getAlias(attribute)] = (attribute, self, True, True)
-
-                for attribute in attributes:
-                    if attribute.itsParent is not self:
-                        allAttributes[attributes.getAlias(attribute)] = (attribute, self, False, True)
-
-            inheritedAttributes = self.getAttributeValue('inheritedAttributes',
-                                                         references)
-            for superKind in self.getAttributeValue('superKinds', references):
-                for name, attribute, k in superKind.iterAttributes():
-                    if (attribute._uuid not in inheritedAttributes and
-                        inheritedAttributes.resolveAlias(name) is None):
-                        inheritedAttributes.append(attribute, name)
-
-            for uuid in inheritedAttributes.iterkeys():
-                link = inheritedAttributes._get(uuid)
-                name = link.alias
-                if (attributes is None or
-                    attributes.resolveAlias(name) is None):
-                    attribute = link.value
-                    for kind in attribute.getAttributeValue('kinds', attribute._references):
-                        if self.isKindOf(kind):
-                            break
-                    allAttributes[name] = (attribute, kind, False, False)
+                    allAttributes[attributes.getAlias(attribute)] = (attribute.itsUUID, uuid, attribute.itsParent is self, True)
 
             self.attributesCached = True
 
-        for name, (attribute, kind, local, defined) in allAttributes.iteritems():
+        view = self.itsView
+        for name, (aUUID, kUUID, local, defined) in allAttributes.iteritems():
             if not ((globalOnly and local) or
                     (localOnly and not local) or
                     (not inherited and not defined)):
-                yield (name, attribute, kind) 
+                yield (name, view[aUUID], view[kUUID])
 
     def getInheritedSuperKinds(self):
 
@@ -521,7 +498,7 @@ class Kind(Item):
 
     def _inheritAttribute(self, name):
 
-        if name in self.notFoundAttributes:
+        if name in self._notFoundAttributes:
             return None
 
         cache = True
@@ -529,14 +506,13 @@ class Kind(Item):
             if superKind is not None:
                 attribute = superKind.getAttribute(name, True)
                 if attribute is not None:
-                    self._references['inheritedAttributes'].append(attribute,
-                                                                   name)
+                    self._inheritedAttributes[name] = attribute.itsUUID
                     return attribute
             else:
                 cache = False
                     
         if cache:
-            self.notFoundAttributes.append(name)
+            self._notFoundAttributes.append(name)
 
         return None
 
@@ -663,14 +639,14 @@ class Kind(Item):
         """
         
         if self.attributesCached:
-            self.inheritedAttributes.clear()
-            self.allAttributes.clear()
+            self._allAttributes.clear()
             self.attributesCached = False
 
         self.inheritedSuperKinds.clear()
         self.superKindsCached = False
 
-        del self.notFoundAttributes[:]
+        self._inheritedAttributes.clear()
+        del self._notFoundAttributes[:]
         self._initialValues = None
         self._initialReferences = None
 
