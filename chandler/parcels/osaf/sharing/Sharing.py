@@ -2092,10 +2092,10 @@ def importValue(item, changes, attribute, value, previousView,
                     value))
 
             if updateCallback:
-                updateCallback(msg=_(u"Conflict for item '%s' attribute: %s '%s' vs '%s'" % (item.getItemDisplayName(),
+                updateCallback(msg=_(u"Conflict for item '%s' attribute: %s '%s' vs '%s'") % (item.getItemDisplayName(),
                     attribute,
                     getattr(item, attribute),
-                    value)))
+                    value))
         else:
 
             logger.info(_(u"Sharing change: item '%s', attr '%s', value '%s'") % (item.getItemDisplayName(), attribute, value))
