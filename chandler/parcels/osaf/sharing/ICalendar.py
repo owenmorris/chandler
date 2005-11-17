@@ -539,7 +539,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         work=True):
                     raise Sharing.SharingError(_(u"Cancelled by user"))
 
-                allCollection = schema.ns("osaf.app", self.view).allCollection
+                allCollection = schema.ns("osaf.app", view).allCollection
 
                 if self.fileStyle() == self.STYLE_SINGLE:
                     if item != allCollection:
