@@ -13,6 +13,7 @@ import logging, os, re, Queue
 from osaf.framework.types.DocumentTypes import ColorType
 
 logger = logging.getLogger(__name__)
+DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 def deliverNotifications(view):
     # first play back the notification queue
@@ -26,7 +27,9 @@ def deliverNotifications(view):
     while True:
         while not notificationQueue.empty():
             (collection, op, item, name, other, positions) = notificationQueue.get()
-            logger.debug("dequeued: %s %s %s %s", collection, op, item, other)
+            if DEBUG:
+                logger.debug("dequeued: %s %s %s %s",
+                             collection, op, item, other)
 
             # If the view was cancelled, we could be trying to deliver to stale
             # items:
@@ -175,11 +178,14 @@ class AbstractCollection(items.ContentItem):
         # mapChanges (called in the idle loop)
         # propagates any updates (not add/removes) that
         # happened since the last
-        logger.debug("Collection Changed on %s: %s %s %s %s" % (self, op, item, name, other))
+        if DEBUG:
+            logger.debug("Collection Changed on %s: %s %s %s %s",
+                         self, op, item, name, other)
         if not hasattr(self.itsView,'notificationQueue'):
             self.itsView.notificationQueue = Queue.Queue()
             self.itsView.addNotificationCallback(repositoryViewCallback)
-        logger.debug("%s is queuing %s %s" % (self, op, other))
+        if DEBUG:
+            logger.debug("%s is queuing %s %s", self, op, other)
         self.itsView.notificationQueue.put((self, op, item, name, other, positions))
 
     def notifySubscribers(self, op, item, name, other, positions):
@@ -204,11 +210,13 @@ class AbstractCollection(items.ContentItem):
             if method_name != None:
                 method = getattr(type(i), method_name, None)
                 if method != None:
-                    logger.debug("Delivering %s [%s] %s to %s from %s using %s" % (op, item, other, i, self.itsName, method_name))
+                    if DEBUG:
+                        logger.debug("Delivering %s [%s] %s to %s from %s using %s",
+                                     op, item, other, i, self.itsName, method_name)
                     method(i, op, self, name, other, positions)
-                else:
-                    logger.debug("Didn't find the specified notification handler named %s for %s" % (method_name, i))
-            else:
+                elif DEBUG:
+                    logger.debug("Didn't find the specified notification handler named %s for %s", method_name, i)
+            elif DEBUG:
                 logger.debug("notification handler not specfied - no collectionEventHandler attribute")
 
     def contentsUpdated(self, item):
@@ -538,36 +546,42 @@ class InclusionExclusionCollection(DifferenceCollection):
           Add an item to the collection
         """
 
-        logger.debug("Adding %s to %s...",
-            item.getItemDisplayName().encode('ascii', 'replace'),
-            self.getItemDisplayName().encode('ascii', 'replace'))
-        self.inclusions.add (item)
+        if DEBUG:
+            logger.debug("Adding %s to %s...",
+                         item.getItemDisplayName().encode('ascii', 'replace'),
+                         self.getItemDisplayName().encode('ascii', 'replace'))
+        self.inclusions.add(item)
 
         if item in self.exclusions:
-            logger.debug("...removing from exclusions (%s)",
-                self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
-            self.exclusions.remove (item)
+            if DEBUG:
+                logger.debug("...removing from exclusions (%s)",
+                             self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
+            self.exclusions.remove(item)
 
         # If a trash is associated with this collection, remove the item
         # from the trash.  This has the additional benefit of having the item
         # reappear in any collection which has the item in its inclusions
 
         if self.trash is not None and item in self.trash:
-            logger.debug("...removing from trash (%s)",
-                self.trash.getItemDisplayName().encode('ascii', 'replace'))
-            self.trash.remove (item)
+            if DEBUG:
+                logger.debug("...removing from trash (%s)",
+                             self.trash.getItemDisplayName().encode('ascii', 'replace'))
+            self.trash.remove(item)
 
-        logger.debug("...done adding %s to %s",
-            item.getItemDisplayName().encode('ascii', 'replace'),  self.getItemDisplayName().encode('ascii', 'replace'))
+        if DEBUG:
+            logger.debug("...done adding %s to %s",
+                         item.getItemDisplayName().encode('ascii', 'replace'),
+                         self.getItemDisplayName().encode('ascii', 'replace'))
 
     def remove (self, item):
         """
           Remove an item from the collection
         """
 
-        logger.debug("Removing %s from %s...",
-            item.getItemDisplayName().encode('ascii', 'replace'),
-            self.getItemDisplayName().encode('ascii', 'replace'))
+        if DEBUG:
+            logger.debug("Removing %s from %s...",
+                         item.getItemDisplayName().encode('ascii', 'replace'),
+                         self.getItemDisplayName().encode('ascii', 'replace'))
 
         # Before we actually add this item to our exclusions list, let's see
         # how many other collections (that share our trash) this item is in.
@@ -585,23 +599,27 @@ class InclusionExclusionCollection(DifferenceCollection):
                     addToTrash = False
                     break
 
-        logger.debug("...adding to exclusions (%s)",
-            self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
+        if DEBUG:
+            logger.debug("...adding to exclusions (%s)",
+                         self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
         self.exclusions.add (item)
 
         if item in self.inclusions:
-            logger.debug("...removing from inclusions (%s)",
-                self.inclusions.getItemDisplayName().encode('ascii', 'replace'))
+            if DEBUG:
+                logger.debug("...removing from inclusions (%s)",
+                             self.inclusions.getItemDisplayName().encode('ascii', 'replace'))
             self.inclusions.remove (item)
 
         if addToTrash:
-            logger.debug("...adding to trash (%s)",
-                self.trash.getItemDisplayName().encode('ascii', 'replace'))
+            if DEBUG:
+                logger.debug("...adding to trash (%s)",
+                             self.trash.getItemDisplayName().encode('ascii', 'replace'))
             self.trash.add(item)
 
-        logger.debug("...done removing %s from %s",
-            item.getItemDisplayName().encode('ascii', 'replace'),
-            self.getItemDisplayName().encode('ascii', 'replace'))
+        if DEBUG:
+            logger.debug("...done removing %s from %s",
+                         item.getItemDisplayName().encode('ascii', 'replace'),
+                         self.getItemDisplayName().encode('ascii', 'replace'))
 
     def setup(self, source=None, exclusions=None,  trash="TrashCollection"):
         """
