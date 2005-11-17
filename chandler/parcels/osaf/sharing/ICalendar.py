@@ -265,6 +265,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             if item is None:
                 item = InclusionExclusionCollection(view=view).setup()
             elif isinstance(item, Sharing.Share):
+                        
                 if item.contents is None:
                     item.contents = \
                         InclusionExclusionCollection(view=view).setup()
@@ -273,6 +274,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             if not isinstance(item, AbstractCollection):
                 print "Only a share or an item collection can be passed in"
                 #@@@MOR Raise something
+
+
         else:
             caldavReturn = None
 
@@ -290,7 +293,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 calName = calendar.contents[u'x-wr-calname'][0].value
             except:
                 calName = u"Imported Calendar"
-            item.displayName = unicode(calName)
+            if getattr(item, 'displayName', "") == "":
+                item.displayName = unicode(calName)
 
         countNew = 0
         countUpdated = 0
@@ -535,8 +539,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         work=True):
                     raise Sharing.SharingError(_(u"Cancelled by user"))
 
+                allCollection = schema.ns("osaf.app", self.view).allCollection
+
                 if self.fileStyle() == self.STYLE_SINGLE:
-                    item.add(eventItem.getMaster())
+                    if item != allCollection:
+                        item.add(eventItem.getMaster())
                 else:
                     caldavReturn = eventItem.getMaster()
 

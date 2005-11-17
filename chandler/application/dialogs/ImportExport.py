@@ -8,6 +8,7 @@ from application import schema
 import itertools
 import osaf.sharing
 from time import time
+import application.Globals as Globals
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -95,6 +96,10 @@ class FileChooserWithOptions(wx.Dialog):
         self.Layout()
         self.CenterOnScreen()
 
+def isReadOnly(collection):
+    share = osaf.sharing.getShare(collection)
+    return share and share.mode == 'get'
+
 
 class ImportDialog(FileChooserWithOptions):
     def __init__(self, parent, dialogTitle, view):
@@ -114,6 +119,40 @@ class ImportDialog(FileChooserWithOptions):
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.onCancel, id=wx.ID_CANCEL)
 
+        
+        chooserBox = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.chooserLabel = wx.StaticText(self, -1, _(u"Import events into:"))
+        chooserBox.Add(self.chooserLabel, 0, wx.ALL, 3)
+
+        sidebarCollection = schema.ns("osaf.app", view).sidebarCollection
+        trash             = schema.ns("osaf.app", view).TrashCollection
+        selected = Globals.views[0].getSidebarSelectedCollection()
+        
+        self.choices = [col for col in sidebarCollection if 
+                        (col not in (trash, selected) and not isReadOnly(col))]
+
+        selectNew = schema.ns("osaf.sharing", view).prefs.import_as_new
+        if selected == trash or isReadOnly(selected):
+            selectNew = True
+        else:
+            self.choices.insert(0, selected)
+
+        displayChoices = [_(u"New collection")]
+        displayChoices.extend(col.displayName for col in self.choices)
+        
+        self.choices.insert(0, None) # make choice indices match displayChoice
+        
+        self.chooser = wx.Choice(self, -1, choices = displayChoices)
+        if selectNew:
+            self.chooser.SetSelection(0)
+        else:
+            self.chooser.SetSelection(1)
+            
+        chooserBox.Add(self.chooser, 0, wx.LEFT, 10)
+    
+        self.box.Insert(1, chooserBox, 0, wx.LEFT, 16)
+
         self.feedbackBox = wx.BoxSizer(wx.VERTICAL)
         
         self.gauge = wx.Gauge(self, size=(360, 15))
@@ -122,11 +161,11 @@ class ImportDialog(FileChooserWithOptions):
         self.progressText = wx.StaticText(self, -1, _(u"Starting import"))
         self.feedbackBox.Add(self.progressText, wx.ALIGN_LEFT)
         
-        self.box.Insert(1, self.feedbackBox, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+        self.box.Insert(2, self.feedbackBox, 0, wx.ALL | wx.ALIGN_CENTER, 10)
         self.box.Hide(self.feedbackBox)
-        
+        self.box.Fit(self)
+
         self.cancelling = False
-        
         self.view = view
         
 
@@ -135,7 +174,8 @@ class ImportDialog(FileChooserWithOptions):
         self.box.Show(self.feedbackBox, recursive=True)
         self.box.Fit(self)
 
-        widgets = (self.filechooser, self.FindWindowById(wx.ID_OK))
+        widgets = (self.filechooser, self.FindWindowById(wx.ID_OK),
+                   self.chooser, self.chooserLabel)
         for widget in itertools.chain(widgets, self.options.itervalues()):
             widget.Disable()
         
@@ -171,10 +211,17 @@ class ImportDialog(FileChooserWithOptions):
             return False
         
         (dir, filename) = os.path.split(fullpath)
-        schema.ns("osaf.sharing", self.view).prefs.import_dir = dir
+        prefs = schema.ns("osaf.sharing", self.view).prefs
+        prefs.import_dir = dir
+        
+        targetCollection = self.choices[self.chooser.GetSelection()]            
+
+        # set the preference for importing collections into new collections
+        prefs.import_as_new = targetCollection is None
         
         share = osaf.sharing.OneTimeFileSystemShare(
-            dir, filename, osaf.sharing.ICalendarFormat, view=self.view
+            dir, filename, osaf.sharing.ICalendarFormat, view=self.view,
+            contents = targetCollection
         )
 
         for key, val in self.options.iteritems():
@@ -185,9 +232,13 @@ class ImportDialog(FileChooserWithOptions):
             monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
             before = time()
             collection = share.get(monitor.callback)
+            if targetCollection is None:
+                name = "".join(filename.split('.')[0:-1]) or filename
+                collection.displayName = name
+                schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
             logger.info("Imported collection in %s seconds" % (time() - before))
             assert (hasattr (collection, 'color'))
-            schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
+            
         except:
             logger.exception("Failed importFile %s" % fullpath)
             self.fail(_(u"Unable to parse the chosen file, import cancelled."))

@@ -65,6 +65,7 @@ PUBLISH_MONOLITHIC_ICS = False
 
 class SharingPreferences(schema.Item):
     import_dir = schema.One(schema.Text, defaultValue = getDesktopDir())
+    import_as_new = schema.One(schema.Boolean, defaultValue = True)
 
 def installParcel(parcel, old_version=None):
     """
