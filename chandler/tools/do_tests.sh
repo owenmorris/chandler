@@ -77,9 +77,12 @@ echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $TESTL
 echo Started `date`                                              | tee -a $TESTLOG
 echo Setting up script environment                               | tee -a $TESTLOG
 
+PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
+
 if [ "$OSTYPE" = "cygwin" ]; then
     RUN_CHANDLER=RunChandler.bat
     RUN_PYTHON=RunPython.bat
+    PP_DIR=`cygpath -w $PP_DIR`
 else
     RUN_CHANDLER=RunChandler
     RUN_PYTHON=RunPython
@@ -231,7 +234,7 @@ else
             echo Running $TESTNAME | tee -a $TESTLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create $STDERR_FLAG --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create $STDERR_FLAG --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
