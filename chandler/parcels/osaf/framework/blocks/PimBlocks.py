@@ -105,13 +105,15 @@ class FocusEventHandlers(Item):
         sendableItems = [ item for item in selectedItems 
                           if self.__getSendabilityOf(item) == 'sendable' ]
         assert list(selectedItems) == sendableItems
+
         for item in sendableItems:
             # For now, make sure we've got a 'from' string.
             # @@@ BJS: this'll go away when we change 'from' to an
             # account picker popup.
             if isinstance (item, Mail.MailMessageMixin):
-                if item.fromAddress == u'':
+                if unicode(item.fromAddress).strip() == u'':
                     item.fromAddress = item.getCurrentMeEmailAddress()
+
             item.shareSend()
 
     def onFocusTogglePrivateEvent(self, event):
