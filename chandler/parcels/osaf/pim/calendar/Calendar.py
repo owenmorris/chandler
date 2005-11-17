@@ -440,7 +440,6 @@ class CalendarEventMixin(RemindableMixin):
             return self.getFirstInRule().createDateUtilFromRule()
         else:
             dtstart = self.getEffectiveStartTime()
-            set = self.rruleset.createDateUtilFromRule(dtstart)
             return self.rruleset.createDateUtilFromRule(dtstart)
 
     def setRuleFromDateUtil(self, rule):
