@@ -65,10 +65,12 @@ def makeLabel(parcel, label=u'', borderTop=5, border=None):
                                border=border)
 
 def makeSpacer(parcel, size=None, width=-1, height=-1, 
-               name=None, baseClass=SpacerBlock, **kwds):
+               name=None, baseClass=ControlBlocks.StaticText, **kwds):
     """ 
     Make a spacer block template. Size can be specified as a SizeType, or as
-    individual height or width. 
+    individual height or width. The base class is normally just StaticText,
+    but a subclass of SynchronizedSpacerBlock can be used if the spacer's
+    visibility needs to be conditioned on data in the item being displayed.
     """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     size = size or SizeType(width, height)
