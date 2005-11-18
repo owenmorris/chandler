@@ -362,7 +362,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         view = self.blockItem.itsView
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         
-        event = self.CreateEmptyEvent(startTime=newTime, allDay=True, anyTime=False)
+        event = self.CreateEmptyEvent(startTime=newTime, allDay=True, anyTime=True)
 
         # collectionList[0] is the currently selected collection
         self.OnSelectItem(event)
