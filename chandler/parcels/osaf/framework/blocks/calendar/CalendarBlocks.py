@@ -199,7 +199,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             # the same tzinfo to rruleset.between, because dateutil's
             # datetime comparisons aren't safe with naive and non-naive
             # datetimes.
-            tzinfo = masterEvent.startTime.tzinfo
+            tzinfo = masterEvent.effectiveStartTime.tzinfo
             startDatetime = startDatetime.replace(tzinfo=tzinfo)
             endDatetime = endDatetime.replace(tzinfo=tzinfo)
             
