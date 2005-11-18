@@ -1625,13 +1625,9 @@ class ReminderTimer(Timer):
             reminderDialog = self.getReminderDialog(False)
             if reminderDialog is not None:
                 (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
-            elif len(pending) > 0:
-                nextReminderTime = pending[0][0]
-            else:
-                nextReminderTime = None
             if closeIt:
                 self.closeReminderDialog();
-            self.setFiringTime(nextReminderTime)
+            self.setFiringTimeIfRemindersExist()
 
     def render(self, *args, **kwds):
         super(ReminderTimer, self).render(*args, **kwds)
@@ -1661,15 +1657,15 @@ class ReminderTimer(Timer):
         def matches(key):
             if view[key].reminderFireTime <= now:
                 return 0
-            return 1
+            return -1
 
         events = schema.ns('osaf.app', view).eventsWithReminders.rep
-        lastKey = events.findInIndex('reminderTime', 'last', matches)
+        lastPastKey = events.findInIndex('reminderTime', 'last', matches)
 
-        if lastKey is not None:
+        if lastPastKey is not None:
             return [(ev.reminderFireTime, ev ,ev.reminders.first()) 
                     for ev in (view[key] for key in 
-                     events.iterindexkeys('reminderTime', None, lastKey))]
+                     events.iterindexkeys('reminderTime', None, lastPastKey))]
 
         return []
     
@@ -1683,7 +1679,15 @@ class ReminderTimer(Timer):
         if closeIt:
             # logger.debug("*** closing the dialog!")
             self.closeReminderDialog()
-        self.setFiringTime(nextReminderTime)
+        self.setFiringTimeIfRemindersExist()
+
+    def setFiringTimeIfRemindersExist(self):
+        events = schema.ns('osaf.app', self.itsView).eventsWithReminders.rep
+        
+        firstReminder = events.firstInIndex('reminderTime')
+
+        if firstReminder is not None:
+            self.setFiringTime(firstReminder.reminderFireTime)
 
     def getReminderDialog(self, createIt):
         try:

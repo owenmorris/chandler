@@ -472,24 +472,26 @@ class CalendarEventMixin(RemindableMixin):
         if first is not self:
             return first._createOccurrence(recurrenceID)
 
-        return self.clone(None, None, ('collections', 'recurrenceEnd'), False,
+        item = self.clone(None, None, ('collections', 'recurrenceEnd'), False,
                           isGenerated=True,
                           recurrenceID=recurrenceID,
                           startTime=recurrenceID,
                           occurrenceFor=first,
                           modificationFor=None)
+        item._fixReminders()
+        return item
 
     def getNextOccurrence(self, after=None, before=None):
         """Return the next occurrence for the recurring event self is part of.
         
-        If self is the only occurrence, or last occurrence, return None.  Note
-        that getNextOccurrence does not have logic to deal with the duration
-        of events.
+        If self is the only occurrence, or last occurrence, return None.
         
         """
         # helper function
         def checkModifications(first, before, nextEvent = None):
-            """Look for mods before nextEvent and before, and after "after"."""
+            """Look for modifications or a master event before nextEvent,
+            before "before", and after "after".
+            """
             if after is None:
                 # isBetween isn't quite what we want if after is None
                 def test(mod):
@@ -498,179 +500,93 @@ class CalendarEventMixin(RemindableMixin):
             else:
                 def test(mod):
                     return mod.isBetween(after, before)
-            for mod in first.modifications or []:
+            withMaster = []
+            if first.occurrenceFor is not None:
+                withMaster.append(first)
+            for mod in itertools.chain(withMaster, first.modifications or []):
                 if test(mod):
                     if nextEvent is None:
                         nextEvent = mod
-                        # finally, well-ordering requires that we sort by
-                        # recurrenceID if startTimes are equal
-                    elif datetimeOp(mod.startTime, '<=', nextEvent.startTime):
-                        if datetimeOp(mod.startTime, '==', nextEvent.startTime) and \
-                           datetimeOp(mod.recurrenceID,'>=', nextEvent.recurrenceID):
-                            pass #this 
-                        else:
-                            # check to make sure mod isn't self, wacky things
-                            # like that happen when modifications are out of 
-                            # order.
-                            if after is None and mod == self:
-                                pass
-                            else:
-                                nextEvent = mod
+                    # sort by recurrenceID if startTimes are equal
+                    elif (datetimeOp(mod.startTime, '<', nextEvent.startTime) or
+                         (datetimeOp(mod.startTime, '==', nextEvent.startTime)
+                          and datetimeOp(mod.recurrenceID, 
+                                         '<', nextEvent.recurrenceID))):
+                        nextEvent = mod
             return nextEvent
-        
-        def fixReminders(event):
-            # When creating generated events, this function is
-            # called so that all reminders in the past are marked
-            # expired, and the rest are not. This helps avoid a
-            # mass of reminders if an event in the past is changed.
-            #
-            now = datetime.now()
-            
-            def expired(reminder):
-                nextTime = reminder.getNextReminderTimeFor(event)
-                return (nextTime is not None and
-                        datetimeOp(nextTime, '<=', now))
-
-
-            # We really don't want to touch event.reminders
-            # or event.expiredReminders if they haven't really
-            # changed. The reason is that that will trigger a
-            # change notification on app idle, which in turn causes
-            # the UI to re-generate all these occurrences, which puts
-            # us back in this # method, etc, etc.
-            
-            # Figure out what (if anything) has changed ...
-            nowExpired = [r for r in event.reminders
-                            if expired(r)]
-                            
-            nowNotExpired = [r for r in event.expiredReminders
-                               if not expired(r)]
-                             
-            # ... and update the collections accordingly
-            for reminder in nowExpired:
-                event.expiredReminders.add(reminder)
-                event.reminders.remove(reminder)
-
-            for reminder in nowNotExpired:
-                event.reminders.add(reminder)
-                event.expiredReminders.remove(reminder)
-                
-            return event
-
                 
         # main getNextOccurrence logic
         if self.rruleset is None:
             return None
+
+        first = self.getMaster()        
+        exact = after is not None and after == before
+
+        # take duration into account if after is set
+        if not exact and after is not None:
+            start = after - first.duration
         else:
-            first = self.getFirstInRule()
-            # take duration into account if after is set
-            if after is not None:
-                earliest = after - first.duration
-                inclusive = True
-            elif first == self: #recurrenceID means a different thing for first
-                earliest = self.startTime 
-                inclusive = False
-            else:
-                earliest = datetimeOp(self.recurrenceID, 'min', self.startTime)
-                inclusive = False
+            start = self.startTime 
 
-            fromRule = self.createDateUtilFromRule()
-            # Here, we want to make sure that anything we pass
-            # to fromRule has the same timezone as all the rules
-            # and dates within fromRule.
-            #
-            # Otherwise, we could well end up with unsafe datetime
-            # comparisons inside dateutil.
-            try:
-                tzinfo = fromRule[0].tzinfo
-            except IndexError:
-                tzinfo = self.startTime.tzinfo
-            while True:
-                # was this instance just created?
-                created = False
-                earliestWithTz = coerceTimeZone(earliest, tzinfo)
-                
-                # the after method is the call to dateutil's machinery
-                nextRecurrenceID = fromRule.after(earliestWithTz, inclusive)
-                
-                if nextRecurrenceID == None or \
-                   (before != None and datetimeOp(nextRecurrenceID, '>', before)):
-                    # no more generated occurrences, make sure no modifications
-                    # match
-                    return checkModifications(first, before)
-                                
-                # First, see if an occurrence for nextRecurrenceID exists.
-                calculated = self.getExistingOccurrence(nextRecurrenceID)
+        ruleset = self.createDateUtilFromRule()
+        try:
+            start = coerceTimeZone(start, ruleset[0].tzinfo)
+        except IndexError:
+            start = coerceTimeZone(start, self.startTime.tzinfo)
 
-                # if the event was modified to occur much later than its
-                # recurrenceID, it may actually be after the next recurrenceID.
-                # If so, find the next generated occurrence and test if
-                # calculated is before it, if it's not, set calculated to be
-                # the next generated occurrence.  There may be modifications
-                # before this, but they're guaranteed to already be generated
-                # and they'll be picked up by checkModifications.
-                if calculated is not None:
-                    if datetimeOp(calculated.startTime, '>', nextRecurrenceID):
-                        laterRecurrenceID = fromRule.after(nextRecurrenceID)
-                        while laterRecurrenceID is not None:
-                            if datetimeOp(calculated.startTime, '>', laterRecurrenceID):
-                                event = self.getExistingOccurrence(laterRecurrenceID)
-                                if event is None:
-                                    # This recurrenceID doesn't exist, it's
-                                    # earlier than calculated and (will be)
-                                    # generated, use it.
-                                    calculated = self._createOccurrence(laterRecurrenceID)
-                                    laterRecurrenceID = None
-                                elif event.isGenerated:
-                                    calculated = event
-                                    laterRecurrenceID = None
-                                else:
-                                    laterRecurrenceID = fromRule.after(laterRecurrenceID)
-                            else:
-                                laterRecurrenceID = None                                
+        for recurrenceID in ruleset:
+            if (recurrenceID < start or (not exact and recurrenceID == start)):
+                continue
+            
+            if before != None and datetimeOp(recurrenceID, '>', before):
+                return checkModifications(first, before)
+
+            calculated = self.getExistingOccurrence(recurrenceID)
+            if calculated is None:
+                return checkModifications(first, before,
+                                          self._createOccurrence(recurrenceID))
+            elif calculated.isGenerated or exact:
+                return checkModifications(first, before, calculated)
+        
+        return checkModifications(first, before)
+
+    def _fixReminders(self):
+        # When creating generated events, this function is
+        # called so that all reminders in the past are marked
+        # expired, and the rest are not. This helps avoid a
+        # mass of reminders if an event in the past is changed.
+        #
+        now = datetime.now()
+        
+        def expired(reminder):
+            nextTime = reminder.getNextReminderTimeFor(self)
+            return (nextTime is not None and
+                    datetimeOp(nextTime, '<=', now))
+
+
+        # We really don't want to touch self.reminders
+        # or self.expiredReminders if they haven't really
+        # changed. The reason is that that will trigger a
+        # change notification on app idle, which in turn causes
+        # the UI to re-generate all these occurrences, which puts
+        # us back in this # method, etc, etc.
+        
+        # Figure out what (if anything) has changed ...
+        nowExpired = [r for r in self.reminders
+                        if expired(r)]
                         
-                        
-                # If no occurrence already exists, create one
-                else:
-                    created = True
-                    calculated = self._createOccurrence(nextRecurrenceID)
+        nowNotExpired = [r for r in self.expiredReminders
+                           if not expired(r)]
+                         
+        # ... and update the collections accordingly
+        for reminder in nowExpired:
+            self.expiredReminders.add(reminder)
+            self.reminders.remove(reminder)
 
-                # now we have an event calculated from nextRecurrenceID.  It's
-                # actual startTime may be too early or too late, or there may be a
-                # modification which is even earlier.
-                
-                if (after == None and \
-                     datetimeOp(calculated.startTime, '<', self.startTime)) \
-                  or (
-                      after is not None
-                      and not calculated.isBetween(after, before)):
-                        # too early or too late, but there may be a matching modification
-                        mod = checkModifications(first, nextRecurrenceID)
-                        if mod is None:
-                            if before is not None and \
-                               datetimeOp(calculated.startTime, '>', before):
-                                # this modification is too late and we've checked for
-                                # earlier matching modifications and generated events
-                                return None
-                            else:
-                                earliest = nextRecurrenceID
-                                continue
-                        else:
-                            if created:
-                                return fixReminders(mod)
-                            else:
-                                return mod
-                else:
-                    final = checkModifications(first, before, calculated)
-                    if after is None and final == self:
-                        earliest = nextRecurrenceID
-                        continue
-                    else:
-                        if created:
-                            return fixReminders(final)
-                        else:
-                            return final
-
+        for reminder in nowNotExpired:
+            self.reminders.add(reminder)
+            self.expiredReminders.remove(reminder)
+            
 
     def _generateRule(self, after=None, before=None, inclusive=False):
         """Yield all occurrences in this rule."""
