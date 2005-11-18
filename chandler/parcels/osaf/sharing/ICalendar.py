@@ -64,11 +64,15 @@ def itemsToVObject(view, items, cal=None, filters=None):
         
         try:
             dtstartLine = comp.add('dtstart')
-            allDay = item.allDay
-            if item.anyTime:
+            if item.allDay:
+                # allDay-ness overrides anyTime-ness
+                dtstartLine.value = dateForVObject(item.startTime, True)
+            elif item.anyTime:
                 dtstartLine.params['X-OSAF-ANYTIME']=['TRUE']
-                allDay = True # anyTime should be exported as allDay
-            dtstartLine.value = dateForVObject(item.startTime, allDay)
+                # anyTime should be exported as allDay for non-Chandler apps
+                dtstartLine.value = dateForVObject(item.startTime, True)
+            else:
+                dtstartLine.value = dateForVObject(item.startTime, False)
 
         except AttributeError:
             comp.dtstart = [] # delete the dtstart that was added
@@ -79,15 +83,15 @@ def itemsToVObject(view, items, cal=None, filters=None):
                     item.duration <= datetime.timedelta(days=1))):
                 dtendLine = comp.add('dtend')
                 #convert Chandler's notion of allDay duration to iCalendar's
-                allDay = item.allDay
-                if item.anyTime:
-                    dtendLine.params['X-OSAF-ANYTIME']=['TRUE']
-                    allDay = True # anyTime should be exported as allDay
-                if allDay:
-                    dtendLine.value = dateForVObject(item.endTime, allDay) + \
+                if item.allDay:
+                    dtendLine.value = dateForVObject(item.endTime, True) + \
                                                      datetime.timedelta(days=1)
+                elif item.anyTime:
+                    dtendLine.params['X-OSAF-ANYTIME']=['TRUE']
+                    # anyTime should be exported as allDay for non-Chandler apps
+                    dtendLine.value = dateForVObject(item.endTime, True)
                 else:
-                    dtendLine.value = dateForVObject(item.endTime, allDay)
+                    dtendLine.value = dateForVObject(item.endTime, False)
 
         except AttributeError:
             comp.dtend = [] # delete the dtend that was added
@@ -374,9 +378,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     # around DST, but we'll ignore that corner case for now
                     try:
                         duration = event.dtend[0].value - dtstart
-                    # FIXME no end time or duration, Calendar UI doesn't seem to
-                    # like events with no duration, so for now we'll set a dummy
-                    # duration of 1 hour
                     except AttributeError:
                         # FIXME Nesting try/excepts is ugly.
                         try:
@@ -460,23 +461,20 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     
                 changesDict = {}
                 change = changesDict.__setitem__
-                
-                #Default to NOT any time
-                change('anyTime', False)
-                
+                                
                 change('displayName', displayName)
 
                 if anyTime:
                     change('anyTime', True)
                     change('allDay', False)
+                elif isDate:
+                    # allDay events should have anyTime True, so if the user
+                    # unselects allDay, the time isn't set to midnight
+                    change('anyTime', True)
+                    change('allDay', True)
                 else:
+                    change('allDay', False)
                     change('anyTime', False)
-                    # anyTime events will look like allDay, but they aren't, so
-                    # only set allDay if allDay is False
-                    if isDate:
-                        change('allDay', True)
-                    else:
-                        change('allDay', False)
 
                 change('startTime', dtstart)
                 change('duration', duration)
