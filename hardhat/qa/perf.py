@@ -327,6 +327,7 @@ class perf:
          ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   'Scroll calendar with 3k event calendar'),
          ('scrolling_a_table.scroll_table_25_scroll_units',                      'Scroll table with 3k event calendar'),
          ('jump_from_one_week_to_another.jump_calendar_by_one_week',             'Jump calendar by one week with 3k event calendar'),
+         ('overlay_calendar.overlay_calendar',                                   'Overlay calendar with 3k event calendar'),
          #('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             'Resize calendar with 3k event calendar'),
         ]
 
@@ -347,6 +348,7 @@ class perf:
          'scroll_calendar_one_unit.scroll_calendar_one_unit':                   0.1,
          'scrolling_a_table.scroll_table_25_scroll_units':                      0.1,
          'jump_from_one_week_to_another.jump_calendar_by_one_week':             1,
+         'overlay_calendar.overlay_calendar':                                   1,
          #'resize_app_in_calendar_mode.resize_app_in_calendar_mode':             0.1,
         }
 
