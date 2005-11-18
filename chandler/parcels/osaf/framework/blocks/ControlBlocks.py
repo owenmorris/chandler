@@ -1645,9 +1645,10 @@ class ReminderTimer(Timer):
         self.synchronizeSoon()
 
     def getPendingReminders (self):
-        """ Return a list of reminder tuples sorted by reminderTime 
+        """ Return a list of all reminder tuples with fire times in the past, 
+        sorted by reminderTime.
 
-        Each tuple contains (reminderTime, remindable, reminder) 
+        Each tuple contains (reminderTime, remindable, reminder).
         """
 
         view = self.itsView
