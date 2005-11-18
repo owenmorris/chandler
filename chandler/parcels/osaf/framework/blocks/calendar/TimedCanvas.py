@@ -42,14 +42,97 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.SetVirtualSize(self.size)
 
     def wxSynchronizeWidget(self, **hints):
-        # we sort the items so that when drawn, the later events are drawn last
-        # so that we get proper stacking
-        # print "TimedEventsCanvas.wxSynchronizeWidget()"
         currentRange = self.GetCurrentDateRange()
-        self.visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
-                                                                timedItems=True))
-        self._doDrawingCalculations()
-        self.RefreshCanvasItems(resort=True)
+
+        # The only hints we understand are event additions.
+        # So, if any other kind of hints have been received,
+        # fall back to a full synchronize.
+        addedEvents = self.blockItem._getAddedEventsFromHints(
+                                            currentRange[0], currentRange[1],
+                                            hints)
+
+        if addedEvents is not None:
+            defaultTzinfo = ICUtzinfo.getDefault()
+            
+            def fixTimezone(d):
+                if d.tzinfo is None:
+                    return d.replace(tzinfo=defaultTzinfo)
+                else:
+                    return d.astimezone(defaultTzinfo)
+                    
+            date, nextDate = (fixTimezone(d) for d in currentRange)
+
+            numAdded = 0 # The events may not be timed, or may fall
+                         # outside our range, etc,
+
+            primaryCollection = self.blockItem.contents.collectionList[0]
+            
+            if not hasattr(self, 'canvasItemList'):
+                self.canvasItemList = []
+                
+            def insertInSortedList(eventList, newElement):
+                # Could binary search here, but hopefully we're never
+                # displaying that many events ... ?
+                insertIndex = 0
+                
+                for event in eventList:
+                    if event is newElement:
+                        return False
+                    if self.sortByStartTime(event, newElement) < 0:
+                        break
+                    
+                    insertIndex += 1
+                
+                eventList.insert(insertIndex, newElement)
+                return True
+                
+
+            for event in addedEvents:
+
+                if not self.blockItem.isDayItem(event):
+
+                    if insertInSortedList(self.visibleItems, event):
+                        collection = self.blockItem.getContainingCollection(
+                                                                     event)
+                        canvasItem = TimedCanvasItem(collection, 
+                                        primaryCollection, event, self)
+                        self.canvasItemList.append(canvasItem)
+                        
+                        numAdded += 1
+
+
+            if numAdded > 0:
+                keyFn = (lambda ci: ci._item.startTime)
+                cmpFn = (lambda x, y: Calendar.datetimeOp(x, 'cmp', y))
+                self.canvasItemList.sort(cmpFn, keyFn)
+
+                self._doDrawingCalculations()
+    
+                # now generate conflict info
+                self.CheckConflicts()
+                
+                # next, generate bounds rectangles for each canvasitem
+                for canvasItem in self.canvasItemList:
+                # drawing rects should be updated to reflect conflicts
+                    canvasItem.UpdateDrawingRects()
+                    
+                # canvasItemList has to be sorted by depth
+                # should be relatively quick because the canvasItemList is already
+                # sorted by startTime. If no conflicts, this is an O(n) operation
+                # (note that as of Python 2.4, sorts are stable, so this remains safe)
+                self.canvasItemList.sort(key=TimedCanvasItem.GetIndentLevel)
+    
+                self.Refresh()
+        else:
+            # we sort the items so that when drawn, the later events are drawn last
+            # so that we get proper stacking
+            # print "TimedEventsCanvas.wxSynchronizeWidget()"
+            self.visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
+                                                                    timedItems=True))
+
+            self._doDrawingCalculations()
+            self.RefreshCanvasItems(resort=True)
+            
 
     def OnSize(self, event):
         # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)

@@ -28,8 +28,20 @@ from i18n import OSAFMessageFactory as _
 
 class wxMiniCalendar(wx.minical.MiniCalendar):
 
-    # Used to limit the frequency with which we repaint the minicalendar
-    _redrawCount = 1
+    # Used to limit the frequency with which we repaint the minicalendar.
+    # This used to be a real issue, but with the 0.6 notification system,
+    # we could probably just rely on the usual wxSynchronize mechanism.
+    _recalcCount = 1
+    
+    # In the case of adding new events, we may be able to get away
+    # with just updating a few days on the minicalendar. In those
+    # cases, _eventsToAdd will be non-None.
+    _eventsToAdd = None
+    
+     # Note that _recalcCount wins over _eventsToAdd. That's
+     # because more general changes (i.e. ones we don't know
+     # how to optimize) require a full recalculation.
+
 
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
@@ -51,7 +63,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         if isMainCalendarVisible() and self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
-        self.setFreeBusy(None)
+        self.setFreeBusy(None, **hints)
+
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -97,18 +110,51 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
         self.Refresh()
 
-    def setFreeBusy(self, event):
-        self._redrawCount += 1
-        self.Refresh()
+    def setFreeBusy(self, event, **hints):
+        
+        if self._recalcCount == 0:
+            startWxDate = self.GetStartDate();
+            endWxDate = startWxDate + wx.DateSpan.Month() * 3
+                    
+            
+            start = datetime(startWxDate.GetYear(),
+                        startWxDate.GetMonth() + 1,
+                        startWxDate.GetDay())
+
+            end = datetime(endWxDate.GetYear(),
+                        endWxDate.GetMonth() + 1,
+                        endWxDate.GetDay())
+
+            addedEvents = self.blockItem._getAddedEventsFromHints(start, end,
+                                                              hints)
+    
+            if addedEvents is None:
+                self._eventsToAdd = None
+            else:
+                # self._eventsToAdd is a set to deal with cases where
+                # multiple notifications are received for a given
+                # event.
+                if self._eventsToAdd is None: self._eventsToAdd = set()
+                
+                # Include confirmed events only
+                self._eventsToAdd.update(item for item in addedEvents if
+                                         item.transparency == 'confirmed')
+
+        if self._eventsToAdd is None:
+            self._recalcCount += 1
+        
+        if self._recalcCount or self._eventsToAdd:
+            self.Refresh()
 
     def OnPaint(self, event):
         self._checkRedraw()
         event.Skip(True)
 
     def _checkRedraw(self):
-        if self._redrawCount > 0:
-            self._redrawCount = 0
+        if self._recalcCount > 0 or self._eventsToAdd is not None:
+            self._recalcCount = 0
             self._doDrawing()
+            self._eventsToAdd = None
             
     def _doDrawing(self):
 
@@ -163,89 +209,112 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                 fraction += (hours / 12.0)
                 
                 busyFractions[offset] = min(fraction, 1.0)
-
-        # Largely, this code is stolen from CalendarCanvas.py; it
-        # would be good to refactor it at some point.
-        self.blockItem.EnsureIndexes()
-        
-        # First, look at all non-generated events
-        startDatetime = datetime.combine(startDate, time(0))
-        endDatetime = datetime.combine(endDate, time(0))
-
-        for item in self.blockItem.eventsInRange(startDatetime, endDatetime,
-                                            dayItems=True, timedItems=True):
-                updateBusy(item, item.startTime)
-
-        # Next, try to find all generated events in the given
-        # datetime range
-        
-        # The following iteration over keys comes from CalendarCanvas.py
-        events = self.blockItem.contents.rep
-        view = self.blockItem.itsView
-        app = schema.ns("osaf.app", view)
-        
-        allEvents = app.events.rep
-        masterEvents = app.masterEvents.rep
-
-        keys = self.blockItem.getKeysInRange(startDatetime, 'effectiveStartTime', 'effectiveStart',
-                                   allEvents, endDatetime, 'recurrenceEnd',
-                                   'recurrenceEnd', masterEvents,
-                                   events, '__adhoc__')
-        for key in keys:
-            masterEvent = view[key]
-            rruleset = masterEvent.createDateUtilFromRule()
-            
-            # We need to make sure that we hand off events with
-            # the same tzinfo to rruleset.between, because dateutil's
-            # datetime comparisons aren't safe with naive and non-naive
-            # datetimes.
-            tzinfo = masterEvent.effectiveStartTime.tzinfo
-            startDatetime = startDatetime.replace(tzinfo=tzinfo)
-            endDatetime = endDatetime.replace(tzinfo=tzinfo)
-            
-            modifications = list(masterEvent.modifications or [])
-            
-            for recurDatetime in rruleset.between(startDatetime, endDatetime, True):
-                # Now see if recurDatetime matches any of our modifications
-                matchingMod = None
                 
-                for mod in modifications:
-                    if Calendar.datetimeOp(recurDatetime, '==', mod.recurrenceID):
-                        matchingMod = mod
-                        break
-                        
+        if self._eventsToAdd is not None:
+        
+            # First, set up busyFractions to contain the
+            # existing values for all the dates of events
+            # we're about to add
+            for newEvent in self._eventsToAdd:
+                offset = (newEvent.startTime.date() - startDate).days
                 
-                if matchingMod is None:
-                    # OK, an unmodified occurrence. Just
-                    # go ahead and update
-                    updateBusy(masterEvent, recurDatetime)
-                else:
-                    # Aha, we found a matching modification. We
-                    # need to make sure it still falls inside the
-                    # range of datetimes we're interested in.
-                    modStart = matchingMod.startTime
+                currentAttr = self.GetAttr(offset)
+                if (currentAttr is not None):
+                    busyFractions[offset] = currentAttr.GetBusy()
+
+            # Now, update them all
+            for newEvent in self._eventsToAdd:
+                updateBusy(newEvent, newEvent.startTime)
+                
+            # Finally, update the UI
+            for offset, busy in busyFractions.iteritems():
+                eventWxDate = startWxDate + wx.DateSpan.Days(offset)
+                self.SetBusy(eventWxDate, busy)
+        
+        else:
+
+            # Largely, this code is stolen from CalendarCanvas.py; it
+            # would be good to refactor it at some point.
+            self.blockItem.EnsureIndexes()
+            
+            # First, look at all non-generated events
+            startDatetime = datetime.combine(startDate, time(0))
+            endDatetime = datetime.combine(endDate, time(0))
+    
+            for item in self.blockItem.eventsInRange(startDatetime, endDatetime,
+                                                dayItems=True, timedItems=True):
+                    updateBusy(item, item.startTime)
+    
+            # Next, try to find all generated events in the given
+            # datetime range
+            
+            # The following iteration over keys comes from CalendarCanvas.py
+            events = self.blockItem.contents.rep
+            view = self.blockItem.itsView
+            app = schema.ns("osaf.app", view)
+            
+            allEvents = app.events.rep
+            masterEvents = app.masterEvents.rep
+    
+            keys = self.blockItem.getKeysInRange(startDatetime, 'effectiveStartTime', 'effectiveStart',
+                                       allEvents, endDatetime, 'recurrenceEnd',
+                                       'recurrenceEnd', masterEvents,
+                                       events, '__adhoc__')
+            for key in keys:
+                masterEvent = view[key]
+                rruleset = masterEvent.createDateUtilFromRule()
+                
+                # We need to make sure that we hand off events with
+                # the same tzinfo to rruleset.between, because dateutil's
+                # datetime comparisons aren't safe with naive and non-naive
+                # datetimes.
+                tzinfo = masterEvent.effectiveStartTime.tzinfo
+                startDatetime = startDatetime.replace(tzinfo=tzinfo)
+                endDatetime = endDatetime.replace(tzinfo=tzinfo)
+                
+                modifications = list(masterEvent.modifications or [])
+                
+                for recurDatetime in rruleset.between(startDatetime, endDatetime, True):
+                    # Now see if recurDatetime matches any of our modifications
+                    matchingMod = None
                     
-                    # To do the comparison, we need to make sure
-                    # the naivetes of modStart, startDatetime and
-                    # endDatetime all match.
-                    if modStart.tzinfo is None:
-                        modStart = modStart.replace(tzinfo=tzinfo)
+                    for mod in modifications:
+                        if Calendar.datetimeOp(recurDatetime, '==', mod.recurrenceID):
+                            matchingMod = mod
+                            break
+                            
+                    
+                    if matchingMod is None:
+                        # OK, an unmodified occurrence. Just
+                        # go ahead and update
+                        updateBusy(masterEvent, recurDatetime)
                     else:
-                        modStart = modStart.astimezone(tzinfo)
+                        # Aha, we found a matching modification. We
+                        # need to make sure it still falls inside the
+                        # range of datetimes we're interested in.
+                        modStart = matchingMod.startTime
                         
-                    if (modStart >= startDatetime and
-                        modStart <= endDatetime):
-                        
-                        updateBusy(matchingMod, modStart)
-
-        offset = 0
-        wxDay = wx.DateSpan.Day()
-        timeDeltaDay = timedelta(days=1)
-        while (startDate < endDate):
-            self.SetBusy(startWxDate, busyFractions.get(offset, 0.0))
-            startWxDate += wxDay
-            startDate += timeDeltaDay
-            offset += 1
+                        # To do the comparison, we need to make sure
+                        # the naivetes of modStart, startDatetime and
+                        # endDatetime all match.
+                        if modStart.tzinfo is None:
+                            modStart = modStart.replace(tzinfo=tzinfo)
+                        else:
+                            modStart = modStart.astimezone(tzinfo)
+                            
+                        if (modStart >= startDatetime and
+                            modStart <= endDatetime):
+                            
+                            updateBusy(matchingMod, modStart)
+    
+            offset = 0
+            wxDay = wx.DateSpan.Day()
+            timeDeltaDay = timedelta(days=1)
+            while (startDate < endDate):
+                self.SetBusy(startWxDate, busyFractions.get(offset, 0.0))
+                startWxDate += wxDay
+                startDate += timeDeltaDay
+                offset += 1
             
     
     def AdjustSplit(self, splitter, height):
@@ -473,9 +542,19 @@ class wxPreviewArea(wx.Panel):
         else:
             startDay = minical.widget.getSelectedDate()
         endDay = startDay + timedelta(days=1)
+        
+        addedEvents = self.blockItem._getAddedEventsFromHints(startDay, endDay,
+                                                             hints)
 
-        inRange = list(self.blockItem.getItemsInRange((startDay, endDay), dayItems=True, timedItems=True))
-        self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
+        if addedEvents is not None:
+            addedEvents = set(item for item in addedEvents
+                                if item.transparency == 'confirmed')
+            if len(addedEvents) == 0:
+                return # No "interesting" new events
+            self.currentDaysItems.extend(addedEvents)
+        else:
+            inRange = self.blockItem.getItemsInRange((startDay, endDay), dayItems=True, timedItems=True)
+            self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
         self.currentDaysItems.sort(cmp = self.SortForPreview)
         dc = wx.ClientDC(self)

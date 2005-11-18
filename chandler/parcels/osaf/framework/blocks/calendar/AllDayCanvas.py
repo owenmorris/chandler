@@ -83,9 +83,35 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     def wxSynchronizeWidget(self, **hints):
         #print "%s rebuilding canvas items" % self
         currentRange = self.GetCurrentDateRange()
-        self.visibleItems = list(self.blockItem.getItemsInRange(currentRange,
-                                                                dayItems=True))
-        self.RefreshCanvasItems(resort=True)
+        
+        # The only hints we understand are event additions.
+        # So, if any other kind of hints have been received,
+        # fall back to a full synchronize.
+        addedEvents = self.blockItem._getAddedEventsFromHints(
+                                    currentRange[0], currentRange[1],
+                                    hints)
+
+        if addedEvents is not None:
+            addedEvents = [event for event in addedEvents
+                              if self.blockItem.isDayItem(event)]
+                                
+
+        if addedEvents is None:
+            self.visibleItems = list(
+                self.blockItem.getItemsInRange(currentRange, dayItems=True))
+            self.RefreshCanvasItems(resort=True)
+
+        else:
+            numAdded = 0
+            
+            for event in addedEvents:
+                
+                if not event in self.visibleItems:
+                    self.visibleItems.append(event)
+                    numAdded += 1
+                
+            if numAdded > 0:
+                self.RefreshCanvasItems(resort=True)
 
     def DrawBackground(self, dc):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget

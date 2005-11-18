@@ -713,10 +713,14 @@ class CollectionBlock(Block.RectangularChild):
 
         NB this allows a selection on an item not in the current range.
         """
-        self.selection = event.arguments['items']
-        self.selectAllMode = event.arguments.get('selectAll', False)
-        if hasattr(self, 'widget'):
-            self.widget.Refresh()
+        newSelection = event.arguments['items']
+        newSelectAllMode = event.arguments.get('selectAll', False)
+        
+        if newSelection != self.selection or newSelectAllMode != self.selectAllMode:
+            self.selection = newSelection
+            self.selectAllMode = newSelectAllMode
+            if hasattr(self, 'widget'):
+                self.widget.Refresh()
 
         
     def postSelectItemsBroadcast(self):

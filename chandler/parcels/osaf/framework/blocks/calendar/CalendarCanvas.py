@@ -611,6 +611,53 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         if not events.hasIndex('__adhoc__'):
             events.addIndex('__adhoc__', 'numeric')
 
+    def _getAddedEventsFromHints(self, startTime, endTime, hints):
+
+        # Helper method for optimizing the display of
+        # newly created events in various calendar widgets.
+        # (See Bug:4118).
+        # 
+        # If the passed in dict of hints specifies only added
+        # events (i.e. 'op' is 'add'), the return value will
+        # be a list of all the non-recurring events that overlap
+        # the range between the datetime arguments startTime and
+        # endTime.
+        # 
+        # In all other cases (i.e. hints other than 'add', addition
+        # of recurring events) this method returns None.
+        #
+        # The idea is that you can call this from wxSynchronizeWidget(),
+        # and do a full redraw if you get back None, or do less work
+        # if you get a list of events.
+        #
+        # The returned list may be empty (e.g. if an event is added
+        # outside the given range). There is also no guarantee
+        # that any given element in the list appears only once.
+        # 
+        
+        addedEvents = None
+        
+        collectionChanges = hints.get('collectionChange', [])
+        for op, coll, name, item, positions in collectionChanges:
+            if ( (op == 'add') and
+                 (item is not None) and
+                 hasattr(item, 'startTime') and
+                 hasattr(item, 'duration') and
+                 (item.rruleset is None) ):
+                 
+                 if addedEvents is None: addedEvents = []
+                 
+                 if not (Calendar.datetimeOp(item.startTime, '>', endTime) or
+                         Calendar.datetimeOp(item.endTime, '<', startTime)):
+                     addedEvents.append(item)
+            else:
+                # Something incomprehensible; toss the
+                # addedEvents and move on.
+                addedEvents = None
+                break
+                
+        return addedEvents
+
 
     def setContentsOnBlock(self, item):
         super(CalendarBlock, self).setContentsOnBlock(item)
