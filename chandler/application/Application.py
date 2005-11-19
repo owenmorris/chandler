@@ -817,16 +817,16 @@ class StartupSplash(wx.Frame):
     def __init__(self, parent, bmp):
         height = bmp.GetHeight()
         width = bmp.GetWidth()
-        msgHeight = 20
-        gaugeHeight = 15
-        gaugeBorder = 1
-        gaugeWidth = min(300, width - 100)
-        padding = 5
-        frameSize = wx.Size(width, height + msgHeight + gaugeHeight + 2*padding)
-        wx.Frame.__init__(self, size=frameSize, parent=parent, style=wx.SIMPLE_BORDER)
+        padding = 7     # padding under and right of the progress percent text (in pixels)
+        fontsize = 12   # font size of the progress text (in pixels)
+        
+        super(StartupSplash, self).__init__(parent=parent, style=wx.SIMPLE_BORDER)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(sizer)
         self.CenterOnScreen()
         self.SetBackgroundColour(wx.WHITE)
 
+        # Progress Text dictionary
         #                    name            weight      text
         self.statusTable = {'crypto'      : ( 5,  _(u"Initializing crypto services")),
                             'repository'  : ( 10, _(u"Opening the repository")),
@@ -835,23 +835,34 @@ class StartupSplash(wx.Frame):
                             'globalevents': ( 15, _(u"Registering global events")),
                             'mainview'    : ( 10, _(u"Rendering the main view"))}
 
-        self.gaugeTicks = reduce(lambda x, y: x + y[0], self.statusTable.values(), 0)
+        # Font to be used for the progress text
+        font = wx.Font(fontsize, wx.NORMAL, wx.NORMAL, wx.NORMAL)
 
-        wx.StaticBitmap(self, -1, bmp, wx.Point(0, 0), wx.Size(width, height))
-        self.progressText = wx.StaticText(self, -1, u"", wx.Point(0, height + padding), 
-                                wx.Size(width, msgHeight),
-                                wx.ALIGN_CENTRE | wx.ST_NO_AUTORESIZE)
+        # Load the splash screen picture. The width of this image will determine
+        # the width of the entire splash screen, no margin added
+        bitmap = wx.StaticBitmap(self, -1, bmp)
+        sizer.Add(bitmap, 0, wx.ALL, 0)
+
+        # The progress text is in 2 parts: a text indicating the section being initialized
+        # and a percent number indicating an approximate value of the total being done
+        # Create the text box for the section initialized text
+        self.progressText = wx.StaticText(self, -1, style=wx.ALIGN_CENTER)
         self.progressText.SetBackgroundColour(wx.WHITE)
-        gaugeBox = wx.Window(self, -1, wx.Point((width - gaugeWidth)/2, height + msgHeight + padding), 
-                        wx.Size(gaugeWidth, gaugeHeight))
-        gaugeBox.SetBackgroundColour(wx.BLACK)
-        self.gauge = wx.Gauge(gaugeBox, -1,
-                              range = self.gaugeTicks,
-                              style = wx.GA_HORIZONTAL,#|wx.GA_SMOOTH,
-                              pos   = (gaugeBorder, gaugeBorder),
-                              size  = (gaugeWidth - 2 * gaugeBorder,
-                                       gaugeHeight - 2 * gaugeBorder))
-        self.gauge.SetBackgroundColour(wx.Colour(0x33, 0x33, 0x33))
+
+        progressSizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(progressSizer, 1, wx.EXPAND)
+        # In order to center the progress text, we need to add a dummy item on the left
+        # that has the same weight as the progress percent on the right
+        progressSizer.Add((padding, padding), 1, wx.EXPAND)
+        progressSizer.Add(self.progressText, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, padding)
+        self.progressText.SetFont(font)
+
+        # Create the text box for the "%" display
+        self.progressPercent = wx.StaticText(self, -1, style=wx.ALIGN_RIGHT)
+        self.progressPercent.SetBackgroundColour(wx.WHITE)
+        self.progressPercent.SetFont(font)
+        progressSizer.Add(self.progressPercent, 1, wx.BOTTOM | wx.RIGHT, padding)
+        
         self.workingTicks = 0
         self.completedTicks = 0
         self.timerTicks = 0
@@ -862,6 +873,8 @@ class StartupSplash(wx.Frame):
         #my feeble attempt at using a lock seemed to create a race condition.
         
         #threading._start_new_thread(self.timerLoop, ())
+        sizer.SetSizeHints(self)
+        self.Layout()
         
     def timerLoop(self):#currently unused
         self._startup = True
@@ -877,14 +890,15 @@ class StartupSplash(wx.Frame):
         else:
             self.timerTicks = 0
             self.completedTicks += self.workingTicks
-            self.gauge.SetValue(self.completedTicks + self.timerTicks)
-            self.progressText.SetLabel(self.statusTable[type][1])
             self.workingTicks = self.statusTable[type][0]
+            self.progressText.SetLabel(self.statusTable[type][1])
+            percentString = _(u"%(percent)d%%") % {'percent' : self.completedTicks + self.timerTicks}
+            self.progressPercent.SetLabel(percentString)
+        self.Layout()
         wx.Yield()
 
     def Destroy(self):
         self._startup = False
-        self.gauge.SetValue(self.gaugeTicks)
         wx.Yield()
         time.sleep(.25) #give the user a chance to see the gauge reach 100%
         wx.Frame.Destroy(self)
