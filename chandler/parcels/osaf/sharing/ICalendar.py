@@ -356,12 +356,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 except AttributeError:
                     status = 'confirmed'
 
-                try:
-                    # FIXME assumes DURATION, not DATE-TIME
-                    reminderDelta = event.valarm[0].trigger[0].value
-                except AttributeError:
-                    reminderDelta = None
-
                 # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
                 # what that would mean, so we won't catch an exception if there's no
                 # dtstart.
@@ -369,6 +363,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 dtstart = dtstartLine.value
                 anyTime = dtstartLine.params.get('X-OSAF-ANYTIME', [None])[0] == 'TRUE'
                 isDate = type(dtstart) == date
+
+                try:
+                    reminderDelta = event.valarm[0].trigger[0].value
+                    if type(reminderDelta) is datetime.datetime:
+                        reminderDelta = reminderDelta - dtstart
+                except AttributeError:
+                    reminderDelta = None
 
                 try:
                     duration = event.duration[0].value
