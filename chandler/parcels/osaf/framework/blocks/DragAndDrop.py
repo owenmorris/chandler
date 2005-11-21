@@ -339,9 +339,11 @@ class ItemClipboardHandler(_ClipboardHandler):
         """
         return []
     
-    def DeleteSelection(self):
+    def DeleteSelection(self, cutting=False):
         """
-          Override this to remove the selection.
+          Override this to remove the selection.  The optional cutting argument 
+          is needed because cutting is not a simple copy-then-paste operation
+          for recurring items.
         """
         pass
     
@@ -410,7 +412,7 @@ class ItemClipboardHandler(_ClipboardHandler):
 
     def onClearEvent(self, event):
         # call self.DeleteSelection if it is defined
-        getattr(type(self), 'DeleteSelection', lambda s: None)(self)
+        self._clearItems()
 
     def onCutEventUpdateUI(self, event):
         if not hasattr (self, 'DeleteSelection'):
@@ -430,8 +432,12 @@ class ItemClipboardHandler(_ClipboardHandler):
 
     def onCutEvent(self, event):
         result = self.onCopyEvent(event)
-        self.onClearEvent(self, event)
+        self._clearItems(cutting=True)
         return result
+
+    def _clearItems(self, *args, **kwargs):
+        def doNothing(*args, **kwargs): return None
+        getattr(type(self), 'DeleteSelection', doNothing)(self, *args, **kwargs)
 
     def onPasteEventUpdateUI(self, event):
         clipboard = wx.TheClipboard

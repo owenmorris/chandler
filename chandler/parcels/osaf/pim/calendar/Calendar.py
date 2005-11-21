@@ -924,7 +924,7 @@ class CalendarEventMixin(RemindableMixin):
             RecurrenceDialog.getProxy(u'ui', self).addToCollection(collection)
 
             
-    def removeFromCollection(self, collection):
+    def removeFromCollection(self, collection, cutting=False):
         """
         If recurring, create a proxy and use its removeFromCollection().
         
@@ -933,9 +933,9 @@ class CalendarEventMixin(RemindableMixin):
         collection.remove().
         """
         if self.rruleset is None:
-            super(CalendarEventMixin, self).removeFromCollection(collection)
+            super(CalendarEventMixin, self).removeFromCollection(collection, cutting)
         else:
-            RecurrenceDialog.getProxy(u'ui', self).removeFromCollection(collection)
+            RecurrenceDialog.getProxy(u'ui', self).removeFromCollection(collection, cutting)
 
     changeNames = ('displayName', 'startTime', 'duration', 'location', 'body',
                    'lastModified', 'allDay')

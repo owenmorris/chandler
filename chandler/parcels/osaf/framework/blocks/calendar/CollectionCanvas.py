@@ -656,8 +656,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         pass
 
     # Methods for Drag and Drop and Cut and Paste
-    def DeleteSelection(self):
-        self.blockItem.DeleteSelection()
+    def DeleteSelection(self, *args, **kwargs):
+        self.blockItem.DeleteSelection(*args, **kwargs)
         
 
 class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
@@ -745,9 +745,9 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     def onSelectAllEventUpdateUI(self, event):
         return len(self.contents) > 0
 
-    def DeleteSelection(self):
+    def DeleteSelection(self, cutting=False, *args, **kwargs):
         for item in self.selection:
-            item.removeFromCollection(self.contentsCollection)
+            item.removeFromCollection(self.contentsCollection, cutting)
         self.ClearSelection()
 
     def ClearSelection(self):

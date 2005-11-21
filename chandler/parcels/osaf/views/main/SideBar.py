@@ -764,7 +764,7 @@ class SidebarBlock(ControlBlocks.Table):
             # in the mean time, just remove it.
             self.contents.remove(item)
 
-        self.widget.DeleteSelection(deleteItem)
+        self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
 
     onDeleteEvent = onRemoveEvent
 

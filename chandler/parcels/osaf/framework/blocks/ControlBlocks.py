@@ -828,7 +828,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.blockItem.postEventByName("SelectItemsBroadcast",
                                        {'items':[item]})
 
-    def DeleteSelection (self, DeleteItemCallback=None):
+    def DeleteSelection (self, DeleteItemCallback=None, *args, **kwargs):
         def DefaultCallback(item, collection=self.blockItem.contents):
             collection.remove(item)
             

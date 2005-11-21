@@ -264,7 +264,7 @@ class OccurrenceProxy(object):
     
                 self.delayChange(change)
             
-    def removeFromCollection(self, collection):
+    def removeFromCollection(self, collection, cutting = False):
         """
         Remove self from the given collection, or queue the removal.
         """
@@ -274,6 +274,9 @@ class OccurrenceProxy(object):
             change = dict(method=self.propagateDelete,
                           args=(collection,),
                           question=_(u'"%(displayName)s" is a recurring event. Do you want to delete:'))
+            if cutting:
+                change['question'] = _(u'"%(displayName)s" is a recurring event. Do you want to cut:')
+                change['disabled_buttons']=('future', 'this')
             self.delayChange(change)
 
     def StampKind(self, *args, **kwds):
