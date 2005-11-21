@@ -55,7 +55,10 @@ class FlickrPhotoMixin(PhotoMixin):
         self.flickrID = photo.id
         self.displayName = photo.title
         self.description = photo.description.encode('utf8')
-        self.owner = photo.owner.realname
+        self.owner = photo.owner.username
+        if photo.owner.realname is not None and len(photo.owner.realname.strip()) > 0:
+            self.owner = photo.owner.realname
+
         self.imageURL = URL(photo.getURL(urlType="source"))
         self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
         self.dateTaken = dateutil.parser.parse(photo.datetaken)
@@ -156,6 +159,8 @@ class PhotoCollection(pim.ContentItem):
                 photoItem = FlickrPhoto(photo=i,view=repView,parent=coll)
             coll.add(photoItem)
         repView.commit()
+
+        return coll
 
     def update(self,repView):
         self.getCollectionFromFlickr(repView)
