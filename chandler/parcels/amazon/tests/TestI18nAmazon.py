@@ -38,14 +38,14 @@ class TestI18nAmazon(TestContentModel.ContentModelTestCase):
         productName = u'RAP―これでラップ・ミュージックがわかる'
         col = AmazonKinds.SearchByKeyword(self.view, self.view, 'Rap', 'jp', 'music')
         self.assertNotEquals(col, None)
-        self.assertEquals(self.hasKey(col, productName), True)
+        self.assertTrue(self.hasKey(col, productName))
 
         #Test that the German product name is return by an amazon search for
         #keyword == productName in the Music category of amazon.de
         productName = u'Im Zauberschloß... Auf dem Weg zum Schlafen und Träumen'
         col = AmazonKinds.SearchByKeyword(self.view, self.view, productName, 'de', 'music')
         self.assertNotEquals(col, None)
-        self.assertEquals(self.hasKey(col, productName), True)
+        self.assertTrue(self.hasKey(col, productName))
 
 
     def testI18nEmail(self):
@@ -68,7 +68,7 @@ class TestI18nAmazon(TestContentModel.ContentModelTestCase):
         self.assertNotEquals(col, None)
 
         for productName in productNames:
-            self.assertEquals(self.hasKey(col, productName), True)
+            self.assertTrue(self.hasKey(col, productName))
 
         #This email address does not have an amazon.com wishlist. This tests
         #that the parcel correctly handles the case when data is not returned
