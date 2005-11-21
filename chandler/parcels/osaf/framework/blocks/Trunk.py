@@ -44,6 +44,10 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
     TPBDetailItem = schema.One(
         schema.Item, initialValue = None, otherName = 'TPBDetailItemOwner'
     )
+    TPBDetailItemCollection = schema.One(
+        schema.Item, defaultValue = None
+    )
+    
     TPBSelectedItem = schema.One(
         schema.Item, initialValue = None, otherName = 'TPBSelectedItemOwner'
     )
@@ -55,8 +59,8 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
     )
 
     def instantiateWidget(self):
-       return wxTrunkParentBlock(self.parentBlock.widget)
-    
+        return wxTrunkParentBlock(self.parentBlock.widget)
+
     def onSelectItemsEvent (self, event):
         # for the moment, multiple selection means, "select nothing"
         # i.e. multiple selection in the summary view means selecting
@@ -69,8 +73,13 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             self.TPBSelectedItem = items[0]
         else:
             self.TPBSelectedItem = None
+            
+        self.TPBDetailItemCollection = \
+            self.trunkDelegate.getContentsCollection(self.TPBSelectedItem,
+                                                     event.arguments.get('collection'))
         widget = getattr (self, 'widget', None)
         if widget is not None:
+            # eventually results in installTreeOfBlocks()
             widget.wxSynchronizeWidget ()
 
     def installTreeOfBlocks(self):
@@ -107,10 +116,11 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         treeChanged = newView is not oldView
 
         if treeChanged:
+            # get rid of the old view
             if oldView is not None:
                 oldView.unRender()
 
-        if treeChanged:
+            # attach the new view
             self.childrenBlocks = []
             if newView is not None:
                 self.childrenBlocks.append(newView)
@@ -123,7 +133,9 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 if (detailItemChanged or
                     treeChanged or
                     hints.get ("sendSetContents", False)):
-                    newView.postEventByName ("SetContents", {'item':TPBDetailItem})
+                    newView.postEventByName("SetContents",
+                                            {'item':TPBDetailItem,
+                                             'collection': self.TPBDetailItemCollection})
 
                 if not hasattr (newView, "widget"):
                     newView.render()
@@ -226,3 +238,9 @@ class TrunkDelegate(schema.Item):
         """
         return item
 
+
+    def getContentsCollection(self, item, collection):
+        """
+        Get the actual parent collection used
+        """
+        return collection

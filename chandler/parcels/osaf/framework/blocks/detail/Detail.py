@@ -57,7 +57,9 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     def onSetContentsEvent (self, event):
         # logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
         Block.Block.finishEdits()
-        self.setContentsOnBlock(event.arguments['item'])
+        self.setContentsOnBlock(event.arguments['item'],
+                                event.arguments['collection'])
+        
 
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
                     doc="Return the selected item, or None")
@@ -338,7 +340,8 @@ class DetailSynchronizer(Item):
     def onSetContentsEvent (self, event):
         #logger.debug("DetailSynchronizer %s: onSetContentsEvent",
                      #getattr(self, 'blockName', '?'))
-        self.setContentsOnBlock(event.arguments['item'])
+        self.setContentsOnBlock(event.arguments['item'],
+                                event.arguments['collection'])
 
     item = property(fget=ControlBlocks.getProxiedContentsItem, 
                     doc="Return the selected item, or None")

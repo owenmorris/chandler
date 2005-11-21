@@ -19,8 +19,7 @@ from osaf.pim import FilteredCollection, AbstractCollection
 from application.dialogs import RecurrenceDialog
 
 from osaf.framework.blocks import (
-    DragAndDrop, Block, SplitterWindow, Styles,
-    FocusEventHandlers, BoxContainer
+    DragAndDrop, Block, SplitterWindow, Styles, BoxContainer
     )
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.calendar import CollectionCanvas
@@ -358,7 +357,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                 # we may have lost some room in the rectangle from	
                 # drawing the time	
-                lostHeight = y - itemRect.y                        
+                lostHeight = y - itemRect.y
 
                 # for some reason text measurement on the mac is off,
                 # and text tends to look smooshed to the edge, so we
@@ -484,7 +483,9 @@ class CalendarEventHandler(object):
                                             {'tzinfo':newTZ})
 
 
-class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
+# ATTENTION: do not put mixins here - put them in CollectionBlock
+# instead, to keep them more general
+class CalendarBlock(CollectionCanvas.CollectionBlock):
     """
     Abstract block used as base Kind for Calendar related blocks.
 
@@ -659,8 +660,8 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         return addedEvents
 
 
-    def setContentsOnBlock(self, item):
-        super(CalendarBlock, self).setContentsOnBlock(item)
+    def setContentsOnBlock(self, *args, **kwds):
+        super(CalendarBlock, self).setContentsOnBlock(*args, **kwds)
 
         self.EnsureIndexes()
 
@@ -962,10 +963,12 @@ class CalendarBlock(FocusEventHandlers, CollectionCanvas.CollectionBlock):
         
     def setCurrentCalendarColor(self, color):
 
-        # collectionList[0] is the currently selected collection
-        self.contents.collectionList[0].color = ColorType(*color)
+        # contentsCollection is the currently selected collection
+        self.contentsCollection.color = ColorType(*color)
 
 
+# ATTENTION: do not put mixins here - put them in wxCollectionCanvas
+# instead, to keep them more general
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection, 
@@ -995,7 +998,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         if item is not None:
             collection = self.blockItem.getContainingCollection(item)
             if (collection is not None and
-                collection != self.blockItem.contents.collectionList[0]):
+                collection is not self.blockItem.contentsCollection):
                 self.blockItem.SelectCollectionInSidebar(collection)
 
 
@@ -1100,8 +1103,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         event = Calendar.CalendarEvent(view=view, **initialValues)
         event.InitOutgoingAttributes()	
        
-        # collectionList[0] is the currently selected collection
-        self.blockItem.contents.collectionList[0].add (event)
+        self.blockItem.contentsCollection.add (event)
         
         self.OnSelectItem(event)
 
@@ -1173,7 +1175,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         return self.blockItem.selection
 
     def AddItems(self, itemList):
-        source = self.blockItem.contents.collectionList[0]
+        source = self.blockItem.contentsCollection
         for item in itemList:	
             item.addToCollection(source)
 
@@ -1631,7 +1633,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             return
 
         # update the calendar with the calender's color
-        collection = self.blockItem.contents.collectionList[0]
+        collection = self.blockItem.contentsCollection
         
         # force the creation of the .color attribute
         # XXX temporary - really this should somehow generate automatically

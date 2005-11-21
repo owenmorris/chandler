@@ -35,6 +35,7 @@ class Block(schema.Item):
     showBorders = False
 
     contents = schema.One(ContentItem, otherName="contentsOwner")
+    contentsCollection = schema.One(ContentItem, defaultValue=None)
 
     viewAttribute = schema.One(
         schema.Text,
@@ -211,7 +212,7 @@ class Block(schema.Item):
             assert (self.ignoreNotifications > 0)
             self.ignoreNotifications = self.ignoreNotifications - 1
 
-    def setContentsOnBlock (self, item):
+    def setContentsOnBlock (self, item, collection):
         """
         A utility routine for onSetContents handlers that sets the
         contents of a block and updates the contents subscribers
@@ -228,6 +229,7 @@ class Block(schema.Item):
             if newSubscribers is not None:
                 newSubscribers.add(self)
         self.contents = item
+        self.contentsCollection = collection
 
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)

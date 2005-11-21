@@ -374,3 +374,9 @@ class OccurrenceProxy(object):
     def isProxy(self):
         return True
 
+    def getMembershipItem(self):
+        """
+        When testing an item for membership, what we generally care
+        about is the master event.
+        """
+        return self.proxiedItem.getMaster().getMembershipItem()

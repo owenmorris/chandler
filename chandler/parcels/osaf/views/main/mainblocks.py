@@ -998,7 +998,8 @@ def make_mainview(parcel):
                             TrunkParentBlock.template('SidebarTPB',
                                 trunkDelegate=SidebarTrunkDelegateInstance,
                                 TPBDetailItem=app.allCollection,
-                                TPBSelectedItem=app.allCollection),
+                                TPBSelectedItem=app.allCollection,
+                                TPBDetailItemCollection=app.allCollection),
                             ]) # BoxContainer SidebarContainerContainer
                     ]), # BoxContainer ToolbarContainer
             ]) # MainView MainView

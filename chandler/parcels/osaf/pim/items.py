@@ -228,6 +228,16 @@ class ContentItem(schema.Item):
         """
         collection.remove(self)
 
+    def getMembershipItem(self):
+        """ Get the item that should be used to test for membership
+        tests i.e. if item in collection: should be if
+        item.getMembershipItem() in collection
+
+        For most items, this is just itself, but for recurring
+        events, this method is intercepted by a proxy.
+        """
+        return self
+
     """
     STAMPING SUPPORT
 

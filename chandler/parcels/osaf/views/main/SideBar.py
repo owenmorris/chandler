@@ -982,6 +982,16 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _getContentsForTrunk(self, trunk, item, keyItem):
         return keyItem
 
+    def getContentsCollection(self, item, collection):
+        """
+        The collection that the sidebar wants to deal with happens to
+        actually be the collection that is selected in the
+        sidebar. This ensures that the primary selected item in the
+        sidebar is also the collection that gets passed down the views
+        to the detail view
+        """
+        if isinstance(item, AbstractCollection):
+            return item
 
 class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):
 

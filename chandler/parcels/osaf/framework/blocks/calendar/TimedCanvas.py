@@ -343,7 +343,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
         currentDragBox = None
 
-        primaryCollection = self.blockItem.contents.collectionList[0]
+        primaryCollection = self.blockItem.contentsCollection
         
         # First generate a sorted list of TimedCanvasItems
         for item in self.visibleItems:
@@ -469,7 +469,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # now try to insert the event onto the canvas without too many
         # redraws, and allow the user to start dragging if they are
         # still holding down the mouse button (doesn't quite work yet)
-        collection = self.blockItem.contents.collectionList[0]
+        collection = self.blockItem.contentsCollection
         canvasItem = TimedCanvasItem(collection, collection, event, self)
         
         # only problem here is that we haven't checked for conflicts

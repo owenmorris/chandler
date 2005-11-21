@@ -272,8 +272,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                        self.eventHeight)
 
         collection = calendarBlock.getContainingCollection(item)
-        canvasItem = AllDayCanvasItem(collection,
-                                      calendarBlock.contents.collectionList[0],
+        canvasItem = AllDayCanvasItem(collection, calendarBlock.contentsCollection,
                                       rect, item)
         self.canvasItemList.append(canvasItem)
         
@@ -390,7 +389,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         event = self.CreateEmptyEvent(startTime=newTime, allDay=True, anyTime=True)
 
-        # collectionList[0] is the currently selected collection
         self.OnSelectItem(event)
         view.commit()
         return event

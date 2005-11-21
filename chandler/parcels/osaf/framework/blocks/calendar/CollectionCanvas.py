@@ -8,8 +8,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 
-from osaf.framework.blocks import DragAndDrop
-from osaf.framework.blocks import Block
+from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
 from osaf.pim import AbstractCollection
 from application import schema
 from wx.lib import buttons
@@ -227,7 +226,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     This class handles:
       1. Mouse Events: the class sets up methods for selection, move, resize
       2. Scrolling
-      3. Double buffered painting: the class sets up methods for drawing
 
     Subclasses need to handle (by overriding appropriate methods):
       1. Background drawing
@@ -293,12 +291,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self.blockItem.onRemoveEvent(event)
         else:
             event.Skip()
-
-    def DrawCenteredText(self, dc, text, rect):
-        textExtent = dc.GetTextExtent(text)
-        middleRect = rect.width / 2
-        middleText = textExtent[0] / 2
-        dc.DrawText(text, rect.x + middleRect - middleText, rect.y)
 
     def GetCanvasItemAt(self, unscrolledPosition):
         for canvasItem in reversed(self.canvasItemList):
@@ -668,7 +660,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.blockItem.DeleteSelection()
         
 
-class CollectionBlock(Block.RectangularChild):
+class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     """
     Parent block class for a generic collection display. Handles selection,
     hit testing, notifications, and some event handling
@@ -694,11 +686,21 @@ class CollectionBlock(Block.RectangularChild):
     # Event handling
     
     def onSetContentsEvent (self, event):
-        self.setContentsOnBlock (event.arguments ['item'])
         """
-        Clear the selection each time we view a new contents until we get
-        a selection added to the contents item -- DJA
+        Make sure to update the selection, keeping any items that are
+        still in the newly selected collection, since items can be in
+        multiple collections.
+
+        This also accounts for the case where multiple collections are
+        selected in the sidebar, and the user is selecting different
+        ones - the actual items visible don't change, but their
+        coloring does.. so you want to maintain selection.
         """
+        contents = event.arguments['item']
+        # collectionList[0] is the currently selected collection in
+        # the sidebar
+        contentsCollection = contents.collectionList[0]
+        self.setContentsOnBlock(contents, contentsCollection)
         for item in self.selection:
             if item not in self.contents:
                 self.selection.remove(item)
@@ -729,19 +731,11 @@ class CollectionBlock(Block.RectangularChild):
         """
         self.postEventByName('SelectItemsBroadcast',
                              {'items': self.selection,
-                              'selectAll': self.selectAllMode})
+                              'selectAll': self.selectAllMode,
+                              'collection': self.contentsCollection})
 
     def SelectCollectionInSidebar(self, collection):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
-
-    def onDeleteEvent(self, event):
-        trash = schema.ns('osaf.app', self).TrashCollection
-        for item in self.selection:
-            item.addToCollection(trash)
-        self.ClearSelection()
-        
-    def onRemoveEvent(self, event):
-        self.DeleteSelection()
 
     def onSelectAllEvent(self, event):
         self.selection = list(self.contents)
@@ -753,7 +747,7 @@ class CollectionBlock(Block.RectangularChild):
 
     def DeleteSelection(self):
         for item in self.selection:
-            item.removeFromCollection(self.contents.collectionList[0])
+            item.removeFromCollection(self.contentsCollection)
         self.ClearSelection()
 
     def ClearSelection(self):
@@ -761,16 +755,5 @@ class CollectionBlock(Block.RectangularChild):
         self.postSelectItemsBroadcast()
 
     def CanAdd(self):
-        return not self.contents.collectionList[0].isReadOnly()
-
-    def CanRemove(self):
-        return (len(self.selection) > 0 and
-                not self.contents.collectionList[0].isReadOnly())
-
-    def onRemoveEventUpdateUI(self, event):
-        event.arguments['Enable'] = self.CanRemove()
-        event.arguments['Text'] = _(u"Delete from '%(collectionName)s'") % {'collectionName': self.contents.collectionList[0].displayName}
-
-    def onDeleteEventUpdateUI(self, event):
-        event.arguments['Enable'] = self.CanRemove()
+        return not self.contentsCollection.isReadOnly()
 

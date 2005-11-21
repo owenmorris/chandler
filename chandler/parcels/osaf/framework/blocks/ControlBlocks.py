@@ -661,8 +661,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                       selections.
                     """
                     if (item is not None or event.Selecting() or event.ControlDown()):
-                        blockItem.postEventByName("SelectItemsBroadcast",
-                                                  {'items':[item]})
+                        blockItem.PostSelectItems([item])
             finally:
                 blockItem.startNotificationDirt()
 
@@ -887,11 +886,9 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem.synchronizeWidget()
         if totalItems > 0:
             newRowSelection = min(newRowSelection, totalItems - 1)
-            blockItem.postEventByName("SelectItemsBroadcast",
-                                      {'items':[contents[newRowSelection]]})
+            blockItem.PostSelectItems([contents[newRowSelection]])
         else:
-            blockItem.postEventByName("SelectItemsBroadcast",
-                                      {'items': []})
+            blockItem.PostSelectItems([])
 
     def SelectedItems(self):
         """
@@ -1053,12 +1050,17 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
         if isinstance (item, AbstractCollection):
-            self.contents = item
+            self.setContentsOnBlock(item, event.arguments['collection'])
 
     def onSelectItemsEvent (self, event):
         items = event.arguments ['items']
         self.select_items (items)
 
+    def PostSelectItems(self, items):
+        self.postEventByName("SelectItemsBroadcast",
+                             {'items': items,
+                              'collection': self.contentsCollection })
+        
     def select (self, item):
         # polymorphic method used by scripts
         self.select_items ([item])
@@ -1087,44 +1089,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                 
         if visiblerow is not None:
             self.widget.MakeCellVisible (row, 0)
-
-    def onDeleteEvent(self, event):
-
-        # precache the trash so we don't have to keep looking it up
-        trash = schema.ns('osaf.app', self).TrashCollection
-        
-        def MoveToTrash(item):
-            trash.add(item)
-
-        # this is broken, we shouldn't be going through the widget
-        # see additional comments in DeleteSelection itself
-        self.widget.DeleteSelection(MoveToTrash)
-        
-    def onRemoveEventUpdateUI (self, event):
-        collection = self.GetCurrentContents()
-        event.arguments['Enable'] = not self.HasReadonlySelection()
-        event.arguments['Text'] = _(u'Delete from \'%s\'') % collection.displayName
-
-    def onRemoveEvent (self, event):
-
-        collection = self.GetCurrentContents(writable=False)
-        assert collection, "Shouldn't be calling this on a readonly collection)"
-        def Delete(item):
-            collection.remove(item)
-
-        self.widget.DeleteSelection(Delete)
-
-    def HasReadonlySelection(self):
-        readOnly = True
-        for range in self.selection:
-            for row in xrange (range[0], range[1] + 1):
-                readOnly, always = self.widget.ReadOnly (row, 0)
-                if not readOnly or always:
-                    break
-        return readOnly
-
-    def onDeleteEventUpdateUI(self, event):
-        event.arguments['Enable'] = not self.HasReadonlySelection()
 
 class radioAlignEnumType(schema.Enumeration):
       values = "Across", "Down"
@@ -1960,7 +1924,8 @@ class AEBlock(BoxContainer):
         return result
         
     def onSetContentsEvent (self, event):
-        self.setContentsOnBlock(event.arguments['item'])
+        self.setContentsOnBlock(event.arguments['item'],
+                                event.arguments['collection'])
         assert not hasattr(self, 'widget')
             
     def getItemAttributeTypeName(self):

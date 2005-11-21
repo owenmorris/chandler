@@ -9,7 +9,7 @@ import time
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
-from osaf.pim import ContentItem, Note
+from osaf.pim import ContentItem, Note, AbstractCollection
 import application.dialogs.Util as Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages
@@ -60,6 +60,21 @@ class FocusEventHandlers(Item):
         else:
             selectedItems = selectedItemsMethod(self.widget)
         return selectedItems
+
+    def __getPrimaryCollection(self):
+        """
+        the primary collection is probably contentsCollection - that's the
+        collection around which most remove/delete actions should
+        occur. But in case that isn't set, we can just default to
+        self.contents
+        """
+        collection = self.contentsCollection
+        if collection is None:
+            collection = self.contents
+
+        # in some views, self.contents is an item, not a collection!
+        if isinstance(collection, AbstractCollection):
+            return collection
 
     def onSendShareItemEventUpdateUI(self, event):
         """ Generically enable Send-ing. """
@@ -214,4 +229,141 @@ class FocusEventHandlers(Item):
             menuTitle = u'Run a Script\tCtrl+S'
         event.arguments ['Text'] = menuTitle
 
+    def CanRemove(self):
+        """
+        The spec is very complex here.  The basic idea, beyond basic
+        read-onlyness and such, is that and item can be removed from a
+        collection as long as it will continue to exist in some other
+        obvious collection.
 
+        I've tried to optimize this for the more common cases, so that
+        we do the least amount of work the most often.
+        """
+        selectedCollection = self.__getPrimaryCollection()
+        selection = self.__getSelectedItems()
+        if not isValidSelection(selection, selectedCollection):
+            return False
+
+        app = schema.ns('osaf.app', self.itsView)
+
+        # you can never 'remove' from the trash
+        if selectedCollection is app.TrashCollection:
+            return False
+
+        # for OOTB collections, you can only remove not-mine items
+        if selectedCollection.outOfTheBoxCollection:
+            return AllItemsInCollection(selection, app.notMine)
+
+        # For "mine" collections, item is always removable
+        isMineCollection = selectedCollection not in app.notMine.sources
+        if isMineCollection:
+            return True
+
+        # for "not mine" collections, each item has to exist at least
+        # somewhere else... but it's possible that each item exists in
+        # a separate collection (i.e. every item of the selection may
+        # not appear in a single 'other' collection)
+        sidebarCollections = app.sidebarCollection
+        for selectedItem in selection:
+            selectedItem = selectedItem.getMembershipItem()
+
+            for otherCollection in sidebarCollections:
+                
+                if (otherCollection is selectedCollection or
+                    otherCollection.outOfTheBoxCollection):
+                    continue
+
+                # found an 'other' collection, stkip ahead to next
+                # selectedItem
+                if selectedItem in otherCollection:
+                    break
+            else:
+                # as soon as we find any item that isn't in another
+                # collection, bail.
+                return False
+
+        return True
+
+    def CanDelete(self):
+        """
+        The trick here is that Deleting is really 'move to trash' -
+        which means if you're deleting items, you're affecting their
+        membership in other collections... so those collections can't be
+        readonly
+        """
+        selectedCollection = self.__getPrimaryCollection()
+        selection = self.__getSelectedItems()
+        
+        if not isValidSelection(selection, selectedCollection):
+            return False
+
+        app = schema.ns('osaf.app', self.itsView)
+        sidebarCollections = app.sidebarCollection
+
+        # Make sure that there are no items in the selection that are
+        # in a readonly collection
+        
+        # pre-cache the readwrite collections in the sidebar
+        readonlyCollections = [collection for collection in sidebarCollections
+                               if sidebarCollections.isReadOnly()]
+        
+        for selectedItem in selection:
+            selectedItem = selectedItem.getMembershipItem()
+            for sidebarCollection in readonlyCollections:
+                if selectedItem in sidebarCollection:
+                    return False
+                    
+        return True
+    
+    def onRemoveEventUpdateUI(self, event):
+        event.arguments['Enable'] = self.CanRemove()
+
+    def onDeleteEventUpdateUI(self, event):
+        event.arguments['Enable'] = self.CanDelete()
+
+    def onRemoveEvent(self, event):
+        """
+        Actually perform a remove
+        """
+
+        # Destructive action, worth an extra assert
+        assert self.CanRemove(), "Can't remove right now.. some updateUI logic may be broken"
+        selectedCollection = self.__getPrimaryCollection()
+        selection = self.__getSelectedItems()
+
+        assert selectedCollection, "Can't remove without a primary collection!"
+        
+        for selectedItem in selection:
+            selectedItem.removeFromCollection(selectedCollection)
+
+    def onDeleteEvent(self, event):
+        # Destructive action, worth an extra assert
+        assert self.CanDelete(), "Can't remove right now.. some updateUI logic may be broken"
+        selectedCollection = self.__getPrimaryCollection()
+        selection = self.__getSelectedItems()
+
+        assert selectedCollection, "Can't delete without a primary collection!"
+
+        trash = schema.ns('osaf.app', self.itsView).TrashCollection
+        for selectedItem in selection:
+            selectedItem.addToCollection(trash)
+
+def AllItemsInCollection(items, collection):
+    """
+    Helper routine - Checks if all items actually exist in the
+    collection, using getMembershipItem() to make sure the 'in' test
+    is valid. 
+
+    Should this be in AbstractCollection? (not sure if thats
+    appropriate or not.. -alecf)
+    """
+    for item in items:
+        item = item.getMembershipItem()
+        if item not in collection:
+            return False
+    return True
+    
+def isValidSelection(selection, selectedCollection):
+    return (len(selection) != 0  and not
+            (selectedCollection is not None and
+             selectedCollection.isReadOnly()))
