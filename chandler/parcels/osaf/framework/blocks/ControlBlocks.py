@@ -1709,18 +1709,6 @@ class PresentationStyle(schema.Item):
         )
     )
 
-def getProxiedContentsItem(block):
-    item = getattr(block, 'contents', None)
-    if item is not None:
-        if item.isDeleted():
-            logger.debug("getProxiedContentsItem(%s): item is deleted!",
-                         getattr(block, 'blockName', '?'))
-            item = None
-        else:
-            # We have an item - return a proxy for it if necessary
-            item = RecurrenceDialog.getProxy(u'ui', item)
-    return item
-
 class AEBlock(BoxContainer):
     """
     Attribute Editor Block: instantiates an Attribute Editor appropriate for
@@ -1748,7 +1736,7 @@ class AEBlock(BoxContainer):
     def setItem(self, value): 
         assert not value.isDeleted()
         self.contents = value
-    item = property(getProxiedContentsItem, setItem, 
+    item = property(Block.getProxiedContents, setItem, 
                     doc="Safely access the selected item (or None)")
     
     def getAttributeName(self): return getattr(self, 'viewAttribute', None)

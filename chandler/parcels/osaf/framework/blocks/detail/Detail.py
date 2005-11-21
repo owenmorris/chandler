@@ -60,8 +60,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
         
-
-    item = property(fget=ControlBlocks.getProxiedContentsItem, 
+    item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
     
     def unRender(self):
@@ -205,7 +204,10 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         Return a list containing the item we're displaying. (This gets
         used for Send)
         """
-        return [ self.item ]
+        if self.item is None:
+            return []
+        # If we've got a proxy, return the real item instead.
+        return [ getattr(self, 'proxiedItem', self.item) ]
 
     def onResynchronizeEvent(self, event):
         logger.debug("onResynchronizeEvent: resynching")
@@ -343,7 +345,7 @@ class DetailSynchronizer(Item):
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
 
-    item = property(fget=ControlBlocks.getProxiedContentsItem, 
+    item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
 
     def synchronizeItemDetail (self, item):

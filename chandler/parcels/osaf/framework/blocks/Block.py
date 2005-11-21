@@ -6,6 +6,7 @@ __parcel__ = "osaf.framework.blocks"
 
 import application.Globals as Globals
 from application import schema
+import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from repository.item.Item import Item
 from osaf.pim.items import ContentItem
 from osaf.pim import AbstractCollection
@@ -28,6 +29,21 @@ class TrunkSubtree(schema.Item):
 
     key = schema.One(schema.Item, required = True)
     rootBlocks = schema.Sequence('Block', inverse = 'parentTrunkSubtrees')
+
+
+def getProxiedItem(item):
+    """ Given an item, wrap it with a proxy if appropriate. """
+    # @@@ BJS It's probably worthwhile to combine this with 
+    # RecurrenceDialog.getProxy, but currently that function doesn't do the 
+    # isDeleted -> return None mapping we need here. To avoid risk in 0.6, 
+    # I'm checking things in this way and we can revisit this later.
+    if item is not None:
+        if item.isDeleted():
+            item = None
+        else:
+            # We have an item - return a proxy for it if necessary
+            item = RecurrenceDialog.getProxy(u'ui', item)
+    return item
 
 
 class Block(schema.Item):
@@ -230,6 +246,10 @@ class Block(schema.Item):
                 newSubscribers.add(self)
         self.contents = item
         self.contentsCollection = collection
+
+    def getProxiedContents(self):
+        """ Get our 'contents', wrapped in a proxy if appropriate. """
+        return getProxiedItem(getattr(self, 'contents', None))
 
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)

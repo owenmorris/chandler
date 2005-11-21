@@ -13,7 +13,7 @@ from osaf.pim import ContentItem, Note, AbstractCollection
 import application.dialogs.Util as Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages
-from osaf.framework.blocks import Block, BlockEvent, debugName
+from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem
 from application import schema
 
 """
@@ -37,29 +37,41 @@ class FocusEventHandlers(Item):
     
     def __getSendabilityOf(self, item):
         """ Return the sendable state of this item """
+        assert item is not None
+        item = getattr(item, 'proxiedItem', item)
         getSendabilityMethod = getattr(type(item), "getSendability", None)
         return getSendabilityMethod is None and 'not' \
                or getSendabilityMethod(item)
     
-    def __getSelectedItems(self):
+    def __getSelectedItems(self, event=None):
         """ Get the list of items selected in this view. """
         # We need the list of selected items to enable Send or actually send 
-        # them. Try to get it from this block's widget (which will probably 
-        # provide it from ItemClipboardHandler), and if that doesn't work, 
-        # try the block itself. Returns [] if neither implements it; 
-        # otherwise, returns the list.
-        try:
-            selectedItemsMethod = getattr(type(self.widget), "SelectedItems")
-        except AttributeError:
-            try:
-                selectedItemsMethod = getattr(type(self), "SelectedItems")
-            except AttributeError:
-                return [] # no one to ask? Assume no selected items.
-            else:
-                selectedItems = selectedItemsMethod(self)
-        else:
-            selectedItems = selectedItemsMethod(self.widget)
-        return selectedItems
+        # them. Try several places:
+        # If we were given an event, and it has 'items', we'll use that.
+        if event is not None:
+            selectedItems = event.arguments.get('items', None)
+            if selectedItems is not None:
+                return selectedItems
+
+        # Otherwise, try to get it from this block's widget (which will probably 
+        # provide it from ItemClipboardHandler)
+        widget = getattr(self, 'widget', None)
+        if widget is not None:
+            selectedItemsMethod = getattr(type(widget), "SelectedItems", None)
+            if selectedItemsMethod is not None:
+                return selectedItemsMethod(widget)
+        
+        # Failing that, we'll use the block ourself.
+        selectedItemsMethod = getattr(type(self), "SelectedItems", None)
+        if selectedItemsMethod is not None:
+            return selectedItemsMethod(self)
+        
+        # Give up and return an empty list
+        return []
+
+    def __getProxiedSelectedItems(self, event=None):
+        """ As above, but wrap with proxies if appropriate """
+        return map(getProxiedItem, self.__getSelectedItems(event))
 
     def __getPrimaryCollection(self):
         """
@@ -106,7 +118,7 @@ class FocusEventHandlers(Item):
 
     def onSendShareItemEvent(self, event):
         """ Send or share the selected items """
-        selectedItems = self.__getSelectedItems()
+        selectedItems = self.__getProxiedSelectedItems(event)
         if len(selectedItems) == 0:
             return
 
@@ -136,7 +148,7 @@ class FocusEventHandlers(Item):
         Toggle the "private" attribute of all the selected items
         or of the items specified in the optional arguments of the event.
         """
-        selectedItems = event.arguments.get('items', self.__getSelectedItems())
+        selectedItems = self.__getProxiedSelectedItems(event)
         if len(selectedItems) > 0:
             # if any item is shared, give a warning if marking it private
             for item in selectedItems:
@@ -169,7 +181,7 @@ class FocusEventHandlers(Item):
             event.arguments['Check'] = enable and isPrivate
 
     def onFocusStampEvent(self, event):
-        selectedItems = event.arguments.get('items', self.__getSelectedItems())
+        selectedItems = self.__getProxiedSelectedItems(event)
         kindParam = event.kindParameter
         stampClass = kindParam.getItemClass()
         if len(selectedItems) > 0:

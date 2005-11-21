@@ -5,7 +5,8 @@ import wx
 
 from Block import (
     RectangularChild, TrunkSubtree, BlockEvent, ChoiceEvent, ColorEvent,
-    KindParameterizedEvent, ModifyCollectionEvent, EventList, debugName
+    KindParameterizedEvent, ModifyCollectionEvent, EventList, debugName,
+    getProxiedItem
 )
 
 from ContainerBlocks import (
