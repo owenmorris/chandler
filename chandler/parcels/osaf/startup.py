@@ -266,7 +266,7 @@ def run_reactor(in_thread=True):
             _reactor_thread = None
 
 
-def stop_reactor(timeout=None):
+def stop_reactor():
     """
     Stop the Twisted reactor and wait for its thread to exit
     """
@@ -279,9 +279,7 @@ def stop_reactor(timeout=None):
 
     if _reactor_thread is not None:
         if _reactor_thread.isAlive():
-            _reactor_thread.join(timeout)
-            if _reactor_thread.isAlive():
-                raise AssertionError("Reactor did not stop")
+            _reactor_thread.join()
         _reactor_thread = None
 
 

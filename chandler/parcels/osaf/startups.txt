@@ -257,8 +257,8 @@ And then stop it, verifying that both the reactor and thread have stopped::
 
     >>> status(258)
     >>> rt = get_reactor_thread()
+    >>> stop_reactor()
     >>> status(260)
-    >>> stop_reactor(30)
     >>> print get_reactor_thread()
     None
     >>> rt.isAlive()
