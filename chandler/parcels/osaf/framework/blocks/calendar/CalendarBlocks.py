@@ -477,13 +477,15 @@ class wxPreviewArea(wx.Panel):
                 # self.currentDaysItems has deleted items in it.
                 continue
             if i == self.blockItem.maximumEventsDisplayed:
-                dc.SetFont(self.eventFont)
-                # this is the number of events that are not displayed
-                # in the preview pane because there wasn't enough room
-                dc.DrawText(_(u"%(numberOfEvents)d more confirmed...") % {'numberOfEvents': (len(self.currentDaysItems) - i)},
-                            self.hMargin, y + self.eventFontOffset)
-                y += self.lineHeight  #For end calculation
-                break
+                numEventsLeft = (len(self.currentDaysItems) - i)
+                if numEventsLeft > 1:
+                    dc.SetFont(self.eventFont)
+                    # this is the number of events that are not displayed
+                    # in the preview pane because there wasn't enough room
+                    dc.DrawText(_(u"%(numberOfEvents)d more confirmed...") % {'numberOfEvents': numEventsLeft},
+                                self.hMargin, y + self.eventFontOffset)
+                    y += self.lineHeight  #For end calculation
+                    break
 
             if not (item.allDay or item.anyTime):
                 # Draw the time
