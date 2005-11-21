@@ -12,6 +12,10 @@ class RepositoryThreadPool(threadpool.ThreadPool):
     """
 
     def startAWorker(self):
+        """
+        Creates a worker thread of type C{RepositoryThread}
+        """
+
         self.workers = self.workers + 1
         name = "RepositoryPoolThread-%s-%s" % (id(self), self.workers)
         try:
