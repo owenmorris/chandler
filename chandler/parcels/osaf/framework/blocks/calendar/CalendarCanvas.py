@@ -238,9 +238,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
         item = self._item
-        if item.isDeleted():
+        # recurring items, when deleted or stamped non-Calendar, are sometimes
+        # passed to Draw before wxSynchronize is called, ignore those items
+        if item.isDeleted() or not item.itsKind.isKindOf(Calendar.CalendarEventMixin.getKind(item.itsView)):
             return
-
         isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
         # Draw one event - an event consists of one or more bounds	
        

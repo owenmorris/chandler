@@ -279,10 +279,33 @@ class CalendarEventMixin(RemindableMixin):
 
         if not hasattr(self, 'icalUID'):
             self.icalUID = unicode(self.itsUUID)
-            
-        
+         
         # TBD - set participants to any existing "who"
         # participants are currently not implemented.
+        
+    def StampKind (self, operation, mixinKind):
+        """
+        Override StampKind to deal with unstamping CalendarEventMixin on
+        recurring events.
+        
+        When unstamping CalendarEventMixin, first add the item's recurrenceID
+        to the exclusion list, so the item doesn't reappear after unstamping.
+        
+        """
+        if operation == 'remove' and self.rruleset is not None and \
+           not self._findStampedKind(operation, mixinKind).isKindOf(CalendarEventMixin.getKind(self.itsView)):
+            self._ignoreValueChanges = True
+            rruleset = self.rruleset
+            self.occurrenceFor = None
+            self.rruleset = None
+            if getattr(rruleset, 'exdates', None) is None:
+                rruleset.exdates=[]
+            rruleset.exdates.append(self.recurrenceID)
+            del self._ignoreValueChanges
+            
+        super(CalendarEventMixin, self).StampKind(operation, mixinKind)
+
+
 
     def getEndTime(self):
         if (self.hasLocalAttributeValue("startTime") and 
