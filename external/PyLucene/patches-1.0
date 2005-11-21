@@ -122,3 +122,19 @@
      JvInitClass(&org::apache::lucene::document::DateField::class$);
      JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
      JvInitClass(&org::apache::lucene::queryParser::MultiFieldQueryParser::class$);
+--- PyLucene-1.0.orig/PyLucene.i	2005-05-01 17:19:13.000000000 -0700
++++ PyLucene-1.0/PyLucene.i	2005-11-21 15:53:32.000000000 -0800
+@@ -4443,12 +4443,12 @@
+ 
+             self._Thread__started = True
+ 
+         def join(self, timeout=None):
+ 
+             thread = self.javaThread
+             if thread is not None:
+                 if timeout is not None:
+-                    thread.join(int(timeout * 1000))
++                    thread.join(long(timeout * 1000))
+                 else:
+                     thread.join()
+ %}
