@@ -15,20 +15,20 @@ import AmazonDialog
 
 amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
 
-def isEmpty(text):
+def _isEmpty(text):
     if text is None or len(string.strip(text)) == 0:
         return True
 
     return False
 
-def setStatusMessage(message, view):
+def _setStatusMessage(message, view):
     if Globals.wxApplication is None:
         return
 
     Globals.wxApplication.CallItemMethodAsync(view, 'setStatusMessage', message)
 
 
-def showError(errText):
+def _showError(errText):
     if Globals.wxApplication is None:
         return
 
@@ -37,47 +37,113 @@ def showError(errText):
 
 
 def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category=None):
+    """
+    Performs an amazon search by keyword and creates an AmazonCollection containing AmazonItem's for each
+    product found that matches the search criteria (only retrieves the first 10 products).
+    If an AmazonCollection already exists for the search
+    criteria the method creates AmazonItem's for new products and adds them to the existing collection.
+
+    The method can be used programatically or via user input. If no keywords, countryCode, and category
+    variables are passed in, an Amazon Search By Keyword dialog is displayed for the user to choose the
+    keywords, countryCode, and category.
+
+    The method contacts the Amazon site specified by the countryCode and retrieves the products that match
+    the search criteria.
+
+    @type repView: A Repository.view
+    @param repView: The repository view in which to create the AmazonItems' and AmazonCollection
+
+    @type: cpiaView: The Repository.view
+    @param cpiaView: The CPIA Repository.view used to update the status bar message where appropriate
+
+    @type keywords: unicode
+    @param keywords: The keywords to search on. If the value is None a CPIA dialog is displayed for
+                     the user to enter the information.
+
+    @type countryCode: unicode
+    @param countryCode: The countryCode of the amazon site to contact. If the value is None a CPIA dialog is displayed for
+                     the user to enter the information.
+
+    @type category: unicode
+    @param category: The category to search in. If the value is None a CPIA dialog is displayed for
+                     the user to enter the information.
+
+    @rtype: AmazonCollection or None
+    @return: An AmazonCollection containing AmazonItem's for each product or None if no products found
+             or an error occurs.
+    """
+
     if keywords is None or countryCode is None or category is None:
         keywords, countryCode, category = AmazonDialog.promptKeywords()
 
-    if isEmpty(keywords):
+    if _isEmpty(keywords):
         """The user did not enter any text to search on or hit the cancel button"""
         return None
 
     try:
         bags = amazon.searchByKeyword(keywords, locale=countryCode, product_line=category)
-        return AddToCollection(repView, cpiaView, keywords, countryCode, bags) 
+        return _AddToCollection(repView, cpiaView, keywords, countryCode, bags) 
 
     except (AmazonError, AttributeError), e:
         dt = {'keywords': keywords}
-        showError(_(u"No Amazon products were found for keywords '%(keywords)s'") % dt)
+        _showError(_(u"No Amazon products were found for keywords '%(keywords)s'") % dt)
         return None
 
 
 def SearchWishListByEmail(repView, cpiaView, emailAddr=None, countryCode=None):
+    """
+    Retrieves an amazon wishlist by email address and creates an AmazonCollection containing AmazonItem's for each
+    product in the wishlist (only retrieves first 10 products found). If an AmazonCollection already exists for the search
+    criteria the method creates AmazonItem's for new products and adds them to the existing collection.
+
+    The method can be used programatically or via user input. If no emailAddr and countryCode
+    variables are passed in, an Amazon WishList By Email dialog is displayed for the user to input the
+    emailAddr and countryCode.
+
+    The method contacts the Amazon site specified by the countryCode and retrieves the products for the
+    wishlist.
+
+    @type repView: A Repository.view
+    @param repView: The repository view in which to create the AmazonItems' and AmazonCollection
+
+    @type: cpiaView: The Repository.view
+    @param cpiaView: The CPIA Repository.view used to update the status bar message where appropriate
+
+    @type emailAddr: unicode
+    @param emailAddr: The email address for the user wishlist
+
+    @type countryCode: unicode
+    @param countryCode: The countryCode of the amazon site to contact. If the value is None a CPIA dialog is displayed for
+                     the user to enter the information.
+
+    @rtype: AmazonCollection or None
+    @return: An AmazonCollection containing AmazonItem's for each product or None if no products found
+             or an error occurs.
+    """
+
     if emailAddr is None or countryCode is None:
         emailAddr, countryCode = AmazonDialog.promptEmail()
 
-    if isEmpty(emailAddr):
+    if _isEmpty(emailAddr):
         return None
 
     try:
         customerName, bags = amazon.searchWishListByEmail(emailAddr, locale=countryCode)
-        return AddToCollection(repView, cpiaView, customerName, countryCode, bags) 
+        return _AddToCollection(repView, cpiaView, customerName, countryCode, bags) 
 
     except (AmazonError, AttributeError), e:
         dt = {'emailAddress': emailAddr}
-        showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") % dt)
+        _showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") % dt)
         return None
 
 
-def AddToCollection(repView, cpiaView, text, countryCode, bags):
+def _AddToCollection(repView, cpiaView, text, countryCode, bags):
     col, d = AmazonCollection.getCollection(repView, cpiaView, text, countryCode)
 
     counter = 0
 
     for aBag in bags:
-        #printBag(aBag, 0)
+        #_printBag(aBag, 0)
         #print "\n----------------------\n\n"
 
         #XXX This is temp for .6.
@@ -98,7 +164,7 @@ def AddToCollection(repView, cpiaView, text, countryCode, bags):
     else:
         msg = _(u"Added %(numOf)s products to collection '%(collectionName)s'") % d
 
-    setStatusMessage(msg, cpiaView)
+    _setStatusMessage(msg, cpiaView)
 
     repView.commit()
 
@@ -106,7 +172,6 @@ def AddToCollection(repView, cpiaView, text, countryCode, bags):
 
 
 class AmazonCollection(ListCollection):
-
     schema.kindInfo(displayName = u"Amazon Collection Kind")
 
     keywords = schema.One(schema.Text, displayName = u'Keywords')
@@ -117,6 +182,36 @@ class AmazonCollection(ListCollection):
 
     @classmethod
     def getCollection(cls, repView, cpiaView, text, countryCode):
+        """
+        Returns an AmazonCollection with a displayName combining the text and
+        country code variables.
+
+        The method checks to see if a AmazonCollection already exists
+        matching the displayName combination of the text and countryCode
+        variables. If one exists that collection is returned otherwise
+        an AmazonCollection is created with the text / countryCode displayName
+        and is returned.
+
+        @type repView: A Repository.view
+        @param repView: The repository view in which to create the AmazonItems' and AmazonCollection
+
+        @type: cpiaView: The Repository.view
+        @param cpiaView: The CPIA Repository.view used to update the status bar message where appropriate
+
+        @type text: unicode
+        @param text: The text to use in combination with the countryCode to create the AmazonCollection
+                     displayName
+
+        @type countryCode: unicode
+        @param countryCode: The countryCode to use in combination with the text to create the AmazonCollection
+                     displayName
+
+        @rtype: AmazonCollection
+        @return: An existing AmazonCollection that matches the text/CountryCode displayName combination or
+                 a new AmazonCollection if no match found.
+       """
+
+
         displayName = AmazonCollection.makeCollectionName(text, countryCode)
 
         for collection in schema.ns("osaf.app", cpiaView).sidebarCollection:
@@ -142,6 +237,22 @@ class AmazonCollection(ListCollection):
 
     @classmethod
     def makeCollectionName(cls, text, countryCode):
+        """
+        Returns the displayName for an AmazonCollection based on the text
+        and countryCode passed in.
+
+        @type text: unicode
+        @param text: The text to use in combination with the countryCode to create the AmazonCollection
+                     displayName
+
+        @type countryCode: unicode
+        @param countryCode: The countryCode to use in combination with the text to create the AmazonCollection
+                     displayName
+
+        @rtype: unicode
+        @return: The unicode displayName to be used for the AmazonCollection
+        """
+
         if countryCode == 'gb':
             #The country code for the United Kingdom is 'GB' but
             #the web domain for the United Kingdom is .uk
@@ -191,7 +302,7 @@ class AmazonItem(ContentItem):
                 # In theory this would be a nice feature but since the wx
                 # HTML widget is slow and does not render till everything is
                 # downloaded it impacts the display of the product considerably.
-                desc = stripHTML(desc)
+                desc = _stripHTML(desc)
 
             self.ProductDescription = desc
             self.Media = getattr(bag, 'Media', '')
@@ -233,7 +344,7 @@ class AmazonItem(ContentItem):
             self.displayName = self.ProductName
 
 
-def printBag(aBag, level):
+def _printBag(aBag, level):
     """This is used for debugging the incoming Amazon XML which is
        parsed by amazon.py in to c{amazon.Bags}"""
     for at in dir(aBag):
@@ -245,13 +356,13 @@ def printBag(aBag, level):
         print "%s%s: %s" % ('\t'*level, at, val)
 
         if isinstance(val, amazon.Bag):
-            printBag(val, level+1)
+            _printBag(val, level+1)
         elif isinstance(val, list) and len(val) > 0 and isinstance(val[0], amazon.Bag):
             for bag in val:
-                printBag(bag, level+1)
+                _printBag(bag, level+1)
 
 
-class Cleaner(sgmllib.SGMLParser):
+class _Cleaner(sgmllib.SGMLParser):
     entitydefs={"nbsp": " "} 
 
     def __init__(self):
@@ -272,8 +383,8 @@ class Cleaner(sgmllib.SGMLParser):
             txt += uniText
         return txt
 
-def stripHTML(text):
-  c=Cleaner()
+def _stripHTML(text):
+  c=_Cleaner()
   try:
     c.feed(text)
   except sgmllib.SGMLParseError:

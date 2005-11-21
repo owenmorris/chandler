@@ -8,16 +8,16 @@ from i18n import OSAFMessageFactory as _
 from osaf import messages
 import i18n
 
-SITE_CODES = ['us', 'gb', 'de', 'jp']
-SITE_LIST = [
+_SITE_CODES = ['us', 'gb', 'de', 'jp']
+_SITE_LIST = [
              _(u"Amazon USA"),
              _(u"Amazon UK"),
              _(u"Amazon Germany"),
              _(u"Amazon Japan")
             ]
 
-CAT_CODES = ['books', 'dvd', 'music']
-CAT_LIST = [
+_CAT_CODES = ['books', 'dvd', 'music']
+_CAT_LIST = [
             _(u"Books"),
             _(u"DVD"),
             _(u"Music")
@@ -25,18 +25,37 @@ CAT_LIST = [
 
 
 def promptEmail():
+    """
+    Displays an Amazon Email Wishlist dialog. The dialog allows the user to choose the
+    Amazon site (Amazon US, Amazon UK, Amazon Germany, Amazon Japan) which the Email wishlist is on.
+
+    @rtype: tuple
+    @return: tuple containing the Email Address to use and the country code for the Amazon Site
+             or a tuple containing (None, None) if no results found.
+    """
+
     return _showDialog(_(u"New Amazon Wish List"),
                        _(u"What is the Amazon email address of the wish list?"),
                          u"", False)
 
 def promptKeywords():
+    """
+    Displays an Amazon Keyword search dialog. The dialog allows the user to choose the
+    Amazon site (Amazon US, Amazon UK, Amazon Germany, Amazon Japan) and the category (Books, DVD, Music)
+    which the keyword search is on.
+
+    @rtype: tuple
+    @return: tuple containing the search keywords to use, the country code for the Amazon Site, and
+             the category to search on or a tuple containing (None, None, None) if no results found.
+    """
+
     return _showDialog(_(u"New Amazon Collection"),
                        _(u"Enter your Amazon search keywords:"),
                          u"Theodore Leung")
 
 
 def _showDialog(title, message, value, showCategories=True):
-    win = promptAmazonDialog(wx.GetApp().mainFrame, -1, title, message, value, showCategories)
+    win = _promptAmazonDialog(wx.GetApp().mainFrame, -1, title, message, value, showCategories)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -54,7 +73,7 @@ def _showDialog(title, message, value, showCategories=True):
     return value
 
 
-class promptAmazonDialog(wx.Dialog):
+class _promptAmazonDialog(wx.Dialog):
     def __init__(self, parent, ID, title, message, value, showCategories):
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
@@ -84,7 +103,7 @@ class promptAmazonDialog(wx.Dialog):
             box = wx.BoxSizer(wx.HORIZONTAL)
             label = wx.StaticText(self, -1, _(u"Browse by category"))
             box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
-            catChoice = wx.Choice(self, -1, choices=CAT_LIST)
+            catChoice = wx.Choice(self, -1, choices=_CAT_LIST)
             box.Add(catChoice, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
             sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
             catChoice.SetSelection(0)
@@ -93,7 +112,7 @@ class promptAmazonDialog(wx.Dialog):
         box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _(u"Select a site to search"))
         box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
-        siteChoice = wx.Choice(self, -1, choices=SITE_LIST)
+        siteChoice = wx.Choice(self, -1, choices=_SITE_LIST)
         box.Add(siteChoice, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
         sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
@@ -122,11 +141,11 @@ class promptAmazonDialog(wx.Dialog):
         if self.showCategories:
             return (
                      self.textControl.GetValue(),
-                     SITE_CODES[self.siteChoiceControl.GetSelection()],
-                     CAT_CODES[self.catChoiceControl.GetSelection()]
+                     _SITE_CODES[self.siteChoiceControl.GetSelection()],
+                     _CAT_CODES[self.catChoiceControl.GetSelection()]
                     )
 
-        return (self.textControl.GetValue(), SITE_CODES[self.siteChoiceControl.GetSelection()])
+        return (self.textControl.GetValue(), _SITE_CODES[self.siteChoiceControl.GetSelection()])
 
 
     def GetSelectionPosition(self):
@@ -141,7 +160,7 @@ class promptAmazonDialog(wx.Dialog):
             except ValueError:
                 pass
 
-            for i in xrange(len(SITE_CODES)):
-                if SITE_CODES[i] == loc.lower():
+            for i in xrange(len(_SITE_CODES)):
+                if _SITE_CODES[i] == loc.lower():
                     return i
         return 0
