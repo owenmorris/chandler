@@ -197,7 +197,7 @@ class ImportDialog(FileChooserWithOptions):
             if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
                 msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]            
             self.progressText.SetLabel(msg)
-        wx.Yield()
+        wx.GetApp().yieldNoIdle()
         return self.cancelling
 
     def fail(self, msg):

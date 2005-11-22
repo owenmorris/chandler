@@ -172,6 +172,7 @@ class wxApplication (wx.App):
 
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
+        self.ignoreIdle = False
 
         # Initialize PARCELPATH and sys.path
         parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
@@ -549,7 +550,14 @@ class wxApplication (wx.App):
                 if widget.IsShown() != event.GetShow():
                     self.needsUpdateUI = True
 
-        event.Skip()                
+        event.Skip()
+
+    def yieldNoIdle(self):
+        self.ignoreIdle = True
+        try:
+            wx.Yield()
+        finally:
+            self.ignoreIdle = False
 
     def OnIdle(self, event):
         # Adding a handler for catching a set focus event doesn't catch
@@ -558,6 +566,7 @@ class wxApplication (wx.App):
         # focus changes.
 
         if not self.__CHANDLER_STARTED_UP: return # workaround for bug 4362
+        if self.ignoreIdle: return                # workaround for bug 4732
 
         focus = wx.Window_FindFocus()
         if self.focus != focus:
