@@ -25,8 +25,8 @@ class NotifyHandler(schema.Item):
                 continue
             return rec[0] == op and rec[3] == other 
 
-    def onCollectionEvent(self, op, item, name, other, positions):
-        self.log.append((op, item, name, other, positions))
+    def onCollectionEvent(self, op, item, name, other, *args):
+        self.log.append((op, item, name, other, args))
 
 class SimpleItem(schema.Item):
     """

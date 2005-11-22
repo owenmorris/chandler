@@ -280,7 +280,7 @@ def make_mainview(parcel):
             copyItems = True,
             disambiguateDisplayName = True,
             dispatchToBlockName = 'MainView',
-            selectFirstItemInBlockNamed = 'Sidebar',
+            selectInBlockNamed = 'Sidebar',
             items=[app.untitledCollection],
             dispatchEnum = 'SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main

@@ -355,12 +355,12 @@ class Block(schema.Item):
             if lastView == self:
                 Globals.views.pop()
 
-    def onCollectionEvent (self, op, item, name, other, positions):
+    def onCollectionEvent (self, op, item, name, other, *args):
         """
           When our item collection has changed, we need to synchronize
         """
         if not self.ignoreNotifications:
-            self.synchronizeSoon(collectionChange=(op, item, name, other, positions))
+            self.synchronizeSoon(collectionChange=(op, item, name, other, args))
 
     def synchronizeSoon(self, **hints):
         """ Invoke our general deferred-synchronization mechanism """
@@ -984,7 +984,7 @@ class ModifyCollectionEvent(BlockEvent):
     items = schema.Sequence(schema.Item, initialValue = [])
     collectionName = schema.One(schema.Bytes, initialValue = "sidebarCollection")
     copyItems = schema.One(schema.Boolean, initialValue=False)
-    selectFirstItemInBlockNamed = schema.One(schema.Bytes, defaultValue = None)
+    selectInBlockNamed = schema.One(schema.Bytes, defaultValue = None)
     disambiguateDisplayName = schema.One(schema.Boolean, initialValue=False)
     schema.addClouds(
         copying = schema.Cloud(byRef=[items])

@@ -1083,8 +1083,9 @@ class ValueContainer(DBContainer, CValueContainer):
     # 0.5.6: lob encryption reworked to include IV
     # 0.5.7: string length incremented before saved to preserve sign
     # 0.5.8: date/time type formats optimized
-
-    FORMAT_VERSION = 0x00050800
+    # 0.5.9: added support for storing selection ranges on indexes
+ 
+    FORMAT_VERSION = 0x00050900
 
     def __init__(self, store):
 

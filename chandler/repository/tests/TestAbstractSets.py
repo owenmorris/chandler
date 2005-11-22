@@ -22,7 +22,7 @@ class movie(Movie):
         super(movie, self).__init__(*args, **kwds)
         self.calls = []
 
-    def collectionChanged(self, op, item, name, other, positions):
+    def collectionChanged(self, op, item, name, other, *args):
 
         self.calls.append((op, item, name, other))
     

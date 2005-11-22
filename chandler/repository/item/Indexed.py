@@ -163,6 +163,15 @@ class Indexed(object):
         self._indexes[indexName] = index
         return index
 
+    def setRanges(self, indexName, ranges):
+
+        self._index(indexName).setRanges(ranges)
+        self._setDirty(True)
+
+    def getRanges(self, indexName):
+
+        return self._index(indexName).getRanges()
+
     def setDescending(self, indexName, descending=True):
 
         self._index(indexName).setDescending(descending)

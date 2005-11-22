@@ -337,7 +337,7 @@ def make_mainview(parcel):
             copyItems = True,
             disambiguateDisplayName = True,
             dispatchToBlockName = 'MainView',
-            selectFirstItemInBlockNamed = 'Sidebar',
+            selectInBlockNamed = 'Sidebar',
             items=[app.untitledCollection],
             dispatchEnum = 'SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main
@@ -455,6 +455,23 @@ def make_mainview(parcel):
     sidebarSelectionCollection = pim.IndexedSelectionCollection.update(parcel,
                                                                        'sidebarSelectionCollection',
                                                                        source=app.sidebarCollection)
+
+    Sidebar = SidebarBlock.template('Sidebar',
+        characterStyle=globalBlocks.SidebarRowStyle,
+        columnReadOnly=[False],
+        columnHeadings=[u''],
+        border=RectType(0, 0, 4, 0),
+        editRectOffsets=[17, -17, 0],
+        buttons=[IconButton, SharingButton],
+        selection=[[0,0]],
+        contents=sidebarSelectionCollection,
+        selectedItemToView=app.allCollection,
+        elementDelegate='osaf.views.main.SideBar.SidebarElementDelegate',
+        hideColumnHeadings=True,
+        columnWidths=[150],
+        columnData=[u'displayName'],
+        filterKind=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(parcel.itsView)).install(parcel)
+    Sidebar.contents.selectItem (app.allCollection)
 
     mainview = \
     MainView.template('MainView',
@@ -958,21 +975,7 @@ def make_mainview(parcel):
                                 stretchFactor=0.0,
                                 border=RectType(0, 0, 0, 4.0),
                                 childrenBlocks=[
-                                    SidebarBlock.template('Sidebar',
-                                        characterStyle=globalBlocks.SidebarRowStyle,
-                                        columnReadOnly=[False],
-                                        columnHeadings=[u''],
-                                        border=RectType(0, 0, 4, 0),
-                                        editRectOffsets=[17, -17, 0],
-                                        buttons=[IconButton, SharingButton],
-                                        selection=[[0,0]],
-                                        contents=sidebarSelectionCollection,
-                                        selectedItemToView=app.allCollection,
-                                        elementDelegate='osaf.views.main.SideBar.SidebarElementDelegate',
-                                        hideColumnHeadings=True,
-                                        columnWidths=[150],
-                                        columnData=[u'displayName'],
-                                        filterKind=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(parcel.itsView)),
+                                    Sidebar,
                                     BoxContainer.template('PreviewAndMiniCalendar',
                                         orientationEnum='Vertical',
                                         childrenBlocks=[

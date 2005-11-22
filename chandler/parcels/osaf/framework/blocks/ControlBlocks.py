@@ -481,10 +481,8 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetColLabelValue (self, column):
         grid = self.GetView()
-        elements = grid.GetElementCount()
-        cursorRow = grid.GetGridCursorRow()
-        if elements and elements > cursorRow:
-            item = grid.blockItem.contents [cursorRow]
+        if grid.GetElementCount():
+            item = grid.blockItem.contents [grid.GetGridCursorRow()]
         else:
             item = None
         return grid.GetColumnHeading (column, item)
@@ -586,7 +584,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetSelectionBackground (background)
 
     def InvalidateSelection (self):
-        for range in self.blockItem.selection:
+        for range in self.blockItem.contents.getSelectionRanges():
             dirtyRect = wx.Rect()
             dirtyRect.SetTopLeft (self.CellToRect (range[0], 0).GetTopLeft())
             dirtyRect.SetBottomRight (self.CellToRect (range[1], self.GetNumberCols() - 1).GetBottomRight())
@@ -619,11 +617,15 @@ class wxTable(DragAndDrop.DraggableWidget,
             # Itnore notifications that arrise as a side effect of changes to the selection
             blockItem.stopNotificationDirt()
             try:
+                # Extact the ranges from the grid using the top left block of the
+                # selection and thr bottom right block of the selection. Then
+                # assign the selected ranges to the content's selection
+                contents = self.blockItem.contents
+                contents.setSelectionRanges ([])
                 topLeftList = self.GetSelectionBlockTopLeft()
-                blockItem.selection = []
                 for topLeft, bottomRight in zip (topLeftList,
                                                  self.GetSelectionBlockBottomRight()):
-                    blockItem.selection.append ([topLeft[0], bottomRight[0]])
+                    contents.addSelectionRange ((topLeft[0], bottomRight[0]))
                
                 topLeftList.sort()
                 try:
@@ -704,10 +706,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         if gridWindow.HasCapture():
             gridWindow.ReleaseMouse()
 
-        # make sure SelectedItemToView is up-to-date (shouldn't need to do this!)
-        if not self.blockItem.selection:
+        # If we don't have a selection, set it the firstRow of the event.
+        contents = self.blockItem.contents
+        if len (contents.getSelectionRanges()) == 0:
             firstRow = event.GetRow()
-            self.blockItem.selection = [[firstRow, firstRow]]
+            contents.setSelectionRanges ([(firstRow, firstRow)])
         self.DoDragAndDrop(copyOnly=True)
 
     def AddItems(self, itemList):
@@ -769,46 +772,33 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.SetColSize(newColumns - 1, remaining)
         
         self.ClearSelection()
-        firstSelectedRow = None
-
-        # now update the ranges to reflect the new selection (this
-        # should probably be done before the GridTableMessage that
-        # removes rows, above (but for 0.6, this is the less risky place)
-        if len (self.blockItem.contents) > 0:
-            invalidRanges = []
-            for range in self.blockItem.selection:
-                if range[0] < self.currentRows:
-                    if firstSelectedRow is None:
-                        firstSelectedRow = range[0]
-                        self.SetGridCursor (firstSelectedRow, 0)
-                    self.SelectBlock (range[0], 0, range[1], newColumns, True)
-                else:
-                    invalidRanges.append(range)
-                    
-            for badRange in invalidRanges:
-                self.blockItem.selection.remove(badRange)
-        else:
-            self.blockItem.selection = []
+        contents = self.blockItem.contents
+        for range in contents.getSelectionRanges():
+            self.SelectBlock (range[0], 0, range[1], newColumns, True)
         self.EndBatch() 
 
-        #Update all displayed values
+        # Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
         self.ProcessTableMessage (message) 
         self.ForceRefresh () 
 
-        if (self.blockItem.selectedItemToView not in self.blockItem.contents and
-            firstSelectedRow is not None):
-            selectedItemToView = self.blockItem.contents [firstSelectedRow]
+        # Either we should move selectedItemToView into the selection that is part of
+        # the contents or get rid of it. This would eliminate the following code that
+        # keeps it up to date and when we install a different contents on a block
+        # it would get restored to the correct value -- DJA
+        selectedItemToView = self.blockItem.selectedItemToView
+        if (selectedItemToView not in contents and
+            selectedItemToView is not None):
+            selectedItemToView = contents.getFirstSelectedItem()
             self.blockItem.selectedItemToView = selectedItemToView
             self.blockItem.postEventByName("SelectItemsBroadcast",
                                            {'items':[selectedItemToView]})
 
-        try:
-            row = self.blockItem.contents.index (self.blockItem.selectedItemToView)
-        except ValueError:
-            pass
-        else:
-            self.MakeCellVisible (row, 0)
+        if selectedItemToView is not None:
+            index = contents.index (selectedItemToView)
+            contents.addSelectionRange (index)
+            self.SetGridCursor (index, 0)
+            self.MakeCellVisible (index, 0)
 
     def GoToItem(self, item):
         if item != None:
@@ -816,14 +806,15 @@ class wxTable(DragAndDrop.DraggableWidget,
                 row = self.blockItem.contents.index (item)
             except ValueError:
                 item = None
+        blockItem = self.blockItem
         if item is not None:
-            self.blockItem.selection.append ([row, row])
-            self.blockItem.selectedItemToView = item
+            blockItem.contents.addSelectionRange (row)
+            blockItem.selectedItemToView = item
             self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
             self.MakeCellVisible (row, 0)
         else:
-            self.blockItem.selection = []
-            self.blockItem.selectedItemToView = None
+            blockItem.contents.setSelectionRanges([])
+            blockItem.selectedItemToView = None
             self.ClearSelection()
         self.blockItem.postEventByName("SelectItemsBroadcast",
                                        {'items':[item]})
@@ -867,7 +858,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 DeleteItemCallback(contents[row])
                 newRowSelection = row
 
-        blockItem.selection = []
+        blockItem.contents.setSelectionRanges([])
         blockItem.selectedItemToView = None
         blockItem.itsView.commit()
         
@@ -894,7 +885,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         """
         Return the list of selected items.
         """
-        selectionRanges = self.blockItem.selection
+        selectionRanges = self.blockItem.contents.getSelectionRanges()
         if not selectionRanges:
             detailItem = self.blockItem.selectedItemToView
             if detailItem is None:
@@ -997,7 +988,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     columnWidths = schema.Sequence(schema.Integer, required = True)
     columnReadOnly = schema.Sequence(schema.Boolean)
     elementDelegate = schema.One(schema.Bytes, initialValue = '')
-    selection = schema.Sequence(schema.List, initialValue = [])
     selectedItemToView = schema.One(schema.Item, initialValue = None)
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)

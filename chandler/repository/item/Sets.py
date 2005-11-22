@@ -190,7 +190,6 @@ class AbstractSet(ItemValue, Indexed):
         attribute = self._attribute
 
         if item is not None:
-            positions = None
             if change == 'collection':
                 if self._indexes:
                     key = other.itsUUID
@@ -203,13 +202,8 @@ class AbstractSet(ItemValue, Indexed):
                                 dirty = True
 
                     elif op == 'remove':
-                        for name, index in self._indexes.iteritems():
+                        for index in self._indexes.itervalues():
                             if key in index:
-                                position = index.getPosition(key)
-                                if positions is None:
-                                    positions = { name: position }
-                                else:
-                                    positions[name] = position
                                 index.removeKey(key)
                                 dirty = True
 
@@ -219,7 +213,7 @@ class AbstractSet(ItemValue, Indexed):
                     if dirty:
                         self._setDirty(True)
 
-            item.collectionChanged(op, item, attribute, other, positions)
+            item.collectionChanged(op, item, attribute, other)
             item._collectionChanged(op, change, attribute, other)
 
     def notify(self, op, other):

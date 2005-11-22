@@ -4,9 +4,14 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from struct import pack, unpack
+from itertools import izip
+ 
 from chandlerdb.item.c import Nil
 from repository.util.SkipList import SkipList
 from PyICU import Collator, Locale
+  
+from repository.util.RangeSet import RangeSet
 
 
 class Index(dict):
@@ -104,8 +109,30 @@ class NumericIndex(Index):
         super(NumericIndex, self).__init__(**kwds)
         self.skipList = SkipList(self)
 
+        if not kwds.get('loading', False):
+            if 'ranges' in kwds:
+                self._ranges = RangeSet(kwds.pop('ranges'))
+            else:
+                self._ranges = None
+
     def _keyChanged(self, key):
         pass
+
+    def setRanges(self, ranges):
+
+        if ranges is None:
+            self._ranges = None
+        else:
+            self._ranges = RangeSet(list(ranges))
+            assert self._ranges.rangesAreValid()
+
+    def getRanges(self):
+
+        ranges = self._ranges
+        if ranges is not None:
+            return ranges.ranges
+
+        return None
 
     def getEntryValue(self, key):
 
@@ -146,12 +173,20 @@ class NumericIndex(Index):
 
     def getInitKeywords(self):
 
+        if self._ranges is not None:
+            return { 'ranges': self._ranges }
+
         return {}
 
     def insertKey(self, key, afterKey):
 
-        self.skipList.insert(key, afterKey)
+        skipList = self.skipList
+        skipList.insert(key, afterKey)
         self._keyChanged(key)
+
+        ranges = self._ranges
+        if ranges is not None:
+            ranges.onInsert(key, skipList.position(key))
 
         super(NumericIndex, self).insertKey(key, afterKey)
             
@@ -161,14 +196,28 @@ class NumericIndex(Index):
             self.insertKey(key, afterKey)
 
         else:
-            self.skipList.move(key, afterKey)
+            skipList = self.skipList
+            ranges = self._ranges
+            if ranges is not None:
+                ranges.onRemove(key, skipList.position(key))
+
+            skipList.move(key, afterKey)
             self._keyChanged(key)
+
+            if ranges is not None:
+                ranges.onInsert(key, skipList.position(key))
 
             super(NumericIndex, self).moveKey(key, afterKey)
             
     def removeKey(self, key):
 
-        self.skipList.remove(key)
+        skipList = self.skipList
+
+        ranges = self._ranges
+        if ranges is not None:
+            ranges.onRemove(key, skipList.position(key))
+
+        skipList.remove(key)
         super(NumericIndex, self).removeKey(key)
 
     def _clear_(self):
@@ -192,6 +241,40 @@ class NumericIndex(Index):
 
         self._valid = True
 
+    def _writeValue(self, itemWriter, buffer, version):
+
+        super(NumericIndex, self)._writeValue(itemWriter, buffer, version)
+
+        if self._ranges is not None:
+            ranges = self._ranges.ranges
+            buffer.append(pack('>bi', 1, len(ranges)))
+            buffer.extend((pack('>ii', *range) for range in ranges))
+        else:
+            buffer.append('\0')
+
+    def _readValue(self, itemReader, offset, data):
+
+        offset = super(NumericIndex, self)._readValue(itemReader, offset, data)
+
+        if data[offset] == '\1':
+            count, = unpack('>i', data[offset+1:offset+5])
+            start = offset + 5
+            offset = start + count * 8
+
+            if count > 0:
+                format = '>' + 'i' * count * 2
+                numbers = iter(unpack(format, data[start:offset]))
+                ranges = [(a, b) for a, b in izip(numbers, numbers)]
+            else:
+                ranges = []
+
+            self._ranges = RangeSet(ranges)
+
+        else:
+            offset += 1
+            self._ranges = None
+
+        return offset
 
 class DelegatingIndex(object):
 

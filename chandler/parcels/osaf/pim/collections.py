@@ -26,7 +26,7 @@ def deliverNotifications(view):
 
     while True:
         while not notificationQueue.empty():
-            (collection, op, item, name, other, positions) = notificationQueue.get()
+            (collection, op, item, name, other, args) = notificationQueue.get()
             if DEBUG:
                 logger.debug("dequeued: %s %s %s %s",
                              collection, op, item, other)
@@ -34,8 +34,7 @@ def deliverNotifications(view):
             # If the view was cancelled, we could be trying to deliver to stale
             # items:
             if not collection.isStale():
-                collection.notifySubscribers(op, collection, name, other,
-                                             positions)
+                collection.notifySubscribers(op, collection, name, other, args)
 
 
         # Pick up changes to items in C{ListCollections} and
@@ -168,7 +167,7 @@ class AbstractCollection(items.ContentItem):
             self.color = schema.ns('osaf.app', self.itsView).collectionColors.nextColor()
         return self
 
-    def collectionChanged(self, op, item, name, other, positions):
+    def collectionChanged(self, op, item, name, other, *args):
         """
         The method called by the repository level set that backs a collection.
 
@@ -186,9 +185,9 @@ class AbstractCollection(items.ContentItem):
             self.itsView.addNotificationCallback(repositoryViewCallback)
         if DEBUG:
             logger.debug("%s is queuing %s %s", self, op, other)
-        self.itsView.notificationQueue.put((self, op, item, name, other, positions))
+        self.itsView.notificationQueue.put((self, op, item, name, other, args))
 
-    def notifySubscribers(self, op, item, name, other, positions):
+    def notifySubscribers(self, op, item, name, other, *args):
         """
         Deliver notifications to all subscribers
 
@@ -213,7 +212,7 @@ class AbstractCollection(items.ContentItem):
                     if DEBUG:
                         logger.debug("Delivering %s [%s] %s to %s from %s using %s",
                                      op, item, other, i, self.itsName, method_name)
-                    method(i, op, self, name, other, positions)
+                    method(i, op, self, name, other, *args)
                 elif DEBUG:
                     logger.debug("Didn't find the specified notification handler named %s for %s", method_name, i)
             elif DEBUG:
@@ -697,62 +696,129 @@ class IndexedSelectionCollection (AbstractCollection):
     indexName   = schema.One(schema.Bytes, initialValue="__adhoc__")
     source      = schema.One(AbstractCollection, defaultValue=None)
 
-    def moveItemToLocation (self, item, location):
-        assert self.indexName == "__adhoc__"
-        if location == 0:
-            if not self.rep._indexes.has_key (self.indexName):
-                self._createIndex()
-            before = None
-        else:
-            before = self [location - 1]
-        self.rep.placeInIndex (item, before, self.indexName)             
-
-    def _createIndex (self):
+    def getIndex (self):
         """
-        Create an index on this collection. Normally you never call this
-        method, since indexes are lazily created when you index into
-        a collection.
+        Get the index. If it doesn't exist, create. Also create a RangeSet
+        for storing the selection on the index
 
         If the C{indexName} attribute of this collection is set to
         "__adhoc__" then a numeric index will be created.  Otherwise
         the C{indexName} attribute should contain the name of the
         attribute (of an item) to be indexed.
         """
-        if self.indexName == "__adhoc__":
-            self.rep.addIndex (self.indexName, 'numeric')
-        else:
-            self.rep.addIndex (self.indexName, 'attribute', attribute=self.indexName)
+        if not self.rep.hasIndex (self.indexName):
+            if self.indexName == "__adhoc__":
+                self.rep.addIndex (self.indexName, 'numeric')
+            else:
+                self.rep.addIndex (self.indexName, 'attribute', attribute=self.indexName)
+            self.rep.setRanges (self.indexName, [])
+        return self.rep._index(self.indexName)
 
     def __len__(self):
         if hasattr(self, 'rep'):
-            try:
-                return len(self.rep)
-            except ValueError:
-                self._createIndex()
-                return len(self.rep)
+            # Get the index. It's necessary to get the length, and if it doesn't exist
+            # getIndex will create it.
+            self.getIndex()
+            return len(self.rep)
         else:
             return 0
+
+    def moveItemToLocation (self, item, location):
+        """
+        Moves an item to a new C{location} in an __adhoc__ index.
+        """
+        if location == 0:
+            # Get the index. It's necessary to get the length, and if it doesn't exist
+            # getIndex will create it.
+            self.getIndex()
+            before = None
+        else:
+            before = self [location - 1]
+        self.rep.placeInIndex (item, before, self.indexName)             
+
+    def getSelectionRanges (self):
+        """
+        Return the ranges associated with the current index as an array of tuples, where
+        each tuple representsa start and end of the range.
+        """
+        return self.getIndex().getRanges()
+        
+    def setSelectionRanges (self, ranges):
+        """
+        Sets the ranges associated with the current index with C(ranges) which should be
+        an array of tuples, where each tuple represents a start and end of the range.
+        The ranges must be sorted ascending, non-overlapping and postive.
+        """
+        self.getIndex().setRanges (ranges)
+
+    def setSelectionToItem (self, item):
+        """
+        Sets the entire selection to include only the C(item).
+        """
+        index = self.index (item)
+        self.getIndex().setRanges ([(index, index)])
+
+    def isSelected (self, range):
+        """
+        Returns True if the C(range) is completely inside the selected ranges of the index.
+        C(range) may be a tuple: (start, end) or an integer index, where negative indexing
+        works like Python indexing.
+        """
+        return self.getIndex()._ranges.isSelected (range)
+
+    def addSelectionRange (self, range):
+        """
+        Selects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
+        where negative indexing works like Python indexing.
+        """
+        self.getIndex()._ranges.selectRange (range)
+
+    def removeSelectionRange (self, range):
+        """
+        unselects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
+        where negative indexing works like Python indexing..
+        """
+        self.getIndex()._ranges.unselectRange (range)
+
+    def getFirstSelectedItem (self):
+        """
+        Returns the first selected item in the index or None if there is no selection.
+        """
+        index = self.getIndex()._ranges.firstSelectedIndex()
+        if index == None:
+            return None
+        else:
+            return self[index]
+
+    def selectItem (self, item):
+        """
+        Selects an C(item) in the index.
+        """
+        self.addSelectionRange (self.index (item))
+
+    def unselectItem (self, item):
+        """
+        unSelects an C(item) in the index.
+        """
+        self.removeSelectionRange (self.index (item))
 
     def __getitem__ (self, index):
         """
         Support indexing using []
         """
-
-        try:
-            return self.rep.getByIndex (self.indexName, index)
-        except NoSuchIndexError:
-            self._createIndex()
-            return self.rep.getByIndex (self.indexName, index)
+        # Get the index. It's necessary to get the length, and if it doesn't exist
+        # getIndex will create it.
+        self.getIndex()
+        return self.rep.getByIndex (self.indexName, index)
 
     def index (self, item):
         """
         Return the position of item in the index.
         """
-        try:
-            return self.rep.getIndexPosition (self.indexName, item)
-        except NoSuchIndexError:
-            self._createIndex()
-            return self.rep.getIndexPosition (self.indexName, item)
+        # Get the index. It's necessary to get the length, and if it doesn't exist
+        # getIndex will create it.
+        self.getIndex()
+        return self.rep.getIndexPosition (self.indexName, item)
 
     def onValueChanged(self, name):
         if name == "source" and self.source != None:
