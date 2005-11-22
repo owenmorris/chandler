@@ -452,7 +452,6 @@ class CollectionTests(CollectionTestCase):
         #create any indexes, you are out of luck
 #        self.assertEqual(len(list(testCollection)),8)
         testCollection.indexName = "__adhoc__"
-        testCollection._createIndex()
 
         self.assertEqual([x.label for x in testCollection],
                          [testCollection[i].label for i in xrange(0, len(testCollection))])
@@ -470,7 +469,6 @@ class CollectionTests(CollectionTestCase):
         self.assertEqual(len(list(testCollection)),8)
 
         testCollection.indexName = "label"
-        testCollection._createIndex()
 
         self.assertEqual([testCollection[i].label for i in xrange(0, len(testCollection))],['i','i2','i3','v','w','x','y','z'])
 
