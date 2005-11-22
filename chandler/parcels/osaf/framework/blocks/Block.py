@@ -233,6 +233,9 @@ class Block(schema.Item):
         A utility routine for onSetContents handlers that sets the
         contents of a block and updates the contents subscribers
         """
+        self.contentsCollection = collection
+
+        # manage subscriptions
         oldContents = getattr (self, 'contents', None)
         if oldContents is item:
             return
@@ -245,7 +248,6 @@ class Block(schema.Item):
             if newSubscribers is not None:
                 newSubscribers.add(self)
         self.contents = item
-        self.contentsCollection = collection
 
     def getProxiedContents(self):
         """ Get our 'contents', wrapped in a proxy if appropriate. """
