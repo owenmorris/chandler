@@ -313,7 +313,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         #return spanResult
 
     def OnBeginDragItem(self):
-        pass
+        if not self.dragState.currentDragBox.CanDrag():
+            self.WarnReadOnlyTime([self.dragState.currentDragBox._item])
+            return False
+        return True
 
     def OnDraggingItem(self, unscrolledPosition):
         if self.blockItem.dayMode:

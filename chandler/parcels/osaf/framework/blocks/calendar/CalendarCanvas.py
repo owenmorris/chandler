@@ -16,7 +16,7 @@ from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
 from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime
 from osaf.pim import FilteredCollection, AbstractCollection
-from application.dialogs import RecurrenceDialog
+from application.dialogs import RecurrenceDialog, Util
 
 from osaf.framework.blocks import (
     DragAndDrop, Block, SplitterWindow, Styles, BoxContainer
@@ -1005,6 +1005,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def OnEditItem(self, box):
         if not box.CanChangeTitle():
+            self.WarnReadOnlyTitle([box._item])
             return
         
         styles = self.blockItem.calendarContainer
@@ -1180,6 +1181,19 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         for item in itemList:	
             item.addToCollection(source)
 
+    def WarnReadOnlyTitle(self, items):
+        """
+        For now just give a generic warning.
+        Eventually it would be nice to give a specific reason.
+        """
+        Util.ok(self, _(u'Warning'), _(u'This item is read-only. You cannot change the title of read-only items.'))
+
+    def WarnReadOnlyTime(self, items):
+        """
+        For now just give a generic warning.
+        Eventually it would be nice to give a specific reason.
+        """
+        Util.ok(self, _(u'Warning'), _(u'This item is read-only. You cannot change the time of read-only items.'))
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):

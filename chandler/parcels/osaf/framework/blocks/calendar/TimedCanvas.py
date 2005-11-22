@@ -120,7 +120,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 # should be relatively quick because the canvasItemList is already
                 # sorted by startTime. If no conflicts, this is an O(n) operation
                 # (note that as of Python 2.4, sorts are stable, so this remains safe)
-                self.canvasItemList.sort(key=TimedCanvasItem.GetIndentLevel)
+                self.canvasItemList.sort(key=TimedCanvasItem.GetDrawingOrderKey)
     
                 self.Refresh()
         else:
@@ -382,7 +382,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # should be relatively quick because the canvasItemList is already
         # sorted by startTime. If no conflicts, this is an O(n) operation
         # (note that as of Python 2.4, sorts are stable, so this remains safe)
-        self.canvasItemList.sort(key=TimedCanvasItem.GetIndentLevel)
+        self.canvasItemList.sort(key=TimedCanvasItem.GetDrawingOrderKey)
 
     def DrawCells(self, dc):
         styles = self.blockItem.calendarContainer
@@ -540,7 +540,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return firstHit
 
     def OnBeginResizeItem(self):
+        if self.dragState.currentDragBox.CanDrag():
+            self.WarnReadOnlyTime([self.dragState.currentDragBox._item])
+            return False
         self.StartDragTimer()
+        return True
         
     def OnEndResizeItem(self):
         self.FinishDrag()
@@ -567,7 +571,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.scrollTimer = None
         
     def OnBeginDragItem(self):
+        if not self.dragState.currentDragBox.CanDrag():
+            self.WarnReadOnlyTime([self.dragState.currentDragBox._item])
+            return False
         self.StartDragTimer()
+        return True
 
     def FinishDrag(self):
         currentCanvasItem = self.dragState.currentDragBox
@@ -968,3 +976,8 @@ class TimedCanvasItem(CalendarCanvasItem):
             maxparents = max([parent.GetIndentLevel() for parent in self._beforeConflicts])
         return max(self.GetIndentLevel(), maxchildren, maxparents)
 
+    def GetDrawingOrderKey(self):
+        """
+        Drawing order defined first by activeness, then level of indent
+        """
+        return (self.isActive, self.GetIndentLevel())

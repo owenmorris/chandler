@@ -11,6 +11,7 @@ import wx
 from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
 from osaf.pim import AbstractCollection
 from application import schema
+from application.dialogs import Util
 from wx.lib import buttons
 from i18n import OSAFMessageFactory as _
 
@@ -175,14 +176,23 @@ class DragState(object):
             canvasItem.StartDrag(initialPosition)
         
         self._dragStarted = False
+        self._dragCanceled = False
 
     def ResetDrag(self):
         # do we need to have a handler for this?
         self.HandleDrag(self._originalPosition)
         
     def HandleDragStart(self):
+        if self._dragCanceled:
+            return
+        
         self._window.CaptureMouse()
-        self.dragStartHandler()
+        result = self.dragStartHandler()
+        if not result:
+            self._dragCanceled = True
+            self._window.ReleaseMouse()
+            return
+        
         self._dragStarted = True
         self._dragTimer = wx.PyTimer(self.OnDragTimer)
         self._dragTimer.Start(100, wx.TIMER_CONTINUOUS)
@@ -193,6 +203,9 @@ class DragState(object):
             self._dragDirty = False
             
     def HandleDrag(self, unscrolledPosition):
+        if self._dragCanceled:
+            return
+        
         if not self._dragStarted:
             # calculate the absolute drag delta
             dx, dy = \
@@ -208,6 +221,9 @@ class DragState(object):
         self._dragDirty = True
 
     def HandleDragEnd(self, runHandler=True):
+        if self._dragCanceled:
+            return
+        
         if self._dragStarted:
             self._dragTimer.Stop()
             del self._dragTimer
@@ -354,6 +370,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self.OnEditItem(hitBox)
         elif self.blockItem.CanAdd():
             self.OnCreateItem(unscrolledPosition)
+        else:
+            self.WarnReadOnlyAdd(self.blockItem.contents)
             
     def _handleLeftClick(self, unscrolledPosition,
                          multipleSelection):
@@ -404,7 +422,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
           2. Dragging/moving an item
           3. Resizing an item
         """
-
         # ignore entering and leaving events
         if (event.Entering() or event.Leaving()):
             event.Skip()
@@ -502,7 +519,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         Subclasses can define to handle resizing
         """
-        pass
+        return True
 
     def OnEndResizeItem(self):
         """
@@ -526,7 +543,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         Subclasses can define to handle dragging
         """
-        pass
+        return True
 
     def OnEndDragItem(self):
         """
@@ -647,7 +664,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.OnSelectItem(None)
     
     def OnBeginDragNone(self):
-        pass
+        return True
         
     def OnDraggingNone(self, unscrolledPosition):
         pass
@@ -658,6 +675,9 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     # Methods for Drag and Drop and Cut and Paste
     def DeleteSelection(self, *args, **kwargs):
         self.blockItem.DeleteSelection(*args, **kwargs)
+
+    def WarnReadOnlyAdd(self, collection):
+        Util.ok(self, _(u'Warning'), _(u'This collection is read-only. You add items to read-only collections'))
         
 
 class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
