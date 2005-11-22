@@ -4,200 +4,222 @@
 <title>Chandler Repository Types</title>
 </head>
 <body>
-<h1>Types in the Chandler repository</h1>
-<p>This document describes the types that you can use when you are working with parcel.xml.  These types are provided by the Chandler repository and are the basic building blocks for Chandler Items.  You can use them by supplying the name of the type as the value of the <code>itemref</code> attribute on the <code>&lt;type&gt;</code> element used in parcel.xml.</p>
+<h1>Types in Chandler</h1>
+<p>This document describes the types that you can use when you are working with Schema API.  These types are provided by the Chandler repository and are the basic building blocks for Chandler Items.  The type names are top level names in the <code>application.schema</code> module.   Unless otherwise noted, you can create values of these types by supplying the appropriate Python objects.</p>
 
 <table border="1" cellspacing="0">
 <thead>
 <tr>
-<th>Repository type name</th>
+<th>Type name</th>
 <th>Description</th>
-<th>Parcel.xml Declaration Syntax</th>
-<th>Parcel.xml Value syntax</th>
+<th>Value syntax</th>
 </tr>
 </thead>
 <tbody>
 
 <tr>
 <td>Boolean</td>
+<td>A boolean</td>
 <td>A Python boolean</td>
-<td><code>&lt;type itemref="Boolean"&gt;</code></td>
-<td><code>True</code> or <code>False</code></td>
 </tr>
   
-   
+<tr>
+<td>Bytes</td>
+<td>A string</td>
+<td>A Python string.  See <a href="#4">4</a> below.</td>
+</tr>
+<!--
 <tr>
 <td>Class</td>
 <td>a Python class</td>
-<td><code>&lt;type itemref="Class"&gt;</code></td>
 <td>The fully qualified name of the class as a string</td>
+</tr>
+-->
+<tr>
+<td>Complex</td>
+<td>A complex number</td>
+<td>A Python complex number</td>
 </tr>
 
 <tr>
-<td>Complex</td>
-<td>a Python complex number</td>
-<td><code>&lt;type itemref="Complex" /&gt;</code></td>
-<td>a Python complex number literal</td>
+<td>Date</td>
+<td>A date</td>
+<td>A Python <code>datetime.date</code></td>
 </tr>
 
 <tr>
 <td>DateTime</td>
-<td>a mxDateTime.DateTime</td>
-<td><code>&lt;type itemref="DateTime"&gt;</code></td>
-<td>An ISO8601 date/time string</td>
-</tr>
-
-<tr>
-<td>DateTimeDelta</td>
-<td>a mxDateTime.DateTimeDelta
-</td>
-<td><code>&lt;type itemref="DateTimeDelta"&gt;</code></td>
-<td>use mxDateTime.DateTimeDelta's DateTimeDeltaFrom constructor</td>
+<td>A date and time</td>
+<td>A Python <code>datetime.datetime</code></td>
 </tr>
 
 <tr>
 <td>Dictionary</td>
+<td>A dictionary/hash table</td>
 <td>A Python dictionary</td>
-<td><code>&lt;type itemref="Dictionary"&gt;</code></td>
-<td>A string containing key value pairs: "key1:value1, ..., keyn:valuen"</td>
 </tr>
 
 <tr>
 <td>Enumeration</td>
-<td>one of a number of string values - string1, ..., stringn</td>
-<td><code>&lt;Enumeration itsName="fontFamilyEnumType"&gt;<br />
-    &lt;values&gt;DefaultUIFont&lt;/values&gt;<br />
-    &lt;values&gt;SerifFont&lt;/values&gt;<br />
-    &lt;values&gt;SansSerifFont&lt;/values&gt;<br />
-    &lt;values&gt;FixedPitchFont&lt;/values&gt;<br />
-  &lt;/Enumeration&gt;<br />
-   <br />
-  &lt;Attribute itsName="fontFamily"&gt;<br />
-    &lt;type itemref="docSchema:fontFamilyEnumType"/&gt;<br />
-    &lt;initialValue type="docSchema:fontFamilyEnumType"&gt;DefaultUIFont&lt;/initialValue&gt;<br />
-  &lt;/Attribute&gt;
-  </code>
-</td>
-<td>One of the string values defined by the enumeration type</td>
+<td>One of a fixed number of string values - string1, ..., stringn</td>
+<td>Chandler Enumeration. See <a href="#1">1</a> below</td>
 </tr>
 
 <tr>
 <td>Float</td>
+<td>A floating point number</td>
 <td>A Python float</td>
-<td><code>&lt;type itemref="Float"/&gt;</code></td>
-<td>a Python floating point literal</td>
+</tr>
+<!--
+<tr>
+<td>Importable?</td>
+<td></td>
+<td>a Python integer literal</td>
+</tr>
+-->
+<tr>
+<td>Integer</td>
+<td>An integer</td>
+<td>A Python int</td>
 </tr>
 
 <tr>
-<td>Integer</td>
-<td>A Python int</td>
-<td><code>&lt;type itemref="Integer"/&gt;</code></td>
-<td>a Python integer literal</td>
+<td>Item</td>
+<td>a Chandler Item</td>
+<td>a Chandler Item</td>
 </tr>
 
 <tr>
 <td>List</td>
 <td>A list of values</td>
-<td><code>&lt;type itemref="List"/&gt;</code></td>
-<td>A string containing a list of values: "value1, ... , valuen"</td>
+<td>A Python list</td>
 </tr>
 
 <tr>
 <td>Lob</td>
-<td>A binary object</td>
-<td><code>&lt;type itemref="Lob" /&gt;</code></td>
-<td>A MIME encoded binary value</td>
+<td>A large object</td>
+<td>Chandler large object. See <a href="#2">2</a> below</td>
 </tr>
 
 <tr>
 <td>Long</td>
+<td>A long integer</td>
 <td>A Python long</td>
-<td><code>&lt;type itemref="Long" /&gt;</code></td>
-<td>a Python long literal</td>
-</tr>
-<!--
-<tr>
-<td>None</td>
-<td>The Python value 'None' -- None
-</td>
-<td></td>
-</tr>
-
-<tr>
-<td>Path</td>
-<td>Repository path (to an Item) -- path as a string</td>
-<td></td>
-</tr>
--->
-<tr>
-<td>RelativeDateTime</td>
-<td>a mxDateTime.RelativeDateTime</td>
-<td><code>&lt;type itemref="RelativeDateTime" /&gt;</code></td>
-<td>use mxDateTime.RelativeDateTime's RelativeDateTimeFrom constructor</td>
-</tr>
-
-<tr>
-<td>SingleRef</td>
-<td>A uni-directional reference to an Item</td>
-<td><code>&lt;type itemref="SingleRef"/&gt;</code></td>
-<td>The string representation of a UUID, which is the UUID of the item to reference</td>
-</tr>
-
-<tr>
-<td>String</td>
-<td>A Unicode string</td>
-<td><code>&lt;type itemref="String"/&gt;</code></td>
-<td>A Python unicode string literal</td>
 </tr>
 
 <tr>
 <td>Struct</td>
 <td>A collection of named fields</td>
-<td><code>&lt;Struct itsName="ColorType" itemClass="osaf.framework.blocks.DocumentTypes.ColorStruct"&gt;<br />
-    &lt;fields key="red"&gt;&lt;/fields&gt; <br />
-    &lt;fields key="green"&gt;&lt;/fields&gt; <br />
-    &lt;fields key="blue"&gt;&lt;/fields&gt; <br />
-    &lt;fields key="alpha"&gt;&lt;/fields&gt; <br />
-    &lt;implementationTypes key="python"&gt;osaf.framework.blocks.DocumentTypes.ColorType&lt;/implementationTypes&gt; <br />
-  &lt;/Struct&gt; <br />
-<br />
-  &lt;Attribute itsName="foregroundColor"&gt; <br />
-    &lt;type itemref="docSchema:ColorType"/&gt; <br />
-    &lt;initialValue type="docSchema:ColorType"&gt;0,0,0,255&lt;/initialValue&gt; <br />
-  &lt;/Attribute&gt;</td>
-<td>Use Python to assigne values to the appropriate fields of the Struct.</td>
+<td>Chandler struct. See <a href="#3">3</a> below</td>
 </tr>
 
-<!--
+
 <tr>
 <td>Symbol</td>
-<td>A Unicode string whose values are limited to [a-zA-Z0-9_]*</td>
-<td></td>
+<td>A symbolic name</td>
+<td>A Unicode string whose values are limited to [a-zA-Z0-9_]*.  See <a href="#4">4</a> below.</td>
 </tr>
--->
+
+<tr>
+<td>Text</td>
+<td>A unicode string</td>
+<td>A Python unicode or ASCII string.  See <a href="#4">4</a> below.</td>
+</tr>
+
+<tr>
+<td>Time</td>
+<td>A time of day</td>
+<td>A Python <code>datetime.time</code></td>
+</tr>
+
+<tr>
+<td>TimeDelta</td>
+<td>An interval of time</td>
+<td>A Python <code>datetime.timedelta</code></td>
+</tr>
+
+<tr>
+<td>TimeZone</td>
+<td>A TimeZone</td>
+<td>A PyICU Timezone.  You should call the appropriate PyICU method to get a Timezone</td>
+</tr>
 
 <tr>
 <td>Tuple</td>
 <td>A tuple of values</td>
-<td><code>&lt;type itemref="Tuple"/&gt;</code></td>
-<td>A string containing comma  separated values: "value1, ... , valuen"</td>
+<td>A Python tuple</td>
 </tr>
-
 
 <tr>
 <td>URL</td>
 <td>A URL - a URL string</td>
-<td><code>&lt;type itemref="URL"/&gt;</code></td>
-<td>A string containing a valid URL</td>
+<td>A Chandler URL object which can be obtained by passing a (valid URL) string to <code>repository.util.URL</code></td>
 </tr>
 
 <tr>
 <td>UUID</td>
 <td>A UUID</td>
-<td><code>&lt;type itemref="UUID"/&gt;</code></td>
-<td>The string form of a UUID>
+<td>A Chandler UUID object</td>
 </tr>
 
 </tbody>
 </table>
+<p>
+<a name="1">1</a>. Enumerations
+</p>
+<p>
+In order to use an enumeration you must first define a subclass of <code>schema.Enumeration</code>.  This subclass must have a <code>values</code> attribute, which is a sequence of string separated by commas.  See the definition of MyEnum below:
+<pre>
+class MyEnum(schema.Enumeration):
+    values = 'black', 'white'
+</pre>
+Once you have defined your enumeration class, you may use any value that you listed in the <code>values</code> attribute as the value of a schema.Enumeration attribute
+</p>
+
+<p>
+<a name="2">2</a>. Lobs
+</p>
+<p>
+Lob attributes need to have the Lob value created explicitly.  The code below shows how it is done.
+</p>
+<p> Let's say that <code>i</code> is an item that has a Lob valued attribute, <code>lob_var</code>.  To create the initial Lob value, we're going to get the Item that represents the type of the attribute, and use that as a factory for the Lob value.  To start, you call the <code>getAttributeAspect</code> method on <code>i</code>, and ask for the type of the lob_var attribute, storing it in <code>attribute_type</code>.  You can then call the <code>makeValue</code> method on <code>attribute_type</code> in order to create the Lob value.  The first argument to <code>makeValue</code> is the data that you want stored in the value.  The second argument is a string whose value is a MIME type, which describes the type of binary data that is being stored in the Lob.
+<pre>
+attribute_type = i.getAttributeAspect("lob_var",'type')
+i.lob_var = attribute_type.makeValue("data","application/octet-stream")
+</pre>
+Once you have a Lob value you can change the data in it by getting the output stream for the Lob (via <code>getOutputStream</code>) and then using the <code>write</code> method of the output stream to write the data.
+<pre>
+stream = i.lob_var.getOutputStream()
+stream.write("some data")
+stream.close()
+</pre>
+</p>
+<p>
+To retrieve your data, you ask the attribute for its input stream by calling the <code>getInputStream()</code> method and using <code>read()</code>.
+</p>
+<p>
+In addition to encoding the contents of a Lob, you can also encrypt and/or compress the contents.
+</p>
+<p>
+<a name="3">3</a>. Structs
+</p>
+<p>
+To create a struct, you must create a subclass of <code>schema.Struct</code>, and set the value of the <code>__slots__</code> attribute to a comma separated sequence of slot names.  These will be the names of the fields in your struct.  Also, instead of using <code>schema.Struct</code> as the name of the type, you should use the name of the <code>schema.Struct</code> subclass that you just defined.
+</p>
+<p>
+You can then create instances of this struct by calling the constructor and passing the values of the slots to the constructor.
+<pre>
+class MyStruct(schema.Struct):
+    __slots__ = 'red', 'green', 'blue'
+</pre>
+</p>
+<p>
+<a name="4">4</a>. Text, Bytes and Symbol
+</p>
+Text should be used to represent any textual/string data in the application.  Text can cantain either a Python <code>unicode</code> object or a 7 bit ASCII charset.  It cannot be used for 8 bit charsets.  If you need to store 8 bit charset data, you should use the Lob type.  There is also a Bytes type which can accept any 8 bit value, but you should probably use a Lob if you are writing a parcel.
+</p>
+<p>
+Symbols are names which can be used as symbolic constants.  Each Symbol will be unique.  Symbols work the same way in Chandler that they do in Lisp or Ruby.
+<p>
+</p>
 </body>
