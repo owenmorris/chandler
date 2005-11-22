@@ -376,6 +376,6 @@ def AllItemsInCollection(items, collection):
     return True
     
 def isValidSelection(selection, selectedCollection):
-    return (len(selection) != 0  and not
-            (selectedCollection is not None and
-             selectedCollection.isReadOnly()))
+    return (len(selection) != 0  and
+            selectedCollection is not None and
+            not selectedCollection.isReadOnly())
