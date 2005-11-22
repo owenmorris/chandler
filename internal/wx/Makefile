@@ -1,9 +1,12 @@
+#
+# wx/Makefile
+#
 
 include ../Makefile.inc
 
 # version info 
 VERSION=2.6.2.0
-RELVER=$(VERSION)-23
+RELVER=$(VERSION)-24
 WXMAJORVERSIONCOMPACT=26
 
 SRC=$(INTERNAL)/wx
