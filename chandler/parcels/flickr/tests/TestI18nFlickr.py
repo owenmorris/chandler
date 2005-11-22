@@ -51,9 +51,9 @@ class TestI18nFlickr(TestContentModel.ContentModelTestCase):
         #
         #Once that takes place the search on tag  "?~B??~C??~C??~B??~C??~A~J?~W?~C~E?| ? "
         #will be uncommented
-        return self._testI18n(tag=u"hawaii", key=u"Green Sand Beach")
+        #return self._testI18n(tag=u"hawaii", key=u"Green Sand Beach")
         #return self._testI18n(tag=u"オンラインお得情報 ", key=u"trünk")
-
+        pass
 
     def _testI18n(self, key=None, username=None, tag=None):
         if not self.isOnline():
