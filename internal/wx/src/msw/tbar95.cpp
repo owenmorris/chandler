@@ -234,13 +234,12 @@ bool wxToolBar::Create(wxWindow *parent,
 
     wxSetCCUnicodeFormat(GetHwnd());
 
-    // set up the colors and fonts
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    // set up the font; color no longer needed
+    //SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
     // workaround for flat toolbar on Windows XP classic style: we have to set
-    // the style after creating the control, doing it at creation time doesn't
-    // work
+    // the style after creating the control; doing it at creation time doesn't work
 #if wxUSE_UXTHEME
     if ( style & wxTB_FLAT )
     {
@@ -509,6 +508,13 @@ bool wxToolBar::DoDeleteTool(size_t pos, wxToolBarToolBase *tool)
 
 void wxToolBar::CreateDisabledImageList()
 {
+    if (m_disabledImgList != NULL)
+    {
+        //wxLogDebug(wxT("CreateDisabledImageList - already exists!"));
+        delete m_disabledImgList;
+        m_disabledImgList = NULL;
+    }
+
     // as we can't use disabled image list with older versions of comctl32.dll,
     // don't even bother creating it
     if ( wxTheApp->GetComCtl32Version() >= 470 )
@@ -528,16 +534,23 @@ void wxToolBar::CreateDisabledImageList()
                                             bmpDisabled.GetMask() != NULL,
                                             GetToolsCount()
                                         );
-                return;
+                break;
             }
         }
 
         // we don't have any disabled bitmaps
     }
-
-    m_disabledImgList = NULL;
 }
 
+//
+// OSAF: recommendations
+// - for efficiency, determine if MapBitmap needs to be called for disabled bitmaps
+// - for efficiency, hoist and retain return value for wxApp::GetComCtl32Version()
+// - for visual fidelity, determine if SetBackground(192 x 3) is proper
+// - for code clarity, retain value for wxSystemOptions::HasOption(wxT("msw.remap"))
+// - for code safety, calls to bmp.GetWidth, etc. should happen after bmp.OK()
+// - check MSDN for best practices
+//
 bool wxToolBar::Realize()
 {
     const size_t nTools = GetToolsCount();
@@ -561,7 +574,8 @@ bool wxToolBar::Realize()
         doTransparent = true;
     }
     else
-    {   doRemap = !wxSystemOptions::HasOption(wxT("msw.remap"))
+    {
+       doRemap = !wxSystemOptions::HasOption(wxT("msw.remap"))
             || wxSystemOptions::GetOptionInt(wxT("msw.remap")) == 1;
         doRemapBg = !doRemap;
         doTransparent = false;
@@ -607,13 +621,14 @@ bool wxToolBar::Realize()
         wxMemoryDC dcAllButtons;
         wxBitmap bitmap(totalBitmapWidth, totalBitmapHeight);
         dcAllButtons.SelectObject(bitmap);
+
 #ifdef __WXWINCE__
         dcAllButtons.SetBackground(wxBrush(wxColour(192,192,192)));
 #else
         if (doTransparent)
             dcAllButtons.SetBackground(*wxTRANSPARENT_BRUSH);
         else
-            dcAllButtons.SetBackground(*wxLIGHT_GREY_BRUSH);
+            dcAllButtons.SetBackground(wxBrush(GetBackgroundColour()));
 #endif
         dcAllButtons.Clear();
 
@@ -631,8 +646,6 @@ bool wxToolBar::Realize()
                 totalBitmapWidth, totalBitmapHeight);
 
             dcAllButtons.SelectObject(bitmap);
-
-
         }
 #endif // !__WXWINCE__
 
@@ -679,17 +692,20 @@ bool wxToolBar::Realize()
                         wxImage imgGreyed;
                         wxCreateGreyedImage(bmp.ConvertToImage(), imgGreyed);
 
-                        // we need to have light grey background colour for
-                        // MapBitmap() to work correctly
-                        for ( int y = 0; y < h; y++ )
+                        if (doRemap)
                         {
-                            for ( int x = 0; x < w; x++ )
+                            // we need to have light grey background colour for
+                            // MapBitmap() to work correctly
+                            for ( int y = 0; y < h; y++ )
                             {
-                                if ( imgGreyed.IsTransparent(x, y) )
-                                    imgGreyed.SetRGB(x, y,
-                                                     wxLIGHT_GREY->Red(),
-                                                     wxLIGHT_GREY->Green(),
-                                                     wxLIGHT_GREY->Blue());
+                                for ( int x = 0; x < w; x++ )
+                                {
+                                    if ( imgGreyed.IsTransparent(x, y) )
+                                        imgGreyed.SetRGB(x, y,
+                                                         wxLIGHT_GREY->Red(),
+                                                         wxLIGHT_GREY->Green(),
+                                                         wxLIGHT_GREY->Blue());
+                                }
                             }
                         }
 
@@ -697,7 +713,10 @@ bool wxToolBar::Realize()
                     }
 #endif // wxUSE_IMAGE
 
-                    MapBitmap(bmpDisabled.GetHBITMAP(), w, h);
+                    if (doRemap)
+                    {
+                        MapBitmap(bmpDisabled.GetHBITMAP(), w, h);
+                    }
 
                     m_disabledImgList->Add(bmpDisabled);
                 }
@@ -720,8 +739,6 @@ bool wxToolBar::Realize()
             // Map to system colours
             hBitmap = (HBITMAP)MapBitmap((WXHBITMAP) hBitmap,
                 totalBitmapWidth, totalBitmapHeight);
-
-
         }
 
         bool addBitmap = true;
@@ -815,7 +832,6 @@ bool wxToolBar::Realize()
         {
             continue;
         }
-
 
         TBBUTTON& button = buttons[i];
 
@@ -1363,9 +1379,33 @@ void wxToolBar::OnMouseEvent(wxMouseEvent& event)
 void wxToolBar::OnEraseBackground(wxEraseEvent& event)
 {
     wxColour bgCol = GetBackgroundColour();
-    if (!bgCol.Ok())
+    if (!bgCol.Ok() || !UseBgCol())
     {
+#if !defined(__WXWINCE__) && wxUSE_UXTHEME
+        // we should draw parent background if possible on themed system
+        // for toolbar using DrawThemeParentBackground, which will make toolbar
+        // transparent for example on notebooks
+
+        wxUxThemeEngine *themeEngine = wxUxThemeEngine::GetIfActive();
+        if ( !themeEngine )
+        {
+            event.Skip();
+            return;
+        }
+
+        RECT rect;
+        HDC hdc = GetHdcOf((*event.GetDC()));
+
+        ::GetClientRect(GetHwnd(), &rect);
+        HRESULT hr =
+            themeEngine->DrawThemeParentBackground(GetHwnd(), hdc, &rect);
+        if ( FAILED(hr) )
+        {
+            wxLogApiError(_T("DrawThemeBackground(BP_TOOLBAR)"), hr);
+        }
+#else
         event.Skip();
+#endif
         return;
     }
 
@@ -1609,12 +1649,17 @@ WXHBITMAP wxToolBar::MapBitmap(WXHBITMAP bitmap, int width, int height)
     }
 
  #if 0
-	// OSAF: this block ruins the appearance of icons
-	// with gray gradients, so diable it until we get
-	// an explanation from the wx group.
+	// OSAF (06-Nov-05):
+	// 1) this block ruins the appearance of icons with gradients,
+	// so disable it until we get an explanation from the wx group.
+	// 2) the triple-nested loops are computationally expensive,
+	// the effect of which is noticeable in Chandler. Note also that
+	// this block gets called for disabled bitmaps regardless of the
+	// value returned by
+	// wxSystemOptions::GetOptionInt(wxT("msw.remap"))
     wxCOLORMAP *cmap = wxGetStdColourMap();
 
-   for ( int i = 0; i < width; i++ )
+    for ( int i = 0; i < width; i++ )
     {
         for ( int j = 0; j < height; j++ )
         {
