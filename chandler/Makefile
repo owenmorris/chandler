@@ -28,7 +28,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-6.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-2.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-3.tar.gz \
          $(CHANDLERARCHIVES)/pyicu-$(SNAP)-0.4-45-1.tar.gz \
-         $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-1.0-2.tar.gz \
+         $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-1.0-3.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.1-3.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-3.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r13651-10.tar.gz \
