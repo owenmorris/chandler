@@ -278,21 +278,26 @@ def installParcel(parcel, oldVersion=None):
                       destinationBlockReference = controller,
                       commitAfterDispatch = True)
 
-    newItemMenu = schema.ns('osaf.views.main', parcel).NewItemMenu
+    collectionMenu = schema.ns('osaf.views.main', parcel).CollectionMenu
+
+    MenuItem.update(parcel, 'FlickrParcelSeparator',
+                    blockName = 'FlickrParcelSeparator',
+                    menuItemKind = 'Separator',
+                    parentBlock = collectionMenu)
 
     MenuItem.update(parcel, 'NewFlickrCollectionByOwner',
                     blockName = 'NewFlickrCollectionByOwnerItem',
                     title = _(u'New Flickr Collection by Owner'),
                     event = ownerEvent,
                     eventsForNamedLookup = [ ownerEvent ],
-                    parentBlock = newItemMenu)
+                    parentBlock = collectionMenu)
  
     MenuItem.update(parcel, 'NewFlickrCollectionByTag',
                     blockName = 'NewFlickrCollectionByTagItem',
                     title = _(u'New Flickr Collection by Tag'),
                     event = tagEvent,
                     eventsForNamedLookup = [ tagEvent ],
-                    parentBlock = newItemMenu)
+                    parentBlock = collectionMenu)
 
 
     PeriodicTask.update(parcel, 'FlickrUpdateTask',

@@ -120,12 +120,17 @@ def installParcel(parcel, oldVersion=None):
         commitAfterDispatch=True,
     )
 
+    blocks.MenuItem.update(parcel, 'FeedsParcelSeparator',
+                           blockName = 'FeedsParcelSeparator',
+                           menuItemKind = 'Separator',
+                           parentBlock = main.CollectionMenu)
+
     blocks.MenuItem.update(parcel, "NewFeedChannel",
         blockName = "NewFeedChannelItem",
         title = _(u"New Feed Channel"),
         event = NewFeedChannelEvent,
         eventsForNamedLookup = [NewFeedChannelEvent],
-        parentBlock = main.NewItemMenu,
+        parentBlock = main.CollectionMenu,
     )
 
     # detail view stuff

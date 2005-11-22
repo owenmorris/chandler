@@ -13,6 +13,11 @@ def installParcel(parcel, version=None):
     main   = schema.ns('osaf.views.main', parcel)
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
 
+    blocks.MenuItem.update(parcel, 'AmazonParcelSeparator',
+                           blockName = 'AmazonParcelSeparator',
+                           menuItemKind = 'Separator',
+                           parentBlock = main.CollectionMenu)
+
     blocks.MenuItem.update(parcel, "NewAmazonCollection",
         blockName = "NewAmazonCollectionMenu",
         title = _(u"Amazon Keyword Search"),
@@ -23,7 +28,7 @@ def installParcel(parcel, version=None):
             commitAfterDispatch = True,
         ),
         eventsForNamedLookup = [parcel["NewAmazonCollectionEvent"]],
-        parentBlock = main.NewItemMenu,
+        parentBlock = main.CollectionMenu,
     )
 
     blocks.MenuItem.update(parcel, "NewAmazonWishList",
@@ -36,7 +41,7 @@ def installParcel(parcel, version=None):
             commitAfterDispatch = True,
         ),
         eventsForNamedLookup = [parcel["NewAmazonWishListEvent"]],
-        parentBlock = main.NewItemMenu,
+        parentBlock = main.CollectionMenu,
     )
 
     detail.DetailTrunkSubtree.update(parcel, "amazon_detail_view",
