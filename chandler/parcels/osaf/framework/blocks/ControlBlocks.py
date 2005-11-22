@@ -1584,15 +1584,8 @@ class ReminderTimer(Timer):
         # logger.debug("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget(**hints)
         if not wx.GetApp().ignoreSynchronizeWidget:
-            pending = self.getPendingReminders()
-            closeIt = False
-            reminderDialog = self.getReminderDialog(False)
-            if reminderDialog is not None:
-                (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
-            if closeIt:
-                self.closeReminderDialog();
-            self.setFiringTimeIfRemindersExist()
-
+            self.primeReminderTimer()
+    
     def render(self, *args, **kwds):
         super(ReminderTimer, self).render(*args, **kwds)
         # Create a monitor to watch for changes that affect reminders
@@ -1637,22 +1630,34 @@ class ReminderTimer(Timer):
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
         # logger.debug("*** Got reminders time event!")
-        pending = self.getPendingReminders()
-        reminderDialog = self.getReminderDialog(True)
-        assert reminderDialog is not None
-        (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+        self.primeReminderTimer(True)
+
+    def primeReminderTimer(self, createDialog=False):
+        """ Prime the reminder timer and maybe show or hide the dialog """
+        # Get the dialog if we have it; we'll create it if 'createDialog' and
+        # it doesn't exist.
+        reminderDialog = self.getReminderDialog(createDialog)
+        if reminderDialog is not None:
+            # The dialog is displayed; get the list of pending reminders and 
+            # let it update itself. It'll tell us when it wants us to fire next, 
+            # or whether we should close it now.
+            pending = self.getPendingReminders()
+            (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+        else:
+            # Or not.
+            (nextReminderTime, closeIt) = (None, False)
+
+        if nextReminderTime is None:
+            # The dialog didn't give us a time to fire; we'll fire at the
+            # next non-pending reminder's time.
+            events = schema.ns('osaf.app', self.itsView).eventsWithReminders.rep
+            firstReminder = events.firstInIndex('reminderTime')
+            if firstReminder is not None:
+                nextReminderTime = firstReminder.reminderFireTime
+
         if closeIt:
-            # logger.debug("*** closing the dialog!")
             self.closeReminderDialog()
-        self.setFiringTimeIfRemindersExist()
-
-    def setFiringTimeIfRemindersExist(self):
-        events = schema.ns('osaf.app', self.itsView).eventsWithReminders.rep
-        
-        firstReminder = events.firstInIndex('reminderTime')
-
-        if firstReminder is not None:
-            self.setFiringTime(firstReminder.reminderFireTime)
+        self.setFiringTime(nextReminderTime)
 
     def getReminderDialog(self, createIt):
         try:
