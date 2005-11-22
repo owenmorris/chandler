@@ -275,12 +275,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             if rectIndex == len(self.GetBoundsRects())-1:	
                 hasBottomRightRounded = True	
        
-            # zero-duration events get fully rounded
+            # anyTime-but-not-allday or zero-duration events get fully rounded
             isAllDay = getattr(item, 'allDay', False)
-            hasLeftRounded = ((not isAllDay and
-                               Calendar.datetimeOp(item.startTime, '==',
-                                                   item.endTime)) or
-                              getattr(item, 'anyTime', False))
+            isAnyTime = getattr(item, 'anyTime', False)
+            duration = getattr(item, 'duration', 0)
+            hasLeftRounded = ((isAnyTime and not isAllDay) or
+                              not duration)
             
             self.DrawEventRectangle(dc, itemRect,
                                     hasLeftRounded,
