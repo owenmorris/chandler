@@ -26,7 +26,7 @@ class SplashScreen(wx.Dialog):
 
         super (SplashScreen, self).__init__ (parent, -1, title, pos, size, style)
 
-        defaultWindowWidth = 700
+        defaultWindowWidth = 285
         maxWindowHeight = 600
         self.isModal = isModal
         panel = HTMLPanel(self, pageLocation, html,
