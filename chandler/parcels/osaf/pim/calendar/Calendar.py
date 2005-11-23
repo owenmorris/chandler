@@ -414,10 +414,10 @@ class CalendarEventMixin(RemindableMixin):
         duration = getattr(self, 'duration', None) or timedelta(0)
         return last + duration
 
-    def setRecurrenceEnd(self):
+    def updateRecurrenceEnd(self):
         """
-        NOT a setter, just calculate what recurrenceEnd should be and set it or
-        delete it if it's None.
+        Calculate what recurrenceEnd should be and set it or delete it if it's
+        None.
         """
         if self != self.getMaster():
             end = None
@@ -482,7 +482,7 @@ class CalendarEventMixin(RemindableMixin):
     def _cloneEvent(self):
 
         clone = self.clone(None, None, ('collection',))
-        clone.setRecurrenceEnd()
+        clone.updateRecurrenceEnd()
 
         return clone
     
@@ -769,12 +769,9 @@ class CalendarEventMixin(RemindableMixin):
                 master.deleteAll()
             elif self == master: # self is master, nothing to do
                 pass
-            elif self.isGenerated:
+            elif self.isGenerated or self.modificationFor is not None:
                 makeThisAndFutureMod()
-                master.rruleset.moveRuleEndBefore(recurrenceID)
-            elif self.modificationFor is not None:# changing 'this' modification
-                makeThisAndFutureMod()
-                master.rruleset.moveRuleEndBefore(recurrenceID)
+                master.moveRuleEndBefore(recurrenceID)
         else: #propagate changes forward                       
             if self.modificationFor is not None:
                 #preserve self as a THIS modification
@@ -835,7 +832,7 @@ class CalendarEventMixin(RemindableMixin):
                         mod.changeNoModification('recurrenceID', 
                             mod.recurrenceID + startTimeDelta)
             if not isFirst:
-                master.rruleset.moveRuleEndBefore(recurrenceID)
+                master.moveRuleEndBefore(recurrenceID)
         
         # if modifications were moved from master to self, they may have the 
         # same recurrenceID as a (spurious) generated event, so delete
@@ -961,7 +958,7 @@ class CalendarEventMixin(RemindableMixin):
             if self == self.getFirstInRule():
                 self.modificationRecurrenceID = self.startTime
                 self.recurrenceID = self.startTime
-                self.setRecurrenceEnd()
+                self.updateRecurrenceEnd()
                 
         # the changeName kludge should be replaced with the new domain attribute
         # aspect, just using a fixed list of attributes which should trigger
@@ -971,7 +968,7 @@ class CalendarEventMixin(RemindableMixin):
                 logger.debug("about to changeThis in onValueChanged(name=%s) for %s", name, str(self))
                 logger.debug("value is: %s", getattr(self, name))
             if name == 'duration' and self == self.getFirstInRule():
-                self.setRecurrenceEnd()
+                self.updateRecurrenceEnd()
             self.changeThis()
 
     def _deleteGeneratedOccurrences(self):
@@ -996,16 +993,20 @@ class CalendarEventMixin(RemindableMixin):
                     
         # create a backup
         first._getFirstGeneratedOccurrence(True)
-        first.setRecurrenceEnd()
+        first.updateRecurrenceEnd()
+
+    def moveRuleEndBefore(self, recurrenceID):
+        master = self.getMaster()
+        master.rruleset.moveRuleEndBefore(master.startTime, recurrenceID)
 
     def deleteThisAndFuture(self):
         """Delete self and all future occurrences and modifications."""
         # changing the rule will delete self unless self is the master
         master = self.getMaster()
-        if self.recurrenceID == master.startTime:
+        if datetimeOp(self.recurrenceID, '==', master.startTime):
             self.deleteAll()
         else:
-            self.rruleset.moveRuleEndBefore(self.recurrenceID)
+            self.moveRuleEndBefore(self.recurrenceID)
 
     def deleteThis(self):
         """Exclude this occurrence from the recurrence rule."""

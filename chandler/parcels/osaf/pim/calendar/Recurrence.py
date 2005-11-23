@@ -308,6 +308,24 @@ class RecurrenceRule(items.ContentItem):
                 if rrule._bymonth[0] == rrule._dtstart.month:
                     del self.bymonth
 
+    def getPreviousRecurrenceID(self, dtstart, recurrenceID):
+        """Return the date of the previous recurrenceID, or None."""
+        previous = None
+        for dt in self.createDateUtilFromRule(dtstart):
+            if datetimeOp(dt, '<', recurrenceID):
+                previous = dt
+            else:
+                break
+        return previous
+
+    def moveUntilBefore(self, dtstart, recurrenceID):
+        """
+        Find the previous recurrenceID, set UNTIL to match it.
+        """
+        previous = self.getPreviousRecurrenceID(dtstart, recurrenceID)
+        assert previous is not None
+        self.until = previous
+        self.untilIsDate = False
 
     def onValueChanged(self, name):
         """If the rule changes, update any associated events."""
@@ -503,18 +521,16 @@ class RecurrenceRuleSet(items.ContentItem):
                         del datelist[i]
                         self._ignoreValueChanges = False
 
-    def moveRuleEndBefore(self, end):
+    def moveRuleEndBefore(self, dtstart, end):
         """
-        Make self's rules end one minute before end.
+        Make self's rules end before end.  dtstart is 
         """
-        newend = end - timedelta(minutes=1)
         #change the rule, onValueChanged will trigger cleanRule for master
         for rule in getattr(self, 'rrules', []):
             if not rule.hasLocalAttributeValue('until') or \
-               datetimeOp(rule.calculatedUntil(), '>', newend):
-                rule.until = newend
-                rule.untilIsDate = False
-        self.removeDates('>', newend)
+               datetimeOp(rule.calculatedUntil(), '>', end):
+                rule.moveUntilBefore(dtstart, end)
+        self.removeDates('>', end)
 
     RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
 
