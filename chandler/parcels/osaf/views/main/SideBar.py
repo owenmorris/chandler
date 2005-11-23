@@ -12,6 +12,7 @@ import wx, os
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 from osaf import sharing, pim
 from application import schema
+from application.dialogs import Util
 from i18n import OSAFMessageFactory as _
 
 from colorsys import rgb_to_hsv
@@ -755,13 +756,22 @@ class SidebarBlock(ControlBlocks.Table):
         Permanently remove the collection - we eventually need a user
         confirmation here
         """
-        def deleteItem(item):
-            # TODO: for item collectionsactually call item.delete(),
-            # and also delete any items that exist only in the
-            # doomed itemcollection (garbage collection would be a
-            # big help here)
 
-            # in the mean time, just remove it.
+        # first ask the user if we should be deleting the entire
+        # collection including the items, or just some things
+        shouldClearCollection = Util.yesNoCancel(self.widget,
+                                                 _(u'Confirm delete'),
+                                                 _(u'Do you want to remove the items in this collection?'))
+
+        if shouldClearCollection is None: # user pressed cancel
+            return
+        
+        def deleteItem(item):
+
+            # clear out the collection contents, if appropriate
+            if (shouldClearCollection and
+                isinstance(item, AbstractCollection)):
+                self.ClearCollectionContents(item)
             self.contents.remove(item)
 
         self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
@@ -778,7 +788,58 @@ class SidebarBlock(ControlBlocks.Table):
         """
         event.arguments['Enable'] = self.canRenameSelection()
 
+
+    def ClearCollectionContents(self, collection):
+        """
+        Remove items that should be removed, delete items that should
+        be deleted. Note that we're not doing any proxy-aware code
+        here, because we're dealing with the actual items that are in
+        the collection.
+        """
+        
+        itemsForRemoval = []
+        itemsForDeletion = []
+
+        app = schema.ns('osaf.app', self.itsView)
+        sidebarCollections = app.sidebarCollection
+        notMine = app.notMine
+        trash = app.TrashCollection
+        
+        # filter out the usable collections
+        def IsValidCollection(col):
+            return (col is not collection and
+                    not col.outOfTheBoxCollection)
+
+        sidebarCollections = [col for col in sidebarCollections
+                              if IsValidCollection(col)]
+        
+
+        def DoDeleteAction(item):
+            # useful as a separate function so we can return at any point
+        
+            # first test: if its in any user collection, then of
+            # course we just want to remove it because we don't want
+            # to affect other collections
+            for sbCollection in sidebarCollections:
+                if item in sbCollection:
+                    collection.remove(item)
+                    return
+                
+            # if a not-mine item doesn't exist anywhere else, then we
+            # just want to delete it. But not-mine events shouldn't
+            # all end up the trash, we just want to get rid of them
+            # entirely
+            if item in notMine:
+                item.delete()
+                return
             
+            trash.add(item)
+            return
+        
+        # here's the meat of it
+        for item in collection:
+            DoDeleteAction(item)
+        
     def onCollectionColorEvent(self, event):
         self.selectedItemToView.color = event.color
         

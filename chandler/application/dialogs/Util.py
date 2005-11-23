@@ -338,6 +338,9 @@ class LogWindow(wx.Dialog):
             wx.TheClipboard.Close()
 
 
+# we really should refactor these dialog methods to get rid of all the
+# boilerplate
+
 # A simple "ok/cancel" dialog
 
 def okCancel(parent, caption, message):
@@ -385,6 +388,24 @@ def yesNo(parent, caption, message):
         value = True
     else:
         value = False
+
+    dlg.Destroy()
+    return value
+
+# A simple yes/no/cancel dialog
+
+def yesNoCancel(parent, caption, message):
+
+    dlg = wx.MessageDialog(parent, message, caption,
+                           wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
+    val = dlg.ShowModal()
+
+    if val == wx.ID_YES:
+        value = True
+    elif val == wx.ID_NO:
+        value = False
+    else:
+        value = None                    # cancel
 
     dlg.Destroy()
     return value
