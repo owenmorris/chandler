@@ -514,8 +514,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         third.deleteThisAndFuture()
 
         self._checkDeleted([event, second, third], [event])
-        self.assertEqual(event.getLastUntil(), 
-                         self.start + timedelta(days=14, minutes=-1))
+        self.assertEqual(event.getLastUntil(), self.start + timedelta(days=7))
         
         
 
