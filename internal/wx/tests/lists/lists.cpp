@@ -3,7 +3,7 @@
 // Purpose:     wxList unit test
 // Author:      Vadim Zeitlin, Mattia Barbon
 // Created:     2004-12-08
-// RCS-ID:      $Id: lists.cpp,v 1.1 2004/12/08 22:39:22 MBN Exp $
+// RCS-ID:      $Id: lists.cpp,v 1.2 2005/11/20 21:55:32 DS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Mattia Barbon
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -75,10 +75,10 @@ size_t Baz::ms_bars = 0;
 
 WX_DECLARE_LIST(Baz, wxListBazs);
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxListBazs);
+WX_DEFINE_LIST(wxListBazs)
 
 WX_DECLARE_LIST(int, wxListInt);
-WX_DEFINE_LIST(wxListInt);
+WX_DEFINE_LIST(wxListInt)
 
 void ListsTestCase::wxListTest()
 {

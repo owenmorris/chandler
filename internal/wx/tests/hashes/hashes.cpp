@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Mattia Barbon
 // Modified:    Mike Wetherell
 // Created:     2004-05-16
-// RCS-ID:      $Id: hashes.cpp,v 1.4 2005/09/27 19:11:38 MW Exp $
+// RCS-ID:      $Id: hashes.cpp,v 1.5 2005/11/20 21:55:31 DS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Mattia Barbon, 2005 M. Wetherell
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -272,7 +272,7 @@ WX_DECLARE_HASH(Foo, wxListFoos, wxHashFoos);
 
 #if WXWIN_COMPATIBILITY_2_4
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxListFoos);
+WX_DEFINE_LIST(wxListFoos)
 #endif
 
 void HashesTestCase::wxTypedHashTableTest()

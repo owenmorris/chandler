@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: propform.h,v 1.5 2005/09/23 12:46:52 MR Exp $
+// RCS-ID:      $Id: propform.h,v 1.6 2005/11/08 19:59:47 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -145,12 +145,6 @@ class WXDLLIMPEXP_DEPRECATED wxPropertyFormValidator: public wxPropertyValidator
   virtual void OnCommand( wxProperty *WXUNUSED(property), wxPropertyFormView *WXUNUSED(view),
      wxWindow *WXUNUSED(parentWindow), wxCommandEvent& WXUNUSED(event) ) {}
 private:
-// Virtual function hiding suppression
-#if WXWIN_COMPATIBILITY_2
-    virtual void OnCommand(wxWindow& win,
-                           wxCommandEvent& event)
-    { wxEvtHandler::OnCommand(win, event); }
-#endif
 };
 
 /*
