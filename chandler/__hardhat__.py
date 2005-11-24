@@ -285,7 +285,12 @@ def _getVersionInfo(buildenv):
             minorVersion = versionData[0]
             releaseVersion = versionData[1]
     else:
-        majorVersion = version
+        if len(versionData) == 3:
+            majorVersion   = versionData[0]
+            minorVersion   = versionData[1]
+            releaseVersion = versionData[2]
+        else:
+            majorVersion = version
 
     versionFile = open(versionFilename, 'w')
 
