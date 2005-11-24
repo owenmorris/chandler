@@ -1,7 +1,7 @@
 
 VERSION=0.4-$(SVNVER)
-SVNVER=45
-RELVER=$(VERSION)-1
+SVNVER=47
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYICU=$(BUILD_ROOT)/PyICU
 SRC=$(PYICU)/PyICU-$(VERSION)
 
@@ -43,6 +43,7 @@ build: expand
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
+            PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX)/icu \
             SWIG=$(SWIG) \
@@ -76,15 +77,15 @@ clean: PyICU-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
-	$(MD5) $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz > $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz.md5
+        tar -cvzf $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
+	$(MD5) $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz > $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz.md5
 
-install: pyicu-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf pyicu-$(SNAP)-$(RELVER).tar.gz
+install: PyICU-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf PyICU-$(SNAP)-$(RELVER).tar.gz
 
-upload: $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz
-	scp $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+upload: $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz
+	scp $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 sources: PyICU-$(VERSION)-expanded
 

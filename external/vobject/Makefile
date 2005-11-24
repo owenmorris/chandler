@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 VERSION=0.2.2
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 VOBJECT=$(BUILD_ROOT)/vobject
 MANIFEST=$(SNAP)/$(SITE)/vobject
 BUILD=build_$(SNAP)

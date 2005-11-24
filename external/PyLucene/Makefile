@@ -1,10 +1,11 @@
 
-VERSION=1.0
-RELVER=$(VERSION)-3
+VERSION=1.0-$(SVNVER)
+SVNVER=200
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 
-DB_VER=4.3.28
+DB_VER=4.3.29
 DB_LIB_VER=$(basename $(DB_VER))
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -78,7 +79,7 @@ endif
 
 
 apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION); echo ok
+	cd PyLucene-$(VERSION); patch -Nup1 < ../patches-$(VERSION); echo ok
 
 
 ifeq ($(PYLUCENE_CC),)
@@ -109,6 +110,7 @@ endif
 build: expand apply
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
+            PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             SWIG=$(SWIG) \
             GCJ_HOME=$(GCJ_HOME) \
@@ -128,7 +130,7 @@ build: expand apply
             VERSION=$(VERSION) \
             all install
 
-clean: PyLucene-$(VERSION)-expanded
+clean:
 	$(MAKE) -C $(SRC) clean
 
 binaries: 
@@ -143,14 +145,10 @@ upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
 	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
-PyLucene-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz.md5
+sources: PyLucene-$(VERSION)-expanded
 
-sources: PyLucene-$(VERSION).tar.gz
-
-PyLucene-$(VERSION)-expanded: PyLucene-$(VERSION).tar.gz
-	tar xvzf PyLucene-$(VERSION).tar.gz
+PyLucene-$(VERSION)-expanded:
+	svn export -r $(SVNVER) http://svn.osafoundation.org/pylucene/trunk PyLucene-$(VERSION)
 	touch PyLucene-$(VERSION)-expanded
 
 expand: PyLucene-$(VERSION)-expanded

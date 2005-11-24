@@ -2,7 +2,7 @@
 include ../Makefile.inc
 
 VERSION=0.9.7i
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
 

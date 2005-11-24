@@ -22,6 +22,7 @@ DIST_OPT=
 PYTHON=python
 endif
 
+BRANCH_REV_PREFIX=
 PREFIX=$(BUILD_ROOT)/$(SNAP)
 
 # We download some pretty big files, which can clog your network. You can now
@@ -188,11 +189,8 @@ endif
 
 ifeq ($(OS),Darwin)
 
-ifeq ($(word 1, $(sort 8.0.0 $(shell uname -r))),8.0.0)
-GCC_VERSION=4.1-20050501
-GCJ_VER=4
-else
-GCC_VERSION=3.4.3
+ifeq ($(GCJ_VER),)
+GCC_VERSION=3.4.4
 GCJ_VER=3
 endif
 

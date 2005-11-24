@@ -2,7 +2,7 @@
 include ../Makefile.inc
 
 VERSION=5.0
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 BUILD=build_$(SNAP)
 READLINE=$(BUILD_ROOT)/readline
 SRC=$(READLINE)/$(BUILD)

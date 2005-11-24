@@ -1,6 +1,6 @@
 
 VERSION=131
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 
 ZANSHIN=$(BUILD_ROOT)/zanshin
 SRC=$(ZANSHIN)/zanshin-$(VERSION)
@@ -43,7 +43,4 @@ upload: zanshin-$(SNAP)-$(RELVER).tar.gz
 	scp zanshin-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
-	@if [ -f $(PYTHON) ]; then \
-      cd $(SRC); \
-      $(PYTHON) setup.py clean --all; \
-  fi
+	rm -rf $(SRC)/$(BUILD)

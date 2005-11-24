@@ -5,12 +5,12 @@ SYSTEMS=persistence/db \
         swig \
         icu \
         readline \
+        openssl \
         python \
         epydoc \
         PyLucene \
         PyICU \
         persistence/libxml2 \
-        openssl \
         jabber-py \
         SOAPpy \
         zope \
@@ -119,3 +119,10 @@ uploadstaging:
 	   $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) uploadstaging
+
+# convenience
+uploads:
+	@for system in $(SYSTEMS); \
+	do \
+	   $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
+	done

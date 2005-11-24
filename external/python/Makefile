@@ -1,6 +1,6 @@
 
-VERSION=2.4.1
-RELVER=$(VERSION)-3
+VERSION=2.4.2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 BZIP2VERSION=1.0.3
 ZLIBVERSION=1.2.3
 
@@ -131,6 +131,7 @@ $(SRC)/$(BUILD)/Makefile:
       MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
           LDFLAGS="-L$(PREFIX)/lib $(LDFLAGS)" \
           CPPFLAGS="-I$(PREFIX)/include $(CPPFLAGS)" \
+          DYNLOADFILE=dynload_shlib.o \
           ../configure --prefix=$(PREFIX) $(CONF_DBG) \
                        --enable-framework=$(PREFIX)/Library/Frameworks \
                        --with-readline=$(PREFIX)/lib
