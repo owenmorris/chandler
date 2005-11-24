@@ -25,6 +25,7 @@ static PyObject *_isUUID(PyObject *self);
 static PyObject *_isItem(PyObject *self);
 static PyObject *_isRefList(PyObject *self);
 
+int debug = 0;
 
 static PyMemberDef t_uuid_members[] = {
     { "_uuid", T_OBJECT, offsetof(t_uuid, uuid), READONLY, "UUID bytes" },
@@ -243,7 +244,6 @@ PyObject *PyUUID_Make16(PyObject *str16)
     return (PyObject *) uuid;
 }
 
-
 void _init_uuid(PyObject *m)
 {
     if (PyType_Ready(&UUIDType) >= 0)
@@ -260,6 +260,8 @@ void _init_uuid(PyObject *m)
             PyModule_AddObject(m, "PyUUID_Check", cobj);
             cobj = PyCObject_FromVoidPtr(PyUUID_Make16, NULL);
             PyModule_AddObject(m, "PyUUID_Make16", cobj);
+
+            debug = !Py_OptimizeFlag;
         }
     }
 }

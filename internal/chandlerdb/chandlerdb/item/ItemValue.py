@@ -65,6 +65,10 @@ class ItemValue(object):
 
         raise NotImplementedError, '%s._copy' %(type(self))
 
+    def _clone(self, item, attribute):
+
+        raise NotImplementedError, '%s._clone' %(type(self))
+
     def _check(self, logger, item, attribute):
 
         if not (item is self._item and attribute == self._attribute):

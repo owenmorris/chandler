@@ -3,7 +3,7 @@ import os
 
 if os.name == 'posix':
 
-    import errno
+    from errno import EAGAIN, EACCES
     from fcntl import lockf, LOCK_SH, LOCK_EX, LOCK_NB, LOCK_UN
     
     def open(file):
@@ -22,7 +22,7 @@ if os.name == 'posix':
                 lockf(fileno, mode & ~LOCK_UN)
                 return True
             except IOError, e:
-                if e.errno == errno.EAGAIN or e.errno == errno.EACCES:
+                if e.errno in (EAGAIN, EACCES):
                     return False
                 raise
         elif mode & LOCK_UN:

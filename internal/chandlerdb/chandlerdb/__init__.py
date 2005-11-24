@@ -4,6 +4,7 @@
 from chandlerdb.item.c import CItem, _install__doc__
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
 from chandlerdb.persistence.c import CView
+from chandlerdb.util.c import SkipList
 
 
 _install__doc__(CItem.isNew, """
@@ -146,6 +147,17 @@ no value set for the attribute.
 @return: a value
 """)
 
+_install__doc__(CItem.hasLocalAttributeValue, """
+Tell if a Chandler attribute has a locally defined value.
+
+A local attribute value is defined as a value stored on an attribute on this
+item.
+
+@param name: the name of the attribute
+@type name: a string
+@return: C{True} or C{False}
+""")
+
 _install__doc__(CItem.getDirty, """
 Return the dirty flags currently set on this item.
 
@@ -232,4 +244,106 @@ method that can also be called with a string.
 @param load: load the item if it not yet loaded, C{True} by default
 @type load: boolean
 @return: an item or C{None} if not found
+""")
+
+
+_install__doc__(SkipList, """
+An implementation of a double-linked skip list backed by a map.
+
+This class is semi-abstract, its backing map is external and provided by
+callers or subclasses. The backing map is managed by the skip list and
+stores its nodes.
+
+Based on U{Skip Lists: a Probabilistic Alternative to Balanced
+Trees<ftp://ftp.cs.umd.edu/pub/skipLists/skiplists.pdf>},
+I{Communications of the ACM}, 33(6):668--676, June 1990, by William Pugh.
+""")
+
+_install__doc__(SkipList.insert, """
+Insert a key into the skip list.
+
+If C{key} is in C{map}, C{key} is moved instead.
+
+@param key: the key to insert
+@type key: any hashable type
+@param afterKey: the key to precede the key being inserted or
+C{None} to insert C{key} into first position
+@type afterKey: any hashable type
+""")
+
+_install__doc__(SkipList.move, """
+Move a key in the skip list.
+
+If C{key} is not in C{map}, C{key} is inserted instead.
+
+@param key: the key to move
+@type key: any hashable type
+@param afterKey: the key to precede the key being move or
+C{None} to move C{key} into first position
+@type afterKey: any hashable type
+""")
+
+_install__doc__(SkipList.remove, """
+Remove a key from the skip list.
+
+If C{key} is not in C{map}, C{KeyError} is raised.
+
+@param key: the key to remove
+@type key: any hashable type
+""")
+
+_install__doc__(SkipList.first, """
+Get the first element in the skip list.
+
+By specifying C{level}, the first element for the level is
+returned. For more information about skip list levels, see U{Skip
+Lists: a Probabilistic Alternative to Balanced
+Trees<ftp://ftp.cs.umd.edu/pub/skipLists/skiplists.pdf>}.
+
+@param level: an optional level
+@type level: int
+@return: a key
+""")
+
+_install__doc__(SkipList.next, """
+Get the next element in the skip list relative to a given key.
+
+By specifying C{level}, the next element for the level is
+returned. For more information about skip list levels, see U{Skip
+Lists: a Probabilistic Alternative to Balanced
+Trees<ftp://ftp.cs.umd.edu/pub/skipLists/skiplists.pdf>}.
+
+@param key: the key preceeding the key being sought
+@type key: any hashable type
+@param level: an optional level
+@type level: int
+@return: a key or C{None} if C{key} is last in the skip list
+""")
+
+_install__doc__(SkipList.previous, """
+Get the previous element in the skip list relative to a given key.
+
+By specifying C{level}, the previous element for the level is
+returned. For more information about skip list levels, see U{Skip
+Lists: a Probabilistic Alternative to Balanced
+Trees<ftp://ftp.cs.umd.edu/pub/skipLists/skiplists.pdf>}.
+
+@param key: the key following the key being sought
+@type key: any hashable type
+@param level: an optional level
+@type level: int
+@return: a key or C{None} if C{key} is first in the skip list
+""")
+
+_install__doc__(SkipList.last, """
+Get the last element in the skip list.
+
+By specifying C{level}, the last element for the level is
+returned. For more information about skip list levels, see U{Skip
+Lists: a Probabilistic Alternative to Balanced
+Trees<ftp://ftp.cs.umd.edu/pub/skipLists/skiplists.pdf>}.
+
+@param level: an optional level
+@type level: int
+@return: a key
 """)

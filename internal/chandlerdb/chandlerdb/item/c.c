@@ -75,6 +75,12 @@ static PyObject *_install__doc__(PyObject *self, PyObject *args)
         Py_RETURN_NONE;
     }
 
+    if (object->ob_type == CItem->ob_type)
+    {
+        object->ob_type->tp_doc = strdup(string);
+        Py_RETURN_NONE;
+    }
+
     PyErr_SetObject(PyExc_TypeError, object);
     return NULL;
 }

@@ -40,6 +40,13 @@ uploadstaging:
 	    $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
 
+# convenience
+uploads:
+	@for system in $(SYSTEMS); \
+	do \
+	   $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
+	done
+
 install:
 	@for system in $(SYSTEMS); \
 	do \

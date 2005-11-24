@@ -413,9 +413,7 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
         data.flags = DB_DBT_MALLOC;
 
         while (1) {
-            Py_BEGIN_ALLOW_THREADS;
             err = db->get(db, db_txn, &key, &data, 0);
-            Py_END_ALLOW_THREADS;
 
             switch (err) {
               case 0:

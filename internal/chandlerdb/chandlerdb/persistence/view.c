@@ -28,6 +28,7 @@ static PyObject *t_view__setLoading(t_view *self, PyObject *loading);
 static PyObject *t_view_isOpen(t_view *self, PyObject *args);
 static PyObject *t_view_isDebug(t_view *self, PyObject *args);
 static PyObject *t_view__isVerify(t_view *self, PyObject *args);
+static PyObject *t_view__setVerify(t_view *self, PyObject *args);
 static PyObject *t_view_getLogger(t_view *self, PyObject *args);
 static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
                                       PyObject *kwds);
@@ -88,6 +89,7 @@ static PyMethodDef t_view_methods[] = {
     { "isOpen", (PyCFunction) t_view_isOpen, METH_NOARGS, "" },
     { "isDebug", (PyCFunction) t_view_isDebug, METH_NOARGS, "" },
     { "_isVerify", (PyCFunction) t_view__isVerify, METH_NOARGS, "" },
+    { "_setVerify", (PyCFunction) t_view__setVerify, METH_O, "" },
     { "getLogger", (PyCFunction) t_view_getLogger, METH_NOARGS, "" },
     { "_notifyChange", (PyCFunction) t_view__notifyChange, METH_VARARGS|METH_KEYWORDS, "" },
     { "find", (PyCFunction) t_view_find, METH_VARARGS, NULL },
@@ -323,6 +325,19 @@ static PyObject *t_view__isVerify(t_view *self, PyObject *args)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
+}
+
+static PyObject *t_view__setVerify(t_view *self, PyObject *arg)
+{
+    PyObject *result = self->status & VERIFY ? Py_True : Py_False;
+
+    if (PyObject_IsTrue(arg))
+        self->status |= VERIFY;
+    else
+        self->status &= ~VERIFY;
+
+    Py_INCREF(result);
+    return result;
 }
 
 static PyObject *t_view_getLogger(t_view *self, PyObject *args)

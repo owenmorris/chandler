@@ -20,12 +20,20 @@ PyTypeObject *CLinkedMap = NULL;
 PyTypeObject *CLink = NULL;
 PyTypeObject *CPoint = NULL;
 PyTypeObject *CNode = NULL;
-PyTypeObject *CSkipList = NULL;
+PyTypeObject *SkipList = NULL;
 
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
 {
     if (PyObject_TypeCheck(obj, UUID))
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static PyObject *issingleref(PyObject *self, PyObject *obj)
+{
+    if (PyObject_TypeCheck(obj, SingleRef))
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -55,6 +63,7 @@ static PyObject *combine(PyObject *self, PyObject *args)
 
 static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
+    { "issingleref", (PyCFunction) issingleref, METH_O, "isinstance(SingleRef)" },
     { "_hash", (PyCFunction) hash, METH_VARARGS, "hash bytes" },
     { "_combine", (PyCFunction) combine, METH_VARARGS, "combine two hashes" },
 #ifdef WINDOWS

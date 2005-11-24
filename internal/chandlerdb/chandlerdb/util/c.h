@@ -21,7 +21,7 @@ extern PyTypeObject *CLinkedMap;
 extern PyTypeObject *CLink;
 extern PyTypeObject *CPoint;
 extern PyTypeObject *CNode;
-extern PyTypeObject *CSkipList;
+extern PyTypeObject *SkipList;
 
 void PyDict_SetItemString_Int(PyObject *, char *, int);
 

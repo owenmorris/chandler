@@ -40,9 +40,12 @@ static PyObject *t_item__isRefList(t_item *self, PyObject *args);
 static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyObject *t_item__isMerged(t_item *self, PyObject *args);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
+static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args);
 static PyObject *t_item__fireChanges(t_item *self, PyObject *args);
+static PyObject *t_item__fillItem(t_item *self, PyObject *args);
 static PyObject *t_item_setDirty(t_item *self, PyObject *args);
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args);
+static PyObject *t_item_collectionChanged(t_item *self, PyObject *args);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
@@ -79,6 +82,8 @@ static PyObject *_flags_NAME;
 static PyObject *watchers_NAME, *watcherDispatch_NAME;
 static PyObject *filterItem_NAME;
 static PyObject *sourceChanged_NAME, *collectionChanged_NAME;
+static PyObject *_setParent_NAME;
+static PyObject *_setItem_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
  * "" docstrings are missing docstrings
@@ -121,9 +126,12 @@ static PyMethodDef t_item_methods[] = {
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
+    { "hasLocalAttributeValue", (PyCFunction) t_item_hasLocalAttributeValue, METH_VARARGS, NULL },
     { "_fireChanges", (PyCFunction) t_item__fireChanges, METH_VARARGS, "" },
+    { "_fillItem", (PyCFunction) t_item__fillItem, METH_VARARGS, "" },
     { "setDirty", (PyCFunction) t_item_setDirty, METH_VARARGS, NULL },
     { "_collectionChanged", (PyCFunction) t_item__collectionChanged, METH_VARARGS, NULL },
+    { "collectionChanged", (PyCFunction) t_item_collectionChanged, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -551,6 +559,34 @@ static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
     return defaultValue;
 }
 
+static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args)
+{
+    PyObject *name, *attrDict = NULL;
+
+    if (!PyArg_ParseTuple(args, "O|O", &name, &attrDict))
+        return NULL;
+    
+    if (attrDict != NULL && attrDict != Py_None)
+    {
+        if (!PyObject_TypeCheck(attrDict, CValues))
+        {
+            PyErr_SetObject(PyExc_TypeError, attrDict);
+            return NULL;
+        }
+
+        if (PyDict_Contains(((t_values *) attrDict)->dict, name))
+            Py_RETURN_TRUE;
+
+        Py_RETURN_FALSE;
+    }
+
+    if (PyDict_Contains(((t_values *) self->values)->dict, name) ||
+        PyDict_Contains(((t_values *) self->references)->dict, name))
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
 static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
 {
     PyObject *op, *name;
@@ -579,6 +615,70 @@ static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
             return NULL;
 
         Py_DECREF(result);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_item__fillItem(t_item *self, PyObject *args)
+{
+    PyObject *name, *parent, *kind, *uuid, *values, *references, *hooks;
+    int status, version, update;
+
+    if (!PyArg_ParseTuple(args, "OOOOOOii|Oi", &name, &parent, &kind,
+                          &uuid, &values, &references, &status, &version,
+                          &hooks, &update))
+        return NULL;
+
+    self->version = version;
+    if (version == 0)
+        status |= NEW;
+
+    self->status = status;
+
+    Py_INCREF(uuid); Py_XDECREF(self->uuid);
+    self->uuid = uuid;
+
+    if (!PyObject_TypeCheck(values, CValues))
+    {
+        PyErr_SetObject(PyExc_TypeError, values);
+        return NULL;
+    }
+    Py_INCREF(values); Py_XDECREF(self->values);
+    self->values = (t_values *) values;
+
+    if (!PyObject_TypeCheck(references, CValues))
+    {
+        PyErr_SetObject(PyExc_TypeError, references);
+        return NULL;
+    }
+    Py_INCREF(references); Py_XDECREF(self->references);
+    self->references = (t_values *) references;
+
+    if (name != Py_None && !PyObject_IsTrue(name))
+        name = Py_None;
+    Py_INCREF(name); Py_XDECREF(self->name);
+    self->name = name;
+
+    Py_INCREF(kind); Py_XDECREF(self->kind);
+    self->kind = kind;
+        
+    if (!PyObject_CallMethodObjArgs((PyObject *) self,
+                                    _setParent_NAME, parent, NULL) ||
+        !PyObject_CallMethodObjArgs(values, _setItem_NAME, self, NULL) ||
+        !PyObject_CallMethodObjArgs(references, _setItem_NAME, self, NULL))
+        return NULL;
+
+    if (self->parent == Py_None || ((t_item *) self->parent)->status & STALE)
+    {
+        PyErr_SetString(PyExc_AssertionError, "stale or None parent");
+        return NULL;
+    }
+
+    if (self->root == Py_None || ((t_item *) self->root)->status & STALE)
+    {
+        PyErr_SetString(PyExc_AssertionError, "stale or None root");
+        return NULL;
     }
 
     Py_RETURN_NONE;
@@ -662,9 +762,7 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
                 return NULL;
             }
 
-            if (view->status & VERIFY &&
-                dirty & VDIRTY &&
-                attrDict == self->values &&
+            if (view->status & VERIFY && dirty & VDIRTY &&
                 verify(self, view, attrDict, attribute) < 0)
                 return NULL;
             else
@@ -895,6 +993,11 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
         }
     }
 
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_item_collectionChanged(t_item *self, PyObject *args)
+{
     Py_RETURN_NONE;
 }
 
@@ -1185,6 +1288,8 @@ void _init_item(PyObject *m)
             filterItem_NAME = PyString_FromString("filterItem");
             sourceChanged_NAME = PyString_FromString("sourceChanged");
             collectionChanged_NAME = PyString_FromString("collectionChanged");
+            _setParent_NAME = PyString_FromString("_setParent");
+            _setItem_NAME = PyString_FromString("_setItem");
         }
     }
 }

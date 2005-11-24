@@ -5,11 +5,15 @@
  */
 
 
-typedef struct {
-    PyObject_HEAD
-    PyObject *levels;
-    int entryValue;
-} t_node;
+/* from 1 to 16 */
+#define SL_MAXLEVEL 16       
+
+enum {
+    SL_INSERT = 0x0001,
+    SL_MOVE   = 0x0002,
+    SL_REMOVE = 0x0004
+};
+
 
 typedef struct {
     PyObject_HEAD
@@ -18,6 +22,11 @@ typedef struct {
     int dist;
 } t_point;
 
+typedef struct {
+    PyObject_HEAD
+    PyObject *levels;
+    int entryValue;
+} t_node;
 
 typedef struct {
     PyObject_HEAD

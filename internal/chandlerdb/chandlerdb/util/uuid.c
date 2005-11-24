@@ -14,6 +14,8 @@
 #include <string.h>
 #include <fcntl.h>
 
+extern int debug;
+
 static unsigned char hTable[] = {
      33,  14, 188, 130,  50,  93, 118, 216,
     108, 146,  27, 236, 111, 191, 131,  52,
@@ -410,7 +412,7 @@ int generate_uuid(unsigned char *uuid)
 
     if (!was_initialized)
     {
-        if (get_ethernet_node_id(node_id, sizeof(node_id)) < 0)
+        if (!debug || get_ethernet_node_id(node_id, sizeof(node_id)) < 0)
         {
             get_random_bytes(node_id, sizeof(node_id));
 
