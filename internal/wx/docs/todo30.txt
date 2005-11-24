@@ -54,12 +54,11 @@ Core
     customized by user code by overriding some wxApp::CreateEventLoop())
     instead of duplicating the same code
 
-- remove wxCOMPATIBILITY (1.X)
-    At least WXWIN_COMPATIBILITY and maybe WXWIN_COMPATIBILITY_2 code should be
-    removed from the library. wxDEPRECATED() should be used with everything
-    inside WXWIN_COMPATIBILITY_2_2. The stuff inside WXWIN_COMPATIBILITY_2_4
-    probably should not be deprecated (yet?) because this would give thousands
-    of warnings for the existing code.
+- remove wxCOMPATIBILITY
+    wxDEPRECATED() should be used with everything inside WXWIN_COMPATIBILITY_2_4.
+    The stuff inside WXWIN_COMPATIBILITY_2_6 probably should not be deprecated
+    (yet?) because this would give thousands of warnings for the existing code.
+    Exception is api documented as obsolete in 2.6 release already.
 
 - Modularization/Build System
     Candidates for components:
@@ -202,4 +201,4 @@ wxMiscellaneous
   get closer to native look and feel, e.g. the gradient
   shadow on XP toolbars.
 
-Version:      $Id: todo30.txt,v 1.18 2004/10/22 19:13:49 KH Exp $
+Version:      $Id: todo30.txt,v 1.19 2005/11/08 19:59:50 ABX Exp $

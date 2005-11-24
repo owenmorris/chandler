@@ -2,16 +2,24 @@
 wxWidgets Change Log - For more verbose changes, see the manual
 ---------------------------------------------------------------
 
+INCOMPATIBLE CHANGES SINCE 2.6.x
+================================
+
+- wxFontData::GetColour() now returns a const colour
+
+
 2.7.0
 -----
 
 All:
 
 - wxLaunchDefaultBrowser() now supports wxBROWSER_NEW_WINDOW flag
+- wxGetWorkingDirectory() deprecated. Use wxGetCwd() instead.
 
 All (GUI):
 
 - Added wxTreeBook.
+- Added wxKeyEvent::GetModifiers()
 - Added wxDialog::SetEscapeId().
 - wxItemContainerImmutable::FindString unified (affects wxRadioBox, wxListBox,
   wxComboBox and wxChoice).
@@ -25,6 +33,10 @@ All (GUI):
 - Added parent window parameter to wxHelpController constructor
   and added SetParentWindow/GetParentWindow.
 - wxMultiChoiceDialog uses now wxCheckListBox if possible, wxListBox if not.
+- Added wxBitmapButton::SetHoverBitmap()
+- Access to titles through Get/SetTitle is available now only for top level
+  windows (wxDialog, wxFrame).
+- Fixed memory leak of pending events in wxEvtHandler
 
 wxMSW:
 
@@ -32,9 +44,21 @@ wxMSW:
 - Switching page of a hidden notebook doesn't lose focus (Jamie Gadd).
 - Removed wxImageList *GetImageList(int) const.
 
+wxGTK:
+
+- Fixed problem with choice editor in wxGrid whereby the editor
+  lost focus when the combobox menu was shown.
+
+wxMac:
+
+- Fixed problem with clipboard support for custom data flavors.
+
 wxWinCE:
 
 - Pressing build-in joystick on WinCE phones fires wxEVT_JOY_BUTTON_DOWN event.
+- Native wxCheckListBox implementation.
+- All wxTopLevelWindows resizes accordingly to SIP visibility.
+- ::wxGetUserName() implemented.
 
 Unix:
 

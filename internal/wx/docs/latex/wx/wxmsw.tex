@@ -1,3 +1,14 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Name:        wxmsw.tex
+%% Purpose:     wxMSW and wxWinCE platform specific informations
+%% Author:      wxWidgets Team
+%% Modified by:
+%% Created:
+%% RCS-ID:      $Id: wxmsw.tex,v 1.23 2005/11/13 21:47:08 ABX Exp $
+%% Copyright:   (c) wxWidgets Team
+%% License:     wxWindows license
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{wxMSW port}\label{wxmswport}
 
 wxMSW is a port of wxWidgets for the Windows platforms
@@ -106,8 +117,8 @@ that will do the right thing on each platform.)
 If the screen orientation changes, the windows will automatically be resized
 so no further action needs to be taken (unless you want to change the layout
 according to the orientation, which you could detect in idle time, for example).
-However, if the input panel (SIP) is shown, windows do not yet resize accordingly. This will
-be implemented soon.
+When input panel (SIP) is shown, top level windows (frames and dialogs) resize
+accordingly (see \helpref{wxTopLevelWindow::HandleSettingChange}{wxtoplevelwindowhandlesettingchange}).
 
 \subsubsection{Closing top-level windows in wxWinCE}
 
@@ -146,13 +157,13 @@ PocketPC dialogs have an OK button on the caption, and so you should generally
 not repeat an OK button on the dialog. You can add a Cancel button if necessary, but some dialogs
 simply don't offer you the choice (the guidelines recommend you offer an Undo facility
 to make up for it). When the user clicks on the OK button, your dialog will receive
-a wxID\_OK event by default. If you wish to change this, call wxDialog::SetAffirmativeId
-with the required identifier to be used. Or, override wxDialog::DoOK (return false to
+a wxID\_OK event by default. If you wish to change this, call \helpref{wxDialog::SetAffirmativeId}{wxdialogsetaffirmativeid}
+with the required identifier to be used. Or, override \helpref{wxDialog::DoOK}{wxdialogdook} (return false to
 have wxWidgets simply call Close to dismiss the dialog).
 
 Smartphone dialogs do {\it not} have an OK button on the caption, and are closed
-using one of the two menu buttons. You need to assign these using wxTopLevelWindow::SetLeftMenu
-and wxTopLevelWindow::SetRightMenu, for example:
+using one of the two menu buttons. You need to assign these using \helpref{wxTopLevelWindow::SetLeftMenu}{wxtoplevelwindowsetleftmenu}
+and \helpref{wxTopLevelWindow::SetRightMenu}{wxtoplevelwindowsetrightmenu}, for example:
 
 \begin{verbatim}
 #ifdef __SMARTPHONE__
@@ -242,8 +253,6 @@ These controls are missing from wxWinCE:
 
 \itemsep=0pt
 \begin{itemize}
-\item {\bf wxCheckListBox} This can be implemented using a wxListCtrl in report mode
-with checked/unchecked images.
 \item {\bf MDI classes} MDI is not supported under Windows CE.
 \item {\bf wxMiniFrame} Not supported under Windows CE.
 \end{itemize}
@@ -345,9 +354,6 @@ show the SIP automatically using the WC\_SIPREF control.
 the correct size on the emulator, but too small on a VGA Pocket Loox device.
 \item {\bf wxStaticLine.} Lines don't show up, and the documentation suggests that
 missing styles are implemented with WM\_PAINT.
-\item {\bf wxCheckListBox.} This class needs to be implemented in terms of a wxListCtrl
-in report mode, using icons for checkbox states. This is necessary because owner-draw listboxes
-are not supported on Windows CE.
 \item {\bf wxFileDialog.} A more flexible dialog needs to be written (probably using wxGenericFileDialog)
 that can access arbitrary locations.
 \item {\bf HTML control.} PocketPC has its own HTML control which can be used for showing
@@ -379,4 +385,3 @@ a specified location.
 \item {\bf Further abstraction.} We should be able to abstract away more of the differences
 between desktop and mobile applications, in particular for sizer layout.
 \end{itemize}
-
