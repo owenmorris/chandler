@@ -23,8 +23,10 @@ build:
         $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)
+endif
 
 realclean: clean
 
