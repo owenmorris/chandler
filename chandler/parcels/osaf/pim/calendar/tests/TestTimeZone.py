@@ -1,11 +1,14 @@
-import repository.tests.RepositoryTestCase as RepositoryTestCase
-import unittest
+
+import unittest, PyICU
+
+from repository.tests.RepositoryTestCase import RepositoryTestCase
 from osaf.pim.calendar.TimeZone import *
-import PyICU
 from datetime import datetime
 
-class TimeZoneTestCase(unittest.TestCase):
+
+class TimeZoneTestCase(RepositoryTestCase):
     def setUp(self):
+        super(TimeZoneTestCase, self).setUp(True)
         PyICU.TimeZone.setDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
         self.tzInfoItem = TimeZoneInfo.get()
 
@@ -64,10 +67,10 @@ class KnownTimeZonesTestCase(unittest.TestCase):
             numZones += 1
         self.failIf(numZones <= 0)
 
-class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
+class PersistenceTestCase(RepositoryTestCase):
+
     def setUp(self):
-        self.ramdb = True
-        super(PersistenceTestCase, self).setUp()
+        super(PersistenceTestCase, self).setUp(True)
 
     def testGetTimeZone(self):
         defaultTzItem = TimeZoneInfo.get(view=self.rep.view)
@@ -77,7 +80,7 @@ class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
 
     def testPerView(self):
         defaultTzItemOne = TimeZoneInfo.get(view=self.rep.view)
-        defaultTzItemTwo = TimeZoneInfo.get()
+        defaultTzItemTwo = TimeZoneInfo.get(view=self.rep.createView('two'))
         
         self.failIf(defaultTzItemOne is defaultTzItemTwo)
 

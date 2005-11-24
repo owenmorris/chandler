@@ -26,7 +26,6 @@ from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
-import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import osaf.mail.constants as MailConstants
 import osaf.mail.sharing as MailSharing
 import osaf.mail.message as MailMessage

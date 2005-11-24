@@ -4,17 +4,13 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, sys, threading, time, logging, cStringIO
-
-from new import classobj
-
 import wx, Globals, Utility
 
+from new import classobj
 from i18n import OSAFMessageFactory as _, getImage
 
-from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError import \
-    VersionConflictError, MergeError, RepositoryPasswordError, \
-    RepositoryVersionError
+    MergeError, RepositoryVersionError
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +238,6 @@ class wxApplication (wx.App):
 
         if splash:
             splash.updateGauge('parcels')
-        wx.Yield()
         Utility.initParcels(view, parcelPath)
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
@@ -295,8 +290,12 @@ class wxApplication (wx.App):
 
         if splash:
             splash.updateGauge('mainview')
-        
+
+        #import hotshot
         self.RenderMainView()
+        #prof = hotshot.Profile('4117.prof')
+        #prof.runcall(self.RenderMainView)
+        #prof.close()
 
         if Globals.options.profile:
             import hotshot, hotshot.stats
@@ -578,6 +577,7 @@ class wxApplication (wx.App):
         the_view = self.repository.view  # cache the view for performance
         the_view.refresh() # pickup changes from other threads
         try:
+            #import it here, after schema.reset(view) was called in Utility.py
             import osaf.pim.collections as collections
             collections.deliverNotifications(the_view)
         except MergeError, e:

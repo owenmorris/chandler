@@ -43,7 +43,7 @@ class TestI18nAmazon(TestContentModel.ContentModelTestCase):
         #Test that the German product name is return by an amazon search for
         #keyword == productName in the Music category of amazon.de
         productName = u'Im Zauberschloß... Auf dem Weg zum Schlafen und Träumen'
-        col = AmazonKinds.SearchByKeyword(self.view, self.view, productName, 'de', 'music')
+        col = AmazonKinds.SearchByKeyword(self.view, self.view, 'Zauberschloss', 'de', 'music')
         self.assertNotEquals(col, None)
         self.assertTrue(self.hasKey(col, productName))
 

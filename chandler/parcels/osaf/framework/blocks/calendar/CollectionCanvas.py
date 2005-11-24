@@ -365,6 +365,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             OnEditItem()
             OnCreateItem()
         """
+
         hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox:
             self.OnEditItem(hitBox)

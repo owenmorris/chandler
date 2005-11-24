@@ -8,16 +8,16 @@ Application utilities.
 __version__ = "$Revision: 5915 $"
 
 import os, sys, logging, logging.config, logging.handlers, string
-import M2Crypto.Rand as Rand
-import M2Crypto.threading as m2threading
+import i18n, schema
+import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
+
 from repository.persistence.DBRepository import DBRepository
+from repository.persistence.RepositoryView import NullRepositoryView
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError, \
      RepositoryOpenDeniedError, ExclusiveOpenDeniedError,\
      RepositoryVersionError
-from repository.item.RefCollections import RefList
-import i18n
 
 
 # Increment this value whenever the schema changes, and replace the comment
@@ -294,7 +294,7 @@ def locateRepositoryDirectory(profileDir):
     return path
 
 
-def initRepository(directory, options):
+def initRepository(directory, options, allowSchemaView=False):
 
     repository = DBRepository(directory)
 
@@ -335,10 +335,11 @@ def initRepository(directory, options):
 
     view = repository.view
 
-    if not view.getRoot("Packs").hasChild("Chandler"):
-        pack = os.path.join(locateChandlerDirectory(), "repository", "packs",
-            "chandler.pack")
-        view.loadPack(pack)
+    # tell the schema API about this view so that it doesn't setup its own
+    # (also load Chandler pack)
+    if isinstance(schema.reset(view), NullRepositoryView):
+        if not allowSchemaView:
+            raise AssertionError, "schema.py was used before it was initialized here causing it to setup a NullRepositoryView"
 
     return view
 
@@ -407,19 +408,15 @@ def initParcelEnv(chandlerDirectory, path):
 
 
 def initParcels(view, path, namespaces=None):
-    import Parcel # Delayed so as not to trigger an extra logging addHandler().
-                  # Importing Parcel has the side effect of importing schema
-                  # which has the side effect of creating a NullRepositoryView
-                  # which calls addHandler( ).
+    from Parcel import Manager # Delayed so as not to trigger
+                               # early loading of schema.py
 
-    if not namespaces:
-        Parcel.Manager.get(view, path=path).loadParcels()
-    else:
-        Parcel.Manager.get(view, path=path).loadParcels(namespaces)
+    Manager.get(view, path=path).loadParcels(namespaces)
 
     # Record the current schema version into the repository
     parcelRoot = view.getRoot("parcels")
-    parcelRoot.version = SCHEMA_VERSION
+    if getattr(parcelRoot, 'version', None) != SCHEMA_VERSION:
+        parcelRoot.version = SCHEMA_VERSION
 
 
 def _randpoolPath(profileDir):

@@ -1,19 +1,17 @@
+
 import datetime, os
-import application.schema as schema
+
+from application import schema
 from application.Parcel import Reference
-from repository.schema.Types import Lob
-import scripts as Scripts
 from i18n import OSAFMessageFactory as _
 from PyICU import ICUtzinfo
-from osaf import pim
-from osaf import messages
-from osaf.framework.types.DocumentTypes import ColorType
-import osaf.framework.scripting as scripting
-import wx
+from osaf import pim, messages
+from osaf.framework import scripting
 
 
 def installParcel(parcel, oldVersion=None):
 
+    import scripts as Scripts
     from osaf import sharing, startup
     from osaf.framework import scripting
 
@@ -256,11 +254,13 @@ The Chandler Team""")
 
 def MakeCollections(parcel):
 
+    import wx
     from osaf.pim import (
         KindCollection, ListCollection, FilteredCollection,
         DifferenceCollection, InclusionExclusionCollection,
         UnionCollection, CollectionColors, IntersectionCollection
     )
+    from osaf.framework.types.DocumentTypes import ColorType
     
     def GetColorForHue (hue):
         rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue / 360.0, 0.5, 1.0))

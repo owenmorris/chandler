@@ -7,7 +7,7 @@ Chandler startup
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
-import os
+import os, PyLucene
 import application.Globals as Globals
 import application.Utility as Utility
 
@@ -79,7 +79,7 @@ def main():
         except Utility.SchemaMismatchError:
             logging.info("User chose not to clear the repository.  Exiting.")
 
-        except Exception:
+        except Exception, e:
             import sys, traceback
             type, value, stack = sys.exc_info()
             formattedBacktrace = "".join(traceback.format_exception(type,
@@ -89,18 +89,15 @@ def main():
             message = ("Chandler encountered an unexpected problem while trying to start.\n" + \
                       "Here are the bottom 5 frames of the stack:\n%s") % (formattedBacktrace)
             logging.exception(message)
-            # @@@ 25Issue - Cannot create wxItems if the app failed to 
-            # @@@           initialize
+
             try:
                 dialog = wx.MessageDialog(None, message, "Chandler", 
                                           wx.OK | wx.ICON_INFORMATION)
                 dialog.ShowModal()
                 dialog.Destroy()
-            except:
-                pass
+            except wx.PyNoAppError:
+                raise e
 
-            #Reraising the exception, so wing catches it.
-            raise
 
     #@@@Temporary testing tool written by Morgen -- DJA
     #import util.timing

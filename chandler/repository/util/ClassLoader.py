@@ -8,6 +8,7 @@ import sys, logging
 
 class ClassLoader(object):
 
+    @classmethod
     def loadClass(cls, name, module=None):
 
         if module is None:
@@ -29,5 +30,3 @@ class ClassLoader(object):
             return getattr(m, name)
         except AttributeError:
             raise ImportError, "Module %s has no class %s" %(module, name)
-
-    loadClass = classmethod(loadClass)

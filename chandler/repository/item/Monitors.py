@@ -8,9 +8,9 @@ from repository.item.Item import Item
 
 class Monitors(Item):
 
-    def _fillItem(self, *args, **kwds):
+    def _fillItem(self, *args):
 
-        super(Monitors, self)._fillItem(*args, **kwds)
+        super(Monitors, self)._fillItem(*args)
         self.itsView.MONITORING = False
 
     def onItemLoad(self, view):

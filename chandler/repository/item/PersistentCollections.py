@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.c import SingleRef
+from chandlerdb.util.c import SingleRef, issingleref
 from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemError import ReadOnlyAttributeError, OwnedValueError
 from chandlerdb.item.ItemValue import ItemValue
@@ -83,7 +83,7 @@ class PersistentCollection(ItemValue):
     def _restoreValue(self, value):
 
         item = self._item
-        if item is not None and isinstance(value, SingleRef):
+        if item is not None and issingleref(value):
             uuid = value.itsUUID
             return item.itsView.find(uuid)
 
@@ -115,7 +115,7 @@ class PersistentCollection(ItemValue):
         if items is None:
             items = {}
         for value in self._itervalues():
-            if isinstance(value, SingleRef):
+            if issingleref(value):
                 value = self._restoreValue(value)
                 if value is not None:
                     uuid = value.itsUUID
@@ -255,19 +255,23 @@ class PersistentList(list, PersistentCollection):
         super(PersistentList, self).__imul__(value)
         self._setDirty()
 
-    def append(self, value, setDirty=True):
+    def append(self, value, setDirty=True, prepare=True):
 
-        value = PersistentCollection.prepareValue(self._item, self._attribute,
-                                                  value)
+        if prepare:
+            value = PersistentCollection.prepareValue(self._item,
+                                                      self._attribute,
+                                                      value)
         super(PersistentList, self).append(value)
 
         if setDirty:
             self._setDirty()
 
-    def add(self, value, setDirty=True):
+    def add(self, value, setDirty=True, prepare=True):
 
-        value = PersistentCollection.prepareValue(self._item, self._attribute,
-                                                  value)
+        if prepare:
+            value = PersistentCollection.prepareValue(self._item,
+                                                      self._attribute,
+                                                      value)
         super(PersistentList, self).append(value)
 
         if setDirty:
@@ -413,10 +417,12 @@ class PersistentDict(dict, PersistentCollection):
         super(PersistentDict, self).__delitem__(key)
         self._setDirty()
 
-    def __setitem__(self, key, value, setDirty=True):
+    def __setitem__(self, key, value, setDirty=True, prepare=True):
 
-        value = PersistentCollection.prepareValue(self._item, self._attribute,
-                                                  value)
+        if prepare:
+            value = PersistentCollection.prepareValue(self._item,
+                                                      self._attribute,
+                                                      value)
         super(PersistentDict, self).__setitem__(key, value)
 
         if setDirty:
@@ -673,10 +679,12 @@ class PersistentSet(set, PersistentCollection):
 
         return super(PersistentSet, self).__iter__()
 
-    def add(self, value, setDirty=True):
-
-        value = PersistentCollection.prepareValue(self._item, self._attribute,
-                                                  value)
+    def add(self, value, setDirty=True, prepare=True):
+        
+        if prepare:
+            value = PersistentCollection.prepareValue(self._item,
+                                                      self._attribute,
+                                                      value)
         super(PersistentSet, self).add(value)
 
         if setDirty:

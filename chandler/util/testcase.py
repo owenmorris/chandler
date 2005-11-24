@@ -26,7 +26,7 @@ class DualRepositoryTestCase(unittest.TestCase):
         Utility.initLogging(Globals.options)
         self.views = []
         for i in xrange(2):
-            view = Utility.initRepository("", Globals.options)
+            view = Utility.initRepository("", Globals.options, True)
             view.name = "test_view_%d" % i
             self.views.append(view)
 

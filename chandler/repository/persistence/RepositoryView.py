@@ -379,15 +379,12 @@ class RepositoryView(CView):
         from repository.persistence.PackHandler import PackHandler
 
         handler = PackHandler(path, parent, self)
-        verify = self._isVerify()
 
         try:
-            if verify:
-                self._status &= ~RepositoryView.VERIFY
+            verify = self._setVerify(False)
             handler.parseFile(path)
         finally:
-            if verify:
-                self._status |= RepositoryView.VERIFY
+            self._setVerify(verify)
 
         return handler.pack
 
@@ -547,9 +544,10 @@ class RepositoryView(CView):
 
         name = item.itsName
 
-        if (name is not None and
-            self._roots.resolveAlias(name, not self.isLoading()) is not None):
-            raise ValueError, "A root named '%s' exists already" %(name)
+        if name is not None:
+            key = self._roots.resolveAlias(name, not self.isLoading())
+            if not (key is None or key == item.itsUUID):
+                raise ValueError, "A root named '%s' exists already" %(name)
 
         self._roots._append(item)
 
@@ -650,7 +648,7 @@ class RepositoryView(CView):
         
         raise NotImplementedError, "%s.cancel" %(type(self))
 
-    def queryItems(self, kind=None, attribute=None, load=True):
+    def queryItems(self, kind=None, attribute=None):
         """
         Query this view for items.
 
@@ -658,11 +656,25 @@ class RepositoryView(CView):
         @type kind: an item
         @param attribute: an attribute UUID for a value query
         @type attribute: a UUID
-        @param load: if C{False} only return loaded items
-        @type load: boolean
         """
         
         raise NotImplementedError, "%s.queryItems" %(type(self))
+
+    def queryItemKeys(self, kind=None, attribute=None):
+        """
+        Query this view for item UUIDs.
+
+        @param kind: a kind item for a kind query
+        @type kind: an item
+        @param attribute: an attribute UUID for a value query
+        @type attribute: a UUID
+        """
+        
+        raise NotImplementedError, "%s.queryItemKeys" %(type(self))
+
+    def kindForKey(self, uuid):
+
+        raise NotImplementedError, "%s.kindForKey" %(type(self))
 
     def searchItems(self, query, attribute=None, load=True):
         """
@@ -1164,11 +1176,11 @@ class NullRepositoryView(RepositoryView):
 
         return item._version
 
-    def queryItems(self, kind=None, attribute=None, load=True):
+    def queryItems(self, kind=None, attribute=None):
 
         if kind is not None:
-            return [item for item in self._registry.itervalues()
-                    if item._kind is kind]
+            return (item for item in self._registry.itervalues()
+                    if item._kind is kind)
 
         elif attribute is not None:
             raise NotImplementedError, 'attribute query'
@@ -1176,6 +1188,21 @@ class NullRepositoryView(RepositoryView):
         else:
             raise ValueError, 'one of kind or value must be set'
 
+    def queryItemKeys(self, kind=None, attribute=None):
+
+        if kind is not None:
+            return (key for key, item in self._registry.iteritems()
+                    if item._kind is kind)
+
+        elif attribute is not None:
+            raise NotImplementedError, 'attribute query'
+
+        else:
+            raise ValueError, 'one of kind or value must be set'
+
+    def kindForKey(self, uuid):
+
+        return self[uuid].itsKind
 
     logger = property(getLogger)
     itsUUID = UUID('17368718-a164-11d9-9351-000393db837c')

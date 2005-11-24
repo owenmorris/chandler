@@ -23,7 +23,6 @@ class RepositoryTestCase(TestCase):
     logLevel = logging.WARNING      # a nice quiet default
 
     def _setup(self, ramdb=True):
-        schema.reset()
         self.rootdir = os.environ['CHANDLERHOME']
         self.chandlerPack = os.path.join(self.rootdir, 'repository',
                                          'packs', 'chandler.pack')
@@ -56,9 +55,11 @@ class RepositoryTestCase(TestCase):
             self.rep.view.loadPack(self.chandlerPack)
             self.rep.view.commit()
 
+        view = self.rep.view
+        schema.reset(view)
+
         self.manager = \
-         ParcelManager.get(self.rep.view, \
-         path=[os.path.join(self.rootdir, 'parcels')])
+            ParcelManager.get(view, [os.path.join(self.rootdir, 'parcels')])
 
     def setUp(self, ramdb=True):
         self._setup(ramdb)

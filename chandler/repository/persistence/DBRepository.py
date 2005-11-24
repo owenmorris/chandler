@@ -422,12 +422,54 @@ class DBRepository(OnDemandRepository):
     OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
 
 
+class DBTxn(object):
+
+    def __init__(self, store, _txn, status):
+
+        if store._ramdb:
+            self._txn = None
+        else:
+            self._txn = store.repository._env.txn_begin(_txn)
+            
+        self._status = status
+        self._count = 1
+
+    def abort(self, status):
+
+        assert self._count
+
+        self._count -= 1
+        if self._count == 0:
+#            if status & DBStore.TXN_STARTED == 0:
+#                print 'out of order abort'
+            if self._txn is not None:
+                self._txn.abort()
+                self._txn = None
+            return True
+
+        return False
+
+    def commit(self, status):
+        
+        assert self._count
+
+        self._count -= 1
+        if self._count == 0:
+#            if status & DBStore.TXN_STARTED == 0:
+#                print 'out of order commit'
+            if self._txn is not None:
+                self._txn.commit()
+                self._txn = None
+            return True
+
+        return False
+        
+
 class DBStore(Store):
 
     def __init__(self, repository):
 
         self._threaded = local()
-        self._threaded.txns = []
 
         self._items = ItemContainer(self)
         self._values = ValueContainer(self)
@@ -524,30 +566,18 @@ class DBStore(Store):
     
     def loadRef(self, view, version, uItem, uuid, key):
 
-        buffer = self._refs.prepareKey(uItem, uuid)
-        try:
-            return self._refs.loadRef(view, buffer, version, key)
-        finally:
-            buffer.close()
+        return self._refs.loadRef(view, uItem._uuid + uuid._uuid, version, key)
 
     def loadRefs(self, view, version, uItem, uuid, firstKey):
 
         refs = []
-
-        buffer = self._refs.prepareKey(uItem, uuid)
-        txnStatus = 0
-        try:
-            txnStatus = self.startTransaction(view)
-            key = firstKey
-            while key is not None:
-                ref = self._refs.loadRef(view, buffer, version, key)
-                assert ref is not None
-
-                refs.append(ref)
-                key = ref[1]
-        finally:
-            self.abortTransaction(view, txnStatus)
-            buffer.close()
+        iterator = self._refs.refIterator(view, uItem._uuid + uuid._uuid,
+                                          version)
+        key = firstKey
+        while key is not None:
+            ref = iterator.next(key)
+            refs.append(ref)
+            key = ref[1]
 
         return refs
 
@@ -574,18 +604,35 @@ class DBStore(Store):
     def queryItems(self, view, version, kind=None, attribute=None):
 
         if kind is not None:
-            for uuid, args in self._items.kindQuery(view, version, kind._uuid):
-                itemReader = DBItemReader(self, uuid, *args)
-                if (self._items.getItemVersion(view, version,
-                                               itemReader.getUUID()) ==
-                    itemReader.getVersion()):
-                    yield itemReader
+            items = self._items
+            for uuid, args in items.kindQuery(view, version, kind.itsUUID):
+                if items.getItemVersion(view, version, uuid) == args[0]:
+                    yield DBItemReader(self, uuid, *args)
 
         elif attribute is not None:
             raise NotImplementedError, 'attribute query'
 
         else:
             raise ValueError, 'one of kind or value must be set'
+
+    def queryItemKeys(self, view, version, kind=None, attribute=None):
+
+        if kind is not None:
+            items = self._items
+            itemFinder = items._itemFinder(view)
+            for uuid, ver in items.kindQuery(view, version, kind.itsUUID, True):
+                if itemFinder.getVersion(version, uuid) == ver:
+                    yield uuid
+
+        elif attribute is not None:
+            raise NotImplementedError, 'attribute query'
+
+        else:
+            raise ValueError, 'one of kind or value must be set'
+
+    def kindForKey(self, view, version, uuid):
+
+        return self._items.getItemKindId(view, version, uuid)
 
     def searchItems(self, view, version, query, attribute=None):
 
@@ -606,35 +653,43 @@ class DBStore(Store):
     def startTransaction(self, view, nested=False):
 
         status = 0
-        repository = self.repository
+        locals = self._threaded
+        txn = getattr(locals, 'txn', None)
 
-        if view is not None and view._acquireExclusive():
+        if view is not None and txn is None and view._acquireExclusive():
             status = DBStore.EXCLUSIVE
 
-        if not self._ramdb:
-            if self.txn is None:
-                self.txn = repository._env.txn_begin(None)
-                status |= DBStore.TXN_STARTED
-            elif nested:
-                self._threaded.txns.append(self.txn)
-                self.txn = repository._env.txn_begin(self.txn)
-                status |= DBStore.TXN_STARTED | DBStore.TXN_NESTED
+        if txn is None:
+            status |= DBStore.TXN_STARTED
+            locals.txn = DBTxn(self, None, status)
+        elif nested:
+            try:
+                locals.txns.append(txn)
+            except AttributeError:
+                locals.txns = [txn]
+            status |= DBStore.TXN_STARTED | DBStore.TXN_NESTED
+            locals.txn = DBTxn(self, txn._txn, status)
         else:
-            self.txn = None
+            txn._count += 1
 
         return status
 
     def commitTransaction(self, view, status):
 
+        locals = self._threaded
+        txn = locals.txn
+
         try:
-            if status & DBStore.TXN_STARTED:
-                if self.txn is None:
-                    raise AssertionError, 'txn is None'
-                self.txn.commit()
-                if status & DBStore.TXN_NESTED:
-                    self.txn = self._threaded.txns.pop()
-                else:
-                    self.txn = None
+            if txn is not None:
+                if txn.commit(status):
+                    status = txn._status
+                    if status & DBStore.TXN_NESTED:
+                        locals.txn = locals.txns.pop()
+                    else:
+                        locals.txn = None
+                elif status & DBStore.EXCLUSIVE:
+                    txn._status |= DBStore.EXCLUSIVE
+                    status &= ~DBStore.EXCLUSIVE
         finally:
             if status & DBStore.EXCLUSIVE:
                 view._releaseExclusive()
@@ -643,15 +698,20 @@ class DBStore(Store):
 
     def abortTransaction(self, view, status):
 
+        locals = self._threaded
+        txn = locals.txn
+
         try:
-            if status & DBStore.TXN_STARTED:
-                if self.txn is None:
-                    raise AssertionError, 'txn is None'
-                self.txn.abort()
-                if status & DBStore.TXN_NESTED:
-                    self.txn = self._threaded.txns.pop()
-                else:
-                    self.txn = None
+            if txn is not None:
+                if txn.abort(status):
+                    status = txn._status
+                    if status & DBStore.TXN_NESTED:
+                        locals.txn = locals.txns.pop()
+                    else:
+                        locals.txn = None
+                elif status & DBStore.EXCLUSIVE:
+                    txn._status |= DBStore.EXCLUSIVE
+                    status &= ~DBStore.EXCLUSIVE
         finally:
             if status & DBStore.EXCLUSIVE:
                 view._releaseExclusive()
@@ -664,16 +724,11 @@ class DBStore(Store):
 
     def _getTxn(self):
 
-        try:
-            return self._threaded.txn
-        except AttributeError:
-            self._threaded.txn = None
+        txn = getattr(self._threaded, 'txn', None)
+        if txn is None:
             return None
 
-    def _setTxn(self, txn):
-
-        self._threaded.txn = txn
-        return txn
+        return txn._txn
 
     def _getEnv(self):
 
@@ -681,22 +736,19 @@ class DBStore(Store):
 
     def _getLockId(self):
 
-        try:
-            return self._threaded.lockId
-        except AttributeError:
+        lockId = getattr(self._threaded, 'lockId', None)
+        if lockId is None:
             lockId = self.repository._env.lock_id()
             self._threaded.lockId = lockId
-
-            return lockId
+        return lockId
 
     def acquireLock(self):
 
         if not self._ramdb:
             repository = self.repository
-            return repository._env.lock_get(self.lockId,
+            return repository._env.lock_get(self._getLockId(),
                                             repository.itsUUID._uuid,
                                             DB_LOCK_WRITE)
-
         return None
 
     def releaseLock(self, lock):
@@ -748,8 +800,7 @@ class DBStore(Store):
     EXCLUSIVE   = 0x0004
 
     env = property(_getEnv)
-    txn = property(_getTxn, _setTxn)
-    lockId = property(_getLockId)
+    txn = property(_getTxn)
 
 
 class DBCheckpointThread(Thread):

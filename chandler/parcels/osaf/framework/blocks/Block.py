@@ -9,12 +9,9 @@ from application import schema
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from repository.item.Item import Item
 from osaf.pim.items import ContentItem
-from osaf.pim import AbstractCollection
+from osaf.pim import collections
 import wx
 import logging
-import hotshot
-from i18n import OSAFMessageFactory as _
-import osaf.pim.collections as collections
 
 logger = logging.getLogger(__name__)
 
@@ -283,7 +280,7 @@ class Block(schema.Item):
                 to items in the contents.
                 """
                 contents = getattr (self, 'contents', None)
-                if isinstance (contents, AbstractCollection):
+                if isinstance (contents, collections.AbstractCollection):
                     contents.subscribers.add (self)
                     # Add a non-persistent attribute that controls whether or not
                     # notifications will dirty the block.
@@ -386,7 +383,7 @@ class Block(schema.Item):
         instantiateWidget.
         """
         contents = getattr (self, 'contents', None)
-        if isinstance (contents, AbstractCollection):
+        if isinstance (contents, collections.AbstractCollection):
             # Remove the non-persistent attribute that controls whether or not
             # notifications will dirty the block.
             del self.ignoreNotifications
@@ -622,6 +619,7 @@ class Block(schema.Item):
             if not Block.__profilerActive:                        
                 # create profiler lazily
                 if not Block.__profiler:
+                    import hotshot
                     Block.__profiler = hotshot.Profile('Events.prof')
                     
                 Block.__profilerActive = True
@@ -1036,5 +1034,3 @@ class BlockTemplate(object):
             attrs['childrenBlocks'] = children
             
         return self.target_class.update(parent, name, **attrs)
-
-

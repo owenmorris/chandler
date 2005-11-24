@@ -821,11 +821,15 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         firstEndKey = endColl.findInIndex(endIndex, 'first', mEnd)
         if firstEndKey is None:
             return #there were no keys ending before end
+
+        _startIndex = startColl.getIndex(startIndex)
+        _filterIndex = filterColl.getIndex(filterIndex)
+
         keys = set(endColl.iterindexkeys(endIndex, firstEndKey, None))
 
         # generate keys, starting from the earliest according to startIndex
         for key in startColl.iterindexkeys(startIndex, None, lastStartKey):
-            if key in keys and key in filterColl._indexes[filterIndex]:
+            if key in keys and key in _filterIndex:
                 yield key
 
 

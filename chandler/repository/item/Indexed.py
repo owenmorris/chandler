@@ -42,7 +42,7 @@ class Indexed(object):
                     index.validate()
             self._valid = True
 
-    def _index(self, indexName):
+    def getIndex(self, indexName):
 
         if self._indexes is None:
             item, name = self._getOwner()
@@ -165,16 +165,30 @@ class Indexed(object):
 
     def setRanges(self, indexName, ranges):
 
-        self._index(indexName).setRanges(ranges)
+        self.getIndex(indexName).setRanges(ranges)
         self._setDirty(True)
 
     def getRanges(self, indexName):
 
-        return self._index(indexName).getRanges()
+        return self.getIndex(indexName).getRanges()
+
+    def isInRanges(self, indexName, range):
+
+        return self.getIndex(indexName).isInRanges(range)
+
+    def addRange(self, indexName, range):
+
+        self.getIndex(indexName).addRange(range)
+        self._setDirty(True)
+
+    def removeRange(self, indexName, range):
+
+        self.getIndex(indexName).removeRange(range)
+        self._setDirty(True)
 
     def setDescending(self, indexName, descending=True):
 
-        self._index(indexName).setDescending(descending)
+        self.getIndex(indexName).setDescending(descending)
         self._setDirty(True) # noMonitors=True 
 
     def _createIndex(self, indexType, **kwds):
@@ -256,8 +270,11 @@ class Indexed(object):
         time can be searched to return the first or the last match in a date
         range.
 
-        The predicate implementation provided by C{callable} better be
-        consistent with the sort order of the index.
+        The predicate implementation provided by C{callable} must take at
+        least one argument, a key into the index and must return 0 when
+        the corresponding value is 'equal' to the value sought, -1 when the
+        value is 'less than' the value sought and 1 otherwise.
+        The comparisons must be consistent with the sort order of the index. 
 
         @param indexName: the name of the index to search
         @type indexName: a string
@@ -287,7 +304,7 @@ class Indexed(object):
         @return: an C{Item} instance
         """
 
-        return self[self._index(indexName).getKey(position)]
+        return self[self.getIndex(indexName).getKey(position)]
 
     def removeByIndex(self, indexName, position):
         """
@@ -365,22 +382,14 @@ class Indexed(object):
             afterKey = None
 
         for indexName in indexNames:
-            self._index(indexName).moveKey(key, afterKey)
+            self.getIndex(indexName).moveKey(key, afterKey)
 
         self._setDirty(True)
 
     def iterindexkeys(self, indexName, first=None, last=None):
 
-        index = self._index(indexName)
-        nextKey = first or index.getFirstKey()
-
-        while nextKey != last:
-            key = nextKey
-            nextKey = index.getNextKey(nextKey)
+        for key in self.getIndex(indexName).__iter__(first, last):
             yield key
-
-        if last is not None:
-            yield last
 
     def iterindexvalues(self, indexName, first=None, last=None):
 
@@ -406,7 +415,7 @@ class Indexed(object):
         @return: the index entry value
         """
         
-        return self._index(indexName).getEntryValue(item._uuid)
+        return self.getIndex(indexName).getEntryValue(item._uuid)
 
     def setIndexEntryValue(self, indexName, item, value):
         """
@@ -422,14 +431,14 @@ class Indexed(object):
         @type value: int
         """
 
-        self._index(indexName).setEntryValue(item._uuid, value)
+        self.getIndex(indexName).setEntryValue(item._uuid, value)
         self._setDirty()
 
     def resolveIndex(self, indexName, position):
 
-        return self._index(indexName).getKey(position)
+        return self.getIndex(indexName).getKey(position)
 
-    def getIndexPosition(self, indexName, item):
+    def positionInIndex(self, indexName, item):
         """
         Return the position of an item in an index of this collection.
 
@@ -444,7 +453,7 @@ class Indexed(object):
         """
 
         if item in self:
-            return self._index(indexName).getPosition(item._uuid)
+            return self.getIndex(indexName).getPosition(item._uuid)
 
         ownerItem, name = self._getOwner()
         raise NoSuchItemInCollectionError, (ownerItem, name, item)
@@ -458,7 +467,7 @@ class Indexed(object):
         @return: an C{Item} instance or C{None} if empty.
         """
 
-        firstKey = self._index(indexName).getFirstKey()
+        firstKey = self.getIndex(indexName).getFirstKey()
         if firstKey is not None:
             return self[firstKey]
 
@@ -473,7 +482,7 @@ class Indexed(object):
         @return: an C{Item} instance or C{None} if empty.
         """
 
-        lastKey = self._index(indexName).getLastKey()
+        lastKey = self.getIndex(indexName).getLastKey()
         if lastKey is not None:
             return self[lastKey]
 
@@ -494,7 +503,7 @@ class Indexed(object):
         key = previous._uuid
 
         try:
-            nextKey = self._index(indexName).getNextKey(key)
+            nextKey = self.getIndex(indexName).getNextKey(key)
         except KeyError:
             if key in self:
                 raise
@@ -522,7 +531,7 @@ class Indexed(object):
         key = next._uuid
 
         try:
-            previousKey = self._index(indexName).getPreviousKey(key)
+            previousKey = self.getIndex(indexName).getPreviousKey(key)
         except KeyError:
             if key in self:
                 raise
@@ -537,4 +546,4 @@ class Indexed(object):
 
     def getIndexSize(self, indexName):
 
-        return len(self._index(indexName))
+        return len(self.getIndex(indexName))

@@ -272,10 +272,10 @@ class ValueHandler(ContentHandler, TypeHandler):
         name = attrs.get('name')
 
         if name is None:
-            self.collections[-1].add(value, False)
+            self.collections[-1].add(value, False, False)
         else:
             name = self.makeValue(attrs.get('nameType', 'str'), name)
-            self.collections[-1].__setitem__(name, value, False)
+            self.collections[-1].__setitem__(name, value, False, False)
 
     def getAttribute(self, name):
 
@@ -571,21 +571,15 @@ class ItemHandler(ValueHandler):
         else:
             item = self.item = cls.__new__(cls)
 
-        item._fillItem(self.name, self.parent, self.kind, uuid = self.uuid,
-                       values = self.values, references = self.references,
-                       afterLoadHooks = self.afterLoadHooks,
-                       version = self.version, status = status,
-                       update = self.update)
+        item._fillItem(self.name, self.parent, self.kind, self.uuid,
+                       self.values, self.references, status, self.version,
+                       self.afterLoadHooks, not not self.update)
 
         if self.isContainer and item._children is None:
             item._children = self.repository._createChildren(item, self.new)
 
         if not (self.update or self.delete):
             self.repository._registerItem(item)
-
-        for attribute, value in self.values._dict.iteritems():
-            if isinstance(value, ItemValue):
-                value._setOwner(item, attribute)
 
         for refArgs in self.refs:
             other = refArgs._setItem(item)

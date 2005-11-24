@@ -21,9 +21,9 @@ class Attribute(Item):
         self._status |= Item.SCHEMA | Item.PINNED
         self.c = CAttribute(self)
 
-    def _fillItem(self, name, parent, kind, **kwds):
+    def _fillItem(self, *args):
 
-        super(Attribute, self)._fillItem(name, parent, kind, **kwds)
+        super(Attribute, self)._fillItem(*args)
 
         self.c = CAttribute(self)
         self._status |= Item.SCHEMA | Item.PINNED

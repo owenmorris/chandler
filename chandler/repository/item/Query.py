@@ -75,6 +75,39 @@ class KindQuery(Query):
                     for item in self._run(subKinds, changedItems):
                         yield item
 
+    def runKeys(self, kinds):
+
+        if kinds:
+            matches = set()
+            changedItems = {}
+
+            for item in kinds[0].itsView._unsavedItems():
+                if item._isNDirty():
+                    changedItems[item.itsUUID] = item
+
+            for key in self._runKeys(kinds, changedItems):
+                if key not in matches:
+                    matches.add(key)
+                    yield key
+
+    def _runKeys(self, kinds, changedItems):
+
+        for kind in kinds:
+            for key, item in changedItems.iteritems():
+                if item._kind is kind:
+                    yield key
+
+            for key in kind.itsView.queryItemKeys(kind):
+                if key not in changedItems: 
+                    yield key
+
+            if self.recursive:
+                subKinds = kind.getAttributeValue('subKinds', kind._references,
+                                                  None, None)
+                if subKinds:
+                    for key in self._runKeys(subKinds, changedItems):
+                        yield key
+
 
 class TextQuery(Query):
 

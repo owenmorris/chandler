@@ -208,14 +208,17 @@ class LinkedMap(CLinkedMap):
     # elements of the linked map and the ones yielding values yield the links
     # themselves.
 
-    def iterkeys(self):
+    def iterkeys(self, firstKey=None, lastKey=None):
 
-        nextKey = self._firstKey
-        while nextKey is not None:
+        nextKey = firstKey or self._firstKey
+        while nextKey != lastKey:
             key = nextKey
             nextKey = self._get(nextKey)._nextKey
 
             yield key
+
+        if lastKey is not None:
+            yield lastKey
 
     def _iterkeys(self):
 

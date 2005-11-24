@@ -134,17 +134,17 @@ class CollectionTests(CollectionTestCase):
         print [ i for i in u ]
         u.addSource(self.b1)
         deliverNotifications(self.view)
-        self.failUnless(self.nh.checkLog("add",u,self.i))
+        self.failUnless(self.nh.checkLog("add",u,self.i.itsUUID))
 
         print [ i for i in u ]
         u.addSource(self.b2)
         deliverNotifications(self.view)
-        self.failUnless(self.nh.checkLog("add",u,self.i1))
+        self.failUnless(self.nh.checkLog("add",u,self.i1.itsUUID))
 
         print [ i for i in u ]
         u.removeSource(self.b2)
         deliverNotifications(self.view)
-        self.failUnless(self.nh.checkLog("remove",u,self.i1))
+        self.failUnless(self.nh.checkLog("remove",u,self.i1.itsUUID))
         
         print [ i for i in u ]
 
@@ -452,6 +452,7 @@ class CollectionTests(CollectionTestCase):
         #create any indexes, you are out of luck
 #        self.assertEqual(len(list(testCollection)),8)
         testCollection.indexName = "__adhoc__"
+        testCollection.getIndex()
 
         self.assertEqual([x.label for x in testCollection],
                          [testCollection[i].label for i in xrange(0, len(testCollection))])

@@ -6,9 +6,9 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from struct import pack, unpack
 from itertools import izip
- 
+
 from chandlerdb.item.c import Nil
-from repository.util.SkipList import SkipList
+from chandlerdb.util.c import SkipList
 from PyICU import Collator, Locale
   
 from repository.util.RangeSet import RangeSet
@@ -23,13 +23,17 @@ class Index(dict):
         self._count = 0
         self._valid = True
 
-    def __iter__(self):
+    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
 
-        nextKey = self.getFirstKey()
-        while nextKey is not None:
+        nextKey = firstKey or self.getFirstKey()
+
+        while nextKey != lastKey:
             key = nextKey
             nextKey = self.getNextKey(nextKey)
             yield key
+
+        if lastKey is not None:
+            yield lastKey
 
     def clear(self):
 
@@ -133,6 +137,28 @@ class NumericIndex(Index):
             return ranges.ranges
 
         return None
+
+    def isInRanges(self, range):
+
+        ranges = self._ranges
+        if ranges is None:
+            return False
+
+        return ranges.isSelected(range)
+
+    def addRange(self, range):
+
+        if self._ranges is None:
+            if isinstance(range, int):
+                range = (range, range)                
+            self._ranges = RangeSet([range])
+        else:
+            self._ranges.selectRange(range)
+
+    def removeRange(self, range):
+
+        if self._ranges is not None:
+            self._ranges.unselectRange(range)
 
     def getEntryValue(self, key):
 
@@ -262,7 +288,7 @@ class NumericIndex(Index):
             offset = start + count * 8
 
             if count > 0:
-                format = '>' + 'i' * count * 2
+                format = '>%di' %(count * 2)
                 numbers = iter(unpack(format, data[start:offset]))
                 ranges = [(a, b) for a, b in izip(numbers, numbers)]
             else:
@@ -276,6 +302,7 @@ class NumericIndex(Index):
 
         return offset
 
+
 class DelegatingIndex(object):
 
     def __init__(self, index, **kwds):
@@ -287,8 +314,8 @@ class DelegatingIndex(object):
     def __len__(self):
         return len(self._index)
 
-    def __iter__(self):
-        return iter(self._index)
+    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
+        return self._index.__iter__(firstKey, lastKey, backwards)
 
     def __getattr__(self, name):
         return getattr(self._index, name)
@@ -318,6 +345,9 @@ class SortedIndex(DelegatingIndex):
         if not kwds.get('loading', False):
             self._descending = str(kwds.pop('descending', 'False')) == 'True'
 
+    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
+        return self._index.__iter__(firstKey, lastKey, self._descending)
+
     def getInitKeywords(self):
 
         return { 'descending': self._descending }
@@ -326,34 +356,10 @@ class SortedIndex(DelegatingIndex):
 
         raise NotImplementedError, '%s is abstract' % type(self)
 
-    def afterKey(self, key):
-
-        pos = lo = 0
-        hi = len(self._index) - 1
-        afterKey = None
-        
-        while lo <= hi:
-            pos = (lo + hi) >> 1
-            afterKey = self._index.getKey(pos)
-            diff = self.compare(key, afterKey)
-
-            if diff == 0:
-                return afterKey
-
-            if diff < 0:
-                hi = pos - 1
-            else:
-                pos += 1
-                lo = pos
-
-        if pos == 0:
-            return None
-
-        return self._index.getKey(pos - 1)
-
     def insertKey(self, key, afterKey):
 
-        self._index.insertKey(key, self.afterKey(key))
+        index = self._index
+        index.insertKey(key, index.skipList.after(key, self.compare))
 
     def removeKey(self, key):
 
@@ -364,7 +370,7 @@ class SortedIndex(DelegatingIndex):
         index = self._index
         if key in index:
             index.removeKey(key)
-        index.insertKey(key, self.afterKey(key))
+        index.insertKey(key, index.skipList.after(key, self.compare))
 
     def setDescending(self, descending=True):
 
@@ -373,9 +379,13 @@ class SortedIndex(DelegatingIndex):
     def getKey(self, n):
 
         if self._descending:
-            return self._index.getKey(self._count - n - 1)
+            return self._index.skipList[self._count - n - 1]
         else:
-            return self._index.getKey(n)
+            return self._index.skipList[n]
+
+    def findKey(self, mode, callable, *args):
+
+        return self._index.skipList.find(mode, callable, *args)
 
     def getPosition(self, key):
 
@@ -411,39 +421,6 @@ class SortedIndex(DelegatingIndex):
             return self._index.getFirstKey()
         else:
             return self._index.getLastKey()
-
-    def findKey(self, mode, callable, *args):
-
-        pos = lo = 0
-        hi = len(self) - 1
-        match = None
-
-        while lo <= hi:
-            pos = (lo + hi) / 2
-            key = self.getKey(pos)
-            diff = callable(key, *args)
-
-            if diff == 0:
-                if mode == 'exact':
-                    return key
-
-                match = key
-                if mode == 'first':
-                    hi = pos - 1
-                elif mode == 'last':
-                    pos += 1
-                    lo = pos
-                else:
-                    raise ValueError, mode
-
-            elif diff < 0:
-                hi = pos - 1
-
-            else:
-                pos += 1
-                lo = pos
-
-        return match
 
     def _xmlValues(self, generator, version, attrs, mode):
 

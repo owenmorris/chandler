@@ -232,9 +232,22 @@ class AbstractCollection(items.ContentItem):
 
 
     def __iter__(self):
+
         if hasattr(self, 'rep'):
-            for i in self.rep:
-                yield i
+            return self.rep.__iter__()
+        return iter(())
+
+    def iterkeys(self):
+
+        if hasattr(self, 'rep'):
+            return self.rep.iterkeys()
+        return iter(())
+
+    def itervalues(self):
+
+        if hasattr(self, 'rep'):
+            return self.rep.itervalues()
+        return iter(())
 
     def __nonzero__(self):
         return True
@@ -244,6 +257,22 @@ class AbstractCollection(items.ContentItem):
         return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
                                 self.itsUUID.str16())
 
+    def _inspect(self, indent=0):
+        """ more debugging """
+
+        indexes = self.rep._indexes
+        if indexes is None:
+            indexes = ''
+        else:
+            indexes = ', '.join((str(t) for t in indexes.iteritems()))
+        return "%s%s\n%s  indexes: %s%s" %('  ' * indent, self._repr_(),
+                                           '  ' * indent, indexes,
+                                           self._inspect_(indent + 1))
+
+    def _inspect_(self, indent):
+        """ more debugging """
+        raise NotImplementedError, "%s._inspect_" %(type(self))
+        
     def isEmpty(self):
         """
         Return True if the collection has no members
@@ -304,6 +333,12 @@ class KindCollection(AbstractCollection):
         if name == "kind" or name == "recursive":
             self.rep = KindSet(self.kind, self.recursive)
 
+    def _inspect_(self, indent):
+        """ more debugging """
+
+        return "\n%skind: %s" %('  ' * indent, self.kind.itsPath)
+
+
 class KindCollectionDirectory(schema.Item):
     """
     Directory of all KindCollections in Chandler
@@ -361,6 +396,12 @@ class ListCollection(AbstractCollection):
     def __len__(self):
         return len(self.refCollection)
 
+    def _inspect_(self, indent):
+        """ more debugging """
+
+        return ''
+
+
 class DifferenceCollection(AbstractCollection):
     """
     A collection containing the set theoretic difference of two collections
@@ -387,6 +428,12 @@ class DifferenceCollection(AbstractCollection):
                     self.rep = Difference((self.sources[0], "rep"),(self.sources[1], "rep"))
                     for i in self.sources:
                         i.subscribers.add(self)
+
+    def _inspect_(self, indent):
+        """ more debugging """
+
+        return '\n%s' %('\n'.join([src._inspect(indent) for src in self.sources]))
+
 
 class UnionCollection(AbstractCollection):
     """
@@ -423,23 +470,28 @@ class UnionCollection(AbstractCollection):
             self._sourcesChanged()
 
             view = self.itsView
-            for item in source:
+            for uuid in source.iterkeys():
                 view._notifyChange(self.rep.sourceChanged,
                                    'add', 'collection', source, 'rep', False,
-                                   item)
+                                   uuid)
 
     def removeSource(self, source):
 
         if source in self.sources:
             view = self.itsView
-            for item in source:
+            for uuid in source.iterkeys():
                 view._notifyChange(self.rep.sourceChanged,
                                    'remove', 'collection', source, 'rep', False,
-                                   item)
+                                   uuid)
 
             source.subscribers.remove(self)
             self.sources.remove(source)
             self._sourcesChanged()
+
+    def _inspect_(self, indent):
+        """ more debugging """
+
+        return '\n%s' %('\n'.join([src._inspect(indent) for src in self.sources]))
 
 
 class IntersectionCollection(AbstractCollection):
@@ -469,6 +521,12 @@ class IntersectionCollection(AbstractCollection):
                     self.rep = MultiIntersection(*[(i, "rep") for i in self.sources])
             for i in self.sources:
                 i.subscribers.add(self)
+
+    def _inspect_(self, indent):
+        """ more debugging """
+
+        return '\n%s' %('\n'.join([src._inspect(indent) for src in self.sources]))
+
 
 # regular expression for finding the attribute name used by
 # hasLocalAttributeValue
@@ -528,6 +586,11 @@ class FilteredCollection(AbstractCollection):
 
                     self.rep = FilteredSet((self.source, "rep"), self.filterExpression, attrTuples)
                     self.source.subscribers.add(self)
+
+    def _inspect_(self, indent):
+        """ more debugging """
+
+        return "\n%sfilter: %s\n%s attrs: %s\n%s" %('  ' * indent, self.filterExpression, '  ' * indent, ', '.join(self.filterAttributes), self.source._inspect(indent))
 
 
 class InclusionExclusionCollection(DifferenceCollection):
@@ -687,6 +750,7 @@ class InclusionExclusionCollection(DifferenceCollection):
 
         return self
 
+
 class IndexedSelectionCollection (AbstractCollection):
     """
     A collection that adds an index, e.g.for sorting items, a
@@ -712,7 +776,7 @@ class IndexedSelectionCollection (AbstractCollection):
             else:
                 self.rep.addIndex (self.indexName, 'attribute', attribute=self.indexName)
             self.rep.setRanges (self.indexName, [])
-        return self.rep._index(self.indexName)
+        return self.rep.getIndex(self.indexName)
 
     def __len__(self):
         if hasattr(self, 'rep'):
@@ -764,21 +828,21 @@ class IndexedSelectionCollection (AbstractCollection):
         C(range) may be a tuple: (start, end) or an integer index, where negative indexing
         works like Python indexing.
         """
-        return self.getIndex()._ranges.isSelected (range)
+        return self.getIndex().isInRanges(range)
 
     def addSelectionRange (self, range):
         """
         Selects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
         where negative indexing works like Python indexing.
         """
-        self.getIndex()._ranges.selectRange (range)
+        self.getIndex().addRange(range)
 
     def removeSelectionRange (self, range):
         """
         unselects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
         where negative indexing works like Python indexing..
         """
-        self.getIndex()._ranges.unselectRange (range)
+        self.getIndex().removeRange(range)
 
     def getFirstSelectedItem (self):
         """
@@ -815,10 +879,12 @@ class IndexedSelectionCollection (AbstractCollection):
         """
         Return the position of item in the index.
         """
-        # Get the index. It's necessary to get the length, and if it doesn't exist
-        # getIndex will create it.
+
+        # Get the index. It's necessary to get the length, and if it doesn't
+        # exist getIndex will create it.
+
         self.getIndex()
-        return self.rep.getIndexPosition (self.indexName, item)
+        return self.rep.positionInIndex(self.indexName, item)
 
     def onValueChanged(self, name):
         if name == "source" and self.source != None:
@@ -842,3 +908,8 @@ class IndexedSelectionCollection (AbstractCollection):
 
     def empty(self):
         self.source.empty()
+
+    def _inspect_(self, indent):
+        """ more debugging """
+
+        return "\n%s" %(self.source._inspect(indent))

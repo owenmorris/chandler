@@ -176,8 +176,7 @@ class RemoteFilter(XMLFilter):
             self._isOn = False
 
             self._refsUUID = UUID(attrs['uuid'])
-            self._keyBuffer = self.store._refs.prepareKey(self.itemUUID,
-                                                          self._refsUUID)
+            self._keyBuffer = self.itemUUID._uuid + self._refsUUID._uuid
             self._ref = None
             self._previous = None
             self._alias = None

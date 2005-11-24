@@ -10,7 +10,6 @@ from application.Application import mixinAClass
 import Block as Block
 import logging
 import wx
-from repository.item.Item import Item
 import os
 
 

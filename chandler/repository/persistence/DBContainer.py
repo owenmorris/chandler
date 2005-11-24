@@ -4,11 +4,11 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import threading
+import sys, threading
 
 from struct import pack, unpack
 
-from chandlerdb.util.c import UUID, _hash, CNode
+from chandlerdb.util.c import UUID, _hash, SkipList
 from chandlerdb.persistence.c import CValueContainer, CRefContainer
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
@@ -19,7 +19,7 @@ from repository.persistence.RepositoryError import \
 
 from bsddb.db import DB
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_DIRTY_READ
-from bsddb.db import DBNotFoundError, DBLockDeadlockError
+from bsddb.db import DBNotFoundError, DBLockDeadlockError, DBRunRecoveryError
 
 DB_DEGREE_2  = 0x02000000
 
@@ -130,12 +130,10 @@ class DBContainer(object):
         try:
             cursor = self._threaded.cursors.get(db, None)
             if cursor is not None:
-                cursor = cursor.dup()
-                self.store.repository.logger.info('duplicated cursor')
-                return cursor
+                return cursor.dup()
         except AttributeError:
             self._threaded.cursors = {}
-            
+        
         cursor = db.cursor(self.store.txn, self._flags)
         self._threaded.cursors[db] = cursor
 
@@ -148,8 +146,13 @@ class DBContainer(object):
             if db is None:
                 db = self._db
 
-            if self._threaded.cursors.get(db, None) is cursor:
-                del self._threaded.cursors[db]
+            try:
+                if self._threaded.cursors.get(db, None) is cursor:
+                    del self._threaded.cursors[db]
+            except AttributeError:
+                pass
+            except KeyError:
+                pass
                 
             cursor.close()
 
@@ -273,10 +276,6 @@ class RefContainer(DBContainer, CRefContainer):
 
         super(RefContainer, self).close()
 
-    def prepareKey(self, uItem, uuid):
-
-        return uItem._uuid + uuid._uuid
-            
     def _packKey(self, buffer, key, version=None):
 
         if version is None:
@@ -407,6 +406,60 @@ class RefContainer(DBContainer, CRefContainer):
             finally:
                 self.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
+
+    def refIterator(self, view, buffer, version):
+
+        store = self.store
+
+        class _iterator(object):
+
+            def __init__(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor()
+
+            def __del__(_self):
+
+                try:
+                    self.closeCursor(_self.cursor)
+                    store.commitTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in 0 __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def next(_self, key):
+
+                try:
+                    cursorKey = self._packKey(buffer, key)
+                    value = _self.cursor.set_range(cursorKey, self._flags)
+                except DBNotFoundError:
+                    return None
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXNSTARTED:
+                        self._logDL(26)
+                        return True
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(cursorKey):
+                        refVer = ~unpack('>l', value[0][48:52])[0]
+                
+                        if refVer <= version:
+                            return self._readRef(value[1])
+                        else:
+                            value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXNSTARTED:
+                        self._logDL(27)
+                        return True
+                    else:
+                        raise
+
+        return _iterator()
 
     # has to run within the commit transaction or it may deadlock
     def deleteItem(self, item):
@@ -651,11 +704,11 @@ class IndexesContainer(DBContainer):
         buffer = []
 
         if node is not None:
-            level = node.getLevel()
-            buffer.append(pack('b', node.getLevel()))
+            level = len(node)
+            buffer.append(pack('b', level))
             buffer.append(pack('>l', node._entryValue))
             for lvl in xrange(1, level + 1):
-                point = node.getPoint(lvl)
+                point = node[lvl]
                 self._writeUUID(buffer, point.prevKey)
                 self._writeUUID(buffer, point.nextKey)
                 buffer.append(pack('>l', point.dist))
@@ -664,7 +717,7 @@ class IndexesContainer(DBContainer):
             
         return self.put(self._packKey(keyBuffer, key, version), ''.join(buffer))
 
-    def loadKey(self, view, index, keyBuffer, version, key):
+    def loadKey(self, view, keyBuffer, version, key):
         
         cursorKey = self._packKey(keyBuffer, key)
         store = self.store
@@ -699,12 +752,12 @@ class IndexesContainer(DBContainer):
                             if level == 0:
                                 return None
                     
-                            node = CNode(level)
+                            node = SkipList.Node(level)
                             node._entryValue = unpack('>l', value[1:5])[0]
                             offset = 5
                             
                             for lvl in xrange(1, level + 1):
-                                point = node.getPoint(lvl)
+                                point = node[lvl]
 
                                 l, prevKey = self._readValue(value, offset)
                                 offset += l
@@ -734,6 +787,85 @@ class IndexesContainer(DBContainer):
             finally:
                 self.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
+
+    def nodeIterator(self, view, keyBuffer, version):
+        
+        store = self.store
+
+        class _iterator(object):
+
+            def __init__(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor()
+
+            def __del__(_self):
+
+                try:
+                    self.closeCursor(_self.cursor)
+                    store.commitTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in 1 __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def next(_self, key):
+
+                try:
+                    cursorKey = self._packKey(keyBuffer, key)
+                    value = _self.cursor.set_range(cursorKey, self._flags)
+                except DBNotFoundError:
+                    return None
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXNSTARTED:
+                        self._logDL(25)
+                        return True
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(cursorKey):
+                        keyVer = ~unpack('>l', value[0][32:36])[0]
+                
+                        if keyVer <= version:
+                            value = value[1]
+                            level = unpack('b', value[0])[0]
+
+                            if level == 0:
+                                return False
+                    
+                            node = SkipList.Node(level)
+                            node._entryValue = unpack('>l', value[1:5])[0]
+                            offset = 5
+                            
+                            for lvl in xrange(1, level + 1):
+                                point = node[lvl]
+
+                                l, prevKey = self._readValue(value, offset)
+                                offset += l
+                                l, nextKey = self._readValue(value, offset)
+                                offset += l
+                                dist = unpack('>l', value[offset:offset+4])[0]
+                                offset += 4
+
+                                point.prevKey = prevKey
+                                point.nextKey = nextKey
+                                point.dist = dist
+
+                            return node
+                        
+                        else:
+                            value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXNSTARTED:
+                        self._logDL(15)
+                        return True
+                    else:
+                        raise
+
+        return _iterator()
 
 
 class ItemContainer(DBContainer):
@@ -836,6 +968,83 @@ class ItemContainer(DBContainer):
         return (itemVer, uKind, status, uParent, name,
                 moduleName, className, values)
 
+    def _itemFinder(self, view):
+
+        store = self.store
+
+        class _finder(object):
+
+            def __init__(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor()
+
+            def __del__(_self):
+
+                try:
+                    self.closeCursor(_self.cursor)
+                    store.commitTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in 2 __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def _find(_self, version, uuid):
+
+                key = uuid._uuid
+
+                try:
+                    value = _self.cursor.set_range(key, self._flags)
+                except DBNotFoundError:
+                    return None, None
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXNSTARTED:
+                        self._logDL(26)
+                        return True, None
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(key):
+                        itemVer = ~unpack('>l', value[0][16:20])[0]
+                
+                        if itemVer <= version:
+                            return itemVer, value[1]
+                        else:
+                            value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXNSTARTED:
+                        self._logDL(27)
+                        return True, None
+                    else:
+                        raise
+
+                return None, None
+
+            def findItem(_self, version, uuid):
+
+                while True:
+                    v, i = _self._find(version, uuid)
+                    if v is True:
+                        continue
+                    if i is None:
+                        return None, None
+                    return v, i
+
+            def getVersion(_self, version, uuid):
+
+                while True:
+                    v, i = _self._find(version, uuid)
+                    if v is True:
+                        continue
+                    if i is None:
+                        return None
+                    return v
+
+        return _finder()
+
     def _findItem(self, view, version, uuid):
 
         key = uuid._uuid
@@ -935,6 +1144,14 @@ class ItemContainer(DBContainer):
 
         return None
 
+    def getItemKindId(self, view, version, uuid):
+
+        version, item = self._findItem(view, version, uuid)
+        if item is not None:
+            return UUID(item[0:16])
+
+        return None
+
     def getItemVersion(self, view, version, uuid):
 
         version, item = self._findItem(view, version, uuid)
@@ -943,7 +1160,7 @@ class ItemContainer(DBContainer):
 
         return None
 
-    def kindQuery(self, view, version, uuid):
+    def kindQuery(self, view, version, uuid, keysOnly=False):
 
         store = self.store
 
@@ -990,8 +1207,11 @@ class ItemContainer(DBContainer):
 
                         vItem = ~vItem
                         if vItem <= version and uItem != lastItem:
-                            args = self._readItem(vItem, value[1])
-                            yield (UUID(uItem), args)
+                            if keysOnly:
+                                yield UUID(uItem), vItem
+                            else:
+                                args = self._readItem(vItem, value[1])
+                                yield UUID(uItem), args
                             lastItem = uItem
 
                         value = _self.cursor.next()
@@ -1083,9 +1303,10 @@ class ValueContainer(DBContainer, CValueContainer):
     # 0.5.6: lob encryption reworked to include IV
     # 0.5.7: string length incremented before saved to preserve sign
     # 0.5.8: date/time type formats optimized
-    # 0.5.9: added support for storing selection ranges on indexes
- 
-    FORMAT_VERSION = 0x00050900
+    # 0.5.9: value flags and enum values saved as byte instead of int
+    # 0.5.10: added support for storing selection ranges on indexes
+
+    FORMAT_VERSION = 0x00050a00
 
     def __init__(self, store):
 

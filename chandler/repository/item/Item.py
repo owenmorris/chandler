@@ -4,7 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, isuuid
+from chandlerdb.util.c import \
+    UUID, SingleRef, _hash, _combine, isuuid, issingleref
 from chandlerdb.schema.c import _countAccess
 from chandlerdb.item.c import CItem, Nil, Default, isitem
 from chandlerdb.item.ItemValue import ItemValue
@@ -90,27 +91,16 @@ class Item(CItem):
             self.itsView._notifyChange(itsKind.extent._collectionChanged,
                                        'add', 'collection', 'extent', self)
 
-    def _fillItem(self, name, parent, kind, **kwds):
+    def _setInitialValues(self, values, fireOnValueChanged):
 
-        self._status = kwds.get('status', 0)
-        self._version = kwds['version']
-        self._values = kwds.get('values')
-        self._references = kwds.get('references')
-        self._uuid = kwds['uuid']
-        self._name = name or None
-        self._kind = kind
-        
-        if self._version == 0:
-            self._status |= Item.NEW
+        for name, value in values.iteritems():
+            setattr(self, name, value)
 
-        self._setParent(parent)
-        self._values._setItem(self)
-        self._references._setItem(self)
-
-        if self._parent is None or self._parent.isStale():
-            raise AssertionError, 'stale or None parent'
-        if self._root is None or self._root.isStale():
-            raise AssertionError, 'stale or None root'
+        if fireOnValueChanged:
+            onValueChanged = getattr(self, 'onValueChanged', None)
+            if onValueChanged is not None:
+                for name in values.iterkeys():
+                    onValueChanged(name)
 
     def _setInitialValues(self, values, fireOnValueChanged):
 
@@ -353,9 +343,6 @@ class Item(CItem):
             if watchers:
                 watchers.remove(watcher)
 
-    def collectionChanged(self, op, item, name, other, *args):
-        pass
-
     def watchCollection(self, owner, name, *args):
         owner._registerCollectionWatch(self, name, *args)
 
@@ -411,7 +398,7 @@ class Item(CItem):
             _attrDict is None and name in self._values):
             value = self._values.get(name, Nil)
             if value is not Nil:
-                if isinstance(value, SingleRef):
+                if issingleref(value):
                     value = self.itsView.find(value.itsUUID)
                 return value
 
@@ -631,7 +618,7 @@ class Item(CItem):
 
         if not referencesOnly:
             for name, value in self._values._dict.iteritems():
-                if isinstance(value, SingleRef):
+                if issingleref(value):
                     value = self.itsView.find(value.itsUUID)
                 yield name, value
 
@@ -1062,21 +1049,6 @@ class Item(CItem):
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
 
-    def hasLocalAttributeValue(self, name, _attrDict=None):
-        """
-        Tell if a Chandler attribute has a locally defined value, that is, a
-        value stored on an attribute named C{name} on this item.
-
-        @param name: the name of the attribute
-        @type name: a string
-        @return: C{True} or C{False}
-        """
-
-        if _attrDict is None:
-            return name in self._values or name in self._references
-
-        return name in _attrDict
-
     def isAttributeDirty(self, name, _attrDict=None):
         """
         Tell if an attribute's local value has changed.
@@ -1228,10 +1200,9 @@ class Item(CItem):
         if parent is None:
             parent = self.itsParent
         hooks = []
-        item._fillItem(name, parent, kind, uuid = UUID(), version = 0,
-                       values = Values(item), references = References(item),
-                       afterLoadHooks = hooks)
-        item._status |= Item.NEW
+        item._fillItem(name, parent, kind, UUID(),
+                       Values(item), References(item), 0, 0,
+                       hooks, False)
         copies[self._uuid] = item
 
         def copyOther(copy, other, policy):
@@ -1285,10 +1256,9 @@ class Item(CItem):
         if parent is None:
             parent = self.itsParent
         hooks = []
-        item._fillItem(name, parent, kind, uuid = UUID(), version = 0,
-                       values = Values(item), references = References(item),
-                       afterLoadHooks = hooks)
-        item._status |= Item.NEW
+        item._fillItem(name, parent, kind, UUID(),
+                       Values(item), References(item), 0, 0,
+                       hooks, False)
 
         try:
             item._status |= Item.NODIRTY
@@ -1445,7 +1415,7 @@ class Item(CItem):
                 if self.hasLocalAttributeValue(displayAttribute):
                     return unicode(self.getAttributeValue(displayAttribute))
 
-        return unicode(self._name) or unicode('{%s}' % (self._uuid.str64()))
+        return unicode(self._name or '{%s}' % (self._uuid.str64()))
 
     def getItemDisplayString(self):
         """
@@ -1795,8 +1765,9 @@ class Item(CItem):
         if self._children is not None:
             if name is not None:
                 loading = self.itsView.isLoading()
-                if self._children.resolveAlias(name, not loading) is not None:
-                    raise ChildNameError, (self, item._name)
+                key = self._children.resolveAlias(name, not loading)
+                if not (key is None or key == item.itsUUID):
+                    raise ChildNameError, (self, item.itsName)
 
         else:
             self._children = self.itsView._createChildren(self, True)
@@ -2094,8 +2065,8 @@ class Item(CItem):
         if self.isDirty():
             raise DirtyItemError, self
 
-        if clean and hasattr(type(self), 'onItemUnload'):
-            self.onItemUnload(view)
+        if hasattr(type(self), 'onItemUnload'):
+            self.onItemUnload(view, clean)
 
         if not self.isStale():
 

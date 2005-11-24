@@ -126,7 +126,7 @@ class RefList(LinkedMap, Indexed):
                                     self._item.itsPath,
                                     self._name, self._otherName)
 
-    def __contains__(self, key):
+    def __contains__(self, key, excludeMutating=False):
         """
         The C{in} operator works both with C{Item} values or C{UUID} keys.
 
@@ -449,19 +449,19 @@ class RefList(LinkedMap, Indexed):
 
     def removeByIndex(self, indexName, position):
 
-        del self[self._index(indexName).getKey(position)]
+        del self[self.getIndex(indexName).getKey(position)]
 
     def insertByIndex(self, indexName, position, item):
 
         if position == 0:
             after = None
         else:
-            after = self._index(indexName).getKey(position - 1)
+            after = self.getIndex(indexName).getKey(position - 1)
         self.insertItem(item, after, indexName)
 
     def replaceByIndex(self, indexName, position, with):
 
-        item = self[self._index(indexName).getKey(position)]
+        item = self[self.getIndex(indexName).getKey(position)]
         self.replaceItem(self, item, with, indexName)
 
     def refCount(self, loaded):

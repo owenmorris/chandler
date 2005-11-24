@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from new import classobj
 
-from chandlerdb.util.c import UUID, SingleRef, _hash, _combine
+from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, issingleref
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
 from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
@@ -58,14 +58,17 @@ class Kind(Item):
 
         self._status |= Item.SCHEMA | Item.PINNED
 
-    def _fillItem(self, name, parent, kind, **kwds):
+    def _fillItem(self, name, parent, kind, uuid,
+                  values, references, status, version, hooks, update):
 
-        super(Kind, self)._fillItem(name, parent, kind, **kwds)
+        super(Kind, self)._fillItem(name, parent, kind, uuid,
+                                    values, references, status, version,
+                                    hooks, update)
 
-        if not kwds.get('update'):
+        if not update:
             self.__init()
             if self._references.get('extent') is None:
-                kwds['afterLoadHooks'].append(self._createExtent)
+                hooks.append(self._createExtent)
 
     def _createExtent(self, view):
 
@@ -82,17 +85,19 @@ class Kind(Item):
             classes = Kind._classes
             kinds = Kind._kinds
 
-            try:
-                kinds[uuid].add(cls)
-            except KeyError:
+            clss = kinds.get(uuid)
+            if clss is None:
                 kinds[uuid] = set((cls,))
+            else:
+                clss.add(cls)
 
-            try:
-                if uuid in classes[cls]:
-                    return
-                classes[cls].add(uuid)
-            except KeyError:
+            uuids = classes.get(cls)
+            if uuids is None:
                 classes[cls] = set((uuid,))
+            elif uuid not in uuids:
+                uuids.add(uuid)
+            else:
+                return
 
             self.monitorSchema = True
             self._setupDescriptors(cls)
@@ -107,19 +112,17 @@ class Kind(Item):
 
     def _setupDescriptors(self, cls, sync=None):
 
-        try:
-            descriptors = Kind._descriptors[cls]
-        except KeyError:
+        descriptors = Kind._descriptors.get(cls)
+        if descriptors is None:
             descriptors = Kind._descriptors[cls] = {}
 
         if sync is not None:
             if sync == 'attributes':
-                attributes = self.getAttributeValue('attributes',
-                                                    self._references, None, [])
+                attributes = self._references.get('attributes', [])
             elif sync == 'superKinds':
                 attributes = set(a._uuid for n, a, k in self.iterAttributes())
             else:
-                raise AssertionError, sync
+                raise ValueError, sync
             
             for name, descriptor in descriptors.items():
                 try:
@@ -134,8 +137,7 @@ class Kind(Item):
         for name, attribute, k in self.iterAttributes():
             descriptor = cls.__dict__.get(name, None)
             if descriptor is None:
-                descriptor = CDescriptor(name)
-                descriptors[name] = descriptor
+                descriptor = descriptors[name] = CDescriptor(name)
                 setattr(cls, name, descriptor)
                 descriptor.registerAttribute(self, attribute.c)
             elif isinstance(descriptor, CDescriptor):
@@ -205,16 +207,11 @@ class Kind(Item):
         if cls is None:
             cls = self.getItemClass()
 
-        values = Values(None)
-        references = References(None)
-
         item = cls.__new__(cls)
-        item._fillItem(name, parent, self,
-                       uuid=uuid, version=version,
-                       values=values, references=references)
+        item._fillItem(name, parent, self, uuid,
+                       Values(item), References(item), 0, version,
+                       [], False)
 
-        values._setItem(item)
-        references._setItem(item)
         self._setupClass(cls)
 
         if withInitialValues:
@@ -462,7 +459,6 @@ class Kind(Item):
             allAttributes.clear()
 
             references = self._references
-
             for superKind in references['superKinds']:
                 for name, attribute, kind in superKind.iterAttributes():
                     if name not in allAttributes:
@@ -489,7 +485,7 @@ class Kind(Item):
         inherited = references['inheritedSuperKinds']
 
         if not self.superKindsCached:
-            for superKind in self.getAttributeValue('superKinds', references):
+            for superKind in references['superKinds']:
                 inherited.append(superKind)
                 inherited.extend(superKind.getInheritedSuperKinds())
             self.superKindsCached = True
@@ -570,6 +566,20 @@ class Kind(Item):
         return 'mixins' in self._values
 
     def isAlias(self):
+
+        return False
+
+    def kindForKey(self, uuid):
+
+        return self.itsView.kindForKey(uuid)
+
+    def isKeyForInstance(self, uuid, recursive=True):
+
+        kind = self.kindForKey(uuid)
+        if kind is not None:
+            if recursive:
+                return kind.isKindOf(self)
+            return kind is self
 
         return False
 
@@ -739,7 +749,7 @@ class Kind(Item):
         if value is None:
             return True
 
-        if isinstance(value, SingleRef):
+        if issingleref(value):
             item = self.itsView.find(value.itsUUID)
             if item is not None:
                 return item.isItemOf(self)
@@ -894,6 +904,24 @@ class Extent(Item):
         else:
             for item in KindQuery(recursive).run((self.kind,)):
                 yield item
+
+    def iterKeys(self, recursive=True):
+
+        if self.withCache:   # not implemented
+
+            for item in self.instances:
+                yield item.itsUUID
+
+            if recursive:
+                subKinds = kind._references.get('subKinds', None)
+                if subKinds:
+                    for subKind in subKinds:
+                        for key in subKind.extent.iterKeys(True):
+                            yield key
+
+        else:
+            for key in KindQuery(recursive).runKeys((self.kind,)):
+                yield key
 
     def _collectionChanged(self, op, change, name, other, filterKind=None):
 

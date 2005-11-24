@@ -922,6 +922,7 @@ def kindInfo(**attrs):
     _update_info('kindInfo','__kind_info__',attrs)
 
     def callback(cls):
+        _get_nrv()
         for k,v in attrs.items():
             if not hasattr(cls._kind_class, k):
                 raise TypeError(
@@ -1380,7 +1381,8 @@ def declareTemplate(item):
 
 
 def reset(rv=None):
-    """TESTING ONLY: Reset the schema API to use a different repository view
+    """
+    Reset or initialize the schema API to use a given repository view.
 
     This routine allows you to pass in a repository view that will then
     be used by the schema API; it also returns the previously-used view.
@@ -1410,5 +1412,3 @@ def _get_nrv():
     if nrv is None:
         reset()
     return nrv
-
-reset()

@@ -93,9 +93,9 @@ class Type(Item):
         self._status |= Item.SCHEMA | Item.PINNED
         TypeHandler.typeHandlers[self.itsView][None].types.append(self)
         
-    def _fillItem(self, name, parent, kind, **kwds):
+    def _fillItem(self, *args):
 
-        super(Type, self)._fillItem(name, parent, kind, **kwds)
+        super(Type, self)._fillItem(*args)
         self._status |= Item.SCHEMA | Item.PINNED
 
     def _registerTypeHandler(self, implementationType, view):
@@ -124,7 +124,7 @@ class Type(Item):
     def onItemLoad(self, view):
         self._registerTypeHandler(self.getImplementationType(), view)
 
-    def onItemUnload(self, view):
+    def onItemUnload(self, view, clean):
         self._unregisterTypeHandler(self.getImplementationType(), view)
 
     def onItemDelete(self, view):
@@ -238,9 +238,9 @@ class String(StringType):
         super(String, self).onItemLoad(view)
         self._registerTypeHandler(str, view)
 
-    def onItemUnload(self, view):
+    def onItemUnload(self, view, clean):
 
-        super(String, self).onItemUnload(view)
+        super(String, self).onItemUnload(view, clean)
         self._unregisterTypeHandler(str, view)
 
     def onItemDelete(self, view):
@@ -851,12 +851,14 @@ class Enumeration(Type):
     def recognizes(self, value):
         return value in self.values
 
+    # it is assumed that an enum is not having more than 256 values
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if withSchema:
             return itemWriter.writeString(buffer, value)
         else:
-            return itemWriter.writeInteger(buffer, self.values.index(value))
+            buffer.append(chr(self.values.index(value)))
+            return 1
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
@@ -864,8 +866,7 @@ class Enumeration(Type):
         if withSchema:
             return itemReader.readString(offset, data)
 
-        offset, integer = itemReader.readInteger(offset, data)
-        return offset, self._values['values'][integer]
+        return offset+1, self._values['values'][ord(data[offset])]
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))

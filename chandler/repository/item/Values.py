@@ -4,7 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, isuuid
+from chandlerdb.util.c import \
+    UUID, SingleRef, _hash, _combine, isuuid, issingleref
 from chandlerdb.item.c import Nil, Default, CValues, CItem
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
@@ -39,6 +40,10 @@ class Values(CValues):
 
         self._item = item
 
+        for name, value in self._dict.iteritems():
+            if isinstance(value, ItemValue):
+                value._setOwner(item, name)
+
     def _refCount(self):
 
         count = 1
@@ -58,7 +63,7 @@ class Values(CValues):
                 value._setOwner(item, name)
                 self[name] = value
 
-            elif isinstance(value, SingleRef):
+            elif issingleref(value):
                 policy = (copyPolicy or
                           item.getAttributeAspect(name, 'copyPolicy',
                                                   False, None, 'copy'))
@@ -411,11 +416,6 @@ class References(Values):
 
         item = self._item
         value = self.get(name)
-
-        if item.itsView._isVerify():
-            logger = item.itsView.logger
-            if not self._verifyAssignment(name, other, logger):
-                raise ValueError, "Assigning %s to attribute '%s' on %s didn't match schema" %(other._repr_(), name, item._repr_())
 
         if value is None:
             if cardinality is None:
@@ -955,13 +955,13 @@ class References(Values):
 
         return result
 
-    def _verifyAssignment(self, name, other, logger):
+    def _verifyAssignment(self, key, other, logger):
 
         item = self._item
         kind = item.itsKind
 
-        if kind is not None and kind.getAttribute(name, True, item) is None:
-            logger.error("setting bi-ref on attribute '%s' of %s, but '%s' is not defined for Kind %s", name, item._repr_(), name, kind.itsPath)
+        if kind is not None and kind.getAttribute(key, True, item) is None:
+            logger.error("setting bi-ref on attribute '%s' of %s, but '%s' is not defined for Kind %s %s", key, item._repr_(), key, kind.itsPath, type(item))
             return False
 
         return True

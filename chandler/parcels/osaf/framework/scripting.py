@@ -12,7 +12,7 @@ import osaf.framework.types.DocumentTypes as DocumentTypes
 import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
 import osaf.framework.blocks.detail.Detail as Detail
 import application.dialogs.Util as Util
-from repository.item.Item import Item as Item
+from repository.item.Item import Item
 from datetime import datetime
 import logging
 import wx
@@ -817,5 +817,3 @@ def app_ns(view=None):
     if view is None:
         view = wx.GetApp().UIRepositoryView
     return AppProxy(view)
-
-

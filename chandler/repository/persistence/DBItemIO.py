@@ -249,7 +249,7 @@ class DBItemWriter(ItemWriter):
         buffer = self.dataBuffer
         del buffer[:]
 
-        buffer.append(pack('>I', flags))
+        buffer.append(chr(flags))
         if withSchema:
             self.writeSymbol(buffer, name)
 
@@ -348,7 +348,7 @@ class DBItemWriter(ItemWriter):
         buffer = self.dataBuffer
         del buffer[:]
 
-        buffer.append(pack('>I', flags))
+        buffer.append(chr(flags))
         if withSchema:
             self.writeSymbol(buffer, name)
 
@@ -436,6 +436,7 @@ class DBItemReader(ItemReader):
         isContainer = (status & Item.CONTAINER) != 0
 
         status &= Item.CORESCHEMA
+
         kind = self._kind(self.uKind, withSchema, view, afterLoadHooks)
         parent = self._parent(self.uParent, withSchema, view, afterLoadHooks)
         cls = self._class(self.moduleName, self.className, withSchema, kind,
@@ -456,22 +457,13 @@ class DBItemReader(ItemReader):
         else:
             item = self.item = cls.__new__(cls)
 
-        item._fillItem(self.name, parent, kind,
-                       uuid=self.uItem,
-                       values=values,
-                       references=references,
-                       afterLoadHooks=afterLoadHooks,
-                       version=self.version,
-                       status=status,
-                       update=False)
+        item._fillItem(self.name, parent, kind, self.uItem,
+                       values, references, status, self.version,
+                       afterLoadHooks, False)
 
         if isContainer:
             item._children = view._createChildren(item, False)
             
-        for name, value in values._dict.iteritems():
-            if isinstance(value, ItemValue):
-                value._setOwner(item, name)
-
         if kind is not None:
             afterLoadHooks.append(lambda view: kind._setupClass(cls))
 
@@ -585,10 +577,10 @@ class DBItemReader(ItemReader):
         
         for uuid in uValues:
             attrId, data = store._values.loadValue(store.txn, uuid)
-            valueFlags, = unpack('>I', data[0:4])
+            valueFlags = ord(data[0])
             if withSchema:
                 attribute = None
-                offset, name = self.readSymbol(4, data)
+                offset, name = self.readSymbol(1, data)
             else:
                 try:
                     attribute = view[attrId]
@@ -596,7 +588,7 @@ class DBItemReader(ItemReader):
                     raise LoadError, (self.name or self.uItem,
                                       "attribute not found: %s" %(attrId))
                 else:
-                    offset, name = 4, attribute._name
+                    offset, name = 1, attribute._name
 
             flags = ord(data[offset])
 
@@ -707,7 +699,7 @@ class DBItemReader(ItemReader):
         for i in xrange(count):
             offset, v = self.readValue(offset, data, withSchema, attrType,
                                        view, name, afterLoadHooks)
-            value.append(v, False)
+            value.append(v, False, False)
 
         return offset, value
 
@@ -722,7 +714,7 @@ class DBItemReader(ItemReader):
         for i in xrange(count):
             offset, v = self.readValue(offset, data, withSchema, attrType,
                                        view, name, afterLoadHooks)
-            value.add(v, False)
+            value.add(v, False, False)
 
         return offset, value
 
@@ -739,7 +731,7 @@ class DBItemReader(ItemReader):
                                        view, name, afterLoadHooks)
             offset, v = self.readValue(offset, data, withSchema, attrType,
                                        view, name, afterLoadHooks)
-            value.__setitem__(k, v, False)
+            value.__setitem__(k, v, False, False)
 
         return offset, value
 

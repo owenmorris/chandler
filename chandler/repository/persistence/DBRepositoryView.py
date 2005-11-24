@@ -75,18 +75,37 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         self.prune(10000)
 
-    def queryItems(self, kind=None, attribute=None, load=True):
+    def queryItems(self, kind=None, attribute=None):
 
         store = self.store
         
         for itemReader in store.queryItems(self, self._version,
                                            kind, attribute):
             uuid = itemReader.getUUID()
-            if not uuid in self._deletedRegistry:
+            if uuid not in self._deletedRegistry:
                 # load and itemReader, trick to pass reader directly to find
-                item = self.find(uuid, load and itemReader)
+                item = self.find(uuid, itemReader)
                 if item is not None:
                     yield item
+
+    def queryItemKeys(self, kind=None, attribute=None):
+
+        store = self.store
+        
+        for uuid in store.queryItemKeys(self, self._version, kind, attribute):
+            if uuid not in self._deletedRegistry:
+                yield uuid
+
+    def kindForKey(self, uuid):
+
+        if uuid in self._registry:
+            return self[uuid].itsKind
+
+        uuid = self.store.kindForKey(self, self._version, uuid)
+        if uuid is not None:
+            return self[uuid]
+
+        return None
 
     def searchItems(self, query, attribute=None, load=True):
 
@@ -248,10 +267,11 @@ class DBRepositoryView(OnDemandRepositoryView):
                 lock = None
 
                 def finish(lock, txnStatus, commit):
-                    if commit:
-                        self._commitTransaction(txnStatus)
-                    else:
-                        self._abortTransaction(txnStatus)
+                    if txnStatus:
+                        if commit:
+                            self._commitTransaction(txnStatus)
+                        else:
+                            self._abortTransaction(txnStatus)
                     if lock is not None:
                         lock = store.releaseLock(lock)
                     return lock, 0
@@ -274,6 +294,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                         if count > 0:
                             txnStatus = self._startTransaction(True)
+                            if txnStatus == 0:
+                                raise AssertionError, 'no transaction started'
+
                             newVersion += 1
                             store._values.setVersion(newVersion)
                             itemWriter = DBItemWriter(store)
@@ -488,7 +511,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self._e_1_rename(item, p, newParentId)
     
         refs = self.store._refs
-        key = refs.prepareKey(parentId, parentId)
+        key = parentId._uuid + parentId._uuid
         p, n, name = refs.loadRef(self, key, toVersion, item._uuid)
 
         if name != item._name:

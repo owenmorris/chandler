@@ -24,6 +24,35 @@ class PersistentRefs(object):
         self._changedRefs = {}
         self._key = None
         
+    def _iterrefs(self, firstKey, lastKey):
+
+        version = self._item._version
+        nextKey = firstKey or self._firstKey
+        view = self.view
+        refIterator = None
+        map = self._dict
+
+        while nextKey != lastKey:
+            key = nextKey
+            link = map.get(key, None)
+            if link is None:
+                if refIterator is None:
+                    if version == 0:
+                        raise KeyError, key
+                    refs = self.store._refs
+                    refIterator = refs.refIterator(view, self._key, version)
+
+                pKey, nKey, alias = refIterator.next(key)
+                map[key] = link = CLink(self, key, pKey, nKey, alias)
+                if alias is not None:
+                    self._aliases[alias] = key
+
+            nextKey = link._nextKey
+            yield key
+
+        if lastKey is not None:
+            yield lastKey
+
     def _copy_(self, orig):
 
         self._changedRefs.clear()
@@ -34,7 +63,7 @@ class PersistentRefs(object):
     def _setItem(self, item, new):
 
         if self._key is None:
-            self._key = self.store._refs.prepareKey(item.itsUUID, self.uuid)
+            self._key = item.itsUUID._uuid + self.uuid._uuid
 
         if not new:
             ref = self.store._refs.loadRef(self.view, self._key,
@@ -200,6 +229,10 @@ class DBRefList(RefList, PersistentRefs):
         PersistentRefs.__init__(self, view)
         RefList.__init__(self, item, name, otherName, readOnly,
                          (new and LinkedMap.NEW or 0) | LinkedMap.LOAD)
+
+    def iterkeys(self, firstKey=None, lastKey=None):
+
+        return self._iterrefs(firstKey, lastKey)
 
     def _getView(self):
 
@@ -397,8 +430,8 @@ class DBNumericIndex(NumericIndex):
         
         view = self.view
         self._version = version
-        head = indexes.loadKey(view, self, self._key, version, self._headKey)
-        tail = indexes.loadKey(view, self, self._key, version, self._tailKey)
+        head = indexes.loadKey(view, self._key, version, self._headKey)
+        tail = indexes.loadKey(view, self._key, version, self._tailKey)
 
         if head is not None:
             self.skipList._head = head
@@ -418,12 +451,42 @@ class DBNumericIndex(NumericIndex):
                 return None
 
             view = self.view
-            node = view.store._indexes.loadKey(view, self,
-                                               self._key, version, key)
+            node = view.store._indexes.loadKey(view, self._key, version, key)
             if node is not None:
                 self[key] = node
 
         return node
+
+    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
+
+        version = self._version
+        nextKey = firstKey or self.getFirstKey()
+        view = self.view
+
+        sup = super(DBNumericIndex, self)
+        nodeIterator = None
+
+        while nextKey != lastKey:
+            key = nextKey
+            node = sup.get(key, None)
+            if node is None:
+                if nodeIterator is None:
+                    if version == 0:
+                        raise KeyError, key
+                    indexes = view.store._indexes
+                    nodeIterator = indexes.nodeIterator(view, self._key,
+                                                        version)
+                node = nodeIterator.next(key)
+                self[key] = node
+
+            if backwards:
+                nextKey = node[1].prevKey
+            else:
+                nextKey = node[1].nextKey
+            yield key
+
+        if lastKey is not None:
+            yield lastKey
 
     def _writeValue(self, itemWriter, buffer, version):
 
@@ -481,6 +544,10 @@ class DBChildren(Children, PersistentRefs):
         PersistentRefs.__init__(self, view)
         Children.__init__(self, item,
                           (new and LinkedMap.NEW or 0) | LinkedMap.LOAD)
+
+    def iterkeys(self, firstKey=None, lastKey=None):
+
+        return self._iterrefs(firstKey, lastKey)
 
     def _setItem(self, item, new):
 

@@ -378,13 +378,17 @@ class CalendarEventMixin(RemindableMixin):
 
     def getFirstInRule(self):
         """Return the nearest thisandfuture modifications or master."""
-        if self.modificationFor is not None:
-            return self.modificationFor
-        elif self.occurrenceFor in (self, None):
+
+        first = self.modificationFor
+        if first is not None:
+            return first
+        
+        first = self.occurrenceFor
+        if first is self or first is None:
             # could be None if a master's first date has a "this" modification
             return self
-        else:
-            return self.occurrenceFor
+
+        return first
 
     def getLastUntil(self):
         """Find the last modification's rruleset, return it's until value."""

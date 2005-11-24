@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from unittest import TestCase, main
 from random import shuffle, randint
 
-from repository.util.SkipList import SkipList
+from chandlerdb.util.c import SkipList
 
 class TestSkipList(TestCase):
     """
