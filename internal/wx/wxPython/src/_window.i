@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _window.i,v 1.57 2005/05/13 01:32:45 RD Exp $
+// RCS-ID:      $Id: _window.i,v 1.58 2005/11/08 14:59:51 ABX Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -286,14 +286,13 @@ destructor.", "");
     // window attributes
     // -----------------
 
-    DocDeclStr(
-        virtual void , SetTitle( const wxString& title),
-        "Sets the window's title. Applicable only to frames and dialogs.", "");
+    //DocDeclStr(
+    //    virtual void , SetTitle( const wxString& title),
+    //    "Sets the window's title. Applicable only to frames and dialogs.", "");
     
-    DocDeclStr(
-        virtual wxString , GetTitle() const,
-        "Gets the window's title. Applicable only to frames and dialogs.", "");
-    
+    //DocDeclStr(
+    //    virtual wxString , GetTitle() const,
+    //    "Gets the window's title. Applicable only to frames and dialogs.", "");    
 
     DocDeclStr(
         virtual void , SetLabel(const wxString& label),

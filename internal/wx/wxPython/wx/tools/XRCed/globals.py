@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, global variables
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: globals.py,v 1.17 2005/08/15 19:53:33 ROL Exp $
+# RCS-ID:       $Id: globals.py,v 1.20 2005/11/11 00:23:31 ROL Exp $
 
 from wxPython.wx import *
 from wxPython.xrc import *
@@ -15,7 +15,16 @@ import sys
 # Global constants
 
 progname = 'XRCed'
-version = '0.1.6-4'
+version = '0.1.7-0'
+# Minimal wxWindows version
+MinWxVersion = (2,6,0)
+if wxVERSION[:3] < MinWxVersion:
+    print '''\
+******************************* WARNING **************************************
+  This version of XRCed may not work correctly on your version of wxWindows.
+  Please upgrade wxWindows to %d.%d.%d or higher.
+******************************************************************************''' % MinWxVersion    
+
 # Can be changed to set other default encoding different
 #defaultEncoding = ''
 # you comment above and can uncomment this:

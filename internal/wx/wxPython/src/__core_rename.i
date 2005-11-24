@@ -473,11 +473,6 @@
 %rename(HT_WINDOW_HORZ_SCROLLBAR)           wxHT_WINDOW_HORZ_SCROLLBAR;
 %rename(HT_WINDOW_CORNER)                   wxHT_WINDOW_CORNER;
 %rename(HT_MAX)                             wxHT_MAX;
-%rename(MOD_NONE)                           wxMOD_NONE;
-%rename(MOD_ALT)                            wxMOD_ALT;
-%rename(MOD_CONTROL)                        wxMOD_CONTROL;
-%rename(MOD_SHIFT)                          wxMOD_SHIFT;
-%rename(MOD_WIN)                            wxMOD_WIN;
 %rename(UPDATE_UI_NONE)                     wxUPDATE_UI_NONE;
 %rename(UPDATE_UI_RECURSE)                  wxUPDATE_UI_RECURSE;
 %rename(UPDATE_UI_FROMIDLE)                 wxUPDATE_UI_FROMIDLE;

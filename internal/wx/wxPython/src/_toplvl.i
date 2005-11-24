@@ -88,7 +88,7 @@ public:
 
     // No constructor as it can not be used directly from Python
 
-    // VELL - added
+    // OSAF - added
     virtual void ForceRedraw();
 
     // maximize = True => maximize, otherwise - restore
@@ -121,8 +121,14 @@ public:
     // return True if the frame is in fullscreen mode
     virtual bool IsFullScreen() const;
 
-    virtual void SetTitle(const wxString& title);
-    virtual wxString GetTitle() const;
+    // virtual void SetTitle(const wxString& title);
+    // virtual wxString GetTitle() const;
+    DocDeclStr(
+        virtual void , SetTitle( const wxString& title),
+        "Sets the window's title. Applicable only to frames and dialogs.", "");
+    DocDeclStr(
+        virtual wxString , GetTitle() const,
+        "Gets the window's title. Applicable only to frames and dialogs.", "");
 
     // Set the shape of the window to the given region.
     // Returns True if the platform supports this feature (and the operation

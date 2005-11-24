@@ -78,6 +78,7 @@
 %rename(HF_OPENFILES)                       wxHF_OPENFILES;
 %rename(HF_PRINT)                           wxHF_PRINT;
 %rename(HF_DEFAULTSTYLE)                    wxHF_DEFAULTSTYLE;
+%rename(HelpControllerBase)                 wxHelpControllerBase;
 %rename(HtmlHelpController)                 wxHtmlHelpController;
 
 #endif

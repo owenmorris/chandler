@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, undo/redo module
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      01.12.2002
-# RCS-ID:       $Id: undo.py,v 1.7 2005/08/15 19:53:33 ROL Exp $
+# RCS-ID:       $Id: undo.py,v 1.8 2005/11/11 00:23:31 ROL Exp $
 
 from globals import *
 from xxx import MakeXXXFromDOM
@@ -133,7 +133,7 @@ class UndoReplace:
         xxx = g.tree.GetPyData(item)
         # Replace with old element
         parent = xxx.parent.element
-        if xxx is self.xxx:             # sizeritem or notebookpage - replace child
+        if xxx is self.xxx:   # sizeritem or notebookpage - replace child
             parent.replaceChild(self.xxx.child.element, xxx.child.element)
         else:
             parent.replaceChild(self.xxx.element, xxx.element)

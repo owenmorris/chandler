@@ -1128,6 +1128,14 @@ enum wxHitTest
 };
 
 
+#if 1
+// OSAF: new; the original code in the #else below
+// fails to build after recent change to "defs.h"
+%{
+#define wxEVT_HOTKEY 9999
+%}
+
+#else
 %{
 #if ! wxUSE_HOTKEY
 enum wxHotkeyModifier
@@ -1150,6 +1158,7 @@ enum wxHotkeyModifier
     wxMOD_SHIFT = 4,
     wxMOD_WIN = 8
 };
+#endif
 
 
 enum wxUpdateUI

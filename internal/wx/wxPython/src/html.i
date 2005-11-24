@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.69 2005/06/03 21:38:01 RD Exp $
+// RCS-ID:      $Id: html.i,v 1.70 2005/11/08 14:59:52 ABX Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -887,7 +887,7 @@ public:
                           const wxString& fixed_face = wxPyEmptyString);
     
     DocDeclStr(
-        void, SetTitle(const wxString& title),
+        void, SetLabel(const wxString& title),
         "", "");
 
     // Sets space between text and window borders.
@@ -1206,14 +1206,73 @@ enum {
 };
 
 
+MustHaveApp(wxHelpControllerBase);
+
+class wxHelpControllerBase: public wxObject
+{
+public:
+//    wxHelpControllerBase(wxWindow* parentWindow = NULL);
+//    ~wxHelpControllerBase();
+
+    virtual bool Initialize(const wxString& WXUNUSED(file), int WXUNUSED(server) );
+    virtual bool Initialize(const wxString& WXUNUSED(file));
+
+    virtual void SetViewer(const wxString& WXUNUSED(viewer), long WXUNUSED(flags) = 0);
+
+    // If file is "", reloads file given  in Initialize
+    virtual bool LoadFile(const wxString& file = wxEmptyString) /* = 0 */;
+
+    // Displays the contents
+    virtual bool DisplayContents(void) /* = 0 */;
+
+    // Display the given section
+    virtual bool DisplaySection(int sectionNo) /* = 0 */;
+
+    // Display the section using a context id
+    virtual bool DisplayContextPopup(int WXUNUSED(contextId));
+
+    // Display the text in a popup, if possible
+    virtual bool DisplayTextPopup(const wxString& WXUNUSED(text), const wxPoint& WXUNUSED(pos));
+
+    // By default, uses KeywordSection to display a topic. Implementations
+    // may override this for more specific behaviour.
+    virtual bool DisplaySection(const wxString& section);
+
+    virtual bool DisplayBlock(long blockNo) /* = 0 */;
+    virtual bool KeywordSearch(const wxString& k,
+                               wxHelpSearchMode mode = wxHELP_SEARCH_ALL) /* = 0 */;
+
+    /// Allows one to override the default settings for the help frame.
+    virtual void SetFrameParameters(const wxString& WXUNUSED(title),
+        const wxSize& WXUNUSED(size),
+        const wxPoint& WXUNUSED(pos) = wxDefaultPosition,
+        bool WXUNUSED(newFrameEachTime) = false);
+
+    /// Obtains the latest settings used by the help frame and the help
+    /// frame.
+    virtual wxFrame *GetFrameParameters(wxSize *WXUNUSED(size) = NULL,
+        wxPoint *WXUNUSED(pos) = NULL,
+        bool *WXUNUSED(newFrameEachTime) = NULL);
+
+    virtual bool Quit() /* = 0 */;
+
+    virtual void OnQuit();
+
+    /// Set the window that can optionally be used for the help window's parent.
+    virtual void SetParentWindow(wxWindow* win);
+
+    /// Get the window that can optionally be used for the help window's parent.
+    virtual wxWindow* GetParentWindow() const;
+};
+
 MustHaveApp(wxHtmlHelpController);
 
-class wxHtmlHelpController : public wxObject  // wxHelpControllerBase
+class wxHtmlHelpController : public wxHelpControllerBase
 {
 public:
 //    %pythonAppend wxHtmlHelpController "self._setOORInfo(self)"
     
-    wxHtmlHelpController(int style = wxHF_DEFAULTSTYLE);
+    wxHtmlHelpController(int style = wxHF_DEFAULT_STYLE, wxWindow* parentWindow = NULL);
     ~wxHtmlHelpController();
 
     void SetTitleFormat(const wxString& format);

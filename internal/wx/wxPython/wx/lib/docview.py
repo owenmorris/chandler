@@ -5,7 +5,7 @@
 # Author:       Peter Yared
 #
 # Created:      5/15/03
-# CVS-ID:       $Id: docview.py,v 1.10 2005/06/11 23:18:47 RD Exp $
+# CVS-ID:       $Id: docview.py,v 1.11 2005/11/16 17:27:38 ABX Exp $
 # Copyright:    (c) 2003-2005 ActiveGrid, Inc. (Port of wxWindows classes by Julian Smart et al)
 # License:      wxWindows license
 #----------------------------------------------------------------------------
@@ -912,11 +912,11 @@ class View(wx.EvtHandler):
         Call this from your view frame's OnActivate member to tell the
         framework which view is currently active. If your windowing system
         doesn't call OnActivate, you may need to call this function from
-        OnMenuCommand or any place where you know the view must be active, and
+        any place where you know the view must be active, and
         the framework will need to get the current view.
 
         The prepackaged view frame wxDocChildFrame calls wxView.Activate from
-        its OnActivate member and from its OnMenuCommand member.
+        its OnActivate member.
         """
         if self.GetDocument() and self.GetDocumentManager():
             self.OnActivateView(activate, self, self.GetDocumentManager().GetCurrentView())

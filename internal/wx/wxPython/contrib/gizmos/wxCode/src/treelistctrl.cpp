@@ -5,7 +5,7 @@
 // Created:     01/02/97
 // Modified:    Alberto Griggio, 2002
 //              22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treelistctrl.cpp,v 1.22 2005/09/23 12:56:45 MR Exp $
+// Id:          $Id: treelistctrl.cpp,v 1.23 2005/11/20 21:55:34 DS Exp $
 // Copyright:   (c) Robert Roebling, Julian Smart, Alberto Griggio,
 //              Vadim Zeitlin, Otto Wyss
 // Licence:     wxWindows licence
@@ -1070,7 +1070,7 @@ void wxTreeListTextCtrl::OnKillFocus( wxFocusEvent &event )
 //  wxTreeListHeaderWindow
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxTreeListHeaderWindow,wxWindow);
+IMPLEMENT_DYNAMIC_CLASS(wxTreeListHeaderWindow,wxWindow)
 
 BEGIN_EVENT_TABLE(wxTreeListHeaderWindow,wxWindow)
     EVT_ERASE_BACKGROUND  (wxTreeListHeaderWindow::OnEraseBackground)
@@ -4625,7 +4625,7 @@ void wxTreeListMainWindow::SetFocus()
 //  wxTreeListCtrl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxTreeListCtrl, wxControl);
+IMPLEMENT_DYNAMIC_CLASS(wxTreeListCtrl, wxControl)
 
 BEGIN_EVENT_TABLE(wxTreeListCtrl, wxControl)
     EVT_SIZE(wxTreeListCtrl::OnSize)

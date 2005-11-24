@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, toolbar
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      19.03.2003
-# RCS-ID:       $Id: tools.py,v 1.8 2004/04/29 22:32:23 RD Exp $
+# RCS-ID:       $Id: tools.py,v 1.10 2005/11/11 00:23:31 ROL Exp $
 
 from xxx import *                       # xxx imports globals and params
 from tree import ID_NEW
@@ -15,7 +15,7 @@ GROUPNUM = 4
 GROUP_WINDOWS, GROUP_MENUS, GROUP_SIZERS, GROUP_CONTROLS = range(GROUPNUM)
 
 # States depending on current selection and Control/Shift keys
-STATE_ROOT, STATE_MENUBAR, STATE_TOOLBAR, STATE_MENU, STATE_ELSE = range(5)
+STATE_ROOT, STATE_MENUBAR, STATE_TOOLBAR, STATE_MENU, STATE_STDDLGBTN, STATE_ELSE = range(6)
 
 # Left toolbar for GUI elements
 class Tools(wxPanel):
@@ -210,6 +210,8 @@ class Tools(wxPanel):
                 state = STATE_TOOLBAR
             elif xxx.__class__ in [xxxMenu, xxxMenuItem]:
                 state = STATE_MENU
+            elif xxx.__class__ == xxxStdDialogButtonSizer:
+                state = STATE_STDDLGBTN
             else:
                 state = STATE_ELSE
 
@@ -228,6 +230,8 @@ class Tools(wxPanel):
                                         ID_NEW.MENU_ITEM,
                                         ID_NEW.SEPARATOR ],
                                       False)
+            elif state == STATE_STDDLGBTN:
+                pass                    # nothing can be added from toolbar
             elif state == STATE_MENUBAR:
                 self.EnableGroup(GROUP_MENUS)
                 self.EnableGroupItems(GROUP_MENUS,
@@ -273,9 +277,9 @@ class Tools(wxPanel):
                                       False)
                 self.EnableGroup(GROUP_SIZERS)
                 self.EnableGroup(GROUP_CONTROLS)
-        # Special case for notebook (always executed)
+        # Special case for *book (always executed)
         if state == STATE_ELSE:
-            if xxx.__class__ == xxxNotebook:
+            if xxx.__class__ in [xxxNotebook, xxxChoicebook, xxxListbook]:
                 self.EnableGroup(GROUP_SIZERS, False)
             else:
                 self.EnableGroup(GROUP_SIZERS)
