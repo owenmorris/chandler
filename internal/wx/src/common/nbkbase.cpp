@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     02.07.01
-// RCS-ID:      $Id: nbkbase.cpp,v 1.21 2005/09/23 12:53:04 MR Exp $
+// RCS-ID:      $Id: nbkbase.cpp,v 1.22 2005/10/21 19:00:37 ABX Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ wxSize wxNotebookBase::CalcSizeFromPage(const wxSize& sizePage) const
     // default because not all ports implement this
     wxSize sizeTotal = sizePage;
 
-    if ( HasFlag(wxNB_LEFT) || HasFlag(wxNB_RIGHT) )
+    if ( HasFlag(wxBK_LEFT) || HasFlag(wxBK_RIGHT) )
     {
         sizeTotal.x += 90;
         sizeTotal.y += 10;
@@ -60,4 +60,3 @@ wxSize wxNotebookBase::CalcSizeFromPage(const wxSize& sizePage) const
 }
 
 #endif // wxUSE_NOTEBOOK
-

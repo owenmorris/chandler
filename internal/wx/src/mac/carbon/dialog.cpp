@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog.cpp,v 1.39 2005/09/23 12:54:05 MR Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.41 2005/11/19 01:07:49 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ bool wxDialog::Create(wxWindow *parent, wxWindowID id,
     // All dialogs should really have this style
     style |= wxTAB_TRAVERSAL;
 
-    if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style & ~(wxYES|wxOK|wxNO|wxCANCEL) , name) )
+    if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style & ~(wxYES|wxOK|wxNO /*|wxCANCEL*/) , name) )
         return false;
 
     return true;
@@ -87,7 +87,7 @@ wxDialog::~wxDialog()
     Show(false);
 }
 
-// By default, pressing escape cancels the dialog , on mac command-stop does the same thing
+// By default, pressing escape cancels the dialog; on mac command-stop does the same thing
 void wxDialog::OnCharHook(wxKeyEvent& event)
 {
     if (( event.m_keyCode == WXK_ESCAPE ||

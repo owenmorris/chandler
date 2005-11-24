@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp,v 1.78 2005/09/23 12:54:00 MR Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.80 2005/11/08 06:33:27 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ void wxMacCreateBitmapButton( ControlButtonContentInfo*info , const wxBitmap& bi
             info->u.iconRef = bmp->GetIconRef() ;
             AcquireIconRef( info->u.iconRef ) ;
         }
-#if wxMAC_USE_CORE_GRAPHICS && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
+#if defined( __WXMAC_OSX__ ) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2 
         else if ( forceType == kControlContentCGImageRef )
         {
             info->contentType = kControlContentCGImageRef ;
@@ -112,7 +112,7 @@ void wxMacReleaseBitmapButton( ControlButtonContentInfo*info )
     {
         // owned by the bitmap, no release here
     }
-#if wxMAC_USE_CORE_GRAPHICS && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
+#if defined( __WXMAC_OSX__ ) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2 
     else if ( info->contentType == kControlContentCGImageRef )
     {
         CGImageRelease( info->u.imageRef ) ;

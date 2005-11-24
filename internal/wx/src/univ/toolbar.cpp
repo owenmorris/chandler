@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin (universalization)
 // Modified by:
 // Created:     20.02.02
-// Id:          $Id: toolbar.cpp,v 1.35 2005/09/23 12:55:55 MR Exp $
+// Id:          $Id: toolbar.cpp,v 1.36 2005/11/20 21:55:28 DS Exp $
 // Copyright:   (c) 2001 Robert Roebling,
 //              (c) 2002 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -128,7 +128,7 @@ private:
 // wxToolBar implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl);
+IMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl)
 
 // ----------------------------------------------------------------------------
 // wxToolBar creation

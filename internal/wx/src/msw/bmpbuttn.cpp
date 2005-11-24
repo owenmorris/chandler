@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bmpbuttn.cpp,v 1.58 2005/09/23 12:54:52 MR Exp $
+// RCS-ID:      $Id: bmpbuttn.cpp,v 1.60 2005/11/03 19:38:16 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,7 @@
 
 #include "wx/msw/private.h"
 #include "wx/image.h"
+#include "wx/msw/uxtheme.h"
 
 // ----------------------------------------------------------------------------
 // macros
@@ -87,6 +88,8 @@ IMPLEMENT_DYNAMIC_CLASS(wxBitmapButton, wxButton)
 
 BEGIN_EVENT_TABLE(wxBitmapButton, wxBitmapButtonBase)
     EVT_SYS_COLOUR_CHANGED(wxBitmapButton::OnSysColourChanged)
+    EVT_ENTER_WINDOW(wxBitmapButton::OnMouseEnterOrLeave)
+    EVT_LEAVE_WINDOW(wxBitmapButton::OnMouseEnterOrLeave)
 END_EVENT_TABLE()
 
 /*
@@ -121,8 +124,8 @@ bool wxBitmapButton::Create(wxWindow *parent, wxWindowID id,
 
     if ( style & wxBU_AUTODRAW )
     {
-        m_marginX = wxDEFAULT_BUTTON_MARGIN;
-        m_marginY = wxDEFAULT_BUTTON_MARGIN;
+        m_marginX =
+        m_marginY = 4;
     }
 
     if (id == wxID_ANY)
@@ -194,6 +197,34 @@ void wxBitmapButton::OnSysColourChanged(wxSysColourChangedEvent& event)
     event.Skip();
 }
 
+void wxBitmapButton::OnMouseEnterOrLeave(wxMouseEvent& event)
+{
+    if ( IsEnabled() && m_bmpHover.Ok() )
+        Refresh();
+
+    event.Skip();
+}
+
+void wxBitmapButton::OnSetBitmap()
+{
+    // if the focus bitmap is specified but hover one isn't, use the focus
+    // bitmap for hovering as well if this is consistent with the current
+    // Windows version look and feel
+    //
+    // rationale: this is compatible with the old wxGTK behaviour and also
+    // makes it much easier to do "the right thing" for all platforms (some of
+    // them, such as Windows XP, have "hot" buttons while others don't)
+    if ( !m_bmpHover.Ok() &&
+            m_bmpFocus.Ok() &&
+                wxUxThemeEngine::GetIfActive() )
+    {
+        m_bmpHover = m_bmpFocus;
+    }
+
+    // this will redraw us
+    wxBitmapButtonBase::OnSetBitmap();
+}
+
 // VZ: should be at the very least less than wxDEFAULT_BUTTON_MARGIN
 #define FOCUS_MARGIN 3
 
@@ -217,10 +248,12 @@ bool wxBitmapButton::MSWOnDraw(WXDRAWITEMSTRUCT *item)
 
 
     // choose the bitmap to use depending on the button state
-    wxBitmap* bitmap;
+    wxBitmap *bitmap;
 
     if ( isSelected && m_bmpSelected.Ok() )
         bitmap = &m_bmpSelected;
+    else if ( m_bmpHover.Ok() && IsMouseInWindow() )
+        bitmap = &m_bmpHover;
     else if ((state & ODS_FOCUS) && m_bmpFocus.Ok())
         bitmap = &m_bmpFocus;
     else if ((state & ODS_DISABLED) && m_bmpDisabled.Ok())

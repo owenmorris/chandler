@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.04.03 (from src/*/data.cpp files)
-// RCS-ID:      $Id: datacmn.cpp,v 1.10 2005/01/21 03:56:16 KH Exp $
+// RCS-ID:      $Id: datacmn.cpp,v 1.11 2005/10/23 20:30:53 SN Exp $
 // Copyright:   (c) 1997-2002 wxWidgets development team
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -148,7 +148,7 @@ WXDLLEXPORT_DATA(const wxChar *) wxFileSelectorPromptStr = wxT("Select a file");
 
 // Other default strings
 WXDLLEXPORT_DATA(const wxChar *) wxFileSelectorDefaultWildcardStr =
-#if defined(__WXMSW__) || defined(__WXOS2__)
+#if defined(__WXMSW__) || defined(__OS2__)
     wxT("*.*")
 #else // Unix/Mac
     wxT("*")
@@ -157,7 +157,7 @@ WXDLLEXPORT_DATA(const wxChar *) wxFileSelectorDefaultWildcardStr =
 WXDLLEXPORT_DATA(const wxChar *) wxDirDialogNameStr = wxT("wxDirCtrl");
 WXDLLEXPORT_DATA(const wxChar *) wxDirDialogDefaultFolderStr = wxT("/");
 
-#if defined(__WXMSW__) || defined(__WXOS2__)
+#if defined(__WXMSW__) || defined(__OS2__)
 WXDLLEXPORT_DATA(const wxChar *) wxUserResourceStr = wxT("TEXT");
 #endif
 

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/urlmsw.cpp
+// Name:        src/msw/urlmsw.cpp
 // Purpose:     MS-Windows native URL support based on WinINet
 // Author:      Hajo Kirchhoff
 // Modified by:
 // Created:     06/11/2003
-// RCS-ID:      $Id: urlmsw.cpp,v 1.5 2004/11/10 21:02:44 VZ Exp $
+// RCS-ID:      $Id: urlmsw.cpp,v 1.6 2005/11/09 20:14:32 ABX Exp $
 // Copyright:   (c) 2003 Hajo Kirchhoff
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 #if wxUSE_URL_NATIVE
 
 #if !wxUSE_PROTOCOL_HTTP
-#include <wx/protocol/protocol.h>
+#include "wx/protocol/protocol.h"
 
 // empty http protocol replacement (for now)
 // so that wxUSE_URL_NATIVE can be used with
@@ -48,7 +48,7 @@ protected:
 // the only "reason for being" for this class is to tell
 // wxURL that there is someone dealing with the http protocol
 IMPLEMENT_DYNAMIC_CLASS(wxHTTPDummyProto, wxProtocol)
-IMPLEMENT_PROTOCOL(wxHTTPDummyProto, wxT("http"), NULL, FALSE)
+IMPLEMENT_PROTOCOL(wxHTTPDummyProto, wxT("http"), NULL, false)
 USE_PROTOCOL(wxHTTPDummyProto)
 
 #endif // !wxUSE_PROTOCOL_HTTP
@@ -230,4 +230,3 @@ wxInputStream *wxWinINetURL::GetInputStream(wxURL *owner)
 }
 
 #endif // wxUSE_URL_NATIVE
-

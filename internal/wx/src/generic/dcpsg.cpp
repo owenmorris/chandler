@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Markus Holzhem
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dcpsg.cpp,v 1.134 2005/09/26 00:29:37 VZ Exp $
+// RCS-ID:      $Id: dcpsg.cpp,v 1.135 2005/11/21 21:42:58 vell Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

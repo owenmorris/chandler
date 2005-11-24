@@ -4,7 +4,7 @@
 // Author:      Jethro Grassie / Kevin Ollivier
 // Modified by:
 // Created:     2004-4-16
-// RCS-ID:      $Id: webkit.mm,v 1.25 2005/09/23 12:53:57 MR Exp $
+// RCS-ID:      $Id: webkit.mm,v 1.26 2005/11/07 17:05:04 SC Exp $
 // Copyright:   (c) Jethro Grassie / Kevin Ollivier
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -468,7 +468,7 @@ void wxWebKitCtrl::MacVisibilityChanged(){
 - (void)webView:(WebView *)sender didReceiveTitle:(NSString *)title forFrame:(WebFrame *)frame
 {
     if (frame == [sender mainFrame]){
-        webKitWindow->SetTitle(wxStringWithNSString( title ));
+        webKitWindow->SetLabel(wxStringWithNSString( title ));
     }
 }
 @end

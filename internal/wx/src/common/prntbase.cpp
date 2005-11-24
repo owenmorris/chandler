@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        prntbase.cpp
+// Name:        src/common/prntbase.cpp
 // Purpose:     Printing framework base class implementation
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: prntbase.cpp,v 1.91 2005/09/25 11:13:31 VZ Exp $
+// RCS-ID:      $Id: prntbase.cpp,v 1.92 2005/10/27 15:56:19 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1512,6 +1512,5 @@ void wxPrintPreview::DetermineScaling()
 {
     m_pimpl->DetermineScaling();
 }
-
 
 #endif // wxUSE_PRINTING_ARCHITECTURE

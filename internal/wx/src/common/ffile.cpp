@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.07.99
-// RCS-ID:      $Id: ffile.cpp,v 1.26 2005/09/25 19:58:43 VZ Exp $
+// RCS-ID:      $Id: ffile.cpp,v 1.27 2005/10/25 13:58:32 CE Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +29,10 @@
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
     #include "wx/log.h"
+#endif
+
+#ifdef __WINDOWS__
+#include "wx/msw/mslu.h"
 #endif
 
 #include "wx/ffile.h"

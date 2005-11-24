@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xtistrm.cpp,v 1.26 2005/09/23 12:53:12 MR Exp $
+// RCS-ID:      $Id: xtistrm.cpp,v 1.27 2005/11/09 20:14:28 ABX Exp $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -840,7 +840,7 @@ void wxCodeDepersister::SetConnect(int eventSourceObjectID,
     }
 }
 
-#include <wx/arrimpl.cpp>
+#include "wx/arrimpl.cpp"
 
 WX_DEFINE_OBJARRAY(wxxVariantArray);
 

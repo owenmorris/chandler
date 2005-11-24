@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/radiobox.cpp
+// Name:        src/msw/radiobox.cpp
 // Purpose:     wxRadioBox implementation
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: radiobox.cpp,v 1.123 2005/09/23 12:55:08 MR Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.124 2005/11/03 16:47:28 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -484,7 +484,7 @@ wxSize wxRadioBox::GetTotalButtonSize(const wxSize& sizeBtn) const
 
     // and also wide enough for its label
     int widthLabel;
-    GetTextExtent(GetTitle(), &widthLabel, NULL);
+    GetTextExtent(GetLabel(), &widthLabel, NULL);
     widthLabel += RADIO_SIZE; // FIXME this is bogus too
     if ( widthLabel > width )
         width = widthLabel;
@@ -862,4 +862,3 @@ LRESULT APIENTRY _EXPORT wxRadioBtnWndProc(HWND hwnd,
 }
 
 #endif // wxUSE_RADIOBOX
-

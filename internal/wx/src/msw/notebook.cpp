@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        msw/notebook.cpp
+// Name:        src/msw/notebook.cpp
 // Purpose:     implementation of wxNotebook
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp,v 1.162 2005/09/25 11:14:11 VZ Exp $
+// RCS-ID:      $Id: notebook.cpp,v 1.164 2005/11/09 20:14:32 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ LRESULT APIENTRY _EXPORT wxNotebookWndProc(HWND hwnd,
 // event table
 // ----------------------------------------------------------------------------
 
-#include <wx/listimpl.cpp>
+#include "wx/listimpl.cpp"
 
 WX_DEFINE_LIST( wxNotebookPageInfoList )
 
@@ -111,7 +111,7 @@ DEFINE_EVENT_TYPE(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING)
 
 BEGIN_EVENT_TABLE(wxNotebook, wxControl)
-    EVT_NOTEBOOK_PAGE_CHANGED(-1, wxNotebook::OnSelChange)
+    EVT_NOTEBOOK_PAGE_CHANGED(wxID_ANY, wxNotebook::OnSelChange)
     EVT_SIZE(wxNotebook::OnSize)
     EVT_NAVIGATION_KEY(wxNotebook::OnNavigationKey)
 
@@ -153,9 +153,11 @@ wxBEGIN_FLAGS( wxNotebookStyle )
     wxFLAGS_MEMBER(wxHSCROLL)
 
     wxFLAGS_MEMBER(wxNB_FIXEDWIDTH)
-    wxFLAGS_MEMBER(wxNB_LEFT)
-    wxFLAGS_MEMBER(wxNB_RIGHT)
-    wxFLAGS_MEMBER(wxNB_BOTTOM)
+    wxFLAGS_MEMBER(wxBK_DEFAULT)
+    wxFLAGS_MEMBER(wxBK_TOP)
+    wxFLAGS_MEMBER(wxBK_LEFT)
+    wxFLAGS_MEMBER(wxBK_RIGHT)
+    wxFLAGS_MEMBER(wxBK_BOTTOM)
     wxFLAGS_MEMBER(wxNB_NOPAGETHEME)
     wxFLAGS_MEMBER(wxNB_FLAT)
 
@@ -227,15 +229,15 @@ const wxNotebookPageInfoList& wxNotebook::GetPageInfos() const
 // common part of all ctors
 void wxNotebook::Init()
 {
-  m_imageList = NULL;
-  m_nSelection = -1;
+    m_imageList = NULL;
+    m_nSelection = -1;
 
 #if wxUSE_UXTHEME
-  m_hbrBackground = NULL;
+    m_hbrBackground = NULL;
 #endif // wxUSE_UXTHEME
 
 #if USE_NOTEBOOK_ANTIFLICKER
-  m_hasSubclassedUpdown = false;
+    m_hasSubclassedUpdown = false;
 #endif // USE_NOTEBOOK_ANTIFLICKER
 }
 
@@ -283,7 +285,7 @@ bool wxNotebook::Create(wxWindow *parent,
         if ( wxUxThemeEngine::GetIfActive() )
 #endif
         {
-            style &= ~(wxNB_BOTTOM | wxNB_LEFT | wxNB_RIGHT);
+            style &= ~(wxBK_BOTTOM | wxBK_LEFT | wxBK_RIGHT);
         }
     }
 
@@ -374,11 +376,11 @@ WXDWORD wxNotebook::MSWGetStyle(long style, WXDWORD *exstyle) const
     if ( style & wxNB_FIXEDWIDTH )
         tabStyle |= TCS_FIXEDWIDTH;
 
-    if ( style & wxNB_BOTTOM )
+    if ( style & wxBK_BOTTOM )
         tabStyle |= TCS_RIGHT;
-    else if ( style & wxNB_LEFT )
+    else if ( style & wxBK_LEFT )
         tabStyle |= TCS_VERTICAL;
-    else if ( style & wxNB_RIGHT )
+    else if ( style & wxBK_RIGHT )
         tabStyle |= TCS_VERTICAL | TCS_RIGHT;
 
     // ex style
@@ -470,12 +472,12 @@ wxString wxNotebook::GetPageText(size_t nPage) const
 
 int wxNotebook::GetPageImage(size_t nPage) const
 {
-  wxCHECK_MSG( IS_VALID_PAGE(nPage), -1, wxT("notebook page out of range") );
+  wxCHECK_MSG( IS_VALID_PAGE(nPage), wxNOT_FOUND, wxT("notebook page out of range") );
 
   TC_ITEM tcItem;
   tcItem.mask = TCIF_IMAGE;
 
-  return TabCtrl_GetItem(GetHwnd(), nPage, &tcItem) ? tcItem.iImage : -1;
+  return TabCtrl_GetItem(GetHwnd(), nPage, &tcItem) ? tcItem.iImage : wxNOT_FOUND;
 }
 
 bool wxNotebook::SetPageImage(size_t nPage, int nImage)
@@ -566,7 +568,7 @@ wxSize wxNotebook::CalcSizeFromPage(const wxSize& sizePage) const
         tabSize.x = rect.right - rect.left;
         tabSize.y = rect.bottom - rect.top;
     }
-    if ( HasFlag(wxNB_LEFT) || HasFlag(wxNB_RIGHT) )
+    if ( HasFlag(wxBK_LEFT) || HasFlag(wxBK_RIGHT) )
     {
         sizeTotal.x += tabSize.x + 7;
         sizeTotal.y += 7;
@@ -648,19 +650,19 @@ wxNotebookPage *wxNotebook::DoRemovePage(size_t nPage)
 // remove all pages
 bool wxNotebook::DeleteAllPages()
 {
-  size_t nPageCount = GetPageCount();
-  size_t nPage;
-  for ( nPage = 0; nPage < nPageCount; nPage++ )
-    delete m_pages[nPage];
+    size_t nPageCount = GetPageCount();
+    size_t nPage;
+    for ( nPage = 0; nPage < nPageCount; nPage++ )
+        delete m_pages[nPage];
 
-  m_pages.Clear();
+    m_pages.Clear();
 
-  TabCtrl_DeleteAllItems(GetHwnd());
+    TabCtrl_DeleteAllItems(GetHwnd());
 
-  m_nSelection = -1;
+    m_nSelection = -1;
 
-  InvalidateBestSize();
-  return true;
+    InvalidateBestSize();
+    return true;
 }
 
 // same as AddPage() but does it at given position

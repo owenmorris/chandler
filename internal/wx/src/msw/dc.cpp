@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.cpp,v 1.194 2005/09/23 12:54:54 MR Exp $
+// RCS-ID:      $Id: dc.cpp,v 1.195 2005/11/06 20:44:41 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1757,7 +1757,7 @@ bool wxDC::DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) con
     static int maxWidth = -1;
     int fit = 0;
     SIZE sz = {0,0};
-    int stlen = text.Length();
+    int stlen = text.length();
 
     if (maxLenText == -1)
     {
@@ -2539,6 +2539,8 @@ static bool AlphaBlt(HDC hdcDst,
 
         wxLogLastError(_T("AlphaBlend"));
     }
+#else
+    wxUnusedVar(hdcSrc);
 #endif // defined(AC_SRC_OVER)
 
     // AlphaBlend() unavailable of failed: use our own (probably much slower)

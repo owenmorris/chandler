@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: slider.cpp,v 1.47 2005/09/23 12:54:10 MR Exp $
+// RCS-ID:      $Id: slider.cpp,v 1.48 2005/11/19 01:07:49 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,8 +30,8 @@ END_EVENT_TABLE()
 #define wxSLIDER_BORDERTEXT 5
 
 /* NB!  The default orientation for a slider is horizontal however if the user specifies
- * some slider styles but dosen't specify the orientation we have to assume he wants a
- * horizontal one.  Therefore in this file when testing for the sliders orientation
+ * some slider styles but doesn't specify the orientation we have to assume he wants a
+ * horizontal one.  Therefore in this file when testing for the slider's orientation
  * vertical is tested for if this is not set then we use the horizontal one
  * eg.  if(GetWindowStyle() & wxSL_VERTICAL) {}  else { horizontal case }>
  */

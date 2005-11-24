@@ -4,12 +4,12 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2005/01/11
-// RCS-ID:      $Id: settings.mm,v 1.4 2005/03/07 17:38:06 RR Exp $
+// RCS-ID:      $Id: settings.mm,v 1.5 2005/11/09 20:14:25 ABX Exp $
 // Copyright:   (c) 2005 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#include <wx/wxprec.h>
+#include "wx/wxprec.h"
 #ifndef WX_PRECOMP
 #endif
 
@@ -125,7 +125,7 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
                 return *wxNORMAL_FONT ;
                     } ;
             break ;
-                
+
     }
     return *wxNORMAL_FONT;
 }
@@ -141,7 +141,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow *WXUNUSED(w
     {
         case wxSYS_MOUSE_BUTTONS:
                     return 2; // we emulate a two button mouse (ctrl + click = right button )
-                    
+
         // TODO case wxSYS_BORDER_X:
         // TODO case wxSYS_BORDER_Y:
         // TODO case wxSYS_CURSOR_X:
@@ -159,7 +159,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow *WXUNUSED(w
             return 16;
         case wxSYS_HTHUMB_X:
             return 16;
-            
+
         // TODO case wxSYS_ICON_X:
         // TODO case wxSYS_ICON_Y:
         // TODO case wxSYS_ICONSPACING_X:
@@ -172,7 +172,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow *WXUNUSED(w
         // TODO case wxSYS_FRAMESIZE_Y:
         // TODO case wxSYS_SMALLICON_X:
         // TODO case wxSYS_SMALLICON_Y:
-            
+
         case wxSYS_HSCROLL_Y:
             return 16;
         case wxSYS_VSCROLL_X:
@@ -183,19 +183,19 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow *WXUNUSED(w
             return 16;
         case wxSYS_VTHUMB_Y:
             return 16;
-            
+
         // TODO case wxSYS_CAPTION_Y:
         // TODO case wxSYS_MENU_Y:
         // TODO case wxSYS_NETWORK_PRESENT:
-            
+
         case wxSYS_PENWINDOWS_PRESENT:
             return 0;
-            
+
         // TODO case wxSYS_SHOW_SOUNDS:
 
         case wxSYS_SWAP_BUTTONS:
             return 0;
-            
+
         default:
             return -1;  // unsupported metric
     }
@@ -206,11 +206,11 @@ bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
 {
     switch (index)
     {
-        case wxSYS_CAN_ICONIZE_FRAME: 
+        case wxSYS_CAN_ICONIZE_FRAME:
         case wxSYS_CAN_DRAW_FRAME_DECORATIONS:
-            return TRUE;
-            
+            return true;
+
         default:
-            return FALSE;
+            return false;
     }
 }

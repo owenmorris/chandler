@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/12
-// RCS-ID:      $Id: regiong.cpp,v 1.8 2005/09/24 21:42:39 VZ Exp $
+// RCS-ID:      $Id: regiong.cpp,v 1.9 2005/11/20 21:55:13 DS Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -228,7 +228,7 @@ private:
 // ========================================================================
 // wxRegionGeneric
 // ========================================================================
-//IMPLEMENT_DYNAMIC_CLASS(wxRegionGeneric, wxGDIObject);
+//IMPLEMENT_DYNAMIC_CLASS(wxRegionGeneric, wxGDIObject)
 
 #define M_REGIONDATA ((wxRegionRefData *)m_refData)
 #define M_REGIONDATA_OF(rgn) ((wxRegionRefData *)(rgn.m_refData))
@@ -415,7 +415,7 @@ wxRegionContain wxRegionGeneric::Contains(const wxRect& rect) const
 // ========================================================================
 // wxRegionIteratorGeneric
 // ========================================================================
-//IMPLEMENT_DYNAMIC_CLASS(wxRegionIteratorGeneric,wxObject);
+//IMPLEMENT_DYNAMIC_CLASS(wxRegionIteratorGeneric,wxObject)
 
 wxRegionIteratorGeneric::wxRegionIteratorGeneric()
 {

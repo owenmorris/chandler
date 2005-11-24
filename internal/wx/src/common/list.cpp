@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Name:        list.cpp
+// Name:        src/common/list.cpp
 // Purpose:     wxList implementation
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     04/01/98
-// RCS-ID:      $Id: list.cpp,v 1.57 2005/09/25 23:38:54 VZ Exp $
+// RCS-ID:      $Id: list.cpp,v 1.59 2005/11/20 21:55:10 DS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////////////////////////////////
@@ -754,8 +754,8 @@ wxNode *wxStringList::Prepend(const wxChar *s)
 
 #else // wxUSE_STL = 1
 
-    #include <wx/listimpl.cpp>
-    WX_DEFINE_LIST(wxObjectList);
+    #include "wx/listimpl.cpp"
+    WX_DEFINE_LIST(wxObjectList)
 
 // with wxUSE_STL wxStringList contains wxString objects, not pointers
 void wxStringListBase::DeleteFunction( const wxString WXUNUSED(X) )
@@ -763,4 +763,3 @@ void wxStringListBase::DeleteFunction( const wxString WXUNUSED(X) )
 }
 
 #endif // !wxUSE_STL
-

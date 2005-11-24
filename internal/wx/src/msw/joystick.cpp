@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: joystick.cpp,v 1.25 2005/09/27 11:19:05 VZ Exp $
+// RCS-ID:      $Id: joystick.cpp,v 1.26 2005/10/22 10:22:45 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -293,6 +293,8 @@ int wxJoystick::GetProductId() const
 
 wxString wxJoystick::GetProductName() const
 {
+    wxString str;
+#ifndef __WINE__
     JOYCAPS joyCaps;
     if (joyGetDevCaps(m_joystick, &joyCaps, sizeof(joyCaps)) != JOYERR_NOERROR)
         return wxEmptyString;
@@ -300,7 +302,6 @@ wxString wxJoystick::GetProductName() const
     wxRegKey key1(wxString::Format(wxT("HKEY_LOCAL_MACHINE\\%s\\%s\\%s"),
                    REGSTR_PATH_JOYCONFIG, joyCaps.szRegKey, REGSTR_KEY_JOYCURR));
 
-    wxString str;
     key1.QueryValue(wxString::Format(wxT("Joystick%d%s"),
                                      m_joystick + 1, REGSTR_VAL_JOYOEMNAME),
                     str);
@@ -308,7 +309,7 @@ wxString wxJoystick::GetProductName() const
     wxRegKey key2(wxString::Format(wxT("HKEY_LOCAL_MACHINE\\%s\\%s"),
                                         REGSTR_PATH_JOYOEM, str.c_str()));
     key2.QueryValue(REGSTR_VAL_JOYOEMNAME, str);
-
+#endif
     return str;
 }
 

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: accel.cpp,v 1.16 2005/09/23 12:53:59 MR Exp $
+// RCS-ID:      $Id: accel.cpp,v 1.17 2005/11/20 21:55:15 DS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxAcceleratorTable, wxObject)
 
 WX_DECLARE_LIST(wxAcceleratorEntry, wxAccelList);
 #include "wx/listimpl.cpp"
-WX_DEFINE_LIST(wxAccelList);
+WX_DEFINE_LIST(wxAccelList)
 
 // ----------------------------------------------------------------------------
 // wxAccelRefData: the data used by wxAcceleratorTable

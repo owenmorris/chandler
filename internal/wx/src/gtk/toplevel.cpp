@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        toplevel.cpp
+// Name:        src/gtk/toplevel.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.cpp,v 1.88 2005/09/23 12:53:43 MR Exp $
+// Id:          $Id: toplevel.cpp,v 1.91 2005/11/07 23:06:34 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -371,7 +371,7 @@ gtk_frame_unmap_callback( GtkWidget * WXUNUSED(widget),
                           GdkEvent * WXUNUSED(event),
                           wxTopLevelWindow *win )
 {
-    win->SetIconizeState(TRUE);
+    win->SetIconizeState(true);
 }
 }
 
@@ -572,7 +572,7 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
     }
 #endif
 
-#if GTK_CHECK_VERSION(2,4,0)
+#ifdef __WXGTK24__
     if (!gtk_check_version(2,4,0))
     {
         if (style & wxSTAY_ON_TOP)
@@ -704,7 +704,7 @@ wxTopLevelWindowGTK::~wxTopLevelWindowGTK()
 {
     if (m_grabbed)
     {
-        wxASSERT_MSG( FALSE, _T("Window still grabbed"));
+        wxASSERT_MSG( false, _T("Window still grabbed"));
         RemoveGrab();
     }
 
@@ -1130,7 +1130,11 @@ void wxTopLevelWindowGTK::SetTitle( const wxString &title )
 {
     wxASSERT_MSG( (m_widget != NULL), wxT("invalid frame") );
 
+    if ( title == m_title )
+        return;
+
     m_title = title;
+
     gtk_window_set_title( GTK_WINDOW(m_widget), wxGTK_CONV( title ) );
 }
 
@@ -1356,4 +1360,29 @@ void wxTopLevelWindowGTK::RequestUserAttention(int flags)
     else
 #endif
         wxgtk_window_set_urgency_hint(GTK_WINDOW( m_widget ), new_hint_value);
+}
+
+void wxTopLevelWindowGTK::SetWindowStyleFlag( long style )
+{
+    // Store which styles were changed
+    long styleChanges = style ^ m_windowStyle;
+
+    // Process wxWindow styles. This also updates the internal variable
+    // Therefore m_windowStyle bits carry now the _new_ style values
+    wxWindow::SetWindowStyleFlag(style);
+
+    // just return for now if widget does not exist yet
+    if (!m_widget)
+        return;
+
+#ifdef __WXGTK24__
+    if ( (styleChanges & wxSTAY_ON_TOP) && !gtk_check_version(2,4,0) )
+        gtk_window_set_keep_above(GTK_WINDOW(m_widget), m_windowStyle & wxSTAY_ON_TOP);
+#endif
+#if GTK_CHECK_VERSION(2,2,0)
+    if ( (styleChanges & wxFRAME_NO_TASKBAR) && !gtk_check_version(2,2,0) )
+    {
+        gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_widget), m_windowStyle & wxFRAME_NO_TASKBAR);
+    }
+#endif
 }

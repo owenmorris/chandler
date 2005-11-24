@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.00
-// RCS-ID:      $Id: winuniv.cpp,v 1.57 2005/09/23 12:55:55 MR Exp $
+// RCS-ID:      $Id: winuniv.cpp,v 1.58 2005/11/19 01:07:55 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -339,7 +339,7 @@ bool wxWindow::DoDrawBackground(wxDC& dc)
     }
     else
     {
-        // Draw background ouselves
+        // Draw background ourselves
         EraseBackground( dc, rect );
     }
 

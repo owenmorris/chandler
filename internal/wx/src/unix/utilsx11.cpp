@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon, Vaclav Slavik, Robert Roebling
 // Modified by:
 // Created:     25.03.02
-// RCS-ID:      $Id: utilsx11.cpp,v 1.29 2005/10/03 16:37:30 ABX Exp $
+// RCS-ID:      $Id: utilsx11.cpp,v 1.30 2005/11/09 20:14:39 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -770,7 +770,7 @@ KeySym wxCharCodeWXToX(int id)
 // check current state of a key
 // ----------------------------------------------------------------------------
 
-#include <wx/app.h>
+#include "wx/app.h"
 
 bool wxGetKeyState(wxKeyCode key)
 {

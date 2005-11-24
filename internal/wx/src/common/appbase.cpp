@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// RCS-ID:      $Id: appbase.cpp,v 1.63 2005/10/03 23:07:58 VZ Exp $
+// RCS-ID:      $Id: appbase.cpp,v 1.64 2005/11/08 01:02:48 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -206,10 +206,6 @@ int wxAppConsole::OnExit()
     // because Get() could create a new config object)
     delete wxConfigBase::Set((wxConfigBase *) NULL);
 #endif // wxUSE_CONFIG
-
-    // use Set(NULL) and not Get() to avoid creating a message output object on
-    // demand when we just want to delete it
-    delete wxMessageOutput::Set(NULL);
 
     return 0;
 }

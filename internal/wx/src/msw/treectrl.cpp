@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10.10.98
 // Created:     1997
-// RCS-ID:      $Id: treectrl.cpp,v 1.217 2005/10/17 19:31:40 VZ Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.219 2005/10/28 14:05:45 CE Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1677,11 +1677,6 @@ wxTreeItemId wxTreeCtrl::DoInsertAfter(const wxTreeItemId& parent,
 
 // for compatibility only
 #if WXWIN_COMPATIBILITY_2_4
-
-wxImageList *wxTreeCtrl::GetImageList(int) const
-{
-    return wxTreeCtrlBase::GetImageList();
-}
 
 void wxTreeCtrl::SetImageList(wxImageList *imageList, int)
 {

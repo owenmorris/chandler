@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: stattext.cpp,v 1.67 2005/09/23 12:55:11 MR Exp $
+// RCS-ID:      $Id: stattext.cpp,v 1.68 2005/11/16 12:06:54 DS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,8 @@ wxSize wxStaticText::DoGetBestSize() const
     dc.SetFont(font);
 
     wxCoord widthTextMax, heightTextTotal;
-    dc.GetMultiLineTextExtent(GetLabel(), &widthTextMax, &heightTextTotal);
+    dc.GetMultiLineTextExtent(::wxStripMenuCodes(GetLabel()),
+        &widthTextMax, &heightTextTotal);
 
 #ifdef __WXWINCE__
     if ( widthTextMax )

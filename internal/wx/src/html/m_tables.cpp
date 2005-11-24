@@ -2,7 +2,7 @@
 // Name:        m_tables.cpp
 // Purpose:     wxHtml module for tables
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: m_tables.cpp,v 1.37 2005/09/23 12:53:54 MR Exp $
+// RCS-ID:      $Id: m_tables.cpp,v 1.38 2005/11/17 23:37:24 VS Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -99,6 +99,9 @@ private:
 public:
     wxHtmlTableCell(wxHtmlContainerCell *parent, const wxHtmlTag& tag, double pixel_scale = 1.0);
     ~wxHtmlTableCell();
+
+    virtual void RemoveExtraSpacing(bool top, bool bottom);
+
     virtual void Layout(int w);
 
     void AddRow(const wxHtmlTag& tag);
@@ -163,6 +166,15 @@ wxHtmlTableCell::~wxHtmlTableCell()
 }
 
 
+void wxHtmlTableCell::RemoveExtraSpacing(bool WXUNUSED(top),
+                                         bool WXUNUSED(bottom))
+{
+    // Don't remove any spacing in the table -- it's always desirable,
+    // because it's part of table's definition.
+    // (If wxHtmlContainerCell::RemoveExtraSpacing() was applied to tables,
+    // then upper left cell of a table would be positioned above other cells
+    // if the table was the first element on the page.)
+}
 
 void wxHtmlTableCell::ReallocCols(int cols)
 {

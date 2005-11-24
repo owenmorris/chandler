@@ -4,7 +4,7 @@
 // Author:      John Labenski
 // Modified by:
 // Created:     14.06.03 (extracted from src/*/filedlg.cpp)
-// RCS-ID:      $Id: fldlgcmn.cpp,v 1.24 2005/09/23 12:52:53 MR Exp $
+// RCS-ID:      $Id: fldlgcmn.cpp,v 1.25 2005/11/08 01:33:33 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,8 +34,8 @@ IMPLEMENT_DYNAMIC_CLASS(wxFileDialogBase, wxDialog)
 
 void wxFileDialogBase::Init()
 {
-    m_filterIndex = m_dialogStyle = 0;
-    m_parent = NULL;
+    m_filterIndex =
+    m_dialogStyle = 0;
 }
 
 bool wxFileDialogBase::Create(wxWindow *parent,

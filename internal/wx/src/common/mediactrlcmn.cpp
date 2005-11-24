@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrlcmn.cpp,v 1.17 2005/09/23 12:53:03 MR Exp $
+// RCS-ID:      $Id: mediactrlcmn.cpp,v 1.18 2005/11/20 21:55:11 DS Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,12 +44,12 @@
 // RTTI and Event implementations
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-IMPLEMENT_CLASS(wxMediaCtrl, wxControl);
-IMPLEMENT_CLASS(wxMediaBackend, wxObject);
-IMPLEMENT_DYNAMIC_CLASS(wxMediaEvent, wxEvent);
-DEFINE_EVENT_TYPE(wxEVT_MEDIA_FINISHED);
-DEFINE_EVENT_TYPE(wxEVT_MEDIA_LOADED);
-DEFINE_EVENT_TYPE(wxEVT_MEDIA_STOP);
+IMPLEMENT_CLASS(wxMediaCtrl, wxControl)
+IMPLEMENT_CLASS(wxMediaBackend, wxObject)
+IMPLEMENT_DYNAMIC_CLASS(wxMediaEvent, wxEvent)
+DEFINE_EVENT_TYPE(wxEVT_MEDIA_FINISHED)
+DEFINE_EVENT_TYPE(wxEVT_MEDIA_LOADED)
+DEFINE_EVENT_TYPE(wxEVT_MEDIA_STOP)
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
@@ -508,7 +508,7 @@ void wxMediaBackendCommonBase::QueueEvent(wxEventType evtType)
 }
 
 #include "wx/html/forcelnk.h"
-FORCE_LINK(basewxmediabackends);
+FORCE_LINK(basewxmediabackends)
 
 //---------------------------------------------------------------------------
 // End of compilation guard and of file

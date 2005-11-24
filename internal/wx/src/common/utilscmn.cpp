@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp,v 1.151 2005/10/09 15:48:30 MBN Exp $
+// RCS-ID:      $Id: utilscmn.cpp,v 1.152 2005/10/23 22:37:56 ABX Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -526,6 +526,8 @@ bool wxLaunchDefaultBrowser(const wxString& urlOrig, int flags)
         url.Prepend(wxT("http://"));
 
 #if defined(__WXMSW__)
+
+#if wxUSE_IPC
     if ( flags & wxBROWSER_NEW_WINDOW )
     {
         // ShellExecuteEx() opens the URL in an existing window by default so
@@ -583,6 +585,7 @@ bool wxLaunchDefaultBrowser(const wxString& urlOrig, int flags)
             }
         }
     }
+#endif // wxUSE_IPC
 
     WinStruct<SHELLEXECUTEINFO> sei;
     sei.lpFile = url.c_str();

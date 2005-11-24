@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/ole/activex.cpp
+// Name:        src/msw/ole/activex.cpp
 // Purpose:     wxActiveXContainer implementation
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.3 2005/09/27 11:19:09 VZ Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.9 2005/11/13 21:48:53 ABX Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,7 @@
 #endif
 
 #include "wx/dcclient.h"
+#include "wx/math.h"
 #include "wx/msw/ole/activex.h"
 
 
@@ -206,7 +207,7 @@ public:
             case DISPID_AMBIENT_SILENT:
                 V_BOOL(pVarResult)= TRUE;
                 return S_OK;
-
+#ifndef __WINE__
             case DISPID_AMBIENT_APPEARANCE:
                 pVarResult->vt = VT_BOOL;
                 pVarResult->boolVal = m_bAmbientAppearance;
@@ -241,7 +242,7 @@ public:
                 pVarResult->vt = VT_BOOL;
                 pVarResult->boolVal = m_bAmbientShowHatching;
                 break;
-
+#endif
             default:
                 return DISP_E_MEMBERNOTFOUND;
         }
@@ -437,7 +438,9 @@ public:
     HRESULT STDMETHODCALLTYPE LockContainer(BOOL){return S_OK;}
     //********************IOleItemContainer***************************
     HRESULT STDMETHODCALLTYPE
-    #ifdef _UNICODE
+    #if defined(__WXWINCE__)
+    GetObject
+    #elif defined(_UNICODE)
     GetObjectW
     #else
     GetObjectA
@@ -741,7 +744,7 @@ static void PixelsToHimetric(SIZEL &sz)
     };
 
 #define HIMETRIC_INCH   2540
-#define CONVERT(x, logpixels)   MulDiv(HIMETRIC_INCH, (x), (logpixels))
+#define CONVERT(x, logpixels)   wxMulDivInt32(HIMETRIC_INCH, (x), (logpixels))
 
     sz.cx = CONVERT(sz.cx, logX);
     sz.cy = CONVERT(sz.cy, logY);
@@ -799,7 +802,11 @@ void wxActiveXContainer::OnPaint(wxPaintEvent& WXUNUSED(event))
         posRect.right = w;
         posRect.bottom = h;
 
+#if defined(_WIN32_WCE) && _WIN32_WCE < 400
+        ::InvalidateRect(m_oleObjectHWND, NULL, false);
+#else
         ::RedrawWindow(m_oleObjectHWND, NULL, NULL, RDW_INTERNALPAINT);
+#endif
         RECTL *prcBounds = (RECTL *) &posRect;
         m_viewObject->Draw(DVASPECT_CONTENT, -1, NULL, NULL, NULL,
             (HDC)dc.GetHDC(), prcBounds, NULL, NULL, 0);

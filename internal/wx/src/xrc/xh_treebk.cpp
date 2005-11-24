@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        xh_treebk.cpp
+// Name:        src/xrc/xh_treebk.cpp
 // Purpose:     XRC resource handler for wxTreebook
 // Author:      Evgeniy Tarassov
 // Created:     2005/09/28
-// RCS-ID:      $Id: xh_treebk.cpp,v 1.1 2005/10/09 18:40:34 VZ Exp $
+// RCS-ID:      $Id: xh_treebk.cpp,v 1.3 2005/10/30 20:20:27 VZ Exp $
 // Copyright:   (c) 2005 TT-Solutions <vadim@tt-solutions.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,11 +26,15 @@
 IMPLEMENT_DYNAMIC_CLASS(wxTreebookXmlHandler, wxXmlResourceHandler)
 
 wxTreebookXmlHandler::wxTreebookXmlHandler()
-: wxXmlResourceHandler(), m_isInside(false), m_tbk(NULL), m_treeContext()
+                    : wxXmlResourceHandler(),
+                      m_tbk(NULL),
+                      m_isInside(false)
 {
-    XRC_ADD_STYLE(wxTBK_DEFAULT);
-    XRC_ADD_STYLE(wxTBK_LEFT);
-    XRC_ADD_STYLE(wxTBK_RIGHT);
+    XRC_ADD_STYLE(wxBK_DEFAULT);
+    XRC_ADD_STYLE(wxBK_TOP);
+    XRC_ADD_STYLE(wxBK_BOTTOM);
+    XRC_ADD_STYLE(wxBK_LEFT);
+    XRC_ADD_STYLE(wxBK_RIGHT);
 
     AddWindowStyles();
 }
@@ -92,7 +96,7 @@ wxObject *wxTreebookXmlHandler::DoCreateResource()
     }
 
     size_t depth = GetLong( wxT("depth") );
-    
+
     if( depth <= m_treeContext.Count() )
     {
         // first prepare the icon
@@ -122,9 +126,9 @@ wxObject *wxTreebookXmlHandler::DoCreateResource()
             m_tbk->AddSubPage(m_treeContext.Item(depth - 1), wnd,
                 GetText(wxT("label")), GetBool(wxT("selected")), imgIndex);
         }
-        
+
         m_treeContext.Add( m_tbk->GetPageCount() - 1);
-        
+
     }
     else
         wxLogError(wxT("Error in resource. wxTreebookPage has an invalid depth."));

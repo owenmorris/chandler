@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     02/04/2001
-// RCS-ID:      $Id: helpbest.cpp,v 1.13 2005/09/23 12:54:58 MR Exp $
+// RCS-ID:      $Id: helpbest.cpp,v 1.14 2005/10/26 09:32:06 JS Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ IMPLEMENT_DYNAMIC_CLASS( wxBestHelpController, wxHelpControllerBase )
 bool wxBestHelpController::Initialize( const wxString& filename )
 {
     // try wxCHMHelpController
-    wxCHMHelpController* chm = new wxCHMHelpController;
+    wxCHMHelpController* chm = new wxCHMHelpController(m_parentWindow);
 
     m_helpControllerType = wxUseChmHelp;
     // do not warn upon failure
@@ -44,6 +44,7 @@ bool wxBestHelpController::Initialize( const wxString& filename )
     if( chm->Initialize( GetValidFilename( filename ) ) )
     {
         m_helpController = chm;
+        m_parentWindow = NULL;
         return true;
     }
 
@@ -51,12 +52,13 @@ bool wxBestHelpController::Initialize( const wxString& filename )
     delete chm;
 
     // try wxHtmlHelpController
-    wxHtmlHelpController* html = new wxHtmlHelpController;
+    wxHtmlHelpController* html = new wxHtmlHelpController(wxHF_DEFAULT_STYLE, m_parentWindow);
 
     m_helpControllerType = wxUseHtmlHelp;
     if( html->Initialize( GetValidFilename( filename ) ) )
     {
         m_helpController = html;
+        m_parentWindow = NULL;
         return true;
     }
 

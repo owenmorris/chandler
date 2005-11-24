@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/16/2005
-// RCS-ID:      $Id: mimetmac.cpp,v 1.30 2005/09/24 21:42:47 VZ Exp $
+// RCS-ID:      $Id: mimetmac.cpp,v 1.31 2005/11/18 18:39:28 SC Exp $
 // Copyright:   (c) 2005 Ryan Norton (<wxprojects@comcast.net>)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -418,8 +418,9 @@ wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
             CFRelease(cfurlAppPath);
 
             //PHEW!  Success!
+            //Since a filename might have spaces in it, so surround it with quotes
             if(cfsUnixPath)
-                return wxMacCFStringHolder(cfsUnixPath).AsString(wxLocale::GetSystemEncoding());
+                return wxString(wxT("'")) + wxMacCFStringHolder(cfsUnixPath).AsString(wxLocale::GetSystemEncoding()) + wxString(wxT("'"));
         }
         else
         {

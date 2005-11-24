@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/utils.cpp
+// Name:        src/msw/utils.cpp
 // Purpose:     Various utilities
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: utils.cpp,v 1.181 2005/07/18 16:58:18 ABX Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.184 2005/11/23 12:04:42 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
     #include "wx/log.h"
 #endif  //WX_PRECOMP
 
+#include "wx/msw/registry.h"
 #include "wx/apptrait.h"
 #include "wx/dynlib.h"
 #include "wx/dynload.h"
@@ -110,8 +111,13 @@
 // ----------------------------------------------------------------------------
 
 // In the WIN.INI file
+#if (!defined(USE_NET_API) && !defined(__WXWINCE__)) || defined(__WXMICROWIN__)
 static const wxChar WX_SECTION[] = wxT("wxWindows");
+#endif
+
+#if (!defined(USE_NET_API) && !defined(__WXWINCE__))
 static const wxChar eUSERNAME[]  = wxT("UserName");
+#endif
 
 // ============================================================================
 // implementation
@@ -262,8 +268,8 @@ bool wxGetUserId(wxChar *WXUNUSED_IN_WINCE(buf),
 
     // Can't assume we have NIS (PC-NFS) or some other ID daemon
     // So we ...
-    if (  (user = wxGetenv(wxT("USER"))) == NULL &&
-            (user = wxGetenv(wxT("LOGNAME"))) == NULL )
+    if ( (user = wxGetenv(wxT("USER"))) == NULL &&
+         (user = wxGetenv(wxT("LOGNAME"))) == NULL )
     {
         // Use wxWidgets configuration data (comming soon)
         GetProfileString(WX_SECTION, eUSERID, default_id, buf, maxSize - 1);
@@ -278,12 +284,21 @@ bool wxGetUserId(wxChar *WXUNUSED_IN_WINCE(buf),
 }
 
 // Get user name e.g. Julian Smart
-bool wxGetUserName(wxChar *WXUNUSED_IN_WINCE(buf),
-                   int WXUNUSED_IN_WINCE(maxSize))
+bool wxGetUserName(wxChar *buf, int maxSize)
 {
+    wxCHECK_MSG( buf && ( maxSize > 0 ), false,
+                    _T("empty buffer in wxGetUserName") );
 #if defined(__WXWINCE__)
-    // TODO-CE
-    return false;
+    wxLogNull noLog;
+    wxRegKey key(wxRegKey::HKCU, wxT("ControlPanel\\Owner"));
+    if(!key.Open(wxRegKey::Read))
+        return false;
+    wxString name;
+    if(!key.QueryValue(wxT("Owner"),name))
+        return false;
+    wxStrncpy(buf, name.c_str(), maxSize-1);
+    buf[maxSize-1] = _T('\0');
+    return true;
 #elif defined(USE_NET_API)
     CHAR szUserName[256];
     if ( !wxGetUserId(szUserName, WXSIZEOF(szUserName)) )
@@ -1544,4 +1559,3 @@ wxCreateHiddenWindow(LPCTSTR *pclassname, LPCTSTR classname, WNDPROC wndproc)
 
     return hwnd;
 }
-

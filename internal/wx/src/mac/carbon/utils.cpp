@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        utils.cpp
+// Name:        src/mac/carbon/utils.cpp
 // Purpose:     Various utilities
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.cpp,v 1.104 2005/10/06 12:53:24 VZ Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.107 2005/11/14 20:24:16 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -735,8 +735,10 @@ void wxMacWakeUp()
     if ( isSame )
     {
 #if TARGET_CARBON
-        static wxMacCarbonEvent s_wakeupEvent ;
         OSStatus err = noErr ;
+#if 0
+        // lead sometimes to race conditions, although all calls used should be thread safe ...
+        static wxMacCarbonEvent s_wakeupEvent ;
         if ( !s_wakeupEvent.IsValid() )
         {
            err = s_wakeupEvent.Create( 'WXMC', 'WXMC', GetCurrentEventTime(),
@@ -748,8 +750,15 @@ void wxMacWakeUp()
                 return ;
             s_wakeupEvent.SetCurrentTime() ;
             err = PostEventToQueue(GetMainEventQueue(), s_wakeupEvent,
-                                  kEventPriorityHigh);
+                                  kEventPriorityHigh );
         }
+#else
+        wxMacCarbonEvent wakeupEvent ;
+        wakeupEvent.Create( 'WXMC', 'WXMC', GetCurrentEventTime(),
+                            kEventAttributeNone ) ;
+        err = PostEventToQueue(GetMainEventQueue(), wakeupEvent,
+                               kEventPriorityHigh );
+#endif
 #else
         PostEvent( nullEvent , 0 ) ;
 #endif
@@ -769,7 +778,7 @@ void wxMacWakeUp()
 // ----------------------------------------------------------------------------
 
 
-void wxMacRectToNative( const wxRect *wx , Rect *n ) 
+void wxMacRectToNative( const wxRect *wx , Rect *n )
 {
     n->left = wx->x ;
     n->top = wx->y ;
@@ -777,7 +786,7 @@ void wxMacRectToNative( const wxRect *wx , Rect *n )
     n->bottom = wx->y + wx->height ;
 }
 
-void wxMacNativeToRect( const Rect *n , wxRect* wx ) 
+void wxMacNativeToRect( const Rect *n , wxRect* wx )
 {
     wx->x = n->left ;
     wx->y = n->top ;
@@ -785,13 +794,13 @@ void wxMacNativeToRect( const Rect *n , wxRect* wx )
     wx->height = n->bottom - n->top ;
 }
 
-void wxMacPointToNative( const wxPoint* wx , Point *n ) 
+void wxMacPointToNative( const wxPoint* wx , Point *n )
 {
     n->h = wx->x ;
     n->v = wx->y ;
 }
 
-void wxMacNativeToPoint( const Point *n , wxPoint* wx ) 
+void wxMacNativeToPoint( const Point *n , wxPoint* wx )
 {
     wx->x = n->h ;
     wx->y = n->v ;
@@ -824,7 +833,7 @@ wxMacControl::wxMacControl(wxWindow* peer , bool isRootControl )
     m_isCompositing = peer->MacGetTopLevelWindow()->MacUsesCompositing() ;
 }
 
-wxMacControl::wxMacControl( wxWindow* peer , ControlRef control ) 
+wxMacControl::wxMacControl( wxWindow* peer , ControlRef control )
 {
     Init() ;
     m_peer = peer ;
@@ -963,7 +972,7 @@ bool wxMacControl::HasFocus() const
     return control == m_controlRef ;
 }
 
-void wxMacControl::SetNeedsFocusRect( bool needs ) 
+void wxMacControl::SetNeedsFocusRect( bool needs )
 {
     m_needsFocusRect = needs ;
 }
@@ -1109,21 +1118,21 @@ bool wxMacControl::GetNeedsDisplay() const
     if ( m_isCompositing )
     {
         return HIViewGetNeedsDisplay( m_controlRef ) ;
-   	}
-   	else
+    }
+    else
 #endif
-	{
-		if ( !IsVisible() )
+    {
+        if ( !IsVisible() )
             return false ;
-			
-	    Rect controlBounds ; 
-	    GetControlBounds( m_controlRef, &controlBounds ) ;
-	    RgnHandle rgn = NewRgn() ;
-		GetWindowRegion ( GetControlOwner( m_controlRef ) , kWindowUpdateRgn , rgn ) ;
-		Boolean intersect = RectInRgn ( &controlBounds , rgn ) ;
-		DisposeRgn( rgn ) ;
-		return intersect ;
-	}
+
+        Rect controlBounds ;
+        GetControlBounds( m_controlRef, &controlBounds ) ;
+        RgnHandle rgn = NewRgn() ;
+        GetWindowRegion ( GetControlOwner( m_controlRef ) , kWindowUpdateRgn , rgn ) ;
+        Boolean intersect = RectInRgn ( &controlBounds , rgn ) ;
+        DisposeRgn( rgn ) ;
+        return intersect ;
+    }
 
 }
 #endif
@@ -1132,7 +1141,7 @@ void wxMacControl::SetNeedsDisplay( RgnHandle where )
 {
     if ( !IsVisible() )
         return ;
-        
+
 #if TARGET_API_MAC_OSX
     if ( m_isCompositing )
     {
@@ -1141,12 +1150,12 @@ void wxMacControl::SetNeedsDisplay( RgnHandle where )
     else
 #endif
     {
-        Rect controlBounds ; 
+        Rect controlBounds ;
         GetControlBounds( m_controlRef, &controlBounds ) ;
         RgnHandle update = NewRgn() ;
         CopyRgn( where , update ) ;
         OffsetRgn( update , controlBounds.left , controlBounds.top ) ;
-        InvalWindowRgn( GetControlOwner( m_controlRef) , update ) ; 
+        InvalWindowRgn( GetControlOwner( m_controlRef) , update ) ;
     }
 }
 
@@ -1171,7 +1180,7 @@ void wxMacControl::SetNeedsDisplay( Rect* where )
     else
 #endif
     {
-        Rect controlBounds ; 
+        Rect controlBounds ;
         GetControlBounds( m_controlRef, &controlBounds ) ;
         if ( where )
         {
@@ -1179,7 +1188,7 @@ void wxMacControl::SetNeedsDisplay( Rect* where )
             OffsetRect( &whereLocal , controlBounds.left , controlBounds.top ) ;
             SectRect( &controlBounds , &whereLocal, &controlBounds ) ;
         }
-        InvalWindowRect( GetControlOwner( m_controlRef) , &controlBounds ) ; 
+        InvalWindowRect( GetControlOwner( m_controlRef) , &controlBounds ) ;
     }
 }
 
@@ -1205,8 +1214,8 @@ void  wxMacControl::Convert( wxPoint *pt , wxMacControl *from , wxMacControl *to
         if ( from->m_isRootControl )
             fromRect.left = fromRect.top = 0 ;
         if ( to->m_isRootControl )
-            toRect.left = toRect.top = 0 ; 
-                    
+            toRect.left = toRect.top = 0 ;
+
         pt->x = pt->x + fromRect.left - toRect.left ;
         pt->y = pt->y + fromRect.top - toRect.top ;
     }
@@ -1234,9 +1243,9 @@ void wxMacControl::SetRect( Rect *r )
             GetControlBounds( m_controlRef , &former ) ;
             InvalWindowRect( GetControlOwner( m_controlRef ) , &former ) ;
         }
-        
+
         Rect controlBounds = *r ;
-        
+
         // since the rect passed in is always (even in non-compositing) relative
         // to the (native) parent, we have to adjust to window relative here
         wxMacControl* parent = m_peer->GetParent()->GetPeer() ;
@@ -1246,7 +1255,7 @@ void wxMacControl::SetRect( Rect *r )
             GetControlBounds( parent->m_controlRef , &superRect ) ;
             OffsetRect( &controlBounds , superRect.left , superRect.top ) ;
         }
-        
+
         SetControlBounds( m_controlRef , &controlBounds ) ;
         if ( vis )
         {
@@ -1260,7 +1269,7 @@ void wxMacControl::GetRect( Rect *r )
     GetControlBounds( m_controlRef , r ) ;
     if ( m_isCompositing == false )
     {
-        // correct the case of the root control 
+        // correct the case of the root control
         if ( m_isRootControl )
         {
             WindowRef wr = GetControlOwner( m_controlRef ) ;
@@ -1270,7 +1279,7 @@ void wxMacControl::GetRect( Rect *r )
             r->left = 0 ;
             r->top = 0 ;
         }
-        else 
+        else
         {
             wxMacControl* parent = m_peer->GetParent()->GetPeer() ;
             if( parent->m_isRootControl == false )
@@ -1294,7 +1303,7 @@ void wxMacControl::GetBestRect( Rect *r )
     GetBestControlRect( m_controlRef , r , &baselineoffset ) ;
 }
 
-void wxMacControl::SetTitle( const wxString &title )
+void wxMacControl::SetLabel( const wxString &title )
 {
     wxFontEncoding encoding;
 
@@ -1321,7 +1330,7 @@ OSStatus wxMacControl::GetRegion( ControlPartCode partCode , RgnHandle region )
             Rect r ;
             GetControlBounds(m_controlRef, &r ) ;
             if ( !EmptyRgn( region ) )
-                OffsetRgn( region , -r.left , -r.top ) ; 
+                OffsetRgn( region , -r.left , -r.top ) ;
         }
     }
     return err ;
@@ -1367,29 +1376,29 @@ void wxMacControl::InvalidateWithChildren()
 #endif
 }
 
-void wxMacControl::ScrollRect( wxRect *r , int dx , int dy ) 
+void wxMacControl::ScrollRect( wxRect *r , int dx , int dy )
 {
-	wxASSERT( r != NULL ) ;
+    wxASSERT( r != NULL ) ;
 #if TARGET_API_MAC_OSX
-	if ( m_isCompositing )
-	{
-		HIRect scrollarea = CGRectMake( r->x , r->y , r->width , r->height) ;
+    if ( m_isCompositing )
+    {
+        HIRect scrollarea = CGRectMake( r->x , r->y , r->width , r->height) ;
         HIViewScrollRect ( m_controlRef , &scrollarea , dx ,dy ) ;
-	}
-	else
+    }
+    else
 #endif
-	{
-		Rect bounds ;
-		GetControlBounds( m_controlRef , &bounds ) ;
-		bounds.left += r->x ;
-		bounds.top += r->y ;
-		bounds.bottom = bounds.top + r->height ;
-		bounds.right = bounds.left + r->width ;
-		wxMacWindowClipper clip( m_peer ) ;
-		RgnHandle updateRgn = NewRgn() ;
-		::ScrollRect( &bounds , dx , dy , updateRgn ) ;
-		InvalWindowRgn( GetControlOwner( m_controlRef )  ,  updateRgn ) ;
-	}
+    {
+        Rect bounds ;
+        GetControlBounds( m_controlRef , &bounds ) ;
+        bounds.left += r->x ;
+        bounds.top += r->y ;
+        bounds.bottom = bounds.top + r->height ;
+        bounds.right = bounds.left + r->width ;
+        wxMacWindowClipper clip( m_peer ) ;
+        RgnHandle updateRgn = NewRgn() ;
+        ::ScrollRect( &bounds , dx , dy , updateRgn ) ;
+        InvalWindowRgn( GetControlOwner( m_controlRef )  ,  updateRgn ) ;
+    }
 }
 
 
@@ -1497,31 +1506,31 @@ OSStatus wxMacControl::SetTabEnabled( SInt16 tabNo , bool enable )
 #ifdef __WXMAC_OSX__
 // snippets from Sketch Sample from Apple :
 
-#define	kGenericRGBProfilePathStr       "/System/Library/ColorSync/Profiles/Generic RGB Profile.icc"
+#define kGenericRGBProfilePathStr       "/System/Library/ColorSync/Profiles/Generic RGB Profile.icc"
 /*
-    This function locates, opens, and returns the profile reference for the calibrated 
+    This function locates, opens, and returns the profile reference for the calibrated
     Generic RGB color space. It is up to the caller to call CMCloseProfile when done
     with the profile reference this function returns.
 */
 CMProfileRef wxMacOpenGenericProfile(void)
 {
     static CMProfileRef cachedRGBProfileRef = NULL;
-    
+
     // we only create the profile reference once
     if (cachedRGBProfileRef == NULL)
     {
-		CMProfileLocation 	loc;
-	
-		loc.locType = cmPathBasedProfile;
-		strcpy(loc.u.pathLoc.path, kGenericRGBProfilePathStr);
-	
-		verify_noerr( CMOpenProfile(&cachedRGBProfileRef, &loc) );
+        CMProfileLocation loc;
+
+        loc.locType = cmPathBasedProfile;
+        strcpy(loc.u.pathLoc.path, kGenericRGBProfilePathStr);
+
+        verify_noerr( CMOpenProfile(&cachedRGBProfileRef, &loc) );
     }
 
     if (cachedRGBProfileRef)
     {
-		// clone the profile reference so that the caller has their own reference, not our cached one
-		CMCloneProfileRef(cachedRGBProfileRef);   
+        // clone the profile reference so that the caller has their own reference, not our cached one
+        CMCloneProfileRef(cachedRGBProfileRef);
     }
 
     return cachedRGBProfileRef;
@@ -1532,31 +1541,41 @@ CMProfileRef wxMacOpenGenericProfile(void)
     not release the returned value unless the caller retains it first. Usually callers
     of this routine will immediately use the returned colorspace with CoreGraphics
     so they typically do not need to retain it themselves.
-    
+
     This function creates the generic RGB color space once and hangs onto it so it can
     return it whenever this function is called.
 */
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
+#define kCGColorSpaceGenericRGB   CFSTR("kCGColorSpaceGenericRGB")
+#endif
+
 CGColorSpaceRef wxMacGetGenericRGBColorSpace()
 {
-    static CGColorSpaceRef genericRGBColorSpace = NULL;
+    static wxMacCFRefHolder<CGColorSpaceRef> genericRGBColorSpace ;
 
 	if (genericRGBColorSpace == NULL)
 	{
-		CMProfileRef genericRGBProfile = wxMacOpenGenericProfile();
-	
-		if (genericRGBProfile)
-		{
-			genericRGBColorSpace = CGColorSpaceCreateWithPlatformColorSpace(genericRGBProfile);
-			wxASSERT_MSG( genericRGBColorSpace != NULL, wxT("couldn't create the generic RGB color space") ) ;
-			
-			// we opened the profile so it is up to us to close it
-			CMCloseProfile(genericRGBProfile); 
-		}
+        if ( UMAGetSystemVersion() >= 0x1040 )
+        {
+            genericRGBColorSpace.Set( CGColorSpaceCreateWithName( kCGColorSpaceGenericRGB ) ) ;
+        }
+        else
+        {
+            CMProfileRef genericRGBProfile = wxMacOpenGenericProfile();
+        
+            if (genericRGBProfile)
+            {
+                genericRGBColorSpace.Set( CGColorSpaceCreateWithPlatformColorSpace(genericRGBProfile) ) ;
+                wxASSERT_MSG( genericRGBColorSpace != NULL, wxT("couldn't create the generic RGB color space") ) ;
+                
+                // we opened the profile so it is up to us to close it
+                CMCloseProfile(genericRGBProfile); 
+            }
+        }
 	}
     return genericRGBColorSpace;
 }
 #endif
 
 #endif // wxUSE_GUI
-

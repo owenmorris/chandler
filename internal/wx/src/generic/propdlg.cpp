@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        propdlg.cpp
+// Name:        src/generic/propdlg.cpp
 // Purpose:     wxPropertySheetDialog
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-03-12
-// RCS-ID:      $Id: propdlg.cpp,v 1.10 2005/09/23 12:53:29 MR Exp $
+// RCS-ID:      $Id: propdlg.cpp,v 1.11 2005/10/21 19:00:41 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -110,9 +110,9 @@ wxBookCtrlBase* wxPropertySheetDialog::CreateBookCtrl()
 {
     int style = wxCLIP_CHILDREN;
 #if defined(__POCKETPC__) && wxUSE_NOTEBOOK
-    style |= wxNB_BOTTOM|wxNB_FLAT;
+    style |= wxBK_BOTTOM|wxNB_FLAT;
 #else
-    style |= wxBC_DEFAULT;
+    style |= wxBK_DEFAULT;
 #endif
     return new wxBookCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, style );
 }

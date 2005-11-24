@@ -4,7 +4,7 @@
 // Author:      Karsten Ballueder
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpext.cpp,v 1.43 2005/10/06 11:14:32 ABX Exp $
+// RCS-ID:      $Id: helpext.cpp,v 1.46 2005/11/07 13:27:08 ABX Exp $
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,6 +39,10 @@
     #include   <unistd.h>
 #endif
 
+#ifdef __WINDOWS__
+#include "wx/msw/mslu.h"
+#endif
+
 #ifdef __WXMSW__
 #include <windows.h>
 #include "wx/msw/winundef.h"
@@ -70,7 +74,8 @@ IMPLEMENT_CLASS(wxExtHelpController, wxHelpControllerBase)
    and a file mapping numerical Section numbers to relative URLS.
 */
 
-wxExtHelpController::wxExtHelpController()
+wxExtHelpController::wxExtHelpController(wxWindow* parentWindow):
+    wxHelpControllerBase(parentWindow)
 {
    m_MapList = (wxList*) NULL;
    m_NumOfEntries = 0;
@@ -233,9 +238,7 @@ bool wxExtHelpController::LoadFile(const wxString& ifile)
       file = ifile;
       if(! wxIsAbsolutePath(file))
       {
-         wxChar* f = wxGetWorkingDirectory();
-         file = f;
-         delete[] f; // wxGetWorkingDirectory returns new memory
+         file = wxGetCwd();
 #ifdef __WXMAC__
          file << ifile;
 #else
@@ -343,7 +346,7 @@ wxExtHelpController::DisplayContents()
    file << m_MapFile << WXEXTHELP_SEPARATOR << contents;
    if(file.Contains(wxT('#')))
       file = file.BeforeLast(wxT('#'));
-   if(contents.Length() && wxFileExists(file))
+   if(contents.length() && wxFileExists(file))
       rc = DisplaySection(CONTENTS_ID);
 
    // if not found, open homemade toc:
@@ -461,4 +464,3 @@ void wxExtHelpController::OnQuit()
 
 
 #endif // wxUSE_HELP
-

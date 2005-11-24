@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.159 2005/10/17 22:08:03 MW Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.162 2005/11/23 08:01:47 vell Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -563,22 +563,18 @@ bool wxToolBar::Realize()
     const bool isVertical = HasFlag(wxTB_VERTICAL);
 
     bool doRemap, doRemapBg, doTransparent;
-#ifdef __WXWINCE__
-    doRemapBg = false;
-    doRemap = false;
-    doTransparent = false;
-#else
-    if (wxSystemOptions::GetOptionInt(wxT("msw.remap")) == 2)
+    doRemapBg = doRemap = doTransparent = false;
+
+#ifndef __WXWINCE__
+    int remapValue = (-1);
+    if (wxSystemOptions::HasOption(wxT("msw.remap")))
+        remapValue = wxSystemOptions::GetOptionInt(wxT("msw.remap"));
+
+    doTransparent = (remapValue == 2);
+    if (!doTransparent)
     {
-        doRemapBg = doRemap = false;
-        doTransparent = true;
-    }
-    else
-    {
-       doRemap = !wxSystemOptions::HasOption(wxT("msw.remap"))
-            || wxSystemOptions::GetOptionInt(wxT("msw.remap")) == 1;
+        doRemap = (remapValue != 0);
         doRemapBg = !doRemap;
-        doTransparent = false;
     }
 #endif
 

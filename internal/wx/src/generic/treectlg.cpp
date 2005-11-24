@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.180 2005/10/17 19:31:38 VZ Exp $
+// Id:          $Id: treectlg.cpp,v 1.182 2005/11/20 15:26:45 JS Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1858,8 +1858,6 @@ void wxGenericTreeCtrl::DoSelectItem(const wxTreeItemId& itemId,
         parent = GetItemParent( parent );
     }
 
-    EnsureVisible( itemId );
-
     // ctrl press
     if (unselect_others)
     {
@@ -1890,6 +1888,11 @@ void wxGenericTreeCtrl::DoSelectItem(const wxTreeItemId& itemId,
         m_current->SetHilight(select);
         RefreshLine( m_current );
     }
+
+    // This can cause idle processing to select the root
+    // if no item is selected, so it must be after the
+    // selection is set
+    EnsureVisible( itemId );
 
     event.SetEventType(wxEVT_COMMAND_TREE_SEL_CHANGED);
     GetEventHandler()->ProcessEvent( event );
@@ -3082,7 +3085,7 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
         wxTreeEvent nevent( command, GetId() );
         nevent.m_item = m_current;
         nevent.SetEventObject(this);
-        nevent.SetPoint(pt);
+        nevent.SetPoint(CalcScrolledPosition(pt));
 
         // by default the dragging is not supported, the user code must
         // explicitly allow the event for it to take place
@@ -3147,7 +3150,7 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
         wxTreeEvent eventEndDrag(wxEVT_COMMAND_TREE_END_DRAG, GetId());
 
         eventEndDrag.m_item = item;
-        eventEndDrag.m_pointDrag = pt;
+        eventEndDrag.m_pointDrag = CalcScrolledPosition(pt);
         eventEndDrag.SetEventObject(this);
 
         (void)GetEventHandler()->ProcessEvent(eventEndDrag);

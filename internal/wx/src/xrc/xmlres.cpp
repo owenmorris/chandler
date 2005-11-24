@@ -3,7 +3,7 @@
 // Purpose:     XRC resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.cpp,v 1.74 2005/09/25 19:59:19 VZ Exp $
+// RCS-ID:      $Id: xmlres.cpp,v 1.75 2005/10/20 17:26:44 JS Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -787,6 +787,7 @@ void wxXmlResourceHandler::AddWindowStyles()
     XRC_ADD_STYLE(wxTAB_TRAVERSAL);
     XRC_ADD_STYLE(wxNO_FULL_REPAINT_ON_RESIZE);
     XRC_ADD_STYLE(wxFULL_REPAINT_ON_RESIZE);
+    XRC_ADD_STYLE(wxALWAYS_SHOW_SB);
     XRC_ADD_STYLE(wxWS_EX_BLOCK_EVENTS);
     XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
 }

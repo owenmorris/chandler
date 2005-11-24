@@ -1324,6 +1324,12 @@ bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolbase)
 
 void wxToolBar::OnPaint(wxPaintEvent& event)
 {
+    if (true)
+    {
+        event.Skip(true);
+        return;
+    }
+
 #if wxMAC_USE_NATIVE_TOOLBAR
     if ( m_macUsesNativeToolbar )
     {
@@ -1410,8 +1416,8 @@ void wxToolBar::OnPaint(wxPaintEvent& event)
         }
 #endif
     }
-#endif
     }
+#endif
 
     event.Skip() ;
 }

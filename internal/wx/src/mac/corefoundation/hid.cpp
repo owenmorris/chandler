@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     11/11/2003
-// RCS-ID:      $Id: hid.cpp,v 1.15 2005/09/23 12:54:31 MR Exp $
+// RCS-ID:      $Id: hid.cpp,v 1.16 2005/11/02 15:21:30 SC Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,8 @@ bool wxHIDDevice::Create (int nClass, int nType, int nDev)
     //Now get the maching services
     io_iterator_t pIterator;
     wxIOCHECK(IOServiceGetMatchingServices(m_pPort, pDictionary, &pIterator), "No Matching HID Services");
-    wxASSERT_MSG(pIterator != 0, wxT("No devices found!"));
+    if(pIterator == 0)
+        return false; // No devices found
 
     //Now we iterate through them
     io_object_t pObject;

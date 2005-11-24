@@ -3,7 +3,7 @@
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by: Mark Newsam (Based on GTK file)
-// RCS-ID:      $Id: spinctrl.cpp,v 1.18 2005/09/23 12:54:11 MR Exp $
+// RCS-ID:      $Id: spinctrl.cpp,v 1.19 2005/11/07 10:15:42 JS Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,6 +50,15 @@ protected:
         if ( m_spin->GetTextValue(&val) )
         {
             m_spin->GetSpinButton()->SetValue(val);
+
+            // If we're already processing a text update from m_spin,
+            // don't send it again, since we could end up recursing
+            // infinitely.
+            if (event.GetId() == m_spin->GetId())
+            {
+                event.Skip();
+                return;
+            }
 
             // Send event that the text was manually changed
             wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, m_spin->GetId());

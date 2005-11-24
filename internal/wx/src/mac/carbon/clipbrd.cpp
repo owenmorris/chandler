@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: clipbrd.cpp,v 1.39 2005/09/23 12:54:02 MR Exp $
+// RCS-ID:      $Id: clipbrd.cpp,v 1.40 2005/11/19 13:05:14 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ void *wxGetClipboardData(wxDataFormat dataFormat, long *len)
     case wxDF_METAFILE :
         break ;
     default:
-        // custom data type
+        // custom datatype
         break ;
     }
 
@@ -224,7 +224,7 @@ bool wxClipboard::AddData( wxDataObject *data )
 
     wxCHECK_MSG( data, false, wxT("data is invalid") );
 
-    // we can only store one wxDataObject
+    // we can only store one wxDataObject 
     Clear();
 
     m_data = data;
@@ -349,59 +349,59 @@ bool wxClipboard::GetData( wxDataObject& data )
 
     if ( m_data )
     {
-      for (size_t i = 0; !transferred && i < formatcount ; i++)
-      {
-          wxDataFormat format = array[i] ;
-          if ( m_data->IsSupported( format ) )
-          {
-            int size = m_data->GetDataSize( format );
-            transferred = true ;
+        for (size_t i = 0; !transferred && i < formatcount ; i++)
+        {
+            wxDataFormat format = array[i] ;
+            if ( m_data->IsSupported( format ) )
+            {
+                int size = m_data->GetDataSize( format );
+                transferred = true ;
 
-            if (size == 0)
-            {
-              data.SetData(format , 0 , 0 ) ;
+                if (size == 0)
+                {
+                    data.SetData(format , 0 , 0 ) ;
+                }
+                else
+                {
+                    char *d = new char[size];
+                    m_data->GetDataHere( format , (void*) d );
+                    data.SetData( format , size , d ) ;
+                    delete[] d ;
+                }
             }
-            else
-            {
-              char *d = new char[size];
-              m_data->GetDataHere( format , (void*) d );
-              data.SetData( format , size , d ) ;
-              delete[] d ;
-            }
-          }
-       }
+        }
     }
-
-    // get formats from wxDataObjects
+    
+    // get formats from wxDataObjects 
     if ( !transferred )
     {
-      for (size_t i = 0; !transferred && i < formatcount ; i++)
-      {
-          wxDataFormat format = array[i] ;
+        for (size_t i = 0; !transferred && i < formatcount ; i++)
+        {
+            wxDataFormat format = array[i] ;
 
-          switch ( format.GetType() )
-          {
-              // NOTE: this is usable for all data types
-              case wxDF_TEXT :
-              case wxDF_UNICODETEXT:
-              case wxDF_OEMTEXT :
-              case wxDF_BITMAP :
-              case wxDF_METAFILE :
-              default :
-              {
-                  long len ;
-                  char* s = (char*)wxGetClipboardData(format, &len );
-                  if ( s )
-                  {
-                    data.SetData( format , len , s ) ;
-                    delete [] s;
+            switch ( format.GetType() )
+            {
+                // NOTE: this is usable for all data types
+                case wxDF_TEXT :
+                case wxDF_UNICODETEXT:
+                case wxDF_OEMTEXT :
+                case wxDF_BITMAP :
+                case wxDF_METAFILE :
+                default :
+                {
+                    long len ;
+                    char* s = (char*)wxGetClipboardData(format, &len );
+                    if ( s )
+                    {
+                        data.SetData( format , len , s ) ;
+                        delete [] s;
 
-                    transferred = true ;
-                  }
-              }
-              break ;
-          }
-       }
+                        transferred = true ;
+                    }
+                }
+                break ;
+            }
+        }
     }
 
     delete[] array ;

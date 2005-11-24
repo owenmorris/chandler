@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.cpp,v 1.19 2005/09/23 12:54:08 MR Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.20 2005/11/20 21:55:15 DS Exp $
 // Copyright:   (c) 2004-2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -201,7 +201,7 @@ DEFINE_ONE_SHOT_HANDLER_GETTER( wxQTMediaWindowEventHandler );
 //
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-IMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend);
+IMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend)
 
 //Time between timer calls - this is the Apple recommondation to the TCL
 //team I believe
@@ -1160,6 +1160,6 @@ OSStatus wxQTMediaWindowEventHandler(EventHandlerCallRef inHandlerCallRef,
 
 //in source file that contains stuff you don't directly use
 #include "wx/html/forcelnk.h"
-FORCE_LINK_ME(basewxmediabackends);
+FORCE_LINK_ME(basewxmediabackends)
 
 #endif //wxUSE_MEDIACTRL

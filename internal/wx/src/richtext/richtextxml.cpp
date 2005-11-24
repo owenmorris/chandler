@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextxml.cpp,v 1.2 2005/10/19 17:00:58 ABX Exp $
+// RCS-ID:      $Id: richtextxml.cpp,v 1.7 2005/10/31 14:27:53 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,13 +16,13 @@
   #pragma hdrstop
 #endif
 
+#if wxUSE_RICHTEXT && wxUSE_XML
+
+#include "wx/richtext/richtextxml.h"
+
 #ifndef WX_PRECOMP
   #include "wx/wx.h"
 #endif
-
-#include "wx/image.h"
-
-#if wxUSE_RICHTEXT
 
 #include "wx/filename.h"
 #include "wx/clipbrd.h"
@@ -31,8 +31,6 @@
 #include "wx/module.h"
 #include "wx/txtstrm.h"
 #include "wx/xml/xml.h"
-
-#include "wx/richtext/richtextxml.h"
 
 IMPLEMENT_DYNAMIC_CLASS(wxRichTextXMLHandler, wxRichTextFileHandler)
 
@@ -257,14 +255,31 @@ wxString wxRichTextXMLHandler::GetText(wxXmlNode *node, const wxString& param, b
     return str1;
 }
 
+// For use with earlier versions of wxWidgets
+#ifndef WXUNUSED_IN_UNICODE
+#if wxUSE_UNICODE
+#define WXUNUSED_IN_UNICODE(x) WXUNUSED(x)
+#else
+#define WXUNUSED_IN_UNICODE(x) x
+#endif
+#endif
+
 // write string to output:
 inline static void OutputString(wxOutputStream& stream, const wxString& str,
                                 wxMBConv *WXUNUSED_IN_UNICODE(convMem) = NULL, wxMBConv *convFile = NULL)
 {
     if (str.empty()) return;
 #if wxUSE_UNICODE
-    const wxWX2MBbuf buf(str.mb_str(convFile ? *convFile : wxConvUTF8));
-    stream.Write((const char*)buf, strlen((const char*)buf));
+    if (convFile)
+    {
+        const wxWX2MBbuf buf(str.mb_str(*convFile));
+        stream.Write((const char*)buf, strlen((const char*)buf));
+    }
+    else
+    {
+        const wxWX2MBbuf buf(str.mb_str(wxConvUTF8));
+        stream.Write((const char*)buf, strlen((const char*)buf));
+    }
 #else
     if ( convFile == NULL )
         stream.Write(str.mb_str(), str.Len());
@@ -330,6 +345,7 @@ static wxOutputStream& operator <<(wxOutputStream& stream, const wxString& s)
     return stream;
 }
 
+#if 0
 static wxOutputStream& operator <<(wxOutputStream& stream, long l)
 {
     wxString str;
@@ -343,6 +359,7 @@ static wxOutputStream& operator <<(wxOutputStream& stream, const char c)
     str.Printf(wxT("%c"), c);
     return stream << str;
 }
+#endif
 
 // Convert a colour to a 6-digit hex string
 static wxString ColourToHexString(const wxColour& col)
@@ -801,4 +818,4 @@ void wxRichTextHTMLHandler::OutputParagraphFormatting(const wxTextAttrEx& WXUNUS
 #endif
 
 #endif
-    // wxUSE_RICHTEXT
+    // wxUSE_RICHTEXT && wxUSE_XML

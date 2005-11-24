@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.10.99
-// RCS-ID:      $Id: init.cpp,v 1.58 2005/06/13 12:19:20 ABX Exp $
+// RCS-ID:      $Id: init.cpp,v 1.59 2005/11/08 01:02:48 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -364,7 +364,10 @@ static void DoCommonPostCleanup()
     FreeConvertedArgs();
 #endif // wxUSE_UNICODE
 
-    // Note: check for memory leaks is now done via wxDebugContextDumpDelayCounter
+    // use Set(NULL) and not Get() to avoid creating a message output object on
+    // demand when we just want to delete it
+    delete wxMessageOutput::Set(NULL);
+
 #if wxUSE_LOG
     // and now delete the last logger as well
     delete wxLog::SetActiveTarget(NULL);

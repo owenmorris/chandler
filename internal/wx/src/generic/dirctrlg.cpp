@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlg.cpp,v 1.132 2005/10/06 11:14:31 ABX Exp $
+// RCS-ID:      $Id: dirctrlg.cpp,v 1.133 2005/10/31 17:10:32 ABX Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -267,7 +267,9 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
 bool wxIsDriveAvailable(const wxString& dirName)
 {
     // FIXME_MGL - this method leads to hang up under Watcom for some reason
-#ifndef __WATCOMC__
+#ifdef __WATCOMC__
+    wxUnusedVar(dirName);
+#else
     if ( dirName.Len() == 3 && dirName[1u] == wxT(':') )
     {
         wxString dirNameLower(dirName.Lower());

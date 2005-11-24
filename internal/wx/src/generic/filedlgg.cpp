@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: filedlgg.cpp,v 1.148 2005/09/26 13:43:21 ABX Exp $
+// RCS-ID:      $Id: filedlgg.cpp,v 1.149 2005/11/20 21:55:13 DS Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1486,7 +1486,7 @@ void wxGenericFileDialog::UpdateControls()
 
 #ifdef USE_GENERIC_FILEDIALOG
 
-IMPLEMENT_DYNAMIC_CLASS(wxFileDialog, wxGenericFileDialog);
+IMPLEMENT_DYNAMIC_CLASS(wxFileDialog, wxGenericFileDialog)
 
 #endif // USE_GENERIC_FILEDIALOG
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: filedlgwce.cpp,v 1.9 2005/09/23 12:55:25 MR Exp $
+// RCS-ID:      $Id: filedlgwce.cpp,v 1.10 2005/11/06 21:41:55 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,16 +114,12 @@ int wxFileDialog::ShowModal()
         parentWindow = wxTheApp->GetTopWindow();
 
     wxString str = wxGetTextFromUser(m_message, _("File"), m_fileName, parentWindow);
-    if (str)
-    {
-        m_fileName = str;
-        m_fileNames.Add(str);
-        return wxID_OK;
-    }
-    else
-    {
+    if (str.empty())
         return wxID_CANCEL;
-    }
+
+    m_fileName = str;
+    m_fileNames.Add(str);
+    return wxID_OK;
 }
 
 void wxFileDialog::GetFilenames(wxArrayString& files) const

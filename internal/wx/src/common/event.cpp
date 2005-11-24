@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp,v 1.169 2005/09/25 20:35:45 VZ Exp $
+// RCS-ID:      $Id: event.cpp,v 1.171 2005/11/19 01:07:43 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1084,7 +1084,10 @@ void wxEvtHandler::AddPendingEvent(wxEvent& event)
     wxENTER_CRIT_SECT( Lock() );
 
     if ( !m_pendingEvents )
+    {
       m_pendingEvents = new wxList;
+      m_pendingEvents->DeleteContents(true);
+    }
 
     m_pendingEvents->Append(eventCopy);
 
@@ -1101,7 +1104,7 @@ void wxEvtHandler::AddPendingEvent(wxEvent& event)
 
     wxLEAVE_CRIT_SECT(*wxPendingEventsLocker);
 
-    // 3) Inform the system that new pending events are somwehere,
+    // 3) Inform the system that new pending events are somewhere,
     //    and that these should be processed in idle time.
     wxWakeUpIdle();
 }
@@ -1126,14 +1129,13 @@ void wxEvtHandler::ProcessPendingEvents()
     {
         wxEvent *event = (wxEvent *)node->GetData();
 
-        m_pendingEvents->Erase(node);
-
         wxLEAVE_CRIT_SECT( Lock() );
 
         ProcessEvent(*event);
-        delete event;
 
         wxENTER_CRIT_SECT( Lock() );
+
+        m_pendingEvents->Erase(node);
 
         if ( !--n )
             break;

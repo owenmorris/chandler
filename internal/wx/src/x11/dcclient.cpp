@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp,v 1.41 2005/09/23 12:56:04 MR Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.42 2005/10/22 12:10:34 JS Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1565,7 +1565,9 @@ void wxWindowDC::DoDrawText( const wxString &text, wxCoord x, wxCoord y )
 
     XSetFont( (Display*) m_display, (GC) m_textGC, xfont->fid );
 #if !wxUSE_NANOX
-    if ((xfont->min_byte1 == 0) && (xfont->max_byte1 == 0))
+    // This may be a test for whether the font is 16-bit, but it also
+    // seems to fail for valid 8-bit fonts too.
+    if (1) // (xfont->min_byte1 == 0) && (xfont->max_byte1 == 0))
 #endif
     {
         XDrawString( (Display*) m_display, (Window) m_window,

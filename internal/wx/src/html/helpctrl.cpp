@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpctrl.cpp,v 1.40 2005/09/23 12:53:51 MR Exp $
+// RCS-ID:      $Id: helpctrl.cpp,v 1.41 2005/10/26 09:32:05 JS Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,8 @@ FORCE_LINK(wxhtml_chm_support)
 
 IMPLEMENT_DYNAMIC_CLASS(wxHtmlHelpController, wxHelpControllerBase)
 
-wxHtmlHelpController::wxHtmlHelpController(int style)
+wxHtmlHelpController::wxHtmlHelpController(int style, wxWindow* parentWindow):
+    wxHelpControllerBase(parentWindow)
 {
     m_helpFrame = NULL;
     m_Config = NULL;
@@ -144,7 +145,7 @@ void wxHtmlHelpController::CreateHelpWindow()
     if (m_Config)
         m_helpFrame->UseConfig(m_Config, m_ConfigRoot);
 
-    m_helpFrame->Create(NULL, wxID_HTML_HELPFRAME, wxEmptyString, m_FrameStyle);
+    m_helpFrame->Create(GetParentWindow(), wxID_HTML_HELPFRAME, wxEmptyString, m_FrameStyle);
     m_helpFrame->SetTitleFormat(m_titleFormat);
 
     m_helpFrame->Show(true);

@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxTextBuffer class
 // Created:     14.11.01
 // Author:      Morten Hanssen, Vadim Zeitlin
-// RCS-ID:      $Id: textbuf.cpp,v 1.13 2005/10/03 16:27:59 ABX Exp $
+// RCS-ID:      $Id: textbuf.cpp,v 1.14 2005/11/10 16:16:05 ABX Exp $
 // Copyright:   (c) 1998-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,9 +248,7 @@ wxTextFileType wxTextBuffer::GuessType() const
                                                     ? wxTextFileType_##t1   \
                                                     : wxTextFileType_##t2
 
-        // Watcom C++ doesn't seem to be able to handle the macro
-        // VS: Watcom 11 doesn't have a problem...
-#if !(defined(__WATCOMC__) && (__WATCOMC__ < 1100))
+#if !defined(__WATCOMC__) || wxCHECK_WATCOM_VERSION(1,4)
         if ( nDos > nUnix )
             return GREATER_OF(Dos, Mac);
         else if ( nDos < nUnix )

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/msw/windows.cpp
-// Purpose:     wxWindow
+// Name:        src/msw/window.cpp
+// Purpose:     wxWindowMSW
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.643 2005/10/11 15:01:50 DS Exp $
+// RCS-ID:      $Id: window.cpp,v 1.649 2005/11/19 01:07:51 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -220,7 +220,7 @@ static void EnsureParentHasControlParentStyle(wxWindow *parent)
        get back to the initial (focused) window: as we do have this style,
        GetNextDlgTabItem() will leave this window and continue in its parent,
        but if the parent doesn't have it, it wouldn't recurse inside it later
-       on and so wouldn't have a chance of getting back to this window neither.
+       on and so wouldn't have a chance of getting back to this window either.
      */
     while ( parent && !parent->IsTopLevel() )
     {
@@ -394,7 +394,7 @@ wxWindow *wxWindowMSW::FindItem(long id) const
     wxControl *item = wxDynamicCastThis(wxControl);
     if ( item )
     {
-        // is it we or one of our "internal" children?
+        // is it us or one of our "internal" children?
         if ( item->GetId() == id
 #ifndef __WXUNIVERSAL__
                 || (item->GetSubcontrols().Index(id) != wxNOT_FOUND)
@@ -513,7 +513,7 @@ wxWindowMSW::~wxWindowMSW()
 #endif // __WXUNIVERSAL__
 
     // VS: destroy children first and _then_ detach *this from its parent.
-    //     If we'd do it the other way around, children wouldn't be able
+    //     If we did it the other way around, children wouldn't be able
     //     find their parent frame (see above).
     DestroyChildren();
 
@@ -665,7 +665,7 @@ bool wxWindowMSW::Enable(bool enable)
 
         if ( enable )
         {
-            // enable the child back unless it had been disabled before us
+            // re-enable the child unless it had been disabled before us
             if ( !m_childrenDisabled || !m_childrenDisabled->Find(child) )
                 child->Enable();
         }
@@ -716,11 +716,6 @@ bool wxWindowMSW::Show(bool show)
     if ( hWnd )
     {
         ::ShowWindow(hWnd, show ? SW_SHOW : SW_HIDE);
-
-        if ( show && IsTopLevel() )
-        {
-            wxBringWindowToTop(hWnd);
-        }
     }
 
     return true;
@@ -737,16 +732,6 @@ void wxWindowMSW::Lower()
 {
     ::SetWindowPos(GetHwnd(), HWND_BOTTOM, 0, 0, 0, 0,
                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-}
-
-void wxWindowMSW::SetTitle( const wxString& title)
-{
-    SetWindowText(GetHwnd(), title.c_str());
-}
-
-wxString wxWindowMSW::GetTitle() const
-{
-    return wxGetWindowText(GetHWND());
 }
 
 void wxWindowMSW::DoCaptureMouse()
@@ -831,9 +816,9 @@ void wxWindowMSW::WarpPointer(int x, int y)
     }
 }
 
-void wxWindowMSW::MSWUpdateUIState(int action)
+void wxWindowMSW::MSWUpdateUIState(int action, int state)
 {
-    // WM_UPDATEUISTATE only appeared in Windows 2000 so it can do us no good
+    // WM_CHANGEUISTATE only appeared in Windows 2000 so it can do us no good
     // to use it on older systems -- and could possibly do some harm
     static int s_needToUpdate = -1;
     if ( s_needToUpdate == -1 )
@@ -845,11 +830,9 @@ void wxWindowMSW::MSWUpdateUIState(int action)
 
     if ( s_needToUpdate )
     {
-        // NB: it doesn't seem to matter what we put in wParam, whether we
-        //     include just one UISF_XXX or both, both are affected, no idea
-        //     why
-        ::SendMessage(GetHwnd(), WM_UPDATEUISTATE,
-                      MAKEWPARAM(action, UISF_HIDEFOCUS | UISF_HIDEACCEL), 0);
+        // we send WM_CHANGEUISTATE so if nothing needs changing then the system
+        // won't send WM_UPDATEUISTATE
+        ::SendMessage(GetHwnd(), WM_CHANGEUISTATE, MAKEWPARAM(action, state), 0);
     }
 }
 
@@ -1056,7 +1039,7 @@ void wxWindowMSW::SubclassWin(WXHWND hWnd)
     }
     else
     {
-        // don't bother restoring it neither: this also makes it easy to
+        // don't bother restoring it either: this also makes it easy to
         // implement IsOfStandardClass() method which returns true for the
         // standard controls and false for the wxWidgets own windows as it can
         // simply check m_oldWndProc
@@ -1137,8 +1120,8 @@ bool wxCheckWindowWndProc(WXHWND hWnd,
         str == wxMDIChildFrameClassNameNoRedraw ||
         str == _T("wxTLWHiddenParent"))
         return true; // Effectively means don't subclass
-    else
-        return false;
+
+    return false;
 #else
     WNDCLASS cls;
     if ( !::GetClassInfo(wxGetInstance(), wxGetWindowClass(hWnd), &cls) )
@@ -1220,7 +1203,7 @@ WXDWORD wxWindowMSW::MSWGetStyle(long flags, WXDWORD *exstyle) const
 
     // using this flag results in very significant reduction in flicker,
     // especially with controls inside the static boxes (as the interior of the
-    // box is not redrawn twice).but sometimes results in redraw problems, so
+    // box is not redrawn twice), but sometimes results in redraw problems, so
     // optionally allow the old code to continue to use it provided a special
     // system option is turned on
     if ( !wxSystemOptions::GetOptionInt(wxT("msw.window.no-clip-children"))
@@ -1464,7 +1447,7 @@ void wxWindowMSW::SetDropTarget(wxDropTarget *pDropTarget)
 }
 #endif // wxUSE_DRAG_AND_DROP
 
-// old style file-manager drag&drop support: we retain the old-style
+// old-style file manager drag&drop support: we retain the old-style
 // DragAcceptFiles in parallel with SetDropTarget.
 void wxWindowMSW::DragAcceptFiles(bool WXUNUSED_IN_WINCE(accept))
 {
@@ -1757,7 +1740,7 @@ void wxWindowMSW::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 
 void wxWindowMSW::DoSetClientSize(int width, int height)
 {
-    // setting the client size is less obvious than it it could have been
+    // setting the client size is less obvious than it could have been
     // because in the result of changing the total size the window scrollbar
     // may [dis]appear and/or its menubar may [un]wrap and so the client size
     // will not be correct as the difference between the total and client size
@@ -1925,7 +1908,7 @@ bool wxWindowMSW::DoPopupMenu(wxMenu *menu, int x, int y)
 #endif
     ::TrackPopupMenu(hMenu, flags, point.x, point.y, 0, hWnd, NULL);
 
-    // we need to do it righ now as otherwise the events are never going to be
+    // we need to do it right now as otherwise the events are never going to be
     // sent to wxCurrentPopupMenu from HandleCommand()
     //
     // note that even eliminating (ugly) wxCurrentPopupMenu global wouldn't
@@ -2066,6 +2049,12 @@ bool wxWindowMSW::MSWProcessMessage(WXMSG* pMsg)
                             else // no default button
 #endif // wxUSE_BUTTON
                             {
+#ifdef __WXWINCE__
+                                wxJoystickEvent event(wxEVT_JOY_BUTTON_DOWN);
+                                event.SetEventObject(this);
+                                if(GetEventHandler()->ProcessEvent(event))
+                                    return true;
+#endif
                                 // this is a quick and dirty test for a text
                                 // control
                                 if ( !(lDlgCode & DLGC_HASSETSEL) )
@@ -2106,9 +2095,8 @@ bool wxWindowMSW::MSWProcessMessage(WXMSG* pMsg)
                 {
                     // as we don't call IsDialogMessage(), which would take of
                     // this by default, we need to manually send this message
-                    // so that controls could change their appearance
-                    // appropriately
-                    MSWUpdateUIState(UIS_CLEAR);
+                    // so that controls can change their UI state if needed
+                    MSWUpdateUIState(UIS_CLEAR, UISF_HIDEFOCUS);
 
                     return true;
                 }
@@ -2123,7 +2111,7 @@ bool wxWindowMSW::MSWProcessMessage(WXMSG* pMsg)
         {
             // ::IsDialogMessage() is broken and may sometimes hang the
             // application by going into an infinite loop, so we try to detect
-            // [some of] the situatations when this may happen and not call it
+            // [some of] the situations when this may happen and not call it
             // then
 
             // assume we can call it by default
@@ -2144,7 +2132,7 @@ bool wxWindowMSW::MSWProcessMessage(WXMSG* pMsg)
 #if !defined(__WXWINCE__)
             if ( ::GetWindowLong(hwndFocus, GWL_EXSTYLE) & WS_EX_CONTROLPARENT )
             {
-                // passimistic by default
+                // pessimistic by default
                 canSafelyCallIsDlgMsg = false;
                 for ( wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
                       node;
@@ -2694,7 +2682,7 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
             {
                 switch ( wParam )
                 {
-                    // we consider these message "not interesting" to OnChar, so
+                    // we consider these messages "not interesting" to OnChar, so
                     // just don't do anything more with them
                     case VK_SHIFT:
                     case VK_CONTROL:
@@ -3547,6 +3535,20 @@ bool wxWindowMSW::HandleKillFocus(WXHWND hwnd)
     event.SetWindow(wxFindWinFromHandle(hwnd));
 
     return GetEventHandler()->ProcessEvent(event);
+}
+
+// ---------------------------------------------------------------------------
+// labels
+// ---------------------------------------------------------------------------
+
+void wxWindowMSW::SetLabel( const wxString& label)
+{
+    SetWindowText(GetHwnd(), label.c_str());
+}
+
+wxString wxWindowMSW::GetLabel() const
+{
+    return wxGetWindowText(GetHWND());
 }
 
 // ---------------------------------------------------------------------------
@@ -4656,7 +4658,7 @@ bool wxWindowMSW::HandleMouseMove(int x, int y, WXUINT flags)
             GenerateMouseLeave();
         }
     }
-#endif // HAVE_TRACKMOUSEEVENT 
+#endif // HAVE_TRACKMOUSEEVENT
 
 #if wxUSE_MOUSEEVENT_HACK
     // Windows often generates mouse events even if mouse position hasn't
@@ -6205,4 +6207,3 @@ void wxWindowMSW::OnInitDialog( wxInitDialogEvent& event )
     event.Skip();
 }
 #endif
-

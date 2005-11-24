@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: prntdlgg.cpp,v 1.84 2005/09/25 19:58:58 VZ Exp $
+// RCS-ID:      $Id: prntdlgg.cpp,v 1.85 2005/11/08 18:10:55 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -61,6 +61,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#if wxUSE_LIBGNOMEPRINT
+#include "wx/html/forcelnk.h"
+FORCE_LINK(gnome_print)
+#endif
 
 // ----------------------------------------------------------------------------
 // global vars

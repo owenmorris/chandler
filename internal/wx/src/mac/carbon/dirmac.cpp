@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     08.12.99
-// RCS-ID:      $Id: dirmac.cpp,v 1.26 2005/09/23 12:54:05 MR Exp $
+// RCS-ID:      $Id: dirmac.cpp,v 1.27 2005/11/05 07:39:46 SC Exp $
 // Copyright:   (c) 1999 Stefan Csomor <csomor@advanced.ch>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -154,10 +154,13 @@ bool wxDirData::Read(wxString *filename)
         UInt32 fetched = 0;
 
         err = FSGetCatalogInfoBulk( m_iterator, 1, &fetched, NULL, kFSCatInfoNodeFlags | kFSCatInfoFinderInfo , &catalogInfo , &fileRef, NULL, &uniname );
+        
+        // expected error codes 
+        
         if ( errFSNoMoreItems == err )
             return false ;
-
-        wxASSERT( noErr == err ) ;
+        if ( afpAccessDenied == err )
+            return false ;
 
         if ( noErr != err )
             break ;

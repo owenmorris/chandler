@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: msgdlg.cpp,v 1.23 2005/09/23 12:54:42 MR Exp $
+// RCS-ID:      $Id: msgdlg.cpp,v 1.24 2005/11/09 20:14:30 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@
 #ifdef __VMS
 #define XtDisplay XTDISPLAY
 #pragma message disable nosimpint
-#include <wx/vms_x_fix.h>
+#include "wx/vms_x_fix.h"
 #endif
 #include <X11/Xlib.h>
 
@@ -267,4 +267,3 @@ int wxMessageDialog::ShowModal()
 
     return m_result;
 }
-

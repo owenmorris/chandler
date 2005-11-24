@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.351 2005/10/01 21:02:18 KH Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.352 2005/11/17 17:42:18 JS Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1488,7 +1488,13 @@ void wxGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
     Combo()->SetFocus();
 
     if (evtHandler)
+    {
+        // When dropping down the menu, a kill focus event
+        // happens after this point, so we can't reset the flag yet.
+#if !defined(__WXGTK20__)
         evtHandler->SetInSetFocus(false);
+#endif
+    }
 }
 
 bool wxGridCellChoiceEditor::EndEdit(int row, int col,
@@ -3815,8 +3821,16 @@ void wxGridWindow::ScrollWindow( int dx, int dy, const wxRect *rect )
 
 void wxGridWindow::OnMouseEvent( wxMouseEvent& event )
 {
+#if 1
+    bool bGrabFocus = (event.ButtonDown(wxMOUSE_BTN_LEFT) && (FindFocus() != this));
+    if (bGrabFocus)
+        SetFocus();
+if (event.ButtonDown(wxMOUSE_BTN_LEFT))
+wxLogDebug( wxT("wxGridWindow-OnMouseEvent [mouse-down: T; grabFocus: %s]"), bGrabFocus ? wxT("T") : wxT("F") );
+#else
     if (event.ButtonDown(wxMOUSE_BTN_LEFT) && FindFocus() != this)
         SetFocus();
+#endif
 
     m_owner->ProcessGridCellMouseEvent( event );
 }
@@ -5475,6 +5489,9 @@ void wxGrid::ChangeCursorMode(CursorMode mode,
 
 void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
 {
+if (event.ButtonDown(wxMOUSE_BTN_LEFT))
+wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
+
     int x, y;
     wxPoint pos( event.GetPosition() );
     CalcUnscrolledPosition( pos.x, pos.y, &x, &y );
@@ -5495,7 +5512,7 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
     {
         //wxLogDebug("pos(%d, %d) coords(%d, %d)", pos.x, pos.y, coords.GetRow(), coords.GetCol());
 
-        // Don't start doing anything until the mouse has been drug at
+        // Don't start doing anything until the mouse has been dragged at
         // least 3 pixels in any direction...
         if (! m_isDragging)
         {
@@ -6710,6 +6727,19 @@ void wxGrid::SetCurrentCell( const wxGridCellCoords& coords )
 
 void wxGrid::HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol, bool clearSelection)
 {
+if (! clearSelection)
+{
+static bool sFirstTime = true;
+
+	if (sFirstTime)
+	{
+		sFirstTime = false;
+		wxLogDebug( wxT("wxGridWindow-HighlightBlock [clearSelection: F] - first time only") );
+	}
+
+clearSelection = true;
+}
+
     // When clearSelection is true the current selection will be cleared if is different
     // from the new selection. This eliminates unnecessary flicker.
     int temp;
@@ -8281,6 +8311,8 @@ void wxGrid::MakeCellVisible( int row, int col )
 
 void wxGrid::SelectCell( int row, int column )
 {
+wxLogDebug( wxT("wxGrid-SelectCell: entered") );
+
     wxGridCellCoords newCellCoords( row, column );
 
     ClearSelection(); 

@@ -2,7 +2,7 @@
 // Name:        src/gtk/combobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: combobox.cpp,v 1.135 2005/10/10 19:09:21 KH Exp $
+// Id:          $Id: combobox.cpp,v 1.136 2005/11/19 01:07:47 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -223,7 +223,7 @@ bool wxComboBox::Create( wxWindow *parent, wxWindowID id, const wxString& value,
 
     // Disable GTK's broken events ...
     gtk_signal_disconnect( GTK_OBJECT(combo->entry), combo->entry_change_id );
-    // ... and add surogate handler.
+    // ... and add surrogate handler.
     combo->entry_change_id = gtk_signal_connect (GTK_OBJECT (combo->entry), "changed",
                   (GtkSignalFunc) gtk_dummy_callback, combo);
 

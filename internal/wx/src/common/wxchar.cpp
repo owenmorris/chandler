@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        wxchar.cpp
+// Name:        src/common/wxchar.cpp
 // Purpose:     wxChar implementation
 // Author:      Ove Kåven
 // Modified by: Ron Lee
 // Created:     09/04/99
-// RCS-ID:      $Id: wxchar.cpp,v 1.106 2005/09/23 12:53:11 MR Exp $
+// RCS-ID:      $Id: wxchar.cpp,v 1.107 2005/11/06 20:44:39 ABX Exp $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1090,7 +1090,7 @@ WXDLLEXPORT size_t wxMbstowcs (wchar_t * out, const char * in, size_t outlen)
     return in - origin;
 }
 
-WXDLLEXPORT size_t	wxWcstombs (char * out, const wchar_t * in, size_t outlen)
+WXDLLEXPORT size_t wxWcstombs (char * out, const wchar_t * in, size_t outlen)
 {
     if (!out)
     {
@@ -1447,8 +1447,8 @@ double   WXDLLEXPORT wxAtof(const wxChar *psz)
     wxString str(psz);
     if (str.ToDouble(& d))
         return d;
-    else
-        return 0.0;
+
+    return 0.0;
 #else
     return atof(wxConvLibc.cWX2MB(psz));
 #endif

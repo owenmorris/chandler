@@ -5,7 +5,7 @@
 // Created:    April 1997
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 2000-1999, Guillermo Rodriguez Garcia
-// RCS_ID:     $Id: socket.cpp,v 1.136 2005/09/25 19:58:47 VZ Exp $
+// RCS_ID:     $Id: socket.cpp,v 1.137 2005/11/19 01:07:43 MR Exp $
 // License:    see wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -762,7 +762,7 @@ bool wxSocketBase::WaitForRead(long seconds, long milliseconds)
     return true;
 
   // Note that GSOCK_INPUT_LOST has to be explicitly passed to
-  // _Wait becuase of the semantics of WaitForRead: a return
+  // _Wait because of the semantics of WaitForRead: a return
   // value of true means that a GSocket_Read call will return
   // immediately, not that there is actually data to read.
 

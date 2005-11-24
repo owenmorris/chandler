@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        mac/toplevel.cpp
+// Name:        src/mac/carbon/toplevel.cpp
 // Purpose:     implements wxTopLevelWindow for Mac
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.157 2005/09/24 21:42:48 VZ Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.160 2005/11/09 09:45:58 SC Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -479,7 +479,7 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
         windowPart = inContent ;
     }
 #endif
-    
+
     if ( window )
     {
         QDGlobalToLocalPoint( UMAGetWindowPort(window ) ,  &windowMouseLocation ) ;
@@ -531,7 +531,7 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
             eventleave.SetEventType( wxEVT_LEAVE_WINDOW );
             g_MacLastWindow->ScreenToClient( &eventleave.m_x, &eventleave.m_y );
             eventleave.SetEventObject( g_MacLastWindow ) ;
-
+            wxevent.SetId( g_MacLastWindow->GetId() ) ;
 #if wxUSE_TOOLTIPS
             wxToolTip::RelayEvent( g_MacLastWindow , eventleave);
 #endif // wxUSE_TOOLTIPS
@@ -543,6 +543,7 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
             evententer.SetEventType( wxEVT_ENTER_WINDOW );
             currentMouseWindow->ScreenToClient( &evententer.m_x, &evententer.m_y );
             evententer.SetEventObject( currentMouseWindow ) ;
+            wxevent.SetId( currentMouseWindow->GetId() ) ;
 #if wxUSE_TOOLTIPS
             wxToolTip::RelayEvent( currentMouseWindow , evententer);
 #endif // wxUSE_TOOLTIPS
@@ -567,6 +568,7 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
         currentMouseWindow->ScreenToClient( &wxevent.m_x , &wxevent.m_y ) ;
 
         wxevent.SetEventObject( currentMouseWindow ) ;
+        wxevent.SetId( currentMouseWindow->GetId() ) ;
 
         // make tooltips current
 
@@ -919,7 +921,7 @@ bool wxTopLevelWindowMac::Create(wxWindow *parent,
     SetName(name);
 
     m_windowId = id == -1 ? NewControlId() : id;
-    wxWindow::SetTitle( title ) ;
+    wxWindow::SetLabel( title ) ;
 
     MacCreateRealWindow( title, pos , size , MacRemoveBordersFromStyle(style) , name ) ;
 
@@ -1206,6 +1208,14 @@ void  wxTopLevelWindowMac::MacCreateRealWindow( const wxString& title,
     // the root control level handleer
     MacInstallEventHandler( (WXWidget) m_peer->GetControlRef() ) ;
 
+#if TARGET_API_MAC_OSX
+    if ( m_macUsesCompositing && m_macWindow != NULL )
+    {
+        if ( GetExtraStyle() & wxFRAME_EX_METAL )
+            MacSetMetalAppearance( true ) ;
+    }
+#endif
+
     // the frame window event handler
     InstallStandardEventHandler( GetWindowEventTarget(MAC_WXHWND(m_macWindow)) ) ;
     MacInstallTopLevelWindowEventHandler() ;
@@ -1290,8 +1300,13 @@ void wxTopLevelWindowMac::MacActivate( long timestamp , bool inIsActivating )
 
 void wxTopLevelWindowMac::SetTitle(const wxString& title)
 {
-    wxWindow::SetTitle( title ) ;
+    wxWindow::SetLabel( title ) ;
     UMASetWTitle( (WindowRef)m_macWindow , title , m_font.GetEncoding() ) ;
+}
+
+wxString wxTopLevelWindowMac::GetTitle() const
+{
+    return wxWindow::GetLabel();
 }
 
 bool wxTopLevelWindowMac::Show(bool show)
@@ -1400,6 +1415,22 @@ bool wxTopLevelWindowMac::ShowFullScreen(bool show, long style)
 bool wxTopLevelWindowMac::IsFullScreen() const
 {
     return m_macFullScreenData != NULL ;
+}
+
+void wxTopLevelWindowMac::SetExtraStyle(long exStyle) 
+{
+    if ( GetExtraStyle() == exStyle )
+        return ;
+    
+    wxTopLevelWindowBase::SetExtraStyle( exStyle ) ;
+#if TARGET_API_MAC_OSX
+    if ( m_macUsesCompositing && m_macWindow != NULL )
+    {
+        bool metal = GetExtraStyle() & wxFRAME_EX_METAL ;
+        if ( MacGetMetalAppearance() != metal )
+            MacSetMetalAppearance( metal ) ;
+    }
+#endif
 }
 
 // we are still using coordinates of the content view, todo switch to structure bounds
@@ -1727,4 +1758,3 @@ static pascal long wxShapedMacWindowDef(short varCode, WindowRef window, SInt16 
 }
 
 // ---------------------------------------------------------------------------
-

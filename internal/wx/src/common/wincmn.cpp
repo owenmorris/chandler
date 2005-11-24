@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        common/window.cpp
+// Name:        src/common/window.cpp
 // Purpose:     common (to all ports) wxWindow functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.241 2005/10/17 22:41:48 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.246 2005/11/20 21:55:11 DS Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,6 +80,19 @@
 
 #if wxUSE_SYSTEM_OPTIONS
     #include "wx/sysopt.h"
+#endif
+
+// For reporting compile- and runtime version of GTK+ in the ctrl+alt+mclick dialog.
+// The gtk includes don't pull any other headers in, at least not on my system - MR
+#ifdef __WXGTK__
+    #ifdef __WXGTK20__
+        #include <gtk/gtkversion.h>
+    #else
+        #include <gtk/gtkfeatures.h>
+    #endif
+    extern const unsigned int gtk_major_version;
+    extern const unsigned int gtk_minor_version;
+    extern const unsigned int gtk_micro_version;
 #endif
 
 // ----------------------------------------------------------------------------
@@ -2280,7 +2293,7 @@ void wxWindowBase::OnMiddleClick( wxMouseEvent& event )
 
         wxMessageBox(wxString::Format(
                                       _T(
-                                        "       wxWidgets Library (%s port)\nVersion %d.%d.%d%s%s, compiled at %s %s\n   Copyright (c) 1995-2005 wxWidgets team"
+                                        "       wxWidgets Library (%s port)\nVersion %d.%d.%d%s%s, compiled at %s %s%s\n   Copyright (c) 1995-2005 wxWidgets team"
                                         ),
                                       port.c_str(),
                                       wxMAJOR_VERSION,
@@ -2297,7 +2310,12 @@ void wxWindowBase::OnMiddleClick( wxMouseEvent& event )
                                       wxEmptyString,
 #endif
                                       __TDATE__,
-                                      __TTIME__
+                                      __TTIME__,
+#ifdef __WXGTK__
+                                      wxString::Format(_T("\nagainst GTK+ %d.%d.%d. Runtime GTK+ version: %d.%d.%d"), GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION, gtk_major_version, gtk_minor_version, gtk_micro_version).c_str()
+#else
+                                      ""
+#endif
                                      ),
                      _T("wxWidgets information"),
                      wxICON_INFORMATION | wxOK,
@@ -2346,8 +2364,8 @@ wxAccessible* wxWindowBase::CreateAccessible()
 
 #if wxUSE_STL
 
-#include <wx/listimpl.cpp>
-WX_DEFINE_LIST(wxWindowList);
+#include "wx/listimpl.cpp"
+WX_DEFINE_LIST(wxWindowList)
 
 #else
 
@@ -2502,7 +2520,7 @@ bool wxWindowBase::TryValidator(wxEvent& wxVALIDATOR_PARAM(event))
 
 bool wxWindowBase::TryParent(wxEvent& event)
 {
-    // carry on up the parent-child hierarchy if the propgation count hasn't
+    // carry on up the parent-child hierarchy if the propagation count hasn't
     // reached zero yet
     if ( event.ShouldPropagate() )
     {

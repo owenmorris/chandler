@@ -4,7 +4,7 @@
 // Author:      Paul Gammans, Roger Gammans
 // Modified by:
 // Created:     11/04/2001
-// RCS-ID:      $Id: gridctrl.cpp,v 1.20 2005/10/17 22:08:00 MW Exp $
+// RCS-ID:      $Id: gridctrl.cpp,v 1.21 2005/11/19 01:07:46 MR Exp $
 // Copyright:   (c) The Computer Surgery (paul@compsurg.co.uk)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@
 
 #if wxUSE_DATETIME
 
-// Enables a grid cell to display a formated date and or time
+// Enables a grid cell to display a formatted date and or time
 
 wxGridCellDateTimeRenderer::wxGridCellDateTimeRenderer(const wxString& outformat, const wxString& informat)
 {
