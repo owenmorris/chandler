@@ -92,3 +92,20 @@
          db_ver_inc_map = {}
  
 
+--- Python-2.4.2/configure	2005-08-07 14:08:42.000000000 -0700
++++ Python-2.4.2-patched/configure	2005-11-24 01:40:56.000000000 -0800
+@@ -10208,6 +10208,14 @@
+   Darwin/[01234567].*)
+     OTHER_LIBTOOL_OPT="-prebind -seg1addr 0x10000000"
+     ;;
++  Darwin/8.*)
++    OTHER_LIBTOOL_OPT=""
++    if test "${with_pydebug+set}" = set; then
++      if test "$with_pydebug" != no; then
++        OTHER_LIBTOOL_OPT="-undefined dynamic_lookup"
++      fi
++    fi
++    ;;
+   Darwin/*)
+     OTHER_LIBTOOL_OPT=""
+     ;;
