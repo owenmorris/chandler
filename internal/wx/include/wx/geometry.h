@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     08/05/99
-// RCS-ID:
+// RCS-ID:      $Id: geometry.h,v 1.40 2005/10/24 18:56:29 ABX Exp $
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,14 +19,6 @@
 #include "wx/utils.h"
 #include "wx/gdicmn.h"
 #include "wx/math.h"
-
-#ifdef __WXMSW__
-    #define wxMulDivInt32( a , b , c ) ::MulDiv( a , b , c )
-#elif defined( __WXMAC__ )
-    #define wxMulDivInt32( a , b , c ) ( (wxInt32) ( ( (wxInt64)(a) * (wxInt64)(b) ) / (wxInt64)(c) ) )
-#else
-    #define wxMulDivInt32( a , b , c ) ((wxInt32)((a)*(((wxDouble)b)/((wxDouble)c))))
-#endif
 
 class WXDLLIMPEXP_BASE wxDataInputStream;
 class WXDLLIMPEXP_BASE wxDataOutputStream;

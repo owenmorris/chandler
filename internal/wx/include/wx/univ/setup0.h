@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.08.00
-// RCS-ID:      $Id: setup0.h,v 1.46 2005/10/09 18:40:25 VZ Exp $
+// RCS-ID:      $Id: setup0.h,v 1.47 2005/10/31 17:14:55 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@
 // Default is 1
 //
 // Recommended setting: 1 for win32 else 0
-#if defined(__WIN32__)
+#if defined(__WIN32__) || defined(__WATCOMC__)
     #define wxUSE_WCHAR_T 1
 #else
     #define wxUSE_WCHAR_T 0

@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        private.h
+// Name:        wx/msw/private.h
 // Purpose:     Private declarations: as this header is only included by
 //              wxWidgets itself, it may contain identifiers which don't start
 //              with "wx".
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: private.h,v 1.148 2005/09/24 23:08:53 VZ Exp $
+// RCS-ID:      $Id: private.h,v 1.149 2005/11/15 07:40:09 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -210,8 +210,8 @@ struct WinStruct : public T
 
 #if wxUSE_GUI
 
-#include <wx/gdicmn.h>
-#include <wx/colour.h>
+#include "wx/gdicmn.h"
+#include "wx/colour.h"
 
 // make conversion from wxColour and COLORREF a bit less painful
 inline COLORREF wxColourToRGB(const wxColour& c)

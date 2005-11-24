@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        bmpbuttn.h
+// Name:        wx/msw/bmpbuttn.h
 // Purpose:     wxBitmapButton class
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: bmpbuttn.h,v 1.19 2005/09/23 12:50:06 MR Exp $
+// RCS-ID:      $Id: bmpbuttn.h,v 1.22 2005/11/03 19:38:08 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,13 +16,11 @@
 #include "wx/bitmap.h"
 #include "wx/brush.h"
 
-#define wxDEFAULT_BUTTON_MARGIN 4
-
-class WXDLLEXPORT wxBitmapButton: public wxBitmapButtonBase
+class WXDLLEXPORT wxBitmapButton : public wxBitmapButtonBase
 {
 public:
-    wxBitmapButton()
-        { m_marginX = m_marginY = wxDEFAULT_BUTTON_MARGIN; }
+    wxBitmapButton() { }
+
     wxBitmapButton(wxWindow *parent,
                    wxWindowID id,
                    const wxBitmap& bitmap,
@@ -53,10 +51,15 @@ public:
     virtual void DrawButtonDisable( WXHDC dc, int left, int top, int right, int bottom, bool with_marg );
 
 protected:
+    // reimplement some base class virtuals
     virtual wxSize DoGetBestSize() const;
+    virtual void OnSetBitmap();
 
     // invalidate m_brushDisabled when system colours change
     void OnSysColourChanged(wxSysColourChangedEvent& event);
+
+    // change the currently bitmap if we have a hover one
+    void OnMouseEnterOrLeave(wxMouseEvent& event);
 
 
     // the brush we use to draw disabled buttons
@@ -67,5 +70,4 @@ protected:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxBitmapButton)
 };
 
-#endif
-    // _WX_BMPBUTTN_H_
+#endif // _WX_BMPBUTTN_H_

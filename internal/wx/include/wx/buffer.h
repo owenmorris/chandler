@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h,v 1.35 2005/09/24 21:28:15 VZ Exp $
+// RCS-ID:      $Id: buffer.h,v 1.36 2005/10/29 17:46:12 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,13 +124,13 @@ class wxMemoryBufferData
 {
 public:
     // the initial size and also the size added by ResizeIfNeeded()
-    enum { BLOCK_SIZE = 1024 };
+    enum { DefBufSize = 1024 };
 
     friend class wxMemoryBuffer;
 
     // everyting is private as it can only be used by wxMemoryBuffer
 private:
-    wxMemoryBufferData(size_t size = wxMemoryBufferData::BLOCK_SIZE)
+    wxMemoryBufferData(size_t size = wxMemoryBufferData::DefBufSize)
         : m_data(size ? malloc(size) : NULL), m_size(size), m_len(0), m_ref(0)
     {
     }
@@ -142,13 +142,13 @@ private:
         if (newSize > m_size)
         {
             void *dataOld = m_data;
-            m_data = realloc(m_data, newSize + wxMemoryBufferData::BLOCK_SIZE);
+            m_data = realloc(m_data, newSize + wxMemoryBufferData::DefBufSize);
             if ( !m_data )
             {
                 free(dataOld);
             }
 
-            m_size = newSize + wxMemoryBufferData::BLOCK_SIZE;
+            m_size = newSize + wxMemoryBufferData::DefBufSize;
         }
     }
 
@@ -181,7 +181,7 @@ class wxMemoryBuffer
 {
 public:
     // ctor and dtor
-    wxMemoryBuffer(size_t size = wxMemoryBufferData::BLOCK_SIZE)
+    wxMemoryBuffer(size_t size = wxMemoryBufferData::DefBufSize)
     {
         m_bufdata = new wxMemoryBufferData(size);
         m_bufdata->IncRef();

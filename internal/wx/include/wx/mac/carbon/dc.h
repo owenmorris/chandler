@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dc.h,v 1.13 2005/09/23 12:49:31 MR Exp $
+// RCS-ID:      $Id: dc.h,v 1.14 2005/11/06 07:23:14 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -284,15 +284,17 @@ protected:
   protected:
     //begin wxmac
     // Variables used for scaling
-    double       m_mm_to_pix_x,m_mm_to_pix_y;
+    double       m_mm_to_pix_x, m_mm_to_pix_y;
     // not yet used
-    bool         m_needComputeScaleX,m_needComputeScaleY;
+    bool         m_needComputeScaleX, m_needComputeScaleY;
+#if !wxMAC_USE_CORE_GRAPHICS
     // If un-scrolled is non-zero or d.o. changes with scrolling.
     // Set using SetInternalDeviceOrigin().
-    long         m_internalDeviceOriginX,m_internalDeviceOriginY;
+    long         m_internalDeviceOriginX, m_internalDeviceOriginY;
+#endif
      // To be set by external classes such as wxScrolledWindow
      // using SetDeviceOrigin()
-    long         m_externalDeviceOriginX,m_externalDeviceOriginY;
+    long         m_externalDeviceOriginX, m_externalDeviceOriginY;
 
     // Begin implementation for Mac
     public:

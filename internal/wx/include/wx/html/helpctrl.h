@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpctrl.h,v 1.32 2005/09/23 12:49:25 MR Exp $
+// RCS-ID:      $Id: helpctrl.h,v 1.33 2005/10/26 09:31:57 JS Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ class WXDLLIMPEXP_HTML wxHtmlHelpController : public wxHelpControllerBase // wxE
     DECLARE_DYNAMIC_CLASS(wxHtmlHelpController)
 
 public:
-    wxHtmlHelpController(int style = wxHF_DEFAULT_STYLE);
+    wxHtmlHelpController(int style = wxHF_DEFAULT_STYLE, wxWindow* parentWindow = NULL);
     virtual ~wxHtmlHelpController();
 
     void SetTitleFormat(const wxString& format);

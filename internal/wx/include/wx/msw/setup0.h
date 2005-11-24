@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup0.h,v 1.214 2005/10/09 18:40:23 VZ Exp $
+// RCS-ID:      $Id: setup0.h,v 1.215 2005/10/19 12:52:08 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -860,6 +860,14 @@
 //
 // Recommended setting: 1 if you intend to use OpenGL, 0 otherwise
 #define wxUSE_GLCANVAS       0
+
+// wxRichTextCtrl allows editing of styled text.
+//
+// Default is 1.
+//
+// Recommended setting: 1, set to 0 if you want compile a
+// smaller library.
+#define wxUSE_RICHTEXT       1
 
 // ----------------------------------------------------------------------------
 // Data transfer

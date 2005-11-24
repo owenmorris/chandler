@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h,v 1.54 2005/09/23 12:48:49 MR Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.63 2005/11/10 12:03:34 ABX Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -157,13 +157,10 @@ public:
     // OSAF - added
     virtual void ForceRedraw( void );
 
-    /*
-       for now we already have them in wxWindow, but this is wrong: these
-       methods really only make sense for wxTopLevelWindow!
-
+    // the title of the top level window: the text which the
+    // window shows usually at the top of the frame/dialog in dedicated bar
     virtual void SetTitle(const wxString& title) = 0;
     virtual wxString GetTitle() const = 0;
-     */
 
     // Set the shape of the window to the given region.
     // Returns true if the platform supports this feature (and the

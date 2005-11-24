@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.h,v 1.129 2005/10/03 16:25:49 ABX Exp $
+// RCS-ID:      $Id: filefn.h,v 1.132 2005/11/10 16:15:50 ABX Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -274,16 +274,17 @@ enum wxFileKind
         #endif
     #endif
 
-    // types: notice that Watcom is the only compiler to have a wide char
-    // version of struct stat as well as a wide char stat function variant
+    // Types: Notice that Watcom is the only compiler to have a wide char
+    // version of struct stat as well as a wide char stat function variant.
+    // This was droped since OW 1.4 "for consistency across platforms".
     #if wxHAS_HUGE_FILES
-        #if wxUSE_UNICODE && defined(__WATCOMC__)
+        #if wxUSE_UNICODE && wxONLY_WATCOM_EARLIER_THAN(1,4)
             #define   wxStructStat struct _wstati64
         #else
             #define   wxStructStat struct _stati64
         #endif
     #else
-        #if wxUSE_UNICODE && defined(__WATCOMC__)
+        #if wxUSE_UNICODE && wxONLY_WATCOM_EARLIER_THAN(1,4)
             #define   wxStructStat struct _wstat
         #else
             #define   wxStructStat struct _stat
@@ -438,13 +439,15 @@ WXDLLIMPEXP_BASE bool wxRemoveFile(const wxString& file);
 WXDLLIMPEXP_BASE bool wxRenameFile(const wxString& file1, const wxString& file2);
 
 // Get current working directory.
+#if WXWIN_COMPATIBILITY_2_6
 // If buf is NULL, allocates space using new, else
 // copies into buf.
 // IMPORTANT NOTE getcwd is know not to work under some releases
 // of Win32s 1.3, according to MS release notes!
-WXDLLIMPEXP_BASE wxChar* wxGetWorkingDirectory(wxChar *buf = (wxChar *) NULL, int sz = 1000);
+wxDEPRECATED( WXDLLIMPEXP_BASE wxChar* wxGetWorkingDirectory(wxChar *buf = (wxChar *) NULL, int sz = 1000) );
 // new and preferred version of wxGetWorkingDirectory
 // NB: can't have the same name because of overloading ambiguity
+#endif // WXWIN_COMPATIBILITY_2_6
 WXDLLIMPEXP_BASE wxString wxGetCwd();
 
 // Set working directory

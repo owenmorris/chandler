@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextctrl.h,v 1.2 2005/10/19 17:00:53 ABX Exp $
+// RCS-ID:      $Id: richtextctrl.h,v 1.8 2005/10/28 14:23:59 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,19 +12,21 @@
 #ifndef _WX_RICHTEXTCTRL_H_
 #define _WX_RICHTEXTCTRL_H_
 
-#include "wx/textctrl.h"
+#include "wx/richtext/richtextbuffer.h"
 
 #if wxUSE_RICHTEXT
 
 #include "wx/scrolwin.h"
 #include "wx/caret.h"
 
-#include "wx/richtext/richtextbuffer.h"
-
 #if wxCHECK_VERSION(2,7,0)
 #define wxRICHTEXT_DERIVES_FROM_TEXTCTRLBASE 0
 #else
 #define wxRICHTEXT_DERIVES_FROM_TEXTCTRLBASE 0
+#endif
+
+#if wxRICHTEXT_DERIVES_FROM_TEXTCTRLBASE
+#include "wx/textctrl.h"
 #endif
 
 /*!
@@ -57,6 +59,10 @@
 #define wxRICHTEXT_DEFAULT_TYPE_COLOUR wxColour(0, 0, 200)
 #define wxRICHTEXT_DEFAULT_FOCUS_RECT_COLOUR wxColour(100, 80, 80)
 #define wxRICHTEXT_DEFAULT_CARET_WIDTH 2
+// Minimum buffer size before delayed layout kicks in
+#define wxRICHTEXT_DEFAULT_DELAYED_LAYOUT_THRESHOLD 20000
+// Milliseconds before layout occurs after resize
+#define wxRICHTEXT_DEFAULT_LAYOUT_INTERVAL 50
 
 /*!
  * Forward declarations
@@ -135,6 +141,12 @@ public:
 
     /// Set filename
     void SetFilename(const wxString& filename) { m_filename = filename; }
+
+    /// Set the threshold in character positions for doing layout optimization during sizing
+    void SetDelayedLayoutThreshold(long threshold) { m_delayedLayoutThreshold = threshold; }
+
+    /// Get the threshold in character positions for doing layout optimization during sizing
+    long GetDelayedLayoutThreshold() const { return m_delayedLayoutThreshold; }
 
 // Operations
 
@@ -221,7 +233,7 @@ public:
     virtual void Freeze();
 
     /// Call Thaw to refresh
-    virtual void Thaw(bool refresh = true);
+    virtual void Thaw();
 
     /// Call Thaw to refresh
     virtual bool IsFrozen() const { return m_freezeCount > 0; }
@@ -373,7 +385,7 @@ public:
 
     /// Layout the buffer: which we must do before certain operations, such as
     /// setting the caret position.
-    virtual bool Layout();
+    virtual bool LayoutContent(bool onlyVisibleRect = false);
 
     /// Move the caret to the given character position
     virtual bool MoveCaret(long pos, bool showAtLineStart = false);
@@ -555,16 +567,26 @@ public:
     void OnSetFocus(wxFocusEvent& event);
     void OnKillFocus(wxFocusEvent& event);
 
+    /// Idle-time processing
+    void OnIdle(wxIdleEvent& event);
+
+    /// Scrolling
+    void OnScroll(wxScrollWinEvent& event);
+
 // Implementation
+
+#if wxRICHTEXT_DERIVES_FROM_TEXTCTRLBASE
+     WX_FORWARD_TO_SCROLL_HELPER()
+#endif
 
     /// Set font, and also default attributes
     virtual bool SetFont(const wxFont& font);
 
     /// Set up scrollbars, e.g. after a resize
-    virtual void SetupScrollbars();
+    virtual void SetupScrollbars(bool atTop = false);
 
     /// Keyboard navigation
-    virtual bool Navigate(int keyCode, int flags);
+    virtual bool KeyboardNavigate(int keyCode, int flags);
 
     /// Paint the background
     virtual void PaintBackground(wxDC& dc);
@@ -633,10 +655,10 @@ public:
     bool DeleteSelectedContent(long* newPos= NULL);
 
     /// Transform logical to physical
-    wxPoint GetPhysicalPoint(const wxPoint& ptLogical);
+    wxPoint GetPhysicalPoint(const wxPoint& ptLogical) const;
 
     /// Transform physical to logical
-    wxPoint GetLogicalPoint(const wxPoint& ptPhysical);
+    wxPoint GetLogicalPoint(const wxPoint& ptPhysical) const;
 
     /// Finds the caret position for the next word. Direction
     /// is 1 (forward) or -1 (backwards).
@@ -644,6 +666,9 @@ public:
 
     /// Is the given position visible on the screen?
     bool IsPositionVisible(long pos) const;
+
+    /// Returns the first visible position in the current view
+    long GetFirstVisiblePosition() const;
 
 // Overrides
 
@@ -689,6 +714,14 @@ private:
 
     /// Start position for drag
     wxPoint                 m_dragStart;
+
+    /// Do we need full layout in idle?
+    bool                    m_fullLayoutRequired;
+    wxLongLong              m_fullLayoutTime;
+    long                    m_fullLayoutSavedPosition;
+
+    /// Threshold for doing delayed layout
+    long                    m_delayedLayoutThreshold;
 };
 
 /*!

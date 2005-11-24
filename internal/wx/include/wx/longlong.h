@@ -5,7 +5,7 @@
 // Author:      Jeffrey C. Ollie <jeff@ollie.clive.ia.us>, Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: longlong.h,v 1.67 2005/09/25 20:23:21 VZ Exp $
+// RCS-ID:      $Id: longlong.h,v 1.68 2005/11/19 01:07:38 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ public:
         // convert to native long long
     wxLongLong_t GetValue() const { return m_ll; }
 
-        // convert to long with range checking in the debug mode (only!)
+        // convert to long with range checking in debug mode (only!)
     long ToLong() const
     {
         wxASSERT_MSG( (m_ll >= LONG_MIN) && (m_ll <= LONG_MAX),
@@ -350,7 +350,7 @@ public:
         // convert to native ulong long
     wxULongLong_t GetValue() const { return m_ll; }
 
-        // convert to ulong with range checking in the debug mode (only!)
+        // convert to ulong with range checking in debug mode (only!)
     unsigned long ToULong() const
     {
         wxASSERT_MSG( m_ll <= LONG_MAX,
@@ -580,7 +580,7 @@ public:
         return *this;
     }
 
-        // convert to long with range checking in the debug mode (only!)
+        // convert to long with range checking in debug mode (only!)
     long ToLong() const
     {
         wxASSERT_MSG( (m_hi == 0l) || (m_hi == -1l),
@@ -778,7 +778,7 @@ public:
         // get low part
     unsigned long GetLo() const { return m_lo; }
 
-        // convert to long with range checking in the debug mode (only!)
+        // convert to long with range checking in debug mode (only!)
     unsigned long ToULong() const
     {
         wxASSERT_MSG( m_hi == 0ul,

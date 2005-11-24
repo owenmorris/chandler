@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextxml.h,v 1.2 2005/10/19 17:00:53 ABX Exp $
+// RCS-ID:      $Id: richtextxml.h,v 1.4 2005/10/31 14:27:50 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,11 +16,9 @@
  * Includes
  */
 
-#include "wx/defs.h"
-
-#if wxUSE_RICHTEXT
-
 #include "wx/richtext/richtextbuffer.h"
+
+#if wxUSE_RICHTEXT && wxUSE_XML
 
 /*!
  * wxRichTextXMLHandler
@@ -108,7 +106,7 @@ protected:
 };
 
 #endif
-    // wxUSE_RICHTEXT
+    // wxUSE_RICHTEXT && wxUSE_XML
 
 #endif
     // _WX_RICHTEXTXML_H_

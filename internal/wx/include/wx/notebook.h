@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.02.01
-// RCS-ID:      $Id: notebook.h,v 1.54 2005/09/23 12:48:45 MR Exp $
+// RCS-ID:      $Id: notebook.h,v 1.55 2005/11/10 11:24:19 VZ Exp $
 // Copyright:   (c) 1996-2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -115,8 +115,15 @@ public:
     {
     }
 
+    wxNotebookEvent(const wxNotebookEvent& event)
+        : wxBookCtrlBaseEvent(event)
+    {
+    }
+
+    virtual wxEvent *Clone() const { return new wxNotebookEvent(*this); }
+
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxNotebookEvent)
+    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxNotebookEvent)
 };
 
 BEGIN_DECLARE_EVENT_TYPES()

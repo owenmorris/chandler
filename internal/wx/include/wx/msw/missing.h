@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.56 2005/09/27 11:08:34 VZ Exp $
+// RCS-ID:      $Id: missing.h,v 1.57 2005/10/23 10:53:12 JS Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,10 @@
 // Needed by toplevel.cpp
 #ifndef WM_UPDATEUISTATE
     #define WM_UPDATEUISTATE    0x0128
+#endif
+
+#ifndef WM_CHANGEUISTATE
+    #define WM_CHANGEUISTATE    0x0127
 #endif
 
 #ifndef WM_PRINTCLIENT

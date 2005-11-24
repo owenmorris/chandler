@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Stefan Csomor
 // Created:     1998-01-01
-// RCS-ID:      $Id: setup0.h,v 1.70 2005/10/09 18:40:21 VZ Exp $
+// RCS-ID:      $Id: setup0.h,v 1.71 2005/10/19 12:52:05 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -861,6 +861,14 @@
 //
 // Recommended setting: 1 if you intend to use OpenGL, 0 otherwise
 #define wxUSE_GLCANVAS       0
+
+// wxRichTextCtrl allows editing of styled text.
+//
+// Default is 1.
+//
+// Recommended setting: 1, set to 0 if you want compile a
+// smaller library.
+#define wxUSE_RICHTEXT       1
 
 // ----------------------------------------------------------------------------
 // Data transfer

@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: app.h,v 1.130 2005/09/25 19:58:30 VZ Exp $
+// RCS-ID:      $Id: app.h,v 1.131 2005/11/19 01:07:37 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -540,11 +540,11 @@ protected:
         Yes
     } m_exitOnFrameDelete;
 
-    // true if the apps whats to use the best visual on systems where
+    // true if the app wants to use the best visual on systems where
     // more than one are available (Sun, SGI, XFree86 4.0 ?)
     bool m_useBestVisual;
 
-    // does any of our windows has focus?
+    // does any of our windows have focus?
     bool m_isActive;
 
 
@@ -635,7 +635,7 @@ public:
 #define IMPLEMENT_WXWIN_MAIN_CONSOLE \
         int main(int argc, char **argv) { return wxEntry(argc, argv); }
 
-// port-specific header could have defined it already in some special wau
+// port-specific header could have defined it already in some special way
 #ifndef IMPLEMENT_WXWIN_MAIN
     #define IMPLEMENT_WXWIN_MAIN IMPLEMENT_WXWIN_MAIN_CONSOLE
 #endif // defined(IMPLEMENT_WXWIN_MAIN)

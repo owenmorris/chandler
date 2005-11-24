@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        font.h
+// Name:        wx/msw/font.h
 // Purpose:     wxFont class
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.h,v 1.31 2005/09/23 12:50:10 MR Exp $
+// RCS-ID:      $Id: font.h,v 1.32 2005/11/15 07:40:09 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef _WX_FONT_H_
 #define _WX_FONT_H_
 
-#include <wx/gdicmn.h>
+#include "wx/gdicmn.h"
 
 // ----------------------------------------------------------------------------
 // wxFont
@@ -154,5 +154,4 @@ private:
     DECLARE_DYNAMIC_CLASS(wxFont)
 };
 
-#endif
-    // _WX_FONT_H_
+#endif // _WX_FONT_H_

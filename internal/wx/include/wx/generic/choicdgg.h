@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     01/02/97
-// RCS-ID:      $Id: choicdgg.h,v 1.35 2005/09/23 12:49:03 MR Exp $
+// RCS-ID:      $Id: choicdgg.h,v 1.39 2005/11/02 13:59:40 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 #include "wx/dynarray.h"
 #include "wx/dialog.h"
 
-class WXDLLEXPORT wxListBox;
+class WXDLLEXPORT wxListBoxBase;
 
 // ----------------------------------------------------------------------------
 // some (ugly...) constants
@@ -80,7 +80,11 @@ public:
                 long styleLbox = wxLB_ALWAYS_SB);
 
 protected:
-    wxListBox  *m_listbox;
+    wxListBoxBase *m_listbox;
+
+    virtual wxListBoxBase *CreateList(int n,
+                                      const wxString *choices,
+                                      long styleLbox);
 
     DECLARE_NO_COPY_CLASS(wxAnyChoiceDialog)
 };
@@ -138,11 +142,18 @@ public:
 
     // implementation from now on
     void OnOK(wxCommandEvent& event);
+#ifndef __SMARTPHONE__
     void OnListBoxDClick(wxCommandEvent& event);
+#endif
+#ifdef __WXWINCE__
+    void OnJoystickButtonDown(wxJoystickEvent& event);
+#endif
 
 protected:
     int         m_selection;
     wxString    m_stringSelection;
+
+    void DoChoice();
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxSingleChoiceDialog)
@@ -199,6 +210,12 @@ public:
     virtual bool TransferDataFromWindow();
 
 protected:
+#if wxUSE_CHECKLISTBOX
+    virtual wxListBoxBase *CreateList(int n,
+                                      const wxString *choices,
+                                      long styleLbox);
+#endif // wxUSE_CHECKLISTBOX
+
     wxArrayInt m_selections;
 
 private:
@@ -301,4 +318,3 @@ WXDLLEXPORT size_t wxGetMultipleChoices(wxArrayInt& selections,
                                         int height = wxCHOICE_HEIGHT);
 
 #endif // __CHOICEDLGH_G__
-

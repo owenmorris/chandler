@@ -4,7 +4,7 @@
  Author:      Vadim Zeitlin
  Modified by:
  Created:
- RCS-ID:      $Id: gccpriv.h,v 1.20 2005/05/19 17:03:07 MW Exp $
+ RCS-ID:      $Id: gccpriv.h,v 1.21 2005/11/10 16:15:56 ABX Exp $
  Copyright:   (c) Vadim Zeitlin
  Licence:     wxWindows Licence
 */
@@ -32,7 +32,7 @@
     #endif
 #endif
 
-#if (defined(__WATCOMC__) && __WATCOMC__ >= 1200)
+#if wxCHECK_WATCOM_VERSION(1,0)
     #define HAVE_W32API_H
 #endif
 

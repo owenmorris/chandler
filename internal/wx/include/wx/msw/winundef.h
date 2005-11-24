@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.05.99
-// RCS-ID:      $Id: winundef.h,v 1.37 2005/09/02 15:54:06 VS Exp $
+// RCS-ID:      $Id: winundef.h,v 1.38 2005/10/31 19:35:41 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,6 +42,40 @@
         #endif
     }
 #endif
+
+// CreateFont
+
+#ifdef CreateFont
+    #undef CreateFont
+
+    inline HFONT CreateFont(int height,
+                            int width,
+                            int escapement,
+                            int orientation,
+                            int weight,
+                            DWORD italic,
+                            DWORD underline,
+                            DWORD strikeout,
+                            DWORD charset,
+                            DWORD outprecision,
+                            DWORD clipprecision,
+                            DWORD quality,
+                            DWORD family,
+                            LPCTSTR facename)
+    {
+        #ifdef _UNICODE
+            return CreateFontW(height, width, escapement, orientation,
+                               weight, italic, underline, strikeout, charset,
+                               outprecision, clipprecision, quality,
+                               family, facename);
+        #else
+            return CreateFontA(height, width, escapement, orientation,
+                               weight, italic, underline, strikeout, charset,
+                               outprecision, clipprecision, quality,
+                               family, facename);
+        #endif
+    }
+#endif // CreateFont
 
 // CreateWindow
 

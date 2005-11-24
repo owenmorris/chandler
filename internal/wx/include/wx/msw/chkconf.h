@@ -4,7 +4,7 @@
  * Author:      Julian Smart
  * Modified by:
  * Created:     01/02/97
- * RCS-ID:      $Id: chkconf.h,v 1.23 2005/09/03 23:30:48 VZ Exp $
+ * RCS-ID:      $Id: chkconf.h,v 1.25 2005/11/23 13:53:22 ABX Exp $
  * Copyright:   (c) Julian Smart
  * Licence:     wxWindows licence
  */
@@ -37,7 +37,8 @@
 #endif
 
 #ifndef wxUSE_NORLANDER_HEADERS
-#   if (defined(__WATCOMC__) && (__WATCOMC__ >= 1200)) || defined(__WINE__) || ((defined(__MINGW32__) || defined(__CYGWIN__)) && ((__GNUC__>2) ||((__GNUC__==2) && (__GNUC_MINOR__>=95))))
+#   if ( wxCHECK_WATCOM_VERSION(1,0) || defined(__WINE__) ) || \
+       ((defined(__MINGW32__) || defined(__CYGWIN__)) && ((__GNUC__>2) ||((__GNUC__==2) && (__GNUC_MINOR__>=95))))
 #       define wxUSE_NORLANDER_HEADERS 1
 #   else
 #       define wxUSE_NORLANDER_HEADERS 0
@@ -167,12 +168,6 @@
 #   define wxUSE_DEBUG_NEW_ALWAYS 0
 #endif
 
-/* Early Watcom version don't have good enough wide char support */
-#if defined(__WXMSW__) && (defined(__WATCOMC__) && __WATCOMC__ < 1200)
-#   undef wxUSE_WCHAR_T
-#   define wxUSE_WCHAR_T 0
-#endif
-
 /* DMC++ doesn't have definitions for date picker control, so use generic control
  */
 #ifdef __DMC__
@@ -229,6 +224,7 @@
 #        ifdef wxABORT_ON_CONFIG_ERROR
 #            error "wxUSE_MS_HTML_HELP requires wxUSE_DYNAMIC_LOADER."
 #        else
+#            undef wxUSE_MS_HTML_HELP
 #            define wxUSE_MS_HTML_HELP 0
 #        endif
 #    endif
@@ -243,4 +239,3 @@
 #endif  /* wxUSE_DYNAMIC_LOADER */
 
 #endif /* _WX_MSW_CHKCONF_H_ */
-

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     16/04/2000
-// RCS-ID:      $Id: helpchm.h,v 1.11 2005/09/23 12:50:12 MR Exp $
+// RCS-ID:      $Id: helpchm.h,v 1.12 2005/10/26 09:31:59 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 class WXDLLEXPORT wxCHMHelpController : public wxHelpControllerBase
 {
 public:
-    wxCHMHelpController() { }
+    wxCHMHelpController(wxWindow* parentWindow = NULL): wxHelpControllerBase(parentWindow) { }
     virtual ~wxCHMHelpController();
 
     // Must call this to set the filename

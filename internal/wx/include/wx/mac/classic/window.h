@@ -69,8 +69,8 @@ public:
 
 
     // implement base class pure virtuals
-    virtual void SetTitle( const wxString& title);
-    virtual wxString GetTitle() const;
+    virtual void SetLabel( const wxString& title);
+    virtual wxString GetLabel() const;
 
     virtual void Raise();
     virtual void Lower();

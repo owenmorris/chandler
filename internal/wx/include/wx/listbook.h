@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: listbook.h,v 1.13 2005/09/23 12:48:43 MR Exp $
+// RCS-ID:      $Id: listbook.h,v 1.15 2005/11/10 12:02:00 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,24 +16,10 @@
 
 #if wxUSE_LISTBOOK
 
-// this can be defined to put a static line as separator between the list
-// control and the page area; but I think it finally looks better without it so
-// it is not enabled by default
-#define wxUSE_LINE_IN_LISTBOOK 0
-
-#if !wxUSE_STATLINE
-    #undef wxUSE_LINE_IN_LISTBOOK
-    #define wxUSE_LINE_IN_LISTBOOK 0
-#endif
-
 #include "wx/bookctrl.h"
 
 class WXDLLEXPORT wxListView;
 class WXDLLEXPORT wxListEvent;
-
-#if wxUSE_LINE_IN_LISTBOOK
-class WXDLLEXPORT wxStaticLine;
-#endif // wxUSE_LINE_IN_LISTBOOK
 
 // ----------------------------------------------------------------------------
 // wxListbook
@@ -82,33 +68,19 @@ public:
     virtual int SetSelection(size_t n);
     virtual void SetImageList(wxImageList *imageList);
 
-    // returns true if we have wxLB_TOP or wxLB_BOTTOM style
-    bool IsVertical() const { return HasFlag(wxLB_BOTTOM | wxLB_TOP); }
-
     virtual bool DeleteAllPages();
 
-    wxListView* GetListView() { return m_list; }
+    wxListView* GetListView() const { return (wxListView*)m_bookctrl; }
 
 protected:
     virtual wxWindow *DoRemovePage(size_t page);
 
     // get the size which the list control should have
-    wxSize GetListSize() const;
-
-    // get the page area
-    wxRect GetPageRect() const;
+    virtual wxSize GetControllerSize() const;
 
     // event handlers
-    void OnSize(wxSizeEvent& event);
     void OnListSelected(wxListEvent& event);
-
-    // the list control we use for showing the pages index
-    wxListView *m_list;
-
-#if wxUSE_LINE_IN_LISTBOOK
-    // the line separating it from the page area
-    wxStaticLine *m_line;
-#endif // wxUSE_LINE_IN_LISTBOOK
+    void OnSize(wxSizeEvent& event);
 
     // the currently selected page or wxNOT_FOUND if none
     int m_selection;
@@ -134,8 +106,15 @@ public:
     {
     }
 
+    wxListbookEvent(const wxListbookEvent& event)
+        : wxBookCtrlBaseEvent(event)
+    {
+    }
+
+    virtual wxEvent *Clone() const { return new wxListbookEvent(*this); }
+
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxListbookEvent)
+    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxListbookEvent)
 };
 
 extern WXDLLIMPEXP_CORE const wxEventType wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED;

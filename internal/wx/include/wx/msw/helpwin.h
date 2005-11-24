@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpwin.h,v 1.14 2005/09/23 12:50:12 MR Exp $
+// RCS-ID:      $Id: helpwin.h,v 1.15 2005/10/26 09:31:59 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ class WXDLLEXPORT wxWinHelpController: public wxHelpControllerBase
     DECLARE_CLASS(wxWinHelpController)
 
 public:
-    wxWinHelpController() {}
+    wxWinHelpController(wxWindow* parentWindow = NULL): wxHelpControllerBase(parentWindow) {}
     ~wxWinHelpController() {}
 
     // Must call this to set the filename

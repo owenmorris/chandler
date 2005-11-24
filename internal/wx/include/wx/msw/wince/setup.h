@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        wx/msw/setup.h
+// Name:        wx/msw/wince/setup.h
 // Purpose:     Configuration for the library
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup.h,v 1.70 2005/10/09 18:40:24 VZ Exp $
+// RCS-ID:      $Id: setup.h,v 1.72 2005/11/05 22:49:30 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -861,6 +861,14 @@
 // Recommended setting: 1 if you intend to use OpenGL, 0 otherwise
 #define wxUSE_GLCANVAS       0
 
+// wxRichTextCtrl allows editing of styled text.
+//
+// Default is 1.
+//
+// Recommended setting: 1, set to 0 if you want compile a
+// smaller library.
+#define wxUSE_RICHTEXT       1
+
 // ----------------------------------------------------------------------------
 // Data transfer
 // ----------------------------------------------------------------------------
@@ -1060,10 +1068,6 @@
 //
 // NB: stuff which doesn't work at all under CE is forcefully disabled in
 //     wx/msw/wince/chkconf.h
-
-// wxCheckListBox requires wxOwnerDrawn which is disabled below
-#undef wxUSE_CHECKLISTBOX
-#define wxUSE_CHECKLISTBOX 0
 
 // Windows CE doesn't use RAS so wxDialUpManager doesn't work under it
 #undef wxUSE_DIALUP_MANAGER

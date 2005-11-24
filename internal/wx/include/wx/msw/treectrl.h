@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10/10/98
 // Created:     01/02/97
-// RCS-ID:      $Id: treectrl.h,v 1.81 2005/10/17 19:31:35 VZ Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.83 2005/10/28 14:05:49 CE Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ public:
     wxDEPRECATED( void ExpandItem(const wxTreeItemId& item, int action) );
 
         // use Set/GetImageList and Set/GetStateImageList
-    wxDEPRECATED( wxImageList *GetImageList(int) const );
+        // Use base class GetImageList()
     wxDEPRECATED( void SetImageList(wxImageList *imageList, int) );
 
     // use Set/GetItemImage directly

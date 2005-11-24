@@ -3,7 +3,7 @@
 // Purpose:     MSW/GTK compatible notebook (a.k.a. property sheet)
 // Author:      Stefan Csomor
 // Modified by:
-// RCS-ID:      $Id: notebook.h,v 1.9 2005/10/03 17:18:46 VZ Exp $
+// RCS-ID:      $Id: notebook.h,v 1.10 2005/11/10 09:17:14 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,7 +77,10 @@ public:
     // sets the size of the tabs (assumes all tabs are the same size)
   virtual void SetTabSize(const wxSize& sz);
 
-    // calculate size for wxNotebookSizer
+  // hit test
+  virtual int HitTest(const wxPoint& pt, long *flags = NULL) const;
+  
+  // calculate size for wxNotebookSizer
   wxSize CalcSizeFromPage(const wxSize& sizePage) const;
   wxRect GetPageRect() const ;
 

@@ -4,10 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextbuffer.h,v 1.2 2005/10/19 17:00:53 ABX Exp $
+// RCS-ID:      $Id: richtextbuffer.h,v 1.7 2005/10/28 14:23:59 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_RICHTEXTBUFFER_H_
+#define _WX_RICHTEXTBUFFER_H_
 
 /*
 
@@ -84,17 +87,17 @@
 
  */
 
-#ifndef _WX_RICHTEXTBUFFER_H_
-#define _WX_RICHTEXTBUFFER_H_
-
 /*!
  * Includes
  */
 
-#include "wx/list.h"
+#include "wx/defs.h"
 
 #if wxUSE_RICHTEXT
 
+#include "wx/list.h"
+#include "wx/textctrl.h"
+#include "wx/bitmap.h"
 #include "wx/image.h"
 #include "wx/cmdproc.h"
 #include "wx/txtstrm.h"
@@ -133,6 +136,10 @@ class WXDLLIMPEXP_ADV wxTextAttrEx;
 #define wxRICHTEXT_FIXED_HEIGHT     0x02
 #define wxRICHTEXT_VARIABLE_WIDTH   0x04
 #define wxRICHTEXT_VARIABLE_HEIGHT  0x08
+
+// Only lay out the part of the buffer that lies within
+// the rect passed to Layout.
+#define wxRICHTEXT_LAYOUT_SPECIFIED_RECT 0x10
 
 /*!
  * Flags returned from hit-testing
@@ -206,6 +213,7 @@ public:
     ~wxRichTextRange() {}
 
     void operator =(const wxRichTextRange& range) { m_start = range.m_start; m_end = range.m_end; }
+    bool operator ==(const wxRichTextRange& range) const { return (m_start == range.m_start && m_end == range.m_end); }
     wxRichTextRange operator -(const wxRichTextRange& range) const { return wxRichTextRange(m_start - range.m_start, m_end - range.m_end); }
     wxRichTextRange operator +(const wxRichTextRange& range) const { return wxRichTextRange(m_start + range.m_start, m_end + range.m_end); }
 
@@ -242,6 +250,9 @@ protected:
     long m_start;
     long m_end;
 };
+
+#define wxRICHTEXT_ALL  wxRichTextRange(-2, -2)
+#define wxRICHTEXT_NONE  wxRichTextRange(-1, -1)
 
 /*!
  * wxTextAttrEx is an extended version of wxTextAttr with more paragraph attributes.
@@ -481,13 +492,13 @@ private:
     wxString            m_paragraphStyleName;
 };
 
-#define wxTEXT_ATTR_CHARACTER (wxTEXT_ATTR_FONT) | wxTEXT_ATTR_BACKGROUND_COLOUR | wxTEXT_ATTR_TEXT_COLOUR
+#define wxTEXT_ATTR_CHARACTER (wxTEXT_ATTR_FONT | wxTEXT_ATTR_BACKGROUND_COLOUR | wxTEXT_ATTR_TEXT_COLOUR)
 
-#define wxTEXT_ATTR_PARAGRAPH  wxTEXT_ATTR_ALIGNMENT|wxTEXT_ATTR_LEFT_INDENT|wxTEXT_ATTR_RIGHT_INDENT|wxTEXT_ATTR_TABS|\
+#define wxTEXT_ATTR_PARAGRAPH (wxTEXT_ATTR_ALIGNMENT|wxTEXT_ATTR_LEFT_INDENT|wxTEXT_ATTR_RIGHT_INDENT|wxTEXT_ATTR_TABS|\
     wxTEXT_ATTR_PARA_SPACING_BEFORE|wxTEXT_ATTR_PARA_SPACING_AFTER|wxTEXT_ATTR_LINE_SPACING|\
-    wxTEXT_ATTR_BULLET_STYLE|wxTEXT_ATTR_BULLET_NUMBER|wxTEXT_ATTR_BULLET_SYMBOL
+    wxTEXT_ATTR_BULLET_STYLE|wxTEXT_ATTR_BULLET_NUMBER|wxTEXT_ATTR_BULLET_SYMBOL)
 
-#define wxTEXT_ATTR_ALL wxTEXT_ATTR_CHARACTER|wxTEXT_ATTR_PARAGRAPH
+#define wxTEXT_ATTR_ALL (wxTEXT_ATTR_CHARACTER|wxTEXT_ATTR_PARAGRAPH)
 
 /*!
  * wxRichTextObject class declaration
@@ -511,7 +522,7 @@ public:
 
     /// Lay the item out at the specified position with the given size constraint.
     /// Layout must set the cached size.
-    virtual bool Layout(wxDC& dc, const wxRect& rect, const wxRichTextRange& affected, int style) = 0;
+    virtual bool Layout(wxDC& dc, const wxRect& rect, int style) = 0;
 
     /// Hit-testing: returns a flag indicating hit test details, plus
     /// information about position
@@ -640,7 +651,7 @@ protected:
     wxTextAttrEx            m_attributes;
 };
 
-WX_DECLARE_EXPORTED_LIST( wxRichTextObject, wxRichTextObjectList );
+WX_DECLARE_LIST_WITH_DECL( wxRichTextObject, wxRichTextObjectList, class WXDLLIMPEXP_ADV );
 
 /*!
  * wxRichTextCompositeObject class declaration
@@ -743,7 +754,7 @@ public:
     virtual bool Draw(wxDC& dc, const wxRichTextRange& range, const wxRichTextRange& selectionRange, const wxRect& rect, int descent, int style);
 
     /// Lay the item out
-    virtual bool Layout(wxDC& dc, const wxRect& rect, const wxRichTextRange& affected, int style);
+    virtual bool Layout(wxDC& dc, const wxRect& rect, int style);
 
     /// Get/set the object size for the given range. Returns false if the range
     /// is invalid for this object.
@@ -782,7 +793,7 @@ public:
     virtual bool Draw(wxDC& dc, const wxRichTextRange& range, const wxRichTextRange& selectionRange, const wxRect& rect, int descent, int style);
 
     /// Lay the item out
-    virtual bool Layout(wxDC& dc, const wxRect& rect, const wxRichTextRange& affected, int style);
+    virtual bool Layout(wxDC& dc, const wxRect& rect, int style);
 
     /// Get/set the object size for the given range. Returns false if the range
     /// is invalid for this object.
@@ -929,9 +940,18 @@ public:
     /// Get basic (overall) style
     virtual const wxTextAttrEx& GetBasicStyle() const { return m_attributes; }
 
+    /// Invalidate the buffer. With no argument, invalidates whole buffer.
+    void Invalidate(const wxRichTextRange& invalidRange = wxRICHTEXT_ALL);
+
+    /// Get invalid range, rounding to entire paragraphs if argument is true.
+    wxRichTextRange GetInvalidRange(bool wholeParagraphs = false) const;
+
 protected:
     wxRichTextCtrl* m_ctrl;
     wxTextAttrEx    m_defaultAttributes;
+
+    /// The invalidated range that will need full layout
+    wxRichTextRange         m_invalidRange;
 };
 
 /*!
@@ -987,7 +1007,7 @@ public:
 // Constructors
 
     wxRichTextLine(wxRichTextParagraph* parent);
-    wxRichTextLine(const wxRichTextLine& obj) { Init(); Copy(obj); }
+    wxRichTextLine(const wxRichTextLine& obj) { Init( NULL); Copy(obj); }
     virtual ~wxRichTextLine() {}
 
 // Overrideables
@@ -1004,6 +1024,9 @@ public:
     /// Get the range
     const wxRichTextRange& GetRange() const { return m_range; }
     wxRichTextRange& GetRange() { return m_range; }
+
+    /// Get the absolute range
+    wxRichTextRange GetAbsoluteRange() const;
 
     /// Get/set the line size as calculated by Layout.
     virtual wxSize GetSize() const { return m_size; }
@@ -1026,7 +1049,7 @@ public:
 // Operations
 
     /// Initialisation
-    void Init();
+    void Init(wxRichTextParagraph* parent);
 
     /// Copy
     void Copy(const wxRichTextLine& obj);
@@ -1037,6 +1060,7 @@ public:
 protected:
 
     /// The range of the line (start position to end position)
+    /// This is relative to the parent paragraph.
     wxRichTextRange     m_range;
 
     /// Size and position measured relative to top of paragraph
@@ -1050,7 +1074,7 @@ protected:
     wxRichTextParagraph* m_parent;
 };
 
-WX_DECLARE_EXPORTED_LIST( wxRichTextLine, wxRichTextLineList );
+WX_DECLARE_LIST_WITH_DECL( wxRichTextLine, wxRichTextLineList , class WXDLLIMPEXP_ADV );
 
 /*!
  * wxRichTextParagraph class declaration
@@ -1074,7 +1098,7 @@ public:
     virtual bool Draw(wxDC& dc, const wxRichTextRange& range, const wxRichTextRange& selectionRange, const wxRect& rect, int descent, int style);
 
     /// Lay the item out
-    virtual bool Layout(wxDC& dc, const wxRect& rect, const wxRichTextRange& affected, int style);
+    virtual bool Layout(wxDC& dc, const wxRect& rect, int style);
 
     /// Get/set the object size for the given range. Returns false if the range
     /// is invalid for this object.
@@ -1138,6 +1162,12 @@ public:
     /// Get the bullet text for this paragraph.
     wxString GetBulletText();
 
+    /// Allocate or reuse a line object
+    wxRichTextLine* AllocateLine(int pos);
+
+    /// Clear remaining unused line objects, if any
+    bool ClearUnusedLines(int lineCount);
+
 protected:
     /// The lines that make up the wrapped paragraph
     wxRichTextLineList m_cachedLines;
@@ -1163,7 +1193,7 @@ public:
     virtual bool Draw(wxDC& dc, const wxRichTextRange& range, const wxRichTextRange& selectionRange, const wxRect& rect, int descent, int style);
 
     /// Lay the item out
-    virtual bool Layout(wxDC& dc, const wxRect& rect, const wxRichTextRange& affected, int style);
+    virtual bool Layout(wxDC& dc, const wxRect& rect, int style);
 
     /// Get/set the object size for the given range. Returns false if the range
     /// is invalid for this object.
@@ -1316,7 +1346,7 @@ public:
     virtual bool Draw(wxDC& dc, const wxRichTextRange& range, const wxRichTextRange& selectionRange, const wxRect& rect, int descent, int style);
 
     /// Lay the item out
-    virtual bool Layout(wxDC& dc, const wxRect& rect, const wxRichTextRange& affected, int style);
+    virtual bool Layout(wxDC& dc, const wxRect& rect, int style);
 
     /// Get the object size for the given range. Returns false if the range
     /// is invalid for this object.
@@ -1606,8 +1636,10 @@ public:
     /// Finds a handler by type
     static wxRichTextFileHandler *FindHandler(int imageType);
 
-    /// Gets a wildcard incorporating all visible handlers
-    static wxString GetExtWildcard(bool combine = false, bool save = false);
+    /// Gets a wildcard incorporating all visible handlers. If 'types' is present,
+    /// will be filled with the file type corresponding to each filter. This can be
+    /// used to determine the type to pass to LoadFile given a selected filter.
+    static wxString GetExtWildcard(bool combine = false, bool save = false, wxArrayInt* types = NULL);
 
     /// Clean up handlers
     static void CleanUpHandlers();

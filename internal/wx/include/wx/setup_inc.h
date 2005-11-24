@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:
-// RCS-ID:      $Id: setup_inc.h,v 1.26 2005/10/09 18:40:20 VZ Exp $
+// RCS-ID:      $Id: setup_inc.h,v 1.27 2005/10/19 12:52:02 JS Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -856,6 +856,14 @@
 //
 // Recommended setting: 1 if you intend to use OpenGL, 0 otherwise
 #define wxUSE_GLCANVAS       0
+
+// wxRichTextCtrl allows editing of styled text.
+//
+// Default is 1.
+//
+// Recommended setting: 1, set to 0 if you want compile a
+// smaller library.
+#define wxUSE_RICHTEXT       1
 
 // ----------------------------------------------------------------------------
 // Data transfer

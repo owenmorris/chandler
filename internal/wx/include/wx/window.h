@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.191 2005/10/10 18:15:31 VZ Exp $
+// RCS-ID:      $Id: window.h,v 1.200 2005/11/19 01:07:38 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -168,19 +168,11 @@ public:
     // window attributes
     // -----------------
 
-        // NB: in future versions of wxWidgets Set/GetTitle() will only work
-        //     with the top level windows (such as dialogs and frames) and
-        //     Set/GetLabel() only with the other ones (i.e. all controls).
-
-        // the title (or label, see below) of the window: the text which the
-        // window shows
-    virtual void SetTitle( const wxString& WXUNUSED(title) ) {}
-    virtual wxString GetTitle() const { return wxEmptyString; }
-
         // label is just the same as the title (but for, e.g., buttons it
-        // makes more sense to speak about labels)
-    virtual void SetLabel(const wxString& label) { SetTitle(label); }
-    virtual wxString GetLabel() const { return GetTitle(); }
+        // makes more sense to speak about labels), title access
+        // is available from wxTLW classes only (frames, dialogs)
+    virtual void SetLabel(const wxString& label) = 0;
+    virtual wxString GetLabel() const = 0;
 
         // the window name is used for ressource setting in X, it is not the
         // same as the window title/label
@@ -964,7 +956,7 @@ public:
     void DeleteRelatedConstraints();
     void ResetConstraints();
 
-        // these methods may be overriden for special layout algorithms
+        // these methods may be overridden for special layout algorithms
     virtual void SetConstraintSizes(bool recurse = true);
     virtual bool LayoutPhase1(int *noChanges);
     virtual bool LayoutPhase2(int *noChanges);
@@ -1536,6 +1528,4 @@ public:
 #endif // wxUSE_ACCESSIBILITY
 
 
-#endif
-    // _WX_WINDOW_H_BASE_
-
+#endif // _WX_WINDOW_H_BASE_

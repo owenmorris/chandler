@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx/msw/window.h
-// Purpose:     wxWindow class
+// Purpose:     wxWindowMSW class
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.154 2005/10/09 13:04:38 VZ Exp $
+// RCS-ID:      $Id: window.h,v 1.156 2005/11/03 16:47:25 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -62,8 +62,8 @@ public:
                 const wxString& name = wxPanelNameStr);
 
     // implement base class pure virtuals
-    virtual void SetTitle( const wxString& title);
-    virtual wxString GetTitle() const;
+    virtual void SetLabel(const wxString& label);
+    virtual wxString GetLabel() const;
 
     virtual void Raise();
     virtual void Lower();
@@ -469,10 +469,13 @@ protected:
     // the background, false otherwise (i.e. the system should erase it)
     bool DoEraseBackground(WXHDC hDC);
 
-    // generate WM_UPDATEUISTATE if it's needed for the OS we're running under
+    // generate WM_CHANGEUISTATE if it's needed for the OS we're running under
     //
-    // the parameter should be one of UIS_XXX constants
-    void MSWUpdateUIState(int action);
+    // action should be one of the UIS_XXX constants
+    // state should be one or more of the UISF_XXX constants
+    // if action == UIS_INITIALIZE then it doesn't seem to matter what we use
+    // for state as the system will decide for us what needs to be set
+    void MSWUpdateUIState(int action, int state = 0);
 
 private:
     // common part of all ctors
@@ -554,5 +557,4 @@ WX_DECLARE_HASH(wxWindowMSW, wxWindowList, wxWinHashTable);
 
 extern wxWinHashTable *wxWinHandleHash;
 
-#endif
-    // _WX_WINDOW_H_
+#endif // _WX_WINDOW_H_

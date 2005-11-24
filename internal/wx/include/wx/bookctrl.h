@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.h,v 1.23 2005/10/18 12:31:09 ABX Exp $
+// RCS-ID:      $Id: bookctrl.h,v 1.25 2005/11/10 11:24:19 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,6 +128,9 @@ public:
         m_internalBorder = internalBorder;
     }
 
+    // returns true if we have wxCHB_TOP or wxCHB_BOTTOM style
+    bool IsVertical() const { return HasFlag(wxBK_BOTTOM | wxBK_TOP); }
+
     // operations
     // ----------
 
@@ -213,6 +216,16 @@ protected:
     // true if we must delete m_imageList
     bool m_ownsImageList;
 
+    // get the page area
+    wxRect GetPageRect() const;
+
+    // event handlers
+    virtual wxSize GetControllerSize() const;
+    void OnSize(wxSizeEvent& event);
+
+    // controller buddy if available, NULL otherwise (usually for native book controls like wxNotebook)
+    wxControl *m_bookctrl;
+
 private:
 
     // common part of all ctors
@@ -221,7 +234,9 @@ private:
     // internal border
     unsigned int m_internalBorder;
 
+    DECLARE_ABSTRACT_CLASS(wxBookCtrlBase)
     DECLARE_NO_COPY_CLASS(wxBookCtrlBase)
+    DECLARE_EVENT_TABLE()
 };
 
 // ----------------------------------------------------------------------------
@@ -234,10 +249,17 @@ public:
     wxBookCtrlBaseEvent(wxEventType commandType = wxEVT_NULL, int winid = 0,
                         int nSel = -1, int nOldSel = -1)
         : wxNotifyEvent(commandType, winid)
-        {
-            m_nSel = nSel;
-            m_nOldSel = nOldSel;
-        }
+    {
+        m_nSel = nSel;
+        m_nOldSel = nOldSel;
+    }
+
+    wxBookCtrlBaseEvent(const wxBookCtrlBaseEvent& event)
+        : wxNotifyEvent(event)
+    {
+        m_nSel = event.m_nSel;
+        m_nOldSel = event.m_nOldSel;
+    }
 
     // accessors
         // the currently selected page (-1 if none)
@@ -262,11 +284,6 @@ private:
     #define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGING   wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING
     #define EVT_BOOKCTRL_PAGE_CHANGED(id, fn)      EVT_NOTEBOOK_PAGE_CHANGED(id, fn)
     #define EVT_BOOKCTRL_PAGE_CHANGING(id, fn)     EVT_NOTEBOOK_PAGE_CHANGING(id, fn)
-    #define wxBC_TOP                               wxNB_TOP
-    #define wxBC_BOTTOM                            wxNB_BOTTOM
-    #define wxBC_LEFT                              wxNB_LEFT
-    #define wxBC_RIGHT                             wxNB_RIGHT
-    #define wxBC_DEFAULT                           wxNB_DEFAULT
 #else
     // dedicated to Smartphones
     #include "wx/choicebk.h"
@@ -276,11 +293,14 @@ private:
     #define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGING   wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGING
     #define EVT_BOOKCTRL_PAGE_CHANGED(id, fn)      EVT_CHOICEBOOK_PAGE_CHANGED(id, fn)
     #define EVT_BOOKCTRL_PAGE_CHANGING(id, fn)     EVT_CHOICEBOOK_PAGE_CHANGING(id, fn)
-    #define wxBC_TOP                               wxCHB_TOP
-    #define wxBC_BOTTOM                            wxCHB_BOTTOM
-    #define wxBC_LEFT                              wxCHB_LEFT
-    #define wxBC_RIGHT                             wxCHB_RIGHT
-    #define wxBC_DEFAULT                           wxCHB_DEFAULT
+#endif
+
+#if WXWIN_COMPATIBILITY_2_6
+    #define wxBC_TOP                               wxBK_TOP
+    #define wxBC_BOTTOM                            wxBK_BOTTOM
+    #define wxBC_LEFT                              wxBK_LEFT
+    #define wxBC_RIGHT                             wxBK_RIGHT
+    #define wxBC_DEFAULT                           wxBK_DEFAULT
 #endif
 
 #endif // wxUSE_BOOKCTRL

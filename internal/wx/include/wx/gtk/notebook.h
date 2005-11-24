@@ -3,7 +3,7 @@
 // Purpose:     wxNotebook class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: notebook.h,v 1.58 2005/09/23 12:49:17 MR Exp $
+// RCS-ID:      $Id: notebook.h,v 1.59 2005/11/19 01:07:41 MR Exp $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ public:
     // remove all pages
   bool DeleteAllPages();
 
-    // adds a new page to the notebook (it will be deleted ny the notebook,
+    // adds a new page to the notebook (it will be deleted by the notebook,
     // don't delete it yourself). If bSelect, this page becomes active.
     // the same as AddPage(), but adds it at the specified position
     bool InsertPage( size_t position,

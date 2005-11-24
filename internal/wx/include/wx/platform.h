@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.84 2005/10/17 17:46:11 MW Exp $
+* RCS-ID:      $Id: platform.h,v 1.87 2005/11/10 16:15:50 ABX Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -252,6 +252,21 @@
 
 
 /*
+   This macro can be used to test the Open Watcom version.
+*/
+#ifndef __WATCOMC__
+#   define wxWATCOM_VERSION(major,minor) 0
+#   define wxCHECK_WATCOM_VERSION(major,minor) 0
+#   define wxONLY_WATCOM_EARLIER_THAN(major,minor) 0
+#elif defined(__WATCOMC__) && __WATCOMC__ < 1200
+#   error "Only Open Watcom is supported in this release"
+#else
+#   define wxWATCOM_VERSION(major,minor) ( major * 100 + minor * 10 + 1100 )
+#   define wxCHECK_WATCOM_VERSION(major,minor) ( __WATCOMC__ >= wxWATCOM_VERSION(major,minor) )
+#   define wxONLY_WATCOM_EARLIER_THAN(major,minor) ( __WATCOMC__ < wxWATCOM_VERSION(major,minor) )
+#endif
+
+/*
    check the consistency of the settings in setup.h: note that this must be
    done after setting wxUSE_UNICODE correctly as it is used in wx/chkconf.h
  */
@@ -400,10 +415,7 @@
 #elif defined(__OS2__)
 
     /* wxOS2 vs. non wxOS2 ports on OS2 platform */
-#    ifndef __WXMOTIF__
-#        ifndef __WXOS2__
-#            define __WXOS2__
-#        endif
+#    if !defined(__WXMOTIF__) && !defined(__WXGTK__) && !defined(__WXX11__)
 #        ifndef __WXPM__
 #            define __WXPM__
 #        endif
@@ -449,7 +461,7 @@
 #        define __VISUALC__ _MSC_VER
 #    elif defined(__BCPLUSPLUS__) && !defined(__BORLANDC__)
 #        define __BORLANDC__
-#      elif defined(__WATCOMC__)
+#    elif defined(__WATCOMC__)
 #    elif defined(__SC__)
 #        define __SYMANTECC__
 #    endif  /* compiler */
@@ -520,9 +532,9 @@
  */
 #if ( defined( __GNUWIN32__ ) || defined( __MINGW32__ ) || \
     ( defined( __CYGWIN__ ) && defined( __WINDOWS__ ) ) || \
-      (defined(__WATCOMC__) && __WATCOMC__ >= 1200) ) && \
+      wxCHECK_WATCOM_VERSION(1,0) ) && \
     !defined(__DOS__) && \
-    !defined(__WXOS2__) && \
+    !defined(__WXPM__) && \
     !defined(__WXMOTIF__) && \
     !defined(__WXGTK__) && \
     !defined(__WXX11__) && \

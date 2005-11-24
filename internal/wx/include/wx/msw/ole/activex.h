@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        wx/activex.h
+// Name:        wx/msw/ole/activex.h
 // Purpose:     wxActiveXContainer class
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     8/18/05
-// RCS-ID:      $Id: activex.h,v 1.1 2005/09/11 11:03:40 VZ Exp $
+// RCS-ID:      $Id: activex.h,v 1.2 2005/10/27 21:22:48 ABX Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,11 @@
 //---------------------------------------------------------------------------
 #include <oleidl.h>
 #include <olectl.h>
+
+#if !defined(__WXWINCE__) || defined(__WINCE_STANDARDSDK__)
 #include <exdisp.h>
+#endif
+
 #include <docobj.h>
 
 //
@@ -182,4 +186,3 @@ protected:
 };
 
 #endif // _WX_MSW_OLE_ACTIVEXCONTAINER_H_
-

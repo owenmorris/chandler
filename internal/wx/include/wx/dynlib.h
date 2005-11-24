@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux, Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.h,v 1.59 2005/10/09 15:48:09 MBN Exp $
+// RCS-ID:      $Id: dynlib.h,v 1.60 2005/11/20 21:23:53 VZ Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,8 @@
 #include "wx/msw/private.h"
 #endif
 
-#if defined(HAVE_DLERROR) && !defined(__EMX__)
+// note that we have our own dlerror() implementation under Darwin
+#if (defined(HAVE_DLERROR) && !defined(__EMX__)) || defined(__DARWIN__)
     #define wxHAVE_DYNLIB_ERROR
 #endif
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: bmpbuttn.h,v 1.23 2005/04/10 15:22:53 VZ Exp $
+// RCS-ID:      $Id: bmpbuttn.h,v 1.27 2005/11/03 16:47:22 ABX Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,9 +30,10 @@ class WXDLLEXPORT wxBitmapButtonBase : public wxButton
 {
 public:
     wxBitmapButtonBase()
-        : m_bmpNormal(), m_bmpSelected(), m_bmpFocus(), m_bmpDisabled()
-        , m_marginX(0), m_marginY(0)
-        { }
+    {
+        m_marginX =
+        m_marginY = 0;
+    }
 
     // set the bitmaps
     void SetBitmapLabel(const wxBitmap& bitmap)
@@ -43,23 +44,34 @@ public:
         { m_bmpFocus = focus; OnSetBitmap(); };
     void SetBitmapDisabled(const wxBitmap& disabled)
         { m_bmpDisabled = disabled; OnSetBitmap(); };
-    void SetLabel(const wxBitmap& bitmap)
-        { SetBitmapLabel(bitmap); }
+    void SetBitmapHover(const wxBitmap& hover)
+        { m_bmpHover = hover; OnSetBitmap(); }
 
     // retrieve the bitmaps
     const wxBitmap& GetBitmapLabel() const { return m_bmpNormal; }
     const wxBitmap& GetBitmapSelected() const { return m_bmpSelected; }
     const wxBitmap& GetBitmapFocus() const { return m_bmpFocus; }
     const wxBitmap& GetBitmapDisabled() const { return m_bmpDisabled; }
+    const wxBitmap& GetBitmapHover() const { return m_bmpHover; }
     wxBitmap& GetBitmapLabel() { return m_bmpNormal; }
     wxBitmap& GetBitmapSelected() { return m_bmpSelected; }
     wxBitmap& GetBitmapFocus() { return m_bmpFocus; }
     wxBitmap& GetBitmapDisabled() { return m_bmpDisabled; }
+    wxBitmap& GetBitmapHover() { return m_bmpHover; }
 
     // set/get the margins around the button
     virtual void SetMargins(int x, int y) { m_marginX = x; m_marginY = y; }
     int GetMarginX() const { return m_marginX; }
     int GetMarginY() const { return m_marginY; }
+
+    // deprecated synonym for SetBitmapLabel()
+#if WXWIN_COMPATIBILITY_2_6
+    wxDEPRECATED( void SetLabel(const wxBitmap& bitmap) );
+
+    // prevent virtual function hiding
+    virtual void SetLabel(const wxString& label)
+        { wxWindow::SetLabel(label); }
+#endif // WXWIN_COMPATIBILITY_2_6
 
 protected:
     // function called when any of the bitmaps changes
@@ -69,19 +81,23 @@ protected:
     wxBitmap m_bmpNormal,
              m_bmpSelected,
              m_bmpFocus,
-             m_bmpDisabled;
+             m_bmpDisabled,
+             m_bmpHover;
 
     // the margins around the bitmap
     int m_marginX,
         m_marginY;
 
-private:
-    // Prevent Virtual function hiding warnings
-    void SetLabel(const wxString& rsLabel)
-        { wxWindowBase::SetLabel(rsLabel); }
 
     DECLARE_NO_COPY_CLASS(wxBitmapButtonBase)
 };
+
+#if WXWIN_COMPATIBILITY_2_6
+inline void wxBitmapButtonBase::SetLabel(const wxBitmap& bitmap)
+{
+    SetBitmapLabel(bitmap);
+}
+#endif // WXWIN_COMPATIBILITY_2_6
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/bmpbuttn.h"

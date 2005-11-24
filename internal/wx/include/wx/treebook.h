@@ -4,7 +4,7 @@
 // Author:      Evgeniy Tarassov, Vadim Zeitlin
 // Modified by:
 // Created:     2005-09-15
-// RCS-ID:      $Id: treebook.h,v 1.1 2005/10/09 18:40:20 VZ Exp $
+// RCS-ID:      $Id: treebook.h,v 1.3 2005/11/10 11:24:19 VZ Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,24 +22,6 @@
 typedef wxWindow wxTreebookPage;
 
 class WXDLLEXPORT wxTreeEvent;
-
-// ----------------------------------------------------------------------------
-// style flags
-// ----------------------------------------------------------------------------
-
-// This is a set of synonyms of wxNB_XXX, which still could be used directly
-// for styling the control. Defined for consistency with wxListbook and
-// wxChoicebook only.
-#define wxTBK_LEFT      wxNB_LEFT
-#define wxTBK_RIGHT     wxNB_RIGHT
-
-// we don't support TOP/BOTTOM orientations but still define the flags (again,
-// for consistency with others)
-#define wxTBK_TOP       wxTBK_LEFT
-#define wxTBK_BOTTOM    wxTBK_RIGHT
-
-#define wxTBK_ALIGN_MASK (wxTBK_LEFT | wxTBK_RIGHT)
-#define wxTBK_DEFAULT   wxTBK_LEFT
 
 // ----------------------------------------------------------------------------
 // wxTreebook
@@ -62,7 +44,7 @@ public:
                wxWindowID id,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
-               long style = wxTBK_DEFAULT,
+               long style = wxBK_DEFAULT,
                const wxString& name = wxEmptyString)
     {
         Init();
@@ -75,7 +57,7 @@ public:
                 wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                long style = wxTBK_DEFAULT,
+                long style = wxBK_DEFAULT,
                 const wxString& name = wxEmptyString);
 
 
@@ -137,6 +119,9 @@ public:
     // get the parent page or wxNOT_FOUND if this is a top level page
     int GetPageParent(size_t pos) const;
 
+    // the tree control we use for showing the pages index tree
+    wxTreeCtrl* GetTreeCtrl() const { return (wxTreeCtrl*)m_bookctrl; }
+
 
     // Standard operations inherited from wxBookCtrlBase
     // -------------------------------------------------
@@ -156,20 +141,9 @@ protected:
     // This subclass of wxBookCtrlBase accepts NULL page pointers (empty pages)
     virtual bool AllowNullPage() const { return true; }
 
-    // get the size which the tree control should have
-    wxSize GetTreeSize() const;
-
-    // get the page area
-    wxRect GetPageRect() const;
-
     // event handlers
-    void OnSize(wxSizeEvent& event);
     void OnTreeSelectionChange(wxTreeEvent& event);
     void OnTreeNodeExpandedCollapsed(wxTreeEvent& event);
-
-
-    // the tree control we use for showing the pages index tree
-    wxTreeCtrl *m_tree;
 
     // array of page ids and page windows
     wxArrayTreeItemIds m_treeIds;
@@ -266,8 +240,15 @@ public:
     {
     }
 
+    wxTreebookEvent(const wxTreebookEvent& event)
+        : wxBookCtrlBaseEvent(event)
+    {
+    }
+
+    virtual wxEvent *Clone() const { return new wxTreebookEvent(*this); }
+
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxTreebookEvent)
+    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxTreebookEvent)
 };
 
 extern WXDLLIMPEXP_CORE const wxEventType wxEVT_COMMAND_TREEBOOK_PAGE_CHANGED;

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: filedlg.h,v 1.40 2005/09/23 12:48:38 MR Exp $
+// RCS-ID:      $Id: filedlg.h,v 1.41 2005/11/08 01:33:31 VZ Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -109,7 +109,6 @@ public:
 protected:
     wxString      m_message;
     long          m_dialogStyle;
-    wxWindow     *m_parent;
     wxString      m_dir;
     wxString      m_path;       // Full path
     wxString      m_fileName;

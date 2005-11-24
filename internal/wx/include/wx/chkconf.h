@@ -4,7 +4,7 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     09.08.00
- * RCS-ID:      $Id: chkconf.h,v 1.109 2005/08/24 11:14:27 VZ Exp $
+ * RCS-ID:      $Id: chkconf.h,v 1.111 2005/10/31 16:55:52 ABX Exp $
  * Copyright:   (c) 2000 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -23,6 +23,10 @@
 #  include "wx/msw/chkconf.h"
 #elif defined(__WXMAC__)
 #  include "wx/mac/chkconf.h"
+#elif defined(__OS2__)
+#  include "wx/os2/chkconf.h"
+#elif defined(__WXMGL__)
+#  include "wx/mgl/chkconf.h"
 #elif defined(__WXMOTIF__)
 #  include "wx/motif/chkconf.h"
 #endif

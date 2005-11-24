@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: object.h,v 1.120 2005/09/23 12:48:45 MR Exp $
+// RCS-ID:      $Id: object.h,v 1.121 2005/11/15 07:40:04 ABX Exp $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -33,15 +33,6 @@ class WXDLLIMPEXP_BASE wxObject;
 // ----------------------------------------------------------------------------
 // conditional compilation
 // ----------------------------------------------------------------------------
-
-// this shouldn't be needed any longer as <wx/msw/private.h> does it but it
-// doesn't hurt neither
-#ifdef GetClassName
-#undef GetClassName
-#endif
-#ifdef GetClassInfo
-#undef GetClassInfo
-#endif
 
 class WXDLLIMPEXP_BASE wxClassInfo;
 class WXDLLIMPEXP_BASE wxHashTable;
@@ -581,5 +572,4 @@ private :
     #include "wx/msw/msvcrt.h"
 #endif
 
-#endif  // _WX_OBJECTH__
-
+#endif // _WX_OBJECTH__

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.00
-// RCS-ID:      $Id: checklst.h,v 1.12 2004/09/10 12:55:45 ABX Exp $
+// RCS-ID:      $Id: checklst.h,v 1.13 2005/11/05 22:49:28 ABX Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,13 @@
 // wxCheckListBox: a listbox whose items may be checked
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxCheckListBoxBase : public wxListBox
+class WXDLLEXPORT wxCheckListBoxBase : public
+                                              #ifdef __WXWINCE__
+                                                  // keep virtuals synchronised
+                                                  wxListBoxBase
+                                              #else
+                                                  wxListBox
+                                              #endif
 {
 public:
     wxCheckListBoxBase() { }
@@ -34,6 +40,8 @@ public:
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/checklst.h"
+#elif defined(__WXWINCE__)
+    #include "wx/msw/wince/checklst.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/checklst.h"
 #elif defined(__WXMOTIF__)

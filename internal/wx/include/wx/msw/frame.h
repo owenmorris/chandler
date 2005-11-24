@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.h,v 1.76 2005/09/23 12:50:11 MR Exp $
+// RCS-ID:      $Id: frame.h,v 1.77 2005/11/13 11:46:22 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,12 +18,12 @@ public:
     // construction
     wxFrame() { Init(); }
     wxFrame(wxWindow *parent,
-               wxWindowID id,
-               const wxString& title,
-               const wxPoint& pos = wxDefaultPosition,
-               const wxSize& size = wxDefaultSize,
-               long style = wxDEFAULT_FRAME_STYLE,
-               const wxString& name = wxFrameNameStr)
+            wxWindowID id,
+            const wxString& title,
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            long style = wxDEFAULT_FRAME_STYLE,
+            const wxString& name = wxFrameNameStr)
     {
         Init();
 
@@ -149,9 +149,6 @@ private:
 #if wxUSE_TOOLTIPS
     WXHWND                m_hwndToolTip;
 #endif // tooltips
-#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
-    void* m_activateInfo;
-#endif
 
     // used by IconizeChildFrames(), see comments there
     bool m_wasMinimized;

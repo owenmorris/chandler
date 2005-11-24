@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.h,v 1.207 2005/10/15 19:16:49 MW Exp $
+// RCS-ID:      $Id: string.h,v 1.210 2005/11/19 01:07:38 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -262,7 +262,7 @@ protected:
     // initializes the string to the empty value (must be called only from
     // ctors, use Reinit() otherwise)
   void Init() { m_pchData = (wxChar *)wxEmptyString; }
-    // initializaes the string with (a part of) C-string
+    // initializes the string with (a part of) C-string
   void InitWith(const wxChar *psz, size_t nPos = 0, size_t nLen = npos);
     // as Init, but also frees old data
   void Reinit() { GetStringData()->Unlock(); Init(); }
@@ -671,7 +671,10 @@ public:
   wxString(const wxWCharBuffer& psz) : wxStringBase(psz.data()) { }
 #else // ANSI
     // from C string (for compilers using unsigned char)
-  wxString(const unsigned char* psz, size_t nLength = npos)
+  wxString(const unsigned char* psz)
+      : wxStringBase((const char*)psz) { }
+    // from part of C string (for compilers using unsigned char)
+  wxString(const unsigned char* psz, size_t nLength)
       : wxStringBase((const char*)psz, nLength) { }
 
 #if wxUSE_WCHAR_T
@@ -958,10 +961,16 @@ public:
 #if defined wxLongLong_t && !defined wxLongLongIsLong
       // insert a long long if they exist and aren't longs
   wxString& operator<<(wxLongLong_t ll)
-    { return (*this) << Format(_T("%") wxLongLongFmtSpec _T("d"), ll); }
+    {
+      const wxChar *fmt = _T("%") wxLongLongFmtSpec _T("d");
+      return (*this) << Format(fmt, ll);
+    }
       // insert an unsigned long long
   wxString& operator<<(wxULongLong_t ull)
-    { return (*this) << Format(_T("%") wxLongLongFmtSpec _T("u"), ull); }
+    {
+      const wxChar *fmt = _T("%") wxLongLongFmtSpec _T("u");
+      return (*this) << Format(fmt , ull);
+    }
 #endif
       // insert a float into string
   wxString& operator<<(float f)
@@ -1066,7 +1075,7 @@ public:
         // convert to a double
     bool ToDouble(double *val) const;
 
-  // formated input/output
+  // formatted input/output
     // as sprintf(), returns the number of characters written or < 0 on error
     // (take 'this' into account in attribute parameter count)
   int Printf(const wxChar *pszFormat, ...) ATTRIBUTE_PRINTF_2;

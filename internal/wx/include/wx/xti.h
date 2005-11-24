@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xti.h,v 1.58 2005/09/23 12:48:51 MR Exp $
+// RCS-ID:      $Id: xti.h,v 1.59 2005/11/15 07:40:04 ABX Exp $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -689,7 +689,7 @@ private :
     wxString m_name ;
 } ;
 
-#include <wx/dynarray.h>
+#include "wx/dynarray.h"
 
 WX_DECLARE_OBJARRAY_WITH_DECL(wxxVariant, wxxVariantArray, class WXDLLIMPEXP_BASE);
 
@@ -2076,4 +2076,4 @@ template<typename collection_t> void wxArrayCollectionToVariantArray( const coll
 }
 
 
-#endif
+#endif // _WX_XTIH__

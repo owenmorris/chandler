@@ -2,7 +2,7 @@
 // Name:        winpars.h
 // Purpose:     wxHtmlWinParser class (parser to be used with wxHtmlWindow)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: winpars.h,v 1.31 2005/09/24 21:42:16 VZ Exp $
+// RCS-ID:      $Id: winpars.h,v 1.32 2005/11/17 23:35:36 VS Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -133,6 +133,8 @@ protected:
     virtual void AddText(const wxChar* txt);
 
 private:
+    void DoAddText(wxChar *temp, int& templen, wxChar nbsp);
+
     bool m_tmpLastWasSpace;
     wxChar *m_tmpStrBuf;
     size_t  m_tmpStrBufSize;

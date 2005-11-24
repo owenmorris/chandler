@@ -2,7 +2,7 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h,v 1.130 2005/10/10 18:22:45 VZ Exp $
+// Id:          $Id: window.h,v 1.134 2005/11/19 01:07:41 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,13 +48,18 @@ public:
     // implement base class (pure) virtual methods
     // -------------------------------------------
 
+    virtual void SetLabel( const wxString &label ) {}
+    virtual wxString GetLabel() const { return wxEmptyString; }
+
     virtual bool Destroy();
 
     virtual void Raise();
     virtual void Lower();
 
-    virtual bool Show( bool show = TRUE );
-    virtual bool Enable( bool enable = TRUE );
+    virtual bool Show( bool show = true );
+    virtual bool Enable( bool enable = true );
+
+    virtual void SetWindowStyleFlag( long style );
 
     virtual bool IsRetained() const;
 
@@ -65,7 +70,7 @@ public:
 
     virtual void WarpPointer(int x, int y);
 
-    virtual void Refresh( bool eraseBackground = TRUE,
+    virtual void Refresh( bool eraseBackground = true,
                           const wxRect *rect = (const wxRect *) NULL );
     virtual void Update();
     virtual void ClearBackground();
@@ -91,8 +96,8 @@ public:
 #endif // wxUSE_MENUS_NATIVE
 
     virtual void SetScrollbar( int orient, int pos, int thumbVisible,
-                               int range, bool refresh = TRUE );
-    virtual void SetScrollPos( int orient, int pos, bool refresh = TRUE );
+                               int range, bool refresh = true );
+    virtual void SetScrollPos( int orient, int pos, bool refresh = true );
     virtual int GetScrollPos( int orient ) const;
     virtual int GetScrollThumb( int orient ) const;
     virtual int GetScrollRange( int orient ) const;
@@ -125,7 +130,7 @@ public:
     void OnIdle(wxIdleEvent& WXUNUSED(event)) {}
 
     // wxGTK-specific: called recursively by Enable,
-    // to give widgets an oppprtunity to correct their colours after they
+    // to give widgets an opportunity to correct their colours after they
     // have been changed by Enable
     virtual void OnParentEnable( bool WXUNUSED(enable) ) {}
 
@@ -148,7 +153,7 @@ public:
     // The methods below are required because many native widgets
     // are composed of several subwidgets and setting a style for
     // the widget means setting it for all subwidgets as well.
-    // also, it is nor clear, which native widget is the top
+    // also, it is not clear which native widget is the top
     // widget where (most of) the input goes. even tooltips have
     // to be applied to all subwidgets.
     virtual GtkWidget* GetConnectWidget();
@@ -177,10 +182,10 @@ public:
     // scrolbar in sync (this does not generate any wx events)
     void GtkUpdateScrollbar(int orient);
 
-    // Called from GTK signales handlers. it indicates that
+    // Called from GTK signal handlers. it indicates that
     // the layouting functions have to be called later on
     // (i.e. in idle time, implemented in OnInternalIdle() ).
-    void GtkUpdateSize() { m_sizeSet = FALSE; }
+    void GtkUpdateSize() { m_sizeSet = false; }
 
     // fix up the mouse event coords, used by wxListBox only so far
     virtual void FixUpMouseEvent(GtkWidget * WXUNUSED(widget),
@@ -188,10 +193,10 @@ public:
                                  wxCoord& WXUNUSED(y)) { }
 
     // is this window transparent for the mouse events (as wxStaticBox is)?
-    virtual bool IsTransparentForMouse() const { return FALSE; }
+    virtual bool IsTransparentForMouse() const { return false; }
 
     // is this a radiobutton (used by radiobutton code itself only)?
-    virtual bool IsRadioButton() const { return FALSE; }
+    virtual bool IsRadioButton() const { return false; }
 
     // position and size of the window
     int                  m_x, m_y;
@@ -237,7 +242,7 @@ public:
     bool                 m_acceptsFocus:1;      // true if not static
     bool                 m_hasFocus:1;          // true if == FindFocus()
     bool                 m_isScrolling:1;       // dragging scrollbar thumb?
-    bool                 m_clipPaintRegion:1;   // TRUE after ScrollWindow()
+    bool                 m_clipPaintRegion:1;   // true after ScrollWindow()
 #ifdef __WXGTK20__
     bool                 m_dirtyTabOrder:1;     // tab order changed, GTK focus
                                                 // chain needs update
@@ -290,7 +295,7 @@ protected:
     // Overridden in many GTK widgets who have to handle subwidgets
     virtual void ApplyWidgetStyle(bool forceStyle = false);
 
-    // helper function to ease native widgets wrapping, called by 
+    // helper function to ease native widgets wrapping, called by
     // ApplyWidgetStyle -- override this, not ApplyWidgetStyle
     virtual void DoApplyWidgetStyle(GtkRcStyle *style);
 

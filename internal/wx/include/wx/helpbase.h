@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpbase.h,v 1.31 2005/09/23 12:48:41 MR Exp $
+// RCS-ID:      $Id: helpbase.h,v 1.32 2005/10/26 09:31:53 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ enum wxHelpSearchMode
 class WXDLLEXPORT wxHelpControllerBase: public wxObject
 {
 public:
-    inline wxHelpControllerBase() {}
+    inline wxHelpControllerBase(wxWindow* parentWindow = NULL) { m_parentWindow = parentWindow; }
     inline ~wxHelpControllerBase() {}
 
     // Must call this to set the filename and server name.
@@ -88,6 +88,14 @@ public:
     virtual bool Quit() = 0;
     virtual void OnQuit() {}
 
+    /// Set the window that can optionally be used for the help window's parent.
+    virtual void SetParentWindow(wxWindow* win) { m_parentWindow = win; }
+
+    /// Get the window that can optionally be used for the help window's parent.
+    virtual wxWindow* GetParentWindow() const { return m_parentWindow; }
+
+protected:
+    wxWindow* m_parentWindow;
 private:
     DECLARE_CLASS(wxHelpControllerBase)
 };

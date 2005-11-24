@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2002/12/08
-// RCS-ID:      $Id: toplevel.h,v 1.18 2004/05/23 20:50:42 JS Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.19 2005/11/08 16:02:04 ABX Exp $
 // Copyright:   (c) 2002 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,6 +103,8 @@ public:
     virtual void DoMoveWindow(int x, int y, int width, int height);
     virtual void DoGetSize(int *width, int *height) const;
     virtual void DoGetPosition(int *x, int *y) const;
+    virtual void SetTitle( const wxString& title);
+    virtual wxString GetTitle() const;
 
 
 // Things I may/may not do
@@ -111,7 +113,6 @@ public:
 //    virtual void Clear() ;
 //    virtual void Raise();
 //    virtual void Lower();
-//    virtual void SetTitle( const wxString& title);
 protected:
     // is the frame currently iconized?
     bool m_iconized;

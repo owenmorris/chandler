@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.520 2005/10/12 15:03:16 MW Exp $
+*  RCS-ID:      $Id: defs.h,v 1.524 2005/11/10 16:15:50 ABX Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -146,7 +146,7 @@
     #elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x500)
         /*  Borland 5.0+ supports bool */
         #define HAVE_BOOL
-    #elif defined(__WATCOMC__) && (__WATCOMC__ >= 1100)
+    #elif wxCHECK_WATCOM_VERSION(1,0)
         /*  Watcom 11+ supports bool */
         #define HAVE_BOOL
     #elif defined(__DIGITALMARS__)
@@ -609,7 +609,7 @@ typedef int wxWindowID;
     #define except(x) catch(...)
 #endif /*  Metrowerks */
 
-#if defined(__WATCOMC__) && (__WATCOMC__ < 1240)
+#if wxONLY_WATCOM_EARLIER_THAN(1,4)
     typedef short mode_t;
 #endif
 
@@ -1006,7 +1006,7 @@ inline void *wxUIntToPtr(wxUIntPtr p)
 #if defined(__PALMOS__) && !defined(HAVE_SSIZE_T)
     #define HAVE_SSIZE_T
 #endif
-#if defined(__WATCOMC__) && __WATCOMC__ > 1230
+#if wxCHECK_WATCOM_VERSION(1,4)
     #define HAVE_SSIZE_T
 #endif
 #ifndef HAVE_SSIZE_T
@@ -1531,37 +1531,58 @@ enum wxBorder
 #define wxSP_WRAP             0x2000
 
 /*
+ * wxBookCtrl flags (common for wxNotebook, wxListbook, wxChoicebook, wxTreebook)
+ */
+
+#define wxBK_DEFAULT          0x0000
+#define wxBK_TOP              0x0010
+#define wxBK_BOTTOM           0x0020
+#define wxBK_LEFT             0x0040
+#define wxBK_RIGHT            0x0080
+#define wxBK_ALIGN_MASK       ( wxBK_TOP | wxBK_BOTTOM | wxBK_LEFT | wxBK_RIGHT )
+
+/*
  * wxNotebook flags
  */
-#define wxNB_FIXEDWIDTH       0x0010
-#define wxNB_TOP              0x0000    /*  default */
-#define wxNB_LEFT             0x0020
-#define wxNB_RIGHT            0x0040
-#define wxNB_BOTTOM           0x0080
-#define wxNB_MULTILINE        0x0100
-#define wxNB_NOPAGETHEME      0x0200
-#define wxNB_FLAT             0x0400
-#define wxNB_DEFAULT          wxNB_TOP
+#if WXWIN_COMPATIBILITY_2_6
+/* Use common book wxBK_* flags for describing alignment */
+#define wxNB_DEFAULT          wxBK_DEFAULT
+#define wxNB_TOP              wxBK_TOP
+#define wxNB_BOTTOM           wxBK_BOTTOM
+#define wxNB_LEFT             wxBK_LEFT
+#define wxNB_RIGHT            wxBK_RIGHT
+#endif
+
+#define wxNB_FIXEDWIDTH       0x0100
+#define wxNB_MULTILINE        0x0200
+#define wxNB_NOPAGETHEME      0x0400
+#define wxNB_FLAT             0x0800
 
 /*
  * wxListbook flags
  */
-#define wxLB_DEFAULT          0x0
-#define wxLB_TOP              0x1
-#define wxLB_BOTTOM           0x2
-#define wxLB_LEFT             0x4
-#define wxLB_RIGHT            0x8
-#define wxLB_ALIGN_MASK       0xf
+#if WXWIN_COMPATIBILITY_2_6
+/* Use common book wxBK_* flags for describing alignment */
+#define wxLB_DEFAULT          wxBK_DEFAULT
+#define wxLB_TOP              wxBK_TOP
+#define wxLB_BOTTOM           wxBK_BOTTOM
+#define wxLB_LEFT             wxBK_LEFT
+#define wxLB_RIGHT            wxBK_RIGHT
+#define wxLB_ALIGN_MASK       wxBK_ALIGN_MASK
+#endif
 
 /*
  * wxChoicebook flags
  */
-#define wxCHB_DEFAULT         0x0
-#define wxCHB_TOP             0x1
-#define wxCHB_BOTTOM          0x2
-#define wxCHB_LEFT            0x4
-#define wxCHB_RIGHT           0x8
-#define wxCHB_ALIGN_MASK      0xf
+#if WXWIN_COMPATIBILITY_2_6
+/* Use common book wxBK_* flags for describing alignment */
+#define wxCHB_DEFAULT          wxBK_DEFAULT
+#define wxCHB_TOP              wxBK_TOP
+#define wxCHB_BOTTOM           wxBK_BOTTOM
+#define wxCHB_LEFT             wxBK_LEFT
+#define wxCHB_RIGHT            wxBK_RIGHT
+#define wxCHB_ALIGN_MASK       wxBK_ALIGN_MASK
+#endif
 
 /*
  * wxTabCtrl flags
@@ -2129,16 +2150,23 @@ enum wxKeyCode
     WXK_SPECIAL20
 };
 
-#if wxUSE_HOTKEY
-enum wxHotkeyModifier
+/* This enum contains bit mask constants used in wxKeyEvent */
+enum wxKeyModifier
 {
-    wxMOD_NONE = 0,
-    wxMOD_ALT = 1,
-    wxMOD_CONTROL = 2,
-    wxMOD_SHIFT = 4,
-    wxMOD_WIN = 8
-};
+    wxMOD_NONE      = 0x0000,
+    wxMOD_ALT       = 0x0001,
+    wxMOD_CONTROL   = 0x0002,
+    wxMOD_ALTGR     = wxMOD_ALT | wxMOD_CONTROL,
+    wxMOD_SHIFT     = 0x0004,
+    wxMOD_META      = 0x0008,
+    wxMOD_WIN       = wxMOD_META,
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+    wxMOD_CMD       = wxMOD_META,
+#else
+    wxMOD_CMD       = wxMOD_CONTROL,
 #endif
+    wxMOD_ALL       = 0xffff
+};
 
 /*  Mapping modes (same values as used by Windows, don't change) */
 enum
@@ -2858,6 +2886,33 @@ typedef struct window_t *WXWidget;
 #define DECLARE_NO_ASSIGN_CLASS(classname)      \
     private:                                    \
         classname& operator=(const classname&);
+
+/*  --------------------------------------------------------------------------- */
+/*  If a manifest is being automatically generated, add common controls 6 to it */
+/*  --------------------------------------------------------------------------- */
+
+#if (!defined wxUSE_NO_MANIFEST || wxUSE_NO_MANIFEST == 0 ) && \
+    ( defined _MSC_FULL_VER && _MSC_FULL_VER >= 140040130 )
+
+#define WX_CC_MANIFEST(cpu)                     \
+    "/manifestdependency:\"type='win32'         \
+     name='Microsoft.Windows.Common-Controls'   \
+     version='6.0.0.0'                          \
+     processorArchitecture='"cpu"'              \
+     publicKeyToken='6595b64144ccf1df'          \
+     language='*'\""
+
+#if defined _M_IX86
+    #pragma comment(linker, WX_CC_MANIFEST("x86"))
+#elif defined _M_X64
+    #pragma comment(linker, WX_CC_MANIFEST("amd64"))
+#elif defined _M_IA64
+    #pragma comment(linker, WX_CC_MANIFEST("ia64"))
+#else
+    #pragma comment(linker, WX_CC_MANIFEST("*"))
+#endif
+
+#endif /* !wxUSE_NO_MANIFEST && _MSC_FULL_VER >= 140040130 */
 
 #endif
     /*  _WX_DEFS_H_ */

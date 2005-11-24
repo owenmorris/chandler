@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h,v 1.123 2005/10/09 15:48:11 MBN Exp $
+// RCS-ID:      $Id: utils.h,v 1.124 2005/10/23 22:37:52 ABX Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -211,12 +211,12 @@ WXDLLIMPEXP_BASE long wxExecute(const wxString& command,
                                 wxArrayString& error,
                                 int flags = 0);
 
-#ifdef __WXMSW__
+#if defined(__WXMSW__) && wxUSE_IPC
 // ask a DDE server to execute the DDE request with given parameters
 WXDLLIMPEXP_BASE bool wxExecuteDDE(const wxString& ddeServer,
                                    const wxString& ddeTopic,
                                    const wxString& ddeCommand);
-#endif // __WXMSW__
+#endif // __WXMSW__ && wxUSE_IPC
 
 enum wxSignal
 {

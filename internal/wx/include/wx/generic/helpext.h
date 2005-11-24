@@ -4,7 +4,7 @@
  * (C) 1998 by Karsten Ballüder (Ballueder@usa.net)                 *
  * License: wxWindows licence                                       *
  *                                                                  *
- * $Id: helpext.h,v 1.19 2005/09/23 12:49:05 MR Exp $
+ * $Id: helpext.h,v 1.20 2005/10/26 09:31:55 JS Exp $
  *******************************************************************/
 
 #ifndef __WX_HELPEXT_H_
@@ -55,7 +55,7 @@ class WXDLLIMPEXP_ADV wxExtHelpController : public wxHelpControllerBase
 {
 DECLARE_CLASS(wxExtHelpController)
    public:
-   wxExtHelpController();
+   wxExtHelpController(wxWindow* parentWindow = NULL);
    ~wxExtHelpController();
 
    /** Tell it which browser to use.

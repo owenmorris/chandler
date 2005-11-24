@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.h,v 1.248 2005/10/09 22:34:05 VZ Exp $
+// RCS-ID:      $Id: event.h,v 1.250 2005/11/10 11:59:47 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -935,11 +935,22 @@ public:
     wxKeyEvent(wxEventType keyType = wxEVT_NULL);
     wxKeyEvent(const wxKeyEvent& evt);
 
+    // can be used check if the key event has exactly the given modifiers:
+    // "GetModifiers() = wxMOD_CONTROL" is easier to write than "ControlDown()
+    // && !MetaDown() && !AltDown() && !ShiftDown()"
+    int GetModifiers() const
+    {
+        return (m_controlDown ? wxMOD_CONTROL : 0) |
+               (m_shiftDown ? wxMOD_SHIFT : 0) |
+               (m_metaDown ? wxMOD_META : 0) |
+               (m_altDown ? wxMOD_ALT : 0);
+    }
+
     // Find state of shift/control keys
     bool ControlDown() const { return m_controlDown; }
+    bool ShiftDown() const { return m_shiftDown; }
     bool MetaDown() const { return m_metaDown; }
     bool AltDown() const { return m_altDown; }
-    bool ShiftDown() const { return m_shiftDown; }
 
     // "Cmd" is a pseudo key which is Control for PC and Unix platforms but
     // Apple ("Command") key under Macs: it makes often sense to use it instead
@@ -1029,10 +1040,13 @@ public:
 
     long          m_keyCode;
 
+    // TODO: replace those with a single m_modifiers bitmask of wxMOD_XXX?
     bool          m_controlDown;
     bool          m_shiftDown;
     bool          m_altDown;
     bool          m_metaDown;
+
+    // FIXME: what is this for? relation to m_rawXXX?
     bool          m_scanCode;
 
 #if wxUSE_UNICODE
@@ -2889,7 +2903,7 @@ extern WXDLLIMPEXP_BASE wxList *wxPendingEvents;
 
 // Find a window with the focus, that is also a descendant of the given window.
 // This is used to determine the window to initially send commands to.
-wxWindow* wxFindFocusDescendant(wxWindow* ancestor);
+WXDLLIMPEXP_CORE wxWindow* wxFindFocusDescendant(wxWindow* ancestor);
 
 #endif // wxUSE_GUI
 

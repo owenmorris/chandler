@@ -3,7 +3,7 @@
 // Purpose:     wxHtmlCell class is used by wxHtmlWindow/wxHtmlWinParser
 //              as a basic visual element of HTML page
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlcell.h,v 1.60 2005/09/24 21:42:15 VZ Exp $
+// RCS-ID:      $Id: htmlcell.h,v 1.61 2005/11/17 23:37:27 VS Exp $
 // Copyright:   (c) 1999-2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -427,7 +427,7 @@ public:
 
     // Removes indentation on top or bottom of the container (i.e. above or
     // below first/last terminal cell). For internal use only.
-    void RemoveExtraSpacing(bool top, bool bottom);
+    virtual void RemoveExtraSpacing(bool top, bool bottom);
 
     // Returns the maximum possible length of the container.
     // Call Layout at least once before using GetMaxTotalWidth()
