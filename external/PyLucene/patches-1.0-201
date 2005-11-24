@@ -38,7 +38,7 @@
  SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1 -DDB_LIB_VER="'$(DB_LIB_VER)'" -DDB_VER=$(subst .,,$(DB_LIB_VER))
  
  $(BINDIR)/db_const.o:
-@@ -869,23 +869,29 @@
+@@ -875,23 +875,29 @@
  else
  
  ifeq ($(OS),Linux)
