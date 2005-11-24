@@ -39,11 +39,10 @@ binaries:
 install: common-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf common-$(SNAP)-$(RELVER).tar.gz
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+	rm -rf $(SRC)/$(BUILD)
+endif
 
 _realclean::
 	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded

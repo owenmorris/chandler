@@ -35,8 +35,10 @@ swig: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)
 	$(MAKE) -C $(SRC)/$(BUILD) install
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
+endif
 
 endif
 

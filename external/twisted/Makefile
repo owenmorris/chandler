@@ -47,5 +47,7 @@ upload: twisted-$(SNAP)-$(RELVER).tar.gz
 	scp twisted-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp twisted-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
+endif

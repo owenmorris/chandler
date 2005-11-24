@@ -52,8 +52,7 @@ upload: pychecker-$(SNAP)-$(RELVER).tar.gz
 	scp pychecker-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp pychecker-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	@if [ -f $(PYTHON) ]; then \
-      cd $(SRC); \
-      $(PYTHON) setup.py clean --all; \
-  fi
+	rm -rf $(SRC)/$(BUILD)
+endif

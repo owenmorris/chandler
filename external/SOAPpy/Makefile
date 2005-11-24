@@ -41,11 +41,10 @@ binaries:
 install: soappy-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf soappy-$(SNAP)-$(RELVER).tar.gz
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	@if [ -f $(PYTHON) ]; then \
-      cd $(SRC); \
-      $(PYTHON) setup.py clean --all; \
-  fi
+	rm -rf $(SRC)/$(BUILD)
+endif
 
 upload: soappy-$(SNAP)-$(RELVER).tar.gz
 	scp soappy-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)

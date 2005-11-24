@@ -75,11 +75,10 @@ clean-common:
 clean-optik:
 	$(MAKE) -C optik DEBUG=$(DEBUG) clean
 
+ifneq (/,$(SRC)/$(BUILD))
 clean: clean-common clean-optik
-	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+	rm -rf $(SRC)/$(BUILD)
+endif
 
 upload-common:
 	$(MAKE) -C common DEBUG=$(DEBUG) upload

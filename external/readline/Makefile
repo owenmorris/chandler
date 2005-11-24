@@ -20,9 +20,11 @@ readline: $(SRC)/Makefile apply
 	$(MAKE) -C $(SRC_BUILD)
 	$(MAKE) -C $(SRC_BUILD) install
 
+ifneq (/,$(READLINE)/$(BUILD))
 clean:
 	rm -rf $(READLINE)/$(BUILD)
 	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
+endif
 
 ifeq ($(strip $(OS_VERSION)),8.0.0) 
 apply:

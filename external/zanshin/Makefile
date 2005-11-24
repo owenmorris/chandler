@@ -42,5 +42,7 @@ upload: zanshin-$(SNAP)-$(RELVER).tar.gz
 	scp zanshin-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp zanshin-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
+endif

@@ -185,8 +185,10 @@ expand:: bzip2-$(BZIP2VERSION)-expanded
 
 endif
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
+endif
 
 endif
 

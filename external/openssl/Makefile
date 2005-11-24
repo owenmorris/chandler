@@ -119,7 +119,9 @@ expand: openssl-$(VERSION)-expanded
 apply:
 	patch -Nup0 < patches-$(VERSION); echo ok
 
+build: expand openssl
+
+ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
-
-build: expand openssl
+endif

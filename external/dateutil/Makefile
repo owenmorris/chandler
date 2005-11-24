@@ -43,8 +43,7 @@ install:
 	cd $(BUILD_ROOT); \
         tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+	rm -rf $(SRC)/$(BUILD)
+endif

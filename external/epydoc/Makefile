@@ -48,8 +48,7 @@ upload: epydoc-$(SNAP)-$(RELVER).tar.gz
 	scp epydoc-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp epydoc-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	@if [ -f $(PYTHON) ]; then \
-            cd $(SRC); \
-            $(PYTHON) setup.py clean --all; \
-        fi
+	rm -rf $(SRC)/$(BUILD)
+endif
