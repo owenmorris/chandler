@@ -134,7 +134,8 @@ $(SRC)/$(BUILD)/Makefile:
           DYNLOADFILE=dynload_shlib.o \
           ../configure --prefix=$(PREFIX) $(CONF_DBG) \
                        --enable-framework=$(PREFIX)/Library/Frameworks \
-                       --with-readline=$(PREFIX)/lib
+                       --with-readline=$(PREFIX)/lib \
+                       --disable-ipv6
 
 build: expand apply $(SRC)/$(BUILD)/Makefile
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework
