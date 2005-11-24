@@ -189,7 +189,7 @@ endif
 
 ifeq ($(OS),Darwin)
 
-ifeq ($(GCJ_VER),)
+ifeq ($(GCJ_VER),3)
 GCC_VERSION=3.4.4
 GCJ_VER=3
 endif
