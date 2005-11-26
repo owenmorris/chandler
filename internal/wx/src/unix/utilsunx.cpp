@@ -2,7 +2,7 @@
 // Name:        unix/utilsunx.cpp
 // Purpose:     generic Unix implementation of many wx functions
 // Author:      Vadim Zeitlin
-// Id:          $Id: utilsunx.cpp,v 1.129 2005/10/09 15:48:40 MBN Exp $
+// Id:          $Id: utilsunx.cpp,v 1.130 2005/11/25 22:09:22 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -123,6 +123,12 @@
 #ifdef HAVE_UNAME
     #include <sys/utsname.h> // for uname()
 #endif // HAVE_UNAME
+
+// Used by wxGetFreeMemory().
+#ifdef __SGI__
+    #include <sys/sysmp.h>
+    #include <sys/sysinfo.h>   // for SAGET and MINFO structures
+#endif
 
 // ----------------------------------------------------------------------------
 // conditional compilation
@@ -910,6 +916,10 @@ wxMemorySize wxGetFreeMemory()
     }
 #elif defined(__SUN__) && defined(_SC_AVPHYS_PAGES)
     return (wxMemorySize)(sysconf(_SC_AVPHYS_PAGES)*sysconf(_SC_PAGESIZE));
+#elif defined(__SGI__)
+    struct rminfo realmem;
+    if ( sysmp(MP_SAGET, MPSA_RMINFO, &realmem, sizeof realmem) == 0 )
+        return ((wxMemorySize)realmem.physmem * sysconf(_SC_PAGESIZE));
 //#elif defined(__FREEBSD__) -- might use sysctl() to find it out, probably
 #endif
 

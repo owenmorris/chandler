@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textctrl.cpp,v 1.250 2005/09/23 12:55:13 MR Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.251 2005/11/24 16:53:36 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -961,7 +961,8 @@ void wxTextCtrl::DoWriteText(const wxString& value, bool selectionOnly)
         UpdatesCountFilter ucf(m_updatesCount);
 
         ::SendMessage(GetHwnd(), selectionOnly ? EM_REPLACESEL : WM_SETTEXT,
-                      0, (LPARAM)valueDos.c_str());
+                      // EM_REPLACESEL takes 1 to indicate the operation should be redoable
+                      selectionOnly ? 1 : 0, (LPARAM)valueDos.c_str());
 
         if ( !ucf.GotUpdate() )
         {

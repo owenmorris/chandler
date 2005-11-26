@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10.10.98
 // Created:     1997
-// RCS-ID:      $Id: treectrl.cpp,v 1.219 2005/10/28 14:05:45 CE Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.220 2005/11/26 13:08:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -310,6 +310,11 @@ public:
     {
         m_tree = tree;
     }
+
+    // give it a virtual dtor: not really needed as the class is never used
+    // polymorphically and not even allocated on heap at all, but this is safer
+    // (in case it ever is) and silences the compiler warnings for now
+    virtual ~wxTreeTraversal() { }
 
     // do traverse the tree: visit all items (recursively by default) under the
     // given one; return true if all items were traversed or false if the

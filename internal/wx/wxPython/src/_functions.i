@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     3-July-1997
-// RCS-ID:      $Id: _functions.i,v 1.23 2005/05/11 18:00:04 RD Exp $
+// RCS-ID:      $Id: _functions.i,v 1.24 2005/11/26 23:27:21 vell Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -78,10 +78,10 @@ wxString wxGetOsDescription();
 // int wxParseCommonDialogsFilter(const wxString& wildCard, wxArrayString& descriptions, wxArrayString& filters);
 
 #if defined(__WXMSW__) || defined(__WXMAC__)
-long wxGetFreeMemory();
+wxMemorySize wxGetFreeMemory();
 #else
 %inline %{
-    long wxGetFreeMemory()
+    wxMemorySize wxGetFreeMemory()
         { wxPyRaiseNotImplemented(); return 0; }
 %}
 #endif

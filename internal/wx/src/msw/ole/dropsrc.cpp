@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.05.98
-// RCS-ID:      $Id: dropsrc.cpp,v 1.30 2005/09/23 12:55:23 MR Exp $
+// RCS-ID:      $Id: dropsrc.cpp,v 1.31 2005/11/26 13:08:09 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,6 +53,7 @@ class wxIDropSource : public IDropSource
 {
 public:
   wxIDropSource(wxDropSource *pDropSource);
+  virtual ~wxIDropSource() { }
 
   DECLARE_IUNKNOWN_METHODS;
 
@@ -64,7 +65,7 @@ private:
   DWORD         m_grfInitKeyState;  // button which started the d&d operation
   wxDropSource *m_pDropSource;      // pointer to C++ class we belong to
 
-    DECLARE_NO_COPY_CLASS(wxIDropSource)
+  DECLARE_NO_COPY_CLASS(wxIDropSource)
 };
 
 // ============================================================================
