@@ -313,7 +313,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all src/expat"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA STRIP ac_ct_STRIP RESCOMP ac_ct_RESCOMP DLLTOOL ac_ct_DLLTOOL IF_GNU_MAKE LN_S LNDIR CP_PR CXXCPP subdirs PKG_CONFIG GTK_CFLAGS GTK_LIBS GTK_CONFIG X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS PANGOX_CFLAGS PANGOX_LIBS PANGOFT2_CFLAGS PANGOFT2_LIBS PANGOXFT_CFLAGS PANGOXFT_LIBS DEREZ SETFILE LIBICONV EXTRALIBS_ESD SDL_CONFIG SDL_CFLAGS SDL_LIBS LIBGNOMEPRINTUI_CFLAGS LIBGNOMEPRINTUI_LIBS GSTREAMER_CFLAGS GSTREAMER_LIBS GST_INSPECT CORE_BASE_LIBS CORE_GUI_LIBS wxUSE_ZLIB wxUSE_REGEX wxUSE_EXPAT wxUSE_ODBC wxUSE_LIBJPEG wxUSE_LIBPNG wxUSE_LIBTIFF VENDOR OFFICIAL_BUILD WX_FLAVOUR WX_LIB_FLAVOUR WXUNIV MONOLITHIC USE_PLUGINS EXTRALIBS EXTRALIBS_XML EXTRALIBS_HTML EXTRALIBS_ODBC EXTRALIBS_GUI EXTRALIBS_OPENGL EXTRALIBS_SDL WITH_PLUGIN_SDL EXTRALIBS_GNOMEPRINT UNICODE BUILD DEBUG_INFO DEBUG_FLAG TOOLKIT_LOWERCASE TOOLKIT_VERSION SAMPLES_RPATH_FLAG SAMPLES_RPATH_POSTLINK HOST_SUFFIX CPPUNIT_CFLAGS CPPUNIT_LIBS SET_MAKE MAKE_SET NM ac_ct_NM INSTALL_DIR LDFLAGS_GUI PLATFORM_UNIX PLATFORM_WIN32 PLATFORM_MSDOS PLATFORM_MAC PLATFORM_MACOS PLATFORM_MACOSX PLATFORM_OS2 PLATFORM_BEOS SO_SUFFIX SO_SUFFIX_MODULE DLLIMP_SUFFIX LIBPREFIX LIBEXT DLLPREFIX DLLPREFIX_MODULE dlldir AIX_CXX_LD SHARED_LD_CC SHARED_LD_CXX SHARED_LD_MODULE_CC SHARED_LD_MODULE_CXX PIC_FLAG WINDOWS_IMPLIB USE_SOVERSION USE_SOVERLINUX USE_SOVERSOLARIS USE_SOVERCYGWIN USE_MACVERSION USE_SOSYMLINKS SONAME_FLAG DEPS_TRACKING GCC_PCH COND_BUILD_DEBUG COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT COND_BUILD_DEBUG_UNICODE_0 COND_BUILD_DEBUG_UNICODE_1 COND_BUILD_RELEASE COND_BUILD_RELEASE_DEBUG_INFO_DEFAULT COND_BUILD_RELEASE_UNICODE_0 COND_BUILD_RELEASE_UNICODE_1 COND_DEBUG_FLAG_1 COND_DEBUG_INFO_0 COND_DEBUG_INFO_1 COND_DEPS_TRACKING_0 COND_DEPS_TRACKING_1 COND_GCC_PCH_1 COND_MONOLITHIC_0 COND_MONOLITHIC_0_SHARED_0 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_XRC_1 COND_MONOLITHIC_0_SHARED_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_XRC_1 COND_MONOLITHIC_0_USE_ODBC_1 COND_MONOLITHIC_1 COND_MONOLITHIC_1_SHARED_0 COND_MONOLITHIC_1_SHARED_1 COND_OFFICIAL_BUILD_0_PLATFORM_WIN32_1 COND_OFFICIAL_BUILD_1_PLATFORM_WIN32_1 COND_PLATFORM_MACOSX_0_USE_SOVERCYGWIN_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_1 COND_PLATFORM_MACOSX_1_TOOLKIT_ COND_PLATFORM_MACOSX_1_TOOLKIT_COCOA COND_PLATFORM_MACOSX_1_TOOLKIT_GTK COND_PLATFORM_MACOSX_1_TOOLKIT_MAC COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1 COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF COND_PLATFORM_MACOSX_1_TOOLKIT_X11 COND_PLATFORM_MACOSX_1_USE_GUI_1 COND_PLATFORM_MACOSX_1_USE_SOVERSION_1 COND_PLATFORM_MACOS_1 COND_PLATFORM_MAC_1 COND_PLATFORM_MSDOS_1 COND_PLATFORM_OS2_1 COND_PLATFORM_UNIX_0 COND_PLATFORM_UNIX_1 COND_PLATFORM_UNIX_1_USE_GUI_1 COND_PLATFORM_UNIX_1_USE_PLUGINS_0 COND_PLATFORM_WIN32_0 COND_PLATFORM_WIN32_1 COND_SHARED_0 COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0 COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0 COND_SHARED_0_TOOLKIT_PM_WXUNIV_0 COND_SHARED_0_USE_GUI_1_USE_OPENGL_1 COND_SHARED_0_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_SHARED_0_USE_XRC_1 COND_SHARED_0_WXUSE_EXPAT_BUILTIN COND_SHARED_0_WXUSE_ODBC_BUILTIN COND_SHARED_0_WXUSE_REGEX_BUILTIN COND_SHARED_0_WXUSE_ZLIB_BUILTIN COND_SHARED_1 COND_SHARED_1_USE_GUI_1_USE_OPENGL_1 COND_SHARED_1_USE_XRC_1 COND_TOOLKIT_ COND_TOOLKIT_COCOA COND_TOOLKIT_COCOA_USE_GUI_1 COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK COND_TOOLKIT_GTK_USE_GUI_1 COND_TOOLKIT_GTK_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MAC COND_TOOLKIT_MAC_USE_GUI_1 COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MGL COND_TOOLKIT_MGL_USE_GUI_1 COND_TOOLKIT_MOTIF COND_TOOLKIT_MOTIF_USE_GUI_1 COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW COND_TOOLKIT_MSW_USE_GUI_1 COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW_WXUNIV_0 COND_TOOLKIT_PM COND_TOOLKIT_PM_USE_GUI_1 COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE COND_TOOLKIT_WINCE_USE_GUI_1 COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE_WXUNIV_0 COND_TOOLKIT_X11 COND_TOOLKIT_X11_USE_GUI_1 COND_UNICODE_1 COND_USE_EXCEPTIONS_0 COND_USE_EXCEPTIONS_1 COND_USE_GUI_0 COND_USE_GUI_1 COND_USE_GUI_1_WXUNIV_0 COND_USE_GUI_1_WXUNIV_1 COND_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_USE_ODBC_1 COND_USE_OPENGL_1 COND_USE_PLUGINS_0 COND_USE_RTTI_0 COND_USE_RTTI_1 COND_USE_SOSYMLINKS_1 COND_USE_SOVERCYGWIN_1_USE_SOVERSION_1 COND_USE_SOVERLINUX_1 COND_USE_SOVERSION_0 COND_USE_SOVERSOLARIS_1 COND_USE_THREADS_0 COND_USE_THREADS_1 COND_USE_XRC_1 COND_WINDOWS_IMPLIB_1 COND_WITH_PLUGIN_SDL_1 COND_WXUNIV_0 COND_WXUNIV_1 COND_WXUSE_EXPAT_BUILTIN COND_WXUSE_LIBJPEG_BUILTIN COND_WXUSE_LIBPNG_BUILTIN COND_WXUSE_LIBTIFF_BUILTIN COND_WXUSE_ODBC_BUILTIN COND_WXUSE_REGEX_BUILTIN COND_WXUSE_ZLIB_BUILTIN SHARED WX_LIBRARY_BASENAME_NOGUI WX_LIBRARY_BASENAME_GUI WXDEBUG_DEFINE USE_GUI AFMINSTALL WIN32INSTALL TOOLKIT TOOLKIT_DIR TOOLCHAIN_NAME TOOLCHAIN_FULLNAME TOOLCHAIN_DEFS TOOLCHAIN_DLL_DEFS cross_compiling WIDGET_SET WX_RELEASE WX_VERSION WX_SUBVERSION WX_CHARTYPE WX_DEBUGTYPE WXCONFIG_EXTRALIBS WXCONFIG_INCLUDE WXCONFIG_RPATH WXCONFIG_LDFLAGS_GUI WX_LARGEFILE_FLAGS GCC_PRAGMA_FLAGS CODE_GEN_FLAGS CODE_GEN_FLAGS_CXX EXE_LINKER GUIDIST DISTDIR SAMPLES_SUBDIRS LDFLAGS_GL OPENGL_LIBS DMALLOC_LIBS WX_VERSION_TAG RESFLAGS RESPROGRAMOBJ WX_RESOURCES_MACOSX_ASCII WX_RESOURCES_MACOSX_DATA LIBWXMACRES MACRESCOMP MACSETFILE MACRESWXCONFIG GCC CPPUNIT_CONFIG LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA STRIP ac_ct_STRIP WINDRES ac_ct_WINDRES DLLTOOL ac_ct_DLLTOOL IF_GNU_MAKE LN_S LNDIR CXXCPP subdirs PKG_CONFIG GTK_CFLAGS GTK_LIBS GTK_CONFIG X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS PANGOX_CFLAGS PANGOX_LIBS PANGOFT2_CFLAGS PANGOFT2_LIBS PANGOXFT_CFLAGS PANGOXFT_LIBS REZ DEREZ SETFILE LIBICONV EXTRALIBS_ESD SDL_CONFIG SDL_CFLAGS SDL_LIBS LIBGNOMEPRINTUI_CFLAGS LIBGNOMEPRINTUI_LIBS GSTREAMER_CFLAGS GSTREAMER_LIBS GST_INSPECT CORE_BASE_LIBS CORE_GUI_LIBS wxUSE_ZLIB wxUSE_REGEX wxUSE_EXPAT wxUSE_ODBC wxUSE_LIBJPEG wxUSE_LIBPNG wxUSE_LIBTIFF VENDOR OFFICIAL_BUILD WX_FLAVOUR WX_LIB_FLAVOUR WXUNIV MONOLITHIC USE_PLUGINS EXTRALIBS EXTRALIBS_XML EXTRALIBS_HTML EXTRALIBS_ODBC EXTRALIBS_GUI EXTRALIBS_OPENGL EXTRALIBS_SDL WITH_PLUGIN_SDL EXTRALIBS_GNOMEPRINT UNICODE BUILD DEBUG_INFO DEBUG_FLAG TOOLKIT_LOWERCASE TOOLKIT_VERSION SAMPLES_RPATH_FLAG SAMPLES_RPATH_POSTLINK HOST_SUFFIX CPPUNIT_CFLAGS CPPUNIT_LIBS SET_MAKE MAKE_SET NM ac_ct_NM INSTALL_DIR LDFLAGS_GUI PLATFORM_UNIX PLATFORM_WIN32 PLATFORM_MSDOS PLATFORM_MAC PLATFORM_MACOS PLATFORM_MACOSX PLATFORM_OS2 PLATFORM_BEOS SO_SUFFIX SO_SUFFIX_MODULE DLLIMP_SUFFIX LIBPREFIX LIBEXT DLLPREFIX DLLPREFIX_MODULE dlldir AIX_CXX_LD SHARED_LD_CC SHARED_LD_CXX SHARED_LD_MODULE_CC SHARED_LD_MODULE_CXX PIC_FLAG WINDOWS_IMPLIB USE_SOVERSION USE_SOVERLINUX USE_SOVERSOLARIS USE_SOVERCYGWIN USE_MACVERSION USE_SOSYMLINKS SONAME_FLAG DEPS_TRACKING GCC_PCH COND_BUILD_DEBUG COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT COND_BUILD_DEBUG_UNICODE_0 COND_BUILD_DEBUG_UNICODE_1 COND_BUILD_RELEASE COND_BUILD_RELEASE_DEBUG_INFO_DEFAULT COND_BUILD_RELEASE_UNICODE_0 COND_BUILD_RELEASE_UNICODE_1 COND_DEBUG_FLAG_1 COND_DEBUG_INFO_0 COND_DEBUG_INFO_1 COND_DEPS_TRACKING_0 COND_DEPS_TRACKING_1 COND_GCC_PCH_1 COND_MONOLITHIC_0 COND_MONOLITHIC_0_SHARED_0 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_XRC_1 COND_MONOLITHIC_0_SHARED_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_XRC_1 COND_MONOLITHIC_0_USE_ODBC_1 COND_MONOLITHIC_1 COND_MONOLITHIC_1_SHARED_0 COND_MONOLITHIC_1_SHARED_1 COND_OFFICIAL_BUILD_0_PLATFORM_WIN32_1 COND_OFFICIAL_BUILD_1_PLATFORM_WIN32_1 COND_PLATFORM_MACOSX_0_USE_SOVERCYGWIN_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_1 COND_PLATFORM_MACOSX_1_TOOLKIT_ COND_PLATFORM_MACOSX_1_TOOLKIT_COCOA COND_PLATFORM_MACOSX_1_TOOLKIT_GTK COND_PLATFORM_MACOSX_1_TOOLKIT_MAC COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1 COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF COND_PLATFORM_MACOSX_1_TOOLKIT_X11 COND_PLATFORM_MACOSX_1_USE_GUI_1 COND_PLATFORM_MACOSX_1_USE_SOVERSION_1 COND_PLATFORM_MACOS_1 COND_PLATFORM_MAC_1 COND_PLATFORM_MSDOS_1 COND_PLATFORM_OS2_1 COND_PLATFORM_UNIX_0 COND_PLATFORM_UNIX_1 COND_PLATFORM_UNIX_1_USE_GUI_1 COND_PLATFORM_UNIX_1_USE_PLUGINS_0 COND_PLATFORM_WIN32_0 COND_PLATFORM_WIN32_1 COND_SHARED_0 COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0 COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0 COND_SHARED_0_TOOLKIT_PM_WXUNIV_0 COND_SHARED_0_USE_GUI_1_USE_OPENGL_1 COND_SHARED_0_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_SHARED_0_USE_XRC_1 COND_SHARED_0_WXUSE_EXPAT_BUILTIN COND_SHARED_0_WXUSE_ODBC_BUILTIN COND_SHARED_0_WXUSE_REGEX_BUILTIN COND_SHARED_0_WXUSE_ZLIB_BUILTIN COND_SHARED_1 COND_SHARED_1_USE_GUI_1_USE_OPENGL_1 COND_SHARED_1_USE_XRC_1 COND_TOOLKIT_ COND_TOOLKIT_COCOA COND_TOOLKIT_COCOA_USE_GUI_1 COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK COND_TOOLKIT_GTK_USE_GUI_1 COND_TOOLKIT_GTK_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MAC COND_TOOLKIT_MAC_USE_GUI_1 COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MGL COND_TOOLKIT_MGL_USE_GUI_1 COND_TOOLKIT_MOTIF COND_TOOLKIT_MOTIF_USE_GUI_1 COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW COND_TOOLKIT_MSW_USE_GUI_1 COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW_WXUNIV_0 COND_TOOLKIT_PM COND_TOOLKIT_PM_USE_GUI_1 COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE COND_TOOLKIT_WINCE_USE_GUI_1 COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE_WXUNIV_0 COND_TOOLKIT_X11 COND_TOOLKIT_X11_USE_GUI_1 COND_UNICODE_1 COND_USE_EXCEPTIONS_0 COND_USE_EXCEPTIONS_1 COND_USE_GUI_0 COND_USE_GUI_1 COND_USE_GUI_1_WXUNIV_0 COND_USE_GUI_1_WXUNIV_1 COND_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_USE_ODBC_1 COND_USE_OPENGL_1 COND_USE_PLUGINS_0 COND_USE_RTTI_0 COND_USE_RTTI_1 COND_USE_SOSYMLINKS_1 COND_USE_SOVERCYGWIN_1_USE_SOVERSION_1 COND_USE_SOVERLINUX_1 COND_USE_SOVERSION_0 COND_USE_SOVERSOLARIS_1 COND_USE_THREADS_0 COND_USE_THREADS_1 COND_USE_XRC_1 COND_WINDOWS_IMPLIB_1 COND_WITH_PLUGIN_SDL_1 COND_WXUNIV_0 COND_WXUNIV_1 COND_WXUSE_EXPAT_BUILTIN COND_WXUSE_LIBJPEG_BUILTIN COND_WXUSE_LIBPNG_BUILTIN COND_WXUSE_LIBTIFF_BUILTIN COND_WXUSE_ODBC_BUILTIN COND_WXUSE_REGEX_BUILTIN COND_WXUSE_ZLIB_BUILTIN SHARED WX_LIBRARY_BASENAME_NOGUI WX_LIBRARY_BASENAME_GUI USE_GUI AFMINSTALL WIN32INSTALL TOOLKIT TOOLKIT_DIR TOOLCHAIN_NAME TOOLCHAIN_FULLNAME cross_compiling WIDGET_SET WX_RELEASE WX_VERSION WX_SUBVERSION WX_CHARTYPE WX_DEBUGTYPE WXCONFIG_CPPFLAGS WXCONFIG_CFLAGS WXCONFIG_CXXFLAGS WXCONFIG_LIBS WXCONFIG_RPATH WXCONFIG_LDFLAGS_GUI WXCONFIG_RESCOMP EXE_LINKER GUIDIST DISTDIR SAMPLES_SUBDIRS LDFLAGS_GL OPENGL_LIBS DMALLOC_LIBS WX_VERSION_TAG RESFLAGS RESPROGRAMOBJ WX_RESOURCES_MACOSX_ASCII WX_RESOURCES_MACOSX_DATA LIBWXMACRES POSTLINK_COMMAND MACSETFILE WXCONFIG_POSTLINK_COMMAND GCC CPPUNIT_CONFIG LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -959,6 +959,7 @@ Optional Features:
   --enable-logwin         use wxLogWindow
   --enable-logdialog      use wxLogDialog
   --enable-webkit         use wxWebKitCtrl (Mac)
+  --enable-richtext       use wxRichTextCtrl
   --enable-postscript     use wxPostscriptDC device context (default for gtk+)
   --enable-prologio       not available; see contrib
   --enable-resources      not available; see contrib
@@ -2158,6 +2159,7 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_MENUS=no
   DEFAULT_wxUSE_MINIFRAME=no
   DEFAULT_wxUSE_HTML=no
+  DEFAULT_wxUSE_RICHTEXT=no
   DEFAULT_wxUSE_XRC=no
   DEFAULT_wxUSE_WEBKIT=no
   DEFAULT_wxUSE_FILESYSTEM=no
@@ -2355,6 +2357,7 @@ else
   DEFAULT_wxUSE_MENUS=yes
   DEFAULT_wxUSE_MINIFRAME=yes
   DEFAULT_wxUSE_HTML=yes
+  DEFAULT_wxUSE_RICHTEXT=yes
   DEFAULT_wxUSE_XRC=yes
   DEFAULT_wxUSE_WEBKIT=yes
   DEFAULT_wxUSE_FILESYSTEM=yes
@@ -7000,6 +7003,47 @@ fi;
           fi
 
           if test "$wxUSE_WEBKIT" = yes; then
+            echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+          else
+            echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+          fi
+
+
+	  enablestring=
+          echo "$as_me:$LINENO: checking for --${enablestring:-enable}-html" >&5
+echo $ECHO_N "checking for --${enablestring:-enable}-html... $ECHO_C" >&6
+          no_cache=0
+          # Check whether --enable-html or --disable-html was given.
+if test "${enable_html+set}" = set; then
+  enableval="$enable_html"
+
+                          if test "$enableval" = yes; then
+                            ac_cv_use_html='wxUSE_RICHTEXT=yes'
+                          else
+                            ac_cv_use_html='wxUSE_RICHTEXT=no'
+                          fi
+
+else
+
+                          LINE=`grep "wxUSE_RICHTEXT" ${wx_arg_cache_file}`
+                          if test "x$LINE" != x ; then
+                            eval "DEFAULT_$LINE"
+                          else
+                            no_cache=1
+                          fi
+
+                          ac_cv_use_html='wxUSE_RICHTEXT='$DEFAULT_wxUSE_RICHTEXT
+
+fi;
+
+          eval "$ac_cv_use_html"
+          if test "$no_cache" != 1; then
+            echo $ac_cv_use_html >> ${wx_arg_cache_file}.tmp
+          fi
+
+          if test "$wxUSE_RICHTEXT" = yes; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
           else
@@ -14314,11 +14358,11 @@ if test "$wxUSE_WINE" = "yes"; then
 set dummy ${ac_tool_prefix}wrc; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_RESCOMP+set}" = set; then
+if test "${ac_cv_prog_WINDRES+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$RESCOMP"; then
-  ac_cv_prog_RESCOMP="$RESCOMP" # Let the user override the test.
+  if test -n "$WINDRES"; then
+  ac_cv_prog_WINDRES="$WINDRES" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -14327,7 +14371,7 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_RESCOMP="${ac_tool_prefix}wrc"
+    ac_cv_prog_WINDRES="${ac_tool_prefix}wrc"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -14336,27 +14380,27 @@ done
 
 fi
 fi
-RESCOMP=$ac_cv_prog_RESCOMP
-if test -n "$RESCOMP"; then
-  echo "$as_me:$LINENO: result: $RESCOMP" >&5
-echo "${ECHO_T}$RESCOMP" >&6
+WINDRES=$ac_cv_prog_WINDRES
+if test -n "$WINDRES"; then
+  echo "$as_me:$LINENO: result: $WINDRES" >&5
+echo "${ECHO_T}$WINDRES" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 
 fi
-if test -z "$ac_cv_prog_RESCOMP"; then
-  ac_ct_RESCOMP=$RESCOMP
+if test -z "$ac_cv_prog_WINDRES"; then
+  ac_ct_WINDRES=$WINDRES
   # Extract the first word of "wrc", so it can be a program name with args.
 set dummy wrc; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_ac_ct_RESCOMP+set}" = set; then
+if test "${ac_cv_prog_ac_ct_WINDRES+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$ac_ct_RESCOMP"; then
-  ac_cv_prog_ac_ct_RESCOMP="$ac_ct_RESCOMP" # Let the user override the test.
+  if test -n "$ac_ct_WINDRES"; then
+  ac_cv_prog_ac_ct_WINDRES="$ac_ct_WINDRES" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -14365,7 +14409,7 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_RESCOMP="wrc"
+    ac_cv_prog_ac_ct_WINDRES="wrc"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -14374,103 +14418,24 @@ done
 
 fi
 fi
-ac_ct_RESCOMP=$ac_cv_prog_ac_ct_RESCOMP
-if test -n "$ac_ct_RESCOMP"; then
-  echo "$as_me:$LINENO: result: $ac_ct_RESCOMP" >&5
-echo "${ECHO_T}$ac_ct_RESCOMP" >&6
+ac_ct_WINDRES=$ac_cv_prog_ac_ct_WINDRES
+if test -n "$ac_ct_WINDRES"; then
+  echo "$as_me:$LINENO: result: $ac_ct_WINDRES" >&5
+echo "${ECHO_T}$ac_ct_WINDRES" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 
-  RESCOMP=$ac_ct_RESCOMP
+  WINDRES=$ac_ct_WINDRES
 else
-  RESCOMP="$ac_cv_prog_RESCOMP"
+  WINDRES="$ac_cv_prog_WINDRES"
 fi
 
 else
     case "${host}" in
     *-*-cygwin* | *-*-mingw32* )
-        if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}windres", so it can be a program name with args.
-set dummy ${ac_tool_prefix}windres; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_RESCOMP+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$RESCOMP"; then
-  ac_cv_prog_RESCOMP="$RESCOMP" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_RESCOMP="${ac_tool_prefix}windres"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-RESCOMP=$ac_cv_prog_RESCOMP
-if test -n "$RESCOMP"; then
-  echo "$as_me:$LINENO: result: $RESCOMP" >&5
-echo "${ECHO_T}$RESCOMP" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-fi
-if test -z "$ac_cv_prog_RESCOMP"; then
-  ac_ct_RESCOMP=$RESCOMP
-  # Extract the first word of "windres", so it can be a program name with args.
-set dummy windres; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_ac_ct_RESCOMP+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$ac_ct_RESCOMP"; then
-  ac_cv_prog_ac_ct_RESCOMP="$ac_ct_RESCOMP" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_RESCOMP="windres"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-ac_ct_RESCOMP=$ac_cv_prog_ac_ct_RESCOMP
-if test -n "$ac_ct_RESCOMP"; then
-  echo "$as_me:$LINENO: result: $ac_ct_RESCOMP" >&5
-echo "${ECHO_T}$ac_ct_RESCOMP" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-  RESCOMP=$ac_ct_RESCOMP
-else
-  RESCOMP="$ac_cv_prog_RESCOMP"
-fi
-
-        if test -n "$ac_tool_prefix"; then
+                if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}dlltool", so it can be a program name with args.
 set dummy ${ac_tool_prefix}dlltool; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -14646,7 +14611,6 @@ echo "${ECHO_T}no, using $LN_S" >&6
 fi
 
 
-CP_PR='cp -pR'
 for ac_prog in lndir
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -14686,8 +14650,7 @@ fi
 
   test -n "$LNDIR" && break
 done
-test -n "$LNDIR" || LNDIR="$CP_PR"
-
+test -n "$LNDIR" || LNDIR="cp -pR"
 
 
 
@@ -21149,7 +21112,7 @@ fi
 
 if test "x$wx_largefile" = "xyes"; then
     if test "x$ac_cv_sys_file_offset_bits" = "x64"; then
-        WX_LARGEFILE_FLAGS="-D_FILE_OFFSET_BITS=64 -D_LARGE_FILES"
+        WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES"
 
                                                         if test "$USE_HPUX" = 1 -a "$GXX" = "yes"; then
             echo "$as_me:$LINENO: checking if -D__STDC_EXT__ is required" >&5
@@ -21227,11 +21190,11 @@ fi
 echo "$as_me:$LINENO: result: $wx_cv_STDC_EXT_required" >&5
 echo "${ECHO_T}$wx_cv_STDC_EXT_required" >&6
             if test "x$wx_cv_STDC_EXT_required" = "xyes"; then
-                CXXFLAGS="$CXXFLAGS -D__STDC_EXT__"
+                WXCONFIG_CXXFLAGS="$WXCONFIG_CXXFLAGS -D__STDC_EXT__"
             fi
         fi
     else
-        WX_LARGEFILE_FLAGS="-D_LARGE_FILES"
+        WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS -D_LARGE_FILES"
     fi
         echo "$as_me:$LINENO: checking for _LARGEFILE_SOURCE value needed for large files" >&5
 echo $ECHO_N "checking for _LARGEFILE_SOURCE value needed for large files... $ECHO_C" >&6
@@ -21406,9 +21369,8 @@ _ACEOF
 fi
 
     if test "$ac_cv_sys_largefile_source" != no; then
-        WX_LARGEFILE_FLAGS="$WX_LARGEFILE_FLAGS -D_LARGEFILE_SOURCE=$ac_cv_sys_largefile_source"
+        WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS -D_LARGEFILE_SOURCE=$ac_cv_sys_largefile_source"
     fi
-    CPPFLAGS="$CPPFLAGS $WX_LARGEFILE_FLAGS"
 fi
 
 echo "$as_me:$LINENO: checking whether byte ordering is bigendian" >&5
@@ -23455,6 +23417,7 @@ if test "$build" != "$host" -a "$GCC" = yes; then
 
                         SEARCH_LIB=`for x in $SEARCH_LIB; do echo $x; done | sed -ne "s|^/usr|$cross_root|p"`
         SEARCH_INCLUDE=`for x in $SEARCH_INCLUDE; do echo $x; done | sed -ne "s|^/usr|$cross_root|p"`
+        SEARCH_INCLUDE="$SEARCH_INCLUDE $cross_root/include"
 
                 if test -z "$PKG_CONFIG_PATH"; then
             PKG_CONFIG_PATH="$cross_root/local/lib/pkgconfig:$cross_root/lib/pkgconfig"
@@ -23782,7 +23745,8 @@ echo "${ECHO_T}$ac_cv_header_regex_h" >&6
 fi
 if test $ac_cv_header_regex_h = yes; then
 
-for ac_func in regcomp
+
+for ac_func in regcomp re_search
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -25787,7 +25751,6 @@ fi
     case "${host}" in
         *-*-cygwin* )
                         LIBS="$LIBS -lkernel32 -luser32"
-            TOOLCHAIN_DEFS="${TOOLCHAIN_DEFS} -D__WIN95__"
     esac
 
         if test "$wxUSE_ODBC" = "sys" ; then
@@ -25801,8 +25764,10 @@ _ACEOF
 
     fi
 
-    RESFLAGS="--include-dir \$(top_srcdir)/include --include-dir \$(top_srcdir)/\$(program_dir) --define __WIN32__ --define __WIN95__ --define __GNUWIN32__"
+        RESFLAGS="--include-dir \$(top_srcdir)/include --include-dir \$(top_srcdir)/\$(program_dir) --define __WIN32__ --define __WIN95__ --define __GNUWIN32__"
     RESPROGRAMOBJ="\$(PROGRAM)_resources.o"
+
+        WXCONFIG_RESFLAGS="--include-dir \$includedir --define __WIN32__ --define __WIN95__ --define __GNUWIN32__"
 
         WIN32INSTALL=win32install
 fi
@@ -25869,7 +25834,7 @@ echo "${ECHO_T}" >&6
                                                                                 case "${host}" in
                         *-*-solaris2* )
                             if test "$wxUSE_THREADS" = "yes" -a "$GCC" = yes; then
-		                enable_gtktest=no
+                            enable_gtktest=no
                             fi
                     esac
 
@@ -27448,7 +27413,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -27475,7 +27440,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Intrinsic.h"; then
+  if test -r "$ac_dir/X11/Xlib.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -27489,18 +27454,18 @@ if test "$ac_x_libraries" = no; then
   # See if we find them without any special options.
   # Don't add to $LIBS permanently.
   ac_save_LIBS=$LIBS
-  LIBS="-lXt $LIBS"
+  LIBS="-lX11 $LIBS"
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 int
 main ()
 {
-XtMalloc (0)
+XrmInitialize ()
   ;
   return 0;
 }
@@ -27538,7 +27503,7 @@ for ac_dir in `echo "$ac_x_includes $ac_x_header_dirs" | sed s/include/lib/g`
 do
   # Don't even attempt the hair of trying to link an X program!
   for ac_extension in a so sl; do
-    if test -r $ac_dir/libXt.$ac_extension; then
+    if test -r $ac_dir/libX11.$ac_extension; then
       ac_x_libraries=$ac_dir
       break 2
     fi
@@ -30711,7 +30676,7 @@ _ACEOF
 
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS db"
 
-        WXODBCFLAG="-D_IODBC_"
+        WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS -D_IODBC_"
 fi
 
 
@@ -31490,13 +31455,13 @@ EOF
       ;;
 
       *-*-cygwin* | *-*-mingw32* )
-        TOOLCHAIN_DLL_DEFS="${TOOLCHAIN_DLL_DEFS} -DWXUSINGDLL=1"
-	;;
+                        WXCONFIG_ONLY_CPPFLAGS="$WXCONFIG_ONLY_CPPFLAGS -DWXUSINGDLL"
+        ;;
 
       *-*-hpux* )
         SAMPLES_RPATH_FLAG="-Wl,+b,\$(top_builddir)lib"
         WXCONFIG_RPATH="-Wl,+b,\$libdir"
-	;;
+        ;;
 
     esac
 
@@ -31703,11 +31668,11 @@ if test "$wxUSE_MAC" = 1 -o "$wxUSE_COCOA" = 1; then
 set dummy Rez; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_RESCOMP+set}" = set; then
+if test "${ac_cv_prog_REZ+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$RESCOMP"; then
-  ac_cv_prog_RESCOMP="$RESCOMP" # Let the user override the test.
+  if test -n "$REZ"; then
+  ac_cv_prog_REZ="$REZ" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -31716,20 +31681,20 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_RESCOMP="Rez"
+    ac_cv_prog_REZ="Rez"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
 
-  test -z "$ac_cv_prog_RESCOMP" && ac_cv_prog_RESCOMP="/Developer/Tools/Rez"
+  test -z "$ac_cv_prog_REZ" && ac_cv_prog_REZ="/Developer/Tools/Rez"
 fi
 fi
-RESCOMP=$ac_cv_prog_RESCOMP
-if test -n "$RESCOMP"; then
-  echo "$as_me:$LINENO: result: $RESCOMP" >&5
-echo "${ECHO_T}$RESCOMP" >&6
+REZ=$ac_cv_prog_REZ
+if test -n "$REZ"; then
+  echo "$as_me:$LINENO: result: $REZ" >&5
+echo "${ECHO_T}$REZ" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -31811,21 +31776,21 @@ fi
     MACSETFILE="\$(SETFILE)"
 
             if test "$wxUSE_MAC" = 1; then
-        MACRESCOMP="\$(RESCOMP) -d __DARWIN__ -t APPL Carbon.r -o"
+        POSTLINK_COMMAND="\$(REZ) -d __DARWIN__ -t APPL Carbon.r -o"
 
-                        MACRESWXCONFIG="${RESCOMP} -d __DARWIN__ -t APPL Carbon.r -o"
+                        WXCONFIG_POSTLINK_COMMAND="${REZ} -d __DARWIN__ -t APPL Carbon.r -o"
     else
-        MACRESCOMP="echo -n | \$(RESCOMP) -d __DARWIN__ -t APPL ${LIBWXMACRES} -o"
-        MACRESWXCONFIG="echo -n \\\| ${RESCOMP} -d __DARWIN__ -t APPL \\\${exec_prefix}/lib/${WX_RESOURCES_MACOSX_ASCII} -o"
+        POSTLINK_COMMAND="echo -n | \$(REZ) -d __DARWIN__ -t APPL ${LIBWXMACRES} -o"
+        WXCONFIG_POSTLINK_COMMAND="echo -n \\\| ${REZ} -d __DARWIN__ -t APPL \\\${exec_prefix}/lib/${WX_RESOURCES_MACOSX_ASCII} -o"
     fi
 else
         MACSETFILE="@true"
-    MACRESWXCONFIG="@true"
+    WXCONFIG_POSTLINK_COMMAND="@true"
 
-        if test "$wxUSE_PM" = 1; then
-        MACRESCOMP="emxbind -ep"
+    if test "$wxUSE_PM" = 1; then
+        POSTLINK_COMMAND="emxbind -ep"
     else
-        MACRESCOMP="@true"
+        POSTLINK_COMMAND="@true"
     fi
 fi
 
@@ -36435,7 +36400,6 @@ fi
 rm -f confcache
 
 
-CPP_MT_FLAG=
 if test "$TOOLKIT" != "MSW" -a "$USE_OS2" != 1; then
 
 
@@ -36476,7 +36440,7 @@ echo "$as_me: WARNING: BeOS threads are not yet supported... disabled" >&2;}
                     $CXX -dumpspecs | grep 'pthread:' >/dev/null ||
                         THREAD_OPTS=""
                 else
-                    THREAD_OPTS=""
+                    THREAD_OPTS="-mt"
                 fi
                 ;;
           *-*-irix* )
@@ -36612,10 +36576,7 @@ echo "${ECHO_T}${flag}" >&6
               THREADS_CFLAGS="$THREADS_CFLAGS $flag"
           fi
 
-          if test "x$THREADS_CFLAGS" != "x"; then
-                        CFLAGS="$CFLAGS $THREADS_CFLAGS"
-            CXXFLAGS="$CXXFLAGS $THREADS_CFLAGS"
-          fi
+                    WXCONFIG_CFLAGS="$WXCONFIG_CFLAGS $THREADS_CFLAGS"
       fi
     fi
 
@@ -37948,16 +37909,15 @@ echo "$as_me:$LINENO: result: $wx_cv_cflags_mthread" >&5
 echo "${ECHO_T}$wx_cv_cflags_mthread" >&6
 
             if test "$wx_cv_cflags_mthread" = "yes"; then
-                                CXXFLAGS="$CXXFLAGS -mthreads"
-                TOOLCHAIN_DEFS="$TOOLCHAIN_DEFS -mthreads"
+                                WXCONFIG_CFLAGS="$WXCONFIG_CFLAGS -mthreads"
                 LDFLAGS="$LDFLAGS -mthreads"
             else
                                 CFLAGS="$CFLAGS_OLD"
             fi
         ;;
         *-pc-os2*emx )
-            CFLAGS="$CFLAGS -Zmt -D__ST_MT_ERRNO__"
-            CXXFLAGS="$CXXFLAGS -Zmt -D__ST_MT_ERRNO__"
+            WXCONFIG_CFLAGS="$WXCONFIG_CFLAGS -Zmt -D__ST_MT_ERRNO__"
+            WXCONFIG_CXXFLAGS="$WXCONFIG_CXXFLAGS -Zmt -D__ST_MT_ERRNO__"
             LDFLAGS="$LDFLAGS -Zmt"
         ;;
       esac
@@ -37976,7 +37936,7 @@ else
     echo "$as_me:$LINENO: checking if -D_REENTRANT is needed" >&5
 echo $ECHO_N "checking if -D_REENTRANT is needed... $ECHO_C" >&6
     if test "$NEEDS_D_REENTRANT_FOR_R_FUNCS" = 1; then
-        TOOLCHAIN_DEFS="${TOOLCHAIN_DEFS} -D_REENTRANT"
+        WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS -D_REENTRANT"
         echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
     else
@@ -38015,17 +37975,16 @@ _ACEOF
 
 fi
 
-WXDEBUG=
-
+DEBUG_CFLAGS=
 if test "$wxUSE_DEBUG_INFO" = "yes" ; then
-    WXDEBUG="-g"
+    DEBUG_CFLAGS="-g"
     wxUSE_OPTIMISE=no
 fi
 
 if test "$wxUSE_DEBUG_GDB" = "yes" ; then
     wxUSE_DEBUG_INFO=yes
     if test "$GCC" = yes; then
-        WXDEBUG="-ggdb"
+        DEBUG_CFLAGS="-ggdb"
     fi
 fi
 
@@ -38034,10 +37993,10 @@ if test "$wxUSE_DEBUG_FLAG" = "yes" ; then
 #define WXDEBUG 1
 _ACEOF
 
-    WXDEBUG_DEFINE="-D__WXDEBUG__"
+    WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS -D__WXDEBUG__"
 else
     if test "$wxUSE_GTK" = 1 ; then
-        WXDEBUG_DEFINE="-DGTK_NO_CHECK_CASTS"
+        CPPFLAGS="$CPPFLAGS -DGTK_NO_CHECK_CASTS"
     fi
 fi
 
@@ -38061,50 +38020,42 @@ if test "$wxUSE_DMALLOC" = "yes" ; then
     DMALLOC_LIBS="-ldmallocthcxx"
 fi
 
-PROFILE=
+PROFILE_FLAGS=
 if test "$wxUSE_PROFILE" = "yes" ; then
-    PROFILE=" -pg"
+    PROFILE_FLAGS=" -pg"
 fi
 
-CODE_GEN_FLAGS=
-CODE_GEN_FLAGS_CXX=
 if test "$GCC" = "yes" ; then
     if test "$wxUSE_NO_RTTI" = "yes" ; then
-        CODE_GEN_FLAGS_CXX="$CODE_GEN_FLAGS_CXX -fno-rtti"
+        WXCONFIG_CXXFLAGS="$WXCONFIG_CXXFLAGS -fno-rtti"
     fi
     if test "$wxUSE_NO_EXCEPTIONS" = "yes" ; then
-        CODE_GEN_FLAGS_CXX="$CODE_GEN_FLAGS_CXX -fno-exceptions"
+        WXCONFIG_CXXFLAGS="$WXCONFIG_CXXFLAGS -fno-exceptions"
     fi
     if test "$wxUSE_PERMISSIVE" = "yes" ; then
-        CODE_GEN_FLAGS="$CODE_GEN_FLAGS -fpermissive"
+        WXCONFIG_CFLAGS="$WXCONFIG_CFLAGS -fpermissive"
     fi
 
                                                 case "${host}" in
       powerpc*-*-aix* )
-        CODE_GEN_FLAGS="$CODE_GEN_FLAGS -mminimal-toc"
+        WXCONFIG_CFLAGS="$WXCONFIG_CFLAGS -mminimal-toc"
         ;;
       *-hppa* )
-        CODE_GEN_FLAGS="$CODE_GEN_FLAGS -ffunction-sections"
+        WXCONFIG_CFLAGS="$WXCONFIG_CFLAGS -ffunction-sections"
         ;;
     esac
 fi
 
-OPTIMISE=
+OPTIMISE_CFLAGS=
 if test "$wxUSE_OPTIMISE" = "no" ; then
     if test "$GCC" = yes ; then
-                        OPTIMISE="-O0"
+                        OPTIMISE_CFLAGS="-O0"
     fi
 else
     if test "$GCC" = yes ; then
-        OPTIMISE="-O2"
-
-                case "${host}" in
-            i586-*-*|i686-*-* )
-            OPTIMISE="${OPTIMISE} "
-        ;;
-        esac
+        OPTIMISE_CFLAGS="-O2"
     else
-        OPTIMISE="-O"
+        OPTIMISE_CFLAGS="-O"
     fi
 fi
 
@@ -41674,7 +41625,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
 echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                            CODE_GEN_FLAGS_CXX="$CODE_GEN_FLAGS_CXX -fvtable-thunks"
+                            WXCONFIG_CXXFLAGS="$WXCONFIG_CXXFLAGS -fvtable-thunks"
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
             ac_ext=c
@@ -42468,6 +42419,16 @@ fi
 
 if test "$wxUSE_UNICODE" = "yes" -a "$wxUSE_UNICODE_MSLU" = "yes" ; then
     LIBS=" -lunicows $LIBS"
+fi
+
+USE_RICHTEXT=0
+if test "$wxUSE_RICHTEXT" = "yes"; then
+    cat >>confdefs.h <<\_ACEOF
+#define wxUSE_RICHTEXT 1
+_ACEOF
+
+    USE_RICHTEXT=1
+    SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS richtext"
 fi
 
 
@@ -43437,9 +43398,6 @@ else
 fi
 
 
-INCLUDES="-I\${top_builddir}lib/wx/include/${TOOLCHAIN_FULLNAME} \
--I\${top_srcdir}/include $TOOLKIT_INCLUDE"
-
 if test "x$INTELCC" = "xyes" ; then
                                         CWARNINGS="-Wall -wd810,869,981,1418,1572,1684"
 elif test "$GCC" = yes ; then
@@ -43450,18 +43408,23 @@ if test "x$INTELCXX" = "xyes" ; then
                                                             CXXWARNINGS="-Wall -wd279,383,444,810,869,981,1418,1419"
 elif test "$GXX" = yes ; then
         CXXWARNINGS="-Wall -Wundef -Wno-ctor-dtor-privacy"
-
-                    case "${host}" in
-        *-*-cygwin* | *-*-mingw32* )
-            CXXWARNINGS="$CXXWARNINGS -Wno-format"
-    esac
 fi
 
-EXTRA_CFLAGS="$WXDEBUG $WXODBCFLAG $PROFILE $OPTIMISE"
 
-CPPFLAGS=`echo $WXDEBUG_DEFINE $INCLUDES $CPPFLAGS`
-CFLAGS=`echo $CODE_GEN_FLAGS $EXTRA_CFLAGS $CFLAGS $CWARNINGS`
-CXXFLAGS=`echo $CODE_GEN_FLAGS $CODE_GEN_FLAGS_CXX $EXTRA_CFLAGS $CXXFLAGS $CXXWARNINGS`
+WXCONFIG_CFLAGS=`echo $WXCONFIG_CFLAGS`
+WXCONFIG_CXXFLAGS=`echo $WXCONFIG_CFLAGS $WXCONFIG_CXXFLAGS`
+
+
+CPPFLAGS=`echo $WXCONFIG_CPPFLAGS $CPPFLAGS \
+ -I\\${top_builddir}lib/wx/include/${TOOLCHAIN_FULLNAME} \
+ -I\\${top_srcdir}/include $TOOLKIT_INCLUDE`
+
+C_AND_CXX_FLAGS="$DEBUG_CFLAGS $PROFILE_FLAGS $OPTIMISE_CFLAGS"
+CFLAGS=`echo $WXCONFIG_CFLAGS $CFLAGS $CWARNINGS $C_AND_CXX_FLAGS`
+CXXFLAGS=`echo $WXCONFIG_CXXFLAGS $CXXFLAGS $C_AND_CXX_FLAGS`
+
+WXCONFIG_CPPFLAGS=`echo $WXCONFIG_CPPFLAGS $WXCONFIG_ONLY_CPPFLAGS`
+
 
 if test "x$MWCC" = "xyes"; then
 
@@ -43482,15 +43445,9 @@ if test "$wxUSE_OPENGL" = "yes"; then
     EXTRALIBS_OPENGL="$LDFLAGS_GL $OPENGL_LIBS"
 fi
 
-LDFLAGS="$LDFLAGS $PROFILE"
+LDFLAGS="$LDFLAGS $PROFILE_FLAGS"
 
-if test "$wxUSE_GTK" = 1; then
-    WXCONFIG_INCLUDE=
-else
-    WXCONFIG_INCLUDE="$TOOLKIT_INCLUDE"
-fi
-
-WXCONFIG_EXTRALIBS="$LIBS"
+WXCONFIG_LIBS="$LIBS"
 
 if test "$wxUSE_REGEX" = "builtin" ; then
     wxconfig_3rdparty="regex${lib_unicode_suffix} $wxconfig_3rdparty"
@@ -43515,7 +43472,7 @@ if test "$wxUSE_ZLIB" = "builtin" ; then
 fi
 
 for i in $wxconfig_3rdparty ; do
-    WXCONFIG_EXTRALIBS="-lwx${i}${lib_debug_suffix}${WX_LIB_FLAVOUR}-${WX_RELEASE}${HOST_SUFFIX} $WXCONFIG_EXTRALIBS"
+    WXCONFIG_LIBS="-lwx${i}${lib_debug_suffix}${WX_LIB_FLAVOUR}-${WX_RELEASE}${HOST_SUFFIX} $WXCONFIG_LIBS"
 done
 
 
@@ -45358,23 +45315,18 @@ EOF
 
 
 
-    RESCOMP=
-    SETFILE=
-
     case ${BAKEFILE_HOST} in
         *-*-cygwin* | *-*-mingw32* )
-                        if test "$build" != "$host" ; then
-                RESCOMP=$host_alias-windres
-            else
-                # Extract the first word of "windres", so it can be a program name with args.
-set dummy windres; ac_word=$2
+                        if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}windres", so it can be a program name with args.
+set dummy ${ac_tool_prefix}windres; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_RESCOMP+set}" = set; then
+if test "${ac_cv_prog_WINDRES+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$RESCOMP"; then
-  ac_cv_prog_RESCOMP="$RESCOMP" # Let the user override the test.
+  if test -n "$WINDRES"; then
+  ac_cv_prog_WINDRES="$WINDRES" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -45383,26 +45335,67 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_RESCOMP="windres"
+    ac_cv_prog_WINDRES="${ac_tool_prefix}windres"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
 
-  test -z "$ac_cv_prog_RESCOMP" && ac_cv_prog_RESCOMP="windres"
 fi
 fi
-RESCOMP=$ac_cv_prog_RESCOMP
-if test -n "$RESCOMP"; then
-  echo "$as_me:$LINENO: result: $RESCOMP" >&5
-echo "${ECHO_T}$RESCOMP" >&6
+WINDRES=$ac_cv_prog_WINDRES
+if test -n "$WINDRES"; then
+  echo "$as_me:$LINENO: result: $WINDRES" >&5
+echo "${ECHO_T}$WINDRES" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 
-            fi
+fi
+if test -z "$ac_cv_prog_WINDRES"; then
+  ac_ct_WINDRES=$WINDRES
+  # Extract the first word of "windres", so it can be a program name with args.
+set dummy windres; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_prog_ac_ct_WINDRES+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$ac_ct_WINDRES"; then
+  ac_cv_prog_ac_ct_WINDRES="$ac_ct_WINDRES" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_ac_ct_WINDRES="windres"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+fi
+fi
+ac_ct_WINDRES=$ac_cv_prog_ac_ct_WINDRES
+if test -n "$ac_ct_WINDRES"; then
+  echo "$as_me:$LINENO: result: $ac_ct_WINDRES" >&5
+echo "${ECHO_T}$ac_ct_WINDRES" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+  WINDRES=$ac_ct_WINDRES
+else
+  WINDRES="$ac_cv_prog_WINDRES"
+fi
+
          ;;
 
       *-*-darwin* | powerpc-apple-macos* )
@@ -45410,11 +45403,11 @@ fi
 set dummy Rez; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_RESCOMP+set}" = set; then
+if test "${ac_cv_prog_REZ+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$RESCOMP"; then
-  ac_cv_prog_RESCOMP="$RESCOMP" # Let the user override the test.
+  if test -n "$REZ"; then
+  ac_cv_prog_REZ="$REZ" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -45423,20 +45416,20 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_RESCOMP="Rez"
+    ac_cv_prog_REZ="Rez"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
 
-  test -z "$ac_cv_prog_RESCOMP" && ac_cv_prog_RESCOMP="/Developer/Tools/Rez"
+  test -z "$ac_cv_prog_REZ" && ac_cv_prog_REZ="/Developer/Tools/Rez"
 fi
 fi
-RESCOMP=$ac_cv_prog_RESCOMP
-if test -n "$RESCOMP"; then
-  echo "$as_me:$LINENO: result: $RESCOMP" >&5
-echo "${ECHO_T}$RESCOMP" >&6
+REZ=$ac_cv_prog_REZ
+if test -n "$REZ"; then
+  echo "$as_me:$LINENO: result: $REZ" >&5
+echo "${ECHO_T}$REZ" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -45485,6 +45478,7 @@ fi
 
 
 
+
     BAKEFILE_BAKEFILE_M4_VERSION="0.1.9"
 
 
@@ -45499,6 +45493,12 @@ if test "${enable_precomp_headers+set}" = set; then
 fi;
 
     GCC_PCH=0
+
+    case ${BAKEFILE_HOST} in
+        *-*-cygwin* )
+                                                bk_use_pch="no"
+            ;;
+    esac
 
     if test "x$bk_use_pch" = "x" -o "x$bk_use_pch" = "xyes" ; then
         if test "x$GCC" = "xyes"; then
@@ -46353,11 +46353,10 @@ if test $GCC_PCH = 1 ; then
     CPPFLAGS="-DWX_PRECOMP $CPPFLAGS"
 fi
 
-CPPFLAGS="$CPPFLAGS $TOOLCHAIN_DEFS"
+WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS $TOOLCHAIN_DEFS"
+WXCONFIG_RESCOMP="$WINDRES $WXCONFIG_RESFLAGS"
 
 SAMPLES_SUBDIRS="`echo $SAMPLES_SUBDIRS | tr -s ' ' | tr ' ' '\n' | sort | uniq | tr '\n' ' '| tr -d '\r'`"
-
-
 
 
 
@@ -46453,6 +46452,13 @@ fi
           ac_config_headers="$ac_config_headers lib/wx/include/${TOOLCHAIN_FULLNAME}/wx/setup.h:setup.h.in"
 
 
+if test "$USE_WIN32" = 1; then
+              ac_config_commands="$ac_config_commands
+            rcdefs.h
+        "
+
+fi
+
           ac_config_files="$ac_config_files lib/wx/config/${TOOLCHAIN_FULLNAME}:wx-config.in"
 
 
@@ -46462,8 +46468,7 @@ fi
                     ac_config_files="$ac_config_files version-script Makefile"
 
 
-          ac_config_commands="$ac_config_commands  wx-config
-                   "
+          ac_config_commands="$ac_config_commands wx-config"
 
 
 
@@ -47163,6 +47168,12 @@ cat >>$CONFIG_STATUS <<_ACEOF
 # INIT-COMMANDS section.
 #
 
+
+            CPP="$CPP"
+            infile="$srcdir/include/wx/msw/genrcdefs.h"
+            outdir="lib/wx/include/$TOOLCHAIN_FULLNAME/wx/msw"
+
+
  TOOLCHAIN_FULLNAME="${TOOLCHAIN_FULLNAME}"
  TOOLCHAIN_FULLNAME="${TOOLCHAIN_FULLNAME}"
  TOOLCHAIN_FULLNAME="${TOOLCHAIN_FULLNAME}"
@@ -47183,6 +47194,7 @@ do
   "version-script" ) CONFIG_FILES="$CONFIG_FILES version-script" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "$mk" ) CONFIG_FILES="$CONFIG_FILES $mk" ;;
+  "rcdefs.h" ) CONFIG_COMMANDS="$CONFIG_COMMANDS rcdefs.h" ;;
   "wx-config" ) CONFIG_COMMANDS="$CONFIG_COMMANDS wx-config" ;;
   "lib/wx/include/${TOOLCHAIN_FULLNAME}/wx/setup.h" ) CONFIG_HEADERS="$CONFIG_HEADERS lib/wx/include/${TOOLCHAIN_FULLNAME}/wx/setup.h:setup.h.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
@@ -47303,14 +47315,13 @@ s,@INSTALL_SCRIPT@,$INSTALL_SCRIPT,;t t
 s,@INSTALL_DATA@,$INSTALL_DATA,;t t
 s,@STRIP@,$STRIP,;t t
 s,@ac_ct_STRIP@,$ac_ct_STRIP,;t t
-s,@RESCOMP@,$RESCOMP,;t t
-s,@ac_ct_RESCOMP@,$ac_ct_RESCOMP,;t t
+s,@WINDRES@,$WINDRES,;t t
+s,@ac_ct_WINDRES@,$ac_ct_WINDRES,;t t
 s,@DLLTOOL@,$DLLTOOL,;t t
 s,@ac_ct_DLLTOOL@,$ac_ct_DLLTOOL,;t t
 s,@IF_GNU_MAKE@,$IF_GNU_MAKE,;t t
 s,@LN_S@,$LN_S,;t t
 s,@LNDIR@,$LNDIR,;t t
-s,@CP_PR@,$CP_PR,;t t
 s,@CXXCPP@,$CXXCPP,;t t
 s,@subdirs@,$subdirs,;t t
 s,@PKG_CONFIG@,$PKG_CONFIG,;t t
@@ -47327,6 +47338,7 @@ s,@PANGOFT2_CFLAGS@,$PANGOFT2_CFLAGS,;t t
 s,@PANGOFT2_LIBS@,$PANGOFT2_LIBS,;t t
 s,@PANGOXFT_CFLAGS@,$PANGOXFT_CFLAGS,;t t
 s,@PANGOXFT_LIBS@,$PANGOXFT_LIBS,;t t
+s,@REZ@,$REZ,;t t
 s,@DEREZ@,$DEREZ,;t t
 s,@SETFILE@,$SETFILE,;t t
 s,@LIBICONV@,$LIBICONV,;t t
@@ -47553,7 +47565,6 @@ s,@COND_WXUSE_ZLIB_BUILTIN@,$COND_WXUSE_ZLIB_BUILTIN,;t t
 s,@SHARED@,$SHARED,;t t
 s,@WX_LIBRARY_BASENAME_NOGUI@,$WX_LIBRARY_BASENAME_NOGUI,;t t
 s,@WX_LIBRARY_BASENAME_GUI@,$WX_LIBRARY_BASENAME_GUI,;t t
-s,@WXDEBUG_DEFINE@,$WXDEBUG_DEFINE,;t t
 s,@USE_GUI@,$USE_GUI,;t t
 s,@AFMINSTALL@,$AFMINSTALL,;t t
 s,@WIN32INSTALL@,$WIN32INSTALL,;t t
@@ -47561,8 +47572,6 @@ s,@TOOLKIT@,$TOOLKIT,;t t
 s,@TOOLKIT_DIR@,$TOOLKIT_DIR,;t t
 s,@TOOLCHAIN_NAME@,$TOOLCHAIN_NAME,;t t
 s,@TOOLCHAIN_FULLNAME@,$TOOLCHAIN_FULLNAME,;t t
-s,@TOOLCHAIN_DEFS@,$TOOLCHAIN_DEFS,;t t
-s,@TOOLCHAIN_DLL_DEFS@,$TOOLCHAIN_DLL_DEFS,;t t
 s,@cross_compiling@,$cross_compiling,;t t
 s,@WIDGET_SET@,$WIDGET_SET,;t t
 s,@WX_RELEASE@,$WX_RELEASE,;t t
@@ -47570,14 +47579,13 @@ s,@WX_VERSION@,$WX_VERSION,;t t
 s,@WX_SUBVERSION@,$WX_SUBVERSION,;t t
 s,@WX_CHARTYPE@,$WX_CHARTYPE,;t t
 s,@WX_DEBUGTYPE@,$WX_DEBUGTYPE,;t t
-s,@WXCONFIG_EXTRALIBS@,$WXCONFIG_EXTRALIBS,;t t
-s,@WXCONFIG_INCLUDE@,$WXCONFIG_INCLUDE,;t t
+s,@WXCONFIG_CPPFLAGS@,$WXCONFIG_CPPFLAGS,;t t
+s,@WXCONFIG_CFLAGS@,$WXCONFIG_CFLAGS,;t t
+s,@WXCONFIG_CXXFLAGS@,$WXCONFIG_CXXFLAGS,;t t
+s,@WXCONFIG_LIBS@,$WXCONFIG_LIBS,;t t
 s,@WXCONFIG_RPATH@,$WXCONFIG_RPATH,;t t
 s,@WXCONFIG_LDFLAGS_GUI@,$WXCONFIG_LDFLAGS_GUI,;t t
-s,@WX_LARGEFILE_FLAGS@,$WX_LARGEFILE_FLAGS,;t t
-s,@GCC_PRAGMA_FLAGS@,$GCC_PRAGMA_FLAGS,;t t
-s,@CODE_GEN_FLAGS@,$CODE_GEN_FLAGS,;t t
-s,@CODE_GEN_FLAGS_CXX@,$CODE_GEN_FLAGS_CXX,;t t
+s,@WXCONFIG_RESCOMP@,$WXCONFIG_RESCOMP,;t t
 s,@EXE_LINKER@,$EXE_LINKER,;t t
 s,@GUIDIST@,$GUIDIST,;t t
 s,@DISTDIR@,$DISTDIR,;t t
@@ -47591,9 +47599,9 @@ s,@RESPROGRAMOBJ@,$RESPROGRAMOBJ,;t t
 s,@WX_RESOURCES_MACOSX_ASCII@,$WX_RESOURCES_MACOSX_ASCII,;t t
 s,@WX_RESOURCES_MACOSX_DATA@,$WX_RESOURCES_MACOSX_DATA,;t t
 s,@LIBWXMACRES@,$LIBWXMACRES,;t t
-s,@MACRESCOMP@,$MACRESCOMP,;t t
+s,@POSTLINK_COMMAND@,$POSTLINK_COMMAND,;t t
 s,@MACSETFILE@,$MACSETFILE,;t t
-s,@MACRESWXCONFIG@,$MACRESWXCONFIG,;t t
+s,@WXCONFIG_POSTLINK_COMMAND@,$WXCONFIG_POSTLINK_COMMAND,;t t
 s,@GCC@,$GCC,;t t
 s,@CPPUNIT_CONFIG@,$CPPUNIT_CONFIG,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
@@ -48179,6 +48187,10 @@ esac
   { echo "$as_me:$LINENO: executing $ac_dest commands" >&5
 echo "$as_me: executing $ac_dest commands" >&6;}
   case $ac_dest in
+    rcdefs.h )
+            mkdir -p $outdir &&
+            $CPP $infile | sed 's/^# *[1-9].*//;s/^ *//;/./,/^$/!d' > $outdir/rcdefs.h
+         ;;
     wx-config )  rm -f wx-config
                      ${LN_S} lib/wx/config/inplace-${TOOLCHAIN_FULLNAME} wx-config
                     ;;

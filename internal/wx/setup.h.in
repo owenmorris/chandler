@@ -410,6 +410,8 @@
 
 #define wxUSE_GLCANVAS       0
 
+#define wxUSE_RICHTEXT       0
+
 
 #define wxUSE_CLIPBOARD     0
 
@@ -491,6 +493,8 @@
  * the common values automatically */
 #if (defined(__WIN95__) && !defined(__WXUNIVERSAL__)) || defined(__WXPM__)
 #define wxUSE_OWNER_DRAWN 1
+#else
+#define wxUSE_OWNER_DRAWN 0
 #endif
 
 #if defined(__WIN95__) && !defined(__WINE__) && !defined(__GNUWIN32_OLD__)
@@ -573,6 +577,11 @@
  * case WX_NO_REGEX_ADVANCED should be defined.
  */
 #undef WX_NO_REGEX_ADVANCED
+/*
+ * On GNU systems use re_search instead of regexec, since the latter does a
+ * strlen on the search text affecting the performance of some operations.
+ */
+#undef HAVE_RE_SEARCH
 /*
  * Use SDL for audio (Unix)
  */
@@ -856,14 +865,44 @@
 /* Define if you have BSD flock() function. */
 #undef HAVE_FLOCK
 
+/* Define if you have a gethostbyname_r function taking 6 arguments. */
+#undef HAVE_FUNC_GETHOSTBYNAME_R_6
+
+/* Define if you have a gethostbyname_r function taking 5 arguments. */
+#undef HAVE_FUNC_GETHOSTBYNAME_R_5
+
+/* Define if you have a gethostbyname_r function taking 3 arguments. */
+#undef HAVE_FUNC_GETHOSTBYNAME_R_3
+
+/* Define if you only have a gethostbyname function */
+#undef HAVE_GETHOSTBYNAME
+
 /* Define if you have the gethostname function.  */
 #undef HAVE_GETHOSTNAME
+
+/* Define if you have a getservbyname_r function taking 6 arguments. */
+#undef HAVE_FUNC_GETSERVBYNAME_R_6
+
+/* Define if you have a getservbyname_r function taking 5 arguments. */
+#undef HAVE_FUNC_GETSERVBYNAME_R_5
+
+/* Define if you have a getservbyname_r function taking 4 arguments. */
+#undef HAVE_FUNC_GETSERVBYNAME_R_4
+
+/* Define if you only have a getservbyname function */
+#undef HAVE_GETSERVBYNAME
+
+/* Define if you have the gmtime_r function.  */
+#undef HAVE_GMTIME_R
 
 /* Define if you have the inet_addr function.  */
 #undef HAVE_INET_ADDR
 
 /* Define if you have the inet_aton function.  */
 #undef HAVE_INET_ATON
+
+/* Define if you have the localtime_r function.  */
+#undef HAVE_LOCALTIME_R
 
 /* Define if you have the mktemp function.  */
 #undef HAVE_MKTEMP
@@ -876,6 +915,9 @@
 
 /* Define if you have the putenv function.  */
 #undef HAVE_PUTENV
+
+/* Define if you have the readdir_r function.  */
+#undef HAVE_READDIR_R
 
 /* Define if you have the setenv function.  */
 #undef HAVE_SETENV
@@ -1023,8 +1065,6 @@
  *  This stuff is static, it doesn't get modified directly
  *  by configure.
 */
-
-#include "wx/chkconf.h"
 
 /*
    define some constants identifying wxWindows version in more details than

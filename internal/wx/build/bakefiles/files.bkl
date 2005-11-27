@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.280 2005/10/18 20:50:37 MW Exp $ -->
+<!-- $Id: files.bkl,v 1.288 2005/11/24 17:26:05 JS Exp $ -->
 <makefile>
 
 <!--
@@ -113,6 +113,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/dde.h
     wx/msw/debughlp.h
     wx/msw/gccpriv.h
+    wx/msw/libraries.h
     wx/msw/mimetype.h
     wx/msw/stackwalk.h
     wx/msw/stdpaths.h
@@ -230,6 +231,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/os2/apptrait.h
     wx/os2/mimetype.h
     wx/os2/stdpaths.h
+    wx/os2/chkconf.h
 </set>
 
 <!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
@@ -1300,7 +1302,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/msw/bmpbuttn.cpp
     src/msw/button.cpp
     src/msw/checkbox.cpp
-    src/msw/checklst.cpp
     src/msw/choice.cpp
     src/msw/colordlg.cpp
     src/msw/combobox.cpp
@@ -1350,7 +1351,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/button.h
     wx/msw/caret.h
     wx/msw/checkbox.h
-    wx/msw/checklst.h
     wx/msw/choice.h
     wx/msw/clipbrd.h
     wx/msw/colordlg.h
@@ -1407,6 +1407,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/regconf.h
     wx/msw/region.h
     wx/msw/registry.h
+    wx/msw/rcdefs.h
     wx/msw/scrolbar.h
     wx/msw/setup0.h
     wx/msw/slider95.h
@@ -1430,6 +1431,8 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
     <!-- Resources must be installed together with headers: -->
     wx/msw/wx.manifest
+    wx/msw/amd64.manifest
+    wx/msw/ia64.manifest
     wx/msw/wx.rc
     <!-- bitmaps -->
     wx/msw/colours.bmp
@@ -1463,10 +1466,12 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <!-- Files used only by desktop MSW port, but *not* WindowsCE one: -->
 <set var="MSW_DESKTOP_SRC" hints="files">
+    src/msw/checklst.cpp
     src/msw/fdrepdlg.cpp
     src/msw/fontdlg.cpp
 </set>
 <set var="MSW_DESKTOP_HDR" hints="files">
+    wx/msw/checklst.h
     wx/msw/fdrepdlg.h
     wx/msw/fontdlg.h
     wx/msw/helpbest.h
@@ -1479,6 +1484,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/generic/dirdlgg.cpp
     src/generic/fdrepdlg.cpp
     src/generic/fontdlgg.cpp
+    src/msw/wince/checklst.cpp
     src/msw/wince/choicece.cpp
     src/msw/wince/crt.cpp
     src/msw/wince/filedlgwce.cpp
@@ -1491,6 +1497,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="WINCE_HDR" hints="files">
     wx/generic/fdrepdlg.h
     wx/generic/fontdlgg.h
+    wx/msw/wince/checklst.h
     wx/msw/wince/choicece.h
     wx/msw/wince/helpwce.h
     wx/msw/wince/libraries.h
@@ -1540,6 +1547,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/mgl/app.h
     wx/mgl/bitmap.h
     wx/mgl/brush.h
+    wx/mgl/chkconf.h
     wx/mgl/clipbrd.h
     wx/mgl/colour.h
     wx/mgl/cursor.h
@@ -2348,6 +2356,10 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/generic/splash.cpp
     src/generic/tipdlg.cpp
     src/generic/wizard.cpp
+    src/richtext/richtextctrl.cpp
+    src/richtext/richtextbuffer.cpp
+    src/richtext/richtextstyles.cpp
+    src/richtext/richtextxml.cpp
 </set>
 
 <set var="ADVANCED_CMN_HDR" hints="files">
@@ -2380,6 +2392,10 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/tipdlg.h
     wx/wave.h
     wx/wizard.h
+    wx/richtext/richtextctrl.h
+    wx/richtext/richtextbuffer.h
+    wx/richtext/richtextstyles.h
+    wx/richtext/richtextxml.h
 </set>
 
 <set var="ADVANCED_CMN_NATIVE_HDR" hints="files">
@@ -2621,6 +2637,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/xrc/xh_treebk.cpp
     src/xrc/xh_unkwn.cpp
     src/xrc/xh_wizrd.cpp
+    src/xrc/xh_grid.cpp
     src/xrc/xmlres.cpp
     src/xrc/xmlrsall.cpp
 </set>
@@ -2668,6 +2685,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/xrc/xh_treebk.h
     wx/xrc/xh_unkwn.h
     wx/xrc/xh_wizrd.h
+    wx/xrc/xh_grid.h
     wx/xrc/xmlres.h
 </set>
 
@@ -3009,6 +3027,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
         $(BASE_MAC_SRC)
         $(BASE_OS2_SRC)
         $(BASE_MSDOS_SRC)
+        $(BASE_PALMOS_SRC)
         $(BASE_AND_GUI_CMN_SRC)
         $(BASE_AND_GUI_UNIX_SRC)
         $(BASE_AND_GUI_MAC_SRC)

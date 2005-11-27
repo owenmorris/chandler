@@ -1,9 +1,32 @@
 <?xml version="1.0" ?>
-<!-- $Id: config.bkl,v 1.59 2005/10/16 20:25:10 MW Exp $ -->
+<!-- $Id: config.bkl,v 1.62 2005/11/08 22:49:42 MW Exp $ -->
 
 <makefile>
 
     <set var="BUILDING_LIB" overwrite="0">0</set>
+
+    <set var="CPP_DEFAULT_VALUE">
+        <if cond="FORMAT=='borland'">
+            cpp32 -Sr -oCON
+        </if>
+        <if cond="FORMAT=='mingw'">
+            $(DOLLAR)(CC) -E
+        </if>
+        <if cond="FORMAT=='msvc'">
+            $(DOLLAR)(CC) /EP /nologo
+        </if>
+        <if cond="FORMAT=='watcom'">
+            $(DOLLAR)(CC) -p
+        </if>
+    </set>
+    <option name="CPP">
+        <default-value>
+            $(CPP_DEFAULT_VALUE)
+        </default-value>
+        <description>
+            The C preprocessor
+        </description>
+    </option>
 
     <option name="SHARED">
         <values>0,1</values>
@@ -315,7 +338,7 @@ it if SHARED=1 unless you know what you are doing.
         <set var="TOOLKIT" overwrite="0">
             <if cond="FORMAT=='msevc4prj'">WINCE</if>
             <if cond="FORMAT!='msevc4prj' and PLATFORM_WIN32=='1'">MSW</if>
-            <if cond="PLATFORM_MSDOS=='1'">DOS</if>
+            <if cond="PLATFORM_MSDOS=='1'">MGL</if>
             <if cond="PLATFORM_OS2=='1'">PM</if>
         </set>
         <set var="TOOLKIT_LOWERCASE">$(TOOLKIT.lower())</set>
@@ -426,6 +449,11 @@ Set the version of your Mingw installation here.
         <!-- RTTI and exceptions need separate cccrtti.lib with eVC4 -->
         <set var="USE_RTTI">0</set>
         <set var="USE_EXCEPTIONS">0</set>
+    </if>
+
+    <!-- Need for wxUniv within wxMGL: -->
+    <if cond="FORMAT!='autoconf' and TOOLKIT=='MGL'">
+        <set var="WXUNIV">1</set>
     </if>
 
 </makefile>

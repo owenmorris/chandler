@@ -611,26 +611,20 @@ dnl ---------------------------------------------------------------------------
 
 AC_DEFUN([AC_BAKEFILE_RES_COMPILERS],
 [
-    RESCOMP=
-    SETFILE=
-
     case ${BAKEFILE_HOST} in 
         *-*-cygwin* | *-*-mingw32* )
             dnl Check for win32 resources compiler:
-            if test "$build" != "$host" ; then
-                RESCOMP=$host_alias-windres
-            else
-                AC_CHECK_PROG(RESCOMP, windres, windres, windres)
-            fi
+            AC_CHECK_TOOL(WINDRES, windres)
          ;;
  
       *-*-darwin* | powerpc-apple-macos* )
-            AC_CHECK_PROG(RESCOMP, Rez, Rez, /Developer/Tools/Rez)
+            AC_CHECK_PROG(REZ, Rez, Rez, /Developer/Tools/Rez)
             AC_CHECK_PROG(SETFILE, SetFile, SetFile, /Developer/Tools/SetFile)
         ;;
     esac
 
-    AC_SUBST(RESCOMP)
+    AC_SUBST(WINDRES)
+    AC_SUBST(REZ)
     AC_SUBST(SETFILE)
 ])
 
@@ -649,6 +643,15 @@ AC_DEFUN([AC_BAKEFILE_PRECOMP_HEADERS],
                   [bk_use_pch="$enableval"])
 
     GCC_PCH=0
+
+    case ${BAKEFILE_HOST} in 
+        *-*-cygwin* )
+            dnl PCH support is broken in cygwin gcc because of unportable
+            dnl assumptions about mmap() in gcc code which make PCH generation
+            dnl fail erratically; disable PCH completely until this is fixed
+            bk_use_pch="no"
+            ;;
+    esac
 
     if test "x$bk_use_pch" = "x" -o "x$bk_use_pch" = "xyes" ; then
         if test "x$GCC" = "xyes"; then

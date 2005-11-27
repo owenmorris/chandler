@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: multilib.bkl,v 1.34 2005/03/27 01:51:20 DE Exp $ -->
+<!-- $Id: multilib.bkl,v 1.35 2005/10/21 16:18:40 MW Exp $ -->
 
 <makefile>
 
@@ -81,6 +81,8 @@
         <define>WXMAKINGDLL_ADV</define>
         <sources>$(ADVANCED_SRC) $(PLUGIN_ADV_SRC)</sources>
         <msvc-headers>$(ADVANCED_HDR)</msvc-headers>
+        <library>htmldll</library>
+        <library>xmldll</library>
         <library>coredll</library>
         <library>basedll</library>
         <ldlibs>$(PLUGIN_ADV_EXTRALIBS)</ldlibs>
