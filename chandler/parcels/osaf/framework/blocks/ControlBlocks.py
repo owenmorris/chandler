@@ -687,7 +687,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             if (self.GetSize() == self.GetVirtualSize()):
                 lastColumnWidth = lastColumnWidth - 2
             else:
-                lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+                lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) - 1
             if lastColumnWidth > 0:
                 self.SetColSize (lastColumnIndex, lastColumnWidth)
                 self.ForceRefresh()
@@ -767,7 +767,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         remaining = self.GetSize().width - widthMinusLastColumn
         # Adjust for scrollbar if it is present
         if (self.GetSize() != self.GetVirtualSize()):
-            remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+            remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) - 1
         if remaining > 0:
             self.SetColSize(newColumns - 1, remaining)
         
