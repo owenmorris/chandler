@@ -1468,6 +1468,9 @@
 				RelativePath="..\..\include\wx\xrc\xh_gdctl.h">
 			</File>
 			<File
+				RelativePath="..\..\include\wx\xrc\xh_grid.h">
+			</File>
+			<File
 				RelativePath="..\..\include\wx\xrc\xh_html.h">
 			</File>
 			<File
@@ -3503,6 +3506,9 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;WXUSINGDLL;WXMAKINGDLL_XRC;$(NoInherit)"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\xrc\xh_grid.cpp">
 			</File>
 			<File
 				RelativePath="..\..\src\xrc\xh_html.cpp">
