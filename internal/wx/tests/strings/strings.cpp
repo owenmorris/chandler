@@ -3,7 +3,7 @@
 // Purpose:     wxString unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-19
-// RCS-ID:      $Id: strings.cpp,v 1.28 2005/09/11 11:47:11 VZ Exp $
+// RCS-ID:      $Id: strings.cpp,v 1.29 2005/11/27 18:03:37 MW Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -228,20 +228,19 @@ void StringTestCase::Conversion()
 #endif
 }
 
+#if !wxUSE_UNICODE
 // in case wcscmp is missing
 //
 static int wx_wcscmp(const wchar_t *s1, const wchar_t *s2)
 {
-    for (;;) {
-        if (*s1 != *s2)
-            return *s1 - *s2;
-        if (*s1 == 0)
-            break;
+    while (*s1 == *s2 && *s1 != 0)
+    {
         s1++;
         s2++;
     }
-    return 0;
+    return *s1 - *s2;
 }
+#endif
 
 void
 StringTestCase::DoTestConversion(const char *s,

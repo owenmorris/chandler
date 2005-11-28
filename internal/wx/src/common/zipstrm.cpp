@@ -2,7 +2,7 @@
 // Name:        zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp,v 1.34 2005/09/27 21:45:48 MW Exp $
+// RCS-ID:      $Id: zipstrm.cpp,v 1.35 2005/11/27 17:55:00 MW Exp $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1561,7 +1561,8 @@ bool wxZipInputStream::DoOpen(wxZipEntry *entry, bool raw)
             return false;
     if (m_lasterror == wxSTREAM_READ_ERROR)
         return false;
-    wxCHECK(!IsOpened(), false);
+    if (IsOpened())
+        CloseEntry();
 
     m_raw = raw;
 
@@ -1796,7 +1797,6 @@ wxFileOffset wxZipInputStream::OnSysSeek(wxFileOffset seek, wxSeekMode mode)
     else
     {
         wxZipEntry current(m_entry);
-        CloseEntry();
         if (!OpenEntry(current))
         {
             m_lasterror = wxSTREAM_READ_ERROR;

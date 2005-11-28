@@ -2,7 +2,7 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h,v 1.134 2005/11/19 01:07:41 MR Exp $
+// Id:          $Id: window.h,v 1.135 2005/11/28 00:19:38 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ public:
     // implement base class (pure) virtual methods
     // -------------------------------------------
 
-    virtual void SetLabel( const wxString &label ) {}
+    virtual void SetLabel(const wxString& WXUNUSED(label)) { }
     virtual wxString GetLabel() const { return wxEmptyString; }
 
     virtual bool Destroy();

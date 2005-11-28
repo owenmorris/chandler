@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextbuffer.cpp,v 1.23 2005/11/20 21:55:26 DS Exp $
+// RCS-ID:      $Id: richtextbuffer.cpp,v 1.24 2005/11/27 02:03:40 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1591,8 +1591,8 @@ bool wxRichTextParagraphLayoutBox::SetStyle(const wxRichTextRange& range, const 
                     wxRichTextObjectList::compatibility_iterator firstNode = newPara->GetChildren().Find(firstObject);
                     wxRichTextObjectList::compatibility_iterator lastNode = newPara->GetChildren().Find(lastObject);
 
-                    wxASSERT(firstNode != NULL);
-                    wxASSERT(lastNode != NULL);
+                    wxASSERT(firstNode);
+                    wxASSERT(lastNode);
 
                     wxRichTextObjectList::compatibility_iterator node2 = firstNode;
 
@@ -3409,7 +3409,7 @@ bool wxRichTextBuffer::BeginStyle(const wxTextAttrEx& style)
 /// End the style
 bool wxRichTextBuffer::EndStyle()
 {
-    if (m_attributeStack.GetFirst() == NULL)
+    if (m_attributeStack.GetFirst())
     {
         wxLogDebug(_("Too many EndStyle calls!"));
         return false;
