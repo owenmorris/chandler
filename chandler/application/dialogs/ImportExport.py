@@ -9,6 +9,7 @@ import itertools
 import osaf.sharing
 from time import time
 import application.Globals as Globals
+import osaf.framework.blocks.Block as Block
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -228,20 +229,22 @@ class ImportDialog(FileChooserWithOptions):
             if not val.IsChecked():
                 share.filterAttributes.append(key)
 
+        monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
+        before = time()
         try:
-            monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
-            before = time()
             collection = share.get(monitor.callback)
-            if targetCollection is None:
-                name = "".join(filename.split('.')[0:-1]) or filename
-                collection.displayName = name
-                schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
-            logger.info("Imported collection in %s seconds" % (time() - before))
-            assert (hasattr (collection, 'color'))
-            
         except:
             logger.exception("Failed importFile %s" % fullpath)
-            self.fail(_(u"Unable to parse the chosen file, import cancelled."))
+            self.fail(_(u"There seems to be a problem with your file, we couldn't import it."))
             return False
-        
+
+        if targetCollection is None:
+            name = "".join(filename.split('.')[0:-1]) or filename
+            collection.displayName = name
+            schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
+            sideBarBlock = Block.Block.findBlockByName ('Sidebar')
+            sideBarBlock.postEventByName ("SelectItemsBroadcast",
+                                          {'items':[collection]})
+        logger.info("Imported collection in %s seconds" % (time() - before))
+        assert (hasattr (collection, 'color'))
         return True # Successful import

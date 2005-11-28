@@ -338,6 +338,7 @@ def make_mainview(parcel):
             disambiguateDisplayName = True,
             dispatchToBlockName = 'MainView',
             selectInBlockNamed = 'Sidebar',
+            editAttributeNamed = 'displayName',
             items=[app.untitledCollection],
             dispatchEnum = 'SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main
@@ -463,7 +464,6 @@ def make_mainview(parcel):
         border=RectType(0, 0, 4, 0),
         editRectOffsets=[17, -17, 0],
         buttons=[IconButton, SharingButton],
-        selection=[[0,0]],
         contents=sidebarSelectionCollection,
         selectedItemToView=app.allCollection,
         elementDelegate='osaf.views.main.SideBar.SidebarElementDelegate',

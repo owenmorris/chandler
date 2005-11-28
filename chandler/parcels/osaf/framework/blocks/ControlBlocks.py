@@ -797,8 +797,18 @@ class wxTable(DragAndDrop.DraggableWidget,
         if selectedItemToView is not None:
             index = contents.index (selectedItemToView)
             contents.addSelectionRange (index)
-            self.SetGridCursor (index, 0)
-            self.MakeCellVisible (index, 0)
+            column = 0
+            editAttributeNamed = getattr (self.blockItem, "editAttributeNamed", None)
+            if editAttributeNamed is not None:
+                try:
+                    column = self.blockItem.columnData.index (editAttributeNamed)
+                except ValueError:
+                    editAttributeNamed = None
+
+            self.SetGridCursor (index, column)
+            self.MakeCellVisible (index, column)
+            if editAttributeNamed is not None:
+                self.EnableCellEditControl()
 
     def GoToItem(self, item):
         if item != None:
@@ -949,7 +959,9 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
     def EndEdit (self, row, column, grid):
         assert self.editingCell == (row, column)
         self.editingCell = None
-
+        if hasattr (grid.blockItem, "editAttributeNamed"):
+            del grid.blockItem.editAttributeNamed
+        
         value = self.delegate.GetControlValue (self.control)
         item, attributeName = grid.GetElementValue (row, column)
         assert not item.isDeleted()
@@ -989,6 +1001,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     columnReadOnly = schema.Sequence(schema.Boolean)
     elementDelegate = schema.One(schema.Bytes, initialValue = '')
     selectedItemToView = schema.One(schema.Item, initialValue = None)
+    editAttributeNamed = schema.One(schema.Bytes)
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
@@ -1044,7 +1057,11 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     def onSelectItemsEvent (self, event):
         items = event.arguments ['items']
-        self.select_items (items)
+        self.selectItems (items)
+        editAttributeNamed = event.arguments.get ('editAttributeNamed')
+        if editAttributeNamed is not None:
+            self.widget.EnableCellEditControl (False)
+            self.editAttributeNamed = editAttributeNamed
 
     def PostSelectItems(self, items):
         self.postEventByName("SelectItemsBroadcast",
@@ -1053,13 +1070,13 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         
     def select (self, item):
         # polymorphic method used by scripts
-        self.select_items ([item])
+        self.selectItems ([item])
 
-    def select_items (self, items):
+    def selectItems (self, items):
         """
         Select the row corresponding to each item, and account for the
-        fact that not all of the items are int the table
-        Also make the first visible 
+        fact that not all of the items are int the table Also make the
+        first visible.
         """
         visiblerow = None
         self.widget.ClearSelection()

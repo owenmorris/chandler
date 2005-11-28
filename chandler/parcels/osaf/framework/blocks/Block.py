@@ -506,6 +506,19 @@ class Block(schema.Item):
                         break
 
             collection.add (item)
+
+            # Optionally select the item in a named block and p;ossibly edit
+            # an attribute on it
+            selectInBlockNamed = getattr (event, "selectInBlockNamed", None)
+            if selectInBlockNamed is not None:
+                blockItem = self.findBlockByName (selectInBlockNamed)
+                assert (blockItem is not None)
+                arguments = {'items':[item]}
+                editAttributeNamed = getattr (event, "editAttributeNamed", None)
+                if editAttributeNamed is not None:
+                    arguments ['editAttributeNamed'] = editAttributeNamed
+                blockItem.postEventByName ("SelectItemsBroadcast", arguments)
+
             itemList.append (item)
         # Need to SelectFirstItem -- DJA based on self.selectInBlock
         return itemList
@@ -981,9 +994,10 @@ class operationType(schema.Enumeration):
 class ModifyCollectionEvent(BlockEvent):
     items = schema.Sequence(schema.Item, initialValue = [])
     collectionName = schema.One(schema.Bytes, initialValue = "sidebarCollection")
-    copyItems = schema.One(schema.Boolean, initialValue=False)
-    selectInBlockNamed = schema.One(schema.Bytes, defaultValue = None)
-    disambiguateDisplayName = schema.One(schema.Boolean, initialValue=False)
+    copyItems = schema.One(schema.Boolean, defaultValue=False)
+    selectInBlockNamed = schema.One(schema.Bytes)
+    editAttributeNamed = schema.One(schema.Bytes)
+    disambiguateDisplayName = schema.One(schema.Boolean, defaultValue=False)
     schema.addClouds(
         copying = schema.Cloud(byRef=[items])
     )
