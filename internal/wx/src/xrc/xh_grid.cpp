@@ -3,7 +3,7 @@
 // Purpose:     XML resource handler for the grid control
 // Author:      Agron Selimaj
 // Created:     2005/08/11
-// RCS-ID:      $Id: xh_grid.cpp,v 1.1 2005/11/24 17:26:04 JS Exp $
+// RCS-ID:      $Id: xh_grid.cpp,v 1.2 2005/11/29 00:54:02 VZ Exp $
 // Copyright:   (c) 2005 Agron Selimaj, Freepour Controls Inc.
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_XRC
+#if wxUSE_XRC && wxUSE_GRID
 
 #include "wx/xrc/xh_grid.h"
 #include "wx/grid.h"
@@ -23,7 +23,7 @@
 IMPLEMENT_DYNAMIC_CLASS(wxGridXmlHandler, wxXmlResourceHandler)
 
 wxGridXmlHandler::wxGridXmlHandler()
-: wxXmlResourceHandler()
+                : wxXmlResourceHandler()
 {
     AddWindowStyles();
 }
@@ -48,4 +48,4 @@ bool wxGridXmlHandler::CanHandle(wxXmlNode *node)
     return IsOfClass(node, wxT("wxGrid"));
 }
 
-#endif // wxUSE_XRC
+#endif // wxUSE_XRC && wxUSE_GRID

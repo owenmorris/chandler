@@ -4,7 +4,7 @@
 // Author:      Ported to Linux by Guilhem Lavaux
 // Modified by:
 // Created:     05/23/98
-// RCS-ID:      $Id: joystick.cpp,v 1.10 2005/09/25 19:59:14 VZ Exp $
+// RCS-ID:      $Id: joystick.cpp,v 1.11 2005/11/29 12:50:11 MR Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -283,7 +283,7 @@ bool wxJoystick::IsOk() const
     return (m_device != -1);
 }
 
-int wxJoystick::GetNumberJoysticks() const
+int wxJoystick::GetNumberJoysticks()
 {
     wxString dev_name;
     int fd, j;

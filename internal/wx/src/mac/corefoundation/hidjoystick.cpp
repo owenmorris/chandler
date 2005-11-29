@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2/13/2005
-// RCS-ID:      $Id: hidjoystick.cpp,v 1.6 2005/11/02 15:21:30 SC Exp $
+// RCS-ID:      $Id: hidjoystick.cpp,v 1.7 2005/11/29 12:50:08 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -276,7 +276,7 @@ int wxJoystick::GetNumberAxes() const
 // is all devices with the kHIDUsage_GD_Joystick or kHIDUsage_GD_GamePad
 // identifiers.
 //---------------------------------------------------------------------------
-int wxJoystick::GetNumberJoysticks() const
+int wxJoystick::GetNumberJoysticks()
 {    
     return 
         wxHIDDevice::GetCount(kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick) +

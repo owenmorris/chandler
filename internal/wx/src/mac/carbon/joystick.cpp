@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: joystick.cpp,v 1.14 2005/09/23 12:54:07 MR Exp $
+// RCS-ID:      $Id: joystick.cpp,v 1.15 2005/11/29 12:50:06 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -90,7 +90,7 @@ bool wxJoystick::IsOk() const
     return FALSE;
 }
 
-int wxJoystick::GetNumberJoysticks() const
+int wxJoystick::GetNumberJoysticks()
 {
     // TODO
     return 0;

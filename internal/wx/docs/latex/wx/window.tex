@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: window.tex,v 1.190 2005/11/16 17:27:33 ABX Exp $
+%% RCS-ID:      $Id: window.tex,v 1.191 2005/11/21 19:41:17 VZ Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1325,6 +1325,13 @@ Returns {\tt true} if this window has the current mouse capture.
 \helpref{wxWindow::CaptureMouse}{wxwindowcapturemouse},
 \helpref{wxWindow::ReleaseMouse}{wxwindowreleasemouse},
 \helpref{wxMouseCaptureChangedEvent}{wxmousecapturechangedevent}
+
+
+\membersection{wxWindow::HasFlag}\label{wxwindowhasflag}
+
+\constfunc{bool}{HasFlag}{\param{int }{flag}}
+
+Returns \texttt{true} if the window has the given \arg{flag} bit set.
 
 
 \membersection{wxWindow::HasScrollbar}\label{wxwindowhasscrollbar}

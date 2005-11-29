@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.288 2005/11/24 17:26:05 JS Exp $ -->
+<!-- $Id: files.bkl,v 1.290 2005/11/29 09:03:21 JS Exp $ -->
 <makefile>
 
 <!--
@@ -2610,6 +2610,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/xrc/xh_mdi.cpp
     src/xrc/xh_gauge.cpp
     src/xrc/xh_gdctl.cpp
+    src/xrc/xh_grid.cpp
     src/xrc/xh_html.cpp
     src/xrc/xh_listb.cpp
     src/xrc/xh_listbk.cpp
@@ -2637,7 +2638,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/xrc/xh_treebk.cpp
     src/xrc/xh_unkwn.cpp
     src/xrc/xh_wizrd.cpp
-    src/xrc/xh_grid.cpp
     src/xrc/xmlres.cpp
     src/xrc/xmlrsall.cpp
 </set>
@@ -2658,6 +2658,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/xrc/xh_mdi.h
     wx/xrc/xh_gauge.h
     wx/xrc/xh_gdctl.h
+    wx/xrc/xh_grid.h
     wx/xrc/xh_html.h
     wx/xrc/xh_listb.h
     wx/xrc/xh_listbk.h
@@ -2685,7 +2686,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/xrc/xh_treebk.h
     wx/xrc/xh_unkwn.h
     wx/xrc/xh_wizrd.h
-    wx/xrc/xh_grid.h
     wx/xrc/xmlres.h
 </set>
 

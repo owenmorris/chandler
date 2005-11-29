@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: joystick.h,v 1.5 2005/09/23 12:49:33 MR Exp $
+// RCS-ID:      $Id: joystick.h,v 1.6 2005/11/29 12:49:56 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ class WXDLLEXPORT wxJoystick: public wxObject
   ////////////////////////////////////////////////////////////////////////////
 
   bool IsOk() const; // Checks that the joystick is functioning
-  int GetNumberJoysticks() const ;
+  static int GetNumberJoysticks() ;
   int GetManufacturerId() const ;
   int GetProductId() const ;
   wxString GetProductName() const ;
