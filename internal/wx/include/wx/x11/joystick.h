@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: joystick.h,v 1.6 2005/09/23 12:51:00 MR Exp $
+// RCS-ID:      $Id: joystick.h,v 1.7 2005/11/29 12:50:04 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     
     bool IsOk() const; // Checks that the joystick is functioning
-    int GetNumberJoysticks() const ;
+    static int GetNumberJoysticks() ;
     int GetManufacturerId() const ;
     int GetProductId() const ;
     wxString GetProductName() const ;
