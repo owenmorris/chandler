@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>ZaoBao Tutorial</title>
+<style type="text/css">
+<!--
+.code {
+	background-color: #CCCCCC;
+	border: 1px solid #666666;
+	padding: 10px;
+}
+.callout {
+	padding-left: 10px;
+}
+.fake-link {
+	color: #0033FF;
+}
+.diagram {
+	float: right;
+	margin: 25px;
+}
+-->
+</style>
+</head>
+
+<body>
+<h1>Chandler Extension Tutorial </h1>
+<h2>Introduction</h2>
+<p>This tutorial will step you through the creation of an extension for Chandler. Chandler extensions are usually called 'parcels'. </p>
+<h3>ZaoBao: An RSS Reader</h3>
+<p>ZaoBao is an RSS reader that integrates with the existing datamodel and allows the user to treat RSS data like other data in Chandler. This means that RSS articles can be stamped as tasks, placed on the calendar, shared with others, or sent as e-mail. This tutorial will step you through the process of writing this extension.</p>
+<h3>Getting started</h3>
+<p>First download the 0.6 release of Chandler from the <a href="http://downloads.osafoundation.org/">Chandler Downloads Page</a>. For normal Python development, you should only need the compressed &quot;End-Users's Distribution&quot; for your platform. Using the compressed version (such as the .zip, .tar.gz, or .dmg) will be easier to work with than the installer version.</p>
+<p>Unpack the file into a well known directory. For the purposes of this tutorial, this file will be unpacked in ~/chandler. On Windows, the chandler executable is in ~/chandler/chandler.exe. </p>
+<p>New extensions will be installed in the <code>parcels</code> subdirectory. The Chandler 0.6 distribution includes a finished version of ZaoBao in parcels/feeds. Delete the feeds directory, or move it outside of the parcels directory, so that it doesn't conflict with the extension that you'll develop in this tutorial. </p>
+<h3>Starting Chandler</h3>
+<p>When developing for chandler, you'll often need to pass parameters to chandler on startup. To make this easy, you should run chandler from the command line. There are a few useful parameters that will be useful while :</p>
+<dl>
+  <dt>
+  <dt><code>-c, --create</code></dt>
+  <dd>Erases all user data and user interface information and starts with a fresh repository. Use this parameter whenever you change schema or user interface data. </dd>
+  <dt><code>-W</code></dt>
+  <dd>Runs the chandler web server while chandler is running, for easy inspection of data inside chandler. While chandler is running, you can go to <a href="http://localhost:1888/">http://localhost:1888/</a> to see an internal view of the repository. </dd>
+  <dt><code>-P &lt;directory&gt;</code></dt>
+  <dd>Stores all user data in the given directory. Use this if you don't want this extension development to interfere with data in an installed version of chandler.</dd>
+</dl>
+<p>For example, to start chandler with a fresh repository stored in the current directory, with the web server running, you would type:</p>
+<p><code>&gt; ./chandler --create -W -P.</code></p>
+<p>&nbsp;</p>
+<h2>Data Description </h2>
+<p> You may be curious and excited to jump write in and write some code. But in the world of Chandler, data is king. The sooner you define your data types, the more easily you can build a user interface around it. Don't worry, you can change your data types later, but you can't develop any meaningful application without at least some scaffolding. </p>
+<p>The first thing to begin thinking about is the units of information that your extension will manage. This will help develop your schema. A schema is a description of your data and how the different data items relate to each other. </p>
+<p> Here are some questions that may help you get started: </p>
+<ul>
+  <li> What are the base units or items that your application will use? </li>
+  <li> What attributes are stored on those items? </li>
+  <li> Are there many objects of the same type? How are they grouped or organized? </li>
+  <li> Are there relationships between different data items? Does one data item "contain" another one? </li>
+</ul>
+When the schema is well defined, then Chandler will be able to easily aggregate one application's data with another. Chandler is very good at managing lists and hierarchies of different kinds of data.
+<p> For <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>, there are a few key pieces of data: </p>
+<ul>
+  <li> An RSS feed itself - the data that you download from a webserver. A feed has a title, a last-updated date, and maybe a copyright. Each RSS feed contains one or more news items. A feed is sometimes called a channel. </li>
+  <li> A news item - this is a single entry retrieved via RSS. News items have the content of the news item, as well as a date, author, URL, and so forth. Not all RSS feeds contain authors or even dates but they all contain content. </li>
+</ul>
+<h3>Describing the data with Python </h3>
+<p>Python classes are the fundamental data type that help us define our schema. Data is defined as attributes of a given class. The schema syntax is similar to that used in the Django project.</p>
+<p>We'll store our data definitions in <code>feeds/channel.py</code>. </p>
+<p>Lets take a look at the basic definition of an RSS channel, FeedChannel.</p>
+<pre class="code">from osaf import pim
+from application import schema
+
+
+class FeedChannel(pim.ListCollection):
+
+
+    link     = schema.One(schema.URL, displayName=u&quot;RSS Feed URL&quot;)
+    category = schema.One(schema.Text)
+    author   = schema.One(schema.Text)
+    date     = schema.One(schema.DateTime)</pre>
+<p>The link, category, author, and date attributes are all basic attributes using simple types defined in the schema module. </p>
+<p>Behind the scenes: Chandler-specific attributes are defined as class attributes, but in practice they are actually used as instance attributes. When you have an instance of FeedChannel</p>
+<p>The attributes are all defined using schema.One, which indicates that there is just one of them per instance of the class. The displayName parameter </p>
+<p>Notice that the FeedChannel class inherits from <code>pim.ListCollection</code>. This class is a simple chandler-based list of items. We will use this list to represent the fact that a feed <em>contains</em> one or more feed items. Note  that we have not declared anything about the type of data that this channel will contain. Chandler collections can contain any type of item. Each entry in Chandler's sidebar is collection of some kind. </p>
+<p>Now lets look at the definition of a news item:</p>
+<pre class="code">class FeedItem(pim.ContentItem):
+
+
+    link = schema.One(schema.URL)
+
+    author = schema.One(schema.Text)
+    date = schema.One(schema.DateTime)
+    content = schema.One(schema.Lob)</pre>
+<p>The definition is very similar to FeedChannel. The one important distinction here is that FeedItem is inheriting from pim.ContentItem. ContentItem is the base class for all user-visible data in Chandler.</p>
+<p>Now that we have defined our types, we need to create a python module that will include these classes. Create feeds/__init__.py and add the following lines:</p>
+<pre class="code">from channels import FeedChannel, FeedItem</pre>
+<p>When chandler refreshes the repository, it will look at all of the python modules in the parcels/ directory, and include any data definitions.</p>
+<h3>Viewing data definitions </h3>
+<p>To see if this works, start chandler with a fresh repository, and run the web server:</p>
+<p>&gt; ./chandler --create -W</p>
+<p>Now load your favorite web browser and go to http://localhost:1888/repo/. On the page that is displayed, you should see something like this:</p>
+<blockquote class="code">
+  <ul><li><strong>parcels</strong></li> 
+  <ul>
+    <li><b>amazon</b>: <span class="fake-link">AmazonCollection</span>, <span class="fake-link">AmazonController</span>, <span class="fake-link">AmazonDetailBlock</span>, <span class="fake-link">AmazonItem</span> </li>
+  <li><b>feeds</b>: <span class="fake-link">FeedChannel</span>, <span class="fake-link">FeedItem</span></li>
+  </ul></ul>
+</blockquote>
+<p>&nbsp; </p>
+<h2>The Chandler UI  </h2>
+<p>Now that we have defined some of the datatypes that <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a> will manage, we will look at how they integrate into the existing user interface. There are many ways to integrate into the Chandler UI, but the simplest (and potentially richest) way is to work within the framework of the Sidebar, Summary View, and Detail View. <br>
+    <img src="ChandlerUI.png" alt="Chandler UI" width="484" height="340" class="diagram"> </p>
+<p>These are the key parts of the chandler UI: </p>
+<ul>
+  <li>The <strong>Sidebar</strong> is a list of <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>. An item collection is just a container for Items. </li>
+  <li> The <strong>Summary View</strong> is a table that lists the items in the <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> that is currently selected in the Sidebar. </li>
+  <li> The <strong>Detail View</strong> displays the Item that is currently selected in the summary view. </li>
+</ul>
+<p> <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>'s two level hierarchy lends itself well to Chandler's existing user interface. Feeds (<em>RSSChannel</em>) contain News Items (<em>RSSItem</em>) and News Items have details. (including a body, url, author, and so forth) </p>
+<p>In the simplest case, an RSSChannel is a collection similar to the All, In, or Out collections. These collections are implemented with the <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> Kind. </p>
+<p> <strong>Note:</strong> An <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> is just that: a generic collection of Items. <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a> can contain any kind of Item, including mail messages, calendar events, and RSS news items. A <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> is not a folder however, as a single Items can actually be a member of multiple <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>. </p>
+<p> Since the Chandler UI understands these basic constructs, we can create an <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> for each RSSChannel and Chandler will do its best to display the members of that collection. </p>
+<p>&nbsp; </p>
+</body>
+</html>
