@@ -597,6 +597,10 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
         tool = event.arguments['sender']
         self.widget.ToggleTool(tool.toolID, item.private) # in case the user canceled the dialog, reset markupbar buttons
 
+    def onReadOnlyEventUpdateUI(self, event):
+        enable = ( self.item.getSharedState() == ContentItem.READONLY )
+        event.arguments ['Enable'] = enable        
+
     def onTogglePrivateEventUpdateUI(self, event):
         item = self.item            
         enable = item is not None and item.isAttributeModifiable('displayName')
@@ -685,19 +689,8 @@ class ReadOnlyIconBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
     def synchronizeItemDetail (self, item):
         # toggle this icon to reflect the read only status of the selected item
-        app = wx.GetApp()
-
-        if item.getSharedState() == ContentItem.READONLY:
-            bitmap = app.GetImage(self.bitmap)
-            self.widget.SetBitmap(bitmap)
-        else:
-            try:
-                disabledBitmapName = self.disabledBitmap
-            except AttributeError:
-                disabledBitmap = wx.NullBitmap
-            else:
-                disabledBitmap = app.GetImage (disabledBitmapName)                
-            self.widget.SetBitmap(disabledBitmap)
+        enable = ( item.getSharedState() == ContentItem.READONLY )
+        self.parentBlock.widget.EnableTool(self.widget.toolID, enable)
         return False
             
     def onReadOnlyEvent(self, event):

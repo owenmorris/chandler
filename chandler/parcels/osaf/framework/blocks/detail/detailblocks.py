@@ -235,7 +235,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     disabledBitmap="MarkupBarReadWrite.png",
                                     toolbarItemKind='Status',
                                     helpString=messages.READONLY,
-                                   event=readOnly)
+                                    event=readOnly)
 
     # Finally, (re-)do the bar itself.
     markupBar = MarkupBarBlock.template('MarkupBar',
