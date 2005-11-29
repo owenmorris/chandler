@@ -275,12 +275,12 @@ bool wxMiniCalendar::SetDate(const wxDateTime& date)
 {
     bool retval = true;
 
-    bool sameMonth = m_selected.GetMonth() == date.GetMonth() && m_visible.GetMonth() == date.GetMonth(),
-         sameYear = m_selected.GetYear() == date.GetYear() && m_visible.GetYear() == date.GetYear();
+    bool sameMonth = ((m_selected.GetMonth() == date.GetMonth() && m_selected.GetYear() == date.GetYear()) ||\
+                     (m_visible.GetMonth() == date.GetMonth() && m_visible.GetYear() == date.GetYear()));
 
     if ( IsDateInRange(date) )
     {
-        if ( sameMonth && sameYear )
+        if ( sameMonth )
         {
             // just change the day
             ChangeDay(date);
