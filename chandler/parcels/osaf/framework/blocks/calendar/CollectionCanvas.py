@@ -723,7 +723,8 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         contentsCollection = contents.collectionList[0]
         self.setContentsOnBlock(contents, contentsCollection)
         for item in self.selection:
-            if item not in self.contents:
+            if (item is not None and
+                item not in self.contents):
                 self.selection.remove(item)
         self.synchronizeWidget()
         
@@ -764,11 +765,12 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         self.postSelectItemsBroadcast()
 
     def onSelectAllEventUpdateUI(self, event):
-        return len(self.contents) > 0
+        event.arguments['Enable'] =  len(self.contents) > 0
 
     def DeleteSelection(self, cutting=False, *args, **kwargs):
         for item in self.selection:
-            item.removeFromCollection(self.contentsCollection, cutting)
+            if item is not None:
+                item.removeFromCollection(self.contentsCollection, cutting)
         self.ClearSelection()
 
     def ClearSelection(self):

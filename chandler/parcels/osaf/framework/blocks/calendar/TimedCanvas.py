@@ -540,7 +540,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return firstHit
 
     def OnBeginResizeItem(self):
-        if self.dragState.currentDragBox.CanDrag():
+        if not self.dragState.currentDragBox.CanDrag():
             self.WarnReadOnlyTime([self.dragState.currentDragBox._item])
             return False
         self.StartDragTimer()

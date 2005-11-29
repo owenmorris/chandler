@@ -391,6 +391,9 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
         #We want to ignore, because view changes could come in here, and we
         #never want to change our collection
         pass
+
+    def onSelectAllEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
     
     def instantiateWidget(self):
         if not self.getHasBeenRendered():
