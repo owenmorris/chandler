@@ -30,7 +30,7 @@
 <h2>Introduction</h2>
 <p>This tutorial will step you through the creation of an extension for Chandler. Chandler extensions are usually called 'parcels'. </p>
 <h3>ZaoBao: An RSS Reader</h3>
-<p>ZaoBao is an RSS reader that integrates with the existing datamodel and allows the user to treat RSS data like other data in Chandler. This means that RSS articles can be stamped as tasks, placed on the calendar, shared with others, or sent as e-mail. This tutorial will step you through the process of writing this extension.</p>
+<p>ZaoBao is an RSS reader that integrates with the existing data model and allows the user to treat RSS data like other data in Chandler. This means that RSS articles can be stamped as tasks, placed on the calendar, shared with others, or sent as e-mail. This tutorial will step you through the process of writing this extension.</p>
 <h3>Getting started</h3>
 <p>First download the 0.6 release of Chandler from the <a href="http://downloads.osafoundation.org/">Chandler Downloads Page</a>. For normal Python development, you should only need the compressed &quot;End-Users's Distribution&quot; for your platform. Using the compressed version (such as the .zip, .tar.gz, or .dmg) will be easier to work with than the installer version.</p>
 <p>Unpack the file into a well known directory. For the purposes of this tutorial, this file will be unpacked in ~/chandler. On Windows, the chandler executable is in ~/chandler/chandler.exe. </p>
@@ -62,7 +62,7 @@
 When the schema is well defined, then Chandler will be able to easily aggregate one application's data with another. Chandler is very good at managing lists and hierarchies of different kinds of data.
 <p> For <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>, there are a few key pieces of data: </p>
 <ul>
-  <li> An RSS feed itself - the data that you download from a webserver. A feed has a title, a last-updated date, and maybe a copyright. Each RSS feed contains one or more news items. A feed is sometimes called a channel. </li>
+  <li> An RSS feed itself - the data that you download from a web server. A feed has a title, a last-updated date, and maybe a copyright. Each RSS feed contains one or more news items. A feed is sometimes called a channel. </li>
   <li> A news item - this is a single entry retrieved via RSS. News items have the content of the news item, as well as a date, author, URL, and so forth. Not all RSS feeds contain authors or even dates but they all contain content. </li>
 </ul>
 <h3>Describing the data with Python </h3>
@@ -72,9 +72,7 @@ When the schema is well defined, then Chandler will be able to easily aggregate 
 <pre class="code">from osaf import pim
 from application import schema
 
-
 class FeedChannel(pim.ListCollection):
-
 
     link     = schema.One(schema.URL, displayName=u&quot;RSS Feed URL&quot;)
     category = schema.One(schema.Text)
@@ -87,9 +85,7 @@ class FeedChannel(pim.ListCollection):
 <p>Now lets look at the definition of a news item:</p>
 <pre class="code">class FeedItem(pim.ContentItem):
 
-
     link = schema.One(schema.URL)
-
     author = schema.One(schema.Text)
     date = schema.One(schema.DateTime)
     content = schema.One(schema.Lob)</pre>
@@ -118,10 +114,32 @@ class FeedChannel(pim.ListCollection):
   <li> The <strong>Summary View</strong> is a table that lists the items in the <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> that is currently selected in the Sidebar. </li>
   <li> The <strong>Detail View</strong> displays the Item that is currently selected in the summary view. </li>
 </ul>
-<p> <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>'s two level hierarchy lends itself well to Chandler's existing user interface. Feeds (<em>RSSChannel</em>) contain News Items (<em>RSSItem</em>) and News Items have details. (including a body, url, author, and so forth) </p>
-<p>In the simplest case, an RSSChannel is a collection similar to the All, In, or Out collections. These collections are implemented with the <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> Kind. </p>
+<p> <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>'s two level hierarchy lends itself well to Chandler's existing user interface. Feeds (<code>FeedChannel</code>) contain News Items (<code>FeedItem</code>) and News Items have details. (including a body, url, author, and so forth) </p>
+<p>In the simplest case, an FeedChannel is a collection similar to the All, In, or Out collections. These collections are implemented with the <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> Kind. </p>
 <p> <strong>Note:</strong> An <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> is just that: a generic collection of Items. <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a> can contain any kind of Item, including mail messages, calendar events, and RSS news items. A <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> is not a folder however, as a single Items can actually be a member of multiple <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>. </p>
-<p> Since the Chandler UI understands these basic constructs, we can create an <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> for each RSSChannel and Chandler will do its best to display the members of that collection. </p>
-<p>&nbsp; </p>
+<p> Since the Chandler UI understands these basic constructs, we can create an <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> for each FeedChannel and Chandler will do its best to display the members of that collection. </p>
+<h3> Creating a menu item </h3>
+First we'll need to create a menu item so that the user can enter a URL for an RSS feed. From there, we'll create an <a class="twikiLink" href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a> containing the items from that feed. This collection will appear in the user interface as an entry in the Sidebar.
+<p> We'll use the Event system to receive notification that our menu item has been selected, and that in turn will run some Python code that we write.</p>
+<p>In <code>feeds/blocks.py</code>, we'll write a function called <code>installParcel</code>. This function is called whenever the repository is building the UI for the first time.</p>
+<pre class="code">from application import schema
+from osaf.framework.blocks import MenuItem, BlockEvent
+
+def installParcel(parcel, oldVersion=None):
+
+    mainview = schema.ns(&quot;osaf.views.main&quot;, parcel.itsView)
+
+    MenuItem.update(parcel, &quot;NewFeedChannel&quot;,
+        blockName=&quot;NewFeedChannelItem&quot;,
+        title=_(u&quot;New Feed Channel&quot;),
+        parentBlock=mainview.CollectionMenu)</pre>
+<p>This creates the menu item. There are a few basic things to understand from this:</p>
+<p>First, the <code>mainview</code> variable refers to a specific area of the repository using <code>schema.ns(...)</code>. The repository contains parcels, which are sort of persistent containers for python objects. In this case <code>mainview.CollectionMenu</code> refers to the object in the &quot;osaf.views.main&quot; parcel, named &quot;CollectionMenu&quot; You can use the web-based repository viewer to view the items in that parcel: <a href="http://localhost:1888/repo/parcels/osaf/views/main">http://localhost:1888/repo/parcels/osaf/views/main</a>. You can also navigate to this directory by clicking on the &quot;//parcels&quot; link in the top of the repository viewer at <a href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>.</p>
+<p class="callout"><strong>Note:</strong> Don't worry about second parameter (<code>parcel.itsView</code>) to schema.ns just yet. This is a detail of the repository. </p>
+<p>Second, we're not necessarily <em>creating</em> a MenuItem. Instead, we're <em>updating</em> one named &quot;NewFeedChannel&quot; that may already be there. If it doesn't already exist, then it is created. The name &quot;NewFeedChannel&quot; identifies it within the parcel object that is passed to installParcel. The parcel's name is more or less the same as the current module's name. In this case, the parcel's name is &quot;feeds&quot;. </p>
+<p>This may be slightly confusing, but here's another way to look at it: the first parameter passed to <code>schema.ns(...)</code> above is the name of a parcel. The <code>mainview</code> variable is actually referencing the parcel named &quot;osaf.views.main&quot; above. Another module could refer to the &quot;NewFeedChannel&quot; <code>MenuItem</code> like this:</p>
+<pre>feeds = schema.ns(&quot;feeds&quot;, view)
+feedMenuItem = feeds.NewFeedChannel</pre>
+<p>&nbsp;</p>
 </body>
 </html>
