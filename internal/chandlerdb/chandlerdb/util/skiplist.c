@@ -9,11 +9,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-#ifdef _MSC_VER
-#define srandom srand
-#define random rand
-#endif
-
 #include <Python.h>
 #include "structmember.h"
 
@@ -960,11 +955,20 @@ static int _t_sl__p0(t_sl *self, int op, PyObject *key,
 
         *level = 1;
         currentLevel = PyList_GET_SIZE(((t_node *) self->head)->levels);
+
+#ifndef _MSC_VER            
         srandom((unsigned long) clock());
-            
+
         /* 1 << 29 is 1 / P of the range of random(), P == 4 */
         while (random() < (1 << 29) && *level < SL_MAXLEVEL)
             *level += 1;
+#else
+        srand((unsigned long) clock());
+
+        /* RAND_MAX >> 2 is 1 / P of the range of random(), P == 4 */
+        while (rand() < (RAND_MAX >> 2) && *level < SL_MAXLEVEL)
+            *level += 1;
+#endif
 
         if (*level > currentLevel)
         {
