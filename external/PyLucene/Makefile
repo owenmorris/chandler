@@ -1,6 +1,6 @@
 
-VERSION=1.0-$(SVNVER)
-SVNVER=203
+VERSION=1.0.1-$(SVNVER)
+SVNVER=206
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
@@ -10,15 +10,18 @@ DB_LIB_VER=$(basename $(DB_VER))
 
 include $(BUILD_ROOT)/Makefile.inc
 
-ifeq ($(OS),Cygwin)
 ifeq ($(DEBUG),1)
 SUFFIX=d
 _SUFFIX=_d
+ifeq ($(OS),Cygwin)
 PYDBG=-DPy_DEBUG=1
+endif
 else
 SUFFIX=
 _SUFFIX=
 endif
+
+ifeq ($(OS),Cygwin)
 PREFIX_PYTHON=$(PREFIX)/bin
 PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-$(DB_VER)
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
@@ -116,6 +119,7 @@ build: expand apply
             GCJ_HOME=$(GCJ_HOME) \
             GCJ_VER=$(GCJ_VER) \
             PYDBG=$(PYDBG) \
+            _SUFFIX=$(_SUFFIX) \
             CC=$(PYLUCENE_CC) \
             CXX=$(PYLUCENE_CXX) \
             JCC=$(PYLUCENE_JCC) \
@@ -148,7 +152,7 @@ upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
 sources: PyLucene-$(VERSION)-expanded
 
 PyLucene-$(VERSION)-expanded:
-	svn export -r $(SVNVER) http://svn.osafoundation.org/pylucene/trunk PyLucene-$(VERSION)
+	svn export -r $(SVNVER) http://svn.osafoundation.org/pylucene/branches/release-1.0 PyLucene-$(VERSION)
 	touch PyLucene-$(VERSION)-expanded
 
 expand: PyLucene-$(VERSION)-expanded
