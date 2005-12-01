@@ -279,8 +279,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             isAllDay = getattr(item, 'allDay', False)
             isAnyTime = getattr(item, 'anyTime', False)
             duration = getattr(item, 'duration', 0)
-            hasLeftRounded = ((isAnyTime and not isAllDay) or
-                              not duration)
+            hasLeftRounded = ((isAnyTime or not duration) and not isAllDay)
             
             self.DrawEventRectangle(dc, itemRect,
                                     hasLeftRounded,
