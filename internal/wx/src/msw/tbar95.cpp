@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.163 2005/11/28 15:27:09 vell Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.165 2005/12/01 23:32:47 vell Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -246,9 +246,7 @@ bool wxToolBar::Create(wxWindow *parent,
         LRESULT style = ::SendMessage(GetHwnd(), TB_GETSTYLE, 0, 0L);
 
         if ( !(style & TBSTYLE_FLAT) )
-        {
             ::SendMessage(GetHwnd(), TB_SETSTYLE, 0, style | TBSTYLE_FLAT);
-        }
     }
 #endif // wxUSE_UXTHEME
 
@@ -362,6 +360,7 @@ wxSize wxToolBar::DoGetBestSize() const
     }
 
     CacheBestSize(sizeBest);
+
     return sizeBest;
 }
 
@@ -374,8 +373,8 @@ WXDWORD wxToolBar::MSWGetStyle(long style, WXDWORD *exstyle) const
                         (style & ~wxBORDER_MASK) | wxBORDER_NONE, exstyle
                       );
 
-    // always include this one, it never hurts and setting it later only if we
-    // do have tooltips wouldn't work
+    // always include this one, it never hurts and setting it later
+    // only if we do have tooltips wouldn't work
     msStyle |= TBSTYLE_TOOLTIPS;
 
     if ( style & (wxTB_FLAT | wxTB_HORZ_LAYOUT) )
@@ -460,7 +459,6 @@ bool wxToolBar::DoDeleteTool(size_t pos, wxToolBarToolBase *tool)
     if ( tool->IsControl() )
     {
         nButtonsToDelete = ((wxToolBarTool *)tool)->GetSeparatorsCount();
-
         width *= nButtonsToDelete;
     }
 
@@ -493,6 +491,7 @@ bool wxToolBar::DoDeleteTool(size_t pos, wxToolBarToolBase *tool)
     }
 
     InvalidateBestSize();
+
     return true;
 }
 
@@ -545,10 +544,8 @@ bool wxToolBar::Realize()
 {
     const size_t nTools = GetToolsCount();
     if ( nTools == 0 )
-    {
         // nothing to do
         return true;
-    }
 
     const bool isVertical = HasFlag(wxTB_VERTICAL);
 
@@ -842,9 +839,7 @@ bool wxToolBar::Realize()
                 {
                     const wxString& label = tool->GetLabel();
                     if ( !label.empty() )
-                    {
                         button.iString = (int)label.c_str();
-                    }
                 }
 
                 button.idCommand = tool->GetId();
@@ -898,12 +893,14 @@ bool wxToolBar::Realize()
                         button.fsStyle = TBSTYLE_CHECK;
                         break;
 
-                    default:
-                        wxFAIL_MSG( _T("unexpected toolbar button kind") );
-                        // fall through
-
                     case wxITEM_NORMAL:
                         button.fsStyle = TBSTYLE_BUTTON;
+                        break;
+
+                    default:
+                        wxFAIL_MSG( _T("unexpected toolbar button kind") );
+                        button.fsStyle = TBSTYLE_BUTTON;
+                        break;
                 }
 
                 bitmapId++;
@@ -1032,7 +1029,7 @@ bool wxToolBar::Realize()
             left = 0;
             top = y;
 
-            y += height + 2*GetMargins().y;
+            y += height + 2 * GetMargins().y;
         }
         else // horizontal toolbar
         {
@@ -1052,18 +1049,14 @@ bool wxToolBar::Realize()
     if ( !isVertical )
     {
         if ( m_maxRows == 0 )
-        {
             // if not set yet, only one row
             SetRows(1);
-        }
     }
     else if ( m_nButtons > 0 ) // vertical non empty toolbar
     {
         if ( m_maxRows == 0 )
-        {
             // if not set yet, have one column
             SetRows(m_nButtons);
-        }
     }
 
     // OSAF: disable this to fix a bug; re-enable when a deeper, better fix is developed...
@@ -1226,13 +1219,12 @@ wxToolBarToolBase *wxToolBar::FindToolForPosition(wxCoord x, wxCoord y) const
     pt.x = x;
     pt.y = y;
     int index = (int)::SendMessage(GetHwnd(), TB_HITTEST, 0, (LPARAM)&pt);
+
     // MBN: when the point ( x, y ) is close to the toolbar border
     //      TB_HITTEST returns m_nButtons ( not -1 )
     if ( index < 0 || (size_t)index >= m_nButtons )
-    {
         // it's a separator or there is no tool at all there
         return (wxToolBarToolBase *)NULL;
-    }
 
     // when TB_SETBUTTONINFO is available (both during compile- and run-time),
     // we don't use the dummy separators hack
@@ -1256,9 +1248,7 @@ void wxToolBar::UpdateSize()
     // we must also refresh the frame after the toolbar size (possibly) changed
     wxFrame *frame = wxDynamicCast(GetParent(), wxFrame);
     if ( frame )
-    {
         frame->SendSizeEvent();
-    }
 }
 
 // ----------------------------------------------------------------------------
@@ -1463,10 +1453,10 @@ bool wxToolBar::HandleSize(WXWPARAM WXUNUSED(wParam), WXLPARAM lParam)
 
 bool wxToolBar::HandlePaint(WXWPARAM wParam, WXLPARAM lParam)
 {
-    // erase any dummy separators which we used for aligning the controls if
-    // any here
+    // erase any dummy separators which were used
+    // for aligning the controls if any here
 
-    // first of all, do we have any controls at all?
+    // first of all, are there any controls at all?
     wxToolBarToolsList::compatibility_iterator node;
     for ( node = m_tools.GetFirst(); node; node = node->GetNext() )
     {
@@ -1475,10 +1465,8 @@ bool wxToolBar::HandlePaint(WXWPARAM wParam, WXLPARAM lParam)
     }
 
     if ( !node )
-    {
         // no controls, nothing to erase
         return false;
-    }
 
     // prepare the DC on which we'll be drawing
     wxClientDC dc(this);
@@ -1487,10 +1475,8 @@ bool wxToolBar::HandlePaint(WXWPARAM wParam, WXLPARAM lParam)
 
     RECT r;
     if ( !::GetUpdateRect(GetHwnd(), &r, FALSE) )
-    {
         // nothing to redraw anyhow
         return false;
-    }
 
     wxRect rectUpdate;
     wxCopyRECTToRect(r, rectUpdate);
@@ -1568,14 +1554,14 @@ void wxToolBar::HandleMouseMove(WXWPARAM WXUNUSED(wParam), WXLPARAM lParam)
     wxToolBarToolBase* tool = FindToolForPosition( x, y );
 
     // cursor left current tool
-    if( tool != m_pInTool && !tool )
+    if ( tool != m_pInTool && !tool )
     {
         m_pInTool = 0;
         OnMouseEnter( -1 );
     }
 
     // cursor entered a tool
-    if( tool != m_pInTool && tool )
+    if ( tool != m_pInTool && tool )
     {
         m_pInTool = tool;
         OnMouseEnter( tool->GetId() );
@@ -1602,6 +1588,9 @@ WXLRESULT wxToolBar::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             if ( HandlePaint(wParam, lParam) )
                 return 0;
 #endif
+
+        default:
+            break;
     }
 
     return wxControl::MSWWindowProc(nMsg, wParam, lParam);
@@ -1727,5 +1716,5 @@ WXHBITMAP wxToolBar::MapBitmap(WXHBITMAP bitmap, int width, int height)
 #endif // 0
 }
 
-#endif // wxUSE_TOOLBAR && Win95
+#endif // wxUSE_TOOLBAR
 
