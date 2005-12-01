@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.31 2005/10/09 15:48:09 MBN Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.33 2005/11/30 16:27:41 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,16 +27,22 @@ extern WXDLLEXPORT_DATA(const wxChar*) wxRadioBoxNameStr;
 class WXDLLEXPORT wxRadioBoxBase : public wxItemContainerImmutable
 {
 public:
-    // change the individual radio button state
+    // change/query the individual radio button state
     virtual bool Enable(int n, bool enable = true) = 0;
     virtual bool Show(int n, bool show = true) = 0;
 
-    // layout parameters
-    virtual int GetColumnCount() const = 0;
-    virtual int GetRowCount() const = 0;
+    // NB: these functions are stubbed here for now but should become pure
+    //     virtual once all ports implement them
+    virtual bool IsItemEnabled(int WXUNUSED(n)) const { return true; }
+    virtual bool IsItemShown(int WXUNUSED(n)) const { return true; }
+
+    // return number of columns/rows in this radiobox
+    int GetColumnCount() const { return m_numCols; }
+    int GetRowCount() const { return m_numRows; }
 
     // return the item above/below/to the left/right of the given one
     int GetNextItem(int item, wxDirection dir, long style) const;
+
 
     // deprecated functions
     // --------------------
@@ -45,6 +51,30 @@ public:
     wxDEPRECATED( int GetNumberOfRowsOrCols() const );
     wxDEPRECATED( void SetNumberOfRowsOrCols(int n) );
 #endif // WXWIN_COMPATIBILITY_2_4
+
+protected:
+    wxRadioBoxBase()
+    {
+        m_majorDim = 0;
+    }
+
+    // return the number of items in major direction (which depends on whether
+    // we have wxRA_SPECIFY_COLS or wxRA_SPECIFY_ROWS style)
+    int GetMajorDim() const { return m_majorDim; }
+
+    // sets m_majorDim and also updates m_numCols/Rows
+    //
+    // the style parameter should be the style of the radiobox itself
+    void SetMajorDim(int majorDim, long style);
+
+
+private:
+    // the number of elements in major dimension (i.e. number of columns if
+    // wxRA_SPECIFY_COLS or the number of rows if wxRA_SPECIFY_ROWS) and also
+    // the number of rows/columns calculated from it
+    int m_majorDim,
+        m_numCols,
+        m_numRows;
 };
 
 #if defined(__WXUNIVERSAL__)

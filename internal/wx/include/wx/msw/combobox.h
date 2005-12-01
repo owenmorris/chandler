@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.h,v 1.34 2005/09/23 12:50:08 MR Exp $
+// RCS-ID:      $Id: combobox.h,v 1.35 2005/12/01 12:54:57 VS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ public:
     virtual int GetSelection() const;
     virtual void GetSelection(long* from, long* to) const;
     virtual void SetEditable(bool editable);
-    virtual void Clear() { wxChoice::Clear(); m_selectionOld = -1; }
+    virtual void Clear();
 
     virtual void Undo() ;
     virtual void Redo() ;

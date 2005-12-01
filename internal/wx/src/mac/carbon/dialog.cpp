@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog.cpp,v 1.41 2005/11/19 01:07:49 MR Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.42 2005/12/01 14:28:28 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -140,13 +140,13 @@ bool wxDialog::Show(bool show)
         }
         else // end of modal dialog
         {
-            // this will cause IsModalShowing() return FALSE and our local
+            // this will cause IsModalShowing() return false and our local
             // message loop will terminate
             wxModalDialogs.DeleteObject(this);
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 #if !TARGET_CARBON
@@ -183,13 +183,11 @@ void wxDialog::DoShowModal()
 }
 
 
-// Replacement for Show(TRUE) for modal dialogs - returns return code
+// Replacement for Show(true) for modal dialogs - returns return code
 int wxDialog::ShowModal()
 {
     if ( !m_isModalStyle )
-    {
         SetModal(true);
-    }
 
     Show(true);
     return GetReturnCode();
@@ -208,15 +206,14 @@ void wxDialog::EndModal(int retCode)
 void wxDialog::OnOK(wxCommandEvent& WXUNUSED(event))
 {
   if ( Validate() && TransferDataFromWindow() )
-  {
       EndModal(wxID_OK);
-  }
 }
 
 void wxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 {
   if (Validate())
-    TransferDataFromWindow();
+      TransferDataFromWindow();
+
   // TODO probably need to disable the Apply button until things change again
 }
 

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     11/07/98
-// RCS-ID:      $Id: mstream.h,v 1.32 2005/04/02 22:36:52 VZ Exp $
+// RCS-ID:      $Id: mstream.h,v 1.33 2005/11/30 12:41:45 MW Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,6 @@ public:
     wxMemoryInputStream(const wxMemoryOutputStream& stream);
     virtual ~wxMemoryInputStream();
     virtual wxFileOffset GetLength() const { return m_length; }
-    virtual bool Eof() const;
     virtual bool IsSeekable() const { return true; }
 
     char Peek();

@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        dc.h
+// Name:        wx/gtk/dc.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dc.h,v 1.31 2005/09/23 12:49:15 MR Exp $
+// Id:          $Id: dc.h,v 1.32 2005/11/30 07:58:34 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -41,7 +41,9 @@ public:
     wxDC();
     ~wxDC() { }
 
+#if wxUSE_PALETTE
     void SetColourMap( const wxPalette& palette ) { SetPalette(palette); };
+#endif // wxUSE_PALETTE
 
     // Resolution in pixels per logical inch
     virtual wxSize GetPPI() const;

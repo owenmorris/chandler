@@ -4,7 +4,7 @@
 // Author:      Robert Roebling and Robin Dunn
 // Modified by: Ron Lee, Vadim Zeitlin (wxSizerFlags)
 // Created:
-// RCS-ID:      $Id: sizer.h,v 1.74 2005/10/09 14:32:53 VZ Exp $
+// RCS-ID:      $Id: sizer.h,v 1.75 2005/11/29 23:05:50 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -54,14 +54,19 @@ public:
 
     wxSizerFlags& Align(int alignment) // combination of wxAlignment values
     {
-        m_flags &= wxALL;
+        m_flags &= wxALIGN_MASK;
         m_flags |= alignment;
 
         return *this;
     }
 
+    wxSizerFlags& Expand()
+    {
+        m_flags |= wxEXPAND;
+        return *this;
+    }
+
     // some shortcuts for Align()
-    wxSizerFlags& Expand() { return Align(wxEXPAND); }
     wxSizerFlags& Centre() { return Align(wxCENTRE); }
     wxSizerFlags& Center() { return Centre(); }
     wxSizerFlags& Left() { return Align(wxALIGN_LEFT); }

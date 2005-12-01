@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h,v 1.43 2005/09/23 12:50:14 MR Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.45 2005/11/30 16:27:47 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -90,8 +90,8 @@ public:
     virtual void SetString(int n, const wxString& label);
     virtual bool Enable(int n, bool enable = true);
     virtual bool Show(int n, bool show = true);
-    virtual int GetColumnCount() const { return GetNumHor(); }
-    virtual int GetRowCount() const { return GetNumVer(); }
+    virtual bool IsItemEnabled(int n) const;
+    virtual bool IsItemShown(int n) const;
 
     // override some base class methods
     virtual bool Show(bool show = true);
@@ -114,10 +114,6 @@ public:
     void Command(wxCommandEvent& event);
 
     void SendNotificationEvent();
-
-    // get the number of buttons per column/row
-    int GetNumVer() const;
-    int GetNumHor() const;
 
 protected:
     // common part of all ctors
@@ -155,10 +151,6 @@ protected:
     // corresponding quantity should be computed
     int *m_radioWidth;
     int *m_radioHeight;
-
-    // the number of elements in major dimension (i.e. number of columns if
-    // wxRA_SPECIFY_COLS or the number of rows if wxRA_SPECIFY_ROWS)
-    int m_majorDim;
 
     // currently selected button or wxNOT_FOUND if none
     int m_selectedButton;

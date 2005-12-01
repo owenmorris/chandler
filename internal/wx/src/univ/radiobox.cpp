@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.09.00
-// RCS-ID:      $Id: radiobox.cpp,v 1.24 2005/09/23 12:55:53 MR Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.26 2005/11/30 17:28:18 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,6 @@ IMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl)
 void wxRadioBox::Init()
 {
     m_selection = -1;
-    m_majorDim = 0;
 }
 
 wxRadioBox::wxRadioBox(wxWindow *parent, wxWindowID id, const wxString& title,
@@ -174,7 +173,7 @@ bool wxRadioBox::Create(wxWindow *parent,
     Append(n, choices);
 
     // majorDim default value is 0 which means make one row/column
-    SetMajorDim(majorDim == 0 ? n : majorDim);
+    SetMajorDim(majorDim == 0 ? n : majorDim, style);
 
     if ( size == wxDefaultSize )
     {
@@ -210,26 +209,6 @@ wxRadioBox::~wxRadioBox()
 // ----------------------------------------------------------------------------
 // wxRadioBox init
 // ----------------------------------------------------------------------------
-
-void wxRadioBox::SetMajorDim(int majorDim)
-{
-    wxCHECK_RET( majorDim != 0, _T("major radiobox dimension can't be 0") );
-
-    m_majorDim = majorDim;
-
-    int minorDim = (GetCount() + m_majorDim - 1) / m_majorDim;
-
-    if ( GetWindowStyle() & wxRA_SPECIFY_COLS )
-    {
-        m_numCols = majorDim;
-        m_numRows = minorDim;
-    }
-    else // wxRA_SPECIFY_ROWS
-    {
-        m_numCols = minorDim;
-        m_numRows = majorDim;
-    }
-}
 
 void wxRadioBox::Append(int count, const wxString *choices)
 {
@@ -325,11 +304,25 @@ bool wxRadioBox::Enable(int n, bool enable)
     return m_buttons[n]->Enable(enable);
 }
 
+bool wxRadioBox::IsItemEnabled(int n) const
+{
+    wxCHECK_MSG( IsValid(n), false, _T("invalid index in wxRadioBox::IsItemEnabled") );
+
+    return m_buttons[n]->IsEnabled();
+}
+
 bool wxRadioBox::Show(int n, bool show)
 {
     wxCHECK_MSG( IsValid(n), false, _T("invalid index in wxRadioBox::Show") );
 
     return m_buttons[n]->Show(show);
+}
+
+bool wxRadioBox::IsItemShown(int n) const
+{
+    wxCHECK_MSG( IsValid(n), false, _T("invalid index in wxRadioBox::IsItemShown") );
+
+    return m_buttons[n]->IsShown();
 }
 
 // ----------------------------------------------------------------------------
@@ -420,8 +413,8 @@ wxSize wxRadioBox::DoGetBestClientSize() const
 {
     wxSize sizeBtn = GetMaxButtonSize();
 
-    sizeBtn.x *= m_numCols;
-    sizeBtn.y *= m_numRows;
+    sizeBtn.x *= GetColumnCount();
+    sizeBtn.y *= GetRowCount();
 
     // add a border around all buttons
     sizeBtn.x += 2*BOX_BORDER_X;
@@ -457,7 +450,7 @@ void wxRadioBox::DoMoveWindow(int x0, int y0, int width, int height)
         if ( GetWindowStyle() & wxRA_TOPTOBOTTOM )
         {
             // from top to bottom
-            if ( (n + 1) % m_numRows )
+            if ( (n + 1) % GetRowCount() )
             {
                 // continue in this column
                 y += sizeBtn.y;
@@ -472,7 +465,7 @@ void wxRadioBox::DoMoveWindow(int x0, int y0, int width, int height)
         else // wxRA_LEFTTORIGHT: mirror the code above
         {
             // from left to right
-            if ( (n + 1) % m_numCols )
+            if ( (n + 1) % GetColumnCount() )
             {
                 // continue in this row
                 x += sizeBtn.x;

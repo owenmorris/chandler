@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        bitmap.h
+// Name:        wx/gtk/bitmap.h
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: bitmap.h,v 1.50 2005/09/23 12:49:12 MR Exp $
+// RCS-ID:      $Id: bitmap.h,v 1.51 2005/11/30 07:58:34 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,19 +40,23 @@ class WXDLLIMPEXP_CORE wxMask: public wxObject
 public:
     wxMask();
     wxMask( const wxBitmap& bitmap, const wxColour& colour );
+#if wxUSE_PALETTE
     wxMask( const wxBitmap& bitmap, int paletteIndex );
+#endif // wxUSE_PALETTE
     wxMask( const wxBitmap& bitmap );
     ~wxMask();
-  
+
     bool Create( const wxBitmap& bitmap, const wxColour& colour );
+#if wxUSE_PALETTE
     bool Create( const wxBitmap& bitmap, int paletteIndex );
+#endif // wxUSE_PALETTE
     bool Create( const wxBitmap& bitmap );
 
     // implementation
     GdkBitmap   *m_bitmap;
-    
+
     GdkBitmap *GetBitmap() const;
-  
+
 private:
     DECLARE_DYNAMIC_CLASS(wxMask)
 };
@@ -79,11 +83,11 @@ public:
     bool Ok() const;
 
     bool Create(int width, int height, int depth = -1);
-    
+
     int GetHeight() const;
     int GetWidth() const;
     int GetDepth() const;
-    
+
     wxImage ConvertToImage() const;
 
     // copies the contents and mask of the given (colour) icon to the bitmap
@@ -91,7 +95,7 @@ public:
 
     wxMask *GetMask() const;
     void SetMask( wxMask *mask );
-    
+
     wxBitmap GetSubBitmap( const wxRect& rect ) const;
 
     bool SaveFile(const wxString &name, wxBitmapType type,
@@ -125,10 +129,10 @@ public:
     bool HasPixbuf() const;
     GdkPixbuf *GetPixbuf() const;
 #endif
-    
+
     // Basically, this corresponds to Win32 StretchBlt()
     wxBitmap Rescale( int clipx, int clipy, int clipwidth, int clipheight, int width, int height );
-    
+
     // raw bitmap access support functions
     void *GetRawData(wxPixelDataBase& data, int bpp);
     void UngetRawData(wxPixelDataBase& data);
@@ -161,7 +165,7 @@ private:
 #endif
     friend class wxBitmapHandler;
 
-private:    
+private:
     DECLARE_DYNAMIC_CLASS(wxBitmap)
 };
 

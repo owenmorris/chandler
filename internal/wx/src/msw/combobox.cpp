@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.cpp,v 1.113 2005/09/23 12:54:54 MR Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.114 2005/12/01 12:55:34 VS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -746,6 +746,13 @@ void wxComboBox::GetSelection(long* from, long* to) const
 int wxComboBox::GetSelection() const
 {
     return wxChoice::GetSelection();
+}
+
+void wxComboBox::Clear()
+{
+    wxChoice::Clear();
+    m_selectionOld = -1;
+    m_value.clear();
 }
 
 // ----------------------------------------------------------------------------

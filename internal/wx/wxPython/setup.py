@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     12-Oct-2000
-# RCS-ID:      $Id: setup.py 6038 2005-07-18 21:58:47Z davids $
+# RCS-ID:      $Id: setup.py,v 1.151 2005/11/30 19:34:43 vell Exp $
 # Copyright:   (c) 2000 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -17,8 +17,8 @@ import sys, os
 # The full contents of the wx.build.config module used to be located
 # here in setup.py.  They were split into a separate module so it will
 # be installed with wxPython and can then be used by the build scripts
-# of other extension modules that wich to be wxPython compatible.  The
-# split is still fairly new and hasn't been tested by building
+# of other extension modules that wish to be wxPython compatible.
+# The split is still fairly new and hasn't been tested by building
 # third-party extensions yet, so expect some things to still shift
 # back and forth, and also more stuff in config.py will get converted
 # to functions, etc.
@@ -31,8 +31,8 @@ import sys, os
 
 # To fully support external builds, we need to have a build options
 # file that is created whenever a new wxPython build is performed.
-# We happen to be doing that in this script, so make sure to remove
-# the build_options.py file, so that config.py will recreate it.
+# We happen to be doing that here in this script, so make sure to
+# remove the build_options.py file, so that config.py will recreate it.
 
 if os.path.exists("build_options.py"):
     os.remove("build_options.py")

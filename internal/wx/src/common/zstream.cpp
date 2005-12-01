@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mike Wetherell
 // Created:     11/07/98
-// RCS-ID:      $Id: zstream.cpp,v 1.52 2005/09/23 12:53:12 MR Exp $
+// RCS-ID:      $Id: zstream.cpp,v 1.53 2005/11/30 12:41:48 MW Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -131,14 +131,16 @@ size_t wxZlibInputStream::OnSysRead(void *buffer, size_t size)
         break;
 
     case Z_STREAM_END:
-      // Unread any data taken from past the end of the deflate stream, so that
-      // any additional data can be read from the underlying stream (the crc
-      // in a gzip for example)
-      if (m_inflate->avail_in) {
-        m_parent_i_stream->Ungetch(m_inflate->next_in, m_inflate->avail_in);
-        m_inflate->avail_in = 0;
+      if (m_inflate->avail_out) {
+        // Unread any data taken from past the end of the deflate stream, so that
+        // any additional data can be read from the underlying stream (the crc
+        // in a gzip for example)
+        if (m_inflate->avail_in) {
+          m_parent_i_stream->Ungetch(m_inflate->next_in, m_inflate->avail_in);
+          m_inflate->avail_in = 0;
+        }
+        m_lasterror = wxSTREAM_EOF;
       }
-      m_lasterror = wxSTREAM_EOF;
       break;
 
     case Z_BUF_ERROR:

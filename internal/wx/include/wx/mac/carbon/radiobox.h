@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: radiobox.h,v 1.7 2005/09/23 12:49:35 MR Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.8 2005/11/30 16:27:42 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,10 +66,6 @@ public:
     virtual bool Enable(int item, bool enable = true);
     virtual bool Show(int item, bool show = true);
 
-    virtual int GetColumnCount() const ;
-    virtual int GetRowCount() const ;
-
-
     virtual bool Enable(bool enable = true);
     virtual wxString GetLabel() const;
     virtual void SetLabel(const wxString& label) ;
@@ -87,7 +83,6 @@ public:
 protected:
     wxRadioButton        *m_radioButtonCycle;
 
-    int               m_majorDim ;
     int               m_noItems;
     int               m_noRowsOrCols;
 

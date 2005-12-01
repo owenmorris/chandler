@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     29/01/2002
-// RCS-ID:      $Id: hashmap.h,v 1.50 2005/11/26 13:40:54 MW Exp $
+// RCS-ID:      $Id: hashmap.h,v 1.51 2005/12/01 14:30:30 MW Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -337,7 +337,8 @@ protected: \
     /* returns NULL if not found */ \
     Node** GetNodePtr( const const_key_type& key ) const \
     { \
-        Node** node = &m_table[m_hasher( key ) % m_tableBuckets]; \
+        size_t bucket = m_hasher( key ) % m_tableBuckets; \
+        Node** node = &m_table[bucket]; \
  \
         while( *node ) \
         { \
@@ -353,7 +354,8 @@ protected: \
     /* expressing it in terms of GetNodePtr is 5-8% slower :-( */ \
     Node* GetNode( const const_key_type& key ) const \
     { \
-        Node* node = m_table[m_hasher( key ) % m_tableBuckets]; \
+        size_t bucket = m_hasher( key ) % m_tableBuckets; \
+        Node* node = m_table[bucket]; \
  \
         while( node ) \
         { \

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobox.h,v 1.28 2005/09/27 16:54:33 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.29 2005/11/30 16:27:45 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -87,9 +87,6 @@ public:
     virtual int GetCount() const { return m_noItems; } ;
     void Command(wxCommandEvent& event);
 
-    int GetColumnCount() const;
-    int GetRowCount() const;
-
     int GetNumberOfRowsOrCols() const { return m_noRowsOrCols; }
     void SetNumberOfRowsOrCols(int n) { m_noRowsOrCols = n; }
 
@@ -106,7 +103,6 @@ protected:
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);
 
-    int               m_majorDim;
     int               m_noItems;
     int               m_noRowsOrCols;
     int               m_selectedButton;

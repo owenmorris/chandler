@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.10.99
-// RCS-ID:      $Id: menu.h,v 1.44 2005/09/23 12:48:44 MR Exp $
+// RCS-ID:      $Id: menu.h,v 1.45 2005/11/30 07:59:36 vell Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

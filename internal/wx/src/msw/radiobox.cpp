@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: radiobox.cpp,v 1.124 2005/11/03 16:47:28 ABX Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.128 2005/11/30 16:33:43 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,6 @@ void wxRadioBox::Init()
 {
     m_selectedButton = wxNOT_FOUND;
     m_radioButtons = NULL;
-    m_majorDim = 0;
     m_radioWidth = NULL;
     m_radioHeight = NULL;
 }
@@ -148,9 +147,6 @@ bool wxRadioBox::Create(wxWindow *parent,
                         const wxValidator& val,
                         const wxString& name)
 {
-    // initialize members
-    m_majorDim = majorDim == 0 ? n : majorDim;
-
     // common initialization
     if ( !wxStaticBox::Create(parent, id, title, pos, size, style, name) )
         return false;
@@ -212,6 +208,7 @@ bool wxRadioBox::Create(wxWindow *parent,
     SetWindowPos(GetHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
 #endif
 
+    SetMajorDim(majorDim == 0 ? n : majorDim, style);
     SetSelection(0);
     SetSize(pos.x, pos.y, size.x, size.y);
 
@@ -331,32 +328,6 @@ int wxRadioBox::GetCount() const
     return m_radioButtons->GetCount();
 }
 
-// returns the number of rows
-int wxRadioBox::GetNumVer() const
-{
-    if ( m_windowStyle & wxRA_SPECIFY_ROWS )
-    {
-        return m_majorDim;
-    }
-    else
-    {
-        return (GetCount() + m_majorDim - 1)/m_majorDim;
-    }
-}
-
-// returns the number of columns
-int wxRadioBox::GetNumHor() const
-{
-    if ( m_windowStyle & wxRA_SPECIFY_ROWS )
-    {
-        return (GetCount() + m_majorDim - 1)/m_majorDim;
-    }
-    else
-    {
-        return m_majorDim;
-    }
-}
-
 void wxRadioBox::SetString(int item, const wxString& label)
 {
     wxCHECK_RET( IsValid(item), wxT("invalid radiobox index") );
@@ -410,7 +381,15 @@ bool wxRadioBox::Enable(int item, bool enable)
 
     BOOL ret = ::EnableWindow((*m_radioButtons)[item], enable);
 
-    return (ret == 0) == enable;
+    return (ret == 0) != enable;
+}
+
+bool wxRadioBox::IsItemEnabled(int item) const
+{
+    wxCHECK_MSG( IsValid(item), false,
+                 wxT("invalid item in wxRadioBox::Enable()") );
+
+    return ::IsWindowEnabled((*m_radioButtons)[item]) != 0;
 }
 
 // Show a specific button
@@ -421,10 +400,25 @@ bool wxRadioBox::Show(int item, bool show)
 
     BOOL ret = ::ShowWindow((*m_radioButtons)[item], show ? SW_SHOW : SW_HIDE);
 
-    bool changed = (ret != 0) == show;
-    if( changed )
+    bool changed = (ret != 0) != show;
+    if ( changed )
+    {
         InvalidateBestSize();
+    }
+
     return changed;
+}
+
+bool wxRadioBox::IsItemShown(int item) const
+{
+    wxCHECK_MSG( IsValid(item), false,
+                 wxT("invalid item in wxRadioBox::Enable()") );
+
+    // don't use IsWindowVisible() here because it would return false if the
+    // radiobox itself is hidden while we want to only return false if this
+    // button specifically is hidden
+    return (::GetWindowLong((*m_radioButtons)[item],
+                            GWL_STYLE) & WS_VISIBLE) != 0;
 }
 
 WX_FORWARD_STD_METHODS_TO_SUBWINDOWS(wxRadioBox, wxStaticBox, m_radioButtons)
@@ -475,8 +469,8 @@ wxSize wxRadioBox::GetTotalButtonSize(const wxSize& sizeBtn) const
 
     int extraHeight = cy1;
 
-    int height = GetNumVer() * sizeBtn.y + cy1/2 + extraHeight;
-    int width  = GetNumHor() * (sizeBtn.x + cx1) + cx1;
+    int height = GetRowCount() * sizeBtn.y + cy1/2 + extraHeight;
+    int width  = GetColumnCount() * (sizeBtn.x + cx1) + cx1;
 
     // Add extra space under the label, if it exists.
     if (!wxControl::GetLabel().empty())
@@ -557,9 +551,9 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     // to the right border of radiobox and thus can be wider than this.
 
     // Also, remember that wxRA_SPECIFY_COLS means that we arrange buttons in
-    // left to right order and m_majorDim is the number of columns while
+    // left to right order and GetMajorDim() is the number of columns while
     // wxRA_SPECIFY_ROWS means that the buttons are arranged top to bottom and
-    // m_majorDim is the number of rows.
+    // GetMajorDim() is the number of rows.
 
     x_offset += cx1;
     y_offset += cy1;
@@ -583,16 +577,16 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             // item is the last in its row if it is a multiple of the number of
             // columns or if it is just the last item
             int n = i + 1;
-            isLastInTheRow = ((n % m_majorDim) == 0) || (n == count);
+            isLastInTheRow = ((n % GetMajorDim()) == 0) || (n == count);
         }
         else // wxRA_SPECIFY_ROWS
         {
             // item is the last in the row if it is in the last columns
-            isLastInTheRow = i >= (count/m_majorDim)*m_majorDim;
+            isLastInTheRow = i >= (count/GetMajorDim())*GetMajorDim();
         }
 
         // is this the start of new row/column?
-        if ( i && (i % m_majorDim == 0) )
+        if ( i && (i % GetMajorDim() == 0) )
         {
             if ( m_windowStyle & wxRA_SPECIFY_ROWS )
             {
@@ -662,6 +656,10 @@ WXHRGN wxRadioBox::MSWGetRegionWithoutChildren()
     const size_t count = GetCount();
     for ( size_t i = 0; i < count; ++i )
     {
+        // don't clip out hidden children
+        if ( !IsItemShown(i) )
+            continue;
+
         ::GetWindowRect((*m_radioButtons)[i], &rc);
         AutoHRGN hrgnchild(::CreateRectRgnIndirect(&rc));
         ::CombineRgn(hrgn, hrgn, hrgnchild, RGN_DIFF);

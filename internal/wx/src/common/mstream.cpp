@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: VZ (23.11.00): general code review
 // Created:     04/01/98
-// RCS-ID:      $Id: mstream.cpp,v 1.37 2005/10/17 22:07:56 MW Exp $
+// RCS-ID:      $Id: mstream.cpp,v 1.38 2005/11/30 12:41:48 MW Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,11 +86,6 @@ char wxMemoryInputStream::Peek()
     }
 
     return buf[pos];
-}
-
-bool wxMemoryInputStream::Eof() const
-{
-    return !m_i_streambuf->GetBytesLeft();
 }
 
 size_t wxMemoryInputStream::OnSysRead(void *buffer, size_t nbytes)

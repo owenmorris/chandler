@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: window.tex,v 1.191 2005/11/21 19:41:17 VZ Exp $
+%% RCS-ID:      $Id: window.tex,v 1.192 2005/11/30 15:27:46 VZ Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -809,9 +809,13 @@ Returns the average character width for this window.
 
 \membersection{wxWindow::GetChildren}\label{wxwindowgetchildren}
 
-\func{wxList\&}{GetChildren}{\void}
+\func{wxWindowList\&}{GetChildren}{\void}
 
-Returns a reference to the list of the window's children.
+\constfunc{const wxWindowList\&}{GetChildren}{\void}
+
+Returns a reference to the list of the window's children. \texttt{wxWindowList} 
+is a type-safe \helpref{wxList}{wxlist}-like class whose elements are of type
+\texttt{wxWindow *}.
 
 
 \membersection{wxWindow::GetClassDefaultAttributes}\label{wxwindowgetclassdefaultattributes}

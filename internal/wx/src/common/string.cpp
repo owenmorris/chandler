@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.cpp,v 1.259 2005/09/25 19:58:49 VZ Exp $
+// RCS-ID:      $Id: string.cpp,v 1.262 2005/11/30 14:49:47 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -38,10 +38,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-
-#ifndef __WXMSW__
-#include <errno.h>
-#endif
 
 #ifdef __SALFORDC__
   #include <clib.h>
@@ -1817,7 +1813,7 @@ int wxString::PrintfV(const wxChar* pszFormat, va_list argptr)
     for ( ;; )
     {
         wxStringBuffer tmp(*this, size + 1);
-        wxChar* buf = tmp;
+        wxChar *buf = tmp;
 
         if ( !buf )
         {
@@ -1839,25 +1835,21 @@ int wxString::PrintfV(const wxChar* pszFormat, va_list argptr)
 
         // vsnprintf() may return either -1 (traditional Unix behaviour) or the
         // total number of characters which would have been written if the
-        // buffer were large enough
-        if ( len >= 0 && len <= size )
+        // buffer were large enough (newer standards such as Unix98)
+        if ( len < 0 )
         {
-            // ok, there was enough space
+            // still not enough, as we don't know how much we need, double the
+            // current size of the buffer
+            size *= 2;
+        }
+        else if ( len > size )
+        {
+            size = len;
+        }
+        else // ok, there was enough space
+        {
             break;
         }
-
-#ifdef EOVERFLOW
-        // if the error is not due to not having enough space (it could be e.g.
-        // EILSEQ), break too -- we'd just eat all available memory uselessly
-        if ( errno != EOVERFLOW )
-        {
-            // no sense in continuing
-            break;
-        }
-#endif // EOVERFLOW
-
-        // still not enough, double it again
-        size *= 2;
     }
 
     // we could have overshot

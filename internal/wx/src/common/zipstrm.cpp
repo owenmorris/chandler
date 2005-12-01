@@ -2,7 +2,7 @@
 // Name:        zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp,v 1.35 2005/11/27 17:55:00 MW Exp $
+// RCS-ID:      $Id: zipstrm.cpp,v 1.37 2005/11/30 15:35:04 VZ Exp $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -169,7 +169,7 @@ size_t wxStoredInputStream::OnSysRead(void *buffer, size_t size)
     count = m_parent_i_stream->Read(buffer, count).LastRead();
     m_pos += count;
 
-    if (m_pos == m_len)
+    if (m_pos == m_len && count < size)
         m_lasterror = wxSTREAM_EOF;
     else if (!*m_parent_i_stream)
         m_lasterror = wxSTREAM_READ_ERROR;
@@ -484,6 +484,8 @@ private:
     size_t m_size;
     size_t m_capacity;
     int m_ref;
+
+    wxSUPPRESS_GCC_PRIVATE_DTOR_WARNING(wxZipMemory)
 };
 
 wxZipMemory *wxZipMemory::Unique(size_t size)
@@ -558,12 +560,14 @@ public:
     bool IsEmpty() const { return m_entries.empty(); }
 
 private:
-    typedef wx__OffsetZipEntryMap::key_type key_type;
-
     ~wxZipWeakLinks() { wxASSERT(IsEmpty()); }
+
+    typedef wx__OffsetZipEntryMap::key_type key_type;
 
     int m_ref;
     wx__OffsetZipEntryMap m_entries;
+
+    wxSUPPRESS_GCC_PRIVATE_DTOR_WARNING(wxZipWeakLinks)
 };
 
 wxZipWeakLinks *wxZipWeakLinks::AddEntry(wxZipEntry *entry, wxFileOffset key)
@@ -1170,6 +1174,8 @@ private:
 
     int m_ref;
     wxZipOutputStream *m_stream;
+
+    wxSUPPRESS_GCC_PRIVATE_DTOR_WARNING(wxZipStreamLink)
 };
 
 
