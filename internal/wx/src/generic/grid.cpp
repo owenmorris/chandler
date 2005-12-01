@@ -230,6 +230,8 @@ private:
     DECLARE_DYNAMIC_CLASS(wxGridWindow)
     DECLARE_EVENT_TABLE()
     DECLARE_NO_COPY_CLASS(wxGridWindow)
+
+    friend class WXDLLIMPEXP_ADV wxGrid;
 };
 
 
@@ -3999,6 +4001,17 @@ wxGrid::~wxGrid()
 {
     // Must do this or ~wxScrollHelper will pop the wrong event handler
     SetTargetWindow(this);
+
+    // When the grid is being deleted, events get processed by the gridWindow
+    // which end up being handled by the grid. This can cause crashes when
+    // thye grid accesses deleted data, e.g. m_table.
+    //
+    // Setting the gridWindow's m_isBeingDeleted true will cause events
+    // sent via the gridWindow to be ignored. This requires that gridWindow
+    // make the grid it's friend, since m_isBeingDeleted is private. DavidS
+    // would like to investigate alternate solutions that don't require
+    // accessing a private instance variable.
+    m_gridWin->m_isBeingDeleted = true;
     ClearAttrCache();
     wxSafeDecRef(m_defaultCellAttr);
 
