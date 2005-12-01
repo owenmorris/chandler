@@ -5,7 +5,7 @@
 # Author:      Ron <ron@debian.org>
 # Modified by:
 # Created:     8/9/2004
-# RCS-ID:      $Id: wx-config.in 6982 2005-09-04 01:50:57Z davids $
+# RCS-ID:      $Id: wx-config.in,v 1.128 2005/11/30 06:35:59 RL Exp $
 # Copyright:   (c) 2004 Ron <ron@debian.org>
 #              Essentially a fresh start this time around, but for maximum
 #              compatibility basic code was taken from, and heavy reference
@@ -64,7 +64,7 @@ usage()
            [--list] [--host=HOST] [--toolkit=TOOLKIT] [--universal[=yes|no]]
            [--unicode[=yes|no]] [--debug[=yes|no]] [--static[=yes|no]]
            [--version[=VERSION]] [--basename] [--cc] [--cppflags] [--cflags]
-           [--cxxflags] [--rezflags] [--libs] [--cxx] [--ld] [--linkdeps]
+           [--cxxflags] [--rescomp] [--libs] [--cxx] [--ld] [--linkdeps]
            [--utility=UTIL] [LIB ...] 
 
    wx-config returns  information about  the wxWidgets libraries available
@@ -131,6 +131,7 @@ wxconfig_output_options="prefix exec_prefix
                          release version version_full
                          basename
                          cppflags cflags cxxflags
+                         rescomp
                          rezflags
                          libs
                          linkdeps
@@ -880,11 +881,19 @@ bindir="@bindir@"
 [ -z "$output_option_version"       ] || echo "@WX_VERSION@"
 [ -z "$output_option_version_full"  ] || echo "@WX_SUBVERSION@"
 [ -z "$output_option_basename"      ] || echo "@WX_LIBRARY_BASENAME_GUI@"
-[ -z "$output_option_rezflags"      ] || echo $(eval echo "@MACRESWXCONFIG@")
 [ -z "$output_option_cc"            ] || echo "@CC@"
 [ -z "$output_option_cxx"           ] || echo "@CXX@"
 [ -z "$output_option_ld"            ] || echo "@EXE_LINKER@"
 [ -z "$flag_option_selected_config" ] || echo "$this_config"
+
+
+# --rezflags is deprecated and disabled (2005/11/29)
+if [ -n "$output_option_rezflags" ]; then
+    echo "@true"
+    decho "Warning: --rezflags, along with Mac OS classic resource building" \
+          "is deprecated.  You should remove this from your Makefile and" \
+	  "build .app bundles instead."
+fi
 
 
 # The rest are going to need a little more work.
@@ -946,7 +955,7 @@ fi
 # Additional configuration for individual library components.
 ldflags_gl="@LDFLAGS_GL@"
 
-ldlibs_base="@WXCONFIG_EXTRALIBS@"
+ldlibs_base="@WXCONFIG_LIBS@"
 ldlibs_core="@EXTRALIBS_GUI@"
 ldlibs_gl="@OPENGL_LIBS@"
 ldlibs_html="@EXTRALIBS_HTML@"
@@ -1143,12 +1152,12 @@ else
     _include_cppflags="-I${includedir} -I${prefix}/contrib/include"
 fi
 
-_cppflags=$(echo "-I${libdir}/wx/include/@TOOLCHAIN_FULLNAME@" $_include_cppflags "@WXDEBUG_DEFINE@" "@TOOLCHAIN_DEFS@" "@TOOLCHAIN_DLL_DEFS@" $_gui_cppflags "@WXCONFIG_INCLUDE@" "@WX_LARGEFILE_FLAGS@" "@GCC_PRAGMA_FLAGS@")  
+_cppflags=$(echo "-I${libdir}/wx/include/@TOOLCHAIN_FULLNAME@" $_include_cppflags "@WXCONFIG_CPPFLAGS@" $_gui_cppflags)  
 
 # now without further ado, we can answer these too.
 [ -z "$output_option_cppflags" ] || echo $_cppflags
-[ -z "$output_option_cflags"   ] || echo $_cppflags "@CODE_GEN_FLAGS@"
-[ -z "$output_option_cxxflags" ] || echo $_cppflags "@CODE_GEN_FLAGS@" "@CODE_GEN_FLAGS_CXX@"
+[ -z "$output_option_cflags"   ] || echo $_cppflags "@WXCONFIG_CFLAGS@"
+[ -z "$output_option_cxxflags" ] || echo $_cppflags "@WXCONFIG_CXXFLAGS@"
 [ -z "$output_option_gl_libs"  ] || echo $(lib_flags_for gl)
 [ -z "$output_option_linkdeps" ] || echo $link_deps
 
@@ -1163,6 +1172,70 @@ if [ -n "$output_option_libs" ]; then
 
     echo $_ldflags "@LDFLAGS@" $_rpath $wx_libs "@DMALLOC_LIBS@"
 fi
+
+
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#
+# Beyond here reside only machine or tool specific workarounds
+# that require knowlege not obtainable prior to this comment.
+#
+# Please.  Avoid addding things here, wx-config should avoid
+# hard coding tool specific details.  Do not use things here
+# as an example of other things that should be here,  These
+# shouldn't be here either.  This is a place of last resort
+# for interim workarounds.  I can but stress as strongly as
+# the censor will allow, there are only bad examples of things
+# that belong at this level of abstraction to follow.  It is
+# a limbo for glitches awaiting the Next Design Repair.  Ok.
+#
+# With that firmly in mind, our debut dilemma is:
+
+# Resource compilers.  An elusive term that covers some pretty
+# dissimilar concepts on various platforms.  The good news is,
+# each platform has only one definition of 'resource', compiled
+# or not, and so we can abstract that neatly to return a platform
+# specific invocation of the appropriate tool.  The bad news is,
+# windres (at least) requires knowledge of the wx header files
+# location(s) that cannot be predicted reliably before the call to
+# wx-config is made.  Currently for all known resource compilers,
+# we can simply return a command and some salient configuration
+# options in response to a request for --rescomp.  So here we
+# top up the options for any tools that may require information
+# that was only just determined in the last few machine cycles,
+# then output the necessary incantation for the platform.
+#
+# Most things should already be constant by the time configure
+# has run.  Do not add anything here that is already known there.
+
+if [ -n "$output_option_rescomp" ]; then
+
+    case "@RESCOMP@" in
+      *windres|wrc)
+        # Note that with late model windres, we could just insert
+	# _include_cppflags here, but use the old notation for now
+	# as it is more universally accepted.
+        if is_installed; then
+            echo "@RESCOMP@ --include-dir" \
+                           "${includedir}/wx-@WX_RELEASE@@WX_FLAVOUR@" \
+                           "@WXCONFIG_RESFLAGS@"
+        else
+            echo "@RESCOMP@ --include-dir ${includedir}" \
+                           "--include-dir ${prefix}/contrib/include" \
+		           "@WXCONFIG_RESFLAGS@"
+        fi
+        ;;
+
+      # neither rez not emxbind have any specific needs from
+      # us, so just output what was determined by configure.
+      *)
+        echo @RESCOMP@ @WXCONFIG_RESFLAGS@
+        ;;
+    esac
+
+fi
+
+#
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # And so that's it, we're done.  Have a nice build.
 
