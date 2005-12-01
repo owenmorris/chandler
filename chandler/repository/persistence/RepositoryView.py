@@ -1067,9 +1067,10 @@ class NullRepositoryView(RepositoryView):
     def __init__(self, verify=False):
 
         self._logger = logging.getLogger(__name__)
-        self._status |= verify and RepositoryView.VERIFY or 0
-
         super(NullRepositoryView, self).__init__(None, "null view", 0)
+
+        if verify:
+            self._status |= RepositoryView.VERIFY
 
     def setCurrentView(self):
 
