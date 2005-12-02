@@ -291,7 +291,8 @@ class DBRepository(OnDemandRepository):
             restore = kwds.get('restore', None)
 
             if restore is not None and os.path.isdir(restore):
-                self.delete()
+                if os.path.exists(self.dbHome):
+                    self.delete()
                 if not os.path.exists(self.dbHome):
                     os.mkdir(self.dbHome)
                 for f in os.listdir(restore):
