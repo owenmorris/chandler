@@ -584,10 +584,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetSelectionBackground (background)
 
     def InvalidateSelection (self):
+        lastRow = self.GetNumberCols() - 1
         for range in self.blockItem.contents.getSelectionRanges():
             dirtyRect = wx.Rect()
             dirtyRect.SetTopLeft (self.CellToRect (range[0], 0).GetTopLeft())
-            dirtyRect.SetBottomRight (self.CellToRect (range[1], self.GetNumberCols() - 1).GetBottomRight())
+            dirtyRect.SetBottomRight (self.CellToRect (range[1], lastRow ).GetBottomRight())
             dirtyRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
             self.RefreshRect (dirtyRect)
 
