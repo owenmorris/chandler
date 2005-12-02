@@ -86,6 +86,7 @@ function toggleEdNotes()
 </script>
 <a class="meta" href="#" onclick="toggleEdNotes(); return false">Toggle Editor Notes</a>
 <h1>Chandler Extension Tutorial </h1>
+<p>Chandler 0.6</p>
 <h2>Introduction</h2>
 <p>This tutorial will step you through the creation of an extension for
 Chandler. Chandler extensions are usually called 'parcels'. </p>
@@ -125,7 +126,7 @@ or user interface data. </dd>
   <dd>Runs the chandler web server while chandler is running, for easy
 inspection of data inside chandler. While chandler is running, you can
 go to <a href="http://localhost:1888/">http://localhost:1888/</a> to
-see an internal view of the repository. </dd>
+see an internal view of the Repository. </dd>
   <dt><code>-P &lt;directory&gt;</code></dt>
   <dd>Stores all user data in the given directory. Use this if you
 don't want this extension development to interfere with data in an
@@ -136,11 +137,14 @@ current directory, with the web server running, you would type:</p>
 <p><code>&gt; ./chandler --create -W -P.</code></p>
 <p>&nbsp;</p>
 <h2>Data Description </h2>
-<p> You may be curious and excited to jump write in and write some
-code. But in the world of Chandler, data is king. The sooner you define
-your data types, the more easily you can build a user interface around
-it. Don't worry, you can change your data types later, but you can't
-develop any meaningful application without at least some scaffolding. </p>
+<p class="ednote">Either in here, or somewhere soon, we need to describe the basic idea of the Repository. Here's some sample text:</p>
+<p class="ednote">Chandler stores all of its data objects in the &quot;Repository&quot;. The Repository is a database used to persistently store Python objects. When an object is created &quot;in The Repository&quot; then certain attributes in the object will persist even if chandler is shut down and restarted. Any type of attribute can be stored in the Repository including complex data structures like dicts and lists, as well as reference to other objects. In all other respects, these Repository objects behave just like Python objects. </p>
+<p class="ednote">Instead of storing data in structured tables like a traditional database, the Repository keeps all of its objects in a big &quot;soup&quot;. Objects can be retrieved by queries into this soup, or simply by following references from one object to another. </p>
+<p>You may be curious and excited to jump write in and write some
+  code. But in the world of Chandler, data is king. The sooner you define
+  your data types, the more easily you can build a user interface around
+  it. Don't worry, you can change your data types later, but you can't
+  develop any meaningful application without at least some scaffolding. </p>
 <p>The first thing to begin thinking about is the units of information
 that your extension will manage. This will help develop your schema. A
 schema is a description of your data and how the different data items
@@ -200,10 +204,10 @@ some kind. </p>
 distinction here is that FeedItem is inheriting from pim.ContentItem.
 ContentItem is the base class for all user-visible data in Chandler.</p>
 <p>Now that we have defined our types, we need to create a python
-module that will include these classes. Create feeds/__init__.py and
-add the following lines:</p>
+module that will include these classes. Create <code>feeds/__init__.py</code> and
+add the following line:</p>
 <pre class="code">from channels import FeedChannel, FeedItem</pre>
-<p>When chandler refreshes the repository, it will look at all of the
+<p>When chandler refreshes the Repository, it will look at all of the
 python modules in the parcels/ directory, and include any data
 definitions.</p>
 <h3>Viewing data definitions </h3>
@@ -286,33 +290,44 @@ user interface as an entry in the Sidebar.
 item has been selected, and that in turn will run some Python code that
 we write.</p>
 <p>In <code>feeds/blocks.py</code>, we'll write a function called <code>installParcel</code>.
-This function is called whenever the repository is building the UI for
+This function is called whenever the Repository is building the UI for
 the first time.</p>
-<pre class="code">from application import schema<br>from osaf.framework.blocks import MenuItem, BlockEvent<br><br>def installParcel(parcel, oldVersion=None):<br><br>    mainview = schema.ns("osaf.views.main", parcel.itsView)<br><br>    MenuItem.update(parcel, "NewFeedChannel",<br>        blockName="NewFeedChannelItem",<br>        title=_(u"New Feed Channel"),<br>        parentBlock=mainview.CollectionMenu)</pre>
-<p>This creates the menu item. There are two key concepts being used here:</p>
+<pre class="code">from application import schema<br>from osaf.framework.blocks import MenuItem, BlockEvent
+
+def installParcel(parcel, oldVersion=None):<br><br>    mainview = schema.ns("osaf.views.main", parcel.itsView)
+
+    MenuItem.update(parcel, "NewFeedChannel",
+                    blockName="NewFeedChannelItem",
+                    title=_(u"New Feed Channel"),
+                    parentBlock=mainview.CollectionMenu)</pre>
+<p>Make sure to add this function to <code>feeds/__init__.py</code>:</p>
+<pre class="code">from channels import FeedChannel, FeedItem
+from blocks import installParcel</pre>
+<p>The <code>installParcel()</code> function will be called whenever chandler starts with a fresh Repository. Be sure to use the <code>--create</code> parameter when starting chandler, to ensure that this parcel is installed. You'll need to use <code>--create</code> every time you change anything in <code>installParcel()</code>. </p>
+<p>There are two key concepts being used here:</p>
 <div class="text-with-diagram">
 <img class="diagram" src="parcel-refs.png" width="480" height="250">
 <p>First, the <code>mainview</code> variable refers to a specific area
-of the repository using <code>schema.ns(...)</code>, called a &quot;parcel&quot;. Parcels are  persistent containers for python
-objects in the repository. In this case <code>mainview.CollectionMenu</code> refers to
+of the Repository using <code>schema.ns()</code>, called a &quot;parcel&quot;. Parcels are  persistent containers for python
+objects in the Repository. In this case <code>mainview.CollectionMenu</code> refers to
 the object in the "osaf.views.main" parcel, named "CollectionMenu". You
-can use the web-based repository viewer to view the items in this particular parcel here: <a href="http://localhost:1888/repo/parcels/osaf/views/main">http://localhost:1888/repo/parcels/osaf/views/main</a>.
+can use the web-based Repository Viewer to view the items in this particular parcel here: <a href="http://localhost:1888/repo/parcels/osaf/views/main">http://localhost:1888/repo/parcels/osaf/views/main</a>.
 You can also navigate to this directory by clicking on the "//parcels"
-link in the top of the repository viewer at <a
+link in the top of the Repository Viewer at <a
  href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>.</p>
 <p class="callout"><strong>Note:</strong> Don't worry about second
-parameter (<code>parcel.itsView</code>) to schema.ns just yet. The view is more or less a handle used to access the repository.</p>
+parameter (<code>parcel.itsView</code>) to schema.ns just yet. The view is more or less a handle used to access the Repository.</p>
 </div>
 <p>Second, we're not necessarily <em>creating</em> a MenuItem.
 Instead, we're <em>updating</em> one named "NewFeedChannel" that may
-already be in the repository. If it doesn't already exist, then it is
+already be in the Repository. If it doesn't already exist, then it is
 created. The name "NewFeedChannel" uniquely identifies it  within the <code>parcel</code> object that is passed to installParcel. The parcel's name is more or
 less the same as the current module's name. In this case, the parcel's
 name is "feeds" because it exists in the parcels/feeds directory. The named parameters to <code>update()</code> will be mapped directly to
 attributes on the MenuItem.</p>
 <p>There is a connection between the use of the <code>update()</code>
-method, and <code>schema.ns(...)</code>. The first parameter passed to
-<code>schema.ns(...)</code> above is the name of a parcel. Any
+method, and <code>schema.ns()</code>. The first parameter passed to
+<code>schema.ns()</code> above is the name of a parcel. Any
 attributes of theThe <code>mainview</code> variable is actually
 referencing the parcel named "osaf.views.main" above. Another module
 could refer to the "NewFeedChannel" <code>MenuItem</code> like this:</p>
@@ -321,13 +336,69 @@ could refer to the "NewFeedChannel" <code>MenuItem</code> like this:</p>
 <p class="ednote">Is this too early to introduce bidirectional refs? Its nice because its easy to understand, and we don't have to go into great detail. </p>
 <div class="text-with-diagram">
 <img class="diagram" src="parcel-item-refs.png" width="480" height="250">
-<p>But is this menu item connected to the target menu?</p>
+<p>But how is this menu item connected to the target menu?</p>
 <p>Each parameter to <code>update()</code> sets an attribute in that object. The <code>parentBlock</code> attribute is used to attach  NewFeedsChannel  to the CollectionMenu. This is done with Bidirectional References. The schema for MenuItem and Menu are defined such that if a Menu is a parent of a MenuItem, then the MenuItem is automatically a child of the Menu. </p>
 <p>When  CollectionMenu is assigned to NewFeedsChannel's <code>parentBlock</code>, then NewFeedsChannel  is automatically added to the CollectionMenu's <code>childrenBlocks</code>. </p>
-<p>The repository will maintain the integrity of this relationship. We'll see more uses of bidirectional references later in the tutorial. </p>
+<p>The Repository will maintain the integrity of this relationship. We'll see more uses of bidirectional references later in the tutorial. </p>
 <p class="callout"><strong>Note:</strong> The parentBlock/childrenBlocks relationship is true for all elements in the UI. </p>
-<p class="ednote">This is an ednote!</p>
 </div>
+<h3>Adding Behavior</h3>
+<p>Now that we have a menu item created, we want to make it call some existing code. We'll need to create two objects:</p>
+<ol>
+  <li>A BlockEvent: Each UI element (such as buttons, menu items, etc) can activate an BlockEvent when they are used. An event is merely a container for certain contextual information about the UI and its state. </li>
+  <li>A Controller: A controller is a class which is activated when certain BlockEvents are activated. Events are <em>dispatched</em> to different Blocks depending on data stored in the BlockEvent, and the context of the application when the BlockEvent is activated. </li>
+</ol>
+<p>For ZaoBao, we will dispatch our menu's BlockEvent directly to the controller. </p>
+<p>First, we will define the event as a persistent object in our parcel:</p>
+<pre class="code">def installParcel(parcel, oldVersion=None):
+
+   .
+   .
+   newChannelEvent = \
+       BlockEvent.update(parcel, "NewFeedChannelEvent",
+                         blockName="NewFeedChannel",
+                         commitAfterDispatch=True)</pre>
+						 
+<p>The commitAfterDispatch attribute on BlockEvent guarantees that the Repository data will be saved after the event has been dispatched. The result of the call to update() is actually a reference to the object itself.</p>
+<p>We're storing the result of BlockEvent.update() in <code>newChannelEvent</code>. This variable will now reference the actual object, whether it was created or updated. We can use this variable later when we want to refer to the actual event object. </p>
+<p>Note that we haven't actually defined controller yet. We'll do that next. For now we'll just use a <code>print</code> statement to make sure everything has been hooked up correctly. </p>
+<pre class="code">class FeedController(Block):
+    def onNewFeedChannelEvent(self, event):
+        import wx
+        from application.dialogs import Util
+
+        url = Util.promptUser(wx.GetApp().mainFrame,
+                              _(u&quot;New Channel&quot;), _(u&quot;Enter a URL for the RSS Channel&quot;),
+                              &quot;http://&quot;)
+
+        print &quot;We want to load %s&quot; % url
+
+def installParcel(parcel, oldVersion=None):
+    .
+    .
+    controller = FeedController.update(parcel, &quot;FeedController&quot;)</pre>
+<p>One of the first things you may noticed about FeedController is the name of the first method, <code>on<strong><em>NewFeedChannel</em></strong>Event</code>. The &quot;NewFeedChannel&quot; part of the method name corresponds to the blockName of the event that is being called. When a BlockEvent is dispatched, a method called <code>on + <em>blockName</em> + Event</code> is looked up in the target object. If it exists, then it is called. This BlockEvent is also passed into onNewFeedChannel as the parameter <code>event</code>. </p>
+<p>Chandler uses the <a href="http://www.wxwidgets.org/">wxWidgets</a> library for its user interface. The <code>Util</code> library provides a set of routines for prompt and confirmation dialogs. The code in onNewFeedChannelEvent() will simply prompt the user for a URL and then print it to the console. </p>
+<p>Now that we have created a MenuItem, a BlockEvent, and a Controller, we need to connect them together. The chain references created with these objects looks something like this:</p>
+<p>MenuItem -&gt; BlockEvent -&gt; Controller</p>
+<p>You can hook them up in installParcel(). The code belows defines them in the reverse order as we defined them above, so that we have the references available to build this chain of objects. </p>
+<pre class="code">def installParcel(parcel, oldVersion=None):
+    controller = FeedController.update(parcel, &quot;FeedController&quot;)
+
+    newChannelEvent = \
+       BlockEvent.update(parcel, "NewFeedChannelEvent",
+                         blockName="NewFeedChannel",<strong><em>
+                         dispatchEnum="SendToBlockByReference",
+                         destinationBlockReference=controller,</em></strong>
+                         commitAfterDispatch=True)
+
+    MenuItem.update(parcel, "NewFeedChannel",
+                blockName="NewFeedChannelItem",
+                title=_(u"New Feed Channel"),<strong><em>
+                event=newChannelEvent,</em></strong>
+                parentBlock=mainview.CollectionMenu)</pre>
+<p>First, the use of <code>dispatchEnum</code> tells the BlockEvent that it will be dispatched to a specific Block instance. The controller block is retrieved in the call to FeedController.update() and passed as the attribute <code>destinationBlockReference</code>.</p>
+<p>Next, newChannelEvent is attached to the MenuItem by passing it as the attribute <code>event</code>. </p>
 <p>&nbsp;</p>
 </body>
 </html>
