@@ -214,11 +214,15 @@ class MainView(View):
         application.dialogs.Util.ok(None, message, title)
 
     def onQuitEvent (self, event):
+        """
+        Close all the windows. Close the mainFrame last since it's the place we execute all
+        the quitting Chandler code.
+        """
         mainFrame = wx.GetApp().mainFrame
+        for window in wx.GetTopLevelWindows():
+            if window is not mainFrame:
+                window.Close()
         mainFrame.Close()
-        windows = wx.GetTopLevelWindows()
-        for window in windows:
-            window.Close()
 
     def onCloseEvent (self, event):
         curWindow = self.widget.FindFocus() #start with the focus
