@@ -528,9 +528,9 @@ class RecurrenceRuleSet(items.ContentItem):
         #change the rule, onValueChanged will trigger cleanRule for master
         for rule in getattr(self, 'rrules', []):
             if not rule.hasLocalAttributeValue('until') or \
-               datetimeOp(rule.calculatedUntil(), '>', end):
+               datetimeOp(rule.calculatedUntil(), '>=', end):
                 rule.moveUntilBefore(dtstart, end)
-        self.removeDates('>', end)
+        self.removeDates('>=', end)
 
     RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
 

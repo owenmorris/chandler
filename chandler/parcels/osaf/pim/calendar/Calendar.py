@@ -756,7 +756,7 @@ class CalendarEventMixin(RemindableMixin):
             # We have to pass in master because occurrenceFor has been changed
             self._makeGeneralChange()
             # Make this event a separate event from the original rule
-            self.modificationFor = None
+            del self.modificationFor
             self.recurrenceID = self.startTime
             self.icalUID = unicode(self.itsUUID)
             self.copyCollections(master, self)
@@ -767,7 +767,7 @@ class CalendarEventMixin(RemindableMixin):
             if self.recurrenceID == master.startTime and self.modificationFor == master:
                 # A THIS modification to master, make it the new master
                 self.moveCollections(master, self)
-                self.modificationFor = None
+                del self.modificationFor
                 self.occurrenceFor = self
                 self.recurrenceID = self.startTime
                 master.deleteAll()
@@ -838,12 +838,12 @@ class CalendarEventMixin(RemindableMixin):
             if not isFirst:
                 master.moveRuleEndBefore(recurrenceID)
         
-        # if modifications were moved from master to self, they may have the 
-        # same recurrenceID as a (spurious) generated event, so delete
-        # generated occurrences.
-        
-        self._deleteGeneratedOccurrences()
-        self._getFirstGeneratedOccurrence(True)
+            # if modifications were moved from master to self, they may have the 
+            # same recurrenceID as a (spurious) generated event, so delete
+            # generated occurrences.
+            
+            self._deleteGeneratedOccurrences()
+            self._getFirstGeneratedOccurrence(True)
 
         del self._ignoreValueChanges
 
@@ -1073,7 +1073,7 @@ class CalendarEventMixin(RemindableMixin):
                     self.moveCollections(master, event)
                     del event.rruleset
                     del event.recurrenceID
-                    event.modificationFor = None
+                    del event.modificationFor
                     event.occurrenceFor = event
                     masterHadModification = True
             
