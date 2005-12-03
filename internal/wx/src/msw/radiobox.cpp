@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: radiobox.cpp,v 1.128 2005/11/30 16:33:43 VZ Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.129 2005/12/03 12:47:55 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -387,7 +387,7 @@ bool wxRadioBox::Enable(int item, bool enable)
 bool wxRadioBox::IsItemEnabled(int item) const
 {
     wxCHECK_MSG( IsValid(item), false,
-                 wxT("invalid item in wxRadioBox::Enable()") );
+                 wxT("invalid item in wxRadioBox::IsItemEnabled()") );
 
     return ::IsWindowEnabled((*m_radioButtons)[item]) != 0;
 }
@@ -412,7 +412,7 @@ bool wxRadioBox::Show(int item, bool show)
 bool wxRadioBox::IsItemShown(int item) const
 {
     wxCHECK_MSG( IsValid(item), false,
-                 wxT("invalid item in wxRadioBox::Enable()") );
+                 wxT("invalid item in wxRadioBox::IsItemShown()") );
 
     // don't use IsWindowVisible() here because it would return false if the
     // radiobox itself is hidden while we want to only return false if this

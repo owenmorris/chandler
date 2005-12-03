@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dccg.cpp,v 1.32 2005/12/01 23:32:44 vell Exp $
+// RCS-ID:      $Id: dccg.cpp,v 1.33 2005/12/03 08:43:31 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,6 +27,8 @@
 #ifdef __MSL__
     #if __MSL__ >= 0x6000
         #include "math.h"
+        // in case our functions were defined outside std, we make it known all the same
+        namespace std { }  
         using namespace std ;
     #endif
 #endif

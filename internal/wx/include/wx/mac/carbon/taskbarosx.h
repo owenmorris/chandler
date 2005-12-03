@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/04/2003
-// RCS-ID:      $Id: taskbarosx.h,v 1.11 2005/09/23 12:49:36 MR Exp $
+// RCS-ID:      $Id: taskbarosx.h,v 1.12 2005/12/03 17:55:29 vell Exp $
 // Copyright:   (c) Ryan Norton, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -17,44 +17,31 @@ class WXDLLEXPORT wxMenu;
 
 class WXDLLEXPORT wxTaskBarIcon : public wxTaskBarIconBase
 {
+    DECLARE_DYNAMIC_CLASS_NO_COPY(wxTaskBarIcon)
 public:
-        //type of taskbar item to create 
-    //TODO:  currently only DOCK is implemented
+        // type of taskbar item to create (currently only DOCK is implemented)
         enum wxTaskBarIconType
         {
-                DOCK,
-                STATUSITEM,
-                MENUEXTRA
+            DOCK
+//    ,   CUSTOM_STATUSITEM
+//    ,   STATUSITEM 
+//    ,   MENUEXTRA 
+        ,   DEFAULT_TYPE = DOCK
         };
-        
-    wxTaskBarIcon(const wxTaskBarIconType& nType = DOCK);
+
+    wxTaskBarIcon(wxTaskBarIconType iconType = DEFAULT_TYPE);
     virtual ~wxTaskBarIcon();
 
-    inline bool IsOk() const { return true; }
-    inline bool IsIconInstalled() const { return m_iconAdded; }
-    
-    //TODO: not tested extensively
+    bool IsOk() const { return true; }
+
+    bool IsIconInstalled() const;
     bool SetIcon(const wxIcon& icon, const wxString& tooltip = wxEmptyString);
     bool RemoveIcon();
-    //TODO: end not tested extensively
-    
-    //pops up the menu
     bool PopupMenu(wxMenu *menu);
 
-    //internal functions - don't call       
-    wxMenu* GetCurrentMenu();
-    wxMenu* DoCreatePopupMenu();
-
 protected:
-    wxTaskBarIconType m_nType;
-    void* m_pEventHandlerRef;
-    wxMenu* m_pMenu;
-    WXHMENU m_theLastMenu;
-    bool m_iconAdded;
-    
-    void OnRightDown(wxTaskBarIconEvent& evt);
-    
-    DECLARE_DYNAMIC_CLASS(wxTaskBarIcon)
+    class wxTaskBarIconImpl* m_impl;    
+    friend class wxTaskBarIconImpl;
 };
 #endif
     // _TASKBAR_H_
