@@ -182,10 +182,14 @@ syntax is similar to that used in the Django project.</p>
 <p>We'll store our data definitions in <code>feeds/channel.py</code>. </p>
 <p>Lets take a look at the basic definition of an RSS channel,
 FeedChannel.</p>
-<pre class="code">from osaf import pim<br>from application import schema<br><br>class FeedChannel(pim.ListCollection):<br><br>    link     = schema.One(schema.URL, displayName=u"RSS Feed URL")<br>    category = schema.One(schema.Text)<br>    author   = schema.One(schema.Text)<br>    date     = schema.One(schema.DateTime)</pre>
-<p>The link, category, author, and date attributes are all basic
-attributes using simple types defined in the schema module. </p>
-<p>Behind the scenes: Chandler-specific attributes are defined as class
+<pre class="code">from osaf import pim<br>from application import schema<br><br>class FeedChannel(pim.ListCollection):<br><br>    link     = schema.One(schema.URL, displayName=u"RSS Feed URL")<br>    category = schema.One(schema.Text)<br>    author   = schema.One(schema.Text)<br>    date     = schema.One(schema.DateTime)
+
+    def Update(self):
+        # TODO: refresh the feed list from the url 
+        pass</pre>
+<p>The <code>link</code>, <code>category</code>, <code>author</code>, and <code>date</code> attributes are all basic
+attributes using simple types defined in the schema module. The <code>Update()</code> method is like any other python method. </p>
+<p class="callout"><strong>Behind the scenes:</strong> Chandler-specific attributes are defined as class
 attributes, but in practice they are actually used as instance
 attributes. When you have an instance of FeedChannel</p>
 <p>The attributes are all defined using schema.One, which indicates
@@ -332,7 +336,7 @@ attributes of theThe <code>mainview</code> variable is actually
 referencing the parcel named "osaf.views.main" above. Another module
 could refer to the "NewFeedChannel" <code>MenuItem</code> like this:</p>
 <pre>feeds = schema.ns("feeds", view)<br>feedMenuItem = feeds.NewFeedChannel</pre>
-<h3>Bidirectional References </h3>
+<h3>Introducing Bidirectional References </h3>
 <p class="ednote">Is this too early to introduce bidirectional refs? Its nice because its easy to understand, and we don't have to go into great detail. </p>
 <div class="text-with-diagram">
 <img class="diagram" src="parcel-item-refs.png" width="480" height="250">
@@ -379,6 +383,7 @@ def installParcel(parcel, oldVersion=None):
     controller = FeedController.update(parcel, &quot;FeedController&quot;)</pre>
 <p>One of the first things you may noticed about FeedController is the name of the first method, <code>on<strong><em>NewFeedChannel</em></strong>Event</code>. The &quot;NewFeedChannel&quot; part of the method name corresponds to the blockName of the event that is being called. When a BlockEvent is dispatched, a method called <code>on + <em>blockName</em> + Event</code> is looked up in the target object. If it exists, then it is called. This BlockEvent is also passed into onNewFeedChannel as the parameter <code>event</code>. </p>
 <p>Chandler uses the <a href="http://www.wxwidgets.org/">wxWidgets</a> library for its user interface. The <code>Util</code> library provides a set of routines for prompt and confirmation dialogs. The code in onNewFeedChannelEvent() will simply prompt the user for a URL and then print it to the console. </p>
+<h3>Putting it all together </h3>
 <p>Now that we have created a MenuItem, a BlockEvent, and a Controller, we need to connect them together. The chain references created with these objects looks something like this:</p>
 <p>MenuItem -&gt; BlockEvent -&gt; Controller</p>
 <p>You can hook them up in installParcel(). The code belows defines them in the reverse order as we defined them above, so that we have the references available to build this chain of objects. </p>
@@ -399,6 +404,67 @@ def installParcel(parcel, oldVersion=None):
                 parentBlock=mainview.CollectionMenu)</pre>
 <p>First, the use of <code>dispatchEnum</code> tells the BlockEvent that it will be dispatched to a specific Block instance. The controller block is retrieved in the call to FeedController.update() and passed as the attribute <code>destinationBlockReference</code>.</p>
 <p>Next, newChannelEvent is attached to the MenuItem by passing it as the attribute <code>event</code>. </p>
+<p>This completes the chain so that when the user clicks &quot;New Feed Channel&quot; in the &quot;Collection&quot; menu, <code>onNewFeedChannelEvent()</code> is called. </p>
+<p>There is a reason for the levels of abstraction just to make a menu call some code:</p>
+<ul>
+  <li>Multiple UI elements can trigger the same event. This allows a menu and a context menu to both trigger the same code without extra work.</li>
+  <li>Events may be dispatched to a specific controller (as seen here), dispatched to the currenly focused UI element, or even broadcast to a number of different controllers or UI elements.</li>
+</ul>
+<p>This flexibilty allows for a very dynamic interface. </p>
+<h2>Creating and Displaying Data</h2>
+<p>We will now add new RSS Feeds to Chandler, so that they appear in the Sidebar. We'll also need to display the list of articles in the summary view, and the actual article itself in the Detail View. </p>
+<h3>Adding Collections to the Sidebar </h3>
+<p>Recall from above that FeedChannel derived from ListCollection. When we create the FeedChannel collection object, we will add it to the Sidebar so that the user can see it. From here we will focus on the code called in the FeedController's <code>onNewFeedCollectionEvent</code> method.</p>
+<p>Creating a FeedChannel object is just like creating any other object in Python, except that you can also pass any attribute values along in the constructor and they will be set automatically.</p>
+<p>After creating the channel, we just have to add it to the list of collections that the sidebar uses. </p>
+<pre class="code">class FeedController(Block):
+    def onNewFeedChannelEvent(self, event):
+        import wx
+        from application.dialogs import Util
+
+        url = Util.promptUser(wx.GetApp().mainFrame,
+                              _(u&quot;New Channel&quot;), _(u&quot;Enter a URL for the RSS Channel&quot;),
+                              &quot;http://&quot;)
+
+        # create the feed
+        newFeed = FeedChannel(url=url)
+
+        # add it to the sidebar
+        sidebarCollections = schema.ns(&quot;osaf.app&quot;, self.itsView).sidebarCollections
+        sidebarCollections.add(newFeed)
+
+        # download the data
+        newFeed.Update()</pre>
+<h3>&nbsp;</h3>
+<h3>Downloading Feeds</h3>
+<p>We'll be using the Python feedparser library available at <a href="http://www.feedparser.org/">http://www.feedparser.org/</a> </p>
+<p>The feed download will occur in FeedChannel's <code>Update()</code> method. We'll need to download the feed information, and then create FeedItems for any items not already in the FeedChannel.</p>
+<pre class="code">class FeedChannel(ContentItem):
+    .
+    .
+    .
+    def Update(self):
+        feeddata = feedparser.parse(self.url)
+
+        existingEntryURLs = [entry.url for entry in self]
+		
+        for entry in feeddata.entries:
+		    # skip articles we already have
+            if entry.url in existingEntryURLs:
+			    continue
+			
+			# create the new FeedItem, and populate it
+			newFeedItem = FeedItem(title=entry.title,
+                                url=entry.link, 
+                                author=entry.author,
+                                content=entry.content[0].value)
+
+
+         self.add(newFeedItem)
+</pre>
+<p></p>
+<h2>Periodic Feed Updates</h2>
+<p>An RSS reader is only useful  </p>
 <p>&nbsp;</p>
 </body>
 </html>
