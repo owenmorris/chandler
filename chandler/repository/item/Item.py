@@ -315,10 +315,8 @@ class Item(CItem):
 
     def _filteredItemChanged(self, op, item, attribute, name):
 
-        if self._status & Item.NODIRTY:
-            return
-
-        getattr(self, name).itemChanged(item, attribute)
+        if not (item.isDeleting() or self._isNoDirty()):
+            getattr(self, name).itemChanged(item, attribute)
 
     def _registerCollectionWatch(self, watcher, name, *args):
 
