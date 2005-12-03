@@ -95,9 +95,6 @@ class MainFrame(wx.Frame):
             wx.SystemOptions.SetOptionInt( "msw.remap", 0 )
 
     def OnClose(self, event):
-        """
-        Main window is about to be closed when the application is quitting.
-        """
         # Finish any edits in progress.
         from osaf.framework.blocks.Block import Block
         Block.finishEdits()
@@ -108,36 +105,6 @@ class MainFrame(wx.Frame):
 
         app = wx.GetApp()
         app.Bind(wx.EVT_IDLE, None)
-
-        if __debug__:
-            busyInfo = wx.BusyInfo (_(u"Checking repository..."))
-            app.UIRepositoryView.check()
-            del busyInfo
-
-        busyInfo = wx.BusyInfo (_("Quitting..."))
-
-        # Preliminary tests point to stopCrypto as the cause for Chandler being slow
-        # to quit besides the debug only checking of the repository
-
-        Globals.mailService.shutdown()
-
-        Utility.stopWakeup()
-
-        Utility.stopTwisted()
-
-        # Since Chandler doesn't have a save command and commits typically happen
-        # only when the user completes a command that changes the user's data, we
-        # need to add a final commit when the application quits to save data the
-        # state of the user's world, e.g. window location and size.
-
-        view = app.UIRepositoryView
-        try:
-            view.commit()
-        except VersionConflictError, e:
-            logger.exception(e)
-
-        Utility.stopCrypto(Globals.options.profileDir)
-        del busyInfo
 
         # When we quit, as each wxWidget window is torn down our handlers that
         # track changes to the selection are called, and we don't want to count
@@ -654,9 +621,25 @@ class wxApplication (wx.App):
 
     def OnExit(self):
         """
-        Main application termination. Called after the window is torn down.
+        Main application termination.
         """
-        self.UIRepositoryView.repository.close()
+        if __debug__:
+            wx.GetApp().UIRepositoryView.check()
+
+        Globals.mailService.shutdown()
+
+        Utility.stopWakeup()
+
+        Utility.stopTwisted()
+
+        # Since Chandler doesn't have a save command and commits typically happen
+        # only when the user completes a command that changes the user's data, we
+        # need to add a final commit when the application quits to save data the
+        # state of the user's world, e.g. window location and size.
+
+        Utility.stopRepository(wx.GetApp().UIRepositoryView)
+
+        Utility.stopCrypto(Globals.options.profileDir)
 
     def OnMainThreadCallbackEvent(self, event):
         """
