@@ -97,6 +97,12 @@ ifeq ($(CHANDLERARCHIVES),)
 CHANDLERARCHIVES=../downloads
 endif
 
+ifeq ($(OS),Cygwin)
+CHANDLERBIN:=$(shell cygpath -au $(CHANDLERBIN))
+CHANDLERHOME:=$(shell cygpath -au $(CHANDLERHOME))
+CHANDLERARCHIVES:=$(shell cygpath -au $(CHANDLERARCHIVES))
+endif
+
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
 
@@ -111,8 +117,10 @@ default: install
 
 downloads: $(ARCHIVES)
 
-$(ARCHIVES): 
+$(CHANDLERARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
+
+$(ARCHIVES): $(CHANDLERARCHIVES)
 	$(CURL) $@ $(URL)/$(notdir $@)
 
 $(ARCHIVES_INST):
