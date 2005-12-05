@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp,v 1.4 2005/03/11 09:33:29 JJ Exp $
+// RCS-ID:      $Id: stdpaths.cpp,v 1.8 2005/12/04 13:01:50 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,31 +55,33 @@ wxString wxStandardPaths::GetInstallPrefix() const
 {
     if ( m_prefix.empty() )
     {
-        wxStandardPaths *self = wx_const_cast(wxStandardPaths *, this);
+        wxStandardPaths *pathPtr = wx_const_cast(wxStandardPaths *, this);
 
 #ifdef __LINUX__
-        // under Linux, we can get location of the executable
+        // under Linux, we can try to infer the prefix from the location of the
+        // executable
         char buf[4096];
-        if ( readlink("/proc/self/exe", buf, WXSIZEOF(buf)) != -1 )
+        int result = readlink("/proc/self/exe", buf, WXSIZEOF(buf) - sizeof(char));
+        if ( result != -1 )
         {
-            wxString exe(buf, wxConvLibc);
+            buf[result] = '\0'; // readlink() doesn't NUL-terminate the buffer
+
+            wxString exeStr(buf, wxConvLibc);
 
             // consider that we're in the last "bin" subdirectory of our prefix
             wxString basename(wxString(wxTheApp->argv[0]).AfterLast(_T('/')));
-            size_t pos = exe.find(_T("/bin/") + basename);
+            size_t pos = exeStr.find(wxT("/bin/") + basename);
             if ( pos != wxString::npos )
-            {
-                self->m_prefix.assign(exe, 0, pos);
-            }
+                pathPtr->m_prefix.assign(exeStr, 0, pos);
         }
+#endif // __LINUX__
 
         if ( m_prefix.empty() )
-#endif // __LINUX__
         {
 #ifdef __VMS
-	   self->m_prefix = _T("/sys$system");
+            pathPtr->m_prefix = wxT("/sys$system");
 #else
-	   self->m_prefix = _T("/usr/local");
+            pathPtr->m_prefix = wxT("/usr/local");
 #endif
         }
     }
