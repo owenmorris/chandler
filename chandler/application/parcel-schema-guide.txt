@@ -1,0 +1,1138 @@
+=======================================================
+The Parcel Developer's Guide to the Chandler Schema API
+=======================================================
+
+
+.. contents:: **Table of Contents**
+
+
+------------
+Introduction
+------------
+
+This document is a guide to the Chandler Schema API, found in the
+``application.schema`` module of Chandler.  It explains how to define
+Chandler parcels and their schemas, how to create persistent items as part of
+installing a parcel, and how to create and use persistent items defined by your
+schema.
+
+We assume in this document that you:
+
+* Know how to start Chandler and/or use the ``headless`` utility to experiment
+  with the Chandler repository
+
+* Have a good basic understanding of the Python programming language, including
+  how to create modules and packages, and basic OO concepts like classes vs.
+  instances.
+
+* Are familiar with the concept of Chandler's repository and its persistent
+  storage of data, and know what a "schema" is.
+
+You should also be aware that making changes to Chandler's schema may
+invalidate data that's already contained in your repository, and that while
+experimenting with the APIs presented here you may sometimes need to recreate
+your repository.  You should therefore not experiment with repositories whose
+data you wish to keep!
+
+Throughout this document, you'll find Python code examples like this::
+
+    >>> if 1+1 == 2:
+    ...     print "this is sample output from a working example"
+    this is sample output from a working example
+
+These are laid out to look like the code was typed at the Python interpreter
+prompt (">>>" on the first line, "..." on subsequent lines, followed by any
+output).  If you actually type these examples in (skipping the prompts and
+sample output), you should receive the same results.  In fact, this document
+is actually a Python "doctest", which means the examples can be validated by a
+program that runs the examples and verifies that they produce the same output
+as shown here.
+
+For the sake of clarity, and to make the tests repeatable, we'll sometimes omit
+part of an example's output, using ``...`` to mark the omitted portions.  The
+doctest tool will treat these as wildcards for matching purposes, and we also
+won't have to include a lot of detail that's not relevant to the example.  For
+example::
+
+    >>> for i in range(1000):   # produce a lot of output
+    ...     print "This is line",i+1
+    This is line 1
+    This is line 2
+    ...
+    This is line 1000
+
+The Python ``doctest`` tool will still verify the parts of the output that we
+include, of course, which will help to ensure that the examples in this
+document will always accurately reflect the current schema API.
+
+Aside from the doctest blocks for examples, the only other typographical
+conventions used in this document will be to format references to Python code
+or symbols like ``this()``, and to put the first, defining use of any
+new terms in **bold**.
+
+
+-------------
+Schema Basics
+-------------
+
+Chandler stores data as items in its **repository**: a kind of object database.
+In order to know how to store and validate the data, the repository needs to
+know how the data is structured.  This "data about the data" (aka "metadata")
+is the **schema**.
+
+Chandler schemas are defined in Python code, using the Chandler schema API.
+This API is found in the ``application.schema`` module, which we recommend that
+you import in this way::
+
+    >>> from application import schema
+
+This allows you to conveniently refer to any schema API features by using
+``"schema."`` as a prefix to their names.
+
+
+Items, Kinds, and Views
+=======================
+
+The most common use of the schema API is to define the schema for new kinds of
+persistent items.  An **Item** is a Python object that can be stored in the
+repository.  A **Kind** is the persistent representation of the schema for
+one or more Python classes.  Kinds are defined by subclassing ``schema.Item``::
+
+    >>> class Sample(schema.Item):
+    ...     """Just an example"""
+
+Before we can create an instance of our ``Sample`` class, we need to have a
+place to store it.  This is because any instances of ``Sample`` that we use in
+Python code are just reflections of the "real" object stored in the repository.
+The ``Sample`` instances in our program can come and go, but the persistent
+items they reflect will always remain in the repository, even when Chandler
+isn't running.
+
+For our examples in this document, however, we don't *really* want to store
+any objects, so we'll use a "pretend" repository called a
+``NullRepositoryView``::
+
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> rv = NullRepositoryView(verify=True)  # report errors immediately
+
+A **repository view** is a connection to a repository, much like a connection
+to an SQL database.  Instead of using SQL, however, repository views provide
+various methods for retrieving objects, committing or rolling back changes,
+etc.  For the most part, these methods are outside the scope of this document,
+so we won't cover many of those methods here.
+
+A ``NullRepositoryView`` is just like an ordinary repository view, except that
+the objects don't actually get stored anywhere; instead, they behave like
+normal Python objects that go away as soon as you're not using them.
+
+Now that we have a repository view, we can create an item::
+
+    >>> myItem = Sample("myItem", rv)
+    >>> myItem
+    <Sample (new): myItem ...>
+
+The first two arguments to an Item class's constructor are a name and a
+"parent" object.  An item's parent object can be either any existing item, or
+a repository view.  Since ``myItem`` was our first item, we had to go with
+the repository view.  But we could now create other items using ``myItem`` as
+a parent::
+
+    >>> child_item = Sample("child_item", myItem)
+    >>> child_item.itsParent is myItem
+    True
+
+Two items with the same parent may not have the same name::
+
+    >>> another_child = Sample("child_item", myItem)
+    Traceback (most recent call last):
+      ...
+    ChildNameError: //myItem already has a child named 'child_item'
+
+But there's no need for you to come up with names for every item if you don't
+want to.  As long as the item's parent isn't a repository view, you can use
+``None`` for the name, and it won't collide with any other items, whether they
+have names or not::
+
+    >>> another_child = Sample(None, myItem)
+    >>> another_child
+    <Sample (new): ...>
+
+    >>> and_another = Sample(None, myItem)
+    >>> and_another
+    <Sample (new): ...>
+
+If you don't want to have to manually create a place for such "anonymous" items
+to go, there is a four-argument form you can use, which will cause the item to
+be created under a special "userdata" root item::
+
+    >>> some_user_data = Sample(None, None, None, rv)
+    >>> some_user_data.itsParent
+    <Item (new): userdata ...>
+
+    >>> some_user_data.itsParent.itsParent is rv
+    True
+
+When you're writing code for Chandler and need a repository view, you will
+usually obtain it from an existing item.  Every item has an ``itsView``
+attribute, that gives you the repository view that the item is stored in::
+
+    >>> myItem.itsView is rv
+    True
+
+In addition, for uniformity's sake, repository views also have an ``itsView``
+attribute::
+
+    >>> rv.itsView is rv
+    True
+
+This allows you to take an object's ``itsView`` without worrying whether or
+not you are already referring to a view.
+
+There is one other thing you will typically use repository views for, and that
+is to find all items of a particular kind.  The ``iterItems()`` class method of
+item classes yields all the items of that kind within the given repository
+view::
+
+    >>> if (
+    ...    set(Sample.iterItems(rv)) ==
+    ...    set([myItem, child_item, another_child, and_another,some_user_data])
+    ... ):
+    ...     print "Yes, all the items we created are there."
+    Yes, all the items we created are there.
+
+Note that ``iterItems()`` does not yield the items in any pre-determined order,
+so our example uses ``set()`` objects to do the comparison.
+
+Most of the time, however, you will not want to use ``iterItems()`` to
+implement queries, as it cannot take advantage of indexes and will therefore
+not perform very well.  It is mainly useful if you really do need to perform
+an operation on all (or nearly all) of the items of that kind, or if you know
+that there won't be very many items of that kind.  For example, using
+``iterItems()`` to search for items like preferences, email accounts, SSL
+certificates, etc. will usually be okay because there are so few of them in the
+repository at any given time.
+
+
+Defining Attribute Descriptors
+==============================
+
+All our first ``Sample`` class does is allow us to create empty items and store
+them in a repository.  That's really not very useful.  To actually store real
+data, we need to have attributes.  But the repository needs to know what type
+of data will be stored in the attributes.  So, we have to include **attribute
+descriptors** in our classes, to define how the data will be stored.  For
+example::
+
+    >>> class Knight(schema.Item):
+    ...     who = schema.One(schema.Text, displayName="What is your name?")
+    ...     what = schema.One(schema.Text, displayName="What is your quest?")
+    ...     numbers = schema.Sequence(
+    ...         schema.Integer, displayName="What are your favorite numbers?"
+    ...     )
+
+``schema.One`` and ``schema.Sequence`` are attribute descriptors that tell
+the repository you want either a simple attribute value, or a sequence of
+values.  The first argument to each is a **type reference**; it can be one of
+the predefined types like ``schema.Text`` or ``schema.Integer``, or else it
+can be an existing item class.  (The ``displayName`` argument is used by some
+parts of Chandler to display e.g. column names, so you should generally wrap
+them with calls to the translation function (``_()``) from Chandler's ``i18n``
+package, even though we aren't doing that in this document.)
+
+Now that we've defined a schema for the ``Knight`` class, we can create
+instances with data in the specified attributes::
+
+    >>> black_knight = Knight(
+    ...     None, myItem, who="The Black Knight", what="Fight to the death!",
+    ...     numbers = [42, 57]
+    ... )
+
+As you can see, the attribute names automatically define keyword arguments in
+the class' constructor for you.  The assigned values are then available as
+attributes, e.g.::
+
+    >>> black_knight.who
+    'The Black Knight'
+
+
+Bi-directional References
+=========================
+
+So far, we've only defined attributes that refer to simple values or sequences
+of them.  But in real applications, you'll also need objects to be able to
+refer to each other, and often these will be **bidirectional references**.
+That is, pairs of attributes that refer to each other.  For example, if you
+were defining a ``Person`` type, you might have attributes for the person's
+parents, and also their children.  The combination of the "parents" and
+"children" attributes would be a bidirectional reference.  You define a
+bidirectional reference by setting an attribute's ``inverse`` to be another
+attribute::
+
+    >>> class Person(schema.Item):
+    ...     fullname = schema.One(schema.Text)
+    ...     age = schema.One(schema.Integer)
+    ...     parents = schema.Sequence()
+    ...     children = schema.Sequence(inverse=parents)
+    ...
+    ...     def __repr__(self): return self.fullname
+
+You'll notice that we left out the type of the parents and children attributes;
+that's because the ``Person`` type doesn't exist until the block is finished.
+Luckily, however, when you set the ``inverse`` of an attribute, its type (and
+the type of the inverse attribute) is automatically determined for you.  This
+saves us from the awkward problem of how to refer to a type that doesn't yet
+exist::
+
+    >>> Person.parents.type
+    <class '...Person'>
+
+    >>> Person.children.type
+    <class '...Person'>
+
+You'll also notice that we only set the ``inverse`` of ``children``, not
+``parents``.  But the schema API automatically sets the inverse of ``parents``
+for us::
+
+    >>> Person.parents.inverse
+    <Role children of <class '...Person'>>
+
+Again, this saves us from the awkward problem of how to set the inverse of
+``parents`` before the ``children`` attribute exists!
+
+In summary, then, you create a simple bidirectional reference by:
+
+1. Creating the first attribute as a ``One`` or ``Sequence`` attribute, without
+   a type or ``inverse``.
+
+2. Creating the second attribute as a ``One`` or ``Sequence`` attribute,
+   setting its ``inverse`` to the first attribute.
+
+Once you've defined a bidirectional reference, the repository will
+automatically maintain any relationships you set up between items of the
+defined type(s)::
+
+    >>> Joe = Person("Joe", rv, fullname=u"Joe Schmoe")
+    >>> Joe
+    Joe Schmoe
+
+    >>> Mary = Person("Mary", rv, fullname=u"Mary Quite Contrary")
+    >>> Mary.children = [Joe]
+    >>> list(Mary.children)
+    [Joe Schmoe]
+
+    >>> list(Joe.parents)
+    [Mary Quite Contrary]
+
+As you can see, changing ``Mary.children`` automatically changed
+``Joe.parents`` for us.  Changing the values on either side of a bidirectional
+reference automatically changes the opposite side for you.
+
+You may notice, by the way, that we have been using ``list()`` to display the
+``Sequence`` attributes of items here.  That's because bidirectional references
+are implemented using repository ``RefCollection`` objects, which aren't quite
+the same as regular Python list objects::
+
+    >>> Joe.parents
+    <NullViewRefList: //Joe.parents<->children>
+
+``RefCollection`` objects include some additional functionality (such as
+indexing) that is not otherwise available unless you are using a ``Sequence``
+that is part of a bidirectional reference.  See the repository documentation
+for more details.
+
+
+Extending Existing Kinds
+========================
+
+Chandler is designed to be modularly extensible, which means that you should be
+able to add new functionality, without modifying existing code.  Sometimes that
+means you need to be able to add to the schema of existing kinds, without
+modifying the code that defines them.  For example, if you need to create a
+bidirectional reference between an existing kind and a new kind you're adding,
+or if you need to add extra attributes to an existing kind.
+
+The Chandler schema API lets you do this by allowing you to create **annotation
+attributes**.  Annotation attributes are attributes defined by a different
+class than the class that was originally used to define the kind.  They differ
+from regular attributes in that their names include the module and class where
+they were defined, to prevent collisions between different modules that want
+to use similar attribute names.
+
+There are two ways to define annotation attributes: you can create one as an
+**anonymous inverse** attribute, or you can define one or more in an
+**annotation class**.  The next two sections will show you how.
+
+
+Anonymous Inverses
+------------------
+
+Suppose we'd like to have a ``School`` kind, whose items have ``Person``
+objects as "attendees".  We could simply create a ``School`` class with an
+``attendees`` attribute, and that would work fine... unless we needed a feature
+that only a bidirectional reference could provide, such as indexing.  If we
+were the ones who created the ``Person`` class, we could perhaps edit it to add
+a ``school_attended`` attribute, but perhaps we don't control that code, or it
+would create a circular dependency between modules.
+
+If we don't really care about having a ``school_attended`` attribute on the
+``Person`` class, we can simply create an **anonymous inverse** attribute: a
+free-floating attribute that just defines what the inverse attribute "would
+have looked like" if it had existed on the original class.
+
+To do this, we simply set the ``inverse`` of our ``attendees`` attribute to a
+new attribute descriptor of the desired cardinality (``One`` or ``Sequence``)::
+
+    >>> class School(schema.Item):
+    ...     attendees = schema.Sequence(Person, inverse=schema.One())
+
+    >>> joes_school = School(None, None, None, rv, "Hobart's", attendees=[Joe])
+
+    >>> list(joes_school.attendees)
+    [Joe Schmoe]
+
+You *must* set the type of the main attribute (``attendees`` in this case), so
+that the schema API will know what type the anonymous inverse attribute
+should be attached to (``Person`` in this case).  Both sides of the
+bidirectional reference can include a ``displayName``, ``description``,
+``initialValue``, or any of the other standard attribute descriptor arguments.
+(See the API Reference section on `Attribute Descriptors`_, below, for a
+complete list.)
+
+You can't tell from the example above, but the ``inverse`` attribute actually
+gets attached to the ``Person`` kind, and the ``Joe`` item actually has an
+annotation attribute pointing to ``joes_school``.  You can get, set, or delete
+its value, as long as you know its automatically-generated attribute name::
+
+    >>> getattr(Joe, 'application.tests.School.attendees.inverse')
+    <School ... Hobart's>
+
+And any modifications you make will of course propagate to the other side of
+the bidirectional reference::
+
+    >>> delattr(Joe, 'application.tests.School.attendees.inverse')
+
+    >>> list(joes_school.attendees)
+    []
+
+Notice that the generated name is a combination of:
+
+1. the parcel name (from the module's ``__parcel__``, if applicable)
+2. the class name where the attribute was defined
+3. the name of the attribute within the class
+4. The word ``inverse``
+
+Note: we haven't talked about parcels yet, so for now you can assume that the
+first part is the module name where the class is found.  (All the classes in
+this document are defined in the ``application.tests`` module for testing
+purposes.)  The only time the first part will *not* be the module name, is if
+the module defines a ``__parcel__`` setting in order to do `Parcel
+Redirection`_ (see below).)
+
+
+Annotation Classes
+------------------
+
+Accessing "anonymous inverse" attributes can be inconvenient, and in any case
+they don't let you add anything but bidirectional references to an existing
+class.  So, for more complex extensions, annotation classes are a better way to
+add attributes.
+
+Annotations can be thought of as a kind of "data adapter" that allows you to
+extend existing objects with more information.  They are different from
+subclassing, because an object can only be of one class at a time, but you may
+have as many different annotations for an object as you like.  For example, you
+would not want to subclass ``Person`` to create a ``Teacher`` class, because
+a given person might also be an ``Employee``, ``SoccerPlayer``, or indeed also
+a ``Student`` at the same time!  It is better to use annotations for such use
+cases, as they can be mixed and matched at will.
+
+Another use of annotations is to better separate "concerns" or areas of
+functionality.  For example, some Chandler objects define strictly "model"
+functionality in their base schema and methods, and then have one or more
+separate annotations that add UI data and methods.  This avoids the need for
+different groups of developers to work on the same class at once, and it also
+means that it's always possible to create a different UI for the same basic
+object -- even if you're developing an entirely new UI from scratch that the
+original Chandler developers didn't envision.  It also keeps the code simpler,
+makes each class individually more understandable, and prevents complicated
+circular dependencies (where module A depends on B, but B depends on A).
+
+So, let's look at an example.  Here, we'll define a ``Teacher`` annotation
+class that adds annotation attributes to the existing ``Person`` kind, to
+record who the teacher's supervisor is, and what certifications they have.
+We'll also create a linked ``TeachingCertificate`` class, so you can see how
+to create a bidirectional reference between an annotation and a new kind::
+
+    >>> class Teacher(schema.Annotation):
+    ...     schema.kindInfo(annotates=Person)   # annotate the "Person" kind
+    ...     certifications = schema.Sequence()
+    ...     supervisor = schema.One(Person)
+
+    >>> class TeachingCertificate(schema.Item):
+    ...     subject = schema.One(schema.Text)
+    ...     certified_teachers = schema.Sequence(
+    ...         Teacher, inverse=Teacher.certifications
+    ...     )
+
+Now let's create some instances.  Annotation classes do *not* create persistent
+instances, however.  Instead, their instances are just wrappers or adapters
+that give you access to the annotation attributes -- attributes that are
+actually stored in the wrapped item, just like an anonymous inverse.  First,
+let's create a ``Teacher`` instance for ``Mary``::
+   
+    >>> ProfMary = Teacher(Mary)
+
+The above expression can be read as "ProfMary is Mary playing the role of
+Teacher", or "ProfMary is Mary, viewed as a Teacher".  The ``ProfMary`` object
+is not ``Mary`` herself; it's just her ``Teacher`` *attributes*.  Let's give
+her a Phys. Ed. certificate::
+    
+    >>> gym = TeachingCertificate("gym", rv, subject=u"Physical Education")
+    >>> ProfMary.certifications = [gym]
+
+    >>> list(ProfMary.certifications)
+    [<TeachingCertificate ... gym ...>]
+
+So far, so good.  The ``ProfMary`` object has a collection of certificates, and
+the certficate now knows Mary is certified::
+
+    >>> list(gym.certified_teachers)
+    [Mary Quite Contrary]
+
+Notice that the certificate does *not* reference the ``ProfMary`` object; it
+refers directly to ``Mary`` herself.  This is because the annotation attributes
+really belong to the ``Person`` class, and therefore to ``Mary`` herself.  The
+``Teacher`` object is just a way to conveniently access all -- and only -- the
+``Teacher`` attributes of the object.  You can think of it as being like an
+XML namespace or a filter that just gives you access to the teaching-related
+attributes of the person.
+
+And, because annotation instances delegate all the attribute storage to the
+underlying, annotated item, you can create as many wrappers as you want for a
+given item and they will all share the same attribute values.  In other words,
+no matter how many new ``Teacher(Mary)`` objects we create, they will all
+have the same certifications, because they really belong to ``Mary`` in the
+first place::
+
+    >>> list(Teacher(Mary).certifications)
+    [<TeachingCertificate ... gym ...>]
+
+As with anonymous inverses, the attributes are actually "hidden" attributes
+added to the ``Person`` class, using an automatically-generated name.  If you
+know the name, you can access the attributes directly, without using the
+annotation wrapper::
+
+    >>> list(getattr(Mary,'application.tests.Teacher.certifications'))
+    [<TeachingCertificate ... gym ...>]
+
+But of course that's not very convenient.  Sometimes, however, you may have
+code such as an attribute editor in the user interface that will need to know
+this full attribute name, because it will be dealing with the plain item and
+not an annotation wrapper.  So, you should be aware that the attribute name
+is generated using the module name (or its ``__parcel__``) plus the annotation
+class name and the attribute name within the annotation class.  That way, if
+you need to get at it this way, you can.
+
+As with anonymous inverses, setting or deleting the attribute on either the
+underlying item (full name) or the annotation wrapper (short name) has
+identical effects::
+
+    >>> setattr(Mary, 'application.tests.Teacher.supervisor', Joe)
+    >>> ProfMary.supervisor
+    Joe Schmoe
+
+    >>> del ProfMary.supervisor
+    >>> hasattr(Mary, 'application.tests.Teacher.supervisor')
+    False
+
+Annotation wrappers do not have arbitrary attributes, however, only the ones
+that they were given in their schema::
+
+    >>> ProfMary.foo = "bar"
+    Traceback (most recent call last):
+      ...
+    AttributeError: 'Teacher' object has no attribute 'foo'
+
+or that were defined using ``__slots__`` in the class definition::
+
+    >>> class Friend(schema.Annotation):
+    ...     __slots__ = ["jabberConnection"]
+    ...     schema.kindInfo(annotates=Person)
+    ...     likes = schema.Sequence()
+    ...     isLikedBy = schema.Sequence(inverse=likes)
+
+    >>> Friend(Mary).isLikedBy = [Joe]
+    >>> list(Friend(Joe).likes)
+    [Mary Quite Contrary]
+
+The attributes defined using ``__slots__``, however, are *not* persistent, and
+they will not be stored in the repository.  Each annotation wrapper also has
+its own separate value for each attribute, no matter what item is wrapped.
+Thus, although each ``Friend(Mary)`` has the same ``isLikedBy`` (because it's
+actually stored by ``Mary``), it has its own independent ``jabberConnection``
+(because it's stored in a slot on the wrapper).  This functionality is
+sometimes useful for annotations that have some runtime functionality that
+requires them to reference UI objects, connections to servers, or other
+non-persistent application objects::
+
+    >>> fMary = Friend(Mary)
+    >>> list(fMary.isLikedBy)
+    [Joe Schmoe]
+
+    >>> f2Mary = Friend(Mary)
+    >>> list(fMary.isLikedBy)
+    [Joe Schmoe]
+
+    >>> fMary.jabberConnection = "just pretending"   
+    >>> f2Mary.jabberConnection = "another example"
+
+    >>> fMary.jabberConnection
+    'just pretending'
+
+    >>> f2Mary.jabberConnection
+    'another example'
+
+Annotation class instances must wrap an instance of the type they were defined
+as annotating; thus you can't make a ``Teacher`` of anything but a ``Person``
+(or subclass thereof)::
+
+    >>> Teacher(gym)
+    Traceback (most recent call last):
+      ...
+    TypeError: <class '...Teacher'> requires a <class '...Person'> instance
+
+But you *can* wrap another annotation that wraps an item of the appropriate
+type, because all annotations of the passed-in item are stripped off first.
+Thus, we can easily convert a ``Friend`` to a ``Teacher`` or vice versa, since
+they are both ``Person`` annotations::
+
+    >>> Teacher(fMary)
+    Teacher(Mary Quite Contrary)
+    
+    >>> Friend(ProfMary)
+    Friend(Mary Quite Contrary)
+
+    >>> Friend(Teacher(Friend(Friend(ProfMary))))
+    Friend(Mary Quite Contrary)
+
+Finally, if you need to "un-annotate" an object to get at the persistent item
+it's wrapping, you can simply use its ``itsItem`` attribute::
+
+    >>> fMary.itsItem
+    Mary Quite Contrary
+
+This is what the annotation classes themselves use, to remove an existing
+wrapper before creating a new one.
+
+
+--------------------
+Working With Parcels
+--------------------
+
+
+What are Parcels?
+=================
+
+A **parcel** is the persistent representation of a Python module or package.
+Parcels store the schema for the classes that are defined in the corresponding
+module or package.  They also store any persistent items that the parcel
+developer wants to include in their parcel.  These other objects can include
+things like tasks to be run at Chandler startup, menu items, detail views, etc.
+
+In principle, every Python module either has a parcel or is part of a
+package that has a parcel.  In practice, parcel objects are only created in
+the repository when the schema APIs are used, or when you create persistent
+items and the items' classes don't already have their schema stored in a
+parcel.
+
+Since every module is potentially a parcel, you don't need to do anything
+special to make it one.  Just define the classes for the kinds of objects you'd
+like to store, and then use them in your code.  When they are used with a
+repository, a parcel will automatically be created in that repository.
+
+It's important, however, to remember that every module could become its own
+parcel if you define persistent classes in it.  If you don't want a module to
+have its own parcel, then, you need to tell the schema API what parcel to use
+instead.  Our next section explains how.
+
+
+Parcel Redirection
+==================
+
+Sometimes you will not want to have a parcel for every module in your project.
+For example, you may want to treat an entire package as a single parcel, for
+ease of reference by other parcels.  In these cases, you can add a
+``__parcel__`` declaration at the top of a module, to indicate that
+its contents should be placed in the specified parcel, *instead of* creating a
+parcel for that module.  This is called **parcel redirection**, as it redirects
+any schema defined in the module to be placed in a different parcel than the
+one that otherwise would have been created.
+
+For example, some modules in the ``osaf.pim`` package contain the line::
+
+    __parcel__ = "osaf.pim"
+
+This means that the module doesn't get a parcel of its own, and its schema
+will be redirected to the ``osaf.pim`` parcel instead.
+
+Note, however, that for this to work properly, the redirection target
+(``osaf.pim`` in this case) *must* import *all* of the classes defined by the
+modules that are redirecting their schema to it.  Otherwise, the schema API
+has no way to know when it has seen all of the redirected schema parts.  If
+you look at the ``__init__.py`` module of the ``osaf.pim`` package, you'll see
+that it imports every class defined in the modules that redirect their schema
+to ``osaf.pim``.
+
+
+Parcel Installation
+===================
+
+When a parcel is created, the schema API checks whether the corresponding
+module or package has an ``installParcel()`` function defined, and if so,
+calls it.  This is your chance to create or update any items that should be
+included in the parcel.  An ``installParcel()`` function should be defined
+like this::
+
+    def installParcel(parcel, oldVersion=None):
+        ...
+
+Replacing the ``...`` with a block of code to create any items you want to
+include in the parcel, such as menu items or views, or any special collections
+or other persistent objects.  Typically, you will create these items with a
+"parent" that is the ``parcel`` argument.  This will make it easier for other
+parcels to refer to your items, as we will demonstrate later.
+
+Note, by the way, that if you have defined a ``__parcel__`` setting in the
+module where your ``installParcel()`` is, it will *not* be called.  Setting
+``__parcel__`` means that the module is not a parcel!  (See `Parcel
+Redirection`_, above.)  If you have a ``__parcel__`` setting, you must put your
+``installParcel`` in the module named by ``__parcel__``, as that is the main
+module for the parcel.
+
+
+Accessing Parcel Contents
+-------------------------
+
+Usually, your ``installParcel()`` code will need to refer to the contents of
+other parcels and modules.  For example, when you create a menu item, you'll
+need to be able to refer to the menu it belongs in, and that menu item will be
+found in some other parcel.  The ``schema.ns()`` API lets you conveniently
+access a parcel's items and the contents of its corresponding module through
+a single namespace.
+
+You create this namespace by passing a module name and an item or repository
+view to ``schema.ns()``.  For example, if we want to access the ``application``
+parcel and its corresponding Python module, we could do this::
+
+    >>> app_ns = schema.ns("application", rv)
+
+The resulting object has attributes corresponding to the contents of the
+``application`` module, e.g.::
+
+    >>> app_ns.schema
+    <module 'application.schema' ...>
+
+It also has a ``parcel`` attribute, that refers to the actual ``schema.Parcel``
+item in the repository, that holds all of the persistent schema for the
+associated module(s), along with any items created by the module's
+``installParcel()`` function::
+
+    >>> app_ns.parcel
+    <Parcel (new): application ...>
+
+So, if we create an item using the parcel as its parent, it will then be
+accessible by name from the namespace object::
+
+    >>> Person("Smitty", app_ns.parcel, fullname="I'm Smitty!")
+    I'm Smitty!
+
+    >>> app_ns.Smitty
+    I'm Smitty!
+
+Note, however, that names defined in the module take precedence over names in
+the parcel, for purposes of retrieval.  If you create a class named ``Person``,
+and then also create an *item* whose name is ``Person``, you will only see the
+``Person`` class in the ``schema.ns()`` for your module, not the item.  For
+example, if we add a ``Smitty`` variable to the ``application`` package, it
+will hide the ``Smitty`` item until we delete it again::
+
+    >>> import application
+    >>> application.Smitty = "Sorry, I'm not Smitty"
+
+    >>> app_ns.Smitty
+    "Sorry, I'm not Smitty"
+
+If you need to access a "shadowed" item like this, you have to explicitly
+refer to the parcel item, and then use repository APIs to access the item
+directly::
+
+    >>> app_ns.parcel.getItemChild('Smitty')
+    I'm Smitty!
+
+Or else remove the conflicting definition from the module::
+
+    >>> del application.Smitty
+    >>> app_ns.Smitty
+    I'm Smitty!
+
+So, when you create items in your parcel, you should take care to give them
+names that don't conflict with class, variable, or function names in your
+module, or you will have to use more awkward ways of accessing them.
+    
+By the way, just a reminder...  you can create a ``schema.ns()`` using any
+existing item, not just a repository view.  Most often, you'll use the
+``parcel`` argument passed in to your ``installParcel()`` function, but
+any persistent item will do.  For example::
+
+    >>> tests_ns = schema.ns("application.tests", app_ns.parcel)
+
+
+Installing or Updating Items
+----------------------------
+
+Your ``installParcel()`` function is responsible for creating or updating any
+persistent items you want in your parcel.  Such items may include UI components
+such as menu items or detail views, tasks to be run at startup or periodically,
+preferences, collections, or any other persistent items.
+
+Although the current version of Chandler doesn't support upgrading existing
+parcels without recreating the repository, future versions will.  So, you
+should write your ``installParcel()`` with the assumption that future versions
+may call it to update an existing parcel.
+
+This means you shouldn't just create items, without checking to see if they
+already exist, and possibly updating them instead.  Since this would lead to
+quite a lot of repetitive code, the ``schema.Item`` class includes an
+``update()`` classmethod that you can use to write simpler code.  The
+``update()`` method either updates an existing item or creates a new one, and
+in either case it returns the updated item.  For example, here's an
+``installParcel()`` function that creates or updates a ``Person`` item::
+
+    >>> def installParcel(parcel, old_version=None):
+    ...     Person.update(parcel, "Carlos", fullname=u"Carlos Marron")
+
+At the moment, there is no ``Carlos`` object in the ``application`` parcel::
+
+    >>> app_ns.Carlos
+    Traceback (most recent call last):
+    ...
+    AttributeError: Carlos is not in <module...'application'...> or <Parcel...>
+
+So, let's call ``installParcel()`` to create him::
+
+    >>> installParcel(app_ns.parcel)
+    >>> app_ns.Carlos
+    Carlos Marron
+
+And we can call it again, since ``update()`` works on existing items::
+
+    >>> installParcel(app_ns.parcel)
+    >>> app_ns.Carlos
+    Carlos Marron
+
+Now, let's change his name, and call ``installParcel()`` a third time::
+
+    >>> carlos = app_ns.Carlos
+    >>> carlos.fullname = u"Charlie Brown"
+    >>> carlos.fullname
+    u'Charlie Brown'
+
+    >>> installParcel(app_ns.parcel)
+    >>> carlos.fullname
+    u'Carlos Marron'
+
+As you can see, the ``update()`` call sets all the supplied attributes to the
+given values, so you can ensure that any items you update will have the values
+you set.  Any attributes that the ``update()`` call does *not* set, however,
+will remain unchanged.  For example::
+
+    >>> carlos.age = 27
+    >>> carlos.age
+    27
+
+    >>> installParcel(app_ns.parcel)
+    >>> carlos.age
+    27
+    
+In addition to updating attributes, the kind or class of the item are updated
+as well.  For example::
+
+    >>> type(carlos)
+    <class '...Person'>
+
+    >>> class StrangePerson(Person):
+    ...     """A silly example of changing an item's class/kind"""
+
+    >>> StrangePerson.update(app_ns.parcel, "Carlos")
+    Carlos Marron
+
+    >>> type(carlos)
+    <class '...StrangePerson'>
+
+    >>> installParcel(app_ns.parcel)
+    >>> type(carlos)
+    <class '...Person'>
+
+Note that the ``update()`` method can't tell if you've renamed an object that
+should have the same name, or whether perhaps you've accidentally given two
+objects the same name, so you need to check these things yourself.  If you
+need to delete old items or rename/relocate items in your ``installParcel()``
+function, you should just use the normal repository APIs to do so.  For
+example, if your parcel used to have a ``Carlos`` item that you now want to
+call ``Charlie``, you should manually check for the item already existing,
+and then rename it by setting the ``itsName`` attribute.
+
+
+Parcel Discovery
+================
+
+So far, everything in this guide has assumed that your code is running or your
+parcel is being automatically created.  However, the only way that can happen
+is for Chandler to already *know* that your parcel exists!  Well, you can also
+run your code from a script, or invoke it manually from a debugger window or
+the ``headless`` utility, but those aren't very user-friendly ways to get your
+parcel installed.
+
+Chandler has two ways to automatically identify modules or packages that should
+be used to create parcels at startup.  The first is the ``--app-parcel`` option
+on the Chandler command line.  This option sets a module or package name that
+Chandler will import at startup and attempt to create a parcel for.  The
+default ``--app-parcel`` is ``osaf.app``, which is Chandler's main application
+parcel.  If you are creating a different main application using the Chandler
+platform, you can use this option to specify a different main parcel.
+
+The second way that Chandler identifies potential parcels is via the
+``--parcelPath`` option and/or ``PARCELPATH`` environment variable.  By
+default, this only includes Chandler-supplied parcels in the ``parcels``
+directory, but you can add others.  Each top-level Python package found in any
+directory on the parcel path will have a parcel created for it.
+
+For example, the ``osaf`` package in the ``parcels`` directory is a top-level
+package in a directory that's on the parcel path, so it will have a parcel
+automatically created for it.  Similarly, most plugin projects will simply
+define a single top-level package for their plugin.  When placed in a directory
+on the parcel path (or when their containing directory is added to the parcel
+path), Chandler will detect them at startup and ensure that a parcel exists for
+them.
+
+If you have a module or package that is neither the ``--app-parcel`` nor a
+top-level package on the parcel path, it will not be loaded at startup unless
+another module or package depends on it.  But what does "depends on" mean here?
+
+
+Parcel Dependencies
+-------------------
+
+A parcel "A" depends on another parcel "B" if any of the following are true:
+
+* Any type defined in "A" has an attribute of a type found in "B"
+
+* Any type defined in "A" is a subclass of a type found in "B"
+
+* "A" defines an annotation for a type found in "B"
+
+* An ``installParcel()`` function in "A" does any of the following:
+
+  * Creates items of a type found in "B"
+
+  * Calls ``schema.synchronize()`` with "B" as a target (XXX fwd ref to API
+    reference here)
+
+  * Uses ``schema.ns()`` or ``schema.parcel_for_module()`` to access the
+    contents of the parcel corresponding to "B"  (XXX fwd ref to API
+    reference here)
+
+* "A" depends on some parcel "C", and "C" in turn depends on "B"
+
+So, if you are creating a parcel "B", and there is some existing parcel "A"
+that will do one of the above things, you don't need to do anything special
+with your parcel layout.  If you are creating a new parcel, however, that no
+other parcel depends on, you will need to either make it a top-level package
+on the parcel path, or you will need to modify an existing parcel to call
+``schema.synchronize()`` so that your parcel will be loaded.  Otherwise, there
+will be no way for Chandler to know it exists, so its code will never be run,
+and its items (if any) will never be created.
+
+Note, by the way, that you should avoid circular dependencies between parcels,
+as these are likely to cause import difficulties, and are usually an indication
+that your design isn't as well-factored as it could be.  For example, you are
+probably not taking full advantage of `Anonymous Inverses`_ and `Annotation
+Classes`_, as these features make it much easier to avoid circular
+dependencies.  (Because they allow you to define a class's core features in one
+parcel, and then add extended features in a separate parcel, so that the core
+class doesn't need to depend on everything that its extended features do.)
+
+
+-------------
+API Reference
+-------------
+
+Classes
+=======
+
+Item Classes
+------------
+
+XXX
+
+
+Enumeration Classes
+-------------------
+
+Sometimes, you have an attribute that you'd like to restrict to a set of fixed,
+pre-determined values. For example, suppose you want to be able to define
+attributes that contain a "feed type" value denoting one of the RSS/0.9,
+RSS/1.0, or ATOM feed formats.  You can do this by creating an "enumeration"
+type, that can then be used as an attribute type.  To do this, you subclass
+``schema.Enumeration``, and define a ``values`` attribute that contains a tuple
+of strings.  Each string must be a valid Python identifier::
+
+    >>> class FeedFormat(schema.Enumeration):
+    ...     """Format to be used for a feed"""
+    ...     values = 'RSS_09', 'RSS_10', 'ATOM'
+
+    >>> class FeedGenerator(schema.Item):
+    ...     format = schema.One(FeedFormat)
+    ...     # other attributes would go here...
+
+You can then set the defined attribute to any of the strings listed in the
+enumeration's ``values``::
+
+    >>> fg = FeedGenerator('fg',rv, format = 'ATOM')
+    >>> fg.format
+    'ATOM'
+
+But assigning an unlisted value will produce an error, if the repository view
+is using immediate error checking.
+
+    >>> fg.format = "fizzy_2"
+    Traceback (most recent call last):
+      ...
+    ValueError: Assigning 'fizzy_2' to attribute 'format'...didn't match schema
+
+
+    >>> class ExtendedFormat(FeedFormat):
+    ...     values = "ATOM_20", "FIZZY_19"
+    Traceback (most recent call last):
+      ...
+    TypeError: Enumerations cannot subclass or be subclassed
+
+    >>> class BrokenEnum(schema.Enumeration):
+    ...     values = "error"
+    Traceback (most recent call last):
+      ...
+    TypeError: 'values' must be a tuple of 1 or more strings
+
+    >>> class BrokenEnum3(schema.Enumeration):
+    ...     def foo(self): pass
+    Traceback (most recent call last):
+      ...
+    TypeError: ("Only 'values' may be defined in an enumeration class", ...)
+
+
+Struct Classes
+--------------
+
+Sometimes, it's useful to create "value" or "structure" types to use in a
+schema.  For example, suppose that you need a "size" type with a width and a
+height.  You can do this by subclassing ``schema.Struct`` and defining
+``__slots__``::
+
+    >>> class Size(schema.Struct):
+    ...     __slots__ = 'width', 'height'
+
+Struct instances are created using either positional arguments in the same
+order as the names in ``__slots__``::
+
+    >>> my_size = Size(1,2)
+    >>> my_size
+    Size(1, 2)
+
+    >>> Size(4,5,6)
+    Traceback (most recent call last):
+      ...
+    TypeError: ('Unexpected arguments', (6,))
+
+or using keyword arguments with the same names as the slots::
+
+    >>> Size(height=1, width=2)
+    Size(2, 1)
+
+And the instances have the attribute names as the defined slots::
+
+    >>> Size(1,2).width
+    1
+    >>> Size(1,2).height
+    2
+
+Struct classes may include whatever methods you like, as well as having slots.
+You may not, however, create further subclasses of a given struct class::
+
+    >>> class BadExample(Size): pass
+    Traceback (most recent call last):
+      ...
+    TypeError: Structs cannot subclass or be subclassed
+
+NOTE: Structure instances are currently mutable; that is, you can change their
+attribute values.  However, it is not recommended that you use this feature
+because it means there's a chance that changes won't be saved, unless you
+undertake to track the "dirty" state of the objects involved and use repository
+APIs to flag all items using the value as changed.  It is therefore likely that
+a future version of the Schema API will make structure instances
+read-only once they are created.  So, we recommend that you use code like
+this to change structure values::
+
+    someItem.window_size = Size(3,4)
+
+Instead of code like this::
+
+    someItem.window_size.width = 3
+    someItem.window_size.height = 4
+
+The first example will always cause the changes to be saved, but the second
+example requires additional steps (not shown) to ensure the changes to
+``someItem`` are saved.  In addition, if there was previously some code
+like this::
+
+    someItem.window_size = otherItem.window_size
+
+Then changing the ``width`` and ``height`` of ``someItem.window_size`` would
+also affect the value of ``otherItem.window_size``, and ``otherItem`` would
+therefore also need to be saved.  This can create hard-to-find bugs, which
+is why the feature is deprecated.
+
+
+Metadata and Clouds
+-------------------
+
+XXX
+
+
+Attribute Descriptors
+=====================
+
+Type References
+
+Bidirectional References
+
+One
+
+Many
+
+Sequence
+
+Mapping
+
+Aspects
+
+
+
+Other APIs
+==========
+
+importString
+
+Parcel Loading
+
+Item Creation
+
