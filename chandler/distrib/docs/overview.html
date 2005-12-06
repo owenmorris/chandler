@@ -1,0 +1,738 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+
+
+  
+  
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+
+
+  
+  
+  <title>Chandler 0.6 Architecture</title>
+</head>
+
+
+<body>
+
+
+
+<h1>Chandler Architecture (0.6 Release)</h1>
+
+
+<h3>Overview</h3>
+
+
+This document gives a brief overview of Chandler's layered
+architecture, as pictured below. The diagram is somewhat simplified and
+idealized, as models tend to be, but should provide a starting point to
+understand Chandler's code. &nbsp;<br>
+
+
+
+<br>
+
+
+
+Chandler is a work in progress; we are still working out both bugs in
+the code that don't conform to the architecture, as well as "bugs" or
+problems with the architecture itself. This document is an effort to
+describe Chandler as it exists in the 0.6 release.
+<h3><img style="width: 500px; height: 497px;" alt="architecture layers" src="overview-layers.png"><br>
+
+
+</h3>
+
+
+<br>
+
+
+<h3>Data Driven Architecture</h3>
+
+
+
+Before we start describing Chandler's layers, we need to introduce a few concepts: <span style="font-weight: bold;">Items</span>, <span style="font-weight: bold;">Kinds</span>, <span style="font-weight: bold;">Attributes</span>,&nbsp;<span style="font-weight: bold;">Collections</span>, the <span style="font-weight: bold;">Repository</span> and <span style="font-weight: bold;">Parcels</span>. These concepts are a consequence of Chandler's data driven architecture, and pervade the system.<br>
+
+
+<br>
+
+
+The fundamental unit in Chandler is an&nbsp;<span style="font-weight: bold;">Item</span>. An Item is essentially a Python object with special properties, including the property that it can be persisted to Chandler's <span style="font-weight: bold;">Repository</span>. Items are defined by <span style="font-weight: bold;">Kinds</span>,
+which are implemented as Python classes. Like a Python object, an Item
+contains attribute-value pairs. A Kind class defines these <span style="font-weight: bold;">Attributes</span>, including some meta-information about each Attribute.<br>
+
+
+<br>
+
+
+Much work is done in Chandler by creating Item instances and providing
+values for the Item's attributes. Examples of Items include calendar
+events, email messages and tasks -- what we might think of as user
+data.&nbsp;UI objects like menus and views are also defined as Items,
+as are services like the background task that fetches email. Under the
+hood, the Kinds that describe these items
+(e.g.&nbsp;MailMessage,&nbsp;Menu, PeriodicTask) are also persisted to
+the Repository
+as Items. (Well, the Python code isn't persisted, but meta-data that
+describes these Kinds is persisted).<br>
+
+
+<br>
+
+
+Most Chandler code is in the form of Kind Python class definitions --
+describing the attributes associated with a particular Kind and adding
+Python code to implement methods associated with that Kind. <br>
+
+
+<br>
+
+
+A&nbsp;<span style="font-weight: bold;">Collection</span> is a set of
+Items. An Collection is an Item itself. It can define the set of
+Items by explicitly listing the items, with a query, or by combining
+two other sets of items. Collections play a key role in Chandler's
+architecture, described below #Collections.<br>
+
+
+<br>
+
+
+In Chandler, Item instance definitions and Kind class definitions are defined in <span style="font-weight: bold;">Parcels</span>. Parcels are Python modules that are introspected at startup so that Item and Kind data can be loaded into the Repository. <br>
+
+
+<br>
+
+
+Most Chandler code lives in Parcels. The few exceptions to this are the
+subsystems needed to bootstrap the system -- the repository itself,
+wxPython related startup code, and some services used by the repository
+(e.g. internationalization code).<br>
+
+
+
+<h2>Layers</h2>
+
+
+
+We will now look at each of the layers that make up the Chandler architecture.<br>
+
+
+<br>
+
+
+Generally, each layer or component is able to directly access the
+APIs of the layers below it. The lower level layers communicate to the
+layers above via a system of notifications. The lower level layers
+should have no specific knowledge of the layers above, and the higher
+level layers should know only the APIs of the layers below.<br>
+
+
+<br>
+
+
+Chandler uses a variant of a Model -View - Controller architecture. Like
+many applications built on GUI frameworks, Chandler tends to mix the
+View/Controller code in one layer. We expect to reexamine this a bit in
+the 0.7 timeframe -- this document will focus on the code as it exists
+in the 0.6 release.
+<h3>Application Layer</h3>
+
+
+The application layer is the topmost layer and responsible for pulling
+all of the pieces together to present the interface to the user. It has
+the role of a Controller in terms of an MVC architecture.<br>
+
+
+<br>
+
+
+The application layer handles the startup of Chandler. It contains the
+main "application" object that is primarily responsible for
+initializing Chandler components, as well as populating the <span style="font-weight: bold;">MainView</span> instance that describes the layout of the application.<br>
+
+
+<br>
+
+
+The main application object is a subclass of a wxPython class (wxApp).
+This class drives most of the startup activities by defining an OnInit
+method that gets called by wxPython at startup. This method loads all
+of the Parcels and commits Items defined in the parcels to the
+Repository. It also kicks off Twisted, which manages the networking
+services. (See #Services and #ThreadingModel). <br>
+
+
+
+<br>
+
+
+The MainView instance gets populated with instances of UI Items defined
+in lower layers: what the menus are, where the sidebar goes, how much
+space the detail view takes, etc. It also creates instances of well
+known Collections (e.g. Trash, "All my Items"). It defines
+event handlers for
+application-wide events (e.g. Quit, "New Collection").&nbsp;<br>
+
+
+<h5>
+Most application layer code can be found here:</h5>
+
+
+<ul>
+
+
+  <li style="font-weight: bold;">Chandler.py <span style="font-weight: normal;">The starting point for the GUI application.</span></li>
+
+
+  <li style="font-weight: bold;"><span style="font-weight: normal;"><span style="font-weight: bold;">tools.headless</span> The starting point for running Chandler as a server with no GUI.<br>
+
+
+    </span></li>
+
+
+  <li style="font-weight: bold;">
+application<span style="font-weight: normal;">&nbsp;The
+main class that runs the wxPython app, including application startup
+code. Also includes wxPython related printing support, and some system
+wide global variables.</span></li>
+
+
+  <li><span style="font-weight: bold;">
+application.dialogs</span>
+wxPython dialogs used by the application. Eventually these may get
+moved into CPIA, but currently don't fully conform to the architecture.</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.views.main</span>
+The definition of the MainView, the highest level block that describes
+the layout of the application. Also contains most of the applications
+menus, events, and event handlers.</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.app</span> Well known items, including well known collections and default account information</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.app.scripts</span> Example scripts</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.views.repositoryviewer</span> The repository viewer is an early "experimental" feature, accessible from the test menu.</li>
+
+
+  <li style="font-weight: bold;">
+parcels.osaf.views.demo,&nbsp;parcels.osaf.views.cpiatest<span style="font-weight: normal;">&nbsp;Test code that exercises CPIA.</span></li>
+
+
+</ul>
+
+
+
+<h3>CPIA</h3>
+
+
+CPIA stands for Chandler Presentation and Interaction Architecture. It
+blends the role of View and Controller in an MVC architecture. It
+is intended to be a Chandler specific framework, so it has API
+knowledge of the Repository, Items, Collections, and Chandler's
+Domain Model. <br>
+
+
+
+<br>
+
+
+<span style="font-weight: bold;">
+Key decision:</span> CPIA is not meant to be a general cross platform
+application building framework (ala XUL or wxWidgets). &nbsp;We're
+not trying to boil the ocean here. Chandler specific concepts like
+Items, Collections,&nbsp;Sidebar, Summary View and Detail View
+and their relationship to each other are embedded in the CPIA
+framework. <br>
+
+
+<br>
+
+
+
+CPIA's role is to provide building blocks for Chandler's UI, including
+some generic building blocks (e.g. Menus) as well as more Chandler
+specific building blocks (e.g. Sidebar, Summary Table, Mini Calendar,
+Detail View). Because we think of them as building blocks, the core
+unit in CPIA is called a <span style="font-weight: bold;">Block</span>. Blocks can contain other&nbsp;Blocks; the complete tree of blocks describes the layout of Chandler. <br>
+
+
+<br>
+
+
+A Block pulls data out of the Repository and displays it in the UI. A
+Block also takes input from the user, committing edits to that data
+back to the Repository. Because blocks handle this&nbsp;pattern, much
+of the UI can be built by assembling and customizing blocks. The hope
+is to have a robust collection of blocks that enable third parties to
+customize and extend chandler. We&nbsp;would also eventually like to
+see third parties creating their own blocks.<br>
+
+
+<br>
+
+
+The CPIA layer defines and implements the Blocks. Block instances are
+Items, Blocks are Kinds and are implemented as Python classes. The
+MainView Item, defined&nbsp;in the application layer, is the topmost
+Block instance.<br>
+
+
+<br>
+
+
+The&nbsp;Block itself primarily contains data about the UI element.
+The&nbsp;Block&nbsp;persists to the Repository. A calendar block, for
+example, might know about the collection of items displayed, the
+currently selected item, and the currently selected date range. The
+actual implementation of the presentation, or the "rendering" of the
+block, is handled by a <span style="font-weight: bold;">Widget</span>
+class, a subclass of a wxPython class. (Widgets are wxPython objects,
+they are not Items and they do not persist to the Repository). Each
+Block instance has a peer Widget instance, as in the diagram below:<br>
+
+
+
+<br>
+
+
+<img style="width: 383px; height: 341px;" alt="cpia block and widget" src="overview-cpia.png"><br>
+
+
+
+<br>
+The Block knows about its "contents", which is usually a ContentItem or
+Collection in the domain model (e.g. "All my items" collection, or
+&nbsp;a "Lunch with Tug" calendar event). &nbsp;The Block hands the
+ContentItem or Collection to the Widget to do the actual rendering.
+The Widget may also call the domain model APIs to create, update or
+delete ContentItems or Collections in the Repository.<br>
+
+
+<br>
+
+
+Another key concept in CPIA is that of an <span style="font-weight: bold;">AttributeEditor</span>.
+AttributeEditors are Python classes that handle the editing and
+rendering of one Attribute of one Item. AttributeEditors are used by
+the DetailView or the SummaryTableView to render and edit a selected
+Item's attributes. For example, if a CalendarEvent is selected in the
+DetailView, a date-time AttributeEditor handles the editing and
+rendering of the "start time", and a text AttributeEditor handles the
+editing and rendering of the "summary". AttributeEditors can make use
+of wxPython widgets to help out with the rendering and editing.<br>
+
+
+
+<br>
+
+
+
+We've also been experimenting with the ability to script the application, which we call <span style="font-weight: bold;">CPIA Script</span>.
+In 0.6 we've been focused on using scripting to automate functional
+tests, but we hope to extend it to allow adventurous users to customize
+their environment with scripts and potentially share scripts. Yes, we
+realize that there are security implications, and hope to tackle that
+issue in 0.7.<span style="font-weight: bold;"><br>
+
+
+</span>
+<h5>Most CPIA code can be found here:</h5>
+
+
+<ul>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.framework.blocks</span> General block and widget definitions, including base classes and the SummaryTable block</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.framework.blocks.calendar</span> Calendar blocks and widgets</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.framework.blocks.detail</span> Detail view block and widget</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.framework.attributeEditors</span> Attribute editor infrastructure and attribute editors</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.framework.scripting</span> Scripting framework</li>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.framework.types</span> CPIA defined repository types (e.g. color)</li>
+
+
+</ul>
+
+
+
+<h3>Services</h3>
+
+
+The services layer provides services to allow Chandler to talk to the
+outside world. Currently this includes sharing (via WebDAV and CalDAV),
+email (via IMAP and POP), and support to run Chandler as a local
+webserver.<br>
+
+
+
+<br>
+
+
+Chandler uses the Twisted framework for networking support. Chandler
+services like mail and sharing run in the Twisted Reactor. See
+#ThreadingModel below for more information on how this works.<br>
+<br>
+&lt;more on sharing, perhaps introduce PeriodicTasks here&gt;<br>
+
+
+<h5>
+Most services code can be found here:</h5>
+
+
+<ul style="font-weight: bold;">
+
+
+  <li>
+parcels.osaf.sharing <span style="font-weight: normal;">Sharing services, including CalDAV and WebDAV sharing</span></li>
+
+
+  <li>
+parcels.osaf.mail <span style="font-weight: normal;">Mail services, including IMAP and POP</span></li>
+
+
+  <li>
+parcels.osaf.webserver <span style="font-weight: normal;">Code to run Chandler as a&nbsp;webserver&nbsp;</span></li>
+
+
+  <li>
+parcels.osaf.framework.twisted <span style="font-weight: normal;">Chandler specific utilities wrapping twisted services</span></li>
+
+
+</ul>
+
+
+
+<h3>Domain Model</h3>
+
+
+The domain model layer defines all of the "problem domain" classes that
+represent application content such as Calendar Events, Mail Messages,
+Tasks, etc. It plays the role of the Model in an MVC architecture. This
+means that the domain model should have no knowledge of the layers
+above it, allowing it to be used equally effectively by different types
+of Views and Controllers.<br>
+
+
+<br>
+
+
+The domain model layer primarily consists of Python class
+definitions for these domain specific Kinds: calendar events, mail
+messages, tasks and contacts. Each of these classes is a subclass of
+"ContentItem". The ContentItem class is a base class for all Items that
+the user would
+think of as their personal data.<br>
+
+
+
+<br>
+
+
+This layer also includes the code for Collections and for
+notifications to the layers above. See #Collections for more
+information.<br>
+
+
+
+<br>
+
+
+
+As 0.6 was a calendar release, much of the domain model work went into
+making recurrences and timezones work. You can read about this in
+more detail in the specs: &lt;insert link to spec here&gt;,
+&lt;insert link to spec for timezones here&gt;.<br>
+
+
+
+<br>
+
+
+
+Terminology note: We've have called this layer the "content model" in the past, so
+you'll find that term in the code. I chose "Domain Model" for this
+document because that term is more consistently used for this type of
+layer in other projects. We're still wrestling with the terminology and
+hope to clarify this further in 0.7.<br>
+
+
+<h5>
+Most domain model code can be found here:</h5>
+
+
+<ul>
+
+
+  <li><span style="font-weight: bold;">
+parcels.osaf.pim</span> Defines
+the obvious PIM related Kind classes (e.g. CalendarEvent, MailMessage,
+Task). Also contains more general Kind classes (e.g. Collection,
+ContentItem).</li>
+
+
+</ul>
+
+
+
+<h3>Schema</h3>
+
+
+The Schema layer&nbsp;provides an API for creating Items and defining
+Python classes that implement Kinds. Most Chandler code in the layers
+above will use this API instead of going to the repository directly.<br>
+
+
+<br>
+
+
+&lt;pointer to phillip eby's document (or consider
+lifting parts of that doc if they are appropriate here)&gt;<br>
+
+
+<h5>
+Schema layer code can be found here:</h5>
+
+
+<ul>
+
+
+  <li><span style="font-weight: bold;">
+application.schema</span>
+  </li>
+
+
+</ul>
+
+
+<h3>Repository</h3>
+
+
+The Repository is the persistent store for Chandler's data driven
+architecture. It implements the core code for Items and sets of Items,
+as well as notifications.<br>
+
+
+<br>
+
+
+You can think of the Repository as a Python object cache sitting on top of BerkeleyDB. <br>
+
+
+<br>
+
+
+&lt;more here: cover commit/refresh, cvs/svn like tx model, units of work potentially tied to undo&gt;<br>
+
+
+<br>
+
+
+- BerkeleyDB<br>
+
+
+- PyLucene
+<h5>Repository layer code can be found here:</h5>
+
+
+<ul>
+
+
+  <li><span style="font-weight: bold;">
+repository.*</span>
+  </li>
+
+
+</ul>
+
+
+<h2>Extension Parcels</h2>
+
+
+
+Third parties can extend Chandler by writing their own parcels. Third party
+parcels largely look very similar to Chandler core parcels --
+definitions of Item instances and Kind Python classes. Third party
+parcels&nbsp;can define Items and classes that belong in any
+of these top level layers:<br>
+
+
+
+<br>
+
+
+<img style="width: 248px; height: 183px;" alt="parcel layers" src="overview-parcel.png"><br>
+
+
+
+<br>
+
+
+The parcel can define Items that we think of as belonging to the
+application layer: Menus, event handlers,&nbsp;blocks to customize a
+detail view, etc.<br>
+
+
+<br>
+
+
+The parcel can define Python classes that we think of as belonging to
+the CPIA layer: a custom summary view Block and Widget, or a custom
+AttributeEditor.<br>
+
+
+<br>
+
+
+The parcel can define Python classes that we think of as belonging to the Domain Model: new Kinds of Content Items.<br>
+
+
+<br>
+
+
+The parcel can define Python classes that we think of as belonging to
+the Services layer: PeriodicTasks to fetch Items into the repository.<br>
+
+
+
+<br>
+
+
+
+The third party parcel might separate out the code into Python modules
+based on these layers, or might include them all in one module if the
+parcel is small enough -- its up to the judement of the parcel
+developer.<br>
+
+
+<h5>
+Sample extension parcels can be found here:</h5>
+
+
+<ul style="font-weight: bold;">
+
+
+  <li>
+parcels.flickr <span style="font-weight: normal;">Creates a collection of Flickr photos in the sidebar.</span></li>
+
+
+  <li>
+parcels.amazon <span style="font-weight: normal;">Fetches an amazon wish list into the repository.</span></li>
+
+
+  <li>
+parcels.feeds <span style="font-weight: normal;">Sample RSS reader, which is documented in the &lt;tutorial&gt;.</span></li>
+
+
+  <li>
+parcels.photos&nbsp;</li>
+
+
+</ul>
+
+
+
+<h2>Internationalization (i18n)</h2>
+
+
+
+insert short summary here with link to i18n page<br>
+
+
+
+pyicu<br>
+
+
+
+i18n code
+<h2>Security</h2>
+&lt;insert short summary here m2crypto? certstore? note both scripting as glaring issue as well as future signed parcels&gt;<br>
+
+
+
+parcels.osaf.framework.certstore
+<h2>Collections and Notifications</h2>
+
+
+
+&lt;insert wise and clarifying discussion of collections and
+notifications here&gt;
+<h2>Threading Model</h2>
+
+
+
+<p>In Chandler, the Repository is the primary means that threads
+use to
+communicate with each other. A thread using the Repository has its own <strong>RepositoryView</strong>, which is an independent connection to the
+Repository.&nbsp;</p>
+
+
+<p>The UI has its own thread (wxWidgets, like all GUI frameworks, needs
+to run in a single thread.) &nbsp;We're currently using the Twisted
+Reactor to schedule work that needs to happen outside the UI thread.
+The Reactor runs in a separate thread, and is used to schedule work. In
+Chandler the units of work are called&nbsp;<span style="font-weight: bold;">PeriodicTasks</span>, which are Items that pesist in the Repository. Each PeriodicTask has its own <strong style="font-weight: normal;">Repository View</strong>,
+as does the main wxWidgets UI thread.&nbsp;</p>
+
+
+<p>To follow an example, the
+PeriodicTask that fetches email creates new email Items in its RepositoryView. After it creates the items, it calls <strong>commit()</strong>
+on the RepositoryView, which pushes the Items to the Repository. The
+UI thread calls <strong>refresh()</strong>
+on its
+RepositoryView during its OnIdle cycle, picking up the new changes. As
+the new changes are picked up, the appropriate Widgets are dirtied so
+that they will repaint themselves in the next Paint cycle. </p>
+
+
+
+
+<h2>Discovery and Startup</h2>
+&lt;brief overview and link to pje's doc -- discovery paradigm not registration&gt;
+<h2>More...</h2>
+
+
+
+eggs?<br>
+
+
+
+accessibility?<br>
+
+
+
+<br>
+
+
+
+<br>
+
+
+
+</body>
+</html>
