@@ -1134,11 +1134,23 @@ class perf:
       for line in file(os.path.join(self._options['perf_data'], 'tbox.html.header')):
         tboxfile.write(line)
 
+    tbox.append('<p>')
     latestUpdate = {}
     for key in ['win', 'osx', 'linux']:
-      update          = updates[key]
-      s               = '%02d%02d%02d%02d' % (update.month, update.day, update.hour, update.minute)
-      latestUpdate[s] = '%d/%02d %d:%02d' % (update.month, update.day, update.hour, update.minute)
+      update = updates[key]
+      month  = getattr(update, 'month', None)
+      day    = getattr(update, 'day', None)
+      hour   = getattr(update, 'hour', None)
+      minute = getattr(update, 'minute', None)
+      if month is not None and day is not None and hour is not None \
+          and minute is not None:
+        tbox.append('%s: %d/%02d %d:%02d<br>' % (key, month, day, hour, 
+                                                    minute))
+        s               = '%02d%02d%02d%02d' % (month, day, hour, minute)
+        latestUpdate[s] = '%d/%02d %d:%02d' % (month, day, hour, minute)
+      else:
+        tbox.append('%s: Unknown<br>' % key)
+    tbox.append('</p>')
 
     keys = latestUpdate.keys()
     keys.reverse()
@@ -1155,11 +1167,6 @@ class perf:
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
     tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
 
-    tbox.append('<p>Windows: %d/%02d %d:%02d<br/>OS X: %d/%02d %d:%02d<br/>Linux: %d/%02d %d:%02d</p>' % 
-                    (updates['win'].month, updates['win'].day ,updates['win'].hour, updates['win'].minute,
-                     updates['osx'].month, updates['osx'].day ,updates['osx'].hour, updates['osx'].minute,
-                     updates['linux'].month, updates['linux'].day ,updates['linux'].hour, updates['linux'].minute))
-                     
     for line in tbox:
       tboxfile.write(line)
 
