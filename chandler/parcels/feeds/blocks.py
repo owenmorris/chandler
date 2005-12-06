@@ -51,37 +51,6 @@ class FeedItemDetail(Detail.HTMLDetailArea):
 
             return HTMLText
 
-
-class LinkDetail(Detail.StaticRedirectAttribute):
-    def staticTextLabelValue(self, item):
-        theLabel = unicode(item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute())))
-        return theLabel
-
-
-class DateDetail(Detail.StaticRedirectAttribute):
-    def staticTextLabelValue(self, item):
-        try:
-            value = item.getAttributeValue(Detail.GetRedirectAttribute(item,
-                self.whichAttribute()))
-        except AttributeError:
-            return u""
-
-        # [@@@] grant: Refactor to use code in AttributeEditors?
-        aujourdhui = datetime.date.today() # naive
-        userTzinfo = ICUtzinfo.getDefault()
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=userTzinfo)
-        else:
-            value = value.astimezone(userTzinfo)
-
-        if aujourdhui == value.date():
-            format = DateFormat.createTimeInstance(DateFormat.kShort)
-        else:
-            format = DateFormat.createDateTimeInstance(DateFormat.kShort)
-        return unicode(format.format(value))
-
-
-
 class FeedController(Block.Block):
     def onNewFeedChannelEvent(self, event):
         import wx
@@ -100,8 +69,6 @@ class FeedController(Block.Block):
                     _(u"New Channel Error"),
                     _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {'url': url})
                 raise
-
-
 
 def installParcel(parcel, oldVersion=None):
 
@@ -133,102 +100,80 @@ def installParcel(parcel, oldVersion=None):
         parentBlock = main.CollectionMenu,
     )
 
-    # detail view stuff
+    # The hierarchy of UI elements for the FeedItem detail view
+    feedItemRootBlocks = [
+        # The markup bar
+        detail.MarkupBar,
+        detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
 
-    # Shortcut for creating a detail-view attribute label
-    def label(name, title):
-        return detail.StaticRedirectAttributeLabel.update(
-            parcel, name, title=title,
-            characterStyle = blocks.LabelStyle, stretchFactor = 0.0,
-            textAlignmentEnum = "Right", minimumSize = SizeType(60, 24),
-            border = RectType(0, 0, 0, 5),
-        )
+        # Author area
+        detail.makeArea(parcel, "AuthorArea",
+            position=0.19,
+            childrenBlocks = [
+                detail.makeLabel(parcel, _(u"author"), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                #field("AuthorAttribute", title=u"author"),
+                detail.makeEditor(parcel, 'author',
+                       viewAttribute=u'author',
+                       border=RectType(0,2,2,2),
+                       readOnly=True),                   
+            ]
+        ).install(parcel),
 
-    # Shortcut for creating a detail-view attribute editor
-    def field(name, title, stretchFactor=0.0):
-        return detail.StaticRedirectAttribute.update(
-            parcel, name, title=title,
-            characterStyle=blocks.LabelStyle, stretchFactor=stretchFactor,
-            textAlignmentEnum = "Left",
-        )
+        # Category
+        detail.makeArea(parcel, "CategoryArea",
+            position=0.2,
+            childrenBlocks = [
+                detail.makeLabel(parcel, _(u"category"), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                detail.makeEditor(parcel, 'category',
+                       viewAttribute=u'category',
+                       border=RectType(0,2,2,2),
+                       readOnly=True),
+            ]
+        ).install(parcel),
 
-    # Shortcut for creating a label/field editing area
-    def pair(name, **kw):
-        return detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-            parcel, name, stretchFactor = 0.0,
-            border = RectType(5, 0, 0, 5), **kw
-        )
+        # URL
+        detail.makeArea(parcel, "LinkArea", 
+            position=0.3,
+            childrenBlocks = [
+                detail.makeLabel(parcel, _(u'link'), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                detail.makeEditor(parcel, 'link',
+                       viewAttribute=u'link',
+                       border=RectType(0,2,2,2),
+                       readOnly=True),
+            ],
+        ).install(parcel),
 
+        # Date area
+        detail.makeArea(parcel, "DateArea",
+            position=0.4,
+            childrenBlocks = [
+                detail.makeLabel(parcel, _(u"date"), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                detail.makeEditor(parcel, 'date',
+                       viewAttribute=u'date',
+                       border=RectType(0,2,2,2),
+                       readOnly=True,
+                       stretchFactor=0.0,
+                       size=SizeType(90, -1)),
+            ],
+        ).install(parcel),
+
+        detail.makeSpacer(parcel, height=7, position=0.8999).install(parcel),
+        
+        FeedItemDetail.update(parcel, "ItemBodyArea",
+            position=0.9,
+            blockName="articletext",
+            size=SizeType(100,50),
+            minimumSize=SizeType(100,50),
+        ),
+    ]
+    
+    # The DetailTrunkSubtree ties the blocks to our FeedItem's Kind.
     detail.DetailTrunkSubtree.update(parcel, "ChannelSubtree",
-
-        # This ensures that this detail view gets attached to feed items
         key = feeds.FeedItem.getKind(parcel.itsView),
-
-        # UI Elements for detail view
-        rootBlocks = [
-            detail.MarkupBar,
-
-            FeedItemDetail.update(parcel, "ItemBodyArea",
-                blockName = "articletext",
-                size = SizeType(100,50),
-                minimumSize = SizeType(100,50),
-            ),
-
-            # URL
-            pair("LinkArea", viewAttribute=u"link", position=0.3,
-                childrenBlocks = [
-                    label("LinkLabel", title=u"link"),
-                    LinkDetail.update(parcel, "LinkAttribute",
-                        characterStyle = blocks.CharacterStyle.update(
-                            parcel, "LinkStyle",
-                            fontFamily = "DefaultUIFont",
-                            fontSize = 10, fontStyle = "underline",
-                        ),
-                        # huh, I only seem to be able to apply this to whole
-                        # ContentItemDetail items:
-                        #
-                        # colorStyle = blocks.ColorStyle.update(
-                        #     parcel, "LinkColor",
-                        #     foregroundColor = ColorType(0,0,255,255),
-                        # ),
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Left",
-                        title = u"linkattribute",
-                    ),
-                ],
-            ),
-
-            # Author area
-            pair("AuthorArea", viewAttribute=u"author", position=0.19,
-                childrenBlocks = [
-                    label("AuthorLabel", title=u"author"),
-                    field("AuthorAttribute", title=u"author"),
-                ]
-            ),
-
-            # Date area
-            pair("DateArea", viewAttribute=u"date", position=0.4,
-                childrenBlocks = [
-                    label("DateLabel", title=u"date"),
-                    DateDetail.update(parcel, "DateAttribute",
-                        title=u"date",
-                        characterStyle=blocks.LabelStyle,
-                        stretchFactor=0.0,
-                        textAlignmentEnum="Left",
-                    ),
-                ],
-            ),
-
-            # Category
-            pair("CategoryArea", viewAttribute=u"category",
-                position=0.2,
-                childrenBlocks = [
-                    label("CategoryLabel", title=u"category"),
-                    field("CategoryAttribute",
-                        title=u"category", stretchFactor=1.0
-                    ),
-                ]
-            ),
-        ],
+        rootBlocks = feedItemRootBlocks,
     )
 
