@@ -4,7 +4,7 @@
 // Author:      Robert Roebling and Robin Dunn
 // Modified by: Ron Lee, Vadim Zeitlin (wxSizerFlags)
 // Created:
-// RCS-ID:      $Id: sizer.h,v 1.75 2005/11/29 23:05:50 VZ Exp $
+// RCS-ID:      $Id: sizer.h,v 1.77 2005/12/06 16:34:30 vell Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ public:
 
     wxSizerFlags& Align(int alignment) // combination of wxAlignment values
     {
-        m_flags &= wxALIGN_MASK;
+        m_flags &= ~wxALIGN_MASK;
         m_flags |= alignment;
 
         return *this;
