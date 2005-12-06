@@ -312,9 +312,7 @@ class DBRefList(RefList, PersistentRefs):
         self._flags &= ~LinkedMap.NEW
 
         PersistentRefs._clearDirties(self)
-        if self._indexes:
-            for name, index in self._indexes.iteritems():
-                index._clearDirties()
+        self._clearIndexDirties()
 
     def _copy_(self, orig):
 

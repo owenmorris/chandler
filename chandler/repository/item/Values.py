@@ -13,6 +13,7 @@ from chandlerdb.item.ItemValue import ItemValue
 from repository.util.Path import Path
 from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
+from repository.item.Indexed import Indexed
 from repository.schema.TypeHandler import TypeHandler
 
 
@@ -123,6 +124,15 @@ class Values(CValues):
             for key, flags in _flags.iteritems():
                 if flags & Values.DIRTY:
                     _flags[key] &= ~Values.DIRTY
+
+        self._clearValueDirties()
+
+    def _clearValueDirties(self):
+
+        # clearing according to flags is not enough, flags not set on new items
+        for value in self._dict.itervalues():
+            if value is not None and isinstance(value, Indexed):
+                value._clearIndexDirties()
 
     def _writeValues(self, itemWriter, version, withSchema, all):
 
@@ -815,9 +825,8 @@ class References(Values):
 
         return hash
 
-    def _clearDirties(self):
+    def _clearValueDirties(self):
 
-        super(References, self)._clearDirties()
         # clearing according to flags is not enough, flags not set on new items
         for value in self._dict.itervalues():
             if value is not None and value._isRefList():

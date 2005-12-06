@@ -247,6 +247,12 @@ class Indexed(object):
 
         return size
 
+    def _clearIndexDirties(self):
+
+        if self._indexes:
+            for index in self._indexes.itervalues():
+                index._clearDirties()
+
     def _loadIndex(self, itemReader, offset, data):
 
         offset, indexName = itemReader.readSymbol(offset, data)
