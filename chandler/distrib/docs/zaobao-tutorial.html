@@ -499,12 +499,92 @@ def installParcel(parcel, oldVersion=None):
 <p>The FeedUpdateTaskClass may be running on a background thread, and it would be unfortunate if a user changed something in the user interface at the same time that same data is being updated in a background thread. The FeedUpdateTaskClass's <code>__init__()</code> method creates a new view to avoid this situation. This view is never shared outside of the current class. This allows the feed updating code make a series of updates without worrying about changes that may happen in another view. When all the updates have happened, then the results are committed back to the Repository. </p>
 <h3>Finding objects in the Repository</h3>
 <p>The FeedUpdateTaskClass needs to find all FeedChannel instances, and call the <code>Update()</code> method on each one. The method <code>iterItems()</code> is a class method on all classes that inherit from Item. It finds all items of the given class in the Repository. The view parameter to <code>iterItems()</code> is necessary because classes themselves don't exist in any specific view. There is no object with an implicit <code>itsView</code> attribute so it must be specified.</p>
+<h3>Running Tasks</h3>
+<p>The last step in writing a periodic task is to persist the task information in the repository.</p>
+<p>The PeriodicTask class is used to persist information about how and when a task should be run. We need to create a PeriodicTask in the repository with information about how often the task should be run. We'll simply create the class in <code>installParcel()</code> as we did with the blocks earlier. </p>
+<pre class="code">def installParcel(parcel, oldName=None):
+    .
+    .
+    .
+    from osaf.startup import PeriodicTask
+    import datetime
+
+    PeriodicTask.update(parcel, &quot;FeedUpdateTask&quot;,
+                        invoke=&quot;feeds.FeedUpdateTaskClass&quot;,
+                        run_at_startup=True,
+                        interval=datetime.timedelta(minutes=30))</pre>
+<p>At startup, Chandler will use <code>PeriodicTask.iterItems()</code> to find all PeriodicTask instances, just like FeedUpdateTaskClass itself does to find FeedChannel classes. It will then register each task with Twisted, which will handle the instantiation and running of our task. </p>
 <h2>Displaying Item Detail</h2>
 <p>So far, this tutorial has explained how to create collections, add them to the sidebar and update them periodically. If you launch chandler, you will be able to subscribe to an RSS feed and it will appear in the sidebar. When you select the feed in the sidebar with the &quot;All&quot; button pressed in the main toolbar, you should see a table widget in the Summary view with a series of blank lines. Each of these lines represents an article from the RSS feed, even though it isn't displaying any specifics about the article. If you click on one of these blank lines, the detail view will display a mostly-blank view of that particular article, but again it will be mostly blank.</p>
 <p>We need to tell Chandler a little more about our data in order for it to display its attributes in the UI.</p>
 <h3>Displaying Items in the Summary View</h3>
-<p>It is easy to display data in the summary view.</p>
-<p>&nbsp; </p>
+<p>The summary table displays three attributes of an item: who, about, and date. These attributes are usually not true repository attributes; they are not defined as distinct values within a Python class.</p>
+<p>Instead repository attribute <em>redirection</em> is used to forward their references to other attributes in the class. To define this redirection, schema.Role() is used.</p>
+<pre class="code">class FeedItem(pim.ContentItem):
+    .
+    .
+    .
+    about = schema.Role(redirectTo=&quot;title&quot;)
+    who = schema.Role(redirectTo=&quot;author&quot;)
+</pre>
+<p>In the case of FeedItem, we have already defined a <code>date</code> attribute, so we only need to redirect <code>about</code> and <code>who</code>. Whenever the Summary View wants to know what data to display in the 'about' column, it will call <code>getattr(item, 'about')</code>. This will automatically forward to the <code>title</code> attribute, so it as if the Summary View had called <code>getattr(item, 'title')</code>.</p>
+<p>Many different classes of ContentItem may be stored in the summary table. The table needs to be able to ask each item for a common attribute. Instead of requiring each class to manually store data in a shared about attribute from a base class, each class can store its data in a class-specific attribute, and then forward about to the class-specific attribute. </p>
+<h3>Displaying Items in the Detail View</h3>
+<p>The detail view is a more complex user interface than just a set of columns. Every important attribute should be displayed to the user, and each attribute may have a special way to display itself, or may require special behavior when it is edited.</p>
+<p>The detail view is divided into rows. Generally there is one row per attribute, though more complex displays are possible. Typically a row consists of a label, followed by the value of an attribute.</p>
+<p>To display a particular item, you need to define some of the actual user interface elements, and indicate where they should be displayed. User interface components are constructed with <em>Blocks</em>. Blocks are persistent Python objects that wrap wxWidgets classes. </p>
+<p>The first step is to define the list of UI elements, and the attributes they will display:</p>
+<pre class="code">def installParcel(parcel, oldVersion=None):
+    .
+    .
+    . 
+    from osaf.framework.blocks import detail
+    detailblocks = schema.ns(&quot;osaf.framework.blocks.detail&quot;, parcel.itsView)
+    feedItemRootBlocks = [
+         # The markup bar
+         detailblocks.MarkupBar,
+         detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
+
+         # Author area
+         detail.makeArea(parcel, &quot;AuthorArea&quot;,
+             position=0.19,
+             childrenBlocks = [
+                 detail.makeLabel(parcel, _(u&quot;author&quot;), borderTop=2),
+                 detail.makeSpacer(parcel, width=8),
+                 detail.makeEditor(parcel, 'author',
+                                   viewAttribute=u'author',
+                                   border=RectType(0,2,2,2),
+                                   readOnly=True), 
+             ]
+         ).install(parcel),
+
+         # URL
+    	    detail.makeArea(parcel, &quot;LinkArea&quot;, 
+             position=0.3,
+             childrenBlocks = [
+                 detail.makeLabel(parcel, _(u'link'), borderTop=2),
+                 detail.makeSpacer(parcel, width=8),
+                 detail.makeEditor(parcel, 'link',
+                                   viewAttribute=u'link',
+                                   border=RectType(0,2,2,2),
+                                   readOnly=True),
+             ]
+         ).install(parcel),
+         .
+         .
+         .
+     ]</pre>
+<p>There are 4 elements of the feedItemRootBlocks:
+<dl>
+  <dt><code>detailblocks.MarkupBar</code> </dt>
+  <dd>This is a reference to an actual block instance in the repository. This particular block is the Markup, or Stamping toolbar that allows an item to be 'stamped' as multiple different classes.</dd>
+  <dt><code>detail.makeSpacer()</code> </dt>
+  <dd>This creates a small space after the markup bar.</dd>
+  <dt><code>detail.makeArea(parcel, &quot;AuthorArea&quot;, ...)</code> </dt>
+  <dd>This creates a typical combination of label/editor widgets for the author attribute. </dd>
+  <dt><code>detail.makeArea(parcel, &quot;LinkArea&quot;, ...)</code> </dt>
+  <dd>This creates a typical combination of label/editor widgets for the link attribute. </dd>
+</dl>
 <p>&nbsp;</p>
 </body>
 </html>
