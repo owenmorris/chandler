@@ -786,7 +786,9 @@ class SidebarBlock(ControlBlocks.Table):
         """
         this is enabled if any user item is selected in the sidebar
         """
-        event.arguments['Enable'] = self.canRenameSelection()
+        # can remove anything except library collections
+        event.arguments['Enable'] = \
+            not self.selectedItemToView.outOfTheBoxCollection
 
 
     def ClearCollectionContents(self, collection):
@@ -859,9 +861,7 @@ class SidebarBlock(ControlBlocks.Table):
                 getattr(self.selectedItemToView, 'renameable', True))
 
     def onRenameEventUpdateUI (self, event):
-        # can remove anything except library collections
-        event.arguments['Enable'] = \
-            not self.selectedItemToView.outOfTheBoxCollection
+        event.arguments['Enable'] = self.canRenameSelection()
 
     def onRenameEvent (self, event):
         self.widget.EnableCellEditControl()
