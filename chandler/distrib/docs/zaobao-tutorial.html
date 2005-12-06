@@ -145,7 +145,7 @@ current directory, with the web server running, you would type:</p>
 <p>&nbsp;</p>
 <h2>Data Description </h2>
 <p class="ednote">Either in here, or somewhere soon, we need to describe the basic idea of the Repository. Here's some sample text:</p>
-<p class="ednote">Chandler stores all of its data objects in the &quot;Repository&quot;. The Repository is a database used to persistently store Python objects. When an object is created &quot;in The Repository&quot; then certain attributes in the object will persist even if chandler is shut down and restarted. Any type of attribute can be stored in the Repository including complex data structures like dicts and lists, as well as reference to other objects. In all other respects, these Repository objects behave just like Python objects. </p>
+<p class="ednote">Chandler stores all of its data objects in the &quot;Repository&quot;. The Repository is a database used to persistently store Python objects. When an object is created &quot;in the Repository&quot; then certain attributes in the object will persist even if Chandler is shut down and restarted. Any type of attribute can be stored in the Repository including complex data structures like dicts and lists, as well as reference to other objects. In all other respects, these Repository objects behave just like Python objects. </p>
 <p class="ednote">Instead of storing data in structured tables like a traditional database, the Repository keeps all of its objects in a big &quot;soup&quot;. Objects can be retrieved by queries into this soup, or simply by following references from one object to another. </p>
 <p>You may be curious and excited to jump write in and write some
   code. But in the world of Chandler, data is king. The sooner you define
@@ -592,10 +592,54 @@ def installParcel(parcel, oldVersion=None):
 <p>Chandler gives users the ability to &quot;Stamp&quot; items to make the actual item appear to be multiple kinds of items at once. (such as a Task and a Calendar Event) When the detail view is asked to display an Item, it will go find the relevant blocks for that item's class, and render them on the screen. Because of  Stamping, the rules for displaying data can get complex when you are mixing different classes together. </p>
 <p>There is are separate sets of widgets for each class displayed in the Detail View. If an Item is stamped as more than one class, then it needs to display some combination of the widgets from both classes. For instance, if a FeedItem were stamped as a Calendar Event, then the Detail View must display both the <code>author</code> (from FeedItem) and the <code>duration</code> (from CalendarEvent) of the item, even though these two items appear in different classes. </p>
 <p>This problem is alleviated by use of the <code>position</code> attribute. You'll notice that each entry after <code>MarkupBar</code> in <code>feedItemRootBlocks</code> has a <code>position</code> attribute between 0 and 1. This position is used to sort the widgets in the display. 0 represents the top of the Detail View, and 1 represents the bottom. This means that if another Detail View widget has a position of 0.25, then it will appear between <code>AuthorArea</code> and <code>LinkArea</code>.</p>
+<p>Finally, we need to register these Detail View blocks with the Detail View itself. Once again, we just need to create an item in the repository and the Detail View will find it automatically:</p>
+<pre class="code">def installParcel(parcel, oldVersion=None):
+    .
+    .
+    .
+    detail.DetailTrunkSubtree.update(parcel, &quot;ChannelSubtree&quot;,
+                                     key=feeds.FeedItem.getKind(parcel.itsView),
+                                     rootBlocks=feedItemBlocks)</pre>
+<p>One small detail here is the key attribute. You'll notice that it refers to FeedItem.getKind(). Kinds were briefly discussed at the beginning of this document. Here we use getKind() to get a value that can be stored in the repository. Like iterItems(), getKind() operates on a class, so there is no implicit view. The view that is used comes from the parcel that is being installed. 
+<h3>&nbsp;</h3>
 <h3>Attribute Editors</h3>
 <p>Most of the items in the childrenBlocks lists should be relatively self explanatory. <code>makeLabel()</code> and <code>makeSpacer()</code> simply make a label and a spacer to the left of the actual detail view. The third item, <code>makeEditor()</code>, creates a widget called an Attribute Editor. An Attribute Editor is a special type of Block that will dynamically create the correct widget to display and/or edit  the given attribute, even if that attribute is a complex type like a Python datetime or a number. </p>
-<p>For most basic attributes, an Attribute Editor is the appropriate </p>
+<p>Attribute Editors can be modified on a per-use basis allowing for read-only widgets or specialized display of certain types. It is not yet possible to customize the actual types of widgets that  Attribute Editors can display, but that is planned for future versions of Chandler. </p>
 <h3>Custom Detail View Attribute Display</h3>
-<p>Most attributes can be displayed using  </p>
+<p>For most basic attributes, Attribute Editors are the appropriate mechanism to display attribute data. If you need a more complex display beyond what is provided, you can write your own Blocks to wrap some of the existing wxWidgets, or use some of the Blocks that are built into Chandler. </p>
+<p>The Feeds parcel needs to display the body of a feed article. We'll use the existing HTMLDetailArea Block that is provided by Chandler to provide a friendly display with proportioned text.</p>
+<pre class="code">class FeedItemDetail(detail.HTMLDetailArea):
+    def getHTMLText(self, item):
+        if item is None:
+            return
+        HTMLText = u'&lt;html&gt;&lt;body&gt;\n\n'
+
+        HTMLText += u'&lt;h5&gt;&lt;a href=&quot;%s&quot;&gt;%s&lt;/a&gt;&lt;/h5&gt;' % \
+		               (item.link, displayName)
+
+        content = getattr(item, 'content', u'')
+        content.replace(&quot;&lt;&quot;, &quot;&amp;lt;&quot;).replace(&quot;&gt;&quot;, &quot;&amp;gt;&quot;)
+        HTMLText += u'&lt;p&gt;%s&lt;/p&gt;' % content
+        
+        HTMLText += u'&lt;/body&gt;&lt;/html&gt;'
+
+        return HTMLText</pre>
+<p>To use this block, we just have to make sure that an instance of it is included in the feedItemBlocks:</p>
+<pre class="code">def installParcel(parcel, oldVersion=None):
+    .
+    .
+    .
+    feedItemRootBlocks = [
+        .
+        .
+        .
+        FeedItemDetail.update(parcel, &quot;ItemBodyArea&quot;,
+                              position=0.9,
+                              blockName=&quot;ItemBodyArea&quot;,
+                              minimumSize=SizeType(100, 50))
+    ]
+</pre>
+<p>This ensures that it is part of the DetailTrunkSubtree that we declared earlier.</p>
+<p>&nbsp;</p>
 </body>
 </html>
