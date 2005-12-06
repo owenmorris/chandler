@@ -115,29 +115,41 @@ class MainFrame(wx.Frame):
             app.UIRepositoryView.check()
             del busyInfo
 
-        busyInfo = wx.BusyInfo (_("Quitting..."))
 
         # Preliminary tests point to stopCrypto as the cause for Chandler being slow
         # to quit besides the debug only checking of the repository
 
+        busyInfo = wx.BusyInfo (_("Shutting down mail service..."))
         Globals.mailService.shutdown()
+        del busyInfo
 
+        busyInfo = wx.BusyInfo (_("Stopping wakeup service..."))
         Utility.stopWakeup()
+        del busyInfo
 
+        busyInfo = wx.BusyInfo (_("Stopping twisted..."))
         Utility.stopTwisted()
+        del busyInfo
 
         # Since Chandler doesn't have a save command and commits typically happen
         # only when the user completes a command that changes the user's data, we
         # need to add a final commit when the application quits to save data the
         # state of the user's world, e.g. window location and size.
 
+        busyInfo = wx.BusyInfo (_("Commiting repository..."))
         view = app.UIRepositoryView
         try:
             view.commit()
         except VersionConflictError, e:
             logger.exception(e)
+        del busyInfo
 
+        busyInfo = wx.BusyInfo (_("Stopping crypto..."))
         Utility.stopCrypto(Globals.options.profileDir)
+        del busyInfo
+
+        busyInfo = wx.BusyInfo (_("Checkpointing repository..."))
+        view.repository._env.txn_checkpoint()
         del busyInfo
 
         # When we quit, as each wxWidget window is torn down our handlers that
