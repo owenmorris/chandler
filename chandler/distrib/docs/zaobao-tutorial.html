@@ -87,6 +87,7 @@ function toggleEdNotes()
 <a class="meta" href="#" onclick="toggleEdNotes(); return false">Toggle Editor Notes</a>
 <h1>Chandler Extension Tutorial </h1>
 <p>Chandler 0.6</p>
+<p class="ednote">The voicing throughout the document is a little awkward - after I get the whole thing written, I'm going to go through and clean up &quot;you&quot;, &quot;we&quot; etc... </p>
 <h2>Introduction</h2>
 <p>This tutorial will step you through the creation of an extension for
 Chandler. Chandler extensions are usually called 'parcels'. </p>
@@ -411,8 +412,33 @@ def installParcel(parcel, oldVersion=None):
   <li>Events may be dispatched to a specific controller (as seen here), dispatched to the currenly focused UI element, or even broadcast to a number of different controllers or UI elements.</li>
 </ul>
 <p>This flexibilty allows for a very dynamic interface. </p>
-<h2>Creating and Displaying Data</h2>
+<h2>Creating and Displaying Data in the Sidebar </h2>
 <p>We will now add new RSS Feeds to Chandler, so that they appear in the Sidebar. We'll also need to display the list of articles in the summary view, and the actual article itself in the Detail View. </p>
+<h3>Downloading Feeds</h3>
+<p>We'll be using the Python feedparser library available at <a href="http://www.feedparser.org/">http://www.feedparser.org/</a> </p>
+<p>The feed download will occur in FeedChannel's <code>Update()</code> method. We'll need to download the feed information, and then create FeedItems for any items not already in the FeedChannel.</p>
+<pre class="code">class FeedChannel(ContentItem):
+    .
+    .
+    .
+    def Update(self):
+        feeddata = feedparser.parse(self.url)
+
+        existingEntryURLs = [entry.url for entry in self]
+		
+        for entry in feeddata.entries:
+		    # skip articles we already have
+            if entry.url in existingEntryURLs:
+			    continue
+			
+			# create the new FeedItem, and populate it
+            newFeedItem = FeedItem(title=entry.title,
+                                   url=entry.link, 
+                                   author=entry.author,
+                                   content=entry.content[0].value)
+
+            self.add(newFeedItem)
+</pre>
 <h3>Adding Collections to the Sidebar </h3>
 <p>Recall from above that FeedChannel derived from ListCollection. When we create the FeedChannel collection object, we will add it to the Sidebar so that the user can see it. From here we will focus on the code called in the FeedController's <code>onNewFeedCollectionEvent</code> method.</p>
 <p>Creating a FeedChannel object is just like creating any other object in Python, except that you can also pass any attribute values along in the constructor and they will be set automatically.</p>
@@ -436,35 +462,49 @@ def installParcel(parcel, oldVersion=None):
         # download the data
         newFeed.Update()</pre>
 <h3>&nbsp;</h3>
-<h3>Downloading Feeds</h3>
-<p>We'll be using the Python feedparser library available at <a href="http://www.feedparser.org/">http://www.feedparser.org/</a> </p>
-<p>The feed download will occur in FeedChannel's <code>Update()</code> method. We'll need to download the feed information, and then create FeedItems for any items not already in the FeedChannel.</p>
-<pre class="code">class FeedChannel(ContentItem):
-    .
-    .
-    .
-    def Update(self):
-        feeddata = feedparser.parse(self.url)
-
-        existingEntryURLs = [entry.url for entry in self]
-		
-        for entry in feeddata.entries:
-		    # skip articles we already have
-            if entry.url in existingEntryURLs:
-			    continue
-			
-			# create the new FeedItem, and populate it
-			newFeedItem = FeedItem(title=entry.title,
-                                url=entry.link, 
-                                author=entry.author,
-                                content=entry.content[0].value)
-
-
-         self.add(newFeedItem)
-</pre>
-<p></p>
 <h2>Periodic Feed Updates</h2>
-<p>An RSS reader is only useful  </p>
+<p>An RSS reader is only useful if it can periodically fetch news stories without the user's intervention.</p>
+<h3>Periodic Tasks</h3>
+<p>Chandler leverages the Twisted network library for task management. For the purposes of the Feeds parcel, we'll use the PeriodicTask class to regularly call the RSS update code. </p>
+<p>First, we'll make a class whose method will be invoked on a regular basis. In channels.py, add the following class:</p>
+<pre class="code">class FeedUpdateTaskClass:
+
+    def __init__(self, item):
+	    # create a new view so that our changes are isolated
+        self.view = item.itsView.repository.createView(&quot;Feeds&quot;)
+
+    def run(self):
+        # bring in changes from other views
+        self.view.refresh()
+
+        # update all FeedChannel items
+        for channel in FeedChannel.iterItems(self.view):
+            channel.Update()
+
+        # now commit our changes to this view
+        self.view.commit()
+
+        # run this task again
+        return True</pre>
+<p>The FeedUpdateClass implements the basic interface in a PeriodicTask: the <code>run()</code> method is called on a regular interval.</p>
+<p>This code introduces some more complex use of repository views, and even stores one in self.view. This is the same type of view as seen earlier in the self.schema() code.</p>
+<h3>Repository Views </h3>
+<p>A repository view is an interface to the objects in the Repository. As mentioned above, it is sort of a handle into the Repository. However a view is also a way to accumulate a set of changes to the Repository without worrying about changes  interfering from other code. </p>
+<div class="text-with-diagram">
+<img src="repository-views.png" class="diagram">
+<p>All changes made to the Repository are made through a  view. Each view maintains its own set of changes that are written back to the central Repository when the <code>commit()</code> method is called. Changes that have been commited from other views are brought into the current view by using the <code>refresh()</code> method.</p>
+<p>The Repository is tightly coupled with the python language. All repository object instances have an implicit <code>itsView</code> attribute that refers to the view where changes are made. When an object's attributes are read or written, the changes happen through the object's <code>itsView</code> view. This is in contrast to other common patterns found in other object databases, such as passing a 'view' parameter along as a parameter to any read/write methods. </p>
+</div>
+<p>Chandler's user interface runs entirely on one thread, and all repository operations on this &quot;UI Thread&quot; share the same view. </p>
+<p>The FeedUpdateTaskClass may be running on a background thread, and it would be unfortunate if a user changed something in the user interface at the same time that same data is being updated in a background thread. The FeedUpdateTaskClass's <code>__init__()</code> method creates a new view to avoid this situation. This view is never shared outside of the current class. This allows the feed updating code make a series of updates without worrying about changes that may happen in another view. When all the updates have happened, then the results are committed back to the Repository. </p>
+<h3>Finding objects in the Repository</h3>
+<p>The FeedUpdateTaskClass needs to find all FeedChannel instances, and call the <code>Update()</code> method on each one. The method <code>iterItems()</code> is a class method on all classes that inherit from Item. It finds all items of the given class in the Repository. The view parameter to <code>iterItems()</code> is necessary because classes themselves don't exist in any specific view. There is no object with an implicit <code>itsView</code> attribute so it must be specified.</p>
+<h2>Displaying Item Detail</h2>
+<p>So far, this tutorial has explained how to create collections, add them to the sidebar and update them periodically. If you launch chandler, you will be able to subscribe to an RSS feed and it will appear in the sidebar. When you select the feed in the sidebar with the &quot;All&quot; button pressed in the main toolbar, you should see a table widget in the Summary view with a series of blank lines. Each of these lines represents an article from the RSS feed, even though it isn't displaying any specifics about the article. If you click on one of these blank lines, the detail view will display a mostly-blank view of that particular article, but again it will be mostly blank.</p>
+<p>We need to tell Chandler a little more about our data in order for it to display its attributes in the UI.</p>
+<h3>Displaying Items in the Summary View</h3>
+<p>It is easy to display data in the summary view.</p>
+<p>&nbsp; </p>
 <p>&nbsp;</p>
 </body>
 </html>
