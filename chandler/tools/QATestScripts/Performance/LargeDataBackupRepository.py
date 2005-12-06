@@ -1,6 +1,5 @@
-import osaf.sharing.Sharing as Sharing
 import tools.QAUITestAppLib as QAUITestAppLib
-import os, wx, sys
+import os
 import osaf.pim as pim
 
 App_ns = app_ns()
