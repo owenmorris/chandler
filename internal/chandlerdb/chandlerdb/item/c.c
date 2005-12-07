@@ -17,6 +17,7 @@ PyTypeObject *CLinkedMap = NULL;
 PyTypeObject *CItem = NULL;
 PyTypeObject *CValues = NULL;
 PyTypeObject *CKind = NULL;
+PyTypeObject *CAttribute = NULL;
 PyTypeObject *CDescriptor = NULL;
 PyTypeObject *ItemValue = NULL;
 PyObject *Nil = NULL;
@@ -123,6 +124,7 @@ void initc(void)
 
     m = PyImport_ImportModule("chandlerdb.schema.c");
     LOAD_TYPE(m, CKind);
+    LOAD_TYPE(m, CAttribute);
     LOAD_TYPE(m, CDescriptor);
     LOAD_CFUNC(m, _countAccess);
     Py_DECREF(m);

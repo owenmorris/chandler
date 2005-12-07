@@ -28,6 +28,7 @@ extern PyTypeObject *CLinkedMap;
 extern PyTypeObject *CItem;
 extern PyTypeObject *CValues;
 extern PyTypeObject *CKind;
+extern PyTypeObject *CAttribute;
 extern PyTypeObject *CDescriptor;
 extern PyTypeObject *ItemValue;
 

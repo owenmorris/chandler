@@ -599,20 +599,32 @@ static int get_attr_flags(t_item *item, PyObject *name, PyObject *uuid,
     PyObject *obj;
 
     if (descriptor == NULL)
-        return -1;
+    {
+        PyErr_Clear();
+        return 0;
+    }
         
     if (!PyObject_TypeCheck(descriptor, CDescriptor))
     {
         PyErr_SetObject(PyExc_TypeError, descriptor);
+        Py_DECREF(descriptor);
         return -1;
     }
 
     obj = PyDict_GetItem(((t_descriptor *) descriptor)->attrs, uuid);
-    if (obj == NULL)
-        return -1;
+    Py_DECREF(descriptor);
 
-    *attr = (t_attribute *) obj;
-    *flags = (*attr)->flags;
+    if (obj)
+    {
+        if (!PyObject_TypeCheck(obj, CAttribute))
+        {
+            PyErr_SetObject(PyExc_TypeError, obj);
+            return -1;
+        }
+
+        *attr = (t_attribute *) obj;
+        *flags = (*attr)->flags;
+    }
 
     return 0;
 }
@@ -652,6 +664,8 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
             {
                 if (get_attr_flags(self, name, uuid, &attr, &flags) < 0)
                     return NULL;
+                if (attr == NULL)
+                    Py_RETURN_FALSE;
 
                 switch (flags & ATTRDICT) {
                   case VALUE:
@@ -676,8 +690,13 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
                 }
             }
 
-            if (!attr && get_attr_flags(self, name, uuid, &attr, &flags) < 0)
-                return NULL;
+            if (attr == NULL)
+            {
+                if (get_attr_flags(self, name, uuid, &attr, &flags) < 0)
+                    return NULL;
+                if (attr == NULL)
+                    Py_RETURN_FALSE;
+            }
 
             if (flags & NOINHERIT)
             {
