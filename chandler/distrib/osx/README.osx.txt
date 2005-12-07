@@ -14,3 +14,9 @@ Next, double-click the Chandler application icon.  (If you try to doubleclick
 on the Chandler icon without copying it from the .dmg disk image, Chandler
 will give you a cryptic error.)
 
+* Latest Release *
+
+We have recently released 0.6, our experimentally usable calendar. For more details go to...
+
+http://chandler.osafoundation.org/0.6_readme.php
+

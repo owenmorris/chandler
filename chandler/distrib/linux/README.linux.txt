@@ -30,3 +30,8 @@ If you aren't sure which you have, you can run:
 
   % ./*/RunChandler
 
+* Latest Release *
+
+We have recently released 0.6, our experimentally usable calendar. For more details go to...
+
+http://chandler.osafoundation.org/0.6_readme.php
