@@ -185,6 +185,10 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         for i in literalAttributeNames:
             self.failUnless(kind.hasLocalAttributeValue(i))
 
+        # Test hasTrueAttributeValue
+        for i in literalAttributeNames:
+            self.failUnless(kind.hasTrueAttributeValue(i), i)
+
         # Test iterating over reference attributes
         referenceAttributeNames = ['superKinds', 'attributes', 'clouds',
                                    'subKinds', 'extent',
@@ -193,6 +197,11 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
             self.failUnless(i[0] in referenceAttributeNames, i[0])
             self.failUnless(isinstance(i[1], RefList) or
                             isinstance(i[1], Item), i[1])
+
+        # Test hasTrueAttributeValue
+        for i in referenceAttributeNames:
+            self.failUnless(kind.hasTrueAttributeValue(i) or i == 'inheritingSubKinds', i)
+
 
 if __name__ == "__main__":
 #    import hotshot

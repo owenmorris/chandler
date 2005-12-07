@@ -36,9 +36,6 @@ class Kind(Item):
     def __init(self):
 
         self.c = CKind(self)
-        self.monitorSchema = False
-        self.attributesCached = False
-        self.superKindsCached = False
         self._notFoundAttributes = []
         self._initialValues = None
         self._initialReferences = None
@@ -99,7 +96,7 @@ class Kind(Item):
             else:
                 return
 
-            self.monitorSchema = True
+            self.c.monitorSchema = True
             self._setupDescriptors(cls)
 
         except RecursiveLoadItemError:
@@ -357,7 +354,9 @@ class Kind(Item):
         instance
         """
 
-        if self.attributesCached:
+        c = self.c
+
+        if c.attributesCached:
             attr = self._allAttributes.get(name)
             if attr is None:
                 if noError:
@@ -366,7 +365,7 @@ class Kind(Item):
             return self.itsView[attr[0]]
 
         if item is not None:
-            attribute = self.c.getAttribute(item, name)
+            attribute = c.getAttribute(item, name)
             if attribute is not None:
                 return attribute
 
@@ -390,7 +389,7 @@ class Kind(Item):
 
     def hasAttribute(self, name):
 
-        if self.attributesCached:
+        if self.c.attributesCached:
             return name in self._allAttributes
 
         attributes = self._references.get('attributes', None)
@@ -453,9 +452,10 @@ class Kind(Item):
         @type globalOnly: boolean
         """
 
+        c = self.c
         allAttributes = self._allAttributes
-
-        if not self.attributesCached:
+        
+        if not c.attributesCached:
             allAttributes.clear()
 
             references = self._references
@@ -470,7 +470,7 @@ class Kind(Item):
                 for attribute in attributes:
                     allAttributes[attributes.getAlias(attribute)] = (attribute.itsUUID, uuid, attribute.itsParent is self, True)
 
-            self.attributesCached = True
+            c.attributesCached = True
 
         view = self.itsView
         for name, (aUUID, kUUID, local, defined) in allAttributes.iteritems():
@@ -481,14 +481,15 @@ class Kind(Item):
 
     def getInheritedSuperKinds(self):
 
+        c = self.c
         references = self._references
         inherited = references['inheritedSuperKinds']
 
-        if not self.superKindsCached:
+        if not c.superKindsCached:
             for superKind in references['superKinds']:
                 inherited.append(superKind)
                 inherited.extend(superKind.getInheritedSuperKinds())
-            self.superKindsCached = True
+            c.superKindsCached = True
 
         return inherited
 
@@ -647,13 +648,14 @@ class Kind(Item):
 
         The caches of the subKinds of this kind are flushed recursively.
         """
-        
-        if self.attributesCached:
+        c = self.c
+
+        if c.attributesCached:
             self._allAttributes.clear()
-            self.attributesCached = False
+            c.attributesCached = False
 
         self.inheritedSuperKinds.clear()
-        self.superKindsCached = False
+        c.superKindsCached = False
 
         self._inheritedAttributes.clear()
         del self._notFoundAttributes[:]
@@ -881,7 +883,8 @@ class SchemaMonitor(Monitor):
     def schemaChange(self, op, kind, attrName):
 
         if isinstance(kind, Kind):
-            if kind.monitorSchema or kind.attributesCached:
+            c = kind.c
+            if c.monitorSchema or c.attributesCached:
                 kind.flushCaches(attrName)
 
 
