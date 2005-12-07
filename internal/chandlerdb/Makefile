@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.6-$(BRANCH_REV_PREFIX)2
+RELVER=0.6-$(BRANCH_REV_PREFIX)3
 CHANDLERDB=$(INTERNAL)/chandlerdb
 
 BUILD=build_$(SNAP)
@@ -23,9 +23,9 @@ build:
         $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-ifneq (/,$(SRC)/$(BUILD))
+ifneq (/,$(CHANDLERDB)/$(BUILD))
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	rm -rf $(BUILD)
 endif
 
 realclean: clean

@@ -13,8 +13,10 @@
 #include "c.h"
 
 PyTypeObject *SingleRef = NULL;
+PyTypeObject *CLinkedMap = NULL;
 PyTypeObject *CItem = NULL;
 PyTypeObject *CValues = NULL;
+PyTypeObject *CKind = NULL;
 PyTypeObject *CDescriptor = NULL;
 PyTypeObject *ItemValue = NULL;
 PyObject *Nil = NULL;
@@ -112,6 +114,7 @@ void initc(void)
 
     m = PyImport_ImportModule("chandlerdb.util.c");
     LOAD_TYPE(m, SingleRef);
+    LOAD_TYPE(m, CLinkedMap);
     Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.item.ItemValue");
@@ -119,6 +122,7 @@ void initc(void)
     Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.schema.c");
+    LOAD_TYPE(m, CKind);
     LOAD_TYPE(m, CDescriptor);
     LOAD_CFUNC(m, _countAccess);
     Py_DECREF(m);

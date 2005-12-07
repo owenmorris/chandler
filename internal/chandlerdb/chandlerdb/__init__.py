@@ -158,6 +158,21 @@ item.
 @return: C{True} or C{False}
 """)
 
+_install__doc__(CItem.hasTrueAttributeValue, """
+Tell if a Chandler attribute has a non-null value.
+
+A value is considered non-null if it is an instance of C{Item} or if it is
+not C{None}, not an empty sequence or mapping and not otherwise considered
+False by Python. 
+
+If there is no local or inherited value for the attribute, C{False} is also
+returned.
+
+@param name: the name of the attribute
+@type name: a string
+@return: C{True} or C{False}
+""")
+
 _install__doc__(CItem.getDirty, """
 Return the dirty flags currently set on this item.
 

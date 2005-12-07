@@ -11,6 +11,7 @@
 
 #include "c.h"
 #include "../util/singleref.h"
+#include "../schema/kind.h"
 #include "../schema/descriptor.h"
 #include "../schema/attribute.h"
 
@@ -41,6 +42,7 @@ static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyObject *t_item__isMerged(t_item *self, PyObject *args);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
 static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args);
+static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args);
 static PyObject *t_item__fireChanges(t_item *self, PyObject *args);
 static PyObject *t_item__fillItem(t_item *self, PyObject *args);
 static PyObject *t_item_setDirty(t_item *self, PyObject *args);
@@ -84,6 +86,8 @@ static PyObject *filterItem_NAME;
 static PyObject *sourceChanged_NAME, *collectionChanged_NAME;
 static PyObject *_setParent_NAME;
 static PyObject *_setItem_NAME;
+static PyObject *c_NAME;
+static PyObject *getAttributeValue_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
  * "" docstrings are missing docstrings
@@ -127,6 +131,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
     { "hasLocalAttributeValue", (PyCFunction) t_item_hasLocalAttributeValue, METH_VARARGS, NULL },
+    { "hasTrueAttributeValue", (PyCFunction) t_item_hasTrueAttributeValue, METH_VARARGS, NULL },
     { "_fireChanges", (PyCFunction) t_item__fireChanges, METH_VARARGS, "" },
     { "_fillItem", (PyCFunction) t_item__fillItem, METH_VARARGS, "" },
     { "setDirty", (PyCFunction) t_item_setDirty, METH_VARARGS, NULL },
@@ -583,6 +588,124 @@ static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args)
     if (PyDict_Contains(((t_values *) self->values)->dict, name) ||
         PyDict_Contains(((t_values *) self->references)->dict, name))
         Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static int get_attr_flags(t_item *item, PyObject *name, PyObject *uuid,
+                          t_attribute **attr, int *flags)
+{
+    PyObject *descriptor = PyObject_GetAttr((PyObject *) item->ob_type, name);
+    PyObject *obj;
+
+    if (descriptor == NULL)
+        return -1;
+        
+    if (!PyObject_TypeCheck(descriptor, CDescriptor))
+    {
+        PyErr_SetObject(PyExc_TypeError, descriptor);
+        return -1;
+    }
+
+    obj = PyDict_GetItem(((t_descriptor *) descriptor)->attrs, uuid);
+    if (obj == NULL)
+        return -1;
+
+    *attr = (t_attribute *) obj;
+    *flags = (*attr)->flags;
+
+    return 0;
+}
+
+static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
+{
+    PyObject *kind = self->kind;
+
+    if (kind != Py_None)
+    {
+        PyObject *value, *name, *attrDict = Py_None;
+        PyObject *uuid = ((t_item *) kind)->uuid;
+        int attributesCached;
+
+        if (!PyArg_ParseTuple(args, "O|O", &name, &attrDict))
+            return NULL;
+
+        kind = PyObject_GetAttr(kind, c_NAME);
+        if (kind == NULL)
+            return NULL;
+        if (!PyObject_TypeCheck(kind, CKind))
+        {
+            PyErr_SetObject(PyExc_TypeError, kind);
+            Py_DECREF(kind);
+            return NULL;
+        }
+
+        attributesCached = ((t_kind *) kind)->flags & ATTRIBUTES_CACHED;
+        Py_DECREF(kind);
+
+        if (attributesCached)
+        {
+            t_attribute *attr = NULL;
+            int flags = 0;
+
+            if (attrDict == Py_None)
+            {
+                if (get_attr_flags(self, name, uuid, &attr, &flags) < 0)
+                    return NULL;
+
+                switch (flags & ATTRDICT) {
+                  case VALUE:
+                    attrDict = (PyObject *) self->values;
+                    break;
+                  case REF:
+                    attrDict = (PyObject *) self->references;
+                    break;
+                }
+            }
+
+            if (attrDict != Py_None)
+            {
+                value = PyDict_GetItem(((t_values *) attrDict)->dict, name);
+                if (value != NULL)
+                {
+                    if (PyObject_TypeCheck(value, CItem) ||
+                        PyObject_IsTrue(value))
+                        Py_RETURN_TRUE;
+
+                    Py_RETURN_FALSE;
+                }
+            }
+
+            if (!attr && get_attr_flags(self, name, uuid, &attr, &flags) < 0)
+                return NULL;
+
+            if (flags & NOINHERIT)
+            {
+                if (flags & DEFAULT)
+                {
+                    value = attr->defaultValue;
+                    if (PyObject_TypeCheck(value, CItem) ||
+                        PyObject_IsTrue(value))
+                        Py_RETURN_TRUE;
+                }
+
+                Py_RETURN_FALSE;
+            }
+        }
+
+        /* value is inherited, redirected or schema isn't yet cached */
+        value = PyObject_CallMethodObjArgs((PyObject *) self,
+                                           getAttributeValue_NAME,
+                                           name, attrDict, Py_None, NULL);
+        if (value == NULL)
+        {
+            PyErr_Clear();
+            Py_RETURN_FALSE;
+        }
+
+        if (PyObject_TypeCheck(value, CItem) || PyObject_IsTrue(value))
+            Py_RETURN_TRUE;
+    }
 
     Py_RETURN_FALSE;
 }
@@ -1290,6 +1413,8 @@ void _init_item(PyObject *m)
             collectionChanged_NAME = PyString_FromString("collectionChanged");
             _setParent_NAME = PyString_FromString("_setParent");
             _setItem_NAME = PyString_FromString("_setItem");
+            c_NAME = PyString_FromString("c");
+            getAttributeValue_NAME = PyString_FromString("getAttributeValue");
         }
     }
 }

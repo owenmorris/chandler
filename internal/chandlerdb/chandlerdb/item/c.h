@@ -24,8 +24,10 @@
 
 
 extern PyTypeObject *SingleRef;
+extern PyTypeObject *CLinkedMap;
 extern PyTypeObject *CItem;
 extern PyTypeObject *CValues;
+extern PyTypeObject *CKind;
 extern PyTypeObject *CDescriptor;
 extern PyTypeObject *ItemValue;
 

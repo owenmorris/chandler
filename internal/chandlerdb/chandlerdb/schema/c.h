@@ -7,6 +7,7 @@
  */
 
 #include "../item/item.h"
+#include "kind.h"
 #include "descriptor.h"
 #include "attribute.h"
 
