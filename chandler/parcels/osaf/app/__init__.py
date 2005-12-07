@@ -7,7 +7,7 @@ from i18n import OSAFMessageFactory as _
 from PyICU import ICUtzinfo
 from osaf import pim, messages
 from osaf.framework import scripting
-
+from prefs import Preferences
 
 def installParcel(parcel, oldVersion=None):
 
