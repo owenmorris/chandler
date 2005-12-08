@@ -623,7 +623,7 @@ def generateDocs(options, outputDir):
       # and epydoc/cli.py
 
     source_modules = ['samples/skeleton', 'Chandler.py', 'version.py', 
-                      'PyICU', 'PyLucene',
+                      'PyICU', 
                       'chandlerdb', 'chandlerdb.item', 'chandlerdb.persistence', 
                       'chandlerdb.schema', 'chandlerdb.util']
 
