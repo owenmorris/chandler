@@ -86,32 +86,6 @@ class Button(RectangularChild):
             self.post(event, {'item':self})
 
 
-class wxCheckBox(ShownSynchronizer, wx.CheckBox):
-    pass
-
-class CheckBox(RectangularChild):
-
-    event = schema.One(BlockEvent)
-    title = schema.One(schema.Text)
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[event])
-    )
-
-    def instantiateWidget(self):
-        try:
-            id = Block.getWidgetID(self)
-        except AttributeError:
-            id = 0
-
-        parentWidget = self.parentBlock.widget
-        checkbox = wxCheckBox (parentWidget,
-                          id,
-                          self.title,
-                          wx.DefaultPosition,
-                          (self.minimumSize.width, self.minimumSize.height))
-        checkbox.Bind(wx.EVT_CHECKBOX, wx.GetApp().OnCommand, id=id)
-        return checkbox
-    
 class wxChoice(ShownSynchronizer, wx.Choice):
     pass
 

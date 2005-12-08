@@ -18,7 +18,7 @@ from Trunk import TrunkDelegate, TrunkParentBlock
 from Views import View
 
 from ControlBlocks import (
-    AEBlock, Button, CheckBox, Choice, ComboBox, ContentItemDetail,
+    AEBlock, Button, Choice, ComboBox, ContentItemDetail,
     ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail, List, RadioBox,
     ReminderTimer, StaticText, StatusBar, Table, Timer, Tree, PresentationStyle
 )
