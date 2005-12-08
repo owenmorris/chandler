@@ -1,5 +1,3 @@
-__revision__ = "$Revision: $"
-__date__ = "$Date: 2005-07-08 00:29:48Z $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
@@ -853,6 +851,14 @@ class IndexedSelectionCollection (AbstractCollection):
             return None
         else:
             return self[index]
+
+    def isItemSelected(self, item):
+        return isSelected(self.index(item))
+
+    def iterSelection(self):
+        for range in self.getIndex().getRanges():
+            for idx in range:
+                yield self[idx]
 
     def selectItem (self, item):
         """
