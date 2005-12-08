@@ -86,40 +86,6 @@ class Button(RectangularChild):
             self.post(event, {'item':self})
 
 
-class wxChoice(ShownSynchronizer, wx.Choice):
-    pass
-
-class Choice(RectangularChild):
-
-    characterStyle = schema.One(Styles.CharacterStyle)
-    event = schema.One(BlockEvent)
-    choices = schema.Sequence(schema.Text)
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[characterStyle])
-    )
-
-    def instantiateWidget(self):
-        try:
-            id = Block.getWidgetID(self)
-        except AttributeError:
-            id = 0
-
-        parentWidget = self.parentBlock.widget
-        choice = wxChoice (parentWidget,
-                         id, 
-                         wx.DefaultPosition,
-                         (self.minimumSize.width, self.minimumSize.height),
-                         self.choices)
-        choice.Bind(wx.EVT_CHOICE, wx.GetApp().OnCommand, id=id)
-        
-        try:
-            charStyle = self.characterStyle
-        except AttributeError:
-            charStyle = None
-        choice.SetFont(Styles.getFont(charStyle))
-        
-        return choice
-
 class ComboBox(RectangularChild):
 
     selection = schema.One(schema.Text)
