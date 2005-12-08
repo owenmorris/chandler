@@ -599,8 +599,12 @@ def find_packages(where='.', exclude=()):
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 
-
 def generateDocs(options, outputDir):
+    from epydoc.html import HTMLFormatter
+    from epydoc.objdoc import DocMap, report_param_mismatches
+    from epydoc.imports import import_module, find_modules
+    from epydoc.objdoc import set_default_docformat
+
     if options.verbose:
         verbosity = 4
     else:
@@ -623,6 +627,11 @@ def generateDocs(options, outputDir):
                       'chandlerdb', 'chandlerdb.item', 'chandlerdb.persistence', 
                       'chandlerdb.schema', 'chandlerdb.util']
 
+    source_modules += find_modules('application')
+    source_modules += find_modules('i18n')
+    source_modules += find_modules('repository')
+    source_modules += find_modules('tools')
+    
     source_modules += find_packages('application', exclude=['*.tests'])
     source_modules += find_packages('i18n',        exclude=['*.tests'])
     source_modules += find_packages('repository',  exclude=['*.tests'])
@@ -655,11 +664,6 @@ def generateDocs(options, outputDir):
 
       # based on the code in epydoc's gui.py
       # with subtle changes made to make it work :)
-
-    from epydoc.html import HTMLFormatter
-    from epydoc.objdoc import DocMap, report_param_mismatches
-    from epydoc.imports import import_module, find_modules
-    from epydoc.objdoc import set_default_docformat
 
     set_default_docformat('epytext')
 
