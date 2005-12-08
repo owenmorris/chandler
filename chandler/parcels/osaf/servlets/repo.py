@@ -857,6 +857,15 @@ def RenderItem(repoView, item):
             for j in value:
                 result +="<li>%s <a href=%s>%s</a><br>\n" % (j.getItemDisplayName(), toLink(j.itsPath), j.itsPath)
             result += "</ul>"
+
+            if getattr(value,'_indexes', None):
+                result += "<br>Indexes in %s:<ul>\n" % name
+                for indexName in value._indexes:
+                    result += "<li>" + indexName
+                    if value.getRanges(indexName):
+                        result += ", ranges: %s" % (value.getRanges(indexName),)
+                    result += "</li>\n"
+                result += "</ul>\n"
             result += "</td></tr>\n"
             count += 1
 
