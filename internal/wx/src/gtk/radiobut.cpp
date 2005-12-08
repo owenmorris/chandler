@@ -2,7 +2,7 @@
 // Name:        radiobut.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobut.cpp,v 1.58 2005/09/23 12:53:41 MR Exp $
+// Id:          $Id: radiobut.cpp,v 1.59 2005/12/08 21:44:46 vell Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

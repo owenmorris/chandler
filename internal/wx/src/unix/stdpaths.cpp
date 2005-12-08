@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp,v 1.8 2005/12/04 13:01:50 VZ Exp $
+// RCS-ID:      $Id: stdpaths.cpp,v 1.9 2005/12/08 21:49:52 JS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,10 @@
 
 #if defined( __LINUX__ ) || defined( __VMS )
     #include <unistd.h>
+#endif
+
+#if defined(__WXMAC__)
+    #include "wx/mac/private.h"
 #endif
 
 // ============================================================================
@@ -129,6 +133,8 @@ wxString wxStandardPaths::GetUserDataDir() const
 {
 #ifdef __VMS
    return wxFileName::GetHomeDir();
+#elif defined(__WXMAC__)
+   return AppendAppName(wxMacFindFolder((short) kUserDomain, kApplicationSupportFolderType, kDontCreateFolder));
 #else
    return AppendAppName(wxFileName::GetHomeDir() + _T("/."));
 #endif
