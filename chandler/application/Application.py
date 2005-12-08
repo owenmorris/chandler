@@ -10,7 +10,7 @@ from new import classobj
 from i18n import OSAFMessageFactory as _, getImage
 
 from repository.persistence.RepositoryError import \
-    MergeError, RepositoryVersionError
+    MergeError, RepositoryVersionError, VersionConflictError
 
 logger = logging.getLogger(__name__)
 
