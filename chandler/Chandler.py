@@ -82,12 +82,12 @@ def main():
         except Exception, e:
             import sys, traceback
             type, value, stack = sys.exc_info()
-            formattedBacktrace = "".join(traceback.format_exception(type,
-                                                                    value,
-                                                                    stack, 5))
+            backtrace = traceback.format_exception(type, value, stack)
+            frames = 8
+            formattedBacktrace = "".join(backtrace[len(backtrace)-frames:])
 
             message = ("Chandler encountered an unexpected problem while trying to start.\n" + \
-                      "Here are the bottom 5 frames of the stack:\n%s") % (formattedBacktrace)
+                      "Here are the bottom %s frames of the stack:\n%s") % (frames, formattedBacktrace)
             logging.exception(message)
 
             try:
