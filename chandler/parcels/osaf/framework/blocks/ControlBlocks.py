@@ -1027,32 +1027,6 @@ class radioAlignEnumType(schema.Enumeration):
       values = "Across", "Down"
 
 
-class RadioBox(RectangularChild):
-
-    title = schema.One(schema.Text)
-    choices = schema.Sequence(schema.Text)
-    radioAlignEnum = schema.One(radioAlignEnumType)
-    itemsPerLine = schema.One(schema.Integer)
-    event = schema.One(BlockEvent)
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[event])
-    )
-
-    def instantiateWidget(self):
-        if self.radioAlignEnum == "Across":
-            dimension = wx.RA_SPECIFY_COLS
-        elif self.radioAlignEnum == "Down":
-            dimension = wx.RA_SPECIFY_ROWS
-        elif __debug__:
-            assert False, "unknown radioAlignEnum"
-
-        return wx.RadioBox (self.parentBlock.widget,
-                            -1,
-                            self.title,
-                            wx.DefaultPosition, 
-                            (self.minimumSize.width, self.minimumSize.height),
-                            self.choices, self.itemsPerLine, dimension)
-
 class wxStaticText(ShownSynchronizer, wx.StaticText):
     pass
 
