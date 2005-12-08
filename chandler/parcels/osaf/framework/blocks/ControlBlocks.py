@@ -86,21 +86,6 @@ class Button(RectangularChild):
             self.post(event, {'item':self})
 
 
-class ComboBox(RectangularChild):
-
-    selection = schema.One(schema.Text)
-    choices = schema.Sequence(schema.Text)
-    itemSelected = schema.One(BlockEvent)
-
-    def instantiateWidget(self):
-        return wx.ComboBox (self.parentBlock.widget,
-                            -1,
-                            self.selection, 
-                            wx.DefaultPosition,
-                            (self.minimumSize.width, self.minimumSize.height),
-                            self.choices)
-
-    
 class ContextMenu(RectangularChild):
     def displayContextMenu(self, parentWindow, position, data):
         menu = wx.Menu()
