@@ -296,17 +296,9 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # invisible window and send all focus (i.e. keyboard) events
         # through it.
         self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0))
-        self._focusWindow.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 
     def SetPanelFocus(self):
         self._focusWindow.SetFocus()
-
-    def OnKeyUp(self, event):
-        if (event.m_keyCode in (wx.WXK_DELETE, wx.WXK_BACK) and
-            self.blockItem.CanRemove()):
-            self.blockItem.onRemoveEvent(event)
-        else:
-            event.Skip()
 
     def GetCanvasItemAt(self, unscrolledPosition):
         for canvasItem in reversed(self.canvasItemList):

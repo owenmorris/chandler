@@ -148,7 +148,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
     def ScaledScroll(self, dx, dy):
         (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
@@ -429,11 +428,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             # so count of up the conflicts
             canvasItem.CalculateConflictDepth()
 
-    def OnKeyPressed(self, event):
-        # create an event here - unfortunately the panel can't get focus, so it
-        # can't recieve keystrokes yet...
-        pass
-            
     # handle mouse related actions: move, resize, create, select
     
     def OnSelectItem(self, item):
