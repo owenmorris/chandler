@@ -1023,10 +1023,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         if visiblerow is not None:
             self.widget.MakeCellVisible (row, 0)
 
-class radioAlignEnumType(schema.Enumeration):
-      values = "Across", "Down"
-
-
 class wxStaticText(ShownSynchronizer, wx.StaticText):
     pass
 
