@@ -1667,6 +1667,18 @@ class ReminderTimer(Timer):
         super(ReminderTimer, self).setFiringTime(when)
 
 class PresentationStyle(schema.Item):
+    """ 
+    Information that customizes picking or presentation of an attribute
+    editor in an L{AEBlock}.
+
+    L{format} is used to influence the picking process; see 
+    L{osaf.framework.attributeEditors.getAEClass} for information on how
+    it's used.
+    
+    The other settings are used by various attribute editors to customize
+    their presentation or behavior.
+    """
+    
     schema.kindInfo(
         displayName = _(u"Presentation Style")
     )
@@ -1710,9 +1722,13 @@ class AEBlock(BoxContainer):
         description="Block that instantiates an appropriate Attribute Editor."
     )
 
-    characterStyle = schema.One(Styles.CharacterStyle)
-    readOnly = schema.One(schema.Boolean, initialValue = False)
-    presentationStyle = schema.One(PresentationStyle)
+    characterStyle = schema.One(Styles.CharacterStyle, 
+        doc="""an optional CharacterStyle in which this editor should draw""")
+    readOnly = schema.One(schema.Boolean, initialValue = False,
+        doc="""If True, this editor should never allow editing of its value""")
+    presentationStyle = schema.One(PresentationStyle, 
+        doc="""an optional PresentationStyle to customize 
+               this editor's selection or behavior""")
     changeEvent = schema.One(BlockEvent)
 
     schema.addClouds(
@@ -1734,6 +1750,9 @@ class AEBlock(BoxContainer):
     def instantiateWidget(self):
         """
         Ask our attribute editor to create a widget for us.
+        
+        @return: the widget
+        @rtype: wx.Widget
         """
         existingWidget = getattr(self, 'widget', None) 
         if existingWidget is not None:
@@ -1772,6 +1791,8 @@ class AEBlock(BoxContainer):
     def synchronizeWidget (self, **hints):
         """
         Override to call the editor to do the synchronization
+        
+        @param hints: Ignored here for now
         """
         app = wx.GetApp()
         if not app.ignoreSynchronizeWidget and hasattr(self, 'widget'):
@@ -1801,6 +1822,9 @@ class AEBlock(BoxContainer):
     def lookupEditor(self):
         """
         Make sure we've got the right attribute editor for this type
+        
+        @return: The editor to use for the configured item/attributeName, or None
+        @rtype: BaseAttributeEditor
         """
         item = self.item
         if item is None:

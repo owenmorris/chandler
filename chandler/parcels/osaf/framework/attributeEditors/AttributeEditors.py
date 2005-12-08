@@ -1,7 +1,10 @@
-__version__ = "$Revision$"
-__date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+Attribute Editors
+
+@date:      $Date$
+@copyright: Copyright (c) 2003-2005 Open Source Applications Foundation
+@license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
+"""
 __parcel__ = "osaf.framework.attributeEditors"
 
 import os, cStringIO
@@ -36,20 +39,50 @@ logger = logging.getLogger(__name__)
 # AttributeEditorMappingCollection, which we use to find them at runtime.
 
 class AttributeEditorMappingCollection(schema.Item):
+    """ 
+    Singleton item that hosts a collection of all L{AttributeEditorMapping}s
+    in existance: L{AttributeEditorMapping}'s constructor adds each new instance
+    to us to assure this.
+    """
     editors = schema.Sequence(otherName="mappingCollection", initialValue=[])
     
 class AttributeEditorMapping(schema.Item):
+    """ 
+    A mapping from a 'type name' (the name of this L{Item}) to a specific 
+    L{BaseAttributeEditor} subclass.
+    
+    This item's name is a type name (of an attribute) that'll cause this
+    editor to be used to present or edit that attribute's value, optionally
+    followed by a '+' sign and a format string. If present, this format string 
+    influences the attribute editor picking process - see L{getAEClass} for 
+    a full explanation of how it's used.
+
+    @ivar className: class path (python dotted style) to this attribute editor.
+    @type className: String
+    """
     className = schema.One(schema.Bytes)
     mappingCollection = schema.One(otherName="editors")
 
     def __init__(self, *args, **kwds):
+        """ 
+        When we construct an L{AttributeEditorMapping}, we need to make sure
+        it gets added to the L{AttributeEditorMappingCollection} that tracks
+        them.
+        """        
         super(AttributeEditorMapping, self).__init__(*args, **kwds)
       
         aeMappings = schema.ns("osaf.framework.attributeEditors", self.itsView).aeMappings
         aeMappings.editors.append(self, alias=self.itsName)
 
 def installParcel(parcel, oldVersion=None):
-    """ Do initial registry of attribute editors """
+    """ 
+    Do initial registry of attribute editors.
+    
+    @param parcel: The parcel we're installing.
+    @type Parcel
+    @param oldVersion: @@@ Always None for now.
+    @type NoneType
+    """
 
     # Create our one collection of attribute editor mappings; when each gets
     # created, its __init__ will add it to this collection automagically.
@@ -95,47 +128,87 @@ def installParcel(parcel, oldVersion=None):
 _TypeToEditorInstances = {}
 
 def getSingleton (typeName):
-    """ Get (and cache) a single shared Attribute Editor for this type. """
+    """ 
+    Get (and cache) a single shared Attribute Editor for this type. 
+    
+    These 'singleton' attribute editor instances are used by the Table block
+    and are moved about to edit different items' values as the user selects 
+    them. We lazily create one of each at cache it at runtime.
+    
+    @param typeName: The name of the type of the attribute to be edited
+    @type typeName: String
+    @return: The attribute editor instance
+    @rtype: BaseAttributeEditor
+    """
     try:
         instance = _TypeToEditorInstances [typeName]
     except KeyError:
-        aeClass = _getAEClass (typeName)
+        aeClass = getAEClass (typeName)
         instance = aeClass()
         _TypeToEditorInstances [typeName] = instance
     return instance
 
 def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
-    """ Get a new unshared instance of the Attribute Editor for this type (and optionally, format). """
+    """ 
+    Get a new unshared instance of the Attribute Editor for this type (and 
+    optionally, format).
+    
+    These unshared instances are used in the detail view; we don't cache them.
+    
+    @param typeName: The name of the type of the attribute to be edited, 
+        optionally including "+" and a format string; see L{getAEClass} for
+        explanation of how the format string is used.
+    @type typeName: String
+    @param item: The item whose attribute is to be edited.
+    @type Item
+    @param attributeName: The attributeName of the item to be edited.
+    @type String
+    @param presentationStyle: Behavior customization for this editor, or None.
+    @type PresentationStyle
+    @return: The attribute editor instance
+    @rtype: BaseAttributeEditor
+    """
     try:
         format = presentationStyle.format
     except AttributeError:
         format = None
     if typeName == "Lob" and hasattr(item, attributeName):
         typeName = getattr(item, attributeName).mimetype
-    aeClass = _getAEClass(typeName, readOnly, format)
+    aeClass = getAEClass(typeName, readOnly, format)
     #logger.debug("getAEClass(%s [%s, %s]%s) --> %s", 
                  #attributeName, typeName, format, 
                  #readOnly and ", readOnly" or "", aeClass)
     instance = aeClass()        
     return instance
 
-def _getAEClass (type, readOnly=False, format=None):
-    """ Return the attribute editor class for this type """
-    # Try several ways to find an appropriate editor:
-    # - If we're readOnly, try "+readOnly" before we try without it.
-    # - If we have a format, try "+format" before we try without it.
-    # - If those fail, just try the type itself.
-    # - Failing that, use _default.
+def getAEClass (typeName, readOnly=False, format=None):
+    """ 
+    Decide which attribute editor class to use for this type.
+    
+    We'll try several ways to find an appropriate editor:
+      - If we're readOnly, try "+readOnly" before we try without it.
+      - If we have a format, try "+format" before we try without it.
+      - If those fail, just try the type itself.
+      - Failing that, use _default.
+
+    @param typeName: The type name (or MIME type) of the type we'll be editing.
+    @type typeName: String
+    @param readOnly: True if this attribute is readOnly.
+    @type readOnly: Boolean
+    @param format: Format customization string, if any.
+    @return: the attribute editor class to use.
+    @rtype: class
+    """
     def generateEditorTags():
         if format is not None:
             if readOnly:
-                yield "%s+%s+readOnly" % (type, format)
-            yield "%s+%s" % (type, format)
+                yield "%s+%s+readOnly" % (typeName, format)
+            yield "%s+%s" % (typeName, format)
         if readOnly:
-            yield "%s+readOnly" % type
-        yield type
+            yield "%s+readOnly" % typeName
+        yield typeName
         logger.warn("AttributeEditors.getAEClass: using _default for %s/%s",
-                    type, format)
+                    typeName, format)
         yield "_default"
 
     uiView = wx.GetApp().UIRepositoryView
@@ -160,8 +233,19 @@ class BaseAttributeEditor (object):
     """ Base class for Attribute Editors. """
         
     def ReadOnly (self, (item, attribute)):
-        """ Return True if this Attribute Editor refuses to edit """
-        # By default, everything's editable if the item says it is.
+        """ 
+        Should the user be allowed to edit this attribute of this item?
+        
+        By default, everything's editable if the item says it is. Can
+        be overridden to provide more-complex behavior.
+        
+        @param item: the item we'll test.
+        @type item: Item
+        @param attribute: the name of the attribute we'll test.
+        @type attribute: String
+        @return: True if this Attribute Editor shouldn't edit, else False.
+        @rtype: Boolean
+        """
         try:
             isAttrModifiable = item.isAttributeModifiable
         except AttributeError:
@@ -170,16 +254,34 @@ class BaseAttributeEditor (object):
             return not isAttrModifiable(attribute)
 
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
-        """ Draw the value of the attribute in the specified rect of the dc """
+        """ 
+        Draw the value of the this item attribute.
+        
+        Used only for shared attribute editors (used by the Summary Table),
+        not for AEs in the detail view.
+        
+        @param dc: The device context in which we'll draw
+        @type dc: DC
+        @param rect: the rectangle in which to draw
+        @type rect: Rect
+        @param item: the item whose attribute we'll be drawing
+        @type item: Item
+        @param isInSelection: True if 
+        @type isInSelection: Boolean
+        """
         raise NotImplementedError
     
     def IsFixedWidth(self):
         """
-        Return True if this control is of fixed size, and shouldn't be 
-        expanded to fill its space
+        Should this item keep its size, or be expanded to fill its space?
+        
+        Most classes that don't use a TextCtrl will be fixed width, so we
+        default to "keep its size".
+
+        @return: True if this control is of fixed size, and shouldn't be 
+        expanded to fill its space.
+        @rtype: Boolean
         """
-        # Most classes that don't use a TextCtrl will be fixed width, so we
-        # default to True.
         return True
     
     def EditInPlace(self):
