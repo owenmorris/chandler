@@ -376,24 +376,16 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             OnSelectNone()
         """
 
-        # at the moment, any kind of left-click will change
-        # the selection in some way, taking us out of "select-all" mode
-        self.blockItem.selectAllMode = False
-        
         hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox:
             item = hitBox.GetItem()
             if multipleSelection:
                 # need to add/remove from the selection
-
-                # XXX This it the first time wxCollectionCanvas
-                # knows about selection, is this ok?
-                selection = self.blockItem.selection
                 
-                if item in selection:
+                if self.blockItem.contents.isItemSelected(item):
                     self.OnRemoveFromSelection(item)
                 else:
-                    if len(selection) == 0:
+                    if len(self.blockItem.contents.getSelectionRanges()) == 0:
                         self.OnSelectItem(item)
                     else:
                         self.OnAddToSelection(item)
@@ -633,19 +625,20 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         Subclasses can override to handle item selection.
         """
         if item:
-            self.blockItem.selection = [item]
+            self.blockItem.contents.setSelectionToItem(item)
         else:
-            self.blockItem.selection = []
+            self.blockItem.contents.setSelectionRanges([])
         self.blockItem.postSelectItemsBroadcast()
         self.Refresh()
 
     def OnAddToSelection(self, item):
-        self.blockItem.selection.append(item)
+        self.blockItem.contents.selectItem(item)
         self.blockItem.postSelectItemsBroadcast()
         self.blockItem.synchronizeWidget()
 
     def OnRemoveFromSelection(self, item):
         blockItem = self.blockItem
+        blockItem.contents.unselectItem(item)
         blockItem.selection.remove(item)
         blockItem.postSelectItemsBroadcast()
         blockItem.synchronizeWidget()
@@ -679,94 +672,70 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     hit testing, notifications, and some event handling
     """
 
-    # working under the assumption that selection will never be None,
-    # and will always exist on this block, if only as an empty list
-    selection = schema.Sequence(schema.Item,
-                                doc = "List of currently selected items",
-                                initialValue = [])
-
-    selectAllMode = schema.One(schema.Boolean,
-                               doc = "True if we're selecting all events. "
-                               "This allows the UI to make recurring events "
-                               "look like they're selected even if they "
-                               "don't appear in self.selection",
-                               initialValue=False)
-    
     def __init__(self, *arguments, **keywords):
         super(CollectionBlock, self).__init__(*arguments, **keywords)
-        self.selection = []
 
     # Event handling
     
     def onSetContentsEvent (self, event):
         """
-        Make sure to update the selection, keeping any items that are
-        still in the newly selected collection, since items can be in
-        multiple collections.
+        Here would be a good place to make sure that items selected in
+        the old contents are also selected in the new contents.
 
-        This also accounts for the case where multiple collections are
-        selected in the sidebar, and the user is selecting different
-        ones - the actual items visible don't change, but their
-        coloring does.. so you want to maintain selection.
         """
         contents = event.arguments['item']
         # collectionList[0] is the currently selected collection in
         # the sidebar
         contentsCollection = contents.collectionList[0]
         self.setContentsOnBlock(contents, contentsCollection)
-        for item in self.selection:
-            if (item is not None and
-                item not in self.contents):
-                self.selection.remove(item)
+#         for item in self.selection:
+#             if (item is not None and
+#                 item not in self.contents):
+#                 self.selection.remove(item)
         self.synchronizeWidget()
-        
-        self.postSelectItemsBroadcast()
 
 
     def onSelectItemsEvent(self, event):
         """
+        XXX Temporarily moved this out to CalendarControl because it
+        was really painful to have all canvases recieve the same
+        event, and then all update their self.contents. So now there
+        is just one instance that handles this event
+        
         Sets the block selection
 
         NB this allows a selection on an item not in the current range.
         """
-        newSelection = event.arguments['items']
-        newSelectAllMode = event.arguments.get('selectAll', False)
-        
-        if newSelection != self.selection or newSelectAllMode != self.selectAllMode:
-            self.selection = newSelection
-            self.selectAllMode = newSelectAllMode
-            if hasattr(self, 'widget'):
-                self.widget.Refresh()
-
-        
+        pass
+    
     def postSelectItemsBroadcast(self):
         """
         Convenience method for posting a selection changed event.
         """
         self.postEventByName('SelectItemsBroadcast',
-                             {'items': self.selection,
-                              'selectAll': self.selectAllMode,
+                             {'items': list(self.contents.iterSelection()),
                               'collection': self.contentsCollection})
 
     def SelectCollectionInSidebar(self, collection):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
 
     def onSelectAllEvent(self, event):
-        self.selection = list(self.contents)
-        self.selectAllMode = True
-        self.postSelectItemsBroadcast()
+        pass
+#         self.selection = list(self.contents)
+#         self.selectAllMode = True
+#         self.postSelectItemsBroadcast()
 
     def onSelectAllEventUpdateUI(self, event):
         event.arguments['Enable'] =  len(self.contents) > 0
 
     def DeleteSelection(self, cutting=False, *args, **kwargs):
-        for item in self.selection:
-            if item is not None:
-                item.removeFromCollection(self.contentsCollection, cutting)
+        for item in self.contents.iterSelection():
+            assert item is not None
+            item.removeFromCollection(self.contentsCollection, cutting)
         self.ClearSelection()
 
     def ClearSelection(self):
-        self.selection = []
+        self.contents.setSelectionRanges([])
         self.postSelectItemsBroadcast()
 
     def CanAdd(self):

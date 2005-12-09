@@ -398,19 +398,17 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 canvasItem.Draw(dc, styles, brushOffset, selected)
 
         unselectedBoxes = []
-        if self.blockItem.selectAllMode:
-            selectedBoxes = self.canvasItemList
-        else:
-            selectedBoxes = []
-            for canvasItem in self.canvasItemList:
+        selectedBoxes = []
+        contents = self.blockItem.contents
+        for canvasItem in self.canvasItemList:
 
-                item = canvasItem.GetItem()
+            item = canvasItem.GetItem()
 
-                # save the selected box to be drawn last
-                if item in self.blockItem.selection:
-                    selectedBoxes.append(canvasItem)
-                else:
-                    unselectedBoxes.append(canvasItem)
+            # save the selected box to be drawn last
+            if contents.isItemSelected(item):
+                selectedBoxes.append(canvasItem)
+            else:
+                unselectedBoxes.append(canvasItem)
 
         drawCanvasItems(unselectedBoxes, False)
         drawCanvasItems(selectedBoxes, True)
@@ -515,12 +513,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         of conflicting events is the currently selected one.
         """
         firstHit = None
-        selection = self.blockItem.selection
+        contents = self.blockItem.contents
         for canvasItem in reversed(self.canvasItemList):
             if canvasItem.isHit(unscrolledPosition):
                 # this one is in the selection, so we can return
                 # immediately
-                if canvasItem.GetItem() in selection:
+                if contents.isItemSelected(canvasItem.GetItem()):
                     return canvasItem
                 
                 # otherwise, save the first hit for later, in case we

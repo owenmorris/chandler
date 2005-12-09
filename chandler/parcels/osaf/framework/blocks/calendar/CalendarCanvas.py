@@ -1177,7 +1177,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
     # Methods for Drag and Drop and Cut and Paste
     def SelectedItems(self):
-        return self.blockItem.selection
+        return list(self.blockItem.contents.iterSelection())
 
     def AddItems(self, itemList):
         source = self.blockItem.contentsCollection
@@ -1494,6 +1494,31 @@ class CalendarControl(CalendarBlock):
         else:
             self.selectedDate = self.rangeStart
 
+    def onSetContentsEvent(self, event):
+        """
+        The calendar control is responsible for re-broadcasting the
+        selection when the contents change.
+
+        """
+        super(CalendarControl, self).onSetContentsEvent(event)
+        self.postSelectItemsBroadcast()
+
+    def onSelectItemsEvent(self, event):
+        newSelection = event.arguments['items']
+
+        # probably should account for the selection being identical to
+        # the current selection
+        
+        self.contents.setSelectionRanges([])
+            
+        if newSelection:
+            for item in newSelection:
+                self.contents.selectItem(item)
+            
+        if hasattr(self, 'widget'):
+            self.widget.Refresh()
+
+        
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
     """

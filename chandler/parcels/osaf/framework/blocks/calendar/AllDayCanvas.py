@@ -150,19 +150,16 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         unselectedBoxes = []
         
-        if self.blockItem.selectAllMode:
-            selectedBoxes = self.canvasItemList
-        else:
-            selection = self.blockItem.selection
-            selectedBoxes = []
-            for canvasItem in self.canvasItemList:
-                
-                # save the selected box to be drawn last
-                item = canvasItem.GetItem()
-                if item in selection:
-                    selectedBoxes.append(canvasItem)
-                else:
-                    unselectedBoxes.append(canvasItem)
+        contents = self.blockItem.contents
+        selectedBoxes = []
+        for canvasItem in self.canvasItemList:
+
+            # save the selected box to be drawn last
+            item = canvasItem.GetItem()
+            if contents.isItemSelected(item):
+                selectedBoxes.append(canvasItem)
+            else:
+                unselectedBoxes.append(canvasItem)
 
         drawCanvasItems(unselectedBoxes, False)
         drawCanvasItems(selectedBoxes, True)
