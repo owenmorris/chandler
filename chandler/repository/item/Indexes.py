@@ -158,7 +158,7 @@ class NumericIndex(Index):
     def removeRange(self, range):
 
         if self._ranges is not None:
-            self._ranges.unselectRange(range)
+            self._ranges.unSelectRange(range)
 
     def getEntryValue(self, key):
 
