@@ -811,14 +811,14 @@ class IndexedSelectionCollection (AbstractCollection):
         an array of tuples, where each tuple represents a start and end of the range.
         The ranges must be sorted ascending, non-overlapping and postive.
         """
-        self.getIndex().setRanges (ranges)
+        self.rep.setRanges(self.indexName, ranges)
 
     def setSelectionToItem (self, item):
         """
         Sets the entire selection to include only the C(item).
         """
         index = self.index (item)
-        self.getIndex().setRanges ([(index, index)])
+        self.rep.setRanges(self.indexName, [(index, index)])
 
     def isSelected (self, range):
         """
@@ -833,14 +833,14 @@ class IndexedSelectionCollection (AbstractCollection):
         Selects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
         where negative indexing works like Python indexing.
         """
-        self.getIndex().addRange(range)
+        self.rep.addRange(self.indexName, range)
 
     def removeSelectionRange (self, range):
         """
         unselects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
         where negative indexing works like Python indexing..
         """
-        self.getIndex().removeRange(range)
+        self.rep.removeRange(self.indexName, range)
 
     def getFirstSelectedItem (self):
         """
