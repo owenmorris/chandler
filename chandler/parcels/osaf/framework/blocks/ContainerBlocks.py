@@ -22,11 +22,8 @@ class wxBoxContainer (wxRectangularChild):
     def wxSynchronizeWidget(self, **hints):
         super (wxBoxContainer, self).wxSynchronizeWidget ()
 
-        try:
-            colorStyle = self.blockItem.colorStyle
-        except AttributeError:
-            pass
-        else:
+        colorStyle = getattr (self, 'colorStyle', None)
+        if colorStyle is not None:
             self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
             self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
 
