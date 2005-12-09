@@ -753,6 +753,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, int startDayPosition, bool highlightDay)
 {
     dc.SetTextForeground(*wxBLACK);
+
     // Get extent of month-name + year
     wxCoord monthw, monthh;
     wxString headertext = startDate.Format(wxT("%B %Y"));
@@ -767,24 +768,26 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
 
     *y += m_heightRow + EXTRA_MONTH_HEIGHT;
 
-    // first draw the week days
+    // draw the week days
     if ( IsExposed(0, *y, DAYS_PER_WEEK * m_widthCol, m_heightRow) )
     {
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.SetTextForeground(m_colHeaderFg);
         dc.SetBrush(wxBrush(m_colHeaderBg, wxSOLID));
         dc.SetPen(wxPen(m_colHeaderBg, 1, wxSOLID));
+
+        // draw the background
         dc.DrawRectangle(0, *y, GetClientSize().x, m_heightRow);
 
+        wxCoord dayw, dayh;
+        size_t n;
         bool startOnMonday = (GetWindowStyle() & wxCAL_MONDAY_FIRST) != 0;
         for ( size_t wd = 0; wd < DAYS_PER_WEEK; wd++ )
         {
-            size_t n;
             if ( startOnMonday )
-                n = wd == (DAYS_PER_WEEK - 1) ? 0 : wd + 1;
+                n = (wd == (DAYS_PER_WEEK - 1)) ? 0 : wd + 1;
             else
                 n = wd;
-            wxCoord dayw, dayh;
             dc.GetTextExtent(m_weekdays[n], &dayw, &dayh);
             dc.DrawText(m_weekdays[n], (wd*m_widthCol) + ((m_widthCol- dayw) / 2), *y); // center the day-name
         }
@@ -838,22 +841,30 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
 
                 if ( highlightDay )
                 {
-                // either highlight the selected week or the selected day depending upon the style
+                    // either highlight the selected week or the selected day depending upon the style
                     if ( ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) != 0 ) && ( GetWeek(date, false) == GetWeek(m_selected, false) ) ) ||
                         ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) == 0 ) && ( date.IsSameDate(m_selected) ) ) )
                     {
-                        dc.SetTextBackground(highlightColour);
-                        dc.SetBrush(wxBrush(highlightColour, wxSOLID));
-                        dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
                         int startX = (wd == 0) ? SEPARATOR_MARGIN : wd * m_widthCol;
                         int endX = m_widthCol;
                         if ( wd == ( DAYS_PER_WEEK - 1 ) )
                             endX -= (SEPARATOR_MARGIN);
-#if defined(__WXMAC__)
+
+                        dc.SetTextBackground(highlightColour);
+                        dc.SetBrush(wxBrush(highlightColour, wxSOLID));
+
+#if defined(__WXMAC__) && wxMAC_USE_CORE_GRAPHICS
+                        dc.SetPen(*wxTRANSPARENT_PEN);
+#else
+                        dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
+#endif
+
+#if defined(__WXMAC__) && !wxMAC_USE_CORE_GRAPHICS
                         dc.DrawRectangle(startX, *y+1, endX+1, m_heightRow); 
 #else
                         dc.DrawRectangle(startX, *y, endX, m_heightRow); 
 #endif
+
                         changedColours = true;
                     }
                 }
@@ -866,12 +877,19 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
 
                     dc.SetTextBackground(busyColour);
                     dc.SetBrush(wxBrush(busyColour, wxSOLID));
+
+#if defined(__WXMAC__) && wxMAC_USE_CORE_GRAPHICS
+                    dc.SetPen(*wxTRANSPARENT_PEN);
+#else
                     dc.SetPen(wxPen(busyColour, 1, wxSOLID));
-#if defined(__WXMAC__)
+#endif
+
+#if defined(__WXMAC__) && !wxMAC_USE_CORE_GRAPHICS
                     dc.DrawRectangle(x-3, *y + m_heightRow - height - 4, 2, height);
 #else
                     dc.DrawRectangle(x-3, *y + m_heightRow - height - 5, 2, height);
 #endif
+
                     changedColours = true;
                 }
 
