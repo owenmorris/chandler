@@ -54,6 +54,7 @@ BUILD=build_$(SNAP)
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
       ../dist/configure --prefix=$(PREFIX)/db \
+                        --disable-static \
                         --with-pic \
                         $(CONF_DBG)
 
