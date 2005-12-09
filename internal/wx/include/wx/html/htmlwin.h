@@ -2,7 +2,7 @@
 // Name:        htmlwin.h
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.h,v 1.68 2005/09/24 21:42:16 VZ Exp $
+// RCS-ID:      $Id: htmlwin.h,v 1.69 2005/12/09 12:34:29 VS Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ public:
     // it is NOT address/filename of HTML document. If you want to
     // specify document location, use LoadPage() istead
     // Return value : false if an error occurred, true otherwise
-    bool SetPage(const wxString& source);
+    virtual bool SetPage(const wxString& source);
 
     // Append to current page
     bool AppendToPage(const wxString& source);
