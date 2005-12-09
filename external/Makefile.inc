@@ -113,7 +113,7 @@ endif
 
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 
-.PHONY: default all build compile install clean env realclean
+.PHONY: default all build compile install clean env realclean _realclean
 
 default: all
 
