@@ -1037,56 +1037,54 @@ bool wxWindowMac::MacCanFocus() const
 
 void wxWindowMac::SetFocus()
 {
-    if ( AcceptsFocus() )
-    {
-        wxWindow* former = FindFocus() ;
-        if ( former == this )
+    if ( !AcceptsFocus() )
             return ;
 
-        // as we cannot rely on the control features to find out whether we are in full keyboard mode,
-        // we can only leave in case of an error
-        OSStatus err = m_peer->SetFocus( kControlFocusNextPart ) ;
-        if ( err == errCouldntSetFocus )
-        {
-            // enable for patch 1376506 - perhaps? (Stefan's version)
+    wxWindow* former = FindFocus() ;
+    if ( former == this )
+        return ;
+
+    // as we cannot rely on the control features to find out whether we are in full keyboard mode,
+    // we can only leave in case of an error
+    OSStatus err = m_peer->SetFocus( kControlFocusNextPart ) ;
+    if ( err == errCouldntSetFocus )
+        return ;
+
+    // enable for patch 1376506 - perhaps? (Stefan's version)
 #if 1
-            SetUserFocusWindow( (WindowRef)MacGetTopLevelWindowRef() );
+    SetUserFocusWindow( (WindowRef)MacGetTopLevelWindowRef() );
 #endif
-
-            return ;
-        }
 
 #if !TARGET_API_MAC_OSX
-        // emulate carbon events when running under CarbonLib where they are not natively available
-        if ( former )
-        {
-            EventRef evRef = NULL ;
-            verify_noerr( MacCreateEvent( NULL , kEventClassControl , kEventControlSetFocusPart , TicksToEventTime( TickCount() ) , kEventAttributeUserEvent ,
-                &evRef ) );
+    // emulate carbon events when running under CarbonLib where they are not natively available
+    if ( former )
+    {
+        EventRef evRef = NULL ;
+        verify_noerr( MacCreateEvent( NULL , kEventClassControl , kEventControlSetFocusPart , TicksToEventTime( TickCount() ) , kEventAttributeUserEvent ,
+            &evRef ) );
 
-            wxMacCarbonEvent cEvent( evRef ) ;
-            cEvent.SetParameter<ControlRef>( kEventParamDirectObject , (ControlRef) former->GetHandle() ) ;
-            cEvent.SetParameter<ControlPartCode>(kEventParamControlPart , typeControlPartCode , kControlFocusNoPart ) ;
+        wxMacCarbonEvent cEvent( evRef ) ;
+        cEvent.SetParameter<ControlRef>( kEventParamDirectObject , (ControlRef) former->GetHandle() ) ;
+        cEvent.SetParameter<ControlPartCode>(kEventParamControlPart , typeControlPartCode , kControlFocusNoPart ) ;
 
-            wxMacWindowEventHandler( NULL , evRef , former ) ;
-            ReleaseEvent(evRef) ;
-        }
-
-        // send new focus event
-        {
-            EventRef evRef = NULL ;
-            verify_noerr( MacCreateEvent( NULL , kEventClassControl , kEventControlSetFocusPart , TicksToEventTime( TickCount() ) , kEventAttributeUserEvent ,
-                &evRef ) );
-
-            wxMacCarbonEvent cEvent( evRef ) ;
-            cEvent.SetParameter<ControlRef>( kEventParamDirectObject , (ControlRef) GetHandle() ) ;
-            cEvent.SetParameter<ControlPartCode>(kEventParamControlPart , typeControlPartCode , kControlFocusNextPart ) ;
-
-            wxMacWindowEventHandler( NULL , evRef , this ) ;
-            ReleaseEvent(evRef) ;
-        }
-#endif
+        wxMacWindowEventHandler( NULL , evRef , former ) ;
+        ReleaseEvent(evRef) ;
     }
+
+    // send new focus event
+    {
+        EventRef evRef = NULL ;
+        verify_noerr( MacCreateEvent( NULL , kEventClassControl , kEventControlSetFocusPart , TicksToEventTime( TickCount() ) , kEventAttributeUserEvent ,
+            &evRef ) );
+
+        wxMacCarbonEvent cEvent( evRef ) ;
+        cEvent.SetParameter<ControlRef>( kEventParamDirectObject , (ControlRef) GetHandle() ) ;
+        cEvent.SetParameter<ControlPartCode>(kEventParamControlPart , typeControlPartCode , kControlFocusNextPart ) ;
+
+        wxMacWindowEventHandler( NULL , evRef , this ) ;
+        ReleaseEvent(evRef) ;
+    }
+#endif
 }
 
 
