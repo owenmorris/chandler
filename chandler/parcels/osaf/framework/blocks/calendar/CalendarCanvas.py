@@ -1034,16 +1034,16 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         to walk up the parent window chain to find our offset within the parent
         window.
 
+        *** Only true for wxMac-non-CoreGraphics builds ***
+
         Other platforms, the brush is offset from the current window.
         """
+        brushOffset = 0
         if '__WXMAC__' in wx.PlatformInfo:
-            brushOffset = 0
             p = self
             while not p.IsTopLevel():
                 brushOffset += p.GetPosition().x
                 p = p.GetParent()
-        else:
-            brushOffset = 0
 
         return brushOffset
 
