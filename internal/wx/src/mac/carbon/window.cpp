@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.268 2005/11/07 14:37:15 ABX Exp $
+// RCS-ID:      $Id: window.cpp,v 1.269 2005/12/09 16:18:01 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1039,19 +1039,25 @@ void wxWindowMac::SetFocus()
 {
     if ( AcceptsFocus() )
     {
-
         wxWindow* former = FindFocus() ;
         if ( former == this )
             return ;
 
+        // as we cannot rely on the control features to find out whether we are in full keyboard mode,
+        // we can only leave in case of an error
         OSStatus err = m_peer->SetFocus( kControlFocusNextPart ) ;
-        // as we cannot rely on the control features to find out whether we are in full keyboard mode, we can only
-        // leave in case of an error
         if ( err == errCouldntSetFocus )
+        {
+            // enable for patch 1376506 - perhaps? (Stefan's version)
+#if 1
+            SetUserFocusWindow( (WindowRef)MacGetTopLevelWindowRef() );
+#endif
+
             return ;
+        }
 
 #if !TARGET_API_MAC_OSX
-        // emulate carbon events when running under carbonlib where they are not natively available
+        // emulate carbon events when running under CarbonLib where they are not natively available
         if ( former )
         {
             EventRef evRef = NULL ;
@@ -1065,6 +1071,7 @@ void wxWindowMac::SetFocus()
             wxMacWindowEventHandler( NULL , evRef , former ) ;
             ReleaseEvent(evRef) ;
         }
+
         // send new focus event
         {
             EventRef evRef = NULL ;
@@ -2571,10 +2578,14 @@ void wxWindowMac::OnSetFocus(wxFocusEvent& event)
     //(void)GetEventHandler()->ProcessEvent(eventFocus);
 
     bool bIsFocusEvent = (event.GetEventType() == wxEVT_SET_FOCUS);
+
+    // enable for patch 1376506 - perhaps?
+#if 0
     if ( bIsFocusEvent )
           SetUserFocusWindow( GetControlOwner( GetPeer()->GetControlRef() ) );
     else
           SetUserFocusWindow( kUserFocusAuto );
+#endif
 
     if ( MacGetTopLevelWindow() && m_peer->NeedsFocusRect() )
     {
