@@ -97,7 +97,7 @@ class SyncDialog(wx.Dialog):
     def OnCancel(self, evt):
         self.cancelPressed = True
 
-    def updateCallback(self, msg=None, work=None):
+    def updateCallback(self, msg=None, work=None, totalWork=None):
         if msg is not None:
             self.addMessage(msg + "\n")
 
