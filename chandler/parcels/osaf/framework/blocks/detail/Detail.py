@@ -47,11 +47,16 @@ Classes for the ContentItem Detail View
 logger = logging.getLogger(__name__)
 
 class DetailTrunkSubtree(TrunkSubtree):
-    """All our subtrees are of this kind, so we can find 'em."""
+    """
+    Exactly like a L{TrunkSubtree}, but of a distinct Kind so that we can easily
+    find all the TrunkSubtrees to be considered for the detail view.
+    """
 
 class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
-      Root of the Detail View.
+    Root of the Detail View. The prototype instance of this block is copied
+    by the TrunkParentBlock mechanism every time we build a detail view for a
+    new distinct item type.
     """
     def onSetContentsEvent (self, event):
         # logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
@@ -235,11 +240,13 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
 
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 
-    Delegate for the trunk builder on DetailRoot; the cache key is the given item's Kind
+    Delegate for managing trees of blocks that compose the detail view.
     """    
-
-    # A stub block to copy as the root of each tree-of-blocks we build.
-    trunkStub = schema.One(Block.Block)
+    trunkStub = schema.One(Block.Block, doc=
+        """
+        A stub block to copy as the root of each tree-of-blocks we build.
+        Normally, this'll be a DetailRootBlock.
+        """)
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[trunkStub])
@@ -321,13 +328,13 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         
 class DetailSynchronizer(Item):
     """
-      Mixin class that handles synchronizeWidget and
-    the SelectItem event by calling synchronizeItemDetail.
-    Most client classes will only have to implement
-    synchronizeItemDetail.
+    Mixin class that handles synchronization and notification common to most
+    of the blocks in the detail view.
     """
     def detailRoot (self):
-        # Cruise up the parents looking for someone who can return the detailRoot
+        """ 
+        Cruise up the parents looking for someone who can return the detailRoot
+        """
         block = self
         while True:
             try:
@@ -480,7 +487,9 @@ class DetailSynchronizer(Item):
         return (processedResultString, validAddresses)
 
 class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
-    """ Generic Spacer Block class """
+    """ 
+    Generic Spacer Block class 
+    """
 
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue (self, item):
@@ -501,9 +510,11 @@ class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
             hasChanged = hasChanged or labelChanged
         return hasChanged
 
-# gets redirectTo for an attribute name, or just returns the attribute
-# name if a there is no redirectTo
 def GetRedirectAttribute(item, defaultAttr):
+    """
+    Gets redirectTo for an attribute name, or just returns the attribute
+    name if a there is no redirectTo
+    """
     attributeName = item.getAttributeAspect(defaultAttr, 'redirectTo');
     if attributeName is None:
         attributeName = defaultAttr
@@ -554,6 +565,9 @@ class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.Cont
     pass
 
 class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
+    """
+    A L{ControlBlocks.AEBlock} that participates in detail view synchronization
+    """
     def OnDataChanged (self):
         # (this is how we find out about drag-and-dropped text changes!)
         self.saveValue()

@@ -1593,8 +1593,8 @@ class PresentationStyle(schema.Item):
     editor in an L{AEBlock}.
 
     L{format} is used to influence the picking process; see 
-    L{osaf.framework.attributeEditors.getAEClass} for information on how
-    it's used.
+    L{osaf.framework.attributeEditors.AttributeEditors.getAEClass} for
+    information on how it's used.
     
     The other settings are used by various attribute editors to customize
     their presentation or behavior.
@@ -1826,7 +1826,17 @@ class AEBlock(BoxContainer):
         return selectedEditor
 
     def isReadOnly(self, item, attributeName):
-        # Return true if this presentation is always supposed to be readonly
+        """
+        Are we not supposed to allow editing?
+        
+        @param item: The item we're operating on
+        @type item: Item
+        @param attributeName: the name of the attribute from the item
+        @type attributeName: String
+        @returns: True if we're configured to be readonly, or if the content
+        model says we shouldn't let the user edit this; else False.
+        @rtype: Boolean
+        """
         if self.readOnly: 
             return True
         
@@ -1849,7 +1859,12 @@ class AEBlock(BoxContainer):
         assert not hasattr(self, 'widget')
             
     def getItemAttributeTypeName(self):
-        """ Get the type of the current attribute """
+        """ 
+        Get the type of the current attribute.
+        
+        @returns: The name of the type of the item/attribute we're operating on
+        @rtype: String
+        """
         item = self.item
         if item is None:
             return None
@@ -1886,7 +1901,10 @@ class AEBlock(BoxContainer):
 
     def onClickFromWidget(self, event):
         """
-          The widget got clicked on - make sure we're in edit mode.
+        The widget got clicked on - make sure we're in edit mode.
+        
+        @param event: The wx event representing the click
+        @type event: wx.Event
         """
         #logger.debug("AEBlock: %s widget got clicked on", self.attributeName)
 
@@ -1905,7 +1923,10 @@ class AEBlock(BoxContainer):
 
     def onLoseFocusFromWidget(self, event):
         """
-          The widget lost focus - we're finishing editing.
+        The widget lost focus - we're finishing editing.
+        
+        @param event: The wx event representing the lose-focus event
+        @type event: wx.Event
         """
         #logger.debug("AEBlock: %s, widget losing focus" % self.blockName)
         
@@ -1922,7 +1943,11 @@ class AEBlock(BoxContainer):
         self.saveValue()
 
     def saveValue(self, validate=False):
-        # Make sure the value is written back to the item. 
+        """ 
+        Make sure the value is written back to the item. 
+        
+        @param validate: (Ignored here)
+        """
         widget = getattr(self, 'widget', None)
         if widget is not None:
             editor = self.widget.editor
@@ -1952,7 +1977,10 @@ class AEBlock(BoxContainer):
         event.Skip()
 
     def onAttributeEditorValueChange(self):
-        """ Called when the attribute editor changes the value """
+        """ 
+        Called when the attribute editor changes the value. If we're configured 
+        to send an event when this happens, do so.
+        """
         item = self.item
         logger.debug("onAttributeEditorValueChange: %s %s", 
                      item, self.attributeName)
