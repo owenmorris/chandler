@@ -853,12 +853,14 @@ class IndexedSelectionCollection (AbstractCollection):
             return self[index]
 
     def isItemSelected(self, item):
-        return isSelected(self.index(item))
+        return self.isSelected(self.index(item))
 
     def iterSelection(self):
-        for range in self.getIndex().getRanges():
-            for idx in range:
-                yield self[idx]
+        ranges = self.getSelectionRanges()
+        if ranges is not None:
+            for start,end in ranges:
+                for idx in range(start,end+1):
+                    yield self[idx]
 
     def selectItem (self, item):
         """
