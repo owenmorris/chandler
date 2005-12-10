@@ -1,4 +1,7 @@
-""" Classes used for Calendar parcel kinds
+"""Classes used for Calendar parcel kinds.
+   @group Main classes: CalendarEventMixin, CalendarEvent, Location,
+   TimeTransparencyEnum
+   @group Unused classes: Calendar, ModificationEnum, RecurrencePattern
 """
 
 __revision__  = "$Revision$"
@@ -34,11 +37,10 @@ DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 class TimeTransparencyEnum(schema.Enumeration):
     """
-    Time Transparency Enum
+    The iCalendar values for Time Transparency are slightly different, iCalendar
+    has Cancelled, Chandler has fyi.
 
-    The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.
-
-    It'd be nice to not maintain the transparency choices separately from the enum values"""
+    """
     
     schema.kindInfo(
         displayName=u"Time Transparency"
@@ -46,6 +48,7 @@ class TimeTransparencyEnum(schema.Enumeration):
     values="confirmed", "tentative", "fyi"
 
 class ModificationEnum(schema.Enumeration):
+    """Unused, should be removed."""
     schema.kindInfo(displayName=u"Modification")
     values="this", "thisandfuture"
 
@@ -67,7 +70,24 @@ class CalendarEventMixin(RemindableMixin):
     Calendar Event Mixin is the bag of Event-specific attributes.
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
+    
+    @group Main Public Methods: changeThis, changeThisAndFuture, setRuleFromDateUtil,
+    getLastUntil, getRecurrenceEnd, getMaster, createDateUtilFromRule,
+    getNextOccurrence, getOccurrencesBetween, getExistingOccurrence, 
+    getRecurrenceID, deleteThis, deleteThisAndFuture, deleteAll,
+    removeRecurrence, isCustomRule, getCustomDescription, isAttributeModifiable
+    
+    @group Comparison Methods for Indexing: cmpTimeAttribute, cmpStartTime,
+    cmpEndTime, cmpRecurEnd, cmpReminderTime
+    
+    @group Semi-Private Methods: addToCollection, changeNoModification,
+    cleanRule, copyCollections, getEffectiveEndTime, getEffectiveStartTime,
+    getEndTime, getFirstInRule, InitOutgoingAttributes, isBetween, isProxy,
+    moveCollections, moveRuleEndBefore, onValueChanged, removeFutureOccurrences,
+    setEndTime, StampKind, updateRecurrenceEnd, __init__, removeFromCollection
+    
     """
+    
     schema.kindInfo(
         displayName=u"Calendar Event Mixin Kind"
     )
@@ -377,8 +397,12 @@ class CalendarEventMixin(RemindableMixin):
     # begin recurrence related methods
 
     def getFirstInRule(self):
-        """Return the nearest thisandfuture modifications or master."""
-
+        """Return the rule's master, equivalent to getMaster, different only
+        when THISANDFUTURE modifications stay connected to masters.
+        
+        @rtype: C{CalendarEventMixin}
+        
+        """
         first = self.modificationFor
         if first is not None:
             return first
@@ -391,7 +415,11 @@ class CalendarEventMixin(RemindableMixin):
         return first
 
     def getLastUntil(self):
-        """Find the last modification's rruleset, return it's until value."""
+        """Find the last modification's rruleset, return it's until value.
+        
+        @rtype: C{datetime} or C{None}
+
+        """
         # for no-THISANDFUTURE, this is just return until
         if self.rruleset is None:
             return None
@@ -404,7 +432,11 @@ class CalendarEventMixin(RemindableMixin):
         return last
     
     def getRecurrenceEnd(self):
-        """Return (last until or RDATE) + duration, or None."""
+        """Return (last until or RDATE) + duration, or None.
+        
+        @rtype: C{datetime} or C{None}
+
+        """
         if self.rruleset is None:
             return self.endTime
         last = self.getLastUntil()
@@ -435,7 +467,11 @@ class CalendarEventMixin(RemindableMixin):
             self.recurrenceEnd = end
         
     def getMaster(self):
-        """Return the master event in modifications or occurrences."""
+        """Return the master event in modifications or occurrences.
+        
+        @rtype: C{CalendarEventMixin}
+
+        """
         if self.modificationFor is not None:
             return self.modificationFor.getMaster()
         elif self.occurrenceFor in (self, None):
@@ -445,7 +481,21 @@ class CalendarEventMixin(RemindableMixin):
             
 
     def isBetween(self, after=None, before=None, inclusive = True):
-        #TODO: deal with allDay and anyTime events
+        """Whether self is between after and before.
+        
+        @param after: Earliest end time allowed
+        @type  after: C{datetime} or C{None}
+        
+        @param before: Latest start time allowed
+        @type  before: C{datetime} or C{None}
+        
+        @param inclusive: Whether events starting exactly at before should be
+                          allowed
+        @type  inclusive: C{bool}
+        
+        @rtype: C{bool}
+        
+        """
         if inclusive:
             compare = '<='
         else:
@@ -456,11 +506,8 @@ class CalendarEventMixin(RemindableMixin):
     def createDateUtilFromRule(self, ignoreIsCount = True):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
         
-        The resulting rruleset will apply only to the modification or master
-        for which self is an occurrence or modification, for instance, if an
-        event has a thisandfuture modification, and self is an occurrence for
-        that modification, the returned rule will be the modification's rule,
-        not the master's rule.
+        @see: L{Recurrence.RecurrenceRuleSet.createDateUtilFromRule}
+        @return: C{dateutil.rrule.rruleset}
         
         """
         if self.getFirstInRule() != self:
@@ -470,7 +517,11 @@ class CalendarEventMixin(RemindableMixin):
             return self.rruleset.createDateUtilFromRule(dtstart, ignoreIsCount)
 
     def setRuleFromDateUtil(self, rule):
-        """Set self.rruleset from rule.  Rule may be an rrule or rruleset."""
+        """Set self.rruleset from rule.  Rule may be an rrule or rruleset.
+
+        @see: L{Recurrence.RecurrenceRuleSet.setRuleFromDateUtil}
+        
+        """
         if self.rruleset is None:
             ruleItem=Recurrence.RecurrenceRuleSet(None, view=self.itsView)
             ruleItem.setRuleFromDateUtil(rule)
@@ -511,7 +562,13 @@ class CalendarEventMixin(RemindableMixin):
     def getNextOccurrence(self, after=None, before=None):
         """Return the next occurrence for the recurring event self is part of.
         
-        If self is the only occurrence, or last occurrence, return None.
+        If self is the only occurrence, or the last occurrence, return None.
+        
+        @param after: Earliest end time allowed
+        @type  after: C{datetime} or C{None}
+        
+        @param before: Latest start time allowed
+        @type  before: C{datetime} or C{None}
         
         """
         # helper function
@@ -673,7 +730,19 @@ class CalendarEventMixin(RemindableMixin):
         
         Get events starting on or before "before", ending on or after "after".
         Generate any events needing generating.
-                
+
+        @param after: Earliest end time allowed
+        @type  after: C{datetime} or C{None}
+        
+        @param before: Latest start time allowed
+        @type  before: C{datetime} or C{None}
+
+        @param inclusive: Whether events starting exactly at before should be
+                          allowed
+        @type  inclusive: C{bool}
+        
+        @rtype: C{list} containing 0 or more C{CalendarEventMixin}s
+
         """     
         master = self.getMaster()
 
@@ -685,6 +754,14 @@ class CalendarEventMixin(RemindableMixin):
         return list(master._generateRule(after, before, inclusive))
 
     def getExistingOccurrence(self, recurrenceID):
+        """Get event associated with recurrenceID if it already exists.
+        
+        @param recurrenceID:
+        @type  recurrenceID: C{datetime}
+        
+        @rtype: C{datetime} or C{None}
+        
+        """
         first = self.getFirstInRule()
 
         # When an event is imported via sharing, the constructor is bypassed
@@ -696,7 +773,14 @@ class CalendarEventMixin(RemindableMixin):
         return None
 
     def getRecurrenceID(self, recurrenceID):
-        """Get or create the item matching recurrenceID, or None."""
+        """Get or create the item matching recurrenceID, or None.
+
+        @param recurrenceID:
+        @type  recurrenceID: C{datetime}
+        
+        @rtype: C{datetime} or C{None}
+        
+        """
         # look through master's occurrences
         existing = self.getExistingOccurrence(recurrenceID)
         if existing is not None:
@@ -918,6 +1002,7 @@ class CalendarEventMixin(RemindableMixin):
         This method should be used by UI related code, when user feedback is
         appropriate.  To add to collections unrelated to UI, use 
         collection.add().
+                
         """
         if self.rruleset is None:
             super(CalendarEventMixin, self).addToCollection(collection)
@@ -932,6 +1017,11 @@ class CalendarEventMixin(RemindableMixin):
         This method should be used by UI related code, when user feedback is
         appropriate.  To remove from collections unrelated to UI, use 
         collection.remove().
+        
+        @param cutting: Whether this removal is associated with a cut, or just
+                        a removal.
+        @type  cutting: C{bool}
+
         """
         if self.rruleset is None:
             super(CalendarEventMixin, self).removeFromCollection(collection, cutting)
@@ -942,6 +1032,11 @@ class CalendarEventMixin(RemindableMixin):
                    'lastModified', 'allDay')
 
     def onValueChanged(self, name):
+        """
+        Maintain coherence of the various recurring items associated with self
+        after an attribute has been changed.
+        
+        """
         # allow initialization code to avoid triggering onValueChanged
         rruleset = name == 'rruleset'
         changeName = not rruleset and name in CalendarEventMixin.changeNames
@@ -1089,9 +1184,8 @@ class CalendarEventMixin(RemindableMixin):
     def isCustomRule(self):
         """Determine if self.rruleset represents a custom rule.
         
-        For the moment, simple daily, weekly, or monthly repeating events, 
-        optionally with an UNTIL date, or the abscence of a rule, are the only
-        rules which are not custom.
+        @see: L{Recurrence.RecurrenceRuleSet.isCustomRule}
+        @rtype: C{bool}
         
         """
         rruleset = getattr(self, 'rruleset', None)
@@ -1100,18 +1194,31 @@ class CalendarEventMixin(RemindableMixin):
         else: return False
     
     def getCustomDescription(self):
-        """Return a string describing custom rules."""
+        """Return a string describing custom rules.
+
+        @see: L{Recurrence.RecurrenceRuleSet.getCustomDescription}
+        @rtype: C{str}
+        
+        """
         rruleset = getattr(self, 'rruleset', None)
         if rruleset is not None:
             return rruleset.getCustomDescription()
         else: return ''
 
     def isProxy(self):
-        """Is this a proxy of an event?"""
+        """Is this a proxy of an event?
+        
+        @rtype: C{bool}
+        
+        """
         return False
 
     def isAttributeModifiable(self, attribute):
-        """ Is this attribute modifiable? """
+        """Is this attribute modifiable?
+        
+        @rtype: C{bool}
+        
+        """
         master = self.getMaster()
         if self is not master:
             # This is a recurring event that isn't the master;
@@ -1121,9 +1228,7 @@ class CalendarEventMixin(RemindableMixin):
         return super(CalendarEventMixin, self).isAttributeModifiable(attribute)
 
     def cmpTimeAttribute(self, item, attr):
-        """
-        Use the timezone-safe comparison, based on the startTime
-        """
+        """Compare item and self.attr, use timezone-safe comparison."""
         itemTime = getattr(item, attr, None)
         if itemTime is None:
             return -1
@@ -1148,11 +1253,7 @@ class CalendarEventMixin(RemindableMixin):
         return self.cmpTimeAttribute(item, 'reminderFireTime')
 
 class CalendarEvent(CalendarEventMixin, Note):
-    """
-    @note: CalendarEvent should maybe have a 'Timezone' attribute.
-    @note: Do we want to have 'Duration' as a derived attribute on Calendar Event?
-    @note: Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?
-    """
+    """An unstamped event."""
     schema.kindInfo(displayName=u"Calendar Event")
 
     def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
@@ -1161,18 +1262,13 @@ class CalendarEvent(CalendarEventMixin, Note):
 
 
 class Calendar(ContentItem):
-    """
-    @note: Calendar should have an attribute that points to all the Calendar Events.
-    @note: Calendar should maybe have a 'Timezone' attribute.
-    """
+    """Unused, should be removed."""
     
     schema.kindInfo(displayName=u"Calendar", displayAttribute="displayName")
 
 
 class Location(ContentItem):
-    """
-       @note: Location may not be calendar specific.
-    """
+    """Stub Kind for Location."""
     
     schema.kindInfo(displayName=u"Location", displayAttribute="displayName")
 
@@ -1220,9 +1316,7 @@ class Location(ContentItem):
 
 
 class RecurrencePattern(ContentItem):
-    """
-    @note: RecurrencePattern is still a placeholder, and might be general enough to live with PimSchema. RecurrencePattern should have an attribute that points to a CalendarEvent.
-    """
+    """Unused, should be removed."""
     
     schema.kindInfo(displayName=u"Recurrence Pattern")
 

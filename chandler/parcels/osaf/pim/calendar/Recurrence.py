@@ -1,4 +1,9 @@
-""" Classes used for recurrence"""
+"""Classes used for recurrence.
+
+@group Main Recurrence Kinds: RecurrenceRule, RecurrenceRuleSet
+@group Recurrence Enumerations: FrequencyEnum, WeekdayEnum, WeekdayAndPositionStruct
+        
+"""
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
@@ -25,24 +30,7 @@ class FrequencyEnum(schema.Enumeration):
     values="yearly","monthly","weekly","daily","hourly","minutely","secondly"
 
 
-class WeekdayEnum(schema.Enumeration):
-    """The names of weekdays."""
-    schema.kindInfo(
-        displayName=u"Weekdays"
-    )
-    #XXX[i18n] Should these values should come from PyICU?
-    #          Are they used for lookup or display?
-    values="monday","tuesday","wednesday","thursday","friday", \
-           "saturday","sunday"
-
-weekdayAbbrevMap = dict(monday    = _(u"Mo"),
-                        tuesday   = _(u"Tu"),
-                        wednesday = _(u"We"),
-                        thursday  = _(u"Th"),
-                        friday    = _(u"Fr"),
-                        saturday  = _(u"Sa"),
-                        sunday    = _(u"Su"))
-
+# map FrequencyEnums to internationalized singular and plural strings
 singularFrequencyMap = dict(yearly  = _(u"year"),
                             monthly = _(u"month"),
                             weekly  = _(u"week"),
@@ -60,24 +48,52 @@ pluralFrequencyMap =   dict(yearly  = _(u"years"),
                             secondly = _(u"seconds"))
 
 
-class WeekdayAndPositionStruct(schema.Struct):
-    """Weekday and an integer selecting the first, last, etc. day.
+class WeekdayEnum(schema.Enumeration):
+    """The names of weekdays.  Values shouldn't be displayed directly."""
+    schema.kindInfo(
+        displayName=u"Weekdays"
+    )
+    values="monday","tuesday","wednesday","thursday","friday", \
+           "saturday","sunday"
 
-    Use selector=0 for all days equal to weekday.
+# map WeekdayEnums to an internationalized abbreviation for display
+weekdayAbbrevMap = dict(monday    = _(u"Mo"),
+                        tuesday   = _(u"Tu"),
+                        wednesday = _(u"We"),
+                        thursday  = _(u"Th"),
+                        friday    = _(u"Fr"),
+                        saturday  = _(u"Sa"),
+                        sunday    = _(u"Su"))
+
+
+class WeekdayAndPositionStruct(schema.Struct):
+    """
+    Composition of a WeekdayEnum and an integer selecting first (1), last (-1),
+    or n-th occurrence of that weekday in the month.
+
+    selector=0 represents all days in the month equal to the given weekday.
 
     """
     __slots__ = "weekday", "selector"
-    # schema.kindInfo(
-#         displayName=u"Weekday and position"
-#     )
 
 def toDateUtilWeekday(enum):
+    """
+    Convert the English string for a weekday in WeekdayEnum to dateutil's
+    special weekday class associated with that day.
+    
+    """
     return getattr(dateutil.rrule, enum[0:2].upper())
 
 def toDateUtilFrequency(enum):
+    """Return the dateutil constant associated with the given frequency."""
     return getattr(dateutil.rrule, enum.upper())
 
 def toDateUtilStruct(structlist):
+    """
+    Convert a WeekdayAndPositionStruct to the associated dateutil byweekday
+    class.
+    
+    """
     outlist = []
     for struct in structlist:
         day=toDateUtilWeekday(struct.weekday)
@@ -88,17 +104,21 @@ def toDateUtilStruct(structlist):
     return outlist
 
 def toDateUtil(val):
-    #what's the proper way to dispatch, particularly for the struct?
+    """
+    Convert a Chandler frequency, weekday, or byweekday selector to the
+    associated dateutil value.
+    
+    """
     if type(val) == PersistentList: return toDateUtilStruct(val)
     elif val in FrequencyEnum.values: return toDateUtilFrequency(val)
     elif val in WeekdayEnum.values: return toDateUtilWeekday(val)
 
 def fromDateUtilWeekday(val):
-    #hack!
+    """Convert a dateutil weekday constant to its associated WeekdayEnum."""
     return WeekdayEnum.values[val]
 
 def fromDateUtilFrequency(val):
-    #hack!
+    """Convert a dateutil frequency constant to its associated FrequencyEnum."""
     return FrequencyEnum.values[val]
 
 class RecurrenceRule(items.ContentItem):
@@ -210,6 +230,9 @@ class RecurrenceRule(items.ContentItem):
         Return until or until + 23:59, depending on untilIsDate. 
         Will return None if there's no 'until' (so don't assume you can
         compare this value with a datetime directly!)
+        
+        @rtype: C{datetime} or C{None}
+        
         """
         try:
             until = self.until
@@ -223,7 +246,20 @@ class RecurrenceRule(items.ContentItem):
             
 
     def createDateUtilFromRule(self, dtstart, ignoreIsCount = True):
-        """Return an appropriate dateutil.rrule.rrule."""
+        """Return an appropriate dateutil.rrule.rrule.
+        
+        @param dtstart: The start time for the recurrence rule
+        @type  dtstart: C{datetime}
+
+        @param ignoreIsCount: Whether the isCount flag should be used to convert
+                              until endtimes to a count. Converting to count 
+                              takes extra cycles and is only necessary when
+                              the rule is going to be serialized
+        @type  ignoreIsCount: C{bool}
+        
+        @rtype: C{dateutil.rrule.rrule}
+
+        """
 
         tzinfo = dtstart.tzinfo
 
@@ -251,7 +287,12 @@ class RecurrenceRule(items.ContentItem):
             return rule
 
     def setRuleFromDateUtil(self, rrule):
-        """Extract attributes from rrule, set them in self."""
+        """Extract attributes from rrule, set them in self.
+        
+        @param rrule: The rule to marshall into Chandler
+        @type  rrule: C{dateutil.rrule.rrule}
+        
+        """
         self.untilIsDate = False
         until = None # assume no limit
         if rrule._count is not None:
@@ -309,7 +350,16 @@ class RecurrenceRule(items.ContentItem):
                     del self.bymonth
 
     def getPreviousRecurrenceID(self, dtstart, recurrenceID):
-        """Return the date of the previous recurrenceID, or None."""
+        """Return the date of the previous recurrenceID, or None.
+        
+        @param dtstart: The start time for the recurrence rule
+        @type  dtstart: C{datetime}
+        
+        @param recurrenceID: The current recurrenceID
+        @type  recurrenceID: C{datetime}
+        
+        @rtype: C{datetime} or C{None}
+        """
         previous = None
         for dt in self.createDateUtilFromRule(dtstart):
             if datetimeOp(dt, '<', recurrenceID):
@@ -319,8 +369,14 @@ class RecurrenceRule(items.ContentItem):
         return previous
 
     def moveUntilBefore(self, dtstart, recurrenceID):
-        """
-        Find the previous recurrenceID, set UNTIL to match it.
+        """Find the previous recurrenceID, set UNTIL to match it.
+
+        @param dtstart: The start time for the recurrence rule
+        @type  dtstart: C{datetime}
+        
+        @param recurrenceID: The current recurrenceID
+        @type  recurrenceID: C{datetime}
+        
         """
         previous = self.getPreviousRecurrenceID(dtstart, recurrenceID)
         assert previous is not None
@@ -336,6 +392,9 @@ class RecurrenceRule(items.ContentItem):
 
 
 class RecurrenceRuleSet(items.ContentItem):
+    """
+    A collection of recurrence and exclusion rules, dates, and exclusion dates.
+    """
     rrules = schema.Sequence(
         RecurrenceRule,
         displayName=u"Recurrence rules",
@@ -368,14 +427,35 @@ class RecurrenceRuleSet(items.ContentItem):
     )
 
     def addRule(self, rule, rrulesorexrules='rrules'):
-        """Add an rrule or exrule, defaults to rrule."""
+        """Add an rrule or exrule, defaults to rrule.
+        
+        @param rule: Rule to be added
+        @type  rule: L{RecurrenceRule}
+        
+        @param rrulesorexrules: Whether the rule is an rrule or exrule
+        @type  rrulesorexrules: 'rrules' or 'exrules'
+        
+        """
         try:
             getattr(self, rrulesorexrules).append(rule)
         except AttributeError:
             setattr(self, rrulesorexrules, [rule])
         
     def createDateUtilFromRule(self, dtstart, ignoreIsCount = True):
-        """Return an appropriate dateutil.rrule.rruleset."""
+        """Return an appropriate dateutil.rrule.rruleset.
+
+        @param dtstart: The start time for the recurrence rule
+        @type  dtstart: C{datetime}
+
+        @param ignoreIsCount: Whether the isCount flag should be used to convert
+                              until endtimes to a count. Converting to count 
+                              takes extra cycles and is only necessary when
+                              the rule is going to be serialized
+        @type  ignoreIsCount: C{bool}
+        
+        @rtype: C{dateutil.rrule.rruleset}
+        
+        """
         ruleset = rruleset()
         for rtype in 'rrule', 'exrule':
             for rule in getattr(self, rtype + 's', []):
@@ -391,7 +471,10 @@ class RecurrenceRuleSet(items.ContentItem):
         
         If a dateutil.rrule.rrule is passed in instead of an rruleset, treat
         it as the new rruleset.
-        
+
+        @param ruleSetOrRule: The rule to marshall into Chandler
+        @type  ruleSetOrRule: C{dateutil.rrule.rrule} or C{dateutil.rrule.rruleset}
+
         """
         if isinstance(ruleSetOrRule, rrule):
             set = rruleset()
@@ -413,6 +496,12 @@ class RecurrenceRuleSet(items.ContentItem):
             setattr(self, typ + 's', datetimes)
     
     def isComplex(self):
+        """Determine if the rule is too complex to display a meaningful
+        description about it.
+        
+        @rtype: C{bool}
+        
+        """
         if hasattr(self, 'rrules'):
             if len(self.rrules) != 1:
                 return True # multiple rules
@@ -440,7 +529,9 @@ class RecurrenceRuleSet(items.ContentItem):
         For the moment, simple daily, weekly, or monthly repeating events, 
         optionally with an UNTIL date, or the abscence of a rule, are the only
         rules which are not custom.
-        
+
+        @rtype: C{bool}
+
         """
         if self.isComplex():
             return True
@@ -456,7 +547,11 @@ class RecurrenceRuleSet(items.ContentItem):
             return False
 
     def getCustomDescription(self):
-        """Return a string describing custom rules."""
+        """Return a string describing custom rules.
+
+        @rtype: C{str}
+        
+        """
         if self.isComplex():
             return _(u"complex rule - no description available")
         else:
@@ -491,8 +586,15 @@ class RecurrenceRuleSet(items.ContentItem):
             
 
     def moveDatesAfter(self, after, delta):
-        """
-        Move dates (later than "after") in exdates and rdates by delta.
+        """Move dates (later than "after") in exdates and rdates by delta.
+        
+        @param after: Earliest date to move
+        @type  after: C{datetime}
+
+        @param delta: Time difference
+        @type  delta: C{timedelta}
+
+
         """
         self._ignoreValueChanges = True
         for datetype in 'rdates', 'exdates':
@@ -509,8 +611,14 @@ class RecurrenceRuleSet(items.ContentItem):
 
 
     def removeDates(self, cmp, endpoint):
-        """
-        Remove dates in exdates and rdates before or after endpoint.
+        """Remove dates in exdates and rdates before or after endpoint.
+
+        @param cmp: Comparison operator
+        @type  cmp: '<', '<=', '>', '>=', or '=='
+
+        @param endpoint: Start or end point for comparisons
+        @type  endpoint: C{datetime}
+
         """
         for datetype in 'rdates', 'exdates':
             datelist = getattr(self, datetype, None)
@@ -522,8 +630,14 @@ class RecurrenceRuleSet(items.ContentItem):
                         self._ignoreValueChanges = False
 
     def moveRuleEndBefore(self, dtstart, end):
-        """
-        Make self's rules end before end.  dtstart is 
+        """Make self's rules end before end.
+
+        @param dtstart: Start time for the recurrence rule
+        @type  dtstart: C{datetime}
+
+        @param end: Date not to include in the rule's new end
+        @type  end: C{datetime}
+
         """
         #change the rule, onValueChanged will trigger cleanRule for master
         for rule in getattr(self, 'rrules', []):
