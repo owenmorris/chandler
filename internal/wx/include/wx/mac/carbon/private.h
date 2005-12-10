@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.44 2005/11/07 14:37:10 ABX Exp $
+// RCS-ID:      $Id: private.h,v 1.45 2005/12/10 15:24:55 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -462,6 +462,10 @@ void wxMacNativeToPoint( const Point *n , wxPoint* wx ) ;
 wxWindow *              wxFindControlFromMacControl(ControlRef inControl ) ;
 wxTopLevelWindowMac*    wxFindWinFromMacWindow( WindowRef inWindow ) ;
 wxMenu*                 wxFindMenuFromMacMenu(MenuRef inMenuRef) ;
+
+int                     wxMacCommandToId( UInt32 macCommandId ) ;
+UInt32                  wxIdToMacCommand( int wxId ) ;
+wxMenu*                 wxFindMenuFromMacCommand( const HICommand &macCommandId , wxMenuItem* &item ) ;
 
 extern wxWindow* g_MacLastWindow ;
 pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , EventRef event , void *data ) ;

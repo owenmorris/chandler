@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.cpp,v 1.190 2005/11/02 14:50:10 SC Exp $
+// RCS-ID:      $Id: app.cpp,v 1.191 2005/12/10 15:50:20 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -351,6 +351,146 @@ void wxApp::MacReopenApp()
 }
 
 //----------------------------------------------------------------------
+// Macintosh CommandID support - converting between native and wx IDs
+//----------------------------------------------------------------------
+
+// if no native match they just return the passed-in id
+
+struct IdPair
+{
+    UInt32 macId ;
+    int wxId ;
+} ;
+
+IdPair gCommandIds [] = 
+{
+    { kHICommandCut ,           wxID_CUT } ,
+    { kHICommandCopy ,          wxID_COPY } ,
+    { kHICommandPaste ,         wxID_PASTE } ,
+    { kHICommandSelectAll ,     wxID_SELECTALL } ,
+    { kHICommandClear ,         wxID_CLEAR } ,
+    { kHICommandUndo ,          wxID_UNDO } ,
+    { kHICommandRedo ,          wxID_REDO } ,
+} ;
+
+int wxMacCommandToId( UInt32 macCommandId ) 
+{
+    int wxid = 0 ;
+    
+    if ( macCommandId == kHICommandPreferences || macCommandId == kHICommandQuit || macCommandId == kHICommandAbout  )
+    {
+        switch ( macCommandId )
+        {
+            case kHICommandPreferences :
+                wxid = wxApp::s_macPreferencesMenuItemId ;
+                break ;
+            case kHICommandQuit :
+                wxid = wxApp::s_macExitMenuItemId ;
+                break ;
+            case kHICommandAbout :
+                wxid = wxApp::s_macAboutMenuItemId ;
+                break ;
+        }
+    }
+    else
+    {
+        for ( size_t i = 0 ; i < WXSIZEOF(gCommandIds) ; ++i )
+        {
+            if ( gCommandIds[i].macId == macCommandId )
+            {
+                wxid = gCommandIds[i].wxId ;
+                break ;
+            }
+        }
+    }
+    if ( wxid == 0 )
+        wxid = (int) macCommandId ;
+    
+    return wxid ;
+}
+
+UInt32 wxIdToMacCommand( int wxId ) 
+{
+    UInt32 macId = 0 ;
+    
+    if ( wxId == wxApp::s_macPreferencesMenuItemId )
+        macId = kHICommandPreferences ;
+    else if (wxId == wxApp::s_macExitMenuItemId)
+        macId = kHICommandQuit ;
+    else if (wxId == wxApp::s_macAboutMenuItemId)
+        macId = kHICommandAbout ;
+    else
+    {
+        for ( size_t i = 0 ; i < WXSIZEOF(gCommandIds) ; ++i )
+        {
+            if ( gCommandIds[i].wxId == wxId )
+            {
+                macId = gCommandIds[i].macId ;
+                break ;
+            }
+        }
+    }
+    if ( macId == 0 )
+        macId = (int) wxId ;
+    
+    return macId ;
+}
+
+wxMenu* wxFindMenuFromMacCommand( const HICommand &command , wxMenuItem* &item ) 
+{
+    wxMenu* itemMenu = NULL ;
+    int id = 0 ;
+    
+    // for 'standard' commands which don't have a wx-menu
+    if ( command.commandID == kHICommandPreferences || command.commandID == kHICommandQuit || command.commandID == kHICommandAbout  )
+    {
+        id = wxMacCommandToId( command.commandID ) ;
+        
+        wxMenuBar* mbar = wxMenuBar::MacGetInstalledMenuBar() ;
+        if ( mbar )
+        {
+            item = mbar->FindItem( id , &itemMenu ) ;
+        }
+    }
+    else if ( command.commandID != 0 && command.menu.menuRef != 0 && command.menu.menuItemIndex != 0 )
+    {
+        id = wxMacCommandToId( command.commandID ) ;
+        // make sure it is one of our own menus, or of the 'synthetic' apple and help menus , otherwise don't touch
+        MenuItemIndex firstUserHelpMenuItem ;
+        static MenuHandle mh = NULL ;
+        if ( mh == NULL )
+        {
+            if ( UMAGetHelpMenu( &mh , &firstUserHelpMenuItem) != noErr )
+            {
+                mh = NULL ;
+            }
+        }
+        
+        // is it part of the application or the help menu, then look for the id directly
+        if ( ( GetMenuHandle( kwxMacAppleMenuId ) != NULL && command.menu.menuRef == GetMenuHandle( kwxMacAppleMenuId ) ) ||
+             ( mh != NULL && command.menu.menuRef == mh ) )
+        {
+            wxMenuBar* mbar = wxMenuBar::MacGetInstalledMenuBar() ;
+            if ( mbar )
+            {
+                item = mbar->FindItem( id , &itemMenu ) ;
+            }
+        }
+        else
+        {
+            UInt32 refCon ;
+            GetMenuItemRefCon( command.menu.menuRef , command.menu.menuItemIndex , &refCon ) ;
+            itemMenu = wxFindMenuFromMacMenu( command.menu.menuRef ) ;
+            if ( itemMenu != NULL )
+            {
+                item = (wxMenuItem*) refCon ;
+            }
+        }
+    }
+    return itemMenu ;
+}
+
+//----------------------------------------------------------------------
 // Carbon Event Handler
 //----------------------------------------------------------------------
 
@@ -438,86 +578,69 @@ static pascal OSStatus wxMacAppCommandEventHandler( EventHandlerCallRef handler 
     cEvent.GetParameter<HICommand>(kEventParamDirectObject,typeHICommand,&command) ;
 
     wxMenuItem* item = NULL ;
-    MenuCommand id = command.commandID ;
-
-    // for 'standard' commands
-    if ( id == kHICommandPreferences || id == kHICommandQuit || id == kHICommandAbout )
-    {
-        switch ( id )
-        {
-            case kHICommandPreferences :
-                id = wxApp::s_macPreferencesMenuItemId ;
-                break ;
-            case kHICommandQuit :
-                id = wxApp::s_macExitMenuItemId ;
-                break ;
-            case kHICommandAbout :
-                id = wxApp::s_macAboutMenuItemId ;
-                break ;
-        }
-        
-        wxMenuBar* mbar = wxMenuBar::MacGetInstalledMenuBar() ;
-        if ( mbar )
-        {
-            wxMenu* menu = NULL ;
-            item = mbar->FindItem( id , &menu ) ;
-        }
-    }
-    else if ( id != 0 && command.menu.menuRef != 0 && command.menu.menuItemIndex != 0 )
-    {
-        // make sure it is one of our own menus, or of the 'synthetic' apple and help menus , otherwise don't touch
-        MenuItemIndex firstUserHelpMenuItem ;
-        static MenuHandle mh = NULL ;
-        if ( mh == NULL )
-        {
-            if ( UMAGetHelpMenu( &mh , &firstUserHelpMenuItem) != noErr )
-            {
-                mh = NULL ;
-            }
-        }
-
-        // is it part of the application or the help menu, then look for the id directly
-        if ( ( GetMenuHandle( kwxMacAppleMenuId ) != NULL && command.menu.menuRef == GetMenuHandle( kwxMacAppleMenuId ) ) ||
-             ( mh != NULL && command.menu.menuRef == mh ) )
-        {
-            wxMenuBar* mbar = wxMenuBar::MacGetInstalledMenuBar() ;
-            if ( mbar )
-            {
-                wxMenu* menu = NULL ;
-                item = mbar->FindItem( id , &menu ) ;
-            }
-        }
-        else
-        {
-            wxMenu* itsMenu = NULL ;
-            UInt32 refCon ;
-            GetMenuItemRefCon( command.menu.menuRef , command.menu.menuItemIndex , &refCon ) ;
-            itsMenu = wxFindMenuFromMacMenu( command.menu.menuRef ) ;
-            if ( itsMenu != NULL )
-            {
-                item = (wxMenuItem*) refCon ;
-            }
-        }
-    }
+    wxMenu* itemMenu = wxFindMenuFromMacCommand( command , item ) ;
+    int id = wxMacCommandToId( command.commandID ) ;
 
     if ( item )
     {
-       switch( cEvent.GetKind() )
-       {
-           case kEventProcessCommand :
-           {
+        wxASSERT( itemMenu != NULL ) ;
+        
+        switch( cEvent.GetKind() )
+        {
+            case kEventProcessCommand :
+            {
                 if (item->IsCheckable())
-                {
                     item->Check( !item->IsChecked() ) ;
-                }
 
-                item->GetMenu()->SendEvent( id , item->IsCheckable() ? item->IsChecked() : -1 ) ;
-                result = noErr ;
+                if ( itemMenu->SendEvent( id , item->IsCheckable() ? item->IsChecked() : -1 ) )
+                    result = noErr ;
             }
             break ;
         case kEventCommandUpdateStatus:
-            // eventually trigger an updateui round
-            result = noErr ;
+            {
+                wxUpdateUIEvent event(id);
+                event.SetEventObject( itemMenu );
+                                
+                bool processed = false;
+                
+                // Try the menu's event handler
+                {
+                    wxEvtHandler *handler = itemMenu->GetEventHandler();
+                    if ( handler )
+                        processed = handler->ProcessEvent(event);
+                }
+                
+                // Try the window the menu was popped up from (and up through the
+                // hierarchy)
+                if ( !processed )
+                {
+                    const wxMenuBase *menu = itemMenu;
+                    while ( menu )
+                    {
+                        wxWindow *win = menu->GetInvokingWindow();
+                        if ( win )
+                        {
+                            processed = win->GetEventHandler()->ProcessEvent(event);
+                            break;
+                        }
+                        
+                        menu = menu->GetParent();
+                    }
+                }
+                
+                if ( processed )
+                {
+                    // if anything changed, update the changed attribute
+                    if (event.GetSetText())
+                        itemMenu->SetLabel(id, event.GetText());
+                    if (event.GetSetChecked())
+                        itemMenu->Check(id, event.GetChecked());
+                    if (event.GetSetEnabled())
+                        itemMenu->Enable(id, event.GetEnabled());
+
+                    result = noErr ;
+                }
+            }
             break ;
         default :
             break ;
@@ -575,28 +698,11 @@ pascal OSStatus wxMacAppEventHandler( EventHandlerCallRef handler , EventRef eve
 
                 WindowRef window ;
                 Point screenMouseLocation = cEvent.GetParameter<Point>(kEventParamMouseLocation) ;
-                short windowPart = ::FindWindow(screenMouseLocation, &window);
+                ::FindWindow(screenMouseLocation, &window);
                 // only send this event in case it had not already been sent to a tlw, as we get
                 // double events otherwise (in case event.skip) was called
-                if (window == NULL)
-                {
-                    // ensure that the menu item states are current
-                    if (windowPart == inMenuBar)
-                    {
-                        // NB: IMO, this should be performed regardless of CanUpdate
-                        // if (wxUpdateUIEvent::CanUpdate( NULL ))
-                        {
-                            wxMenuBar* bar = wxMenuBar::MacGetInstalledMenuBar();
-                            if (bar != NULL)
-                            {
-                                //wxLogDebug( wxT("wxApp - force UpdateUI( menu ) before MenuSelect") );
-                                bar->UpdateMenus();
-                            }
-                        }
-                    }
-
+                if ( window == NULL )
                     result = wxMacTopLevelMouseEventHandler( handler , event , NULL ) ;
-                }
             }
             break ;
         case kEventClassAppleEvent :

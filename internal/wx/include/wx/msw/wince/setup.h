@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup.h,v 1.72 2005/11/05 22:49:30 ABX Exp $
+// RCS-ID:      $Id: setup.h,v 1.73 2005/12/10 14:40:23 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1075,9 +1075,6 @@
 
 #undef wxUSE_DRAG_AND_DROP
 #define wxUSE_DRAG_AND_DROP 0
-
-#undef wxUSE_DYNAMIC_LOADER
-#define wxUSE_DYNAMIC_LOADER 0
 
 #undef wxUSE_FSVOLUME
 #define wxUSE_FSVOLUME 0

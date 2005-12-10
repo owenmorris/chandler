@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.160 2005/11/09 09:45:58 SC Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.162 2005/12/10 15:47:42 SC Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -170,8 +170,8 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
     // FindFocus does not return the actual focus window,but the enclosing window
     wxWindow* focus = wxWindow::DoFindFocus();
     if ( focus == NULL )
-        return result ;
-
+        focus = (wxTopLevelWindowMac*) data ;
+    
     unsigned char charCode ;
     wxChar uniChar = 0 ;
     UInt32 keyCode ;
@@ -1317,7 +1317,10 @@ bool wxTopLevelWindowMac::Show(bool show)
     if (show)
     {
         #if wxUSE_SYSTEM_OPTIONS //code contributed by Ryan Wilcox December 18, 2003
-        if ( (wxSystemOptions::HasOption(wxMAC_WINDOW_PLAIN_TRANSITION) ) && ( wxSystemOptions::GetOptionInt( wxMAC_WINDOW_PLAIN_TRANSITION ) == 1) )
+        bool plainTransition = UMAGetSystemVersion() >= 0x1000 ;
+        if ( wxSystemOptions::HasOption(wxMAC_WINDOW_PLAIN_TRANSITION) )
+            plainTransition = ( wxSystemOptions::GetOptionInt( wxMAC_WINDOW_PLAIN_TRANSITION ) == 1 ) ;
+        if ( plainTransition )
         {
            ::ShowWindow( (WindowRef)m_macWindow );
         }
@@ -1335,7 +1338,10 @@ bool wxTopLevelWindowMac::Show(bool show)
     else
     {
         #if wxUSE_SYSTEM_OPTIONS
-        if ( (wxSystemOptions::HasOption(wxMAC_WINDOW_PLAIN_TRANSITION) ) && ( wxSystemOptions::GetOptionInt( wxMAC_WINDOW_PLAIN_TRANSITION ) == 1) )
+        bool plainTransition = UMAGetSystemVersion() >= 0x1000 ;
+        if ( wxSystemOptions::HasOption(wxMAC_WINDOW_PLAIN_TRANSITION) )
+            plainTransition = ( wxSystemOptions::GetOptionInt( wxMAC_WINDOW_PLAIN_TRANSITION ) == 1 ) ;
+        if ( plainTransition )
         {
            ::HideWindow((WindowRef) m_macWindow );
         }

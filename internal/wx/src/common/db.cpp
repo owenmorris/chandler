@@ -16,7 +16,7 @@
 //                -Set ODBC option to only read committed writes to the DB so all
 //                   databases operate the same in that respect
 // Created:     9.96
-// RCS-ID:      $Id: db.cpp,v 1.126 2005/09/23 12:52:44 MR Exp $
+// RCS-ID:      $Id: db.cpp,v 1.127 2005/12/10 00:37:05 GT Exp $
 // Copyright:   (c) 1996 Remstar International, Inc.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -3948,7 +3948,7 @@ wxDBMS wxDb::Dbms(void)
 
     baseName[3] = 0;
     if (!wxStricmp(baseName,wxT("DB2")))
-        return((wxDBMS)(dbmsType = dbmsDBASE));
+        return((wxDBMS)(dbmsType = dbmsDB2));
 
     return((wxDBMS)(dbmsType = dbmsUNIDENTIFIED));
 

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.2000
-// RCS-ID:      $Id: filename.cpp,v 1.160 2005/09/25 19:58:44 VZ Exp $
+// RCS-ID:      $Id: filename.cpp,v 1.161 2005/12/10 13:18:18 SC Exp $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -665,6 +665,8 @@ wxFileName::CreateTempFileName(const wxString& prefix, wxFile *fileTemp)
             // default
             #if defined(__DOS__) || defined(__OS2__)
                 dir = _T(".");
+            #elif defined(__WXMAC__)
+                dir = wxMacFindFolder(  (short) kOnSystemDisk, kTemporaryFolderType, kCreateFolder ) ;
             #else
                 dir = _T("/tmp");
             #endif
