@@ -1195,20 +1195,20 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
         changed = False
         forceReload = False
         if len(newValueString) == 0:
-            # Clearing an event's start time (removing the value in it, causing 
-            # it to show "HH:MM") will remove both time values (making it an 
-            # anytime event).
-            if iAmStart:
-                if not item.anyTime:
+            if not item.anyTime: # If we're not already anytime
+                # Clearing an event's start time (removing the value in it, causing 
+                # it to show "HH:MM") will remove both time values (making it an 
+                # anytime event).
+                if iAmStart:
                     item.anyTime = True
                     changed = True
-            else:
-                # Clearing an event's end time will make it an at-time event
-                zeroTime = timedelta()
-                if item.duration != zeroTime:
-                    item.duration = zeroTime
-                    changed = True
-            forceReload = True
+                else:
+                    # Clearing an event's end time will make it an at-time event
+                    zeroTime = timedelta()
+                    if item.duration != zeroTime:
+                        item.duration = zeroTime
+                        changed = True
+                forceReload = True
         else:
             # We have _something_; parse it.
             oldValue = getattr(item, attributeName)
