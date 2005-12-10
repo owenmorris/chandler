@@ -8,7 +8,7 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
-exclude=.svn,*.pyo,*.pyc,optik,logilab,pylint,epydoc,pychecker
+exclude=.svn,*.pyo,*.pyc
 
 # Grab the python modules 
 src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.4/lib
@@ -79,3 +79,8 @@ Chandler.icns
 src=chandler/distrib/osx/bundle/debug
 dest=Contents/MacOS
 ChandlerApp
+
+src=chandler/debug
+dest=Contents/Resources/debug
+RunChandler
+RunPython

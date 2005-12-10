@@ -8,7 +8,7 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
-exclude=.svn,tests,*.pyo,*.pyc,optik,logilab,pylint,epydoc,pychecker
+exclude=.svn,*.pyo,*.pyc
 
 # Grab the python executable
 src=chandler/release/bin
@@ -117,6 +117,7 @@ chandler
 # and the launch scripts
 src=chandler/release
 dest=release
+RunChandler
 RunPython
 
 # Grab the overall README
