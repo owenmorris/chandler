@@ -632,26 +632,46 @@ RepositoryView).<br>
 
 <h2><a name="Extension_Parcels"></a>Extension
 Parcels</h2>
-Developers can extend Chandler by writing their own parcels. These extension
+Developers can extend Chandler by writing their own parcels. These
+extension
 parcels largely look very similar to Chandler core parcels --
 definitions of Item objects and Kind Python classes. Extension
-parcels&nbsp;can define Items and classes that belong in any
-of these top level layers:<br>
+parcels define Item objects and Kind classes that belong in any
+of the four extensible layers: Application, Presentation, Services or
+Domain Model. For example, an extension that integrates Flickr data
+into Chandler
+might create Items and classes in all four
+layers:<br>
 
 <br>
 
-<img style="width: 248px; height: 183px;" alt="parcel layers" src="overview-parcel.png"><br>
+<img style="width: 473px; height: 303px;" alt="parcel layers" src="overview-parcel.png"><br>
 
-<br>
-A parcel can extend Chandler by defining Items objects and Kind classes that belong in different layers:<br>
+An extension that integrates Flickr data into Chandler might create Items and classes in all four layers:<br>
 <ul>
-  <li>Application layer Items: Menus, event handlers,&nbsp;blocks to customize
+  <li>Application layer:</li>
+  <ul>
+    <li>menu item object to create a new photo or photo collection</li>
+    <li>menu item object to download or upload photos to Flickr</li>
+    <li>event handlers to implement menu items, including inserting a new photo collection into the sidebar</li>
+    <li>populate Block objects to customize
 a
-detail view, etc.</li>
-  <li>Presentation (CPIA) layer classes: a custom summary view Block and Widget, or a custom
-AttributeEditor.</li>
-  <li>Domain Model classes: new Kinds of Content Items.</li>
-  <li>Services layer classes: PeriodicTasks to fetch Items into the repository.</li>
+detail view</li>
+  </ul>
+  <li>Presentation (CPIA) layer:</li>
+  <ul>
+    <li>custom thumbnail summary view Block and Widget</li>
+    <li>custom
+AttributeEditor for photo images</li>
+  </ul>
+  <li>Domain Model:&nbsp;</li>
+  <ul>
+    <li>new <span style="font-family: monospace;">photo</span> Kind class, with an <span style="font-family: monospace;">image</span> Attribute and a <span style="font-family: monospace;">tag</span> Attribute</li>
+  </ul>
+  <li>Services layer:&nbsp;</li>
+  <ul>
+    <li>PeriodicTasks to automatically connect to Flickr and download photos into the repository</li>
+  </ul>
 </ul>
 
 
@@ -662,6 +682,27 @@ An extension parcel might separate its code into Python modules
 based on these layers, or might include them all in one module if the
 parcel is small enough -- its up to the judement of the parcel
 developer.<br>
+<br>
+The parcel framework will introspect the extension parcel and commit
+the Items and Kinds to the Repository. The application will discover
+the Items and Kinds, inserting the menus into the Menu Bar and
+launching PeriodicTasks. When a Photo item is viewed, the application
+will use the appropriate Detail View Block object and image Attribute
+Editor to display the selected photo.<br>
+<br>
+We have a few examples of extension parcels (including a flickr
+parcel). We don't yet have any examples of custom summary views, or
+quite have the infrastructure to support this well in 0.6. We&nbsp;hope
+to support a wider array of extension points in future releases. We
+have several other problems to solve as well, including dependencies
+between parcels and digitally signed parcels. As mentioned above, we
+plan on using <a href="http://peak.telecommunity.com/DevCenter/PythonEggs">PythonEggs</a> to address some of these problems in a more standard Pythonic way.<br>
+<br>
+A detailed tutorial explaining the feeds parcel (a simple RSS reader)
+can be found here. &lt;TODO: insert link to Alec's tutorial&gt;. It
+should be noted again that most of Chandler is written as Parcels, so
+understanding how to extend Chandler is a good path to understanding
+Chandler's internals.<br>
 
 <h5>
 Sample extension parcels can be found here:</h5>
@@ -675,9 +716,9 @@ a collection of Flickr photos in the sidebar.</span></li>
 an amazon wish list into the repository.</span></li>
 
   <li>parcels.feeds <span style="font-weight: normal;">Sample
-RSS reader, which is documented in the &lt;tutorial&gt;.</span></li>
+RSS reader, which is documented in the&nbsp;tutorial.</span></li>
 
-  <li>parcels.photos&nbsp;</li>
+  <li style="font-weight: normal;"><span style="font-weight: bold;">parcels.photos</span> Extends Chandler with photos.</li>
 
 </ul>
 
