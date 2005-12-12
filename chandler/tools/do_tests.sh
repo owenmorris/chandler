@@ -59,9 +59,15 @@ C_DIR="$1"
 T_DIR=$C_DIR
 
 if [ ! -d "$C_DIR/i18n" ]; then
-    echo Error: The path [$C_DIR] given does not point to a chandler/ directory
-    echo $USAGE
-    exit 65
+    C_DIR=`pwd`
+
+    if [ ! -d "$C_DIR/i18n" ]; then
+        echo Error: The path [$C_DIR] given does not point to a chandler/ directory
+        echo $USAGE
+        exit 65
+    else
+        echo Using current directory [$C_DIR] as the chandler/ directory
+    fi
 fi
 
 if [ "$CHANDLERBIN" = "" ]
@@ -114,6 +120,10 @@ if [ -n "$TEST_TO_RUN" ]; then
     DIRS=`find $C_DIR -name $TEST_TO_RUN -print`
 
     if [ "$DIRS" = "" ]; then
+        DIRS=`find $C_DIR -name $TEST_TO_RUN.py -print`
+    fi
+
+    if [ "$DIRS" = "" ]; then
         echo "Error: The test(s) you requested were not found:" ["$TEST_TO_RUN"]
         FAILED_TESTS="$TEST_TO_RUN"
     else
@@ -142,7 +152,7 @@ if [ -n "$TEST_TO_RUN" ]; then
                 echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
                 cat $C_DIR/test.log | tee -a $TESTLOG
 
-                RESULT=`echo "$SUCCESS" | grep $C_DIR/test.log`
+                RESULT=`grep "$SUCCESS" $C_DIR/test.log`
                 if [ "$RESULT" = "" ]; then
                     FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
                 fi
