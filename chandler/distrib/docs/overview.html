@@ -159,7 +159,7 @@ Like
 many applications built on GUI frameworks, Chandler tends to mix the
 View and Controller code in one layer. We expect to reexamine this
 choice in
-the 0.7 timeframe -- this document will focus on the code as it exists
+the 0.7 time frame -- this document will focus on the code as it exists
 in the 0.6 release.
 <h3><a name="Application_Layer"></a>Application
 Layer</h3>
@@ -208,7 +208,7 @@ Most application layer code can be found here (starting from the top of the chan
 
 <ul>
   <li style="font-weight: bold;">application<span style="font-weight: normal;">&nbsp;The
-main class that runs the wxPython app, including application startup
+main class that runs the wxPython application, including application startup
 code. Also includes wxPython related printing support, and some system
 wide global variables.</span></li>
   <li><span style="font-weight: bold;">application.dialogs</span>
@@ -299,7 +299,7 @@ The appropriate Detail View tree of Blocks gets hooked into the Main
 View, depending on the Kind of Item selected.<br>
 <br>
 <span style="font-weight: bold;">Terminology note:</span> We sometimes use "Block" and "View"
-interchangably. "View" comes from MVC, and "Block" is our
+interchangeably. "View" comes from MVC, and "Block" is our
 Chandler-specific term. Yes, this can be confusing, especially given
 that "View" is also a common database term and we use "Repository View" as the name for a connection to the
 Repository.<br>
@@ -367,7 +367,7 @@ issue in 0.7.<br>
 <span style="font-weight: bold;">
 Key decision:</span> CPIA is not meant to be a general cross
 platform
-application building framework (ala XUL or wxWidgets). &nbsp;We're
+application building framework (such as XUL or wxWidgets). &nbsp;We're
 not trying to boil the ocean here. Chandler specific concepts like
 Items, Collections,&nbsp;Sidebar, Summary View and Detail View
 and their relationship to each other are embedded in the CPIA
@@ -409,7 +409,8 @@ webserver.<br>
 
 <br>
 The Chandler application allows users to&nbsp;share Collections by
-publishing them to a server. Similarly, a Chandler can subscribe to
+publishing them to a server. Similarly, a Chandler user can subscribe
+to
 other users' Collections. Even in 0.6, Chandler supports both read-only
 as well as read-write access to these shared calendars. Chandler also
 supports import and export of
@@ -452,7 +453,7 @@ an OSAF project with no dependencies on the rest of Chandler.<br>
 
 Zanshin and Chandler use the <a href="http://twistedmatrix.com/">Twisted</a>
 framework for networking support. Chandler
-services like mail and sharing run in the Twisted Reactor. See&nbsp;<a href="overview.html#Threading_Model">ThreadingModel</a>
+services like mail and sharing run in the Twisted Reactor. See&nbsp;<a href="overview.html#Threading_Model">Threading Model</a>
 below for more information on how this works. More information on
 Twisted in Chandler can be found <a href="http://wiki.osafoundation.org/bin/view/Projects/TwistedHome">here</a>
 and here. &lt;TODO: insert link to startup document&gt;<br>
@@ -516,9 +517,9 @@ Recurrence specification</a></li>
 </ul>
 
 <span style="font-weight: bold;">
-Terminology note</span>: We've have called this layer the
+Terminology note</span>: We have called this layer the
 "content model" in the past, so
-you'll find that term in the code. I chose "Domain Model" for this
+you'll find that term in the code. We chose "Domain Model" for this
 document because that term is more consistently used for this type of
 layer in other projects. We're still wrestling with the terminology and
 hope to clarify this further in 0.7.<br>
@@ -559,7 +560,7 @@ Parcels, for example. We created Parcels before the existence of <a href="http:/
 (or at least before we knew about them). In future releases we plan to
 replace Parcels with Eggs as a unit of component packaging.<br>
 <br>
-The <span style="font-weight: bold;">starup</span> module provides
+The <span style="font-weight: bold;">startup</span> module provides
 hooks&nbsp;for running code at application startup. It provides classes
 that help run code in a separate thread, classes that run in the
 Twisted reactor (<span style="font-weight: bold;">TwistedTask</span>), and classes that run at periodic intervals in the Twisted reactor (<span style="font-weight: bold;">PeriodicTask</span>). More about the <a href="#Threading_Model">threading model</a> below. More about the startup module <a href="#Parcel_Framework">here</a>.<br>
@@ -569,7 +570,7 @@ Schema layer code can be found here:</h5>
 
 <ul>
 
-  <li><span style="font-weight: bold;">application.schema</span> API for defining Chandler parcels and schemas</li>
+  <li><span style="font-weight: bold;">application.schema</span> API for defining Chandler parcels and schema</li>
   <li><span style="font-weight: bold;">application.Parcel</span> Controller code that loads parcels into the Repository.<span style="font-weight: bold;"><br>
     </span></li>
 
@@ -600,7 +601,7 @@ look <a href="http://svn.osafoundation.org/pylucene/trunk/README">here</a>.<br>
 
 Client code gets access to the Repository through a <span style="font-weight: bold;">RepositoryView</span>
 object, which is a connection to the Repository. Client code creates,
-retreives and updates Items in the repository view, which has an object
+retrieves and updates Items in the repository view, which has an object
 cache local to the view. The client code can then <span style="font-weight: bold;">commit</span> the modified Items back to the core Repository, or <span style="font-weight: bold;">refresh</span>
 changes from the core Repository back into the view. The client code
 can also roll back changes. The transactional model is similar to that
@@ -619,7 +620,7 @@ has two key mechanisms to send notifications: per attribute <span style="font-we
 <br>
 The Repository contains the core implementations for Items, Kinds, and
 Attributes. Layers above the repository use the schema api instead of
-using the Repsitory's API directly (with some exceptions, like the
+using the Repository's API directly (with some exceptions, like the
 RepositoryView).<br>
 
 <h5>Repository layer code can be found here:</h5>
@@ -681,7 +682,7 @@ AttributeEditor for photo images</li>
 
 An extension parcel might separate its code into Python modules
 based on these layers, or might include them all in one module if the
-parcel is small enough -- its up to the judement of the parcel
+parcel is small enough -- its up to the parcel
 developer.<br>
 <br>
 The parcel framework will introspect the extension parcel and commit
@@ -737,7 +738,7 @@ in a single thread.) &nbsp;We're currently using the Twisted
 Reactor to schedule work that needs to happen outside the UI thread.
 The Reactor runs in a separate thread, and is used to schedule work. In
 Chandler the units of work are called&nbsp;<span style="font-weight: bold;">PeriodicTasks</span>, which
-are Items that pesist in the Repository. Each PeriodicTask has its own <strong style="font-weight: normal;">Repository View</strong>,
+are Items that persist in the Repository. Each PeriodicTask has its own <strong style="font-weight: normal;">Repository View</strong>,
 as does the main wxWidgets UI thread.&nbsp;</p>
 
 <p>To follow an example, the
@@ -761,31 +762,29 @@ Repository. The Repository has the notion of a 'set' of items. Sets can
 be created by listing Items explicitly, by querying for Items, or by
 combining sets (unions, differences or intersections). Collections wrap
 sets so that they look like Items to the client code in the layers
-above. Collections subscribe to set notifications, collecting
-information about changes to the contents of the Collection and changes
-to the Items in the Collection. The collection class provides a class
-method called deliverNotifications. This methond is called by the
-application to send out notifications to the higher level layers.<br>
+above. Collections subscribe to set notifications, adding all
+notifications to a queue. The collection module provides a function
+called <span style="font-family: monospace;">deliverNotifications()</span>,
+which iterates through the queue and notifies subscribers to the
+Collection. This function is called by the application to send out
+notifications to the higher level layers.<br>
 <br>
-The main application object defines a method called OnIdle, which gets
-called during the application's idle cycle (cycles between processing
-input from the user). As mentioned above in Threading Model, OnIdle
-will call refresh() on the GUI thread's Repository View. This call
-picks up changes from the repository, including the collected change
-notifications for all Collections. OnIdle then calls the
-deliverNotifications class method, which does something useful.
-Notification delivery dirties appropriate blocks. OnIdle then walks
-through the Blocks, sychnronizing any dirty Blocks with their Widget
-delegates. The Widgets in turn dirty themselves, so that they are drawn
-in the next OnPaint cycle. The wxWidgets event handling framework
-handles calling both OnIdle as well as OnPaint at the appropriate times.<br>
+The main application object defines a method called <span style="font-family: monospace;">OnIdle()</span>, which gets called during the application's idle cycle (cycles between processing input from the user). As mentioned above in <a href="#Threading_Model">Threading Model</a>, <span style="font-family: monospace;">OnIdle()</span> will call <span style="font-family: monospace;">refresh()</span>
+on the GUI thread's Repository View. This call picks up changes from
+the Repository, including the collected change notifications for all
+Collections. <span style="font-family: monospace;">OnIdle()</span> then calls the <span style="font-family: monospace;">deliverNotifications()</span> function,&nbsp;. Notification delivery dirties appropriate blocks. <span style="font-family: monospace;">OnIdle()</span>
+then walks through the Blocks, synchronizing any dirty Blocks with
+their Widget delegates. The Widgets in turn dirty themselves, so that
+they are drawn in the next paint cycle. The wxWidgets event handling
+framework handles calling both <span style="font-family: monospace;">OnIdle()</span> as well as <span style="font-family: monospace;">OnPaint()</span> at the appropriate times.<br>
 <br>
 Attribute Editor notifications have an exception to this mechanism --
 they subscribe directly to the Repository's attribute monitors. Every
 time an attribute is changed, the repository fires off a monitor to all
 subscribers (in this case the Attribute Editor). &nbsp;We plan on
-changing this in 0.7, by creating Item notifications not unlike the
-Collection notifications.<br>
+changing this use of monitors in 0.7. We plan on implementing Item
+notifications (not unlike the Collection notifications) and use them to
+update Attribute Editors.<br>
 
 <h2><a name="Internationalization"></a>Internationalization
 (i18n)</h2>
