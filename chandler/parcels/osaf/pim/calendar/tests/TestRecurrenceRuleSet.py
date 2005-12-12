@@ -2,8 +2,6 @@
 Unit tests for recurrence
 """
 
-__revision__  = "$Revision: 5742 $"
-__date__      = "$Date: 2005-06-23 09:21:54 -0700 (Thu, 23 Jun 2005) $"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 

@@ -2,8 +2,6 @@
 Unit tests for notes parcel
 """
 
-__revision__  = "$Revision: 5832 $"
-__date__      = "$Date: 2005-06-30 23:01:20Z $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
