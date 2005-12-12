@@ -311,11 +311,11 @@ Once you've defined a bidirectional reference, the repository will
 automatically maintain any relationships you set up between items of the
 defined type(s)::
 
-    >>> Joe = Person("Joe", rv, fullname=u"Joe Schmoe")
+    >>> Joe = Person("Joe", rv, fullname="Joe Schmoe")
     >>> Joe
     Joe Schmoe
 
-    >>> Mary = Person("Mary", rv, fullname=u"Mary Quite Contrary")
+    >>> Mary = Person("Mary", rv, fullname="Mary Quite Contrary")
     >>> Mary.children = [Joe]
     >>> list(Mary.children)
     [Joe Schmoe]
@@ -395,7 +395,7 @@ that the schema API will know what type the anonymous inverse attribute
 should be attached to (``Person`` in this case).  Both sides of the
 bidirectional reference can include a ``displayName``, ``description``,
 ``initialValue``, or any of the other standard attribute descriptor arguments.
-(See the API Reference section on `Attribute Descriptors`_, below, for a
+(See the API Details section on `Attribute Descriptors`_, below, for a
 complete list.)
 
 You can't tell from the example above, but the ``inverse`` attribute actually
@@ -479,15 +479,15 @@ instances, however.  Instead, their instances are just wrappers or adapters
 that give you access to the annotation attributes -- attributes that are
 actually stored in the wrapped item, just like an anonymous inverse.  First,
 let's create a ``Teacher`` instance for ``Mary``::
-   
+
     >>> ProfMary = Teacher(Mary)
 
 The above expression can be read as "ProfMary is Mary playing the role of
 Teacher", or "ProfMary is Mary, viewed as a Teacher".  The ``ProfMary`` object
 is not ``Mary`` herself; it's just her ``Teacher`` *attributes*.  Let's give
 her a Phys. Ed. certificate::
-    
-    >>> gym = TeachingCertificate("gym", rv, subject=u"Physical Education")
+
+    >>> gym = TeachingCertificate("gym", rv, subject="Physical Education")
     >>> ProfMary.certifications = [gym]
 
     >>> list(ProfMary.certifications)
@@ -583,7 +583,7 @@ non-persistent application objects::
     >>> list(fMary.isLikedBy)
     [Joe Schmoe]
 
-    >>> fMary.jabberConnection = "just pretending"   
+    >>> fMary.jabberConnection = "just pretending"
     >>> f2Mary.jabberConnection = "another example"
 
     >>> fMary.jabberConnection
@@ -608,7 +608,7 @@ they are both ``Person`` annotations::
 
     >>> Teacher(fMary)
     Teacher(Mary Quite Contrary)
-    
+
     >>> Friend(ProfMary)
     Friend(Mary Quite Contrary)
 
@@ -778,7 +778,7 @@ Or else remove the conflicting definition from the module::
 So, when you create items in your parcel, you should take care to give them
 names that don't conflict with class, variable, or function names in your
 module, or you will have to use more awkward ways of accessing them.
-    
+
 By the way, just a reminder...  you can create a ``schema.ns()`` using any
 existing item, not just a repository view.  Most often, you'll use the
 ``parcel`` argument passed in to your ``installParcel()`` function, but
@@ -809,7 +809,7 @@ in either case it returns the updated item.  For example, here's an
 ``installParcel()`` function that creates or updates a ``Person`` item::
 
     >>> def installParcel(parcel, old_version=None):
-    ...     Person.update(parcel, "Carlos", fullname=u"Carlos Marron")
+    ...     Person.update(parcel, "Carlos", fullname="Carlos Marron")
 
 At the moment, there is no ``Carlos`` object in the ``application`` parcel::
 
@@ -833,13 +833,13 @@ And we can call it again, since ``update()`` works on existing items::
 Now, let's change his name, and call ``installParcel()`` a third time::
 
     >>> carlos = app_ns.Carlos
-    >>> carlos.fullname = u"Charlie Brown"
+    >>> carlos.fullname = "Charlie Brown"
     >>> carlos.fullname
-    u'Charlie Brown'
+    'Charlie Brown'
 
     >>> installParcel(app_ns.parcel)
     >>> carlos.fullname
-    u'Carlos Marron'
+    'Carlos Marron'
 
 As you can see, the ``update()`` call sets all the supplied attributes to the
 given values, so you can ensure that any items you update will have the values
@@ -853,7 +853,7 @@ will remain unchanged.  For example::
     >>> installParcel(app_ns.parcel)
     >>> carlos.age
     27
-    
+
 In addition to updating attributes, the kind or class of the item are updated
 as well.  For example::
 
@@ -929,18 +929,19 @@ A parcel "A" depends on another parcel "B" if any of the following are true:
 
 * Any type defined in "A" is a subclass of a type found in "B"
 
-* "A" defines an annotation for a type found in "B"
+* "A" defines an annotation class for an item class found in "B"
 
 * An ``installParcel()`` function in "A" does any of the following:
 
   * Creates items of a type found in "B"
 
-  * Calls ``schema.synchronize()`` with "B" as a target (XXX fwd ref to API
-    reference here)
+  * Calls ``schema.synchronize()`` with "B" as the target module (see `Other
+    APIs`_, below)
 
-  * Uses ``schema.ns()`` or ``schema.parcel_for_module()`` to access the
-    contents of the parcel corresponding to "B"  (XXX fwd ref to API
-    reference here)
+  * Uses ``schema.ns()`` to access the contents of the parcel corresponding
+    to "B" (Note: "A" must actually refer to the ``parcel`` attribute of the
+    ``ns`` instance, or to an item actually stored in the repository, or else
+    a "B" parcel won't be created in the repository)
 
 * "A" depends on some parcel "C", and "C" in turn depends on "B"
 
@@ -963,17 +964,42 @@ parcel, and then add extended features in a separate parcel, so that the core
 class doesn't need to depend on everything that its extended features do.)
 
 
--------------
-API Reference
--------------
+-----------
+API Details
+-----------
+
+The remainder of this document will cover additional helpful details about
+the schema API, for more specialized uses than the general-purpose material
+covered so far.
+
 
 Classes
 =======
 
-Item Classes
-------------
+Abstract Item Classes
+----------------------
 
-XXX
+You can make an ``Item`` subclass abstract (non-instantiable) by setting
+``__abstract__ = True`` in its class body::
+
+    >>> class Thing(schema.Item):
+    ...     __abstract__ = True
+
+    >>> Thing()
+    Traceback (most recent call last):
+      ...
+    TypeError: Thing is an abstract class; use a subclass instead
+
+But subclasses of an abstract class are instantiable in the normal way::
+
+    >>> class Chair(Thing):
+    ...     pass
+
+    >>> Chair('chair',rv)
+    <Chair ...>
+
+This is useful when you want to define an abstract class that needs some
+methods to be defined or overridden in subclasses before it can be used.
 
 
 Enumeration Classes
@@ -1003,7 +1029,7 @@ enumeration's ``values``::
     'ATOM'
 
 But assigning an unlisted value will produce an error, if the repository view
-is using immediate error checking.
+is using immediate error checking::
 
     >>> fg.format = "fizzy_2"
     Traceback (most recent call last):
@@ -1011,11 +1037,16 @@ is using immediate error checking.
     ValueError: Assigning 'fizzy_2' to attribute 'format'...didn't match schema
 
 
+Enumeration classes also can't be further subclassed::
+
     >>> class ExtendedFormat(FeedFormat):
     ...     values = "ATOM_20", "FIZZY_19"
     Traceback (most recent call last):
       ...
     TypeError: Enumerations cannot subclass or be subclassed
+
+And they can't include any attributes or methods besides ``values``, which
+must be a tuple of strings::
 
     >>> class BrokenEnum(schema.Enumeration):
     ...     values = "error"
@@ -1023,7 +1054,7 @@ is using immediate error checking.
       ...
     TypeError: 'values' must be a tuple of 1 or more strings
 
-    >>> class BrokenEnum3(schema.Enumeration):
+    >>> class BrokenEnum2(schema.Enumeration):
     ...     def foo(self): pass
     Traceback (most recent call last):
       ...
@@ -1102,37 +1133,444 @@ therefore also need to be saved.  This can create hard-to-find bugs, which
 is why the feature is deprecated.
 
 
-Metadata and Clouds
--------------------
+Defining Clouds
+---------------
 
-XXX
+Certain Chandler features such as item copying and sharing are controlled by
+schema information known as "clouds".  A **cloud** is a named collection of
+**endpoints**, each of which sets an **inclusion policy** for an attribute.
+The inclusion policies indicate whether items referenced by that attribute
+should be included by value, by reference, or recursively by the item's clouds.
+
+A complete discussion of clouds, inclusion policies, and how they are used is
+outside scope of this document, but we will explain here how to specify them.
+You should consult other Chandler documentation (such as for the sharing
+system) to determine what clouds your item classes should have and what
+policies you should use for individual attributes.
+
+In fact, unless you were referred here by some other Chandler documentation,
+you should skip the remainder of this section.  It will probably be quite
+confusing unless you already know *why* you would want to define a cloud or
+clouds for one of your item classes, and what effect the inclusion policies
+will have on the feature(s) you're trying to add support for.
+
+To define clouds, just use the ``schema.addClouds()`` function in the body of
+your ``Item`` subclass.  Each keyword argument names a cloud to be created, and
+its value must be a ``schema.Cloud()`` object::
+
+    >>> class ItemWithClouds(schema.Item):
+    ...     foo = schema.One(schema.Text)
+    ...     bar = schema.Sequence()
+    ...     baz = schema.One(inverse=bar)
+    ...     fiz = schema.Sequence(schema.Item)
+    ...
+    ...     schema.addClouds(
+    ...         sharing = schema.Cloud(foo, "displayName"),
+    ...         copying = schema.Cloud(byCloud = [fiz], byRef=[bar,baz]),
+    ...     )
+
+This then creates repository cloud items for the enclosing class::
+
+    >>> clouds = schema.itemFor(ItemWithClouds, rv).clouds
+    >>> list(clouds)
+    [<Cloud ... SharingCloud ...>, <Cloud ... CopyingCloud ...>]
+
+``schema.Cloud()`` objects specify the endpoints and inclusion policies for a
+cloud.  The inclusion policies are given via keyword arguments (or the lack
+thereof), and attribute descriptors or attribute names are used to specify
+the endpoints themselves.  For example, the ``sharing`` cloud defines two
+endpoints, for the ``foo`` and ``displayName`` attributes::
+
+    >>> sharing = clouds.getByAlias('sharing')
+    >>> list(sharing.endpoints)
+    [<Endpoint ... foo ...>, <Endpoint ... displayName ...>]
+
+Because we simply listed these attributes without an explicit policy, the
+default ``byValue`` inclusion policy was applied::
+
+    >>> sharing.endpoints.getByAlias('foo').includePolicy
+    'byValue'
+
+    >>> sharing.endpoints.getByAlias('displayName').includePolicy
+    'byValue'
+
+To specify any other inclusion policies, you must use keyword arguments naming
+the policy, and a list or tuple of attribute descriptors or attribute names.
+The ``copying`` cloud above created endpoints for the ``fiz``, ``bar``, and
+``baz`` attributes, but with different policies::
+
+    >>> copying = clouds.getByAlias('copying')
+
+    >>> copying.endpoints.getByAlias('fiz').includePolicy
+    'byCloud'
+
+    >>> copying.endpoints.getByAlias('bar').includePolicy
+    'byRef'
+
+    >>> copying.endpoints.getByAlias('baz').includePolicy
+    'byRef'
+
+Note that in most circumstances, you will want to specify endpoints using
+attribute descriptors directly, as we did in most of our example above.
+However, there are some times when it will be more useful or convenient to
+use an attribute *name* instead, as we did for the ``displayName`` attribute
+above.  Also, there may be times when you need to specify an advanced endpoint
+option such as for the ``byMethod`` policy, which requires a method name to be
+specified in addition to the attribute name and policy.  In cases like these,
+you may wish to directly create a ``schema.Endpoint`` object, for example::
+
+    >>> class CloudExample2(schema.Item):
+    ...     bar = schema.Sequence()
+    ...     baz = schema.One(inverse=bar)
+    ...     schema.addClouds(
+    ...         sharing = schema.Cloud(
+    ...             byMethod = [
+    ...                 schema.Endpoint(
+    ...                     "bar", "bar", "byMethod", method="someMethod"
+    ...                 )
+    ...             ]
+    ...         )
+    ...     )
+
+    >>> sharing = schema.itemFor(CloudExample2, rv).clouds.getByAlias('sharing')
+
+    >>> sharing.endpoints.getByAlias('bar').includePolicy
+    'byMethod'
+
+    >>> sharing.endpoints.getByAlias('bar').method
+    'someMethod'
+
+Note that you only need to use this if you need to specify a ``byMethod``
+policy, a non-default ``cloudAlias`` for an endpoint, or a series of attributes
+instead of a single attribute.
+
+A final note on defining clouds: the schema API implementation for Chandler 0.6
+does not support defining clouds on annotation attributes, whether they are
+anonymous inverses or defined in an annotation class.  This restriction may be
+lifted in 0.7 if needed.
+
+
+Other Metadata
+--------------
+
+When a parcel is created, persistent items are created that correspond to each
+class, to store each class' schema.  These items can have attributes of their
+own, such as ``displayName`` and ``description``.  Depending on whether the
+class is a ``schema.Item``, ``schema.Struct``, or ``schema.Enumeration``, the
+attributes may be different, as the type of the persistent item will be
+different.  For all classes, however, you can set attributes of the
+corresponding items by using the ``schema.kindInfo()`` function in the body of
+your item class::
+
+    >>> class CalendarItem(schema.Item):
+    ...     """This is just a demo"""
+    ...     schema.kindInfo(
+    ...         displayName = "Calendar Item",
+    ...     )
+
+Once you've done this, the persistent item corresponding to your class in any
+given repository view, will have the attribute values you specify::
+
+    >>> schema.itemFor(CalendarItem, rv).displayName
+    'Calendar Item'
+
+Note, however, that you can only specify names that correspond to valid
+attributes for whatever the corresponding item type is::
+
+    >>> class BadMetadata(schema.Item):
+    ...     schema.kindInfo(madeUpName="xyz")
+    Traceback (most recent call last):
+      ...
+    TypeError: 'madeUpName' is not an attribute of Kind
+
+The only attribute used by all schema classes is ``displayName``, which as we
+mentioned previously may be used by the Chandler UI in some places to show a
+name to the user.  (You should therefore call the ``_()`` translation function
+on such strings before using them, although our examples in this document do
+not.)  The ``schema.Annotation`` class also has an ``annotates`` attribute,
+as we saw in the section on `Annotation Classes`_, above.
+
+Whatever the attribute, however, you should note that their values are *not*
+inherited by subclasses::
+
+    >>> class CalendarItemSubclass(CalendarItem):
+    ...     pass
+
+    >>> hasattr(schema.itemFor(CalendarItemSubclass, rv), 'displayName')
+    False
+
+Also note that you can make multiple calls to ``kindInfo()`` in the same
+class::
+
+    >>> class MultipleMetadata(schema.Item):
+    ...     schema.kindInfo(displayName="Foo")
+    ...     schema.kindInfo(description="Bar")
+    >>> schema.itemFor(MultipleMetadata, rv).displayName
+    'Foo'
+    >>> schema.itemFor(MultipleMetadata, rv).description
+    'Bar'
+
+as long as you don't change anything you set in a previous call::
+
+    >>> class ConflictingMetadata(schema.Item):
+    ...     schema.kindInfo(displayName="Foo")
+    ...     schema.kindInfo(displayName="Bar")
+    Traceback (most recent call last):
+      ...
+    ValueError: 'displayName' defined multiple times for this class
+
+And finally, note that calling ``kindInfo()`` is meaningless outside a class
+statement::
+
+    >>> schema.kindInfo(displayName="x")
+    Traceback (most recent call last):
+      ...
+    SyntaxError: kindInfo() must be called in the body of a class statement
 
 
 Attribute Descriptors
 =====================
 
-Type References
+There are currently four types of attribute descriptors: ``One``, ``Many``,
+``Sequence``, and ``Mapping``.  They are all essentially identical except for
+their ``cardinality`` attribute, which controls how the repository will store
+the attribute's value::
 
-Bidirectional References
+    >>> schema.One.cardinality
+    'single'
 
-One
+    >>> schema.Many.cardinality
+    'set'
 
-Many
+    >>> schema.Sequence.cardinality
+    'list'
 
-Sequence
+    >>> schema.Mapping.cardinality
+    'dict'
 
-Mapping
+For more information on the implementation of these cardinalities, see the
+repository package's documentation.  In particular, you should note that
+the set/list/dict types are actually subclasses of the Python builtin types,
+and offer additional methods that you may need to be aware of, such as indexing
+methods in the case of ``Sequence`` attributes that are part of a
+bidirectional reference.
 
-Aspects
+Attribute descriptors are used to define repository ``Attribute`` objects that
+persistently store the attribute's schema.  When you create an attribute
+descriptor, you may specify keyword arguments that will be used to set the
+corresponding parameters of the repository ``Attribute`` object, such as
+``redirectTo``, ``defaultValue``, ``initialValue``, and so on.  For information
+on these and other parameters, you can consult the model documentation for
+the ``//Schema/Core/Attribute`` kind.  Any parameters you do not supply will
+take on their normal default values, except for``otherName`` which is computed
+from the attribute's ``inverse``, if any.
 
+In addition to the the attributes defined by the repository ``Attribute`` kind,
+the schema API defines the following additional attributes for descriptor
+objects:
+
+``type``
+    ``type`` is the first argument to the various descriptor constructors, and
+    as such is usually not specified with a keyword argument; instead one can
+    simply use e.g. ``schema.Sequence(schema.Text)`` to create an attribute
+    holding a sequence of text strings.
+
+    You can omit the ``type`` of a descriptor if its target type is currently
+    undefined.  This is always necessary for at least one of the two
+    descriptors that compose a given bidirectional reference.  When the second
+    descriptor in a bidirectional reference has its ``inverse`` set to the
+    first descriptor, the ``type`` of both descriptors is determined
+    automatically, since each descriptor should refer to the class containing
+    the other.  This allows you to omit the ``type`` from both descriptors.
+
+    For any attributes that are not part of a bidirectional reference, however,
+    you should specify a ``type`` that is one of the following:
+
+    * a ``schema.Item`` subclass
+    * a ``schema.Struct`` subclass
+    * a ``schema.Annotation`` subclass
+    * a ``schema.Enumeration`` subclass
+    * a ``schema.TypeReference`` naming a core repository type
+
+    The schema API supplies various pre-configured ``TypeReference`` objects
+    for your convenience, such as ``schema.Text`` and ``schema.Integer``::
+
+        >>> schema.Text
+        TypeReference('//Schema/Core/Text')
+
+    You must use these type references instead of trying to use ordinary Python
+    types or classes, as they cannot be persisted directly::
+
+        >>> schema.One(str)
+        Traceback (most recent call last):
+        ...
+        TypeError: ('Attribute type must be Item/Enumeration class or TypeReference', ...)
+
+    Note that if the schema API does not provide a pre-existing
+    ``TypeReference`` for a repository core schema type, you can manually
+    create one with the ``schema.TypeReference()`` constructor using an
+    appropriate repository path.  You will need to consult the Chandler model
+    documentation for the core schema types in order to find a type's
+    repository path, if of course a suitable type even exists.
+
+``name`` (read-only)
+    The name under which this descriptor was first defined in an item class or
+    annotation class, or ``None`` if the descriptor has not been used in a
+    class yet::
+
+        >>> descriptor = schema.One()
+        >>> print descriptor.name
+        None
+
+        >>> class anEntity(schema.Item):
+        ...     aDescriptor = descriptor
+        >>> descriptor.name
+        'aDescriptor'
+
+``owner`` (read-only)
+    The item or annotation class in which the descriptor was defined, or
+    ``None`` if the descriptor has not been used in a class yet::
+
+        >>> descriptor = schema.Sequence()
+        >>> print descriptor.owner
+        None
+
+        >>> class anEntity(schema.Item):
+        ...     aDescriptor = descriptor
+
+        >>> descriptor.owner
+        <class '...anEntity'>
+
+    If the ``owner`` is an item class or annotation class, then setting the
+    descriptor's ``inverse`` causes the inverse descriptor's type to be set
+    to the first descriptor's owner, and vice versa.  This is how bidirectional
+    references can get set up, without needing to have the classes exist before
+    the descriptors exist.  For example, in the following class, the
+    ``subkinds`` and ``superkinds`` descriptors will both get set up to accept
+    ``Kind`` as the type, because in each case the inverse descriptor's
+    ``owner`` is ``Kind``::
+
+        >>> class Kind(schema.Item):
+        ...     name = schema.One(schema.Text)
+        ...     subkinds = schema.Sequence()
+        ...     superkinds = schema.Sequence(inverse=subkinds)
+        ...     def __repr__(self):
+        ...         return getattr(self,'name',object.__repr__(self))
+
+        >>> Kind.subkinds.type
+        <class '...Kind'>
+
+        >>> Kind.superkinds.type
+        <class '...Kind'>
+
+``displayName``, ``description``, and ``doc``
+    The name and description of this attribute descriptor, if any.  They will
+    be used to collectively form a ``__doc__`` string, so that ``help()`` is
+    informative for Item classes::
+
+        >>> Kind.subkinds.doc = "Sub-kinds of this kind"
+        >>> Kind.superkinds.doc = "Super-kinds of this kind"
+        >>> Kind.name.doc = "This kind's name"
+        >>> Kind.name.displayName = "Kind Name"
+
+        >>> help(Kind)                      # doctest: +NORMALIZE_WHITESPACE
+        Help on class Kind ...
+        ...
+        class Kind(application.schema.Item)
+         | ...
+         |  Data and other attributes defined here:
+         |
+         |  name = <Role name of <class '...Kind'>>
+         |      Kind Name -- One(Text)
+         |
+         |      This kind's name
+         |
+         |  subkinds = <Role subkinds of <class '...Kind'>>
+         |      Sequence(Kind)
+         |
+         |      Sub-kinds of this kind
+         |
+         |  superkinds = <Role superkinds of <class '...Kind'>>
+         |      Sequence(Kind)
+         |
+         |      Super-kinds of this kind
+         |  ...
+
+    As you can see, the automatically-generated ``__doc__`` for an attribute
+    descriptor includes its ``displayName`` (if any), its cardinality and type,
+    followed by a blank line and the ``doc`` or ``description``.
+
+    Note that ``doc`` is actually just a convenient shortcut for
+    ``description``; there is no real difference between the two attributes::
+
+        >>> Kind.name.doc is Kind.name.description
+        True
+
+    The ``doc`` and ``description`` are always strings, even if empty::
+
+        >>> schema.One().description
+        ''
+
+``inverse``
+    The descriptor object that represents the "other side" of the relationship,
+    or ``None`` if not yet set.  Setting a descriptor's ``inverse``
+    automatically attempts to set the other descriptor's ``inverse``, so that
+    each descriptor's ``inverse`` attribute points to the other.  Thus, you
+    only have to set one descriptor's ``inverse`` attribute in order to link
+    them both together.  Above, we only set the ``inverse`` of ``superkinds``,
+    but both end up pointing to each other automatically::
+
+        >>> Kind.superkinds.inverse
+        <Role subkinds of <class '...Kind'>>
+
+        >>> Kind.subkinds.inverse
+        <Role superkinds of <class '...Kind'>>
 
 
 Other APIs
 ==========
 
-importString
+There are a few other schema API functions remaining, that don't fit into any
+of the preceding categories:
 
-Parcel Loading
+importString(moduleName)
+    Imports the named module (or named item within a module)::
 
-Item Creation
+        >>> import sys
+        >>> schema.importString("sys.stdout") is sys.stdout
+        True
+
+        >>> schema.importString("application.tests")
+        <module 'application.tests' from '...'>
+
+        >>> import application.tests
+        >>> schema.importString("application.tests") is application.tests
+        True
+
+    There's nothing Chandler-specific or schema API-specific about this
+    function; you can use it to import any Python object from anywhere.
+
+synchronize(repoView, moduleName)
+    Ensure that the named module has been imported, and that its offered schema
+    (if any) has been imported into the supplied repository view as a parcel.
+    This is a convenient way to force a particular parcel to be loaded if it
+    hasn't already been, or to specify any explicit `Parcel Dependencies`_.
+    It's also used by Chandler itself to load the parcels it finds during
+    `Parcel Discovery`_.
+
+itemFor(obj, repoView)
+    Return the repository item that corresponds to the supplied object.  For
+    example, ``itemFor(AnItemClass)`` returns the repository ``Kind`` that
+    represents that class in the given repository view::
+
+        >>> schema.itemFor(schema.Item, rv)
+        <Kind ... Item ...>
+
+    This function is mainly useful when you need to deal with repository or
+    other APIs that require a repository item rather than a class or
+    attribute descriptor.  Any ``Item``, ``Struct``, or ``Enumeration``
+    subclass that you create can be passed to this function to get a
+    corresponding repository item for the class' schema.  Similarly, you
+    can pass an attribute descriptor to this function to get a repository
+    item for the attribute's schema.
 
