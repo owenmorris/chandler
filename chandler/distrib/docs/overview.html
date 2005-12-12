@@ -36,7 +36,7 @@ Data Driven Architecture</a><br>
 
 <div style="margin-left: 40px;"><a href="#Application_Layer">Application</a><br>
 
-<a href="#CPIA">CPIA</a><br>
+<a href="#CPIA">Presentation (CPIA)</a><br>
 
 <a href="#Services">Services</a><br>
 
@@ -46,18 +46,14 @@ Data Driven Architecture</a><br>
 
 <a href="#Repository">Repository</a></div>
 
-<a href="#Extension_Parcels">Extension Parcels</a><br>
-
-<a href="#Internationalization">Internationalization</a><br>
-
-<a href="#Security">Security</a><br>
-
-<a href="#Collections_and_Notifications">Collections and
-Notifications</a><br>
+<a href="#Extension_Parcels">Extension Parcels</a><a href="#Security"></a><br>
 
 <a href="#Threading_Model">Threading Model</a><br>
+<a href="overview.html#Collections_and_Notifications">Collections and
+Notifications</a><br>
+<a href="overview.html#Internationalization">Internationalization</a><br>
 
-<a href="#Threading_Model">Discovery and Startup</a><br>
+<a href="overview.html#Security">Security</a><br>
 
 <h2><a name="Data_Driven_Architecture"></a>Data
 Driven Architecture</h2>
@@ -112,7 +108,7 @@ is a set of
 Items, and is itself an Item. A Collection can define the set of
 Items either by explicitly listing the items, with a query against the repository, or by combining
 two other Collections. Collections play a key role in Chandler's
-architecture, discussed in more detail below in <a href="#Collections_and_Notifications">Collections</a>.<br>
+architecture, discussed in more detail below in <a href="#Collections_and_Notifications">Collections and Notifications</a>.<br>
 
 <br>
 
@@ -499,7 +495,7 @@ think of as their personal data.<br>
 <br>
 
 This layer also includes the code for Collections and for
-notifications to the layers above. See&nbsp;<a href="#Collections_and_Notifications">Collections</a>
+notifications to the layers above. See&nbsp;<a href="#Collections_and_Notifications">Collections and Notifications</a>
 for more
 information.<br>
 
@@ -616,6 +612,11 @@ user and let the user make decisions about how to resolve them. (We
 have no such user interface in 0.6, we resolve conflicts at higher
 layers without involving the user).<br>
 <br>
+As the lowest layer on the Chandler stack, the Repository has almost no
+knowledge of the layers above it. The Repository communicates with the
+layers above it by sending out notifications. The Repository currently
+has two key mechanisms to send notifications: per attribute <span style="font-weight: bold;">monitors</span> and&nbsp;notifications of changes to sets (sets form the basis for Collections). Notifications are discussed below in <a href="#Collections_and_Notifications">Collections and Notifications</a>.<br>
+<br>
 The Repository contains the core implementations for Items, Kinds, and
 Attributes. Layers above the repository use the schema api instead of
 using the Repsitory's API directly (with some exceptions, like the
@@ -722,6 +723,70 @@ RSS reader, which is documented in the&nbsp;tutorial.</span></li>
 
 </ul>
 
+<h2><a name="Threading_Model"></a>Threading
+Model</h2>
+
+<p>In Chandler, the Repository is the primary means that threads
+use to
+communicate with each other. A thread using the Repository has its own <strong>RepositoryView</strong>,
+which is an independent connection to the
+Repository.&nbsp;</p>
+
+<p>The UI has its own thread (wxWidgets, like most GUI frameworks, runs
+in a single thread.) &nbsp;We're currently using the Twisted
+Reactor to schedule work that needs to happen outside the UI thread.
+The Reactor runs in a separate thread, and is used to schedule work. In
+Chandler the units of work are called&nbsp;<span style="font-weight: bold;">PeriodicTasks</span>, which
+are Items that pesist in the Repository. Each PeriodicTask has its own <strong style="font-weight: normal;">Repository View</strong>,
+as does the main wxWidgets UI thread.&nbsp;</p>
+
+<p>To follow an example, the
+PeriodicTask that fetches email creates new email Items in its
+RepositoryView. After it creates the items, it calls <strong style="font-weight: normal; font-family: monospace;">commit()</strong>
+on the RepositoryView, which pushes the Items to the Repository. The
+UI thread calls <strong style="font-weight: normal; font-family: monospace;">refresh()</strong>
+on its
+RepositoryView during its OnIdle cycle, picking up the new changes. As
+the new changes are picked up, the appropriate Widgets are dirtied so
+that they will repaint themselves in the next Paint cycle.</p>
+<h2><a name="Collections_and_Notifications"></a>Collections
+and Notifications</h2>
+
+Collections are a core element of Chandler's architecture. Collections
+are one mechanism used to discover Items in the Repository. Collections
+are used to send notifications to the user interface. <br>
+<br>
+Much of the low level implementation of Collections is handled by the
+Repository. The Repository has the notion of a 'set' of items. Sets can
+be created by listing Items explicitly, by querying for Items, or by
+combining sets (unions, differences or intersections). Collections wrap
+sets so that they look like Items to the client code in the layers
+above. Collections subscribe to set notifications, collecting
+information about changes to the contents of the Collection and changes
+to the Items in the Collection. The collection class provides a class
+method called deliverNotifications. This methond is called by the
+application to send out notifications to the higher level layers.<br>
+<br>
+The main application object defines a method called OnIdle, which gets
+called during the application's idle cycle (cycles between processing
+input from the user). As mentioned above in Threading Model, OnIdle
+will call refresh() on the GUI thread's Repository View. This call
+picks up changes from the repository, including the collected change
+notifications for all Collections. OnIdle then calls the
+deliverNotifications class method, which does something useful.
+Notification delivery dirties appropriate blocks. OnIdle then walks
+through the Blocks, sychnronizing any dirty Blocks with their Widget
+delegates. The Widgets in turn dirty themselves, so that they are drawn
+in the next OnPaint cycle. The wxWidgets event handling framework
+handles calling both OnIdle as well as OnPaint at the appropriate times.<br>
+<br>
+Attribute Editor notifications have an exception to this mechanism --
+they subscribe directly to the Repository's attribute monitors. Every
+time an attribute is changed, the repository fires off a monitor to all
+subscribers (in this case the Attribute Editor). &nbsp;We plan on
+changing this in 0.7, by creating Item notifications not unlike the
+Collection notifications.<br>
+
 <h2><a name="Internationalization"></a>Internationalization
 (i18n)</h2>
 
@@ -756,44 +821,7 @@ information about helping out with localizations can be found <a href="http://wi
 &lt;TODO: insert short summary here m2crypto? certstore? note both
 scripting as glaring issue as well as future signed parcels&gt;<br>
 
-parcels.osaf.framework.certstore
-<h2><a name="Collections_and_Notifications"></a>Collections
-and Notifications</h2>
-
-&lt;TODO: insert wise and clarifying discussion of collections and
-notifications here&gt;
-<h2><a name="Threading_Model"></a>Threading
-Model</h2>
-
-<p>In Chandler, the Repository is the primary means that threads
-use to
-communicate with each other. A thread using the Repository has its own <strong>RepositoryView</strong>,
-which is an independent connection to the
-Repository.&nbsp;</p>
-
-<p>The UI has its own thread (wxWidgets, like most GUI frameworks, runs
-in a single thread.) &nbsp;We're currently using the Twisted
-Reactor to schedule work that needs to happen outside the UI thread.
-The Reactor runs in a separate thread, and is used to schedule work. In
-Chandler the units of work are called&nbsp;<span style="font-weight: bold;">PeriodicTasks</span>, which
-are Items that pesist in the Repository. Each PeriodicTask has its own <strong style="font-weight: normal;">Repository View</strong>,
-as does the main wxWidgets UI thread.&nbsp;</p>
-
-<p>To follow an example, the
-PeriodicTask that fetches email creates new email Items in its
-RepositoryView. After it creates the items, it calls <strong style="font-weight: normal; font-family: monospace;">commit()</strong>
-on the RepositoryView, which pushes the Items to the Repository. The
-UI thread calls <strong style="font-weight: normal; font-family: monospace;">refresh()</strong>
-on its
-RepositoryView during its OnIdle cycle, picking up the new changes. As
-the new changes are picked up, the appropriate Widgets are dirtied so
-that they will repaint themselves in the next Paint cycle. </p>
-
-<h2><a name="Discovery_and_Startup"></a>Discovery</h2>
-
-&lt;TODO: explain discovery paradigm not
-registration&gt;<span style="font-weight: bold;"><br>
-
+parcels.osaf.framework.certstore<span style="font-weight: bold;"><br>
 </span>
 </body>
 </html>
