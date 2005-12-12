@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.10: http://docutils.sourceforge.net/" />
+<title>Startup and Background Tasks in Chandler</title>
+<link rel="stylesheet" href="rst-docs.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="startup-and-background-tasks-in-chandler">
+<h1 class="title">Startup and Background Tasks in Chandler</h1>
+<div class="section" id="running-code-at-application-startup">
+<h1><a name="running-code-at-application-startup">Running Code at Application Startup</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">osaf.startup</span></tt> module provides an API for notifying repository items that
+the application has been started.  For our examples, we'll be using a null
+repository view, <tt class="docutils literal"><span class="pre">rv</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from repository.persistence.RepositoryView import NullRepositoryView
+&gt;&gt;&gt; rv = NullRepositoryView()
+</pre>
+<p>In order to receive startup notifications, you simply create items of type
+<tt class="docutils literal"><span class="pre">osaf.startup.Startup</span></tt> in your parcel.  Each item's <tt class="docutils literal"><span class="pre">invoke</span></tt> attribute
+names a function (or non-Item class) that should be invoked at startup.  For
+our example, we'll use <tt class="docutils literal"><span class="pre">sys.stdout.write</span></tt> as the function we want to call:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from osaf.startup import Startup
+&gt;&gt;&gt; test = Startup(&quot;test&quot;, invoke=&quot;sys.stdout.write&quot;, view = rv)
+</pre>
+<p>When <tt class="docutils literal"><span class="pre">run_startup()</span></tt> is called, the function or class named by the <tt class="docutils literal"><span class="pre">invoke</span></tt>
+attribute of each <tt class="docutils literal"><span class="pre">Startup</span></tt> item will be called with the corresponding
+item as its only parameter.  In our example, this will cause the <tt class="docutils literal"><span class="pre">test</span></tt>
+object to be written to <tt class="docutils literal"><span class="pre">sys.stdout</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from osaf.startup import run_startup
+&gt;&gt;&gt; run_startup(rv)
+&lt;Startup (new): test ...&gt;
+</pre>
+<p>Please note that startup notifications are intended for tasks like adding
+servers to the Twisted reactor, starting threads, or other in-process Python
+operations, based on data in the repository.  They should <em>not</em> be used to
+modify repository items, as this may indirectly lead to merge conflicts with
+other threads.  Any needed repository items should be created or modified
+via <tt class="docutils literal"><span class="pre">parcel.xml</span></tt> or via the <tt class="docutils literal"><span class="pre">installParcel()</span></tt> hook.</p>
+<div class="section" id="disabling-startups">
+<h2><a name="disabling-startups">Disabling Startups</a></h2>
+<p>Individual startups can be enabled or disabled using their <tt class="docutils literal"><span class="pre">active</span></tt> boolean
+attribute:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; test.active = False
+&gt;&gt;&gt; run_startup(rv)     # Item is disabled, so nothing happens
+</pre>
+</div>
+<div class="section" id="startup-subclasses">
+<h2><a name="startup-subclasses">Startup Subclasses</a></h2>
+<p>You can create subclasses of <tt class="docutils literal"><span class="pre">Startup</span></tt>, if your startup code needs stored
+configuration of some kind.  Typically, you will override the <tt class="docutils literal"><span class="pre">onStart()</span></tt>
+method of <tt class="docutils literal"><span class="pre">Startup</span></tt> in your subclass so that it performs the desired behavior
+using attributes of the item.  For example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from application import schema
+
+&gt;&gt;&gt; class StartupMessage(Startup):
+...     message = schema.One(schema.Text, initialValue=u&quot;Hello, world!&quot;)
+...     def onStart(self):
+...         print self.message.encode('utf8')
+
+&gt;&gt;&gt; hello = StartupMessage(view=rv)
+&gt;&gt;&gt; run_startup(rv)
+Hello, world!
+</pre>
+<p>Notice that we did <em>not</em> invoke the superclass <tt class="docutils literal"><span class="pre">onStart()</span></tt> method, because
+we don't want the <tt class="docutils literal"><span class="pre">invoke</span></tt> attribute to take effect.</p>
+</div>
+<div class="section" id="ordered-startups">
+<h2><a name="ordered-startups">Ordered Startups</a></h2>
+<p>By default, there is no particular order that startup items start in.  But
+sometimes, a startup item needs another item to be started first.  The
+<tt class="docutils literal"><span class="pre">requires</span></tt> attribute can be used to reference other startup items that
+should be started first:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; goodbye = StartupMessage(
+...     message=u&quot;Goodbye, world!&quot;,
+...     requires=[hello],
+...     view=rv
+... )
+
+&gt;&gt;&gt; run_startup(rv)
+Hello, world!
+Goodbye, world!
+
+&gt;&gt;&gt; goodbye.requires = []
+&gt;&gt;&gt; hello.requires = [goodbye]
+
+&gt;&gt;&gt; run_startup(rv)
+Goodbye, world!
+Hello, world!
+</pre>
+<p>Note that a startup will not run unless <em>all</em> of its required items have been
+started:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; goodbye.active = False
+&gt;&gt;&gt; run_startup(rv)     # hello needs goodbye, so neither runs here
+</pre>
+<p>Note that this also means that creating a requirements loop (where A requires
+B and B requires A) will prevent all items in the loop from starting:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; goodbye.active = True
+&gt;&gt;&gt; goodbye.requires = [hello]
+&gt;&gt;&gt; run_startup(rv)     # co-dependents won't be started
+</pre>
+</div>
+<div class="section" id="threads">
+<h2><a name="threads">Threads</a></h2>
+<p>To run your startup code in a separate thread, you can create an item of type
+<tt class="docutils literal"><span class="pre">Thread</span></tt> instead of <tt class="docutils literal"><span class="pre">Startup</span></tt>.  The object named by the <tt class="docutils literal"><span class="pre">Thread</span></tt> item's
+<tt class="docutils literal"><span class="pre">invoke</span></tt> attribute will be called in a new thread with its own repository
+view, but in all other respects a <tt class="docutils literal"><span class="pre">Thread</span></tt> is the same as a <tt class="docutils literal"><span class="pre">Startup</span></tt>.</p>
+<p>Here's an example routine that we might run in a thread.  It waits for a start
+flag to be set, then sets a finished flag and exits:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; start = False
+&gt;&gt;&gt; finished = False
+&gt;&gt;&gt; def my_thread(thread_item):
+...     global start, finished
+...     while not start: pass
+...     finished = True
+</pre>
+<p>Normally, if you wanted to run this code in a thread at startup, you would just
+put it in a module, and then use its name (e.g. <tt class="docutils literal"><span class="pre">some_module.my_thread</span></tt>) as
+the <tt class="docutils literal"><span class="pre">invoke</span></tt> attribute of a <tt class="docutils literal"><span class="pre">Thread</span></tt> item.  But for demonstration purposes,
+we don't want to have to put this code in a separate module, so we'll import
+an already existing module, and shove this routine into its namespace
+temporarily, so that our <tt class="docutils literal"><span class="pre">Thread</span></tt> will be able to find it:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from osaf.tests import TestStartups
+&gt;&gt;&gt; TestStartups.my_thread = my_thread
+</pre>
+<p>And now we can make a <tt class="docutils literal"><span class="pre">Thread</span></tt> that will run it:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from osaf.startup import Thread
+&gt;&gt;&gt; t = Thread(
+...     &quot;my_name_here&quot;, invoke=&quot;osaf.tests.TestStartups.my_thread&quot;, view=rv
+... )
+&gt;&gt;&gt; t
+&lt;Thread (new): my_name_here ...&gt;
+
+&gt;&gt;&gt; run_startup(rv)
+</pre>
+<p>So now, the thread has been started:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; import threading
+&gt;&gt;&gt; threading.enumerate()
+[...&lt;RepositoryThread(//userdata/my_name_here, started daemon)&gt;...]
+</pre>
+<p>but it's looping, waiting for the start flag to be set:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; finished
+False
+</pre>
+<p>So, let's set the start flag, and wait a moment to allow the thread to finish:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; start = True
+&gt;&gt;&gt; from time import sleep
+&gt;&gt;&gt; sleep(0.1)    # let the thread finish
+</pre>
+<p>And now the finish flag should have been set by the thread:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; finished
+True
+</pre>
+<p>(Note: the sleep() duration above is 0.1 seconds because Windows machines have
+a fairly low resolution timer and may not actually perform the sleep()
+otherwise, which could break the test.)</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; t.active = False    # don't use this thread in the subsequent tests
+</pre>
+</blockquote>
+</div>
+<div class="section" id="starting-twisted">
+<h2><a name="starting-twisted">Starting Twisted</a></h2>
+<p>Chandler needs to run Twisted's reactor in a thread, so that it can run
+independently of the GUI (which could otherwise block its execution).  The
+<tt class="docutils literal"><span class="pre">osaf.startup</span></tt> module provides a few APIs for this:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from osaf.startup import get_reactor_thread, run_reactor, stop_reactor
+</pre>
+<p><tt class="docutils literal"><span class="pre">get_reactor_thread()</span></tt> returns the <tt class="docutils literal"><span class="pre">threading.Thread</span></tt> object that the
+reactor is running in (assuming it was started using <tt class="docutils literal"><span class="pre">ReactorThread</span></tt>), or
+<tt class="docutils literal"><span class="pre">None</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; print get_reactor_thread()
+None
+</pre>
+<p><tt class="docutils literal"><span class="pre">stop_reactor()</span></tt> stops the reactor if it's running (regardless of what thread
+it's in) and waits for the reactor thread to exit, if it's running.  In other
+words, it guarantees that <tt class="docutils literal"><span class="pre">reactor.running</span></tt> is False and
+<tt class="docutils literal"><span class="pre">get_reactor_thread()</span></tt> is None when it returns:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; stop_reactor()
+</pre>
+<p><tt class="docutils literal"><span class="pre">run_reactor(in_thread)</span></tt> calls Twisted's <tt class="docutils literal"><span class="pre">reactor.run()</span></tt>, with some
+additional wrapper code to ensure it can run safely, only runs one reactor at
+a time, and runs in a separate thread (by default):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; run_reactor()
+&gt;&gt;&gt; get_reactor_thread()
+&lt;RepositoryThread(reactor, started daemon)&gt;
+</pre>
+<p>And then we can verify that the reactor is in fact running when <tt class="docutils literal"><span class="pre">run_reactor</span></tt>
+returns:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from twisted.internet import reactor
+&gt;&gt;&gt; reactor.running
+1
+</pre>
+<p>And then stop it, verifying that both the reactor and thread have stopped:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; rt = get_reactor_thread()
+&gt;&gt;&gt; stop_reactor()
+&gt;&gt;&gt; print get_reactor_thread()
+None
+&gt;&gt;&gt; rt.isAlive()
+False
+&gt;&gt;&gt; reactor.running
+0
+</pre>
+<p>Calling <tt class="docutils literal"><span class="pre">run_reactor()</span></tt> when the reactor is already running in another
+thread has no effect:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; run_reactor()
+&gt;&gt;&gt; rt = get_reactor_thread()
+
+&gt;&gt;&gt; run_reactor()
+&gt;&gt;&gt; rt is get_reactor_thread()
+True
+</pre>
+<p>But trying to run the reactor in the current thread (by passing a False
+<tt class="docutils literal"><span class="pre">in_thread</span></tt> argument) when it's already running in some thread raises
+an error:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; run_reactor(False)
+Traceback (most recent call last):
+...
+AssertionError: Reactor is already running
+
+&gt;&gt;&gt; stop_reactor()  # make sure we've stopped again for next test
+&gt;&gt;&gt; reactor.running
+0
+</pre>
+<p>So, running the Twisted reactor at startup is as simple as defining a normal
+<tt class="docutils literal"><span class="pre">Startup</span></tt> instance to invoke <tt class="docutils literal"><span class="pre">run_reactor()</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; twisted_startup = Startup(
+...     &quot;twisted&quot;, view=rv, invoke=&quot;osaf.startup.run_reactor&quot;
+... )
+&gt;&gt;&gt; run_startup(rv)
+&gt;&gt;&gt; reactor.running
+1
+&gt;&gt;&gt; stop_reactor()
+&gt;&gt;&gt; twisted_startup.active = False
+</pre>
+<p>Note that it doesn't matter how many <tt class="docutils literal"><span class="pre">Startup</span></tt> instances start the reactor,
+as it will only be started once, by the first one that tries.  If you have
+startup code that depends on the reactor, therefore, you can either define
+a <tt class="docutils literal"><span class="pre">Startup</span></tt> for <tt class="docutils literal"><span class="pre">run_reactor</span></tt> and reference it in another <tt class="docutils literal"><span class="pre">Startup</span></tt>, or
+you can just call <tt class="docutils literal"><span class="pre">run_reactor()</span></tt> in the code that needs it.</p>
+<p>Also note that you should <em>not</em> invoke <tt class="docutils literal"><span class="pre">run_reactor()</span></tt> from any thread but
+the main thread, or you will receive an assertion error in that thread, and
+the reactor will not start:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; twisted_thread = Thread(
+...     &quot;dont_do_this&quot;, view=rv, invoke=&quot;osaf.startup.run_reactor&quot;
+... )
+
+&gt;&gt;&gt; import sys, StringIO    # trap stderr output
+&gt;&gt;&gt; old_stderr, sys.stderr = sys.stderr, StringIO.StringIO()
+
+&gt;&gt;&gt; run_startup(rv)
+&gt;&gt;&gt; reactor.running
+0
+
+&gt;&gt;&gt; sleep(0.5)  # make sure exception has been sent to stderr
+&gt;&gt;&gt; stop_reactor()
+&gt;&gt;&gt; len(threading.enumerate())  # all other threads should be stopped now
+1
+
+&gt;&gt;&gt; print sys.stderr.getvalue()
+Exception in thread //userdata/dont_do_this:
+Traceback (most recent call last):
+  ...
+AssertionError: can't start reactor thread except from the main thread...
+
+&gt;&gt;&gt; sys.stderr = old_stderr
+&gt;&gt;&gt; twisted_thread.active = False
+</pre>
+</div>
+</div>
+<div class="section" id="background-tasks-using-twisted-and-threads">
+<h1><a name="background-tasks-using-twisted-and-threads">Background Tasks using Twisted and Threads</a></h1>
+<div class="section" id="twisted-tasks">
+<h2><a name="twisted-tasks">Twisted Tasks</a></h2>
+<p>A <tt class="docutils literal"><span class="pre">TwistedTask</span></tt> is similar to a <tt class="docutils literal"><span class="pre">Thread</span></tt>, in that it begins an independent
+task with its own repository view.  It is different in that all <tt class="docutils literal"><span class="pre">TwistedTask</span></tt>
+instances run in the same thread: the Twisted &quot;reactor&quot; thread.  These tasks
+are co-operatively multitasked, by receiving callbacks from the Twisted
+reactor object.  If you are comfortable with the Twisted API, or at least want
+to make use of it, you may find some advantage here over using threads.</p>
+<p>As with <tt class="docutils literal"><span class="pre">Startup</span></tt> and <tt class="docutils literal"><span class="pre">Thread</span></tt>, a <tt class="docutils literal"><span class="pre">TwistedTask</span></tt> instance invokes the
+function or class named by its <tt class="docutils literal"><span class="pre">invoke</span></tt> attribute.  The only difference is
+that the invocation occurs in the Twisted &quot;reactor&quot; thread, after the reactor
+has been started.  Your startup code (function, or class __init__) should
+accept the <tt class="docutils literal"><span class="pre">TwistedTask</span></tt> item as its sole argument, and it should do whatever
+reactor setup it then needs to do, such as registering listening ports or
+scheduling timed callbacks.</p>
+<p>For our example, we'll just create a task that just prints what thread it was
+called from:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; def hello_from(item):
+...     print &quot;running&quot;,item,&quot;in&quot;,threading.currentThread()
+</pre>
+<p>and put it in a module so we can import it (again, we're doing this so you
+don't have to go read another file to see the source; in the &quot;real world&quot; you
+would just define the function in the appropriate module to start with):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; TestStartups.hello_from = hello_from
+</pre>
+<p>Now let's create the task item and run it:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from osaf.startup import TwistedTask
+&gt;&gt;&gt; demo = TwistedTask(
+...     &quot;demo&quot;, view=rv, invoke=&quot;osaf.tests.TestStartups.hello_from&quot;
+... )
+</pre>
+<p>Giving it a chance to run and complete:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; run_startup(rv); sleep(0.1)     # give it a chance to run
+running &lt;TwistedTask ... demo ...&gt; in &lt;RepositoryThread(reactor,...)&gt;
+
+&gt;&gt;&gt; stop_reactor()  # shut down the reactor again
+&gt;&gt;&gt; len(threading.enumerate())  # all other threads should be stopped now
+1
+
+&gt;&gt;&gt; demo.active = False     # disable for next test(s)
+</pre>
+</div>
+<div class="section" id="running-repetitive-tasks-periodically">
+<h2><a name="running-repetitive-tasks-periodically">Running Repetitive Tasks Periodically</a></h2>
+<p>Sometimes you don't need the full power of the Twisted API, or don't want to
+take the time to learn it for a quick hack.  Or, even if you're familiar with
+the Twisted API, you'd like to have a convenient way to repeatedly run some
+code every N seconds or minutes.  Then you can use a <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt> item.</p>
+<p>A <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt> is similar to a <tt class="docutils literal"><span class="pre">TwistedTask</span></tt>, but its <tt class="docutils literal"><span class="pre">invoke</span></tt> target
+must be a class or factory function that returns an object with a <tt class="docutils literal"><span class="pre">run()</span></tt>
+method.  The class or factory will be invoked in the reactor thread at
+startup, and the <tt class="docutils literal"><span class="pre">run()</span></tt> method will be called in its own thread repeatedly
+as long as it returns <tt class="docutils literal"><span class="pre">True</span></tt> from each call.  If it returns <tt class="docutils literal"><span class="pre">False</span></tt>,
+<tt class="docutils literal"><span class="pre">None</span></tt>, or any other false value (or raises an uncaught exception) the
+repeated calls will cease.  The interval between calls is determined by the
+<tt class="docutils literal"><span class="pre">PeriodicTask</span></tt> item's <tt class="docutils literal"><span class="pre">interval</span></tt> attribute, which must be set to a
+<tt class="docutils literal"><span class="pre">datetime.timedelta</span></tt> object.</p>
+<p>For our example, we'll create a simple class suitable for use as a periodic
+task:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Counter:
+...     def __init__(self, item):
+...         self.item = item
+...         self.count = 0
+...         print &quot;__init__&quot;,
+...         hello_from(item)        # show what thread we were called from
+...
+...     def run(self):
+...         self.count += 1
+...         print &quot;run() call&quot;, self.count,
+...         hello_from(self.item)   # show what thread we were called from
+...         return self.count&lt;5     # stop when count reaches 5
+</pre>
+<p>And once again, we'll insert this class into the <tt class="docutils literal"><span class="pre">TestStartups</span></tt> module, so
+you don't have to go there to read the source.  (But you should just set
+<tt class="docutils literal"><span class="pre">invoke</span></tt> to import from wherever your classes or functions are defined.):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; TestStartups.Counter = Counter
+</pre>
+<p>And now we'll create a <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt> to create the counter and call it once
+per microsecond (so the test runs quickly!):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from datetime import timedelta
+&gt;&gt;&gt; from osaf.startup import PeriodicTask
+
+&gt;&gt;&gt; counter = PeriodicTask(
+...     &quot;counter&quot;, view=rv, invoke=&quot;osaf.tests.TestStartups.Counter&quot;,
+...     interval = timedelta(microseconds=1)
+... )
+
+&gt;&gt;&gt; run_startup(rv); sleep(0.1)    # wait for it to run all 5 times
+__init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
+run() call 1 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+run() call 2 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+run() call 3 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+run() call 4 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+run() call 5 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+</pre>
+<p>Notice that the <tt class="docutils literal"><span class="pre">__init__</span></tt> method is called at startup time in the reactor
+thread, but subsequent <tt class="docutils literal"><span class="pre">run()</span></tt> calls occur in various &quot;pool&quot; threads managed
+by Twisted.  It is not guaranteed that your <tt class="docutils literal"><span class="pre">run()</span></tt> method will execute in
+the same thread from one call to the next, so you should not rely on it being
+so.  (We aren't showing the thread IDs in the example above, because they're
+not only different from one call to the next, they're also different from one
+test run to the next, so the test would fail if we included that info.)</p>
+<p>Sometimes, you may want your task to run at startup, as well as after the first
+delay interval.  You can set the <tt class="docutils literal"><span class="pre">run_at_startup</span></tt> flag to enable this:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; counter.run_at_startup = True
+</pre>
+<p>To demonstrate, we'll set the delay interval to a year:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; counter.interval = timedelta(days=365)
+&gt;&gt;&gt; run_startup(rv); sleep(0.1)
+__init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
+run() call 1 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+</pre>
+<p>Notice that call 1 ran, even though there's a year between runs.  However, if
+we turn the flag back off, it doesn't get a <tt class="docutils literal"><span class="pre">run()</span></tt> call at startup:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; counter.run_at_startup = True
+&gt;&gt;&gt; run_startup(rv); sleep(0.1)
+__init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
+</pre>
+<p>Finally, let's clean up after our <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt> example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; stop_reactor()
+&gt;&gt;&gt; len(threading.enumerate())  # all other threads should be stopped now
+1
+
+&gt;&gt;&gt; counter.active = False      # disable for subsequent tests
+</pre>
+</div>
+<div class="section" id="using-the-repository">
+<h2><a name="using-the-repository">Using the Repository</a></h2>
+<p>When running background tasks that use the repository, each logical task or
+individual thread needs its own repository view, so that it doesn't become
+confused by changes being made by other threads or tasks at the same time.
+<tt class="docutils literal"><span class="pre">TwistedTask</span></tt> and <tt class="docutils literal"><span class="pre">Thread</span></tt> handle this for you automatically, by calling
+the <tt class="docutils literal"><span class="pre">fork_item()</span></tt> API on an item.  <tt class="docutils literal"><span class="pre">fork_item()</span></tt> opens a new repository
+view and returns a copy of the item that is native to the new view.</p>
+<p>To demonstrate, let's set up a &quot;real&quot; (in-memory) repository, since null
+repository views can't be forked:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from repository.persistence.DBRepository import DBRepository
+&gt;&gt;&gt; import os, repository
+&gt;&gt;&gt; rep = DBRepository('__nosuchfile__')
+&gt;&gt;&gt; rep.create(ramdb=True, refcounted=True)
+</pre>
+<p>First, we'll create an item we want to fork:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; anItem = schema.Item(&quot;Demo&quot;, rep.view)
+&gt;&gt;&gt; anItem
+&lt;Item (new): Demo ...&gt;
+</pre>
+<p>Then, we'll commit the repository, because otherwise our item won't be visible
+in the new view:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; rep.view.commit()
+</pre>
+<p>And now we can fork the item:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from osaf.startup import fork_item
+&gt;&gt;&gt; newItem = fork_item(anItem)
+&gt;&gt;&gt; newItem
+&lt;Item: Demo ...&gt;
+&gt;&gt;&gt; newItem.itsUUID == anItem.itsUUID
+True
+&gt;&gt;&gt; newItem.itsView is anItem.itsView
+False
+&gt;&gt;&gt; newItem.itsView.repository is anItem.itsView.repository
+True
+</pre>
+<p>Note that you should close a view when you are done with it, to avoid possible
+memory or resource leaks:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; newItem.itsView.closeView()
+&gt;&gt;&gt; anItem.itsView.closeView()
+</pre>
+<p>For this test document, we'll also close the repository and our null repository
+view:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; rep.close()
+&gt;&gt;&gt; rv.closeView()
+</pre>
+</div>
+</div>
+</div>
+</body>
+</html>

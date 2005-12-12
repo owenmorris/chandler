@@ -1,0 +1,1531 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.10: http://docutils.sourceforge.net/" />
+<title>The Parcel Developer's Guide to the Chandler Schema API</title>
+<link rel="stylesheet" href="rst-docs.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="the-parcel-developer-s-guide-to-the-chandler-schema-api">
+<h1 class="title">The Parcel Developer's Guide to the Chandler Schema API</h1>
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title first"><a name="table-of-contents"><strong>Table of Contents</strong></a></p>
+<ul class="simple">
+<li><a class="reference" href="#introduction" id="id1" name="id1">Introduction</a></li>
+<li><a class="reference" href="#schema-basics" id="id2" name="id2">Schema Basics</a><ul>
+<li><a class="reference" href="#items-kinds-and-views" id="id3" name="id3">Items, Kinds, and Views</a></li>
+<li><a class="reference" href="#defining-attribute-descriptors" id="id4" name="id4">Defining Attribute Descriptors</a></li>
+<li><a class="reference" href="#bi-directional-references" id="id5" name="id5">Bi-directional References</a></li>
+<li><a class="reference" href="#extending-existing-kinds" id="id6" name="id6">Extending Existing Kinds</a><ul>
+<li><a class="reference" href="#anonymous-inverses" id="id7" name="id7">Anonymous Inverses</a></li>
+<li><a class="reference" href="#annotation-classes" id="id8" name="id8">Annotation Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference" href="#working-with-parcels" id="id9" name="id9">Working With Parcels</a><ul>
+<li><a class="reference" href="#what-are-parcels" id="id10" name="id10">What are Parcels?</a></li>
+<li><a class="reference" href="#parcel-redirection" id="id11" name="id11">Parcel Redirection</a></li>
+<li><a class="reference" href="#parcel-installation" id="id12" name="id12">Parcel Installation</a><ul>
+<li><a class="reference" href="#accessing-parcel-contents" id="id13" name="id13">Accessing Parcel Contents</a></li>
+<li><a class="reference" href="#installing-or-updating-items" id="id14" name="id14">Installing or Updating Items</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#parcel-discovery" id="id15" name="id15">Parcel Discovery</a><ul>
+<li><a class="reference" href="#parcel-dependencies" id="id16" name="id16">Parcel Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference" href="#api-details" id="id17" name="id17">API Details</a><ul>
+<li><a class="reference" href="#classes" id="id18" name="id18">Classes</a><ul>
+<li><a class="reference" href="#abstract-item-classes" id="id19" name="id19">Abstract Item Classes</a></li>
+<li><a class="reference" href="#enumeration-classes" id="id20" name="id20">Enumeration Classes</a></li>
+<li><a class="reference" href="#struct-classes" id="id21" name="id21">Struct Classes</a></li>
+<li><a class="reference" href="#defining-clouds" id="id22" name="id22">Defining Clouds</a></li>
+<li><a class="reference" href="#other-metadata" id="id23" name="id23">Other Metadata</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#attribute-descriptors" id="id24" name="id24">Attribute Descriptors</a></li>
+<li><a class="reference" href="#other-apis" id="id25" name="id25">Other APIs</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h1><a class="toc-backref" href="#id1" name="introduction">Introduction</a></h1>
+<p>This document is a guide to the Chandler Schema API, found in the
+<tt class="docutils literal"><span class="pre">application.schema</span></tt> module of Chandler.  It explains how to define
+Chandler parcels and their schemas, how to create persistent items as part of
+installing a parcel, and how to create and use persistent items defined by your
+schema.</p>
+<p>We assume in this document that you:</p>
+<ul class="simple">
+<li>Know how to start Chandler and/or use the <tt class="docutils literal"><span class="pre">headless</span></tt> utility to experiment
+with the Chandler repository</li>
+<li>Have a good basic understanding of the Python programming language, including
+how to create modules and packages, and basic OO concepts like classes vs.
+instances.</li>
+<li>Are familiar with the concept of Chandler's repository and its persistent
+storage of data, and know what a &quot;schema&quot; is.</li>
+</ul>
+<p>You should also be aware that making changes to Chandler's schema may
+invalidate data that's already contained in your repository, and that while
+experimenting with the APIs presented here you may sometimes need to recreate
+your repository.  You should therefore not experiment with repositories whose
+data you wish to keep!</p>
+<p>Throughout this document, you'll find Python code examples like this:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; if 1+1 == 2:
+...     print &quot;this is sample output from a working example&quot;
+this is sample output from a working example
+</pre>
+<p>These are laid out to look like the code was typed at the Python interpreter
+prompt (&quot;&gt;&gt;&gt;&quot; on the first line, &quot;...&quot; on subsequent lines, followed by any
+output).  If you actually type these examples in (skipping the prompts and
+sample output), you should receive the same results.  In fact, this document
+is actually a Python &quot;doctest&quot;, which means the examples can be validated by a
+program that runs the examples and verifies that they produce the same output
+as shown here.</p>
+<p>For the sake of clarity, and to make the tests repeatable, we'll sometimes omit
+part of an example's output, using <tt class="docutils literal"><span class="pre">...</span></tt> to mark the omitted portions.  The
+doctest tool will treat these as wildcards for matching purposes, and we also
+won't have to include a lot of detail that's not relevant to the example.  For
+example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; for i in range(1000):   # produce a lot of output
+...     print &quot;This is line&quot;,i+1
+This is line 1
+This is line 2
+...
+This is line 1000
+</pre>
+<p>The Python <tt class="docutils literal"><span class="pre">doctest</span></tt> tool will still verify the parts of the output that we
+include, of course, which will help to ensure that the examples in this
+document will always accurately reflect the current schema API.</p>
+<p>Aside from the doctest blocks for examples, the only other typographical
+conventions used in this document will be to format references to Python code
+or symbols like <tt class="docutils literal"><span class="pre">this()</span></tt>, and to put the first, defining use of any
+new terms in <strong>bold</strong>.</p>
+</div>
+<div class="section" id="schema-basics">
+<h1><a class="toc-backref" href="#id2" name="schema-basics">Schema Basics</a></h1>
+<p>Chandler stores data as items in its <strong>repository</strong>: a kind of object database.
+In order to know how to store and validate the data, the repository needs to
+know how the data is structured.  This &quot;data about the data&quot; (aka &quot;metadata&quot;)
+is the <strong>schema</strong>.</p>
+<p>Chandler schemas are defined in Python code, using the Chandler schema API.
+This API is found in the <tt class="docutils literal"><span class="pre">application.schema</span></tt> module, which we recommend that
+you import in this way:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from application import schema
+</pre>
+<p>This allows you to conveniently refer to any schema API features by using
+<tt class="docutils literal"><span class="pre">&quot;schema.&quot;</span></tt> as a prefix to their names.</p>
+<div class="section" id="items-kinds-and-views">
+<h2><a class="toc-backref" href="#id3" name="items-kinds-and-views">Items, Kinds, and Views</a></h2>
+<p>The most common use of the schema API is to define the schema for new kinds of
+persistent items.  An <strong>Item</strong> is a Python object that can be stored in the
+repository.  A <strong>Kind</strong> is the persistent representation of the schema for
+one or more Python classes.  Kinds are defined by subclassing <tt class="docutils literal"><span class="pre">schema.Item</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Sample(schema.Item):
+...     &quot;&quot;&quot;Just an example&quot;&quot;&quot;
+</pre>
+<p>Before we can create an instance of our <tt class="docutils literal"><span class="pre">Sample</span></tt> class, we need to have a
+place to store it.  This is because any instances of <tt class="docutils literal"><span class="pre">Sample</span></tt> that we use in
+Python code are just reflections of the &quot;real&quot; object stored in the repository.
+The <tt class="docutils literal"><span class="pre">Sample</span></tt> instances in our program can come and go, but the persistent
+items they reflect will always remain in the repository, even when Chandler
+isn't running.</p>
+<p>For our examples in this document, however, we don't <em>really</em> want to store
+any objects, so we'll use a &quot;pretend&quot; repository called a
+<tt class="docutils literal"><span class="pre">NullRepositoryView</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from repository.persistence.RepositoryView import NullRepositoryView
+&gt;&gt;&gt; rv = NullRepositoryView(verify=True)  # report errors immediately
+</pre>
+<p>A <strong>repository view</strong> is a connection to a repository, much like a connection
+to an SQL database.  Instead of using SQL, however, repository views provide
+various methods for retrieving objects, committing or rolling back changes,
+etc.  For the most part, these methods are outside the scope of this document,
+so we won't cover many of those methods here.</p>
+<p>A <tt class="docutils literal"><span class="pre">NullRepositoryView</span></tt> is just like an ordinary repository view, except that
+the objects don't actually get stored anywhere; instead, they behave like
+normal Python objects that go away as soon as you're not using them.</p>
+<p>Now that we have a repository view, we can create an item:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; myItem = Sample(&quot;myItem&quot;, rv)
+&gt;&gt;&gt; myItem
+&lt;Sample (new): myItem ...&gt;
+</pre>
+<p>The first two arguments to an Item class's constructor are a name and a
+&quot;parent&quot; object.  An item's parent object can be either any existing item, or
+a repository view.  Since <tt class="docutils literal"><span class="pre">myItem</span></tt> was our first item, we had to go with
+the repository view.  But we could now create other items using <tt class="docutils literal"><span class="pre">myItem</span></tt> as
+a parent:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; child_item = Sample(&quot;child_item&quot;, myItem)
+&gt;&gt;&gt; child_item.itsParent is myItem
+True
+</pre>
+<p>Two items with the same parent may not have the same name:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; another_child = Sample(&quot;child_item&quot;, myItem)
+Traceback (most recent call last):
+  ...
+ChildNameError: //myItem already has a child named 'child_item'
+</pre>
+<p>But there's no need for you to come up with names for every item if you don't
+want to.  As long as the item's parent isn't a repository view, you can use
+<tt class="docutils literal"><span class="pre">None</span></tt> for the name, and it won't collide with any other items, whether they
+have names or not:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; another_child = Sample(None, myItem)
+&gt;&gt;&gt; another_child
+&lt;Sample (new): ...&gt;
+
+&gt;&gt;&gt; and_another = Sample(None, myItem)
+&gt;&gt;&gt; and_another
+&lt;Sample (new): ...&gt;
+</pre>
+<p>If you don't want to have to manually create a place for such &quot;anonymous&quot; items
+to go, there is a four-argument form you can use, which will cause the item to
+be created under a special &quot;userdata&quot; root item:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; some_user_data = Sample(None, None, None, rv)
+&gt;&gt;&gt; some_user_data.itsParent
+&lt;Item (new): userdata ...&gt;
+
+&gt;&gt;&gt; some_user_data.itsParent.itsParent is rv
+True
+</pre>
+<p>When you're writing code for Chandler and need a repository view, you will
+usually obtain it from an existing item.  Every item has an <tt class="docutils literal"><span class="pre">itsView</span></tt>
+attribute, that gives you the repository view that the item is stored in:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; myItem.itsView is rv
+True
+</pre>
+<p>In addition, for uniformity's sake, repository views also have an <tt class="docutils literal"><span class="pre">itsView</span></tt>
+attribute:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; rv.itsView is rv
+True
+</pre>
+<p>This allows you to take an object's <tt class="docutils literal"><span class="pre">itsView</span></tt> without worrying whether or
+not you are already referring to a view.</p>
+<p>There is one other thing you will typically use repository views for, and that
+is to find all items of a particular kind.  The <tt class="docutils literal"><span class="pre">iterItems()</span></tt> class method of
+item classes yields all the items of that kind within the given repository
+view:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; if (
+...    set(Sample.iterItems(rv)) ==
+...    set([myItem, child_item, another_child, and_another,some_user_data])
+... ):
+...     print &quot;Yes, all the items we created are there.&quot;
+Yes, all the items we created are there.
+</pre>
+<p>Note that <tt class="docutils literal"><span class="pre">iterItems()</span></tt> does not yield the items in any pre-determined order,
+so our example uses <tt class="docutils literal"><span class="pre">set()</span></tt> objects to do the comparison.</p>
+<p>Most of the time, however, you will not want to use <tt class="docutils literal"><span class="pre">iterItems()</span></tt> to
+implement queries, as it cannot take advantage of indexes and will therefore
+not perform very well.  It is mainly useful if you really do need to perform
+an operation on all (or nearly all) of the items of that kind, or if you know
+that there won't be very many items of that kind.  For example, using
+<tt class="docutils literal"><span class="pre">iterItems()</span></tt> to search for items like preferences, email accounts, SSL
+certificates, etc. will usually be okay because there are so few of them in the
+repository at any given time.</p>
+</div>
+<div class="section" id="defining-attribute-descriptors">
+<h2><a class="toc-backref" href="#id4" name="defining-attribute-descriptors">Defining Attribute Descriptors</a></h2>
+<p>All our first <tt class="docutils literal"><span class="pre">Sample</span></tt> class does is allow us to create empty items and store
+them in a repository.  That's really not very useful.  To actually store real
+data, we need to have attributes.  But the repository needs to know what type
+of data will be stored in the attributes.  So, we have to include <strong>attribute
+descriptors</strong> in our classes, to define how the data will be stored.  For
+example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Knight(schema.Item):
+...     who = schema.One(schema.Text, displayName=&quot;What is your name?&quot;)
+...     what = schema.One(schema.Text, displayName=&quot;What is your quest?&quot;)
+...     numbers = schema.Sequence(
+...         schema.Integer, displayName=&quot;What are your favorite numbers?&quot;
+...     )
+</pre>
+<p><tt class="docutils literal"><span class="pre">schema.One</span></tt> and <tt class="docutils literal"><span class="pre">schema.Sequence</span></tt> are attribute descriptors that tell
+the repository you want either a simple attribute value, or a sequence of
+values.  The first argument to each is a <strong>type reference</strong>; it can be one of
+the predefined types like <tt class="docutils literal"><span class="pre">schema.Text</span></tt> or <tt class="docutils literal"><span class="pre">schema.Integer</span></tt>, or else it
+can be an existing item class.  (The <tt class="docutils literal"><span class="pre">displayName</span></tt> argument is used by some
+parts of Chandler to display e.g. column names, so you should generally wrap
+them with calls to the translation function (<tt class="docutils literal"><span class="pre">_()</span></tt>) from Chandler's <tt class="docutils literal"><span class="pre">i18n</span></tt>
+package, even though we aren't doing that in this document.)</p>
+<p>Now that we've defined a schema for the <tt class="docutils literal"><span class="pre">Knight</span></tt> class, we can create
+instances with data in the specified attributes:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; black_knight = Knight(
+...     None, myItem, who=&quot;The Black Knight&quot;, what=&quot;Fight to the death!&quot;,
+...     numbers = [42, 57]
+... )
+</pre>
+<p>As you can see, the attribute names automatically define keyword arguments in
+the class' constructor for you.  The assigned values are then available as
+attributes, e.g.:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; black_knight.who
+'The Black Knight'
+</pre>
+</div>
+<div class="section" id="bi-directional-references">
+<h2><a class="toc-backref" href="#id5" name="bi-directional-references">Bi-directional References</a></h2>
+<p>So far, we've only defined attributes that refer to simple values or sequences
+of them.  But in real applications, you'll also need objects to be able to
+refer to each other, and often these will be <strong>bidirectional references</strong>.
+That is, pairs of attributes that refer to each other.  For example, if you
+were defining a <tt class="docutils literal"><span class="pre">Person</span></tt> type, you might have attributes for the person's
+parents, and also their children.  The combination of the &quot;parents&quot; and
+&quot;children&quot; attributes would be a bidirectional reference.  You define a
+bidirectional reference by setting an attribute's <tt class="docutils literal"><span class="pre">inverse</span></tt> to be another
+attribute:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Person(schema.Item):
+...     fullname = schema.One(schema.Text)
+...     age = schema.One(schema.Integer)
+...     parents = schema.Sequence()
+...     children = schema.Sequence(inverse=parents)
+...
+...     def __repr__(self): return self.fullname
+</pre>
+<p>You'll notice that we left out the type of the parents and children attributes;
+that's because the <tt class="docutils literal"><span class="pre">Person</span></tt> type doesn't exist until the block is finished.
+Luckily, however, when you set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of an attribute, its type (and
+the type of the inverse attribute) is automatically determined for you.  This
+saves us from the awkward problem of how to refer to a type that doesn't yet
+exist:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Person.parents.type
+&lt;class '...Person'&gt;
+
+&gt;&gt;&gt; Person.children.type
+&lt;class '...Person'&gt;
+</pre>
+<p>You'll also notice that we only set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of <tt class="docutils literal"><span class="pre">children</span></tt>, not
+<tt class="docutils literal"><span class="pre">parents</span></tt>.  But the schema API automatically sets the inverse of <tt class="docutils literal"><span class="pre">parents</span></tt>
+for us:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Person.parents.inverse
+&lt;Role children of &lt;class '...Person'&gt;&gt;
+</pre>
+<p>Again, this saves us from the awkward problem of how to set the inverse of
+<tt class="docutils literal"><span class="pre">parents</span></tt> before the <tt class="docutils literal"><span class="pre">children</span></tt> attribute exists!</p>
+<p>In summary, then, you create a simple bidirectional reference by:</p>
+<ol class="arabic simple">
+<li>Creating the first attribute as a <tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt> attribute, without
+a type or <tt class="docutils literal"><span class="pre">inverse</span></tt>.</li>
+<li>Creating the second attribute as a <tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt> attribute,
+setting its <tt class="docutils literal"><span class="pre">inverse</span></tt> to the first attribute.</li>
+</ol>
+<p>Once you've defined a bidirectional reference, the repository will
+automatically maintain any relationships you set up between items of the
+defined type(s):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Joe = Person(&quot;Joe&quot;, rv, fullname=&quot;Joe Schmoe&quot;)
+&gt;&gt;&gt; Joe
+Joe Schmoe
+
+&gt;&gt;&gt; Mary = Person(&quot;Mary&quot;, rv, fullname=&quot;Mary Quite Contrary&quot;)
+&gt;&gt;&gt; Mary.children = [Joe]
+&gt;&gt;&gt; list(Mary.children)
+[Joe Schmoe]
+
+&gt;&gt;&gt; list(Joe.parents)
+[Mary Quite Contrary]
+</pre>
+<p>As you can see, changing <tt class="docutils literal"><span class="pre">Mary.children</span></tt> automatically changed
+<tt class="docutils literal"><span class="pre">Joe.parents</span></tt> for us.  Changing the values on either side of a bidirectional
+reference automatically changes the opposite side for you.</p>
+<p>You may notice, by the way, that we have been using <tt class="docutils literal"><span class="pre">list()</span></tt> to display the
+<tt class="docutils literal"><span class="pre">Sequence</span></tt> attributes of items here.  That's because bidirectional references
+are implemented using repository <tt class="docutils literal"><span class="pre">RefCollection</span></tt> objects, which aren't quite
+the same as regular Python list objects:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Joe.parents
+&lt;NullViewRefList: //Joe.parents&lt;-&gt;children&gt;
+</pre>
+<p><tt class="docutils literal"><span class="pre">RefCollection</span></tt> objects include some additional functionality (such as
+indexing) that is not otherwise available unless you are using a <tt class="docutils literal"><span class="pre">Sequence</span></tt>
+that is part of a bidirectional reference.  See the repository documentation
+for more details.</p>
+</div>
+<div class="section" id="extending-existing-kinds">
+<h2><a class="toc-backref" href="#id6" name="extending-existing-kinds">Extending Existing Kinds</a></h2>
+<p>Chandler is designed to be modularly extensible, which means that you should be
+able to add new functionality, without modifying existing code.  Sometimes that
+means you need to be able to add to the schema of existing kinds, without
+modifying the code that defines them.  For example, if you need to create a
+bidirectional reference between an existing kind and a new kind you're adding,
+or if you need to add extra attributes to an existing kind.</p>
+<p>The Chandler schema API lets you do this by allowing you to create <strong>annotation
+attributes</strong>.  Annotation attributes are attributes defined by a different
+class than the class that was originally used to define the kind.  They differ
+from regular attributes in that their names include the module and class where
+they were defined, to prevent collisions between different modules that want
+to use similar attribute names.</p>
+<p>There are two ways to define annotation attributes: you can create one as an
+<strong>anonymous inverse</strong> attribute, or you can define one or more in an
+<strong>annotation class</strong>.  The next two sections will show you how.</p>
+<div class="section" id="anonymous-inverses">
+<h3><a class="toc-backref" href="#id7" name="anonymous-inverses">Anonymous Inverses</a></h3>
+<p>Suppose we'd like to have a <tt class="docutils literal"><span class="pre">School</span></tt> kind, whose items have <tt class="docutils literal"><span class="pre">Person</span></tt>
+objects as &quot;attendees&quot;.  We could simply create a <tt class="docutils literal"><span class="pre">School</span></tt> class with an
+<tt class="docutils literal"><span class="pre">attendees</span></tt> attribute, and that would work fine... unless we needed a feature
+that only a bidirectional reference could provide, such as indexing.  If we
+were the ones who created the <tt class="docutils literal"><span class="pre">Person</span></tt> class, we could perhaps edit it to add
+a <tt class="docutils literal"><span class="pre">school_attended</span></tt> attribute, but perhaps we don't control that code, or it
+would create a circular dependency between modules.</p>
+<p>If we don't really care about having a <tt class="docutils literal"><span class="pre">school_attended</span></tt> attribute on the
+<tt class="docutils literal"><span class="pre">Person</span></tt> class, we can simply create an <strong>anonymous inverse</strong> attribute: a
+free-floating attribute that just defines what the inverse attribute &quot;would
+have looked like&quot; if it had existed on the original class.</p>
+<p>To do this, we simply set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of our <tt class="docutils literal"><span class="pre">attendees</span></tt> attribute to a
+new attribute descriptor of the desired cardinality (<tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt>):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class School(schema.Item):
+...     attendees = schema.Sequence(Person, inverse=schema.One())
+
+&gt;&gt;&gt; joes_school = School(None, None, None, rv, &quot;Hobart's&quot;, attendees=[Joe])
+
+&gt;&gt;&gt; list(joes_school.attendees)
+[Joe Schmoe]
+</pre>
+<p>You <em>must</em> set the type of the main attribute (<tt class="docutils literal"><span class="pre">attendees</span></tt> in this case), so
+that the schema API will know what type the anonymous inverse attribute
+should be attached to (<tt class="docutils literal"><span class="pre">Person</span></tt> in this case).  Both sides of the
+bidirectional reference can include a <tt class="docutils literal"><span class="pre">displayName</span></tt>, <tt class="docutils literal"><span class="pre">description</span></tt>,
+<tt class="docutils literal"><span class="pre">initialValue</span></tt>, or any of the other standard attribute descriptor arguments.
+(See the API Details section on <a class="reference" href="#attribute-descriptors">Attribute Descriptors</a>, below, for a
+complete list.)</p>
+<p>You can't tell from the example above, but the <tt class="docutils literal"><span class="pre">inverse</span></tt> attribute actually
+gets attached to the <tt class="docutils literal"><span class="pre">Person</span></tt> kind, and the <tt class="docutils literal"><span class="pre">Joe</span></tt> item actually has an
+annotation attribute pointing to <tt class="docutils literal"><span class="pre">joes_school</span></tt>.  You can get, set, or delete
+its value, as long as you know its automatically-generated attribute name:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; getattr(Joe, 'application.tests.School.attendees.inverse')
+&lt;School ... Hobart's&gt;
+</pre>
+<p>And any modifications you make will of course propagate to the other side of
+the bidirectional reference:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; delattr(Joe, 'application.tests.School.attendees.inverse')
+
+&gt;&gt;&gt; list(joes_school.attendees)
+[]
+</pre>
+<p>Notice that the generated name is a combination of:</p>
+<ol class="arabic simple">
+<li>the parcel name (from the module's <tt class="docutils literal"><span class="pre">__parcel__</span></tt>, if applicable)</li>
+<li>the class name where the attribute was defined</li>
+<li>the name of the attribute within the class</li>
+<li>The word <tt class="docutils literal"><span class="pre">inverse</span></tt></li>
+</ol>
+<p>Note: we haven't talked about parcels yet, so for now you can assume that the
+first part is the module name where the class is found.  (All the classes in
+this document are defined in the <tt class="docutils literal"><span class="pre">application.tests</span></tt> module for testing
+purposes.)  The only time the first part will <em>not</em> be the module name, is if
+the module defines a <tt class="docutils literal"><span class="pre">__parcel__</span></tt> setting in order to do <a class="reference" href="#parcel-redirection">Parcel
+Redirection</a> (see below).)</p>
+</div>
+<div class="section" id="annotation-classes">
+<h3><a class="toc-backref" href="#id8" name="annotation-classes">Annotation Classes</a></h3>
+<p>Accessing &quot;anonymous inverse&quot; attributes can be inconvenient, and in any case
+they don't let you add anything but bidirectional references to an existing
+class.  So, for more complex extensions, annotation classes are a better way to
+add attributes.</p>
+<p>Annotations can be thought of as a kind of &quot;data adapter&quot; that allows you to
+extend existing objects with more information.  They are different from
+subclassing, because an object can only be of one class at a time, but you may
+have as many different annotations for an object as you like.  For example, you
+would not want to subclass <tt class="docutils literal"><span class="pre">Person</span></tt> to create a <tt class="docutils literal"><span class="pre">Teacher</span></tt> class, because
+a given person might also be an <tt class="docutils literal"><span class="pre">Employee</span></tt>, <tt class="docutils literal"><span class="pre">SoccerPlayer</span></tt>, or indeed also
+a <tt class="docutils literal"><span class="pre">Student</span></tt> at the same time!  It is better to use annotations for such use
+cases, as they can be mixed and matched at will.</p>
+<p>Another use of annotations is to better separate &quot;concerns&quot; or areas of
+functionality.  For example, some Chandler objects define strictly &quot;model&quot;
+functionality in their base schema and methods, and then have one or more
+separate annotations that add UI data and methods.  This avoids the need for
+different groups of developers to work on the same class at once, and it also
+means that it's always possible to create a different UI for the same basic
+object -- even if you're developing an entirely new UI from scratch that the
+original Chandler developers didn't envision.  It also keeps the code simpler,
+makes each class individually more understandable, and prevents complicated
+circular dependencies (where module A depends on B, but B depends on A).</p>
+<p>So, let's look at an example.  Here, we'll define a <tt class="docutils literal"><span class="pre">Teacher</span></tt> annotation
+class that adds annotation attributes to the existing <tt class="docutils literal"><span class="pre">Person</span></tt> kind, to
+record who the teacher's supervisor is, and what certifications they have.
+We'll also create a linked <tt class="docutils literal"><span class="pre">TeachingCertificate</span></tt> class, so you can see how
+to create a bidirectional reference between an annotation and a new kind:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Teacher(schema.Annotation):
+...     schema.kindInfo(annotates=Person)   # annotate the &quot;Person&quot; kind
+...     certifications = schema.Sequence()
+...     supervisor = schema.One(Person)
+
+&gt;&gt;&gt; class TeachingCertificate(schema.Item):
+...     subject = schema.One(schema.Text)
+...     certified_teachers = schema.Sequence(
+...         Teacher, inverse=Teacher.certifications
+...     )
+</pre>
+<p>Now let's create some instances.  Annotation classes do <em>not</em> create persistent
+instances, however.  Instead, their instances are just wrappers or adapters
+that give you access to the annotation attributes -- attributes that are
+actually stored in the wrapped item, just like an anonymous inverse.  First,
+let's create a <tt class="docutils literal"><span class="pre">Teacher</span></tt> instance for <tt class="docutils literal"><span class="pre">Mary</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; ProfMary = Teacher(Mary)
+</pre>
+<p>The above expression can be read as &quot;ProfMary is Mary playing the role of
+Teacher&quot;, or &quot;ProfMary is Mary, viewed as a Teacher&quot;.  The <tt class="docutils literal"><span class="pre">ProfMary</span></tt> object
+is not <tt class="docutils literal"><span class="pre">Mary</span></tt> herself; it's just her <tt class="docutils literal"><span class="pre">Teacher</span></tt> <em>attributes</em>.  Let's give
+her a Phys. Ed. certificate:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; gym = TeachingCertificate(&quot;gym&quot;, rv, subject=&quot;Physical Education&quot;)
+&gt;&gt;&gt; ProfMary.certifications = [gym]
+
+&gt;&gt;&gt; list(ProfMary.certifications)
+[&lt;TeachingCertificate ... gym ...&gt;]
+</pre>
+<p>So far, so good.  The <tt class="docutils literal"><span class="pre">ProfMary</span></tt> object has a collection of certificates, and
+the certficate now knows Mary is certified:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; list(gym.certified_teachers)
+[Mary Quite Contrary]
+</pre>
+<p>Notice that the certificate does <em>not</em> reference the <tt class="docutils literal"><span class="pre">ProfMary</span></tt> object; it
+refers directly to <tt class="docutils literal"><span class="pre">Mary</span></tt> herself.  This is because the annotation attributes
+really belong to the <tt class="docutils literal"><span class="pre">Person</span></tt> class, and therefore to <tt class="docutils literal"><span class="pre">Mary</span></tt> herself.  The
+<tt class="docutils literal"><span class="pre">Teacher</span></tt> object is just a way to conveniently access all -- and only -- the
+<tt class="docutils literal"><span class="pre">Teacher</span></tt> attributes of the object.  You can think of it as being like an
+XML namespace or a filter that just gives you access to the teaching-related
+attributes of the person.</p>
+<p>And, because annotation instances delegate all the attribute storage to the
+underlying, annotated item, you can create as many wrappers as you want for a
+given item and they will all share the same attribute values.  In other words,
+no matter how many new <tt class="docutils literal"><span class="pre">Teacher(Mary)</span></tt> objects we create, they will all
+have the same certifications, because they really belong to <tt class="docutils literal"><span class="pre">Mary</span></tt> in the
+first place:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; list(Teacher(Mary).certifications)
+[&lt;TeachingCertificate ... gym ...&gt;]
+</pre>
+<p>As with anonymous inverses, the attributes are actually &quot;hidden&quot; attributes
+added to the <tt class="docutils literal"><span class="pre">Person</span></tt> class, using an automatically-generated name.  If you
+know the name, you can access the attributes directly, without using the
+annotation wrapper:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; list(getattr(Mary,'application.tests.Teacher.certifications'))
+[&lt;TeachingCertificate ... gym ...&gt;]
+</pre>
+<p>But of course that's not very convenient.  Sometimes, however, you may have
+code such as an attribute editor in the user interface that will need to know
+this full attribute name, because it will be dealing with the plain item and
+not an annotation wrapper.  So, you should be aware that the attribute name
+is generated using the module name (or its <tt class="docutils literal"><span class="pre">__parcel__</span></tt>) plus the annotation
+class name and the attribute name within the annotation class.  That way, if
+you need to get at it this way, you can.</p>
+<p>As with anonymous inverses, setting or deleting the attribute on either the
+underlying item (full name) or the annotation wrapper (short name) has
+identical effects:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; setattr(Mary, 'application.tests.Teacher.supervisor', Joe)
+&gt;&gt;&gt; ProfMary.supervisor
+Joe Schmoe
+
+&gt;&gt;&gt; del ProfMary.supervisor
+&gt;&gt;&gt; hasattr(Mary, 'application.tests.Teacher.supervisor')
+False
+</pre>
+<p>Annotation wrappers do not have arbitrary attributes, however, only the ones
+that they were given in their schema:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; ProfMary.foo = &quot;bar&quot;
+Traceback (most recent call last):
+  ...
+AttributeError: 'Teacher' object has no attribute 'foo'
+</pre>
+<p>or that were defined using <tt class="docutils literal"><span class="pre">__slots__</span></tt> in the class definition:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Friend(schema.Annotation):
+...     __slots__ = [&quot;jabberConnection&quot;]
+...     schema.kindInfo(annotates=Person)
+...     likes = schema.Sequence()
+...     isLikedBy = schema.Sequence(inverse=likes)
+
+&gt;&gt;&gt; Friend(Mary).isLikedBy = [Joe]
+&gt;&gt;&gt; list(Friend(Joe).likes)
+[Mary Quite Contrary]
+</pre>
+<p>The attributes defined using <tt class="docutils literal"><span class="pre">__slots__</span></tt>, however, are <em>not</em> persistent, and
+they will not be stored in the repository.  Each annotation wrapper also has
+its own separate value for each attribute, no matter what item is wrapped.
+Thus, although each <tt class="docutils literal"><span class="pre">Friend(Mary)</span></tt> has the same <tt class="docutils literal"><span class="pre">isLikedBy</span></tt> (because it's
+actually stored by <tt class="docutils literal"><span class="pre">Mary</span></tt>), it has its own independent <tt class="docutils literal"><span class="pre">jabberConnection</span></tt>
+(because it's stored in a slot on the wrapper).  This functionality is
+sometimes useful for annotations that have some runtime functionality that
+requires them to reference UI objects, connections to servers, or other
+non-persistent application objects:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; fMary = Friend(Mary)
+&gt;&gt;&gt; list(fMary.isLikedBy)
+[Joe Schmoe]
+
+&gt;&gt;&gt; f2Mary = Friend(Mary)
+&gt;&gt;&gt; list(fMary.isLikedBy)
+[Joe Schmoe]
+
+&gt;&gt;&gt; fMary.jabberConnection = &quot;just pretending&quot;
+&gt;&gt;&gt; f2Mary.jabberConnection = &quot;another example&quot;
+
+&gt;&gt;&gt; fMary.jabberConnection
+'just pretending'
+
+&gt;&gt;&gt; f2Mary.jabberConnection
+'another example'
+</pre>
+<p>Annotation class instances must wrap an instance of the type they were defined
+as annotating; thus you can't make a <tt class="docutils literal"><span class="pre">Teacher</span></tt> of anything but a <tt class="docutils literal"><span class="pre">Person</span></tt>
+(or subclass thereof):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Teacher(gym)
+Traceback (most recent call last):
+  ...
+TypeError: &lt;class '...Teacher'&gt; requires a &lt;class '...Person'&gt; instance
+</pre>
+<p>But you <em>can</em> wrap another annotation that wraps an item of the appropriate
+type, because all annotations of the passed-in item are stripped off first.
+Thus, we can easily convert a <tt class="docutils literal"><span class="pre">Friend</span></tt> to a <tt class="docutils literal"><span class="pre">Teacher</span></tt> or vice versa, since
+they are both <tt class="docutils literal"><span class="pre">Person</span></tt> annotations:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Teacher(fMary)
+Teacher(Mary Quite Contrary)
+
+&gt;&gt;&gt; Friend(ProfMary)
+Friend(Mary Quite Contrary)
+
+&gt;&gt;&gt; Friend(Teacher(Friend(Friend(ProfMary))))
+Friend(Mary Quite Contrary)
+</pre>
+<p>Finally, if you need to &quot;un-annotate&quot; an object to get at the persistent item
+it's wrapping, you can simply use its <tt class="docutils literal"><span class="pre">itsItem</span></tt> attribute:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; fMary.itsItem
+Mary Quite Contrary
+</pre>
+<p>This is what the annotation classes themselves use, to remove an existing
+wrapper before creating a new one.</p>
+</div>
+</div>
+</div>
+<div class="section" id="working-with-parcels">
+<h1><a class="toc-backref" href="#id9" name="working-with-parcels">Working With Parcels</a></h1>
+<div class="section" id="what-are-parcels">
+<h2><a class="toc-backref" href="#id10" name="what-are-parcels">What are Parcels?</a></h2>
+<p>A <strong>parcel</strong> is the persistent representation of a Python module or package.
+Parcels store the schema for the classes that are defined in the corresponding
+module or package.  They also store any persistent items that the parcel
+developer wants to include in their parcel.  These other objects can include
+things like tasks to be run at Chandler startup, menu items, detail views, etc.</p>
+<p>In principle, every Python module either has a parcel or is part of a
+package that has a parcel.  In practice, parcel objects are only created in
+the repository when the schema APIs are used, or when you create persistent
+items and the items' classes don't already have their schema stored in a
+parcel.</p>
+<p>Since every module is potentially a parcel, you don't need to do anything
+special to make it one.  Just define the classes for the kinds of objects you'd
+like to store, and then use them in your code.  When they are used with a
+repository, a parcel will automatically be created in that repository.</p>
+<p>It's important, however, to remember that every module could become its own
+parcel if you define persistent classes in it.  If you don't want a module to
+have its own parcel, then, you need to tell the schema API what parcel to use
+instead.  Our next section explains how.</p>
+</div>
+<div class="section" id="parcel-redirection">
+<h2><a class="toc-backref" href="#id11" name="parcel-redirection">Parcel Redirection</a></h2>
+<p>Sometimes you will not want to have a parcel for every module in your project.
+For example, you may want to treat an entire package as a single parcel, for
+ease of reference by other parcels.  In these cases, you can add a
+<tt class="docutils literal"><span class="pre">__parcel__</span></tt> declaration at the top of a module, to indicate that
+its contents should be placed in the specified parcel, <em>instead of</em> creating a
+parcel for that module.  This is called <strong>parcel redirection</strong>, as it redirects
+any schema defined in the module to be placed in a different parcel than the
+one that otherwise would have been created.</p>
+<p>For example, some modules in the <tt class="docutils literal"><span class="pre">osaf.pim</span></tt> package contain the line:</p>
+<pre class="literal-block">
+__parcel__ = &quot;osaf.pim&quot;
+</pre>
+<p>This means that the module doesn't get a parcel of its own, and its schema
+will be redirected to the <tt class="docutils literal"><span class="pre">osaf.pim</span></tt> parcel instead.</p>
+<p>Note, however, that for this to work properly, the redirection target
+(<tt class="docutils literal"><span class="pre">osaf.pim</span></tt> in this case) <em>must</em> import <em>all</em> of the classes defined by the
+modules that are redirecting their schema to it.  Otherwise, the schema API
+has no way to know when it has seen all of the redirected schema parts.  If
+you look at the <tt class="docutils literal"><span class="pre">__init__.py</span></tt> module of the <tt class="docutils literal"><span class="pre">osaf.pim</span></tt> package, you'll see
+that it imports every class defined in the modules that redirect their schema
+to <tt class="docutils literal"><span class="pre">osaf.pim</span></tt>.</p>
+</div>
+<div class="section" id="parcel-installation">
+<h2><a class="toc-backref" href="#id12" name="parcel-installation">Parcel Installation</a></h2>
+<p>When a parcel is created, the schema API checks whether the corresponding
+module or package has an <tt class="docutils literal"><span class="pre">installParcel()</span></tt> function defined, and if so,
+calls it.  This is your chance to create or update any items that should be
+included in the parcel.  An <tt class="docutils literal"><span class="pre">installParcel()</span></tt> function should be defined
+like this:</p>
+<pre class="literal-block">
+def installParcel(parcel, oldVersion=None):
+    ...
+</pre>
+<p>Replacing the <tt class="docutils literal"><span class="pre">...</span></tt> with a block of code to create any items you want to
+include in the parcel, such as menu items or views, or any special collections
+or other persistent objects.  Typically, you will create these items with a
+&quot;parent&quot; that is the <tt class="docutils literal"><span class="pre">parcel</span></tt> argument.  This will make it easier for other
+parcels to refer to your items, as we will demonstrate later.</p>
+<p>Note, by the way, that if you have defined a <tt class="docutils literal"><span class="pre">__parcel__</span></tt> setting in the
+module where your <tt class="docutils literal"><span class="pre">installParcel()</span></tt> is, it will <em>not</em> be called.  Setting
+<tt class="docutils literal"><span class="pre">__parcel__</span></tt> means that the module is not a parcel!  (See <a class="reference" href="#parcel-redirection">Parcel
+Redirection</a>, above.)  If you have a <tt class="docutils literal"><span class="pre">__parcel__</span></tt> setting, you must put your
+<tt class="docutils literal"><span class="pre">installParcel</span></tt> in the module named by <tt class="docutils literal"><span class="pre">__parcel__</span></tt>, as that is the main
+module for the parcel.</p>
+<div class="section" id="accessing-parcel-contents">
+<h3><a class="toc-backref" href="#id13" name="accessing-parcel-contents">Accessing Parcel Contents</a></h3>
+<p>Usually, your <tt class="docutils literal"><span class="pre">installParcel()</span></tt> code will need to refer to the contents of
+other parcels and modules.  For example, when you create a menu item, you'll
+need to be able to refer to the menu it belongs in, and that menu item will be
+found in some other parcel.  The <tt class="docutils literal"><span class="pre">schema.ns()</span></tt> API lets you conveniently
+access a parcel's items and the contents of its corresponding module through
+a single namespace.</p>
+<p>You create this namespace by passing a module name and an item or repository
+view to <tt class="docutils literal"><span class="pre">schema.ns()</span></tt>.  For example, if we want to access the <tt class="docutils literal"><span class="pre">application</span></tt>
+parcel and its corresponding Python module, we could do this:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; app_ns = schema.ns(&quot;application&quot;, rv)
+</pre>
+<p>The resulting object has attributes corresponding to the contents of the
+<tt class="docutils literal"><span class="pre">application</span></tt> module, e.g.:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; app_ns.schema
+&lt;module 'application.schema' ...&gt;
+</pre>
+<p>It also has a <tt class="docutils literal"><span class="pre">parcel</span></tt> attribute, that refers to the actual <tt class="docutils literal"><span class="pre">schema.Parcel</span></tt>
+item in the repository, that holds all of the persistent schema for the
+associated module(s), along with any items created by the module's
+<tt class="docutils literal"><span class="pre">installParcel()</span></tt> function:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; app_ns.parcel
+&lt;Parcel (new): application ...&gt;
+</pre>
+<p>So, if we create an item using the parcel as its parent, it will then be
+accessible by name from the namespace object:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Person(&quot;Smitty&quot;, app_ns.parcel, fullname=&quot;I'm Smitty!&quot;)
+I'm Smitty!
+
+&gt;&gt;&gt; app_ns.Smitty
+I'm Smitty!
+</pre>
+<p>Note, however, that names defined in the module take precedence over names in
+the parcel, for purposes of retrieval.  If you create a class named <tt class="docutils literal"><span class="pre">Person</span></tt>,
+and then also create an <em>item</em> whose name is <tt class="docutils literal"><span class="pre">Person</span></tt>, you will only see the
+<tt class="docutils literal"><span class="pre">Person</span></tt> class in the <tt class="docutils literal"><span class="pre">schema.ns()</span></tt> for your module, not the item.  For
+example, if we add a <tt class="docutils literal"><span class="pre">Smitty</span></tt> variable to the <tt class="docutils literal"><span class="pre">application</span></tt> package, it
+will hide the <tt class="docutils literal"><span class="pre">Smitty</span></tt> item until we delete it again:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; import application
+&gt;&gt;&gt; application.Smitty = &quot;Sorry, I'm not Smitty&quot;
+
+&gt;&gt;&gt; app_ns.Smitty
+&quot;Sorry, I'm not Smitty&quot;
+</pre>
+<p>If you need to access a &quot;shadowed&quot; item like this, you have to explicitly
+refer to the parcel item, and then use repository APIs to access the item
+directly:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; app_ns.parcel.getItemChild('Smitty')
+I'm Smitty!
+</pre>
+<p>Or else remove the conflicting definition from the module:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; del application.Smitty
+&gt;&gt;&gt; app_ns.Smitty
+I'm Smitty!
+</pre>
+<p>So, when you create items in your parcel, you should take care to give them
+names that don't conflict with class, variable, or function names in your
+module, or you will have to use more awkward ways of accessing them.</p>
+<p>By the way, just a reminder...  you can create a <tt class="docutils literal"><span class="pre">schema.ns()</span></tt> using any
+existing item, not just a repository view.  Most often, you'll use the
+<tt class="docutils literal"><span class="pre">parcel</span></tt> argument passed in to your <tt class="docutils literal"><span class="pre">installParcel()</span></tt> function, but
+any persistent item will do.  For example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; tests_ns = schema.ns(&quot;application.tests&quot;, app_ns.parcel)
+</pre>
+</div>
+<div class="section" id="installing-or-updating-items">
+<h3><a class="toc-backref" href="#id14" name="installing-or-updating-items">Installing or Updating Items</a></h3>
+<p>Your <tt class="docutils literal"><span class="pre">installParcel()</span></tt> function is responsible for creating or updating any
+persistent items you want in your parcel.  Such items may include UI components
+such as menu items or detail views, tasks to be run at startup or periodically,
+preferences, collections, or any other persistent items.</p>
+<p>Although the current version of Chandler doesn't support upgrading existing
+parcels without recreating the repository, future versions will.  So, you
+should write your <tt class="docutils literal"><span class="pre">installParcel()</span></tt> with the assumption that future versions
+may call it to update an existing parcel.</p>
+<p>This means you shouldn't just create items, without checking to see if they
+already exist, and possibly updating them instead.  Since this would lead to
+quite a lot of repetitive code, the <tt class="docutils literal"><span class="pre">schema.Item</span></tt> class includes an
+<tt class="docutils literal"><span class="pre">update()</span></tt> classmethod that you can use to write simpler code.  The
+<tt class="docutils literal"><span class="pre">update()</span></tt> method either updates an existing item or creates a new one, and
+in either case it returns the updated item.  For example, here's an
+<tt class="docutils literal"><span class="pre">installParcel()</span></tt> function that creates or updates a <tt class="docutils literal"><span class="pre">Person</span></tt> item:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; def installParcel(parcel, old_version=None):
+...     Person.update(parcel, &quot;Carlos&quot;, fullname=&quot;Carlos Marron&quot;)
+</pre>
+<p>At the moment, there is no <tt class="docutils literal"><span class="pre">Carlos</span></tt> object in the <tt class="docutils literal"><span class="pre">application</span></tt> parcel:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; app_ns.Carlos
+Traceback (most recent call last):
+...
+AttributeError: Carlos is not in &lt;module...'application'...&gt; or &lt;Parcel...&gt;
+</pre>
+<p>So, let's call <tt class="docutils literal"><span class="pre">installParcel()</span></tt> to create him:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; installParcel(app_ns.parcel)
+&gt;&gt;&gt; app_ns.Carlos
+Carlos Marron
+</pre>
+<p>And we can call it again, since <tt class="docutils literal"><span class="pre">update()</span></tt> works on existing items:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; installParcel(app_ns.parcel)
+&gt;&gt;&gt; app_ns.Carlos
+Carlos Marron
+</pre>
+<p>Now, let's change his name, and call <tt class="docutils literal"><span class="pre">installParcel()</span></tt> a third time:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; carlos = app_ns.Carlos
+&gt;&gt;&gt; carlos.fullname = &quot;Charlie Brown&quot;
+&gt;&gt;&gt; carlos.fullname
+'Charlie Brown'
+
+&gt;&gt;&gt; installParcel(app_ns.parcel)
+&gt;&gt;&gt; carlos.fullname
+'Carlos Marron'
+</pre>
+<p>As you can see, the <tt class="docutils literal"><span class="pre">update()</span></tt> call sets all the supplied attributes to the
+given values, so you can ensure that any items you update will have the values
+you set.  Any attributes that the <tt class="docutils literal"><span class="pre">update()</span></tt> call does <em>not</em> set, however,
+will remain unchanged.  For example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; carlos.age = 27
+&gt;&gt;&gt; carlos.age
+27
+
+&gt;&gt;&gt; installParcel(app_ns.parcel)
+&gt;&gt;&gt; carlos.age
+27
+</pre>
+<p>In addition to updating attributes, the kind or class of the item are updated
+as well.  For example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; type(carlos)
+&lt;class '...Person'&gt;
+
+&gt;&gt;&gt; class StrangePerson(Person):
+...     &quot;&quot;&quot;A silly example of changing an item's class/kind&quot;&quot;&quot;
+
+&gt;&gt;&gt; StrangePerson.update(app_ns.parcel, &quot;Carlos&quot;)
+Carlos Marron
+
+&gt;&gt;&gt; type(carlos)
+&lt;class '...StrangePerson'&gt;
+
+&gt;&gt;&gt; installParcel(app_ns.parcel)
+&gt;&gt;&gt; type(carlos)
+&lt;class '...Person'&gt;
+</pre>
+<p>Note that the <tt class="docutils literal"><span class="pre">update()</span></tt> method can't tell if you've renamed an object that
+should have the same name, or whether perhaps you've accidentally given two
+objects the same name, so you need to check these things yourself.  If you
+need to delete old items or rename/relocate items in your <tt class="docutils literal"><span class="pre">installParcel()</span></tt>
+function, you should just use the normal repository APIs to do so.  For
+example, if your parcel used to have a <tt class="docutils literal"><span class="pre">Carlos</span></tt> item that you now want to
+call <tt class="docutils literal"><span class="pre">Charlie</span></tt>, you should manually check for the item already existing,
+and then rename it by setting the <tt class="docutils literal"><span class="pre">itsName</span></tt> attribute.</p>
+</div>
+</div>
+<div class="section" id="parcel-discovery">
+<h2><a class="toc-backref" href="#id15" name="parcel-discovery">Parcel Discovery</a></h2>
+<p>So far, everything in this guide has assumed that your code is running or your
+parcel is being automatically created.  However, the only way that can happen
+is for Chandler to already <em>know</em> that your parcel exists!  Well, you can also
+run your code from a script, or invoke it manually from a debugger window or
+the <tt class="docutils literal"><span class="pre">headless</span></tt> utility, but those aren't very user-friendly ways to get your
+parcel installed.</p>
+<p>Chandler has two ways to automatically identify modules or packages that should
+be used to create parcels at startup.  The first is the <tt class="docutils literal"><span class="pre">--app-parcel</span></tt> option
+on the Chandler command line.  This option sets a module or package name that
+Chandler will import at startup and attempt to create a parcel for.  The
+default <tt class="docutils literal"><span class="pre">--app-parcel</span></tt> is <tt class="docutils literal"><span class="pre">osaf.app</span></tt>, which is Chandler's main application
+parcel.  If you are creating a different main application using the Chandler
+platform, you can use this option to specify a different main parcel.</p>
+<p>The second way that Chandler identifies potential parcels is via the
+<tt class="docutils literal"><span class="pre">--parcelPath</span></tt> option and/or <tt class="docutils literal"><span class="pre">PARCELPATH</span></tt> environment variable.  By
+default, this only includes Chandler-supplied parcels in the <tt class="docutils literal"><span class="pre">parcels</span></tt>
+directory, but you can add others.  Each top-level Python package found in any
+directory on the parcel path will have a parcel created for it.</p>
+<p>For example, the <tt class="docutils literal"><span class="pre">osaf</span></tt> package in the <tt class="docutils literal"><span class="pre">parcels</span></tt> directory is a top-level
+package in a directory that's on the parcel path, so it will have a parcel
+automatically created for it.  Similarly, most plugin projects will simply
+define a single top-level package for their plugin.  When placed in a directory
+on the parcel path (or when their containing directory is added to the parcel
+path), Chandler will detect them at startup and ensure that a parcel exists for
+them.</p>
+<p>If you have a module or package that is neither the <tt class="docutils literal"><span class="pre">--app-parcel</span></tt> nor a
+top-level package on the parcel path, it will not be loaded at startup unless
+another module or package depends on it.  But what does &quot;depends on&quot; mean here?</p>
+<div class="section" id="parcel-dependencies">
+<h3><a class="toc-backref" href="#id16" name="parcel-dependencies">Parcel Dependencies</a></h3>
+<p>A parcel &quot;A&quot; depends on another parcel &quot;B&quot; if any of the following are true:</p>
+<ul class="simple">
+<li>Any type defined in &quot;A&quot; has an attribute of a type found in &quot;B&quot;</li>
+<li>Any type defined in &quot;A&quot; is a subclass of a type found in &quot;B&quot;</li>
+<li>&quot;A&quot; defines an annotation class for an item class found in &quot;B&quot;</li>
+<li>An <tt class="docutils literal"><span class="pre">installParcel()</span></tt> function in &quot;A&quot; does any of the following:<ul>
+<li>Creates items of a type found in &quot;B&quot;</li>
+<li>Calls <tt class="docutils literal"><span class="pre">schema.synchronize()</span></tt> with &quot;B&quot; as the target module (see <a class="reference" href="#other-apis">Other
+APIs</a>, below)</li>
+<li>Uses <tt class="docutils literal"><span class="pre">schema.ns()</span></tt> to access the contents of the parcel corresponding
+to &quot;B&quot; (Note: &quot;A&quot; must actually refer to the <tt class="docutils literal"><span class="pre">parcel</span></tt> attribute of the
+<tt class="docutils literal"><span class="pre">ns</span></tt> instance, or to an item actually stored in the repository, or else
+a &quot;B&quot; parcel won't be created in the repository)</li>
+</ul>
+</li>
+<li>&quot;A&quot; depends on some parcel &quot;C&quot;, and &quot;C&quot; in turn depends on &quot;B&quot;</li>
+</ul>
+<p>So, if you are creating a parcel &quot;B&quot;, and there is some existing parcel &quot;A&quot;
+that will do one of the above things, you don't need to do anything special
+with your parcel layout.  If you are creating a new parcel, however, that no
+other parcel depends on, you will need to either make it a top-level package
+on the parcel path, or you will need to modify an existing parcel to call
+<tt class="docutils literal"><span class="pre">schema.synchronize()</span></tt> so that your parcel will be loaded.  Otherwise, there
+will be no way for Chandler to know it exists, so its code will never be run,
+and its items (if any) will never be created.</p>
+<p>Note, by the way, that you should avoid circular dependencies between parcels,
+as these are likely to cause import difficulties, and are usually an indication
+that your design isn't as well-factored as it could be.  For example, you are
+probably not taking full advantage of <a class="reference" href="#anonymous-inverses">Anonymous Inverses</a> and <a class="reference" href="#annotation-classes">Annotation
+Classes</a>, as these features make it much easier to avoid circular
+dependencies.  (Because they allow you to define a class's core features in one
+parcel, and then add extended features in a separate parcel, so that the core
+class doesn't need to depend on everything that its extended features do.)</p>
+</div>
+</div>
+</div>
+<div class="section" id="api-details">
+<h1><a class="toc-backref" href="#id17" name="api-details">API Details</a></h1>
+<p>The remainder of this document will cover additional helpful details about
+the schema API, for more specialized uses than the general-purpose material
+covered so far.</p>
+<div class="section" id="classes">
+<h2><a class="toc-backref" href="#id18" name="classes">Classes</a></h2>
+<div class="section" id="abstract-item-classes">
+<h3><a class="toc-backref" href="#id19" name="abstract-item-classes">Abstract Item Classes</a></h3>
+<p>You can make an <tt class="docutils literal"><span class="pre">Item</span></tt> subclass abstract (non-instantiable) by setting
+<tt class="docutils literal"><span class="pre">__abstract__</span> <span class="pre">=</span> <span class="pre">True</span></tt> in its class body:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Thing(schema.Item):
+...     __abstract__ = True
+
+&gt;&gt;&gt; Thing()
+Traceback (most recent call last):
+  ...
+TypeError: Thing is an abstract class; use a subclass instead
+</pre>
+<p>But subclasses of an abstract class are instantiable in the normal way:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Chair(Thing):
+...     pass
+
+&gt;&gt;&gt; Chair('chair',rv)
+&lt;Chair ...&gt;
+</pre>
+<p>This is useful when you want to define an abstract class that needs some
+methods to be defined or overridden in subclasses before it can be used.</p>
+</div>
+<div class="section" id="enumeration-classes">
+<h3><a class="toc-backref" href="#id20" name="enumeration-classes">Enumeration Classes</a></h3>
+<p>Sometimes, you have an attribute that you'd like to restrict to a set of fixed,
+pre-determined values. For example, suppose you want to be able to define
+attributes that contain a &quot;feed type&quot; value denoting one of the RSS/0.9,
+RSS/1.0, or ATOM feed formats.  You can do this by creating an &quot;enumeration&quot;
+type, that can then be used as an attribute type.  To do this, you subclass
+<tt class="docutils literal"><span class="pre">schema.Enumeration</span></tt>, and define a <tt class="docutils literal"><span class="pre">values</span></tt> attribute that contains a tuple
+of strings.  Each string must be a valid Python identifier:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class FeedFormat(schema.Enumeration):
+...     &quot;&quot;&quot;Format to be used for a feed&quot;&quot;&quot;
+...     values = 'RSS_09', 'RSS_10', 'ATOM'
+
+&gt;&gt;&gt; class FeedGenerator(schema.Item):
+...     format = schema.One(FeedFormat)
+...     # other attributes would go here...
+</pre>
+<p>You can then set the defined attribute to any of the strings listed in the
+enumeration's <tt class="docutils literal"><span class="pre">values</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; fg = FeedGenerator('fg',rv, format = 'ATOM')
+&gt;&gt;&gt; fg.format
+'ATOM'
+</pre>
+<p>But assigning an unlisted value will produce an error, if the repository view
+is using immediate error checking:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; fg.format = &quot;fizzy_2&quot;
+Traceback (most recent call last):
+  ...
+ValueError: Assigning 'fizzy_2' to attribute 'format'...didn't match schema
+</pre>
+<p>Enumeration classes also can't be further subclassed:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class ExtendedFormat(FeedFormat):
+...     values = &quot;ATOM_20&quot;, &quot;FIZZY_19&quot;
+Traceback (most recent call last):
+  ...
+TypeError: Enumerations cannot subclass or be subclassed
+</pre>
+<p>And they can't include any attributes or methods besides <tt class="docutils literal"><span class="pre">values</span></tt>, which
+must be a tuple of strings:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class BrokenEnum(schema.Enumeration):
+...     values = &quot;error&quot;
+Traceback (most recent call last):
+  ...
+TypeError: 'values' must be a tuple of 1 or more strings
+
+&gt;&gt;&gt; class BrokenEnum2(schema.Enumeration):
+...     def foo(self): pass
+Traceback (most recent call last):
+  ...
+TypeError: (&quot;Only 'values' may be defined in an enumeration class&quot;, ...)
+</pre>
+</div>
+<div class="section" id="struct-classes">
+<h3><a class="toc-backref" href="#id21" name="struct-classes">Struct Classes</a></h3>
+<p>Sometimes, it's useful to create &quot;value&quot; or &quot;structure&quot; types to use in a
+schema.  For example, suppose that you need a &quot;size&quot; type with a width and a
+height.  You can do this by subclassing <tt class="docutils literal"><span class="pre">schema.Struct</span></tt> and defining
+<tt class="docutils literal"><span class="pre">__slots__</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Size(schema.Struct):
+...     __slots__ = 'width', 'height'
+</pre>
+<p>Struct instances are created using either positional arguments in the same
+order as the names in <tt class="docutils literal"><span class="pre">__slots__</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; my_size = Size(1,2)
+&gt;&gt;&gt; my_size
+Size(1, 2)
+
+&gt;&gt;&gt; Size(4,5,6)
+Traceback (most recent call last):
+  ...
+TypeError: ('Unexpected arguments', (6,))
+</pre>
+<p>or using keyword arguments with the same names as the slots:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Size(height=1, width=2)
+Size(2, 1)
+</pre>
+<p>And the instances have the attribute names as the defined slots:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Size(1,2).width
+1
+&gt;&gt;&gt; Size(1,2).height
+2
+</pre>
+<p>Struct classes may include whatever methods you like, as well as having slots.
+You may not, however, create further subclasses of a given struct class:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class BadExample(Size): pass
+Traceback (most recent call last):
+  ...
+TypeError: Structs cannot subclass or be subclassed
+</pre>
+<p>NOTE: Structure instances are currently mutable; that is, you can change their
+attribute values.  However, it is not recommended that you use this feature
+because it means there's a chance that changes won't be saved, unless you
+undertake to track the &quot;dirty&quot; state of the objects involved and use repository
+APIs to flag all items using the value as changed.  It is therefore likely that
+a future version of the Schema API will make structure instances
+read-only once they are created.  So, we recommend that you use code like
+this to change structure values:</p>
+<pre class="literal-block">
+someItem.window_size = Size(3,4)
+</pre>
+<p>Instead of code like this:</p>
+<pre class="literal-block">
+someItem.window_size.width = 3
+someItem.window_size.height = 4
+</pre>
+<p>The first example will always cause the changes to be saved, but the second
+example requires additional steps (not shown) to ensure the changes to
+<tt class="docutils literal"><span class="pre">someItem</span></tt> are saved.  In addition, if there was previously some code
+like this:</p>
+<pre class="literal-block">
+someItem.window_size = otherItem.window_size
+</pre>
+<p>Then changing the <tt class="docutils literal"><span class="pre">width</span></tt> and <tt class="docutils literal"><span class="pre">height</span></tt> of <tt class="docutils literal"><span class="pre">someItem.window_size</span></tt> would
+also affect the value of <tt class="docutils literal"><span class="pre">otherItem.window_size</span></tt>, and <tt class="docutils literal"><span class="pre">otherItem</span></tt> would
+therefore also need to be saved.  This can create hard-to-find bugs, which
+is why the feature is deprecated.</p>
+</div>
+<div class="section" id="defining-clouds">
+<h3><a class="toc-backref" href="#id22" name="defining-clouds">Defining Clouds</a></h3>
+<p>Certain Chandler features such as item copying and sharing are controlled by
+schema information known as &quot;clouds&quot;.  A <strong>cloud</strong> is a named collection of
+<strong>endpoints</strong>, each of which sets an <strong>inclusion policy</strong> for an attribute.
+The inclusion policies indicate whether items referenced by that attribute
+should be included by value, by reference, or recursively by the item's clouds.</p>
+<p>A complete discussion of clouds, inclusion policies, and how they are used is
+outside scope of this document, but we will explain here how to specify them.
+You should consult other Chandler documentation (such as for the sharing
+system) to determine what clouds your item classes should have and what
+policies you should use for individual attributes.</p>
+<p>In fact, unless you were referred here by some other Chandler documentation,
+you should skip the remainder of this section.  It will probably be quite
+confusing unless you already know <em>why</em> you would want to define a cloud or
+clouds for one of your item classes, and what effect the inclusion policies
+will have on the feature(s) you're trying to add support for.</p>
+<p>To define clouds, just use the <tt class="docutils literal"><span class="pre">schema.addClouds()</span></tt> function in the body of
+your <tt class="docutils literal"><span class="pre">Item</span></tt> subclass.  Each keyword argument names a cloud to be created, and
+its value must be a <tt class="docutils literal"><span class="pre">schema.Cloud()</span></tt> object:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class ItemWithClouds(schema.Item):
+...     foo = schema.One(schema.Text)
+...     bar = schema.Sequence()
+...     baz = schema.One(inverse=bar)
+...     fiz = schema.Sequence(schema.Item)
+...
+...     schema.addClouds(
+...         sharing = schema.Cloud(foo, &quot;displayName&quot;),
+...         copying = schema.Cloud(byCloud = [fiz], byRef=[bar,baz]),
+...     )
+</pre>
+<p>This then creates repository cloud items for the enclosing class:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; clouds = schema.itemFor(ItemWithClouds, rv).clouds
+&gt;&gt;&gt; list(clouds)
+[&lt;Cloud ... SharingCloud ...&gt;, &lt;Cloud ... CopyingCloud ...&gt;]
+</pre>
+<p><tt class="docutils literal"><span class="pre">schema.Cloud()</span></tt> objects specify the endpoints and inclusion policies for a
+cloud.  The inclusion policies are given via keyword arguments (or the lack
+thereof), and attribute descriptors or attribute names are used to specify
+the endpoints themselves.  For example, the <tt class="docutils literal"><span class="pre">sharing</span></tt> cloud defines two
+endpoints, for the <tt class="docutils literal"><span class="pre">foo</span></tt> and <tt class="docutils literal"><span class="pre">displayName</span></tt> attributes:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; sharing = clouds.getByAlias('sharing')
+&gt;&gt;&gt; list(sharing.endpoints)
+[&lt;Endpoint ... foo ...&gt;, &lt;Endpoint ... displayName ...&gt;]
+</pre>
+<p>Because we simply listed these attributes without an explicit policy, the
+default <tt class="docutils literal"><span class="pre">byValue</span></tt> inclusion policy was applied:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; sharing.endpoints.getByAlias('foo').includePolicy
+'byValue'
+
+&gt;&gt;&gt; sharing.endpoints.getByAlias('displayName').includePolicy
+'byValue'
+</pre>
+<p>To specify any other inclusion policies, you must use keyword arguments naming
+the policy, and a list or tuple of attribute descriptors or attribute names.
+The <tt class="docutils literal"><span class="pre">copying</span></tt> cloud above created endpoints for the <tt class="docutils literal"><span class="pre">fiz</span></tt>, <tt class="docutils literal"><span class="pre">bar</span></tt>, and
+<tt class="docutils literal"><span class="pre">baz</span></tt> attributes, but with different policies:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; copying = clouds.getByAlias('copying')
+
+&gt;&gt;&gt; copying.endpoints.getByAlias('fiz').includePolicy
+'byCloud'
+
+&gt;&gt;&gt; copying.endpoints.getByAlias('bar').includePolicy
+'byRef'
+
+&gt;&gt;&gt; copying.endpoints.getByAlias('baz').includePolicy
+'byRef'
+</pre>
+<p>Note that in most circumstances, you will want to specify endpoints using
+attribute descriptors directly, as we did in most of our example above.
+However, there are some times when it will be more useful or convenient to
+use an attribute <em>name</em> instead, as we did for the <tt class="docutils literal"><span class="pre">displayName</span></tt> attribute
+above.  Also, there may be times when you need to specify an advanced endpoint
+option such as for the <tt class="docutils literal"><span class="pre">byMethod</span></tt> policy, which requires a method name to be
+specified in addition to the attribute name and policy.  In cases like these,
+you may wish to directly create a <tt class="docutils literal"><span class="pre">schema.Endpoint</span></tt> object, for example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class CloudExample2(schema.Item):
+...     bar = schema.Sequence()
+...     baz = schema.One(inverse=bar)
+...     schema.addClouds(
+...         sharing = schema.Cloud(
+...             byMethod = [
+...                 schema.Endpoint(
+...                     &quot;bar&quot;, &quot;bar&quot;, &quot;byMethod&quot;, method=&quot;someMethod&quot;
+...                 )
+...             ]
+...         )
+...     )
+
+&gt;&gt;&gt; sharing = schema.itemFor(CloudExample2, rv).clouds.getByAlias('sharing')
+
+&gt;&gt;&gt; sharing.endpoints.getByAlias('bar').includePolicy
+'byMethod'
+
+&gt;&gt;&gt; sharing.endpoints.getByAlias('bar').method
+'someMethod'
+</pre>
+<p>Note that you only need to use this if you need to specify a <tt class="docutils literal"><span class="pre">byMethod</span></tt>
+policy, a non-default <tt class="docutils literal"><span class="pre">cloudAlias</span></tt> for an endpoint, or a series of attributes
+instead of a single attribute.</p>
+<p>A final note on defining clouds: the schema API implementation for Chandler 0.6
+does not support defining clouds on annotation attributes, whether they are
+anonymous inverses or defined in an annotation class.  This restriction may be
+lifted in 0.7 if needed.</p>
+</div>
+<div class="section" id="other-metadata">
+<h3><a class="toc-backref" href="#id23" name="other-metadata">Other Metadata</a></h3>
+<p>When a parcel is created, persistent items are created that correspond to each
+class, to store each class' schema.  These items can have attributes of their
+own, such as <tt class="docutils literal"><span class="pre">displayName</span></tt> and <tt class="docutils literal"><span class="pre">description</span></tt>.  Depending on whether the
+class is a <tt class="docutils literal"><span class="pre">schema.Item</span></tt>, <tt class="docutils literal"><span class="pre">schema.Struct</span></tt>, or <tt class="docutils literal"><span class="pre">schema.Enumeration</span></tt>, the
+attributes may be different, as the type of the persistent item will be
+different.  For all classes, however, you can set attributes of the
+corresponding items by using the <tt class="docutils literal"><span class="pre">schema.kindInfo()</span></tt> function in the body of
+your item class:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class CalendarItem(schema.Item):
+...     &quot;&quot;&quot;This is just a demo&quot;&quot;&quot;
+...     schema.kindInfo(
+...         displayName = &quot;Calendar Item&quot;,
+...     )
+</pre>
+<p>Once you've done this, the persistent item corresponding to your class in any
+given repository view, will have the attribute values you specify:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; schema.itemFor(CalendarItem, rv).displayName
+'Calendar Item'
+</pre>
+<p>Note, however, that you can only specify names that correspond to valid
+attributes for whatever the corresponding item type is:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class BadMetadata(schema.Item):
+...     schema.kindInfo(madeUpName=&quot;xyz&quot;)
+Traceback (most recent call last):
+  ...
+TypeError: 'madeUpName' is not an attribute of Kind
+</pre>
+<p>The only attribute used by all schema classes is <tt class="docutils literal"><span class="pre">displayName</span></tt>, which as we
+mentioned previously may be used by the Chandler UI in some places to show a
+name to the user.  (You should therefore call the <tt class="docutils literal"><span class="pre">_()</span></tt> translation function
+on such strings before using them, although our examples in this document do
+not.)  The <tt class="docutils literal"><span class="pre">schema.Annotation</span></tt> class also has an <tt class="docutils literal"><span class="pre">annotates</span></tt> attribute,
+as we saw in the section on <a class="reference" href="#annotation-classes">Annotation Classes</a>, above.</p>
+<p>Whatever the attribute, however, you should note that their values are <em>not</em>
+inherited by subclasses:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class CalendarItemSubclass(CalendarItem):
+...     pass
+
+&gt;&gt;&gt; hasattr(schema.itemFor(CalendarItemSubclass, rv), 'displayName')
+False
+</pre>
+<p>Also note that you can make multiple calls to <tt class="docutils literal"><span class="pre">kindInfo()</span></tt> in the same
+class:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class MultipleMetadata(schema.Item):
+...     schema.kindInfo(displayName=&quot;Foo&quot;)
+...     schema.kindInfo(description=&quot;Bar&quot;)
+&gt;&gt;&gt; schema.itemFor(MultipleMetadata, rv).displayName
+'Foo'
+&gt;&gt;&gt; schema.itemFor(MultipleMetadata, rv).description
+'Bar'
+</pre>
+<p>as long as you don't change anything you set in a previous call:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class ConflictingMetadata(schema.Item):
+...     schema.kindInfo(displayName=&quot;Foo&quot;)
+...     schema.kindInfo(displayName=&quot;Bar&quot;)
+Traceback (most recent call last):
+  ...
+ValueError: 'displayName' defined multiple times for this class
+</pre>
+<p>And finally, note that calling <tt class="docutils literal"><span class="pre">kindInfo()</span></tt> is meaningless outside a class
+statement:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; schema.kindInfo(displayName=&quot;x&quot;)
+Traceback (most recent call last):
+  ...
+SyntaxError: kindInfo() must be called in the body of a class statement
+</pre>
+</div>
+</div>
+<div class="section" id="attribute-descriptors">
+<h2><a class="toc-backref" href="#id24" name="attribute-descriptors">Attribute Descriptors</a></h2>
+<p>There are currently four types of attribute descriptors: <tt class="docutils literal"><span class="pre">One</span></tt>, <tt class="docutils literal"><span class="pre">Many</span></tt>,
+<tt class="docutils literal"><span class="pre">Sequence</span></tt>, and <tt class="docutils literal"><span class="pre">Mapping</span></tt>.  They are all essentially identical except for
+their <tt class="docutils literal"><span class="pre">cardinality</span></tt> attribute, which controls how the repository will store
+the attribute's value:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; schema.One.cardinality
+'single'
+
+&gt;&gt;&gt; schema.Many.cardinality
+'set'
+
+&gt;&gt;&gt; schema.Sequence.cardinality
+'list'
+
+&gt;&gt;&gt; schema.Mapping.cardinality
+'dict'
+</pre>
+<p>For more information on the implementation of these cardinalities, see the
+repository package's documentation.  In particular, you should note that
+the set/list/dict types are actually subclasses of the Python builtin types,
+and offer additional methods that you may need to be aware of, such as indexing
+methods in the case of <tt class="docutils literal"><span class="pre">Sequence</span></tt> attributes that are part of a
+bidirectional reference.</p>
+<p>Attribute descriptors are used to define repository <tt class="docutils literal"><span class="pre">Attribute</span></tt> objects that
+persistently store the attribute's schema.  When you create an attribute
+descriptor, you may specify keyword arguments that will be used to set the
+corresponding parameters of the repository <tt class="docutils literal"><span class="pre">Attribute</span></tt> object, such as
+<tt class="docutils literal"><span class="pre">redirectTo</span></tt>, <tt class="docutils literal"><span class="pre">defaultValue</span></tt>, <tt class="docutils literal"><span class="pre">initialValue</span></tt>, and so on.  For information
+on these and other parameters, you can consult the model documentation for
+the <tt class="docutils literal"><span class="pre">//Schema/Core/Attribute</span></tt> kind.  Any parameters you do not supply will
+take on their normal default values, except for``otherName`` which is computed
+from the attribute's <tt class="docutils literal"><span class="pre">inverse</span></tt>, if any.</p>
+<p>In addition to the the attributes defined by the repository <tt class="docutils literal"><span class="pre">Attribute</span></tt> kind,
+the schema API defines the following additional attributes for descriptor
+objects:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">type</span></tt></dt>
+<dd><p class="first"><tt class="docutils literal"><span class="pre">type</span></tt> is the first argument to the various descriptor constructors, and
+as such is usually not specified with a keyword argument; instead one can
+simply use e.g. <tt class="docutils literal"><span class="pre">schema.Sequence(schema.Text)</span></tt> to create an attribute
+holding a sequence of text strings.</p>
+<p>You can omit the <tt class="docutils literal"><span class="pre">type</span></tt> of a descriptor if its target type is currently
+undefined.  This is always necessary for at least one of the two
+descriptors that compose a given bidirectional reference.  When the second
+descriptor in a bidirectional reference has its <tt class="docutils literal"><span class="pre">inverse</span></tt> set to the
+first descriptor, the <tt class="docutils literal"><span class="pre">type</span></tt> of both descriptors is determined
+automatically, since each descriptor should refer to the class containing
+the other.  This allows you to omit the <tt class="docutils literal"><span class="pre">type</span></tt> from both descriptors.</p>
+<p>For any attributes that are not part of a bidirectional reference, however,
+you should specify a <tt class="docutils literal"><span class="pre">type</span></tt> that is one of the following:</p>
+<ul class="simple">
+<li>a <tt class="docutils literal"><span class="pre">schema.Item</span></tt> subclass</li>
+<li>a <tt class="docutils literal"><span class="pre">schema.Struct</span></tt> subclass</li>
+<li>a <tt class="docutils literal"><span class="pre">schema.Annotation</span></tt> subclass</li>
+<li>a <tt class="docutils literal"><span class="pre">schema.Enumeration</span></tt> subclass</li>
+<li>a <tt class="docutils literal"><span class="pre">schema.TypeReference</span></tt> naming a core repository type</li>
+</ul>
+<p>The schema API supplies various pre-configured <tt class="docutils literal"><span class="pre">TypeReference</span></tt> objects
+for your convenience, such as <tt class="docutils literal"><span class="pre">schema.Text</span></tt> and <tt class="docutils literal"><span class="pre">schema.Integer</span></tt>:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; schema.Text
+TypeReference('//Schema/Core/Text')
+</pre>
+<p>You must use these type references instead of trying to use ordinary Python
+types or classes, as they cannot be persisted directly:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; schema.One(str)
+Traceback (most recent call last):
+...
+TypeError: ('Attribute type must be Item/Enumeration class or TypeReference', ...)
+</pre>
+<p class="last">Note that if the schema API does not provide a pre-existing
+<tt class="docutils literal"><span class="pre">TypeReference</span></tt> for a repository core schema type, you can manually
+create one with the <tt class="docutils literal"><span class="pre">schema.TypeReference()</span></tt> constructor using an
+appropriate repository path.  You will need to consult the Chandler model
+documentation for the core schema types in order to find a type's
+repository path, if of course a suitable type even exists.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">name</span></tt> (read-only)</dt>
+<dd><p class="first">The name under which this descriptor was first defined in an item class or
+annotation class, or <tt class="docutils literal"><span class="pre">None</span></tt> if the descriptor has not been used in a
+class yet:</p>
+<pre class="last literal-block">
+&gt;&gt;&gt; descriptor = schema.One()
+&gt;&gt;&gt; print descriptor.name
+None
+
+&gt;&gt;&gt; class anEntity(schema.Item):
+...     aDescriptor = descriptor
+&gt;&gt;&gt; descriptor.name
+'aDescriptor'
+</pre>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">owner</span></tt> (read-only)</dt>
+<dd><p class="first">The item or annotation class in which the descriptor was defined, or
+<tt class="docutils literal"><span class="pre">None</span></tt> if the descriptor has not been used in a class yet:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; descriptor = schema.Sequence()
+&gt;&gt;&gt; print descriptor.owner
+None
+
+&gt;&gt;&gt; class anEntity(schema.Item):
+...     aDescriptor = descriptor
+
+&gt;&gt;&gt; descriptor.owner
+&lt;class '...anEntity'&gt;
+</pre>
+<p>If the <tt class="docutils literal"><span class="pre">owner</span></tt> is an item class or annotation class, then setting the
+descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt> causes the inverse descriptor's type to be set
+to the first descriptor's owner, and vice versa.  This is how bidirectional
+references can get set up, without needing to have the classes exist before
+the descriptors exist.  For example, in the following class, the
+<tt class="docutils literal"><span class="pre">subkinds</span></tt> and <tt class="docutils literal"><span class="pre">superkinds</span></tt> descriptors will both get set up to accept
+<tt class="docutils literal"><span class="pre">Kind</span></tt> as the type, because in each case the inverse descriptor's
+<tt class="docutils literal"><span class="pre">owner</span></tt> is <tt class="docutils literal"><span class="pre">Kind</span></tt>:</p>
+<pre class="last literal-block">
+&gt;&gt;&gt; class Kind(schema.Item):
+...     name = schema.One(schema.Text)
+...     subkinds = schema.Sequence()
+...     superkinds = schema.Sequence(inverse=subkinds)
+...     def __repr__(self):
+...         return getattr(self,'name',object.__repr__(self))
+
+&gt;&gt;&gt; Kind.subkinds.type
+&lt;class '...Kind'&gt;
+
+&gt;&gt;&gt; Kind.superkinds.type
+&lt;class '...Kind'&gt;
+</pre>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">displayName</span></tt>, <tt class="docutils literal"><span class="pre">description</span></tt>, and <tt class="docutils literal"><span class="pre">doc</span></tt></dt>
+<dd><p class="first">The name and description of this attribute descriptor, if any.  They will
+be used to collectively form a <tt class="docutils literal"><span class="pre">__doc__</span></tt> string, so that <tt class="docutils literal"><span class="pre">help()</span></tt> is
+informative for Item classes:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Kind.subkinds.doc = &quot;Sub-kinds of this kind&quot;
+&gt;&gt;&gt; Kind.superkinds.doc = &quot;Super-kinds of this kind&quot;
+&gt;&gt;&gt; Kind.name.doc = &quot;This kind's name&quot;
+&gt;&gt;&gt; Kind.name.displayName = &quot;Kind Name&quot;
+
+&gt;&gt;&gt; help(Kind)                      # doctest: +NORMALIZE_WHITESPACE
+Help on class Kind ...
+...
+class Kind(application.schema.Item)
+ | ...
+ |  Data and other attributes defined here:
+ |
+ |  name = &lt;Role name of &lt;class '...Kind'&gt;&gt;
+ |      Kind Name -- One(Text)
+ |
+ |      This kind's name
+ |
+ |  subkinds = &lt;Role subkinds of &lt;class '...Kind'&gt;&gt;
+ |      Sequence(Kind)
+ |
+ |      Sub-kinds of this kind
+ |
+ |  superkinds = &lt;Role superkinds of &lt;class '...Kind'&gt;&gt;
+ |      Sequence(Kind)
+ |
+ |      Super-kinds of this kind
+ |  ...
+</pre>
+<p>As you can see, the automatically-generated <tt class="docutils literal"><span class="pre">__doc__</span></tt> for an attribute
+descriptor includes its <tt class="docutils literal"><span class="pre">displayName</span></tt> (if any), its cardinality and type,
+followed by a blank line and the <tt class="docutils literal"><span class="pre">doc</span></tt> or <tt class="docutils literal"><span class="pre">description</span></tt>.</p>
+<p>Note that <tt class="docutils literal"><span class="pre">doc</span></tt> is actually just a convenient shortcut for
+<tt class="docutils literal"><span class="pre">description</span></tt>; there is no real difference between the two attributes:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; Kind.name.doc is Kind.name.description
+True
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">doc</span></tt> and <tt class="docutils literal"><span class="pre">description</span></tt> are always strings, even if empty:</p>
+<pre class="last literal-block">
+&gt;&gt;&gt; schema.One().description
+''
+</pre>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">inverse</span></tt></dt>
+<dd><p class="first">The descriptor object that represents the &quot;other side&quot; of the relationship,
+or <tt class="docutils literal"><span class="pre">None</span></tt> if not yet set.  Setting a descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt>
+automatically attempts to set the other descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt>, so that
+each descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt> attribute points to the other.  Thus, you
+only have to set one descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt> attribute in order to link
+them both together.  Above, we only set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of <tt class="docutils literal"><span class="pre">superkinds</span></tt>,
+but both end up pointing to each other automatically:</p>
+<pre class="last literal-block">
+&gt;&gt;&gt; Kind.superkinds.inverse
+&lt;Role subkinds of &lt;class '...Kind'&gt;&gt;
+
+&gt;&gt;&gt; Kind.subkinds.inverse
+&lt;Role superkinds of &lt;class '...Kind'&gt;&gt;
+</pre>
+</dd>
+</dl>
+</div>
+<div class="section" id="other-apis">
+<h2><a class="toc-backref" href="#id25" name="other-apis">Other APIs</a></h2>
+<p>There are a few other schema API functions remaining, that don't fit into any
+of the preceding categories:</p>
+<dl class="docutils">
+<dt>importString(moduleName)</dt>
+<dd><p class="first">Imports the named module (or named item within a module):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; import sys
+&gt;&gt;&gt; schema.importString(&quot;sys.stdout&quot;) is sys.stdout
+True
+
+&gt;&gt;&gt; schema.importString(&quot;application.tests&quot;)
+&lt;module 'application.tests' from '...'&gt;
+
+&gt;&gt;&gt; import application.tests
+&gt;&gt;&gt; schema.importString(&quot;application.tests&quot;) is application.tests
+True
+</pre>
+<p class="last">There's nothing Chandler-specific or schema API-specific about this
+function; you can use it to import any Python object from anywhere.</p>
+</dd>
+<dt>synchronize(repoView, moduleName)</dt>
+<dd>Ensure that the named module has been imported, and that its offered schema
+(if any) has been imported into the supplied repository view as a parcel.
+This is a convenient way to force a particular parcel to be loaded if it
+hasn't already been, or to specify any explicit <a class="reference" href="#parcel-dependencies">Parcel Dependencies</a>.
+It's also used by Chandler itself to load the parcels it finds during
+<a class="reference" href="#parcel-discovery">Parcel Discovery</a>.</dd>
+<dt>itemFor(obj, repoView)</dt>
+<dd><p class="first">Return the repository item that corresponds to the supplied object.  For
+example, <tt class="docutils literal"><span class="pre">itemFor(AnItemClass)</span></tt> returns the repository <tt class="docutils literal"><span class="pre">Kind</span></tt> that
+represents that class in the given repository view:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; schema.itemFor(schema.Item, rv)
+&lt;Kind ... Item ...&gt;
+</pre>
+<p class="last">This function is mainly useful when you need to deal with repository or
+other APIs that require a repository item rather than a class or
+attribute descriptor.  Any <tt class="docutils literal"><span class="pre">Item</span></tt>, <tt class="docutils literal"><span class="pre">Struct</span></tt>, or <tt class="docutils literal"><span class="pre">Enumeration</span></tt>
+subclass that you create can be passed to this function to get a
+corresponding repository item for the class' schema.  Similarly, you
+can pass an attribute descriptor to this function to get a repository
+item for the attribute's schema.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</body>
+</html>
