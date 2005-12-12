@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.cpp,v 1.253 2005/11/10 16:16:04 ABX Exp $
+// RCS-ID:      $Id: filefn.cpp,v 1.254 2005/12/11 15:25:02 SN Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1237,7 +1237,13 @@ bool wxDirExists(const wxChar *pszPathName)
 
     return (ret != (DWORD)-1) && (ret & FILE_ATTRIBUTE_DIRECTORY);
 #elif defined(__OS2__)
-    return (bool)(::DosSetCurrentDir((PSZ)(WXSTRINGCAST strPath)));
+    FILESTATUS3 Info = {{0}};
+    APIRET rc = ::DosQueryPathInfo((PSZ)(WXSTRINGCAST strPath), FIL_STANDARD,
+                                   (void*) &Info, sizeof(FILESTATUS3));
+
+    return ((rc == NO_ERROR) && (Info.attrFile & FILE_DIRECTORY)) ||
+      (rc == ERROR_SHARING_VIOLATION);
+    // If we got a sharing violation, there must be something with this name.
 #else // !__WIN32__
 
     wxStructStat st;

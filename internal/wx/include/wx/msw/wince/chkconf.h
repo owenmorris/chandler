@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        wx/wince/chkconf.h
+// Name:        wx/msw/wince/chkconf.h
 // Purpose:     WinCE-specific configuration options checks
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-03-07
-// RCS-ID:      $Id: chkconf.h,v 1.7 2005/07/30 12:46:11 VZ Exp $
+// RCS-ID:      $Id: chkconf.h,v 1.8 2005/12/11 16:11:15 ABX Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,6 +18,12 @@
     #undef wxUSE_STDPATHS
     #define wxUSE_STDPATHS 0
 #endif // WCE_PLATFORM_STANDARDSDK
+
+#if _WIN32_WCE < 400
+    // not enough API and lack of ddraw.h
+    #undef wxUSE_DISPLAY
+    #define wxUSE_DISPLAY 0
+#endif
 
 // DDE doesn't exist under WinCE and wxIPC is DDE-based under MSW
 #undef wxUSE_IPC
