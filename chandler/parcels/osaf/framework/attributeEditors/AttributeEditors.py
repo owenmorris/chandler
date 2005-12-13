@@ -549,6 +549,7 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         # Clear to just remove the selection on GTK only.
         def Clear(self):
             self.Remove(*self.GetSelection())
+            NotifyBlockToSaveValue(self)
 
         def CanClear(self):    
             (selStart, selEnd) = self.GetSelection()
@@ -579,30 +580,35 @@ class DragAndDropTextCtrl(ShownSynchronizer,
 
     def onCutEvent(self, event):
         self.Cut()
+        NotifyBlockToSaveValue(self)
 
     def onPasteEventUpdateUI(self, event):
         event.arguments ['Enable'] = self.CanPaste()
 
     def onPasteEvent(self, event):
         self.Paste()
+        NotifyBlockToSaveValue(self)
 
     def onClearEventUpdateUI(self, event):
         event.arguments ['Enable'] = self.CanClear()
     
     def onClearEvent(self, event):
         self.Clear()
+        NotifyBlockToSaveValue(self)
     
     def onRedoEventUpdateUI(self, event):
         event.arguments ['Enable'] = self.CanRedo()
 
     def onRedoEvent(self, event):
         self.Redo()
+        NotifyBlockToSaveValue(self)
 
     def onUndoEventUpdateUI(self, event):
         event.arguments ['Enable'] = self.CanUndo()
     
     def onUndoEvent(self, event):
         self.Undo()
+        NotifyBlockToSaveValue(self)
 
     def onRemoveEventUpdateUI(self, event):
         (startSelect, endSelect) = self.GetSelection()
