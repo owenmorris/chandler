@@ -113,7 +113,7 @@ confusing, in this document we'll often say
 <p>
 A&nbsp;<span style="font-weight: bold;">Collection</span>
 is a set of
-Items, and is itself an Item. A Collection can define the set of
+Items, and is itself an Item. A Collection can define its
 Items either by explicitly listing the items, with a query against the
 repository, or by combining
 two other Collections. Collections play a key role in Chandler's
@@ -254,11 +254,9 @@ starting point for running Chandler as a server with no GUI.</span></li>
 
 <h3><a name="CPIA"></a>Presentation (CPIA)</h3>
 
-<p>Chandler's Presentation layer is handled by a framework we
-call CPIA.
-CPIA stands for Chandler Presentation and Interaction Architecture. It
+<p>Chandler's Presentation layer is handled by the Chandler Presentation and Interaction Architecture (CPIA). CPIA
 blends the role of View and Controller in an MVC architecture. CPIA
-is intended to be a Chandler specific framework, so it has API
+is a Chandler specific framework, so it has API
 knowledge of the Repository, Items, Collections, and Chandler's
 Domain Model. </p>
 
@@ -293,10 +291,10 @@ Bar</span>
 allows the user to select an application area (All, Calendar, Event,
 Task). This selection is&nbsp;used to filter what Kinds of
 Items are displayed and what type of Summary View is used. If
-"Calendar" is selected, for example, collections of Calendar Events can
+"Calendar" is selected in the Application Bar, for example, collections of Calendar Events can
 be seen in a
 <span style="font-weight: bold;">Calendar Summary View</span>.
-If "All" is selected, collections are seen in a more general <span style="font-weight: bold;">Table Summary View</span>.
+If "All" is selected in the Application Bar, collections are seen in a more general <span style="font-weight: bold;">Table Summary View</span>.
 The application also has other common elements: <span style="font-weight: bold;">Menus</span>, a <span style="font-weight: bold;">Toolbar</span>, and a <span style="font-weight: bold;">Status Bar</span>.
 &nbsp;The Sidebar, Calendar Summary View, Table Summary View,
 Detail
@@ -314,8 +312,7 @@ which you can think of as a tree of
 blocks. The Main View is the complete tree of Blocks that describes the
 layout of Chandler.&nbsp;The Detail View is another example of a
 tree
-of Blocks, where the contained Blocks represent elements of the Detail
-View.
+of Blocks -- the selected Item's attributes are displayed using Blocks contained by the Detail View.
 The appropriate Detail View tree of Blocks gets hooked into the Main
 View, depending on the Kind of Item selected.</p>
 
@@ -361,7 +358,7 @@ class, a subclass of a wxPython class. (Widgets are wxPython objects,
 they are not Items and they do not persist to the Repository).&nbsp;</p>
 
 <p>
-Another key concept in CPIA is that of an <span style="font-weight: bold;">AttributeEditor</span>.
+Another key concept in CPIA is that of an <span style="font-weight: bold;">Attribute Editor</span>.
 Attribute editors are Python classes that handle the editing and
 rendering of one Attribute of one Item. Attribute editors are used by
 the DetailView or the SummaryTableView to render and edit a selected
@@ -422,7 +419,7 @@ CPIA defined repository types (e.g. color)</li>
 <p>
 The services layer provides services to allow Chandler to talk to the
 outside world. Currently this includes sharing (via WebDAV and <a href="http://ietf.webdav.org/caldav/home.html">CalDAV</a>),
-email (via IMAP and POP), and support to run Chandler as a local
+email (IMAP, POP and SMTP), and support to run Chandler as a local
 webserver.</p>
 
 <p>
@@ -442,23 +439,23 @@ sharing framework:</p>
 <img style="width: 482px; height: 158px;" alt="sharing framework" src="SharingFramework.gif"><br>
 <p>
 The sharing framework shares a Collection by creating three objects: a <span style="font-weight: bold;">Share</span>, a <span style="font-weight: bold;">Format</span>, and a <span style="font-weight: bold;">Conduit</span>.
-The Share
-object is the coordinator, making decisions about which Items need to
-be imported or exported. The Share delegates the serialization and
-deserialization to the Format object. Supported Formats include the
-iCalendar standard format, the CalDAV standard format, and a Chandler
+The Share object keeps track of the Collection being shared, filtering
+some Items before sharing. The Format object handles the serialization
+and
+deserialization of Items. There are currently two Format
+implementations:
+iCalendar (the standard used by CalDAV), and a Chandler
 specific XML format called CloudXML.
-The Share delegates the task of moving serialized representations in
-and out of Chandler to the Conduit object. Current Conduit
+The Conduit object is responsible for&nbsp;moving serialized
+representations in
+and out of Chandler. Current Conduit
 implementations include a
 FileSystem conduit (supporting import/export), a WebDAV conduit, a
 CalDAV conduit, and a simple HTTP conduit. More information about
 sharing, including the 0.6 spec, can be
 found <a href="http://wiki.osafoundation.org/bin/view/Projects/SharingProject">here</a>.
-The sharing framework can be extended to add new conduits and formats,
-a tutorial on how to extend sharing can be found here. &lt;TODO:
-insert
-link to morgen's doc&gt;</p>
+The sharing framework can be extended to add new Conduits and Formats;
+a tutorial on how to extend sharing can be found <a href="http://wiki.osafoundation.org/bin/view/Projects/SharingFrameworkExtensibility">here</a>.</p>
 
 <p>
 Chandler's sharing code makes use of a library called <a href="http://wiki.osafoundation.org/bin/view/Projects/ZanshinProject">Zanshin</a>,
@@ -472,7 +469,10 @@ services like mail and sharing run in the Twisted Reactor. See&nbsp;<a href="ove
 below for more information on how this works. More information on
 Twisted in Chandler can be found <a href="http://wiki.osafoundation.org/bin/view/Projects/TwistedHome">here</a>
 and here. &lt;TODO: insert link to startup document&gt;</p>
-
+<p>The Twisted framework enabled us to rather easily add the
+experimental feature that Chandler can be run as a webserver. While we
+have no current plans to use this capability for 1.0 Chandler features,
+we'll continue to experiment with it as a mechanism to extend Chandler.</p>
 <h5>
 Most services code can be found here:</h5>
 
@@ -652,22 +652,22 @@ layers without involving the user).</p>
 As the lowest layer on the Chandler stack, the Repository has almost no
 knowledge of the layers above it. The Repository communicates with the
 layers above it by providing mechanisms for tracking changes in the
-Repository. The Repository provides three mechanisms for tracking
-changes in a Repository View: (1) <span style="font-weight: bold;">monitors</span>,
-which track changes to Attributes, (2) <span style="font-weight: bold;">watchers</span>, which
-track changes to an Attribute on a specific object instance, and (3) <span style="font-family: monospace;">mapChanges()</span>,
-an API for polling for recent changes in the
-RepositoryView.&nbsp;The
-Repository also allows clients to register a callback that gets
-notified about changes on each call to <span style="font-family: monospace;">refresh()</span>. This
-last mechanism is used to track changes that happen in other Repository
-Views.</p>
-
-<p>
-For the most part, the application, presentation, and services layers
+Repository.<br>
+</p>
+<p>The Repository provides various mechanisms for tracking
+changes to the Repository View. <span style="font-weight: bold;">Monitors </span>and<span style="font-weight: bold;"> watchers</span>
+allow client code to track changes to Attributes (monitors track all
+instances of one type of Attribute; watchers track one instance of a
+particular Attribute). The Repository View also provides a method, <span style="font-family: monospace;">mapChanges()</span>,
+that allows client code to poll for recent changes in the
+RepositoryView.&nbsp;To get notifications about changes that occur in other
+Repository Views, clients can register a callback that gets invoked
+on each call to <span style="font-family: monospace;">refresh()</span>. The callback will be given a list of all changes that happened in other Repository Views.
+</p>
+<p>For the most part, the application, presentation, and services layers
 do not need to interact with these mechanisms directly. Collections use
 these mechanisms to track changes, and provide a simpler API to the
-layers above for noticing changes. Collection notifications are
+layers above for noticing changes. Collections and notifications are
 discussed below in <a href="#Collections_and_Notifications">Collections
 and Notifications</a>.</p>
 
@@ -845,49 +845,50 @@ that they will repaint themselves in the next Paint cycle.</p>
 
 <h2><a name="Collections_and_Notifications"></a>Collections
 and Notifications</h2>
-<p>
-Collections are a core element of Chandler's architecture. Collections
-are one mechanism used to discover Items in the Repository. Collections
-are used to send notifications to the user interface. </p>
+<p>Collections are a core element of Chandler's architecture.
+Collections are the primary mechanism for the application to access
+Items from the Repository. Collections are also the primary mechanism
+for distributing change notifications from the Repository to the layers
+above.</p>
+<p>We have two kinds of Collections: "basis collections" and "virtual collections". <span style="font-weight: bold;">List Collection</span> and <span style="font-weight: bold;">Kind Collection</span>
+are both basis collections. A List Collection is an explicit list of
+Items. A Kind Collection automatically tracks all Items of a particular
+Kind, even when Items are created or change Kinds.&nbsp;Virtual
+collections are created by combining basis collections (and other
+virtual collections): <span style="font-weight: bold;">Union Collection</span>, <span style="font-weight: bold;">Intersection Collection</span>, <span style="font-weight: bold;">Difference Collection</span> and <span style="font-weight: bold;">Filter Collection</span>.
+Union, Intersection and Difference collections combine two collections
+with the obvious operation. Filter Collections start with another
+collection, and then remove Items according to some condition. The
+condition is a piece of Python code that evaluates to True or False.</p>
+<p>The application&nbsp;maintains Collections of Content Items to
+display in the Sidebar, using some combination of the above elements to
+build "Home Calendar" or "All My Shared Items". The application also
+uses Collections to access other types of Items: all Attribute Editors,
+all active Periodic Tasks, etc.&nbsp;</p>
+<p>Collections notice when Items in them have changed, or when Items
+leave or enter a Collection. Items in higher level layers can subscribe
+to Collection notifications, by registering themselves with the
+Collection and implementing <span style="font-family: monospace;">onCollectionEvent()</span>.&nbsp;Collections propagate the notifications to the list of subscribers, which
+use the information to update the display, fire off a reminder, etc.</p>
+<p>To notice changes that happened in other threads, the application needs to <span style="font-family: monospace;">refresh()</span> the Repository View on the GUI thread and look for changes. This happens regularly during the application's idle cycle. The main application object's <span style="font-family: monospace;">OnIdle()</span> method updates the GUI thread's Repository View<span style="font-family: monospace;"></span>,
+and then delivers the collected change notifications (from the GUI
+thread as well as from other threads) to subscribers. UI elements
+(Blocks) are common subscribers; they can dirty themselves for
+repainting in the application's paint cycle. </p>
 
-<p>
-Much of the low level implementation of Collections is handled by the
-Repository. The Repository has the notion of a 'set' of items. Sets can
-be created by listing Items explicitly, by querying for Items, or by
-combining sets (unions, differences or intersections). Collections wrap
-sets so that they look like Items to the client code in the layers
-above. Collections subscribe to set notifications, adding all
-notifications to a queue. The collection module provides a function
-called <span style="font-family: monospace;">deliverNotifications()</span>,
-which iterates through the queue and notifies subscribers to the
-Collection. This function is called by the application to send out
-notifications to the higher level layers.</p>
 
-<p>
-The main application object defines a method called <span style="font-family: monospace;">OnIdle()</span>, which
-gets called during the application's idle cycle (cycles between
-processing input from the user). As mentioned above in <a href="#Threading_Model">Threading Model</a>, <span style="font-family: monospace;">OnIdle()</span> will
-call <span style="font-family: monospace;">refresh()</span>
-on the GUI thread's Repository View. This call picks up changes from
-the Repository, including the collected change notifications for all
-Collections. <span style="font-family: monospace;">OnIdle()</span>
-then calls the <span style="font-family: monospace;">deliverNotifications()</span>
-function,&nbsp;. Notification delivery dirties appropriate blocks. <span style="font-family: monospace;">OnIdle()</span>
-then walks through the Blocks, synchronizing any dirty Blocks with
-their Widget delegates. The Widgets in turn dirty themselves, so that
-they are drawn in the next paint cycle. The wxWidgets event handling
-framework handles calling both <span style="font-family: monospace;">OnIdle()</span>
-as well as <span style="font-family: monospace;">OnPaint()</span>
-at the appropriate times.</p>
-
-<p>
-Attribute Editor notifications have an exception to this mechanism --
+<p>Attribute Editors have an exception to this mechanism --
 they subscribe directly to the Repository's attribute monitors. Every
 time an attribute is changed, the repository fires off a monitor to all
-subscribers (in this case the Attribute Editor). &nbsp;We plan on
-changing this use of monitors in 0.7. We plan on implementing Item
-notifications (not unlike the Collection notifications) and use them to
-update Attribute Editors.</p>
+subscribers (in this case the Attribute Editor). We plan on
+implementing Item
+notifications in 0.7 (not unlike the Collection notifications).
+Attribute Editors will use Item notifications instead of the lower
+level monitors.</p>
+<p><span style="font-weight: bold;">Terminology note:</span> We have
+used&nbsp;to use the term "Item Collections" instead of "Collections",
+so you may see that term in specs and on the wiki.</p>
+<p>For more&nbsp;detailed information on Collections and notifications, see <a href="http://svn.osafoundation.org/docs/trunk/docs/specs/rel0_6/ItemCollection-0.6.html">the 0.6 spec</a>.</p>
 
 <h2><a name="Internationalization"></a>Internationalization
 (i18n)</h2>
@@ -896,7 +897,7 @@ The 1.0 version of Chandler will contain infrastructure support for
 Internationalization (hereafter referred to as i18n). This includes the
 ability to localize the GUI strings (menus, tooltips, status, text
 labels); media types (images, icons, html); visual style information
-(fonts, colors); and example content (welcome message). It also
+(fonts, colors); help (menus and tutorials); and example content (welcome message). It also
 includes locale specific support for date and time presentation,
 sorting and searching, as well as calendar and timezones. We've made
 significant progress towards this infrastructure in 0.6. </p>
@@ -916,7 +917,7 @@ localizations for French and/or Spanish in the next release. More
 information about the i18n infrastructure can be found <a href="http://wiki.osafoundation.org/bin/view/Projects/ChandlerInternationalizationProposal">here</a>;
 information about helping out with localizations can be found <a href="http://wiki.osafoundation.org/bin/view/Projects/InternationalizationProject">here</a>;
 and a guide to help parcel developers write i18n friendly code can be
-found here.</p>
+found <a href="http://wiki.osafoundation.org/bin/view/Projects/ChandlerInternationalizationBusyDevelopersGuide">here</a>.</p>
 
 <h2><a name="Security"></a>Security</h2>
 <p>
