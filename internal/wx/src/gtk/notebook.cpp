@@ -2,7 +2,7 @@
 // Name:        notebook.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: notebook.cpp,v 1.124 2005/10/26 00:26:34 MR Exp $
+// Id:          $Id: notebook.cpp,v 1.125 2005/12/13 01:20:41 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -736,7 +736,15 @@ int wxNotebook::HitTest(const wxPoint& pt, long *flags) const
     const gint y = m_widget->allocation.y;
 
     const size_t count = GetPageCount();
-    for ( size_t i = 0; i < count; i++ )
+    size_t i = 0;
+
+#ifdef __WXGTK20__
+    GtkNotebook * notebook = GTK_NOTEBOOK(m_widget);
+    if (gtk_notebook_get_scrollable(notebook));
+        i = g_list_position( notebook->children, notebook->first_tab );
+#endif
+
+    for ( ; i < count; i++ )
     {
         wxGtkNotebookPage* nb_page = GetNotebookPage(i);
         GtkWidget *box = nb_page->m_box;

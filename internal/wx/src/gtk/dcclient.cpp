@@ -2,7 +2,7 @@
 // Name:        gtk/dcclient.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcclient.cpp,v 1.208 2005/09/26 00:29:42 VZ Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.209 2005/12/13 02:46:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1883,14 +1883,6 @@ void wxWindowDC::SetFont( const wxFont &font )
         {
             PangoContext *oldContext = m_context;
 
-            // We might want to use the X11 context for faster
-            // rendering on screen.
-            // MR: Lets not want to do this, as this introduces libpangox dependancy.
-#if 0
-            if (m_font.GetNoAntiAliasing())
-                m_context = m_owner->GtkGetPangoX11Context();
-            else
-#endif
             m_context = m_owner->GtkGetPangoDefaultContext();
 
             // If we switch back/forth between different contexts

@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.554 2005/11/19 01:07:47 MR Exp $
+// Id:          $Id: window.cpp,v 1.555 2005/12/13 02:46:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2730,7 +2730,6 @@ void wxWindowGTK::Init()
 
 #ifdef __WXGTK20__
     m_imData = NULL;
-    m_x11Context = NULL;
     m_dirtyTabOrder = false;
 #else
 #ifdef HAVE_XIM
@@ -4284,12 +4283,6 @@ bool wxWindowGTK::SetForegroundColour( const wxColour &colour )
 
 #ifdef __WXGTK20__
 PangoContext *wxWindowGTK::GtkGetPangoDefaultContext()
-{
-    return gtk_widget_get_pango_context( m_widget );
-}
-
-// MR: Returns the same as GtkGetPangoDefaultContext until the symbol can be removed in 2.7.x
-PangoContext *wxWindowGTK::GtkGetPangoX11Context()
 {
     return gtk_widget_get_pango_context( m_widget );
 }
