@@ -159,11 +159,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             
             # for some reason, we're getting paint events before
             # widget synchronize events
-            if item in contents:
-                if contents.isItemSelected(item):
-                    selectedBoxes.append(canvasItem)
-                else:
-                    unselectedBoxes.append(canvasItem)
+            if item in contents and contents.isItemSelected(item):
+                selectedBoxes.append(canvasItem)
+            else:
+                unselectedBoxes.append(canvasItem)
 
         drawCanvasItems(unselectedBoxes, False)
         drawCanvasItems(selectedBoxes, True)
