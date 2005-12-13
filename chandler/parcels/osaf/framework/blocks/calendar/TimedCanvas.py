@@ -521,7 +521,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if canvasItem.isHit(unscrolledPosition):
                 # this one is in the selection, so we can return
                 # immediately
-                if contents.isItemSelected(canvasItem.GetItem()):
+                item = canvasItem.GetItem()
+                if item in contents and contents.isItemSelected(item):
                     return canvasItem
                 
                 # otherwise, save the first hit for later, in case we
