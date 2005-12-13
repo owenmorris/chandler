@@ -142,12 +142,12 @@ class UITestItem :
                 timedCanvas = App_ns.TimedEvents
                 allDayCanvas = App_ns.AllDayEvents
                 for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
-                    if canvasItem._item == self.item:
-                        allDayCanvas.widget.OnSelectItem(canvasItem.GetItem())
+                    if canvasItem.item == self.item:
+                        allDayCanvas.widget.OnSelectItem(canvasItem.item)
                         break
                 for canvasItem in reversed(timedCanvas.widget.canvasItemList):
-                    if canvasItem._item == self.item:
-                        timedCanvas.widget.OnSelectItem(canvasItem.GetItem())
+                    if canvasItem.item == self.item:
+                        timedCanvas.widget.OnSelectItem(canvasItem.item)
                         break
         else: # the item is a collection (sidebar selection)
             App_ns.sidebar.select(self.item)
@@ -1258,7 +1258,7 @@ class UITestView:
                 return
                    
             #create the corresponding UITestItem object
-            TestItem = UITestItem(canvasItem._item, self.logger)
+            TestItem = UITestItem(canvasItem.item, self.logger)
             return TestItem
         else:
             self.logger.Print("DoubleClickInCalView is not available in the current view : %s" %self.state)
