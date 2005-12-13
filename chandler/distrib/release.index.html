@@ -17,25 +17,30 @@
 
 <p>
 Thank you for your interest in the XYZZY plugh of Chandler.
-We hope that this plugh of Chandler will give you a flavor of Chandler's architecture and APIs, and a glimse of what Chandler will do in the future.
+We hope that this plugh of Chandler will give you a flavor of Chandler's architecture and APIs, 
+and a glimpse of what Chandler will do in the future.
 </p>
 <p>
-Please note that Chandler is still in its extremely early stages, with only a very limited set of capabilities.  <font color=red>You should not store important information in Chandler</font>.  Please read the <a href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/ChandlerZeroPointFourReadme>README</a> -- it has information on known bugs, our future plans, volunteering, and where to go for futher documentation.
+Chandler is now an experimentally usable calendar but the other parts
+of the product are still under very early development. <font color=red>You should not 
+trust this version with your data.  Backup your calendar
+information regularly using the import/export feature</font>. Please refer
+to the our 0.6 release 
+<a href="http://chandler.osafoundation.org/">Home Page</a>
+ for information on known bugs, future plans, volunteering and where to go for further documentation.
 </p>
-
 <p>
-If you run into problems, please see <a href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/ReportingBugs>Reporting Bugs</a>.
+If you run into problems, please see 
+<a href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/ReportingBugs>Reporting Bugs</a>.
 </p>
 
 <h2>Compatibility Notes</h2>
 <ul>
 
 <li>Our Linux binaries are built on a Fedora Core 2 machine.  
-They are unlikely to run under any other configuration.
-To build Chandler yourself, see <a
-href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/BuildingChandler>Building
-Chandler</a>.
-<li>The OSX binaries have only been tested on Panther (10.3).
+They are unlikely to run under any other configuration.  To build Chandler yourself, see 
+<a href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/BuildingChandler>Building Chandler</a>.
+<li>The OSX binaries have been tested on Panther (10.3) and Tiger (10.4).
 <li>The Windows binaries have only been tested on XP.
 </ul>
 
@@ -49,9 +54,11 @@ Specially Designated Nationals, and entities on the Bureau of Industry and
 Security Entity List or involved with missile technology or nuclear, chemical
 or biological weapons).</p>
 
-<p>There are a few different types of Chandler distribution files that are available in this plugh; choose the one that's right for you:</p>
+<p>There are a few different types of Chandler distribution files that are available 
+in this plugh; choose the one that's right for you:</p>
 <ul>
-<li> <b>End-users' distributions: </b> If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, and run!
+<li> <b>End-users' distributions: </b> If you just want to use Chandler, this distribution 
+contains everything you need -- just download, unpack, and run!
 <b>Please select one of the following:</b>
 <a href=#enduserlinux>Linux</a> | 
 <a href=#enduserosx>Mac OSX</a> | 
@@ -59,7 +66,11 @@ or biological weapons).</p>
 <br>
 &nbsp;
 <br>
-<li> <b>Developers' distributions: </b> If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  You can also use this distribution to develop your own parcels (see <a href=http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading>ParcelLoading</a> for details on loading your own parcels).
+<li> <b>Debug distributions: </b> If you're a developer and want to run Chandler in 
+debugging mode, this distribution contains debug versions of the binaries.  You can also 
+use this distribution to develop your own parcels 
+(see <a href=http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading>ParcelLoading</a> 
+for details on loading your own parcels).
 <b>Please select one of the following:</b>
 <a href=#devbinlinux>Linux</a> | 
 <a href=#devbinosx>Mac OSX</a> | 
@@ -67,11 +78,19 @@ or biological weapons).</p>
 <br>
 &nbsp;
 <br>
-<li> <b>Source code distribution: </b> If you want to compile everything yourself, including the Python interpreter and all required libraries, this download contains the entire source tree. <b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a> (if using Mac OSX, please unpack the file with gnutar instead of tar), and instructions for building Chandler are at <a href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/BuildingChandler>instructions for building Chandler</a>.
+<li> 
+  <b>Source code distribution: </b> If you want to compile everything yourself, including the 
+  Python interpreter and all required libraries, this download contains the entire source tree. 
+  <b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a> 
+  (if using Mac OSX, please unpack the file with gnutar instead of tar), and instructions for 
+  building Chandler are at 
+  <a href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/BuildingChandler>instructions for building Chandler</a>.
 <br>
 &nbsp;
 <br>
-<li> <b>List of all downloads: </b> A listing of all downloadable files from this milestone (and their check-sums in MD5 and SHA-1) is available <a href=XYZZY_index.html> <b>here</b></a>.
+<li> 
+  <b>List of all downloads: </b> A listing of all downloadable files from this milestone 
+  (and their check-sums in MD5 and SHA-1) is available <a href=XYZZY_index.html> <b>here</b></a>.
 <br>
 </ul>
 
@@ -134,9 +153,10 @@ will give you a cryptic error.)</p>
 <a name=enduserwin></a> &nbsp; <br>
 <h2>End-Users' Distribution: <i>Windows</i></h2>
 
-Download <a href=Chandler_win_XYZZY.zip>Chandler_win_XYZZY.zip</a>, open it by double-clicking it using Windows file explorer, and 
-extract all files to a directory on your computer.  Again, using the file
-explorer, double-click on chandler.exe in the directory you extracted to.
+Download <a href=Chandler_win_XYZZY.exe>Chandler_win_XYZZY.exe</a>, 
+install it by double-clicking on the installer using Windows file 
+explorer.  Again, using the file explorer, double-click on chandler.exe 
+in the directory you installed Chandler into.
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
@@ -151,7 +171,7 @@ explorer, double-click on chandler.exe in the directory you extracted to.
 
 <hr>
 <a name=devbinlinux></a> &nbsp; <br>
-<h2>Developers' Distribution: <i>Linux</i></h2>
+<h2>Debug Distribution: <i>Linux</i></h2>
 
 <p>Note: This binary is built for Fedora Core 2.  Other platforms may
 have to build from source.</p>
@@ -177,7 +197,7 @@ Run Chandler:
 
 <hr>
 <a name=devbinosx></a> &nbsp; <br>
-<h2>Developers' Distribution: <i>Mac OSX</i></h2>
+<h2>Debug Distribution: <i>Mac OSX</i></h2>
 
 <p>Download <a href=Chandler_osx_debug_XYZZY.dmg>Chandler_osx_debug_XYZZY.dmg</a> to your desktop, double-click it, and it will unpack the Chandler application.
 Drag the Chandler application
@@ -194,11 +214,12 @@ will give you a cryptic error.)</p>
 
 <hr>
 <a name=devbinwin></a> &nbsp; <br>
-<h2>Developers' Distribution: <i>Windows</i></h2>
+<h2>Debug Distribution: <i>Windows</i></h2>
 
-Download <a href=Chandler_win_debug_XYZZY.zip>Chandler_win_debug_XYZZY.zip</a>, open it by double-clicking it using Windows file explorer, and 
-extract all files to a directory on your computer.  Again, using the file
-explorer, double-click on chandler.exe in the directory you extracted to.
+Download <a href=Chandler_win_debug_XYZZY.exe>Chandler_win_debug_XYZZY.exe</a>, 
+install it by double-clicking on the installer using Windows file 
+explorer.  Again, using the file explorer, double-click on chandler.exe 
+in the directory you installed Chandler into.
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
