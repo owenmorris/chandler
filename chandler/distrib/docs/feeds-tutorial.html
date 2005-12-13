@@ -119,7 +119,7 @@ extension that you'll develop in this tutorial. Create a new <code>feeds</code> 
 <h3>Starting Chandler</h3>
 <p>When developing for chandler, you'll often need to pass parameters
 to chandler on startup. To make this easy, you should run chandler from
-the command line. There are a few useful parameters that will be useful
+the command line using the <code>RunChandler</code> startup scripts located in the <code>release</code> subdirectory. There are a few useful parameters that will be useful
 while :</p>
 <dl>
   <dt> </dt>
@@ -137,10 +137,15 @@ see an internal view of the Repository, including all data definitions and actua
 don't want this extension development to interfere with data in an
 installed version of chandler.</dd>
 </dl>
-<p>For example, to start chandler with a fresh repository stored in the
-current directory, with the web server running, you would type:</p>
-<p><code>&gt; ./chandler --create -W -P.</code></p>
-<p class="callout"><strong>Note:</strong> The web server can also be started from the Test menu, using the  &quot;Activate built-in webserver&quot; menu item. </p>
+<p>For example, to start chandler onwith a fresh repository stored in the
+current directory, with the web server running, use all three parameters.</p>
+<p>On Linux or Macintosh, type  </p>
+<p><code>&gt; ./release/RunChandler --create -W -P.</code></p>
+<p>On Windows, when using <a href="http://www.cygwin.com/">cygwin</a>, type: </p>
+<p><code>&gt; ./release/RunChandler.bat --create -W -P. </code></p>
+<p>If you're not using <a href="http://www.cygwin.com/">cygwin</a>, type:</p>
+<p><code>&gt; release\RunChandler.bat --create -W -P.</code> </p>
+<p class="callout"><strong>Note:</strong> The web server can also be started from the Test menu, using the &quot;Activate built-in webserver&quot; menu item. </p>
 <h2>Data Description </h2>
 <p>Chandler stores all of its data objects in the &quot;Repository&quot;. The Repository is a database used to persistently store Python objects. When an object is created &quot;in the Repository&quot; then certain attributes in the object will persist even if Chandler is shut down and restarted. Any type of attribute can be stored in the Repository, including complex data structures like dictionaries, lists, and references to other objects. In all other respects, these Repository objects behave just like Python objects. </p>
 <p>Instead of storing data in structured tables like a traditional database, the Repository keeps all of its objects in a &quot;soup&quot;. Objects can be retrieved by queries into this soup, or simply by following references from one object to another. </p>
@@ -315,7 +320,7 @@ You can also navigate to this directory by clicking on the "//parcels"
 link in the top of the Repository Viewer at <a
  href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>.</p>
 <p class="callout"><strong>Note:</strong> Don't worry about second
-parameter (<code>parcel.itsView</code>) to schema.ns just yet. The view is more or less a handle used to access the Repository. You'll learn more about repository views later. </p>
+parameter (<code>parcel.itsView</code>) to schema.ns just yet. The view is a connection to the Repository. You'll learn more about repository views later. </p>
 </div>
 <p>Second, we're not necessarily <em>creating</em> a MenuItem.
 Instead, we're <em>updating</em> one named "NewFeedChannel" that may
@@ -497,7 +502,7 @@ def installParcel(parcel, oldVersion=None):
 <p>The FeedUpdateClass implements the basic interface in a PeriodicTask: the <code>run()</code> method is called on a regular interval.</p>
 <p>This code introduces some more complex use of repository views, and even stores one in self.view. This is the same type of view as seen earlier in the self.schema() code.</p>
 <h3>Repository Views </h3>
-<p>A repository view is an interface to the objects in the Repository. As mentioned above, it is sort of a handle into the Repository. However a view is also a way to accumulate a set of changes to the Repository without worrying about changes  interfering from other code. </p>
+<p>A repository view is an interface to the objects in the Repository. As mentioned above, it is sort of a connection to the Repository. However a view is also a way to accumulate a set of changes to the Repository without worrying about changes  interfering from other code. </p>
 <div class="text-with-diagram">
 <img src="repository-views.png" class="diagram">
 <p>All changes made to the Repository are made through a  view. Each view maintains its own set of changes that are written back to the central Repository when the <code>commit()</code> method is called. Changes that have been commited from other views are brought into the current view by using the <code>refresh()</code> method.</p>
