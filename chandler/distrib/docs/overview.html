@@ -427,7 +427,7 @@ The Chandler application allows users to&nbsp;share Collections by
 publishing them to a server. Similarly, a Chandler user can subscribe
 to
 other users' Collections. Even in 0.6, Chandler supports both read-only
-as well as read-write access to these shared calendars. Chandler also
+as well as read-write access to these shared Collections. Chandler also
 supports import and export of
 calendar data. </p>
 
@@ -667,9 +667,8 @@ on each call to <span style="font-family: monospace;">refresh()</span>. The call
 <p>For the most part, the application, presentation, and services layers
 do not need to interact with these mechanisms directly. Collections use
 these mechanisms to track changes, and provide a simpler API to the
-layers above for noticing changes. Collections and notifications are
-discussed below in <a href="#Collections_and_Notifications">Collections
-and Notifications</a>.</p>
+layers above for noticing changes.&nbsp;<a href="#Collections_and_Notifications">Collections
+and Notifications</a> are discussed below.</p>
 
 <p>
 The Repository contains the core implementations for Items, Kinds, and
@@ -695,10 +694,7 @@ parcels largely look very similar to Chandler core parcels --
 definitions of Item objects and Kind Python classes. Extension
 parcels define Item objects and Kind classes that belong in any
 of the four extensible layers: Application, Presentation, Services or
-Domain Model. For example, an extension that integrates Flickr data
-into Chandler
-might create Items and classes in all four
-layers:</p>
+Domain Model.</p>
 
 
 <img style="width: 473px; height: 303px;" alt="parcel layers" src="overview-parcel.png"><br>
@@ -765,7 +761,7 @@ download photos into the repository</li>
 <p>
 An extension parcel might separate its code into Python modules
 based on these layers, or might include them all in one module if the
-parcel is small enough -- its up to the parcel
+parcel is small enough -- it is up to the parcel
 developer.</p>
 
 <p>
@@ -819,19 +815,18 @@ Model</h2>
 
 <p>In Chandler, the Repository is the primary means that threads
 use to
-communicate with each other. A thread using the Repository has its own <strong>RepositoryView</strong>,
+communicate with each other. A thread using the Repository has its own <strong style="font-weight: normal;">RepositoryView</strong>,
 which is an independent connection to the
 Repository.&nbsp;</p>
 
-<p>The UI has its own thread (wxWidgets, like most GUI
+<p>The UI has its own thread (wxPython, like most GUI
 frameworks, runs
 in a single thread.) &nbsp;We're currently using the Twisted
 Reactor to schedule work that needs to happen outside the UI thread.
-The Reactor runs in a separate thread, and is used to schedule work. In
-Chandler the units of work are called&nbsp;<span style="font-weight: bold;">PeriodicTasks</span>, which
-are Items that persist in the Repository. Each PeriodicTask has its own
-<strong style="font-weight: normal;">Repository View</strong>,
-as does the main wxWidgets UI thread.&nbsp;</p>
+The Reactor runs in a separate thread, and is used to schedule work:
+TwistedTasks or PeriodicTasks. TwistedTasks and PeriodicTasks&nbsp;are Items that persist in the Repository. Each TwistedTask or PeriodicTask has its own
+<strong style="font-weight: normal;">RepositoryView</strong>,
+as does the main wxPython UI thread.&nbsp;</p>
 
 <p>To follow an example, the
 PeriodicTask that fetches email creates new email Items in its
@@ -860,11 +855,12 @@ Union, Intersection and Difference collections combine two collections
 with the obvious operation. Filter Collections start with another
 collection, and then remove Items according to some condition. The
 condition is a piece of Python code that evaluates to True or False.</p>
-<p>The application&nbsp;maintains Collections of Content Items to
-display in the Sidebar, using some combination of the above elements to
-build "Home Calendar" or "All My Shared Items". The application also
-uses Collections to access other types of Items: all Attribute Editors,
-all active Periodic Tasks, etc.&nbsp;</p>
+<p>The application&nbsp;maintains Collections of Content Items (events,
+tasks, mail messages, etc) to display in the Sidebar. The Sidebar uses
+some combination of the above elements to build "Home Calendar" or "All
+My Shared Items". The application also uses Collections to access other
+types of Items: all Attribute Editors, all active Periodic Tasks,
+etc.&nbsp;</p>
 <p>Collections notice when Items in them have changed, or when Items
 leave or enter a Collection. Items in higher level layers can subscribe
 to Collection notifications, by registering themselves with the
@@ -877,7 +873,7 @@ thread as well as from other threads) to subscribers. UI elements
 repainting in the application's paint cycle. </p>
 
 
-<p>Attribute Editors have an exception to this mechanism --
+<p>Attribute Editors are an exception to this mechanism --
 they subscribe directly to the Repository's attribute monitors. Every
 time an attribute is changed, the repository fires off a monitor to all
 subscribers (in this case the Attribute Editor). We plan on
@@ -918,6 +914,10 @@ information about the i18n infrastructure can be found <a href="http://wiki.osaf
 information about helping out with localizations can be found <a href="http://wiki.osafoundation.org/bin/view/Projects/InternationalizationProject">here</a>;
 and a guide to help parcel developers write i18n friendly code can be
 found <a href="http://wiki.osafoundation.org/bin/view/Projects/ChandlerInternationalizationBusyDevelopersGuide">here</a>.</p>
+<h5>i18n services can be found here:</h5>
+<ul>
+  <li><span style="font-weight: bold;">i18n.*</span></li>
+</ul>
 
 <h2><a name="Security"></a>Security</h2>
 <p>
@@ -955,46 +955,15 @@ security audits. </p>
 Chandler has pretty good <a href="http://svn.osafoundation.org/docs/trunk/docs/specs/rel0_6/SSLandTLS-0.6.html">SSL
 and TLS</a> support. Email and sharing can use
 SSL, and for the Cosmo sharing server SSL is enabled by default.
-The underlying operations are provided by OpenSSL, through the M2Crypto
-wrapper. For most people, the security provided should be as good or
-better as what they would
-get using any (other) finished product. SSL version 3 and TLS version 1
-are
-supported, while SSL version 2 is disabled on purpose because of its
-weaknesses.
-What is missing is support for more advanced features like Certificate
-Revocation Lists (CRLs) and Online Certificate Status Protocol (OCSP),
-but
-these are generally disabled by default in products that have support
-for them,
-so most users never get the benefits of those.<br>
-</p>
-<p>
-The SSL UI is pretty basic. If a user were to encounter a certificate
-that was unknown, the user would get a dialog explaining this and
-asking if
-they would like to trust it. Also if there were any errors with the SSL
-or the certificate (for example receiving a certificate meant for a
-different host), the users would get a dialog explaining the problem
-and asking
-if the user would like to continue anyway. This should be familiar to
-most
-users from other programs.</p>
+The underlying operations are provided by <a href="http://www.openssl.org/">OpenSSL</a>, through the <a href="http://sandbox.rulemaker.net/ngps/m2/">M2Crypto</a>
+wrapper.&nbsp;</p>
 <p>
 It is possible to import certificates from the file system into the
 <a href="http://svn.osafoundation.org/docs/trunk/docs/specs/rel0_6/CertificateStore-0.6.html">certificate
 store</a>. Management of the certificate store is through a very
-primitive UI available from the Test menu. Practically the only thing
-this should be used for is to disable certificates by changing their
-trust value to 0 - this is the only way to disable a certificate since
-they cannot be deleted. Chandler ships with the same root certificates
+primitive UI available from the Test menu. Chandler ships with the same root certificates
 as Mozilla.<br>
 </p>
-<p>
-We would be interested in getting feedback on what SSL features we
-should be working on next, or what current features we should improve
-first. Issues that are showstoppers to you or your organization would
-be more useful than wishes for personal pet features.</p>
 <p>
 Extensions to Chandler, both (CPIA) scripts and parcels, are not
 restricted to running in any kind of protected sandbox. It is the users
@@ -1002,14 +971,10 @@ responsibility to decide if they trust the extension authors. Scripts
 can be shared, but when a script is subscribed to it will be disabled
 by default to prevent accidentally running new scripts.<br>
 </p>
-<p>
-&lt;TODO: Is this really the case? Can a subscribed script override
-an existing one or bind to an existing key combo? How can you enable a
-script?&gt; &lt;TODO: insert short summary here m2crypto?
-certstore? note both scripting as glaring issue as well as future
-signed parcels&gt;</p>
-<p>
-parcels.osaf.framework.certstore</p>
+<h5>Code implementing the certificate store can be found here:</h5>
+<ul style="font-weight: bold;">
+  <li>parcels.osaf.framework.certstore</li>
+</ul>
 
 <br>
 
