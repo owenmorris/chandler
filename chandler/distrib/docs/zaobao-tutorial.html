@@ -92,16 +92,14 @@ function toggleEdNotes()
 <a class="meta" href="#" onclick="toggleEdNotes(); return false">Toggle Editor Notes</a>
 <h1>Chandler Extension Tutorial </h1>
 <p>Chandler 0.6</p>
-<p class="ednote">The voicing throughout the document is a little awkward - after I get the whole thing written, I'm going to go through and clean up &quot;you&quot;, &quot;we&quot; etc...</p>
-<p class="ednote">I also need to fix up the installParcel() declarations, perhaps putting them all into __init__.py for the sake of the tutorial </p>
 <h2>Introduction</h2>
 <p>This tutorial will step you through the creation of an extension for
 Chandler. Chandler extensions are usually called 'parcels'. </p>
-<h3>ZaoBao: An RSS Reader</h3>
-<p>ZaoBao is an RSS reader that integrates with the existing data model
+<h3>The Feeds parcel: An RSS Reader</h3>
+<p>The Feeds parcel is an RSS reader that integrates with the existing data model
 and allows the user to treat RSS data like other data in Chandler. This
 means that RSS articles can be stamped as tasks, placed on the
-calendar, shared with others, or sent as e-mail. This tutorial will
+calendar, and shared with others. This tutorial will
 step you through the process of writing this extension.</p>
 <h3>Getting started</h3>
 <p>First download the 0.6 release of Chandler from the <a
@@ -111,13 +109,13 @@ For normal Python development, you should only need the compressed
 version (such as the .zip, .tar.gz, or .dmg) will be easier to work
 with than the installer version.</p>
 <p>Unpack the file into a well known directory. For the purposes of
-this tutorial, this file will be unpacked in ~/chandler. On Windows,
-the chandler executable is in ~/chandler/chandler.exe. </p>
+this tutorial, this file will be unpacked in <code>~/chandler</code>. On Windows,
+the chandler executable is in <code>~/chandler/chandler.exe</code>. </p>
 <p>New extensions will be installed in the <code>parcels</code>
 subdirectory. The Chandler 0.6 distribution includes a finished version
-of ZaoBao in parcels/feeds. Delete the feeds directory, or move it
+of the Feeds parcel in <code>parcels/feeds</code>. Delete the <code>feeds</code> directory, or move it
 outside of the parcels directory, so that it doesn't conflict with the
-extension that you'll develop in this tutorial. </p>
+extension that you'll develop in this tutorial. Create a new <code>feeds</code> subdirectory in the <code>parcels</code> directory. This is where all of your files for this extension will be stored. </p>
 <h3>Starting Chandler</h3>
 <p>When developing for chandler, you'll often need to pass parameters
 to chandler on startup. To make this easy, you should run chandler from
@@ -133,7 +131,7 @@ or user interface data. </dd>
   <dd>Runs the chandler web server while chandler is running, for easy
 inspection of data inside chandler. While chandler is running, you can
 go to <a href="http://localhost:1888/">http://localhost:1888/</a> to
-see an internal view of the Repository. </dd>
+see an internal view of the Repository, including all data definitions and actual repository data. </dd>
   <dt><code>-P &lt;directory&gt;</code></dt>
   <dd>Stores all user data in the given directory. Use this if you
 don't want this extension development to interfere with data in an
@@ -142,11 +140,11 @@ installed version of chandler.</dd>
 <p>For example, to start chandler with a fresh repository stored in the
 current directory, with the web server running, you would type:</p>
 <p><code>&gt; ./chandler --create -W -P.</code></p>
-<p>&nbsp;</p>
+<p class="callout"><strong>Note:</strong> The web server can also be started from the Test menu, using the  &quot;Activate built-in webserver&quot; menu item. </p>
 <h2>Data Description </h2>
-<p class="ednote">Either in here, or somewhere soon, we need to describe the basic idea of the Repository. Here's some sample text:</p>
-<p class="ednote">Chandler stores all of its data objects in the &quot;Repository&quot;. The Repository is a database used to persistently store Python objects. When an object is created &quot;in the Repository&quot; then certain attributes in the object will persist even if Chandler is shut down and restarted. Any type of attribute can be stored in the Repository including complex data structures like dicts and lists, as well as reference to other objects. In all other respects, these Repository objects behave just like Python objects. </p>
-<p class="ednote">Instead of storing data in structured tables like a traditional database, the Repository keeps all of its objects in a big &quot;soup&quot;. Objects can be retrieved by queries into this soup, or simply by following references from one object to another. </p>
+<p>Chandler stores all of its data objects in the &quot;Repository&quot;. The Repository is a database used to persistently store Python objects. When an object is created &quot;in the Repository&quot; then certain attributes in the object will persist even if Chandler is shut down and restarted. Any type of attribute can be stored in the Repository, including complex data structures like dictionaries, lists, and references to other objects. In all other respects, these Repository objects behave just like Python objects. </p>
+<p>Instead of storing data in structured tables like a traditional database, the Repository keeps all of its objects in a &quot;soup&quot;. Objects can be retrieved by queries into this soup, or simply by following references from one object to another. </p>
+<h3>Describing your parcel's data </h3>
 <p>You may be curious and excited to jump write in and write some
   code. But in the world of Chandler, data is king. The sooner you define
   your data types, the more easily you can build a user interface around
@@ -169,15 +167,14 @@ data item "contain" another one? </li>
 When the schema is well defined, then Chandler will be able to easily
 aggregate one application's data with another. Chandler is very good at
 managing lists and hierarchies of different kinds of data.
-<p> For <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>,
+<p> For the Feeds parcel,
 there are a few key pieces of data: </p>
 <ul>
   <li> An RSS feed itself - the data that you download from a web
 server. A feed has a title, a last-updated date, and maybe a copyright.
 Each RSS feed contains one or more news items. A feed is sometimes
 called a channel. </li>
-  <li> A news item - this is a single entry retrieved via RSS. News
+  <li> An RSS item - this is a single entry retrieved via RSS. News
 items have the content of the news item, as well as a date, author,
 URL, and so forth. Not all RSS feeds contain authors or even dates but
 they all contain content. </li>
@@ -186,8 +183,8 @@ they all contain content. </li>
 <p>Python classes are the fundamental data type that help us define our
 schema. Data is defined as attributes of a given class. The schema
 syntax is similar to that used in the Django project.</p>
-<p>We'll store our data definitions in <code>feeds/channel.py</code>. </p>
-<p>Lets take a look at the basic definition of an RSS channel,
+<p>Below is the definition of an RSS channel, FeedChannel, We'll store our data definitions in <code>feeds/channel.py</code>. </p>
+<p> definition of an RSS channel,
 FeedChannel.</p>
 <pre class="code">from osaf import pim<br>from application import schema<br><br>class FeedChannel(pim.ListCollection):<br><br>    link     = schema.One(schema.URL, displayName=u"RSS Feed URL")<br>    category = schema.One(schema.Text)<br>    author   = schema.One(schema.Text)<br>    date     = schema.One(schema.DateTime)
 
@@ -196,15 +193,16 @@ FeedChannel.</p>
         pass</pre>
 <p>The <code>link</code>, <code>category</code>, <code>author</code>, and <code>date</code> attributes are all basic
 attributes using simple types defined in the schema module. The <code>Update()</code> method is like any other python method. </p>
-<p class="callout"><strong>Behind the scenes:</strong> Chandler-specific attributes are defined as class
+<p class="callout"><strong>Behind the scenes:</strong> If you are very familiar with Python, you may notice that Chandler-specific attributes are defined as class
 attributes, but in practice they are actually used as instance
-attributes. When you have an instance of FeedChannel</p>
+attributes. If you have an instance of FeedChannel called <code>fc</code>, then <code>fc.author</code> refers specifically to a instance attribute that stores strings. </p>
 <p>The attributes are all defined using schema.One, which indicates
-that there is just one of them per instance of the class. The
-displayName parameter </p>
+that there is just one of them per instance of the class. You can also use schema.Many, schema.Sequence, or schema.Mapping to define sets, lists, and dicts, respectively.</p>
+<p>The
+  displayName parameter provides a short text description of the actual attribute.</p>
 <p>Notice that the FeedChannel class inherits from <code>pim.ListCollection</code>.
 This class is a simple chandler-based list of items. We will use this
-list to represent the fact that a feed <em>contains</em> one or more
+collection to represent the fact that a feed <em>contains</em> one or more
 feed items. Note that we have not declared anything about the type of
 data that this channel will contain. Chandler collections can contain
 any type of item. Each entry in Chandler's sidebar is collection of
@@ -215,19 +213,19 @@ some kind. </p>
 distinction here is that FeedItem is inheriting from pim.ContentItem.
 ContentItem is the base class for all user-visible data in Chandler.</p>
 <p>Now that we have defined our types, we need to create a python
-module that will include these classes. Create <code>feeds/__init__.py</code> and
+package that will include these classes. Create <code>feeds/__init__.py</code> and
 add the following line:</p>
 <pre class="code">from channels import FeedChannel, FeedItem</pre>
 <p>When chandler refreshes the Repository, it will look at all of the
-python modules in the parcels/ directory, and include any data
+python packages in the <code>parcels</code> directory, and include any data
 definitions.</p>
 <h3>Viewing data definitions </h3>
 <p>To see if this works, start chandler with a fresh repository, and
 run the web server:</p>
 <p>&gt; ./chandler --create -W</p>
 <p>Now load your favorite web browser and go to
-http://localhost:1888/repo/. On the page that is displayed, you should
-see something like this:</p>
+  <a href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>. On the page that is displayed, you should
+see an area like this:</p>
 <blockquote class="code">
   <ul>
     <li><strong>parcels</strong></li>
@@ -243,9 +241,7 @@ see something like this:</p>
 </blockquote>
 <p>&nbsp; </p>
 <h2>The Chandler UI </h2>
-<p>Now that we have defined some of the datatypes that <a
- class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>
+<p>Now that we have defined some of the datatypes that the Feeds parcel
 will manage, we will look at how they integrate into the existing user
 interface. There are many ways to integrate into the Chandler UI, but
 the simplest (and potentially richest) way is to work within the
@@ -264,10 +260,8 @@ that is currently selected in the Sidebar. </li>
   <li> The <strong>Detail View</strong> displays the Item that is
 currently selected in the summary view. </li>
 </ul>
-<p> <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Projects/ZaoBao">ZaoBao</a>'s
-two level hierarchy lends itself well to Chandler's existing user
-interface. Feeds (<code>FeedChannel</code>) contain News Items (<code>FeedItem</code>)
+<p>RSS's two level hierarchy lends itself well to Chandler's existing user
+interface. Feeds (<code>FeedChannel</code>) contain RSS Items (<code>FeedItem</code>)
 and News Items have details. (including a body, url, author, and so
 forth) </p>
 <p>In the simplest case, an FeedChannel is a collection similar to the
@@ -280,12 +274,9 @@ Kind. </p>
 is just that: a generic collection of Items. <a class="twikiLink"
  href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>
 can contain any kind of Item, including mail messages, calendar events,
-and RSS news items. A <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a>
-is not a folder however, as a single Items can actually be a member of
+and RSS news items. Single Items can actually be a member of
 multiple <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>.
-</p>
+ href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>.</p>
 <p> Since the Chandler UI understands these basic constructs, we can
 create an <a class="twikiLink"
  href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a>
@@ -300,10 +291,10 @@ user interface as an entry in the Sidebar.
 <p> We'll use the Event system to receive notification that our menu
 item has been selected, and that in turn will run some Python code that
 we write.</p>
-<p>In <code>feeds/blocks.py</code>, we'll write a function called <code>installParcel</code>.
-This function is called whenever the Repository is building the UI for
-the first time.</p>
-<pre class="code">from application import schema<br>from osaf.framework.blocks import MenuItem, BlockEvent
+<p>In <code>feeds/__init__.py</code>, we'll write a function called <code>installParcel</code>.
+This function is called whenever the Repository installs your parcel into Chandler.</p>
+<pre class="code">from channels import FeedChannel, FeedItem
+from application import schema<br>from osaf.framework.blocks import MenuItem, BlockEvent
 
 def installParcel(parcel, oldVersion=None):<br><br>    mainview = schema.ns("osaf.views.main", parcel.itsView)
 
@@ -311,9 +302,6 @@ def installParcel(parcel, oldVersion=None):<br><br>    mainview = schema.ns("osa
                     blockName="NewFeedChannelItem",
                     title=_(u"New Feed Channel"),
                     parentBlock=mainview.CollectionMenu)</pre>
-<p>Make sure to add this function to <code>feeds/__init__.py</code>:</p>
-<pre class="code">from channels import FeedChannel, FeedItem
-from blocks import installParcel</pre>
 <p>The <code>installParcel()</code> function will be called whenever chandler starts with a fresh Repository. Be sure to use the <code>--create</code> parameter when starting chandler, to ensure that this parcel is installed. You'll need to use <code>--create</code> every time you change anything in <code>installParcel()</code>. </p>
 <p>There are two key concepts being used here:</p>
 <div class="text-with-diagram">
@@ -327,7 +315,7 @@ You can also navigate to this directory by clicking on the "//parcels"
 link in the top of the Repository Viewer at <a
  href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>.</p>
 <p class="callout"><strong>Note:</strong> Don't worry about second
-parameter (<code>parcel.itsView</code>) to schema.ns just yet. The view is more or less a handle used to access the Repository.</p>
+parameter (<code>parcel.itsView</code>) to schema.ns just yet. The view is more or less a handle used to access the Repository. You'll learn more about repository views later. </p>
 </div>
 <p>Second, we're not necessarily <em>creating</em> a MenuItem.
 Instead, we're <em>updating</em> one named "NewFeedChannel" that may
@@ -339,8 +327,7 @@ attributes on the MenuItem.</p>
 <p>There is a connection between the use of the <code>update()</code>
 method, and <code>schema.ns()</code>. The first parameter passed to
 <code>schema.ns()</code> above is the name of a parcel. Any
-attributes of theThe <code>mainview</code> variable is actually
-referencing the parcel named "osaf.views.main" above. Another module
+attributes of the <code>mainview</code> variable actually reference the parcel named "osaf.views.main" above. Another module
 could refer to the "NewFeedChannel" <code>MenuItem</code> like this:</p>
 <pre>feeds = schema.ns("feeds", view)<br>feedMenuItem = feeds.NewFeedChannel</pre>
 <h3>Introducing Bidirectional References </h3>
@@ -359,9 +346,12 @@ could refer to the "NewFeedChannel" <code>MenuItem</code> like this:</p>
   <li>A BlockEvent: Each UI element (such as buttons, menu items, etc) can activate an BlockEvent when they are used. An event is merely a container for certain contextual information about the UI and its state. </li>
   <li>A Controller: A controller is a class which is activated when certain BlockEvents are activated. Events are <em>dispatched</em> to different Blocks depending on data stored in the BlockEvent, and the context of the application when the BlockEvent is activated. </li>
 </ol>
-<p>For ZaoBao, we will dispatch our menu's BlockEvent directly to the controller. </p>
-<p>First, we will define the event as a persistent object in our parcel:</p>
-<pre class="code">def installParcel(parcel, oldVersion=None):
+<p>In this case we know exactly what controller we wish to dispatch to, so we will dispatch our menu's BlockEvent directly to the controller. </p>
+<p>First, we will define the event as a persistent object in our parcel in <code>feeds/__init__.py</code>. </p>
+<pre class="code">from osaf.framework.blocks import BlockEvent
+
+
+def installParcel(parcel, oldVersion=None):
 
    .
    .
@@ -372,17 +362,24 @@ could refer to the "NewFeedChannel" <code>MenuItem</code> like this:</p>
 						 
 <p>The commitAfterDispatch attribute on BlockEvent guarantees that the Repository data will be saved after the event has been dispatched. The result of the call to update() is actually a reference to the object itself.</p>
 <p>We're storing the result of BlockEvent.update() in <code>newChannelEvent</code>. This variable will now reference the actual object, whether it was created or updated. We can use this variable later when we want to refer to the actual event object. </p>
-<p>Note that we haven't actually defined controller yet. We'll do that next. For now we'll just use a <code>print</code> statement to make sure everything has been hooked up correctly. </p>
-<pre class="code">class FeedController(Block):
+<p>Note that we haven't actually defined controller yet. We'll do that next. For now we'll just use a <code>print</code> statement to make sure everything has been hooked up correctly. Add the following code to <code>feeds/blocks.py</code>: </p>
+<pre class="code">from osaf.framework.blocks import Block
+
+class FeedController(Block):
     def onNewFeedChannelEvent(self, event):
         import wx
         from application.dialogs import Util
 
         url = Util.promptUser(wx.GetApp().mainFrame,
-                              _(u&quot;New Channel&quot;), _(u&quot;Enter a URL for the RSS Channel&quot;),
+                              u&quot;New Channel&quot;, u&quot;Enter a URL for the RSS Channel&quot;,
                               &quot;http://&quot;)
 
         print &quot;We want to load %s&quot; % url
+</pre>
+<p>Now we'll add an instance of this controller to our parcel in <code>feeds/__init__.py</code>:</p>
+<pre class="code">from blocks import FeedController
+
+
 
 def installParcel(parcel, oldVersion=None):
     .
@@ -394,7 +391,11 @@ def installParcel(parcel, oldVersion=None):
 <p>Now that we have created a MenuItem, a BlockEvent, and a Controller, we need to connect them together. The chain references created with these objects looks something like this:</p>
 <p>MenuItem -&gt; BlockEvent -&gt; Controller</p>
 <p>You can hook them up in installParcel(). The code belows defines them in the reverse order as we defined them above, so that we have the references available to build this chain of objects. </p>
-<pre class="code">def installParcel(parcel, oldVersion=None):
+<pre class="code">from osaf.framework.blocks import BlockEvent, MenuItem
+from blocks import controller
+
+
+def installParcel(parcel, oldVersion=None):
     controller = FeedController.update(parcel, &quot;FeedController&quot;)
 
     newChannelEvent = \
@@ -415,7 +416,7 @@ def installParcel(parcel, oldVersion=None):
 <p>There is a reason for the levels of abstraction just to make a menu call some code:</p>
 <ul>
   <li>Multiple UI elements can trigger the same event. This allows a menu and a context menu to both trigger the same code without extra work.</li>
-  <li>Events may be dispatched to a specific controller (as seen here), dispatched to the currenly focused UI element, or even broadcast to a number of different controllers or UI elements.</li>
+  <li>Events may be dispatched to a specific controller (as seen here), dispatched to the currently focused UI element, or even broadcast to a number of different controllers or UI elements.</li>
 </ul>
 <p>This flexibilty allows for a very dynamic interface. </p>
 <h2>Creating and Displaying Data in the Sidebar </h2>
@@ -500,7 +501,7 @@ def installParcel(parcel, oldVersion=None):
 <div class="text-with-diagram">
 <img src="repository-views.png" class="diagram">
 <p>All changes made to the Repository are made through a  view. Each view maintains its own set of changes that are written back to the central Repository when the <code>commit()</code> method is called. Changes that have been commited from other views are brought into the current view by using the <code>refresh()</code> method.</p>
-<p>The Repository is tightly coupled with the python language. All repository object instances have an implicit <code>itsView</code> attribute that refers to the view where changes are made. When an object's attributes are read or written, the changes happen through the object's <code>itsView</code> view. This is in contrast to other common patterns found in other object databases, such as passing a 'view' parameter along as a parameter to any read/write methods. </p>
+<p>The Repository is tightly coupled with the Python language. All repository object instances have an implicit <code>itsView</code> attribute that refers to the view where changes are made. When an object's attributes are read or written, the changes happen through the object's <code>itsView</code> view. This is in contrast to other common patterns found in other object databases, such as passing a 'view' parameter along as a parameter to any read/write methods. </p>
 </div>
 <p>Chandler's user interface runs  on one thread, and all repository operations on this &quot;UI Thread&quot; share the same view. </p>
 <p>The FeedUpdateTaskClass may be running on a background thread, and it would be unfortunate if a user changed something in the user interface at the same time that same data is being updated in a background thread. FeedUpdateTaskClass's <code>__init__()</code> method saves the view of the item that was passed in. Chandler will ensure that if this task is running on a separate thread, that it also gets its own view. In this case this view is never shared outside of the current class. This allows the feed updating code make a series of updates without worrying about changes that may happen in another view. When all the updates have happened, then the results are committed back to the Repository. </p>
@@ -525,6 +526,7 @@ def installParcel(parcel, oldVersion=None):
 <p>So far, this tutorial has explained how to create collections, add them to the sidebar and update them periodically. If you launch chandler, you will be able to subscribe to an RSS feed and it will appear in the sidebar. When you select the feed in the sidebar with the &quot;All&quot; button pressed in the main toolbar, you should see a table widget in the Summary view with a series of blank lines. Each of these lines represents an article from the RSS feed, even though it isn't displaying any specifics about the article. If you click on one of these blank lines, the detail view will display a mostly-blank view of that particular article, but again it will be mostly blank.</p>
 <p>We need to tell Chandler a little more about our data in order for it to display its attributes in the UI.</p>
 <h3>Displaying Items in the Summary View</h3>
+<p>Many different classes of ContentItem may be stored in the summary table. The table needs to be able to ask each item for a common attribute. Instead of requiring each class to manually store data in a shared about attribute from a base class, each class can store its data in a class-specific attribute, and then forward about to the class-specific attribute. </p>
 <p>The summary table displays three attributes of an item: who, about, and date. These attributes are usually not true repository attributes; they are not defined as distinct values within a Python class.</p>
 <p>Instead repository attribute <em>redirection</em> is used to forward their references to other attributes in the class. To define this redirection, schema.Role() is used.</p>
 <pre class="code">class FeedItem(pim.ContentItem):
@@ -535,7 +537,6 @@ def installParcel(parcel, oldVersion=None):
     who = schema.Role(redirectTo=&quot;author&quot;)
 </pre>
 <p>In the case of FeedItem, we have already defined a <code>date</code> attribute, so we only need to redirect <code>about</code> and <code>who</code>. Whenever the Summary View wants to know what data to display in the 'about' column, it will call <code>getattr(item, 'about')</code>. This will automatically forward to the <code>title</code> attribute, so it as if the Summary View had called <code>getattr(item, 'title')</code>.</p>
-<p>Many different classes of ContentItem may be stored in the summary table. The table needs to be able to ask each item for a common attribute. Instead of requiring each class to manually store data in a shared about attribute from a base class, each class can store its data in a class-specific attribute, and then forward about to the class-specific attribute. </p>
 <h3>Displaying Item Attributes in the Detail View</h3>
 <p>The detail view is a more complex user interface than just a set of columns. Every important attribute should be displayed to the user, and each attribute may have a special way to display itself, or may require special behavior when it is edited.</p>
 <p>The detail view is divided into rows. Generally there is one row per attribute, though more complex displays are possible. Typically a row consists of a label, followed by the value of an attribute.</p>
@@ -601,7 +602,6 @@ def installParcel(parcel, oldVersion=None):
                                      key=feeds.FeedItem.getKind(parcel.itsView),
                                      rootBlocks=feedItemBlocks)</pre>
 <p>One small detail here is the key attribute. You'll notice that it refers to FeedItem.getKind(). Kinds were briefly discussed at the beginning of this document. Here we use getKind() to get a value that can be stored in the repository. Like iterItems(), getKind() operates on a class, so there is no implicit view. The view that is used comes from the parcel that is being installed. 
-<h3>&nbsp;</h3>
 <h3>Attribute Editors</h3>
 <p>Most of the items in the childrenBlocks lists should be relatively self explanatory. <code>makeLabel()</code> and <code>makeSpacer()</code> simply make a label and a spacer to the left of the actual detail view. The third item, <code>makeEditor()</code>, creates a widget called an Attribute Editor. An Attribute Editor is a special type of Block that will dynamically create the correct widget to display and/or edit  the given attribute, even if that attribute is a complex type like a Python datetime or a number. </p>
 <p>Attribute Editors can be modified on a per-use basis allowing for read-only widgets or specialized display of certain types. It is not yet possible to customize the actual types of widgets that  Attribute Editors can display, but that is planned for future versions of Chandler. </p>
@@ -636,10 +636,22 @@ def installParcel(parcel, oldVersion=None):
         FeedItemDetail.update(parcel, &quot;ItemBodyArea&quot;,
                               position=0.9,
                               blockName=&quot;ItemBodyArea&quot;,
-                              minimumSize=SizeType(100, 50))
+                              minimumSize=SizeType(100, 50)),
     ]
 </pre>
 <p>This ensures that it is part of the DetailTrunkSubtree that we declared earlier.</p>
+<h2>Conclusion</h2>
+<p> In this tutorial, you've learned how to: </p>
+<ul>
+  <li> Define new data types </li>
+  <li> Populate the repository with new data </li>
+  <li> Display that data in the Sidebar, Summary View, and Detail View </li>
+</ul>
+<p> The next step is to spend some time developing your own data types and application behavior. The tutorial will get you some basic functionality out of your data but Chandler's true potential comes to light when you begin to explore some of its more advanced capabilities. When items have been properly defined, many of these capabilities "just work" for your new class.</p>
+<h2> Sharing </h2>
+<p>Chandler has a built in infrastructure for sharing individual Items or entire ItemCollections through WebDAV. Users can their data with others and allow them to collaborate and make changes to these items. Chandler will try to keep these items in sync.</p>
+<h2><a name="Stamping_and_dynamic_types"> </a> Stamping and dynamic types</h2>
+<p> Chandler leverages Python's unique typing to allow Items to take on attributes and behavior of multiple items at runtime. For example, you could turn an RSS news item as created above into a mail message to send the news with your collegues. Or you can put a mail message on your calendar by just "stamping" it as an event.</p>
 <p>&nbsp;</p>
 </body>
 </html>
