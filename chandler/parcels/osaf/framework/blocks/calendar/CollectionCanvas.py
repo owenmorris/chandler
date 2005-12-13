@@ -86,7 +86,7 @@ class CanvasItem(object):
 
         # @@@ scaffolding: resize bounds is the lower 5 pixels
         self._bounds = bounds
-        self._item = item
+        self.item = item
 
     def isHit(self, point):
         """
@@ -111,16 +111,6 @@ class CanvasItem(object):
         @rtype: Boolean
         """
         return False
-
-    def GetItem(self):
-        """
-        Once we have a hit, give access to the item
-        for selection, move, resize, etc.
-        
-        @return: the item associated with this region on the canvas.
-        @rtype: Item
-        """
-        return self._item
 
     def GetDragOrigin(self):
         """
@@ -378,7 +368,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox:
-            item = hitBox.GetItem()
+            item = hitBox.item
             if multipleSelection:
                 # need to add/remove from the selection
                 

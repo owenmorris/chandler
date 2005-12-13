@@ -102,7 +102,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
 
             if numAdded > 0:
-                keyFn = (lambda ci: ci._item.startTime)
+                keyFn = (lambda ci: ci.item.startTime)
                 cmpFn = (lambda x, y: Calendar.datetimeOp(x, 'cmp', y))
                 self.canvasItemList.sort(cmpFn, keyFn)
 
@@ -336,7 +336,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dragState = self.dragState
         if (dragState and
             dragState.currentDragBox):
-            currentDragItem = dragState.currentDragBox.GetItem()
+            currentDragItem = dragState.currentDragBox.item
         else:
             currentDragItem = None
             
@@ -402,7 +402,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         contents = self.blockItem.contents
         for canvasItem in self.canvasItemList:
 
-            item = canvasItem.GetItem()
+            item = canvasItem.item
 
             # for some reason, we're getting paint events before
             # widget synchronize events
@@ -521,7 +521,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if canvasItem.isHit(unscrolledPosition):
                 # this one is in the selection, so we can return
                 # immediately
-                item = canvasItem.GetItem()
+                item = canvasItem.item
                 if item in contents and contents.isItemSelected(item):
                     return canvasItem
                 
@@ -537,7 +537,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def OnBeginResizeItem(self):
         if not self.dragState.currentDragBox.CanDrag():
-            self.WarnReadOnlyTime([self.dragState.currentDragBox._item])
+            self.WarnReadOnlyTime([self.dragState.currentDragBox.item])
             return False
         self.StartDragTimer()
         return True
@@ -568,7 +568,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
     def OnBeginDragItem(self):
         if not self.dragState.currentDragBox.CanDrag():
-            self.WarnReadOnlyTime([self.dragState.currentDragBox._item])
+            self.WarnReadOnlyTime([self.dragState.currentDragBox.item])
             return False
         self.StartDragTimer()
         return True
@@ -578,7 +578,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if not currentCanvasItem.CanDrag():
             return
 
-        proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.GetItem(),
+        proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
                                           cancelCallback=self.RefreshCanvasItems)
         
         (startTime, endTime) = self.GetDragAdjustedTimes()
@@ -642,7 +642,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         on the current position and drag state. Handles both move and
         resize drags
         """
-        item = self.dragState.originalDragBox.GetItem()
+        item = self.dragState.originalDragBox.item
         resizeMode = self.dragState.originalDragBox.resizeMode
         
         tzinfo = item.startTime.tzinfo
@@ -733,7 +733,7 @@ class TimedCanvasItem(CalendarCanvasItem):
     def UpdateDrawingRects(self, startTime=None, endTime=None):
 
         # allow caller to override start/end time
-        item = self.GetItem()
+        item = self.item
         
         if not startTime:
             startTime = item.startTime
@@ -917,10 +917,10 @@ class TimedCanvasItem(CalendarCanvasItem):
 
             # plus, we also have to make sure that two zero-length
             # events that have the same start time still conflict
-            if (Calendar.datetimeOp(conflict.GetItem().startTime, '>=',
-                                   self.GetItem().endTime) and
-                Calendar.datetimeOp(conflict.GetItem().startTime, '!=',
-                                    self.GetItem().startTime)):
+            if (Calendar.datetimeOp(conflict.item.startTime, '>=',
+                                   self.item.endTime) and
+                Calendar.datetimeOp(conflict.item.startTime, '!=',
+                                    self.item.startTime)):
                  break
 
             # item and conflict MUST conflict now

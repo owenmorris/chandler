@@ -147,7 +147,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         self.textOffset = wx.Point(self.textMargin, self.textMargin)
 
         # use PyICU to pre-cache the time string
-        self.timeString = formatTime(self._item.startTime)
+        self.timeString = formatTime(self.item.startTime)
 
         self.colorInfo = ColorInfo(collection)
 
@@ -174,7 +174,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     
     def GetStatusPen(self, color):
         # probably should use styles to determine a good pen color
-        item = self.GetItem()
+        item = self.item
 
         if (item.transparency == "confirmed"):
             pen = wx.Pen(color, 4)
@@ -202,7 +202,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return self.colorInfo.visibleColors
     
     def GetAnyTimeOrAllDay(self):	
-        item = self.GetItem()
+        item = self.item
         anyTime = getattr(item, 'anyTime', False)
         allDay = getattr(item, 'allDay', False)
        
@@ -227,20 +227,22 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return index+1
         
     def CanDrag(self):
-        item = self.GetItem().getMaster()
+        item = self.item.getMaster()
         return (item.isAttributeModifiable('startTime') and
                 item.isAttributeModifiable('duration'))
 
     def CanChangeTitle(self):
-        item = self.GetItem().getMaster()
+        item = self.item.getMaster()
         return item.isAttributeModifiable('displayName')
     
     def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
-        item = self._item
+        item = self.item
         # recurring items, when deleted or stamped non-Calendar, are sometimes
         # passed to Draw before wxSynchronize is called, ignore those items
-        if item.isDeleted() or not item.itsKind.isKindOf(Calendar.CalendarEventMixin.getKind(item.itsView)):
+        CalendarEventKind = Calendar.CalendarEventMixin.getKind(item.itsView)
+        if (item.isDeleted() or
+            not item.itsKind.isKindOf(CalendarEventKind)):
             return
         isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
         # Draw one event - an event consists of one or more bounds	
@@ -1008,14 +1010,14 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def OnEditItem(self, box):
         if not box.CanChangeTitle():
-            self.WarnReadOnlyTitle([box._item])
+            self.WarnReadOnlyTitle([box.item])
             return
         
         styles = self.blockItem.calendarContainer
         position = self.CalcScrolledPosition(box.GetEditorPosition())
         size = box.GetMaxEditorSize()
 
-        self.editor.SetItem(box.GetItem(), position, size, styles.eventLabelFont.GetPointSize())
+        self.editor.SetItem(box.item, position, size, styles.eventLabelFont.GetPointSize())
 
     def GrabFocusHack(self):
         if self.editor.IsShown():

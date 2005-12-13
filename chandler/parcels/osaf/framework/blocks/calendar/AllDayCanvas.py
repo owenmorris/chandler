@@ -142,7 +142,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         def drawCanvasItems(canvasItems, selected):
             for canvasItem in canvasItems:
-                pastEnd = Calendar.datetimeOp(canvasItem.GetItem().endTime,
+                pastEnd = Calendar.datetimeOp(canvasItem.item.endTime,
                                               '>=',
                                               self.blockItem.rangeEnd)
                 canvasItem.Draw(dc, styles, brushOffset,
@@ -155,7 +155,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         for canvasItem in self.canvasItemList:
 
             # save the selected box to be drawn last
-            item = canvasItem.GetItem()
+            item = canvasItem.item
             
             # for some reason, we're getting paint events before
             # widget synchronize events
@@ -280,7 +280,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # keep track of the current drag/resize box
         if (self.dragState and
             self.dragState.currentDragBox and
-            self.dragState.currentDragBox.GetItem() == item):
+            self.dragState.currentDragBox.item == item):
             self.dragState.currentDragBox = canvasItem
 
         
@@ -315,7 +315,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
     def OnBeginDragItem(self):
         if not self.dragState.currentDragBox.CanDrag():
-            self.WarnReadOnlyTime([self.dragState.currentDragBox._item])
+            self.WarnReadOnlyTime([self.dragState.currentDragBox.item])
             return False
         return True
 
@@ -348,7 +348,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         position = wx.Point(unscrolledPosition.x - dx,
                             unscrolledPosition.y - dy)
   
-        item = dragState.currentDragBox.GetItem()
+        item = dragState.currentDragBox.item
         newTime = self.getDateTimeFromPosition(position, mustBeInBounds=False)
         
         oldStartTime = item.startTime
