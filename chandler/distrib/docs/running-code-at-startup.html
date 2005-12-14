@@ -12,14 +12,14 @@
 <h1 class="title">Startup and Background Tasks in Chandler</h1>
 <div class="section" id="running-code-at-application-startup">
 <h1><a name="running-code-at-application-startup">Running Code at Application Startup</a></h1>
-<p>The <tt class="docutils literal"><span class="pre">osaf.startup</span></tt> module provides an API for notifying repository items that
+<p>The <tt class="docutils literal"><span class="pre">osaf.startup</span></tt> module provides an API for invoking repository items when
 the application has been started.  For our examples, we'll be using a null
 repository view, <tt class="docutils literal"><span class="pre">rv</span></tt>:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from repository.persistence.RepositoryView import NullRepositoryView
 &gt;&gt;&gt; rv = NullRepositoryView()
 </pre>
-<p>In order to receive startup notifications, you simply create items of type
+<p>In order to run code at application startup, you simply create items of type
 <tt class="docutils literal"><span class="pre">osaf.startup.Startup</span></tt> in your parcel.  Each item's <tt class="docutils literal"><span class="pre">invoke</span></tt> attribute
 names a function (or non-Item class) that should be invoked at startup.  For
 our example, we'll use <tt class="docutils literal"><span class="pre">sys.stdout.write</span></tt> as the function we want to call:</p>
@@ -36,12 +36,12 @@ object to be written to <tt class="docutils literal"><span class="pre">sys.stdou
 &gt;&gt;&gt; run_startup(rv)
 &lt;Startup (new): test ...&gt;
 </pre>
-<p>Please note that startup notifications are intended for tasks like adding
+<p>Please note that startup invocation is intended for tasks like adding
 servers to the Twisted reactor, starting threads, or other in-process Python
-operations, based on data in the repository.  They should <em>not</em> be used to
+operations, based on data in the repository.  It should <em>not</em> be used to
 modify repository items, as this may indirectly lead to merge conflicts with
 other threads.  Any needed repository items should be created or modified
-via <tt class="docutils literal"><span class="pre">parcel.xml</span></tt> or via the <tt class="docutils literal"><span class="pre">installParcel()</span></tt> hook.</p>
+via your parcel's <tt class="docutils literal"><span class="pre">installParcel()</span></tt> hook, rather than via startup items.</p>
 <div class="section" id="disabling-startups">
 <h2><a name="disabling-startups">Disabling Startups</a></h2>
 <p>Individual startups can be enabled or disabled using their <tt class="docutils literal"><span class="pre">active</span></tt> boolean
@@ -441,9 +441,10 @@ __init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
 <p>When running background tasks that use the repository, each logical task or
 individual thread needs its own repository view, so that it doesn't become
 confused by changes being made by other threads or tasks at the same time.
-<tt class="docutils literal"><span class="pre">TwistedTask</span></tt> and <tt class="docutils literal"><span class="pre">Thread</span></tt> handle this for you automatically, by calling
-the <tt class="docutils literal"><span class="pre">fork_item()</span></tt> API on an item.  <tt class="docutils literal"><span class="pre">fork_item()</span></tt> opens a new repository
-view and returns a copy of the item that is native to the new view.</p>
+<tt class="docutils literal"><span class="pre">TwistedTask</span></tt>, <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt>, and <tt class="docutils literal"><span class="pre">Thread</span></tt> items handle this for you
+automatically, by calling the <tt class="docutils literal"><span class="pre">fork_item()</span></tt> API on an item.  <tt class="docutils literal"><span class="pre">fork_item()</span></tt>
+opens a new repository view and returns a copy of the item that is native to
+the new view.</p>
 <p>To demonstrate, let's set up a &quot;real&quot; (in-memory) repository, since null
 repository views can't be forked:</p>
 <pre class="literal-block">
