@@ -437,7 +437,7 @@ def CreateIndex(treeName, outputDir, newDirName, nowString, buildName):
                     (hardhatutil.MD5sum(userInstall[1]), hardhatutil.SHAsum(userInstall[1]))
 
     if devInstall:
-        index += '<h3>Developer Installer</h3>\n' +\
+        index += '<h3>Debug Installer</h3>\n' +\
                  "<p>If you're a developer and want to run Chandler in debugging mode, " +\
                  'this distribution contains debug versions of the binaries.  ' +\
                  'Assertions are active, the __debug__ global is set to True, ' +\
@@ -455,10 +455,10 @@ def CreateIndex(treeName, outputDir, newDirName, nowString, buildName):
     if userTarball or devTarball:
         if treeName == 'Cosmo':
             index += '<h3>Compressed Install Images</h3>\n' +\
-                     '<p>The Developer compressed images contain a snapshot of Cosmo.</p>\n'
+                     '<p>The Debug compressed images contain a snapshot of Cosmo.</p>\n'
         else:
             index += '<h3>Compressed Install Images</h3>\n' +\
-                     '<p>The End-User and Developer compressed images contain a snapshot of Chandler.\n' +\
+                     '<p>The End-User and Debug compressed images contain a snapshot of Chandler.\n' +\
                      'Use these if you cannot or do not want to use the installers.</p>\n'
 
         if userTarball:
@@ -468,7 +468,7 @@ def CreateIndex(treeName, outputDir, newDirName, nowString, buildName):
                         (hardhatutil.MD5sum(userTarball[1]), hardhatutil.SHAsum(userTarball[1]))
 
         if devTarball:
-            index += '<p>Developers: <a href="%s">%s</a> (%s): %s<br/>\n' % \
+            index += '<p>Debug: <a href="%s">%s</a> (%s): %s<br/>\n' % \
                         (devTarball[0], devTarball[0], hardhatutil.fileSize(devTarball[1]), devTarball[2])
             index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
                         (hardhatutil.MD5sum(devTarball[1]), hardhatutil.SHAsum(devTarball[1]))
