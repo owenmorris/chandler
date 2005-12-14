@@ -65,8 +65,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
     def mergeFunction(code, item, attribute, value):
 
-        logger.debug(_(u"Conflict during sync on item %(item)s, attribute "
-            "%(attribute)s") % {
+        logger.debug("Conflict during sync on item %(item)s, attribute "
+            "%(attribute)s" % {
                 'item' : item,
                 'attribute' : attribute,
             })
@@ -199,7 +199,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                     if isinstance(item, pim.CalendarEventMixin):
                         if not hasattr(item, 'startTime'):
                             if updateCallback:
-                                updateCallback(msg=_(u"Incomplete Event Detected: '%s'") % item.getItemDisplayName())
+                                updateCallback(msg=_(u"Incomplete Event Detected: '%(name)s'") % { 'name': item.getItemDisplayName() } )
 
                             # This indicates the resource is to be ignored
                             # during PUT (otherwise we would remove the .xml
@@ -600,8 +600,8 @@ class ShareConduit(pim.ContentItem):
             # contents is either not set, is None, or has no displayName
             contentsName = location
 
-        if updateCallback and updateCallback(msg=_(u"Uploading to %s...") %
-            contentsName):
+        if updateCallback and updateCallback(msg=_(u"Uploading to "
+            "%(name)s...") % { 'name' : contentsName } ):
             raise SharingError(_(u"Cancelled by user"))
 
         stats = {
@@ -624,9 +624,9 @@ class ShareConduit(pim.ContentItem):
             self.resourceList = \
                 self._getResourceList(location)
 
-            # logger.debug(_(u"Resources on server: %(resources)s") % \
+            # logger.debug("Resources on server: %(resources)s" %
             #     {'resources':self.resourceList})
-            # logger.debug(_(u"Manifest: %(manifest)s") % \
+            # logger.debug("Manifest: %(manifest)s" %
             #     {'manifest':self.manifest})
 
             # Ignore any resources which we weren't able to parse during
@@ -635,7 +635,7 @@ class ShareConduit(pim.ContentItem):
             for (path, record) in self.manifest.iteritems():
                 if record['uuid'] is None:
                     if self.resourceList.has_key(path):
-                        logger.debug(_(u'Removing an unparsable resource from the resourceList: %(path)s') % { 'path' : path })
+                        logger.debug('Removing an unparsable resource from the resourceList: %(path)s' % { 'path' : path })
                         del self.resourceList[path]
 
             # Build the list of local changes
@@ -672,18 +672,18 @@ class ShareConduit(pim.ContentItem):
                                 )
                             ):
 
-                                if updateCallback and updateCallback(msg=_(u"Removing item from server: '%s'") % path):
+                                if updateCallback and updateCallback(msg=_(u"Removing item from server: '%(path)s'") % { 'path' : path }):
                                     raise SharingError(_(u"Cancelled by user"))
                                 self._deleteItem(path)
                                 del self.resourceList[path]
                                 removeFromManifest.append(path)
-                                logger.debug(_(u'Item removed locally, so removing from server: %(path)s') % { 'path' : path })
+                                logger.debug('Item removed locally, so removing from server: %(path)s' % { 'path' : path })
                                 stats['removed'].append(uuid)
 
                 for path in removeFromManifest:
                     self._removeFromManifest(path)
 
-                # logger.debug(_(u"Manifest: %(manifest)s") % \
+                # logger.debug("Manifest: %(manifest)s" %
                 #     {'manifest':self.manifest})
 
 
@@ -771,7 +771,7 @@ class ShareConduit(pim.ContentItem):
 
 
 
-    def _get(self, previousView=None, updateCallback=None, getPhrase = None):
+    def _get(self, previousView=None, updateCallback=None, getPhrase=None):
 
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
@@ -782,11 +782,11 @@ class ShareConduit(pim.ContentItem):
         except:
             # contents is either not set, is None, or has no displayName
             contentsName = location
-        
+
         if getPhrase is None:
-            getPhrase = _(u"Downloading from %s...")
+            getPhrase = _(u"Downloading from %(name)s...")
         if updateCallback and updateCallback(msg=getPhrase %
-            contentsName):
+            { 'name' : contentsName } ):
             raise SharingError(_(u"Cancelled by user"))
 
         view = self.itsView
@@ -811,9 +811,9 @@ class ShareConduit(pim.ContentItem):
 
         self.resourceList = self._getResourceList(location)
 
-        # logger.debug(_(u"Resources on server: %(resources)s") % \
+        # logger.debug("Resources on server: %(resources)s" %
         #     {'resources':self.resourceList})
-        # logger.debug(_(u"Manifest: %(manifest)s") % \
+        # logger.debug("Manifest: %(manifest)s" %
         #     {'manifest':self.manifest})
 
         # We need to keep track of which items we've seen on the server so
@@ -890,7 +890,9 @@ class ShareConduit(pim.ContentItem):
                             item not in self.share.contents:
                             del self.resourceList[path]
                             self._setSeen(path)
-                            logger.debug(_(u'Item removed locally, so not fetching from server: %(path)s') % { 'path' : path })
+                            logger.debug("Item removed locally, so not "
+                                "fetching from server: %(path)s" %
+                                { 'path' : path } )
 
 
             # Conditionally fetch items, and add them to collection
@@ -940,7 +942,10 @@ class ShareConduit(pim.ContentItem):
                             if item in self.share.items:
                                 self.share.items.remove(item)
                             stats['removed'].append(item.itsUUID)
-                            if updateCallback and updateCallback(msg=_(u"Removing from collection: '%s'") % item.getItemDisplayName()):
+                            if updateCallback and updateCallback(
+                                msg=_(u"Removing from collection: '%(name)s'")
+                                % { 'name' : item.getItemDisplayName() }
+                                ):
                                 raise SharingError(_(u"Cancelled by user"))
 
                 else:
@@ -1188,9 +1193,9 @@ class FileSystemConduit(ShareConduit):
             return os.path.join(self.sharePath, self.shareName)
         raise Misconfigured(_(u"A misconfiguration error was encountered"))
 
-    def _get(self, previousView=None, updateCallback=None, getPhrase = None):
+    def _get(self, previousView=None, updateCallback=None, getPhrase=None):
         if getPhrase is None:
-            getPhrase = _(u"Importing from %s...")
+            getPhrase = _(u"Importing from %(name)s...")
         return super(FileSystemConduit, self)._get(previousView, updateCallback,
                                                    getPhrase)
 
@@ -1873,7 +1878,7 @@ class SimpleHTTPConduit(WebDAVConduit):
         changes = localChanges(view, prevVersion, view.itsVersion)
 
         location = self.getLocation()
-        if updateCallback and updateCallback(msg=_(u"Checking for update: '%s'") % location):
+        if updateCallback and updateCallback(msg=_(u"Checking for update: '%(location)s'") % { 'location' : location } ):
             raise SharingError(_(u"Cancelled by user"))
 
         self.connect()
@@ -1895,8 +1900,7 @@ class SimpleHTTPConduit(WebDAVConduit):
                 logger.info("...not modified")
                 return stats
 
-            if updateCallback and updateCallback(msg=_(u"'%s'") %
-                location):
+            if updateCallback and updateCallback(msg='%s' % location):
                 raise SharingError(_(u"Cancelled by user"))
 
         except zanshin.webdav.ConnectionError, err:
@@ -2086,19 +2090,29 @@ def importValue(item, changes, attribute, value, previousView,
 
         if conflict:
 
-            logger.warning(_(u"Sharing conflict: item '%s', attr '%s', local '%s', remote '%s'") % (item.getItemDisplayName().encode('ascii', 'replace'),
-                    attribute,
-                    getattr(item, attribute, None),
-                    value))
+            logger.warning("Sharing conflict: item '%s', attr '%s', "
+                "local '%s', remote '%s'" %
+                (item.getItemDisplayName().encode('ascii', 'replace'),
+                attribute,
+                getattr(item, attribute, None),
+                value))
 
             if updateCallback:
-                updateCallback(msg=_(u"Conflict for item '%s' attribute: %s '%s' vs '%s'") % (item.getItemDisplayName(),
-                    attribute,
-                    getattr(item, attribute),
-                    value))
+                updateCallback(
+                    msg=_(u"Conflict for item '%(name)s' "
+                    "attribute: %(attribute)s '%(local)s' vs '%(remote)s'") %
+                    (
+                        {
+                           'name' : item.getItemDisplayName(),
+                           'attribute' : attribute,
+                           'local' : getattr(item, attribute),
+                           'remote' : value
+                        }
+                    )
+                )
         else:
 
-            logger.info(_(u"Sharing change: item '%s', attr '%s', value '%s'") % (item.getItemDisplayName(), attribute, value))
+            logger.info("Sharing change: item '%s', attr '%s', value '%s'" % (item.getItemDisplayName().encode('ascii', 'replace'), attribute, value))
 
 
     except Exception, e:
