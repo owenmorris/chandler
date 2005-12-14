@@ -291,8 +291,8 @@ That is, pairs of attributes that refer to each other.  For example, if you
 were defining a <tt class="docutils literal"><span class="pre">Person</span></tt> type, you might have attributes for the person's
 parents, and also their children.  The combination of the &quot;parents&quot; and
 &quot;children&quot; attributes would be a bidirectional reference.  You define a
-bidirectional reference by setting an attribute descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt> to be
-another attribute descriptor:</p>
+bidirectional reference by setting an attribute descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt> to
+point to another attribute descriptor:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class Person(schema.Item):
 ...     fullname = schema.One(schema.Text)
@@ -1330,8 +1330,8 @@ corresponding parameters of the repository <tt class="docutils literal"><span cl
 <tt class="docutils literal"><span class="pre">redirectTo</span></tt>, <tt class="docutils literal"><span class="pre">defaultValue</span></tt>, <tt class="docutils literal"><span class="pre">initialValue</span></tt>, and so on.  For information
 on these and other parameters, you can consult the model documentation for
 the <tt class="docutils literal"><span class="pre">//Schema/Core/Attribute</span></tt> kind.  Any parameters you do not supply will
-take on their normal default values, except for <tt class="docutils literal"><span class="pre">otherName</span></tt> which is computed
-from the attribute's <tt class="docutils literal"><span class="pre">inverse</span></tt>, if any.</p>
+take on their normal default values, except for <tt class="docutils literal"><span class="pre">otherName</span></tt>, which is
+computed from the attribute's <tt class="docutils literal"><span class="pre">inverse</span></tt>, if any.</p>
 <p>In addition to the the attributes defined by the repository <tt class="docutils literal"><span class="pre">Attribute</span></tt> kind,
 the schema API defines the following additional attributes for descriptor
 objects:</p>

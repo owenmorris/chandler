@@ -267,8 +267,8 @@ That is, pairs of attributes that refer to each other.  For example, if you
 were defining a ``Person`` type, you might have attributes for the person's
 parents, and also their children.  The combination of the "parents" and
 "children" attributes would be a bidirectional reference.  You define a
-bidirectional reference by setting an attribute descriptor's ``inverse`` to be
-another attribute descriptor::
+bidirectional reference by setting an attribute descriptor's ``inverse`` to
+point to another attribute descriptor::
 
     >>> class Person(schema.Item):
     ...     fullname = schema.One(schema.Text)
@@ -1380,8 +1380,8 @@ corresponding parameters of the repository ``Attribute`` object, such as
 ``redirectTo``, ``defaultValue``, ``initialValue``, and so on.  For information
 on these and other parameters, you can consult the model documentation for
 the ``//Schema/Core/Attribute`` kind.  Any parameters you do not supply will
-take on their normal default values, except for ``otherName`` which is computed
-from the attribute's ``inverse``, if any.
+take on their normal default values, except for ``otherName``, which is
+computed from the attribute's ``inverse``, if any.
 
 In addition to the the attributes defined by the repository ``Attribute`` kind,
 the schema API defines the following additional attributes for descriptor
