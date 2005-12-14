@@ -119,11 +119,13 @@ A **repository view** is a connection to a repository, much like a connection
 to an SQL database.  Instead of using SQL, however, repository views provide
 various methods for retrieving objects, committing or rolling back changes,
 etc.  For the most part, these methods are outside the scope of this document,
-so we won't cover many of those methods here.
+so we won't cover many of them here.
 
 A ``NullRepositoryView`` is just like an ordinary repository view, except that
-the objects don't actually get stored anywhere; instead, they behave like
-normal Python objects that go away as soon as you're not using them.
+the objects don't actually get stored anywhere; instead, they behave much like
+normal Python objects that go away as soon as you're not using them.  (Except
+that the view will keep references to the items we create, so they won't go
+away until we also get rid of the view.)
 
 Now that we have a repository view, we can create an item::
 
@@ -233,11 +235,11 @@ example::
 ``schema.One`` and ``schema.Sequence`` are attribute descriptors that tell
 the repository you want either a simple attribute value, or a sequence of
 values.  The first argument to each is a **type reference**; it can be one of
-the predefined types like ``schema.Text`` or ``schema.Integer``, or else it
-can be an existing item class.  (The ``displayName`` argument is used by some
-parts of Chandler to display e.g. column names, so you should generally wrap
-them with calls to the translation function (``_()``) from Chandler's ``i18n``
-package, even though we aren't doing that in this document.)
+the predefined type references like ``schema.Text`` or ``schema.Integer``, or
+else it can be an existing item class.  (The ``displayName`` argument is used
+by some parts of Chandler to display e.g. column names, so you should generally
+wrap them with calls to the translation function (``_()``) from Chandler's
+``i18n`` package, even though we aren't doing that in this document.)
 
 Now that we've defined a schema for the ``Knight`` class, we can create
 instances with data in the specified attributes::
@@ -265,8 +267,8 @@ That is, pairs of attributes that refer to each other.  For example, if you
 were defining a ``Person`` type, you might have attributes for the person's
 parents, and also their children.  The combination of the "parents" and
 "children" attributes would be a bidirectional reference.  You define a
-bidirectional reference by setting an attribute's ``inverse`` to be another
-attribute::
+bidirectional reference by setting an attribute descriptor's ``inverse`` to be
+another attribute descriptor::
 
     >>> class Person(schema.Item):
     ...     fullname = schema.One(schema.Text)
@@ -276,12 +278,12 @@ attribute::
     ...
     ...     def __repr__(self): return self.fullname
 
-You'll notice that we left out the type of the parents and children attributes;
-that's because the ``Person`` type doesn't exist until the block is finished.
-Luckily, however, when you set the ``inverse`` of an attribute, its type (and
-the type of the inverse attribute) is automatically determined for you.  This
-saves us from the awkward problem of how to refer to a type that doesn't yet
-exist::
+You'll notice that we didn't supply a type for the ``parents`` and ``children``
+attribute descriptors; that's because the ``Person`` type doesn't exist until
+the block is finished.  Luckily, however, when you set the ``inverse`` of an
+attribute, its type (and the type of the inverse attribute) is automatically
+determined for you.  This saves us from the awkward problem of how to refer to
+a type that doesn't yet exist::
 
     >>> Person.parents.type
     <class '...Person'>
@@ -297,15 +299,15 @@ for us::
     <Role children of <class '...Person'>>
 
 Again, this saves us from the awkward problem of how to set the inverse of
-``parents`` before the ``children`` attribute exists!
+``parents`` before the ``children`` attribute descriptor exists!
 
 In summary, then, you create a simple bidirectional reference by:
 
-1. Creating the first attribute as a ``One`` or ``Sequence`` attribute, without
-   a type or ``inverse``.
+1. Creating the first attribute descriptor as a ``One`` or ``Sequence``
+   descriptor, without a type or ``inverse``.
 
-2. Creating the second attribute as a ``One`` or ``Sequence`` attribute,
-   setting its ``inverse`` to the first attribute.
+2. Creating the second attribute descriptor as a ``One`` or ``Sequence``
+   descriptor, setting its ``inverse`` to point to the first descriptor.
 
 Once you've defined a bidirectional reference, the repository will
 automatically maintain any relationships you set up between items of the
@@ -347,16 +349,16 @@ Extending Existing Kinds
 Chandler is designed to be modularly extensible, which means that you should be
 able to add new functionality, without modifying existing code.  Sometimes that
 means you need to be able to add to the schema of existing kinds, without
-modifying the code that defines them.  For example, if you need to create a
-bidirectional reference between an existing kind and a new kind you're adding,
-or if you need to add extra attributes to an existing kind.
+modifying the classes that define them.  For example, you might need to create
+a bidirectional reference between an existing kind and a new kind you're
+adding, or you might need to add extra attributes to an existing kind.
 
 The Chandler schema API lets you do this by allowing you to create **annotation
 attributes**.  Annotation attributes are attributes defined by a different
 class than the class that was originally used to define the kind.  They differ
 from regular attributes in that their names include the module and class where
-they were defined, to prevent collisions between different modules that want
-to use similar attribute names.
+they were defined, to prevent collisions between different modules that may
+want to use similar attribute names.
 
 There are two ways to define annotation attributes: you can create one as an
 **anonymous inverse** attribute, or you can define one or more in an
@@ -379,13 +381,14 @@ If we don't really care about having a ``school_attended`` attribute on the
 free-floating attribute that just defines what the inverse attribute "would
 have looked like" if it had existed on the original class.
 
-To do this, we simply set the ``inverse`` of our ``attendees`` attribute to a
-new attribute descriptor of the desired cardinality (``One`` or ``Sequence``)::
+To do this, we simply set the ``inverse`` of our ``attendees`` descriptor to
+point to a new attribute descriptor of the desired cardinality (``One`` or
+``Sequence``)::
 
     >>> class School(schema.Item):
     ...     attendees = schema.Sequence(Person, inverse=schema.One())
 
-    >>> joes_school = School(None, None, None, rv, "Hobart's", attendees=[Joe])
+    >>> joes_school = School("Hobart's", rv, attendees=[Joe])
 
     >>> list(joes_school.attendees)
     [Joe Schmoe]
@@ -395,7 +398,7 @@ that the schema API will know what type the anonymous inverse attribute
 should be attached to (``Person`` in this case).  Both sides of the
 bidirectional reference can include a ``displayName``, ``description``,
 ``initialValue``, or any of the other standard attribute descriptor arguments.
-(See the API Details section on `Attribute Descriptors`_, below, for a
+(See the API Details section on `Attribute Descriptors`_, below, for a more
 complete list.)
 
 You can't tell from the example above, but the ``inverse`` attribute actually
@@ -404,7 +407,7 @@ annotation attribute pointing to ``joes_school``.  You can get, set, or delete
 its value, as long as you know its automatically-generated attribute name::
 
     >>> getattr(Joe, 'application.tests.School.attendees.inverse')
-    <School ... Hobart's>
+    <School ... Hobart's ...>
 
 And any modifications you make will of course propagate to the other side of
 the bidirectional reference::
@@ -422,11 +425,11 @@ Notice that the generated name is a combination of:
 4. The word ``inverse``
 
 Note: we haven't talked about parcels yet, so for now you can assume that the
-first part is the module name where the class is found.  (All the classes in
-this document are defined in the ``application.tests`` module for testing
+first part is the module name where the class is found.  (All the code in
+this document is executed in the ``application.tests`` module for testing
 purposes.)  The only time the first part will *not* be the module name, is if
 the module defines a ``__parcel__`` setting in order to do `Parcel
-Redirection`_ (see below).)
+Redirection`_ (see section below).)
 
 
 Annotation Classes
@@ -477,12 +480,12 @@ to create a bidirectional reference between an annotation and a new kind::
 Now let's create some instances.  Annotation classes do *not* create persistent
 instances, however.  Instead, their instances are just wrappers or adapters
 that give you access to the annotation attributes -- attributes that are
-actually stored in the wrapped item, just like an anonymous inverse.  First,
-let's create a ``Teacher`` instance for ``Mary``::
+actually stored in the wrapped item, just like `anonymous inverses`_ are.
+First, let's wrap a ``Teacher`` instance around ``Mary``::
 
     >>> ProfMary = Teacher(Mary)
 
-The above expression can be read as "ProfMary is Mary playing the role of
+The above expression can be read as "ProfMary is Mary playing the role of a
 Teacher", or "ProfMary is Mary, viewed as a Teacher".  The ``ProfMary`` object
 is not ``Mary`` herself; it's just her ``Teacher`` *attributes*.  Let's give
 her a Phys. Ed. certificate::
@@ -530,8 +533,8 @@ code such as an attribute editor in the user interface that will need to know
 this full attribute name, because it will be dealing with the plain item and
 not an annotation wrapper.  So, you should be aware that the attribute name
 is generated using the module name (or its ``__parcel__``) plus the annotation
-class name and the attribute name within the annotation class.  That way, if
-you need to get at it this way, you can.
+class name and the attribute name within the annotation class.  That means that
+if you need to get at it this way, you can.
 
 As with anonymous inverses, setting or deleting the attribute on either the
 underlying item (full name) or the annotation wrapper (short name) has
@@ -560,37 +563,50 @@ or that were defined using ``__slots__`` in the class definition::
     ...     schema.kindInfo(annotates=Person)
     ...     likes = schema.Sequence()
     ...     isLikedBy = schema.Sequence(inverse=likes)
+    ...
+    ...     def connect(self):
+    ...         print "opening", self.jabberConnection
+    ...         for person in self.likes:
+    ...             print "checking if",person,"is on-line"
+    ...         for person in self.isLikedBy:
+    ...             print "notifying",person,"that",self.itsItem,"is on-line"
 
     >>> Friend(Mary).isLikedBy = [Joe]
-    >>> list(Friend(Joe).likes)
+    >>> Friend(Mary).likes = []
+
+    >>> fJoe = Friend(Joe)
+    >>> list(fJoe.likes)
     [Mary Quite Contrary]
 
+    >>> fJoe.isLikedBy = []
+    >>> fJoe.jabberConnection = "jabber connection 1"
+    >>> fJoe.connect()
+    opening jabber connection 1
+    checking if Mary Quite Contrary is on-line
+    
 The attributes defined using ``__slots__``, however, are *not* persistent, and
 they will not be stored in the repository.  Each annotation wrapper also has
 its own separate value for each attribute, no matter what item is wrapped.
 Thus, although each ``Friend(Mary)`` has the same ``isLikedBy`` (because it's
 actually stored by ``Mary``), it has its own independent ``jabberConnection``
-(because it's stored in a slot on the wrapper).  This functionality is
+(because it's stored in a slot on the wrapper).  This capability is
 sometimes useful for annotations that have some runtime functionality that
 requires them to reference UI objects, connections to servers, or other
 non-persistent application objects::
 
     >>> fMary = Friend(Mary)
-    >>> list(fMary.isLikedBy)
-    [Joe Schmoe]
+    >>> fMary.jabberConnection = "connection 2"
 
     >>> f2Mary = Friend(Mary)
-    >>> list(fMary.isLikedBy)
-    [Joe Schmoe]
+    >>> f2Mary.jabberConnection = "connection 3"
 
-    >>> fMary.jabberConnection = "just pretending"
-    >>> f2Mary.jabberConnection = "another example"
+    >>> fMary.connect()
+    opening connection 2
+    notifying Joe Schmoe that Mary Quite Contrary is on-line
 
-    >>> fMary.jabberConnection
-    'just pretending'
-
-    >>> f2Mary.jabberConnection
-    'another example'
+    >>> f2Mary.connect()
+    opening connection 3
+    notifying Joe Schmoe that Mary Quite Contrary is on-line
 
 Annotation class instances must wrap an instance of the type they were defined
 as annotating; thus you can't make a ``Teacher`` of anything but a ``Person``
@@ -602,7 +618,7 @@ as annotating; thus you can't make a ``Teacher`` of anything but a ``Person``
     TypeError: <class '...Teacher'> requires a <class '...Person'> instance
 
 But you *can* wrap another annotation that wraps an item of the appropriate
-type, because all annotations of the passed-in item are stripped off first.
+type, because any annotation of the passed-in item is stripped off first.
 Thus, we can easily convert a ``Friend`` to a ``Teacher`` or vice versa, since
 they are both ``Person`` annotations::
 
@@ -616,7 +632,8 @@ they are both ``Person`` annotations::
     Friend(Mary Quite Contrary)
 
 Finally, if you need to "un-annotate" an object to get at the persistent item
-it's wrapping, you can simply use its ``itsItem`` attribute::
+it's wrapping, you can simply use its ``itsItem`` attribute, as we saw in
+the ``Friend.connect()`` method::
 
     >>> fMary.itsItem
     Mary Quite Contrary
@@ -880,7 +897,8 @@ need to delete old items or rename/relocate items in your ``installParcel()``
 function, you should just use the normal repository APIs to do so.  For
 example, if your parcel used to have a ``Carlos`` item that you now want to
 call ``Charlie``, you should manually check for the item already existing,
-and then rename it by setting the ``itsName`` attribute.
+and then rename it by setting the ``itsName`` attribute before doing the
+``update()``.
 
 
 Parcel Discovery
@@ -888,10 +906,10 @@ Parcel Discovery
 
 So far, everything in this guide has assumed that your code is running or your
 parcel is being automatically created.  However, the only way that can happen
-is for Chandler to already *know* that your parcel exists!  Well, you can also
+is for Chandler to already *know* that your parcel exists!  (Well, you can also
 run your code from a script, or invoke it manually from a debugger window or
 the ``headless`` utility, but those aren't very user-friendly ways to get your
-parcel installed.
+parcel installed.)
 
 Chandler has two ways to automatically identify modules or packages that should
 be used to create parcels at startup.  The first is the ``--app-parcel`` option
@@ -1127,9 +1145,9 @@ like this::
 
     someItem.window_size = otherItem.window_size
 
-Then changing the ``width`` and ``height`` of ``someItem.window_size`` would
-also affect the value of ``otherItem.window_size``, and ``otherItem`` would
-therefore also need to be saved.  This can create hard-to-find bugs, which
+Then changing the ``width`` and ``height`` of ``someItem.window_size`` could
+also affect the value of ``otherItem.window_size``, in which case ``otherItem``
+would also need to be saved.  This can create hard-to-find bugs, which
 is why the feature is deprecated.
 
 
@@ -1362,7 +1380,7 @@ corresponding parameters of the repository ``Attribute`` object, such as
 ``redirectTo``, ``defaultValue``, ``initialValue``, and so on.  For information
 on these and other parameters, you can consult the model documentation for
 the ``//Schema/Core/Attribute`` kind.  Any parameters you do not supply will
-take on their normal default values, except for``otherName`` which is computed
+take on their normal default values, except for ``otherName`` which is computed
 from the attribute's ``inverse``, if any.
 
 In addition to the the attributes defined by the repository ``Attribute`` kind,
@@ -1533,7 +1551,7 @@ Other APIs
 There are a few other schema API functions remaining, that don't fit into any
 of the preceding categories:
 
-importString(moduleName)
+``importString(moduleName)``
     Imports the named module (or named item within a module)::
 
         >>> import sys
@@ -1550,7 +1568,7 @@ importString(moduleName)
     There's nothing Chandler-specific or schema API-specific about this
     function; you can use it to import any Python object from anywhere.
 
-synchronize(repoView, moduleName)
+``synchronize(repoView, moduleName)``
     Ensure that the named module has been imported, and that its offered schema
     (if any) has been imported into the supplied repository view as a parcel.
     This is a convenient way to force a particular parcel to be loaded if it
@@ -1558,7 +1576,7 @@ synchronize(repoView, moduleName)
     It's also used by Chandler itself to load the parcels it finds during
     `Parcel Discovery`_.
 
-itemFor(obj, repoView)
+``itemFor(obj, repoView)``
     Return the repository item that corresponds to the supplied object.  For
     example, ``itemFor(AnItemClass)`` returns the repository ``Kind`` that
     represents that class in the given repository view::

@@ -151,10 +151,12 @@ any objects, so we'll use a &quot;pretend&quot; repository called a
 to an SQL database.  Instead of using SQL, however, repository views provide
 various methods for retrieving objects, committing or rolling back changes,
 etc.  For the most part, these methods are outside the scope of this document,
-so we won't cover many of those methods here.</p>
+so we won't cover many of them here.</p>
 <p>A <tt class="docutils literal"><span class="pre">NullRepositoryView</span></tt> is just like an ordinary repository view, except that
-the objects don't actually get stored anywhere; instead, they behave like
-normal Python objects that go away as soon as you're not using them.</p>
+the objects don't actually get stored anywhere; instead, they behave much like
+normal Python objects that go away as soon as you're not using them.  (Except
+that the view will keep references to the items we create, so they won't go
+away until we also get rid of the view.)</p>
 <p>Now that we have a repository view, we can create an item:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; myItem = Sample(&quot;myItem&quot;, rv)
@@ -259,11 +261,11 @@ example:</p>
 <p><tt class="docutils literal"><span class="pre">schema.One</span></tt> and <tt class="docutils literal"><span class="pre">schema.Sequence</span></tt> are attribute descriptors that tell
 the repository you want either a simple attribute value, or a sequence of
 values.  The first argument to each is a <strong>type reference</strong>; it can be one of
-the predefined types like <tt class="docutils literal"><span class="pre">schema.Text</span></tt> or <tt class="docutils literal"><span class="pre">schema.Integer</span></tt>, or else it
-can be an existing item class.  (The <tt class="docutils literal"><span class="pre">displayName</span></tt> argument is used by some
-parts of Chandler to display e.g. column names, so you should generally wrap
-them with calls to the translation function (<tt class="docutils literal"><span class="pre">_()</span></tt>) from Chandler's <tt class="docutils literal"><span class="pre">i18n</span></tt>
-package, even though we aren't doing that in this document.)</p>
+the predefined type references like <tt class="docutils literal"><span class="pre">schema.Text</span></tt> or <tt class="docutils literal"><span class="pre">schema.Integer</span></tt>, or
+else it can be an existing item class.  (The <tt class="docutils literal"><span class="pre">displayName</span></tt> argument is used
+by some parts of Chandler to display e.g. column names, so you should generally
+wrap them with calls to the translation function (<tt class="docutils literal"><span class="pre">_()</span></tt>) from Chandler's
+<tt class="docutils literal"><span class="pre">i18n</span></tt> package, even though we aren't doing that in this document.)</p>
 <p>Now that we've defined a schema for the <tt class="docutils literal"><span class="pre">Knight</span></tt> class, we can create
 instances with data in the specified attributes:</p>
 <pre class="literal-block">
@@ -289,8 +291,8 @@ That is, pairs of attributes that refer to each other.  For example, if you
 were defining a <tt class="docutils literal"><span class="pre">Person</span></tt> type, you might have attributes for the person's
 parents, and also their children.  The combination of the &quot;parents&quot; and
 &quot;children&quot; attributes would be a bidirectional reference.  You define a
-bidirectional reference by setting an attribute's <tt class="docutils literal"><span class="pre">inverse</span></tt> to be another
-attribute:</p>
+bidirectional reference by setting an attribute descriptor's <tt class="docutils literal"><span class="pre">inverse</span></tt> to be
+another attribute descriptor:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class Person(schema.Item):
 ...     fullname = schema.One(schema.Text)
@@ -300,12 +302,12 @@ attribute:</p>
 ...
 ...     def __repr__(self): return self.fullname
 </pre>
-<p>You'll notice that we left out the type of the parents and children attributes;
-that's because the <tt class="docutils literal"><span class="pre">Person</span></tt> type doesn't exist until the block is finished.
-Luckily, however, when you set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of an attribute, its type (and
-the type of the inverse attribute) is automatically determined for you.  This
-saves us from the awkward problem of how to refer to a type that doesn't yet
-exist:</p>
+<p>You'll notice that we didn't supply a type for the <tt class="docutils literal"><span class="pre">parents</span></tt> and <tt class="docutils literal"><span class="pre">children</span></tt>
+attribute descriptors; that's because the <tt class="docutils literal"><span class="pre">Person</span></tt> type doesn't exist until
+the block is finished.  Luckily, however, when you set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of an
+attribute, its type (and the type of the inverse attribute) is automatically
+determined for you.  This saves us from the awkward problem of how to refer to
+a type that doesn't yet exist:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Person.parents.type
 &lt;class '...Person'&gt;
@@ -321,13 +323,13 @@ for us:</p>
 &lt;Role children of &lt;class '...Person'&gt;&gt;
 </pre>
 <p>Again, this saves us from the awkward problem of how to set the inverse of
-<tt class="docutils literal"><span class="pre">parents</span></tt> before the <tt class="docutils literal"><span class="pre">children</span></tt> attribute exists!</p>
+<tt class="docutils literal"><span class="pre">parents</span></tt> before the <tt class="docutils literal"><span class="pre">children</span></tt> attribute descriptor exists!</p>
 <p>In summary, then, you create a simple bidirectional reference by:</p>
 <ol class="arabic simple">
-<li>Creating the first attribute as a <tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt> attribute, without
-a type or <tt class="docutils literal"><span class="pre">inverse</span></tt>.</li>
-<li>Creating the second attribute as a <tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt> attribute,
-setting its <tt class="docutils literal"><span class="pre">inverse</span></tt> to the first attribute.</li>
+<li>Creating the first attribute descriptor as a <tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt>
+descriptor, without a type or <tt class="docutils literal"><span class="pre">inverse</span></tt>.</li>
+<li>Creating the second attribute descriptor as a <tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt>
+descriptor, setting its <tt class="docutils literal"><span class="pre">inverse</span></tt> to point to the first descriptor.</li>
 </ol>
 <p>Once you've defined a bidirectional reference, the repository will
 automatically maintain any relationships you set up between items of the
@@ -366,15 +368,15 @@ for more details.</p>
 <p>Chandler is designed to be modularly extensible, which means that you should be
 able to add new functionality, without modifying existing code.  Sometimes that
 means you need to be able to add to the schema of existing kinds, without
-modifying the code that defines them.  For example, if you need to create a
-bidirectional reference between an existing kind and a new kind you're adding,
-or if you need to add extra attributes to an existing kind.</p>
+modifying the classes that define them.  For example, you might need to create
+a bidirectional reference between an existing kind and a new kind you're
+adding, or you might need to add extra attributes to an existing kind.</p>
 <p>The Chandler schema API lets you do this by allowing you to create <strong>annotation
 attributes</strong>.  Annotation attributes are attributes defined by a different
 class than the class that was originally used to define the kind.  They differ
 from regular attributes in that their names include the module and class where
-they were defined, to prevent collisions between different modules that want
-to use similar attribute names.</p>
+they were defined, to prevent collisions between different modules that may
+want to use similar attribute names.</p>
 <p>There are two ways to define annotation attributes: you can create one as an
 <strong>anonymous inverse</strong> attribute, or you can define one or more in an
 <strong>annotation class</strong>.  The next two sections will show you how.</p>
@@ -391,13 +393,14 @@ would create a circular dependency between modules.</p>
 <tt class="docutils literal"><span class="pre">Person</span></tt> class, we can simply create an <strong>anonymous inverse</strong> attribute: a
 free-floating attribute that just defines what the inverse attribute &quot;would
 have looked like&quot; if it had existed on the original class.</p>
-<p>To do this, we simply set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of our <tt class="docutils literal"><span class="pre">attendees</span></tt> attribute to a
-new attribute descriptor of the desired cardinality (<tt class="docutils literal"><span class="pre">One</span></tt> or <tt class="docutils literal"><span class="pre">Sequence</span></tt>):</p>
+<p>To do this, we simply set the <tt class="docutils literal"><span class="pre">inverse</span></tt> of our <tt class="docutils literal"><span class="pre">attendees</span></tt> descriptor to
+point to a new attribute descriptor of the desired cardinality (<tt class="docutils literal"><span class="pre">One</span></tt> or
+<tt class="docutils literal"><span class="pre">Sequence</span></tt>):</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class School(schema.Item):
 ...     attendees = schema.Sequence(Person, inverse=schema.One())
 
-&gt;&gt;&gt; joes_school = School(None, None, None, rv, &quot;Hobart's&quot;, attendees=[Joe])
+&gt;&gt;&gt; joes_school = School(&quot;Hobart's&quot;, rv, attendees=[Joe])
 
 &gt;&gt;&gt; list(joes_school.attendees)
 [Joe Schmoe]
@@ -407,7 +410,7 @@ that the schema API will know what type the anonymous inverse attribute
 should be attached to (<tt class="docutils literal"><span class="pre">Person</span></tt> in this case).  Both sides of the
 bidirectional reference can include a <tt class="docutils literal"><span class="pre">displayName</span></tt>, <tt class="docutils literal"><span class="pre">description</span></tt>,
 <tt class="docutils literal"><span class="pre">initialValue</span></tt>, or any of the other standard attribute descriptor arguments.
-(See the API Details section on <a class="reference" href="#attribute-descriptors">Attribute Descriptors</a>, below, for a
+(See the API Details section on <a class="reference" href="#attribute-descriptors">Attribute Descriptors</a>, below, for a more
 complete list.)</p>
 <p>You can't tell from the example above, but the <tt class="docutils literal"><span class="pre">inverse</span></tt> attribute actually
 gets attached to the <tt class="docutils literal"><span class="pre">Person</span></tt> kind, and the <tt class="docutils literal"><span class="pre">Joe</span></tt> item actually has an
@@ -415,7 +418,7 @@ annotation attribute pointing to <tt class="docutils literal"><span class="pre">
 its value, as long as you know its automatically-generated attribute name:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; getattr(Joe, 'application.tests.School.attendees.inverse')
-&lt;School ... Hobart's&gt;
+&lt;School ... Hobart's ...&gt;
 </pre>
 <p>And any modifications you make will of course propagate to the other side of
 the bidirectional reference:</p>
@@ -433,11 +436,11 @@ the bidirectional reference:</p>
 <li>The word <tt class="docutils literal"><span class="pre">inverse</span></tt></li>
 </ol>
 <p>Note: we haven't talked about parcels yet, so for now you can assume that the
-first part is the module name where the class is found.  (All the classes in
-this document are defined in the <tt class="docutils literal"><span class="pre">application.tests</span></tt> module for testing
+first part is the module name where the class is found.  (All the code in
+this document is executed in the <tt class="docutils literal"><span class="pre">application.tests</span></tt> module for testing
 purposes.)  The only time the first part will <em>not</em> be the module name, is if
 the module defines a <tt class="docutils literal"><span class="pre">__parcel__</span></tt> setting in order to do <a class="reference" href="#parcel-redirection">Parcel
-Redirection</a> (see below).)</p>
+Redirection</a> (see section below).)</p>
 </div>
 <div class="section" id="annotation-classes">
 <h3><a class="toc-backref" href="#id8" name="annotation-classes">Annotation Classes</a></h3>
@@ -483,12 +486,12 @@ to create a bidirectional reference between an annotation and a new kind:</p>
 <p>Now let's create some instances.  Annotation classes do <em>not</em> create persistent
 instances, however.  Instead, their instances are just wrappers or adapters
 that give you access to the annotation attributes -- attributes that are
-actually stored in the wrapped item, just like an anonymous inverse.  First,
-let's create a <tt class="docutils literal"><span class="pre">Teacher</span></tt> instance for <tt class="docutils literal"><span class="pre">Mary</span></tt>:</p>
+actually stored in the wrapped item, just like <a class="reference" href="#anonymous-inverses">anonymous inverses</a> are.
+First, let's wrap a <tt class="docutils literal"><span class="pre">Teacher</span></tt> instance around <tt class="docutils literal"><span class="pre">Mary</span></tt>:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; ProfMary = Teacher(Mary)
 </pre>
-<p>The above expression can be read as &quot;ProfMary is Mary playing the role of
+<p>The above expression can be read as &quot;ProfMary is Mary playing the role of a
 Teacher&quot;, or &quot;ProfMary is Mary, viewed as a Teacher&quot;.  The <tt class="docutils literal"><span class="pre">ProfMary</span></tt> object
 is not <tt class="docutils literal"><span class="pre">Mary</span></tt> herself; it's just her <tt class="docutils literal"><span class="pre">Teacher</span></tt> <em>attributes</em>.  Let's give
 her a Phys. Ed. certificate:</p>
@@ -535,8 +538,8 @@ code such as an attribute editor in the user interface that will need to know
 this full attribute name, because it will be dealing with the plain item and
 not an annotation wrapper.  So, you should be aware that the attribute name
 is generated using the module name (or its <tt class="docutils literal"><span class="pre">__parcel__</span></tt>) plus the annotation
-class name and the attribute name within the annotation class.  That way, if
-you need to get at it this way, you can.</p>
+class name and the attribute name within the annotation class.  That means that
+if you need to get at it this way, you can.</p>
 <p>As with anonymous inverses, setting or deleting the attribute on either the
 underlying item (full name) or the annotation wrapper (short name) has
 identical effects:</p>
@@ -564,37 +567,50 @@ AttributeError: 'Teacher' object has no attribute 'foo'
 ...     schema.kindInfo(annotates=Person)
 ...     likes = schema.Sequence()
 ...     isLikedBy = schema.Sequence(inverse=likes)
+...
+...     def connect(self):
+...         print &quot;opening&quot;, self.jabberConnection
+...         for person in self.likes:
+...             print &quot;checking if&quot;,person,&quot;is on-line&quot;
+...         for person in self.isLikedBy:
+...             print &quot;notifying&quot;,person,&quot;that&quot;,self.itsItem,&quot;is on-line&quot;
 
 &gt;&gt;&gt; Friend(Mary).isLikedBy = [Joe]
-&gt;&gt;&gt; list(Friend(Joe).likes)
+&gt;&gt;&gt; Friend(Mary).likes = []
+
+&gt;&gt;&gt; fJoe = Friend(Joe)
+&gt;&gt;&gt; list(fJoe.likes)
 [Mary Quite Contrary]
+
+&gt;&gt;&gt; fJoe.isLikedBy = []
+&gt;&gt;&gt; fJoe.jabberConnection = &quot;jabber connection 1&quot;
+&gt;&gt;&gt; fJoe.connect()
+opening jabber connection 1
+checking if Mary Quite Contrary is on-line
 </pre>
 <p>The attributes defined using <tt class="docutils literal"><span class="pre">__slots__</span></tt>, however, are <em>not</em> persistent, and
 they will not be stored in the repository.  Each annotation wrapper also has
 its own separate value for each attribute, no matter what item is wrapped.
 Thus, although each <tt class="docutils literal"><span class="pre">Friend(Mary)</span></tt> has the same <tt class="docutils literal"><span class="pre">isLikedBy</span></tt> (because it's
 actually stored by <tt class="docutils literal"><span class="pre">Mary</span></tt>), it has its own independent <tt class="docutils literal"><span class="pre">jabberConnection</span></tt>
-(because it's stored in a slot on the wrapper).  This functionality is
+(because it's stored in a slot on the wrapper).  This capability is
 sometimes useful for annotations that have some runtime functionality that
 requires them to reference UI objects, connections to servers, or other
 non-persistent application objects:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; fMary = Friend(Mary)
-&gt;&gt;&gt; list(fMary.isLikedBy)
-[Joe Schmoe]
+&gt;&gt;&gt; fMary.jabberConnection = &quot;connection 2&quot;
 
 &gt;&gt;&gt; f2Mary = Friend(Mary)
-&gt;&gt;&gt; list(fMary.isLikedBy)
-[Joe Schmoe]
+&gt;&gt;&gt; f2Mary.jabberConnection = &quot;connection 3&quot;
 
-&gt;&gt;&gt; fMary.jabberConnection = &quot;just pretending&quot;
-&gt;&gt;&gt; f2Mary.jabberConnection = &quot;another example&quot;
+&gt;&gt;&gt; fMary.connect()
+opening connection 2
+notifying Joe Schmoe that Mary Quite Contrary is on-line
 
-&gt;&gt;&gt; fMary.jabberConnection
-'just pretending'
-
-&gt;&gt;&gt; f2Mary.jabberConnection
-'another example'
+&gt;&gt;&gt; f2Mary.connect()
+opening connection 3
+notifying Joe Schmoe that Mary Quite Contrary is on-line
 </pre>
 <p>Annotation class instances must wrap an instance of the type they were defined
 as annotating; thus you can't make a <tt class="docutils literal"><span class="pre">Teacher</span></tt> of anything but a <tt class="docutils literal"><span class="pre">Person</span></tt>
@@ -606,7 +622,7 @@ Traceback (most recent call last):
 TypeError: &lt;class '...Teacher'&gt; requires a &lt;class '...Person'&gt; instance
 </pre>
 <p>But you <em>can</em> wrap another annotation that wraps an item of the appropriate
-type, because all annotations of the passed-in item are stripped off first.
+type, because any annotation of the passed-in item is stripped off first.
 Thus, we can easily convert a <tt class="docutils literal"><span class="pre">Friend</span></tt> to a <tt class="docutils literal"><span class="pre">Teacher</span></tt> or vice versa, since
 they are both <tt class="docutils literal"><span class="pre">Person</span></tt> annotations:</p>
 <pre class="literal-block">
@@ -620,7 +636,8 @@ Friend(Mary Quite Contrary)
 Friend(Mary Quite Contrary)
 </pre>
 <p>Finally, if you need to &quot;un-annotate&quot; an object to get at the persistent item
-it's wrapping, you can simply use its <tt class="docutils literal"><span class="pre">itsItem</span></tt> attribute:</p>
+it's wrapping, you can simply use its <tt class="docutils literal"><span class="pre">itsItem</span></tt> attribute, as we saw in
+the <tt class="docutils literal"><span class="pre">Friend.connect()</span></tt> method:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; fMary.itsItem
 Mary Quite Contrary
@@ -863,17 +880,18 @@ need to delete old items or rename/relocate items in your <tt class="docutils li
 function, you should just use the normal repository APIs to do so.  For
 example, if your parcel used to have a <tt class="docutils literal"><span class="pre">Carlos</span></tt> item that you now want to
 call <tt class="docutils literal"><span class="pre">Charlie</span></tt>, you should manually check for the item already existing,
-and then rename it by setting the <tt class="docutils literal"><span class="pre">itsName</span></tt> attribute.</p>
+and then rename it by setting the <tt class="docutils literal"><span class="pre">itsName</span></tt> attribute before doing the
+<tt class="docutils literal"><span class="pre">update()</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="parcel-discovery">
 <h2><a class="toc-backref" href="#id15" name="parcel-discovery">Parcel Discovery</a></h2>
 <p>So far, everything in this guide has assumed that your code is running or your
 parcel is being automatically created.  However, the only way that can happen
-is for Chandler to already <em>know</em> that your parcel exists!  Well, you can also
+is for Chandler to already <em>know</em> that your parcel exists!  (Well, you can also
 run your code from a script, or invoke it manually from a debugger window or
 the <tt class="docutils literal"><span class="pre">headless</span></tt> utility, but those aren't very user-friendly ways to get your
-parcel installed.</p>
+parcel installed.)</p>
 <p>Chandler has two ways to automatically identify modules or packages that should
 be used to create parcels at startup.  The first is the <tt class="docutils literal"><span class="pre">--app-parcel</span></tt> option
 on the Chandler command line.  This option sets a module or package name that
@@ -1087,9 +1105,9 @@ like this:</p>
 <pre class="literal-block">
 someItem.window_size = otherItem.window_size
 </pre>
-<p>Then changing the <tt class="docutils literal"><span class="pre">width</span></tt> and <tt class="docutils literal"><span class="pre">height</span></tt> of <tt class="docutils literal"><span class="pre">someItem.window_size</span></tt> would
-also affect the value of <tt class="docutils literal"><span class="pre">otherItem.window_size</span></tt>, and <tt class="docutils literal"><span class="pre">otherItem</span></tt> would
-therefore also need to be saved.  This can create hard-to-find bugs, which
+<p>Then changing the <tt class="docutils literal"><span class="pre">width</span></tt> and <tt class="docutils literal"><span class="pre">height</span></tt> of <tt class="docutils literal"><span class="pre">someItem.window_size</span></tt> could
+also affect the value of <tt class="docutils literal"><span class="pre">otherItem.window_size</span></tt>, in which case <tt class="docutils literal"><span class="pre">otherItem</span></tt>
+would also need to be saved.  This can create hard-to-find bugs, which
 is why the feature is deprecated.</p>
 </div>
 <div class="section" id="defining-clouds">
@@ -1312,7 +1330,7 @@ corresponding parameters of the repository <tt class="docutils literal"><span cl
 <tt class="docutils literal"><span class="pre">redirectTo</span></tt>, <tt class="docutils literal"><span class="pre">defaultValue</span></tt>, <tt class="docutils literal"><span class="pre">initialValue</span></tt>, and so on.  For information
 on these and other parameters, you can consult the model documentation for
 the <tt class="docutils literal"><span class="pre">//Schema/Core/Attribute</span></tt> kind.  Any parameters you do not supply will
-take on their normal default values, except for``otherName`` which is computed
+take on their normal default values, except for <tt class="docutils literal"><span class="pre">otherName</span></tt> which is computed
 from the attribute's <tt class="docutils literal"><span class="pre">inverse</span></tt>, if any.</p>
 <p>In addition to the the attributes defined by the repository <tt class="docutils literal"><span class="pre">Attribute</span></tt> kind,
 the schema API defines the following additional attributes for descriptor
@@ -1483,7 +1501,7 @@ but both end up pointing to each other automatically:</p>
 <p>There are a few other schema API functions remaining, that don't fit into any
 of the preceding categories:</p>
 <dl class="docutils">
-<dt>importString(moduleName)</dt>
+<dt><tt class="docutils literal"><span class="pre">importString(moduleName)</span></tt></dt>
 <dd><p class="first">Imports the named module (or named item within a module):</p>
 <pre class="literal-block">
 &gt;&gt;&gt; import sys
@@ -1500,14 +1518,14 @@ True
 <p class="last">There's nothing Chandler-specific or schema API-specific about this
 function; you can use it to import any Python object from anywhere.</p>
 </dd>
-<dt>synchronize(repoView, moduleName)</dt>
+<dt><tt class="docutils literal"><span class="pre">synchronize(repoView,</span> <span class="pre">moduleName)</span></tt></dt>
 <dd>Ensure that the named module has been imported, and that its offered schema
 (if any) has been imported into the supplied repository view as a parcel.
 This is a convenient way to force a particular parcel to be loaded if it
 hasn't already been, or to specify any explicit <a class="reference" href="#parcel-dependencies">Parcel Dependencies</a>.
 It's also used by Chandler itself to load the parcels it finds during
 <a class="reference" href="#parcel-discovery">Parcel Discovery</a>.</dd>
-<dt>itemFor(obj, repoView)</dt>
+<dt><tt class="docutils literal"><span class="pre">itemFor(obj,</span> <span class="pre">repoView)</span></tt></dt>
 <dd><p class="first">Return the repository item that corresponds to the supplied object.  For
 example, <tt class="docutils literal"><span class="pre">itemFor(AnItemClass)</span></tt> returns the repository <tt class="docutils literal"><span class="pre">Kind</span></tt> that
 represents that class in the given repository view:</p>
