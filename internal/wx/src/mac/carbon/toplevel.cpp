@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.165 2005/12/13 23:15:42 vell Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.166 2005/12/14 23:12:32 vell Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1381,22 +1381,21 @@ bool wxTopLevelWindowMac::Show(bool show)
     if ( !wxTopLevelWindowBase::Show(show) )
         return false;
 
+    bool plainTransition = false;
+
+#if wxUSE_SYSTEM_OPTIONS
+    // code contributed by Ryan Wilcox December 18, 2003
+    plainTransition = UMAGetSystemVersion() >= 0x1000 ;
+    if ( wxSystemOptions::HasOption(wxMAC_WINDOW_PLAIN_TRANSITION) )
+        plainTransition = ( wxSystemOptions::GetOptionInt( wxMAC_WINDOW_PLAIN_TRANSITION ) == 1 ) ;
+#endif
+
     if (show)
     {
-#if wxUSE_SYSTEM_OPTIONS
-        // code contributed by Ryan Wilcox December 18, 2003
-        bool plainTransition = UMAGetSystemVersion() >= 0x1000 ;
-        if ( wxSystemOptions::HasOption(wxMAC_WINDOW_PLAIN_TRANSITION) )
-            plainTransition = ( wxSystemOptions::GetOptionInt( wxMAC_WINDOW_PLAIN_TRANSITION ) == 1 ) ;
-
         if ( plainTransition )
            ::ShowWindow( (WindowRef)m_macWindow );
         else
            ::TransitionWindow( (WindowRef)m_macWindow, kWindowZoomTransitionEffect, kWindowShowTransitionAction, NULL );
-#else
-
-        ::TransitionWindow( (WindowRef)m_macWindow, kWindowZoomTransitionEffect, kWindowShowTransitionAction, NULL );
-#endif
 
         ::SelectWindow( (WindowRef)m_macWindow ) ;
 
@@ -1407,19 +1406,10 @@ bool wxTopLevelWindowMac::Show(bool show)
     }
     else
     {
-#if wxUSE_SYSTEM_OPTIONS
-        bool plainTransition = UMAGetSystemVersion() >= 0x1000 ;
-        if ( wxSystemOptions::HasOption(wxMAC_WINDOW_PLAIN_TRANSITION) )
-            plainTransition = ( wxSystemOptions::GetOptionInt( wxMAC_WINDOW_PLAIN_TRANSITION ) == 1 ) ;
         if ( plainTransition )
-        {
-           ::HideWindow((WindowRef) m_macWindow );
-        }
+           ::HideWindow( (WindowRef)m_macWindow );
         else
-#endif
-        {
-           ::TransitionWindow((WindowRef)m_macWindow, kWindowZoomTransitionEffect, kWindowHideTransitionAction, NULL );
-        }
+           ::TransitionWindow( (WindowRef)m_macWindow, kWindowZoomTransitionEffect, kWindowHideTransitionAction, NULL );
     }
 
     MacPropagateVisibilityChanged() ;
@@ -1515,12 +1505,13 @@ void wxTopLevelWindowMac::SetExtraStyle(long exStyle)
 #endif
 }
 
-// we are still using coordinates of the content view; TODO: switch to structure bounds
-
+// we are still using coordinates of the content view
+// TODO: switch to structure bounds
+//
 void wxTopLevelWindowMac::MacGetContentAreaInset( int &left , int &top , int &right , int &bottom )
 {
-    Rect content ;
-    Rect structure ;
+    Rect content, structure ;
+
     GetWindowBounds( (WindowRef) m_macWindow, kWindowStructureRgn , &structure ) ;
     GetWindowBounds( (WindowRef) m_macWindow, kWindowContentRgn , &content ) ;
 

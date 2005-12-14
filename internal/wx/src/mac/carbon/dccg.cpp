@@ -868,6 +868,9 @@ void wxDC::DoDrawIcon( const wxIcon &icon, wxCoord x, wxCoord y )
 
 void wxDC::DoSetClippingRegion( wxCoord x, wxCoord y, wxCoord width, wxCoord height )
 {
+    if (!Ok())
+        return;
+
     wxCHECK_RET(Ok(), wxT("wxDC::DoSetClippingRegion  Invalid DC"));
 
     wxCoord xx, yy, ww, hh;

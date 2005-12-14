@@ -3,7 +3,7 @@
 // Purpose:     Implementation of a uri parser
 // Author:      Ryan Norton
 // Created:     10/26/04
-// RCS-ID:      $Id: uri.cpp,v 1.30 2005/12/05 16:25:16 vell Exp $
+// RCS-ID:      $Id: uri.cpp,v 1.31 2005/12/14 17:49:05 vell Exp $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows
 /////////////////////////////////////////////////////////////////////////////
@@ -882,8 +882,8 @@ void wxURI::Resolve(const wxURI& base, int flags)
                     op += 3;
             }
 
-            m_path = (wxString)base.m_path.substr(0, bp - base.m_path.c_str()) +
-                    (wxString)m_path.substr((op - m_path.c_str()), m_path.Length());
+            m_path = base.m_path.substr(0, bp - base.m_path.c_str()) +
+                    m_path.substr((op - m_path.c_str()), m_path.Length());
         }
     }
 
