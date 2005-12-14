@@ -697,6 +697,17 @@ class MainView(View):
         # Test menu item
         wx.GetApp().ChooseLogConfig()
 
+    def onSearchWindowEvent(self, event):
+        query = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
+            "Search", "Enter your PyLucene query:", "")
+        if query:
+            view = self.itsView
+            results = pim.InclusionExclusionCollection(view=view,
+                displayName=query).setup()
+            for (item, attribute) in view.searchItems(query):
+                results.add(item)
+            schema.ns("osaf.app", self).sidebarCollection.add(results)
+
     def onRestoreSharesEvent(self, event):
         # Test menu item
         RestoreShares.Show(wx.GetApp().mainFrame, self.itsView)

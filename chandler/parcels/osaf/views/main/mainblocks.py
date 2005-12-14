@@ -263,6 +263,11 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
+    SearchWindowEvent = \
+        BlockEvent.template('SearchWindow',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
+    # from //parcels/osaf/views/main
     RestoreSharesEvent = \
         BlockEvent.template('RestoreShares',
             dispatchEnum='SendToBlockByName',
@@ -849,6 +854,10 @@ def make_mainview(parcel):
                                 event=LoadLoggingConfigEvent,
                                 title=u'Load logging configuration file...',
                                 helpString=u'Load logging configuration file'),
+                            MenuItem.template('SearchWindowItem',
+                                event=SearchWindowEvent,
+                                title=u'Search...',
+                                helpString=u'PyLucene search'),
                             Menu.template('ShareMenu',
                                 title=u'Share',
                                 helpString=u'Sharing-related test commands',
