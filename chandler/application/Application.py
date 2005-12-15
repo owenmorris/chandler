@@ -219,19 +219,18 @@ class wxApplication (wx.App):
         # Initialize PARCELPATH and sys.path
         parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
                                            Globals.options.parcelPath)
-        # Splash Screen.
-        # We don't show the splash screen when nosplash is set
 
+        # Splash Screen:
+        # don't show the splash screen when nosplash is set
         splash = None
         if not Globals.options.nosplash:
-            splashBitmap = self.GetImage ("splash.png")
-            splash=StartupSplash(None, splashBitmap)
+            splashBitmap = self.GetImage("splash.png")
+            splash = StartupSplash(None, splashBitmap)
             splash.Show()
-            wx.Yield() #let the splash screen render itself
-
+            # NB: not needed on Mac and Window, but leave in place until verified on GTK
+            # wx.Yield() #let the splash screen render itself
 
         # Crypto initialization
-
         if splash:
             splash.updateGauge('crypto')
         Utility.initCrypto(Globals.options.profileDir)
@@ -239,7 +238,6 @@ class wxApplication (wx.App):
         # The repository opening code was moved to a method so that it can
         # be called again if there is a schema mismatch and the user chooses
         # to reopen the repository in create mode.
-
         if splash:
             splash.updateGauge('repository')
         repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir)
@@ -267,7 +265,6 @@ class wxApplication (wx.App):
         self.repository = view.repository
 
         # Verify Schema Version
-
         if not Utility.verifySchema(view):
             if self.ShowSchemaMismatchWindow():
                 # Blow away the repository
@@ -281,7 +278,6 @@ class wxApplication (wx.App):
         self.UIRepositoryView = view
 
         # Load Parcels
-
         if splash:
             splash.updateGauge('parcels')
         Utility.initParcels(view, parcelPath)
@@ -298,7 +294,6 @@ class wxApplication (wx.App):
 
         # The Twisted Reactor should be started before other Managers
         # and stopped last.
-        
         if splash:
             splash.updateGauge('twisted')
         Utility.initTwisted()
@@ -322,7 +317,6 @@ class wxApplication (wx.App):
         mainViewRoot.frame = self.mainFrame
 
         # Register to some global events for name lookup.
-
         if splash:
             splash.updateGauge('globalevents')
         globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/GlobalEvents')
