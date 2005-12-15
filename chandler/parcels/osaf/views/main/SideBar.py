@@ -788,7 +788,8 @@ class SidebarBlock(ControlBlocks.Table):
         """
         # can remove anything except library collections
         event.arguments['Enable'] = \
-            not self.selectedItemToView.outOfTheBoxCollection
+            (self.selectedItemToView is not None) and \
+            (not self.selectedItemToView.outOfTheBoxCollection)
 
 
     def ClearCollectionContents(self, collection):
