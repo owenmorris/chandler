@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.649 2005/11/19 01:07:51 MR Exp $
+// RCS-ID:      $Id: window.cpp,v 1.650 2005/12/15 15:07:36 CE Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -848,15 +848,10 @@ inline int GetScrollPosition(HWND hWnd, int wOrient)
     WinStruct<SCROLLINFO> scrollInfo;
     scrollInfo.cbSize = sizeof(SCROLLINFO);
     scrollInfo.fMask = SIF_POS;
-    if ( !::GetScrollInfo(hWnd,
-                          wOrient,
-                          &scrollInfo) )
-    {
-        // Not necessarily an error, if there are no scrollbars yet.
-        // wxLogLastError(_T("GetScrollInfo"));
-    }
+    ::GetScrollInfo(hWnd, wOrient, &scrollInfo );
+    
     return scrollInfo.nPos;
-//    return ::GetScrollPos(hWnd, wOrient);
+
 #endif
 }
 
