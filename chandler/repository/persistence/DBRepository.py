@@ -38,9 +38,11 @@ from bsddb.db import \
     DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError, \
     DBLockDeadlockError, DBPermissionsError, DBInvalidArgError
 
-# missing from python interface at the moment
-DB_DSYNC_LOG = 0x00008000
-DB_DEGREE_2  = 0x02000000
+try:
+    from bsddb.db import DB_DSYNC_LOG
+except ImportError:
+    DB_DSYNC_LOG = 0x00008000
+
 
 class DBRepository(OnDemandRepository):
     """

@@ -898,8 +898,12 @@ class FilteredSet(Set):
                 item = item.itsUUID
             return item in index
 
-        return (self._sourceContains(item, self._source, excludeMutating) and
-                self.filter(item))
+        if self._sourceContains(item, self._source, excludeMutating):
+            if isuuid(item):
+                item = self._view[item]
+            return self.filter(item)
+
+        return False
 
     def _itervalues(self):
 
