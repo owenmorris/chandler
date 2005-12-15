@@ -2,12 +2,12 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    export CHANDLERHOME=`pwd`
+    export CHANDLERHOME=$(dirname "$(dirname "${0}")")
 fi
 
 if [ "$CHANDLERBIN" = "" ]
 then
-   export CHANDLERBIN=$CHANDLERHOME
+    export CHANDLERBIN=$CHANDLERHOME
 fi
 
 if [ "$PYTHON_VER" = "" ]
@@ -15,34 +15,34 @@ then
     PYTHON_VER=2.4
 fi
 
-if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
+if [ -f $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
 then
-    echo "Using $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python"
-    echo ""
+    export PYTHONHOME=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+    export DYLD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/icu/lib
+    export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/debug/Library/Frameworks
+    export PYTHONBIN=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
 else
-    echo "Error:  Please set CHANDLERHOME environment variable to point"
-    echo "        to the directory that contains the chandler "
-    echo "        subdirectory, then rerun RunPython"
-    echo "Error:  Please unset the CHANDLERBIN environment variable or "
-    echo "        set it to point to the directory that contains the debug "
-    echo "        subdirectory, then rerun RunPython"
-    exit 1
+    if [ -f $CHANDLERBIN/../MacOS/python ]
+    then
+        export PYTHONHOME=$CHANDLERBIN/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+        export DYLD_LIBRARY_PATH=$CHANDLERBIN/lib
+        export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/Library/Frameworks
+        export PYTHONBIN=$CHANDLERBIN/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+    else
+        echo "Error:  Please unset the CHANDLERBIN environment variable or "
+        echo "        set it to point to the directory that contains the debug "
+        echo "        subdirectory, then rerun RunPython"
+        exit 1
+    fi
 fi
 
 export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
-export PYTHONHOME=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-export DYLD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/icu/lib
-export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/debug/Library/Frameworks
 
 if [ "$PARCELPATH" != "" ]
 then
     export PYTHONPATH=$PYTHONPATH:$PARCELPATH
 fi
 
-if [ "$GDB" != "" ]
-then
-    echo $@
-    exec gdb $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
-else
-    exec $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python "$@"
-fi
+echo Using $PYTHONBIN
+
+exec $PYTHONBIN -O "$@"

@@ -15,34 +15,35 @@ then
     PYTHON_VER=2.4
 fi
 
-if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
+if [ -f $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
 then
-    echo "Using $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python"
-    echo ""
+    export PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+    export DYLD_LIBRARY_PATH=$CHANDLERBIN/release/lib:$CHANDLERBIN/release/db/lib:$CHANDLERBIN/release/icu/lib
+    export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/release/Library/Frameworks
+    export PYTHONBIN=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
 else
-    echo "Error:  Please set CHANDLERHOME environment variable to point"
-    echo "        to the directory that contains the chandler "
-    echo "        subdirectory, then rerun RunPython"
-    echo "Error:  Please unset the CHANDLERBIN environment variable or "
-    echo "        set it to point to the directory that contains the release "
-    echo "        subdirectory, then rerun RunPython"
-    exit 1
+    if [ -f $CHANDLERBIN/../MacOS/python ]
+    then
+        export PYTHONHOME=$CHANDLERBIN/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+        export DYLD_LIBRARY_PATH=$CHANDLERBIN/lib
+        export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/Library/Frameworks
+        export PYTHONBIN=$CHANDLERBIN/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+    else
+        echo "Error:  Please unset the CHANDLERBIN environment variable or "
+        echo "        set it to point to the directory that contains the release "
+        echo "        subdirectory, then rerun RunPython"
+        exit 1
+    fi
 fi
 
 export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
-export PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-export DYLD_LIBRARY_PATH=$CHANDLERBIN/release/lib:$CHANDLERBIN/release/db/lib:$CHANDLERBIN/release/icu/lib
-export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/release/Library/Frameworks
 
 if [ "$PARCELPATH" != "" ]
 then
     export PYTHONPATH=$PYTHONPATH:$PARCELPATH
 fi
 
-if [ "$GDB" != "" ]
-then
-    echo -O $@
-    exec gdb $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
-else
-    exec $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python -O "$@"
-fi
+echo Using $PYTHONBIN
+
+exec $PYTHONBIN -O "$@"
+

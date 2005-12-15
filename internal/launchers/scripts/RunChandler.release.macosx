@@ -2,7 +2,7 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    CHANDLERHOME=`pwd`
+    CHANDLERHOME=$(dirname "$(dirname "${0}")")
 fi
 
 if [ "$CHANDLERBIN" = "" ]
