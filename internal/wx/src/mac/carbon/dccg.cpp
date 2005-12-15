@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dccg.cpp,v 1.35 2005/12/15 00:58:39 vell Exp $
+// RCS-ID:      $Id: dccg.cpp,v 1.36 2005/12/15 21:21:02 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ const short kUnsupportedMode = -2 ;
 extern TECObjectRef s_TECNativeCToUnicode ;
 
 
-// TODO Update
+// TODO: update
 // The textctrl implementation still needs that (needs what?) for the non-HIView implementation
 //
 wxMacWindowClipper::wxMacWindowClipper( const wxWindow* win ) :
@@ -71,7 +71,7 @@ wxMacWindowClipper::wxMacWindowClipper( const wxWindow* win ) :
         if ( win->GetPeer() )
         {
             int x = 0 , y = 0;
-            win->MacWindowToRootWindow( &x,&y ) ;
+            win->MacWindowToRootWindow( &x, &y ) ;
             // get area including focus rect
             CopyRgn( (RgnHandle) ((wxWindow*)win)->MacGetVisibleRegion(true).GetWXHRGN() , m_newClip ) ;
             if ( !EmptyRgn( m_newClip ) )
@@ -790,9 +790,11 @@ void AddRoundedRectToPath(CGContextRef c, CGRect rect, float ovalWidth,
     CGContextRestoreGState(c);
 } 
 
+#pragma mark -
+
 wxDC::wxDC()
 {
-    m_ok = false;
+    m_ok = false ;
     m_colour = true;
     m_mm_to_pix_x = mm2pt;
     m_mm_to_pix_y = mm2pt;
@@ -805,12 +807,12 @@ wxDC::wxDC()
     m_userScaleY = 1.0;
     m_scaleX = 1.0;
     m_scaleY = 1.0;
-    m_needComputeScaleX = false;
+    m_needComputeScaleX =
     m_needComputeScaleY = false;
 
-    m_ok = false ;
     m_macPort = 0 ;
-    m_macLocalOrigin.x = m_macLocalOrigin.y = 0 ;
+    m_macLocalOrigin.x =
+    m_macLocalOrigin.y = 0 ;
 
     m_pen = *wxBLACK_PEN;
     m_font = *wxNORMAL_FONT;
@@ -874,10 +876,6 @@ void wxDC::DoDrawIcon( const wxIcon &icon, wxCoord x, wxCoord y )
 
 void wxDC::DoSetClippingRegion( wxCoord x, wxCoord y, wxCoord width, wxCoord height )
 {
-    // OSAF - added to fix Chandler-specific (splash screen window) problem
-    if (!Ok())
-        return;
-
     wxCHECK_RET( Ok(), wxT("wxDC(cg)::DoSetClippingRegion - invalid DC") );
 
     wxCoord xx, yy, ww, hh;
@@ -2127,6 +2125,8 @@ void wxDC::MacInstallFont() const
         wxASSERT_MSG( status == noErr , wxT("couldn't Modify ATSU style") ) ;
     }
 }
+
+#pragma mark -
 
 // ---------------------------------------------------------------------------
 // coordinates transformations

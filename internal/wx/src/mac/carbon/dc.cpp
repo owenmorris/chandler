@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.cpp,v 1.120 2005/12/15 00:25:03 DS Exp $
+// RCS-ID:      $Id: dc.cpp,v 1.121 2005/12/15 21:21:01 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -281,7 +281,6 @@ wxDC::wxDC()
     m_needComputeScaleY = false;
     m_macPort = NULL ;
     m_macMask = NULL ;
-    m_ok = false ;
     m_macFontInstalled = false ;
     m_macBrushInstalled = false ;
     m_macPenInstalled = false ;
