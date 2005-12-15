@@ -535,7 +535,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
                 if updateCallback and \
                     updateCallback(msg="'%s'" % eventItem.getItemDisplayName(),
-                        work=True):
+                        work=(self.fileStyle() == self.STYLE_SINGLE)):
                     raise Sharing.SharingError(_(u"Cancelled by user"))
 
                 allCollection = schema.ns("osaf.app", view).allCollection
