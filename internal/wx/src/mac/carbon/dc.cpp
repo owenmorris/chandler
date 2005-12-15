@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.cpp,v 1.119 2005/12/14 23:20:42 vell Exp $
+// RCS-ID:      $Id: dc.cpp,v 1.120 2005/12/15 00:25:03 DS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2083,7 +2083,7 @@ void wxDC::MacInstallPen() const
         //        case wxSRC_AND:     // source _bitmap_ AND destination
         break ;
 
-    default;
+    default:
         break ;
     }
 
