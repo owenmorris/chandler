@@ -84,3 +84,10 @@ src=chandler/debug
 dest=Contents/Resources/debug
 RunChandler
 RunPython
+
+src=chandler/debug/Library/Frameworks/Python.framework
+dest=Contents/Resources/Library/Frameworks/Python.framework
+recursive=yes
+Headers
+Resources
+Versions
