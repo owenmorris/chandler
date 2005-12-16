@@ -687,7 +687,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         deltaHours = position.y / self.hourHeight
         deltaMinutes = ((position.y % self.hourHeight) * 60) / self.hourHeight
-        deltaMinutes = roundTo(deltaMinutes, 15)
+
+        # round up/down to nearest 15 minutes
+        deltaMinutes = round(float(deltaMinutes)/15)*15
         return timedelta(hours=deltaHours, minutes=deltaMinutes)
         
     def getPositionFromDateTime(self, datetime):
