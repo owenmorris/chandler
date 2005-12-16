@@ -143,7 +143,7 @@ class CalendarSelection(schema.Annotation):
     """
     
     schema.kindInfo(annotates=AbstractCollection)
-    selectedOccurrences = schema.Many(schema.Item, defaultValue=[])
+    selectedOccurrences = schema.Many(schema.Item, defaultValue=set())
 
     def delegated(method):
         """
@@ -192,9 +192,9 @@ class CalendarSelection(schema.Annotation):
     def setSelectionToItem(self, item):
         if item.hasTrueAttributeValue('recurrenceID'):
             self.itsItem.clearSelection()
-            self.selectedOccurrences = [item]
+            self.selectedOccurrences = set((item,))
         else:
-            self.selectedOccurrences = []
+            self.selectedOccurrences = set()
             self.itsItem.setSelectionToItem(item)
             
     def isSelectionEmpty(self):
@@ -209,7 +209,7 @@ class CalendarSelection(schema.Annotation):
 
     def clearSelection(self):
         self.itsItem.clearSelection()
-        self.selectedOccurrences = []
+        self.selectedOccurrences = set()
 
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
