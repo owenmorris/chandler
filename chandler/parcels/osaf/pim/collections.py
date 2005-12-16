@@ -778,8 +778,8 @@ class IndexedSelectionCollection (AbstractCollection):
 
     def __len__(self):
         if hasattr(self, 'rep'):
-            # Get the index. It's necessary to get the length, and if it doesn't exist
-            # getIndex will create it.
+            # Get the index. It's necessary to get the length, and if
+            # it doesn't exist getIndex will create it.
             self.getIndex()
             return len(self.rep)
         else:
@@ -790,29 +790,73 @@ class IndexedSelectionCollection (AbstractCollection):
         Moves an item to a new C{location} in an __adhoc__ index.
         """
         if location == 0:
-            # Get the index. It's necessary to get the length, and if it doesn't exist
-            # getIndex will create it.
+            # Get the index. It's necessary to get the length, and if
+            # it doesn't exist getIndex will create it.
             self.getIndex()
             before = None
         else:
             before = self [location - 1]
         self.rep.placeInIndex (item, before, self.indexName)             
 
+    #
+    # General selection methods
+    # 
+
+    def isSelectionEmpty(self):
+        return len(self.getSelectionRanges()) == 0
+
+    def clearSelection(self):
+        return self.setSelectionRanges([])
+
+    #
+    # Range-based selection methods
+    # 
+
     def getSelectionRanges (self):
         """
-        Return the ranges associated with the current index as an array of tuples, where
-        each tuple representsa start and end of the range.
+        Return the ranges associated with the current index as an
+        array of tuples, where each tuple representsa start and end of
+        the range.
         """
         return self.getIndex().getRanges()
         
     def setSelectionRanges (self, ranges):
         """
-        Sets the ranges associated with the current index with C(ranges) which should be
-        an array of tuples, where each tuple represents a start and end of the range.
-        The ranges must be sorted ascending, non-overlapping and postive.
+        Sets the ranges associated with the current index with
+        C(ranges) which should be an array of tuples, where each tuple
+        represents a start and end of the range.  The ranges must be
+        sorted ascending, non-overlapping and postive.
         """
         self.rep.setRanges(self.indexName, ranges)
 
+    def isSelected (self, range):
+        """
+        Returns True if the C(range) is completely inside the selected
+        ranges of the index.  C(range) may be a tuple: (start, end) or
+        an integer index, where negative indexing works like Python
+        indexing.
+        """
+        return self.getIndex().isInRanges(range)
+
+    def addSelectionRange (self, range):
+        """
+        Selects a C(range) of indexes. C(range) may be a tuple:
+        (start, end) or an integer index, where negative indexing
+        works like Python indexing.
+        """
+        self.rep.addRange(self.indexName, range)
+
+    def removeSelectionRange (self, range):
+        """
+        unselects a C(range) of indexes. C(range) may be a tuple:
+        (start, end) or an integer index, where negative indexing
+        works like Python indexing..
+        """
+        self.rep.removeRange(self.indexName, range)
+    #
+    # Item-based selection methods
+    #
+    
     def setSelectionToItem (self, item):
         """
         Sets the entire selection to include only the C(item).
@@ -820,31 +864,11 @@ class IndexedSelectionCollection (AbstractCollection):
         index = self.index (item)
         self.rep.setRanges(self.indexName, [(index, index)])
 
-    def isSelected (self, range):
-        """
-        Returns True if the C(range) is completely inside the selected ranges of the index.
-        C(range) may be a tuple: (start, end) or an integer index, where negative indexing
-        works like Python indexing.
-        """
-        return self.getIndex().isInRanges(range)
-
-    def addSelectionRange (self, range):
-        """
-        Selects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
-        where negative indexing works like Python indexing.
-        """
-        self.rep.addRange(self.indexName, range)
-
-    def removeSelectionRange (self, range):
-        """
-        unselects a C(range) of indexes. C(range) may be a tuple: (start, end) or an integer index,
-        where negative indexing works like Python indexing..
-        """
-        self.rep.removeRange(self.indexName, range)
 
     def getFirstSelectedItem (self):
         """
-        Returns the first selected item in the index or None if there is no selection.
+        Returns the first selected item in the index or None if there
+        is no selection.
         """
         index = self.getIndex()._ranges.firstSelectedIndex()
         if index == None:
@@ -853,9 +877,15 @@ class IndexedSelectionCollection (AbstractCollection):
             return self[index]
 
     def isItemSelected(self, item):
+        """
+        returns True/False based on if the item is actually selected or not
+        """
         return self.isSelected(self.index(item))
 
     def iterSelection(self):
+        """
+        Generator to get the selection
+        """
         ranges = self.getSelectionRanges()
         if ranges is not None:
             for start,end in ranges:
@@ -873,6 +903,10 @@ class IndexedSelectionCollection (AbstractCollection):
         unSelects an C(item) in the index.
         """
         self.removeSelectionRange (self.index (item))
+
+    #
+    # index-based methods
+    #
 
     def __getitem__ (self, index):
         """
