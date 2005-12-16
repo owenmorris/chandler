@@ -32,7 +32,7 @@ class TimeZoneInfo(schema.Item):
     )
 
     @classmethod
-    def get(cls, view = None):
+    def get(cls, view):
         """Return the default C{TimeZoneInfo} instance, which
            automatically syncs with PyICU's default; i.e.
            if you assign an ICUtzinfo to

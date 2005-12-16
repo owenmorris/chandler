@@ -2,6 +2,7 @@
 import unittest, PyICU
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
+from repository.persistence.RepositoryView import NullRepositoryView
 from osaf.pim.calendar.TimeZone import *
 from datetime import datetime
 
@@ -10,7 +11,7 @@ class TimeZoneTestCase(RepositoryTestCase):
     def setUp(self):
         super(TimeZoneTestCase, self).setUp(True)
         PyICU.TimeZone.setDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
-        self.tzInfoItem = TimeZoneInfo.get()
+        self.tzInfoItem = TimeZoneInfo.get(self.rep.view)
 
     def testGetTimeZone(self):
         self.failIfEqual(self.tzInfoItem.default, None)
@@ -31,33 +32,35 @@ class DefaultTimeZoneTestCase(TimeZoneTestCase):
         self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Eastern")
         self.failUnlessEqual(PyICU.ICUtzinfo.getDefault(), self.tzInfoItem.default)
         
-class CanonicalTimeZoneTestCase(unittest.TestCase):
+class CanonicalTimeZoneTestCase(RepositoryTestCase):
     def setUp(self):
+        super(CanonicalTimeZoneTestCase, self).setUp(True)
         PyICU.TimeZone.setDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
 
     def testEquivalent(self):
         tz = PyICU.ICUtzinfo.getInstance("PST")
-        canonicalTz = TimeZoneInfo.get().canonicalTimeZone(tz)
+        canonicalTz = TimeZoneInfo.get(self.rep.view).canonicalTimeZone(tz)
         
         self.failUnlessEqual(canonicalTz.tzid, "US/Pacific")
 
     def testNew(self):
         tz = PyICU.ICUtzinfo.getInstance("America/Caracas")
-        info = TimeZoneInfo.get()
+        info = TimeZoneInfo.get(self.rep.view)
         canonicalTz = info.canonicalTimeZone(tz)
         
         self.failUnless(canonicalTz is tz)
         self.failUnless(tz.tzid in info.wellKnownIDs)
         
     def testNone(self):
-        info = TimeZoneInfo.get()
+        info = TimeZoneInfo.get(self.rep.view)
         canonicalTz = info.canonicalTimeZone(None)
         
         self.failUnless(canonicalTz is None)
         
-class KnownTimeZonesTestCase(unittest.TestCase):
+class KnownTimeZonesTestCase(RepositoryTestCase):
     def setUp(self):
-        self.info = TimeZoneInfo.get()
+        super(KnownTimeZonesTestCase, self).setUp(True)
+        self.info = TimeZoneInfo.get(self.rep.view)
         
     def testKnownTimeZones(self):
         numZones = 0
