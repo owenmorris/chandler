@@ -28,7 +28,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         super(wxTimedEventsCanvas, self).__init__(parent, *arguments, **keywords)
 
         # @@@ rationalize drawing calculations...
-        self.hourHeight = 50
         
         self._scrollYRate = 10
         
@@ -38,11 +37,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # determines if we're dragging the start or the end of an event, usually
         # the end
         self._bgSelectionDragEnd = True
-
-        self.size = self.GetSize()
-        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
-        self.size.height = self.hourHeight * 24
-        self.SetVirtualSize(self.size)
 
     def wxSynchronizeWidget(self, **hints):
         currentRange = self.GetCurrentDateRange()
@@ -146,7 +140,19 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def OnInit(self):
         super (wxTimedEventsCanvas, self).OnInit()
+
+        calendarContainer = self.blockItem.calendarContainer
+        maxTextHeight = max(calendarContainer.eventLabelMeasurements.height,
+                            calendarContainer.eventTimeMeasurements.height)
+
+        # make sure the half-hour slot is big enough to hold one line of text
+        self.hourHeight = (maxTextHeight + 6) * 2
         
+        self.size = self.GetSize()
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
+        self.size.height = self.hourHeight * 24
+        self.SetVirtualSize(self.size)
+
         self.SetScrollRate(0, self._scrollYRate)
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
