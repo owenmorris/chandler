@@ -10,6 +10,7 @@ import wx
 import wx.colheader
 
 from repository.item.Monitors import Monitors
+from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
@@ -126,10 +127,93 @@ class ColorInfo(object):
     visibleColors = tupleProperty(visibleGradientLeft, visibleGradientRight, visibleOutlineColor, visibleTextColor)
 
 
-class CalendarCollections(schema.Annotation):
+# wrapper around 
+class CalendarSelection(schema.Annotation):
+    """
+    Wrapper around AbstractCollection to provide specialized knowledge
+    about selection of recurrence.
+
+    Recurring items don't appear in the current collection, only the
+    master events do. This means that we have to build a seperate
+    container (self.selectedOccurrences) just for recurring items that
+    are selected.
+
+    Then we can just treat selection as the union between the
+    AbstractCollection (in self.itsItem) and the list of occurrences.
+    """
+    
     schema.kindInfo(annotates=AbstractCollection)
-    masterEvents = schema.One(FilteredCollection)
-        
+    selectedOccurrences = schema.Many(schema.Item, defaultValue=[])
+
+    def delegated(method):
+        """
+        method decorator that delegates method calls
+        with the same name, rather than call the function
+        """
+            
+        def ActualMethod(self, item):
+            if item.hasTrueAttributeValue('recurrenceID'):
+                return method(self, item)
+            else:
+                # call an identically named function in the outer
+                # (annotated) item
+                methodName = method.__name__
+                unboundMethod = getattr(type(self.itsItem), methodName)
+                return unboundMethod(self.itsItem, item)
+                    
+        return ActualMethod
+
+    def __getattr__(self, name):
+        return getattr(self.itsItem, name)
+
+    def __contains__(self, item):
+        # first we have to check
+        if item.hasTrueAttributeValue('recurrenceID'):
+            return self.itsItem.__contains__(item.getMaster())
+
+        return self.itsItem.__contains__(item)
+    
+    # these mimic the behavior of the collection
+
+    def _cleanSelection(self):
+        if None in self.selectedOccurrences:
+            self.selectedOccurrences.remove(None)
+
+    # first, delegated methods
+    @delegated
+    def isItemSelected(self, item):
+        return item in self.selectedOccurrences
+
+    @delegated
+    def selectItem(self, item):
+        self.selectedOccurrences.add(item)
+
+    @delegated
+    def unselectItem(self, item):
+        self.selectedOccurrences.remove(item)
+
+    def setSelectionToItem(self, item):
+        if item.hasTrueAttributeValue('recurrenceID'):
+            self.itsItem.clearSelection()
+            self.selectedOccurrences = [item]
+        else:
+            self.selectedOccurrences = []
+            self.itsItem.setSelectionToItem(item)
+            
+    def isSelectionEmpty(self):
+        self._cleanSelection()
+        return (self.itsItem.isSelectionEmpty() and 
+                len(self.selectedOccurrences) == 0)
+    
+    def iterSelection(self):
+        self._cleanSelection()
+        selectionFromCollection = self.itsItem.iterSelection()
+        return chain(iter(self.selectedOccurrences), self.itsItem.iterSelection())
+
+    def clearSelection(self):
+        self.itsItem.clearSelection()
+        self.selectedOccurrences = []
+
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
     Base class for calendar items. Covers:
@@ -972,6 +1056,8 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         # contentsCollection is the currently selected collection
         self.contentsCollection.color = ColorType(*color)
 
+    def GetSelection(self):
+        return CalendarSelection(self.contents)
 
 # ATTENTION: do not put mixins here - put them in wxCollectionCanvas
 # instead, to keep them more general
@@ -1181,7 +1267,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
     # Methods for Drag and Drop and Cut and Paste
     def SelectedItems(self):
-        return list(self.blockItem.contents.iterSelection())
+        return list(CalendarSelection(self.blockItem.contents).iterSelection())
 
     def AddItems(self, itemList):
         source = self.blockItem.contentsCollection
@@ -1512,12 +1598,13 @@ class CalendarControl(CalendarBlock):
 
         # probably should account for the selection being identical to
         # the current selection
-        
-        self.contents.setSelectionRanges([])
+
+        contents = CalendarSelection(self.contents)
+        contents.clearSelection()
             
         if newSelection:
             for item in newSelection:
-                self.contents.selectItem(item)
+                contents.selectItem(item)
             
         if hasattr(self, 'widget'):
             self.widget.Refresh()

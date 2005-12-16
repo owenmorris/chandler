@@ -6,7 +6,10 @@ import wx
 
 from application import schema
 from datetime import datetime, timedelta, date, time
-from CalendarCanvas import CalendarCanvasItem, CalendarBlock, wxCalendarCanvas, roundTo
+from CalendarCanvas import (
+    CalendarCanvasItem, CalendarBlock, CalendarSelection,
+    wxCalendarCanvas, roundTo
+    )
 from PyICU import GregorianCalendar, ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
@@ -150,7 +153,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         unselectedBoxes = []
         
-        contents = self.blockItem.contents
+        contents = CalendarSelection(self.blockItem.contents)
         selectedBoxes = []
         for canvasItem in self.canvasItemList:
 
@@ -159,10 +162,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             
             # for some reason, we're getting paint events before
             # widget synchronize events
-            if item in contents and contents.isItemSelected(item):
-                selectedBoxes.append(canvasItem)
-            else:
-                unselectedBoxes.append(canvasItem)
+            if item in contents:
+                if contents.isItemSelected(item):
+                    selectedBoxes.append(canvasItem)
+                else:
+                    unselectedBoxes.append(canvasItem)
 
         drawCanvasItems(unselectedBoxes, False)
         drawCanvasItems(selectedBoxes, True)

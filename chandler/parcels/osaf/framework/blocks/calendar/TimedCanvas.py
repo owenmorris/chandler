@@ -6,7 +6,10 @@ import wx
 
 from application import schema
 from datetime import datetime, timedelta, date, time
-from CalendarCanvas import CalendarCanvasItem, CalendarBlock, wxCalendarCanvas, roundTo
+from CalendarCanvas import (
+    CalendarCanvasItem, CalendarBlock, CalendarSelection,
+    wxCalendarCanvas, roundTo
+    )
 from PyICU import FieldPosition, DateFormat, ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
@@ -25,7 +28,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         super(wxTimedEventsCanvas, self).__init__(parent, *arguments, **keywords)
 
         # @@@ rationalize drawing calculations...
-        self.hourHeight = 40
+        self.hourHeight = 50
         
         self._scrollYRate = 10
         
@@ -399,7 +402,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         unselectedBoxes = []
         selectedBoxes = []
-        contents = self.blockItem.contents
+        contents = CalendarSelection(self.blockItem.contents)
         for canvasItem in self.canvasItemList:
 
             item = canvasItem.item
@@ -408,10 +411,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             # widget synchronize events, so item isn't always in contents
 
             # save the selected box to be drawn last
-            if item in contents and contents.isItemSelected(item):
-                selectedBoxes.append(canvasItem)
-            else:
-                unselectedBoxes.append(canvasItem)
+            if item in contents:
+                if contents.isItemSelected(item):
+                    selectedBoxes.append(canvasItem)
+                else:
+                    unselectedBoxes.append(canvasItem)
                     
         drawCanvasItems(unselectedBoxes, False)
         drawCanvasItems(selectedBoxes, True)
@@ -516,13 +520,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         of conflicting events is the currently selected one.
         """
         firstHit = None
-        contents = self.blockItem.contents
+        contents = CalendarSelection(self.blockItem.contents)
         for canvasItem in reversed(self.canvasItemList):
             if canvasItem.isHit(unscrolledPosition):
                 # this one is in the selection, so we can return
                 # immediately
                 item = canvasItem.item
-                if item in contents and contents.isItemSelected(item):
+                if contents.isItemSelected(item):
                     return canvasItem
                 
                 # otherwise, save the first hit for later, in case we

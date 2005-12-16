@@ -369,16 +369,18 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox:
             item = hitBox.item
+            selection = self.blockItem.GetSelection()
             if multipleSelection:
                 # need to add/remove from the selection
                 
-                if self.blockItem.contents.isItemSelected(item):
+                if selection.isItemSelected(item):
                     self.OnRemoveFromSelection(item)
+                    
+                elif selection.isSelectionEmpty():
+                    self.OnSelectItem(item)
+                    
                 else:
-                    if len(self.blockItem.contents.getSelectionRanges()) == 0:
-                        self.OnSelectItem(item)
-                    else:
-                        self.OnAddToSelection(item)
+                    self.OnAddToSelection(item)
             else:
                 # need to clear out the old selection, and select this
                 self.OnSelectItem(item)
@@ -614,21 +616,29 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         Subclasses can override to handle item selection.
         """
+        selection = self.blockItem.GetSelection()
         if item:
-            self.blockItem.contents.setSelectionToItem(item)
+            selection.setSelectionToItem(item)
         else:
-            self.blockItem.contents.setSelectionRanges([])
+            selection.clearSelection()
         self.blockItem.postSelectItemsBroadcast()
         self.Refresh()
 
     def OnAddToSelection(self, item):
-        self.blockItem.contents.selectItem(item)
-        self.blockItem.postSelectItemsBroadcast()
-        self.blockItem.synchronizeWidget()
+        blockItem = self.blockItem
+        
+        selection = blockItem.GetSelection()
+        selection.selectItem(item)
+        
+        blockItem.postSelectItemsBroadcast()
+        blockItem.synchronizeWidget()
 
     def OnRemoveFromSelection(self, item):
         blockItem = self.blockItem
-        blockItem.contents.unselectItem(item)
+        
+        selection = blockItem.GetSelection()
+        selection.unselectItem(item)
+        
         blockItem.selection.remove(item)
         blockItem.postSelectItemsBroadcast()
         blockItem.synchronizeWidget()
@@ -702,8 +712,9 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         """
         Convenience method for posting a selection changed event.
         """
+        selection = self.GetSelection()
         self.postEventByName('SelectItemsBroadcast',
-                             {'items': list(self.contents.iterSelection()),
+                             {'items': list(selection.iterSelection()),
                               'collection': self.contentsCollection})
 
     def SelectCollectionInSidebar(self, collection):
@@ -719,15 +730,20 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         event.arguments['Enable'] =  len(self.contents) > 0
 
     def DeleteSelection(self, cutting=False, *args, **kwargs):
-        for item in self.contents.iterSelection():
+        selection = self.GetSelection()
+        for item in selection.iterSelection():
             assert item is not None
             item.removeFromCollection(self.contentsCollection, cutting)
         self.ClearSelection()
 
     def ClearSelection(self):
-        self.contents.setSelectionRanges([])
+        selection = self.GetSelection()
+        selection.clearSelection()
         self.postSelectItemsBroadcast()
 
     def CanAdd(self):
         return not self.contentsCollection.isReadOnly()
 
+    def GetSelection():
+        # by default, selection is managed by the collection itself
+        return self.contents
