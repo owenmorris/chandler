@@ -234,6 +234,11 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.failIf(eventModified.isDeleted())
         # bug 4084, rruleset isn't getting deleted from eventModified
         self.failIf(eventModified.hasLocalAttributeValue('rruleset'))
+        # bug 4681, removeRecurrence doesn't work for AllDay events
+        self.event = eventModified
+        self.event.allDay = True
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        self.event.removeRecurrence()
 
         
     def testProxy(self):

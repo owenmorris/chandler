@@ -1153,13 +1153,13 @@ class CalendarEventMixin(RemindableMixin):
         The resulting event will occur exactly once.
         """
         master = self.getMaster()
-        if master.recurrenceID != master.startTime:
+        if datetimeOp(master.recurrenceID, '!=', master.startTime):
             master.changeNoModification('recurrenceID', master.startTime)
         rruleset = master.rruleset
         if rruleset is not None:
             masterHadModification = False
             for event in master.occurrences:                
-                if event.recurrenceID != master.startTime:
+                if datetimeOp(event.recurrenceID, '!=', master.startTime):
                     event.delete()
                 elif event != master:
                     # A THIS modification to master, make it the new master
