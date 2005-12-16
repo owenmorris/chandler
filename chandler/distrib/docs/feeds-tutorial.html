@@ -255,12 +255,10 @@ framework of the Sidebar, Summary View, and Detail View. <br>
  width="484"> </p>
 <p>These are the key parts of the Chandler UI: </p>
 <ul>
-  <li>The <strong>Sidebar</strong> is a list of <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>.
+  <li>The <strong>Sidebar</strong> is a list of Collections.
 An item collection is just a container for Items. </li>
   <li> The <strong>Summary View</strong> is a table that lists the
-items in the <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a>
+items in the Collection
 that is currently selected in the Sidebar. </li>
   <li> The <strong>Detail View</strong> displays the Item that is
 currently selected in the summary view. </li>
@@ -270,27 +268,20 @@ interface. Feeds (<code>FeedChannel</code>) contain RSS Items (<code>FeedItem</c
 and News Items have details. (including a body, url, author, and so
 forth) </p>
 <p>In the simplest case, a FeedChannel is a collection similar to the
-All, In, or Out collections. These collections are implemented with the
-<a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a>
+All, In, or Out collections. These collections are implemented with the  Collection
 Kind. </p>
-<p> <strong>Note:</strong> A<a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a>
-is just that: a generic collection of Items. <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>
+<p> <strong>Note:</strong> A Collection
+is just that: a generic collection of Items. Collections
 can contain any kind of Item, including mail messages, calendar events,
 and RSS news items. Single Items can actually be a member of
-multiple <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collections</a>.</p>
+multiple Collections.</p>
 <p> Since the Chandler UI understands these basic constructs, we can
-create a <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a>
+create a Collection 
 for each FeedChannel and Chandler will do its best to display the
 members of that collection. </p>
 <h3> Creating a menu item </h3>
 First we'll need to create a menu item so that the user can enter a URL
-for an RSS feed. From there, we'll create a <a class="twikiLink"
- href="http://wiki.osafoundation.org/bin/view/Documentation/Collection">Collection</a>
+for an RSS feed. From there, we'll create a Collection
 containing the items from that feed. This collection will appear in the
 user interface as an entry in the Sidebar.
 <p> We'll use the Event system to receive notification that our menu
