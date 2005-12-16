@@ -166,12 +166,9 @@ class CalendarSelection(schema.Annotation):
     def __getattr__(self, name):
         return getattr(self.itsItem, name)
 
+    @delegated
     def __contains__(self, item):
-        # first we have to check
-        if item.hasTrueAttributeValue('recurrenceID'):
-            return self.itsItem.__contains__(item.getMaster())
-
-        return self.itsItem.__contains__(item)
+        return self.itsItem.__contains__(item.getMaster())
     
     # these mimic the behavior of the collection
 
