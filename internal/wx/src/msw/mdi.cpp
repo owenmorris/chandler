@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: mdi.cpp,v 1.127 2005/11/13 05:00:32 KH Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.128 2005/12/16 14:52:57 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -543,6 +543,14 @@ bool wxMDIParentFrame::HandleCommand(WXWORD id, WXWORD cmd, WXHWND hwnd)
         wxWindow *win = wxFindWinFromHandle(hwnd);
         if ( win )
             return win->MSWCommand(cmd, id);
+    }
+
+    if (wxCurrentPopupMenu)
+    {
+        wxMenu *popupMenu = wxCurrentPopupMenu;
+        wxCurrentPopupMenu = NULL;
+        if (popupMenu->MSWCommand(cmd, id))
+            return true;
     }
 
     // is it one of standard MDI commands?
