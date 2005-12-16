@@ -29,6 +29,9 @@ try:
     TestEventCreation("Library")
     
     # backup
+    # - need to commit first so that the collection in the sidebar
+    #   gets saved
+    App_ns.itsView.commit()
     logger.Start("Backup repository")
     dbHome = App_ns.itsView.repository.backup()
     logger.Stop()
