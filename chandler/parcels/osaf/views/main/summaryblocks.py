@@ -85,7 +85,6 @@ def make_summaryblocks(parcel):
                                           stretchFactor=0)
     MainCalendarControl = MainCalendarControlT.install(parcel)
     WelcomeEvent = schema.ns("osaf.app", view).WelcomeEvent
-    MainCalendarControl.selection = [WelcomeEvent]
     
     CalendarDetailTPB = TrunkParentBlock.template('CalendarDetailTPB',
         trunkDelegate=detailTrunkDelegate,
