@@ -370,6 +370,25 @@ def okCancel(parent, caption, message):
 
 # A simple "yes/no" dialog
 
+def ShowMessageDialog(parent, message, caption, flags, resultsTable=None):
+    if flags & wx.YES_NO:
+        flags |= wx.ICON_QUESTION
+    elif flags & wx.OK:
+        flags |= wx.ICON_INFORMATION
+
+    if caption is None:
+        caption = _(u"Chandler")
+        
+    dlg = wx.MessageDialog(parent, message, caption, flags)
+    val = dlg.ShowModal()
+    dlg.Destroy()
+
+    if resultsTable is None:
+        return val
+    else:
+        return resultsTable[val]
+
+
 def yesNo(parent, caption, message):
     """ Prompt the user with a Yes/No dialog.  Return True if Yes, False if No.
         @param parent: A wx parent
@@ -380,35 +399,20 @@ def yesNo(parent, caption, message):
         @type item:  String
     """
 
-    dlg = wx.MessageDialog(parent, message, caption,
-     wx.YES_NO | wx.ICON_QUESTION)
-    val = dlg.ShowModal()
-
-    if val == wx.ID_YES:
-        value = True
-    else:
-        value = False
-
-    dlg.Destroy()
-    return value
+    return ShowMessageDialog(parent, message, caption,
+                             wx.YES_NO, 
+                            { wx.ID_YES: True,
+                              wx.ID_NO: False })
 
 # A simple yes/no/cancel dialog
 
 def yesNoCancel(parent, caption, message):
 
-    dlg = wx.MessageDialog(parent, message, caption,
-                           wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
-    val = dlg.ShowModal()
-
-    if val == wx.ID_YES:
-        value = True
-    elif val == wx.ID_NO:
-        value = False
-    else:
-        value = None                    # cancel
-
-    dlg.Destroy()
-    return value
+    return ShowMessageDialog(parent, message, caption,
+                             wx.YES_NO | wx.CANCEL,
+                             {wx.ID_YES: True,
+                              wx.ID_NO: False,
+                              wx.ID_CANCEL: None})
 
 # A simple file selection dialog
 
@@ -437,7 +441,4 @@ def ok(parent, caption, message):
         @param message:  A message
         @type item:  String
     """
-    dlg = wx.MessageDialog(parent, message, caption,
-     wx.OK | wx.ICON_INFORMATION)
-    dlg.ShowModal()
-    dlg.Destroy()
+    ShowMessageDialog(parent, message, caption, wx.OK)
