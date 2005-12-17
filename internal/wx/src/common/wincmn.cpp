@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.247 2005/11/26 13:09:23 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.248 2005/12/17 19:19:45 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -834,14 +834,14 @@ void wxWindowBase::DoSetVirtualSize( int x, int y )
 
 wxSize wxWindowBase::DoGetVirtualSize() const
 {
-    if ( m_virtualSize.IsFullySpecified() )
-        return m_virtualSize;
-
+    // we should use the entire client area so if it is greater than our
+    // virtual size, expand it to fit (otherwise if the window is big enough we
+    // wouldn't be using parts of it)
     wxSize size = GetClientSize();
-    if ( m_virtualSize.x != wxDefaultCoord )
+    if ( m_virtualSize.x > size.x )
         size.x = m_virtualSize.x;
 
-    if ( m_virtualSize.y != wxDefaultCoord )
+    if ( m_virtualSize.y >= size.y )
         size.y = m_virtualSize.y;
 
     return size;

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     12/01/2000
-// RCS-ID:      $Id: plot.cpp,v 1.14 2005/11/20 21:55:07 DS Exp $
+// RCS-ID:      $Id: plot.cpp,v 1.15 2005/12/17 19:23:04 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -781,10 +781,7 @@ wxPlotWindow::wxPlotWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos,
 
     mainsizer->Add( m_plotAndTitleSizer, 1, wxEXPAND );
 
-    SetAutoLayout( true );
-    SetSizer( mainsizer );
-    mainsizer->Fit(this);
-    mainsizer->SetSizeHints(this);
+    SetSizerAndFit( mainsizer );
 
     SetTargetWindow( m_area );
 
