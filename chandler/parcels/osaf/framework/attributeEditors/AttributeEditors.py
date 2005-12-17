@@ -613,7 +613,9 @@ class DragAndDropTextCtrl(ShownSynchronizer,
     def onRemoveEventUpdateUI(self, event):
         (startSelect, endSelect) = self.GetSelection()
         event.arguments ['Enable'] = startSelect < self.GetLastPosition()
-    
+
+    onDeleteEventUpdateUI = onRemoveEventUpdateUI
+
     def onRemoveEvent(self, event):
         # I tried the following code, but it didn't work. Perhaps it's
         # related to bug (#3978). So I rolled my own. -- DJA
@@ -625,6 +627,8 @@ class DragAndDropTextCtrl(ShownSynchronizer,
             if startSelect == endSelect:
                 endSelect += 1
             self.Remove (startSelect, endSelect)
+
+    onDeleteEvent = onRemoveEvent
 
     def onSelectAllEventUpdateUI(self, event):
         event.arguments ['Enable'] = self.GetLastPosition() > 0
