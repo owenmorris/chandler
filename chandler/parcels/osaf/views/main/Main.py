@@ -290,7 +290,15 @@ class MainView(View):
     
         # get default SMTP account
         item = event.arguments ['item']
-        account = Mail.getCurrentSMTPAccount(self.itsView)[0]
+
+        # determine the account through which we'll send this message;
+        # we'll use default SMTP account associated with the first account that's
+        # associated with the message's "from" address.
+        fromAddress = item.fromAddress
+        assert fromAddress is not None and fromAddress.accounts is not None
+        downloadAccount = fromAddress.accounts.first()
+        account = (downloadAccount is not None and downloadAccount.defaultSMTPAccount
+                   or Mail.getCurrentSMTPAccount(self.itsView)[0])
 
         # put a sending message into the status bar
         self.setStatusMessage (_(u'Sending mail...'))

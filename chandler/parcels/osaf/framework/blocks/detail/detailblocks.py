@@ -237,7 +237,7 @@ def registerAttributeEditors(parcel, oldVersion):
     aeList = {
         'DateTime+calendarDateOnly': 'CalendarDateAttributeEditor',
         'DateTime+calendarTimeOnly': 'CalendarTimeAttributeEditor',
-        'EmailAddress+outgoing': 'OutgoingEmailAddressAttributeEditor',
+        'EmailAddress+outbound': 'OutboundEmailAddressAttributeEditor',
         'NoneType+appearsIn': 'AppearsInAttributeEditor',
         'ListCollection+appearsIn': 'AppearsInAttributeEditor',
         'RecurrenceRuleSet+custom': 'RecurrenceCustomAttributeEditor',
@@ -605,24 +605,51 @@ def makeCalendarEventSubtree(parcel, oldVersion):
  
 def makeMailSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
-    fromArea = \
-        makeArea(parcel, 'FromArea',
+    outboundFromArea = \
+        makeArea(parcel, 'OutboundFromArea',
+            baseClass=OutboundOnlyAreaBlock,
             childrenBlocks=[
                 makeLabel(parcel, _(u'from')),
                 makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'FromEditField',
-                    #presentationStyle={'format': 'outgoing'},
+                makeEditor(parcel, 'EditMailOutboundFrom',
+                    presentationStyle={'format': 'outbound'},
+                    viewAttribute=u'fromAddress')],
+            position=0.1).install(parcel)
+    inboundFromArea = \
+        makeArea(parcel, 'InboundFromArea',
+            baseClass=InboundOnlyAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'from')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailInboundFrom',
                     viewAttribute=u'fromAddress')],
             position=0.1).install(parcel)
 
-    toMailArea = \
+    toArea = \
         makeArea(parcel, 'ToArea',
             childrenBlocks=[
                 makeLabel(parcel, _(u'to')),
                 makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'ToMailEditField',
+                makeEditor(parcel, 'EditMailTo',
                     viewAttribute=u'toAddress')],
-            position=0.11,
+            position=0.11).install(parcel)
+    ccArea = \
+        makeArea(parcel, 'CcArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'cc')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailCc',
+                    viewAttribute=u'ccAddress')],
+            position=0.111).install(parcel)
+    bccArea = \
+        makeArea(parcel, 'BccArea',
+            baseClass=OutboundOnlyAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'bcc')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailBcc',
+                    viewAttribute=u'bccAddress')],
+            position=0.112,
             border=RectType(0, 0, 6, 6)).install(parcel)
 
     acceptShareButton = \
@@ -664,9 +691,13 @@ def makeMailSubtree(parcel, oldVersion):
         DetailTrunkSubtree.update(parcel, 'MailSubtree',
             key=osaf.pim.mail.MailMessageMixin.getKind(parcel.itsView),
             rootBlocks=[
-                fromArea, 
-                toMailArea,
-                acceptShareButton,
+                outboundFromArea, 
+                inboundFromArea, 
+                toArea,
+                ccArea,
+                bccArea,
+                # @@@ Disabled until we resume work on sharing invitations
+                # acceptShareButton,
                 attachmentArea])
 
 def makeEmptySubtree(parcel, oldVersion):

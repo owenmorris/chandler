@@ -577,8 +577,11 @@ attribute_name: block_name
 detail_children = {
     'title': 'HeadlineBlock',
     'location': 'CalendarLocation',
-    'mail_from': 'FromEditField',
-    'mail_to': 'ToMailEditField',
+    'mail_from_inbound': 'EditMailInboundFrom',
+    'mail_from_outbound': 'EditMailOutboundFrom',
+    'mail_to': 'EditMailTo',
+    'mail_cc': 'EditMailCc',
+    'mail_bcc': 'EditMailBcc',
     'all_day': 'EditAllDay',
     'start_date': 'EditCalendarStartDate',
     'start_time': 'EditCalendarStartTime',

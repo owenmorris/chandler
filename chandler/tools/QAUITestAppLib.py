@@ -380,9 +380,35 @@ class UITestItem :
         @type timeInfo: boolean
         """
         if self.isMessage:
-            self.SetEditableBlock("ToMailEditField", "to address", toAdd, timeInfo=timeInfo)
+            self.SetEditableBlock("EditMailTo", "to address", toAdd, timeInfo=timeInfo)
         else:
             self.logger.Print("SetToAddress is not available for this kind of item")
+            return
+        
+    def SetCcAddress(self, ccAdd, timeInfo=True):
+        """
+        Set the CC address
+        @type ccAdd : string
+        @param ccAdd: the new CC address value
+        @type timeInfo: boolean
+        """
+        if self.isMessage:
+            self.SetEditableBlock("EditMailCc", "cc address", ccAdd, timeInfo=timeInfo)
+        else:
+            self.logger.Print("SetCcAddress is not available for this kind of item")
+            return
+        
+    def SetBccAddress(self, bccAdd, timeInfo=True):
+        """
+        Set the BCC address
+        @type bccAdd : string
+        @param bccAdd : the new BCC address value
+        @type timeInfo: boolean
+        """
+        if self.isMessage:
+            self.SetEditableBlock("EditMailBcc", "bcc address", bccAdd, timeInfo=timeInfo)
+        else:
+            self.logger.Print("SetBccAddress is not available for this kind of item")
             return
         
     def SetFromAddress(self, fromAdd, timeInfo=True):
@@ -393,7 +419,8 @@ class UITestItem :
         @type timeInfo: boolean
         """
         if self.isMessage:
-            self.SetEditableBlock("FromEditField", "from address", fromAdd, timeInfo=timeInfo)
+            self.SetEditableBlock(self.item.isInbound and "EditMailInboundFrom" or "EditMailOutboundFrom", 
+                                  "from address", fromAdd, timeInfo=timeInfo)
         else:
             self.logger.Print("SetFromAddress is not available for this kind of item")
             return
@@ -696,9 +723,13 @@ class UITestItem :
             elif field == "body": # body checking
                 self.CheckEditableBlock("NotesBlock", "body", dict[field])
             elif field == "fromAddress": # from address checking
-                self.CheckEditableBlock("FromEditField", "from address", dict[field])
+                self.CheckEditableBlock("EditMailFrom", "from address", dict[field])
             elif field == "toAddress": # to address checking
-                self.CheckEditableBlock("ToMailEditField", "to address", dict[field])
+                self.CheckEditableBlock("EditMailTo", "to address", dict[field])
+            elif field == "ccAddress": # cc address checking
+                self.CheckEditableBlock("EditMailCc", "cc address", dict[field])
+            elif field == "bccAddress": # bcc address checking
+                self.CheckEditableBlock("EditMailBcc", "bcc address", dict[field])
             elif field == "status": # status checking
                 self.CheckMenuBlock("EditTransparency", "status", dict[field])
             elif field == "timeZone": # time zone checking

@@ -775,164 +775,6 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
        # subclasses need to override this method
        raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
 
-class EditToAddressTextAttribute (EditTextAttribute):
-    """
-    An editable address attribute that resyncs the DV when changed
-    """
-    def saveAttributeFromWidget(self, item, widget, validate):
-        if validate:
-            toFieldString = widget.GetValue().strip('?')
-
-    
-            # parse the addresses and get/create/validate
-            processedAddresses, validAddresses = self.parseEmailAddresses (item, toFieldString)
-    
-            # reassign the list to the attribute
-            try:
-                item.setAttributeValue (self.whichAttribute (), validAddresses)
-            except:
-                pass
-    
-            # redisplay the processed addresses in the widget
-            widget.SetValue (processedAddresses)
-
-    def loadAttributeIntoWidget (self, item, widget):
-        if self.shouldShow (item):
-            try:
-                whoContacts = item.getAttributeValue (self.whichAttribute ())
-            except AttributeError:
-                whoContacts = ''
-            try:
-                numContacts = len(whoContacts)
-            except TypeError:
-                numContacts = -1
-            if numContacts == 0:
-                whoString = ''
-            elif numContacts > 0:
-                whoNames = []
-                for whom in whoContacts.values():
-                    whoNames.append (str (whom))
-                whoString = ', '.join(whoNames)
-            else:
-                whoString = str (whoContacts)
-                if isinstance(whoContacts, ContactName):
-                    names = []
-                    if len (whoContacts.firstName):
-                        names.append (whoContacts.firstName)
-                    if len (whoContacts.lastName):
-                        names.append (whoContacts.lastName)
-                    whoString = ' '.join(names)
-            widget.SetValue (whoString)
-
-class ToMailEditField (EditToAddressTextAttribute):
-    """
-    'To' attribute of a Mail ContentItem, e.g. who it's sent to
-    """
-    def whichAttribute(self):
-        # define the attribute to be used
-        return 'toAddress'
-
-class FromEditField (EditTextAttribute):
-    """Edit field containing the sender's contact"""
-    def saveAttributeFromWidget(self, item, widget, validate):  
-        pass
-
-    def loadAttributeIntoWidget(self, item, widget):
-        """
-          Load the widget based on the attribute associated with whoFrom.
-        """
-        try:
-            whoFrom = item.whoFrom
-        except AttributeError:
-            whoFrom = None
-
-        if whoFrom is None:
-            # Hack to set up whoFrom for Items with no value... like AbstractCollections
-            # Can't set the whoFrom at creation time, because many start life at
-            # system startup before the user account is setup.
-            if item.itsKind.hasAttribute ('whoFrom'):
-                try:
-                    # Determine which kind of item to assign based on the
-                    # types of the redirected-to attributes:
-                    type = item.getAttributeAspect('whoFrom', 'type')
-                    contactKind = pim.Contact.getKind(self.itsView)
-                    if type is contactKind:
-                        item.whoFrom = schema.ns("osaf.app",
-                            self.itsView).currentContact.item
-                    else:
-                        emailAddressKind = Mail.EmailAddress.getKind(self.itsView)
-                        if type is emailAddressKind:
-                            item.whoFrom = item.getCurrentMeEmailAddress()
-                except AttributeError:
-                    pass
-
-        try:
-            whoString = item.ItemWhoFromString ()
-        except AttributeError:
-            whoString = ''
-        widget.SetValue (whoString)
-        # logger.debug("FromEditField: Got '%s' after Set '%s'" % (widget.GetValue(), whoString))
-
-class EditRedirectAttribute (EditTextAttribute):
-    """
-    An attribute-based edit field
-    Our parent block knows which attribute we edit.
-    """
-    def saveAttributeFromWidget(self, item, widget, validate):
-        if validate:
-            item.setAttributeValue(self.whichAttribute(), widget.GetValue())
-
-    def loadAttributeIntoWidget(self, item, widget):
-        try:
-            value = item.getAttributeValue(self.whichAttribute())
-        except AttributeError:
-            value = messages.UNTITLED
-        if widget.GetValue() != value:
-            widget.SetValue(value)
-
-class StaticEmailAddressAttribute (StaticRedirectAttributeLabel):
-    """
-      Static Text that displays the name of the selected item's Attribute.
-    Customized for EmailAddresses
-    """
-    def staticTextLabelValue (self, item):
-        label = self.title
-        return label
-
-class EditEmailAddressAttribute (EditRedirectAttribute):
-    """
-    An attribute-based edit field for email addresses
-    The actual value is stored in an emailaddress 'section' object
-    for home or work.
-    """
-    def saveAttributeFromWidget(self, item, widget, validate):
-        if validate:
-            section = item.getAttributeValue (self.whichAttribute())
-            widgetString = widget.GetValue()
-            processedAddresses, validAddresses = self.parseEmailAddresses (item, widgetString)
-            section.emailAddresses = validAddresses
-            for address in validAddresses:
-                try:
-                    address.fullName = section.fullName
-                except AttributeError:
-                    pass
-            widget.SetValue (processedAddresses)
-
-    def loadAttributeIntoWidget(self, item, widget):
-        value = ''
-        try:
-            section = item.getAttributeValue (self.whichAttribute())
-            value = section.getAttributeValue ('emailAddresses')
-        except AttributeError:
-            value = {}
-        # convert the email address list to a nice string.
-        whoNames = []
-        for whom in value.values():
-            whoNames.append (str (whom))
-        whoString = ', '.join(whoNames)
-        widget.SetValue(whoString)
-
-
 class AttachmentAreaBlock(DetailSynchronizedLabeledTextAttributeBlock):
     """ an area visible only when the item (a mail message) has attachments """
     def shouldShow (self, item):
@@ -1453,6 +1295,111 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
             super(RecurrenceEndsAttributeEditor, self).\
                  SetAttributeValue(item, attributeName, valueString)
 
+class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
+    """ 
+    This block will only be visible on outbound messages
+    (like the outbound version of 'from', and 'bcc' which won't ever
+    show a value for inbound messages.)
+    """
+    def shouldShow (self, item):
+        return item.isOutbound
+    
+class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
+    """ 
+    This block will only be visible on inbound messages
+    (like the inbound version of 'from')
+    """
+    def shouldShow (self, item):
+        return item.isInbound
+
+class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
+    """ 
+    An attribute editor that presents a list of the configured email 
+    accounts. 
+    
+    If no accounts are configured, the only choice will trigger the 
+    email-account setup dialog.
+    
+    This editor's value is the email address string itself (though
+    the "configure accounts" choice is treated as the special string '').
+    """
+    def GetChoices(self):
+        """ Get the choices we're presenting """
+        choices = []
+        for acct in Mail.DownloadAccountBase.getKind(self.item.itsView).iterItems():
+            if (acct.isActive and acct.replyToAddress is not None 
+                and len(acct.replyToAddress.emailAddress) > 0):
+                addr = unicode(acct.replyToAddress) # eg "name <addr@ess>"
+                if not addr in choices:
+                    choices.append(addr)
+        choices.append(_(u"Configure email accounts..."))            
+        return choices
+    
+    def GetControlValue (self, control):
+        choiceIndex = control.GetSelection()
+        if choiceIndex == -1:
+            return None
+        if choiceIndex == control.GetCount() - 1:
+            return u''
+        return control.GetString(choiceIndex)
+
+    def SetControlValue (self, control, value):
+        """ Select the choice with the given text """
+        # We also take this opportunity to populate the menu
+        existingValue = self.GetControlValue(control)
+        if existingValue is None or existingValue != value:            
+            # rebuild the list of choices
+            choices = self.GetChoices()
+            control.Clear()
+            control.AppendItems(choices)
+        
+            try:
+                choiceIndex = control.FindString(value)
+            except AttributeError:
+                choiceIndex = wx.NOT_FOUND
+            control.Select(choiceIndex)
+
+    def GetAttributeValue(self, item, attributeName):
+        attrValue = getattr(item, attributeName, None)
+        if attrValue is not None:
+            # Just format one address
+            value = unicode(attrValue)
+        else:
+            value = u''
+        return value
+
+    def SetAttributeValue(self, item, attributeName, valueString):
+        # Process the one address we've got.
+        processedAddresses, validAddresses, invalidCount = \
+            Mail.EmailAddress.parseEmailAddresses(item.itsView, valueString)
+        if invalidCount == 0:
+            # The address is valid. Put it back if it's different
+            oldValue = self.GetAttributeValue(item, attributeName)
+            if oldValue != processedAddresses:
+                value = len(validAddresses) > 0 \
+                      and validAddresses[0] or None
+                setattr(item, attributeName, value)
+                self.AttributeChanged()
+                    
+    def onChoice(self, event):
+        control = event.GetEventObject()
+        newChoice = self.GetControlValue(control)
+        if len(newChoice) == 0:
+            app = wx.GetApp()
+            response = application.dialogs.AccountPreferences.\
+                     ShowAccountPreferencesDialog(app.mainFrame, 
+                                                  account=None, 
+                                                  view=self.item.itsView)
+            # rebuild the list in the popup
+            self.SetControlValue(control, 
+                self.GetAttributeValue(self.item, self.attributeName))
+        else:
+            #logger.debug("OutboundEmailAddressAttributeEditor.onChoice: "
+                         #"new choice is %s", newChoice)
+            self.SetAttributeValue(self.item, self.attributeName, \
+                                   newChoice)
+        
+        
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):
         self.selection = item
