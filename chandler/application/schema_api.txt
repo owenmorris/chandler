@@ -66,7 +66,7 @@ All role objects have at least the following attributes and methods:
         >>> class anEntity(schema.Item):
         ...     aRole = role
         >>> role.owner
-        <class 'anEntity'>
+        <class '...anEntity'>
 
     If a role's owner is an ``Item`` class, then setting ``aRole.inverse`` will
     invoke ``aRole.inverse.addType(aRole.owner)``, so that the inverse role
@@ -78,9 +78,9 @@ All role objects have at least the following attributes and methods:
         >>> class anotherEntity(schema.Item):
         ...     otherRole = schema.Role(inverse=anEntity.aRole)
         >>> anotherEntity.otherRole.type
-        <class 'anEntity'>
+        <class '...anEntity'>
         >>> anEntity.aRole.type
-        <class 'anotherEntity'>
+        <class '...anotherEntity'>
 
     As you can see, this ensures that both roles can accept the owning type of
     the other role.  It also works for setting up self-recursive roles within a
@@ -94,9 +94,9 @@ All role objects have at least the following attributes and methods:
         ...         return getattr(self,'name',object.__repr__(self))
 
         >>> Kind.subkinds.type
-        <class 'Kind'>
+        <class '...Kind'>
         >>> Kind.superkinds.type
-        <class 'Kind'>
+        <class '...Kind'>
 
 ``displayName``, ``description``, and ``doc``
     The name and description of this role, if any.  They will be used to
@@ -115,17 +115,17 @@ All role objects have at least the following attributes and methods:
          | ...
          |  Data and other attributes defined here:
          |
-         |  name = <Role name of <class 'Kind'>>
+         |  name = <Role name of <class '...Kind'>>
          |      Kind Name -- One(Text)
          |
          |      This kind's name
          |
-         |  subkinds = <Role subkinds of <class 'Kind'>>
+         |  subkinds = <Role subkinds of <class '...Kind'>>
          |      Many(Kind)
          |
          |      Sub-kinds of this kind
          |
-         |  superkinds = <Role superkinds of <class 'Kind'>>
+         |  superkinds = <Role superkinds of <class '...Kind'>>
          |      Many(Kind)
          |
          |      Super-kinds of this kind
@@ -207,10 +207,10 @@ All role objects have at least the following attributes and methods:
     references.  This ensures that the forward references are resolved::
 
         >>> File.folder.type
-        <class 'Folder'>
+        <class '...Folder'>
 
         >>> File.folder.inverse
-        <Role contents of <class 'Folder'>>
+        <Role contents of <class '...Folder'>>
 
 ``type``
     The ``type`` of a role can be either a ``schema.Item`` subclass, a
@@ -295,6 +295,9 @@ Item Subclasses
 
 XXX Explain this::
 
+    >>> rv = NullRepositoryView(verify=True)
+
+
     >>> class Person(schema.Item):
     ...     fullname = schema.One(schema.Text)
     ...     age = schema.One(schema.Integer)
@@ -308,11 +311,11 @@ XXX Explain this::
     ...     )
     ...     def __repr__(self): return self.fullname
 
-    >>> Joe = Person(fullname=u"Joe Schmoe", age=39)
+    >>> Joe = Person('Joe', None, None, rv, fullname=u"Joe Schmoe", age=39)
     >>> Joe
     Joe Schmoe
 
-    >>> Mary = Person(children=[Joe], fullname=u"Mary Quite Contrary")
+    >>> Mary = Person('Mary', rv, children=[Joe], fullname=u"Mary Quite Contrary")
     >>> list(Joe.parents)
     [Mary Quite Contrary]
 
@@ -331,11 +334,11 @@ and/or create a default parent::
     >>> class Elsewhere(schema.Item):
     ...     __default_path__ = "//userdata/miscellaneous"
 
-    >>> thingy = Elsewhere()
+    >>> thingy = Elsewhere(None, None, None, rv)
     >>> thingy.itsParent.itsPath
     //userdata/miscellaneous
 
-    >>> thingy.itsParent is Elsewhere.getDefaultParent()
+    >>> thingy.itsParent is Elsewhere.getDefaultParent(rv)
     True
 
 
@@ -343,7 +346,7 @@ Clouds are associated with the class' kind, with names that are generated
 by capitalizing the cloud alias and adding 'Cloud' to them (matching previous
 OSAF naming conventions)::
 
-    >>> clouds = schema.itemFor(Person).clouds
+    >>> clouds = schema.itemFor(Person, rv).clouds
     >>> list(clouds)
     [<Cloud ... SharingCloud ...>, <Cloud ... ExportCloud ...>]
 
@@ -370,7 +373,7 @@ OSAF naming conventions)::
 Instances of an item class can be iterated over using the ``iterItems()`` class
 method::
 
-    >>> sorted(Person.iterItems(), key=lambda x:x.fullname)
+    >>> sorted(Person.iterItems(rv), key=lambda x:x.fullname)
     [Joe Schmoe, Mary Quite Contrary]
 
 If no view is specified, the schema API's null repository view is searched, but
@@ -384,14 +387,14 @@ you can also specify a particular view::
 By default, subclass instances are included in the results::
 
     >>> class StrangePerson(Person): pass
-    >>> stranger = StrangePerson(fullname=u"The Stranger")
-    >>> sorted(Person.iterItems(), key=lambda x:x.fullname)
+    >>> stranger = StrangePerson(None,None,None,rv,fullname=u"The Stranger")
+    >>> sorted(Person.iterItems(rv), key=lambda x:x.fullname)
     [Joe Schmoe, Mary Quite Contrary, The Stranger]
 
 But you can turn this off by setting ``exact=True``, so that only instances
 of the exact class are yielded::
 
-    >>> sorted(Person.iterItems(exact=True), key=lambda x:x.fullname)
+    >>> sorted(Person.iterItems(rv,exact=True), key=lambda x:x.fullname)
     [Joe Schmoe, Mary Quite Contrary]
 
 
@@ -404,24 +407,24 @@ role that just indicates the cardinality of the other end (optionally with
 a displayName, description, initialValue, or other options):
 
 
-    >>> __name__ = "application.tests"    # pretend we're in this parcel
+    #>>> __name__ = "application.tests"    # pretend we're in this parcel
 
     >>> class School(schema.Item):
     ...     attendees = schema.Sequence(Person, inverse=schema.One())
 
-    >>> joes_school = School("Hogwart's", attendees=[Joe])
+    >>> joes_school = School(None,None,None,rv,"Hogwart's", attendees=[Joe])
     >>> list(joes_school.attendees)
     [Joe Schmoe]
 
 The inverse attribute will live in the repository under the School kind::
 
-    >>> schema.itemFor(School.attendees.inverse).itsPath
+    >>> schema.itemFor(School.attendees.inverse, rv).itsPath
     //parcels/application/tests/School/application.tests.School.attendees.inverse
 
 But it will be an attribute of the Person kind::
 
     >>> sorted(
-    ...     a.itsName for a in Person.getKind().attributes
+    ...     a.itsName for a in Person.getKind(rv).attributes
     ... ) # doctest: +NORMALIZE_WHITESPACE
     ... 
     ['age', 'application.tests.School.attendees.inverse', 'children',
@@ -438,13 +441,13 @@ You can use this constructed name with standard APIs to retrieve its value from
 items of the target kind::
 
     >>> getattr(Joe, 'application.tests.School.attendees.inverse')
-    <School ... Hogwart's ...>
+    <School ... Hogwart's>
 
     >>> delattr(Joe, 'application.tests.School.attendees.inverse')
     >>> list(joes_school.attendees)
     []
 
-    >>> del __name__    # quit pretending we're in application.tests
+    #>>> del __name__    # quit pretending we're in application.tests
 
 
 Additional Metadata
@@ -459,18 +462,18 @@ You can set additional attributes on your class' Kind by using
     ...         displayName = u"Calendar Item",
     ...         displayAttribute = "XYZ"
     ...     )
-    >>> schema.itemFor(CalendarItem).displayName
+    >>> schema.itemFor(CalendarItem, rv).displayName
     u'Calendar Item'
-    >>> schema.itemFor(CalendarItem).displayAttribute
+    >>> schema.itemFor(CalendarItem, rv).displayAttribute
     'XYZ'
-    >>> schema.itemFor(CalendarItem).description
+    >>> schema.itemFor(CalendarItem, rv).description
     'This is just a demo'
 
 These additional attributes are not normally inherited by subkinds::
 
     >>> class CalendarItemSubclass(CalendarItem):
     ...     pass
-    >>> hasattr(schema.itemFor(CalendarItemSubclass), 'displayName')
+    >>> hasattr(schema.itemFor(CalendarItemSubclass, rv), 'displayName')
     False
 
 You can make multiple calls to ``kindInfo()`` in the same class::
@@ -478,9 +481,9 @@ You can make multiple calls to ``kindInfo()`` in the same class::
     >>> class MultipleMetadata(schema.Item):
     ...     schema.kindInfo(displayName=u"Foo")
     ...     schema.kindInfo(displayAttribute="Bar")
-    >>> schema.itemFor(MultipleMetadata).displayName
+    >>> schema.itemFor(MultipleMetadata, rv).displayName
     u'Foo'
-    >>> schema.itemFor(MultipleMetadata).displayAttribute
+    >>> schema.itemFor(MultipleMetadata, rv).displayAttribute
     'Bar'
 
 As long as you don't change anything you declared in a previous definition::
@@ -534,7 +537,7 @@ are wrappers that give you access to the annotation attributes, which are
 actually stored on the wrapped item::
    
     >>> ProfMary = Teacher(Mary)
-    >>> gym = TeachingCertificate("gym", subject=u"Physical Education")
+    >>> gym = TeachingCertificate("gym", rv, subject=u"Physical Education")
     >>> ProfMary.certifications = [gym]
     >>> list(ProfMary.certifications)
     [<TeachingCertificate ... gym ...>]
@@ -556,7 +559,7 @@ module/class names to distinguish them from "native" or "essential" attributes
 of the kind::
 
     >>> sorted(
-    ...     a.itsName for a in Person.getKind().attributes
+    ...     a.itsName for a in Person.getKind(rv).attributes
     ... ) # doctest: +NORMALIZE_WHITESPACE
     ... 
     ['age', 'application.tests.School.attendees.inverse',
@@ -652,7 +655,7 @@ Enumerations
     ...     schema.kindInfo(displayName=u"Importance Enum")
     ...     values = 'high', 'medium', 'low'
 
-    >>> imp = schema.itemFor(Importance)
+    >>> imp = schema.itemFor(Importance, rv)
     >>> imp
     <Enumeration ... Importance ...>
 
@@ -729,10 +732,10 @@ Structs
       ...
     TypeError: Structs cannot subclass or be subclassed
 
-    >>> schema.itemFor(Size)
+    >>> schema.itemFor(Size, rv)
     <SchemaStruct ... Size ...>
 
-    >>> schema.itemFor(Size).itsKind.itsPath
+    >>> schema.itemFor(Size, rv).itsKind.itsPath
     //Schema/Core/Struct
 
 
@@ -740,7 +743,7 @@ Abstract Classes
 ================
 
 You can make an ``Item`` subclass abstract (non-instantiable) by setting
-``__abstract__`` in its class body::
+``__abstract__ = True`` in its class body::
 
     >>> class Thing(schema.Item):
     ...     __abstract__ = True
@@ -755,7 +758,7 @@ But subclasses of an abstract class are instantiable in the normal way::
     >>> class Chair(Thing):
     ...     pass
 
-    >>> Chair()
+    >>> Chair('chair',rv)
     <Chair ...>
 
 
@@ -775,7 +778,7 @@ You create a namespace by passing a module name and repository view to
 ``schema.ns()``.  We're using the null repository view, so we can omit the
 view::
 
-    >>> api_tests = schema.ns("application.tests.TestSchemaAPI")
+    >>> api_tests = schema.ns("application.tests.TestSchemaAPI", rv)
 
 We now have an object that can be used to access items that are directly in
 the designated module::
@@ -860,13 +863,13 @@ Notice that on our second call, the object's fullname attribute was updated
 *in place*, instead of creating a new item.  Also, the kind and class are
 updated, too::
 
-    >>> carlos.itsKind = StrangePerson.getKind()
+    >>> carlos.itsKind = StrangePerson.getKind(rv)
     >>> type(carlos)
-    <class 'StrangePerson'>
+    <class '...StrangePerson'>
 
     >>> installParcel(api_tests.parcel)
     >>> type(carlos)
-    <class 'Person'>
+    <class '...Person'>
 
 Note that the ``update()`` method can't tell if you've renamed an object that
 should have the same name, or whether perhaps you've accidentally given two
@@ -925,7 +928,7 @@ Importing the ``application.schema`` module automatically loads the core and
 Chandler schema packs into the null repository view, if they aren't already
 loaded::
 
-    >>> schema.nrv.findPath('//Schema/Core/Parcel')
+    >>> rv.findPath('//Schema/Core/Parcel')
     <Kind ...>
 
 
@@ -955,7 +958,7 @@ loaded::
         True
 
 
-``parcel_for_module(moduleName)``
+``parcel_for_module(moduleNam, rv)``
     The ``parcel_for_module()`` API returns a parcel instance for the named
     module.  If the module has a ``__parcel__`` attribute, the parcel for
     the named module is returned instead::
@@ -964,62 +967,37 @@ loaded::
         <NullRepositoryView: null view>
 
         >>> application.tests.__parcel__ = "__builtin__"
-        >>> schema.parcel_for_module("application.tests")
+        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
         <Parcel ... __builtin__ ...>
 
         >>> del application.tests.__parcel__    # clean up after the above test
         >>> schema.reset()
         <NullRepositoryView: null view>
 
-    If the module has no ``__parcel__``, but it has a ``__parcel_class__``,
-    then it is called to create a new parcel instance, passing in the name,
-    parent parcel, and parcel kind.  In addition, if the module defines an
-    ``installParcel()`` function, it will be called::
-
-        >>> def __parcel_class__(name, parent, kind):
-        ...     print "Creating", name, parent, kind
-        ...     print "Lock state:", schema.global_lock
-        ...     return 456
-        >>> application.tests.__parcel_class__ = __parcel_class__
+    If the module has no ``__parcel__``, but it has an ``installParcel()``
+    function, it will be called::
 
         >>> def installParcel(parcel, old_version=None):
         ...     print "installParcel(",parcel,")"
         >>> application.tests.installParcel = installParcel
 
-        >>> def __parcel_class__(name, parent, kind):
-        ...     print "Creating", name, parent, kind
-        ...     print "Lock state:", schema.global_lock
-        ...     from application.Parcel import Parcel
-        ...     return Parcel(name, parent, kind)
-        >>> application.__parcel_class__ = __parcel_class__
-
-        >>> schema.parcel_for_module("application.tests")
-        Creating application <Parcel ...parcels...> <Kind ...Parcel...>
-        Lock state: <_RLock(MainThread, 2)>
-        Creating tests <Parcel ...application...> <Kind ...Parcel...>
-        Lock state: <_RLock(MainThread, 1)>
-        installParcel( 456 )
-        456
-
-        >>> schema.global_lock
-        <_RLock(None, 0)>
+        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
+        installParcel( <Parcel (new): tests ...> )
+        <Parcel (new): tests ...>
 
     As you can see, the global lock is acquired during the recursive creation
     or retrieval of the parcel object, and released afterwards.
 
     The created parcel object is cached by the schema API so that subsequent
-    invocations just return the same object, without re-invoking the
-    ``__parcel_class__``::
+    invocations just return the same object, without recreating it::
 
-        >>> schema.parcel_for_module("application.tests")
-        456
+        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
+        <Parcel (new): tests ...>
 
         >>> # clean up dummy parcel setup
         >>> schema.reset()
         <NullRepositoryView: null view>
-        >>> del application.tests.__parcel_class__
         >>> del application.tests.installParcel
-        >>> del application.__parcel_class__
 
     Finally, in order to support defining core schema kinds using the schema
     API, you can set ``__parcel__`` to a string starting with ``//``) in order
@@ -1029,7 +1007,7 @@ loaded::
     mechanism if we start moving more of the core schema into the schema API::
 
         >>> application.tests.__parcel__ = "//Schema/Core"
-        >>> schema.parcel_for_module("application.tests")
+        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
         <Item ...: Core ...>
 
         >>> del application.tests.__parcel__    # clean up after the above test
@@ -1037,38 +1015,38 @@ loaded::
         <NullRepositoryView: null view>
 
 
-``itemFor(obj)``
+``itemFor(obj, rv)``
     Return the repository item that corresponds to the supplied object.  For
     example, ``itemFor(AnItemClass)`` returns the repository ``Kind`` that
     represents that class in the null view::
 
-        >>> schema.itemFor(schema.Item)
+        >>> schema.itemFor(schema.Item, rv)
         <Kind ... Item ...>
 
         >>> class TestItem(schema.Item):
         ...     __module__ = 'application.tests'  # pretend we're here
 
-        >>> schema.itemFor(TestItem)
+        >>> schema.itemFor(TestItem, rv)
         <Kind ... TestItem ...>
 
-        >>> kind = schema.itemFor(TestItem)
+        >>> kind = schema.itemFor(TestItem, rv)
 
     And the generated kind has its class' module's parcel as its parent::
 
-        >>> kind.itsParent is schema.parcel_for_module('application.tests')
+        >>> kind.itsParent is schema.parcel_for_module('application.tests', rv)
         True
 
-        >>> kind is schema.nrv.findPath('//parcels/application/tests/TestItem')
+        >>> kind is rv.findPath('//parcels/application/tests/TestItem')
         True
 
     Its superkinds are the ``schema.itemFor()`` of its base classes::
 
-        >>> list(kind.superKinds) == [schema.nrv.findPath('//Schema/Core/Item')]
+        >>> list(kind.superKinds) == [rv.findPath('//Schema/Core/Item')]
         True
 
     Its kind is of course ``Kind``::
 
-        >>> kind.itsKind is schema.nrv.findPath('//Schema/Core/Kind')
+        >>> kind.itsKind is rv.findPath('//Schema/Core/Kind')
         True
 
     And its class is the class::
@@ -1080,31 +1058,31 @@ loaded::
     Meanwhile, ``schema.itemFor(aRole)`` returns a repository ``Attribute``
     object representing that attribute in the null view::
 
-        >>> schema.itemFor(Kind.subkinds)
+        >>> schema.itemFor(Kind.subkinds, rv)
         <Attribute ... subkinds ...>
 
-        >>> schema.itemFor(Kind.subkinds).otherName
+        >>> schema.itemFor(Kind.subkinds, rv).otherName
         'superkinds'
 
-        >>> schema.itemFor(Kind.superkinds).otherName
+        >>> schema.itemFor(Kind.superkinds, rv).otherName
         'subkinds'
 
-        >>> schema.itemFor(Kind.subkinds).itsParent is schema.itemFor(Kind)
+        >>> schema.itemFor(Kind.subkinds, rv).itsParent is schema.itemFor(Kind, rv)
         True
 
-        >>> schema.itemFor(Kind.subkinds) in schema.itemFor(Kind).attributes
+        >>> schema.itemFor(Kind.subkinds, rv) in schema.itemFor(Kind, rv).attributes
         True
 
-        >>> schema.itemFor(Kind.subkinds).cardinality
+        >>> schema.itemFor(Kind.subkinds, rv).cardinality
         'set'
 
-        >>> schema.itemFor(Kind.subkinds).description is Kind.subkinds.doc
+        >>> schema.itemFor(Kind.subkinds, rv).description is Kind.subkinds.doc
         True
 
     Roles must be activated in a class, however, in order to generate their
     ``Attribute``::
 
-        >>> schema.itemFor(schema.One())
+        >>> schema.itemFor(schema.One(), rv)
         Traceback (most recent call last):
         ...
         TypeError: role object used outside of schema class
@@ -1115,7 +1093,7 @@ loaded::
         >>> Kind.subkinds.redirectTo = "xyz"
         Traceback (most recent call last):
         ...
-        TypeError: Role object <Role subkinds of <class 'Kind'>> cannot be modified after use
+        TypeError: Role object <Role subkinds of <class '...Kind'>> cannot be modified after use
 
 ``initRepository(repoView)``
     Ensure that the given repository view has been initialized with the core
@@ -1267,7 +1245,7 @@ A role object's ``annotates`` attribute lists items whose ``attributes`` the
 role's ``Attribute`` instance should be added to when the ``Attribute`` is
 created::
 
-    >>> sorted(a.itsName for a in Person.getKind().attributes)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(a.itsName for a in Person.getKind(schema._get_nrv()).attributes)  # doctest: +NORMALIZE_WHITESPACE
     ['age', 'children', 'fullname', 'parents']
 
     >>> class HealthInfo(schema.Item): pass
@@ -1276,10 +1254,10 @@ created::
     ...     annotates=(Person,)
     ... )
 
-    >>> schema.itemFor(weight)
+    >>> schema.itemFor(weight, schema._get_nrv())
     <Attribute... HealthInfo.weight ...>
 
-    >>> sorted(a.itsName for a in Person.getKind().attributes)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(a.itsName for a in Person.getKind(schema._get_nrv()).attributes)  # doctest: +NORMALIZE_WHITESPACE
     ['HealthInfo.weight', 'age', 'children', 'fullname', 'parents']
 
 

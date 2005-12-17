@@ -1,7 +1,7 @@
 import unittest
 this_module = "application.tests.TestSchemaAPI"     # change this if it moves
 
-from application import schema
+from application import schema, tests
 from repository.schema import Types
 from repository.persistence.RepositoryView import NullRepositoryView
 
@@ -28,29 +28,32 @@ class SchemaTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
 
     def setUp(self):
-        schema.reset()  # clear schema state before starting
+        self.rv = NullRepositoryView(verify=True)
 
     def tearDown(self):
-        self.failUnless(schema.reset().check(), "check() failed")
+        self.failUnless(self.rv.check(), "check() failed")
 
 class SchemaTests(SchemaTestCase):
 
     def testDeriveFromCore(self):
         self.assertEqual(
-            list(schema.itemFor(Mixed).superKinds),
-            [schema.itemFor(Dummy), schema.itemFor(Types.Type)]
+            list(schema.itemFor(Mixed, self.rv).superKinds),
+            [schema.itemFor(Dummy, self.rv), schema.itemFor(Types.Type, self.rv)]
         )
 
     def testResetCache(self):
         # Parcel/kind/attr caches should be cleared between resets
-        parcel1 = schema.parcel_for_module(this_module)
-        kind1 = schema.itemFor(Dummy)
-        attr1 = schema.itemFor(Dummy.attr)
+        schema.reset()
+        rv = schema._get_nrv()
+        parcel1 = schema.parcel_for_module(this_module, rv)
+        kind1 = schema.itemFor(Dummy, rv)
+        attr1 = schema.itemFor(Dummy.attr, rv)
 
         old = schema.reset()
-        parcel2 = schema.parcel_for_module(this_module)
-        kind2 = schema.itemFor(Dummy)
-        attr2 = schema.itemFor(Dummy.attr)
+        rv = schema._get_nrv()
+        parcel2 = schema.parcel_for_module(this_module, rv)
+        kind2 = schema.itemFor(Dummy, rv)
+        attr2 = schema.itemFor(Dummy.attr, rv)
 
         self.failIf(parcel2 is parcel1)
         self.failIf(kind2 is kind1)
@@ -58,33 +61,33 @@ class SchemaTests(SchemaTestCase):
 
         # But switching back to an old state should restore the cache
         schema.reset(old)
-        parcel3 = schema.parcel_for_module(this_module)
-        kind3 = schema.itemFor(Dummy)
-        attr3 = schema.itemFor(Dummy.attr)
+        rv = schema._get_nrv()
+        parcel3 = schema.parcel_for_module(this_module, rv)
+        kind3 = schema.itemFor(Dummy, rv)
+        attr3 = schema.itemFor(Dummy.attr, rv)
         self.failUnless(parcel3 is parcel1)
         self.failUnless(attr3 is attr1)
         self.failUnless(attr3 is attr1)
 
     def testAttrKindType(self):
-        self.assertEqual(schema.itemFor(Dummy.attr).getAspect('type'),
-            schema.nrv.findPath('//Schema/Core/Text'))
-        self.assertEqual(schema.itemFor(Other.thing).getAspect('type'),
-                         schema.itemFor(Dummy))
+        self.assertEqual(schema.itemFor(Dummy.attr, self.rv).getAspect('type'),
+            self.rv.findPath('//Schema/Core/Text'))
+        self.assertEqual(schema.itemFor(Other.thing, self.rv).getAspect('type'),
+                         schema.itemFor(Dummy, self.rv))
         self.assertRaises(TypeError, schema.Role, str)
 
     def testImportAll(self):
-        rv = NullRepositoryView()
-        schema.initRepository(rv)
-        schema.synchronize(rv, this_module)
+        schema.initRepository(self.rv)
+        schema.synchronize(self.rv, this_module)
         path = "//parcels/%s/" % this_module.replace('.','/')
-        self.assertNotEqual( rv.findPath(path+'Dummy'), None)
-        self.assertNotEqual( rv.findPath(path+'AnEnum'), None)
+        self.assertNotEqual( self.rv.findPath(path+'Dummy'), None)
+        self.assertNotEqual( self.rv.findPath(path+'AnEnum'), None)
 
     def testAnnotateKind(self):
-        kind_kind = schema.itemFor(schema.Kind)
+        kind_kind = schema.itemFor(schema.Kind, self.rv)
         CoreAnnotation(kind_kind).extraInfo = u"Foo"
         self.assertEqual(CoreAnnotation(kind_kind).extraInfo, u"Foo")
-        parcel = schema.parcel_for_module(__name__)
+        parcel = schema.parcel_for_module(__name__, self.rv)
         CoreAnnotation(kind_kind).otherItem = parcel
         self.assertEqual(
             list(getattr(parcel, __name__+".CoreAnnotation.otherItem.inverse")),
@@ -95,7 +98,10 @@ class SchemaTests(SchemaTestCase):
 def test_schema_api():
     import doctest
     return doctest.DocFileSuite(
-        'schema_api.txt', optionflags=doctest.ELLIPSIS, package='application',
+        'parcel-schema-guide.txt',
+        'schema_api.txt',
+        optionflags=doctest.ELLIPSIS, package='application',
+        globs=tests.__dict__
     )
 
 

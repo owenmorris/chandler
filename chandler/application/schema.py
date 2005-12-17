@@ -614,7 +614,9 @@ class Item(Base):
                 elif kind is not None:
                     view = kind.itsView
                 else:
-                    view = _get_nrv()
+                    raise AssertionError(
+                        "View, kind, or parent must be specified"
+                    )
 
             if parent is None:
                 parent = self.getDefaultParent(view)
@@ -625,18 +627,18 @@ class Item(Base):
         super(Item,self).__init__(name,parent,kind,*args,**values)
 
     @classmethod
-    def getDefaultParent(cls, view=None):
+    def getDefaultParent(cls, view):
         if hasattr(cls,'__default_path__'):
             return itemFor(cls.__default_path__,view)
         return None
 
     @classmethod
-    def getKind(cls, view=None):
+    def getKind(cls, view):
         """Get the kind of this class (or instance) in the specified view"""
         return itemFor(cls,view)
 
     @classmethod
-    def iterItems(cls, view=None, exact=False):
+    def iterItems(cls, view, exact=False):
         """Yield instances of this type in the given view
 
         If `exact` is a true value, yield only exact matches, not subclass
@@ -1020,7 +1022,7 @@ class ns(object):
     for a more detailed explanation
     """
 
-    def __init__(self, name, view=None):
+    def __init__(self, name, view):
         self.view = getattr(view,'itsView',view)
         self.__module = importString(name)
 
@@ -1178,42 +1180,16 @@ class ModuleMaker:
         if isinstance(item,Parcel):
             return item
 
-    def _get_parcel_factory(self, view):
-        module = importString(self.moduleName)
-        from application.Parcel import Parcel
-        return getattr(module,'__parcel_class__',Parcel)
-
     def _create_schema_item(self,view):
-        mkParcel = self._get_parcel_factory(view)
-        if isinstance(mkParcel, ItemClass):
-            # Avoid circular dependency if parcel kind might be inside parcel
-            try:
-                item = Base("tmp_"+self.name, view, None)
-            except ValueError:
-                print "failed creation of",self
-                raise
-            item.__class__ = mkParcel
-            return item
-        from application.Parcel import Parcel
-        kind = itemFor(Parcel, view)
-        return mkParcel(self.name, self.getParent(view), kind)
+        # Create a temporary item without a kind, so as not to
+        # incur unintended 
+        return Base("tmp_parcel_for-"+self.moduleName, view, None)
 
     def _init_schema_item(self,item,view):
-        mkParcel = self._get_parcel_factory(view)
-        if isinstance(mkParcel, ItemClass):
-            # Fixup parcel with right name/parent/class/kind
-            item.itsParent = self.getParent(view)
-            item.itsName = self.name
-            item.itsKind = itemFor(mkParcel, view)
-            if item.itsKind.itsParent is item:
-                # This is a kludge that should be removed as soon as we
-                # get rid of __parcel_class__.  It moves a parcel's kind to
-                # the parent parcel, if the parcel's kind is a child of the
-                # parcel.  When  __parcel_class__ is gone, we won't need to
-                # do this hideous kludge, and in fact this entire method
-                # body will probably end up empty again.
-                item.itsKind.itsParent = item.itsParent     # XXX FIXME!
-            mkParcel.__init__(item)
+        from application.Parcel import Parcel
+        item.itsParent = self.getParent(view)
+        item.itsName = self.name
+        item.itsKind = itemFor(Parcel, view)
         module = importString(self.moduleName)
         if hasattr(module,'installParcel'):
             # make sure that the schema for the module is fully created
@@ -1227,23 +1203,15 @@ class ModuleMaker:
         return "ModuleMaker(%r)" % self.moduleName
 
 
-def parcel_for_module(moduleName, view=None):
+def parcel_for_module(moduleName, view):
     """Return the Parcel for the named module
 
     If the named module has a ``__parcel__`` attribute, its value will be
     used to redirect to another parcel.  If the module does not have a
     ``__parcel__``, then a new parcel will be created, cached, and returned.
-    If the module has a ``__parcel_class__`` attribute, it will be used in
-    place of the ``application.Parcel.Parcel`` class, to create the parcel
-    instance.  The ``__parcel_class__`` must accept three arguments: the
-    parcel's name, its parent parcel (which will be the ``parcel_for_module()``
-    of the module's enclosing package), and the Parcel Kind (as found at
-    ``//Schema/Core/Parcel`` in the null repository view).
 
     This routine is thread-safe and re-entrant.
     """
-    if view is None:
-        view = _get_nrv()
     try:
         ob = view._schema_cache[moduleName]   # fast path
         if ob is None:
@@ -1271,11 +1239,8 @@ def synchronize(repoView,moduleName):
 
 
 
-def itemFor(obj, view=None):
-    """Return the schema Item corresponding to ``obj`` in the null view"""
-
-    if view is None:
-        view = _get_nrv()
+def itemFor(obj, view):
+    """Return the schema Item corresponding to ``obj`` in the given view"""
 
     try:
         item = view._schema_cache[obj]
