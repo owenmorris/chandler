@@ -45,4 +45,10 @@ fi
 
 echo Using $PYTHONBIN
 
-exec $PYTHONBIN -O "$@"
+if [ "$GDB" != "" ]
+then
+    echo -O $@
+    exec gdb $PYTHONBIN
+else
+    exec $PYTHONBIN -O "$@"
+fi
