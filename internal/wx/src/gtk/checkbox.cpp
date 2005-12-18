@@ -2,7 +2,7 @@
 // Name:        checkbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checkbox.cpp,v 1.69 2005/09/23 12:53:36 MR Exp $
+// Id:          $Id: checkbox.cpp,v 1.70 2005/12/18 16:37:55 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -229,14 +229,7 @@ void wxCheckBox::SetLabel( const wxString& label )
 {
     wxCHECK_RET( m_widgetLabel != NULL, wxT("invalid checkbox") );
 
-    wxControl::SetLabel( label );
-
-#ifdef __WXGTK20__
-    wxString label2 = PrepareLabelMnemonics( label );
-    gtk_label_set_text_with_mnemonic( GTK_LABEL(m_widgetLabel), wxGTK_CONV( label2 ) );
-#else
-    gtk_label_set( GTK_LABEL(m_widgetLabel), wxGTK_CONV( GetLabel() ) );
-#endif
+    GTKSetLabelForLabel(GTK_LABEL(m_widgetLabel), label);
 }
 
 bool wxCheckBox::Enable( bool enable )

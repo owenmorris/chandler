@@ -2,7 +2,7 @@
 // Name:        m_list.cpp
 // Purpose:     wxHtml module for lists
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: m_list.cpp,v 1.31 2005/09/23 12:53:54 MR Exp $
+// RCS-ID:      $Id: m_list.cpp,v 1.32 2005/12/18 12:22:20 JS Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ TAG_HANDLER_BEGIN(OLULLI, "OL,UL,LI")
             {
                 c->SetAlignHor(wxHTML_ALIGN_RIGHT);
                 wxString markStr;
-                markStr.Printf(wxT("%i."), m_Numbering);
+                markStr.Printf(wxT("%i. "), m_Numbering);
                 c->InsertCell(new wxHtmlWordCell(markStr, *(m_WParser->GetDC())));
             }
             m_WParser->CloseContainer();

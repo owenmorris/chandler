@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextbuffer.cpp,v 1.24 2005/11/27 02:03:40 MW Exp $
+// RCS-ID:      $Id: richtextbuffer.cpp,v 1.25 2005/12/18 12:25:21 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -3409,7 +3409,7 @@ bool wxRichTextBuffer::BeginStyle(const wxTextAttrEx& style)
 /// End the style
 bool wxRichTextBuffer::EndStyle()
 {
-    if (m_attributeStack.GetFirst())
+    if (!m_attributeStack.GetFirst())
     {
         wxLogDebug(_("Too many EndStyle calls!"));
         return false;

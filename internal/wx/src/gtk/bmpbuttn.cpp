@@ -2,7 +2,7 @@
 // Name:        gtk/bmpbuttn.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: bmpbuttn.cpp,v 1.61 2005/09/23 12:53:35 MR Exp $
+// Id:          $Id: bmpbuttn.cpp,v 1.62 2005/12/18 16:34:17 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -187,13 +187,6 @@ void wxBitmapButton::SetLabel( const wxString &label )
     wxCHECK_RET( m_widget != NULL, wxT("invalid button") );
 
     wxControl::SetLabel( label );
-}
-
-wxString wxBitmapButton::GetLabel() const
-{
-    wxCHECK_MSG( m_widget != NULL, wxEmptyString, wxT("invalid button") );
-
-    return wxControl::GetLabel();
 }
 
 void wxBitmapButton::DoApplyWidgetStyle(GtkRcStyle *style)

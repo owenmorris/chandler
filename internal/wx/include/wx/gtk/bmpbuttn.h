@@ -2,7 +2,7 @@
 // Name:        wx/gtk/bmpbutton.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: bmpbuttn.h,v 1.31 2005/09/23 12:49:13 MR Exp $
+// Id:          $Id: bmpbuttn.h,v 1.32 2005/12/18 16:34:13 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,6 @@ public:
                 const wxString& name = wxButtonNameStr);
 
     void SetLabel( const wxString &label );
-    wxString GetLabel() const;
     virtual void SetLabel( const wxBitmap& bitmap ) { SetBitmapLabel(bitmap); }
 
     virtual void SetDefault();
