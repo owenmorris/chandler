@@ -546,7 +546,7 @@ class MainView(View):
         # triggered from "Test | Generate Some Content Items" and
         # "Test | Generate Many Content Items" menu items
         count = event.arguments['sender'].blockName == 'GenerateMuchDataItem' and 100 or 4
-        sidebarCollection = schema.ns("osaf.app").sidebarCollection
+        sidebarCollection = schema.ns("osaf.app", self.itsView).sidebarCollection
         mainView = Globals.views[0]
         return generate.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
 
