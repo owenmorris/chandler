@@ -118,8 +118,8 @@ class FeedChannel(pim.ListCollection):
         sharing = schema.Cloud(author, copyright, link, url)
     )
 
-    who = schema.Role(redirectTo="author")
-    about = schema.Role(redirectTo="about")
+    who = schema.Descriptor(redirectTo="author")
+    about = schema.Descriptor(redirectTo="about")
 
     def Update(self, data=None):
         #getattr returns a unicode object which needs to be converted to bytes for
@@ -292,9 +292,9 @@ class FeedItem(pim.ContentItem):
         displayName=u"Content"
     )
 
-    about = schema.Role(redirectTo="displayName")
-    who = schema.Role(redirectTo="author")
-    body = schema.Role(redirectTo="content")
+    about = schema.Descriptor(redirectTo="displayName")
+    who = schema.Descriptor(redirectTo="author")
+    body = schema.Descriptor(redirectTo="content")
 
     schema.addClouds(
         sharing = schema.Cloud(link, category, author, date)

@@ -99,9 +99,9 @@ class Contact(items.ContentItem):
 
     # <!-- redirections -->
 
-    who   = schema.Role(redirectTo="contactName")
-    about = schema.Role(redirectTo="displayName")
-    date  = schema.Role(redirectTo="createdOn")
+    who   = schema.Descriptor(redirectTo="contactName")
+    about = schema.Descriptor(redirectTo="displayName")
+    date  = schema.Descriptor(redirectTo="createdOn")
 
     schema.addClouds(
         sharing = schema.Cloud(emailAddress, byCloud=[contactName])

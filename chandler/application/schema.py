@@ -8,7 +8,7 @@ from repository.schema.Cloud import Endpoint as _Endpoint
 import __main__, repository, threading, os, sys
 
 __all__ = [
-    'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
+    'ActiveDescriptor', 'Activator', 'Descriptor', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module', 'TypeReference',
     'Enumeration', 'Cloud', 'Endpoint', 'addClouds', 'Struct',
@@ -125,7 +125,7 @@ class ForwardReference:
         elif isinstance(other,ItemClass):
             fullname = other.__module__+'.'+other.__name__
             return self.name==fullname or fullname.endswith('.'+self.name)
-        elif isinstance(other,Role) and other.owner is not None:
+        elif isinstance(other,Descriptor) and other.owner is not None:
             fullname = '%s.%s.%s' % (
                 other.owner.__module__, other.owner.__name__, other.name
             )
@@ -162,7 +162,7 @@ class Activator(type):
         return None
 
 
-class Role(ActiveDescriptor,CDescriptor):
+class Descriptor(ActiveDescriptor,CDescriptor):
     """Descriptor for a schema-defined attribute"""
 
     owner = type = _inverse = _frozen = annotates = None
@@ -171,10 +171,10 @@ class Role(ActiveDescriptor,CDescriptor):
     __slots__.extend(all_aspects)
 
     def __new__(cls, type=None, **kw):
-        return super(Role,cls).__new__(cls,kw.get('name'))
+        return super(Descriptor,cls).__new__(cls,kw.get('name'))
 
     def __init__(self,type=None,**kw):
-        super(Role,self).__init__(kw.get('name'))
+        super(Descriptor,self).__init__(kw.get('name'))
         for docattr in 'description','doc':
             if docattr in kw:
                 self.__setDoc(kw.pop(docattr))
@@ -188,7 +188,7 @@ class Role(ActiveDescriptor,CDescriptor):
         self.setDoc()   # default the doc string
 
     def activateInClass(self,cls,name,set_type=True):
-        """Role was defined/used in class `cls` under name `name`"""
+        """Descriptor was defined/used in class `cls` under name `name`"""
         if self.owner is None:
             self.owner = cls
             CDescriptor.__init__(self,name)
@@ -202,7 +202,7 @@ class Role(ActiveDescriptor,CDescriptor):
 
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
-        super(Role,self).__setattr__(attr,value)
+        super(Descriptor,self).__setattr__(attr,value)
 
     def __setattr__(self,attr,value):
         if not hasattr(type(self),attr):
@@ -212,12 +212,12 @@ class Role(ActiveDescriptor,CDescriptor):
         old = getattr(self,attr,None)
         if old is not None and old<>value:
             raise TypeError(
-                "Role objects are immutable; can't change %r of %r once set"
+                "Descriptor objects are immutable; can't change %r of %r once set"
                 % (attr,self)
             )
         elif old is None and self._frozen:
             raise TypeError(
-                "Role object %r cannot be modified after use" % self
+                "Descriptor object %r cannot be modified after use" % self
             )
 
         self._setattr(attr, value)
@@ -261,7 +261,7 @@ class Role(ActiveDescriptor,CDescriptor):
 
     def __repr__(self):
         if self.name and self.owner:
-            return "<Role %s of %s>" % (self.name,self.owner)
+            return "<Descriptor %s of %s>" % (self.name,self.owner)
         return object.__repr__(self)
 
     def __setDoc(self,val):
@@ -357,19 +357,19 @@ class Role(ActiveDescriptor,CDescriptor):
             itemFor(self.inverse, view)
 
 
-class One(Role):
+class One(Descriptor):
     cardinality = 'single'
 
 
-class Many(Role):
+class Many(Descriptor):
     cardinality = 'set'
 
 
-class Sequence(Role):
+class Sequence(Descriptor):
     cardinality = 'list'
 
 
-class Mapping(Role):
+class Mapping(Descriptor):
     cardinality = 'dict'
 
 
@@ -411,7 +411,7 @@ class Endpoint(object):
 
 
 class AttributeAsEndpoint(Endpoint):
-    """Adapt a Role or attribute name to use as an Endpoint factory"""
+    """Adapt a Descriptor or attribute name to use as an Endpoint factory"""
 
     def __new__(cls, attr, policy):
         if isinstance(attr, Endpoint):
@@ -423,7 +423,7 @@ class AttributeAsEndpoint(Endpoint):
     def __init__(self, attr, policy):
         if isinstance(attr,str):
             super(AttributeAsEndpoint,self).__init__(attr,(attr,), policy)
-        elif isinstance(attr,Role):
+        elif isinstance(attr,Descriptor):
             self.attr = attr
             super(AttributeAsEndpoint,self).__init__(None,(),policy)
         else:
@@ -525,7 +525,7 @@ class ItemClass(Activator):
         kind.classes = {'python': cls }
         kind.attributes = []
         for name,attr in cls.__dict__.items():
-            if isinstance(attr,Role):
+            if isinstance(attr,Descriptor):
                 ai = itemFor(attr, view)
                 if ai not in kind.attributes:
                     kind.attributes.append(ai,name)
@@ -689,7 +689,7 @@ class AnnotationClass(type):
 
     def __init__(cls,name,bases,cdict):
         for name,ob in cdict.items():
-            if isinstance(ob,Role):
+            if isinstance(ob,Descriptor):
                 basename = "%s.%s." % (parcel_name(cls.__module__), cls.__name__)
                 ob.annotates = _target_type(cls),
                 ob.activateInClass(cls,basename+name)
@@ -1182,7 +1182,7 @@ class ModuleMaker:
 
     def _create_schema_item(self,view):
         # Create a temporary item without a kind, so as not to
-        # incur unintended 
+        # incur unintended circularities.
         return Base("tmp_parcel_for-"+self.moduleName, view, None)
 
     def _init_schema_item(self,item,view):

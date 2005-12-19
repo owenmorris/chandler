@@ -147,7 +147,7 @@ class AbstractCollection(items.ContentItem):
     )   
 
     # redirections 
-    about = schema.Role(redirectTo="displayName")
+    about = schema.Descriptor(redirectTo="displayName")
 
     schema.addClouds(
         copying = schema.Cloud(

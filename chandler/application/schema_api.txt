@@ -8,36 +8,15 @@ Schema Definition Support
     >>> from repository.persistence.RepositoryView import NullRepositoryView
 
 
-------------
-Introduction
-------------
+------------------
+Descriptor Objects
+------------------
 
-TODO
+The ``Descriptor`` Base Type
+=============================
 
-------------
-Role Objects
-------------
-
-The ``One``, ``Many``, ``Sequence``, and ``Mapping`` classes are all used to
-define roles.  They are all essentially identical except for their
-``cardinality`` attribute, which controls how the repository will store the
-attribute's value::
-
-    >>> schema.One.cardinality
-    'single'
-    >>> schema.Many.cardinality
-    'set'
-    >>> schema.Sequence.cardinality
-    'list'
-    >>> schema.Mapping.cardinality
-    'dict'
-
-
-The ``Role`` Base Type
-======================
-
-The base class for roles is ``schema.Role``.  It provides most of the
-default behavior of roles, so rather than duplicate examples for each
+The base class for roles is ``schema.Descriptor``.  It provides most of the
+default behavior of descriptors, so rather than duplicate examples for each
 individual role type, we'll examine the default behaviors here.
 
 All role objects have at least the following attributes and methods:
@@ -47,39 +26,40 @@ All role objects have at least the following attributes and methods:
     relationship, or ``None`` if the role has not been registered with a
     class yet::
 
-        >>> role = schema.Role()
+        >>> role = schema.Descriptor()
         >>> print role.name
         None
         >>> class anEntity(schema.Item):
-        ...     aRole = role
+        ...     aDescriptor = role
         >>> role.name
-        'aRole'
+        'aDescriptor'
 
 
 ``owner`` (read-only)
     The entity or relationship class in which the role was defined, or ``None``
     if the role has not been registered with a class yet::
 
-        >>> role = schema.Role()
+        >>> role = schema.Descriptor()
         >>> print role.owner
         None
         >>> class anEntity(schema.Item):
-        ...     aRole = role
+        ...     aDescriptor = role
         >>> role.owner
         <class '...anEntity'>
 
-    If a role's owner is an ``Item`` class, then setting ``aRole.inverse`` will
-    invoke ``aRole.inverse.addType(aRole.owner)``, so that the inverse role
-    will accept instances of the first role's owning type.  This allows you
+    If a role's owner is an ``Item`` class, then setting
+    ``aDescriptor.inverse`` will invoke
+    ``aDescriptor.inverse.addType(aDescriptor.owner)``, so that the inverse
+    role will accept instances of the first role's owning type. This allows you
     to easily define bidirectional links without "forward references"; just
     leave off the `type` argument in both role definitions, and specify an
     `inverse` argument for the second::
 
         >>> class anotherEntity(schema.Item):
-        ...     otherRole = schema.Role(inverse=anEntity.aRole)
-        >>> anotherEntity.otherRole.type
+        ...     otherDescriptor=schema.Descriptor(inverse=anEntity.aDescriptor)
+        >>> anotherEntity.otherDescriptor.type
         <class '...anEntity'>
-        >>> anEntity.aRole.type
+        >>> anEntity.aDescriptor.type
         <class '...anotherEntity'>
 
     As you can see, this ensures that both roles can accept the owning type of
@@ -115,17 +95,17 @@ All role objects have at least the following attributes and methods:
          | ...
          |  Data and other attributes defined here:
          |
-         |  name = <Role name of <class '...Kind'>>
+         |  name = <Descriptor name of <class '...Kind'>>
          |      Kind Name -- One(Text)
          |
          |      This kind's name
          |
-         |  subkinds = <Role subkinds of <class '...Kind'>>
+         |  subkinds = <Descriptor subkinds of <class '...Kind'>>
          |      Many(Kind)
          |
          |      Sub-kinds of this kind
          |
-         |  superkinds = <Role superkinds of <class '...Kind'>>
+         |  superkinds = <Descriptor superkinds of <class '...Kind...
          |      Many(Kind)
          |
          |      Super-kinds of this kind
@@ -139,7 +119,7 @@ All role objects have at least the following attributes and methods:
 
     The ``doc`` and ``description`` are always strings, even if empty::
 
-        >>> schema.Role().description
+        >>> schema.Descriptor().description
         ''
 
 ``inverse``
@@ -152,10 +132,10 @@ All role objects have at least the following attributes and methods:
     ``inverse`` can be set via keyword argument to the role class'
     constructor::
 
-        >>> role1 = schema.Role()
+        >>> role1 = schema.Descriptor()
         >>> print role1.inverse
         None
-        >>> role2 = schema.Role(inverse=role1)
+        >>> role2 = schema.Descriptor(inverse=role1)
         >>> role2.inverse is role1
         True
         >>> role1.inverse is role2
@@ -163,8 +143,8 @@ All role objects have at least the following attributes and methods:
 
     Or by setting the ``inverse`` attribute after construction::
 
-        >>> role1 = schema.Role()
-        >>> role2 = schema.Role()
+        >>> role1 = schema.Descriptor()
+        >>> role2 = schema.Descriptor()
         >>> role2.inverse = role1
         >>> role2.inverse is role1
         True
@@ -173,23 +153,23 @@ All role objects have at least the following attributes and methods:
 
     Once set, it cannot be changed, unless it is to the same role::
 
-        >>> role2.inverse = schema.Role()
+        >>> role2.inverse = schema.Descriptor()
         Traceback (most recent call last):
         ...
-        TypeError: Role objects are immutable; can't change 'inverse' ... once set
+        TypeError: Descriptor objects are immutable; can't change 'inverse' ...
 
         >>> role2.inverse is role1      # no change took place
         True
 
     And trying to insert a new role into an existing pair also fails::
 
-        >>> role3 = schema.Role()
+        >>> role3 = schema.Descriptor()
         >>> print role3.inverse
         None
         >>> role3.inverse = role2
         Traceback (most recent call last):
         ...
-        TypeError: Role objects are immutable; can't change 'inverse' ... once set
+        TypeError: Descriptor objects are immutable; can't change 'inverse' ...
 
         >>> print role3.inverse         # no change took place
         None
@@ -210,7 +190,7 @@ All role objects have at least the following attributes and methods:
         <class '...Folder'>
 
         >>> File.folder.inverse
-        <Role contents of <class '...Folder'>>
+        <Descriptor contents of <class '...Folder'>>
 
 ``type``
     The ``type`` of a role can be either a ``schema.Item`` subclass, a
@@ -224,17 +204,17 @@ All role objects have at least the following attributes and methods:
 
         >>> myType = schema.TypeReference('//Schema/Core/DateTime')
 
-        >>> print schema.Role(myType).__doc__
-        Role(DateTime)
+        >>> print schema.Descriptor(myType).__doc__
+        Descriptor(DateTime)
 
     Note that you cannot use arbitrary Python types or classes; you must either
     supply a ``schema.TypeReference``, a subclass of ``schema.Item``, or a
     string representing a forward reference::
 
-        >>> schema.Role(str)
+        >>> schema.Descriptor(str)
         Traceback (most recent call last):
         ...
-        TypeError: ('Attribute type must be Item/Enumeration class or TypeReference', ...)
+        TypeError: ('...must be Item/Enumeration class or TypeReference',...)
 
     And type references must be to types defined by the repository's core
     schema::
@@ -247,46 +227,47 @@ All role objects have at least the following attributes and methods:
     Types expressed as a string are automatically converted to
     ``ForwardReference`` objects::
 
-        >>> testRole = schema.Role("application.schema.Item")
-        >>> testRole.type
-        ForwardReference('application.schema.Item',<...Role object...>)
+        >>> testDescriptor = schema.Descriptor("application.schema.Item")
+        >>> testDescriptor.type
+        ForwardReference('application.schema.Item',<...Descriptor object...>)
 
     Forward references compare equal to the type they reference::
 
-        >>> testRole.type == schema.Item
+        >>> testDescriptor.type == schema.Item
         True
-        >>> testRole.type != schema.Item
+        >>> testDescriptor.type != schema.Item
         False
 
 Aspect Attributes
-    Role objects support setting all of the aspects of a repository
+    Descriptor objects support setting all of the aspects of a repository
     ``Attribute``, including ``required``, ``persisted``, ``indexed``,
     ``cardinality``, ``defaultValue``, ``initialValue``, ``inheritFrom``,
     ``redirectTo``, ``otherName``, ``companion``, ``deletePolicy``,
     ``copyPolicy``, ``countPolicy``, ``type``, ``superAttribute``,
     ``displayName``, and ``description``.  You can supply any of these as
-    keyword arguments to a Role constructor (such as ``schema.One``,
+    keyword arguments to a Descriptor constructor (such as ``schema.One``,
     ``schema.Many``, etc.), in order to set the corresponding value for the
     attribute.  Unspecified aspects will take on their normal default values,
     except for ``otherName``, which is set to ``inverse.name`` by default, if
     the attribute has an inverse.
 
 
-To avoid silent definition errors, ``Role`` classes will not allow setting
-attributes that are not defined by their class::
+To avoid silent definition errors, ``Descriptor`` classes will not allow
+setting attributes that are not defined by their class::
 
-    >>> r = schema.Role(foo="bar")
+    >>> r = schema.Descriptor(foo="bar")
     Traceback (most recent call last):
     ...
-    TypeError: 'foo' is not a public attribute of 'Role' objects
+    TypeError: 'foo' is not a public attribute of 'Descriptor' objects
 
-And, to avoid unintentional alterations, Role attributes can be set only once::
+And, to avoid unintentional alterations, Descriptor attributes can be set only
+once::
 
-    >>> r = schema.Role(doc="x")
+    >>> r = schema.Descriptor(doc="x")
     >>> r.doc = "testing"
     Traceback (most recent call last):
       ...
-    TypeError: Role objects are immutable; can't change 'doc' ... once set
+    TypeError: Descriptor objects are immutable; can't change 'doc'... once set
 
 
 ---------------
@@ -305,7 +286,7 @@ XXX Explain this::
     ...     children = schema.Sequence(inverse=parents)
     ...
     ...     schema.addClouds(
-    ...         # endpoints can be defined using Role objects or strings
+    ...         # endpoints can be defined using Descriptor objects or strings
     ...         sharing = schema.Cloud(byCloud=[parents,children]),
     ...         export = schema.Cloud(byRef=["children"]),
     ...     )
@@ -665,7 +646,7 @@ Enumerations
     >>> imp.description
     'Description goes here'
 
-    >>> test_role = schema.Role(Importance)
+    >>> test_role = schema.Descriptor(Importance)
 
     >>> imp.values
     ['high', 'medium', 'low']
@@ -1055,7 +1036,7 @@ loaded::
         True
 
 
-    Meanwhile, ``schema.itemFor(aRole)`` returns a repository ``Attribute``
+    Meanwhile, ``schema.itemFor(aDescriptor)`` returns a repository ``Attribute``
     object representing that attribute in the null view::
 
         >>> schema.itemFor(Kind.subkinds, rv)
@@ -1079,7 +1060,7 @@ loaded::
         >>> schema.itemFor(Kind.subkinds, rv).description is Kind.subkinds.doc
         True
 
-    Roles must be activated in a class, however, in order to generate their
+    Descriptors must be activated in a class, however, in order to generate their
     ``Attribute``::
 
         >>> schema.itemFor(schema.One(), rv)
@@ -1093,7 +1074,7 @@ loaded::
         >>> Kind.subkinds.redirectTo = "xyz"
         Traceback (most recent call last):
         ...
-        TypeError: Role object <Role subkinds of <class '...Kind'>> cannot be modified after use
+        TypeError: Descriptor object <Descriptor subkinds of <class '...Kind'>> cannot be modified after use
 
 ``initRepository(repoView)``
     Ensure that the given repository view has been initialized with the core
@@ -1230,8 +1211,8 @@ by calling its ``activateInClass`` method::
 
     >>> class Test1(object):
     ...     __metaclass__ = schema.Activator
-    ...     aRole = MockAttr()
-    activated 'aRole' in <class 'Test1'>
+    ...     aDescriptor = MockAttr()
+    activated 'aDescriptor' in <class 'Test1'>
 
     >>> class Test2(Test1):
     ...     test = MockAttr()

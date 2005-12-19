@@ -74,7 +74,7 @@ class SchemaTests(SchemaTestCase):
             self.rv.findPath('//Schema/Core/Text'))
         self.assertEqual(schema.itemFor(Other.thing, self.rv).getAspect('type'),
                          schema.itemFor(Dummy, self.rv))
-        self.assertRaises(TypeError, schema.Role, str)
+        self.assertRaises(TypeError, schema.Descriptor, str)
 
     def testImportAll(self):
         schema.initRepository(self.rv)

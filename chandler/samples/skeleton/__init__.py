@@ -11,7 +11,7 @@ class MyKind1(pim.ContentItem):
     )
 
     # redirection attributes
-    who = schema.Role(redirectTo="attr1")
+    who = schema.Descriptor(redirectTo="attr1")
 
     attr2 = schema.One(schema.Text, displayName=u"Attribute 2")
   

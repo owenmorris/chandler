@@ -296,7 +296,7 @@ You'll also notice that we only set the ``inverse`` of ``children``, not
 for us::
 
     >>> Person.parents.inverse
-    <Role children of <class '...Person'>>
+    <Descriptor children of <class '...Person'>>
 
 Again, this saves us from the awkward problem of how to set the inverse of
 ``parents`` before the ``children`` attribute descriptor exists!
@@ -1498,17 +1498,17 @@ objects:
          | ...
          |  Data and other attributes defined here:
          |
-         |  name = <Role name of <class '...Kind'>>
+         |  name = <Descriptor name of <class '...Kind'>>
          |      Kind Name -- One(Text)
          |
          |      This kind's name
          |
-         |  subkinds = <Role subkinds of <class '...Kind'>>
+         |  subkinds = <Descriptor subkinds of <class '...Kind'>>
          |      Sequence(Kind)
          |
          |      Sub-kinds of this kind
          |
-         |  superkinds = <Role superkinds of <class '...Kind'>>
+         |  superkinds = <Descriptor superkinds of <class '...Kind...
          |      Sequence(Kind)
          |
          |      Super-kinds of this kind
@@ -1539,10 +1539,10 @@ objects:
     but both end up pointing to each other automatically::
 
         >>> Kind.superkinds.inverse
-        <Role subkinds of <class '...Kind'>>
+        <Descriptor subkinds of <class '...Kind'>>
 
         >>> Kind.subkinds.inverse
-        <Role superkinds of <class '...Kind'>>
+        <Descriptor superkinds of <class '...Kind'>>
 
 
 Other APIs
