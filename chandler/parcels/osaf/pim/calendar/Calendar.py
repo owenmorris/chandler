@@ -532,9 +532,16 @@ class CalendarEventMixin(RemindableMixin):
             else:
                 self.rruleset.setRuleFromDateUtil(rule)
 
+    def delete(self, *args, **kwargs):
+        """If self is the master of a recurring event, call deleteAll."""
+        if self.hasLocalAttributeValue('rruleset') and self.getMaster() == self:
+            self.deleteAll()
+        else:
+            super(CalendarEventMixin, self).delete(*args, **kwargs)
+
     def _cloneEvent(self):
 
-        clone = self.clone(None, None, ('collection',))
+        clone = self.clone(None, None, ('collections',))
         clone.updateRecurrenceEnd()
 
         return clone
@@ -974,6 +981,11 @@ class CalendarEventMixin(RemindableMixin):
                     self.occurrenceFor = self.modificationFor = newfirst
                     newfirst._makeGeneralChange()
                     self.recurrenceID = newfirst.startTime
+                    # for 0.6, to diminish sharing problems, change the icalUID
+                    # of the recurrence set when master is changed
+                    newfirst.icalUID = unicode(newfirst.itsUUID)
+                    for occurrence in newfirst.occurrences:
+                        occurrence.changeNoModification('icalUID', newfirst.icalUID)
                     if self.hasLocalAttributeValue('modificationRecurrenceID'):
                         del self.modificationRecurrenceID
                     del newfirst._ignoreValueChanges
@@ -1168,6 +1180,9 @@ class CalendarEventMixin(RemindableMixin):
                     del event.recurrenceID
                     del event.modificationFor
                     event.occurrenceFor = event
+                    # events with the same icalUID but different UUID drive
+                    # sharing crazy, so change icalUID of master
+                    event.icalUID = unicode(event.itsUUID)
                     masterHadModification = True
             
             rruleset._ignoreValueChanges = True

@@ -342,8 +342,8 @@ def MakeCollections(parcel):
                                      monitor=('startTime', 'allDay', 'anyTime'
                                               'reminders'))
     
-    masterFilter = "item.hasLocalAttributeValue('occurrences') and "\
-                   "item.hasLocalAttributeValue('rruleset')"
+    masterFilter = "item.hasTrueAttributeValue('occurrences') and "\
+                   "item.hasTrueAttributeValue('rruleset')"
     masterEvents = \
         FilteredCollection.update(parcel, 'masterEvents',
                                   source = events,

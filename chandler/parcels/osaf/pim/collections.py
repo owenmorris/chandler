@@ -528,7 +528,7 @@ class IntersectionCollection(AbstractCollection):
 
 # regular expression for finding the attribute name used by
 # hasLocalAttributeValue
-delPat = re.compile(".*hasLocalAttributeValue\(([^\)]*)\).*")
+delPat = re.compile(".*(hasLocalhasLocalAttributeValue|hasTrueAttributeValue)\(([^\)]*)\).*")
 
 class FilteredCollection(AbstractCollection):
     """
@@ -566,7 +566,7 @@ class FilteredCollection(AbstractCollection):
                     # see if the expression contains hasLocalAttributeValue
                     m = delPat.match(self.filterExpression)
                     if m:
-                        delatt = m.group(1)
+                        delatt = m.group(2)
                         if delatt is not None:
                             # strip leading quotes
                             if delatt.startswith("'") or delatt.startswith('"'):

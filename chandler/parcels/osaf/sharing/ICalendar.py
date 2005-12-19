@@ -439,6 +439,15 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             continue
                         elif range == 'THIS':
                             itemChangeCallback = CalendarEventMixin.changeThis
+                            # check if this is a modification to a master event
+                            # if so, avoid changing the master's UUID when
+                            # creating a modification
+                            if eventItem.getMaster() == eventItem:
+                                mod = eventItem._cloneEvent()
+                                mod.modificationFor = mod.occurenceFor = eventItem
+                                if eventItem.hasLocalAttributeValue('occurrenceFor'):
+                                    del eventItem.occurrenceFor
+                                eventItem = mod
                         elif range == 'THISANDFUTURE':
                             itemChangeCallback = CalendarEventMixin.changeThisAndFuture
                         else:
@@ -454,6 +463,16 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         if eventItem.rruleset is not None:
                             # re-creating a recurring item from scratch, delete 
                             # old recurrence information
+                            # uidMatchItem might not be the master, though, so
+                            # get the master, or eventItem will be a deleted
+                            # event
+                            eventItem = eventItem.getMaster()
+                            # delete modifications the master has, to avoid
+                            # changing the master to a modification with a
+                            # different UUID
+                            if getattr(eventItem, 'modifications', None):
+                                for mod in eventItem.modifications:
+                                    mod.delete()
                             eventItem.removeRecurrence()
                             
                         itemChangeCallback = CalendarEventMixin.changeThis
