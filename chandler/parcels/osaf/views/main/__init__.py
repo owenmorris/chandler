@@ -8,3 +8,8 @@ def installParcel(parcel, oldVersion=None):
     make_mainview(parcel)
     make_summaryblocks(parcel)
     
+    from osaf.framework import prompts
+
+    prompts.DialogPref.update(parcel, "clearCollectionPref")
+    
+                              

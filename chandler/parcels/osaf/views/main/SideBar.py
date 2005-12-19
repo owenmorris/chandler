@@ -4,15 +4,19 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.views.main"
 
-import osaf.framework.blocks.ControlBlocks as ControlBlocks
-import osaf.framework.blocks.Block as Block
-import osaf.framework.blocks.Trunk as Trunk
-from osaf.pim import AbstractCollection, IntersectionCollection, KindCollection, UnionCollection, IndexedSelectionCollection
 import wx, os
-import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+import osaf.framework.blocks.ControlBlocks as ControlBlocks
+from osaf.framework.blocks import Block, Trunk, DrawingUtilities
+
+from osaf.pim import (
+    AbstractCollection, IntersectionCollection, KindCollection,
+    UnionCollection, IndexedSelectionCollection
+    )
+    
+from osaf.framework.prompts import promptYesNoCancel
+
 from osaf import sharing, pim
 from application import schema
-from application.dialogs import Util
 from i18n import OSAFMessageFactory as _
 
 from colorsys import rgb_to_hsv
@@ -757,11 +761,12 @@ class SidebarBlock(ControlBlocks.Table):
         confirmation here
         """
 
+        viewsmain = schema.ns('osaf.views.main', self.itsView)
+        
         # first ask the user if we should be deleting the entire
         # collection including the items, or just some things
-        shouldClearCollection = Util.yesNoCancel(self.widget,
-                                                 _(u'Confirm delete'),
-                                                 _(u'Do you want to remove the items in this collection?'))
+        shouldClearCollection = \
+            promptYesNoCancel(_(u'Do you want to remove the items in this collection?'), viewsmain.clearCollectionPref)
 
         if shouldClearCollection is None: # user pressed cancel
             return
