@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/wince/tbarwce.cpp
+// Name:        src/msw/wince/tbarwce.cpp
 // Purpose:     wxToolBar for Windows CE
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: tbarwce.cpp,v 1.28 2005/09/23 12:55:26 MR Exp $
+// RCS-ID:      $Id: tbarwce.cpp,v 1.29 2005/12/19 10:41:08 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -120,7 +120,7 @@ public:
     // a control in the toolbar
     void SetSeparatorsCount(size_t count) { m_nSepCount = count; }
     size_t GetSeparatorsCount() const { return m_nSepCount; }
-    
+
     void SetBitmapIndex(int idx) { m_bitmapIndex = idx; }
     int GetBitmapIndex() const { return m_bitmapIndex; }
 
@@ -163,8 +163,8 @@ wxToolBarToolBase *wxToolMenuBar::CreateTool(wxControl *control)
 void wxToolMenuBar::Init()
 {
     wxToolBar::Init();
-    
-    m_nButtons = 0;    
+
+    m_nButtons = 0;
     m_menuBar = NULL;
 }
 
@@ -397,7 +397,7 @@ bool wxToolMenuBar::Realize()
                 break;
 
             case wxTOOL_STYLE_BUTTON:
-            
+
                 if ( HasFlag(wxTB_TEXT) )
                 {
                     const wxString& label = tool->GetLabel();
@@ -589,10 +589,10 @@ bool wxToolBar::Create(wxWindow *parent,
     // satisfy other parts of wxWidgets.
 
     parent->AddChild(this);
-    
+
     SetWindowStyle(style);
     SetName(name);
-    
+
     return true;
 }
 
@@ -637,7 +637,4 @@ void wxToolBar::DoSetToggle(wxToolBarToolBase *WXUNUSED(tool), bool WXUNUSED(tog
 #endif
     // !__SMARTPHONE__
 
-
-
-#endif // wxUSE_TOOLBAR && Win95
-
+#endif // wxUSE_TOOLBAR

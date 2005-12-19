@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: statbmp.cpp,v 1.61 2005/09/23 12:55:11 MR Exp $
+// RCS-ID:      $Id: statbmp.cpp,v 1.62 2005/12/19 13:46:23 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -194,6 +194,34 @@ WXDWORD wxStaticBitmap::MSWGetStyle(long style, WXDWORD *exstyle) const
 bool wxStaticBitmap::ImageIsOk() const
 {
     return m_image && m_image->Ok();
+}
+
+wxIcon wxStaticBitmap::GetIcon() const
+{
+    wxCHECK_MSG( m_image, wxIcon(), _T("no image in wxStaticBitmap") );
+
+    // we can't ask for an icon if all we have is a bitmap
+    wxCHECK_MSG( m_isIcon, wxIcon(), _T("no icon in this wxStaticBitmap") );
+
+    return *(wxIcon *)m_image;
+}
+
+wxBitmap wxStaticBitmap::GetBitmap() const
+{
+    if ( m_isIcon )
+    {
+        // don't fail because we might have replaced the bitmap with icon
+        // ourselves internally in ConvertImage() to keep the transparency but
+        // the user code doesn't know about it so it still can use GetBitmap()
+        // to retrieve the bitmap
+        return wxBitmap(GetIcon());
+    }
+    else // we have a bitmap
+    {
+        wxCHECK_MSG( m_image, wxBitmap(), _T("no image in wxStaticBitmap") );
+
+        return *(wxBitmap *)m_image;
+    }
 }
 
 void wxStaticBitmap::Free()

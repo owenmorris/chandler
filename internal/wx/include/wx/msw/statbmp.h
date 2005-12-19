@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbmp.h,v 1.35 2005/09/23 12:50:15 MR Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.37 2005/12/19 13:56:23 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,25 +49,9 @@ public:
 
     virtual void SetIcon(const wxIcon& icon) { SetImage(&icon); }
     virtual void SetBitmap(const wxBitmap& bitmap) { SetImage(&bitmap); }
+    virtual wxBitmap GetBitmap() const;
+    virtual wxIcon GetIcon() const;
 
-    // assert failure is provoked by an attempt to get an icon from bitmap or
-    // vice versa
-    wxIcon GetIcon() const
-    {
-        wxASSERT_MSG( m_isIcon, _T("no icon in this wxStaticBitmap") );
-
-        return *(wxIcon *)m_image;
-    }
-
-    wxBitmap GetBitmap() const
-    {
-        wxASSERT_MSG( !m_isIcon, _T("no bitmap in this wxStaticBitmap") );
-
-        return *(wxBitmap *)m_image;
-    }
-
-    // implementation only from now on
-    // -------------------------------
 
 protected:
     virtual wxBorder GetDefaultBorder() const;

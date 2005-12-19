@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: statbmp.h,v 1.23 2005/09/23 12:48:47 MR Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.24 2005/12/19 13:53:17 VZ Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,9 +18,7 @@
 
 #include "wx/control.h"
 #include "wx/bitmap.h"
-
-class WXDLLEXPORT wxIcon;
-class WXDLLEXPORT wxBitmap;
+#include "wx/icon.h"
 
 extern WXDLLEXPORT_DATA(const wxChar*) wxStaticBitmapNameStr;
 
@@ -35,6 +33,12 @@ public:
     virtual void SetIcon(const wxIcon& icon) = 0;
     virtual void SetBitmap(const wxBitmap& bitmap) = 0;
     virtual wxBitmap GetBitmap() const = 0;
+    virtual wxIcon GetIcon() const /* = 0 -- should be pure virtual */
+    {
+        // stub it out here for now as not all ports implement it (but they
+        // should)
+        return wxIcon();
+    }
 
     // overriden base class virtuals
     virtual bool AcceptsFocus() const { return false; }

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.650 2005/12/15 15:07:36 CE Exp $
+// RCS-ID:      $Id: window.cpp,v 1.651 2005/12/19 10:41:05 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -849,7 +849,7 @@ inline int GetScrollPosition(HWND hWnd, int wOrient)
     scrollInfo.cbSize = sizeof(SCROLLINFO);
     scrollInfo.fMask = SIF_POS;
     ::GetScrollInfo(hWnd, wOrient, &scrollInfo );
-    
+
     return scrollInfo.nPos;
 
 #endif
@@ -3197,8 +3197,6 @@ bool wxWindowMSW::MSWCreate(const wxChar *wclass,
 // WM_NOTIFY
 // ---------------------------------------------------------------------------
 
-#ifdef __WIN95__
-
 bool wxWindowMSW::HandleNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
 {
 #ifndef __WXMICROWIN__
@@ -3341,8 +3339,6 @@ bool wxWindowMSW::MSWOnNotify(int WXUNUSED(idCtrl),
 
     return false;
 }
-
-#endif // __WIN95__
 
 // ---------------------------------------------------------------------------
 // end session messages

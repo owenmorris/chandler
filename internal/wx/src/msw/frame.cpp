@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.cpp,v 1.193 2005/11/13 11:46:23 ABX Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.194 2005/12/19 10:41:03 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -683,10 +683,8 @@ void wxFrame::IconizeChildFrames(bool bIconize)
         // them appear in the taskbar because they are, by virtue of this
         // style, not managed by the taskbar - instead leave Windows take care
         // of them
-#ifdef __WIN95__
         if ( win->GetWindowStyle() & wxFRAME_TOOL_WINDOW )
             continue;
-#endif // Win95
 
         // the child MDI frames are a special case and should not be touched by
         // the parent frame - instead, they are managed by the user

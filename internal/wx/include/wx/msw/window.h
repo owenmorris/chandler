@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.156 2005/11/03 16:47:25 ABX Exp $
+// RCS-ID:      $Id: window.h,v 1.157 2005/12/19 10:54:07 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -270,9 +270,7 @@ public:
                              WXWORD pos, WXHWND control);
 
     // child control notifications
-#ifdef __WIN95__
     virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result);
-#endif // __WIN95__
 
     // owner-drawn controls need to process these messages
     virtual bool MSWOnDrawItem(int id, WXDRAWITEMSTRUCT *item);
@@ -485,10 +483,7 @@ private:
     bool HandleMove(int x, int y);
     bool HandleMoving(wxRect& rect);
     bool HandleJoystickEvent(WXUINT msg, int x, int y, WXUINT flags);
-
-#ifdef __WIN95__
     bool HandleNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result);
-#endif // __WIN95__
 
     // list of disabled children before last call to our Disable()
     wxWindowList *m_childrenDisabled;

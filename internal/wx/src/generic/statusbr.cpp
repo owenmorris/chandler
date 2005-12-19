@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        generic/statusbr.cpp
+// Name:        src/generic/statusbr.cpp
 // Purpose:     wxStatusBarGeneric class implementation
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.cpp,v 1.69 2005/09/23 12:53:30 MR Exp $
+// RCS-ID:      $Id: statusbr.cpp,v 1.70 2005/12/19 10:41:00 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -351,7 +351,7 @@ bool wxStatusBarGeneric::GetFieldRect(int n, wxRect& rect) const
 void wxStatusBarGeneric::InitColours()
 {
     // Shadow colours
-#if defined(__WIN95__) || defined(__WXMAC__)
+#if defined(__WXMSW__) || defined(__WXMAC__)
     wxColour mediumShadowColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DSHADOW));
     m_mediumShadowPen = wxPen(mediumShadowColour, 1, wxSOLID);
 

@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////
-// File:        taskbar.cpp
+// File:        src/msw/taskbar.cpp
 // Purpose:     Implements wxTaskBarIcon class for manipulating icons on
 //              the Windows task bar.
 // Author:      Julian Smart
 // Modified by: Vaclav Slavik
 // Created:     24/3/98
-// RCS-ID:      $Id: taskbar.cpp,v 1.47 2005/09/23 12:55:12 MR Exp $
+// RCS-ID:      $Id: taskbar.cpp,v 1.48 2005/12/19 10:41:05 ABX Exp $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -24,8 +24,6 @@
 #include "wx/utils.h"
 #include "wx/menu.h"
 #endif
-
-#if defined(__WIN95__)
 
 #include "wx/msw/private.h"
 #include "wx/msw/winundef.h"
@@ -325,5 +323,3 @@ long wxTaskBarIcon::WindowProc(unsigned int msg,
 
     return 0;
 }
-
-#endif // __WIN95__

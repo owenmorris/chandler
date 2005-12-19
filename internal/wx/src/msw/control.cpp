@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/control.cpp
+// Name:        src/msw/control.cpp
 // Purpose:     wxControl class
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: control.cpp,v 1.103 2005/09/23 12:54:54 MR Exp $
+// RCS-ID:      $Id: control.cpp,v 1.104 2005/12/19 10:41:02 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,9 +43,8 @@
 #include "wx/msw/private.h"
 #include "wx/msw/uxtheme.h"
 
-#if defined(__WIN95__) && !(defined(__GNUWIN32_OLD__) && !defined(__CYGWIN10__))
-    #include <commctrl.h>
-#endif
+// include <commctrl.h> "properly"
+#include "wx/msw/wrapcctl.h"
 
 // ----------------------------------------------------------------------------
 // wxWin macros
@@ -278,7 +277,6 @@ bool wxControl::ProcessCommand(wxCommandEvent& event)
     return GetEventHandler()->ProcessEvent(event);
 }
 
-#ifdef __WIN95__
 bool wxControl::MSWOnNotify(int idCtrl,
                             WXLPARAM lParam,
                             WXLPARAM* result)
@@ -326,7 +324,6 @@ bool wxControl::MSWOnNotify(int idCtrl,
 
     return GetEventHandler()->ProcessEvent(event);
 }
-#endif // Win95
 
 WXHBRUSH wxControl::DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd)
 {

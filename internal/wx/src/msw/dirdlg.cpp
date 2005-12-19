@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        dirdlg.cpp
+// Name:        src/msw/dirdlg.cpp
 // Purpose:     wxDirDialog
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dirdlg.cpp,v 1.41 2005/09/23 12:54:56 MR Exp $
+// RCS-ID:      $Id: dirdlg.cpp,v 1.42 2005/12/19 10:41:02 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@
 
 #if wxUSE_DIRDLG && (!defined(__WXWINCE__) || defined(__HANDHELDPC__))
 
-#if defined(__WIN95__) && !defined(__GNUWIN32_OLD__) && wxUSE_OLE
+#if !defined(__GNUWIN32_OLD__) && wxUSE_OLE
 
 #ifndef WX_PRECOMP
     #include "wx/utils.h"

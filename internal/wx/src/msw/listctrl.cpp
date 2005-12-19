@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.239 2005/12/01 11:02:18 ABX Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.240 2005/12/19 10:41:04 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_LISTCTRL && defined(__WIN95__)
+#if wxUSE_LISTCTRL
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"

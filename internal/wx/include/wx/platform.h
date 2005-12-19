@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.87 2005/11/10 16:15:50 ABX Exp $
+* RCS-ID:      $Id: platform.h,v 1.88 2005/12/19 10:54:04 ABX Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -116,11 +116,6 @@
 #    ifndef __WIN32__
 #        define __WIN32__
 #    endif
-
-    /* this means Win95-style UI, i.e. Win9x/NT 4+: always true now */
-#    if !defined(__WIN95__)
-#        define __WIN95__
-#    endif
 #endif /* Win32 */
 
 #if defined(__WXMSW__) || defined(__WIN32__)
@@ -128,12 +123,6 @@
 #       define __WINDOWS__
 #   endif
 #endif
-
-#ifdef __WINE__
-#   ifndef __WIN95__
-#       define __WIN95__
-#   endif
-#endif /* WINE */
 
 /* detect MS SmartPhone */
 #if defined( WIN32_PLATFORM_WFSP )

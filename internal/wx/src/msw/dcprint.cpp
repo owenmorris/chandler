@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcprint.cpp,v 1.59 2005/09/23 12:54:55 MR Exp $
+// RCS-ID:      $Id: dcprint.cpp,v 1.60 2005/12/19 10:41:02 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -180,10 +180,8 @@ bool wxPrinterDC::StartDoc(const wxString& message)
     else
         docinfo.lpszOutput = (const wxChar *) filename;
 
-#if defined(__WIN95__)
     docinfo.lpszDatatype = NULL;
     docinfo.fwType = 0;
-#endif
 
     if (!m_hDC)
         return false;

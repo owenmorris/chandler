@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        control.cpp
-// Purpose:
+// Name:        src/gtk/control.cpp
+// Purpose:     wxControl implementation for wxGTK
 // Author:      Robert Roebling
-// Id:          $Id: control.cpp,v 1.45 2005/12/18 16:37:55 VZ Exp $
+// Id:          $Id: control.cpp,v 1.46 2005/12/19 10:03:04 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -10,18 +10,21 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#include "wx/defs.h"
-
 #if wxUSE_CONTROLS
 
+#include "wx/log.h"
 #include "wx/control.h"
 #include "wx/fontutil.h"
 #include "wx/settings.h"
 #include "wx/gtk/private.h"
 
-//-----------------------------------------------------------------------------
-// wxControl
-//-----------------------------------------------------------------------------
+// ============================================================================
+// wxControl implementation
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// wxControl creation
+// ----------------------------------------------------------------------------
 
 IMPLEMENT_DYNAMIC_CLASS(wxControl, wxWindow)
 

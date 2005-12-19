@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tabctrl.cpp,v 1.40 2005/12/01 11:02:18 ABX Exp $
+// RCS-ID:      $Id: tabctrl.cpp,v 1.41 2005/12/19 10:41:04 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,11 +20,10 @@
 #include "wx/wx.h"
 #endif
 
-#if defined(__WIN95__)
-
 #include "wx/msw/private.h"
 
-#include <commctrl.h>
+// include <commctrl.h> "properly"
+#include "wx/msw/wrapcctl.h"
 
 #include "wx/tabctrl.h"
 #include "wx/app.h"
@@ -429,5 +428,3 @@ void wxMapBitmap(HBITMAP hBitmap, int width, int height)
 
 }
 #endif
-
-#endif // __WIN95__

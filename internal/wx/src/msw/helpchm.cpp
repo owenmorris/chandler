@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        helpchm.cpp
+// Name:        src/msw/helpchm.cpp
 // Purpose:     Help system: MS HTML Help implementation
 // Author:      Julian Smart
 // Modified by:
 // Created:     16/04/2000
-// RCS-ID:      $Id: helpchm.cpp,v 1.26 2005/10/26 09:32:07 JS Exp $
+// RCS-ID:      $Id: helpchm.cpp,v 1.27 2005/12/19 10:41:03 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_HELP && wxUSE_MS_HTML_HELP && defined(__WIN95__)
+#if wxUSE_HELP && wxUSE_MS_HTML_HELP
 
 #include "wx/filefn.h"
 #include "wx/msw/helpchm.h"
@@ -75,7 +75,7 @@ static bool LoadHtmlHelpLibrary()
 static void UnloadHtmlHelpLibrary()
 {
     if ( gs_htmlHelp )
-    {		
+    {
         if (wxPluginManager::UnloadLibrary( _T("HHCTRL.OCX") ))
             gs_htmlHelp = 0;
     }
@@ -245,4 +245,3 @@ wxCHMHelpController::~wxCHMHelpController()
 }
 
 #endif // wxUSE_HELP
-
