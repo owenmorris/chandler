@@ -140,15 +140,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         dc.SetFont(styles.eventLabelFont)
         
-        brushOffset = self.GetPlatformBrushOffset()
-
-        
         def drawCanvasItems(canvasItems, selected):
             for canvasItem in canvasItems:
                 pastEnd = Calendar.datetimeOp(canvasItem.item.endTime,
                                               '>=',
                                               self.blockItem.rangeEnd)
-                canvasItem.Draw(dc, styles, brushOffset,
+                canvasItem.Draw(dc, styles,
                                 selected, rightSideCutOff=pastEnd)
 
         unselectedBoxes = []

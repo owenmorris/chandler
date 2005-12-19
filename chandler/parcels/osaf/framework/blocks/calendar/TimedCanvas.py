@@ -400,11 +400,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
 
         # finally, draw the items
-        brushOffset = self.GetPlatformBrushOffset()
 
         def drawCanvasItems(canvasItems, selected):
             for canvasItem in canvasItems:
-                canvasItem.Draw(dc, styles, brushOffset, selected)
+                canvasItem.Draw(dc, styles, selected)
 
         unselectedBoxes = []
         selectedBoxes = []

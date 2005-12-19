@@ -316,7 +316,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         item = self.item.getMaster()
         return item.isAttributeModifiable('displayName')
     
-    def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
+    def Draw(self, dc, styles, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
         item = self.item
         # recurring items, when deleted or stamped non-Calendar, are sometimes
@@ -340,7 +340,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
        
         for rectIndex, itemRect in enumerate(self.GetBoundsRects()):
        
-            brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset,
+            brush = styles.brushes.GetGradientBrush(itemRect.x,
                                                     itemRect.width,
                                                     gradientLeft, gradientRight)	
             dc.SetBrush(brush)	
@@ -1112,27 +1112,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
     def GetCurrentDateRange(self):
         return self.blockItem.GetCurrentDateRange()
-
-    def GetPlatformBrushOffset(self):
-        """
-        On Mac, the brushes are relative to the toplevel window. We have
-        to walk up the parent window chain to find our offset within the parent
-        window.
-
-        Other platforms, the brush is offset from the current window.
-        """
-        brushOffset = 0
-
-        """
-        *** Only true for wxMac-non-CoreGraphics builds ***
-        if '__WXMAC__' in wx.PlatformInfo:
-            p = self
-            while not p.IsTopLevel():
-                brushOffset += p.GetPosition().x
-                p = p.GetParent()
-        """
-
-        return brushOffset
 
     def ShadeToday(self, dc):
         """
