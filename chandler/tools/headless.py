@@ -279,7 +279,7 @@ def main():
              "exit this Python session.\n" \
              "The variable, 'view', is now set to the main repository " \
              "view, and 'app' is the\n" \
-             "schema.ns('osaf.app') object.\n" \
+             "schema.ns('osaf.app', view) object.\n" \
              "Type 'go()' to fire up Twisted services, or 'readme()' for " \
              "more info."
 
