@@ -2,7 +2,6 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx, os, random
-import math
 
 from colorsys import hsv_to_rgb, rgb_to_hsv
 import Styles
@@ -206,7 +205,7 @@ class Gradients(object):
         """
         self._gradientCache = {}
     
-    def MakeGradientBrush(self, offset, width, leftColor, rightColor):
+    def MakeGradientBrush(self, offset, bitmapWidth, leftColor, rightColor):
         """
         Creates a gradient brush from leftColor to rightColor, specified
         as color tuples (r,g,b)
@@ -215,10 +214,6 @@ class Gradients(object):
         rightColor. This means that the Hue and Value should be the same, 
         or the resulting color on the right won't match rightColor
         """
-        # mac requires bitmaps to have a height and width that are powers of 2
-        # use frexp to round up to the nearest power of 2
-        # (frexp(x) returns (m,e) where x = m * 2**e, and we just want e)
-        bitmapWidth = 2**math.frexp(width-1)[1]
         
         # There is probably a nicer way to do this, without:
         # - going through wxImage
@@ -238,8 +233,8 @@ class Gradients(object):
         value = leftHSV[2]
         satStart = leftHSV[1]
         satDelta = rightHSV[1] - leftHSV[1]
-        if width == 0: width = 1
-        satStep = satDelta / width
+        if bitmapWidth == 0: bitmapWidth = 1
+        satStep = satDelta / bitmapWidth
         
         # assign a sliding scale of floating point values from left to right
         # in the bitmap
@@ -260,7 +255,7 @@ class Gradients(object):
             gradientIndex = (x - offset + bitmapWidth) % bitmapWidth
             
             # now offset within the gradient range
-            gradientIndex %= width
+            gradientIndex %= bitmapWidth
             
             # now calculate the actual color from the gradient index
             sat = satStart + satStep * gradientIndex
