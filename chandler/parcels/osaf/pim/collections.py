@@ -528,7 +528,7 @@ class IntersectionCollection(AbstractCollection):
 
 # regular expression for finding the attribute name used by
 # hasLocalAttributeValue
-delPat = re.compile(".*(hasLocalhasLocalAttributeValue|hasTrueAttributeValue)\(([^\)]*)\).*")
+delPat = re.compile(".*(hasLocalAttributeValue|hasTrueAttributeValue)\(([^\)]*)\).*")
 
 class FilteredCollection(AbstractCollection):
     """
