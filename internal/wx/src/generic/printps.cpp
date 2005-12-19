@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: printps.cpp,v 1.38 2005/09/23 12:53:29 MR Exp $
+// RCS-ID:      $Id: printps.cpp,v 1.39 2005/12/19 20:38:18 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -148,12 +148,12 @@ bool wxPostScriptPrinter::Print(wxWindow *parent, wxPrintout *printout, bool pro
     // set by the user
     m_printDialogData.SetMinPage(minPage);
     m_printDialogData.SetMaxPage(maxPage);
-    
+
     if (m_printDialogData.GetFromPage() < minPage)
         m_printDialogData.SetFromPage( minPage );
     if (m_printDialogData.GetToPage() > maxPage)
         m_printDialogData.SetToPage( maxPage );
-    
+
     int
        pagesPerCopy = m_printDialogData.GetToPage()-m_printDialogData.GetFromPage()+1,
        totalPages = pagesPerCopy * m_printDialogData.GetNoCopies(),
@@ -233,13 +233,13 @@ bool wxPostScriptPrinter::Print(wxWindow *parent, wxPrintout *printout, bool pro
 wxDC* wxPostScriptPrinter::PrintDialog(wxWindow *parent)
 {
     wxDC* dc = (wxDC*) NULL;
-    
+
     wxGenericPrintDialog dialog( parent, &m_printDialogData );
     if (dialog.ShowModal() == wxID_OK)
     {
         dc = dialog.GetPrintDC();
         m_printDialogData = dialog.GetPrintDialogData();
-        
+
         if (dc == NULL)
             sm_lastError = wxPRINTER_ERROR;
         else
@@ -265,7 +265,7 @@ bool wxPostScriptPrinter::Setup(wxWindow *WXUNUSED(parent))
     }
 
     dialog->Destroy();
-    
+
     return (ret == wxID_OK);
 #endif
 
@@ -307,7 +307,16 @@ bool wxPostScriptPrintPreview::Print(bool interactive)
 {
     if (!m_printPrintout)
         return false;
+
+    // Assume that on Unix, the preview may use the PostScript
+    // (generic) version, but printing using the native system is required.
+    // TODO: make a generic print preview class from which wxPostScriptPrintPreview
+    // is derived.
+#ifdef __UNIX__
+    wxPrinter printer(& m_printDialogData);
+#else
     wxPostScriptPrinter printer(& m_printDialogData);
+#endif
     return printer.Print(m_previewFrame, m_printPrintout, interactive);
 }
 
