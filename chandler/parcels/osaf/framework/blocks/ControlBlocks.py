@@ -1955,7 +1955,12 @@ class AEBlock(BoxContainer):
             
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
-            self.saveValue()
+            # Bug 4835 notes a race condition if you type fast.
+            # Until we redo notifications to not use monitors in 0.7,
+            # don't bother saving the value here (which only affected
+            # the note body; other fields are not-multiline and will Navigate
+            # below; they'll get their value saved as part of loss of focus anyway.)
+            #self.saveValue()
             
             # Do the tab thing if we're not a multiline thing.
             # stearns says: I think this is wrong (it doesn't mix well when one 

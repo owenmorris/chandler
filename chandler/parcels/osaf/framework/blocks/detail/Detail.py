@@ -446,46 +446,6 @@ class DetailSynchronizer(Item):
             if self.synchronizeItemDetail(ourItem):
                 self.detailRoot.relayoutSizer()
 
-    def parseEmailAddresses(self, item, addressesString):
-        """
-          Parse the email addresses in addressesString and return
-        a tuple with: (the processed string, a list of EmailAddress
-        items created/found for those addresses).
-        @@@DLD - seems like the wrong place to parse Email Address list strings
-        """
-
-        # get the user's address strings into a list
-        addresses = []
-        tmp = addressesString.split(',')
-   
-        for val in tmp:
-            #Many people are use to entering ';' in an email client
-            #so if one or more ';' are found treat as an email address
-            #divider
-            if val.find(';') != -1:
-                addresses.extend(val.split(';'))
-            else:
-                addresses.append(val)
-
-
-        # build a list of all processed addresses, and all valid addresses
-        validAddresses = []
-        processedAddresses = []
-
-        # convert the text addresses into EmailAddresses
-        for address in addresses:
-            whoAddress = item.getEmailAddress (address)
-            if whoAddress is None:
-                processedAddresses.append (address + '?')
-            else:
-                processedAddresses.append (str (whoAddress))
-                validAddresses.append (whoAddress)
-
-        # prepare the processed addresses return value
-        processedResultString = ', '.join (processedAddresses)
-
-        return (processedResultString, validAddresses)
-
 class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
     """ 
     Generic Spacer Block class 
