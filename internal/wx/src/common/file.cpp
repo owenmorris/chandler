@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: file.cpp,v 1.98 2005/09/23 12:52:51 MR Exp $
+// RCS-ID:      $Id: file.cpp,v 1.99 2005/12/20 14:25:36 DS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -213,11 +213,9 @@ bool wxFile::Create(const wxChar *szFileName, bool bOverwrite, int accessMode)
         wxLogSysError(_("can't create file '%s'"), szFileName);
         return false;
     }
-    else
-    {
-        Attach(fd);
-        return true;
-    }
+
+    Attach(fd);
+    return true;
 }
 
 // open the file
@@ -267,10 +265,9 @@ bool wxFile::Open(const wxChar *szFileName, OpenMode mode, int accessMode)
         wxLogSysError(_("can't open file '%s'"), szFileName);
         return false;
     }
-    else {
-        Attach(fd);
-        return true;
-    }
+
+    Attach(fd);
+    return true;
 }
 
 // close
