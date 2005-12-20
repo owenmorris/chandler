@@ -772,7 +772,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
 
     def onAcceptShareEvent(self, event):
         url, collectionName = MailSharing.getSharingHeaderInfo(self.item)
-        statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
+        statusBlock = Block.Block.findBlockByName('StatusBar')
         statusBlock.setStatusMessage( _(u'Subscribing to collection...') )
         wx.Yield()
 

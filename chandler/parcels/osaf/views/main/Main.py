@@ -240,21 +240,18 @@ class MainView(View):
         self.itsView.commit()
         self.setStatusMessage ('')
 
-    def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
+    def setStatusMessage (self, statusMessage, progressPercentage=-1):
         """
-          Allows you to set the message contained in the status bar.  You can also specify 
-        values for the progress bar contained on the right side of the status bar.  If you
-        specify a progressPercentage (as a float 0 to 1) the progress bar will appear.  If 
-        no percentage is specified the progress bar will disappear.
+          Allows you to set the message contained in the status bar.
+          You can also specify values for the progress bar contained
+          on the right side of the status bar.  If you specify a
+          progressPercentage (as a float 0 to 1) the progress bar will
+          appear.  If no percentage is specified the progress bar will
+          disappear.
         """
 
         app = wx.GetApp()
-        app.mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
-        if alert:
-            # XXX This is not right, the alert should have a caption
-            application.dialogs.Util.ok(app.mainFrame,
-             "", statusMessage)
-            self.setStatusMessage ('')
+        Block.Block.findBlockByName('StatusBar').setStatusMessage (statusMessage, progressPercentage)
 
     def callAnyCallable(self, callable, withView, *args, **kw):
         """
