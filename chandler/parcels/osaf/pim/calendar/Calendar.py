@@ -537,6 +537,7 @@ class CalendarEventMixin(RemindableMixin):
         if self.hasLocalAttributeValue('rruleset') and self.getMaster() == self:
             self.deleteAll()
         else:
+            self._ignoreValueChanges = True
             super(CalendarEventMixin, self).delete(*args, **kwargs)
 
     def _cloneEvent(self):
@@ -1192,6 +1193,7 @@ class CalendarEventMixin(RemindableMixin):
                 master.delete()
             else:
                 del master.recurrenceID
+                master.occurrenceFor = master
         
                    
     def isCustomRule(self):
