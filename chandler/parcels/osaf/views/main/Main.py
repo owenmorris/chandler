@@ -673,7 +673,7 @@ class MainView(View):
         wx.GetApp().ShowPyShell(withFilling=True)
 
     def onActivateWebserverEventUpdateUI (self, event):
-        for server in webserver.Server.iterItems(itsView=self.itsView):
+        for server in webserver.Server.iterItems(self.itsView):
             if server.isActivated():
                 event.arguments['Enable'] = False
                 return
@@ -681,7 +681,7 @@ class MainView(View):
 
     def onActivateWebserverEvent(self, event):
         # Test menu item
-        for server in webserver.Server.iterItems(itsView=self.itsView):
+        for server in webserver.Server.iterItems(self.itsView):
             server.startup()
 
     def onActivateShareMergingEventUpdateUI (self, event):
