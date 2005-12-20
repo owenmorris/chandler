@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.145 2005/12/18 19:24:11 SN Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.146 2005/12/20 16:52:36 DS Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -179,7 +179,7 @@ struct tm *wxLocaltime_r(const time_t* ticks, struct tm* temp)
 #if wxUSE_THREADS && !defined(__WINDOWS__)
   // No need to waste time with a mutex on windows since it's using
   // thread local storage for localtime anyway.
-  wxMutexLocker(timeLock);
+  wxMutexLocker locker(timeLock);
 #endif
   memcpy(temp, localtime(ticks), sizeof(struct tm));
   return temp;
@@ -192,7 +192,7 @@ struct tm *wxGmtime_r(const time_t* ticks, struct tm* temp)
 #if wxUSE_THREADS && !defined(__WINDOWS__)
   // No need to waste time with a mutex on windows since it's
   // using thread local storage for gmtime anyway.
-  wxMutexLocker(timeLock);
+  wxMutexLocker locker(timeLock);
 #endif
   memcpy(temp, gmtime(ticks), sizeof(struct tm));
   return temp;

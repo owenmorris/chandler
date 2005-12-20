@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: test.bkl,v 1.37 2005/06/16 23:47:30 VZ Exp $ -->
+<!-- $Id: test.bkl,v 1.38 2005/12/20 16:30:12 VZ Exp $ -->
 
 <makefile>
 
@@ -43,6 +43,7 @@
             scopeguard/scopeguardtest.cpp
             strings/strings.cpp
             strings/stdstrings.cpp
+            strings/tokenizer.cpp
             strings/unicode.cpp
             strings/crt.cpp
             streams/bstream.cpp
