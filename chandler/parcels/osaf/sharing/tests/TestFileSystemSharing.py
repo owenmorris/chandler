@@ -35,7 +35,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         Item("sandbox", view, None)
 
         sandbox = view.findPath("//sandbox")
-        coll = pim.ListCollection(name="testCollection", parent=sandbox,
+        coll = pim.ListCollection("testCollection", sandbox,
             displayName="Test Collection")
 
         names = [
@@ -47,8 +47,8 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         contacts = []
 
         for name in names:
-            c = pim.Contact(parent=sandbox)
-            c.contactName = pim.ContactName(parent=sandbox)
+            c = pim.Contact(itsParent=sandbox)
+            c.contactName = pim.ContactName(itsParent=sandbox)
             c.contactName.firstName = name[0]
             c.contactName.lastName = name[1]
             c.emailAddress = name[2]
@@ -68,7 +68,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
         tzinfo = ICUtzinfo.getDefault()
         for i in xrange(6):
-            c = pim.CalendarEvent(parent=sandbox)
+            c = pim.CalendarEvent(itsParent=sandbox)
             c.displayName = events[i % 6]
             c.organizer = contacts[0]
             c.participants = [contacts[1], contacts[2]]
@@ -82,20 +82,20 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
-        conduit = sharing.FileSystemConduit(name="conduit", view=view0,
+        conduit = sharing.FileSystemConduit("conduit", itsView=view0,
             sharePath=".", shareName="exportedCollection")
-        format = sharing.CloudXMLFormat(name="format", view=view0)
-        self.share0 = sharing.Share(name="share", view=view0,
+        format = sharing.CloudXMLFormat("format", itsView=view0)
+        self.share0 = sharing.Share("share", itsView=view0,
             contents=coll0, conduit=conduit, format=format)
 
         if self.share0.exists():
             self.share0.destroy()
 
         view1 = self.views[1]
-        conduit = sharing.FileSystemConduit(name="conduit", view=view1,
+        conduit = sharing.FileSystemConduit("conduit", itsView=view1,
             sharePath=".", shareName="exportedCollection")
-        format = sharing.CloudXMLFormat(name="format", view=view1)
-        self.share1 = sharing.Share(name="share", view=view1,
+        format = sharing.CloudXMLFormat("format", itsView=view1)
+        self.share1 = sharing.Share("share", itsView=view1,
             conduit=conduit, format=format)
 
     def RoundTrip(self):

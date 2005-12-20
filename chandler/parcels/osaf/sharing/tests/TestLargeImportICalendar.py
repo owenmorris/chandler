@@ -14,10 +14,10 @@ class TestLargeImport(RepositoryTestCase):
             conduit = Sharing.FileSystemConduit(name="conduit",
                                                 sharePath=path,
                                                 shareName="3kevents.ics",
-                                                view=self.rep.view)
-            format = ICalendar.ICalendarFormat(name="format", view=self.rep.view)
+                                                itsView=self.rep.view)
+            format = ICalendar.ICalendarFormat(name="format", itsView=self.rep.view)
             share = Sharing.Share(name="share", conduit=conduit, format=format,
-                                  view=self.rep.view)
+                                  itsView=self.rep.view)
             share.get()
 
 

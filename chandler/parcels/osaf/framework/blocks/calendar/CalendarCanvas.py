@@ -580,7 +580,7 @@ class CalendarEventHandler(object):
             newTZ = control.GetClientData(choiceIndex)
 
             view = self.blockItem.itsView
-            TimeZoneInfo.get(view=view).default = newTZ
+            TimeZoneInfo.get(view).default = newTZ
             view.commit()
             
             self.blockItem.postEventByName("TimeZoneChange",
@@ -1194,7 +1194,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         """	
         view = self.blockItem.itsView
 
-        event = Calendar.CalendarEvent(view=view, **initialValues)
+        event = Calendar.CalendarEvent(itsView=view, **initialValues)
         event.InitOutgoingAttributes()	
        
         self.blockItem.contentsCollection.add (event)
@@ -1712,7 +1712,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # CalendarControl.instantiateWidget() hasn't returned.
         # So, we get the repo view from our parent's blockItem.
         view = self.GetParent().blockItem.itsView
-        info = TimeZoneInfo.get(view=view)
+        info = TimeZoneInfo.get(view)
         defaultTzinfo = info.canonicalTimeZone(info.default)
         
         # Now, populate the wxChoice with TimeZoneInfo.knownTimeZones

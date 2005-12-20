@@ -41,7 +41,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
                          view.find(Path(taskPath, 'Task')))
 
         # Construct A Sample Item
-        taskItem = Task("TestTask", view=view)
+        taskItem = Task("TestTask", itsView=view)
         taskItem.displayName = u"test headline"
         taskItem.importance = "important"
 

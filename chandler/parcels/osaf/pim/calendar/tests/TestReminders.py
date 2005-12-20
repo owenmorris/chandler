@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 class ReminderTestCase(TestContentModel.ContentModelTestCase):    
     def testReminders(self):
         # Make an event and add a reminder to it.
-        anEvent = CalendarEvent("calendarEventItem", view=self.rep.view, 
+        anEvent = CalendarEvent("calendarEventItem", itsView=self.rep.view, 
                                 startTime=datetime(2005,3,8,12,00),
                                 duration=timedelta(hours=1),
                                 allDay=False, anyTime=False)

@@ -105,7 +105,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         noteKind = pim.Note.getKind(view)
 
         # start out with a Note
-        aNote = pim.Note("noteItem1", view=view)
+        aNote = pim.Note("noteItem1", itsView=view)
         self.setAttributes(aNote, doWho=False)
         self.assertAttributes(aNote)
         add = 'add'
@@ -129,7 +129,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.assertAttributes(aNote)
 
         # Create a Task, and do all kinds of stamping on it
-        aTask = pim.Task("aTask", view=view)
+        aTask = pim.Task("aTask", itsView=view)
         self.setAttributes(aTask)
 
         self.traverseStampSquence(aTask, ((add, eventMixin),
@@ -173,7 +173,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.assert_(aTask.isItemOf(taskKind))
 
         # check stamping on an Event
-        anEvent = Calendar.CalendarEvent("anEvent", view=view)
+        anEvent = Calendar.CalendarEvent("anEvent", itsView=view)
         self.setAttributes(anEvent)
 
         # round-robin it's Kind back to event
@@ -186,7 +186,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.assert_(anEvent.isItemOf(eventKind))
 
         # check stamping on a Mail Message
-        aMessage = Mail.MailMessage("aMessage", view=view)
+        aMessage = Mail.MailMessage("aMessage", itsView=view)
         self.setAttributes(aMessage)
         self.traverseStampSquence(aMessage, ((add, eventMixin),
                                              (add, taskMixin),
@@ -223,7 +223,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         # Test some failure cases
         # These cases should produce suitable warning messages in Chandler.log
         if testFailureCases:
-            anotherEvent = Calendar.CalendarEvent("anotherEvent", view=view)
+            anotherEvent = Calendar.CalendarEvent("anotherEvent", itsView=view)
             self.setAttributes(anotherEvent)
             self.assert_(anotherEvent.isItemOf(eventKind))
             # Could use assertRaises here, but it's syntax with respect to parameters is

@@ -175,14 +175,15 @@ class Script(pim.ContentItem):
     who = schema.One(redirectTo = 'creator')
     date = schema.One(redirectTo = 'lastRan')
 
-    def __init__(self, name=None, parent=None, kind=None, view=None,
+    def __init__(self, itsName=None, itsParent=None, itsKind=None, itsView=None,
                  bodyString=None, *args, **keys):
         defaultName = messages.UNTITLED
-        if name is not None:
-            defaultName = unicode(name)
+        if itsName is not None:
+            defaultName = unicode(itsName)
         keys.setdefault('displayName', defaultName)
-        super(Script, self).__init__(name, parent, kind, view, *args, **keys)
-
+        super(Script, self).__init__(
+            itsName, itsParent, itsKind, itsView, *args, **keys
+        )
         self.lastRan = datetime.now()
         self.lastSync = self.lastRan
         if bodyString is not None:

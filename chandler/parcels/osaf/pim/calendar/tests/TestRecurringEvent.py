@@ -37,7 +37,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.event = self._createEvent()
 
     def _createEvent(self):
-        event = Calendar.CalendarEvent(None, view=self.rep.view)
+        event = Calendar.CalendarEvent(None, itsView=self.rep.view)
         event.startTime = self.start
         event.endTime = event.startTime + timedelta(hours=1)
         event.anyTime = False
@@ -45,7 +45,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         return event
 
     def _createRuleSetItem(self, freq):
-        ruleItem = RecurrenceRule(None, view=self.rep.view)
+        ruleItem = RecurrenceRule(None, itsView=self.rep.view)
         ruleItem.until = getattr(self, freq)['end']
         ruleItem.untilIsDate = False
         if freq == 'weekly':
@@ -53,7 +53,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
                              "freq should default to weekly")
         else:
             ruleItem.freq = freq
-        ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
         ruleSetItem.addRule(ruleItem)
         return ruleSetItem
     
@@ -556,9 +556,9 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assert_(not second.allDay)        
 
     def testNeverEndingEvents(self):
-        ruleItem = RecurrenceRule(None, view=self.rep.view)
+        ruleItem = RecurrenceRule(None, itsView=self.rep.view)
         ruleItem.freq = 'daily'
-        ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
         ruleSetItem.addRule(ruleItem)
         self.event.rruleset = ruleSetItem
         

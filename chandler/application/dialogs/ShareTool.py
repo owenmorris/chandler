@@ -11,7 +11,7 @@ class ShareToolDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, view=None):
+         resources=None, itsView=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
@@ -84,7 +84,7 @@ class ShareToolDialog(wx.Dialog):
 
     def OnCreateShare(self, evt):
         share = ShowShareEditorDialog(self.parent, share=None,
-         resources=self.resources, view=self.view)
+         resources=self.resources, itsView=self.view)
         if share is not None:
             share.create()
             share.put()
@@ -92,7 +92,7 @@ class ShareToolDialog(wx.Dialog):
 
     def OnJoinShare(self, evt):
         share = ShowShareEditorDialog(self.parent, share=None,
-         resources=self.resources, view=self.view, join=True)
+         resources=self.resources, itsView=self.view, join=True)
         if share is not None:
             share.get()
             schema.ns("osaf.app", self).sidebarCollection.add (share.contents)
@@ -104,7 +104,7 @@ class ShareToolDialog(wx.Dialog):
         if selection > -1:
             share = self.shares[selection]
             share = ShowShareEditorDialog(self.parent, share=share,
-             resources=self.resources, view=self.view)
+             resources=self.resources, itsView=self.view)
         self._populateSharesList()
 
     def OnItems(self, evt):
@@ -112,7 +112,7 @@ class ShareToolDialog(wx.Dialog):
         if selection > -1:
             share = self.shares[selection]
             ShowCollectionEditorDialog(self.parent, collection=share.contents,
-             resources=self.resources, view=self.view)
+             resources=self.resources, itsView=self.view)
 
     def OnSyncShare(self, evt):
         selection = self.sharesList.GetSelection()
@@ -277,18 +277,18 @@ class ShareEditorDialog(wx.Dialog):
             conduit = sharing.WebDAVConduit(
              account=account,
              shareName=shareName,
-             view=self.view
+             itsView=self.view
             )
             if shareName.endswith('.ics'):
-                format = sharing.ICalendarFormat(view=self.view)
+                format = sharing.ICalendarFormat(itsView=self.view)
             else:
-                format = sharing.CloudXMLFormat(view=self.view)
+                format = sharing.CloudXMLFormat(itsView=self.view)
             if self.join:
                 self.share = sharing.Share(conduit=conduit, format=format,
-                                           view=self.view)
+                                           itsView=self.view)
             else:
                 self.share = sharing.Share(contents=collection, conduit=conduit,
-                                           format=format, view=self.view)
+                                           format=format, itsView=self.view)
             self.share.displayName = title
         else:
             self.share.displayName = title

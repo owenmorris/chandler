@@ -21,11 +21,11 @@ try:
     #Upcast path to unicode since Sharing requires a unicode path
     #for now. This will change in the next few days
     path = unicode(path, sys.getfilesystemencoding())
-    share = Sharing.OneTimeFileSystemShare(path, u'exportTest.ics', ICalendar.ICalendarFormat, view=appView)
+    share = Sharing.OneTimeFileSystemShare(path, u'exportTest.ics', ICalendar.ICalendarFormat, itsView=appView)
     
     logger.Start("Export Test Calendar")
     try:
-        collection = ListCollection(view=appView)
+        collection = ListCollection(itsView=appView)
         for event in Calendar.CalendarEvent.iterItems(appView):
             collection.add(event)
         share.contents = collection

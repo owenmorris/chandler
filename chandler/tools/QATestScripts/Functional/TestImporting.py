@@ -14,7 +14,7 @@ try:
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, sys.getfilesystemencoding())
-    share = Sharing.OneTimeFileSystemShare(path, u'importTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
+    share = Sharing.OneTimeFileSystemShare(path, u'importTest.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
     
     logger.Start("Import Large Calendar")
     try:

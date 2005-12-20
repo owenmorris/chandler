@@ -53,7 +53,7 @@ class TestI18nFlickr(TestContentModel.ContentModelTestCase):
         #Once that takes place the search on tag  "?~B??~C??~C??~B??~C??~A~J?~W?~C~E?| ? "
         #will be uncommented
         #return self._testI18n(tag=u"hawaii", key=u"Green Sand Beach")
-        #return self._testI18n(tag=u"オンラインお得情報 ", key=u"trünk")
+        #return self._testI18n(tag=u"オンライン�?�得情報 ", key=u"trünk")
         pass
 
     def _testI18n(self, key=None, username=None, tag=None):
@@ -62,7 +62,7 @@ class TestI18nFlickr(TestContentModel.ContentModelTestCase):
 
         self.assertNotEquals(key, None)
 
-        p = flickr.PhotoCollection(view = self.view)
+        p = flickr.PhotoCollection(itsView = self.view)
 
         if username is not None:
             p.username = username

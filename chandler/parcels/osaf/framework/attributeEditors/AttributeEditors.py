@@ -1898,7 +1898,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             control.Clear()
 
             selectIndex = -1
-            info = TimeZoneInfo.get(view=self.item.itsView)
+            info = TimeZoneInfo.get(self.item.itsView)
             
             canonicalTimeZone = info.canonicalTimeZone(value)
 

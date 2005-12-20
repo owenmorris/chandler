@@ -66,10 +66,10 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         # Construct a sample item
         calendarEventItem = Calendar.CalendarEvent("calendarEventItem",
-                                                   view=view)
-        calendarItem = Calendar.Calendar("calendarItem", view=view)
-        locationItem = Calendar.Location("locationItem", view=view)
-        recurrenceItem = Calendar.RecurrencePattern("recurrenceItem", view=view)
+                                                   itsView=view)
+        calendarItem = Calendar.Calendar("calendarItem", itsView=view)
+        locationItem = Calendar.Location("locationItem", itsView=view)
+        recurrenceItem = Calendar.RecurrencePattern("recurrenceItem", itsView=view)
 
         # CalendarEvent properties
         calendarEventItem.displayName = u"simple headline"
@@ -109,14 +109,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         # Test getting duration, setting endTime
         view = self.rep.view
-        firstItem = Calendar.CalendarEvent(view=view)
+        firstItem = Calendar.CalendarEvent(itsView=view)
         firstItem.anyTime = False
         firstItem.startTime = datetime(2003, 2, 1, 10)
         firstItem.endTime = datetime(2003, 2, 1, 11, 30)
         self.assertEqual(firstItem.duration, timedelta(hours=1.5))
 
         # Test setting duration and getting endTime
-        secondItem = Calendar.CalendarEvent(view=view)
+        secondItem = Calendar.CalendarEvent(itsView=view)
         secondItem.anyTime = False
         secondItem.startTime = datetime(2003, 3, 5, 9)
         secondItem.duration = timedelta(hours=1.5)
@@ -147,7 +147,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("osaf.pim.calendar")
 
         view = self.rep.view
-        item = Calendar.CalendarEvent(view=view)
+        item = Calendar.CalendarEvent(itsView=view)
         path = item.itsPath
         item.delete()
         del item

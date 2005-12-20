@@ -86,9 +86,9 @@ class TypeKind(Kind):
 
 class Type(Item):
 
-    def __init__(self, name, parent, kind):
+    def __init__(self, *args, **kw):
 
-        super(Type, self).__init__(name, parent, kind)
+        super(Type, self).__init__(*args, **kw)
 
         self._status |= Item.SCHEMA | Item.PINNED
         TypeHandler.typeHandlers[self.itsView][None].types.append(self)

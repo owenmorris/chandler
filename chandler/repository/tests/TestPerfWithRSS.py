@@ -115,7 +115,7 @@ class TestPerfWithRSS(RepositoryTestCase):
             urlhash = str(hash(url))
             item = view.find(Path(BASE_PATH, urlhash))
             if not item:
-                item = FeedChannel(view = view).setup()
+                item = FeedChannel(itsView = view).setup()
                 item.url = url
             feeds.append(item.itsUUID)
 

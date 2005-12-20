@@ -77,25 +77,25 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
 
         # Construct sample items
-        accountBaseItem = Mail.AccountBase("accountBaseItem", view=view)
-        imapAccountItem = Mail.IMAPAccount("imapAccountItem", view=view)
-        smtpAccountItem = Mail.SMTPAccount("smtpAccountItem", view=view)
+        accountBaseItem = Mail.AccountBase("accountBaseItem", itsView=view)
+        imapAccountItem = Mail.IMAPAccount("imapAccountItem", itsView=view)
+        smtpAccountItem = Mail.SMTPAccount("smtpAccountItem", itsView=view)
         mailDeliveryErrorItem = Mail.MailDeliveryError("mailDeliveryErrorItem",
-                                                       view=view)
+                                                       itsView=view)
         mailDeliveryBaseItem = Mail.MailDeliveryBase("mailDeliveryBaseItem",
-                                                     view=view)
-        smtpDeliveryItem = Mail.SMTPDelivery("smtpDeliveryItem", view=view)
-        imapDeliveryItem = Mail.IMAPDelivery("imapDeliveryItem", view=view)
-        mimeBaseItem = Mail.MIMEBase("mimeBaseItem", view=view)
-        mimeNoteItem = Mail.MIMENote("mimeNoteItem", view=view)
-        mailMessageItem = Mail.MailMessage("mailMessageItem", view=view)
+                                                     itsView=view)
+        smtpDeliveryItem = Mail.SMTPDelivery("smtpDeliveryItem", itsView=view)
+        imapDeliveryItem = Mail.IMAPDelivery("imapDeliveryItem", itsView=view)
+        mimeBaseItem = Mail.MIMEBase("mimeBaseItem", itsView=view)
+        mimeNoteItem = Mail.MIMENote("mimeNoteItem", itsView=view)
+        mailMessageItem = Mail.MailMessage("mailMessageItem", itsView=view)
         mailMessageMixinItem = Mail.MailMessageMixin("mailMessageMixinItem",
-                                                     view=view)
-        mimeBinaryItem = Mail.MIMEBinary("mimeBinaryItem", view=view)
-        mimeTextItem = Mail.MIMEText("mimeTextItem", view=view)
-        mimeContainerItem = Mail.MIMEContainer("mimeContainerItem", view=view)
-        mimeSecurityItem = Mail.MIMESecurity("mimeSecurityItem", view=view)
-        emailAddressItem = Mail.EmailAddress("emailAddressItem", view=view)
+                                                     itsView=view)
+        mimeBinaryItem = Mail.MIMEBinary("mimeBinaryItem", itsView=view)
+        mimeTextItem = Mail.MIMEText("mimeTextItem", itsView=view)
+        mimeContainerItem = Mail.MIMEContainer("mimeContainerItem", itsView=view)
+        mimeSecurityItem = Mail.MIMESecurity("mimeSecurityItem", itsView=view)
+        emailAddressItem = Mail.EmailAddress("emailAddressItem", itsView=view)
 
         # Double check kinds
         self.assertEqual(accountBaseItem.itsKind,
@@ -196,7 +196,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         if type(account) == Mail.SMTPAccount:
             account.fullName = u"test"
-            account.replyToAddress = Mail.EmailAddress(view=account.itsView)
+            account.replyToAddress = Mail.EmailAddress(itsView=account.itsView)
             account.replyToAddress.emailAddress = u"test@test.com"
 
 if __name__ == "__main__":

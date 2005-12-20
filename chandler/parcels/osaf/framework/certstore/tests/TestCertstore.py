@@ -89,7 +89,7 @@ rZehs7GgIFvKMquNzxPwHynD
         self.loadParcel("osaf.framework.certstore.data")
         
         view = self.rep.view
-        rootCerts = FilteredCollection('rootCertsQuery', view=view)
+        rootCerts = FilteredCollection('rootCertsQuery', itsView=view)
         rootCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
         rootCerts.filterExpression = u'item.type == "%s"' % constants.TYPE_ROOT
         rootCerts.filterAttributes = ['type']
@@ -129,7 +129,7 @@ rZehs7GgIFvKMquNzxPwHynD
         
         view = self.rep.view
 
-        matchingCerts = FilteredCollection('fpCertQuery' + fingerprint, view=view)
+        matchingCerts = FilteredCollection('fpCertQuery' + fingerprint, itsView=view)
         matchingCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
         matchingCerts.filterExpression = u'item.fingerprint == "%s"' % fingerprint
         matchingCerts.filterAttributes = ['fingerprint']

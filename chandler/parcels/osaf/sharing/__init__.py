@@ -148,7 +148,7 @@ def publish(collection, account, classesToInclude=None,
 
     view = collection.itsView
 
-    conduit = WebDAVConduit(view=view, account=account)
+    conduit = WebDAVConduit(itsView=view, account=account)
     path = account.path.strip("/")
 
     # Interrogate the server associated with the account
@@ -338,7 +338,7 @@ def publish(collection, account, classesToInclude=None,
                                              account=account)
                     shares.append(share)
                     share.displayName = u"%s.ics" % displayName
-                    share.format = ICalendarFormat(parent=share)
+                    share.format = ICalendarFormat(itsParent=share)
                     share.mode = "put"
 
                     if share.exists():
@@ -445,7 +445,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 info = accountInfoCallback(host, path)
                 if info is not None:
                     (description, username, password) = info
-                    account = WebDAVAccount(view=view)
+                    account = WebDAVAccount(itsView=view)
                     account.displayName = description
                     account.host = host
                     account.path = parentPath
@@ -463,16 +463,16 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         shareName = path.strip(u"/")[accountPathLen:]
 
     if account:
-        conduit = WebDAVConduit(view=view, account=account,
+        conduit = WebDAVConduit(itsView=view, account=account,
             shareName=shareName)
     else:
-        conduit = WebDAVConduit(view=view, host=host, port=port,
+        conduit = WebDAVConduit(itsView=view, host=host, port=port,
             sharePath=parentPath, shareName=shareName, useSSL=useSSL,
             ticket=ticket)
 
     try:
         location = conduit.getLocation()
-        for share in Share.iterItems(view=view):
+        for share in Share.iterItems(view):
             if share.getLocation() == location:
                 raise AlreadySubscribed(_(u"Already subscribed"))
 
@@ -482,9 +482,9 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         # mess around with checking Allow headers and the like:
 
         if url.endswith(".ics"):
-            share = Share(view=view)
-            share.format = ICalendarFormat(parent=share)
-            share.conduit = SimpleHTTPConduit(parent=share,
+            share = Share(itsView=view)
+            share.format = ICalendarFormat(itsParent=share)
+            share.conduit = SimpleHTTPConduit(itsParent=share,
                                               shareName=shareName,
                                               account=account)
             share.mode = "get"
@@ -587,17 +587,17 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
         # Just a WebDAV/XML collection
 
-        share = Share(view=view)
+        share = Share(itsView=view)
 
         share.mode = shareMode
 
-        share.format = CloudXMLFormat(parent=share)
+        share.format = CloudXMLFormat(itsParent=share)
         if account:
-            share.conduit = WebDAVConduit(parent=share,
+            share.conduit = WebDAVConduit(itsParent=share,
                                           shareName=shareName,
                                           account=account)
         else:
-            share.conduit = WebDAVConduit(parent=share, host=host, port=port,
+            share.conduit = WebDAVConduit(itsParent=share, host=host, port=port,
                 sharePath=parentPath, shareName=shareName, useSSL=useSSL,
                 ticket=ticket)
 
@@ -629,20 +629,20 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
         if hasSubCollection:
             # Here is the Share for the subcollection with cloudXML
-            subShare = Share(view=view)
+            subShare = Share(itsView=view)
             subShare.mode = shareMode
             subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
 
             if account:
-                subShare.conduit = WebDAVConduit(parent=subShare,
+                subShare.conduit = WebDAVConduit(itsParent=subShare,
                                                  shareName=subShareName,
                                                  account=account)
             else:
-                subShare.conduit = WebDAVConduit(parent=subShare, host=host,
+                subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
                     port=port, sharePath=parentPath, shareName=subShareName,
                     useSSL=useSSL, ticket=ticket)
 
-            subShare.format = CloudXMLFormat(parent=subShare)
+            subShare.format = CloudXMLFormat(itsParent=subShare)
 
             for attr in CALDAVFILTER:
                 subShare.filterAttributes.append(attr)
@@ -652,15 +652,15 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         else:
             subShare = None
 
-        share = Share(view=view)
+        share = Share(itsView=view)
         share.mode = shareMode
-        share.format = CalDAVFormat(parent=share)
+        share.format = CalDAVFormat(itsParent=share)
         if account:
-            share.conduit = CalDAVConduit(parent=share,
+            share.conduit = CalDAVConduit(itsParent=share,
                                           shareName=shareName,
                                           account=account)
         else:
-            share.conduit = CalDAVConduit(parent=share, host=host,
+            share.conduit = CalDAVConduit(itsParent=share, host=host,
                 port=port, sharePath=parentPath, shareName=shareName,
                 useSSL=useSSL, ticket=ticket)
 
@@ -959,16 +959,16 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
         if account is None:
             return None
 
-    share = Share(view=view, contents=collection)
+    share = Share(itsView=view, contents=collection)
 
     if useCalDAV:
-        conduit = CalDAVConduit(parent=share, account=account,
+        conduit = CalDAVConduit(itsParent=share, account=account,
                                 shareName=shareName)
-        format = CalDAVFormat(parent=share)
+        format = CalDAVFormat(itsParent=share)
     else:
-        conduit = WebDAVConduit(parent=share, account=account,
+        conduit = WebDAVConduit(itsParent=share, account=account,
                                 shareName=shareName)
-        format = CloudXMLFormat(parent=share)
+        format = CloudXMLFormat(itsParent=share)
 
     share.conduit = conduit
     share.format = format
@@ -1125,7 +1125,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
 
         response = \
           application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
-          app.mainFrame, account=account, view=view)
+          app.mainFrame, account=account, itsView=view)
 
         if response == False:
             return False

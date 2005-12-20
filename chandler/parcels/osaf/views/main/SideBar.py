@@ -973,7 +973,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                 if len (collectionList) == 1:
                     key = collectionList [0]
                 else:
-                    key = UnionCollection (view=self.itsView)
+                    key = UnionCollection (itsView=self.itsView)
                     for col in collectionList:
                         key.addSource(col)
 
@@ -984,11 +984,11 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                 # Handle filtered collections by intersecting with
                 # the kind collection
                 if filterKind is not None:
-                    newKey = IntersectionCollection(view=self.itsView)
+                    newKey = IntersectionCollection(itsView=self.itsView)
                     try:
                         kindCollection = self.kindToKindCollectionCache [filterKind]
                     except KeyError:
-                        kindCollection = KindCollection (view=self.itsView)
+                        kindCollection = KindCollection (itsView=self.itsView)
                         kindCollection.kind = filterKind
                         kindCollection.recursive = True
                         self.kindToKindCollectionCache [filterKind] = kindCollection
@@ -1000,7 +1000,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
                 # Finally, create a UI wrapper collection to manage
                 # things like selection and sorting
-                newKey = IndexedSelectionCollection (view=self.itsView)
+                newKey = IndexedSelectionCollection (itsView=self.itsView)
                 newKey.source = key
                 newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
                 key = newKey

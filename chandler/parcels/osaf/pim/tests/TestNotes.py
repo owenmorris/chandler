@@ -38,7 +38,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
                          view.find(Path(notesPath, 'Note')))
 
         # Construct sample items
-        noteItem = pim.Note("noteItem", view=view)
+        noteItem = pim.Note("noteItem", itsView=view)
 
         # Double check kinds
         self.assertEqual(noteItem.itsKind, pim.Note.getKind(view))

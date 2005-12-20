@@ -37,8 +37,8 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
                          view.find(Path(contactsPath, 'ContactName')))
 
         # Construct sample items
-        contactItem = Contact("contactItem", view=view)
-        contactNameItem = ContactName("contactNameItem", view=view)
+        contactItem = Contact("contactItem", itsView=view)
+        contactNameItem = ContactName("contactNameItem", itsView=view)
 
         # Double check kinds
         self.assertEqual(contactItem.itsKind, Contact.getKind(view))

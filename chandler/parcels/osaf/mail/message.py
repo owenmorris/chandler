@@ -222,7 +222,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
     assert messageText is None or isinstance(messageText, str), \
            "messageText can either be a string or None"
 
-    m = Mail.MailMessage(view=view)
+    m = Mail.MailMessage(itsView=view)
 
     """Save the original message text in a text blob"""
     if messageText is None:
@@ -595,7 +595,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
     if contype == "application/applefile":
         return
 
-    mimeBinary = Mail.MIMEBinary(view=view)
+    mimeBinary = Mail.MIMEBinary(itsView=view)
 
     """Get the attachments data"""
     body = mimePart.get_payload(decode=1)
@@ -636,7 +636,7 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
         size > 0 and bodyBuffer.append(getUnicodeValue(body, charset))
 
     else:
-        mimeText = Mail.MIMEText(view=view)
+        mimeText = Mail.MIMEText(itsView=view)
 
         mimeText.mimeType = mimePart.get_content_type()
         mimeText.charset  = charset

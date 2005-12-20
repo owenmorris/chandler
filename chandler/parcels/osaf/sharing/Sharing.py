@@ -335,14 +335,14 @@ class Share(pim.ContentItem):
         initialValue = u''
     )
 
-    contents = schema.One(pim.ContentItem, otherName = 'shares')
+    contents = schema.One(pim.ContentItem,otherName='shares',initialValue=None)
 
     items = schema.Sequence(pim.ContentItem, initialValue=[],
         otherName = 'sharedIn')
 
-    conduit = schema.One('ShareConduit', inverse = 'share')
+    conduit = schema.One('ShareConduit', inverse='share', initialValue=None)
 
-    format = schema.One('ImportExportFormat', inverse = 'share')
+    format = schema.One('ImportExportFormat',inverse='share',initialValue=None)
 
     sharer = schema.One(
         pim.Contact,
@@ -374,19 +374,10 @@ class Share(pim.ContentItem):
                                         filterAttributes])
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-                 contents=None, conduit=None, format=None):
-
-        super(Share, self).__init__(name, parent, kind, view)
-
-        self.contents = contents # AbstractCollection
-        try:
-            self.displayName = contents.displayName
-        except:
-            self.displayName = u""
-
-        self.conduit = conduit
-        self.format = format
+    def __init__(self, *args, **kw):
+        defaultDisplayName = getattr(kw.get('contents'),'displayName',u'')
+        kw.setdefault('displayName',defaultDisplayName)
+        super(Share, self).__init__(*args, **kw)
 
     def create(self):
         self.conduit.create()
@@ -485,8 +476,8 @@ class ShareConduit(pim.ContentItem):
     Transfers items in and out.
     """
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super(ShareConduit, self).__init__(name, parent, kind, view)
+    def __init__(self, *args, **kw):
+        super(ShareConduit, self).__init__(*args, **kw)
         self.marker = Item('marker', self, None)
 
     schema.kindInfo(displayName = u"Share Conduit Kind")
@@ -499,7 +490,7 @@ class ShareConduit(pim.ContentItem):
     )
 
     shareName = schema.One(
-        schema.Text,
+        schema.Text, initialValue=u"",
         doc = "The 'directory' name of the share, relative to 'sharePath'",
     )
 
@@ -856,7 +847,7 @@ class ShareConduit(pim.ContentItem):
 
         # Make sure we have a collection to add items to:
         if self.share.contents is None:
-            self.share.contents = pim.InclusionExclusionCollection(view=view).setup()
+            self.share.contents = pim.InclusionExclusionCollection(itsView=view).setup()
 
         contents = self.share.contents
 
@@ -1171,15 +1162,10 @@ class FileSystemConduit(ShareConduit):
     schema.kindInfo(displayName=u"File System Share Conduit Kind")
 
 
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-                 sharePath=None, shareName=None):
-        super(FileSystemConduit, self).__init__(name, parent, kind, view)
-
-        self.sharePath = sharePath
-        self.shareName = shareName
-
-        if not self.shareName:
-            self.shareName = unicode(UUID())
+    def __init__(self, *args, **kw):
+        if 'shareName' not in kw:
+            kw['shareName'] = unicode(UUID())
+        super(FileSystemConduit, self).__init__(*args, **kw)
 
         # @@@MOR What sort of processing should we do on sharePath for this
         # filesystem conduit?
@@ -1330,12 +1316,12 @@ class WebDAVConduit(ShareConduit):
 
     schema.kindInfo(displayName=u"WebDAV Share Conduit Kind")
 
-    account = schema.One('WebDAVAccount', inverse = 'conduits')
-    host = schema.One(schema.Text)
-    port = schema.One(schema.Integer)
-    username = schema.One(schema.Text)
-    password = schema.One(schema.Text)
-    useSSL = schema.One(schema.Boolean)
+    account = schema.One('WebDAVAccount', inverse='conduits',initialValue=None)
+    host = schema.One(schema.Text, initialValue=u"")
+    port = schema.One(schema.Integer, initialValue=80)
+    username = schema.One(schema.Text, initialValue=u"")
+    password = schema.One(schema.Text, initialValue=u"")
+    useSSL = schema.One(schema.Boolean, initialValue=False)
 
     # The ticket this conduit will use (we're a sharee and we're using this)
     ticket = schema.One(schema.Bytes, initialValue="")
@@ -1344,31 +1330,13 @@ class WebDAVConduit(ShareConduit):
     ticketReadOnly = schema.One(schema.Bytes, initialValue="")
     ticketReadWrite = schema.One(schema.Bytes, initialValue="")
 
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-                 shareName=None, account=None, host=None, port=80,
-                 sharePath=None, username=u"", password=u"", useSSL=False,
-                 ticket=""):
-        super(WebDAVConduit, self).__init__(name, parent, kind, view)
-
-        # Use account, if provided.  Otherwise use host, port, username,
-        # password and useSSL parameters instead.
-        self.account = account
-        if account is None:
-            self.host = host
-            self.port = port
-            self.sharePath = sharePath
-            self.username = username
-            self.password = password
-            self.useSSL = useSSL
-            self.ticket = ticket
-
-        if shareName is None:
-            self.shareName = unicode(UUID())
-        else:
-            # @@@MOR Probably should remove any slashes, or warn if there are
-            # any?
-            self.shareName = shareName.strip("/")
-
+    def __init__(self, *args, **kw):
+        if 'shareName' not in kw:
+            kw['shareName'] = unicode(UUID())
+        super(WebDAVConduit, self).__init__(*args, **kw)
+        # @@@MOR Probably should remove any slashes, or warn if there are
+        # any?
+        self.shareName = self.shareName.strip("/")
         self.onItemLoad()
 
     def onItemLoad(self, view=None):
@@ -1945,14 +1913,17 @@ class SimpleHTTPConduit(WebDAVConduit):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class OneTimeFileSystemShare(OneTimeShare):
-    def __init__(self, path, name, formatclass, kind=None, view=None,
+    def __init__(self, path, itsName, formatclass, itsKind=None, itsView=None,
                  contents=None):
 
-        conduit = FileSystemConduit(kind=kind, view=view, sharePath=path,
-                                    shareName=name)
-        format  = formatclass(view=view)
-        super(OneTimeFileSystemShare, self).__init__(kind=kind, view=view,
-                 contents=contents, conduit=conduit, format=format)
+        conduit = FileSystemConduit(
+            itsKind=itsKind, itsView=view, sharePath=path, shareName=itsName
+        )
+        format  = formatclass(itsView=itsView)
+        super(OneTimeFileSystemShare, self).__init__(
+            itsKind=itsKind, itsView=itsView,
+            contents=contents, conduit=conduit, format=format
+        )
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -2373,13 +2344,7 @@ class CloudXMLFormat(ImportExportFormat):
 
     schema.kindInfo(displayName=u"Cloud XML Import/Export Format Kind")
 
-    cloudAlias = schema.One(schema.Bytes)
-
-
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-                 cloudAlias='sharing'):
-        super(CloudXMLFormat, self).__init__(name, parent, kind, view)
-        self.cloudAlias = cloudAlias
+    cloudAlias = schema.One(schema.Bytes, initialValue='sharing')
 
     def fileStyle(self):
         return self.STYLE_DIRECTORY

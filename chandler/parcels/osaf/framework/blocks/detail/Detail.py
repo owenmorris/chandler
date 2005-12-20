@@ -818,7 +818,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
 
         # If this code is ever revived, it should call sharing.subscribe(),
         # rather than the following:
-        ## share = sharing.Share(view=self.itsView)
+        ## share = sharing.Share(itsView=self.itsView)
         ## share.configureInbound(url)
         ## share.get()
 
@@ -1227,7 +1227,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 value = RecurrenceAttributeEditor.weeklyIndex
             duFreq = Recurrence.toDateUtilFrequency(\
                 RecurrenceAttributeEditor.menuFrequencies[value])
-            rruleset = Recurrence.RecurrenceRuleSet(None, view=item.itsView)
+            rruleset = Recurrence.RecurrenceRuleSet(None, itsView=item.itsView)
             rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq,
                                          interval=interval))
             until = item.getLastUntil()

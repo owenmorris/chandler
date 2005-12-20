@@ -12,7 +12,7 @@ if i is None:
     except (IndexError, AttributeError):
         i = None
 if i is not None:
-    for server in webserver.Server.iterItems(view=i.itsView):
+    for server in webserver.Server.iterItems(i.itsView):
         if not server.isActivated():
             server.startup()
     #XXX [i18n] i.itsPath should be an ascii string however

@@ -11,7 +11,7 @@ class TestUIDMap(testcase.NRVTestCase):
 
         uid_map = schema.ns('osaf.sharing', view).uid_map
 
-        event1 = pim.CalendarEvent(view=view)
+        event1 = pim.CalendarEvent(itsView=view)
 
         # Creating an event sets its icalUID, which is monitored by uid_map,
         # which in turn adds the event to the 'items' ref collection using

@@ -52,14 +52,14 @@ This is the body"""
             return self.__mailMessage
 
         view = self.rep.view
-        m = Mail.MailMessage(view=view)
-        m.fromAddress = Mail.EmailAddress(view=view)
+        m = Mail.MailMessage(itsView=view)
+        m.fromAddress = Mail.EmailAddress(itsView=view)
         m.fromAddress.emailAddress = "bill@home.net"
 
-        toOne = Mail.EmailAddress(view=view)
+        toOne = Mail.EmailAddress(itsView=view)
         toOne.emailAddress = "test@testuser.com"
 
-        toTwo = Mail.EmailAddress(view=view)
+        toTwo = Mail.EmailAddress(itsView=view)
         toTwo.emailAddress = "john@home.com"
         toTwo.fullName = "John Johnson"
 
@@ -67,7 +67,7 @@ This is the body"""
         m.toAddress.append(toOne)
         m.toAddress.append(toTwo)
 
-        ccOne = Mail.EmailAddress(view=view)
+        ccOne = Mail.EmailAddress(itsView=view)
         ccOne.emailAddress = "jake@now.com"
 
         m.ccAddress = []

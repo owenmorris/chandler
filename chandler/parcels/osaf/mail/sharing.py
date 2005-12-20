@@ -84,7 +84,7 @@ class SMTPInvitationSender(object):
     def __createMessage(self):
         self.repository.view.refresh()
 
-        m = Mail.MailMessage(view=self.repository.view)
+        m = Mail.MailMessage(itsView=self.repository.view)
 
         m.subject = self.__createSubject()
         m.fromAddress = self.fromAddress

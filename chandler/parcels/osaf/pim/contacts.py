@@ -140,7 +140,7 @@ class Contact(items.ContentItem):
                 return item # Just return the first match
 
         # Need to create a new Contact
-        contact = Contact(view=view)
+        contact = Contact(itsView=view)
         contact.emailAddress = address
         contact.contactName = None
         return contact

@@ -44,9 +44,9 @@ class ContentItemTest(ContentModelTestCase):
         # Construct a sample item
         view = self.rep.view
         genericContentItem = items.ContentItem("genericContentItem",
-                                                      view=view)
-        genericProject = items.Project("genericProject", view=view)
-        genericGroup = items.Group("genericGroup", view=view)
+                                                      itsView=view)
+        genericProject = items.Project("genericProject", itsView=view)
+        genericGroup = items.Group("genericGroup", itsView=view)
 
         # Check that each item was created
         self.assert_(genericContentItem)

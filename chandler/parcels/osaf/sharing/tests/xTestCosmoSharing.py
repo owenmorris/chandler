@@ -35,7 +35,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         Item("sandbox", view, None)
 
         sandbox = view.findPath("//sandbox")
-        coll = pim.ListCollection(name="testCollection", parent=sandbox,
+        coll = pim.ListCollection("testCollection", sandbox,
             displayName="Test Collection")
 
         names = [
@@ -47,8 +47,8 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         contacts = []
 
         for name in names:
-            c = pim.Contact(parent=sandbox)
-            c.contactName = pim.ContactName(parent=sandbox)
+            c = pim.Contact(None, sandbox)
+            c.contactName = pim.ContactName(None, sandbox)
             c.contactName.firstName = name[0]
             c.contactName.lastName = name[1]
             c.emailAddress = name[2]
@@ -68,7 +68,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
         tzinfo = ICUtzinfo.getDefault()
         for i in xrange(6):
-            c = pim.CalendarEvent(parent=sandbox)
+            c = pim.CalendarEvent(None, sandbox)
             c.displayName = events[i % 6]
             c.organizer = contacts[0]
             c.participants = [contacts[1], contacts[2]]
@@ -100,7 +100,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
                                    repositoryView=view)
 
         sandbox = view.findPath("//sandbox")
-        account = sharing.WebDAVAccount(name='account', parent=sandbox,
+        account = sharing.WebDAVAccount(name='account', itsParent=sandbox,
                                         username=username,
                                         password=password,
                                         host=host,

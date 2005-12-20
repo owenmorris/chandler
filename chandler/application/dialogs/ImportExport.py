@@ -221,7 +221,7 @@ class ImportDialog(FileChooserWithOptions):
         prefs.import_as_new = targetCollection is None
         
         share = osaf.sharing.OneTimeFileSystemShare(
-            dir, filename, osaf.sharing.ICalendarFormat, view=self.view,
+            dir, filename, osaf.sharing.ICalendarFormat, itsView=self.view,
             contents = targetCollection
         )
 

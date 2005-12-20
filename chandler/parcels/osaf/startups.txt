@@ -3,52 +3,39 @@ Startup and Background Tasks in Chandler
 ----------------------------------------
 
 
-Debugging hack, per bear's request on IRC:
-
-    >>> import sys
-    >>> __stderr = sys.stderr
-    >>> def status(line):       
-    ...     print >>__stderr,"Executing at line",line
-    ...     __stderr.flush()
-    
-
 Running Code at Application Startup
 ===================================
 
-The ``osaf.startup`` module provides an API for notifying repository items that
+The ``osaf.startup`` module provides an API for invoking repository items when
 the application has been started.  For our examples, we'll be using a null
 repository view, ``rv``::
 
-    >>> status(20)
     >>> from repository.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
-In order to receive startup notifications, you simply create items of type
+In order to run code at application startup, you simply create items of type
 ``osaf.startup.Startup`` in your parcel.  Each item's ``invoke`` attribute
 names a function (or non-Item class) that should be invoked at startup.  For
 our example, we'll use ``sys.stdout.write`` as the function we want to call::
 
-    >>> status(29)
     >>> from osaf.startup import Startup
-    >>> test = Startup("test", invoke="sys.stdout.write", view = rv)
+    >>> test = Startup("test", invoke="sys.stdout.write", itsView = rv)
 
 When ``run_startup()`` is called, the function or class named by the ``invoke``
 attribute of each ``Startup`` item will be called with the corresponding
 item as its only parameter.  In our example, this will cause the ``test``
 object to be written to ``sys.stdout``::
 
-    >>> status(39)
     >>> from osaf.startup import run_startup
     >>> run_startup(rv)
     <Startup (new): test ...>
-    >>> status(42)
 
-Please note that startup notifications are intended for tasks like adding
+Please note that startup invocation is intended for tasks like adding
 servers to the Twisted reactor, starting threads, or other in-process Python
-operations, based on data in the repository.  They should *not* be used to
+operations, based on data in the repository.  It should *not* be used to
 modify repository items, as this may indirectly lead to merge conflicts with
 other threads.  Any needed repository items should be created or modified
-via ``parcel.xml`` or via the ``installParcel()`` hook.
+via your parcel's ``installParcel()`` hook, rather than via startup items.
 
 
 Disabling Startups
@@ -58,9 +45,7 @@ Individual startups can be enabled or disabled using their ``active`` boolean
 attribute::
 
     >>> test.active = False
-    >>> status(59)
     >>> run_startup(rv)     # Item is disabled, so nothing happens
-    >>> status(61)
 
 
 Startup Subclasses
@@ -78,11 +63,9 @@ using attributes of the item.  For example::
     ...     def onStart(self):
     ...         print self.message.encode('utf8')
 
-    >>> hello = StartupMessage(view=rv)
-    >>> status(80)
+    >>> hello = StartupMessage(itsView=rv)
     >>> run_startup(rv)
     Hello, world!
-    >>> status(84)
 
 Notice that we did *not* invoke the superclass ``onStart()`` method, because
 we don't want the ``invoke`` attribute to take effect.
@@ -99,19 +82,16 @@ should be started first::
     >>> goodbye = StartupMessage(
     ...     message=u"Goodbye, world!",
     ...     requires=[hello],
-    ...     view=rv
+    ...     itsView=rv
     ... )
 
-    >>> status(103)
     >>> run_startup(rv)
     Hello, world!
     Goodbye, world!
 
-    >>> status(108)
     >>> goodbye.requires = []
     >>> hello.requires = [goodbye]
 
-    >>> status(114)
     >>> run_startup(rv)
     Goodbye, world!
     Hello, world!
@@ -119,20 +99,15 @@ should be started first::
 Note that a startup will not run unless *all* of its required items have been
 started::
 
-    >>> status(121)
     >>> goodbye.active = False
-    >>> status(123)
     >>> run_startup(rv)     # hello needs goodbye, so neither runs here
 
 Note that this also means that creating a requirements loop (where A requires
 B and B requires A) will prevent all items in the loop from starting::
 
-    >>> status(129)
     >>> goodbye.active = True
     >>> goodbye.requires = [hello]
-    >>> status(132)
     >>> run_startup(rv)     # co-dependents won't be started
-    >>> status(134)
 
 
 Threads
@@ -167,15 +142,12 @@ And now we can make a ``Thread`` that will run it::
 
     >>> from osaf.startup import Thread
     >>> t = Thread(
-    ...     "my_name_here", invoke="osaf.tests.TestStartups.my_thread", view=rv
+    ...     "my_name_here", invoke="osaf.tests.TestStartups.my_thread", itsView=rv
     ... )
-    >>> status(171)
     >>> t
     <Thread (new): my_name_here ...>
 
-    >>> status(175)
     >>> run_startup(rv)
-    >>> status(177)
 
 So now, the thread has been started::
 
@@ -185,7 +157,6 @@ So now, the thread has been started::
 
 but it's looping, waiting for the start flag to be set::
 
-    >>> status(187)
     >>> finished
     False
 
@@ -193,9 +164,7 @@ So, let's set the start flag, and wait a moment to allow the thread to finish::
 
     >>> start = True
     >>> from time import sleep
-    >>> status(195)
     >>> sleep(0.1)    # let the thread finish
-    >>> status(197)
 
 And now the finish flag should have been set by the thread::
 
@@ -222,7 +191,6 @@ independently of the GUI (which could otherwise block its execution).  The
 reactor is running in (assuming it was started using ``ReactorThread``), or
 ``None``::
 
-    >>> status(224)
     >>> print get_reactor_thread()
     None
 
@@ -231,34 +199,27 @@ it's in) and waits for the reactor thread to exit, if it's running.  In other
 words, it guarantees that ``reactor.running`` is False and
 ``get_reactor_thread()`` is None when it returns::
 
-    >>> status(234)
     >>> stop_reactor()
-    >>> status(236)
 
 ``run_reactor(in_thread)`` calls Twisted's ``reactor.run()``, with some
 additional wrapper code to ensure it can run safely, only runs one reactor at
 a time, and runs in a separate thread (by default)::
 
-    >>> status(241)
     >>> run_reactor()
-    >>> status(243)
     >>> get_reactor_thread()
     <RepositoryThread(reactor, started daemon)>
 
 And then we can verify that the reactor is in fact running when ``run_reactor``
 returns::
 
-    >>> status(250)
     >>> from twisted.internet import reactor
     >>> reactor.running
     1
 
 And then stop it, verifying that both the reactor and thread have stopped::
 
-    >>> status(258)
     >>> rt = get_reactor_thread()
     >>> stop_reactor()
-    >>> status(260)
     >>> print get_reactor_thread()
     None
     >>> rt.isAlive()
@@ -269,13 +230,10 @@ And then stop it, verifying that both the reactor and thread have stopped::
 Calling ``run_reactor()`` when the reactor is already running in another
 thread has no effect::
 
-    >>> status(271)
     >>> run_reactor()
-    >>> status(273)
     >>> rt = get_reactor_thread()
-    >>> status(275)
+
     >>> run_reactor()
-    >>> status(277)
     >>> rt is get_reactor_thread()
     True
 
@@ -283,15 +241,12 @@ But trying to run the reactor in the current thread (by passing a False
 ``in_thread`` argument) when it's already running in some thread raises
 an error::
 
-    >>> status(285)
     >>> run_reactor(False)
     Traceback (most recent call last):
     ...
     AssertionError: Reactor is already running
 
-    >>> status(291)
     >>> stop_reactor()  # make sure we've stopped again for next test
-    >>> status(293)
     >>> reactor.running
     0
 
@@ -299,16 +254,12 @@ So, running the Twisted reactor at startup is as simple as defining a normal
 ``Startup`` instance to invoke ``run_reactor()``::
 
     >>> twisted_startup = Startup(
-    ...     "twisted", view=rv, invoke="osaf.startup.run_reactor"
+    ...     "twisted", itsView=rv, invoke="osaf.startup.run_reactor"
     ... )
-    >>> status(304)
     >>> run_startup(rv)
-    >>> status(306)
     >>> reactor.running
     1
-    >>> status(308)
     >>> stop_reactor()
-    >>> status(310)
     >>> twisted_startup.active = False
 
 Note that it doesn't matter how many ``Startup`` instances start the reactor,
@@ -322,23 +273,18 @@ the main thread, or you will receive an assertion error in that thread, and
 the reactor will not start::
 
     >>> twisted_thread = Thread(
-    ...     "dont_do_this", view=rv, invoke="osaf.startup.run_reactor"
+    ...     "dont_do_this", itsView=rv, invoke="osaf.startup.run_reactor"
     ... )
 
     >>> import sys, StringIO    # trap stderr output
     >>> old_stderr, sys.stderr = sys.stderr, StringIO.StringIO()
 
-    >>> status(331)
     >>> run_startup(rv)
-    >>> status(333)
     >>> reactor.running
     0
 
-    >>> status(337)
     >>> sleep(0.5)  # make sure exception has been sent to stderr
-    >>> status(339)
     >>> stop_reactor()
-    >>> status(341)
     >>> len(threading.enumerate())  # all other threads should be stopped now
     1
 
@@ -351,7 +297,6 @@ the reactor will not start::
     >>> sys.stderr = old_stderr
     >>> twisted_thread.active = False
 
-    >>> status(354)
 
 Background Tasks using Twisted and Threads
 ==========================================
@@ -390,18 +335,15 @@ Now let's create the task item and run it::
 
     >>> from osaf.startup import TwistedTask
     >>> demo = TwistedTask(
-    ...     "demo", view=rv, invoke="osaf.tests.TestStartups.hello_from"
+    ...     "demo", itsView=rv, invoke="osaf.tests.TestStartups.hello_from"
     ... )
 
 Giving it a chance to run and complete::
 
-    >>> status(398)
     >>> run_startup(rv); sleep(0.1)     # give it a chance to run
     running <TwistedTask ... demo ...> in <RepositoryThread(reactor,...)>
 
-    >>> status(402)
     >>> stop_reactor()  # shut down the reactor again
-    >>> status(404)
     >>> len(threading.enumerate())  # all other threads should be stopped now
     1
 
@@ -455,11 +397,10 @@ per microsecond (so the test runs quickly!)::
     >>> from osaf.startup import PeriodicTask
 
     >>> counter = PeriodicTask(
-    ...     "counter", view=rv, invoke="osaf.tests.TestStartups.Counter",
+    ...     "counter", itsView=rv, invoke="osaf.tests.TestStartups.Counter",
     ...     interval = timedelta(microseconds=1)
     ... )
 
-    >>> status(463)
     >>> run_startup(rv); sleep(0.1)    # wait for it to run all 5 times
     __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
@@ -467,8 +408,6 @@ per microsecond (so the test runs quickly!)::
     run() call 3 running ... in <RepositoryThread(RepositoryPoolThread...)>
     run() call 4 running ... in <RepositoryThread(RepositoryPoolThread...)>
     run() call 5 running ... in <RepositoryThread(RepositoryPoolThread...)>
-
-    >>> status(471)
 
 Notice that the ``__init__`` method is called at startup time in the reactor
 thread, but subsequent ``run()`` calls occur in various "pool" threads managed
@@ -486,28 +425,21 @@ delay interval.  You can set the ``run_at_startup`` flag to enable this::
 To demonstrate, we'll set the delay interval to a year::
 
     >>> counter.interval = timedelta(days=365)
-    >>> status(489)
     >>> run_startup(rv); sleep(0.1)
     __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
-
-    >>> status(494)
 
 Notice that call 1 ran, even though there's a year between runs.  However, if
 we turn the flag back off, it doesn't get a ``run()`` call at startup::
 
     >>> counter.run_at_startup = True
-    >>> status(500)
     >>> run_startup(rv); sleep(0.1)
     __init__ running ... in <RepositoryThread(reactor,...)>
 
-    >>> status(504)
 
 Finally, let's clean up after our ``PeriodicTask`` example::
 
-    >>> status(508)
     >>> stop_reactor()
-    >>> status(510)
     >>> len(threading.enumerate())  # all other threads should be stopped now
     1
 
@@ -520,14 +452,14 @@ Using the Repository
 When running background tasks that use the repository, each logical task or
 individual thread needs its own repository view, so that it doesn't become
 confused by changes being made by other threads or tasks at the same time.
-``TwistedTask`` and ``Thread`` handle this for you automatically, by calling
-the ``fork_item()`` API on an item.  ``fork_item()`` opens a new repository
-view and returns a copy of the item that is native to the new view.
+``TwistedTask``, ``PeriodicTask``, and ``Thread`` items handle this for you
+automatically, by calling the ``fork_item()`` API on an item.  ``fork_item()``
+opens a new repository view and returns a copy of the item that is native to
+the new view.
 
 To demonstrate, let's set up a "real" (in-memory) repository, since null
 repository views can't be forked::
 
-    >>> status(530)
     >>> from repository.persistence.DBRepository import DBRepository
     >>> import os, repository
     >>> rep = DBRepository('__nosuchfile__')
@@ -546,7 +478,6 @@ in the new view::
 
 And now we can fork the item::
 
-    >>> status(549)
     >>> from osaf.startup import fork_item
     >>> newItem = fork_item(anItem)
     >>> newItem
@@ -561,15 +492,11 @@ And now we can fork the item::
 Note that you should close a view when you are done with it, to avoid possible
 memory or resource leaks::
 
-    >>> status(564)
     >>> newItem.itsView.closeView()
     >>> anItem.itsView.closeView()
 
 For this test document, we'll also close the repository and our null repository
 view::
 
-    >>> status(571)
     >>> rep.close()
     >>> rv.closeView()
-    >>> status(574)
-

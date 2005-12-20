@@ -598,7 +598,7 @@ class Item(Base):
     __default_path__ = "//userdata"
 
     def __init__(self,
-        name=None, parent=None, kind=None, view=None, *args, **values
+        itsName=None, itsParent=None, itsKind=None, itsView=None,*args,**values
     ):
         # Note: this uses __dict__.get() in order to avoid *inheriting*
         # the __abstract__ flag, which would make the subclasses abstract too!
@@ -607,24 +607,31 @@ class Item(Base):
                 self.__class__.__name__+" is an abstract class; use a "
                 "subclass instead"
             )
-        if kind is None or parent is None:
-            if view is None:
-                if parent is not None:
-                    view = parent.itsView
-                elif kind is not None:
-                    view = kind.itsView
+        if itsKind is None or itsParent is None:
+            if itsView is None:
+                if itsParent is not None:
+                    itsView = itsParent.itsView
+                elif itsKind is not None:
+                    itsView = itsKind.itsView
                 else:
                     raise AssertionError(
                         "View, kind, or parent must be specified"
                     )
 
-            if parent is None:
-                parent = self.getDefaultParent(view)
+            if itsParent is None:
+                itsParent = self.getDefaultParent(itsView)
 
-            if kind is None:
-                kind = self.getKind(view)
+            if itsKind is None:
+                itsKind = self.getKind(itsView)
 
-        super(Item,self).__init__(name,parent,kind,*args,**values)
+        if values:
+            for k in 'name','parent','kind','view':
+                if k in values and not hasattr(self.__class__,k):
+                    # Item's signature has changed; this code can go away
+                    # later, but for now it's needed to catch old-style code
+                    raise TypeError("No such parameter", k, values[k])
+
+        super(Item,self).__init__(itsName,itsParent,itsKind,*args,**values)
 
     @classmethod
     def getDefaultParent(cls, view):

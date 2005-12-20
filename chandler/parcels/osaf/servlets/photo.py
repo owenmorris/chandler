@@ -24,7 +24,7 @@ class PhotosResource(webserver.AuthenticatedResource):
                 output(u"<h3>Photos</h3><br>")
 
                 photoList = []
-                for photo in PhotoMixin.iterItems(view=repoView):
+                for photo in PhotoMixin.iterItems(repoView):
                     photoList.append(photo)
                     if not hasattr(photo, 'dateTaken'):
                         photo.dateTaken = datetime.datetime.now()

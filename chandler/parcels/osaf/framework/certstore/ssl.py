@@ -64,7 +64,7 @@ def loadCertificatesToContext(repView, ctx):
         from osaf.pim.collections import FilteredCollection
         from osaf.framework.certstore import certificate
         
-        q = FilteredCollection(qName, view=repView)        
+        q = FilteredCollection(qName, itsView=repView)        
         q.source = utils.getExtent(certificate.Certificate, repView)
         q.filterExpression = u'item.type == "%s" and item.trust == %d' % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE)
         q.filterAttributes = ['type', 'trust']

@@ -79,10 +79,10 @@ class ICalendarTestCase(unittest.TestCase):
 
         sandbox = view.findPath("//sandbox")
 
-        conduit = sharing.FileSystemConduit(parent=sandbox, sharePath=sharePath,
-                                            shareName=filename, view=view)
-        format = ICalendar.ICalendarFormat(parent=sandbox)
-        self.share = sharing.Share(parent=sandbox, conduit=conduit,
+        conduit = sharing.FileSystemConduit(itsParent=sandbox, sharePath=sharePath,
+                                            shareName=filename)
+        format = ICalendar.ICalendarFormat(itsParent=sandbox)
+        self.share = sharing.Share(itsParent=sandbox, conduit=conduit,
                                    format=format)
         self.share.sync(modeOverride='get')
         return format
@@ -110,7 +110,7 @@ class ICalendarTestCase(unittest.TestCase):
          
     def ItemsToVobject(self):
         """Tests itemsToVObject, which converts Chandler items to vobject."""
-        event = Calendar.CalendarEvent(view = self.repo.view)
+        event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.anyTime = False
         event.displayName = u"test"
         event.startTime = datetime.datetime(2010, 1, 1, 10)
@@ -127,7 +127,7 @@ class ICalendarTestCase(unittest.TestCase):
          "dtstart not set properly, dtstart is %s"
          % cal.vevent[0].summary[0].value)
 
-        event = Calendar.CalendarEvent(view = self.repo.view)
+        event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.displayName = u"test2"
         event.startTime = datetime.datetime(2010, 1, 1)
         event.allDay = True        
@@ -140,20 +140,20 @@ class ICalendarTestCase(unittest.TestCase):
          # test bug 3509, all day event duration is off by one
          
     def writeICalendarUnicodeBug3338(self):
-        event = Calendar.CalendarEvent(view = self.repo.view)
+        event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.displayName = u"unicode \u0633\u0644\u0627\u0645"
         event.startTime = datetime.datetime(2010, 1, 1, 10)
         event.endTime = datetime.datetime(2010, 1, 1, 11)
 
-        coll = ListCollection(name="testcollection", parent=self.sandbox)
+        coll = ListCollection("testcollection", itsParent=self.sandbox)
         coll.add(event)
         filename = u"unicode_export.ics"
 
-        conduit = sharing.FileSystemConduit(name="conduit", sharePath=u".",
-                            shareName=filename, view=self.repo.view)
-        format = ICalendar.ICalendarFormat(name="format", view=self.repo.view)
-        self.share = sharing.Share(name="share",contents=coll, conduit=conduit,
-                                    format=format, view=self.repo.view)
+        conduit = sharing.FileSystemConduit("conduit", sharePath=u".",
+                            shareName=filename, itsView=self.repo.view)
+        format = ICalendar.ICalendarFormat("format", itsView=self.repo.view)
+        self.share = sharing.Share("share",contents=coll, conduit=conduit,
+                                    format=format, itsView=self.repo.view)
         if self.share.exists():
             self.share.destroy()
         self.share.create()
@@ -202,24 +202,24 @@ class ICalendarTestCase(unittest.TestCase):
         vevent.add('dtstart').value = ICalendar.dateForVObject(start)
 
         # not creating a RuleSetItem, although it would be required for an item
-        ruleItem = RecurrenceRule(None, view=self.repo.view)
+        ruleItem = RecurrenceRule(None, itsView=self.repo.view)
         ruleItem.freq = 'daily'
-        ruleSetItem = RecurrenceRuleSet(None, view=self.repo.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.repo.view)
         ruleSetItem.addRule(ruleItem)
         
         vevent.rruleset = ruleSetItem.createDateUtilFromRule(start)
         self.assertEqual(vevent.rrule[0].value, 'FREQ=DAILY')
     
                          
-        event = Calendar.CalendarEvent(view = self.repo.view)
+        event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.anyTime = False
         event.displayName = u"blah"
         event.startTime = start
         event.endTime = datetime.datetime(2005,3,1,1, tzinfo = eastern)
         
-        ruleItem = RecurrenceRule(None, view=self.repo.view)
+        ruleItem = RecurrenceRule(None, itsView=self.repo.view)
         ruleItem.until = datetime.datetime(2005,3,1, tzinfo = eastern)
-        ruleSetItem = RecurrenceRuleSet(None, view=self.repo.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.repo.view)
         ruleSetItem.addRule(ruleItem)
         event.rruleset = ruleSetItem
         

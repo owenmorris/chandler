@@ -245,7 +245,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     text = lobType.makeValue(asText)
 
     #XXX [i18n] Can a commonName contain non-ascii characters?
-    cert = Certificate(view=repView,
+    cert = Certificate(itsView=repView,
                        trust=trust,
                        type=type,
                        fingerprint=fingerprint,
@@ -257,7 +257,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     # XXX Why is this collection created here, as it is not used here?
     q = repView.findPath('//userdata/%s' %(constants.TRUSTED_SITE_CERTS_QUERY_NAME))
     if q is None:
-        q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME, view=repView)
+        q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME, itsView=repView)
         q.source = utils.getExtent(Certificate, repView)
         q.filterExpression = u'item.type == "%s" and item.trust == %d' % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY)
         q.filterAttributes = ['type', 'trust']
@@ -344,7 +344,7 @@ def createSidebarView(repView, cpiaView):
             cpiaView.postEventByName('RequestSelectSidebarItem', {'item': item})
             return
 
-    certstore = CertificateStore(view=repView)
+    certstore = CertificateStore(itsView=repView)
 
     cpiaView.postEventByName('ApplicationBarAll', {})
     schema.ns("osaf.app", cpiaView).sidebarCollection.add (certstore)

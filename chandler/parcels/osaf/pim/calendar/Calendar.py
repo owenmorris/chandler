@@ -249,8 +249,8 @@ class CalendarEventMixin(RemindableMixin):
     about = schema.One(redirectTo="displayName")
     date = schema.One(redirectTo="startTime")
 
-    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
-        super(CalendarEventMixin, self).__init__(name, parent, kind, view, **kw)
+    def __init__(self, *args, **kw):
+        super(CalendarEventMixin, self).__init__(*args, **kw)
         self.occurrenceFor = self
         if not kw.has_key('icalUID'):
             self.icalUID = unicode(self.itsUUID)
@@ -521,12 +521,12 @@ class CalendarEventMixin(RemindableMixin):
         
         """
         if self.rruleset is None:
-            ruleItem=Recurrence.RecurrenceRuleSet(None, view=self.itsView)
+            ruleItem=Recurrence.RecurrenceRuleSet(None, itsView=self.itsView)
             ruleItem.setRuleFromDateUtil(rule)
             self.rruleset = ruleItem
         else:
             if self.getFirstInRule() != self:
-                rruleset = Recurrence.RecurrenceRuleSet(None, view=self.itsView)
+                rruleset = Recurrence.RecurrenceRuleSet(None, itsView=self.itsView)
                 rruleset.setRuleFromDateUtil(rule)
                 self.changeThisAndFuture('rruleset', rruleset)
             else:
@@ -1269,9 +1269,9 @@ class CalendarEvent(CalendarEventMixin, Note):
     """An unstamped event."""
     schema.kindInfo(displayName=u"Calendar Event")
 
-    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
+    def __init__(self, *args, **kw):
         kw.setdefault('participants',[])
-        super (CalendarEvent, self).__init__(name, parent, kind, view, **kw)
+        super (CalendarEvent, self).__init__(*args, **kw)
 
 
 class Calendar(ContentItem):
@@ -1323,7 +1323,7 @@ class Location(ContentItem):
             return view[existing]
         else:
             # make a new Location
-            newLocation = Location(view=view)
+            newLocation = Location(itsView=view)
             newLocation.displayName = locationName
             return newLocation
 

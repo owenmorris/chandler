@@ -69,7 +69,7 @@ Script Kind
 Most of the API goes through the Script Kind.  You can create scripts
 by passing in a bodyString for the script, and then calling execute()::
 
-    >>> myScript = Scripting.Script(view=rv, bodyString="t = 'New Task'; print t")
+    >>> myScript = Scripting.Script(itsView=rv, bodyString="t = 'New Task'; print t")
     >>> myScript.execute()
     New Task
 
@@ -81,10 +81,10 @@ We initialize scripts without any name to Untitled::
     >>> myScript.displayName
     u'Untitled'
 
-Like any repository Item, you can name the script using the name parameter
-if you want to give it a unique name::
+Like any repository Item, you can name the script using the ``itsName``
+parameter if you want to give it a unique name::
 
-    >>> namedScript = Scripting.Script(view=rv, name="Empty")
+    >>> namedScript = Scripting.Script("Empty", itsView=rv)
     >>> namedScript.itsName
     'Empty'
 
@@ -95,7 +95,7 @@ This also becomes its displayName::
 
 Or you can just pass in none to get an untitled Script.
 
-    >>> unnamedScript = Scripting.Script(view=rv)
+    >>> unnamedScript = Scripting.Script(itsView=rv)
     >>> unnamedScript.displayName
     u'Untitled'
 

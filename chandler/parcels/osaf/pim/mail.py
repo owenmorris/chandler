@@ -414,11 +414,8 @@ class SMTPDelivery(MailDeliveryBase):
         "   We don't appear to be able to set an initialValue for an "
             "attribute whose enumeration is defined in the same file "
             "(a deficiency in the parcel loader)\n",
+        initialValue = "DRAFT",
     )
-   
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super(SMTPDelivery, self).__init__(name, parent, kind, view)
-        self.state = "DRAFT"
 
     def sendFailed(self):
         """
@@ -539,9 +536,9 @@ class MailMessageMixin(MIMEContainer):
     Used to mixin mail message attributes into a content item.
 
     Issues:
-      - Once we have attributes and a cloud defined for Attachment, 
+      - Once we have attributes and a cloud defined for Attachment,
         we need to include attachments by cloud, and not by value.
-      - Really not sure what to do with the 'downloadAccount' attribute 
+      - Really not sure what to do with the 'downloadAccount' attribute
         and how it should be included in the cloud.  For now it's byValue.
     """
     schema.kindInfo(
@@ -646,7 +643,7 @@ class MailMessageMixin(MIMEContainer):
         Get any non-empty definition for the "about" attribute.
         """
         try:
-            # don't bother returning our default: an empty string 
+            # don't bother returning our default: an empty string
             if self.subject:
                 return self.subject
 
@@ -660,7 +657,7 @@ class MailMessageMixin(MIMEContainer):
         assert isinstance(account, SMTPAccount)
 
         if self.deliveryExtension is None:
-            self.deliveryExtension = SMTPDelivery(view=self.itsView)
+            self.deliveryExtension = SMTPDelivery(itsView=self.itsView)
 
         self.isOutbound = True
         self.parentAccount = account
@@ -670,9 +667,9 @@ class MailMessageMixin(MIMEContainer):
 
         if self.deliveryExtension is None:
             if type == "IMAP":
-                 self.deliveryExtension = IMAPDelivery(view=self.itsView)
+                 self.deliveryExtension = IMAPDelivery(itsView=self.itsView)
             elif type == "POP":
-                 self.deliveryExtension = POPDelivery(view=self.itsView)
+                 self.deliveryExtension = POPDelivery(itsView=self.itsView)
 
         self.isInbound = True
         self.parentAccount = account
@@ -700,15 +697,15 @@ class MailMessageMixin(MIMEContainer):
 
     def getSendability(self, ignoreAttr=None):
         """
-        Return whether this item is ready to send: 'sendable', 'sent', 
+        Return whether this item is ready to send: 'sendable', 'sent',
         or 'not'. if ignoreAttr is specified, don't verify that value (because
         it's being edited in the UI and is known to be valid, and will get
         saved before sending).
         """
-        # Not outbound? 
+        # Not outbound?
         if not self.isOutbound:
             return 'not'
-        
+
         # Already sent?
         try:
             sent = self.deliveryExtension.state == "SENT"
@@ -716,7 +713,7 @@ class MailMessageMixin(MIMEContainer):
             sent = False
         if sent:
             return 'sent'
-        
+
         # Addressed?
         # (This test will get more complicated when we add cc, bcc, etc.)
         sendable = ((ignoreAttr == 'toAddress' or len(self.toAddress) > 0) and
@@ -860,10 +857,12 @@ class EmailAddress(items.ContentItem):
 
     __default_path__ = MAIL_DEFAULT_PATH
 
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-        clone=None, **kw
+    def __init__(self, itsName=None, itsParent=None, itsKind=None,
+        itsView=None, clone=None, **kw
     ):
-        super(EmailAddress, self).__init__(name, parent, kind, view, **kw)
+        super(EmailAddress, self).__init__(
+            itsName, itsParent, itsKind, itsView, **kw
+        )
 
         # copy the attributes if a clone was supplied
         if clone is not None:
@@ -1002,7 +1001,7 @@ class EmailAddress(items.ContentItem):
         name variables.
         """
         # @@@DLD - switch on the better queries
-        # Need to override compare operators to use emailAddressesAreEqual, 
+        # Need to override compare operators to use emailAddressesAreEqual,
         #  deal with name=='' cases, name case sensitivity, etc
 
         addresses = []
@@ -1041,7 +1040,7 @@ class EmailAddress(items.ContentItem):
                 return nameMatch
             if isValidAddress or inbound:
                 # make a new EmailAddress
-                newAddress = EmailAddress(view=view)
+                newAddress = EmailAddress(itsView=view)
                 if address is None:
                     address = u""
                 if name is None:
@@ -1089,13 +1088,13 @@ class EmailAddress(items.ContentItem):
         """
         Parse the email addresses in addressesString and return
         a tuple with: (the processed string, a list of EmailAddress
-        items created/found for those addresses, the number of 
+        items created/found for those addresses, the number of
         invalid addresses we found).
         """
         # If we got nothing or whitespace, return it as-is.
         if len(addressesString.strip()) == 0:
             return (addressesString, [], 0)
-        
+
         validAddresses = []
         processedAddresses = []
         invalidCount = 0
@@ -1118,7 +1117,7 @@ class EmailAddress(items.ContentItem):
         # prepare the processed addresses return value
         processedResultString = ', '.join (processedAddresses)
         return (processedResultString, validAddresses, invalidCount)
-    
+
     @classmethod
     def emailAddressesAreEqual(cls, emailAddressOne, emailAddressTwo):
         """

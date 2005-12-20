@@ -35,7 +35,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         remove = 'remove'
 
         # Create a Task, and do all kinds of stamping on it
-        aTask = Task("aTask", view=view)
+        aTask = Task("aTask", itsView=view)
 
         aTask.StampKind(add, eventMixin)
         aTask.StampKind(remove, taskMixin)

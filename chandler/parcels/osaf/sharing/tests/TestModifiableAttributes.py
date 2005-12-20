@@ -9,11 +9,11 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         view = self.view
 
         # Our test subject
-        e1 = pim.CalendarEvent(view=view)
+        e1 = pim.CalendarEvent(itsView=view)
 
         # Add the subject to a read-only share:
 
-        share_ro = sharing.Share(view=view)
+        share_ro = sharing.Share(itsView=view)
         share_ro.mode = 'get'
 
         e1.sharedIn.append(share_ro)
@@ -35,7 +35,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
 
         # Now also add the subject to a read-write share:
 
-        share_rw = sharing.Share(view=view)
+        share_rw = sharing.Share(itsView=view)
         share_rw.mode = 'both'
 
         e1.sharedIn.append(share_rw)

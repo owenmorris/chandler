@@ -26,10 +26,8 @@ CORE=Path('//Schema/Core')
 
 class Kind(Item):
 
-    def __init__(self, name, parent, kind):
-
-        super(Kind, self).__init__(name, parent, kind)
-
+    def __init__(self, *args, **kw):
+        super(Kind, self).__init__(*args, **kw)
         self.__init()
         self._createExtent(self.itsView)
         

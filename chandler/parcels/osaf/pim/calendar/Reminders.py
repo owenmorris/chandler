@@ -152,7 +152,7 @@ class RemindableMixin(ContentItem):
         # (or something like that). (Remindable.snoozeReminder will call this
         # method; that operation should only affect the actual event, not the 
         # series)
-        newReminder = Reminder(None, delta=delta, view=self.itsView)
+        newReminder = Reminder(None, delta=delta, itsView=self.itsView)
         
         addThisTo = self.reminders
         
@@ -208,7 +208,7 @@ class RemindableMixin(ContentItem):
         self.dismissReminder(reminder)
         
         # Make a new reminder for this event
-        newReminder = Reminder(None, view=self.itsView,
+        newReminder = Reminder(None, itsView=self.itsView,
                                snoozedUntil=(datetime.now() + delay))
         self.reminders.add(newReminder)
         return newReminder

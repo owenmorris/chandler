@@ -104,7 +104,7 @@ class Tag(pim.ContentItem):
                 return i
 
         # make a new Tag
-        newTag = Tag(view=view)
+        newTag = Tag(itsView=view)
         newTag.displayName = tagName
         return newTag
 
@@ -137,7 +137,7 @@ class PhotoCollection(pim.ContentItem):
     )
 
     def getCollectionFromFlickr(self,repView):
-        coll = pim.ListCollection(view = repView).setup()
+        coll = pim.ListCollection(itsView = repView).setup()
         if self.username:
             flickrUsername = flickr.people_findByUsername(self.username.encode('utf8'))
             try:
@@ -156,7 +156,7 @@ class PhotoCollection(pim.ContentItem):
         for i in flickrPhotos:
             photoItem = getPhotoByFlickrID(repView, i.id)
             if photoItem is None:
-                photoItem = FlickrPhoto(photo=i,view=repView,parent=coll)
+                photoItem = FlickrPhoto(photo=i,itsView=repView,itsParent=coll)
             coll.add(photoItem)
         repView.commit()
 
@@ -198,7 +198,7 @@ def CreateCollectionFromUsernamePrompter(repView, cpiaView):
         showError(errMsg)
 
 def CreateCollectionFromUsername(username, repView, cpiaView):
-    myPhotoCollection = PhotoCollection(view = repView)
+    myPhotoCollection = PhotoCollection(itsView = repView)
     myPhotoCollection.username = username
     myPhotoCollection.getCollectionFromFlickr(repView)
 
@@ -227,7 +227,7 @@ def CreateCollectionFromTagPrompter(repView, cpiaView):
         showError(errMsg)
 
 def CreateCollectionFromTag(tagstring, repView, cpiaView):
-    myPhotoCollection = PhotoCollection(view = repView)
+    myPhotoCollection = PhotoCollection(itsView = repView)
     myPhotoCollection.tag = Tag.getTag(repView, tagstring)
     myPhotoCollection.getCollectionFromFlickr(repView)
 

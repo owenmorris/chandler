@@ -37,7 +37,7 @@ def addSurrogatePairToText(text):
 
 
 def GenerateCalendarParticipant(view):
-    email = Mail.EmailAddress(view=view)
+    email = Mail.EmailAddress(itsView=view)
     domainName = random.choice(DOMAIN_LIST)
     handle = random.choice(LASTNAMES).lower()
     email.emailAddress = "%s@%s" % (handle, domainName)
@@ -49,7 +49,7 @@ LOCATIONS  = [u"Home", u"Office", u"School"]
 
 
 def GenerateCalendarEvent(view, days=30, tzinfo=None):
-    event = Calendar.CalendarEvent(view=view)
+    event = Calendar.CalendarEvent(itsView=view)
     event.displayName = random.choice(HEADLINES)
 
     if TEST_I18N:
@@ -106,7 +106,7 @@ M_FROM  = None
 
 def GenerateMailMessage(view, tzinfo=None):
     global M_FROM
-    message  = Mail.MailMessage(view=view)
+    message  = Mail.MailMessage(itsView=view)
     body     = M_TEXT
 
     outbound = random.randint(0, 1)
@@ -163,7 +163,7 @@ def GenerateMailMessage(view, tzinfo=None):
 
 def GenerateNote(view, tzinfo=None):
     """ Generate one Note item """
-    note = pim.Note(view=view)
+    note = pim.Note(itsView=view)
     note.displayName = random.choice(TITLES)
 
     if TEST_I18N:
@@ -176,7 +176,7 @@ def GenerateNote(view, tzinfo=None):
 
 def GenerateTask(view, tzinfo=None):
     """ Generate one Task item """
-    task = pim.Task(view=view)
+    task = pim.Task(itsView=view)
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
     task.dueDate = datetime.today() + delta
@@ -237,13 +237,13 @@ def GenerateEmailAddress(name):
 def GenerateEmailAddresses(view, name):
     list = []
     for i in range(random.randint(1, 2)):
-        email = Mail.EmailAddress(view=view)
+        email = Mail.EmailAddress(itsView=view)
         email.emailAddress = GenerateEmailAddress(name)
         list.append(email)
     return list
 
 def GenerateContactName(view):
-    name = pim.ContactName(view=view)
+    name = pim.ContactName(itsView=view)
     name.firstName = random.choice(FIRSTNAMES)
     name.lastName = random.choice(LASTNAMES)
 
@@ -254,12 +254,12 @@ def GenerateContactName(view):
     return name
 
 def GenerateContact(view):
-    contact = pim.Contact(view=view)
+    contact = pim.Contact(itsView=view)
     contact.contactName = GenerateContactName(view)
     return contact
 
 def GenerateCollection(view, postToView=None, existingNames=None):
-    collection = pim.InclusionExclusionCollection(view=view).setup()
+    collection = pim.InclusionExclusionCollection(itsView=view).setup()
     
     while True:
         # Find a name that isn't already in use

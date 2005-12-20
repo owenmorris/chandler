@@ -1,5 +1,5 @@
 App_ns = app_ns()
-newScript = Script(view=App_ns.view)
+newScript = Script(itsView=App_ns.view)
 # if the Scripts collection is visible, select it
 if App_ns.scriptsCollection in App_ns.sidebar.contents:
     App_ns.root.ApplicationBarAll()

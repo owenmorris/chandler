@@ -135,7 +135,7 @@ class MainView(View):
         # Triggered from "File | Prefs | Accounts..."
 
         AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
-                                                        view=self.itsView)
+                                                        itsView=self.itsView)
 
     def onNewEvent (self, event):
         # Create a new Content Item
@@ -475,7 +475,7 @@ class MainView(View):
                 self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
 
                 share = sharing.OneTimeFileSystemShare(dir, filename,
-                                ICalendar.ICalendarFormat, view=self.itsView)
+                                ICalendar.ICalendarFormat, itsView=self.itsView)
                 if not optionResults['reminders']:
                     share.filterAttributes.append('reminders')
                 if not optionResults['transparency']:
@@ -506,7 +506,7 @@ class MainView(View):
         path = os.path.join(dir, filename)
 
         self.setStatusMessage (_(u"Importing %(filePath)s") % {'filePath': path})
-        photo = Photo(view=self.itsView)
+        photo = Photo(itsView=self.itsView)
         photo.displayName = filename
         photo.creator = schema.ns("osaf.app", self.itsView).currentContact.item
         photo.importFromFile(path)
@@ -673,7 +673,7 @@ class MainView(View):
         wx.GetApp().ShowPyShell(withFilling=True)
 
     def onActivateWebserverEventUpdateUI (self, event):
-        for server in webserver.Server.iterItems(view=self.itsView):
+        for server in webserver.Server.iterItems(itsView=self.itsView):
             if server.isActivated():
                 event.arguments['Enable'] = False
                 return
@@ -681,7 +681,7 @@ class MainView(View):
 
     def onActivateWebserverEvent(self, event):
         # Test menu item
-        for server in webserver.Server.iterItems(view=self.itsView):
+        for server in webserver.Server.iterItems(itsView=self.itsView):
             server.startup()
 
     def onActivateShareMergingEventUpdateUI (self, event):
@@ -710,7 +710,7 @@ class MainView(View):
             "Search", "Enter your PyLucene query:", "")
         if query:
             view = self.itsView
-            results = pim.InclusionExclusionCollection(view=view,
+            results = pim.InclusionExclusionCollection(itsView=view,
                 displayName=query).setup()
             for (item, attribute) in view.searchItems(query):
                 results.add(item)
@@ -748,7 +748,7 @@ class MainView(View):
 
             mainFrame = wx.GetApp().mainFrame
             PublishCollection.ShowPublishDialog(mainFrame,
-                view=self.itsView,
+                itsView=self.itsView,
                 collection=collection,
                 filterClassName=filterClassName)
 
@@ -807,7 +807,7 @@ class MainView(View):
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."
-        ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, view=self.itsView)
+        ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, itsView=self.itsView)
 
 
     def onSyncCollectionEvent (self, event):
@@ -815,7 +815,7 @@ class MainView(View):
         self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            SyncProgress.Show(wx.GetApp().mainFrame, view=self.itsView,
+            SyncProgress.Show(wx.GetApp().mainFrame, itsView=self.itsView,
                 collection=collection)
 
     def onSyncCollectionEventUpdateUI (self, event):
@@ -914,7 +914,7 @@ class MainView(View):
         # find all the shared collections and sync them.
         if activeShares:
             self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            SyncProgress.Show(wx.GetApp().mainFrame, view=self.itsView)
+            SyncProgress.Show(wx.GetApp().mainFrame, itsView=self.itsView)
             self.setStatusMessage (_(u"Shared collections synchronized"))
         else:
             if DAVReady:
@@ -937,7 +937,7 @@ class MainView(View):
         if activeShares:
             # find all the shared collections and sync them.
             self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            SyncProgress.Show(wx.GetApp().mainFrame, view=self.itsView)
+            SyncProgress.Show(wx.GetApp().mainFrame, itsView=self.itsView)
             self.setStatusMessage (_(u"Shared collections synchronized"))
 
         else:

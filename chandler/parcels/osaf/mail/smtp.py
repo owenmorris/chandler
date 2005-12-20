@@ -379,7 +379,7 @@ class SMTPClient(object):
             email, code, st = recipient
 
             if recipient[1] != constants.SMTP_SUCCESS:
-                deliveryError = Mail.MailDeliveryError(view=self.view)
+                deliveryError = Mail.MailDeliveryError(itsView=self.view)
                 deliveryError.errorCode = code
                 deliveryError.errorString = u"%s: %s" % (email, st)
                 deliveryError.errorDate = errorDate
@@ -438,7 +438,7 @@ class SMTPClient(object):
 
         result = self._getError(err)
 
-        deliveryError = Mail.MailDeliveryError(view=self.view)
+        deliveryError = Mail.MailDeliveryError(itsView=self.view)
 
         deliveryError.errorDate   = datetime.now()
         deliveryError.errorCode   = result[0]

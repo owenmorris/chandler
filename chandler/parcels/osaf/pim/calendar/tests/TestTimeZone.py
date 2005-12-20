@@ -76,14 +76,14 @@ class PersistenceTestCase(RepositoryTestCase):
         super(PersistenceTestCase, self).setUp(True)
 
     def testGetTimeZone(self):
-        defaultTzItem = TimeZoneInfo.get(view=self.rep.view)
+        defaultTzItem = TimeZoneInfo.get(self.rep.view)
         
         self.failUnlessEqual(defaultTzItem.default,
                              PyICU.ICUtzinfo.getDefault())
 
     def testPerView(self):
-        defaultTzItemOne = TimeZoneInfo.get(view=self.rep.view)
-        defaultTzItemTwo = TimeZoneInfo.get(view=self.rep.createView('two'))
+        defaultTzItemOne = TimeZoneInfo.get(self.rep.view)
+        defaultTzItemTwo = TimeZoneInfo.get(self.rep.createView('two'))
         
         self.failIf(defaultTzItemOne is defaultTzItemTwo)
 
@@ -93,7 +93,7 @@ class PersistenceTestCase(RepositoryTestCase):
         # - Load the repo (Done in setUp())
         # - Get the repo's default DefaultTimeZone
         view = self.rep.view
-        defaultTzItem = TimeZoneInfo.get(view=view)
+        defaultTzItem = TimeZoneInfo.get(view)
         # - Change the default DefaultTimeZone
         defaultTzItem.default = PyICU.ICUtzinfo.getInstance("GMT")
         self.failUnlessEqual(defaultTzItem.default,
@@ -110,7 +110,7 @@ class PersistenceTestCase(RepositoryTestCase):
         self.manager = None
         
         # - Now check the default timezone
-        defaultTzItem = TimeZoneInfo.get(view=view)
+        defaultTzItem = TimeZoneInfo.get(view)
         # ... see that it changed to what's in the repo
         self.failIfEqual(PyICU.ICUtzinfo.getInstance("US/Pacific"),
                         defaultTzItem.default)

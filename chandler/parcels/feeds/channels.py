@@ -48,7 +48,7 @@ def NewChannelFromURL(view, url, update = True):
     if data['channel'] == {} or data.get('status', None) == 404:
         return None
 
-    channel = FeedChannel(view=view)
+    channel = FeedChannel(itsView=view)
     channel.url = channel.getAttributeAspect('url', 'type').makeValue(url)
 
     if update:
@@ -241,7 +241,7 @@ class FeedChannel(pim.ListCollection):
 
             if not found:
                 # we have a new item - add it
-                feedItem = FeedItem(view=view)
+                feedItem = FeedItem(itsView=view)
                 feedItem.Update(newItem)
                 try:
                     self.addFeedItem(feedItem)
@@ -300,9 +300,9 @@ class FeedItem(pim.ContentItem):
         sharing = schema.Cloud(link, category, author, date)
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super(FeedItem, self).__init__(name, parent, kind, view)
-        self.displayName = _(u"No Title")
+    def __init__(self, *args, **kw):
+        kw.setdefault('displayName', _(u"No Title"))
+        super(FeedItem, self).__init__(*args, **kw)
 
     def Update(self, data):
         # fill in the item

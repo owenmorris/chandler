@@ -267,12 +267,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         if self.fileStyle() == self.STYLE_SINGLE:
             if item is None:
-                item = InclusionExclusionCollection(view=view).setup()
+                item = InclusionExclusionCollection(itsView=view).setup()
             elif isinstance(item, Sharing.Share):
                         
                 if item.contents is None:
                     item.contents = \
-                        InclusionExclusionCollection(view=view).setup()
+                        InclusionExclusionCollection(itsView=view).setup()
                 item = item.contents
 
             if not isinstance(item, AbstractCollection):
@@ -518,7 +518,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 
                 rruleset = event.rruleset
                 if rruleset is not None:
-                    ruleSetItem = RecurrenceRuleSet(None, view=view)
+                    ruleSetItem = RecurrenceRuleSet(None, itsView=view)
                     ruleSetItem.setRuleFromDateUtil(rruleset)
                     changeLast.append(('rruleset', ruleSetItem))
                 

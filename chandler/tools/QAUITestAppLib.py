@@ -1124,7 +1124,7 @@ class UITestView:
             share = Sharing.Sharing.OneTimeFileSystemShare(path, 
                             environmentFile, 
                             ICalendar.ICalendarFormat, 
-                            view=App_ns.itsView)
+                            itsView=App_ns.itsView)
             try:
                 collection = share.get()
             except:

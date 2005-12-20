@@ -101,7 +101,7 @@ def installParcel(parcel, oldVersion=None):
         if collection is not None:
             raise Exception('Found unexpected collection')
     
-        collection = KindCollection(name, view = parcel.itsView)
+        collection = KindCollection(name, itsView = parcel.itsView)
         collection.kind = kind
         collection.recursive = exact
  

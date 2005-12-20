@@ -159,14 +159,10 @@ class ContentItem(schema.Item):
         copying = schema.Cloud()
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
-        super(ContentItem, self).__init__(name, parent, kind, view, **kw)
-
+    def __init__(self, *args, **kw):
+        super(ContentItem, self).__init__(*args, **kw)
         if not hasattr(self, 'createdOn'):
             self.createdOn = datetime.now()
-
-        if view is None:
-            view = self.itsView
 
     def __str__ (self):
         if self.isStale():

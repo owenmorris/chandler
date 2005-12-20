@@ -51,7 +51,7 @@ def IMAPSaveHandler(item, fields, values):
     if (item.host and item.host != newServer) or \
        (item.username and item.username != newUsername):
         item.isActive = False
-        item = Mail.IMAPAccount(view=item.itsView)
+        item = Mail.IMAPAccount(itsView=item.itsView)
 
     item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
                                                             newAddressString,
@@ -79,7 +79,7 @@ def POPSaveHandler(item, fields, values):
     if (item.host and item.host != newServer) or \
        (item.username and item.username != newUsername):
         item.isActive = False
-        item = Mail.POPAccount(view=item.itsView)
+        item = Mail.POPAccount(itsView=item.itsView)
 
 
     item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
@@ -365,12 +365,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
-         account=None, view=None, modal=True):
+         account=None, rv=None, modal=True):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.resources = resources
-        self.view = view
+        self.rv = rv
         self.modal = modal
 
         # outerSizer will have two children to manage: on top is innerSizer,
@@ -452,16 +452,16 @@ class AccountPreferencesDialog(wx.Dialog):
             be editing. If account is passed in, show its details. """
 
         # Make sure we're sync'ed with any changes other threads have made
-        self.view.refresh()
+        self.rv.refresh()
         accountIndex = 0 # which account to select first
         accounts = []
 
         for cls in (Mail.IMAPAccount, Mail.POPAccount, Mail.SMTPAccount):
-            for item in cls.iterItems(self.view):
+            for item in cls.iterItems(self.rv):
                 if item.isActive and hasattr(item, 'displayName'):
                     accounts.append(item)
 
-        for item in sharing.WebDAVAccount.iterItems(self.view):
+        for item in sharing.WebDAVAccount.iterItems(self.rv):
             if hasattr(item, 'displayName'):
                 accounts.append(item)
 
@@ -484,7 +484,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 if desc['type'] == 'currentPointer':
                     # See if this item is the current item for the given
                     # pointer name, storing a boolean.
-                    app = schema.ns('osaf.app', self.view)
+                    app = schema.ns('osaf.app', self.rv)
                     ref = getattr(app, desc['pointer'])
                     setting = (ref.item == item)
 
@@ -537,32 +537,32 @@ class AccountPreferencesDialog(wx.Dialog):
 
             if uuid:
                 # We already have an account item created
-                item = self.view.findUUID(account['item'])
+                item = self.rv.findUUID(account['item'])
 
             else:
                 # We need to create an account item
 
                 if account['type'] == "IMAP":
-                    item = Mail.IMAPAccount(view=self.view)
+                    item = Mail.IMAPAccount(itsView=self.rv)
 
                 elif account['type'] == "POP":
-                    item = Mail.POPAccount(view=self.view)
+                    item = Mail.POPAccount(itsView=self.rv)
 
                 elif account['type'] == "SMTP":
-                    item = Mail.SMTPAccount(view=self.view)
+                    item = Mail.SMTPAccount(itsView=self.rv)
 
                     #XXX: Temp change that checks if no SMTP Account currently
                     #     exists and makes the new account the defaultSMTPAccount
                     #     for the default IMAP ccount
 
-                    if Mail.getCurrentSMTPAccount(view=self.view)[0] is None:
-                        mailAccount = Mail.getCurrentMailAccount(view=self.view)
+                    if Mail.getCurrentSMTPAccount(self.rv)[0] is None:
+                        mailAccount = Mail.getCurrentMailAccount(self.rv)
 
                         if mailAccount is not None:
                             mailAccount.defaultSMTPAccount = item
 
                 elif account['type'] == "WebDAV":
-                    item = sharing.WebDAVAccount(view=self.view)
+                    item = sharing.WebDAVAccount(itsView=self.rv)
 
             values = account['values']
             panel = PANELS[account['type']]
@@ -581,7 +581,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     if desc['type'] == 'currentPointer':
                         # If this value is True, make this item current:
                         if values[field]:
-                            app = schema.ns('osaf.app', self.view)
+                            app = schema.ns('osaf.app', self.rv)
                             ref = getattr(app, desc['pointer'])
                             ref.item = item
 
@@ -589,7 +589,7 @@ class AccountPreferencesDialog(wx.Dialog):
                         # Find the item for this UUID and assign the itemref:
                         if values[field]:
                             item.setAttributeValue(desc['attr'],
-                                self.view.findUUID(values[field]))
+                                self.rv.findUUID(values[field]))
 
                     else:
                         # Otherwise, make the literal assignment:
@@ -605,7 +605,7 @@ class AccountPreferencesDialog(wx.Dialog):
         for data in self.deletions:
             uuid = data['item']
             if uuid:
-                item = self.view.findUUID(uuid)
+                item = self.rv.findUUID(uuid)
                 item.delete()
 
     def __ApplyCancellations(self):
@@ -615,7 +615,7 @@ class AccountPreferencesDialog(wx.Dialog):
         for accountData in self.data:
             if accountData['isNew']:
                 uuid = accountData['item']
-                item = self.view.findUUID(uuid)
+                item = self.rv.findUUID(uuid)
                 item.delete()
 
 
@@ -633,7 +633,7 @@ class AccountPreferencesDialog(wx.Dialog):
             uuid = account['item']
 
             if uuid:
-                item = self.view.findUUID(uuid)
+                item = self.rv.findUUID(uuid)
 
             else:
                 item = None
@@ -866,7 +866,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 index = -1
                 uuid = data[field]
                 kindClass = PANELS[panelType]['fields'][field]['kind']
-                for item in kindClass.iterItems(self.view):
+                for item in kindClass.iterItems(self.rv):
                     deleted = False
                     for accountData in self.deletions:
                         if accountData['item'] == item.itsUUID:
@@ -915,8 +915,8 @@ class AccountPreferencesDialog(wx.Dialog):
         if self.__Validate():
             self.__ApplyChanges()
             self.__ApplyDeletions()
-            if sharing.isInboundMailSetUp (self.view):
-                app = schema.ns('osaf.app', self.view)
+            if sharing.isInboundMailSetUp (self.rv):
+                app = schema.ns('osaf.app', self.rv)
                 sidebarCollection = app.sidebarCollection
                 sidebarSelectionCollection = Block.findBlockByName("Sidebar").contents
                 assert (isinstance (sidebarSelectionCollection, IndexedSelectionCollection))
@@ -927,7 +927,7 @@ class AccountPreferencesDialog(wx.Dialog):
                         sidebarSelectionCollection.moveItemToLocation (collection, 1)
             if self.modal:
                 self.EndModal(True)
-            self.view.commit()
+            self.rv.commit()
             application.Globals.mailService.refreshMailServiceCache()
             self.Destroy()
 
@@ -947,13 +947,13 @@ class AccountPreferencesDialog(wx.Dialog):
         self.choiceNewType.SetSelection(0)
 
         if accountType == "IMAP":
-            item = Mail.IMAPAccount(view=self.view)
+            item = Mail.IMAPAccount(itsView=self.rv)
         elif accountType == "POP":
-            item = Mail.POPAccount(view=self.view)
+            item = Mail.POPAccount(itsView=self.rv)
         elif accountType == "SMTP":
-            item = Mail.SMTPAccount(view=self.view)
+            item = Mail.SMTPAccount(itsView=self.rv)
         elif accountType == "WebDAV":
-            item = sharing.WebDAVAccount(view=self.view)
+            item = sharing.WebDAVAccount(itsView=self.rv)
 
         accountName = (messages.NEW_ACCOUNT % {'accountType': accountType})
         item.displayName = accountName
@@ -993,7 +993,7 @@ class AccountPreferencesDialog(wx.Dialog):
                              self.data[self.currentIndex]['values'])
 
         index = self.accountsList.GetSelection()
-        item = self.view.findUUID(self.data[index]['item'])
+        item = self.rv.findUUID(self.data[index]['item'])
         deleteHandler = PANELS[item.accountType]['deleteHandler']
         canDelete = deleteHandler(item, self.data[index]['values'], self.data)
         if canDelete:
@@ -1017,14 +1017,14 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data = self.data[self.currentIndex]['values']
 
-        account = schema.ns('osaf.app', self.view).TestIMAPAccount
+        account = schema.ns('osaf.app', self.rv).TestIMAPAccount
         account.host = data['IMAP_SERVER']
         account.port = data['IMAP_PORT']
         account.connectionSecurity = data['IMAP_SECURE']
         account.username = data['IMAP_USERNAME']
         account.password = data['IMAP_PASSWORD']
 
-        self.view.commit()
+        self.rv.commit()
         application.Globals.mailService.getIMAPInstance(account).testAccountSettings()
 
     def OnTestSMTP(self, evt):
@@ -1034,7 +1034,7 @@ class AccountPreferencesDialog(wx.Dialog):
         uuid = self.data[self.currentIndex]['item']
         data = self.data[self.currentIndex]['values']
 
-        account = schema.ns('osaf.app', self.view).TestSMTPAccount
+        account = schema.ns('osaf.app', self.rv).TestSMTPAccount
         account.host = data['SMTP_SERVER']
         account.port = data['SMTP_PORT']
         account.connectionSecurity = data['SMTP_SECURE']
@@ -1042,7 +1042,7 @@ class AccountPreferencesDialog(wx.Dialog):
         account.username = data['SMTP_USERNAME']
         account.password = data['SMTP_PASSWORD']
 
-        self.view.commit()
+        self.rv.commit()
         application.Globals.mailService.getSMTPInstance(account).testAccountSettings()
 
     def OnTestPOP(self, evt):
@@ -1051,7 +1051,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data = self.data[self.currentIndex]['values']
 
-        account = schema.ns('osaf.app', self.view).TestPOPAccount
+        account = schema.ns('osaf.app', self.rv).TestPOPAccount
         account.host = data['POP_SERVER']
         account.port = data['POP_PORT']
         account.connectionSecurity = data['POP_SECURE']
@@ -1059,7 +1059,7 @@ class AccountPreferencesDialog(wx.Dialog):
         account.username = data['POP_USERNAME']
         account.password = data['POP_PASSWORD']
 
-        self.view.commit()
+        self.rv.commit()
         application.Globals.mailService.getPOPInstance(account).testAccountSettings()
 
 
@@ -1077,7 +1077,7 @@ class AccountPreferencesDialog(wx.Dialog):
         path = data['WEBDAV_PATH']
         access = sharing.checkAccess(host, port=port, useSSL=useSSL,
                                     username=username, password=password,
-                                    path=path, repositoryView=self.view)
+                                    path=path, repositoryView=self.rv)
         result = access[0]
         reason = access[1]
 
@@ -1195,7 +1195,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     break
 
 
-def ShowAccountPreferencesDialog(parent, account=None, view=None, modal=True):
+def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
 
     # Parse the XRC resource file:
     xrcFile = os.path.join(application.Globals.chandlerDirectory,
@@ -1208,7 +1208,7 @@ def ShowAccountPreferencesDialog(parent, account=None, view=None, modal=True):
 
     # Display the dialog:
     win = AccountPreferencesDialog(parent, messages.ACCOUNT_PREFERENCES,
-     resources=resources, account=account, view=view, modal=modal)
+     resources=resources, account=account, rv=rv, modal=modal)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

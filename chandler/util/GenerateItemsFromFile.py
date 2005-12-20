@@ -69,7 +69,7 @@ def addSurrogatePairToText(text):
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
     appNameSpace = schema.ns('osaf.app', self)
-    collection = pim.ListCollection(view=view).setup()
+    collection = pim.ListCollection(itsView=view).setup()
     sidebarCollection = appNameSpace.sidebarCollection
 
     if args[0]=='*': # semi-random data
@@ -101,7 +101,7 @@ def GenerateCollection(view, mainView, args):
 
 def GenerateNote(view, mainView, args):
     """ Generate one Note item """
-    note = pim.Note(view=view)
+    note = pim.Note(itsView=view)
     #displayName
     if args[0]=='*': # semi-random data
 
@@ -134,7 +134,7 @@ def GenerateNote(view, mainView, args):
 
 def GenerateCalendarEvent(view, mainView, args):
     """ Generate one calendarEvent item """
-    event = Calendar.CalendarEvent(view=view)
+    event = Calendar.CalendarEvent(itsView=view)
 
     # displayName
     if args[0]=='*': # semi-random data
@@ -210,8 +210,8 @@ def GenerateCalendarEvent(view, mainView, args):
         event.transparency = 'confirmed'
     
     #recurrence ('daily','weekly','monthly','yearly') + recurrence end date
-    ruleItem = RecurrenceRule(None, view=view)
-    ruleSetItem = RecurrenceRuleSet(None, view=view)
+    ruleItem = RecurrenceRule(None, itsView=view)
+    ruleSetItem = RecurrenceRuleSet(None, itsView=view)
     if not args[11] == '':
         ruleItem.until = ReturnCompleteDatetime(args[11])    
     if args[10]=='*': # semi-random data
@@ -241,7 +241,7 @@ def GenerateCalendarEvent(view, mainView, args):
 
 def GenerateTask(view, mainView, args):
     """ Generate one Task item """
-    task = Task(view=view)
+    task = Task(itsView=view)
 
     # displayName
     if args[0]=='*': # semi-random data
@@ -333,7 +333,7 @@ def GenerateEventTask(view, mainView, args):
 
 def GenerateCalendarParticipant(view, emailAddress):
     """ Generate an email address corresponding to the parameters """ 
-    email = Mail.EmailAddress(view=view)
+    email = Mail.EmailAddress(itsView=view)
     if emailAddress=='*': # semi-random data
         domainName = random.choice(DOMAIN_LIST)
         handle = random.choice(LASTNAMES).lower()
@@ -350,7 +350,7 @@ def GenerateCalendarParticipant(view, emailAddress):
 def GenerateMailMessage(view, mainView, args):
     """ Generate one Mail message item """
 
-    message  = Mail.MailMessage(view=view)
+    message  = Mail.MailMessage(itsView=view)
 
     # subject
     if args[0]=='*': # semi-random data

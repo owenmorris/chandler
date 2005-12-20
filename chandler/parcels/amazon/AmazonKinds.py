@@ -153,7 +153,7 @@ def _AddToCollection(repView, cpiaView, text, countryCode, bags):
         # the same URL exists a new item is not created.
         if not d.has_key(str(aBag.URL)):
             counter += 1
-            col.add(AmazonItem(aBag, view=repView))
+            col.add(AmazonItem(bag=aBag, itsView=repView))
 
     d = {'collectionName': col.displayName, 'numOf': counter}
 
@@ -228,7 +228,7 @@ class AmazonCollection(ListCollection):
 
                 return collection, d
 
-        collection = AmazonCollection(view=repView).setup()
+        collection = AmazonCollection(itsView=repView).setup()
         collection.displayName = displayName
         schema.ns("osaf.app", cpiaView).sidebarCollection.add (collection)
 
@@ -290,8 +290,13 @@ class AmazonItem(ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"
  
-    def __init__(self,bag, name=None, parent=None, kind=None, view=None):
-        super(AmazonItem, self).__init__(name, parent, kind, view)
+    def __init__(self,*args,**kw):
+        if 'bag' in kw:
+            bag = kw['bag']
+            del kw['bag']
+        else:
+            bag = None
+        super(AmazonItem, self).__init__(*args, **kw)
         if bag:
             self.ProductName = bag.ProductName
             desc = getattr(bag, 'ProductDescription', '')
