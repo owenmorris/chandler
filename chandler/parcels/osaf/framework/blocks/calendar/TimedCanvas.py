@@ -40,6 +40,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def wxSynchronizeWidget(self, **hints):
         currentRange = self.GetCurrentDateRange()
+        self._doDrawingCalculations()
 
         # The only hints we understand are event additions.
         # So, if any other kind of hints have been received,
@@ -75,27 +76,31 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 for event in eventList:
                     if event is newElement:
                         return False
-                    if self.sortByStartTime(event, newElement) < 0:
+                    if self.sortByStartTime(event, newElement) > 0:
                         break
                     
                     insertIndex += 1
-                
+
                 eventList.insert(insertIndex, newElement)
                 return True
                 
 
+            itemsOnCanvas = [canvasItem.item for canvasItem in self.canvasItemList]
             for event in addedEvents:
 
-                if not self.blockItem.isDayItem(event):
+                # skip all-day items, and items we've already drawn
+                if (self.blockItem.isDayItem(event) or
+                    event in itemsOnCanvas):
+                    continue
 
-                    if insertInSortedList(self.visibleItems, event):
-                        collection = self.blockItem.getContainingCollection(
-                                                                     event)
-                        canvasItem = TimedCanvasItem(collection, 
-                                        primaryCollection, event, self)
-                        self.canvasItemList.append(canvasItem)
-                        
-                        numAdded += 1
+                if insertInSortedList(self.visibleItems, event):
+                    collection = self.blockItem.getContainingCollection(
+                                                                 event)
+                    canvasItem = TimedCanvasItem(collection, 
+                                    primaryCollection, event, self)
+                    self.canvasItemList.append(canvasItem)
+
+                    numAdded += 1
 
 
             if numAdded > 0:
@@ -103,32 +108,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 cmpFn = (lambda x, y: Calendar.datetimeOp(x, 'cmp', y))
                 self.canvasItemList.sort(cmpFn, keyFn)
 
-                self._doDrawingCalculations()
-    
-                # now generate conflict info
-                self.CheckConflicts()
-                
-                # next, generate bounds rectangles for each canvasitem
-                for canvasItem in self.canvasItemList:
-                # drawing rects should be updated to reflect conflicts
-                    canvasItem.UpdateDrawingRects()
-                    
-                # canvasItemList has to be sorted by depth
-                # should be relatively quick because the canvasItemList is already
-                # sorted by startTime. If no conflicts, this is an O(n) operation
-                # (note that as of Python 2.4, sorts are stable, so this remains safe)
-                self.canvasItemList.sort(key=TimedCanvasItem.GetDrawingOrderKey)
-    
-                self.Refresh()
         else:
-            # we sort the items so that when drawn, the later events are drawn last
-            # so that we get proper stacking
-            # print "TimedEventsCanvas.wxSynchronizeWidget()"
             self.visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
                                                                     timedItems=True))
 
-            self._doDrawingCalculations()
-            self.RefreshCanvasItems(resort=True)
+            self.MakeCanvasItems(resort=True)
+
+        self.RealignCanvasItems()
             
 
     def OnSize(self, event):
@@ -337,6 +323,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return dateResult
 
     def RebuildCanvasItems(self, resort=False):
+        self.MakeCanvasItems(resort)
+        self.RealignCanvasItems()
+
+    def MakeCanvasItems(self, resort=False):
+        """
+        makes new canvas items based on self.visibleItems
+        """
         if resort:
             self.visibleItems.sort(self.sortByStartTime)
         
@@ -349,8 +342,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         else:
             currentDragItem = None
             
-        currentDragBox = None
-
         primaryCollection = self.blockItem.contentsCollection
         
         # First generate a sorted list of TimedCanvasItems
@@ -365,8 +356,18 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             # newly rebuild canvasItem
             # (should probably happen in CollectionCanvas?)
             if currentDragItem is item:
-                currentDragBox = dragState.currentDragBox = canvasItem
-
+                dragState.currentDragBox = canvasItem
+                
+    def RealignCanvasItems(self):
+        """
+        Takes the existing self.canvasItemList, and realigns the
+        rectangles to deal with conflicts and the current drag state
+        """
+        if self.dragState is not None:
+            currentDragBox = self.dragState.currentDragBox
+        else:
+            currentDragBox = None
+            
         # now generate conflict info
         self.CheckConflicts()
 
@@ -426,6 +427,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         drawCanvasItems(selectedBoxes, True)
 
     def CheckConflicts(self):
+        assert sorted(self.visibleItems, self.sortByStartTime) == self.visibleItems
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
             # since these are sorted, we only have to check the items 
             # that come after the current one

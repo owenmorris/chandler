@@ -760,7 +760,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 # addedEvents and move on.
                 addedEvents = None
                 break
-                
+
+        #if addedEvents:
+        #    print "%s: Hints included %d events: %s" % (self.__class__.__name__, len(addedEvents), [e.displayName for e in addedEvents])
         return addedEvents
 
 
