@@ -39,6 +39,8 @@ logger = logging.getLogger(__name__)
 
 dateFormatSymbols = DateFormatSymbols()
 
+ENABLE_DEVICE_ORIGIN = True
+
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
 def nth(iterable, n):
@@ -339,8 +341,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         dc.SetTextForeground(textColor)
        
         for rectIndex, itemRect in enumerate(self.GetBoundsRects()):
-       
-            brush = styles.brushes.GetGradientBrush(itemRect.x,
+
+            if ENABLE_DEVICE_ORIGIN:
+                brushOffset = 0
+            else:
+                brushOffset = itemRect.x
+                
+            brush = styles.brushes.GetGradientBrush(brushOffset,
                                                     itemRect.width,
                                                     gradientLeft, gradientRight)	
             dc.SetBrush(brush)	
@@ -364,7 +371,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             duration = getattr(item, 'duration', 0)
             hasLeftRounded = ((isAnyTime or not duration) and not isAllDay)
             
-            self.DrawEventRectangle(dc, itemRect,
+            self.DrawEventRectangle(dc, itemRect, brush,
                                     hasLeftRounded,
                                     hasTopRightRounded,
                                     hasBottomRightRounded,
@@ -467,7 +474,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         if clipRect:	
             dc.SetClippingRegion(*clipRect)	
        
-    def DrawEventRectangle(self, dc, rect,
+    def DrawEventRectangle(self, dc, rect, brush,
                            hasLeftRounded=False,
                            hasTopRightRounded=True,
                            hasBottomRightRounded=True,
@@ -491,7 +498,19 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         dc.DestroyClippingRegion()
         dc.SetClippingRect(rect)
 
-        (x,y,width,height) = rect
+        (oldOriginX, oldOriginY) = dc.GetDeviceOrigin()
+        (rectX,rectY,width,height) = rect
+
+        if ENABLE_DEVICE_ORIGIN:
+            dc.SetDeviceOrigin(oldOriginX + rectX, oldOriginY + rectY)
+
+            # total hack - see bug 4870
+            # reset the brush so it recognizes the new device origin
+            dc.SetBrush(wx.TRANSPARENT_BRUSH)
+            dc.SetBrush(brush)
+            x = y = 0
+        else:
+            (x, y) = (rectX, rectY)
 
         # left/right clipping
         if not hasLeftRounded:
@@ -523,6 +542,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             # horizontal line across the top
             dc.DrawLine(x, y, x+width, y)
 
+        if ENABLE_DEVICE_ORIGIN:
+            dc.SetDeviceOrigin(oldOriginX, oldOriginY)
 
 
 class CalendarEventHandler(object):
