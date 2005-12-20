@@ -556,7 +556,9 @@ class wxPreviewArea(wx.Panel):
                                 if item.transparency == 'confirmed')
             if len(addedEvents) == 0:
                 return # No "interesting" new events
-            self.currentDaysItems.extend(addedEvents)
+            for item in addedEvents:
+                if item not in self.currentDaysItems:
+                    self.currentDaysItems.append(item)
         else:
             inRange = self.blockItem.getItemsInRange((startDay, endDay), dayItems=True, timedItems=True)
             self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
