@@ -306,13 +306,11 @@ class wxList (DragAndDrop.DraggableWidget,
         Return the list of items currently selected.
         """
         curIndex = -1
-        itemList = []
         while True:
             curIndex = self.GetNextItem(curIndex, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-            itemList.append(self.blockItem.contents [curIndex])
+            yield self.blockItem.contents [curIndex]
             if curIndex is -1:
                 break
-        return itemList
 
     def wxSynchronizeWidget(self, **hints):
         self.Freeze()
@@ -822,15 +820,14 @@ class wxTable(DragAndDrop.DraggableWidget,
         selectionRanges = self.blockItem.contents.getSelectionRanges()
         if not selectionRanges:
             detailItem = self.blockItem.selectedItemToView
-            if detailItem is None:
-                return []
-            else:
-                return [detailItem]
-        itemList = []
+            if detailItem is not None:
+                yield detailItem
+                return
+        
         for selectionRange in selectionRanges:
             for index in xrange(selectionRange[0], selectionRange[1]+1):
-                itemList.append(self.blockItem.contents [index])
-        return itemList
+
+                yield self.blockItem.contents [index]
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
     def __init__(self, type):
@@ -1216,11 +1213,9 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         except:
             idList = [self.GetSelection(), ] # use single-select API
         # convert from ids, which are UUIDs, to items.
-        itemList = []
         for id in idList:
             itemUUID = self.GetItemData(id).GetData()
-            itemList.append(self.blockItem.findUUID(itemUUID))
-        return itemList
+            yield self.blockItem.findUUID(itemUUID)
 
     def OnItemDrag(self, event):
         self.DoDragAndDrop()

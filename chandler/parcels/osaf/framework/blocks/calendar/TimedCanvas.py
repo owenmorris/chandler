@@ -104,6 +104,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
 
             if numAdded > 0:
+                # self.canvasItemList is supposed to be in the same
+                # order as self.visibleItems
                 keyFn = (lambda ci: ci.item.startTime)
                 cmpFn = (lambda x, y: Calendar.datetimeOp(x, 'cmp', y))
                 self.canvasItemList.sort(cmpFn, keyFn)

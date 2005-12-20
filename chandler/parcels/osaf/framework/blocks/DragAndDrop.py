@@ -403,7 +403,7 @@ class ItemClipboardHandler(_ClipboardHandler):
 
     def onCopyEventUpdateUI(self, event):
         items = self.SelectedItems()
-        event.arguments['Enable'] = len(items) > 0
+        event.arguments['Enable'] = len(list(items)) > 0
 
     def onClearEventUpdateUI(self, event):
         event.arguments['Enable'] = hasattr(self, 'DeleteSelection')
@@ -426,7 +426,7 @@ class ItemClipboardHandler(_ClipboardHandler):
             data = self.CopyData()
             clipboard.SetData(data)
             clipboard.Close()
-        return items
+        return list(items)
 
     def onCutEvent(self, event):
         result = self.onCopyEvent(event)
