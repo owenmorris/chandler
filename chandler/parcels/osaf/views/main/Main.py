@@ -135,7 +135,7 @@ class MainView(View):
         # Triggered from "File | Prefs | Accounts..."
 
         AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
-                                                        itsView=self.itsView)
+                                                        rv=self.itsView)
 
     def onNewEvent (self, event):
         # Create a new Content Item
