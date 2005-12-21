@@ -1917,7 +1917,7 @@ class OneTimeFileSystemShare(OneTimeShare):
                  contents=None):
 
         conduit = FileSystemConduit(
-            itsKind=itsKind, itsView=view, sharePath=path, shareName=itsName
+            itsKind=itsKind, itsView=itsView, sharePath=path, shareName=itsName
         )
         format  = formatclass(itsView=itsView)
         super(OneTimeFileSystemShare, self).__init__(
