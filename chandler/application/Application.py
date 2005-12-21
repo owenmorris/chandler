@@ -136,7 +136,7 @@ class MainFrame(wx.Frame):
         # need to add a final commit when the application quits to save data the
         # state of the user's world, e.g. window location and size.
 
-        busyInfo = wx.BusyInfo (_("Commiting repository..."))
+        busyInfo = wx.BusyInfo (_("Committing repository..."))
         view = app.UIRepositoryView
         try:
             view.commit()
