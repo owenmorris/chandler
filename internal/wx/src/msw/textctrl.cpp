@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textctrl.cpp,v 1.251 2005/11/24 16:53:36 JS Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.252 2005/12/21 20:18:48 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -895,6 +895,9 @@ void wxTextCtrl::WriteText(const wxString& value)
 
 void wxTextCtrl::DoWriteText(const wxString& value, bool selectionOnly)
 {
+    if ( value.empty() )
+        return;
+    
     wxString valueDos;
     if ( m_windowStyle & wxTE_MULTILINE )
         valueDos = wxTextFile::Translate(value, wxTextFileType_Dos);
