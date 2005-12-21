@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.272 2005/12/15 08:55:15 vell Exp $
+// RCS-ID:      $Id: window.cpp,v 1.273 2005/12/21 16:12:48 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -3268,6 +3268,8 @@ void wxWindowMac::OnMouseEvent( wxMouseEvent &event )
     if ( event.GetEventType() == wxEVT_RIGHT_DOWN )
     {
         // copied from wxGTK : CS
+        // VZ: shouldn't we move this to base class then?
+
         // generate a "context menu" event: this is similar to wxEVT_RIGHT_DOWN
         // except that:
         //

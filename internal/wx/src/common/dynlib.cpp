@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.cpp,v 1.110 2005/10/03 16:27:58 ABX Exp $
+// RCS-ID:      $Id: dynlib.cpp,v 1.111 2005/12/21 16:11:58 VZ Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -117,7 +117,7 @@ bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
 #elif defined(__WXPM__) || defined(__EMX__)
     char    err[256] = "";
     DosLoadModule(err, sizeof(err), (PSZ)libname.c_str(), &m_handle);
-#else
+#else // this should be the only remaining branch eventually
     m_handle = RawLoad(libname, flags);
 #endif
 

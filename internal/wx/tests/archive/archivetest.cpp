@@ -2,7 +2,7 @@
 // Name:        tests/archive/archive.cpp
 // Purpose:     Test the archive classes
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: archivetest.cpp,v 1.14 2005/12/18 13:58:55 MW Exp $
+// RCS-ID:      $Id: archivetest.cpp,v 1.15 2005/12/21 01:23:17 VZ Exp $
 // Copyright:   (c) 2004 Mike Wetherell
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1177,7 +1177,7 @@ int TestId::m_seed = 6219;
 string TestId::MakeId()
 {
     m_seed = (m_seed * 171) % 30269;
-    return wxString::Format(_T("%-6d"), m_seed).mb_str();
+    return (const char *)wxString::Format(_T("%-6d"), m_seed).mb_str();
 }
 
 

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: notebmac.cpp,v 1.64 2005/11/22 17:54:16 SC Exp $
+// RCS-ID:      $Id: notebmac.cpp,v 1.65 2005/12/21 16:12:47 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -325,10 +325,10 @@ bool wxNotebook::InsertPage(size_t nPage,
 
 int wxNotebook::HitTest(const wxPoint& pt, long * flags) const
 {
-	int				resultV = wxNOT_FOUND;
+    int resultV = wxNOT_FOUND;
 #if TARGET_API_MAC_OSX
-	const int	countPages = GetPageCount();
-    
+    const int	countPages = GetPageCount();
+
     HIPoint hipoint= { pt.x , pt.y } ;
     HIViewPartCode outPart = 0 ;
     OSStatus err = HIViewGetPartHit (
@@ -336,12 +336,12 @@ int wxNotebook::HitTest(const wxPoint& pt, long * flags) const
        &hipoint ,
        &outPart
        );
-    
+
     int max = m_peer->GetMaximum() ;
     if ( outPart == 0 && max > 0 )
     {
         // this is a hack, as unfortunately a hit on an already selected tab returns 0,
-        // so we have to go some extra miles to make sure we select something different 
+        // so we have to go some extra miles to make sure we select something different
         // and try again ..
         int val = m_peer->GetValue() ;
         int maxval = max ;
@@ -355,30 +355,30 @@ int wxNotebook::HitTest(const wxPoint& pt, long * flags) const
             m_peer->SetValue( maxval ) ;
         else
              m_peer->SetValue( 1 ) ;
-                
+
         err = HIViewGetPartHit (
-                                    m_peer->GetControlRef() ,
-                                    &hipoint ,
-                                    &outPart
-                                    );
-            
+                  m_peer->GetControlRef() ,
+                  &hipoint ,
+                  &outPart
+                );
+
         m_peer->SetValue( val ) ;
         if ( max == 1 )
         {
             m_peer->SetMaximum( 1 ) ;
         }
     }
-    
-    if ( outPart >= 1 && (size_t)outPart <= countPages )
+
+    if ( outPart >= 1 && outPart <= countPages )
     {
         resultV = outPart ;
-    }    
+    }
 #endif // TARGET_API_MAC_OSX
 
     if (flags != NULL)
     {
         *flags = 0;
-        
+
         // we cannot differentiate better
         if (resultV >= 1)
             *flags |= wxNB_HITTEST_ONLABEL;
