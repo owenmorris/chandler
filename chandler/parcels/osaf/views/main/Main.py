@@ -251,7 +251,7 @@ class MainView(View):
         """
 
         app = wx.GetApp()
-        Block.Block.findBlockByName('StatusBar').setStatusMessage (statusMessage, progressPercentage)
+        Block.findBlockByName('StatusBar').setStatusMessage (statusMessage, progressPercentage)
 
     def callAnyCallable(self, callable, withView, *args, **kw):
         """
