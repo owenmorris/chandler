@@ -16,7 +16,7 @@ class PhotosResource(webserver.AuthenticatedResource):
 
             # The Server item will give us the repositoryView during
             # startup.
-            repoView = self.repositoryView
+            repoView = self.myView
 
             if not request.postpath or request.postpath[0] == "":
                 output(u"<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><title>Photos</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>")

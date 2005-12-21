@@ -1,16 +1,17 @@
 import logging
+from osaf import webserver
 from twisted.web import resource
 
 logger = logging.getLogger(__name__)
 
-class LobViewerResource(resource.Resource):
+class LobViewerResource(webserver.AuthenticatedResource):
     isLeaf = True
     def render_GET(self, request):
 
         try:
             # The Server item will give us the repositoryView during
             # startup.
-            repoView = self.repositoryView
+            repoView = self.myView
 
             (uuid, attrName) = request.postpath
             item = repoView.findUUID(uuid)

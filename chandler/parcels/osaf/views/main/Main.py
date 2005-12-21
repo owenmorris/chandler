@@ -515,6 +515,8 @@ class MainView(View):
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemsBroadcastInsideActiveView',
                               {'items':[photo]})
+        # Make this available to the Photo servlet
+        self.RepositoryCommitWithStatus ()
 
     def onCommitRepositoryEvent(self, event):
         # Test menu item
