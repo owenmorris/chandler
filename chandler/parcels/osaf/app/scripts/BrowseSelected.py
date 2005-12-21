@@ -5,16 +5,26 @@ from osaf import webserver
 import webbrowser
 
 f = Block.Block.getFocusBlock()
+
+for server in webserver.Server.iterItems(f.itsView):
+    if not server.isActivated():
+        server.startup()
+
 i = getattr(f, "selectedItemToView", None)
 if i is None:
     try:
         i = f.selection[0]
     except (IndexError, AttributeError):
-        i = None
+        try:
+            sel = f.GetSelection()
+            for item in sel.iterSelection():
+                i = item
+                break
+        except:
+            i = None
+
+
 if i is not None:
-    for server in webserver.Server.iterItems(i.itsView):
-        if not server.isActivated():
-            server.startup()
     #XXX [i18n] i.itsPath should be an ascii string however
     #    it is a repository.util.Path.Path.
     #    In addition when doing an str() or i.itsPath
