@@ -1349,7 +1349,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
             response = application.dialogs.AccountPreferences.\
                      ShowAccountPreferencesDialog(app.mainFrame, 
                                                   account=None, 
-                                                  view=self.item.itsView)
+                                                  rv=self.item.itsView)
             # rebuild the list in the popup
             self.SetControlValue(control, 
                 self.GetAttributeValue(self.item, self.attributeName))
