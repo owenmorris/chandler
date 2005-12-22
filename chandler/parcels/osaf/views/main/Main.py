@@ -747,7 +747,7 @@ class MainView(View):
 
             mainFrame = wx.GetApp().mainFrame
             PublishCollection.ShowPublishDialog(mainFrame,
-                itsView=self.itsView,
+                view=self.itsView,
                 collection=collection,
                 filterClassName=filterClassName)
 
