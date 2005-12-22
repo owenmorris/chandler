@@ -378,8 +378,12 @@ def unpublish(collection):
     for share in collection.shares:
 
         # Remove from server (or disk, etc.)
-        if share.exists():
-            share.destroy()
+        try:
+            if share.exists():
+                share.destroy()
+        except CouldNotConnect, e:
+            pass
+            # @@@MOR what sort of UI do we want in this case?
 
         # Clean up sharing-related objects
         share.conduit.delete(True)
