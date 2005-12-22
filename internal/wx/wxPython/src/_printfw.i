@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Aug-2003
-// RCS-ID:      $Id: _printfw.i,v 1.22 2005/03/09 22:28:40 RD Exp $
+// RCS-ID:      $Id: _printfw.i,v 1.23 2005/12/22 06:57:35 KO Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -132,24 +132,28 @@ public:
     //       prepared to remove them...
     
     // PostScript-specific data
-//    const wxString& GetPrinterCommand();
-//    const wxString& GetPrinterOptions();
-//    const wxString& GetPreviewCommand();
-//    const wxString& GetFontMetricPath();
-//    double GetPrinterScaleX();
-//    double GetPrinterScaleY();
-//    long GetPrinterTranslateX();
-//    long GetPrinterTranslateY();
-//    void SetPrinterCommand(const wxString& command);
-//    void SetPrinterOptions(const wxString& options);
-//    void SetPreviewCommand(const wxString& command);
-//    void SetFontMetricPath(const wxString& path);
-//    void SetPrinterScaleX(double x);
-//    void SetPrinterScaleY(double y);
-//    void SetPrinterScaling(double x, double y);
-//    void SetPrinterTranslateX(long x);
-//    void SetPrinterTranslateY(long y);
-//    void SetPrinterTranslation(long x, long y);
+// WXWIN_COMPATIBILITY_2_4
+#if 0
+    const wxString& GetPrinterCommand();
+    const wxString& GetPrinterOptions();
+    const wxString& GetPreviewCommand();
+    const wxString& GetFontMetricPath();
+    double GetPrinterScaleX();
+    double GetPrinterScaleY();
+    long GetPrinterTranslateX();
+    long GetPrinterTranslateY();
+    void SetPrinterCommand(const wxString& command);
+    void SetPrinterOptions(const wxString& options);
+    void SetPreviewCommand(const wxString& command);
+    void SetFontMetricPath(const wxString& path);
+    void SetPrinterScaleX(double x);
+    void SetPrinterScaleY(double y);
+    void SetPrinterScaling(double x, double y);
+    void SetPrinterTranslateX(long x);
+    void SetPrinterTranslateY(long y);
+    void SetPrinterTranslation(long x, long y);
+#endif
+
 };
 
 //---------------------------------------------------------------------------
@@ -247,9 +251,10 @@ public:
     bool GetPrintToFile() const;
 
     // WXWIN_COMPATIBILITY_2_4
-//    bool GetSetupDialog() const;
-//    void SetSetupDialog(bool flag);
-
+#if 0
+    bool GetSetupDialog() const;
+    void SetSetupDialog(bool flag);
+#endif
     void SetFromPage(int v);
     void SetToPage(int v);
     void SetMinPage(int v);

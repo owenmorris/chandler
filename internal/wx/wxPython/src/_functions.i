@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     3-July-1997
-// RCS-ID:      $Id: _functions.i,v 1.24 2005/11/26 23:27:21 vell Exp $
+// RCS-ID:      $Id: _functions.i,v 1.25 2005/12/22 06:57:35 KO Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -205,15 +205,16 @@ int wxMessageBox(const wxString& message,
                  int x = -1, int y = -1);
 
 // WXWIN_COMPATIBILITY_2_4
-//MustHaveApp(wxGetNumberFromUser);
-//long wxGetNumberFromUser(const wxString& message,
-//                         const wxString& prompt,
-//                         const wxString& caption,
-//                         long value,
-//                         long min = 0, long max = 100,
-//                         wxWindow *parent = NULL,
-//                         const wxPoint& pos = wxDefaultPosition);
-
+#if 0
+MustHaveApp(wxGetNumberFromUser);
+long wxGetNumberFromUser(const wxString& message,
+                         const wxString& prompt,
+                         const wxString& caption,
+                         long value,
+                         long min = 0, long max = 100,
+                         wxWindow *parent = NULL,
+                         const wxPoint& pos = wxDefaultPosition);
+#endif
 // GDI Functions
 
 MustHaveApp(wxColourDisplay);

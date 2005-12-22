@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.70 2005/11/08 14:59:52 ABX Exp $
+// RCS-ID:      $Id: html.i,v 1.71 2005/12/22 06:57:36 KO Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1111,59 +1111,65 @@ public:
 };
 
 //---------------------------------------------------------------------------
-
 // WXWIN_COMPATIBILITY_2_4
-//struct wxHtmlContentsItem
-//{
-//    %extend {
-//        int GetLevel() { return self->m_Level; }
-//        int GetID() { return self->m_ID; }
-//        wxString GetName() { return self->m_Name; }
-//        wxString GetPage() { return self->m_Page; }
-//        wxHtmlBookRecord* GetBook() { return self->m_Book; }
-//    }
-//};
+#if 0
+struct wxHtmlContentsItem
+{
+    %extend {
+        int GetLevel() { return self->m_Level; }
+        int GetID() { return self->m_ID; }
+        wxString GetName() { return self->m_Name; }
+        wxString GetPage() { return self->m_Page; }
+        wxHtmlBookRecord* GetBook() { return self->m_Book; }
+    }
+};
+#endif
+//---------------------------------------------------------------------------
+
+class wxHtmlSearchStatus
+{
+public:
+    //wxHtmlSearchStatus(wxHtmlHelpData* base, const wxString& keyword,
+    //                   const wxString& book = wxPyEmptyString);
+    bool Search();
+    bool IsActive();
+    int GetCurIndex();
+    int GetMaxIndex();
+    const wxString& GetName();
+    // WXWIN_COMPATIBILITY_2_4
+#if 0
+    wxHtmlContentsItem* GetContentsItem();
+#endif
+};
 
 //---------------------------------------------------------------------------
 
-//class wxHtmlSearchStatus
-//{
-//public:
-//    //wxHtmlSearchStatus(wxHtmlHelpData* base, const wxString& keyword,
-//    //                   const wxString& book = wxPyEmptyString);
-//    bool Search();
-//    bool IsActive();
-//    int GetCurIndex();
-//    int GetMaxIndex();
-//    const wxString& GetName();
-//    wxHtmlContentsItem* GetContentsItem();
-//};
+class wxHtmlHelpData {
+public:
+    wxHtmlHelpData();
+    ~wxHtmlHelpData();
 
-//---------------------------------------------------------------------------
+    void SetTempDir(const wxString& path);
+    bool AddBook(const wxString& book);
+//      bool AddBookParam(const wxString& title, const wxString& contfile,
+//  		      const wxString& indexfile=wxPyEmptyString,
+//  		      const wxString& deftopic=wxPyEmptyString,
+//  		      const wxString& path=wxPyEmptyString);
 
-//class wxHtmlHelpData {
-//public:
-//    wxHtmlHelpData();
-//    ~wxHtmlHelpData();
-//
-//    void SetTempDir(const wxString& path);
-//    bool AddBook(const wxString& book);
-////      bool AddBookParam(const wxString& title, const wxString& contfile,
-////  		      const wxString& indexfile=wxPyEmptyString,
-////  		      const wxString& deftopic=wxPyEmptyString,
-////  		      const wxString& path=wxPyEmptyString);
-//
-//    wxString FindPageByName(const wxString& page);
-//    wxString FindPageById(int id);
-//
-//    // TODO: this one needs fixed...
-//    const wxHtmlBookRecArray& GetBookRecArray();
-//
-//    wxHtmlContentsItem* GetContents();
-//    int GetContentsCnt();
-//    wxHtmlContentsItem* GetIndex();
-//    int GetIndexCnt();
-//};
+    wxString FindPageByName(const wxString& page);
+    wxString FindPageById(int id);
+
+    // TODO: this one needs fixed...
+    const wxHtmlBookRecArray& GetBookRecArray();
+
+    // WXWIN_COMPATIBILITY_2_4
+#if 0
+    wxHtmlContentsItem* GetContents();
+    int GetContentsCnt();
+    wxHtmlContentsItem* GetIndex();
+    int GetIndexCnt();
+#endif
+};
 
 //---------------------------------------------------------------------------
 

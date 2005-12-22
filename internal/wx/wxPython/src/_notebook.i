@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     2-June-1998
-// RCS-ID:      $Id: _notebook.i,v 1.28 2005/04/11 19:57:02 RD Exp $
+// RCS-ID:      $Id: _notebook.i,v 1.29 2005/12/22 06:57:35 KO Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -416,33 +416,33 @@ public:
 %newgroup;
 
 // WXWIN_COMPATIBILITY_2_4
+#if 0
+class wxBookCtrlSizer: public wxSizer
+{
+public:
+    %pythonAppend wxBookCtrlSizer "self._setOORInfo(self)"
 
-//class wxBookCtrlSizer: public wxSizer
-//{
-//public:
-//    %pythonAppend wxBookCtrlSizer "self._setOORInfo(self)"
-//
-//    wxBookCtrlSizer( wxBookCtrlBase *nb );
-//
-//    void RecalcSizes();
-//    wxSize CalcMin();
-//    wxBookCtrlBase *GetControl();
-//};
-//
-//
-//class wxNotebookSizer: public wxSizer {
-//public:
-//    %pythonAppend wxNotebookSizer "self._setOORInfo(self)"
-//
-//    wxNotebookSizer( wxNotebook *nb );
-//
-//    void RecalcSizes();
-//    wxSize CalcMin();
-//    wxNotebook *GetNotebook();
-//};
-//
-//%pythoncode { NotebookSizer.__init__ = wx._deprecated(NotebookSizer.__init__, "NotebookSizer is no longer needed.") }
-//%pythoncode { BookCtrlSizer.__init__ = wx._deprecated(BookCtrlSizer.__init__, "BookCtrlSizer is no longer needed.") }
+    wxBookCtrlSizer( wxBookCtrlBase *nb );
 
+    void RecalcSizes();
+    wxSize CalcMin();
+    wxBookCtrlBase *GetControl();
+};
+
+
+class wxNotebookSizer: public wxSizer {
+public:
+    %pythonAppend wxNotebookSizer "self._setOORInfo(self)"
+
+    wxNotebookSizer( wxNotebook *nb );
+
+    void RecalcSizes();
+    wxSize CalcMin();
+    wxNotebook *GetNotebook();
+};
+
+%pythoncode { NotebookSizer.__init__ = wx._deprecated(NotebookSizer.__init__, "NotebookSizer is no longer needed.") }
+%pythoncode { BookCtrlSizer.__init__ = wx._deprecated(BookCtrlSizer.__init__, "BookCtrlSizer is no longer needed.") }
+#endif
 
 //---------------------------------------------------------------------------
