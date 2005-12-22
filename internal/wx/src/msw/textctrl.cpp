@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textctrl.cpp,v 1.252 2005/12/21 20:18:48 RD Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.253 2005/12/21 20:50:05 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -809,7 +809,10 @@ wxTextCtrl::StreamIn(const wxString& value,
                   (selectionOnly ? SFF_SELECTION : 0),
                   (LPARAM)&eds);
 
-    wxASSERT_MSG( ucf.GotUpdate(), _T("EM_STREAMIN didn't send EN_UPDATE?") );
+    // It's okay for EN_UPDATE to not be sent if the selection is empty and
+    // the text is empty, otherwise warn the programmer about it.
+    wxASSERT_MSG( ucf.GotUpdate() || ( !HasSelection() && value.empty() ),
+                  _T("EM_STREAMIN didn't send EN_UPDATE?") );
 
     if ( eds.dwError )
     {
@@ -895,9 +898,6 @@ void wxTextCtrl::WriteText(const wxString& value)
 
 void wxTextCtrl::DoWriteText(const wxString& value, bool selectionOnly)
 {
-    if ( value.empty() )
-        return;
-    
     wxString valueDos;
     if ( m_windowStyle & wxTE_MULTILINE )
         valueDos = wxTextFile::Translate(value, wxTextFileType_Dos);
