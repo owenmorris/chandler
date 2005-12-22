@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.240 2005/12/19 10:41:04 ABX Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.241 2005/12/22 03:07:48 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -788,12 +788,15 @@ bool wxListCtrl::SetItem(wxListItem& info)
             data->lParam = info.m_data;
 
         // attributes
-        if (info.HasAttributes())
+        if ( info.HasAttributes() )
         {
-            if (data->attr)
-                *data->attr = *info.GetAttributes();
+            const wxListItemAttr& attrNew = *info.GetAttributes();
+
+            // don't overwrite the already set attributes if we have them
+            if ( data->attr )
+                data->attr->AssignFrom(attrNew);
             else
-                data->attr = new wxListItemAttr(*info.GetAttributes());
+                data->attr = new wxListItemAttr(attrNew);
         };
     };
 

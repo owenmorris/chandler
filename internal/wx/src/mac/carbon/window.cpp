@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.274 2005/12/21 19:54:48 vell Exp $
+// RCS-ID:      $Id: window.cpp,v 1.275 2005/12/22 01:14:06 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2671,9 +2671,8 @@ void wxWindowMac::OnSetFocus( wxFocusEvent& event )
             rect.bottom += pt.y ;
         }
 
-        DrawThemeFocusRect( &rect , bIsFocusEvent ) ;
-
         bool bIsFocusEvent = (event.GetEventType() == wxEVT_SET_FOCUS);
+        DrawThemeFocusRect( &rect , bIsFocusEvent ) ;
         if ( !bIsFocusEvent )
         {
             // as this erases part of the frame we have to redraw borders

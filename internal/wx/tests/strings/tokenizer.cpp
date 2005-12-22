@@ -3,7 +3,7 @@
 // Purpose:     wxStringTokenizer unit test
 // Author:      Vadim Zeitlin
 // Created:     2005-12-20 (extacted from strings.cpp)
-// RCS-ID:      $Id: tokenizer.cpp,v 1.3 2005/12/20 16:48:41 VZ Exp $
+// RCS-ID:      $Id: tokenizer.cpp,v 1.4 2005/12/22 00:17:22 VZ Exp $
 // Copyright:   (c) 2004-2005 Vadim Zeitlin
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -176,7 +176,12 @@ void TokenizerTestCase::StrtokCompat()
         if ( ttd.mode != wxTOKEN_STRTOK )
             continue;
 
-        wxCharBuffer buf(ttd.str);
+#if wxUSE_UNICODE
+        wxWCharBuffer
+#else
+        wxCharBuffer
+#endif
+            buf(ttd.str);
         wxChar *last;
         wxChar *s = wxStrtok(buf.data(), ttd.delims, &last);
 
