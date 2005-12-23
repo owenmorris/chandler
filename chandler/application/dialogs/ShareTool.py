@@ -11,11 +11,11 @@ class ShareToolDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, itsView=None):
+         resources=None, rv=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
-        self.view = view
+        self.view = rv
         self.resources = resources
         self.parent = parent
 
@@ -76,7 +76,7 @@ class ShareToolDialog(wx.Dialog):
         for item in sharing.Share.iterItems(self.view):
             self.shares.append(item)
             display = u"'%s' -- %s" % (item.getItemDisplayName(),
-             item.conduit.account.getItemDisplayName())
+             item.conduit.getLocation())
             self.sharesList.Append(display)
 
     def OnRefresh(self, evt):
@@ -84,7 +84,7 @@ class ShareToolDialog(wx.Dialog):
 
     def OnCreateShare(self, evt):
         share = ShowShareEditorDialog(self.parent, share=None,
-         resources=self.resources, itsView=self.view)
+         resources=self.resources, rv=self.view)
         if share is not None:
             share.create()
             share.put()
@@ -92,7 +92,7 @@ class ShareToolDialog(wx.Dialog):
 
     def OnJoinShare(self, evt):
         share = ShowShareEditorDialog(self.parent, share=None,
-         resources=self.resources, itsView=self.view, join=True)
+         resources=self.resources, rv=self.view, join=True)
         if share is not None:
             share.get()
             schema.ns("osaf.app", self).sidebarCollection.add (share.contents)
@@ -104,7 +104,7 @@ class ShareToolDialog(wx.Dialog):
         if selection > -1:
             share = self.shares[selection]
             share = ShowShareEditorDialog(self.parent, share=share,
-             resources=self.resources, itsView=self.view)
+             resources=self.resources, rv=self.view)
         self._populateSharesList()
 
     def OnItems(self, evt):
@@ -112,7 +112,7 @@ class ShareToolDialog(wx.Dialog):
         if selection > -1:
             share = self.shares[selection]
             ShowCollectionEditorDialog(self.parent, collection=share.contents,
-             resources=self.resources, itsView=self.view)
+             resources=self.resources, rv=self.view)
 
     def OnSyncShare(self, evt):
         selection = self.sharesList.GetSelection()
@@ -161,7 +161,7 @@ class ShareToolDialog(wx.Dialog):
         wx.CallAfter(control.SetSelection, -1, -1)
 
 
-def ShowShareToolDialog(parent, view=None):
+def ShowShareToolDialog(parent, rv=None):
         xrcFile = os.path.join(Globals.chandlerDirectory,
          'application', 'dialogs', 'ShareTool_wdr.xrc')
         #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -169,7 +169,7 @@ def ShowShareToolDialog(parent, view=None):
         xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
         resources = wx.xrc.XmlResource(xrcFile)
         win = ShareToolDialog(parent, "Share Tool",
-         resources=resources, view=view)
+         resources=resources, rv=rv)
         win.CenterOnScreen()
         win.Show(True)
 
@@ -182,11 +182,11 @@ class ShareEditorDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, view=None, share=None, join=False):
+         resources=None, rv=None, share=None, join=False):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
-        self.view = view
+        self.view = rv
         self.join = join
         self.share = share
         self.resources = resources
@@ -305,9 +305,9 @@ class ShareEditorDialog(wx.Dialog):
         return self.share
 
 def ShowShareEditorDialog(parent, share=None, join=False, resources=None,
- view=None):
+ rv=None):
         win = ShareEditorDialog(parent, _(u"Share Editor"), share=share, join=join,
-         resources=resources, view=view)
+         resources=resources, rv=rv)
         win.CenterOnScreen()
         val = win.ShowModal()
         if val:
@@ -325,11 +325,11 @@ class CollectionEditorDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, view=None, collection=None):
+         resources=None, rv=None, collection=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
-        self.view = view
+        self.view = rv
         self.collection = collection
         self.resources = resources
 
@@ -375,9 +375,9 @@ class CollectionEditorDialog(wx.Dialog):
 
 
 def ShowCollectionEditorDialog(parent, collection=None, resources=None,
- view=None):
+ rv=None):
         win = CollectionEditorDialog(parent, _(u"Collection Editor"),
-         collection=collection, resources=resources, view=view)
+         collection=collection, resources=resources, rv=rv)
         win.CenterOnScreen()
         win.ShowModal()
         win.Destroy()

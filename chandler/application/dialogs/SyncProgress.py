@@ -16,11 +16,11 @@ class SyncDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, view=None, collection=None):
+         resources=None, rv=None, collection=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
-        self.view = view
+        self.view = rv
         self.resources = resources
         self.parent = parent
         self.collection = collection
@@ -108,7 +108,7 @@ class SyncDialog(wx.Dialog):
         self.textStatus.AppendText(message)
         wx.Yield()
 
-def Show(parent, view=None, collection=None):
+def Show(parent, rv=None, collection=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SyncProgress_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -116,7 +116,7 @@ def Show(parent, view=None, collection=None):
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
     win = SyncDialog(parent, _(u"Synchronization Progress"),
-     resources=resources, view=view, collection=collection)
+     resources=resources, rv=rv, collection=collection)
     win.CenterOnScreen()
     win.ShowModal()
     win.Destroy()

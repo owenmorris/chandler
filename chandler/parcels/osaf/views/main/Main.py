@@ -806,7 +806,7 @@ class MainView(View):
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."
-        ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, itsView=self.itsView)
+        ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, rv=self.itsView)
 
 
     def onSyncCollectionEvent (self, event):
@@ -913,7 +913,7 @@ class MainView(View):
         # find all the shared collections and sync them.
         if activeShares:
             self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            SyncProgress.Show(wx.GetApp().mainFrame, itsView=self.itsView)
+            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView)
             self.setStatusMessage (_(u"Shared collections synchronized"))
         else:
             if DAVReady:
