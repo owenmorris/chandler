@@ -280,8 +280,7 @@ def main():
              "The variable, 'view', is now set to the main repository " \
              "view, and 'app' is the\n" \
              "schema.ns('osaf.app', view) object.\n" \
-             "Type 'go()' to fire up Twisted services, or 'readme()' for " \
-             "more info."
+             "Type 'readme()' for more info.\n"
 
     script = Globals.options.scriptFile
     if script:
@@ -296,6 +295,12 @@ def main():
             shutdown()
 
     else:
+
+        if Globals.options.webserver:
+            go()
+        else:
+            banner += "Type 'go()' to fire up Twisted services.\n"
+
         try:
             from IPython.Shell import IPShellEmbed
             argv = ['-pi1','In [\\#]: ','-pi2','   .\\D.:','-po','Out[\\#]: ']
