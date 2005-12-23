@@ -142,6 +142,14 @@ class ContentItem(schema.Item):
         "osaf.framework.blocks.Block.Block", inverse="contents"
     )
 
+    tags = schema.Sequence(
+        'Tag',
+        displayName=u'Tags',
+        description='Tags this ContentItem are associated with',
+        inverse='items',
+        initialValue=[]
+    )
+
     # We haven't ported the "other end" of these links, so we have to use
     # 'otherName' settings to ensure that they get hooked up correctly.
     # The 'otherName' settings should be removed once the other side of these
@@ -154,7 +162,7 @@ class ContentItem(schema.Item):
     TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
 
     schema.addClouds(
-        sharing = schema.Cloud("displayName", body, createdOn,
+        sharing = schema.Cloud("displayName", body, createdOn, 'tags',
                                "description"),
         copying = schema.Cloud()
     )
@@ -701,6 +709,40 @@ class _SuperKindSignature(list):
             readable.append(item.itsName)
         theList = ', '.join(readable)
         return '['+theList+']'
+
+
+class Tag(ContentItem):
+
+    schema.kindInfo(
+        displayName = u"Tag",
+        description =
+            "A generic tag object that can be associated with any ContentItem"
+    )
+
+    items = schema.Sequence(
+        'ContentItem',
+        displayName=u'Item',
+        description='ContentItems this Tag are associated with',
+        inverse='tags',
+        initialValue=[]
+    )
+
+    supertags = schema.Sequence(
+        'Tag',
+        displayName=u'SuperTags',
+        description='Allows a tag hierarchy',
+        inverse='subtags',
+        initialValue=[]
+    )
+
+    subtags = schema.Sequence(
+        'Tag',
+        displayName=u'SubTags',
+        description='Allows a tag hierarchy',
+        inverse='supertags',
+        initialValue=[]
+    )
+
 
 class Project(ContentItem):
 
