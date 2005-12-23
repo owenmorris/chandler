@@ -224,11 +224,11 @@ def textToUnicode(text):
 
     return uStr
 
-def dataToBinary(contentItem, attribute, data, mimeType="application/octet-stream", compression=None):
+def dataToBinary(contentItem, attribute, data, mimeType="application/octet-stream", compression=None, indexed=False):
     """Converts non-string data to a C{TLob}
     """
     binary =  contentItem.getAttributeAspect(attribute, \
-                                          'type').makeValue(None, mimetype=mimeType)
+                                          'type').makeValue(None, mimetype=mimeType, indexed=indexed)
 
     if compression:
         binaryStream = binary.getOutputStream(compression=compression)

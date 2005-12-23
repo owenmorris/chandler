@@ -2686,9 +2686,10 @@ class CloudXMLFormat(ImportExportFormat):
 
                         if mimeTypeNode: # Lob
                             mimeType = mimeTypeNode.content
+                            indexed = mimeType == "text/plain"
                             value = base64.b64decode(attrNode.content)
                             value = utils.dataToBinary(item, attrName, value,
-                                                       mimeType=mimeType)
+                                mimeType=mimeType, indexed=indexed)
 
                             encodingNode = attrNode.hasProp('encoding')
                             if encodingNode:
@@ -2716,9 +2717,11 @@ class CloudXMLFormat(ImportExportFormat):
 
                                 if mimeTypeNode: # Lob
                                     mimeType = mimeTypeNode.content
+                                    indexed = mimeType == "text/plain"
                                     value = base64.b64decode(attrNode.content)
                                     value = utils.dataToBinary(item, attrName,
-                                        value, mimeType=mimeType)
+                                        value, mimeType=mimeType,
+                                        indexed=indexed)
 
                                     encodingNode = valueNode.hasProp('encoding')
                                     if encodingNode:
