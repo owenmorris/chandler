@@ -814,7 +814,7 @@ class MainView(View):
         self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            SyncProgress.Show(wx.GetApp().mainFrame, itsView=self.itsView,
+            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView,
                 collection=collection)
 
     def onSyncCollectionEventUpdateUI (self, event):
