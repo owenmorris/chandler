@@ -1590,8 +1590,9 @@ class LocationAttributeEditor (StringAttributeEditor):
         control = super(LocationAttributeEditor, self).\
                 CreateControl(forEditing, readOnly, parentWidget,
                               id, parentBlock, font)
-        if forEditing and not readOnly:
-            control.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+        if not readOnly:
+            editControl = forEditing and control or control.editControl
+            editControl.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         return control
 
     def onKeyUp(self, event):

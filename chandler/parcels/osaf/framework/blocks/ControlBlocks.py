@@ -1530,18 +1530,26 @@ class ReminderTimer(Timer):
 
     def primeReminderTimer(self, createDialog=False):
         """ Prime the reminder timer and maybe show or hide the dialog """
-        # Get the dialog if we have it; we'll create it if 'createDialog' and
-        # it doesn't exist.
-        reminderDialog = self.getReminderDialog(createDialog)
-        if reminderDialog is not None:
-            # The dialog is displayed; get the list of pending reminders and 
-            # let it update itself. It'll tell us when it wants us to fire next, 
-            # or whether we should close it now.
-            pending = self.getPendingReminders()
-            (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+        mainFrame = wx.GetApp().mainFrame
+        if not mainFrame.IsShown():
+            # The main window isn't up yet; this happens on Mac when
+            # Chandler is started with a reminder already due. Wait a couple
+            # of seconds and try again.
+            (nextReminderTime, closeIt) = (datetime.now(
+                PyICU.ICUtzinfo.getDefault()) + timedelta(seconds=1), False)
         else:
-            # Or not.
-            (nextReminderTime, closeIt) = (None, False)
+            # Get the dialog if we have it; we'll create it if 'createDialog' and
+            # it doesn't exist.
+            reminderDialog = self.getReminderDialog(createDialog)
+            if reminderDialog is not None:
+                # The dialog is displayed; get the list of pending reminders and 
+                # let it update itself. It'll tell us when it wants us to fire next, 
+                # or whether we should close it now.
+                pending = self.getPendingReminders()
+                (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+            else:
+                # Or not.
+                (nextReminderTime, closeIt) = (None, False)
 
         if nextReminderTime is None:
             # The dialog didn't give us a time to fire; we'll fire at the
