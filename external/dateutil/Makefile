@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-VERSION=1.0
+VERSION=1.1
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 DATEUTIL=$(BUILD_ROOT)/dateutil
 MANIFEST=$(SNAP)/$(SITE)/dateutil
