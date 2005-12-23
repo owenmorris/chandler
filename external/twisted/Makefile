@@ -1,6 +1,6 @@
 
-VERSION=r13651
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)11
+VERSION=r15399
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 TWISTED=$(BUILD_ROOT)/twisted
 SRC=$(TWISTED)/Twisted-$(VERSION)
 
@@ -8,10 +8,12 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
+.PHONY: patches-$(VERSION)
+
 apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION);echo ok
-	patch -Nup0 < patches-$(VERSION)-bug3394;echo ok
-	patch -Nup0 < patches-$(VERSION)-bug4639;echo ok
+	if [ -f patches-$(VERSION) ]; then \
+            patch -Nup0 < patches-$(VERSION);echo ok; \
+        fi
 
 build: expand apply
 	cd $(SRC); \
@@ -21,7 +23,6 @@ build: expand apply
 
 Twisted-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz.md5
 
 sources: Twisted-$(VERSION).tar.gz
 
@@ -37,15 +38,13 @@ binaries:
       find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \
       tar -cvzf $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/$(SITE)/twisted \
-          --exclude test;
-	$(MD5) $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz > $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz.md5
+          --exclude test
 
 install: twisted-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf twisted-$(SNAP)-$(RELVER).tar.gz
 
 upload: twisted-$(SNAP)-$(RELVER).tar.gz
 	scp twisted-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp twisted-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
