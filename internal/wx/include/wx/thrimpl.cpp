@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.06.02 (extracted from src/*/thread.cpp files)
-// RCS-ID:      $Id: thrimpl.cpp,v 1.6 2005/10/03 16:25:50 ABX Exp $
+// RCS-ID:      $Id: thrimpl.cpp,v 1.7 2005/12/23 01:20:38 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin (2002)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -148,7 +148,7 @@ wxCondError wxConditionInternal::WaitTimeout(unsigned long milliseconds)
 
     wxSemaError err = m_semaphore.WaitTimeout(milliseconds);
 
-    if ( err == wxSEMA_BUSY )
+    if ( err == wxSEMA_TIMEOUT )
     {
         // another potential race condition exists here it is caused when a
         // 'waiting' thread timesout, and returns from WaitForSingleObject, but
@@ -174,7 +174,9 @@ wxCondError wxConditionInternal::WaitTimeout(unsigned long milliseconds)
 
     m_mutex.Lock();
 
-    return err == wxSEMA_NO_ERROR ? wxCOND_NO_ERROR : wxCOND_MISC_ERROR;
+    return err == wxSEMA_NO_ERROR ? wxCOND_NO_ERROR
+                                  : err == wxSEMA_TIMEOUT ? wxCOND_TIMEOUT
+                                                          : wxCOND_MISC_ERROR;
 }
 
 wxCondError wxConditionInternal::Signal()

@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.381 2005/09/25 19:58:58 VZ Exp $
+// Id:          $Id: listctrl.cpp,v 1.382 2005/12/23 01:00:30 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -137,9 +137,8 @@ static const int MARGIN_BETWEEN_ROWS = 6;
 // when autosizing the columns, add some slack
 static const int AUTOSIZE_COL_MARGIN = 10;
 
-// default and minimal widths for the header columns
+// default width for the header columns
 static const int WIDTH_COL_DEFAULT = 80;
-static const int WIDTH_COL_MIN = 10;
 
 // the space between the image and the text in the report mode
 static const int IMAGE_MARGIN_IN_REPORT_MODE = 5;
@@ -1075,11 +1074,7 @@ void wxListHeaderData::SetHeight( int h )
 
 void wxListHeaderData::SetWidth( int w )
 {
-    m_width = w;
-    if (m_width < 0)
-        m_width = WIDTH_COL_DEFAULT;
-    else if (m_width < WIDTH_COL_MIN)
-        m_width = WIDTH_COL_MIN;
+    m_width = w < 0 ? WIDTH_COL_DEFAULT : w;
 }
 
 void wxListHeaderData::SetFormat( int format )

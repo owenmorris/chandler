@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: ctrlsub.h,v 1.32 2005/10/09 15:48:09 MBN Exp $
+// RCS-ID:      $Id: ctrlsub.h,v 1.33 2005/12/23 00:58:24 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -197,6 +197,7 @@ protected:
     virtual void SetInitialBestSize(const wxSize& WXUNUSED(size)) { }
 
 private:
+    DECLARE_ABSTRACT_CLASS(wxControlWithItems)
     DECLARE_NO_COPY_CLASS(wxControlWithItems)
 };
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: ctrlsub.cpp,v 1.19 2005/09/23 12:52:44 MR Exp $
+// RCS-ID:      $Id: ctrlsub.cpp,v 1.20 2005/12/23 00:58:32 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,6 +30,8 @@
     #include "wx/ctrlsub.h"
     #include "wx/arrstr.h"
 #endif
+
+IMPLEMENT_ABSTRACT_CLASS(wxControlWithItems, wxControl)
 
 // ============================================================================
 // wxItemContainerImmutable implementation
