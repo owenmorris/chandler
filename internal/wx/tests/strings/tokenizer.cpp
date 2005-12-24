@@ -3,7 +3,7 @@
 // Purpose:     wxStringTokenizer unit test
 // Author:      Vadim Zeitlin
 // Created:     2005-12-20 (extacted from strings.cpp)
-// RCS-ID:      $Id: tokenizer.cpp,v 1.4 2005/12/22 00:17:22 VZ Exp $
+// RCS-ID:      $Id: tokenizer.cpp,v 1.9 2005/12/24 00:12:54 VZ Exp $
 // Copyright:   (c) 2004-2005 Vadim Zeitlin
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -36,11 +36,13 @@ private:
     CPPUNIT_TEST_SUITE( TokenizerTestCase );
         CPPUNIT_TEST( GetCount );
         CPPUNIT_TEST( GetPosition );
+        CPPUNIT_TEST( LastDelimiter );
         CPPUNIT_TEST( StrtokCompat );
     CPPUNIT_TEST_SUITE_END();
 
     void GetCount();
     void GetPosition();
+    void LastDelimiter();
     void StrtokCompat();
 
     DECLARE_NO_COPY_CLASS(TokenizerTestCase)
@@ -72,39 +74,55 @@ static const struct TokenizerTestData
 }
 gs_testData[] =
 {
-    { _T(""),                   _T(" "),              wxTOKEN_DEFAULT      , 0 },
+    { _T(""),                   _T(" "),              wxTOKEN_DEFAULT,       0 },
+    { _T(""),                   _T(" "),              wxTOKEN_RET_EMPTY,     0 },
+    { _T(""),                   _T(" "),              wxTOKEN_RET_EMPTY_ALL, 0 },
+    { _T(""),                   _T(" "),              wxTOKEN_RET_DELIMS,    0 },
+    { _T(":"),                  _T(":"),              wxTOKEN_RET_EMPTY,     1 },
+    { _T(":"),                  _T(":"),              wxTOKEN_RET_DELIMS,    1 },
+    { _T(":"),                  _T(":"),              wxTOKEN_RET_EMPTY_ALL, 2 },
+    { _T("::"),                 _T(":"),              wxTOKEN_RET_EMPTY,     1 },
+    { _T("::"),                 _T(":"),              wxTOKEN_RET_DELIMS,    1 },
+    { _T("::"),                 _T(":"),              wxTOKEN_RET_EMPTY_ALL, 3 },
 
-    { _T("Hello, world"),       _T(" "),              wxTOKEN_DEFAULT      , 2 },
-    { _T("Hello,   world  "),   _T(" "),              wxTOKEN_DEFAULT      , 2 },
-    { _T("Hello, world"),       _T(","),              wxTOKEN_DEFAULT      , 2 },
-    { _T("Hello, world!"),      _T(",!"),             wxTOKEN_DEFAULT      , 2 },
-    { _T("Hello,, world!"),     _T(",!"),             wxTOKEN_DEFAULT      , 3 },
-    { _T("Hello,, world!"),     _T(",!"),             wxTOKEN_STRTOK       , 2 },
+    { _T("Hello, world"),       _T(" "),              wxTOKEN_DEFAULT,       2 },
+    { _T("Hello,   world  "),   _T(" "),              wxTOKEN_DEFAULT,       2 },
+    { _T("Hello, world"),       _T(","),              wxTOKEN_DEFAULT,       2 },
+    { _T("Hello, world!"),      _T(",!"),             wxTOKEN_DEFAULT,       2 },
+    { _T("Hello,, world!"),     _T(",!"),             wxTOKEN_DEFAULT,       3 },
+    { _T("Hello,, world!"),     _T(",!"),             wxTOKEN_STRTOK,        2 },
     { _T("Hello, world!"),      _T(",!"),             wxTOKEN_RET_EMPTY_ALL, 3 },
 
     { _T("username:password:uid:gid:gecos:home:shell"),
-                                _T(":"),              wxTOKEN_DEFAULT      , 7 },
+                                _T(":"),              wxTOKEN_DEFAULT,       7 },
 
-    { _T("1:2::3:"),            _T(":"),              wxTOKEN_DEFAULT      , 4 },
-    { _T("1:2::3:"),            _T(":"),              wxTOKEN_RET_EMPTY    , 4 },
+    { _T("1:2::3:"),            _T(":"),              wxTOKEN_DEFAULT,       4 },
+    { _T("1:2::3:"),            _T(":"),              wxTOKEN_RET_EMPTY,     4 },
     { _T("1:2::3:"),            _T(":"),              wxTOKEN_RET_EMPTY_ALL, 5 },
-    { _T("1:2::3:"),            _T(":"),              wxTOKEN_RET_DELIMS   , 4 },
-    { _T("1:2::3:"),            _T(":"),              wxTOKEN_STRTOK       , 3 },
+    { _T("1:2::3:"),            _T(":"),              wxTOKEN_RET_DELIMS,    4 },
+    { _T("1:2::3:"),            _T(":"),              wxTOKEN_STRTOK,        3 },
 
-    { _T("1:2::3::"),           _T(":"),              wxTOKEN_DEFAULT      , 5 },
-    { _T("1:2::3::"),           _T(":"),              wxTOKEN_RET_EMPTY    , 5 },
+    { _T("1:2::3::"),           _T(":"),              wxTOKEN_DEFAULT,       4 },
+    { _T("1:2::3::"),           _T(":"),              wxTOKEN_RET_EMPTY,     4 },
     { _T("1:2::3::"),           _T(":"),              wxTOKEN_RET_EMPTY_ALL, 6 },
-    { _T("1:2::3::"),           _T(":"),              wxTOKEN_RET_DELIMS   , 5 },
-    { _T("1:2::3::"),           _T(":"),              wxTOKEN_STRTOK       , 3 },
+    { _T("1:2::3::"),           _T(":"),              wxTOKEN_RET_DELIMS,    4 },
+    { _T("1:2::3::"),           _T(":"),              wxTOKEN_STRTOK,        3 },
 
-    { _T("1 \t3\t4  6   "),     wxDEFAULT_DELIMITERS, wxTOKEN_DEFAULT      , 4 },
-    { _T("1 \t3\t4  6   "),     wxDEFAULT_DELIMITERS, wxTOKEN_STRTOK       , 4 },
-    { _T("1 \t3\t4  6   "),     wxDEFAULT_DELIMITERS, wxTOKEN_RET_EMPTY    , 6 },
+    { _T("1 \t3\t4  6   "),     wxDEFAULT_DELIMITERS, wxTOKEN_DEFAULT,       4 },
+    { _T("1 \t3\t4  6   "),     wxDEFAULT_DELIMITERS, wxTOKEN_STRTOK,        4 },
+    { _T("1 \t3\t4  6   "),     wxDEFAULT_DELIMITERS, wxTOKEN_RET_EMPTY,     6 },
     { _T("1 \t3\t4  6   "),     wxDEFAULT_DELIMITERS, wxTOKEN_RET_EMPTY_ALL, 9 },
 
-    { _T("01/02/99"),           _T("/-"),             wxTOKEN_DEFAULT      , 3 },
-    { _T("01-02/99"),           _T("/-"),             wxTOKEN_RET_DELIMS   , 3 },
+    { _T("01/02/99"),           _T("/-"),             wxTOKEN_DEFAULT,       3 },
+    { _T("01-02/99"),           _T("/-"),             wxTOKEN_RET_DELIMS,    3 },
 };
+
+// helper function returning the string showing the index for which the test
+// fails in the diagnostic message
+static std::string Nth(size_t n)
+{
+    return wxString::Format(_T("for loop index %lu"), (unsigned long)n).mb_str();
+}
 
 // ----------------------------------------------------------------------------
 // the tests
@@ -117,7 +135,7 @@ void TokenizerTestCase::GetCount()
         const TokenizerTestData& ttd = gs_testData[n];
 
         wxStringTokenizer tkz(ttd.str, ttd.delims, ttd.mode);
-        CPPUNIT_ASSERT( tkz.CountTokens() == ttd.count );
+        CPPUNIT_ASSERT_EQUAL_MESSAGE( Nth(n), ttd.count, tkz.CountTokens() );
 
         size_t count = 0;
         while ( tkz.HasMoreTokens() )
@@ -126,7 +144,7 @@ void TokenizerTestCase::GetCount()
             count++;
         }
 
-        CPPUNIT_ASSERT_EQUAL( ttd.count, count );
+        CPPUNIT_ASSERT_EQUAL_MESSAGE( Nth(n), ttd.count, count );
     }
 }
 
@@ -166,6 +184,23 @@ void TokenizerTestCase::GetPosition()
     DoTestGetPosition(_T("foo"), _T("_"), 3, 0);
     DoTestGetPosition(_T("foo_bar"), _T("_"), 4, 7, 0);
     DoTestGetPosition(_T("foo_bar_"), _T("_"), 4, 8, 0);
+}
+
+void TokenizerTestCase::LastDelimiter()
+{
+    wxStringTokenizer tkz(_T("a+-b=c"), _T("+-="));
+
+    tkz.GetNextToken();
+    CPPUNIT_ASSERT_EQUAL( _T('+'), tkz.GetLastDelimiter() );
+
+    tkz.GetNextToken();
+    CPPUNIT_ASSERT_EQUAL( _T('-'), tkz.GetLastDelimiter() );
+
+    tkz.GetNextToken();
+    CPPUNIT_ASSERT_EQUAL( _T('='), tkz.GetLastDelimiter() );
+
+    tkz.GetNextToken();
+    CPPUNIT_ASSERT_EQUAL( _T('\0'), tkz.GetLastDelimiter() );
 }
 
 void TokenizerTestCase::StrtokCompat()
