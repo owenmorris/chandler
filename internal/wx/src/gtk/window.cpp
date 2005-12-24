@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.555 2005/12/13 02:46:16 MR Exp $
+// Id:          $Id: window.cpp,v 1.557 2005/12/24 02:20:15 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -238,9 +238,9 @@ wxWindowGTK *g_focusWindowLast = (wxWindowGTK*) NULL;
 wxWindowGTK *g_delayedFocus = (wxWindowGTK*) NULL;
 
 // hack: we need something to pass to gtk_menu_popup, so we store the time of
-// the last click here
+// the last click here (extern: used from gtk/menu.cpp)
 #ifndef __WXGTK20__
-static guint32 gs_timeLastClick = 0;
+guint32 wxGtkTimeLastClick = 0;
 #endif
 
 extern bool g_mainThreadLocked;
@@ -1802,7 +1802,7 @@ static gint gtk_window_button_press_callback( GtkWidget *widget,
         win = FindWindowForMouseEvent(win, event.m_x, event.m_y);
 
 #ifndef __WXGTK20__
-    gs_timeLastClick = gdk_event->time;
+    wxGtkTimeLastClick = gdk_event->time;
 
     if (event_type == wxEVT_LEFT_DCLICK)
     {
@@ -4411,120 +4411,6 @@ bool wxWindowGTK::SetBackgroundStyle(wxBackgroundStyle style)
     }
     return true;
 }
-
-//-----------------------------------------------------------------------------
-// Pop-up menu stuff
-//-----------------------------------------------------------------------------
-
-#if wxUSE_MENUS_NATIVE
-
-extern "C" WXDLLIMPEXP_CORE
-void gtk_pop_hide_callback( GtkWidget *WXUNUSED(widget), bool* is_waiting  )
-{
-    *is_waiting = FALSE;
-}
-
-WXDLLIMPEXP_CORE void SetInvokingWindow( wxMenu *menu, wxWindow* win )
-{
-    menu->SetInvokingWindow( win );
-
-    wxMenuItemList::compatibility_iterator node = menu->GetMenuItems().GetFirst();
-    while (node)
-    {
-        wxMenuItem *menuitem = node->GetData();
-        if (menuitem->IsSubMenu())
-        {
-            SetInvokingWindow( menuitem->GetSubMenu(), win );
-        }
-
-        node = node->GetNext();
-    }
-}
-
-extern "C" WXDLLIMPEXP_CORE
-void wxPopupMenuPositionCallback( GtkMenu *menu,
-                                  gint *x, gint *y,
-#ifdef __WXGTK20__
-                                  gboolean * WXUNUSED(whatever),
-#endif
-                                  gpointer user_data )
-{
-    // ensure that the menu appears entirely on screen
-    GtkRequisition req;
-    gtk_widget_get_child_requisition(GTK_WIDGET(menu), &req);
-
-    wxSize sizeScreen = wxGetDisplaySize();
-    wxPoint *pos = (wxPoint*)user_data;
-
-    gint xmax = sizeScreen.x - req.width,
-         ymax = sizeScreen.y - req.height;
-
-    *x = pos->x < xmax ? pos->x : xmax;
-    *y = pos->y < ymax ? pos->y : ymax;
-}
-
-bool wxWindowGTK::DoPopupMenu( wxMenu *menu, int x, int y )
-{
-    wxCHECK_MSG( m_widget != NULL, false, wxT("invalid window") );
-
-    wxCHECK_MSG( menu != NULL, false, wxT("invalid popup-menu") );
-
-    // NOTE: if you change this code, you need to update
-    //       the same code in taskbar.cpp as well. This
-    //       is ugly code duplication, I know.
-
-    SetInvokingWindow( menu, this );
-
-    menu->UpdateUI();
-
-    bool is_waiting = true;
-
-    gulong handler = gtk_signal_connect( GTK_OBJECT(menu->m_menu),
-                                         "hide",
-                                         GTK_SIGNAL_FUNC(gtk_pop_hide_callback),
-                                         (gpointer)&is_waiting );
-
-    wxPoint pos;
-    gpointer userdata;
-    GtkMenuPositionFunc posfunc;
-    if ( x == -1 && y == -1 )
-    {
-        // use GTK's default positioning algorithm
-        userdata = NULL;
-        posfunc = NULL;
-    }
-    else
-    {
-        pos = ClientToScreen(wxPoint(x, y));
-        userdata = &pos;
-        posfunc = wxPopupMenuPositionCallback;
-    }
-
-    gtk_menu_popup(
-                  GTK_MENU(menu->m_menu),
-                  (GtkWidget *) NULL,           // parent menu shell
-                  (GtkWidget *) NULL,           // parent menu item
-                  posfunc,                      // function to position it
-                  userdata,                     // client data
-                  0,                            // button used to activate it
-#ifdef __WXGTK20__
-                  gtk_get_current_event_time()
-#else
-                  gs_timeLastClick              // the time of activation
-#endif
-                );
-
-    while (is_waiting)
-    {
-        gtk_main_iteration();
-    }
-
-    gtk_signal_disconnect(GTK_OBJECT(menu->m_menu), handler);
-
-    return true;
-}
-
-#endif // wxUSE_MENUS_NATIVE
 
 #if wxUSE_DRAG_AND_DROP
 

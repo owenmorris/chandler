@@ -2,7 +2,7 @@
 // Name:        src/gtk/control.cpp
 // Purpose:     wxControl implementation for wxGTK
 // Author:      Robert Roebling
-// Id:          $Id: control.cpp,v 1.46 2005/12/19 10:03:04 VZ Exp $
+// Id:          $Id: control.cpp,v 1.47 2005/12/24 02:21:00 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -208,7 +208,11 @@ wxString wxControl::GTKRemoveMnemonics(const wxString& label)
 /* static */
 wxString wxControl::GTKConvertMnemonics(const wxString& label)
 {
+#ifdef __WXGTK20__
     return GTKProcessMnemonics(label, MNEMONICS_CONVERT);
+#else
+    return GTKRemoveMnemonics(label);
+#endif
 }
 
 // ----------------------------------------------------------------------------

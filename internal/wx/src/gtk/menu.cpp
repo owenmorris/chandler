@@ -2,7 +2,7 @@
 // Name:        menu.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.cpp,v 1.167 2005/12/24 00:44:57 VZ Exp $
+// Id:          $Id: menu.cpp,v 1.170 2005/12/24 02:20:15 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,6 +43,11 @@
 
 // we use normal item but with a special id for the menu title
 static const int wxGTK_TITLE_ID = -3;
+
+// defined in window.cpp
+#ifndef __WXGTK20__
+    extern guint32 wxGtkTimeLastClick;
+#endif
 
 //-----------------------------------------------------------------------------
 // idle system
@@ -126,11 +131,17 @@ static void gtk_menu_open_callback( GtkWidget *widget, wxMenu *menu )
     DoCommonMenuCallbackCode(menu, event);
 }
 
-static void gtk_menu_close_callback( GtkWidget *widget, wxMenu *menu )
+static void gtk_menu_close_callback( GtkWidget *widget, wxMenuBar *menubar )
 {
-    wxMenuEvent event( wxEVT_MENU_CLOSE, -1, menu );
+    if ( !menubar->GetMenuCount() )
+    {
+        // if menubar is empty we can't call GetMenu(0) below
+        return;
+    }
 
-    DoCommonMenuCallbackCode(menu, event);
+    wxMenuEvent event( wxEVT_MENU_CLOSE, -1, NULL );
+
+    DoCommonMenuCallbackCode(menubar->GetMenu(0), event);
 }
 
 }
@@ -177,6 +188,16 @@ void wxMenuBar::Init(size_t n, wxMenu *menus[], const wxString titles[], long st
 
     for (size_t i = 0; i < n; ++i )
         Append(menus[i], titles[i]);
+
+    // VZ: for some reason connecting to menus "deactivate" doesn't work (we
+    //     don't get it when the menu is dismissed by clicking outside the
+    //     toolbar) so we connect to the global one, even if it means that we
+    //     can't pass the menu which was closed in wxMenuEvent object
+    gtk_signal_connect( GTK_OBJECT(GTK_MENU_SHELL(m_menubar)),
+                        "deactivate",
+                        GTK_SIGNAL_FUNC(gtk_menu_close_callback),
+                        (gpointer)this );
+
 }
 
 wxMenuBar::wxMenuBar(size_t n, wxMenu *menus[], const wxString titles[], long style)
@@ -335,15 +356,6 @@ bool wxMenuBar::GtkAppend(wxMenu *menu, const wxString& title, int pos)
 
     gtk_signal_connect( GTK_OBJECT(menu->m_owner), "activate",
                         GTK_SIGNAL_FUNC(gtk_menu_open_callback),
-                        (gpointer)menu );
-
-    // TODO: this is not enough as we don't get the notification if the menu is
-    //       dismissed without any selection (e.g. by clicking outside it), but
-    //       I couldn't find any GTK+ signal which would be triggered by this:
-    //       neither selection-done, nor deactivate, nor cancel are
-    GtkMenuShell *menu_shell = &(GTK_MENU(menu->m_menu)->menu_shell);
-    gtk_signal_connect( GTK_OBJECT(menu_shell), "selection-done",
-                        GTK_SIGNAL_FUNC(gtk_menu_close_callback),
                         (gpointer)menu );
 
     // m_invokingWindow is set after wxFrame::SetMenuBar(). This call enables
@@ -1515,3 +1527,124 @@ static wxString GetGtkHotKey( const wxMenuItem& item )
 }
 
 #endif // wxUSE_ACCEL
+
+// ----------------------------------------------------------------------------
+// Pop-up menu stuff
+// ----------------------------------------------------------------------------
+
+#if wxUSE_MENUS_NATIVE
+
+extern "C"
+void gtk_pop_hide_callback( GtkWidget *WXUNUSED(widget), bool* is_waiting  )
+{
+    *is_waiting = FALSE;
+}
+
+static void SetInvokingWindow( wxMenu *menu, wxWindow* win )
+{
+    menu->SetInvokingWindow( win );
+
+    wxMenuItemList::compatibility_iterator node = menu->GetMenuItems().GetFirst();
+    while (node)
+    {
+        wxMenuItem *menuitem = node->GetData();
+        if (menuitem->IsSubMenu())
+        {
+            SetInvokingWindow( menuitem->GetSubMenu(), win );
+        }
+
+        node = node->GetNext();
+    }
+}
+
+extern "C"
+void wxPopupMenuPositionCallback( GtkMenu *menu,
+                                  gint *x, gint *y,
+#ifdef __WXGTK20__
+                                  gboolean * WXUNUSED(whatever),
+#endif
+                                  gpointer user_data )
+{
+    // ensure that the menu appears entirely on screen
+    GtkRequisition req;
+    gtk_widget_get_child_requisition(GTK_WIDGET(menu), &req);
+
+    wxSize sizeScreen = wxGetDisplaySize();
+    wxPoint *pos = (wxPoint*)user_data;
+
+    gint xmax = sizeScreen.x - req.width,
+         ymax = sizeScreen.y - req.height;
+
+    *x = pos->x < xmax ? pos->x : xmax;
+    *y = pos->y < ymax ? pos->y : ymax;
+}
+
+bool wxWindowGTK::DoPopupMenu( wxMenu *menu, int x, int y )
+{
+    wxCHECK_MSG( m_widget != NULL, false, wxT("invalid window") );
+
+    wxCHECK_MSG( menu != NULL, false, wxT("invalid popup-menu") );
+
+    // NOTE: if you change this code, you need to update
+    //       the same code in taskbar.cpp as well. This
+    //       is ugly code duplication, I know.
+
+    SetInvokingWindow( menu, this );
+
+    menu->UpdateUI();
+
+    bool is_waiting = true;
+
+    gulong handler = gtk_signal_connect( GTK_OBJECT(menu->m_menu),
+                                         "hide",
+                                         GTK_SIGNAL_FUNC(gtk_pop_hide_callback),
+                                         (gpointer)&is_waiting );
+
+    wxPoint pos;
+    gpointer userdata;
+    GtkMenuPositionFunc posfunc;
+    if ( x == -1 && y == -1 )
+    {
+        // use GTK's default positioning algorithm
+        userdata = NULL;
+        posfunc = NULL;
+    }
+    else
+    {
+        pos = ClientToScreen(wxPoint(x, y));
+        userdata = &pos;
+        posfunc = wxPopupMenuPositionCallback;
+    }
+
+    wxMenuEvent eventOpen(wxEVT_MENU_OPEN, -1, menu);
+    DoCommonMenuCallbackCode(menu, eventOpen);
+
+    gtk_menu_popup(
+                  GTK_MENU(menu->m_menu),
+                  (GtkWidget *) NULL,           // parent menu shell
+                  (GtkWidget *) NULL,           // parent menu item
+                  posfunc,                      // function to position it
+                  userdata,                     // client data
+                  0,                            // button used to activate it
+#ifdef __WXGTK20__
+                  gtk_get_current_event_time()
+#else
+                  wxGtkTimeLastClick            // the time of activation
+#endif
+                );
+
+    while (is_waiting)
+    {
+        gtk_main_iteration();
+    }
+
+    gtk_signal_disconnect(GTK_OBJECT(menu->m_menu), handler);
+
+    wxMenuEvent eventClose(wxEVT_MENU_CLOSE, -1, menu);
+    DoCommonMenuCallbackCode(menu, eventClose);
+
+    return true;
+}
+
+#endif // wxUSE_MENUS_NATIVE
+
