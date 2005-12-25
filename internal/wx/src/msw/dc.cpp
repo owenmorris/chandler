@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.cpp,v 1.196 2005/12/12 11:15:23 VZ Exp $
+// RCS-ID:      $Id: dc.cpp,v 1.197 2005/12/25 02:34:41 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -257,23 +257,6 @@ wxColourChanger::~wxColourChanger()
 // ---------------------------------------------------------------------------
 // wxDC
 // ---------------------------------------------------------------------------
-
-// Default constructor
-wxDC::wxDC()
-{
-    m_canvas = NULL;
-
-    m_oldBitmap = 0;
-    m_oldPen = 0;
-    m_oldBrush = 0;
-    m_oldFont = 0;
-#if wxUSE_PALETTE
-    m_oldPalette = 0;
-#endif // wxUSE_PALETTE
-
-    m_bOwnsDC = false;
-    m_hDC = 0;
-}
 
 wxDC::~wxDC()
 {
@@ -2285,12 +2268,14 @@ bool wxDC::DoBlit(wxCoord xdest, wxCoord ydest,
     return success;
 }
 
-void wxDC::DoGetSize(int *w, int *h) const
+void wxDC::GetDeviceSize(int *width, int *height) const
 {
     WXMICROWIN_CHECK_HDC
 
-    if ( w ) *w = ::GetDeviceCaps(GetHdc(), HORZRES);
-    if ( h ) *h = ::GetDeviceCaps(GetHdc(), VERTRES);
+    if ( width )
+        *width = ::GetDeviceCaps(GetHdc(), HORZRES);
+    if ( height )
+        *height = ::GetDeviceCaps(GetHdc(), VERTRES);
 }
 
 void wxDC::DoGetSizeMM(int *w, int *h) const

@@ -4,34 +4,38 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcscreen.h,v 1.13 2005/09/23 12:50:09 MR Exp $
+// RCS-ID:      $Id: dcscreen.h,v 1.14 2005/12/25 02:34:35 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifndef _WX_DCSCREEN_H_
-#define _WX_DCSCREEN_H_
+#ifndef _WX_MSW_DCSCREEN_H_
+#define _WX_MSW_DCSCREEN_H_
 
-#include "wx/dcclient.h"
+#include "wx/dc.h"
 
-class WXDLLEXPORT wxScreenDC : public wxWindowDC
+class WXDLLEXPORT wxScreenDC : public wxDC
 {
 public:
     // Create a DC representing the whole screen
     wxScreenDC();
 
+    // these functions are obsolete and shouldn't be used
+
     // Compatibility with X's requirements for drawing on top of all windows
-    static bool StartDrawingOnTop(wxWindow* WXUNUSED(window)) { return true; }
-    static bool StartDrawingOnTop(wxRect* WXUNUSED(rect) = NULL) { return true; }
-    static bool EndDrawingOnTop() { return true; }
+    wxDEPRECATED( static bool StartDrawingOnTop(wxWindow* window) );
+    wxDEPRECATED( static bool StartDrawingOnTop(wxRect* rect = NULL) );
+    wxDEPRECATED( static bool EndDrawingOnTop() );
 
 protected:
-    virtual void DoGetSize(int *width, int *height) const;
+    virtual void DoGetSize(int *w, int *h) const
+    {
+        GetDeviceSize(w, h);
+    }
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxScreenDC)
 };
 
-#endif
-    // _WX_DCSCREEN_H_
+#endif // _WX_MSW_DCSCREEN_H_
 

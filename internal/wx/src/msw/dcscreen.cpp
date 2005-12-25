@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcscreen.cpp,v 1.13 2005/09/23 12:54:55 MR Exp $
+// RCS-ID:      $Id: dcscreen.cpp,v 1.14 2005/12/25 02:34:42 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@
 
 #include "wx/dcscreen.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxScreenDC, wxWindowDC)
+IMPLEMENT_DYNAMIC_CLASS(wxScreenDC, wxDC)
 
 // Create a DC representing the whole screen
 wxScreenDC::wxScreenDC()
@@ -37,10 +37,18 @@ wxScreenDC::wxScreenDC()
     ::SetBkMode( GetHdc(), TRANSPARENT );
 }
 
-void wxScreenDC::DoGetSize(int *width, int *height) const
+// deprecated functions
+bool wxScreenDC::StartDrawingOnTop(wxWindow* WXUNUSED(window))
 {
-    // skip wxWindowDC version because it doesn't work without a valid m_canvas
-    // (which we don't have)
-    wxDC::DoGetSize(width, height);
+    return true;
 }
 
+bool wxScreenDC::StartDrawingOnTop(wxRect* WXUNUSED(rect))
+{
+    return true;
+}
+
+bool wxScreenDC::EndDrawingOnTop()
+{
+    return true;
+}

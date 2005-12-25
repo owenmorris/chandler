@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bmpbuttn.cpp,v 1.61 2005/12/19 10:41:02 ABX Exp $
+// RCS-ID:      $Id: bmpbuttn.cpp,v 1.62 2005/12/25 02:34:40 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -304,8 +304,7 @@ bool wxBitmapButton::MSWOnDraw(WXDRAWITEMSTRUCT *item)
     }
 
     // draw the bitmap
-    wxDC dst;
-    dst.SetHDC((WXHDC) hDC, false);
+    wxDCTemp dst((WXHDC)hDC);
     dst.DrawBitmap(*bitmap, x1, y1, true);
 
     // draw focus / disabled state, if auto-drawing
