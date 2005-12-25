@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ 07.01.00: implemented wxMetaFileDataObject
 // Created:     04/01/98
-// RCS-ID:      $Id: metafile.cpp,v 1.33 2005/09/23 12:55:04 MR Exp $
+// RCS-ID:      $Id: metafile.cpp,v 1.34 2005/12/25 13:06:04 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -241,6 +241,16 @@ void wxMetafileDC::GetTextExtent(const wxString& string, long *x, long *y,
         *descent = tm.tmDescent;
     if ( externalLeading )
         *externalLeading = tm.tmExternalLeading;
+}
+
+void wxMetafileDC::DoGetSize(int *width, int *height) const
+{
+    wxCHECK_RET( m_refData, _T("invalid wxMetafileDC") );
+
+    if ( width )
+        *width = M_METAFILEDATA->m_width;
+    if ( height )
+        *height = M_METAFILEDATA->m_height;
 }
 
 wxMetafile *wxMetafileDC::Close()

@@ -896,7 +896,6 @@ public:
     }
 
     wxActiveXContainer* m_pAX;
-
     IActiveMovie* m_pAM;
     IMediaPlayer* m_pMP;
     wxTimer* m_pTimer;
@@ -1688,7 +1687,6 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     // interface and query them
     //
     m_ctrl = wxStaticCast(ctrl, wxMediaCtrl);
-
     m_pAX = new wxActiveXContainer(ctrl,
                 m_pMP ? IID_IMediaPlayer : IID_IActiveMovie,
                 m_pAM);

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcscreen.cpp,v 1.14 2005/12/25 02:34:42 VZ Exp $
+// RCS-ID:      $Id: dcscreen.cpp,v 1.15 2005/12/25 12:52:53 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,18 +37,3 @@ wxScreenDC::wxScreenDC()
     ::SetBkMode( GetHdc(), TRANSPARENT );
 }
 
-// deprecated functions
-bool wxScreenDC::StartDrawingOnTop(wxWindow* WXUNUSED(window))
-{
-    return true;
-}
-
-bool wxScreenDC::StartDrawingOnTop(wxRect* WXUNUSED(rect))
-{
-    return true;
-}
-
-bool wxScreenDC::EndDrawingOnTop()
-{
-    return true;
-}

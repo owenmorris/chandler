@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ 07.01.00: implemented wxMetaFileDataObject
 // Created:     01/02/97
-// RCS-ID:      $Id: metafile.h,v 1.15 2005/09/23 12:50:13 MR Exp $
+// RCS-ID:      $Id: metafile.h,v 1.16 2005/12/25 13:06:02 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -107,6 +107,8 @@ public:
     void SetWindowsMappingMode(int mm) { m_windowsMappingMode = mm; }
 
 protected:
+    virtual void DoGetSize(int *width, int *height) const;
+
     int           m_windowsMappingMode;
     wxMetafile*   m_metaFile;
 

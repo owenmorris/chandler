@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.01.00
-// RCS-ID:      $Id: enhmeta.h,v 1.12 2005/09/23 12:50:10 MR Exp $
+// RCS-ID:      $Id: enhmeta.h,v 1.13 2005/12/25 13:06:02 VZ Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,13 +86,13 @@ public:
     // obtain a pointer to the new metafile (caller should delete it)
     wxEnhMetaFile *Close();
 
-protected:
-    virtual void DoGetSize(int *w, int *h) const
-    {
-        GetDeviceSize(w, h);
-    }
-
 private:
+    virtual void DoGetSize(int *width, int *height) const;
+
+    // size passed to ctor and returned by DoGetSize()
+    int m_width,
+        m_height;
+
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxEnhMetaFileDC)
 };
 

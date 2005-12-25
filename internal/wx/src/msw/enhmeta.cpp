@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.01.00
-// RCS-ID:      $Id: enhmeta.cpp,v 1.19 2005/09/23 12:54:56 MR Exp $
+// RCS-ID:      $Id: enhmeta.cpp,v 1.20 2005/12/25 13:06:05 VZ Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -194,7 +194,9 @@ wxEnhMetaFileDC::wxEnhMetaFileDC(const wxString& filename,
                                  int width, int height,
                                  const wxString& description)
 {
-    ScreenHDC hdcRef;
+    m_width = width;
+    m_height = height;
+
     RECT rect;
     RECT *pRect;
     if ( width && height )
@@ -215,12 +217,21 @@ wxEnhMetaFileDC::wxEnhMetaFileDC(const wxString& filename,
         pRect = (LPRECT)NULL;
     }
 
+    ScreenHDC hdcRef;
     m_hDC = (WXHDC)::CreateEnhMetaFile(hdcRef, GetMetaFileName(filename),
                                        pRect, description);
     if ( !m_hDC )
     {
         wxLogLastError(_T("CreateEnhMetaFile"));
     }
+}
+
+void wxEnhMetaFileDC::DoGetSize(int *width, int *height) const
+{
+    if ( width )
+        *width = m_width;
+    if ( height )
+        *height = m_height;
 }
 
 wxEnhMetaFile *wxEnhMetaFileDC::Close()
