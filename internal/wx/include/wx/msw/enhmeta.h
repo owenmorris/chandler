@@ -86,6 +86,12 @@ public:
     // obtain a pointer to the new metafile (caller should delete it)
     wxEnhMetaFile *Close();
 
+protected:
+    virtual void DoGetSize(int *w, int *h) const
+    {
+        GetDeviceSize(w, h);
+    }
+
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxEnhMetaFileDC)
 };
