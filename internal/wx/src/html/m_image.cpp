@@ -2,7 +2,7 @@
 // Name:        m_image.cpp
 // Purpose:     wxHtml module for displaying images
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: m_image.cpp,v 1.55 2005/09/25 19:59:10 VZ Exp $
+// RCS-ID:      $Id: m_image.cpp,v 1.56 2005/12/27 00:00:36 VS Exp $
 // Copyright:   (c) 1999 Vaclav Slavik, Joel Lucsy
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -645,7 +645,7 @@ TAG_HANDLER_BEGIN(IMG, "IMG,MAP,AREA")
                                           str, w, h,
                                           m_WParser->GetPixelScale(),
                                           al, mn);
-                cel->SetLink(m_WParser->GetLink());
+                m_WParser->ApplyStateToCell(cel);
                 cel->SetId(tag.GetParam(wxT("id"))); // may be empty
                 m_WParser->GetContainer()->InsertCell(cel);
                 if (str)
