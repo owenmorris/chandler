@@ -1589,7 +1589,8 @@ bool wxWindowGTK::DoPopupMenu( wxMenu *menu, int x, int y )
     //       the same code in taskbar.cpp as well. This
     //       is ugly code duplication, I know.
 
-    SetInvokingWindow( menu, this );
+    // OSAF: commented out to fix a linkage problem
+//    SetInvokingWindow( menu, this );
 
     menu->UpdateUI();
 
