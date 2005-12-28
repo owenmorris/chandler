@@ -14,12 +14,11 @@ apply: patches
 
 build: expand apply
 	cd $(SRC); \
-      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build           --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
 jabberpy$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/jabberpy$(VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/jabberpy$(VERSION).tar.gz.md5
 
 sources: jabberpy$(VERSION).tar.gz
 
@@ -33,15 +32,13 @@ binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/$(SITE)/jabber.py \
-          $(SNAP)/$(SITE)/xmlstream.py;
-	$(MD5) $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz > $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/$(SITE)/xmlstream.py
 
 install: jabberpy-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf jabberpy-$(SNAP)-$(RELVER).tar.gz
 
 upload: jabberpy-$(SNAP)-$(RELVER).tar.gz
 	scp jabberpy-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp jabberpy-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
