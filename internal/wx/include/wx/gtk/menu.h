@@ -38,9 +38,7 @@ public:
     virtual wxString GetLabelTop( size_t pos ) const;
 
     // implementation only from now on
-//    void SetInvokingWindow( wxWindow *win );
-    void SetInvokingWindow( wxWindow *win ) { m_invokingWindow = win; }
-    wxWindow *GetInvokingWindow() const { return m_invokingWindow; }
+    void SetInvokingWindow( wxWindow *win );
     void UnsetInvokingWindow( wxWindow *win );
 
     // common part of Append and Insert
