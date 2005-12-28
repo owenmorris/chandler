@@ -37,8 +37,7 @@ binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/bin/icu*.dll \
-          $(SNAP)/bin/icu/*.exe; \
-	$(MD5) $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz > $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/bin/icu/*.exe
 
 else
 
@@ -71,16 +70,12 @@ clean:
 binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/icu/bin $(SNAP)/icu/lib; \
-	$(MD5) $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz > $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/icu/bin $(SNAP)/icu/lib
 
 endif
 
 icu-$(VERSION).tgz:
 	$(CURL) http://builds.osafoundation.org/external/icu-$(VERSION).tgz
-#	$(CURL) http://builds.osafoundation.org/external/icu-$(VERSION).tgz.md5
-
-#      $(MD5CHECK) icu-$(VERSION).tgz.md5
 
 sources: icu-$(VERSION).tgz
 
@@ -93,7 +88,6 @@ expand: icu-$(VERSION)-expanded
 
 upload: icu-$(SNAP)-$(RELVER).tar.gz
 	scp icu-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp icu-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 install: icu-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf icu-$(SNAP)-$(RELVER).tar.gz
