@@ -1,6 +1,6 @@
 
-VERSION=3.0.1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
+VERSION=3.1.0c1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 ZOPE=$(BUILD_ROOT)/zope
 SRC=$(ZOPE)/ZopeInterface-$(VERSION)
 
@@ -8,8 +8,12 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
+.PHONY: patches-$(VERSION)
+
 apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION);echo ok
+	if [ -f patches-$(VERSION) ]; then \
+            patch -Nup0 < patches-$(VERSION);echo ok; \
+        fi
 
 build: expand apply
 	cd $(SRC); \
@@ -19,7 +23,6 @@ build: expand apply
 
 ZopeInterface-$(VERSION).tgz:
 	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz
-#	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz.md5
 
 sources: ZopeInterface-$(VERSION).tgz
 
@@ -31,20 +34,18 @@ expand: ZopeInterface-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-      find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
-      find $(SNAP)/$(SITE)/zope -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/$(SITE)/zope \
-          --exclude tests \
-          --exclude testing;
-	$(MD5) $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz > $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz.md5
+	find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/zope -name "*.pyo" | xargs rm -f; \
+	tar -cvzf $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz \
+        --exclude tests \
+        --exclude testing \
+        $(SNAP)/$(SITE)/zope
 
 install: zopeinterface-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf zopeinterface-$(SNAP)-$(RELVER).tar.gz
 
 upload: zopeinterface-$(SNAP)-$(RELVER).tar.gz
 	scp zopeinterface-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp zopeinterface-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
