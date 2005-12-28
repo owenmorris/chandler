@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: splitter.cpp,v 1.119 2005/09/26 00:29:38 VZ Exp $
+// RCS-ID:      $Id: splitter.cpp,v 1.120 2005/12/27 22:16:05 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,6 +23,7 @@
     #include "wx/utils.h"
     #include "wx/log.h"
 
+    #include "wx/dcclient.h"
     #include "wx/dcscreen.h"
 
     #include "wx/window.h"
