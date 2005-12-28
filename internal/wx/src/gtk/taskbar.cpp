@@ -92,8 +92,7 @@ bool wxTaskBarIconAreaBase::DoPopupMenu( wxMenu *menu, int x, int y )
     //       the same code in window.cpp as well. This
     //       is ugly code duplication, I know,
 
-    // OSAF: commented out to fix a linkage problem
-//    SetInvokingWindow( menu, this );
+    SetInvokingWindow( menu, this );
 
     menu->UpdateUI( m_invokingWindow );
 

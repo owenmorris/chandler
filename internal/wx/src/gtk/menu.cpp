@@ -1540,7 +1540,7 @@ void gtk_pop_hide_callback( GtkWidget *WXUNUSED(widget), bool* is_waiting  )
     *is_waiting = FALSE;
 }
 
-static void SetInvokingWindow( wxMenu *menu, wxWindow* win )
+void SetInvokingWindow( wxMenu *menu, wxWindow* win )
 {
     menu->SetInvokingWindow( win );
 
@@ -1589,8 +1589,7 @@ bool wxWindowGTK::DoPopupMenu( wxMenu *menu, int x, int y )
     //       the same code in taskbar.cpp as well. This
     //       is ugly code duplication, I know.
 
-    // OSAF: commented out to fix a linkage problem
-//    SetInvokingWindow( menu, this );
+    SetInvokingWindow( menu, this );
 
     menu->UpdateUI();
 
