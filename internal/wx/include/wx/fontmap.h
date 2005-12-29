@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.11.99
-// RCS-ID:      $Id: fontmap.h,v 1.27 2005/09/18 14:01:09 VZ Exp $
+// RCS-ID:      $Id: fontmap.h,v 1.28 2005/12/29 01:49:55 KH Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -116,9 +116,6 @@ public:
     // ----------------------------------------------------------------------
 
 #if wxUSE_CONFIG && wxUSE_FILECONFIG
-    // set the config object to use (may be NULL to use default)
-    void SetConfig(wxConfigBase *config) { m_config = config; }
-
     // set the root config path to use (should be an absolute path)
     void SetConfigPath(const wxString& prefix);
 
@@ -129,8 +126,8 @@ public:
 
 protected:
 #if wxUSE_CONFIG && wxUSE_FILECONFIG
-    // get the config object we're using -- if it wasn't set explicitly, this
-    // function will use wxConfig::Get() to get the global one
+    // get the config object we're using -- either the global config object
+    // or a wxMemoryConfig object created by this class otherwise
     wxConfigBase *GetConfig();
 
     // gets the root path for our settings -- if it wasn't set explicitly, use
@@ -149,8 +146,7 @@ protected:
     void RestorePath(const wxString& pathOld);
 
     // config object and path (in it) to use
-    wxConfigBase *m_config;
-    bool m_configIsDummy;
+    wxConfigBase *m_configDummy;
 
     wxString m_configRootPath;
 #endif // wxUSE_CONFIG

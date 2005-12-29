@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sashwin.cpp,v 1.48 2005/09/26 00:29:38 VZ Exp $
+// RCS-ID:      $Id: sashwin.cpp,v 1.49 2005/12/29 06:43:26 vell Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include "wx/dcscreen.h"
+#include "wx/dcclient.h"
 #include "wx/sashwin.h"
 #include "wx/laywin.h"
 

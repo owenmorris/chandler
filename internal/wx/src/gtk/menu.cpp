@@ -2,7 +2,7 @@
 // Name:        menu.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.cpp,v 1.170 2005/12/24 02:20:15 VZ Exp $
+// Id:          $Id: menu.cpp,v 1.171 2005/12/28 23:02:22 vell Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
