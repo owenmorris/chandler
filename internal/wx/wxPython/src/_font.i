@@ -381,7 +381,7 @@ public:
 
 
     // set the config object to use (may be NULL to use default)
-    void SetConfig(wxConfigBase *config);
+    // void SetConfig(wxConfigBase *config);
 
     // set the root config path to use (should be an absolute path)
     void SetConfigPath(const wxString& prefix);
