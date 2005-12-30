@@ -701,7 +701,7 @@ int wxGIFDecoder::ReadGIF()
 
     bool done = false;
 
-    while(!done)
+    while (!done)
     {
         type = (unsigned char)m_f->GetC();
 
@@ -797,7 +797,8 @@ int wxGIFDecoder::ReadGIF()
             pimg->w = buf[4] + 256 * buf[5];
             pimg->h = buf[6] + 256 * buf[7];
 
-            if (pimg->w == 0 || pimg->h == 0)
+            const int maxScreenSize = 4 << 10;
+            if ((pimg->w <= 0) || (pimg->w > maxScreenSize) || (pimg->h <= 0) || (pimg->h > maxScreenSize))
             {
                 Destroy();
                 return wxGIF_INVFORMAT;
@@ -829,8 +830,9 @@ int wxGIFDecoder::ReadGIF()
             {
                 ncolors = 2 << (buf[8] & 0x07);
                 size_t numBytes = 3 * ncolors;
-                m_f->Read(pimg->pal, numBytes);
-                if (m_f->LastRead() != numBytes)
+                if (numBytes > 0)
+                    m_f->Read(pimg->pal, numBytes);
+                if ((numBytes <= 0) || (m_f->LastRead() != numBytes))
                 {
                     Destroy();
                     return wxGIF_INVFORMAT;
@@ -843,6 +845,11 @@ int wxGIFDecoder::ReadGIF()
 
             /* get initial code size from first byte in raster data */
             bits = (unsigned char)m_f->GetC();
+            if (bits <= 0)
+            {
+                Destroy();
+                return wxGIF_INVFORMAT;
+            }
 
             /* decode image */
             int result = dgif(pimg, interl, bits);
@@ -859,7 +866,7 @@ int wxGIFDecoder::ReadGIF()
         }
     }
 
-    if (m_nimages == 0)
+    if (m_nimages <= 0)
     {
         Destroy();
         return wxGIF_INVFORMAT;
@@ -893,8 +900,9 @@ int wxGIFDecoder::ReadGIF()
         {
             /* image descriptor block */
             static const size_t idbSize = (2 + 2 + 2 + 2 + 1);
-            m_f->Read(buf, idbSize);
-            if (m_f->LastRead() != idbSize)
+            if (idbSize > 0)
+                m_f->Read(buf, idbSize);
+            if ((idbSize <= 0) || (m_f->LastRead() != idbSize))
             {
                 Destroy();
                 return wxGIF_INVFORMAT;
