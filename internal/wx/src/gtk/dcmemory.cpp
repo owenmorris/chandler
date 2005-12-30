@@ -2,7 +2,7 @@
 // Name:        dcmemory.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcmemory.cpp,v 1.27 2005/09/23 12:53:38 MR Exp $
+// RCS-ID:      $Id: dcmemory.cpp,v 1.28 2005/12/30 13:30:07 MW Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +29,7 @@ wxMemoryDC::wxMemoryDC() : wxWindowDC()
     
 #ifdef __WXGTK20__
     m_context = gdk_pango_context_get();
+    pango_context_set_language( m_context, gtk_get_default_language() );
     m_layout = pango_layout_new( m_context );
     m_fontdesc = pango_font_description_copy( pango_context_get_font_description( m_context ) );
 #endif
@@ -43,6 +44,7 @@ wxMemoryDC::wxMemoryDC( wxDC *WXUNUSED(dc) )
     
 #ifdef __WXGTK20__
     m_context = gdk_pango_context_get();
+    pango_context_set_language( m_context, gtk_get_default_language() );
     m_layout = pango_layout_new( m_context );
     m_fontdesc = pango_font_description_copy( pango_context_get_font_description( m_context ) );
 #endif

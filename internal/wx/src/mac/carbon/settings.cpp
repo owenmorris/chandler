@@ -27,10 +27,12 @@
 
 wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
 {
-    int major,minor;
+    int major, minor;
+    wxColour resultColor;
+
     wxGetOsVersion( &major, &minor );
 
-    switch( index )
+    switch ( index )
     {
         case wxSYS_COLOUR_SCROLLBAR :
         case wxSYS_COLOUR_BACKGROUND:
@@ -43,21 +45,21 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_INACTIVEBORDER:
         case wxSYS_COLOUR_BTNFACE:
         case wxSYS_COLOUR_MENUBAR:
-            return wxColor( 0xDD , 0xDD , 0xDD ) ;
+            resultColor = wxColor( 0xDD , 0xDD , 0xDD ) ;
             break ;
 
         case wxSYS_COLOUR_LISTBOX :
             if (major >= 10)
-                return *wxWHITE ;
+                resultColor = *wxWHITE ;
             else
-                return wxColor( 0xEE , 0xEE , 0xEE ) ;
+                resultColor = wxColor( 0xEE , 0xEE , 0xEE ) ;
             break ;
 
         case wxSYS_COLOUR_BTNSHADOW:
             if (major >= 10)
-                return wxColor( 0xBE , 0xBE , 0xBE ) ;
+                resultColor = wxColor( 0xBE , 0xBE , 0xBE ) ;
             else
-                return wxColor( 0x44 , 0x44 , 0x44 ) ;
+                resultColor = wxColor( 0x44 , 0x44 , 0x44 ) ;
             break ;
 
         case wxSYS_COLOUR_BTNTEXT:
@@ -66,7 +68,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_CAPTIONTEXT:
         case wxSYS_COLOUR_INFOTEXT:
         case wxSYS_COLOUR_INACTIVECAPTIONTEXT:
-            return *wxBLACK;
+            resultColor = *wxBLACK;
             break ;
 
         case wxSYS_COLOUR_HIGHLIGHT:
@@ -82,43 +84,43 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
 #endif
 
                 GetThemeBrushAsColor( colorBrushID, 32, true, &hilite );
-                return wxColor( hilite.red >> 8 , hilite.green >> 8  , hilite.blue >> 8  ) ;
+                resultColor = wxColor( hilite.red >> 8 , hilite.green >> 8  , hilite.blue >> 8 ) ;
             }
             break ;
 
         case wxSYS_COLOUR_BTNHIGHLIGHT:
         case wxSYS_COLOUR_GRAYTEXT:
             // OSAF: changed from 0xCC
-            return wxColor( 0x80 , 0x80 , 0x80 ) ;
+            resultColor = wxColor( 0x80 , 0x80 , 0x80 ) ;
             break ;
 
         case wxSYS_COLOUR_3DDKSHADOW:
-            return wxColor( 0x44 , 0x44 , 0x44 ) ;
+            resultColor = wxColor( 0x44 , 0x44 , 0x44 ) ;
             break ;
 
         case wxSYS_COLOUR_3DLIGHT:
-            return wxColor( 0xCC , 0xCC , 0xCC ) ;
+            resultColor = wxColor( 0xCC , 0xCC , 0xCC ) ;
             break ;
 
         case wxSYS_COLOUR_HIGHLIGHTTEXT :
 #if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
             // OSAF - added
-            return *wxWHITE ;
+            resultColor = *wxWHITE ;
 #else
             {
                 RGBColor hilite ;
                 GetThemeBrushAsColor( kThemeBrushPrimaryHighlightColor, 32, true, &hilite );
-                if ( ( hilite.red + hilite.green + hilite.blue ) == 0 )
-                        return *wxWHITE ;
+                if ( (hilite.red + hilite.green + hilite.blue) == 0 )
+                        resultColor = *wxWHITE ;
                 else
-                        return *wxBLACK ;
+                        resultColor = *wxBLACK ;
             }
 #endif
             break ;
 
         case wxSYS_COLOUR_INFOBK :
         case wxSYS_COLOUR_APPWORKSPACE:
-            return *wxWHITE ;
+            resultColor = *wxWHITE ;
             break ;
 
         case wxSYS_COLOUR_HOTLIGHT:
@@ -126,15 +128,17 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_GRADIENTINACTIVECAPTION:
         case wxSYS_COLOUR_MENUHILIGHT:
             // TODO
-            return *wxBLACK;
+            resultColor = *wxBLACK;
             break ;
 
-        case wxSYS_COLOUR_MAX:
-            wxFAIL_MSG( _T("unknown system colour index") );
+        // case wxSYS_COLOUR_MAX:
+        default:
+            resultColor = *wxWHITE;
+            // wxCHECK_MSG( index >= wxSYS_COLOUR_MAX, false, _T("unknown system colour index") );
             break ;
     }
 
-    return *wxWHITE;
+    return resultColor;
 }
 
 // ----------------------------------------------------------------------------

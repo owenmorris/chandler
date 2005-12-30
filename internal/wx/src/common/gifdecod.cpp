@@ -3,7 +3,7 @@
 // Purpose:     wxGIFDecoder, GIF reader for wxImage and wxAnimation
 // Author:      Guillermo Rodriguez Garcia <guille@iies.es>
 // Version:     3.04
-// RCS-ID:      $Id: gifdecod.cpp,v 1.38 2005/09/23 12:52:55 MR Exp $
+// RCS-ID:      $Id: gifdecod.cpp,v 1.40 2005/12/30 18:53:40 vell Exp $
 // Copyright:   (c) Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -675,6 +675,12 @@ int wxGIFDecoder::ReadGIF()
     m_screenw = buf[0] + 256 * buf[1];
     m_screenh = buf[2] + 256 * buf[3];
 
+    const int maxScreenSize = 4 << 10;
+    if ((m_screenw <= 0) || (m_screenw > maxScreenSize) || (m_screenh <= 0) || (m_screenh > maxScreenSize))
+    {
+        return wxGIF_INVFORMAT;
+    }
+
     /* load global color map if available */
     if ((buf[4] & 0x80) == 0x80)
     {
@@ -797,7 +803,6 @@ int wxGIFDecoder::ReadGIF()
             pimg->w = buf[4] + 256 * buf[5];
             pimg->h = buf[6] + 256 * buf[7];
 
-            const int maxScreenSize = 4 << 10;
             if ((pimg->w <= 0) || (pimg->w > maxScreenSize) || (pimg->h <= 0) || (pimg->h > maxScreenSize))
             {
                 Destroy();
@@ -845,7 +850,7 @@ int wxGIFDecoder::ReadGIF()
 
             /* get initial code size from first byte in raster data */
             bits = (unsigned char)m_f->GetC();
-            if (bits <= 0)
+            if (bits == 0)
             {
                 Destroy();
                 return wxGIF_INVFORMAT;
@@ -900,9 +905,8 @@ int wxGIFDecoder::ReadGIF()
         {
             /* image descriptor block */
             static const size_t idbSize = (2 + 2 + 2 + 2 + 1);
-            if (idbSize > 0)
-                m_f->Read(buf, idbSize);
-            if ((idbSize <= 0) || (m_f->LastRead() != idbSize))
+            m_f->Read(buf, idbSize);
+            if (m_f->LastRead() != idbSize)
             {
                 Destroy();
                 return wxGIF_INVFORMAT;
@@ -912,6 +916,12 @@ int wxGIFDecoder::ReadGIF()
             if ((buf[8] & 0x80) == 0x80)
             {
                 ncolors = 2 << (buf[8] & 0x07);
+                if (ncolors <= 0)
+                {
+                    Destroy();
+                    return wxGIF_INVFORMAT;
+                }
+
                 wxFileOffset pos = m_f->TellI();
                 wxFileOffset numBytes = 3 * ncolors;
                 m_f->SeekI(numBytes, wxFromCurrent);
