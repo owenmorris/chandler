@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.146 2005/12/20 16:52:36 DS Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.147 2005/12/31 18:56:32 SN Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -169,7 +169,7 @@ wxCUSTOM_TYPE_INFO(wxDateTime, wxToStringConverter<wxDateTime> , wxFromStringCon
     #endif
 #endif // !WX_TIMEZONE && !WX_GMTOFF_IN_TM
 
-#if wxUSE_THREADS
+#if (!defined(HAVE_LOCALTIME_R) || !defined(HAVE_GMTIME_R)) && wxUSE_THREADS && !defined(__WINDOWS__)
 static wxMutex timeLock;
 #endif
 

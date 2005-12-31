@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.130 2005/12/19 10:41:05 ABX Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.131 2005/12/31 19:59:39 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -234,16 +234,6 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
 
     if ( exflags )
     {
-#if wxUSE_NATIVE_COMPOSITING
-         if (!((msflags & CS_CLASSDC) || (msflags & CS_OWNDC)))
-             if (wxApp::GetComCtl32Version() >= 582)
-//	        if (GetKeyState( VK_CAPITAL ) == 0)
-	        {
-	            *exflags |= WS_EX_COMPOSITED;
-//	            MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
-	        }
-#endif
-
         // there is no taskbar under CE, so omit all this
 #if !defined(__WXWINCE__)
         if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
@@ -516,12 +506,6 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
     wxSize sz(size);
 #endif
 
-#if wxUSE_NATIVE_COMPOSITING
-    // cannot let this flag go through...
-    if (! IsTopLevel())
-        exflags &= ~WS_EX_COMPOSITED;
-#endif
-
     bool result = MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
 
     return result;
@@ -729,9 +713,13 @@ void wxTopLevelWindowMSW::Maximize(bool maximize)
         // "real" size and doesn't want to know that, because of implementation
         // details, the frame isn't really maximized yet but will be only once
         // it's shown, so return our size as it will be then in this case
-
-        // we don't know which display we're on yet so use the default one
-        SetSize(wxGetClientDisplayRect().GetSize());
+        if ( maximize )
+        {
+            // unfortunately we don't know which display we're on yet so we
+            // have to use the default one
+            SetSize(wxGetClientDisplayRect().GetSize());
+        }
+        //else: can't do anything in this case, we don't have the old size
     }
 }
 
