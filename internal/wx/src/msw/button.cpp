@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: button.cpp,v 1.94 2005/09/23 12:54:52 MR Exp $
+// RCS-ID:      $Id: button.cpp,v 1.95 2005/12/28 23:40:21 vell Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,6 +34,7 @@
     #include "wx/bmpbuttn.h"
     #include "wx/settings.h"
     #include "wx/dcscreen.h"
+    #include "wx/dcclient.h"
 #endif
 
 #include "wx/stockitem.h"

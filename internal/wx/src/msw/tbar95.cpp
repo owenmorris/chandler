@@ -499,7 +499,6 @@ void wxToolBar::CreateDisabledImageList()
 {
     if (m_disabledImgList != NULL)
     {
-        //wxLogDebug(wxT("CreateDisabledImageList - already exists!"));
         delete m_disabledImgList;
         m_disabledImgList = NULL;
     }

@@ -116,48 +116,44 @@ wxString wxDataInputStream::ReadString()
 
 void wxDataInputStream::Read64(wxUint64 *buffer, size_t size)
 {
-    wxUint32 i;
+  m_input->Read(buffer, size * 8);
 
-    m_input->Read(buffer, size * 8);
-
-    if (m_be_order)
+  if (m_be_order)
+  {
+    for (wxUint32 i=0; i<size; i++)
     {
-        for (i=0; i<size; i++)
-        {
-            *buffer = wxUINT64_SWAP_ON_LE(*buffer);
-            buffer++;
-        }
+      wxUint64 v = wxUINT64_SWAP_ON_LE(*buffer);
+      *(buffer++) = v;
     }
-    else
+  }
+  else
+  {
+    for (wxUint32 i=0; i<size; i++)
     {
-        for (i=0; i<size; i++)
-        {
-            *buffer = wxUINT64_SWAP_ON_BE(*buffer);
-            buffer++;
-        }
+      wxUint64 v = wxUINT64_SWAP_ON_BE(*buffer);
+      *(buffer++) = v;
     }
+  }
 }
 
 void wxDataInputStream::Read32(wxUint32 *buffer, size_t size)
 {
-    wxUint32 i;
-
     m_input->Read(buffer, size * 4);
 
     if (m_be_order)
     {
-        for (i=0; i<size; i++)
+        for (wxUint32 i=0; i<size; i++)
         {
-            *buffer = wxUINT32_SWAP_ON_LE(*buffer);
-            buffer++;
+            wxUint32 v = wxUINT32_SWAP_ON_LE(*buffer);
+            *(buffer++) = v;
         }
     }
     else
     {
-        for (i=0; i<size; i++)
+        for (wxUint32 i=0; i<size; i++)
         {
-            *buffer = wxUINT32_SWAP_ON_BE(*buffer);
-            buffer++;
+            wxUint32 v = wxUINT32_SWAP_ON_BE(*buffer);
+            *(buffer++) = v;
         }
     }
 }

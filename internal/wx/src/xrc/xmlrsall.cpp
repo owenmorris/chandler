@@ -3,7 +3,7 @@
 // Purpose:     wxXmlResource::InitAllHandlers
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlrsall.cpp,v 1.22 2005/10/09 18:40:34 VZ Exp $
+// RCS-ID:      $Id: xmlrsall.cpp,v 1.23 2005/11/24 17:26:04 JS Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -117,6 +117,9 @@ void wxXmlResource::InitAllHandlers()
 #endif
 #if wxUSE_MDI
     AddHandler(new wxMdiXmlHandler);
+#endif
+#if wxUSE_GRID
+    AddHandler( new wxGridXmlHandler);
 #endif
 }
 
