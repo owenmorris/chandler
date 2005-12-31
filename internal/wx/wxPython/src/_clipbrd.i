@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     31-October-1999
-// RCS-ID:      $Id: _clipbrd.i,v 1.9 2004/09/23 20:23:19 RD Exp $
+// RCS-ID:      $Id: _clipbrd.i,v 1.10 2005/12/30 23:01:19 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -142,7 +142,8 @@ normal clipboard, if primary is True.", "");
             self._instance = None
         def _checkInstance(self):
             if self._instance is None:
-                self._instance = self._initfunc(*self._args, **self._kwargs)        
+                if wx.GetApp():
+                    self._instance = self._initfunc(*self._args, **self._kwargs)        
         def __getattr__(self, name):
             self._checkInstance()
             return getattr(self._instance, name)

@@ -3,7 +3,7 @@
 # Author:       Will Sadkin
 # Created:      09/06/2003
 # Copyright:   (c) 2003 by Will Sadkin
-# RCS-ID:      $Id: numctrl.py,v 1.4 2004/10/11 22:13:01 RD Exp $
+# RCS-ID:      $Id: numctrl.py,v 1.5 2005/12/30 23:01:06 RD Exp $
 # License:     wxWidgets license
 #----------------------------------------------------------------------------
 # NOTE:
@@ -762,12 +762,6 @@ class NumCtrl(BaseMaskedTextCtrl, NumCtrlAccessorsMixin):
         if maskededit_kwargs.keys():
             self.SetCtrlParameters(**maskededit_kwargs)
 
-        # Record end of integer and place cursor there:
-        integerEnd = self._fields[0]._extent[1]
-        self.SetInsertionPoint(0)
-        self.SetInsertionPoint(integerEnd)
-        self.SetSelection(integerEnd, integerEnd)
-
         # Go ensure all the format codes necessary are present:
         orig_intformat = intformat = self.GetFieldParameter(0, 'formatcodes')
         if 'r' not in intformat:
@@ -779,6 +773,17 @@ class NumCtrl(BaseMaskedTextCtrl, NumCtrlAccessorsMixin):
                 self.SetFieldParameters(0, formatcodes=intformat)
             else:
                 self.SetCtrlParameters(formatcodes=intformat)
+
+        # Record end of integer and place cursor there unless selecting, or select entire field:
+        integerStart, integerEnd = self._fields[0]._extent
+        if not self._fields[0]._selectOnFieldEntry:
+            self.SetInsertionPoint(0)
+            self.SetInsertionPoint(integerEnd)
+            self.SetSelection(integerEnd, integerEnd)
+        else:
+            self.SetInsertionPoint(0)   # include any sign
+            self.SetSelection(0, integerEnd)
+
 
         # Set min and max as appropriate:
         if kwargs.has_key('min'):

@@ -8,8 +8,8 @@ import __main__
 original = __main__.__dict__.keys()
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: PyShell.py,v 1.7 2004/03/15 13:42:37 PKO Exp $"
-__revision__ = "$Revision: 1.7 $"[11:-2]
+__cvsid__ = "$Id: PyShell.py,v 1.8 2005/12/30 23:00:55 RD Exp $"
+__revision__ = "$Revision: 1.8 $"[11:-2]
 
 import wx
 
@@ -17,14 +17,21 @@ class App(wx.App):
     """PyShell standalone application."""
 
     def OnInit(self):
+        import os
         import wx
         from wx import py
-        wx.InitAllImageHandlers()
-        self.frame = py.shell.ShellFrame()
-        self.frame.SetSize((750, 525))
+
+        self.SetAppName("pyshell")
+        confDir = wx.StandardPaths.Get().GetUserDataDir()
+        if not os.path.exists(confDir):
+            os.mkdir(confDir)
+        fileName = os.path.join(confDir, 'config')
+        self.config = wx.FileConfig(localFilename=fileName)
+        self.config.SetRecordDefaults(True)
+
+        self.frame = py.shell.ShellFrame(config=self.config, dataDir=confDir)
         self.frame.Show()
         self.SetTopWindow(self.frame)
-        self.frame.shell.SetFocus()
         return True
 
 '''

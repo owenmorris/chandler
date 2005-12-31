@@ -8,7 +8,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-July-1997
-// RCS-ID:      $Id: wxPython_int.h,v 1.37 2005/04/04 23:55:08 RD Exp $
+// RCS-ID:      $Id: wxPython_int.h,v 1.38 2005/12/30 23:01:39 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -494,6 +494,39 @@ public:
         wxPyOORClientData_dtor(this);
 #endif
     }
+};
+
+
+//---------------------------------------------------------------------------
+// A wxImageHandler that can be derived from in Python.
+//
+
+class wxPyImageHandler: public wxImageHandler {
+protected:
+    PyObject *m_self;
+
+    // used for interning method names as PyStrings
+    static PyObject* m_DoCanRead_Name;
+    static PyObject* m_GetImageCount_Name;
+    static PyObject* m_LoadFile_Name;
+    static PyObject* m_SaveFile_Name;
+
+    // converstion helpers
+    PyObject* py_InputStream(wxInputStream* stream);
+    PyObject* py_Image(wxImage* image);
+    PyObject* py_OutputStream(wxOutputStream* stream);
+
+public:
+    wxPyImageHandler();
+    ~wxPyImageHandler();
+    void _SetSelf(PyObject *self);
+    
+    virtual bool LoadFile(wxImage* image, wxInputStream& stream,
+                          bool verbose=true, int index=-1 );
+    virtual bool SaveFile(wxImage* image, wxOutputStream& stream,
+                          bool verbose=true );
+    virtual int GetImageCount(wxInputStream& stream );
+    virtual bool DoCanRead(wxInputStream &stream);
 };
 
 

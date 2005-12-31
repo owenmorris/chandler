@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _combobox.i,v 1.20 2005/05/27 00:53:05 RD Exp $
+// RCS-ID:      $Id: _combobox.i,v 1.21 2005/12/30 23:01:18 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -166,6 +166,15 @@ the combobox text field.", "",
         GetMark);
 #endif
 
+    DocDeclStr(
+        int , GetCurrentSelection() const,
+        "Unlike `GetSelection` which only returns the accepted selection value,
+i.e. the selection in the control once the user closes the dropdown
+list, this function returns the current selection.  That is, while the
+dropdown list is shown, it returns the currently selected item in
+it. When it is not shown, its result is the same as for the other
+function.", "");
+    
     DocDeclStr(
         bool , SetStringSelection(const wxString& string),
         "Select the item with the specifed string", "");

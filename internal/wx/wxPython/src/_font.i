@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-Apr-2002
-// RCS-ID:      $Id: _font.i,v 1.18 2005/05/12 17:00:51 RD Exp $
+// RCS-ID:      $Id: _font.i,v 1.19 2005/12/30 23:01:17 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -364,10 +364,13 @@ public:
     // get the n-th supported encoding
     static wxFontEncoding GetEncoding(size_t n);
 
-    // return internal string identifier for the encoding (see also
-    // GetEncodingDescription())
+    // return canonical name of this encoding (this is a short string,
+    // GetEncodingDescription() returns a longer one)
     static wxString GetEncodingName(wxFontEncoding encoding);
 
+//     // return a list of all names of this encoding (see GetEncodingName)
+//     static const wxChar** GetAllEncodingNames(wxFontEncoding encoding);
+    
     // return user-readable string describing the given encoding
     //
     // NB: hard-coded now, but might change later (read it from config?)
@@ -379,9 +382,6 @@ public:
     // returns wxFONTENCODING_MAX if the name is not a supported encoding
     static wxFontEncoding GetEncodingFromName(const wxString& name);
 
-
-    // set the config object to use (may be NULL to use default)
-    // void SetConfig(wxConfigBase *config);
 
     // set the root config path to use (should be an absolute path)
     void SetConfigPath(const wxString& prefix);

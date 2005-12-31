@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listctrl.i,v 1.23 2005/12/22 06:57:35 KO Exp $
+// RCS-ID:      $Id: _listctrl.i,v 1.24 2005/12/30 23:01:16 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -693,6 +693,9 @@ details in the second return value (see wx.LIST_HITTEST flags.)", "");
     void SetItemBackgroundColour( long item, const wxColour &col);
     wxColour GetItemBackgroundColour( long item ) const;
 
+    // Font of an item.
+    void SetItemFont( long item, const wxFont &f);
+    wxFont GetItemFont( long item ) const;
 
     %pythoncode {
     %#

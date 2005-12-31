@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     3-July-1997
-// RCS-ID:      $Id: _functions.i,v 1.25 2005/12/22 06:57:35 KO Exp $
+// RCS-ID:      $Id: _functions.i,v 1.26 2005/12/30 23:01:17 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -214,7 +214,9 @@ long wxGetNumberFromUser(const wxString& message,
                          long min = 0, long max = 100,
                          wxWindow *parent = NULL,
                          const wxPoint& pos = wxDefaultPosition);
+%pythoncode { GetNumberFromUser = wx._deprecated(GetNumberFromUser) }
 #endif
+
 // GDI Functions
 
 MustHaveApp(wxColourDisplay);

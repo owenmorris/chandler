@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _window.i,v 1.58 2005/11/08 14:59:51 ABX Exp $
+// RCS-ID:      $Id: _window.i,v 1.59 2005/12/30 23:01:16 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -436,13 +436,13 @@ window's *best size* values.  Also set's the minsize for use with sizers.", "");
     
     DocDeclStr(
         virtual void , Raise(),
-        "Raises the window to the top of the window hierarchy if it is a
-managed window (dialog or frame).", "");
+        "Raises the window to the top of the window hierarchy.  In current
+version of wxWidgets this works both for manage and child windows.", "");
     
     DocDeclStr(
         virtual void , Lower(),
-        "Lowers the window to the bottom of the window hierarchy if it is a
-managed window (dialog or frame).", "");
+        "Lowers the window to the bottom of the window hierarchy.  In current
+version of wxWidgets this works both for manage and child windows.", "");
     
 
     
@@ -2060,7 +2060,8 @@ wxWindow* wxFindWindowByLabel( const wxString& label,
         WXHWND hWnd = (WXHWND)_hWnd;
         long id = wxGetWindowId(hWnd);
         wxWindow* win = new wxWindow;
-        parent->AddChild(win);
+        if (parent)
+            parent->AddChild(win);
         win->SetEventHandler(win);
         win->SetHWND(hWnd);
         win->SetId(id);

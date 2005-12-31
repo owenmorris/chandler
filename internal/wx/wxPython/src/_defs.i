@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.89 2005/05/24 20:54:44 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.91 2005/12/30 23:01:18 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -497,6 +497,7 @@ enum {
     wxSIZE_AUTO,
     wxSIZE_USE_EXISTING,
     wxSIZE_ALLOW_MINUS_ONE,
+    wxSIZE_FORCE,
     wxPORTRAIT,
     wxLANDSCAPE,
     wxPRINT_QUALITY_HIGH,
@@ -506,6 +507,7 @@ enum {
 
     wxID_ANY,
     wxID_SEPARATOR,
+    wxID_NONE,
 
     wxID_LOWEST,
     wxID_OPEN,
@@ -1128,37 +1130,19 @@ enum wxHitTest
 };
 
 
-#if 1
-// OSAF: new; the original code in the #else below
-// fails to build after recent change to "defs.h"
-%{
-#define wxEVT_HOTKEY 9999
-%}
 
-#else
-%{
-#if ! wxUSE_HOTKEY
-enum wxHotkeyModifier
+enum wxKeyModifier
 {
-    wxMOD_NONE = 0,
-    wxMOD_ALT = 1,
-    wxMOD_CONTROL = 2,
-    wxMOD_SHIFT = 4,
-    wxMOD_WIN = 8
+    wxMOD_NONE,
+    wxMOD_ALT,
+    wxMOD_CONTROL,
+    wxMOD_ALTGR,
+    wxMOD_SHIFT,
+    wxMOD_META,
+    wxMOD_WIN,
+    wxMOD_CMD,
+    wxMOD_ALL       
 };
-#define wxEVT_HOTKEY 9999
-#endif
-%}
-
-enum wxHotkeyModifier
-{
-    wxMOD_NONE = 0,
-    wxMOD_ALT = 1,
-    wxMOD_CONTROL = 2,
-    wxMOD_SHIFT = 4,
-    wxMOD_WIN = 8
-};
-#endif
 
 
 enum wxUpdateUI

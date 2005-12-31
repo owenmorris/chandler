@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _basic.py,v 1.12 2005/03/30 21:24:51 RD Exp $
+# RCS-ID:       $Id: _basic.py,v 1.13 2005/12/30 23:00:58 RD Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -289,8 +289,7 @@ class Shape(ShapeEvtHandler):
 
     def Delete(self):
         if self._parent:
-            i = self._parent.GetChildren().index(self)
-            self._parent.GetChildren(i).remove(self)
+            self._parent.GetChildren().remove(self)
 
         self.ClearText()
         self.ClearRegions()
@@ -301,7 +300,8 @@ class Shape(ShapeEvtHandler):
         if self._canvas:
             self.RemoveFromCanvas(self._canvas)
 
-        self.GetEventHandler().OnDelete()
+        if self.GetEventHandler():
+            self.GetEventHandler().OnDelete()
         self._eventHandler = None
         
     def __del__(self):

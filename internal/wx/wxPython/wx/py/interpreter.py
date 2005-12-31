@@ -1,8 +1,8 @@
 """Interpreter executes Python commands."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: interpreter.py,v 1.6 2005/03/25 20:34:52 RD Exp $"
-__revision__ = "$Revision: 1.6 $"[11:-2]
+__cvsid__ = "$Id: interpreter.py,v 1.7 2005/12/30 23:00:53 RD Exp $"
+__revision__ = "$Revision: 1.7 $"[11:-2]
 
 import os
 import sys
@@ -42,7 +42,8 @@ class Interpreter(InteractiveInterpreter):
         self.more = 0
         # List of lists to support recursive push().
         self.commandBuffer = []
-        self.startupScript = os.environ.get('PYTHONSTARTUP')
+        self.startupScript = None
+        
 
     def push(self, command):
         """Send command to the interpreter to be executed.

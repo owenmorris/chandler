@@ -6,7 +6,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _statctrls.i,v 1.11 2004/12/23 20:43:50 RD Exp $
+// RCS-ID:      $Id: _statctrls.i,v 1.12 2005/12/30 23:01:16 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -114,6 +114,14 @@ public:
                  long style = 0,
                  const wxString& name = wxPyStaticTextNameStr);
 
+    DocDeclStr(
+        void , Wrap(int width),
+        "This functions wraps the control's label so that each of its lines
+becomes at most ``width`` pixels wide if possible (the lines are
+broken at words boundaries so it might not be the case if words are
+too long). If ``width`` is negative, no wrapping is done.", "");
+    
+    
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
