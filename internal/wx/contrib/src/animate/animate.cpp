@@ -264,7 +264,7 @@ bool wxAnimationPlayer::PlayFrame()
     int delay = GetDelay(GetCurrentFrame());
     if (delay == 0)
         delay = 1;      // 0 is invalid timeout for wxTimer.
-    
+
     m_timer.Start(delay);
 
     m_currentFrame ++;
@@ -564,7 +564,7 @@ bool wxAnimationCtrlBase::Create(wxWindow *parent, wxWindowID id,
     m_animationPlayer.SetDestroyAnimation(false);
 
     LoadFile(filename);
-    
+
     return true;
 }
 
