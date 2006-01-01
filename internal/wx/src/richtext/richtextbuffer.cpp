@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextbuffer.cpp,v 1.25 2005/12/18 12:25:21 JS Exp $
+// RCS-ID:      $Id: richtextbuffer.cpp,v 1.26 2006/01/01 01:47:19 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1130,8 +1130,6 @@ bool wxRichTextParagraphLayoutBox::InsertFragment(long position, wxRichTextFragm
 
         return true;
     }
-
-    return false;
 }
 
 /// Make a copy of the fragment corresponding to the given range, putting it in 'fragment'.

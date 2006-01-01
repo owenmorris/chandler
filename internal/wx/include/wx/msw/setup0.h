@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup0.h,v 1.215 2005/10/19 12:52:08 JS Exp $
+// RCS-ID:      $Id: setup0.h,v 1.216 2006/01/01 01:42:13 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1108,17 +1108,14 @@
 //
 // Recommended setting: 1, only set it to 0 if your compiler doesn't have
 //                      or can't compile <richedit.h>
-#if defined(__WIN95__) && !defined(__WINE__) && !defined(__GNUWIN32_OLD__)
 #define wxUSE_RICHEDIT  1
 
-// TODO:  This should be ifdef'ed for any compilers that don't support
-//        RichEdit 2.0 but do have RichEdit 1.0...
+// Set this to 1 to use extra features of richedit v2 and later controls
+//
+// Default is 1 for compilers which support it
+//
+// Recommended setting: 1
 #define wxUSE_RICHEDIT2 1
-
-#else
-#define wxUSE_RICHEDIT  0
-#define wxUSE_RICHEDIT2 0
-#endif
 
 // Set this to 1 to enable support for the owner-drawn menu and listboxes. This
 // is required by wxUSE_CHECKLISTBOX.
