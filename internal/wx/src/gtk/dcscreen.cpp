@@ -2,7 +2,7 @@
 // Name:        dcscreen.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dcscreen.cpp,v 1.25 2005/12/30 13:30:08 MW Exp $
+// Id:          $Id: dcscreen.cpp,v 1.26 2006/01/02 15:42:24 MW Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,6 +39,8 @@ wxScreenDC::wxScreenDC()
 
 #ifdef __WXGTK20__
     m_context = gdk_pango_context_get();
+    // Note: The Sun customised version of Pango shipping with Solaris 10
+    // crashes if the language is left NULL (see bug 1374114)
     pango_context_set_language( m_context, gtk_get_default_language() );
     m_layout = pango_layout_new( m_context );
 //    m_fontdesc = pango_font_description_copy( widget->style->font_desc );

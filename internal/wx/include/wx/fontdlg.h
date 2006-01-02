@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.05.02
-// RCS-ID:      $Id: fontdlg.h,v 1.28 2004/11/16 14:32:17 RN Exp $
+// RCS-ID:      $Id: fontdlg.h,v 1.29 2006/01/02 14:26:33 JS Exp $
 // Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ protected:
 // cancelled
 wxFont WXDLLEXPORT
 wxGetFontFromUser(wxWindow *parent = (wxWindow *)NULL,
-                  const wxFont& fontInit = wxNullFont);
+                  const wxFont& fontInit = wxNullFont, const wxString& caption = wxEmptyString);
 
 #endif // wxUSE_FONTDLG
 

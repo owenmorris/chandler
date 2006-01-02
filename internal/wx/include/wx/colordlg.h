@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitiln
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colordlg.h,v 1.18 2005/01/18 10:31:20 ABX Exp $
+// RCS-ID:      $Id: colordlg.h,v 1.19 2006/01/02 14:26:33 JS Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // get the colour from user and return it
 wxColour WXDLLEXPORT
 wxGetColourFromUser(wxWindow *parent = (wxWindow *)NULL,
-                    const wxColour& colInit = wxNullColour);
+                    const wxColour& colInit = wxNullColour, const wxString& caption = wxEmptyString);
 
 #endif // wxUSE_COLOURDLG
 

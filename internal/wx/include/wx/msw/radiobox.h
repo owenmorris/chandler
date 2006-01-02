@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h,v 1.45 2005/11/30 16:27:47 VZ Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.46 2006/01/02 11:03:24 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -138,9 +138,6 @@ protected:
 
 #ifndef __WXWINCE__
     virtual WXHRGN MSWGetRegionWithoutChildren();
-    virtual WXLRESULT MSWWindowProc(WXUINT nMsg,
-                                    WXWPARAM wParam,
-                                    WXLPARAM lParam);
 #endif // __WXWINCE__
 
 

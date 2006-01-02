@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlg.cpp,v 1.133 2005/10/31 17:10:32 ABX Exp $
+// RCS-ID:      $Id: dirctrlg.cpp,v 1.134 2006/01/02 14:28:37 JS Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1190,22 +1190,6 @@ void wxGenericDirCtrl::DoResize()
         wxSize filterSz ;
         if (m_filterListCtrl)
         {
-#ifdef __WXMSW__
-            // For some reason, this is required in order for the
-            // correct control height to always be returned, rather
-            // than the drop-down list height which is sometimes returned.
-            wxSize oldSize = m_filterListCtrl->GetSize();
-            m_filterListCtrl->SetSize(wxDefaultCoord,
-                                      wxDefaultCoord,
-                                      oldSize.x+10,
-                                      wxDefaultCoord,
-                                      wxSIZE_USE_EXISTING);
-            m_filterListCtrl->SetSize(wxDefaultCoord,
-                                      wxDefaultCoord,
-                                      oldSize.x,
-                                      wxDefaultCoord,
-                                      wxSIZE_USE_EXISTING);
-#endif
             filterSz = m_filterListCtrl->GetSize();
             sz.y -= (filterSz.y + verticalSpacing);
         }
