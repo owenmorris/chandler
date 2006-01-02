@@ -1573,8 +1573,8 @@ void wxMacMLTEControl::SetStringValue( const wxString &str)
             wxMacEditHelper help(m_txn) ;
             SetTXNData( st , kTXNStartOffset, kTXNEndOffset ) ;
         }
-        TXNSetSelection( m_txn, 0, 0);
-        TXNShowSelection( m_txn, kTXNShowStart);
+        TXNSetSelection( m_txn, 0, 0 );
+        TXNShowSelection( m_txn, kTXNShowStart );
     }
 }
 
@@ -1679,12 +1679,15 @@ void wxMacMLTEControl::AdjustCreationAttributes( const wxColour &background, boo
     if ( UMAGetSystemVersion() >= 0x1040 )
     {
         TXNCommandEventSupportOptions options ;
-        if ( TXNGetCommandEventSupport( m_txn, &options) == noErr )
+        if ( TXNGetCommandEventSupport( m_txn, &options ) == noErr )
         {
-            options |= kTXNSupportEditCommandProcessing ;
-            options |= kTXNSupportSpellCheckCommandProcessing ;
-            options |= kTXNSupportFontCommandProcessing ;
-            options |= kTXNSupportFontCommandUpdating ;
+            options |=
+                kTXNSupportEditCommandProcessing
+                | kTXNSupportEditCommandUpdating
+                | kTXNSupportSpellCheckCommandProcessing
+                | kTXNSupportSpellCheckCommandUpdating
+                | kTXNSupportFontCommandProcessing
+                | kTXNSupportFontCommandUpdating;
             
             TXNSetCommandEventSupport( m_txn , options ) ;
         }
@@ -1843,8 +1846,8 @@ void wxMacMLTEControl::SetSelection( long from , long to )
     if ((from == -1) && (to == -1))
         TXNSelectAll(m_txn);
     else
-        TXNSetSelection( m_txn, from, to);
-    TXNShowSelection( m_txn, kTXNShowStart);
+        TXNSetSelection( m_txn, from, to );
+    TXNShowSelection( m_txn, kTXNShowStart );
 }
 
 void wxMacMLTEControl::WriteText(const wxString& str)
@@ -1993,7 +1996,7 @@ void wxMacMLTEControl::ShowPosition( long pos )
             OSErr theErr = noErr;
             SInt32 dv = desired.v - current.v ;
             SInt32 dh = desired.h - current.h ;
-            TXNShowSelection( m_txn , true ) ;
+            TXNShowSelection( m_txn , kTXNShowStart ) ;
             theErr = TXNScroll( m_txn, kTXNScrollUnitsInPixels , kTXNScrollUnitsInPixels , &dv , &dh );
             // there will be an error returned for classic mlte implementation when the control is
             // invisible, but HITextView works correctly, so we don't assert that one
@@ -2360,7 +2363,7 @@ void wxMacMLTEClassicControl::MacUpdatePosition()
         TXNGetRectBounds( m_txn , NULL , NULL , &textRect ) ;
         if ( textRect.left < m_txnControlBounds.left )
         {
-            TXNShowSelection( m_txn , false ) ;
+            TXNShowSelection( m_txn , kTXNShowStart ) ;
         }
     }
 }
@@ -2848,8 +2851,8 @@ wxMacMLTEHIViewControl::wxMacMLTEHIViewControl( wxTextCtrl *wxPeer,
     wxMacWindowClipper c( m_peer ) ;
     SetTXNData( st , kTXNStartOffset, kTXNEndOffset ) ;
 
-    TXNSetSelection( m_txn, 0, 0);
-    TXNShowSelection( m_txn, kTXNShowStart);
+    TXNSetSelection( m_txn, 0, 0 );
+    TXNShowSelection( m_txn, kTXNShowStart );
 }
 
 OSStatus wxMacMLTEHIViewControl::SetFocus( ControlFocusPart focusPart )
