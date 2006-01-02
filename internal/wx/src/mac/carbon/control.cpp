@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: control.cpp,v 1.82 2005/09/23 12:54:03 MR Exp $
+// RCS-ID:      $Id: control.cpp,v 1.83 2006/01/02 02:29:16 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,11 +38,13 @@ wxControl::wxControl()
 {
 }
 
-bool wxControl::Create(wxWindow *parent, wxWindowID id,
-                       const wxPoint& pos,
-                       const wxSize& size, long style,
-                       const wxValidator& validator,
-                       const wxString& name)
+bool wxControl::Create(wxWindow *parent,
+       wxWindowID id,
+       const wxPoint& pos,
+       const wxSize& size,
+       long style,
+       const wxValidator& validator,
+       const wxString& name)
 {
     bool rval = wxWindow::Create(parent, id, pos, size, style, name);
 
@@ -55,18 +57,17 @@ bool wxControl::Create(wxWindow *parent, wxWindowID id,
     }
 #endif
 
-    if (rval) 
-    {
 #if wxUSE_VALIDATORS
+    if (rval) 
         SetValidator(validator);
 #endif
-    }
+
     return rval;
 }
 
 wxControl::~wxControl()
 {
-    m_isBeingDeleted = TRUE;
+    m_isBeingDeleted = true;
 }
 
 bool wxControl::ProcessCommand (wxCommandEvent & event)
@@ -81,14 +82,13 @@ void  wxControl::OnKeyDown( wxKeyEvent &event )
 {
     if ( m_peer == NULL || !m_peer->Ok() )
         return ;
-    
-    char charCode ;
-    UInt32 keyCode ;    
-    UInt32 modifiers ;
 
-    GetEventParameter( (EventRef) wxTheApp->MacGetCurrentEvent(), kEventParamKeyMacCharCodes, typeChar, NULL,sizeof(char), NULL,&charCode );
-    GetEventParameter( (EventRef) wxTheApp->MacGetCurrentEvent(), kEventParamKeyCode, typeUInt32, NULL,  sizeof(UInt32), NULL, &keyCode );
-       GetEventParameter((EventRef) wxTheApp->MacGetCurrentEvent(), kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers);
+    char charCode ;
+    UInt32 keyCode, modifiers ;
+
+    GetEventParameter( (EventRef) wxTheApp->MacGetCurrentEvent(), kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL,&charCode );
+    GetEventParameter( (EventRef) wxTheApp->MacGetCurrentEvent(), kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode  );
+    GetEventParameter( (EventRef) wxTheApp->MacGetCurrentEvent(), kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
 
     m_peer->HandleKey( keyCode , charCode , modifiers ) ;
 }
