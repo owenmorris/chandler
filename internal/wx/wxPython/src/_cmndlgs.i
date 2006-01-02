@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-July-1998
-// RCS-ID:      $Id: _cmndlgs.i,v 1.22 2005/05/27 00:53:05 RD Exp $
+// RCS-ID:      $Id: _cmndlgs.i,v 1.23 2006/01/02 19:33:54 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -96,6 +96,11 @@ instance.", "");
         wxColourData& , GetColourData(),
         "Returns a reference to the `wx.ColourData` used by the dialog.", "");
 };
+
+
+wxColour wxGetColourFromUser(wxWindow *parent = (wxWindow *)NULL,
+                             const wxColour& colInit = wxNullColour,
+                             const wxString& caption = wxPyEmptyString);
 
 
 //--------------------------------------------------------------------------------
@@ -588,6 +593,11 @@ results with via the `wx.FontData` returned by `GetFontData`.", "");
         "Returns a reference to the internal `wx.FontData` used by the
 wx.FontDialog.", "");    
 };
+
+
+wxFont wxGetFontFromUser(wxWindow *parent = NULL,
+                         const wxFont& fontInit = wxNullFont,
+                         const wxString& caption = wxPyEmptyString);
 
 
 //---------------------------------------------------------------------------
