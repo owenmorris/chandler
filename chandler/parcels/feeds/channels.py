@@ -201,7 +201,7 @@ class FeedChannel(pim.ListCollection):
         for newItem in items:
 
             # Convert date to datetime object
-            if newItem.date_parsed:
+            if getattr(newItem, 'date_parsed', None):
 
                 try:
 
