@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.557 2005/12/24 02:20:15 VZ Exp $
+// Id:          $Id: window.cpp,v 1.558 2006/01/03 16:37:32 JS Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -4738,8 +4738,19 @@ wxPoint wxGetMousePosition()
 
 }
 
+// Needed for implementing e.g. combobox on wxGTK within a modal dialog.
+void wxAddGrab(wxWindow* window)
+{
+    gtk_grab_add( (GtkWidget*) window->GetHandle() );
+}
+
+void wxRemoveGrab(wxWindow* window)
+{
+    gtk_grab_remove( (GtkWidget*) window->GetHandle() );
+}
+
 // ----------------------------------------------------------------------------
-// wxDCModule
+// wxWinModule
 // ----------------------------------------------------------------------------
 
 class wxWinModule : public wxModule
@@ -4768,4 +4779,3 @@ void wxWinModule::OnExit()
         gdk_gc_unref( g_eraseGC );
 }
 
-// vi:sts=4:sw=4:et

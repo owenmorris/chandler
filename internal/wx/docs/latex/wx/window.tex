@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: window.tex,v 1.192 2005/11/30 15:27:46 VZ Exp $
+%% RCS-ID:      $Id: window.tex,v 1.193 2006/01/02 23:30:06 VZ Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2759,6 +2759,12 @@ parent window if you don't want its font to be inherited by its children,
 use \helpref{SetOwnFont}{wxwindowsetownfont} instead in this case and
 see \helpref{InheritAttributes}{wxwindowinheritattributes} for more
 explanations.
+
+Please notice that the given font is \emph{not} automatically used for 
+\helpref{wxPaintDC}{wxpaintdc} objects associated with this window, you need to
+call \helpref{wxDC::SetFont()}{wxdcsetfont} too. However this font is used by
+any standard controls for drawing their text as well as by 
+\helpref{wxWindow::GetTextExtent()}{wxwindowgettextextent}.
 
 \wxheading{Parameters}
 

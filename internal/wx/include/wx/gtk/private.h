@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.03.02
-// RCS-ID:      $Id: private.h,v 1.13 2005/08/04 00:25:20 VZ Exp $
+// RCS-ID:      $Id: private.h,v 1.14 2006/01/03 16:37:30 JS Exp $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,6 +130,10 @@ inline wxEventType GtkScrollWinTypeToWx(guint scrollType)
     return GtkScrollTypeToWx(scrollType) +
             wxEVT_SCROLLWIN_TOP - wxEVT_SCROLL_TOP;
 }
+
+// Needed for implementing e.g. combobox on wxGTK within a modal dialog.
+void wxAddGrab(wxWindow* window);
+void wxRemoveGrab(wxWindow* window);
 
 #ifdef __WXGTK20__
 // Escapes string so that it is valid Pango markup XML string:
