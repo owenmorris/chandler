@@ -160,12 +160,6 @@ class MainView(View):
             self.postEventByName ('RequestSelectSidebarItem',
                                   {'item': allCollection})
         elif hasattr(sidebaritem, 'add'):
-
-            # @@@MOR Bug 4088 is masked because we're adding new items
-            # explicitly to the All collection, which is a no-no.  We need
-            # to not do the add( ) if it's the All collection:
-            # if sidebaritem is not schema.ns('osaf.app', self).allCollection:
-
             sidebaritem.add(newItem)
 
         # If the event cannot be displayed in this viewer,
