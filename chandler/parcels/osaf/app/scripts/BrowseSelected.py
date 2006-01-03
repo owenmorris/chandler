@@ -10,18 +10,10 @@ for server in webserver.Server.iterItems(f.itsView):
     if not server.isActivated():
         server.startup()
 
-i = getattr(f, "selectedItemToView", None)
-if i is None:
-    try:
-        i = f.selection[0]
-    except (IndexError, AttributeError):
-        try:
-            sel = f.GetSelection()
-            for item in sel.iterSelection():
-                i = item
-                break
-        except:
-            i = None
+try:
+    i = list(f.widget.SelectedItems())[0]
+except AttributeError:
+    i = None
 
 
 if i is not None:
