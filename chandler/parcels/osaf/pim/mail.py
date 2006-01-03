@@ -312,7 +312,7 @@ class POPAccount(DownloadAccountBase):
         initialValue = 110,
     )
     downloadedMessageUIDS = schema.Mapping(
-        schema.Bytes,
+        schema.Text,
         displayName = u'Downloaded Message UID',
         doc = 'Used for quick look up to discover if a message has already been downloaded',
         initialValue = {},
@@ -458,7 +458,7 @@ class IMAPDelivery(MailDeliveryBase):
         initialValue = u'',
     )
     flags = schema.Sequence(
-        schema.Bytes, displayName = u'Flags', initialValue = [],
+        schema.Text, displayName = u'Flags', initialValue = [],
     )
 
 
@@ -470,7 +470,7 @@ class POPDelivery(MailDeliveryBase):
     )
 
     uid = schema.One(
-        schema.Bytes,
+        schema.Text,
         displayName = u'POP UID',
         doc = 'The unique POP ID for the message',
         initialValue = '',
@@ -483,7 +483,7 @@ class MIMEBase(items.ContentItem):
         description="Super kind for MailMessage and the various MIME kinds",
     )
 
-    mimeType = schema.One(schema.Bytes, initialValue = '')
+    mimeType = schema.One(schema.Text, initialValue = '')
 
     mimeContainer = schema.One(
         'MIMEContainer', initialValue = None, inverse = 'mimeParts',
@@ -556,9 +556,9 @@ class MailMessageMixin(MIMEContainer):
     )
     spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob)
-    dateSentString = schema.One(schema.Bytes, initialValue = '')
+    dateSentString = schema.One(schema.Text, initialValue = '')
     dateSent = schema.One(schema.DateTime, displayName=_(u"date sent"))
-    messageId = schema.One(schema.Bytes, initialValue = '')
+    messageId = schema.One(schema.Text, initialValue = '')
     toAddress = schema.Sequence(
         'EmailAddress',
         displayName = _(u'To'),
@@ -598,7 +598,7 @@ class MailMessageMixin(MIMEContainer):
         doc = "Redirector to 'dateSent'", redirectTo = 'dateSent',
     )
 
-    mimeType = schema.One(schema.Bytes, initialValue = 'message/rfc822')
+    mimeType = schema.One(schema.Text, initialValue = 'message/rfc822')
 
     schema.addClouds(
         sharing = schema.Cloud(
@@ -738,12 +738,12 @@ class MIMEText(MIMENote):
     schema.kindInfo(displayName = u"MIME Text Kind")
 
     charset = schema.One(
-        schema.Bytes,
+        schema.Text,
         displayName = u'Character set encoding',
         initialValue = 'utf-8',
     )
     lang = schema.One(
-        schema.Bytes,
+        schema.Text,
         displayName = u'Character set Language',
         initialValue = 'en',
     )
@@ -780,11 +780,9 @@ class EmailAddress(items.ContentItem):
     emailAddress = schema.One(
         schema.Text,
         displayName = _(u'Email Address'),
-        doc = 'An RFC 822 email address.\n\n'
+        doc = 'The email address.\n\n'
             "Examples:\n"
-            '   "abe@osafoundation.org"\n'
-            '   "Abe Lincoln {abe@osafoundation.org}" (except with ;angle '
-                'brackets instead of \'{\' and \'}\')\n',
+            '   "abe@osafoundation.org"\n',
         initialValue = u'',
     )
     fullName = schema.One(

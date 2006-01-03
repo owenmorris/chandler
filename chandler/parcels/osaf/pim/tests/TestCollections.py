@@ -9,7 +9,7 @@ class NotifyHandler(schema.Item):
     we should change notifications to work on callables -- John is cool with that.
     """
     log = schema.Sequence(initialValue=[])
-    collectionEventHandler = schema.One(schema.Bytes, initialValue="onCollectionEvent")
+    collectionEventHandler = schema.One(schema.Text, initialValue="onCollectionEvent")
 
     def checkLog(self, op, item, other, index=-1):
         if len(self.log) == 0:
@@ -36,7 +36,7 @@ class SimpleItem(schema.Item):
     label = schema.One(schema.Text, displayName=u"My Label")
 
 class ChildSimpleItem(SimpleItem):
-    childData = schema.One(schema.Bytes, displayName=u"Child data")
+    childData = schema.One(schema.Text, displayName=u"Child data")
 
 class OtherSimpleItem(schema.Item):
     """

@@ -359,12 +359,12 @@ class Share(pim.ContentItem):
     )
 
     filterClasses = schema.Sequence(
-        schema.Bytes,
+        schema.Text,
         doc = 'The list of classes to import/export',
         initialValue = [],
     )
 
-    filterAttributes = schema.Sequence(schema.Bytes, initialValue=[])
+    filterAttributes = schema.Sequence(schema.Text, initialValue=[])
 
     leads = schema.Sequence('Share', initialValue=[], otherName='follows')
     follows = schema.One('Share', otherName='leads')
@@ -1324,11 +1324,11 @@ class WebDAVConduit(ShareConduit):
     useSSL = schema.One(schema.Boolean, initialValue=False)
 
     # The ticket this conduit will use (we're a sharee and we're using this)
-    ticket = schema.One(schema.Bytes, initialValue="")
+    ticket = schema.One(schema.Text, initialValue="")
 
     # The tickets we generated if we're a sharer
-    ticketReadOnly = schema.One(schema.Bytes, initialValue="")
-    ticketReadWrite = schema.One(schema.Bytes, initialValue="")
+    ticketReadOnly = schema.One(schema.Text, initialValue="")
+    ticketReadWrite = schema.One(schema.Text, initialValue="")
 
     def __init__(self, *args, **kw):
         if 'shareName' not in kw:
@@ -1823,7 +1823,7 @@ class SimpleHTTPConduit(WebDAVConduit):
 
     schema.kindInfo(displayName=u"Simple HTTP Share Conduit Kind")
 
-    lastModified = schema.One(schema.Bytes, initialValue = '')
+    lastModified = schema.One(schema.Text, initialValue = '')
 
     def get(self, updateCallback=None):
         self._get(updateCallback=updateCallback)
@@ -2344,7 +2344,7 @@ class CloudXMLFormat(ImportExportFormat):
 
     schema.kindInfo(displayName=u"Cloud XML Import/Export Format Kind")
 
-    cloudAlias = schema.One(schema.Bytes, initialValue='sharing')
+    cloudAlias = schema.One(schema.Text, initialValue='sharing')
 
     def fileStyle(self):
         return self.STYLE_DIRECTORY

@@ -87,7 +87,7 @@ class Block(schema.Item):
         otherName = "views"     # ViewContainer/views
     )
 
-    blockName = schema.One(schema.Bytes)
+    blockName = schema.One(schema.Text)
     eventsForNamedLookup = schema.Sequence("BlockEvent", defaultValue=None)
 
     parentTrunkSubtrees = schema.Sequence(
@@ -937,9 +937,9 @@ class BlockEvent(schema.Item):
     )
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = False)
     destinationBlockReference = schema.One(Block)
-    dispatchToBlockName = schema.One(schema.Bytes)
-    methodName = schema.One(schema.Bytes)
-    blockName = schema.One(schema.Bytes)
+    dispatchToBlockName = schema.One(schema.Text)
+    methodName = schema.One(schema.Text)
+    blockName = schema.One(schema.Text)
     schema.addClouds(
         copying = schema.Cloud(byCloud=[destinationBlockReference])
     )
@@ -969,7 +969,7 @@ class BlockEvent(schema.Item):
                              dispatchEnum=dispatchEnum,
                              **attrs)
 class ChoiceEvent(BlockEvent):
-    choice = schema.One(schema.Bytes, required = True)
+    choice = schema.One(schema.Text, required = True)
 
 class ColorEvent(BlockEvent):
     from osaf.framework.types.DocumentTypes import ColorType
@@ -991,10 +991,10 @@ class operationType(schema.Enumeration):
 
 class ModifyCollectionEvent(BlockEvent):
     items = schema.Sequence(schema.Item, initialValue = [])
-    collectionName = schema.One(schema.Bytes, initialValue = "sidebarCollection")
+    collectionName = schema.One(schema.Text, initialValue = "sidebarCollection")
     copyItems = schema.One(schema.Boolean, defaultValue=False)
-    selectInBlockNamed = schema.One(schema.Bytes)
-    editAttributeNamed = schema.One(schema.Bytes)
+    selectInBlockNamed = schema.One(schema.Text)
+    editAttributeNamed = schema.One(schema.Text)
     disambiguateDisplayName = schema.One(schema.Boolean, defaultValue=False)
     schema.addClouds(
         copying = schema.Cloud(byRef=[items])

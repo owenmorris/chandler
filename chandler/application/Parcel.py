@@ -147,7 +147,7 @@ class Parcel(schema.Item):
     status = schema.One(schema.Text)
     summary = schema.One(schema.Text)
     icon = schema.One(schema.Text)
-    version = schema.One(schema.Bytes)
+    version = schema.One(schema.Text)
     createdOn = schema.One(schema.DateTime)
     modifiedOn = schema.One(schema.DateTime)
     namespace = schema.One(schema.Text, defaultValue = u'')

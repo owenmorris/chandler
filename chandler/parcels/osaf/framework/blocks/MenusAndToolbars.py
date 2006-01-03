@@ -643,7 +643,7 @@ class MenuItem (Block.Block, DynamicChild):
     schema.addClouds(
         copying = schema.Cloud(byCloud = [event])
     )
-    icon = schema.One(schema.Bytes)
+    icon = schema.One(schema.Text)
 
     def instantiateWidget (self):
         # We'll need a dynamicParent's widget in order to instantiate
@@ -952,8 +952,8 @@ class ToolbarItem(Block.Block, DynamicChild):
         doc = 'For Buttons, makes it stay pressed down until pressed again.',
         initialValue = False,
     )
-    bitmap = schema.One(schema.Bytes)
-    disabledBitmap = schema.One(schema.Bytes)
+    bitmap = schema.One(schema.Text)
+    disabledBitmap = schema.One(schema.Text)
     event = schema.One(Block.BlockEvent)
     toolbarItemKind = schema.One(toolbarItemKindEnumType)
     

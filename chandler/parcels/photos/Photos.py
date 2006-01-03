@@ -20,7 +20,7 @@ class PhotoMixin(pim.ContentItem):
                     displayAttribute="displayName")
     dateTaken = schema.One(schema.DateTime, displayName=_(u"taken"))
     file = schema.One(schema.Text)
-    exif = schema.Mapping(schema.Bytes, initialValue={})
+    exif = schema.Mapping(schema.Text, initialValue={})
     photoBody = schema.One(schema.Lob)
 
     about = schema.One(redirectTo = 'displayName')

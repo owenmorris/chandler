@@ -96,12 +96,12 @@ class Certificate(pim.ContentItem):
         doc = 'An X.509 certificate in human readable format.',
     )
     fingerprintAlgorithm = schema.One(
-        schema.Bytes,
+        schema.Text,
         displayName = _(u'fingerprint algorithm'),
         doc = 'A name of a hash algorithm that was used to compute fingerprint.',
     )
     fingerprint = schema.One(
-        schema.Bytes,
+        schema.Text,
         doc = 'A hash of the certificate using algorithm named in fingerprintAlgorithm attribute.',
     )
 

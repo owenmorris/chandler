@@ -162,7 +162,7 @@ class wxHTML(wx.html.HtmlWindow):
 
 
 class HTML(RectangularChild):
-    url = schema.One(schema.Bytes)
+    url = schema.One(schema.Text)
 
     def instantiateWidget (self):
         htmlWindow = wxHTML (self.parentBlock.widget,
@@ -345,7 +345,7 @@ class List(RectangularChild):
     columnHeadings = schema.Sequence(schema.Text, required = True)
     columnData = schema.Sequence(schema.Text)
     columnWidths = schema.Sequence(schema.Integer, required = True)
-    elementDelegate = schema.One(schema.Bytes, initialValue = '')
+    elementDelegate = schema.One(schema.Text, initialValue = '')
     selection = schema.One(schema.Item, initialValue = None)
     schema.addClouds(
         copying = schema.Cloud(byRef=[selection])
@@ -920,9 +920,9 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     columnData = schema.Sequence(schema.Text)
     columnWidths = schema.Sequence(schema.Integer, required = True)
     columnReadOnly = schema.Sequence(schema.Boolean)
-    elementDelegate = schema.One(schema.Bytes, initialValue = '')
+    elementDelegate = schema.One(schema.Text, initialValue = '')
     selectedItemToView = schema.One(schema.Item, initialValue = None)
-    editAttributeNamed = schema.One(schema.Bytes)
+    editAttributeNamed = schema.One(schema.Text)
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
@@ -1323,7 +1323,7 @@ class Tree(RectangularChild):
     columnHeadings = schema.Sequence(schema.Text, required = True)
     columnData = schema.Sequence(schema.Text)
     columnWidths = schema.Sequence(schema.Integer, required = True)
-    elementDelegate = schema.One(schema.Bytes, initialValue = '')
+    elementDelegate = schema.One(schema.Text, initialValue = '')
     selection = schema.One(schema.Item, initialValue = None)
     hideRoot = schema.One(schema.Boolean, initialValue = True)
     noLines = schema.One(schema.Boolean, initialValue = True)
@@ -1609,7 +1609,7 @@ class PresentationStyle(schema.Item):
         doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
     )
     format = schema.One(
-        schema.Bytes,
+        schema.Text,
         doc = 'customization of presentation format',
     )
     choices = schema.Sequence(

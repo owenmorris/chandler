@@ -118,7 +118,7 @@ class AbstractCollection(items.ContentItem):
     """
     renameable              = schema.One(schema.Boolean, defaultValue = True)
     color                   = schema.One(ColorType)
-    iconName                = schema.One(schema.Bytes)
+    iconName                = schema.One(schema.Text)
     iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
@@ -550,8 +550,8 @@ class FilteredCollection(AbstractCollection):
     )
 
     source = schema.One(AbstractCollection, initialValue=None)
-    filterExpression = schema.One(schema.Text, initialValue=u"")
-    filterAttributes = schema.Sequence(schema.Bytes, initialValue=[])
+    filterExpression = schema.One(schema.Text, initialValue="")
+    filterAttributes = schema.Sequence(schema.Text, initialValue=[])
 
     schema.addClouds(
         copying = schema.Cloud(byCloud=[source]),
@@ -755,7 +755,7 @@ class IndexedSelectionCollection (AbstractCollection):
     selection and visiblity attribute to another source collection.
     """
 
-    indexName   = schema.One(schema.Bytes, initialValue="__adhoc__")
+    indexName   = schema.One(schema.Text, initialValue="__adhoc__")
     source      = schema.One(AbstractCollection, defaultValue=None)
 
     def getIndex (self):

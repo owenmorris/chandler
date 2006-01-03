@@ -32,9 +32,9 @@ class CharacterStyle(Style):
     # Currently, fontStyle is a string containing any of the following words:
     # bold light italic underline fakesuperscript
     # but others will be included in the future
-    fontStyle = schema.One(schema.Bytes, initialValue = '')
+    fontStyle = schema.One(schema.Text, initialValue = '')
 
-    fontName = schema.One(schema.Bytes, initialValue = '')
+    fontName = schema.One(schema.Text, initialValue = '')
 
     def __init__(self, *arguments, **keywords):
         super (CharacterStyle, self).__init__ ( *arguments, **keywords)

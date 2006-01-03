@@ -60,7 +60,7 @@ class AttributeEditorMapping(schema.Item):
     @ivar className: class path (python dotted style) to this attribute editor.
     @type className: String
     """
-    className = schema.One(schema.Bytes)
+    className = schema.One(schema.Text)
     mappingCollection = schema.One(otherName="editors")
 
     def __init__(self, *args, **kwds):

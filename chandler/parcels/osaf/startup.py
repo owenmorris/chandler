@@ -29,7 +29,7 @@ class Startup(schema.Item):
     Subclass this & create parcel.xml instances for startup notifications
     """
 
-    invoke = schema.One(schema.Bytes,
+    invoke = schema.One(schema.Text,
         doc="Full name of a class or function to import and run at startup"
     )
 

@@ -18,7 +18,7 @@ class Reminder(schema.Item):
     )
 
     relativeTo = schema.One(
-        schema.Bytes,
+        schema.Text,
         displayName=u"Relative to",
         initialValue='effectiveStartTime',
     )

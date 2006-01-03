@@ -390,7 +390,7 @@ class SSSidebarButton (schema.Item):
     interface that can't be use anywhere else in CPIA.
     """
     # buttonName is 8 bit chars for programmers only.
-    buttonName = schema.One(schema.Bytes)
+    buttonName = schema.One(schema.Text)
 
     # buttonOffsets is a list of left offset, right offset and height.
     # Left offset is the offset in pixels of the left edge of the button
@@ -924,8 +924,8 @@ class SidebarBlock(ControlBlocks.Table):
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
-    tableTemplatePath = schema.One(schema.Bytes)
-    calendarTemplatePath = schema.One(schema.Bytes)
+    tableTemplatePath = schema.One(schema.Text)
+    calendarTemplatePath = schema.One(schema.Text)
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
     kindToKindCollectionCache = schema.Mapping(schema.Item, initialValue = {})
 
@@ -1064,7 +1064,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
 class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):
 
-    templatePath = schema.One(schema.Bytes)
+    templatePath = schema.One(schema.Text)
 
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, AbstractCollection):
