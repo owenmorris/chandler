@@ -37,8 +37,8 @@ binaries:
       find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \
       tar -cvzf $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/$(SITE)/twisted \
-          --exclude test
+          --exclude test \
+          $(SNAP)/$(SITE)/twisted
 
 install: twisted-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf twisted-$(SNAP)-$(RELVER).tar.gz
