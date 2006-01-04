@@ -450,7 +450,7 @@ class RefContainer(DBContainer, CRefContainer):
                         if refVer <= version:
                             return self._readRef(value[1])
                         else:
-                            value = cursor.next()
+                            value = _self.cursor.next()
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXNSTARTED:
