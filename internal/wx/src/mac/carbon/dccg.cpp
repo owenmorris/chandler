@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dccg.cpp,v 1.37 2005/12/23 05:16:45 vell Exp $
+// RCS-ID:      $Id: dccg.cpp,v 1.38 2006/01/04 11:43:45 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,10 @@
 #include "wx/mac/private.h"
 
 IMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject)
+
+#ifndef wxMAC_USE_CORE_GRAPHICS_BLEND_MODES
+#define wxMAC_USE_CORE_GRAPHICS_BLEND_MODES 0
+#endif
 
 //-----------------------------------------------------------------------------
 // constants
@@ -1194,6 +1198,15 @@ void wxDC::SetLogicalFunction( int function )
         return;
 
     m_logicalFunction = function ;
+#if wxMAC_USE_CORE_GRAPHICS_BLEND_MODES
+    CGContextRef cgContext = ((wxMacCGContext*)(m_graphicContext))->GetNativeContext() ;
+    if ( m_logicalFunction == wxCOPY )
+        CGContextSetBlendMode( cgContext, kCGBlendModeNormal ) ;
+    else if ( m_logicalFunction == wxINVERT )
+        CGContextSetBlendMode( cgContext, kCGBlendModeExclusion ) ;
+    else
+        CGContextSetBlendMode( cgContext, kCGBlendModeNormal ) ;
+#endif
 }
 
 extern bool wxDoFloodFill(wxDC *dc, wxCoord x, wxCoord y,
@@ -1227,8 +1240,10 @@ void wxDC::DoDrawLine( wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2 )
 {
     wxCHECK_RET( Ok(), wxT("wxDC(cg)::DoDrawLine - invalid DC") );
 
+#if !wxMAC_USE_CORE_GRAPHICS_BLEND_MODES
     if ( m_logicalFunction != wxCOPY )
         return ;
+#endif    
 
     wxCoord xx1 = XLOG2DEVMAC(x1) ;
     wxCoord yy1 = YLOG2DEVMAC(y1) ;
@@ -1382,8 +1397,10 @@ void wxDC::DoDrawLines(int n, wxPoint points[],
 {
     wxCHECK_RET( Ok(), wxT("wxDC(cg)::DoDrawLines - invalid DC") );
 
+#if !wxMAC_USE_CORE_GRAPHICS_BLEND_MODES
     if ( m_logicalFunction != wxCOPY )
         return ;
+#endif    
 
     wxCoord x1, x2 , y1 , y2 ;
     x1 = XLOG2DEVMAC(points[0].x + xoffset);

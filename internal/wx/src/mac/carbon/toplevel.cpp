@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.166 2005/12/14 23:12:32 vell Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.167 2006/01/04 11:52:52 SC Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -938,6 +938,7 @@ typedef struct
 {
     wxPoint m_position ;
     wxSize m_size ;
+    bool m_wasResizable ;
 }
 FullScreenData ;
 
@@ -1428,6 +1429,7 @@ bool wxTopLevelWindowMac::ShowFullScreen(bool show, long style)
         m_macFullScreenData = data ;
         data->m_position = GetPosition() ;
         data->m_size = GetSize() ;
+        data->m_wasResizable = MacGetWindowAttributes() & kWindowResizableAttribute ;
 
         if ( style & wxFULLSCREEN_NOMENUBAR )
             HideMenuBar() ;
@@ -1468,11 +1470,15 @@ bool wxTopLevelWindowMac::ShowFullScreen(bool show, long style)
         }
 
         SetSize( x , y , w, h ) ;
+        if ( data->m_wasResizable )
+            MacChangeWindowAttributes( kWindowNoAttributes , kWindowResizableAttribute ) ;
     }
     else
     {
         ShowMenuBar() ;
         FullScreenData *data = (FullScreenData *) m_macFullScreenData ;
+        if ( data->m_wasResizable )
+            MacChangeWindowAttributes( kWindowResizableAttribute ,  kWindowNoAttributes ) ;
         SetPosition( data->m_position ) ;
         SetSize( data->m_size ) ;
 

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.cpp,v 1.105 2006/01/03 22:06:25 vell Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.106 2006/01/04 11:49:01 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -597,7 +597,7 @@ wxSize wxListBox::DoGetBestSize() const
 
         // don't make the listbox too tall (limit height to around 10 items)
         // but don't make it too small neither
-        lbHeight = (cy + 4) * wxMin( wxMax( GetCount(), 3 ), 10 );
+        lbHeight = wxMax( (cy + 4) * wxMin( wxMax( GetCount(), 3 ), 10 ), 70 );
     }
 
     return wxSize( lbWidth, lbHeight );
