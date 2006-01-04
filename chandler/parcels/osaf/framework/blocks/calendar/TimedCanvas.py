@@ -117,7 +117,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             self.MakeCanvasItems(resort=True)
 
         self.RealignCanvasItems()
-            
+        self.Refresh()
 
     def OnSize(self, event):
         # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
