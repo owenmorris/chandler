@@ -22,7 +22,6 @@ build: build-common build-optik expand
 
 pylint-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/pylint-$(VERSION).tar.gz
-#	$(CURL) http://builds.osafoundation.org/external/pylint-$(VERSION).tar.gz.md5
 
 sources-common:
 	$(MAKE) -C common DEBUG=$(DEBUG) sources
@@ -56,9 +55,8 @@ binaries: binaries-common binaries-optik
     find $(SNAP)/$(SITE)/pylint -name "*.pyc" | xargs rm -f; \
     find $(SNAP)/$(SITE)/pylint -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/pylint \
-                  --exclude test
-	$(MD5) $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz > $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz.md5
+                  --exclude test \
+                  $(SNAP)/$(SITE)/pylint
 
 install-common:
 	$(MAKE) -C common DEBUG=$(DEBUG) install
@@ -88,7 +86,6 @@ upload-optik:
 
 upload: upload-common upload-optik pylint-$(SNAP)-$(RELVER).tar.gz
 	scp pylint-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp pylint-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 _realclean::
 	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded
