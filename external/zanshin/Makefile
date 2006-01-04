@@ -31,16 +31,14 @@ binaries:
       find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
       tar -cvzf $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/$(SITE)/zanshin \
-          --exclude tests;
-	$(MD5) $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz > $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz.md5
+          --exclude tests \
+          $(SNAP)/$(SITE)/zanshin
 
 install: zanshin-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf zanshin-$(SNAP)-$(RELVER).tar.gz
 
 upload: zanshin-$(SNAP)-$(RELVER).tar.gz
 	scp zanshin-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp zanshin-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
