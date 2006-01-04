@@ -155,7 +155,7 @@ class FeedChannel(pim.ListCollection):
         try:
             if data.bozo and not isinstance(data.bozo_exception, feedparser.CharacterEncodingOverride):
                 logger.error("For url '%s', feedparser exception: %s" % (self.url, data.bozo_exception))
-                raise data.bozo_exception
+                # raise data.bozo_exception
         except KeyError, e:
             logger.error("For url '%s', feedparser KeyError: %s" % \
                 (self.url, e))
@@ -224,12 +224,6 @@ class FeedChannel(pim.ListCollection):
                     logger.exception("Couldn't get date: %s (%s)" % \
                         (newItem.date, newItem.date_parsed))
                     newItem.date = None
-            else:
-                newItem.date = None
-
-            if newItem.date is None:
-                # No date was available in the feed, so assign it 'now'
-                newItem.date = datetime.datetime.now(ICUtzinfo.getDefault())
 
             found = False
             for oldItem in self:
@@ -241,8 +235,13 @@ class FeedChannel(pim.ListCollection):
 
             if not found:
                 # we have a new item - add it
+                if not hasattr(newItem, 'date'):
+                    # No date was available in the feed, so assign it 'now'
+                    newItem.date = datetime.datetime.now(ICUtzinfo.getDefault())
                 feedItem = FeedItem(itsView=view)
                 feedItem.Update(newItem)
+
+
                 try:
                     self.addFeedItem(feedItem)
                     count += 1
@@ -324,7 +323,8 @@ class FeedItem(pim.ContentItem):
         if content:
             self.content = self.getAttributeAspect('content', 'type').makeValue(content, indexed=True)
 
-        self.date = data.date
+        if 'date' in data:
+            self.date = data.date
 
     def isSimilar(self, feedItem):
         """
