@@ -1,6 +1,8 @@
 
 VERSION=2.6.16
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)5
+#VERSION=2.6.22x
+#RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 LIBXML2=$(BUILD_ROOT)/persistence/libxml2
 SRC=$(LIBXML2)/libxml2-$(VERSION)
 
@@ -26,8 +28,9 @@ $(SRC)/$(BUILD)/config.msvc: apply
 	mkdir -p $(SRC)/$(BUILD)
 	cp -p win32/winSetup.py.in $(SRC)/python
 	cd $(SRC)/win32; \
-      cscript //E:JScript configure.js prefix=$(SNAP) $(CONF_DBG) \
-          python=yes iconv=no iso8859x=yes 
+	cscript //E:JScript configure.js prefix=$(SNAP) $(CONF_DBG) \
+                            python=yes iconv=no iso8859x=yes
+#                            python=yes iconv=no iso8859x=yes pattern=no
 
 compile: $(SRC)/$(BUILD)/config.msvc
 	cd $(SRC)/win32; MAKEFLAGS=; \
@@ -35,8 +38,7 @@ compile: $(SRC)/$(BUILD)/config.msvc
 
 py:
 	cd $(SRC)/python; \
-      $(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
-          install --force
+      $(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_OPT) install --force
 
 build: expand compile py
 
@@ -46,9 +48,8 @@ clean:
 
 binaries: 
 	cd $(BUILD_ROOT); \
-      tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/$(SITE)/*libxml2*;
-	$(MD5) $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz > $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz.md5
+        tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
+                  $(SNAP)/$(SITE)/*libxml2*
 
 else
 
@@ -59,7 +60,6 @@ CONF_DBG=
 endif
 
 BUILD=build_$(SNAP)
-
 
 $(SRC)/$(BUILD)/Makefile: apply
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
@@ -82,10 +82,9 @@ build: expand compile py
 
 binaries: 
 	cd $(BUILD_ROOT); \
-      tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/lib/libxml2* \
-          $(SNAP)/$(SITE)/*libxml2*;
-	$(MD5) $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz > $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz.md5
+        tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
+                  $(SNAP)/lib/libxml2* \
+                  $(SNAP)/$(SITE)/*libxml2*
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
@@ -97,19 +96,18 @@ apply: patches-$(VERSION)
 
 libxml2-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz.md5
 
 sources: libxml2-$(VERSION).tar.gz
 
 libxml2-$(VERSION)-expanded: libxml2-$(VERSION).tar.gz
-	tar xvzf libxml2-$(VERSION).tar.gz
+	cd $(SRC); \
+        tar xvzf libxml2-$(VERSION).tar.gz
 	touch libxml2-$(VERSION)-expanded
 
 expand: libxml2-$(VERSION)-expanded
 
 upload: libxml2-$(SNAP)-$(RELVER).tar.gz
 	scp libxml2-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp libxml2-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 install: libxml2-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf libxml2-$(SNAP)-$(RELVER).tar.gz
