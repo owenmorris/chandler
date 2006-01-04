@@ -27,6 +27,7 @@ import application.Printing as Printing
 import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
 import osaf.mail.sharing as MailSharing
 from osaf.framework.blocks.Block import Block
+from osaf.framework.prompts import promptOk
 from osaf.pim import AbstractCollection
 import osaf.sharing.ICalendar as ICalendar
 from osaf import webserver
@@ -246,6 +247,9 @@ class MainView(View):
 
         app = wx.GetApp()
         Block.findBlockByName('StatusBar').setStatusMessage (statusMessage, progressPercentage)
+
+    def alertUser(self, message):
+        promptOk(message)
 
     def callAnyCallable(self, callable, withView, *args, **kw):
         """

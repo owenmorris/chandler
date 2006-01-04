@@ -122,7 +122,7 @@ def disableTwistedTLS(items, TLSKEY='STARTTLS'):
 
 def alert(message, args):
     """Displays a generic alert dialog"""
-    NotifyUIAsync(message % args, alert=True)
+    NotifyUIAsync(message % args, cl='alertUser')
 
 def alertMailError(message, account, args):
     """Displays a mail specific alert dialog with a Edit Account Settings 
