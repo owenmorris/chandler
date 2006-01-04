@@ -120,11 +120,6 @@ class Contact(items.ContentItem):
         self.contactName.firstName = ''
         self.contactName.lastName = ''
 
-
-    # Cache "me" for fast lookup; used by getCurrentMeContact()
-    meContactID = None
-
-
     def getContactForEmailAddress(cls, view, address):
         """ Given an email address string, find (or create) a matching contact.
 
