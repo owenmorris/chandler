@@ -67,6 +67,7 @@ def go():
 
     print "Igniting Twisted reactor..."
     view.commit()
+    Globals.options.webserver = True
     Utility.initTwisted()
     Utility.initWakeup(view)
     print "...ready"
