@@ -706,9 +706,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
 def unsubscribe(collection):
     for share in collection.shares:
-        share.conduit.delete(True)
-        share.format.delete(True)
-        share.delete(True)
+        share.delete(recursive=True, cloudAlias='copying')
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
