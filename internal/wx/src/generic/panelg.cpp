@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: panelg.cpp,v 1.80 2005/09/23 12:53:29 MR Exp $
+// RCS-ID:      $Id: panelg.cpp,v 1.81 2006/01/05 01:00:34 SN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ void wxPanel::OnSize(wxSizeEvent& event)
     if (GetAutoLayout())
         Layout();
 #if wxUSE_CONSTRAINTS
-#if defined(__WXPM__)
+#if defined(__WXPM__) && 0
     else
     {
         // Need to properly move child windows under OS/2

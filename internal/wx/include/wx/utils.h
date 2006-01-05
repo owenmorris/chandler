@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h,v 1.125 2005/11/25 22:09:21 VZ Exp $
+// RCS-ID:      $Id: utils.h,v 1.126 2006/01/05 04:31:24 RD Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -113,6 +113,70 @@ WXDLLEXPORT bool wxGetKeyState(wxKeyCode key);
 // KeyDown events with autorepeat. On by default and always on
 // in wxMSW.
 WXDLLEXPORT bool wxSetDetectableAutoRepeat( bool flag );
+
+
+// wxMouseState is used to hold information about button and modifier state
+// and is what is returned from wxGetMouseState.
+class WXDLLEXPORT wxMouseState
+{
+public:
+    wxMouseState()
+        : m_x(0), m_y(0),
+          m_leftDown(false), m_middleDown(false), m_rightDown(false),
+          m_controlDown(false), m_shiftDown(false), m_altDown(false),
+          m_metaDown(false)
+    {}
+
+    wxCoord     GetX() { return m_x; }
+    wxCoord     GetY() { return m_y; }
+
+    bool        LeftDown()    { return m_leftDown; }
+    bool        MiddleDown()  { return m_middleDown; }
+    bool        RightDown()   { return m_rightDown; }
+    
+    bool        ControlDown() { return m_controlDown; }
+    bool        ShiftDown()   { return m_shiftDown; }
+    bool        AltDown()     { return m_altDown; }
+    bool        MetaDown()    { return m_metaDown; }
+    bool        CmdDown() 
+    {
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+        return MetaDown();
+#else
+        return ControlDown();
+#endif
+    }
+
+    void        SetX(wxCoord x) { m_x = x; }
+    void        SetY(wxCoord y) { m_y = y; }
+
+    void        SetLeftDown(bool down)   { m_leftDown = down; }
+    void        SetMiddleDown(bool down) { m_middleDown = down; }
+    void        SetRightDown(bool down)  { m_rightDown = down; }
+
+    void        SetControlDown(bool down) { m_controlDown = down; }
+    void        SetShiftDown(bool down)   { m_shiftDown = down; }
+    void        SetAltDown(bool down)     { m_altDown = down; }
+    void        SetMetaDown(bool down)    { m_metaDown = down; }
+        
+private:
+    wxCoord     m_x;
+    wxCoord     m_y;
+
+    bool        m_leftDown;
+    bool        m_middleDown;
+    bool        m_rightDown;
+
+    bool        m_controlDown;
+    bool        m_shiftDown;
+    bool        m_altDown;
+    bool        m_metaDown;
+};
+
+
+// Returns the current state of the mouse position, buttons and modifers
+WXDLLEXPORT wxMouseState wxGetMouseState();
+
 
 // ----------------------------------------------------------------------------
 // Window ID management

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.cpp,v 1.192 2005/12/28 06:44:35 vell Exp $
+// RCS-ID:      $Id: app.cpp,v 1.193 2006/01/05 04:31:21 RD Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1497,6 +1497,29 @@ bool wxGetKeyState(wxKeyCode key) //virtual key code if < 10.2.x, else see below
 //  return !!(BitTst(keymap, (sizeof(KeyMapByteArray)*8) - iKey));
 }
 #endif
+
+
+wxMouseState wxGetMouseState()
+{
+    wxMouseState ms;
+
+    wxPoint pt = wxGetMousePosition();
+    ms.SetX(pt.x);
+    ms.SetY(pt.y);
+
+    UInt32 buttons = GetCurrentButtonState();
+    ms.SetLeftDown( (buttons & 0x01) != 0 );
+    ms.SetMiddleDown( (buttons & 0x04) != 0 );
+    ms.SetRightDown( (buttons & 0x02) != 0 );
+    
+    UInt32 modifiers = GetCurrentKeyModifiers();
+    ms.SetControlDown(modifiers & controlKey);
+    ms.SetShiftDown(modifiers & shiftKey);
+    ms.SetAltDown(modifiers & optionKey);
+    ms.SetMetaDown(modifiers & cmdKey);
+
+    return ms;
+}
 
 
 bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifiers , long when , short wherex , short wherey , wxChar uniChar )

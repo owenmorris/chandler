@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.558 2006/01/03 16:37:32 JS Exp $
+// Id:          $Id: window.cpp,v 1.559 2006/01/05 04:31:22 RD Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2672,6 +2672,31 @@ wxWindow *wxGetActiveWindow()
     return wxWindow::FindFocus();
 }
 
+
+wxMouseState wxGetMouseState()
+{
+    wxMouseState ms;
+
+    gint x;
+    gint y;
+    GdkModifierType mask;
+
+    gdk_window_get_pointer(NULL, &x, &y, &mask);
+
+    ms.SetX(x);
+    ms.SetY(y);
+    ms.SetLeftDown(mask & GDK_BUTTON1_MASK);
+    ms.SetMiddleDown(mask & GDK_BUTTON2_MASK);
+    ms.SetRightDown(mask & GDK_BUTTON3_MASK);
+
+    ms.SetControlDown(mask & GDK_CONTROL_MASK);
+    ms.SetShiftDown(mask & GDK_SHIFT_MASK);
+    ms.SetAltDown(mask & GDK_MOD1_MASK);
+    ms.SetMetaDown(mask & GDK_MOD2_MASK);
+    
+    return ms;
+}
+ 
 //-----------------------------------------------------------------------------
 // wxWindowGTK
 //-----------------------------------------------------------------------------

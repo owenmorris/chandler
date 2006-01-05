@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.651 2005/12/19 10:41:05 ABX Exp $
+// RCS-ID:      $Id: window.cpp,v 1.652 2006/01/05 04:31:18 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -5389,6 +5389,28 @@ bool wxGetKeyState(wxKeyCode key)
     }
 #endif
 }
+
+
+wxMouseState wxGetMouseState()
+{
+    wxMouseState ms;
+    POINT pt;
+    GetCursorPos( &pt );
+
+    ms.SetX(pt.x);
+    ms.SetY(pt.y);
+    ms.SetLeftDown( (GetAsyncKeyState(VK_LBUTTON) & (1<<15)) != 0 );
+    ms.SetMiddleDown( (GetAsyncKeyState(VK_MBUTTON) & (1<<15)) != 0 );
+    ms.SetRightDown( (GetAsyncKeyState(VK_RBUTTON) & (1<<15)) != 0 );
+    
+    ms.SetControlDown( (GetAsyncKeyState(VK_CONTROL) & (1<<15)) != 0 );
+    ms.SetShiftDown( (GetAsyncKeyState(VK_SHIFT) & (1<<15)) != 0 );
+    ms.SetAltDown( (GetAsyncKeyState(VK_MENU) & (1<<15)) != 0 );
+//    ms.SetMetaDown();
+    
+    return ms;
+}
+
 
 wxWindow *wxGetActiveWindow()
 {
