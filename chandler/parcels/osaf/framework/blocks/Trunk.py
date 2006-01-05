@@ -40,14 +40,14 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         'TrunkDelegate', inverse = 'trunkParentBlocks', required = True
     )
     TPBDetailItem = schema.One(
-        schema.Item, initialValue = None, otherName = 'TPBDetailItemOwner'
+        schema.Item, defaultValue = None, otherName = 'TPBDetailItemOwner'
     )
     TPBDetailItemCollection = schema.One(
         schema.Item, defaultValue = None
     )
     
     TPBSelectedItem = schema.One(
-        schema.Item, initialValue = None, otherName = 'TPBSelectedItemOwner'
+        schema.Item, defaultValue = None, otherName = 'TPBSelectedItemOwner'
     )
 
     schema.addClouds(
@@ -84,9 +84,8 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         """
           If necessary, replace our children with a trunk of blocks appropriate for our content
         """
-        TPBSelectedItem = getattr(self, 'TPBSelectedItem', None)
         hints = {}
-        keyItem = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem, hints)
+        keyItem = self.trunkDelegate._mapItemToCacheKeyItem(self.TPBSelectedItem, hints)
         newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
         if keyItem is None:
             TPBDetailItem = None
@@ -96,9 +95,9 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             """
             assert newView is None or newView.eventBoundary
             TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
-                                newView, TPBSelectedItem, keyItem)
+                                newView, self.TPBSelectedItem, keyItem)
 
-        detailItemChanged = getattr(self, 'TPBDetailItem', None) is not TPBDetailItem
+        detailItemChanged = self.TPBDetailItem is not TPBDetailItem
             
         self.TPBDetailItem = TPBDetailItem
         # For bug 4269 in 0.6: If we've been given a contents collection,
