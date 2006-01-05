@@ -771,12 +771,15 @@ class SidebarBlock(ControlBlocks.Table):
         if shouldClearCollection is None: # user pressed cancel
             return
         
-        def deleteItem(item):
+        def deleteItem(collection):
 
             # clear out the collection contents, if appropriate
-            if (shouldClearCollection and
-                isinstance(item, AbstractCollection)):
-                self.ClearCollectionContents(item)
+            if isinstance(collection, AbstractCollection):
+                if (shouldClearCollection):
+                    self.ClearCollectionContents(collection)
+                    
+                sharing.unsubscribe(collection)
+            
             self.contents.remove(item)
 
         self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
