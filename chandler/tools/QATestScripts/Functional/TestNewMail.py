@@ -13,7 +13,7 @@ try:
     mail.SendMail()
     
     # verification
-    mail.Check_DetailView({"displayName":"Invitation Mail","toAddress":"demo2@osafoundation.org","body":"This is an email to invite you"})
+    mail.Check_DetailView({"displayName":"Invitation Mail","body":"This is an email to invite you"})
     
 finally:
     #cleaning
