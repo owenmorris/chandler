@@ -985,7 +985,7 @@ class UITestAccounts:
         """
         # Have to do it the hard way since Account Preferences is modal by default
         import application
-        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, view=self.view, modal=False)
+        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, rv=self.view, modal=False)
         self.window = wx.FindWindowByLabel("Account Preferences")
         wx.GetApp().Yield()
         
