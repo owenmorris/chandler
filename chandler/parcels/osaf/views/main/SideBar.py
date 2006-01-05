@@ -604,25 +604,18 @@ class SSSidebarSharingButton (SSSidebarButton):
         if share is not None:
             filterKind = self.buttonOwner.filterKind
 
-            if not share.filterClasses:
-                filterMatches = True
-            else:
-                filterMatches = False
+            if share.filterClasses:
+                partial = "Partial"
                 if filterKind is not None:
                     klass = filterKind.classes['python']
                     className = "%s.%s" % (klass.__module__, klass.__name__)
                     if className in share.filterClasses:
-                        filterMatches = True
+                        partial = ""
 
-            if ((filterKind is None) or filterMatches):
-
-                if (sharing.isSharedByMe(share)):
-                    shared = "Upload"
-                else:
-                    shared = "Download"
-
-                if filterKind is None and len (share.filterClasses) != 0:
-                    partial = "Partial"
+            if (sharing.isSharedByMe(share)):
+                shared = "Upload"
+            else:
+                shared = "Download"
 
         if mouseOverFlag:
             mouseOver = "MouseOver"
