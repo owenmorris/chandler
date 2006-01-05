@@ -194,7 +194,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.EndModal(False)
 
         if share.filterClasses != self.originalFilterClasses:
-            SyncProgress.Show(wx.GetApp().mainFrame, view=self.view,
+            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.view,
                 collection=share.contents)
 
 
