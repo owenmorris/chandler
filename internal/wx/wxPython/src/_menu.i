@@ -374,7 +374,9 @@ public:
     // SetText()
     virtual void SetAccel(wxAcceleratorEntry *accel);
 
-    
+    void SetBitmap(const wxBitmap& bitmap);
+    const wxBitmap& GetBitmap();
+
     // wxOwnerDrawn methods
 #ifdef __WXMSW__
     void SetFont(const wxFont& font);
@@ -393,9 +395,6 @@ public:
     int GetMarginWidth();
     static int GetDefaultMarginWidth();
     bool IsOwnerDrawn();
-
-    void SetBitmap(const wxBitmap& bitmap);
-    const wxBitmap& GetBitmap();
 
     // switch on/off owner-drawing the item
     void SetOwnerDrawn(bool ownerDrawn = true);
