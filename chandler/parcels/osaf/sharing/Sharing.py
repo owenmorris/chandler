@@ -371,7 +371,8 @@ class Share(pim.ContentItem):
 
     schema.addClouds(
         sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterClasses,
-                                        filterAttributes])
+                                        filterAttributes]),
+        copying = schema.Cloud(byCloud=[format, conduit])
     )
 
     def __init__(self, *args, **kw):
