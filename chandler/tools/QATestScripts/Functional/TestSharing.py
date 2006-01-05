@@ -48,7 +48,7 @@ try:
             filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
         xrcFile = os.path.join(Globals.chandlerDirectory, 'application', 'dialogs', 'PublishCollection_wdr.xrc')
         resources = wx.xrc.XmlResource(xrcFile)
-        win = PublishCollection.PublishCollectionDialog(wx.GetApp().mainFrame, _("Collection Sharing"),resources=resources, itsView=App_ns.itsView,
+        win = PublishCollection.PublishCollectionDialog(wx.GetApp().mainFrame, _("Collection Sharing"),resources=resources, view=App_ns.itsView,
                                                         collection=collection, filterClassName=filterClassName)
         win.CenterOnScreen()
         win.Show()
