@@ -14,10 +14,11 @@ import wx.minical
 
 from application import schema
 
-from osaf.framework.blocks import Block
-from osaf.framework.blocks import Styles
-from osaf.framework.blocks import DrawingUtilities
-from osaf.framework.blocks import ContainerBlocks
+from osaf.framework.blocks import (
+    Block, Styles, DrawingUtilities, ContainerBlocks
+    )
+
+from osaf.framework import Preferences
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
 from datetime import datetime, date, time, timedelta
@@ -370,11 +371,13 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         #We want to ignore, because view changes could come in here, and we
         #never want to change our collection
         pass
-    
+
+class PreviewPrefs(Preferences):
+    maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
+
 class PreviewArea(CalendarCanvas.CalendarBlock):
     timeCharacterStyle = schema.One(Styles.CharacterStyle)
     eventCharacterStyle = schema.One(Styles.CharacterStyle)
-    maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[timeCharacterStyle, eventCharacterStyle])
@@ -473,13 +476,15 @@ class wxPreviewArea(wx.Panel):
             
         # Draw each event            
         y = self.vMargin
+        previewPrefs = schema.ns("osaf.framework.blocks.calendar",
+                                 self.blockItem.itsView).previewPrefs
         for i, item in enumerate(self.currentDaysItems):
             if item.isDeleted():
                 # This is to fix bug 4322, after removing recurrence,
                 # OnPaint gets called before wxSynchronizeWidget, so
                 # self.currentDaysItems has deleted items in it.
                 continue
-            if i == self.blockItem.maximumEventsDisplayed:
+            if i == previewPrefs.maximumEventsDisplayed - 1:
                 numEventsLeft = (len(self.currentDaysItems) - i)
                 if numEventsLeft > 1:
                     dc.SetFont(self.eventFont)
