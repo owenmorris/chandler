@@ -55,7 +55,7 @@ class DetailTrunkSubtree(TrunkSubtree):
 class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
     Root of the Detail View. The prototype instance of this block is copied
-    by the TrunkParentBlock mechanism every time we build a detail view for a
+    by the BranchPointBlock mechanism every time we build a detail view for a
     new distinct item type.
     """
     def onSetContentsEvent (self, event):
@@ -238,7 +238,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             titleBlock.widget.SetFocus()
             titleBlock.widget.SelectAll()
 
-class DetailTrunkDelegate (Trunk.TrunkDelegate):
+class DetailBPBDelegate (Trunk.BPBDelegate):
     """ 
     Delegate for managing trees of blocks that compose the detail view.
     """    

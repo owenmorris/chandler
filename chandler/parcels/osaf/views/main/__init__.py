@@ -1,5 +1,5 @@
 from SideBar import SidebarBlock
-from SideBar import CPIATestSidebarTrunkDelegate, SidebarTrunkDelegate
+from SideBar import CPIATestSidebarBPBDelegate, SidebarBPBDelegate
 
 
 def installParcel(parcel, oldVersion=None):

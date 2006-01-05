@@ -14,7 +14,7 @@ from ContainerBlocks import (
     SplitterWindow, TabbedContainer, ViewContainer
 )
 
-from Trunk import TrunkDelegate, TrunkParentBlock
+from Trunk import BPBDelegate, BranchPointBlock
 from Views import View
 
 from ControlBlocks import (

@@ -445,10 +445,10 @@ def make_mainview(parcel):
         BlockEvent.template('SelectWeek',
                             'BroadcastEverywhere').install(parcel)
         
-    SidebarTrunkDelegateInstance = \
-        SidebarTrunkDelegate.update(parcel, 'SidebarTrunkDelegateInstance',
-                                    tableTemplatePath='//parcels/osaf/views/main/TableSummaryViewTemplate',
-                                    calendarTemplatePath='//parcels/osaf/views/main/CalendarSummaryViewTemplate')
+    SidebarBPBDelegateInstance = \
+        SidebarBPBDelegate.update(parcel, 'SidebarBPBDelegateInstance',
+                                  tableTemplatePath='//parcels/osaf/views/main/TableSummaryViewTemplate',
+                                  calendarTemplatePath='//parcels/osaf/views/main/CalendarSummaryViewTemplate')
     
     IconButton = SSSidebarIconButton.update(parcel, 'IconButton',
                                             buttonName='Icon',
@@ -1007,30 +1007,30 @@ def make_mainview(parcel):
                                                 stretchFactor=0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
                                     ]), # SplitterWindow SidebarContainer
-                            TrunkParentBlock.template('SidebarTPB',
-                                trunkDelegate=SidebarTrunkDelegateInstance,
-                                TPBDetailItem=app.allCollection,
-                                TPBSelectedItem=app.allCollection,
-                                TPBDetailItemCollection=app.allCollection),
+                            BranchPointBlock.template('SidebarBPB',
+                                trunkDelegate=SidebarBPBDelegateInstance,
+                                BPBDetailItem=app.allCollection,
+                                BPBSelectedItem=app.allCollection,
+                                BPBDetailItemCollection=app.allCollection),
                             ]) # BoxContainer SidebarContainerContainer
                     ]), # BoxContainer ToolbarContainer
             ]) # MainView MainView
     mainview = mainview.install(parcel)
 
-    MainTrunkDelegate = TrunkDelegate.update(parcel, 'MainTrunkDelegate')
+    MainBPBDelegate = BPBDelegate.update(parcel, 'MainBPBDelegate')
 
-    MainTPB = TrunkParentBlock.template('MainTPB',
-                                        TPBDetailItem=mainview,
-                                        TPBSelectedItem=mainview,
+    MainBPB = BranchPointBlock.template('MainBPB',
+                                        BPBDetailItem=mainview,
+                                        BPBSelectedItem=mainview,
                                         childrenBlocks=[mainview],
-                                        trunkDelegate=MainTrunkDelegate).install(parcel)
+                                        trunkDelegate=MainBPBDelegate).install(parcel)
 
     # need to hook up cpia view here, but for now it will come in
     # via parcel.xml
     MainViewRoot = FrameWindow.update(parcel, 'MainViewRoot',
                                       size=SizeType(1024,720),
                                       views=[mainview],
-                                      childrenBlocks=[MainTPB])
+                                      childrenBlocks=[MainBPB])
 
 
     # Add certstore UI

@@ -13,67 +13,67 @@ import wx
 Trunk.py - Classes for dynamically substituting child trees-of-blocks.
 
 The idea is that you've got a block that wants different sets of child blocks substituted within itself,
-based on some key (like a content item to be displayed). The block inherits from this TrunkParentBlock
+based on some key (like a content item to be displayed). The block inherits from this BranchPointBlock
 class; whenever synchronizeWidget happens, the appropriate set of child blocks will be swapped in. This
-mechanism is managed by a TrunkDelegate object, which can be subclassed and/or configured from parcel XML
+mechanism is managed by a BPBDelegate object, which can be subclassed and/or configured from parcel XML
 to customize its behavior.
 """
 
-class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
+class wxBranchPointBlock(ContainerBlocks.wxBoxContainer):
     """ 
-    A widget block that gives its TrunkParentBlock a chance to change 
+    A widget block that gives its BranchPointBlock a chance to change 
     the tree of blocks within it. 
     """
     def wxSynchronizeWidget(self, **hints):
         if self.blockItem.isShown:
             self.blockItem.installTreeOfBlocks()
-        super(wxTrunkParentBlock, self).wxSynchronizeWidget()
+        super(wxBranchPointBlock, self).wxSynchronizeWidget()
     
-class TrunkParentBlock(ContainerBlocks.BoxContainer):
+class BranchPointBlock(ContainerBlocks.BoxContainer):
     """
     A block that can swap in different sets of child blocks ("trunks") based
-    on its detailContents. It uses a TrunkDelegate to do the heavy lifting.
+    on its detailContents. It uses a BPBDelegate to do the heavy lifting.
     """    
     colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
 
     trunkDelegate = schema.One(
-        'TrunkDelegate', inverse = 'trunkParentBlocks', required = True
+        'BPBDelegate', inverse = 'trunkParentBlocks', required = True
     )
-    TPBDetailItem = schema.One(
-        schema.Item, defaultValue = None, otherName = 'TPBDetailItemOwner'
+    BPBDetailItem = schema.One(
+        schema.Item, defaultValue = None, otherName = 'BPBDetailItemOwner'
     )
-    TPBDetailItemCollection = schema.One(
+    BPBDetailItemCollection = schema.One(
         schema.Item, defaultValue = None
     )
     
-    TPBSelectedItem = schema.One(
-        schema.Item, defaultValue = None, otherName = 'TPBSelectedItemOwner'
+    BPBSelectedItem = schema.One(
+        schema.Item, defaultValue = None, otherName = 'BPBSelectedItemOwner'
     )
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef = [trunkDelegate,colorStyle,TPBDetailItem,TPBSelectedItem]
+            byRef = [trunkDelegate,colorStyle,BPBDetailItem,BPBSelectedItem]
         )
     )
 
     def instantiateWidget(self):
-        return wxTrunkParentBlock(self.parentBlock.widget)
+        return wxBranchPointBlock(self.parentBlock.widget)
 
     def onSelectItemsEvent (self, event):
         # for the moment, multiple selection means, "select nothing"
         # i.e. multiple selection in the summary view means selecting
         # nothing in the detail view
 
-        # eventually we might want TPBSelectedItem to be an iterable
+        # eventually we might want BPBSelectedItem to be an iterable
         # of some kind
         items = event.arguments['items']
         if len(items)==1:
-            self.TPBSelectedItem = items[0]
+            self.BPBSelectedItem = items[0]
         else:
-            self.TPBSelectedItem = None
+            self.BPBSelectedItem = None
             
-        self.TPBDetailItemCollection = \
-            self.trunkDelegate.getContentsCollection(self.TPBSelectedItem,
+        self.BPBDetailItemCollection = \
+            self.trunkDelegate.getContentsCollection(self.BPBSelectedItem,
                                                      event.arguments.get('collection'))
         widget = getattr (self, 'widget', None)
         if widget is not None:
@@ -85,29 +85,29 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
           If necessary, replace our children with a trunk of blocks appropriate for our content
         """
         hints = {}
-        keyItem = self.trunkDelegate._mapItemToCacheKeyItem(self.TPBSelectedItem, hints)
+        keyItem = self.trunkDelegate._mapItemToCacheKeyItem(self.BPBSelectedItem, hints)
         newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
         if keyItem is None:
-            TPBDetailItem = None
+            BPBDetailItem = None
         else:
             """
               Seems like we should always mark new views with an event boundary
             """
             assert newView is None or newView.eventBoundary
-            TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
-                                newView, self.TPBSelectedItem, keyItem)
+            BPBDetailItem = self.trunkDelegate._getContentsForTrunk(
+                                newView, self.BPBSelectedItem, keyItem)
 
-        detailItemChanged = self.TPBDetailItem is not TPBDetailItem
+        detailItemChanged = self.BPBDetailItem is not BPBDetailItem
             
-        self.TPBDetailItem = TPBDetailItem
+        self.BPBDetailItem = BPBDetailItem
         # For bug 4269 in 0.6: If we've been given a contents collection,
-        # it's so that we can put our TPBDetailItem in it, to get a notification
+        # it's so that we can put our BPBDetailItem in it, to get a notification
         # when that item is deleted. Update the collection if necessary.
         contents = getattr(self, 'contents', None)
-        if (contents is not None and contents.first() is not TPBDetailItem):
+        if (contents is not None and contents.first() is not BPBDetailItem):
             contents.clear()
-            if TPBDetailItem is not None:
-                contents.add(self.TPBDetailItem)
+            if BPBDetailItem is not None:
+                contents.add(self.BPBDetailItem)
 
         oldView = self.childrenBlocks.first()
         treeChanged = newView is not oldView
@@ -131,8 +131,8 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                     treeChanged or
                     hints.get ("sendSetContents", False)):
                     newView.postEventByName("SetContents",
-                                            {'item':TPBDetailItem,
-                                             'collection': self.TPBDetailItemCollection})
+                                            {'item':BPBDetailItem,
+                                             'collection': self.BPBDetailItemCollection})
 
                 if not hasattr (newView, "widget"):
                     newView.render()
@@ -144,7 +144,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
 
-class TrunkDelegate(schema.Item):
+class BPBDelegate(schema.Item):
     """
     A mechanism to map an item to a view: call its getTrunkForKeyItem(item)
     to get the view for that item.
@@ -159,8 +159,8 @@ class TrunkDelegate(schema.Item):
     """
 
     trunkParentBlocks = schema.Sequence(
-        TrunkParentBlock,
-        inverse = TrunkParentBlock.trunkDelegate,
+        BranchPointBlock,
+        inverse = BranchPointBlock.trunkDelegate,
         required = True,
     )
 

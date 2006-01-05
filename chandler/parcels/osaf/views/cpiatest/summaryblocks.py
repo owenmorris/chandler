@@ -34,10 +34,10 @@ def make_summaryblocks(parcel):
                 columnReadOnly=
                     [True, True, False, True],
                 selection=[[0,0]]),
-            TrunkParentBlock.template('TableSummaryDetailTPB',
+            BranchPointBlock.template('TableSummaryDetailBPB',
                 trunkDelegate=\
-                    detail.DetailTrunkDelegate.update(parcel,
-                        'TableSummaryDetailTrunkDelegate',
+                    detail.DetailBPBDelegate.update(parcel,
+                        'TableSummaryDetailBPBDelegate',
                          trunkStub=detailblocks.DetailRoot))
             ]).install(parcel) # SplitterWindow TableSummaryViewTemplate
 
@@ -103,10 +103,10 @@ def make_summaryblocks(parcel):
                                 contents=app.allCollection)
                             ]),
                     ]),
-            TrunkParentBlock.template('CalendarDetailTPB',
+            BranchPointBlock.template('CalendarDetailBPB',
                 trunkDelegate= \
-                    detail.DetailTrunkDelegate.update(parcel,
-                        'CalendarDetailTrunkDelegate',
+                    detail.DetailBPBDelegate.update(parcel,
+                        'CalendarDetailBPBDelegate',
                         trunkStub=detailblocks.DetailRoot))
             ]).install(parcel)
     

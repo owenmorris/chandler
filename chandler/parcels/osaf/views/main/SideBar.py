@@ -338,9 +338,9 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             """
               Gray text forground color if the collection is empty
             """
-            sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
-            if sidebarTPB is not None:
-                filteredCollection = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item,
+            sidebarBPB = Block.Block.findBlockByName ("SidebarBPB")
+            if sidebarBPB is not None:
+                filteredCollection = sidebarBPB.trunkDelegate._mapItemToCacheKeyItem(item,
                                                                                      {"getOnlySelectedCollection": True})
                 if filteredCollection.isEmpty():
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
@@ -918,7 +918,7 @@ class SidebarBlock(ControlBlocks.Table):
             key = os.path.basename (str (self.filterKind.itsPath))
         return item.displayNameAlternatives [key]
 
-class SidebarTrunkDelegate(Trunk.TrunkDelegate):
+class SidebarBPBDelegate(Trunk.BPBDelegate):
 
     tableTemplatePath = schema.One(schema.Text)
     calendarTemplatePath = schema.One(schema.Text)
@@ -1058,7 +1058,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         if isinstance(item, AbstractCollection):
             return item
 
-class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):
+class CPIATestSidebarBPBDelegate(Trunk.BPBDelegate):
 
     templatePath = schema.One(schema.Text)
 

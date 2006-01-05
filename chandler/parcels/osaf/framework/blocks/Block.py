@@ -72,14 +72,14 @@ class Block(schema.Item):
 
     contextMenu = schema.One("ControlBlocks.ContextMenu") 
 
-    TPBDetailItemOwner = schema.Sequence(
+    BPBDetailItemOwner = schema.Sequence(
         "Block", 
-        otherName = "TPBDetailItem"  # TrunkParentBlock/TPBDetailItem
+        otherName = "BPBDetailItem"  # BranchPointBlock/BPBDetailItem
     )
 
-    TPBSelectedItemOwner = schema.Sequence(
+    BPBSelectedItemOwner = schema.Sequence(
         "Block",
-        otherName = "TPBSelectedItem"     # TrunkParentBlock/TPBSelectedItem
+        otherName = "BPBSelectedItem"     # BranchPointBlock/BPBSelectedItem
     )
 
     viewContainer = schema.Sequence(

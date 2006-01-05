@@ -27,7 +27,7 @@ from Detail import (
     DetailSynchronizedAttributeEditorBlock,
     DetailSynchronizedContentItemDetail,
     DetailSynchronizedLabeledTextAttributeBlock, 
-    DetailTrunkDelegate, 
+    DetailBPBDelegate, 
     DetailTrunkSubtree, 
     EmptyPanelBlock,
     HTMLDetailArea,

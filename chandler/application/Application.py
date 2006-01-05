@@ -413,7 +413,7 @@ class wxApplication (wx.App):
                 for child in block.childrenBlocks:
                     deleteAllTrunkCaches (child)
                 import osaf.framework.blocks.Trunk as Trunk
-                if isinstance (block, Trunk.TrunkParentBlock):
+                if isinstance (block, Trunk.BranchPointBlock):
                     block.trunkDelegate.deleteCache()
 
             frame = getattr (mainViewRoot, 'frame', None)

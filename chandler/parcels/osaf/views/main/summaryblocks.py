@@ -16,10 +16,10 @@ def make_summaryblocks(parcel):
     blocks = schema.ns('osaf.framework.blocks', view)
     
     # Our detail views share the same delegate instance and contents collection
-    detailTrunkDelegate = \
-        detail.DetailTrunkDelegate.update(parcel,
-                                          'DetailTrunkDelegateInstance',
-                                          trunkStub=detailblocks.DetailRoot)
+    detailBPBDelegate = \
+        detail.DetailBPBDelegate.update(parcel,
+                                        'DetailBPBDelegateInstance',
+                                        trunkStub=detailblocks.DetailRoot)
     detailContentsCollection = \
         pim.ListCollection.update(parcel, 'DetailContentsCollection')
     
@@ -42,8 +42,8 @@ def make_summaryblocks(parcel):
                 columnReadOnly=
                     [True, True, False, True],
                 selection=[[0,0]]),
-            TrunkParentBlock.template('TableSummaryDetailTPB',
-                trunkDelegate=detailTrunkDelegate,
+            BranchPointBlock.template('TableSummaryDetailBPB',
+                trunkDelegate=detailBPBDelegate,
                 contents=detailContentsCollection)
             ]).install(parcel) # SplitterWindow TableSummaryViewTemplate
 
@@ -86,11 +86,11 @@ def make_summaryblocks(parcel):
     MainCalendarControl = MainCalendarControlT.install(parcel)
     WelcomeEvent = schema.ns("osaf.app", view).WelcomeEvent
     
-    CalendarDetailTPB = TrunkParentBlock.template('CalendarDetailTPB',
-        trunkDelegate=detailTrunkDelegate,
+    CalendarDetailBPB = BranchPointBlock.template('CalendarDetailBPB',
+        trunkDelegate=detailBPBDelegate,
         contents=detailContentsCollection).install(parcel)
     
-    CalendarDetailTPB.TPBSelectedItem = WelcomeEvent
+    CalendarDetailBPB.BPBSelectedItem = WelcomeEvent
     detailContentsCollection.clear()
     detailContentsCollection.add(WelcomeEvent)
 
@@ -126,8 +126,8 @@ def make_summaryblocks(parcel):
                                 calendarContainer=CalendarSummaryView)
                             ]),
                     ]),
-            TrunkParentBlock.template('CalendarDetailTPB',
-                trunkDelegate=detailTrunkDelegate)
+            BranchPointBlock.template('CalendarDetailBPB',
+                trunkDelegate=detailBPBDelegate)
             ]).install(parcel)
     
     CalendarControl.update(parcel, 'MainCalendarControl',
@@ -137,5 +137,5 @@ def make_summaryblocks(parcel):
     # which is the key used for the None item)
     for keyType in (pim.Note, pim.CalendarEvent, pim.Task,
                     pim.mail.MailMessage, DetailTrunkSubtree):
-        detailTrunkDelegate.getTrunkForKeyItem(keyType.getKind(view))
+        detailBPBDelegate.getTrunkForKeyItem(keyType.getKind(view))
     
