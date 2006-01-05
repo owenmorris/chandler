@@ -11,12 +11,12 @@ class TestLargeImport(RepositoryTestCase):
             path = os.path.join(os.getenv('CHANDLERHOME') or '.',
                                 'parcels', 'osaf', 'sharing', 'tests')
 
-            conduit = Sharing.FileSystemConduit(name="conduit",
+            conduit = Sharing.FileSystemConduit("conduit",
                                                 sharePath=path,
                                                 shareName="3kevents.ics",
                                                 itsView=self.rep.view)
-            format = ICalendar.ICalendarFormat(name="format", itsView=self.rep.view)
-            share = Sharing.Share(name="share", conduit=conduit, format=format,
+            format = ICalendar.ICalendarFormat("format", itsView=self.rep.view)
+            share = Sharing.Share("share", conduit=conduit, format=format,
                                   itsView=self.rep.view)
             share.get()
 
