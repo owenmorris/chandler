@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     04/01/98
-// RCS-ID:      $Id: choicdgg.cpp,v 1.66 2005/11/02 09:49:16 CE Exp $
+// RCS-ID:      $Id: choicdgg.cpp,v 1.67 2006/01/05 11:26:07 SC Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -263,15 +263,23 @@ bool wxAnyChoiceDialog::Create(wxWindow *parent,
     styleDlg &= ~wxRESIZE_BORDER;
     styleDlg &= ~wxCAPTION;
 #endif
-
+#ifdef __WXMAC__
+    if ( !wxDialog::Create(parent, wxID_ANY, caption, pos, wxDefaultSize, styleDlg & (~wxCANCEL) ) )
+        return false;
+#else
     if ( !wxDialog::Create(parent, wxID_ANY, caption, pos, wxDefaultSize, styleDlg) )
         return false;
+#endif
 
     wxBoxSizer *topsizer = new wxBoxSizer( wxVERTICAL );
 
     // 1) text message
+#ifdef __WXMAC__
+    // align text and list at least on mac
+    topsizer->Add( CreateTextSizer( message ), 0, wxALL, wxLARGESMALL(15,0) );
+#else
     topsizer->Add( CreateTextSizer( message ), 0, wxALL, wxLARGESMALL(10,0) );
-
+#endif
     // 2) list box
     m_listbox = CreateList(n,choices,styleLbox);
 
@@ -287,11 +295,14 @@ bool wxAnyChoiceDialog::Create(wxWindow *parent,
 
 #else // __SMARTPHONE__/!__SMARTPHONE__
 
+    // Mac Human Interface Guidelines recommend not to use static lines as grouping elements
+#ifndef __WXMAC__
 #if wxUSE_STATLINE
     // 3) static line
     topsizer->Add( new wxStaticLine( this, wxID_ANY ), 0, wxEXPAND | wxLEFT|wxRIGHT|wxTOP, 10 );
 #endif
-
+#endif
+    
     // 4) buttons
     topsizer->Add( CreateButtonSizer( styleDlg & (wxOK|wxCANCEL) ), 0, wxEXPAND | wxALL, 10 );
 

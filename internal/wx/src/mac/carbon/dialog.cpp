@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog.cpp,v 1.42 2005/12/01 14:28:28 vell Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.43 2006/01/05 11:24:34 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,10 +19,12 @@
 
 #include "wx/mac/uma.h"
 
+
 // Lists to keep track of windows, so we can disable/enable them
 // for modal dialogs
 wxList wxModalDialogs;
 //wxList wxModelessWindows;  // Frames and modeless dialogs
+
 extern wxList wxPendingDelete;
 
 IMPLEMENT_DYNAMIC_CLASS(wxDialog, wxTopLevelWindow)
@@ -39,25 +41,32 @@ BEGIN_EVENT_TABLE(wxDialog, wxDialogBase)
   EVT_CLOSE(wxDialog::OnCloseWindow)
 END_EVENT_TABLE()
 
+
 void wxDialog::Init()
 {
     m_isModalStyle = false;
 }
 
-bool wxDialog::Create(wxWindow *parent, wxWindowID id,
-           const wxString& title,
-           const wxPoint& pos,
-           const wxSize& size,
-           long style,
-           const wxString& name)
+bool wxDialog::Create(wxWindow *parent,
+    wxWindowID id,
+    const wxString& title,
+    const wxPoint& pos,
+    const wxSize& size,
+    long style,
+    const wxString& name)
 {
-    SetExtraStyle(GetExtraStyle() | wxTOPLEVEL_EX_DIALOG);
+    SetExtraStyle( GetExtraStyle() | wxTOPLEVEL_EX_DIALOG );
 
     // All dialogs should really have this style
     style |= wxTAB_TRAVERSAL;
 
-    if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style & ~(wxYES|wxOK|wxNO /*|wxCANCEL*/) , name) )
+    if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style & ~(wxYES | wxOK | wxNO /* | wxCANCEL*/) , name) )
         return false;
+
+    HIViewRef growBoxRef = 0 ;
+    OSStatus err = HIViewFindByID( HIViewGetRoot( (WindowRef) m_macWindow ) , kHIViewWindowGrowBoxID , &growBoxRef );
+    if ( err == noErr && growBoxRef != 0 )
+        HIGrowBoxViewSetTransparent( growBoxRef , true ) ;
 
     return true;
 }
@@ -69,6 +78,7 @@ void wxDialog::SetModal(bool flag)
         m_isModalStyle = true;
 
         wxModelessWindows.DeleteObject(this);
+
 #if TARGET_CARBON
         SetWindowModality( (WindowRef) MacGetWindowRef() , kWindowModalityAppModal , NULL ) ;
 #endif
@@ -102,6 +112,7 @@ void wxDialog::OnCharHook(wxKeyEvent& event)
 
         return;
     }
+
     // We didn't process this event.
     event.Skip();
 }
@@ -121,16 +132,12 @@ bool wxDialog::IsModalShowing() const
 bool wxDialog::Show(bool show)
 {
     if ( !wxDialogBase::Show(show) )
-    {
         // nothing to do
         return false;
-    }
 
     if ( show )
-    {
         // usually will result in TransferDataToWindow() being called
         InitDialog();
-    }
 
     if ( m_isModalStyle )
     {
@@ -168,6 +175,7 @@ void wxDialog::DoShowModal()
     bool formerModal = s_macIsInModalLoop ;
     s_macIsInModalLoop = true ;
 #endif
+
     while ( IsModalShowing() )
     {
         wxTheApp->MacDoOneEvent() ;
@@ -190,6 +198,7 @@ int wxDialog::ShowModal()
         SetModal(true);
 
     Show(true);
+
     return GetReturnCode();
 }
 
