@@ -84,10 +84,10 @@ def main():
             type, value, stack = sys.exc_info()
             backtrace = traceback.format_exception(type, value, stack)
             frames = 8
-            formattedBacktrace = "".join(backtrace[len(backtrace)-frames:])
+            formattedBacktrace = "".join(backtrace[-frames:])
 
             message = ("Chandler encountered an unexpected problem while trying to start.\n" + \
-                      "Here are the bottom %s frames of the stack:\n%s") % (frames, formattedBacktrace)
+                      "Here are the bottom %s frames of the stack:\n%s") % (frames - 1, formattedBacktrace)
             logging.exception(message)
 
             try:
