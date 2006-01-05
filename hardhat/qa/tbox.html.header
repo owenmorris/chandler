@@ -4,6 +4,7 @@
     body           { margin: 0 }
     p              { font-size: small; }
     table          { font-size: small; }
+    tr:hover       { background-color: lightgrey; } 
     td.ok          { text-align: center; }
     td.good        { text-align: center; background: #11DD11; }
     td.warn        { text-align: center; background: orange; }
