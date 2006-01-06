@@ -273,29 +273,28 @@ def MakeCollections(parcel):
         rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue / 360.0, 0.5, 1.0))
         return ColorType (rgb.red, rgb.green, rgb.blue, 255)
 
-    collectionColors = CollectionColors.update(parcel, 'collectionColors',
-                                               colors = [GetColorForHue (210),
-                                                         GetColorForHue (120),
-                                                         GetColorForHue (0),
-                                                         GetColorForHue (30),
-                                                         GetColorForHue (270),
-                                                         GetColorForHue (240),
-                                                         GetColorForHue (330)],
-                                               colorIndex = 0
-                       )
+    collectionColors = CollectionColors.update(
+        parcel, 'collectionColors',
+        colors = [GetColorForHue (210),
+                  GetColorForHue (120),
+                  GetColorForHue (0),
+                  GetColorForHue (30),
+                  GetColorForHue (270),
+                  GetColorForHue (240),
+                  GetColorForHue (330)],
+        colorIndex = 0)
     
-    TrashCollection = \
-        ListCollection.update(parcel, 'TrashCollection',
-            displayName=_(u"Trash"),
-            renameable=False,
-            dontDisplayAsCalendar=True,
-            outOfTheBoxCollection = True
-        )
+    TrashCollection = ListCollection.update(
+        parcel, 'TrashCollection',
+        displayName=_(u"Trash"),
+        renameable=False,
+        dontDisplayAsCalendar=True,
+        outOfTheBoxCollection = True)
 
-    notes = KindCollection.update(parcel, 'notes')
-    # workaround bug 3892
-    notes.kind = pim.Note.getKind(parcel.itsView)
-    notes.recursive=True
+    notes = KindCollection.update(
+        parcel, 'notes',
+        kind = pim.Note.getKind(parcel.itsView),
+        recursive = True)
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=notes,
@@ -326,22 +325,22 @@ def MakeCollections(parcel):
     # kludge to improve on bug 4144 (not a good long term fix but fine for 0.6)
     allCollection.rep.addIndex('__adhoc__', 'numeric')
 
-    events = \
-        KindCollection.update(parcel, 'events')
-    # workaround bug 3892
-    events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
-    events.recursive=True
+    events = KindCollection.update(
+        parcel, 'events',
+        kind = pim.CalendarEventMixin.getKind(parcel.itsView),
+        recursive = True)
+
     events.rep.addIndex("effectiveStart", 'compare', compare='cmpStartTime',
                         monitor=('startTime', 'allDay', 'anyTime'))
     events.rep.addIndex('effectiveEnd', 'compare', compare='cmpEndTime',
                     monitor=('startTime', 'allDay', 'anyTime', 'duration'))
     
     # bug 4477
-    eventsWithReminders = \
-        FilteredCollection.update(parcel, 'eventsWithReminders',
-                                  source=events,
-                                  filterExpression='item.reminders',
-                                  filterAttributes=['reminders'])
+    eventsWithReminders = FilteredCollection.update(
+        parcel, 'eventsWithReminders',
+        source=events,
+        filterExpression='item.reminders',
+        filterAttributes=['reminders'])
 
     # the monitor list assumes all reminders will be relativeTo
     # effectiveStartTime, which is true in 0.6, but may not be in the future
@@ -352,32 +351,32 @@ def MakeCollections(parcel):
     
     masterFilter = "item.hasTrueAttributeValue('occurrences') and "\
                    "item.hasTrueAttributeValue('rruleset')"
-    masterEvents = \
-        FilteredCollection.update(parcel, 'masterEvents',
-                                  source = events,
-                                  filterExpression = masterFilter,
-                                  filterAttributes = ['occurrences', 'rruleset'])
+    masterEvents = FilteredCollection.update(
+        parcel, 'masterEvents',
+        source = events,
+        filterExpression = masterFilter,
+        filterAttributes = ['occurrences', 'rruleset'])
+
     masterEvents.rep.addIndex("recurrenceEnd", 'compare', compare='cmpRecurEnd',
                         monitor=('recurrenceEnd'))
 
-    locations = \
-       KindCollection.update(parcel, 'locations')
-    # workaround bug 3892
-    locations.kind = pim.Location.getKind(parcel.itsView)
-    locations.recursive = True
+    locations = KindCollection.update(
+        parcel, 'locations',
+        kind = pim.Location.getKind(parcel.itsView),
+        recursive = True)
+
     locations.rep.addIndex('locationName', 'attribute', attribute = 'displayName')
 
-    mailCollection = \
-         KindCollection.update(parcel, 'mail')
-    # workaround bug 3892
-    mailCollection.kind=pim.mail.MailMessageMixin.getKind(parcel.itsView)
-    mailCollection.recursive=True
+    mailCollection = KindCollection.update(
+        parcel, 'mail',
+        kind = pim.mail.MailMessageMixin.getKind(parcel.itsView),
+        recursive = True)
 
-    inSource = \
-        FilteredCollection.update(parcel, 'inSource',
-            source=mailCollection,
-            filterExpression=u'getattr(item, \'isInbound\', False)',
-            filterAttributes=['isInbound'])
+    inSource = FilteredCollection.update(
+        parcel, 'inSource',
+        source=mailCollection,
+        filterExpression=u'getattr(item, \'isInbound\', False)',
+        filterAttributes=['isInbound'])
 
     # The "In" collection
     inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',
@@ -389,11 +388,11 @@ def MakeCollections(parcel):
         visible = False
     ).setup(source=inSource)
 
-    outSource = \
-        FilteredCollection.update(parcel, 'outSource',
-            source=mailCollection,
-            filterExpression=u'getattr(item, \'isOutbound\', False)',
-            filterAttributes=['isOutbound'])
+    outSource = FilteredCollection.update(
+        parcel, 'outSource',
+        source=mailCollection,
+        filterExpression=u'getattr(item, \'isOutbound\', False)',
+        filterAttributes=['isOutbound'])
 
     # The "Out" collection
     outCollection = InclusionExclusionCollection.update(parcel, 'outCollection',
@@ -406,8 +405,9 @@ def MakeCollections(parcel):
     ).setup(source=outSource)
 
     # The "Scripts" collection
-    scriptsCollection = KindCollection.update(parcel, 'scripts')
-    scriptsCollection.kind = scripting.Script.getKind(parcel.itsView)
+    scriptsCollection = KindCollection.update(
+        parcel, 'scripts',
+        kind = scripting.Script.getKind(parcel.itsView))
 
     InclusionExclusionCollection.update(parcel, 'scriptsCollection',
         displayName = _(u"Scripts"),
