@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     30-April-2001
-# RCS-ID:      $Id: make_installer.py,v 1.75 2005/06/05 04:51:50 RD Exp $
+# RCS-ID:      $Id: make_installer.py,v 1.76 2006/01/06 07:05:08 RD Exp $
 # Copyright:   (c) 2003 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -361,7 +361,8 @@ LicenseFile = licence\licence.txt
 Source: "demo\demo.py";                     DestDir: "{app}\demo"; DestName: "demo.pyw"; 
 Source: "demo\*.py";                        DestDir: "{app}\demo"; 
 Source: "demo\*.xml";                       DestDir: "{app}\demo"; 
-Source: "demo\*.txt";                       DestDir: "{app}\demo"; 
+Source: "demo\*.txt";                       DestDir: "{app}\demo";
+Source: "demo\*.ico";                       DestDir: "{app}\demo";
 
 Source: "demo\bitmaps\*.bmp";               DestDir: "{app}\demo\bitmaps"; 
 Source: "demo\bitmaps\*.gif";               DestDir: "{app}\demo\bitmaps"; 
