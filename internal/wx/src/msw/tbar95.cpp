@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.165 2005/12/01 23:32:47 vell Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.166 2006/01/06 05:25:44 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -314,8 +314,9 @@ void wxToolBar::Recreate()
         m_disabledImgList = NULL;
     }
 
+    // OSAF: RD removed UpdateSize - regress against Bug 3750
     Realize();
-    UpdateSize();
+//    UpdateSize();
 }
 
 wxToolBar::~wxToolBar()
@@ -1059,8 +1060,10 @@ bool wxToolBar::Realize()
     }
 
     // OSAF: disable this to fix a bug; re-enable when a deeper, better fix is developed...
+    // OSAF: RD added UpdateSize - regress against Bug 3750
     InvalidateBestSize();
-//    SetBestFittingSize();
+    SetBestFittingSize();
+    UpdateSize();
 
     return true;
 }
@@ -1354,6 +1357,8 @@ void wxToolBar::OnEraseBackground(wxEraseEvent& event)
     if (!bgCol.Ok() || !UseBgCol())
     {
 #if !defined(__WXWINCE__) && wxUSE_UXTHEME
+        // SF patch 1358919
+
         // we should draw parent background if possible on themed system
         // for toolbar using DrawThemeParentBackground, which will make toolbar
         // transparent for example on notebooks
