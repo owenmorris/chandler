@@ -10,12 +10,7 @@ from i18n import OSAFMessageFactory as _
 from osaf.framework.blocks import Block
 from osaf.framework.blocks.detail import Detail
 from osaf.framework.types.DocumentTypes import SizeType, RectType
-
-class _CertificateViewController(Block.Block):
-    def onCertificateViewBlockEvent(self, event):
-        from osaf.framework.certstore import certificate
-        import application.Globals as Globals
-        certificate.createSidebarView(self.itsView, Globals.views[0])
+from osaf.pim import KindCollection
 
 class _CertificateImportController(Block.Block):
     def onCertificateImportBlockEvent(self, event):
@@ -58,26 +53,26 @@ def installParcel(parcel, oldVersion=None):
     certstore = schema.ns("osaf.framework.certstore", parcel)
     detail    = schema.ns("osaf.framework.blocks.detail", parcel)
 
-    # View
+    certStore = KindCollection.update(
+        parcel, 'CertificateStore',
+        displayName = _(u"Certificate Store"),
+        kind = certstore.Certificate.getKind(parcel.itsView),
+        recursive = True).setup()
 
-    view_controller = _CertificateViewController.update(
-        parcel, "view_controller"
-    )
-
-    CertificateViewEvent = blocks.BlockEvent.update(
-        parcel, "CertificateViewEvent",
-        blockName = "CertificateViewBlock",
-        dispatchEnum = "SendToBlockByReference",
-        destinationBlockReference = view_controller,
-        commitAfterDispatch = True,
-    )
+    addCertificateToSidebarEvent = Block.ModifyCollectionEvent.template(
+        'addCertificateToSidebarEvent',
+        methodName = 'onModifyCollectionEvent',
+        dispatchToBlockName = 'MainView',
+        selectInBlockNamed = 'Sidebar',
+        items = [certStore],
+        dispatchEnum = 'SendToBlockByName').install(parcel)
 
     blocks.MenuItem.update(
         parcel, "CertificateView",
         blockName = "CertificateView",
         title = u"Manage Certificates",
-        event = CertificateViewEvent,
-        eventsForNamedLookup = [CertificateViewEvent],
+        event = addCertificateToSidebarEvent,
+        eventsForNamedLookup = [addCertificateToSidebarEvent],
         parentBlock = main.TestMenu,
     )
 

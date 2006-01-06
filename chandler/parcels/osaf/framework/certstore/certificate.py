@@ -6,9 +6,8 @@ Certificate
 """
 __parcel__ = "osaf.framework.certstore"
 
-__all__ = ['Certificate', 'CertificateStore',
-           'importCertificate', 'importCertificateDialog', 'createSidebarView',
-           'findCertificate']
+__all__ = ['Certificate', 'importCertificate',
+           'importCertificateDialog', 'findCertificate']
 
 import os, logging, sys
 
@@ -34,25 +33,6 @@ class typeEnum(schema.Enumeration):
     """
     schema.kindInfo(displayName = u"Type Enumeration")
     values = constants.TYPE_ROOT, constants.TYPE_SITE
-
-
-class CertificateStore(pim.KindCollection):
-    """
-    Certificate Store
-
-    @see: U{model<../model/parcels/osaf/framework/certstore/CertificateStore/index.html>}
-    """
-    schema.kindInfo(displayName = _(u"Certificate Store"))
-    def __init__(self, *args, **kw):
-        super(CertificateStore, self).__init__(*args, **kw)
-        # XXX Why isn't this picked from the kindInfo above?
-        self.displayName = _(u'Certificate Store')
-
-        self.kind = self.itsView.findPath('//parcels/osaf/framework/certstore/Certificate')
-
-        self.color = schema.ns('osaf.app',
-                               self.itsView).collectionColors.nextColor()
-
 
 class Certificate(pim.ContentItem):
     """
@@ -326,26 +306,3 @@ def importCertificateDialog(repView):
         application.dialogs.Util.ok(app.mainFrame, messages.ERROR,
             _(u"Could not add certificate from: %(path)s\nCheck the path and try again.") % {'path': path})
         return
-
-
-def createSidebarView(repView, cpiaView):
-    """
-    Add the certificate store entry into the sidebar.
-    """
-    # First see if the certificate store already is in the sidebar, and if so
-    # don't add more entries.
-    sidebarCollection = schema.ns('osaf.app', repView).sidebarCollection
-    for item in sidebarCollection:
-        # XXX It is kind of heavy-weight to have the CertificateStore class
-        # XXX just so we can see if this collection is certstore. Besides,
-        # XXX isinstance is bad.
-        if isinstance(item, CertificateStore):
-            cpiaView.postEventByName('ApplicationBarAll', {})
-            cpiaView.postEventByName('RequestSelectSidebarItem', {'item': item})
-            return
-
-    certstore = CertificateStore(itsView=repView)
-
-    cpiaView.postEventByName('ApplicationBarAll', {})
-    schema.ns("osaf.app", cpiaView).sidebarCollection.add (certstore)
-    # Need to SelectFirstItem -- DJA

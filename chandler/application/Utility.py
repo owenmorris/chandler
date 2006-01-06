@@ -24,7 +24,7 @@ from repository.persistence.RepositoryError \
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "130" # john: Renamed TrunkParentBlock BranchPointBlock
+SCHEMA_VERSION = "131" # john: Schema change necessary for simplification of certificate store
 
 logger = None # initialized in initLogging()
 
