@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.182 2005/10/07 21:33:00 VZ Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.183 2006/01/06 16:52:54 VZ Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -389,8 +389,28 @@
     #define wxMbstowcs mbstowcs
     #define wxWcstombs wcstombs
 #else /* !TCHAR-aware compilers */
+    /*
+        There are 2 unrelated problems with these functions under Mac:
+            a) Metrowerks MSL CRT implements them strictly in C99 sense and
+               doesn't support (very common) extension of allowing to call
+               mbstowcs(NULL, ...) which makes it pretty useless as you can't
+               know the size of the needed buffer
+            b) OS X <= 10.2 declares and even defined these functions but
+               doesn't really implement them -- they always return an error
 
-    #if !defined(__MWERKS__) && defined(__DARWIN__) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_2 )
+        So use our own replacements in both cases.
+     */
+    #if defined(__MWERKS__)
+        #define wxNEED_WX_MBSTOWCS
+    #endif
+
+    #ifdef __DARWIN__
+        #if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_2
+            #define wxNEED_WX_MBSTOWCS
+        #endif
+    #endif
+
+    #ifdef wxNEED_WX_MBSTOWCS
         /* even though they are defined and "implemented", they are bad and just
            stubs so we need our own - we need these even in ANSI builds!! */
         WXDLLIMPEXP_BASE size_t wxMbstowcs (wchar_t *, const char *, size_t);
