@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     31-October-1999
-// RCS-ID:      $Id: _dataobj.i,v 1.20 2005/12/30 23:01:18 RD Exp $
+// RCS-ID:      $Id: _dataobj.i,v 1.21 2006/01/06 07:05:05 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -803,7 +803,7 @@ public:
 DocStr(wxURLDataObject,
 "This data object holds a URL in a format that is compatible with some
 browsers such that it is able to be dragged to or from them.", "");
-class wxURLDataObject : public wxDataObjectComposite {
+class wxURLDataObject : public wxDataObject/*Composite*/ {
 public:
     wxURLDataObject();
 

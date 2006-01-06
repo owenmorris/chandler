@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     23-Nov-2004
-// RCS-ID:      $Id: media.i,v 1.10 2005/12/30 23:01:15 RD Exp $
+// RCS-ID:      $Id: media.i,v 1.11 2006/01/06 07:05:05 RD Exp $
 // Copyright:   (c) 2004 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -122,6 +122,7 @@ public:
 
 const wxEventType wxEVT_MEDIA_FINISHED = 0;
 const wxEventType wxEVT_MEDIA_STOP = 0;
+const wxEventType wxEVT_MEDIA_LOADED = 0;
 
 #endif
 %}

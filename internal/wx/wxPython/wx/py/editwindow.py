@@ -1,8 +1,8 @@
 """EditWindow class."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: editwindow.py,v 1.11 2005/12/30 23:00:54 RD Exp $"
-__revision__ = "$Revision: 1.11 $"[11:-2]
+__cvsid__ = "$Id: editwindow.py,v 1.12 2006/01/06 07:04:58 RD Exp $"
+__revision__ = "$Revision: 1.12 $"[11:-2]
 
 import wx
 from wx import stc
@@ -243,10 +243,6 @@ class EditWindow(stc.StyledTextCtrl):
 
     def GetSelection(self):
         return self.GetAnchor(), self.GetCurrentPos()
-
-    def SetSelection(self, start, end):
-        self.SetSelectionStart(start)
-        self.SetSelectionEnd(end)
 
     def ShowPosition(self, pos):
         line = self.LineFromPosition(pos)

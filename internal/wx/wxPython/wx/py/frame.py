@@ -1,8 +1,8 @@
 """Base frame with menu."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: frame.py,v 1.7 2005/12/30 23:00:54 RD Exp $"
-__revision__ = "$Revision: 1.7 $"[11:-2]
+__cvsid__ = "$Id: frame.py,v 1.8 2006/01/06 07:04:58 RD Exp $"
+__revision__ = "$Revision: 1.8 $"[11:-2]
 
 import wx
 import os
@@ -544,6 +544,7 @@ class Frame(wx.Frame):
                 event.Check(win.lineNumbers)
             elif id == ID_AUTO_SAVESETTINGS:
                 event.Check(self.autoSaveSettings)
+                event.Enable(self.config is not None)
             elif id == ID_SAVESETTINGS:
                 event.Enable(self.config is not None and
                              hasattr(self, 'DoSaveSettings'))
@@ -552,12 +553,15 @@ class Frame(wx.Frame):
                 
             elif id == ID_EXECSTARTUPSCRIPT:
                 event.Check(self.execStartupScript)
+                event.Enable(self.config is not None)
 
             elif id == ID_SAVEHISTORY:
-                event.Check(self.saveHistory and self.dataDir is not None)
+                event.Check(self.saveHistory)
+                event.Enable(self.dataDir is not None)
             elif id == ID_EDITSTARTUPSCRIPT:
                 event.Enable(hasattr(self, 'EditStartupScript'))
-
+                event.Enable(self.dataDir is not None)
+                
             elif id == ID_FIND:
                 event.Enable(hasattr(win, 'DoFindNext'))
             elif id == ID_FINDNEXT:
