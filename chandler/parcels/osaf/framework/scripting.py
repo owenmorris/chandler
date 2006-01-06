@@ -1,6 +1,4 @@
-__version__ = "$Revision: 6708 $"
-__date__ = "$Date: 2005-08-19 17:29:03 -0700 (Fri, 19 Aug 2005) $"
-__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2005-2006 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
@@ -760,9 +758,11 @@ class User(object):
             # return-key down
             ret_d = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
             ret_d.m_keyCode = wx.WXK_RETURN
+            ret_d.SetEventObject(widget)
             # return-key up
             ret_up = wx.KeyEvent(wx.wxEVT_KEY_UP)
             ret_up.m_keyCode = wx.WXK_RETURN
+            ret_up.SetEventObject(widget)
             # text updated event
             tu = wx.CommandEvent(wx.wxEVT_COMMAND_TEXT_UPDATED)
             tu.SetEventObject(widget)

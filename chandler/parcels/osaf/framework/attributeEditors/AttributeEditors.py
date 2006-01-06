@@ -1,13 +1,12 @@
 """
 Attribute Editors
 
-@date:      $Date$
-@copyright: Copyright (c) 2003-2005 Open Source Applications Foundation
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 __parcel__ = "osaf.framework.attributeEditors"
 
-import os, cStringIO
+import os, cStringIO, re
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
 from osaf.pim.tasks import TaskMixin
@@ -21,8 +20,10 @@ from osaf.framework.blocks import DragAndDrop, DrawingUtilities, Styles
 import logging
 from operator import itemgetter
 from datetime import datetime, time, timedelta
-from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition, ICUtzinfo
-from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild, debugName
+from PyICU import (DateFormat, DateFormatSymbols, ICUError, ICUtzinfo, 
+                   ParsePosition, SimpleDateFormat, UnicodeString)
+from osaf.framework.blocks.Block import (ShownSynchronizer, 
+                                         wxRectangularChild, debugName)
 from osaf.pim.items import ContentItem
 from application import schema
 from i18n import OSAFMessageFactory as _
@@ -757,7 +758,8 @@ class AETypeOverTextCtrl(wxRectangularChild):
         event.Skip()
 
     def OnEditKeyUp(self, event):
-        if event.m_keyCode == wx.WXK_RETURN:
+        if event.m_keyCode == wx.WXK_RETURN and \
+           not getattr(event.GetEventObject(), 'ateLastKey', False):
             # not needed: Navigating will make us lose focus
             # NotifyBlockToSaveValue(self)
             self.Navigate()
@@ -807,6 +809,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
             else:
                 sizeChangedMethod()
 
+    def GetInsertionPoint(self): return self.shownControl.GetInsertionPoint()
     def GetValue(self): return self.shownControl.GetValue()
     def SetValue(self, *args): return self.shownControl.SetValue(*args)
     def SetForegroundColour(self, *args): self.shownControl.SetForegroundColour(*args)
@@ -844,7 +847,130 @@ class AETypeOverTextCtrl(wxRectangularChild):
     
     def SetEditable(self, editable):
         self.editControl.SetEditable(editable)
+
+class wxAutoCompleter(wx.ListBox):
+    """
+    A listbox that pops up for autocompletion
+    """
+    # For now, measuring the font isn't working well;
+    # use these 'adjustments'
+    # @@@ ugh: ought to find a better way than this!
+    if '__WXMAC__' in wx.PlatformInfo:
+        totalSlop = 5
+        unitSlop = 4
+        defaultBorderStyle = wx.STATIC_BORDER
+    elif '__WXGTK__' in wx.PlatformInfo:
+        totalSlop = 2
+        unitSlop = 4        
+        defaultBorderStyle = wx.SIMPLE_BORDER
+    else:
+        totalSlop = 2
+        unitSlop = 0
+        defaultBorderStyle = wx.SIMPLE_BORDER
+
+    def __init__(self, adjacentControl, completionCallback, 
+                 style=wx.LB_NEEDED_SB | wx.LB_SINGLE | defaultBorderStyle):
+        self.choices = []
+        self.completionCallback = completionCallback
+        self.adjacentControl = adjacentControl
         
+        # We hang ourselves off the top-level window, though we remember
+        # the 'parent' we were passed so that we can place ourself
+        # adjacent to it.
+        topLevelWindow = wx.GetTopLevelParent(adjacentControl)
+        super(wxAutoCompleter, self).__init__(topLevelWindow, id=wx.ID_ANY,
+                                              choices=[u""],
+                                              size=wx.Size(0,0),
+                                              style=style)
+        self.reposition()
+        theFont = adjacentControl.GetFont()
+        self.lineHeight = Styles.getMeasurements(theFont).height
+                
+        # self.SetFont(theFont)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onListClick)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.onListClick)
+        eatEvent = lambda event: None
+        self.Bind(wx.EVT_RIGHT_DOWN, eatEvent)
+        self.Bind(wx.EVT_RIGHT_DCLICK, eatEvent)
+        
+        self.Raise() # make us appear on top
+
+    def reposition(self):
+        """ 
+        Put us in the proper spot, relative to the control we're supposed
+        to be adjacent to.
+        """
+        # Convert the position of the control in its own coordinate system
+        # to global coordinates, then back to the coordinate system of the 
+        # top-level window... offset by the height of the original control,
+        # so we'll appear below it.
+        adjacentControl = self.adjacentControl
+        adjControlBounds = adjacentControl.GetRect()
+        topLevelWindow = wx.GetTopLevelParent(adjacentControl)
+        pos = topLevelWindow.ScreenToClient(\
+            adjacentControl.GetParent().ClientToScreen(adjControlBounds.GetPosition()))
+        pos.y += adjControlBounds.height
+        self.SetPosition(pos)
+
+    def resize(self):
+        """ 
+        Make us the proper size, given our current list of choices.
+        """
+        size = self.GetAdjustedBestSize()
+        size.height = ((self.lineHeight + self.unitSlop) * len(self.choices)) \
+            + self.totalSlop
+        self.SetClientSize(size)
+        
+    def onListClick(self, event):
+        """ 
+        Intercept clicks: by handling them 'raw', we prevent the popup
+        from stealing focus
+        """
+        # Figure out which entry got hit
+        index = event.GetPosition().y / (self.lineHeight + self.unitSlop)
+        if index < len(self.choices):            
+            self.SetSelection(index)
+            self.completionCallback(self.GetStringSelection())
+        # Eat the event - don't skip.
+    
+    def processKey(self, keyCode):
+        """ 
+        If this key is useful in autocompletion, process it and return
+        True. Otherwise, return False.
+        """
+        if keyCode == wx.WXK_ESCAPE:
+            self.completionCallback(None)
+            return True
+
+        selectionIndex = self.GetSelection() 
+        if keyCode == wx.WXK_DOWN:
+            selectionIndex += 1
+            if selectionIndex < len(self.choices):
+                self.SetSelection(selectionIndex)
+            return True
+
+        if keyCode == wx.WXK_UP:
+            selectionIndex -= 1
+            if selectionIndex >= 0:
+                self.SetSelection(selectionIndex)
+            return True
+        
+        if keyCode == wx.WXK_RETURN:
+            # Finish autocompleting, if we have a selection
+            if selectionIndex != wx.NOT_FOUND:
+                self.completionCallback(self.GetStringSelection())
+                return True
+
+        return False
+            
+    def updateChoices(self, choices):
+        if self.choices != choices:
+            self.choices = choices
+            choiceStrings = [ unicode(c) for c in choices ]
+            choiceStrings.sort()
+            self.Set(choiceStrings)
+            self.resize()
+
 class StringAttributeEditor (BaseAttributeEditor):
     """ 
     Uses a Text Control to edit attributes in string form. 
@@ -916,6 +1042,11 @@ class StringAttributeEditor (BaseAttributeEditor):
         # control in 'edit' mode.
         useStaticText = self.EditInPlace() and not forEditing
                 
+        # We'll do autocompletion if someone implements the get-matches method
+        # @@@ not for now! WX relver 30 broke it.
+        doAutoCompletion = False # getattr(type(self), 'generateCompletionMatches', None) \
+                         #is not None
+
         # Figure out the size we should be
         # @@@ There's a wx catch-22 here: The text ctrl on Windows will end up
         # horizonally scrolled to expose the last character of the text if this
@@ -962,12 +1093,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                                          size, style, 
                                          staticSize=wx.Size(width, staticHeight)
                                          )
-            editControl = control.editControl
-            editControl.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
-            editControl.Bind(wx.EVT_TEXT, self.onTextChanged)      
-            editControl.Bind(wx.EVT_SET_FOCUS, self.onGainFocus)
-            editControl.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
-            
+            bindToControl = control.editControl
         else:
             style |= wx.TE_AUTO_SCROLL
             try:
@@ -981,12 +1107,18 @@ class StringAttributeEditor (BaseAttributeEditor):
                 
             control = AENonTypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
                                             size, style)
-            control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
-            control.Bind(wx.EVT_TEXT, self.onTextChanged)      
-            control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-            control.Bind(wx.EVT_SET_FOCUS, self.onGainFocus)
-            control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
-        
+            bindToControl = control
+            bindToControl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+
+        bindToControl.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        if doAutoCompletion: # We only need these if we're autocompleting:
+            bindToControl.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+            bindToControl.Bind(wx.EVT_SIZE, self.onResize)
+            bindToControl.Bind(wx.EVT_MOVE, self.onMove)
+        bindToControl.Bind(wx.EVT_TEXT, self.onTextChanged)
+        bindToControl.Bind(wx.EVT_SET_FOCUS, self.onGainFocus)
+        bindToControl.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
+
         return control
 
     def BeginControlEdit (self, item, attributeName, control):
@@ -1031,6 +1163,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         event.Skip()
     
     def onLoseFocus(self, event):
+        self.manageCompletionList() # get rid of the popup, if we have one.        
         if self.showingSample:
             self.control.SetSelection(0,0)
         event.Skip()
@@ -1120,19 +1253,157 @@ class StringAttributeEditor (BaseAttributeEditor):
                 control.SetForegroundColour(textColor)
         finally:
             del self.ignoreTextChanged
- 
+
+    def onMove(self, event):
+        """ Reposition any autocompletion popup when we're moved. """
+        # we seem to be getting extra Size events on Linux... ignore them.
+        autocompleter = getattr(self, 'autocompleter', None)
+        if autocompleter is not None:
+            autocompleter.resize()
+        event.Skip()
+
+    def onResize(self, event):
+        """ Reposition any autocompletion popup when we're moved. """
+        autocompleter = getattr(self, 'autocompleter', None)
+        if autocompleter is not None:
+            autocompleter.reposition()
+        event.Skip()
+
+    def manageCompletionList(self, matches=None):
+        """
+        Update the autocompletion popup if necessary.
+        If no matches are provided, any popup will be taken down.
+        """
+        autocompleter = getattr(self, 'autocompleter', None)
+        if matches is not None and len(matches) > 0:
+            if autocompleter is None:
+                autocompleter = wxAutoCompleter(self.control, 
+                                                self.finishCompletion)
+                self.autocompleter = autocompleter
+            autocompleter.updateChoices(matches)
+        elif autocompleter is not None:
+            autocompleter.Destroy()
+            del self.autocompleter
+
+    def findCompletionRange(self, value, insertionPoint):
+        """ 
+        Find the range of characters that autocompletion should replace, given
+        the control's current value and the insertion point.
+        
+        Returns a tuple containing the index of the first character
+        and one past the last character to be replaced.               
+        """
+        # By default, we'll replace the whole string.
+        start = 0
+        end = len(value)
+        
+        # but if this is a 'list', we'll use separators
+        try:
+            cardinality = self.item.getAttributeAspect(self.attributeName, "cardinality")
+        except AttributeError:
+            pass
+        else:
+            if cardinality == 'list':
+                for c in _(u',;'):
+                    prevSep = value.rfind(c, 0, insertionPoint) + 1
+                    if prevSep > start: 
+                        start = prevSep
+                    nextSep = value.find(c, insertionPoint)
+                    if nextSep != -1 and nextSep < end:
+                        end = nextSep
+
+        return (start, end)
+    
+    # code used to test the above in a previous incarnation...
+    #def testCompletionReplacement():
+        #for v in ('ab, cd;ef, gh;', 'b', 'ab', ',foo,'):
+            #for sep in ('', ';', ',', ',;'):
+                #print "'%s' x '%s':" % (v, sep)
+                #for i in range(0,len(v) + 1):
+                    #(start, end) = findCompletionRange(v, i, sep)
+                    #z = v[:start] + (start and ' ' or '') + 'xy' + v[end:]
+                    #print "  %d: (%d, %d, '%s' -> '%s')" % (i, start, end, v[start:end], z)
+            
+    def finishCompletion(self, completionString):
+        if completionString is not None: # it's not 'ESCAPE'
+            control = self.control
+            controlValue = self.GetControlValue(control)
+            insertionPoint = control.GetInsertionPoint()
+            (start, end) = self.findCompletionRange(controlValue, 
+                                                    insertionPoint)
+            # Prepend a space if we're completing partway in (like
+            # the second thing in a list
+            if start:
+                completionString = ' ' + completionString
+            newValue = (controlValue[:start] +
+                        completionString + 
+                        controlValue[end:])
+            self.SetControlValue(self.control, newValue)
+            newInsertionPoint = start + len(completionString)
+            self.control.SetSelection(newInsertionPoint, newInsertionPoint)
+        self.manageCompletionList() # get rid of the popup
+                    
     def onKeyDown(self, event):
-        """ Note whether the sample's been replaced. """
+        """
+        Handle a key pressed in the control, part one: at 'key-down', 
+        we'll note whether we'll be replacing the sample, and if 
+        we're doing autocompletion, we'll look for keys that we 
+        might want to prevent from being processed by the control (the ones 
+        that we want to handle in the completion popup).
+        """
+        # If we're doing completion, give the autocomplete menu a chance
+        # at the keystroke - if it takes it, we won't event.Skip().
+        control = event.GetEventObject()
+        autocompleter = getattr(self, 'autocompleter', None)
+        if autocompleter is not None:
+            if autocompleter.processKey(event.m_keyCode):
+                control.ateLastKey = True
+                return # no event.Skip() - we'll eat the keyDown.
+
         # If we're showing sample text and this key would only change the 
         # selection, ignore it.
         if self.showingSample and event.GetKeyCode() in \
            (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_BACK):
              # logger.debug("onKeyDown: Ignoring selection-changer %s (%s) while showing the sample text", event.GetKeyCode(), wx.WXK_LEFT)
+             control.ateLastKey = True
              return # skip out without calling event.Skip()
-
         # logger.debug("onKeyDown: processing %s (%s)", event.GetKeyCode(), wx.WXK_LEFT)
+        control.ateLastKey = False
         event.Skip()
-        
+
+    def onKeyUp(self, event):
+        """
+        Handle a Key pressed in the control, part two: at 'key-up',
+        the key's already been processed into the control; we can react
+        to it, maybe by doing autocompletion.
+        """
+        control = event.GetEventObject()
+        ateLastKey = getattr(control, 'ateLastKey', False)
+        if not ateLastKey:
+            matchGenerator = getattr(type(self), 'generateCompletionMatches', None)
+            if matchGenerator is not None:
+                controlValue = self.GetControlValue(control)
+                insertionPoint = control.GetInsertionPoint()
+                (start, end) = self.findCompletionRange(controlValue,
+                                                        insertionPoint)
+                target = controlValue[:end].rstrip()
+                targetEnd = len(target)
+                target = target[start:].lstrip()
+                matches = []
+                if len(target) > 0 and targetEnd <= insertionPoint:
+                    # We have at least two characters, none after the 
+                    # insertion point
+                    count = 0
+                    for m in matchGenerator(self, target):
+                        count += 1
+                        if count > 15:
+                            # Don't show any if we find too many
+                            matches = []
+                            break
+                        matches.append(m)
+                self.manageCompletionList(matches)
+        event.Skip()
+
     def onClick(self, event):
         """ Ignore clicks if we're showing the sample """
         control = event.GetEventObject()
@@ -1294,9 +1565,6 @@ class DatetimeFormatter(object):
     @ivar dateFormat: A C{PyICU.DateFormat} object, which we want to
       use to parse or format dates/times in a timezone-aware fashion.
     """
-
-
-
     def __init__(self, dateFormat):
         super(DatetimeFormatter, self).__init__()
         self.dateFormat = dateFormat
@@ -1503,13 +1771,35 @@ class TimeAttributeEditor(StringAttributeEditor):
         self.SetControlValue(self.control, 
                              self.GetAttributeValue(item, attributeName))
 
+    def generateCompletionMatches(self, target):
+        """
+        A really simple autocompletion example: if the only entry would
+        be a valid hour, provide completion of AM & PM versions of it.
+
+        @@@ This may not be right for the product, but I'm leaving it in for now.
+        """
+        try:
+            hour = int(target)
+        except ValueError:
+            pass
+        else:
+            if hour < 24:
+                if hour == 12:
+                    yield DateTimeAttributeEditor.shortTimeFormat.format(\
+                        datetime(2003,10,30,0,00))
+                yield DateTimeAttributeEditor.shortTimeFormat.format(\
+                    datetime(2003,10,30,hour,00))
+                if hour < 12:
+                    yield DateTimeAttributeEditor.shortTimeFormat.format(\
+                        datetime(2003,10,30,hour + 12,00))
+
     def GetSampleText(self, item, attributeName):
         # We want to build a hint like "hh:mm PM", but we don't know the locale-
         # specific ordering of these fields. Format a date with distinct values,
         # then replace the resulting string's pieces with text.            
         if not hasattr(self, 'cachedSampleText'):
-            hour = u"hh"
-            minute = u"mm"
+            hour = _(u"hh")
+            minute = _(u"mm")
             sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
                 datetime(2003,10,30,11,45))
 
@@ -1593,40 +1883,18 @@ class LocationAttributeEditor (StringAttributeEditor):
         if not readOnly:
             editControl = forEditing and control or control.editControl
             editControl.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+            editControl.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         return control
 
-    def onKeyUp(self, event):
-        """
-          Handle a Key pressed in the control.
-        """
-        # logger.debug("LocationAttrEditor: onKeyUp")
-        
-        control = event.GetEventObject()
-        controlValue = self.GetControlValue (control)
-        keysTyped = len(controlValue)
-        isDelete = event.m_keyCode == wx.WXK_DELETE or event.m_keyCode == wx.WXK_BACK
-        if keysTyped > 1 and not isDelete:
-            # See if there's exactly one existing Location object whose 
-            # displayName starts with the current string; if so, we'll complete
-            # on it.
-            view = wx.GetApp().UIRepositoryView
-            existingLocation = None
-            for aLoc in Calendar.Location.iterItems(view):
-                if aLoc.displayName[0:keysTyped] == controlValue:
-                    if existingLocation is None:
-                        existingLocation = aLoc
-                        # logger.debug("LocationAE.onKeyUp: '%s' completes!", aLoc.displayName)
-                    else:
-                        # We found a second candidate - we won't complete
-                        # logger.debug("LocationAE.onKeyUp: ... but so does '%s'", aLoc.displayName)
-                        existingLocation = None
-                        break
-                
-            if existingLocation is not None:
-                completion = existingLocation.displayName
-                self.SetControlValue (control, completion)
-                # logger.debug("LocationAE.onKeyUp: completing with '%s'", completion[keysTyped:])
-                control.SetSelection (keysTyped, len (completion))
+    def generateCompletionMatches(self, target):
+        view = wx.GetApp().UIRepositoryView
+        target = UnicodeString(target).toLower()
+        targetLength = len(target)
+        for aLoc in Calendar.Location.iterItems(view):
+            dispName = UnicodeString(aLoc.displayName).toLower()
+            if (dispName[:targetLength] == target
+                and dispName != target):
+                yield aLoc
 
 class TimeDeltaAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is timedelta. """
@@ -1739,6 +2007,20 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
         if processedAddresses != valueString:
             # This processing changed the text in the control - update it.
             self._changeTextQuietly(self.control, processedAddresses)
+
+    def generateCompletionMatches(self, target):
+        view = wx.GetApp().UIRepositoryView
+        target = UnicodeString(target).toLower()
+        targetLen = len(target)
+        for anAddr in Mail.EmailAddress.iterItems(view):
+            addr = UnicodeString(anAddr.emailAddress).toLower()
+            if addr[:targetLen] == target and addr != target:
+                yield anAddr
+                continue
+            name = UnicodeString(anAddr.fullName).toLower()
+            if name[:targetLen] == target and name != target:
+                yield anAddr
+                continue
 
 class BasePermanentAttributeEditor (BaseAttributeEditor):
     """ Base class for editors that always need controls """

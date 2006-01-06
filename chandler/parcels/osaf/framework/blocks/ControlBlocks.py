@@ -1,4 +1,4 @@
-__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2006 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
 
@@ -1962,14 +1962,8 @@ class AEBlock(BoxContainer):
         super(AEBlock, self).unRender()
             
     def onKeyUpFromWidget(self, event):
-        if event.m_keyCode == wx.WXK_RETURN:
-            # Bug 4835 notes a race condition if you type fast.
-            # Until we redo notifications to not use monitors in 0.7,
-            # don't bother saving the value here (which only affected
-            # the note body; other fields are not-multiline and will Navigate
-            # below; they'll get their value saved as part of loss of focus anyway.)
-            #self.saveValue()
-            
+        if event.m_keyCode == wx.WXK_RETURN \
+           and not getattr(event.GetEventObject(), 'ateLastKey', False):
             # Do the tab thing if we're not a multiline thing.
             # stearns says: I think this is wrong (it doesn't mix well when one 
             # of the fields you'd "enter" through is multiline - it clears the 

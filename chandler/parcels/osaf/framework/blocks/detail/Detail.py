@@ -1,6 +1,4 @@
-__version__ = "$Revision$"
-__date__ = "$Date$"
-__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004-2006 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.detail"
 
@@ -1283,6 +1281,24 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
     This editor's value is the email address string itself (though
     the "configure accounts" choice is treated as the special string '').
     """
+    
+    def CreateControl(self, forEditing, readOnly, parentWidget, 
+                      id, parentBlock, font):
+        control = super(OutboundEmailAddressAttributeEditor, 
+                        self).CreateControl(forEditing, readOnly, parentWidget, 
+                                            id, parentBlock, font)
+        control.Bind(wx.EVT_LEFT_DOWN, self.onLeftClick)
+        return control
+    
+    def onLeftClick(self, event):
+        control = event.GetEventObject()
+        if control.GetCount() == 1 and self.GetControlValue(control) == u'':
+            # "config accounts..." is the only choice
+            # Don't wait for the user to make a choice - do it now.
+            self.onChoice(event)
+        else:
+            event.Skip()
+        
     def GetChoices(self):
         """ Get the choices we're presenting """
         choices = []
@@ -1307,16 +1323,17 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         """ Select the choice with the given text """
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
-        if existingValue is None or existingValue != value:            
+        if existingValue in (None, u'') or existingValue != value:            
             # rebuild the list of choices
             choices = self.GetChoices()
             control.Clear()
             control.AppendItems(choices)
         
-            try:
-                choiceIndex = control.FindString(value)
-            except AttributeError:
-                choiceIndex = wx.NOT_FOUND
+            choiceIndex = control.FindString(value)
+            if choiceIndex == wx.NOT_FOUND:
+                # Weird, we can't find the selected address. Select the
+                # "accounts..." choice, which is last.
+                choiceIndex = len(choices) - 1
             control.Select(choiceIndex)
 
     def GetAttributeValue(self, item, attributeName):
