@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: settings.cpp,v 1.22 2005/09/23 12:54:10 MR Exp $
+// RCS-ID:      $Id: settings.cpp,v 1.23 2006/01/06 00:36:37 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +29,8 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
 {
     int major, minor;
     wxColour resultColor;
+    RGBColor macRGB;
+    ThemeBrush colorBrushID;
 
     wxGetOsVersion( &major, &minor );
 
@@ -45,21 +47,21 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_INACTIVEBORDER:
         case wxSYS_COLOUR_BTNFACE:
         case wxSYS_COLOUR_MENUBAR:
-            resultColor = wxColor( 0xDD , 0xDD , 0xDD ) ;
+            resultColor = wxColor( 0xDD, 0xDD, 0xDD );
             break ;
 
         case wxSYS_COLOUR_LISTBOX :
             if (major >= 10)
                 resultColor = *wxWHITE ;
             else
-                resultColor = wxColor( 0xEE , 0xEE , 0xEE ) ;
+                resultColor = wxColor( 0xEE, 0xEE, 0xEE );
             break ;
 
         case wxSYS_COLOUR_BTNSHADOW:
             if (major >= 10)
-                resultColor = wxColor( 0xBE , 0xBE , 0xBE ) ;
+                resultColor = wxColor( 0xBE, 0xBE, 0xBE );
             else
-                resultColor = wxColor( 0x44 , 0x44 , 0x44 ) ;
+                resultColor = wxColor( 0x44, 0x44, 0x44 );
             break ;
 
         case wxSYS_COLOUR_BTNTEXT:
@@ -72,49 +74,42 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
             break ;
 
         case wxSYS_COLOUR_HIGHLIGHT:
-            {
-                RGBColor hilite ;
-                ThemeBrush colorBrushID;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
-                // OSAF - added
-                colorBrushID = kThemeBrushAlternatePrimaryHighlightColor;
+#if 1 && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
+            // NB: enable this case as desired
+            colorBrushID = kThemeBrushAlternatePrimaryHighlightColor;
 #else
-                colorBrushID = kThemeBrushPrimaryHighlightColor;
+            colorBrushID = kThemeBrushPrimaryHighlightColor;
 #endif
 
-                GetThemeBrushAsColor( colorBrushID, 32, true, &hilite );
-                resultColor = wxColor( hilite.red >> 8 , hilite.green >> 8  , hilite.blue >> 8 ) ;
-            }
+            GetThemeBrushAsColor( colorBrushID, 32, true, &macRGB );
+            resultColor = wxColor( macRGB.red >> 8, macRGB.green >> 8, macRGB.blue >> 8 );
             break ;
 
         case wxSYS_COLOUR_BTNHIGHLIGHT:
         case wxSYS_COLOUR_GRAYTEXT:
             // OSAF: changed from 0xCC
-            resultColor = wxColor( 0x80 , 0x80 , 0x80 ) ;
+            resultColor = wxColor( 0x80, 0x80, 0x80 );
             break ;
 
         case wxSYS_COLOUR_3DDKSHADOW:
-            resultColor = wxColor( 0x44 , 0x44 , 0x44 ) ;
+            resultColor = wxColor( 0x44, 0x44, 0x44 );
             break ;
 
         case wxSYS_COLOUR_3DLIGHT:
-            resultColor = wxColor( 0xCC , 0xCC , 0xCC ) ;
+            resultColor = wxColor( 0xCC, 0xCC, 0xCC );
             break ;
 
         case wxSYS_COLOUR_HIGHLIGHTTEXT :
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
-            // OSAF - added
+#if 1 && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
+            // NB: enable this case as desired
             resultColor = *wxWHITE ;
 #else
-            {
-                RGBColor hilite ;
-                GetThemeBrushAsColor( kThemeBrushPrimaryHighlightColor, 32, true, &hilite );
-                if ( (hilite.red + hilite.green + hilite.blue) == 0 )
-                        resultColor = *wxWHITE ;
-                else
-                        resultColor = *wxBLACK ;
-            }
+            GetThemeBrushAsColor( kThemeBrushPrimaryHighlightColor, 32, true, &macRGB );
+            if ((macRGB.red + macRGB.green + macRGB.blue) == 0)
+                resultColor = *wxWHITE ;
+            else
+                resultColor = *wxBLACK ;
 #endif
             break ;
 
@@ -127,7 +122,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_GRADIENTACTIVECAPTION:
         case wxSYS_COLOUR_GRADIENTINACTIVECAPTION:
         case wxSYS_COLOUR_MENUHILIGHT:
-            // TODO
+            // TODO:
             resultColor = *wxBLACK;
             break ;
 
@@ -172,7 +167,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
 {
     int value;
 
-    switch ( index)
+    switch ( index )
     {
         case wxSYS_MOUSE_BUTTONS:
             // we emulate a two button mouse (ctrl + click = right button)
@@ -202,11 +197,11 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         // TODO case wxSYS_WINDOWMIN_Y:
 
         case wxSYS_SCREEN_X:
-            wxDisplaySize(&value, NULL);
+            wxDisplaySize( &value, NULL );
             return value;
- 
+
         case wxSYS_SCREEN_Y:
-            wxDisplaySize(NULL, &value);
+            wxDisplaySize( NULL, &value );
             return value;
 
         // TODO case wxSYS_FRAMESIZE_X:
@@ -221,20 +216,20 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         case wxSYS_VTHUMB_Y:
             return 16;
 
-        // TODO case wxSYS_CAPTION_Y:
-        // TODO case wxSYS_MENU_Y:
-        // TODO case wxSYS_NETWORK_PRESENT:
-
         case wxSYS_PENWINDOWS_PRESENT:
             return 0;
-
-        // TODO case wxSYS_SHOW_SOUNDS:
 
         case wxSYS_SWAP_BUTTONS:
             return 0;
 
+        // TODO: case wxSYS_CAPTION_Y:
+        // TODO: case wxSYS_MENU_Y:
+        // TODO: case wxSYS_NETWORK_PRESENT:
+        // TODO: case wxSYS_SHOW_SOUNDS:
+
         default:
-            break;  // unsupported metric
+            // unsupported metric
+            break;
     }
 
     return -1;
