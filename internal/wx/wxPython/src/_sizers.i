@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-Sept-1999
-// RCS-ID:      $Id: _sizers.i,v 1.36 2005/12/30 23:01:16 RD Exp $
+// RCS-ID:      $Id: _sizers.i,v 1.37 2006/01/06 07:05:05 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -260,6 +260,18 @@ isn't any.", "");
                 Py_INCREF(Py_None);
                 return Py_None;
             }
+        }
+
+        DocStr(SetUserData,
+               "Associate a Python object with this sizer item.", "");
+        void SetUserData(PyObject* userData) {
+            wxPyUserData* data = NULL;
+            if ( userData ) {
+                wxPyBlock_t blocked = wxPyBeginBlockThreads();
+                data = new wxPyUserData(userData);
+                wxPyEndBlockThreads(blocked);
+            }
+            self->SetUserData(data);
         }
     }
 };
