@@ -181,7 +181,15 @@ The Chandler Team""")
                     "osaf.servlets.repo.RepoResource"
                 ),
                 autoView=False
-            )
+            ),
+            webserver.Resource.update(parcel, "prefResource",
+                displayName=u'Preference Editor',
+                location=u"prefs",
+                resourceClass=schema.importString(
+                    "osaf.servlets.prefs.PrefResource"
+                ),
+                autoView=False
+            ),
         ]
     )
 
