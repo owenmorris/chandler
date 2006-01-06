@@ -1381,7 +1381,8 @@ class StringAttributeEditor (BaseAttributeEditor):
         ateLastKey = getattr(control, 'ateLastKey', False)
         if not ateLastKey:
             matchGenerator = getattr(type(self), 'generateCompletionMatches', None)
-            if matchGenerator is not None:
+            # @@@ Disable autocompletion for now
+            if False: # matchGenerator is not None:
                 controlValue = self.GetControlValue(control)
                 insertionPoint = control.GetInsertionPoint()
                 (start, end) = self.findCompletionRange(controlValue,
