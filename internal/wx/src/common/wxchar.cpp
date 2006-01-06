@@ -4,7 +4,7 @@
 // Author:      Ove Kåven
 // Modified by: Ron Lee
 // Created:     09/04/99
-// RCS-ID:      $Id: wxchar.cpp,v 1.108 2006/01/06 16:52:51 VZ Exp $
+// RCS-ID:      $Id: wxchar.cpp,v 1.109 2006/01/06 17:10:32 VZ Exp $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,6 +78,12 @@ size_t WXDLLEXPORT wxMB2WC(wchar_t *buf, const char *psz, size_t n)
 #endif
   }
 
+  // note that we rely on common (and required by Unix98 but unfortunately not
+  // C99) extension which allows to call mbs(r)towcs() with NULL output pointer
+  // to just get the size of the needed buffer -- this is needed as otherwise
+  // we have no idea about how much space we need and if the CRT doesn't
+  // support it (the only currently known example being Metrowerks, see
+  // wx/wxchar.h) we don't use its mbstowcs() at all
 #ifdef HAVE_WCSRTOMBS
   return mbsrtowcs((wchar_t *) NULL, &psz, 0, &mbstate);
 #else
