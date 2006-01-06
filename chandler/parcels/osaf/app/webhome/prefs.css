@@ -1,0 +1,22 @@
+
+h2 { 
+  background-color: #BBBBBB;
+  padding: 4px;
+}
+
+li { 
+  list-style: none;
+}
+
+li .name { 
+  margin-right: 20px;
+}
+
+li .value { 
+  left: 50%;
+  position: absolute;
+}
+
+li .local-value { 
+  font-weight: bold;
+}
