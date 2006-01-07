@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: (or rather rewritten by) Vadim Zeitlin
 // Created:     04/22/98
-// RCS-ID:      $Id: tokenzr.h,v 1.21 2005/12/24 00:12:48 VZ Exp $
+// RCS-ID:      $Id: tokenzr.h,v 1.22 2006/01/06 21:41:54 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ public:
     // get current tokenizer state
         // returns the part of the string which remains to tokenize (*not* the
         // initial string)
-    wxString GetString() const { return m_string; }
+    wxString GetString() const { return m_string.substr(m_pos); }
 
         // returns the current position (i.e. one index after the last
         // returned token or 0 if GetNextToken() has never been called) in the

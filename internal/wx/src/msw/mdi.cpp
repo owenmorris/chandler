@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: mdi.cpp,v 1.129 2005/12/19 10:41:04 ABX Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.131 2006/01/07 01:14:45 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -807,6 +807,11 @@ bool wxMDIChildFrame::Show(bool show)
     if ( show )
         ::BringWindowToTop(GetHwnd());
 
+    // we need to refresh the MDI frame window menu to include (or exclude if
+    // we've been hidden) this frame
+    wxMDIParentFrame *parent = (wxMDIParentFrame *)GetParent();
+    MDISetMenu(parent->GetClientWindow(), NULL, NULL);
+
     return true;
 }
 
@@ -1373,13 +1378,16 @@ void wxMDIChildFrame::OnIdle(wxIdleEvent& event)
 
 static void MDISetMenu(wxWindow *win, HMENU hmenuFrame, HMENU hmenuWindow)
 {
-    ::SendMessage(GetWinHwnd(win), WM_MDISETMENU,
-#ifdef __WIN32__
-                  (WPARAM)hmenuFrame, (LPARAM)hmenuWindow
-#else
-                  0, MAKELPARAM(hmenuFrame, hmenuWindow)
-#endif
-                 );
+    if ( hmenuFrame || hmenuWindow )
+    {
+        if ( !::SendMessage(GetWinHwnd(win),
+                            WM_MDISETMENU,
+                            (WPARAM)hmenuFrame,
+                            (LPARAM)hmenuWindow) )
+        {
+            wxLogLastError(_T("SendMessage(WM_MDISETMENU)"));
+        }
+    }
 
     // update menu bar of the parent window
     wxWindow *parent = win->GetParent();
