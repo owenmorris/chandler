@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.167 2006/01/04 11:52:52 SC Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.168 2006/01/07 17:29:16 vell Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
