@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.171 2005/10/15 19:11:05 MW Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.172 2006/01/07 06:30:19 vell Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -527,7 +527,7 @@ size_t wxMBConvUTF7::WC2MB(char *buf, const wchar_t *psz, size_t n) const
             {
                 // BASE64 encode string
                 unsigned int lsb, d, l;
-                for (d = 0, l = 0;; psz++)
+                for (d = 0, l = 0; /*nothing*/; psz++)
                 {
                     for (lsb = 0; lsb < 2; lsb ++)
                     {

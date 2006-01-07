@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog.cpp,v 1.43 2006/01/05 11:24:34 SC Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.44 2006/01/07 06:01:50 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,6 @@
 // Lists to keep track of windows, so we can disable/enable them
 // for modal dialogs
 wxList wxModalDialogs;
-//wxList wxModelessWindows;  // Frames and modeless dialogs
 
 extern wxList wxPendingDelete;
 
@@ -47,47 +46,50 @@ void wxDialog::Init()
     m_isModalStyle = false;
 }
 
-bool wxDialog::Create(wxWindow *parent,
+bool wxDialog::Create( wxWindow *parent,
     wxWindowID id,
     const wxString& title,
     const wxPoint& pos,
     const wxSize& size,
     long style,
-    const wxString& name)
+    const wxString& name )
 {
     SetExtraStyle( GetExtraStyle() | wxTOPLEVEL_EX_DIALOG );
 
-    // All dialogs should really have this style
+    // All dialogs should really have this style...
     style |= wxTAB_TRAVERSAL;
 
-    if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style & ~(wxYES | wxOK | wxNO /* | wxCANCEL*/) , name) )
+    // ...but not these styles
+    style &= ~(wxYES | wxOK | wxNO); // | wxCANCEL
+
+    if ( !wxTopLevelWindow::Create( parent, id, title, pos, size, style, name ) )
         return false;
 
     HIViewRef growBoxRef = 0 ;
-    OSStatus err = HIViewFindByID( HIViewGetRoot( (WindowRef) m_macWindow ) , kHIViewWindowGrowBoxID , &growBoxRef );
+    OSStatus err = HIViewFindByID( HIViewGetRoot( (WindowRef)m_macWindow ), kHIViewWindowGrowBoxID, &growBoxRef  );
     if ( err == noErr && growBoxRef != 0 )
-        HIGrowBoxViewSetTransparent( growBoxRef , true ) ;
+        HIGrowBoxViewSetTransparent( growBoxRef, true ) ;
 
     return true;
 }
 
-void wxDialog::SetModal(bool flag)
+void wxDialog::SetModal( bool flag )
 {
     if ( flag )
     {
         m_isModalStyle = true;
 
-        wxModelessWindows.DeleteObject(this);
+        wxModelessWindows.DeleteObject( this );
 
 #if TARGET_CARBON
-        SetWindowModality( (WindowRef) MacGetWindowRef() , kWindowModalityAppModal , NULL ) ;
+        SetWindowModality( (WindowRef)MacGetWindowRef(), kWindowModalityAppModal, NULL ) ;
 #endif
     }
     else
     {
         m_isModalStyle = false;
 
-        wxModelessWindows.Append(this);
+        wxModelessWindows.Append( this );
     }
 }
 
@@ -162,7 +164,7 @@ extern bool s_macIsInModalLoop ;
 
 void wxDialog::DoShowModal()
 {
-    wxCHECK_RET( !IsModalShowing(), _T("DoShowModal() called twice") );
+    wxCHECK_RET( !IsModalShowing(), wxT("DoShowModal() called twice") );
 
     wxModalDialogs.Append(this);
 

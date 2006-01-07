@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: pen.cpp,v 1.11 2005/10/04 18:14:41 ABX Exp $
+// RCS-ID:      $Id: pen.cpp,v 1.12 2006/01/07 06:09:50 vell Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ void wxPen::SetStipple( wxBitmap *stipple )
 {
     AllocExclusive();
 
-    M_PENDATA->m_stipple = *stipple;;
+    M_PENDATA->m_stipple = *stipple;
 }
 
 void wxPen::SetStyle( int style )

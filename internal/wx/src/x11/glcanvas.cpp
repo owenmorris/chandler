@@ -5,7 +5,7 @@
 // Author:      Julian Smart and Wolfram Gloger
 // Modified by:
 // Created:     1995, 1999
-// RCS-ID:      $Id: glcanvas.cpp,v 1.16 2005/09/23 12:56:05 MR Exp $
+// RCS-ID:      $Id: glcanvas.cpp,v 1.17 2006/01/07 06:09:49 vell Exp $
 // Copyright:   (c) Julian Smart, Wolfram Gloger
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -128,7 +128,7 @@ void wxGLContext::SetCurrent()
     { 
         Display* display = (Display*) wxGetDisplay();
         glXMakeCurrent(display, (Window) wxGetClientAreaWindow(m_window), 
-                       m_glContext );;
+                       m_glContext );
     }
 }
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.cpp,v 1.55 2005/09/25 19:59:15 VZ Exp $
+// RCS-ID:      $Id: mimetype.cpp,v 1.56 2006/01/07 06:09:47 vell Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -649,7 +649,7 @@ void wxMimeTypesManagerImpl::LoadGnomeMimeTypesFromMimeFile(const wxString& file
 
     const wxChar *pc;
     size_t nLineCount = textfile.GetLineCount();
-    for ( size_t nLine = 0;; nLine++ )
+    for ( size_t nLine = 0; /* nothing */; nLine++ )
     {
         if ( nLine < nLineCount )
         {
@@ -805,7 +805,7 @@ void wxMimeTypesManagerImpl::GetGnomeMimeInfo(const wxString& sExtraDir)
 {
     wxArrayString dirs;
 
-    wxString gnomedir = wxGetenv( wxT("GNOMEDIR") );;
+    wxString gnomedir = wxGetenv( wxT("GNOMEDIR") );
     if (!gnomedir.empty())
     {
         gnomedir << wxT("/share");
@@ -1384,9 +1384,9 @@ bool wxFileTypeImpl::GetExtensions(wxArrayString& extensions)
     wxString strExtensions = m_manager->GetExtension(m_index[0]);
     extensions.Empty();
 
-    // one extension in the space or comma delimitid list
+    // one extension in the space or comma-delimited list
     wxString strExt;
-    for ( const wxChar *p = strExtensions;; p++ ) {
+    for ( const wxChar *p = strExtensions; /* nothing */; p++ ) {
         if ( *p == wxT(' ') || *p == wxT(',') || *p == wxT('\0') ) {
             if ( !strExt.empty() ) {
                 extensions.Add(strExt);
