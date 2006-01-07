@@ -184,9 +184,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.xOffset = drawInfo.xOffset
 
         if self.blockItem.dayMode:
-            self.dayWidth = drawInfo.middleWidth
+            self._dayWidth = drawInfo.middleWidth
         else:
-            self.dayWidth = drawInfo.dayWidth
+            self._dayWidth = drawInfo._dayWidth
     
     def GetLocaleHourStrings(self, hourrange, dc):
         """
@@ -307,7 +307,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 TimedCanvasItem.GenerateBoundsRects(self,
                                                     self._bgSelectionStartTime,
                                                     self._bgSelectionEndTime,
-                                                    self.dayWidth)
+                                                    self._dayWidth)
             for rect in rects:
                 dc.DrawRectangleRect(rect)
 
@@ -638,7 +638,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         it absolutely must move
         """
         dx,dy = self.dragState.dragOffset
-        dx = roundTo(dx, self.dayWidth)
+        dx = roundTo(dx, self._dayWidth)
         
         position = self.dragState.currentPosition - (dx, dy)
 
@@ -714,7 +714,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             raise ValueError, "Must be visible on the calendar"
         
         delta = Calendar.datetimeOp(datetime, '-', startDay)
-        x = (self.dayWidth * delta.days) + self.xOffset
+        x = (self._dayWidth * delta.days) + self.xOffset
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return wx.Point(x, y)
 
@@ -756,7 +756,7 @@ class TimedCanvasItem(CalendarCanvasItem):
         if not endTime:
             endTime = item.endTime
        
-        dayWidth = self._calendarCanvas.dayWidth
+        dayWidth = self._calendarCanvas._dayWidth
         if self._calendarCanvas.blockItem.dayMode:
             # in day mode, canvasitems are drawn side-by-side	
             maxDepth = self.GetMaxDepth()	
@@ -912,7 +912,7 @@ class TimedCanvasItem(CalendarCanvasItem):
         if duration <= 0.5:
             duration = 0.5;
         (cellWidth, cellHeight) = \
-                    (calendarCanvas.dayWidth,
+                    (calendarCanvas._dayWidth,
                      int(duration * calendarCanvas.hourHeight))
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth+1, cellHeight+1)

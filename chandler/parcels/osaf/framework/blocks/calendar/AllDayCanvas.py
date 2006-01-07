@@ -202,7 +202,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if self.blockItem.dayMode:
             width = self.size.width - drawInfo.scrollbarWidth - drawInfo.xOffset
         else:
-            width = drawInfo.dayWidth
+            width = drawInfo._dayWidth
 
         size = self.GetSize()
 
@@ -267,7 +267,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         size = self.GetSize()
         calendarBlock = self.blockItem
         drawInfo = calendarBlock.calendarContainer.calendarControl.widget
-        rect = wx.Rect((drawInfo.dayWidth * dayStart) + drawInfo.xOffset,
+        rect = wx.Rect((drawInfo._dayWidth * dayStart) + drawInfo.xOffset,
                        self.eventHeight * gridRow,
                        columnWidth * (dayEnd - dayStart + 1),
                        self.eventHeight)
@@ -343,7 +343,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # if it was drawn
         
         # hack alert! We shouldn't need to adjust this
-        dx = roundTo(dx, drawInfo.dayWidth)
+        dx = roundTo(dx, drawInfo._dayWidth)
 
         position = wx.Point(unscrolledPosition.x - dx,
                             unscrolledPosition.y - dy)

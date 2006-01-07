@@ -27,6 +27,7 @@ from osaf.framework.blocks.calendar import CollectionCanvas
 
 from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
 from colorsys import rgb_to_hsv, hsv_to_rgb
+from operator import add
 
 from application import schema
 from itertools import islice, chain
@@ -1224,7 +1225,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         yPosition = min(yPosition, height)
         if mustBeInBounds:
             xPosition = min(xPosition, 
-                            drawInfo.xOffset + drawInfo.dayWidth * drawInfo.columns - 1)
+                            drawInfo.xOffset + drawInfo._dayWidth * drawInfo.columns - 1)
         return wx.Point(xPosition, yPosition)
         
     def getDateTimeFromPosition(self, position, tzinfo=None, mustBeInBounds=True):
@@ -1241,8 +1242,8 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
         # @@@ fixes Bug#1831, but doesn't really address the root cause
         # (the window is drawn with (0,0) virtual size on mac)
-        if drawInfo.dayWidth > 0:
-            deltaDays = (position.x - drawInfo.xOffset) / drawInfo.dayWidth
+        if drawInfo._dayWidth > 0:
+            deltaDays = (position.x - drawInfo.xOffset) / drawInfo._dayWidth
         else:
             deltaDays = 0
             
@@ -1699,6 +1700,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
         self.UpdateHeader()
+
+        # onetime measurements
+        self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
+        
         self._doDrawingCalculations() #hopefully this is early enough
 
     def MakeTimezoneChoice(self, tzCharacterStyle):
@@ -1939,37 +1944,45 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     ########## used to be in wxCalendarContainer, then CalendarContainer.  lets try putting here...
     def _doDrawingCalculations(self):
         """
-        Sets a bunch of drawing variables.  Some more drawing variables are created lazily
-        outside of this function.
+        Sets a bunch of drawing variables.  Some more drawing
+        variables are created lazily outside of this function.
         """
-        self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
 
         self.size = self.GetSize()
         
         try:
-            oldDayWidth = self.dayWidth
+            oldDayWidth = self._dayWidth
         except AttributeError:
             oldDayWidth = -1
 
-        self.dayWidth = ((self.size.width - self.scrollbarWidth) / 
-                         (self.blockItem.daysPerView + 1))
+        self.xOffset = 60
+        self._dayWidth = ((self.size.width - self.scrollbarWidth - self.xOffset) / 
+                          (self.blockItem.daysPerView))
 
         ### calculate column widths for the all-7-days week view case
-        # column layout rules are funky (e.g. bug 3290)
-        # - all 7 days are fixed at self.dayWidth
-        # - the last column (expando-button) is fixed
-        # - the "Week" column is the same as self.dayWidth, plus leftover pixels
-        columnCount = 9
-        dayWidths = (self.dayWidth,) * 7
+        # column layout rules are funky (e.g. bug 3290 and bug 3521)
+        #
 
-        self.middleWidth = self.dayWidth*7
-        self.xOffset = self.size.width - self.middleWidth - self.scrollbarWidth
+        dayWidths = (self._dayWidth,) * 7
+
+        self.middleWidth = self._dayWidth * 7
+
+        # due to rounding there may be up to 6 extra pixels to distribute
+        leftover = self.size.width - self.middleWidth - self.scrollbarWidth - self.xOffset
+        # evenly distribute the leftover into a tuple of the right length
+        # for instance, leftover==4 gives us (0,0,0,1,1,1,1)
+        leftoverWidths = (0,) * (7-leftover) + (1,) * leftover
+
+        # now add the extra bits to the individual columns
+        dayWidths = tuple(map(add, dayWidths, leftoverWidths))
+
+        # finally bring all the lists together in one
         self.columnWidths = (self.xOffset,) +dayWidths+ (self.scrollbarWidth,)
 
         # the gradient brushes are based on dayWidth, so blow it away
-        # when dayWidth changes
+        # when _dayWidth changes
         styles = self.blockItem.calendarContainer
-        if oldDayWidth != self.dayWidth:
+        if oldDayWidth != self._dayWidth:
             # Really, the gradients cache should be managing this for us,
             # so that we may smoothly change sizes without loosing too much
             # information
