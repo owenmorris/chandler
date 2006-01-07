@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.131 2005/12/31 19:59:39 VZ Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.132 2006/01/07 06:30:25 vell Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -234,6 +234,16 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
 
     if ( exflags )
     {
+#if wxUSE_NATIVE_COMPOSITING
+         if (!((msflags & CS_CLASSDC) || (msflags & CS_OWNDC)))
+             if (wxApp::GetComCtl32Version() >= 582)
+//	        if (GetKeyState( VK_CAPITAL ) == 0)
+	        {
+	            *exflags |= WS_EX_COMPOSITED;
+//	            MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
+	        }
+#endif
+
         // there is no taskbar under CE, so omit all this
 #if !defined(__WXWINCE__)
         if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
@@ -506,6 +516,12 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
     wxSize sz(size);
 #endif
 
+#if wxUSE_NATIVE_COMPOSITING
+    // cannot let this flag go through...
+    if (! IsTopLevel())
+        exflags &= ~WS_EX_COMPOSITED;
+#endif
+
     bool result = MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
 
     return result;
@@ -705,8 +721,8 @@ void wxTopLevelWindowMSW::Maximize(bool maximize)
     }
     else // hidden
     {
-        // we can't maximize the hidden frame because it shows it as well, so
-        // just remember that we should do it later in this case
+        // we can't maximize the hidden frame because it shows it as well,
+        // so just remember that we should do it later in this case
         m_maximizeOnShow = maximize;
 
         // after calling Maximize() the client code expects to get the frame
