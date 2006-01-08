@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menuitem.cpp,v 1.37 2005/12/26 18:45:48 vell Exp $
+// RCS-ID:      $Id: menuitem.cpp,v 1.38 2006/01/08 10:54:32 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ void wxMenuItem::UpdateItemBitmap()
 
     MenuHandle mhandle = MAC_WXHMENU(m_parentMenu->GetHMenu()) ;
     MenuItemIndex index = m_parentMenu->MacGetIndexFromItem( this ) ;
-    if( mhandle == NULL || index == 0)
+    if ( mhandle == NULL || index == 0)
         return ;
 
     if ( m_bitmap.Ok() )
@@ -102,7 +102,7 @@ void wxMenuItem::UpdateItemStatus()
 {
     if ( !m_parentMenu )
         return ;
- 
+
     if ( IsSeparator() )
         return ;
 
@@ -136,7 +136,7 @@ void wxMenuItem::UpdateItemStatus()
         else
             ::SetItemMark( mhandle , index , 0 ) ; // no mark
 
-        UMASetMenuItemText( mhandle , index , m_text , wxFont::GetDefaultEncoding() ) ;
+        UMASetMenuItemText( mhandle , index , wxStripMenuCodes(m_text) , wxFont::GetDefaultEncoding() ) ;
         wxAcceleratorEntry *entry = wxGetAccelFromString( m_text ) ;
         UMASetMenuItemShortcut( mhandle , index , entry ) ;
         delete entry ;
@@ -150,10 +150,10 @@ void wxMenuItem::UpdateItemText()
 
     MenuHandle mhandle = MAC_WXHMENU(m_parentMenu->GetHMenu()) ;
     MenuItemIndex index = m_parentMenu->MacGetIndexFromItem( this ) ;
-    if( mhandle == NULL || index == 0)
+    if ( mhandle == NULL || index == 0)
         return ;
 
-    UMASetMenuItemText( mhandle , index , m_text , wxFont::GetDefaultEncoding() ) ;
+    UMASetMenuItemText( mhandle , index , wxStripMenuCodes(m_text) , wxFont::GetDefaultEncoding() ) ;
     wxAcceleratorEntry *entry = wxGetAccelFromString( m_text ) ;
     UMASetMenuItemShortcut( mhandle , index , entry ) ;
     delete entry ;

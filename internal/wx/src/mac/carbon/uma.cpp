@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: uma.cpp,v 1.70 2005/12/13 05:13:55 vell Exp $
+// RCS-ID:      $Id: uma.cpp,v 1.71 2006/01/08 10:54:32 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     The wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -242,7 +242,8 @@ void UMASetMenuTitle( MenuRef menu , const wxString& title , wxFontEncoding enco
 
 void UMASetMenuItemText( MenuRef menu,  MenuItemIndex item, const wxString& title, wxFontEncoding encoding )
 {
-    wxString str = wxStripMenuCodes( title ) ;
+    // we don't strip the accels here anymore, must be done before
+    wxString str = title ;
 
 #if TARGET_CARBON
     SetMenuItemTextWithCFString( menu , item , wxMacCFStringHolder(str , encoding) ) ;

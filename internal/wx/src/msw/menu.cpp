@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     04/01/98
-// RCS-ID:      $Id: menu.cpp,v 1.127 2005/11/09 20:14:32 ABX Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.128 2006/01/08 13:28:52 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -420,10 +420,20 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
             // now run-time one: MIIM_BITMAP only works under WinME/2000+
             if ( wxGetWinVersion() >= wxWinVersion_98 )
             {
-                mii.fMask = MIIM_ID | MIIM_STRING | MIIM_DATA | MIIM_BITMAP;
-                mii.wID = id;
+                mii.fMask = MIIM_STRING | MIIM_DATA | MIIM_BITMAP;
                 mii.cch = itemText.length();
                 mii.dwTypeData = wx_const_cast(wxChar *, itemText.c_str());
+
+                if (flags & MF_POPUP)
+                {
+                    mii.fMask |= MIIM_SUBMENU;
+                    mii.hSubMenu = (HMENU)pItem->GetSubMenu()->GetHMenu();
+                }
+                else
+                {
+                    mii.fMask |= MIIM_ID;
+                    mii.wID = id;
+                }
 
                 // we can't pass HBITMAP directly as hbmpItem for 2 reasons:
                 //  1. we can't draw it with transparency then (this is not

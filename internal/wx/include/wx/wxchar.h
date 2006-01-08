@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.183 2006/01/06 16:52:54 VZ Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.185 2006/01/08 12:19:14 VZ Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -141,9 +141,17 @@
     #define wxHAVE_TCHAR_SUPPORT
 #endif /* compilers with (good) TCHAR support */
 
-#ifdef __MWERKS__
-    #define HAVE_WPRINTF
-#endif
+#if defined(__MWERKS__)
+    /* Metrowerks only has wide char support for OS X >= 10.3 */
+    #if !defined(__DARWIN__) || \
+         (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
+        #define wxHAVE_MWERKS_UNICODE
+    #endif
+
+    #ifdef wxHAVE_MWERKS_UNICODE
+        #define HAVE_WPRINTF
+    #endif
+#endif /* __MWERKS__ */
 
 #ifdef wxHAVE_TCHAR_SUPPORT
     /* get TCHAR definition if we've got it */
@@ -400,7 +408,7 @@
 
         So use our own replacements in both cases.
      */
-    #if defined(__MWERKS__)
+    #if defined(__MWERKS__) && defined(__MSL__)
         #define wxNEED_WX_MBSTOWCS
     #endif
 
@@ -839,14 +847,14 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
  */
 #ifndef wxVsnprintf_
     #if wxUSE_UNICODE
-        #if defined(__MWERKS__)
+        #ifdef wxHAVE_MWERKS_UNICODE
             #define HAVE_WCSRTOMBS 1
             #define HAVE_VSWPRINTF 1
-        #endif
+        #endif /* Metrowerks with Unicode support */
         #if defined(__WATCOMC__)
             #define wxVsnprintf_    _vsnwprintf
             #define wxSnprintf_     _snwprintf
-        #endif
+        #endif /* Watcom */
         #if defined(HAVE__VSNWPRINTF)
             #define wxVsnprintf_    _vsnwprintf
         /* MinGW?MSVCRT has the wrong vswprintf */

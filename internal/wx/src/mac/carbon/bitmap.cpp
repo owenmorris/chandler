@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp,v 1.83 2006/01/07 08:33:13 SC Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.84 2006/01/08 18:52:03 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -938,7 +938,7 @@ wxBitmap wxBitmap::GetSubBitmap(const wxRect &rect) const
         int rowBytes = ( destwidth + 3 ) & 0xFFFFFFC ;
         size_t maskbufsize = rowBytes * destheight ;
 
-        int sourcelinesize = M_BITMAPDATA->m_bitmapMask->GetBytesPerRow()  ;
+        int sourcelinesize = M_BITMAPDATA->m_bitmapMask->GetBytesPerRow() ;
         int destlinesize = rowBytes ;
 
         unsigned char *source = (unsigned char *) M_BITMAPDATA->m_bitmapMask->GetRawAccess() ;
@@ -1185,8 +1185,8 @@ wxImage wxBitmap::ConvertToImage() const
 
 #endif //wxUSE_IMAGE
 
-bool wxBitmap::SaveFile(const wxString& filename, wxBitmapType type,
-                        const wxPalette *palette) const
+bool wxBitmap::SaveFile( const wxString& filename,
+    wxBitmapType type, const wxPalette *palette ) const
 {
     bool success = false;
     wxBitmapHandler *handler = FindHandler(type);
@@ -1375,21 +1375,23 @@ void *wxMask::GetRawAccess() const
     return m_memBuf.GetData() ;
 }
 
-// The default ColorTable for k8IndexedGrayPixelFormat in Intel seems to be broken, so we'll use an non-indexed
+// The default ColorTable for k8IndexedGrayPixelFormat in Intel appears to be broken, so we'll use an non-indexed
 // bitmap mask instead; in order to keep the code simple, the change applies to PowerPC implementations as well
 
 void wxMask::RealizeNative()
 {
     if ( m_maskBitmap )
     {
-       DisposeGWorld(  (GWorldPtr)m_maskBitmap ) ;
+       DisposeGWorld( (GWorldPtr)m_maskBitmap ) ;
        m_maskBitmap = NULL ;
     }
 
     Rect rect = { 0 , 0 , m_height , m_width } ;
 
-    verify_noerr( NewGWorldFromPtr( (GWorldPtr*) &m_maskBitmap , k24RGBPixelFormat , &rect , NULL , NULL , 0 ,
-        (char*) m_memBuf.GetData() , m_bytesPerRow ) ) ;
+    OSStatus err = NewGWorldFromPtr(
+        (GWorldPtr*) &m_maskBitmap , k24RGBPixelFormat , &rect , NULL , NULL , 0 ,
+        (char*) m_memBuf.GetData() , m_bytesPerRow ) ;
+    verify_noerr( err ) ;
 }
 
 // Create a mask from a mono bitmap (copies the bitmap).
@@ -1481,7 +1483,7 @@ bool wxMask::Create(const wxBitmap& bitmap, const wxColour& colour)
             g = *srcdata++ ;
             b = *srcdata++ ;
 
-            if ( colour == wxColour( r , g , b) )
+            if ( colour == wxColour( r , g , b ) )
             {
                 *destdata++ = 0xFF ;
                 *destdata++ = 0xFF ;
@@ -1550,6 +1552,7 @@ public:
     virtual bool LoadFile(wxBitmap *bitmap, const wxString& name, long flags,
           int desiredWidth, int desiredHeight);
 };
+
 IMPLEMENT_DYNAMIC_CLASS(wxPICTResourceHandler, wxBitmapHandler)
 
 
@@ -1564,6 +1567,7 @@ bool wxPICTResourceHandler::LoadFile(wxBitmap *bitmap, const wxString& name, lon
     if ( thePict )
     {
         wxMetafile mf ;
+
         mf.SetHMETAFILE( (WXHMETAFILE) thePict ) ;
         bitmap->Create( mf.GetWidth() , mf.GetHeight() ) ;
         wxMemoryDC dc ;
@@ -1573,7 +1577,7 @@ bool wxPICTResourceHandler::LoadFile(wxBitmap *bitmap, const wxString& name, lon
 
         return true ;
     }
-#endif //wxUSE_METAFILE
+#endif
 
     return false ;
 }
@@ -1606,7 +1610,7 @@ void wxBitmap::UngetRawData(wxPixelDataBase& dataBase)
     if ( !Ok() )
         return;
 
-    // TODO : if we have some information about the API we should check
+    // TODO: if we have some information about the API we should check
     // this code looks strange...
 
     if ( !M_BITMAPDATA->HasAlpha() )
