@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.04.03 (from src/*/data.cpp files)
-// RCS-ID:      $Id: datacmn.cpp,v 1.11 2005/10/23 20:30:53 SN Exp $
+// RCS-ID:      $Id: datacmn.cpp,v 1.12 2006/01/08 21:50:02 RR Exp $
 // Copyright:   (c) 1997-2002 wxWidgets development team
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -139,6 +139,7 @@ WXDLLEXPORT_DATA(const wxChar *) wxTreeCtrlNameStr = wxT("treeCtrl");
 WXDLLEXPORT_DATA(const wxChar *) wxEnhDialogNameStr = wxT("Shell");
 WXDLLEXPORT_DATA(const wxChar *) wxToolBarNameStr = wxT("toolbar");
 WXDLLEXPORT_DATA(const wxChar *) wxVirtListBoxNameStr = wxT("virtListBox");
+WXDLLEXPORT_DATA(const wxChar *) wxDataViewCtrlNameStr = wxT("dataviewCtrl");
 
 // Default messages
 WXDLLEXPORT_DATA(const wxChar *) wxGetTextFromUserPromptStr = wxT("Input Text");

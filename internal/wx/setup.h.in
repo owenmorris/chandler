@@ -335,6 +335,8 @@
 
 #define wxUSE_GRID         0
 
+#define wxUSE_DATAVIEWCTRL   0
+
 #define wxUSE_MINIFRAME 0
 
 
@@ -596,6 +598,10 @@
  * Use GNOME print for printing under GTK+ 2.0
  */
 #define wxUSE_LIBGNOMEPRINT 0
+/*
+ * Use the Hildon framework
+ */
+#define wxUSE_LIBHILDON 0
 /*
  * Use iODBC
  */

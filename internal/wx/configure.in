@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1100 2005/12/18 11:37:49 MW Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1102 2006/01/08 21:23:35 RR Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1100 2005/12/18 11:37:49 MW Exp $
+dnl Version: $Id: configure.in,v 1.1102 2006/01/08 21:23:35 RR Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -395,6 +395,7 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_LIBMSPACK=no
   DEFAULT_wxUSE_LIBSDL=no
   DEFAULT_wxUSE_LIBGNOMEPRINT=no
+  DEFAULT_wxUSE_LIBHILDON=no
   DEFAULT_wxUSE_ODBC=no
   DEFAULT_wxUSE_OPENGL=no
 
@@ -504,6 +505,7 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_DISPLAY=no
   DEFAULT_wxUSE_GAUGE=no
   DEFAULT_wxUSE_GRID=no
+  DEFAULT_wxUSE_DATAVIEWCTRL=no
   DEFAULT_wxUSE_IMAGLIST=no
   DEFAULT_wxUSE_LISTBOOK=no
   DEFAULT_wxUSE_LISTBOX=no
@@ -593,6 +595,7 @@ else
   DEFAULT_wxUSE_LIBMSPACK=yes
   DEFAULT_wxUSE_LIBSDL=no
   DEFAULT_wxUSE_LIBGNOMEPRINT=no
+  DEFAULT_wxUSE_LIBHILDON=no
   DEFAULT_wxUSE_ODBC=no
   DEFAULT_wxUSE_OPENGL=no
 
@@ -702,6 +705,7 @@ else
   DEFAULT_wxUSE_DISPLAY=yes
   DEFAULT_wxUSE_GAUGE=yes
   DEFAULT_wxUSE_GRID=yes
+  DEFAULT_wxUSE_DATAVIEWCTRL=no
   DEFAULT_wxUSE_IMAGLIST=yes
   DEFAULT_wxUSE_LISTBOOK=yes
   DEFAULT_wxUSE_LISTBOX=yes
@@ -816,6 +820,7 @@ WX_ARG_SYS_WITH(libxpm,    [  --with-libxpm           use libxpm (XPM file forma
 WX_ARG_WITH(libmspack,     [  --with-libmspack        use libmspack (CHM help files loading)], wxUSE_LIBMSPACK)
 WX_ARG_WITH(sdl,           [  --with-sdl              use SDL for audio on Unix], wxUSE_LIBSDL)
 WX_ARG_WITH(gnomeprint,    [  --with-gnomeprint       use GNOME print for printing under Unix], wxUSE_LIBGNOMEPRINT)
+WX_ARG_WITH(hildon,        [  --with-hildon           use Hildon framework for Nokia 770], wxUSE_LIBHILDON)
 WX_ARG_WITH(opengl,        [  --with-opengl           use OpenGL (or Mesa)], wxUSE_OPENGL)
 
 fi
@@ -1007,6 +1012,7 @@ if test "$wxUSE_CONTROLS" = "yes"; then
   DEFAULT_wxUSE_DATEPICKCTRL=yes
   DEFAULT_wxUSE_GAUGE=yes
   DEFAULT_wxUSE_GRID=yes
+  DEFAULT_wxUSE_DATAVIEWCTRL=no
   DEFAULT_wxUSE_IMAGLIST=yes
   DEFAULT_wxUSE_LISTBOOK=yes
   DEFAULT_wxUSE_LISTBOX=yes
@@ -1048,6 +1054,7 @@ elif test "$wxUSE_CONTROLS" = "no"; then
   DEFAULT_wxUSE_DATEPICKCTRL=no
   DEFAULT_wxUSE_GAUGE=no
   DEFAULT_wxUSE_GRID=no
+  DEFAULT_wxUSE_DATAVIEWCTRL=no
   DEFAULT_wxUSE_IMAGLIST=no
   DEFAULT_wxUSE_LISTBOOK=no
   DEFAULT_wxUSE_LISTBOX=no
@@ -1091,6 +1098,7 @@ WX_ARG_ENABLE(datepick,    [  --enable-datepick       use wxDatePickerCtrl class
 WX_ARG_ENABLE(display,     [  --enable-display        use wxDisplay class], wxUSE_DISPLAY)
 WX_ARG_ENABLE(gauge,       [  --enable-gauge          use wxGauge class], wxUSE_GAUGE)
 WX_ARG_ENABLE(grid,        [  --enable-grid           use wxGrid class], wxUSE_GRID)
+WX_ARG_ENABLE(dataviewctrl,[  --enable-dataviewctrl,  use wxDataViewCtrl class], wxUSE_DATAVIEWCTRL)
 WX_ARG_ENABLE(imaglist,    [  --enable-imaglist       use wxImageList class], wxUSE_IMAGLIST)
 WX_ARG_ENABLE(listbook,    [  --enable-listbook       use wxListbook class], wxUSE_LISTBOOK)
 WX_ARG_ENABLE(listbox,     [  --enable-listbox        use wxListBox class], wxUSE_LISTBOX)
@@ -5378,6 +5386,22 @@ dnl                     EXTRALIBS_GNOMEPRINT="$LIBGNOMEPRINTUI_LIBS"
     fi
 fi
 
+if test "$WXGTK20" = 1; then
+    if test "$wxUSE_LIBHILDON" = "yes" ; then
+        PKG_CHECK_MODULES(HILDON, 
+                          [hildon-lgpl >= 0.9],
+            [
+                EXTRALIBS_HILDON="$HILDON_LIBS"
+                CXXFLAGS="$CXXFLAGS $HILDON_CFLAGS"
+                AC_DEFINE(wxUSE_LIBHILDON)
+            ],
+            [
+                AC_MSG_WARN([libhildon_lgpl not found])
+                        wxUSE_LIBHILDON="no"
+            ]
+        )
+    fi
+fi
 
 if test "$wxUSE_CMDLINE_PARSER" = "yes"; then
   AC_DEFINE(wxUSE_CMDLINE_PARSER)
@@ -6274,6 +6298,12 @@ if test "$wxUSE_GRID" = "yes"; then
   SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS grid"
 fi
 
+if test "$wxUSE_DATAVIEWCTRL" = "yes"; then
+  AC_DEFINE(wxUSE_DATAVIEWCTRL)
+  USES_CONTROLS=1
+  SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS dataview"
+fi
+
 if test "$wxUSE_IMAGLIST" = "yes"; then
     AC_DEFINE(wxUSE_IMAGLIST)
 fi
@@ -7056,7 +7086,7 @@ EXTRALIBS_XML="$EXPAT_LINK"
 EXTRALIBS_HTML="$MSPACK_LINK"
 EXTRALIBS_ODBC="$ODBC_LINK"
 if test "$wxUSE_GUI" = "yes"; then
-    EXTRALIBS_GUI=`echo $GUI_TK_LIBRARY $PNG_LINK $JPEG_LINK $TIFF_LINK $WEBKIT_LINK $EXTRALIBS_GNOMEPRINT`
+    EXTRALIBS_GUI=`echo $GUI_TK_LIBRARY $PNG_LINK $JPEG_LINK $TIFF_LINK $WEBKIT_LINK $EXTRALIBS_HILDON $EXTRALIBS_GNOMEPRINT`
 fi
 if test "$wxUSE_OPENGL" = "yes"; then
     EXTRALIBS_OPENGL="$LDFLAGS_GL $OPENGL_LIBS"
@@ -7156,6 +7186,7 @@ AC_SUBST(EXTRALIBS_OPENGL)
 AC_SUBST(EXTRALIBS_SDL)
 AC_SUBST(WITH_PLUGIN_SDL)
 AC_SUBST(EXTRALIBS_GNOMEPRINT)
+AC_SUBST(EXTRALIBS_HILDON)
 AC_SUBST(UNICODE)
 AC_SUBST(BUILD)
 AC_SUBST(DEBUG_INFO)
@@ -7469,6 +7500,7 @@ echo "                                       expat              ${wxUSE_EXPAT}"
 echo "                                       libmspack          ${wxUSE_LIBMSPACK}"
 echo "                                       sdl                ${wxUSE_LIBSDL}"
 echo "                                       gnomeprint         ${wxUSE_LIBGNOMEPRINT-none}"
+echo "                                       hildon             ${wxUSE_LIBHILDON-none}"
 
 echo ""
 
