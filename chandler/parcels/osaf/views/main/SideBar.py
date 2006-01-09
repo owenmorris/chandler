@@ -773,7 +773,7 @@ class SidebarBlock(ControlBlocks.Table):
                     
                 sharing.unsubscribe(collection)
             
-            self.contents.remove(item)
+            self.contents.remove(collection)
 
         self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
 
