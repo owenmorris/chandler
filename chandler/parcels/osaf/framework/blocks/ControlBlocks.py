@@ -1753,7 +1753,7 @@ class AEBlock(BoxContainer):
             return None
         
         # Get the parameters we'll use to pick an editor
-        typeName = self.getItemAttributeTypeName()
+        (typeName, cardinality) = self.getItemAttributeTypeInfo()
         attributeName = self.attributeName
         readOnly = self.isReadOnly(item, attributeName)
         try:
@@ -1769,6 +1769,7 @@ class AEBlock(BoxContainer):
         else:
             if (oldEditor is not None):
                 if (oldEditor.typeName == typeName
+                   and oldEditor.cardinality == cardinality
                    and oldEditor.attributeName == attributeName
                    # see bug 4553 note below: was "and oldEditor.readOnly == readOnly"
                    and oldEditor.presentationStyle is presentationStyle):
@@ -1812,10 +1813,11 @@ class AEBlock(BoxContainer):
         #logger.debug("Creating new AE for %s (%s.%s), ro=%s", 
                      #typeName, item, attributeName, readOnly)
         selectedEditor = AttributeEditors.getInstance\
-                       (typeName, item, attributeName, readOnly, presentationStyle)
+                       (typeName, cardinality, item, attributeName, readOnly, presentationStyle)
         
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
+        selectedEditor.cardinality = cardinality
         selectedEditor.item = item
         selectedEditor.attributeName = attributeName
         selectedEditor.readOnly = readOnly
@@ -1859,20 +1861,23 @@ class AEBlock(BoxContainer):
                                 event.arguments['collection'])
         assert not hasattr(self, 'widget')
             
-    def getItemAttributeTypeName(self):
+    def getItemAttributeTypeInfo(self):
         """ 
-        Get the type of the current attribute.
+        Get the type & cardinality of the current attribute.
         
-        @returns: The name of the type of the item/attribute we're operating on
+        @returns: A tuple containing the name of the type and the cardinality
+        of the item/attribute we're operating on
         @rtype: String
         """
         item = self.item
         if item is None:
-            return None
+            return (None, 'single')
 
         # Ask the schema for the attribute's type first
+        cardinality = 'single'
         try:
             theType = item.getAttributeAspect(self.attributeName, "type")
+            cardinality = item.getAttributeAspect(self.attributeName, "cardinality")
         except:
             # If the repository doesn't know about it (it might be a property),
             # see if it's one of our type-friendly Calculated properties
@@ -1898,7 +1903,7 @@ class AEBlock(BoxContainer):
             else:
                 typeName = theType.itsName
         
-        return typeName
+        return (typeName, cardinality)
 
     def onClickFromWidget(self, event):
         """
