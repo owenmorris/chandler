@@ -1584,15 +1584,6 @@ class CalendarControl(CalendarBlock):
         else:
             self.selectedDate = self.rangeStart
 
-    def onSetContentsEvent(self, event):
-        """
-        The calendar control is responsible for re-broadcasting the
-        selection when the contents change.
-
-        """
-        super(CalendarControl, self).onSetContentsEvent(event)
-        self.postSelectItemsBroadcast()
-
     def onSelectItemsEvent(self, event):
         newSelection = event.arguments['items']
 
