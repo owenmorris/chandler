@@ -1,4 +1,5 @@
 import tools.QAUITestAppLib as QAUITestAppLib
+import osaf.framework.scripting as scripting
     
 # initialization
 fileName = "TestCalView.log"
@@ -12,15 +13,16 @@ try:
     testView.SwitchToCalView()
     # double click in the calendar view => event creation or selection
     ev = testView.DoubleClickInCalView()
+    scripting.User.idle()
     # double click one more time => edit the title
-    testView.DoubleClickInCalView()
+    #testView.DoubleClickInCalView()
     # type a new title and return
-    QAUITestAppLib.scripting.User.emulate_typing("foo")
+    QAUITestAppLib.scripting.User.emulate_typing("Writing tests")
     QAUITestAppLib.scripting.User.emulate_return()
     
     # verification
     # check the detail view of the created event
-    ev.Check_DetailView({"displayName":"foo"})
+    ev.Check_DetailView({"displayName":"Writing tests"})
 
 finally:
     # cleaning
