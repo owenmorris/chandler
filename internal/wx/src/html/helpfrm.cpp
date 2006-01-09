@@ -111,7 +111,7 @@ bool wxHtmlHelpFrame::Create(wxWindow* parent, wxWindowID id,
     wxMenuBar* menuBar = new wxMenuBar;
 
     wxMenu* fileMenu = new wxMenu;
-    fileMenu->Append(wxID_OPEN, _("&Open...")); // wxID_HTML_OPENFILE
+    fileMenu->Append(wxID_HTML_OPENFILE, _("&Open..."));
     fileMenu->AppendSeparator();
     fileMenu->Append(wxID_CLOSE, _("&Close"));
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.293 2006/01/09 13:42:42 JS Exp $ -->
+<!-- $Id: files.bkl,v 1.294 2006/01/09 17:47:06 vell Exp $ -->
 <makefile>
 
 <!--
@@ -2577,7 +2577,9 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="HTML_HDR" hints="files">
     wx/html/helpctrl.h
     wx/html/helpdata.h
+    wx/html/helpdlg.h
     wx/html/helpfrm.h
+    wx/html/helpwin.h
     wx/html/htmlcell.h
     wx/html/htmldefs.h
     wx/html/htmlfilt.h

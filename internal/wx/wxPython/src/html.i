@@ -1184,15 +1184,13 @@ public:
 		    int style = wxHF_DEFAULTSTYLE, wxHtmlHelpData* data = NULL);
 
     wxHtmlHelpData* GetData();
+    wxHtmlHelpController* GetController() const;
+    void SetController(wxHtmlHelpController* controller);
+    wxHtmlHelpWindow* GetHelpWindow() const;
     void SetTitleFormat(const wxString& format);
-    void Display(const wxString& x);
-    %Rename(DisplayID,  void,  Display(int id));
-    void DisplayContents();
-    void DisplayIndex();
-    bool KeywordSearch(const wxString& keyword);
-    void UseConfig(wxConfigBase *config, const wxString& rootpath = wxPyEmptyString);
-    void ReadCustomization(wxConfigBase *cfg, wxString path = wxPyEmptyString);
-    void WriteCustomization(wxConfigBase *cfg, wxString path = wxPyEmptyString);
+    void UseConfig(wxConfigBase *config, const wxString& rootpath = wxEmptyString);
+    void AddGrabIfNeeded();
+    virtual void AddToolbarButtons(wxToolBar* WXUNUSED(toolBar), int WXUNUSED(style));
 };
 
 
@@ -1292,7 +1290,6 @@ public:
     void UseConfig(wxConfigBase *config, const wxString& rootpath = wxPyEmptyString);
     void ReadCustomization(wxConfigBase *cfg, wxString path = wxPyEmptyString);
     void WriteCustomization(wxConfigBase *cfg, wxString path = wxPyEmptyString);
-    wxHtmlHelpFrame* GetFrame();
 
     %pythoncode { def Destroy(self): pass }
 };
