@@ -506,9 +506,9 @@ class Block(schema.Item):
             # Call the item's onInit method if it has one. If it returns None
             # Exit. If it returns something else, add that to the collection
             # instead of the item.
-            method = getattr (type (item), "onInit", None)
+            method = getattr (type (item), "onAddToCollection", None)
             if method:
-                result = method (widget)
+                result = method (item, event)
                 if result is False:
                     return
                 if result is not None:
