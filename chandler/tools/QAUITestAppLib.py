@@ -1241,6 +1241,7 @@ class UITestView:
             #check if an event already exists at this x,y postion
             #and if yes put it in the canvasItem variable
             pos = self.timedCanvas.widget.CalcUnscrolledPosition(click.GetPosition())
+            pos.y += 1 # Work around a bug somewhere (appears with r8724)
             for elem in reversed(self.timedCanvas.widget.canvasItemList):
                 if elem.isHit(pos):
                     canvasItem = elem
