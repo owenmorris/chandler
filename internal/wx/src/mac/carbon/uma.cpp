@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: uma.cpp,v 1.71 2006/01/08 10:54:32 SC Exp $
+// RCS-ID:      $Id: uma.cpp,v 1.72 2006/01/09 00:46:43 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     The wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
