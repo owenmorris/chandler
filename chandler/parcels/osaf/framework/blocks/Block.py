@@ -502,7 +502,17 @@ class Block(schema.Item):
                     else:
                         item.displayName = newDisplayName
                         break
-
+            
+            # Call the item's onInit method if it has one. If it returns None
+            # Exit. If it returns something else, add that to the collection
+            # instead of the item.
+            method = getattr (type (item), "onInit", None)
+            if method:
+                result = method (widget)
+                if result is False:
+                    return
+                if result is not None:
+                    item = result
             collection.add (item)
 
             # Optionally select the item in a named block and p;ossibly edit
