@@ -31,6 +31,10 @@ from osaf import messages
 
 logger = logging.getLogger(__name__)
 
+# Should we do autocompletion?
+# @@@ not on Windows until the wx issue is fixed.
+bigAutocompletionSwitch = (not '__WXMSW__' in wx.PlatformInfo) or __debug__
+
 #
 # The attribute editor registration mechanism:
 # For each editor, there's one or more AttributeEditorMapping objects that
@@ -54,9 +58,9 @@ class AttributeEditorMapping(schema.Item):
     
     This item's name is a type name (of an attribute) that'll cause this
     editor to be used to present or edit that attribute's value, optionally
-    followed by a '+' sign and a format string. If present, this format string 
-    influences the attribute editor picking process - see L{getAEClass} for 
-    a full explanation of how it's used.
+    followed by a '+'-separated list of words that, if present, influence
+    the attribute editor picking process - see L{getAEClass} for a full
+    explanation of how it's used.
 
     @ivar className: class path (python dotted style) to this attribute editor.
     @type className: String
@@ -149,7 +153,7 @@ def getSingleton (typeName):
         _TypeToEditorInstances [typeName] = instance
     return instance
 
-def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
+def getInstance(typeName, cardinality, item, attributeName, readOnly, presentationStyle):
     """ 
     Get a new unshared instance of the Attribute Editor for this type (and 
     optionally, format).
@@ -157,8 +161,8 @@ def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
     These unshared instances are used in the detail view; we don't cache them.
     
     @param typeName: The name of the type of the attribute to be edited, 
-        optionally including "+" and a format string; see L{getAEClass} for
-        explanation of how the format string is used.
+        optionally including "+"-separated parameters; see L{getAEClass} for
+        explanation of how the mechanism works.
     @type typeName: String
     @param item: The item whose attribute is to be edited.
     @type Item
@@ -175,25 +179,26 @@ def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
         format = None
     if typeName == "Lob" and hasattr(item, attributeName):
         typeName = getattr(item, attributeName).mimetype
-    aeClass = getAEClass(typeName, readOnly, format)
-    #logger.debug("getAEClass(%s [%s, %s]%s) --> %s", 
-                 #attributeName, typeName, format, 
+    aeClass = getAEClass(typeName, cardinality, readOnly, format)
+    #logger.debug("getAEClass(%s [%s, %s, %s]%s) --> %s", 
+                 #attributeName, typeName, cardinality, format, 
                  #readOnly and ", readOnly" or "", aeClass)
     instance = aeClass()        
     return instance
 
-def getAEClass (typeName, readOnly=False, format=None):
+def getAEClass(typeName, cardinality='single', readOnly=False, format=None):
     """ 
     Decide which attribute editor class to use for this type.
     
-    We'll try several ways to find an appropriate editor:
-      - If we're readOnly, try "+readOnly" before we try without it.
-      - If we have a format, try "+format" before we try without it.
-      - If those fail, just try the type itself.
-      - Failing that, use _default.
+    We'll try several ways to find an appropriate editor, considering
+    cardinality, readonlyness, and format, if any are provided, before 
+    falling back to not considering them. As a last resort, we'll use the 
+    '_default' one.
 
     @param typeName: The type name (or MIME type) of the type we'll be editing.
     @type typeName: String
+    @param cardinality: The cardinality of the attribute: 'single', 'list', or 'set'.
+    @type cardinality: String
     @param readOnly: True if this attribute is readOnly.
     @type readOnly: Boolean
     @param format: Format customization string, if any.
@@ -201,13 +206,15 @@ def getAEClass (typeName, readOnly=False, format=None):
     @rtype: class
     """
     def generateEditorTags():
-        if format is not None:
-            if readOnly:
-                yield "%s+%s+readOnly" % (typeName, format)
-            yield "%s+%s" % (typeName, format)
-        if readOnly:
-            yield "%s+readOnly" % typeName
-        yield typeName
+        # Generate all permutations, most-complex first.
+        formatList = format is not None and ('+%s' % format, '',) or ('',)
+        readOnlyList = readOnly and ('+readOnly', '',) or ('',)
+        cardinalityList = cardinality != 'single' \
+                        and ('+%s' % cardinality, '',) or ('',)
+        for c in cardinalityList:
+            for f in formatList:
+                for r in readOnlyList:
+                    yield "%s%s%s%s" % (typeName, c, f, r)
         logger.warn("AttributeEditors.getAEClass: using _default for %s/%s",
                     typeName, format)
         yield "_default"
@@ -1043,9 +1050,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         useStaticText = self.EditInPlace() and not forEditing
                 
         # We'll do autocompletion if someone implements the get-matches method
-        # @@@ not for now! WX relver 30 broke it.
-        doAutoCompletion = False # getattr(type(self), 'generateCompletionMatches', None) \
-                         #is not None
+        doAutoCompletion = bigAutocompletionSwitch \
+                         and getattr(type(self), 'generateCompletionMatches',  
+                                     None) is not None
 
         # Figure out the size we should be
         # @@@ There's a wx catch-22 here: The text ctrl on Windows will end up
@@ -1377,32 +1384,32 @@ class StringAttributeEditor (BaseAttributeEditor):
         the key's already been processed into the control; we can react
         to it, maybe by doing autocompletion.
         """
-        control = event.GetEventObject()
-        ateLastKey = getattr(control, 'ateLastKey', False)
-        if not ateLastKey:
-            matchGenerator = getattr(type(self), 'generateCompletionMatches', None)
-            # @@@ Disable autocompletion for now
-            if False: # matchGenerator is not None:
-                controlValue = self.GetControlValue(control)
-                insertionPoint = control.GetInsertionPoint()
-                (start, end) = self.findCompletionRange(controlValue,
-                                                        insertionPoint)
-                target = controlValue[:end].rstrip()
-                targetEnd = len(target)
-                target = target[start:].lstrip()
-                matches = []
-                if len(target) > 0 and targetEnd <= insertionPoint:
-                    # We have at least two characters, none after the 
-                    # insertion point
-                    count = 0
-                    for m in matchGenerator(self, target):
-                        count += 1
-                        if count > 15:
-                            # Don't show any if we find too many
-                            matches = []
-                            break
-                        matches.append(m)
-                self.manageCompletionList(matches)
+        if bigAutocompletionSwitch:
+            control = event.GetEventObject()
+            ateLastKey = getattr(control, 'ateLastKey', False)
+            if not ateLastKey:
+                matchGenerator = getattr(type(self), 'generateCompletionMatches', None)
+                if matchGenerator is not None:
+                    controlValue = self.GetControlValue(control)
+                    insertionPoint = control.GetInsertionPoint()
+                    (start, end) = self.findCompletionRange(controlValue,
+                                                            insertionPoint)
+                    target = controlValue[:end].rstrip()
+                    targetEnd = len(target)
+                    target = target[start:].lstrip()
+                    matches = []
+                    if len(target) > 0 and targetEnd <= insertionPoint:
+                        # We have at least two characters, none after the 
+                        # insertion point
+                        count = 0
+                        for m in matchGenerator(self, target):
+                            count += 1
+                            if count > 15:
+                                # Don't show any if we find too many
+                                matches = []
+                                break
+                            matches.append(m)
+                    self.manageCompletionList(matches)
         event.Skip()
 
     def onClick(self, event):
@@ -1453,42 +1460,44 @@ class StringAttributeEditor (BaseAttributeEditor):
         except AttributeError:
             valueString = u""
         else:
-            if theValue is None:
-                theValue = u""
-            else:
-                theValue = unicode(theValue)
             try:
                 cardinality = item.getAttributeAspect (attributeName, "cardinality")
             except AttributeError:
                 cardinality = "single"
-
-            if cardinality == "list":
-                valueString = u", ".join([part.getItemDisplayName()
-                                          for part in theValue])
-            else:
-                valueString = unicode(theValue)
+            if cardinality == "single":
+                if theValue is None:
+                    valueString = u""
+                else:
+                    valueString = unicode(theValue)
+            elif cardinality == "list" or cardinality == "set":
+                valueString = _(u", ").join([unicode(part) for part in theValue])
 
         return valueString
 
     def SetAttributeValue(self, item, attributeName, valueString):
-        try:
-            cardinality = item.getAttributeAspect (attributeName, "cardinality")
-        except AttributeError:
-            cardinality = "single"
-        if cardinality == "single":
-            if self.GetAttributeValue(item, attributeName) != valueString:
-                # The value changed
-                if self.allowEmpty() or len(valueString.strip()) > 0:
-                    # Either the value's not empty, or we allow empty values.
-                    # Write the updated value.
-                    # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
-                    setattr (item, attributeName, valueString)
-                    self.AttributeChanged()
-                else:
-                    # The user cleared out the old value, which isn't allowed. 
-                    # Reread the old value from the content model.
-                    self.SetControlValue(self.control, 
-                                         self.GetAttributeValue(item, attributeName))
+        if self.GetAttributeValue(item, attributeName) == valueString:
+            return # no change.
+
+        # The value changed
+        # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
+        if self.allowEmpty() or len(valueString.strip()) > 0:
+            # Either the value's not empty, or we allow empty values.
+            # Write the updated value.
+            try:
+                cardinality = item.getAttributeAspect (attributeName, "cardinality")
+            except AttributeError:
+                cardinality = "single"
+            if cardinality == "single":
+                value = valueString
+            elif cardinality == "list" or cardinality == "set":
+                value = map(unicode.strip, valueString.split(_(u",")))
+            setattr(item, attributeName, value)
+            self.AttributeChanged()
+        else:
+            # The user cleared out the old value, which isn't allowed. 
+            # Reread the old value from the content model.
+            self.SetControlValue(self.control, 
+                                 self.GetAttributeValue(item, attributeName))            
 
     def allowEmpty(self):
         """ 
