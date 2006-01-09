@@ -1127,7 +1127,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
 
         response = \
           application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
-          app.mainFrame, account=account, itsView=view)
+          app.mainFrame, account=account, rv=view)
 
         if response == False:
             return False
