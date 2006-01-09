@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.182 2005/11/20 15:26:45 JS Exp $
+// Id:          $Id: treectlg.cpp,v 1.183 2006/01/09 02:55:18 RD Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2333,7 +2333,15 @@ void wxGenericTreeCtrl::PaintLevel( wxGenericTreeItem *item, wxDC &dc, int level
             wxTRANSPARENT_PEN;
 
         wxColour colText;
-        if ( item->IsSelected() )
+        if ( item->IsSelected()
+#ifdef __WXMAC__
+            // On wxMac, if the tree doesn't have the focus we draw an empty
+            // rectangle, so we want to make sure that the text is visible
+            // against the normal background, not the highlightbackground, so
+            // don't use the highlight text colour unless we have the focus.
+             && m_hasFocus
+#endif
+            )
         {
             colText = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
         }
