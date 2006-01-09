@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// RCS-ID:      $Id: appbase.cpp,v 1.64 2005/11/08 01:02:48 VZ Exp $
+// RCS-ID:      $Id: appbase.cpp,v 1.65 2006/01/09 00:12:49 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -318,17 +318,6 @@ wxAppConsole::HandleEvent(wxEvtHandler *handler,
 {
     // by default, simply call the handler
     (handler->*func)(event);
-}
-
-bool
-wxAppConsole::OnExceptionInMainLoop()
-{
-    throw;
-
-    // some compilers are too stupid to know that we never return after throw
-#if defined(__DMC__) || (defined(_MSC_VER) && _MSC_VER < 1200)
-    return false;
-#endif
 }
 
 #endif // wxUSE_EXCEPTIONS

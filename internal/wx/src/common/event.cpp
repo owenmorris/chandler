@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        event.cpp
+// Name:        src/common/event.cpp
 // Purpose:     Event classes
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp,v 1.172 2005/12/02 00:53:31 VZ Exp $
+// RCS-ID:      $Id: event.cpp,v 1.173 2006/01/09 00:06:50 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,6 @@
 #endif
 
 #ifndef WX_PRECOMP
-    #include "wx/defs.h"
     #include "wx/app.h"
     #include "wx/list.h"
 
