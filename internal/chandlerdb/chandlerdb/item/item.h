@@ -16,9 +16,9 @@
 #define _ITEM_H
 
 
-#define Item_HEAD          \
-    unsigned long status;  \
-    unsigned long version; \
+#define Item_HEAD                   \
+    unsigned long status;           \
+    unsigned long long version;     \
     PyObject *name;
 
 

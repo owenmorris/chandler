@@ -10,6 +10,7 @@ from distutils.core import setup, Extension
 def main():
 
     PREFIX = os.environ['PREFIX']
+    DB_VER = os.environ['DB_VER']
     DEBUG = int(os.environ.get('DEBUG', '0'))
 
     extensions = []
@@ -52,28 +53,33 @@ def main():
                                          'chandlerdb/item/values.c',
                                          'chandlerdb/item/c.c']))
 
+    persistence_sources = ['chandlerdb/persistence/repository.c',
+                           'chandlerdb/persistence/view.c',
+                           'chandlerdb/persistence/container.c',
+                           'chandlerdb/persistence/sequence.c',
+                           'chandlerdb/persistence/db.c',
+                           'chandlerdb/persistence/cursor.c',
+                           'chandlerdb/persistence/env.c',
+                           'chandlerdb/persistence/txn.c',
+                           'chandlerdb/persistence/lock.c',
+                           'chandlerdb/persistence/c.c']
     if os.name == 'nt':
+        dbver = ''.join(DB_VER.split('.'))
         if DEBUG == 0:
-            libdb_name = 'libdb43'
+            libdb_name = 'libdb%s' %(dbver)
         else:
-            libdb_name = 'libdb43d'
+            libdb_name = 'libdb%sd' %(dbver)
         ext = Extension('chandlerdb.persistence.c',
-                        sources=['chandlerdb/persistence/repository.c',
-                                 'chandlerdb/persistence/view.c',
-                                 'chandlerdb/persistence/container.c',
-                                 'chandlerdb/persistence/c.c'],
+                        sources=persistence_sources,
                         include_dirs=[os.path.join(PREFIX, 'include', 'db')],
                         library_dirs=[os.path.join(PREFIX, 'lib')],
                         libraries=[libdb_name, 'ws2_32'])
     else:
         ext = Extension('chandlerdb.persistence.c',
-                        sources=['chandlerdb/persistence/repository.c',
-                                 'chandlerdb/persistence/view.c',
-                                 'chandlerdb/persistence/container.c',
-                                 'chandlerdb/persistence/c.c'],
+                        sources=persistence_sources,
                         library_dirs=[os.path.join(PREFIX, 'db', 'lib')],
                         include_dirs=[os.path.join(PREFIX, 'db', 'include')],
-                        libraries=['db-4.3'])
+                        libraries=['db-%s' %(DB_VER)])
     extensions.append(ext)
 
     setup(name='chandlerdb', version='0.5',

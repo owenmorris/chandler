@@ -110,7 +110,7 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
 {
     unsigned char uuid[16];
     unsigned int len = 0;
-    char *text;
+    char *text = NULL;
 
     if (!PyArg_ParseTuple(args, "|z#", &text, &len))
         return -1; 
@@ -140,8 +140,8 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    self->uuid = PyString_FromStringAndSize((char *) uuid, sizeof(uuid));
-    self->hash = hash_bytes(uuid, sizeof(uuid));
+    self->uuid = PyString_FromStringAndSize((char *) uuid, 16);
+    self->hash = hash_bytes(uuid, 16);
 
     return 0;
 }

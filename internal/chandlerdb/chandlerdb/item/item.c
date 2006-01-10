@@ -60,6 +60,7 @@ static PyObject *t_item__getRoot(t_item *self, void *data);
 static PyObject *t_item__getUUID(t_item *self, void *data);
 static PyObject *t_item__getPath(t_item *self, void *data);
 static PyObject *t_item__getVersion(t_item *self, void *data);
+static int t_item__setVersion(t_item *self, PyObject *value, void *data);
 
 static PyObject *_setKind_NAME;
 static PyObject *importItem_NAME;
@@ -95,7 +96,6 @@ static PyObject *getAttributeValue_NAME;
 
 static PyMemberDef t_item_members[] = {
     { "_status", T_UINT, offsetof(t_item, status), 0, "item status flags" },
-    { "_version", T_UINT, offsetof(t_item, version), 0, "item version" },
     { "_lastAccess", T_UINT, offsetof(t_item, lastAccess), 0, "access stamp" },
     { "_uuid", T_OBJECT, offsetof(t_item, uuid), 0, "item uuid" },
     { "_name", T_OBJECT, offsetof(t_item, name), 0, "item name" },
@@ -156,6 +156,8 @@ static PyGetSetDef t_item_properties[] = {
     { "itsPath", (getter) t_item__getPath, NULL,
       NULL, NULL },
     { "itsVersion", (getter) t_item__getVersion, NULL,
+      "itsVersion property", NULL },
+    { "_version", (getter) t_item__getVersion, (setter) t_item__setVersion,
       "itsVersion property", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
@@ -765,9 +767,10 @@ static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
 static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 {
     PyObject *name, *parent, *kind, *uuid, *values, *references, *hooks;
-    int status, version, update;
+    int status, update;
+    long long version;
 
-    if (!PyArg_ParseTuple(args, "OOOOOOii|Oi", &name, &parent, &kind,
+    if (!PyArg_ParseTuple(args, "OOOOOOiL|Oi", &name, &parent, &kind,
                           &uuid, &values, &references, &status, &version,
                           &hooks, &update))
         return NULL;
@@ -1285,11 +1288,23 @@ static PyObject *t_item__getPath(t_item *self, void *data)
 }
 
 
-/* itsVersion */
+/* itsVersion, _version */
 
 static PyObject *t_item__getVersion(t_item *self, void *data)
 {
-    return PyInt_FromLong(self->version);
+    return PyLong_FromUnsignedLongLong(self->version);
+}
+
+static int t_item__setVersion(t_item *self, PyObject *value, void *data)
+{
+    unsigned long long version = PyLong_AsUnsignedLongLong(value);
+    
+    if (PyErr_Occurred())
+        return -1;
+
+    self->version = version;
+    
+    return 0;
 }
 
 

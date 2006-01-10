@@ -36,7 +36,8 @@ static PyObject *t_view__getView(t_view *self, void *data);
 static PyObject *t_view__getName(t_view *self, void *data);
 static PyObject *t_view__getParent(t_view *self, void *data);
 static PyObject *t_view__getVersion(t_view *self, void *data);
-static int t_view__setVersion(t_view *self, PyObject *view, void *data);
+static int t_view__setVersion(t_view *self, PyObject *value, void *data);
+static int t_view__set_version(t_view *self, PyObject *value, void *data);
 static PyObject *t_view__getStore(t_view *self, void *data);
 static PyObject *t_view__getLogger(t_view *self, void *data);
 static PyObject *t_view__getMONITORING(t_view *self, void *data);
@@ -64,7 +65,6 @@ static PyObject *MONITORS_PATH;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
-    { "_version", T_UINT, offsetof(t_view, version), 0, "view version" },
     { "repository", T_OBJECT, offsetof(t_view, repository),
       0, "view repository" },
     { "name", T_OBJECT, offsetof(t_view, name), 0, "view name" },
@@ -108,6 +108,8 @@ static PyGetSetDef t_view_properties[] = {
       "itsParent property", NULL },
     { "itsVersion", (getter) t_view__getVersion, (setter) t_view__setVersion,
       "itsVersion property", NULL },
+    { "_version", (getter) t_view__getVersion, (setter) t_view__set_version,
+      "_version property", NULL },
     { "store", (getter) t_view__getStore, NULL,
       "store property", NULL },
     { "logger", (getter) t_view__getLogger, NULL,
@@ -213,7 +215,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
 {
     PyObject *repository, *name, *uuid;
 
-    if (!PyArg_ParseTuple(args, "OOkO", &repository, &name, &self->version,
+    if (!PyArg_ParseTuple(args, "OOLO", &repository, &name, &self->version,
                           &uuid))
         return -1;
 
@@ -425,11 +427,11 @@ static PyObject *t_view__getParent(t_view *self, void *data)
 }
 
 
-/* itsVersion */
+/* itsVersion, _version */
 
 static PyObject *t_view__getVersion(t_view *self, void *data)
 {
-    return PyInt_FromLong(self->version);
+    return PyLong_FromUnsignedLongLong(self->version);
 }
 
 static int t_view__setVersion(t_view *self, PyObject *version, void *data)
@@ -438,6 +440,18 @@ static int t_view__setVersion(t_view *self, PyObject *version, void *data)
                                     Py_None, version, NULL))
         return -1;
 
+    return 0;
+}
+
+static int t_view__set_version(t_view *self, PyObject *value, void *data)
+{
+    unsigned long long version = PyLong_AsUnsignedLongLong(value);
+    
+    if (PyErr_Occurred())
+        return -1;
+
+    self->version = version;
+    
     return 0;
 }
 

@@ -16,7 +16,6 @@
 #error system is not linux, os x or winnt
 #endif
 
-#include <db.h>
 #include <Python.h>
 #include "structmember.h"
 
@@ -24,24 +23,8 @@
 
 typedef struct {
     PyObject_HEAD
-    PyObject *db;
+    t_db *db;
 } t_container;
-
-/* from Python's _bsddb.c */
-typedef struct {
-    PyObject_HEAD
-    DB_ENV *db_env;
-} DBEnvObject;
-
-typedef struct {
-    PyObject_HEAD
-    DB *db;
-} DBObject;
-
-typedef struct {
-    PyObject_HEAD
-    DB_TXN *txn;
-} DBTxnObject;
 
 typedef enum {
     vt_UNKNOWN,
@@ -58,6 +41,7 @@ static void t_container_dealloc(t_container *self);
 static PyObject *t_container_new(PyTypeObject *type,
                                  PyObject *args, PyObject *kwds);
 static int t_container_init(t_container *self, PyObject *args, PyObject *kwds);
+
 
 static PyMemberDef t_container_members[] = {
     { "db", T_OBJECT, offsetof(t_container, db), READONLY, "" },
@@ -133,50 +117,18 @@ static int t_container_init(t_container *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTuple(args, "O", &db))
         return -1;
 
+    if (!PyObject_TypeCheck(db, CDB))
+    {
+        PyErr_SetObject(PyExc_TypeError, db);
+        return -1;
+    }
+
     Py_INCREF(db);
-    self->db = db;
+    self->db = (t_db *) db;
 
     return 0;
 }
 
-static PyObject *PyExc_DBLockDeadlockError;
-static PyObject *PyExc_DBLockNotGrantedError;
-static PyObject *PyExc_DBAccessError;
-static PyObject *PyExc_DBInvalidArgError;
-static PyObject *PyExc_DBNoSpaceError;
-static PyObject *PyExc_DBError;
-
-static PyObject *raiseDBError(int err)
-{
-    PyObject *tuple, *obj = NULL;
-
-    switch (err) {
-      case DB_LOCK_DEADLOCK:
-        obj = PyExc_DBLockDeadlockError;
-        break;
-      case DB_LOCK_NOTGRANTED:
-        obj = PyExc_DBLockNotGrantedError;
-        break;
-      case EACCES:
-        obj = PyExc_DBAccessError;
-        break;
-      case EINVAL:
-        obj = PyExc_DBInvalidArgError;
-        break;
-      case ENOSPC:
-        obj = PyExc_DBNoSpaceError;
-        break;
-      default:
-        obj = PyExc_DBError;
-        break;
-    }
-
-    tuple = Py_BuildValue("(is)", err, db_strerror(err));
-    PyErr_SetObject(obj, tuple);
-    Py_DECREF(tuple);
-
-    return NULL;
-}
 
 static int _size_valueType(PyObject *value, valueType *vt)
 {
@@ -226,6 +178,57 @@ static int _size_valueType(PyObject *value, valueType *vt)
     return 0;
 }
 
+static PyObject *_readValue(char *buffer, int *offset)
+{
+    switch (buffer[(*offset)++]) {
+      case '\0':
+        Py_RETURN_NONE;
+      case '\1':
+        Py_RETURN_TRUE;
+      case '\2':
+        Py_RETURN_FALSE;
+      case '\3':
+      {
+          PyObject *string = PyString_FromStringAndSize(buffer + *offset, 16);
+          *offset += 16;
+
+          return PyUUID_Make16(string);
+      }
+      case '\4':
+      {
+          long n = ntohl(*(long *) (buffer + *offset));
+          
+          *offset += 4;
+          return PyInt_FromLong(n);
+      }
+      case '\5':
+      {
+          int len = ntohs(*(unsigned short *) (buffer + *offset));
+          PyObject *string;
+
+          *offset += 2;
+          string = PyString_FromStringAndSize(buffer + *offset, len);
+          *offset += len;
+
+          return string;
+      }
+      case '\6':
+      {
+          int len = ntohs(*(unsigned short *) (buffer + *offset));
+          PyObject *string;
+          
+          *offset += 2;
+          string = PyUnicode_DecodeUTF8(buffer + *offset, len, NULL);
+          *offset += len;
+
+          return string;
+      }
+      default:
+        PyErr_SetString(PyExc_ValueError, "unexpected type code");
+        return NULL;
+    }
+}
+
 static int _writeValue(char *buffer, PyObject *value, valueType vt)
 {
     if (vt == vt_UNKNOWN)
@@ -263,7 +266,7 @@ static int _writeValue(char *buffer, PyObject *value, valueType vt)
           int len = PyString_GET_SIZE(value);
 
           buffer[0] = '\5';
-          *((short *) (buffer + 1)) = htons(len);
+          *((unsigned short *) (buffer + 1)) = htons(len);
           memcpy(buffer + 3, PyString_AS_STRING(value), len);
 
           return len + 3;
@@ -273,8 +276,8 @@ static int _writeValue(char *buffer, PyObject *value, valueType vt)
           PyObject *str = PyUnicode_AsUTF8String(value);
           int len = PyString_GET_SIZE(str);
 
-          buffer[0] = '\5';
-          *((short *) (buffer + 1)) = htons(len);
+          buffer[0] = '\6';
+          *((unsigned short *) (buffer + 1)) = htons(len);
           memcpy(buffer + 3, PyString_AS_STRING(str), len);
           Py_DECREF(str);
 
@@ -297,6 +300,129 @@ static int _writeValue(char *buffer, PyObject *value, valueType vt)
     }
 
     PyErr_SetObject(PyExc_TypeError, value);
+    return 0;
+}
+
+static PyObject *_t_container_associate(t_container *self, PyObject *args,
+                                        int (*fn)(DB *, const DBT *, const DBT *, DBT *))
+{
+    PyObject *index, *txn = Py_None;
+    int flags = 0;
+
+    if (!PyArg_ParseTuple(args, "O|Oi", &index, &txn, &flags))
+        return NULL;
+
+    if (!PyObject_TypeCheck(index, CDB))
+    {
+        PyErr_SetObject(PyExc_TypeError, index);
+        return NULL;
+    }
+
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
+    {
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    {
+        DB *db = self->db->db;
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        int err;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = db->associate(db, db_txn, ((t_db *) index)->db, fn, flags);
+        Py_END_ALLOW_THREADS;
+
+        if (err)
+            return raiseDBError(err);
+    }
+
+    Py_RETURN_NONE;
+}
+
+typedef struct {
+    DBT dbt;
+    int *offsets;
+} t_tuple_dbt;
+
+static int _t_container_get_strings(t_tuple_dbt *dbt, void *data,
+                                    int len, int offset)
+{
+    PyGILState_STATE state = PyGILState_Ensure();
+    PyObject *tuple, *str;
+    int count = dbt->offsets[0];
+    int i, prev;
+
+    if (offset == 0)
+    {
+        tuple = PyTuple_New(count);
+        if (!tuple)
+        {
+            PyGILState_Release(state);
+            return DB_PYTHON_ERROR;
+        }
+
+        prev = 0;
+        for (i = 1; i < count; i++) {
+            int curr = dbt->offsets[i];
+
+            str = PyString_FromStringAndSize(NULL, curr - prev);
+            if (!str)
+            {
+                Py_DECREF(tuple);
+                PyGILState_Release(state);
+                return DB_PYTHON_ERROR;
+            }
+                
+            PyTuple_SET_ITEM(tuple, i - 1, str);
+            prev = curr;
+        }
+
+        str = PyString_FromStringAndSize(NULL, dbt->dbt.size - prev);
+        if (!str)
+        {
+            Py_DECREF(tuple);
+            PyGILState_Release(state);
+            return DB_PYTHON_ERROR;
+        }        
+
+        PyTuple_SET_ITEM(tuple, count - 1, str);
+        dbt->dbt.data = tuple;
+    }
+    else
+        tuple = (PyObject *) dbt->dbt.data;
+
+    prev = 0;
+    for (i = 1; i < count; i++) {
+        int curr = dbt->offsets[i];
+
+        if (offset < curr)
+        {
+            int size = curr - offset;      /* curr - prev - (offset - prev) */
+
+            str = PyTuple_GET_ITEM(tuple, i - 1);
+            memcpy(PyString_AS_STRING(str) + offset - prev, data,
+                   len > size ? size : len);
+
+            len -= size;
+
+            if (len <= 0)
+            {
+                PyGILState_Release(state);
+                return 0;
+            }
+
+            data = (char *) data + size;
+            offset += size;
+        }
+
+        prev = curr;
+    }
+
+    str = PyTuple_GET_ITEM(tuple, count - 1);
+    memcpy(PyString_AS_STRING(str) + offset - prev, data, len);
+
+    PyGILState_Release(state);
     return 0;
 }
 
@@ -391,6 +517,7 @@ static int t_value_container_init(t_value_container *self,
     return ContainerType.tp_init((PyObject *) self, args, kwds);
 }
 
+
 static PyObject *t_value_container_loadValue(t_value_container *self,
                                              PyObject *args)
 {
@@ -398,48 +525,54 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
 
     if (!PyArg_ParseTuple(args, "OO", &txn, &uValue))
         return NULL;
-    else
+
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
     {
-        DB *db = ((DBObject *) (((t_container *) self)->db))->db;
-        DB_TXN *db_txn = txn == Py_None ? NULL : ((DBTxnObject *) txn)->txn;
-        DBT key, data;
-        int err;
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    if (!PyUUID_Check(uValue))
+    {
+        PyErr_SetObject(PyExc_TypeError, uValue);
+        return NULL;
+    }
+
+    {
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        DB *db = (((t_container *) self)->db)->db;
+        DBT key;
+        t_tuple_dbt data;
+        int offsets[] = { 3, 16, 17 };   /* 3 strings, starting at 0, 16, 17 */
 
         memset(&key, 0, sizeof(key));
         key.data = PyString_AS_STRING(((t_uuid *) uValue)->uuid);
         key.size = PyString_GET_SIZE(((t_uuid *) uValue)->uuid);
         
         memset(&data, 0, sizeof(data));
-        data.flags = DB_DBT_MALLOC;
+        data.dbt.flags = DB_DBT_USERCOPY;
+        data.dbt.data = _t_container_get_strings;
+        data.offsets = offsets;
 
         while (1) {
-            err = db->get(db, db_txn, &key, &data, 0);
+            int err;
+
+            Py_BEGIN_ALLOW_THREADS;
+            err = db->get(db, db_txn, &key, (DBT *) &data, 0);
+            Py_END_ALLOW_THREADS;
 
             switch (err) {
               case 0:
               {
-                  PyObject *tuple = PyTuple_New(2);
-                  PyObject *uuid =
-                      PyString_FromStringAndSize((char *) data.data, 16);
-                  PyObject *value = 
-                      PyString_FromStringAndSize((char *) data.data + 36,
-                                                 data.size - 36);
+                  PyObject *tuple = (PyObject *) data.dbt.data;
+                  PyObject *uuid = PyTuple_GET_ITEM(tuple, 0);
 
-                  free(data.data);
                   PyTuple_SET_ITEM(tuple, 0, PyUUID_Make16(uuid));
-                  PyTuple_SET_ITEM(tuple, 1, value);
 
                   return tuple;
               }
               case DB_NOTFOUND:
-              {
-                  PyObject *tuple = PyTuple_New(2);
-
-                  PyTuple_SET_ITEM(tuple, 0, Py_None); Py_INCREF(Py_None);
-                  PyTuple_SET_ITEM(tuple, 1, Py_None); Py_INCREF(Py_None);
-
-                  return tuple;
-              }
+                Py_RETURN_NONE;
               case DB_LOCK_DEADLOCK:
                 if (!db_txn)
                     continue;
@@ -453,43 +586,56 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
 static PyObject *t_value_container_saveValue(t_value_container *self,
                                              PyObject *args)
 {
-    PyObject *txn, *uItem, *uAttr, *uValue, *value;
-    int version;
+    PyObject *txn, *uAttr, *uValue;
+    char *value;
+    int vLen;
 
-    if (!PyArg_ParseTuple(args, "OOiOOO", &txn, &uItem, &version,
-                          &uAttr, &uValue, &value))
+    if (!PyArg_ParseTuple(args, "OOOs#", &txn, &uAttr, &uValue, &value, &vLen))
         return NULL;
-    else
-    {
-        DB *db = ((DBObject *) (((t_container *) self)->db))->db;
-        DB_TXN *db_txn = txn == Py_None ? NULL : ((DBTxnObject *) txn)->txn;
-        DBT key, data;
-        int vLen = PyString_GET_SIZE(value);
-        int len = 36 + vLen;
-        char *buffer = malloc(len);
-        int err;
 
-        if (!buffer)
-            PyErr_SetString(PyExc_MemoryError, "malloc failed");
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
+    {
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    {
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        DB *db = (((t_container *) self)->db)->db;
+        DBT key, data;
+        char *buffer, stackBuffer[1024];
+        int len = 16 + vLen;
+        int err;
 
         memset(&key, 0, sizeof(key));
         key.data = PyString_AS_STRING(((t_uuid *) uValue)->uuid);
         key.size = PyString_GET_SIZE(((t_uuid *) uValue)->uuid);
 
+        if (len > sizeof(stackBuffer))
+        {
+            buffer = malloc(len);
+            if (!buffer)
+            {
+                PyErr_SetString(PyExc_MemoryError, "malloc failed");
+                return NULL;
+            }
+        }
+        else
+            buffer = stackBuffer;
+
         memcpy(buffer, PyString_AS_STRING(((t_uuid *) uAttr)->uuid), 16);
-        memcpy(buffer + 16, PyString_AS_STRING(((t_uuid *) uItem)->uuid), 16);
-        *((int *) (buffer + 32)) = htonl(~version);
-        memcpy(buffer + 36, PyString_AS_STRING(value), vLen);
+        memcpy(buffer + 16, value, vLen);
 
         memset(&data, 0, sizeof(data));
         data.data = buffer;
         data.size = len;
-
+        
         Py_BEGIN_ALLOW_THREADS;
         err = db->put(db, db_txn, &key, &data, 0);
         Py_END_ALLOW_THREADS;
 
-        free(buffer);
+        if (len > sizeof(stackBuffer))
+            free(buffer);
 
         if (err)
             return raiseDBError(err);
@@ -509,8 +655,10 @@ static PyObject *t_ref_container_new(PyTypeObject *type,
                                      PyObject *args, PyObject *kwds);
 static int t_ref_container_init(t_ref_container *self,
                                 PyObject *args, PyObject *kwds);
-static PyObject *t_ref_container_saveRef(t_ref_container *self,
-                                         PyObject *args);
+static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args);
+static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args);
+static PyObject *t_ref_container_associateHistory(t_ref_container *self,
+                                                  PyObject *args);
 
 
 static PyMemberDef t_ref_container_members[] = {
@@ -518,8 +666,12 @@ static PyMemberDef t_ref_container_members[] = {
 };
 
 static PyMethodDef t_ref_container_methods[] = {
-    { "saveRef", (PyCFunction) t_ref_container_saveRef, METH_VARARGS,
-      "saveRef" },
+    { "saveRef", (PyCFunction) t_ref_container_saveRef,
+      METH_VARARGS, "saveRef" },
+    { "loadRef", (PyCFunction) t_ref_container_loadRef,
+      METH_VARARGS, "loadRef" },
+    { "associateHistory", (PyCFunction) t_ref_container_associateHistory,
+      METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -585,27 +737,180 @@ static int t_ref_container_init(t_ref_container *self,
     return ContainerType.tp_init((PyObject *) self, args, kwds);
 }
 
+typedef struct {
+    DBT dbt;
+    char buffer[128];
+} t_buffer_dbt;
+
+static int _t_ref_container_load_ref(t_buffer_dbt *dbt, void *data,
+                                     int len, int offset)
+{
+    if (offset == 0)
+    {
+        if (dbt->dbt.size > sizeof(dbt->buffer))
+        {
+            dbt->dbt.data = malloc(dbt->dbt.size);
+            if (!dbt->dbt.data)
+                return ENOMEM;
+        }
+        else
+            dbt->dbt.data = dbt->buffer;
+    }
+
+    memcpy((char *) dbt->dbt.data + offset, data, len);
+    return 0;
+}
+
+static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
+{
+    PyObject *cursor;
+    char *prefix, *ref;
+    int prefixLen, refLen, flags = 0;
+    unsigned long long version;
+
+    if (!PyArg_ParseTuple(args, "Os#s#K|i", &cursor,
+                          &prefix, &prefixLen, &ref, &refLen, &version, &flags))
+        return NULL;
+
+    if (!PyObject_TypeCheck(cursor, CDBCursor))
+    {
+        PyErr_SetObject(PyExc_TypeError, cursor);
+        return NULL;
+    }
+
+    if (prefixLen != 32)
+    {
+        PyErr_SetString(PyExc_ValueError, "invalid prefix length");
+        return NULL;
+    }
+
+    if (refLen != 16)
+    {
+        PyErr_SetString(PyExc_ValueError, "invalid ref length");
+        return NULL;
+    }
+
+    {
+        DBC *dbc = ((t_cursor *) cursor)->dbc;
+        char keyBuffer[56];
+        DBT key;
+        t_buffer_dbt data;
+        int err;
+
+        memset(&key, 0, sizeof(key));
+        memcpy(keyBuffer, prefix, 32);
+        memcpy(keyBuffer + 32, ref, 16);
+        key.data = keyBuffer;
+        key.size = 48;
+        key.flags = DB_DBT_USERMEM;
+        key.ulen = sizeof(keyBuffer);
+
+        memset(&data, 0, sizeof(data));
+        data.dbt.flags = DB_DBT_USERCOPY;
+        data.dbt.data = _t_ref_container_load_ref;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = dbc->c_get(dbc, &key, (DBT *) &data, flags | DB_SET_RANGE);
+        Py_END_ALLOW_THREADS;
+
+        do {
+            char *buffer = data.dbt.data;
+
+            switch (err) {
+              case 0:
+              {
+                  unsigned long long ver;
+
+                  if (key.size != 56 ||
+                      memcmp(key.data, prefix, 32) ||
+                      memcmp((char *) key.data + 32, ref, 16))
+                  {
+                      if (buffer != data.buffer)
+                          free(buffer);
+                              
+                      Py_RETURN_NONE;
+                  }
+
+                  ver = ntohl(*(unsigned long *) ((char *) key.data + 48));
+                  ver <<= 32;
+                  ver += ntohl(*(unsigned long *) ((char *) key.data + 52));
+
+                  if (~ver <= version)
+                  {
+                      if (data.dbt.size == 1)  /* deleted ref */
+                          Py_RETURN_NONE;
+                      else
+                      {
+                          PyObject *tuple = PyTuple_New(3);
+                          int pos = 0;
+
+                          PyTuple_SET_ITEM(tuple, 0, _readValue(buffer, &pos));
+                          PyTuple_SET_ITEM(tuple, 1, _readValue(buffer, &pos));
+                          PyTuple_SET_ITEM(tuple, 2, _readValue(buffer, &pos));
+
+                          if (buffer != data.buffer)
+                              free(buffer);
+
+                          if (PyErr_Occurred())
+                          {
+                              Py_DECREF(tuple);
+                              return NULL;
+                          }
+
+                          return tuple;
+                      }
+                  }
+                  break;
+              }
+
+              case DB_NOTFOUND:
+                Py_RETURN_NONE;
+
+              default:
+                return raiseDBError(err);
+            }
+
+            key.size = 48;
+
+            if (buffer != data.buffer)
+                free(buffer);
+            data.dbt.data = _t_ref_container_load_ref;
+            data.dbt.size = 0;
+
+            Py_BEGIN_ALLOW_THREADS;
+            err = dbc->c_get(dbc, &key, (DBT *) &data, flags | DB_NEXT);
+            Py_END_ALLOW_THREADS;
+        } while (1);
+    }
+}
 
 static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
 {
     PyObject *txn, *prefix, *uuid, *previous, *next, *alias;
-    int version;
+    unsigned long long version;
 
-    if (!PyArg_ParseTuple(args, "OOiOOOO", &txn, &prefix, &version, &uuid,
+    if (!PyArg_ParseTuple(args, "OOKOOOO", &txn, &prefix, &version, &uuid,
                           &previous, &next, &alias))
         return NULL;
-    else
+
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
     {
-        DB *db = ((DBObject *) (((t_container *) self)->db))->db;
-        DB_TXN *db_txn = txn == Py_None ? NULL : ((DBTxnObject *) txn)->txn;
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    {
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        DB *db = (((t_container *) self)->db)->db;
         valueType prevType, nextType, aliasType;
-        char keyBuffer[52], *dataBuffer;
+        char keyBuffer[56], *dataBuffer, stackBuffer[128];
         DBT key, data;
         int len, err;
 
         memcpy(&keyBuffer, PyString_AS_STRING(prefix), 32);
         memcpy(&keyBuffer[32], PyString_AS_STRING(((t_uuid *) uuid)->uuid), 16);
-        *((int *) (&keyBuffer[48])) = htonl(~version);
+        *((unsigned long *) (&keyBuffer[48])) = htonl(~(unsigned long) (version >> 32));
+        *((unsigned long *) (&keyBuffer[52])) = htonl(~(unsigned long) version);
         memset(&key, 0, sizeof(key));
         key.data = keyBuffer;
         key.size = sizeof(keyBuffer);
@@ -615,9 +920,17 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         len += _size_valueType(next, &nextType);
         len += _size_valueType(alias, &aliasType);
 
-        dataBuffer = malloc(len);
-        if (!dataBuffer)
-            PyErr_SetString(PyExc_MemoryError, "malloc failed");
+        if (len > sizeof(stackBuffer))
+        {
+            dataBuffer = malloc(len);
+            if (!dataBuffer)
+            {
+                PyErr_SetString(PyExc_MemoryError, "malloc failed");
+                return NULL;
+            }
+        }
+        else
+            dataBuffer = stackBuffer;
         
         len = 0;
         len += _writeValue(dataBuffer + len, previous, prevType);
@@ -631,7 +944,8 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         err = db->put(db, db_txn, &key, &data, 0);
         Py_END_ALLOW_THREADS;
 
-        free(dataBuffer);
+        if (len > sizeof(stackBuffer))
+            free(dataBuffer);
 
         if (err)
             return raiseDBError(err);
@@ -640,11 +954,195 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
     }
 }
 
+
+/* uItem, uCol, uRef, ~version -> uCol, version, uRef */
+
+static int _t_ref_container_historyKey(DB *secondary,
+                                       const DBT *key, const DBT *data,
+                                       DBT *result)
+{
+    char *buffer = (char *) malloc(40);
+    unsigned long long version = ~*(unsigned long long *) ((char *) key->data + 48);
+
+    if (!buffer)
+        return ENOMEM;
+
+    memcpy(buffer, (char *) key->data + 16, 16);
+    memcpy(buffer + 16, &version, 8);
+    memcpy(buffer + 24, (char *) key->data + 32, 16);
+
+    result->data = buffer;
+    result->flags = DB_DBT_APPMALLOC;
+    result->size = 40;
+
+    return 0;
+}
+
+static PyObject *t_ref_container_associateHistory(t_ref_container *self,
+                                                  PyObject *args)
+{
+    return _t_container_associate((t_container *) self, args,
+                                  _t_ref_container_historyKey);
+}
+
+
+typedef struct {
+    t_container container;
+} t_item_container;
+
+
+static void t_item_container_dealloc(t_item_container *self);
+static PyObject *t_item_container_new(PyTypeObject *type,
+                                     PyObject *args, PyObject *kwds);
+static int t_item_container_init(t_item_container *self,
+                                PyObject *args, PyObject *kwds);
+static PyObject *t_item_container_associateKind(t_item_container *self,
+                                                PyObject *args);
+static PyObject *t_item_container_associateVersion(t_item_container *self,
+                                                   PyObject *args);
+
+
+
+static PyMemberDef t_item_container_members[] = {
+    { NULL, 0, 0, 0, NULL }
+};
+
+static PyMethodDef t_item_container_methods[] = {
+    { "associateKind", (PyCFunction) t_item_container_associateKind,
+      METH_VARARGS, NULL },
+    { "associateVersion", (PyCFunction) t_item_container_associateVersion,
+      METH_VARARGS, NULL },
+    { NULL, NULL, 0, NULL }
+};
+
+static PyTypeObject ItemContainerType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                                   /* ob_size */
+    "chandlerdb.persistence.c.CItemContainer",           /* tp_name */
+    sizeof(t_item_container),                            /* tp_basicsize */
+    0,                                                   /* tp_itemsize */
+    (destructor)t_item_container_dealloc,                /* tp_dealloc */
+    0,                                                   /* tp_print */
+    0,                                                   /* tp_getattr */
+    0,                                                   /* tp_setattr */
+    0,                                                   /* tp_compare */
+    0,                                                   /* tp_repr */
+    0,                                                   /* tp_as_number */
+    0,                                                   /* tp_as_sequence */
+    0,                                                   /* tp_as_mapping */
+    0,                                                   /* tp_hash  */
+    0,                                                   /* tp_call */
+    0,                                                   /* tp_str */
+    0,                                                   /* tp_getattro */
+    0,                                                   /* tp_setattro */
+    0,                                                   /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,            /* tp_flags */
+    "C ItemContainer type",                              /* tp_doc */
+    0,                                                   /* tp_traverse */
+    0,                                                   /* tp_clear */
+    0,                                                   /* tp_richcompare */
+    0,                                                   /* tp_weaklistoffset */
+    0,                                                   /* tp_iter */
+    0,                                                   /* tp_iternext */
+    t_item_container_methods,                            /* tp_methods */
+    t_item_container_members,                            /* tp_members */
+    0,                                                   /* tp_getset */
+    &ContainerType,                                      /* tp_base */
+    0,                                                   /* tp_dict */
+    0,                                                   /* tp_descr_get */
+    0,                                                   /* tp_descr_set */
+    0,                                                   /* tp_dictoffset */
+    (initproc)t_item_container_init,                     /* tp_init */
+    0,                                                   /* tp_alloc */
+    (newfunc)t_item_container_new,                       /* tp_new */
+};
+
+
+static void t_item_container_dealloc(t_item_container *self)
+{
+    ContainerType.tp_dealloc((PyObject *) self);
+}
+
+static PyObject *t_item_container_new(PyTypeObject *type,
+                                     PyObject *args, PyObject *kwds)
+{
+    PyObject *self = ContainerType.tp_new(type, args, kwds);
+
+    return (PyObject *) self;
+}
+
+static int t_item_container_init(t_item_container *self,
+                                 PyObject *args, PyObject *kwds)
+{
+    return ContainerType.tp_init((PyObject *) self, args, kwds);
+}
+
+
+/* uItem, ~version -> uKind, uItem, ~version */
+
+static int _t_item_container_kindKey(DB *secondary,
+                                     const DBT *key, const DBT *data,
+                                     DBT *result)
+{
+    char *buffer = (char *) malloc(40);
+
+    if (!buffer)
+        return ENOMEM;
+
+    memcpy(buffer, data->data, 16);
+    memcpy(buffer + 16, key->data, 24);
+
+    result->data = buffer;
+    result->flags = DB_DBT_APPMALLOC;
+    result->size = 40;
+
+    return 0;
+}
+
+static PyObject *t_item_container_associateKind(t_item_container *self,
+                                                PyObject *args)
+{
+    return _t_container_associate((t_container *) self, args,
+                                  _t_item_container_kindKey);
+}
+
+
+/* uItem, ~version -> version, uItem */
+
+static int _t_item_container_versionKey(DB *secondary,
+                                        const DBT *key, const DBT *data,
+                                        DBT *result)
+{
+    char *buffer = (char *) malloc(24);
+    unsigned long long version = ~*(unsigned long long *) ((char *) key->data + 16);
+
+    if (!buffer)
+        return ENOMEM;
+
+    memcpy(buffer, &version, 8);
+    memcpy(buffer + 8, key->data, 16);
+
+    result->data = buffer;
+    result->flags = DB_DBT_APPMALLOC;
+    result->size = 24;
+
+    return 0;
+}
+
+static PyObject *t_item_container_associateVersion(t_item_container *self,
+                                                   PyObject *args)
+{
+    return _t_container_associate((t_container *) self, args,
+                                  _t_item_container_versionKey);
+}
+
+
 void _init_container(PyObject *m)
 {
     if (PyType_Ready(&ContainerType) >= 0 &&
         PyType_Ready(&ValueContainerType) >= 0 &&
-        PyType_Ready(&RefContainerType) >= 0)
+        PyType_Ready(&RefContainerType) >= 0 &&
+        PyType_Ready(&ItemContainerType) >= 0)
     {
         if (m)
         {
@@ -660,14 +1158,9 @@ void _init_container(PyObject *m)
             PyModule_AddObject(m, "CRefContainer",
                                (PyObject *) &RefContainerType);
 
-            m = PyImport_ImportModule("bsddb.db");
-            LOAD_EXC(m, DBLockDeadlockError);
-            LOAD_EXC(m, DBLockNotGrantedError);
-            LOAD_EXC(m, DBAccessError);
-            LOAD_EXC(m, DBInvalidArgError);
-            LOAD_EXC(m, DBNoSpaceError);
-            LOAD_EXC(m, DBError);
-            Py_DECREF(m);
+            Py_INCREF(&ItemContainerType);
+            PyModule_AddObject(m, "CItemContainer",
+                               (PyObject *) &ItemContainerType);
         }
     }
 }

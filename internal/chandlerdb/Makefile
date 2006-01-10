@@ -1,8 +1,9 @@
 
 include ../Makefile.inc
 
-RELVER=0.6-$(BRANCH_REV_PREFIX)3
+RELVER=0.6-$(BRANCH_REV_PREFIX)8
 CHANDLERDB=$(INTERNAL)/chandlerdb
+DB_VER=4.4
 
 BUILD=build_$(SNAP)
 
@@ -20,6 +21,7 @@ endif
 build:
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
         PREFIX=$(_prefix) \
+	DB_VER=$(DB_VER) \
         $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
