@@ -50,6 +50,7 @@ _treeList = [
         'FoldPanelBar',
         'GIFAnimationCtrl',
         'ColumnHeader',
+        'GetMouseState',
         ]),
 
     # managed windows == things with a (optional) caption you can close
