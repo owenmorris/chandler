@@ -385,27 +385,17 @@ class wxTableData(wx.grid.PyGridTableBase):
         self.defaultROAttribute.DecRef()
         
     def GetNumberRows (self):
-        """
-          We've got the usual chicken & egg problems: wxWidgets calls GetNumberRows &
-        GetNumberCols before wiring up the view instance variable
-        """
-        view = self.GetView()
-        if view is not None:
-            return view.GetElementCount()
-        return 1
+        return self.GetView().GetElementCount()
 
     def GetNumberCols (self):
-        view = self.GetView()
-        if view is not None:
-            return view.GetColumnCount()
-        return 1
+        return self.GetView().GetColumnCount()
 
     def GetColLabelValue (self, column):
         grid = self.GetView()
-        if grid.GetElementCount():
-            item = grid.blockItem.contents [grid.GetGridCursorRow()]
-        else:
+        if grid.GetElementCount() == 0:
             item = None
+        else:
+            item = grid.blockItem.contents [grid.GetGridCursorRow()]
         return grid.GetColumnHeading (column, item)
 
     def IsEmptyCell (self, row, column): 
@@ -426,13 +416,10 @@ class wxTableData(wx.grid.PyGridTableBase):
             type = self.GetTypeName (row, column)
             delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
-            """
-              An apparent bug in table asks for an attribute even when
-            there are no entries in the table
-            """
             grid = self.GetView()
-            if ((row < grid.GetElementCount()) and
-                not grid.blockItem.columnReadOnly[column] and
+            assert (row < grid.GetElementCount() and column < grid.GetColumnCount())
+
+            if (not grid.blockItem.columnReadOnly[column] and
                 not grid.ReadOnly (row, column)[0] and
                 not delegate.ReadOnly (grid.GetElementValue (row, column))):
                 attribute = self.defaultRWAttribute
@@ -524,14 +511,13 @@ class wxTable(DragAndDrop.DraggableWidget,
         when the grid is deleted.
 
           We've also got the usual chicken and egg problem: SetTable uses the
-        table before initializing it's view so GetView() returns none.
+        table before initializing it's view so let's first set the view.
         """
         gridTable = wxTableData()
-
-        self.currentRows = gridTable.GetNumberRows()
-        self.currentColumns = gridTable.GetNumberCols()
-        self.EnableGridLines (self.blockItem.hasGridLines)
+        gridTable.SetView (self)
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
+
+        self.EnableGridLines (self.blockItem.hasGridLines)
 
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
@@ -660,7 +646,6 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.SetColLabelSize (wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT)
 
         gridTable = self.GetTable()
-        newRows = gridTable.GetNumberRows()
         newColumns = gridTable.GetNumberCols()
 
         # update the widget to reflect the new or removed rows or
@@ -669,16 +654,17 @@ class wxTable(DragAndDrop.DraggableWidget,
         # determine what actual text to display in each cell
         self.BeginBatch()
         for current, new, deleteMessage, addMessage in [
-            (self.currentRows, newRows, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED), 
-            (self.currentColumns, newColumns, wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)]: 
+            (self.GetNumberRows(), gridTable.GetNumberRows(), wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED), 
+            (self.GetNumberCols(), newColumns, wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)]: 
                 if new < current: 
                     message = wx.grid.GridTableMessage (gridTable, deleteMessage, new, current-new) 
                     self.ProcessTableMessage (message) 
                 elif new > current: 
                     message = wx.grid.GridTableMessage (gridTable, addMessage, new-current) 
                     self.ProcessTableMessage (message) 
-        self.currentRows = newRows
-        self.currentColumns = newColumns
+        assert (self.GetNumberCols() == gridTable.GetNumberCols() and
+                self.GetNumberRows() == gridTable.GetNumberRows())
+        
         # update all column widths but the last one
         widthMinusLastColumn = 0
         for columnIndex in xrange (newColumns - 1):
