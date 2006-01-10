@@ -219,10 +219,12 @@ public:
 
 %constant wxEventType wxEVT_MEDIA_FINISHED;
 %constant wxEventType wxEVT_MEDIA_STOP;
+%constant wxEventType wxEVT_MEDIA_LOADED;
 
 %pythoncode {
 EVT_MEDIA_FINISHED = wx.PyEventBinder( wxEVT_MEDIA_FINISHED, 1)
 EVT_MEDIA_STOP     = wx.PyEventBinder( wxEVT_MEDIA_STOP, 1)
+EVT_MEDIA_LOADED   = wx.PyEventBinder( wxEVT_MEDIA_LOADED, 1)    
 }    
 
 //---------------------------------------------------------------------------
