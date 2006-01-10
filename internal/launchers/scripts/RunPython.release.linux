@@ -10,6 +10,11 @@ then
     export CHANDLERBIN=$CHANDLERHOME
 fi
 
+if [ "$CHANDLERNOOPTIMIZE" = "" ]
+then
+    OPTIMIZE=-O
+fi
+
 if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/release/bin/python ]
 then
     echo "Using $CHANDLERBIN/release/bin/python"
@@ -33,4 +38,4 @@ then
     export PYTHONPATH=$PYTHONPATH:$PARCELPATH
 fi
 
-$CHANDLERBIN/release/bin/python -O "$@"
+$CHANDLERBIN/release/bin/python $OPTIMIZE "$@"

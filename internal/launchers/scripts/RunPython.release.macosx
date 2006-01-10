@@ -15,6 +15,11 @@ then
     PYTHON_VER=2.4
 fi
 
+if [ "$CHANDLERNOOPTIMIZE" = "" ]
+then
+    OPTIMIZE=-O
+fi
+
 if [ -f $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
 then
     export PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
@@ -50,5 +55,5 @@ then
     echo -O $@
     exec gdb $PYTHONBIN
 else
-    exec $PYTHONBIN -O "$@"
+    exec $PYTHONBIN $OPTIMIZE "$@"
 fi
