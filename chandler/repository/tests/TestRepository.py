@@ -10,7 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import RepositoryTestCase, os, unittest
 
 from repository.util.Path import Path
-from bsddb.db import DBNoSuchFileError
+from chandlerdb.persistence.c import DBNoSuchFileError
 import util.timing
 
 class RepositoryTest(RepositoryTestCase.RepositoryTestCase):

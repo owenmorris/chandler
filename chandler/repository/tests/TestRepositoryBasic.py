@@ -9,7 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, unittest
 
-from bsddb.db import DBNoSuchFileError
+from chandlerdb.persistence.c import DBNoSuchFileError
 from repository.persistence.RepositoryError import RepositoryOpenDeniedError
 from repository.persistence.DBRepository import DBRepository
 import util.timing

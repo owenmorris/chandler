@@ -9,7 +9,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, os.path, sys, unittest
 
-from bsddb.db import DBNoSuchFileError
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase

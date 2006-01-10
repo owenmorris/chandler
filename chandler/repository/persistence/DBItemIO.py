@@ -280,8 +280,8 @@ class DBItemWriter(ItemWriter):
 
             valueType.indexValue(self, item, name, version, value)
 
-        return self.store._values.saveValue(self.store.txn, item._uuid, version,
-                                            uAttr, uValue, ''.join(buffer))
+        return self.store._values.c.saveValue(self.store.txn,
+                                              uAttr, uValue, ''.join(buffer))
 
     def indexValue(self, value, item, name, version):
 
@@ -380,9 +380,9 @@ class DBItemWriter(ItemWriter):
         else:
             raise TypeError, value
 
-        size += self.store._values.saveValue(self.store.txn, item._uuid,
-                                             version, attribute._uuid, uValue,
-                                             ''.join(buffer))
+        size += self.store._values.c.saveValue(self.store.txn,
+                                               attribute.itsUUID, uValue,
+                                               ''.join(buffer))
 
         return size
 
@@ -574,13 +574,14 @@ class DBItemReader(ItemReader):
                 withSchema, view, afterLoadHooks):
 
         store = self.store
-        
+        c = store._values.c
+        txn = store.txn
+
         for uuid in uValues:
-            attrId, data = store._values.loadValue(store.txn, uuid)
-            valueFlags = ord(data[0])
+            attrId, vFlags, data = c.loadValue(txn, uuid)
             if withSchema:
                 attribute = None
-                offset, name = self.readSymbol(1, data)
+                offset, name = self.readSymbol(0, data)
             else:
                 try:
                     attribute = view[attrId]
@@ -588,7 +589,7 @@ class DBItemReader(ItemReader):
                     raise LoadError, (self.name or self.uItem,
                                       "attribute not found: %s" %(attrId))
                 else:
-                    offset, name = 1, attribute._name
+                    offset, name = 0, attribute._name
 
             flags = ord(data[offset])
 
@@ -608,8 +609,8 @@ class DBItemReader(ItemReader):
 
             if value is not Nil:
                 d[name] = value
-                if valueFlags != 0:
-                    d._setFlags(name, valueFlags)
+                if vFlags != '\0':
+                    d._setFlags(name, ord(vFlags))
 
     def _value(self, offset, data, kind, withSchema, attribute, view, name,
                afterLoadHooks):

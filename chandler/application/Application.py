@@ -149,7 +149,7 @@ class MainFrame(wx.Frame):
         del busyInfo
 
         busyInfo = wx.BusyInfo (_("Checkpointing repository..."))
-        view.repository._env.txn_checkpoint()
+        view.repository.checkpoint()
         del busyInfo
 
         # When we quit, as each wxWidget window is torn down our handlers that

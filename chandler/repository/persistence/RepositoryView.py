@@ -11,7 +11,6 @@ from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import CView
 
 from repository.util.Path import Path
-from repository.util.ThreadSemaphore import ThreadSemaphore
 from repository.util.Lob import Lob
 from repository.persistence.RepositoryError import *
 from repository.item.Children import Children
@@ -915,7 +914,7 @@ class OnDemandRepositoryView(RepositoryView):
         if version is None:
             version = repository.store.getVersion()
 
-        self._exclusive = ThreadSemaphore()
+        self._exclusive = threading.RLock()
         self._hooks = []
         
         super(OnDemandRepositoryView, self).__init__(repository, name, version)

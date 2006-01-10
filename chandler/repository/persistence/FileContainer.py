@@ -62,29 +62,19 @@ class FileContainer(DBContainer):
             try:
                 cursor = self.openCursor()
             
-                try:
-                    value = cursor.set_range('', flags=self._flags,
-                                             dlen=0, doff=0)
-                except DBNotFoundError:
-                    return results
-                except DBLockDeadlockError:
-                    self._logDL(7)
-                    continue
+                while value is not None:
+                    value = value[0]
+                    length = unpack('>H', value[0:2])[0]
+                    results.append(value[2:2+length])
 
-                else:
-                    while value is not None:
-                        value = value[0]
-                        length = unpack('>H', value[0:2])[0]
-                        results.append(value[2:2+length])
-
-                        while True:
-                            try:
-                                value = cursor.next()
-                                break
-                            except DBLockDeadlockError:
-                                self._logDL(6)
+                    while True:
+                        try:
+                            value = cursor.next(self._flags, None)
+                            break
+                        except DBLockDeadlockError:
+                            self._logDL(6)
                         
-                    return results
+                return results
 
             finally:
                 self.closeCursor(cursor)
@@ -195,15 +185,10 @@ class File(object):
             cursor = blocks.openCursor()
             key = self.getKey()._uuid
             
-            try:
-                value = cursor.set_range(key, flags=self._flags,
-                                         dlen=0, doff=0)
-            except DBNotFoundError:
-                pass
-            else:
-                while value is not None and value[0].startswith(key):
-                    cursor.delete()
-                    value = cursor.next()
+            value = cursor.set_range(key, self._flags, None)
+            while value is not None and value[0].startswith(key):
+                cursor.delete()
+                value = cursor.next(self._flags, None)
 
             self._container.delete(self._key)
 

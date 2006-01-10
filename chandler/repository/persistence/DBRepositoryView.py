@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from datetime import timedelta
 from time import time
 
-from bsddb.db import DBLockDeadlockError
+from chandlerdb.persistence.c import DBLockDeadlockError
 
 from repository.item.Item import Item
 from repository.item.RefCollections import TransientRefList
@@ -189,8 +189,20 @@ class DBRepositoryView(OnDemandRepositoryView):
     def refresh(self, mergeFn=None, version=None):
 
         store = self.store
-        newVersion = version or store.getVersion()
+        if not version:
+            newVersion = store.getVersion()
+        else:
+            newVersion = min(long(version), store.getVersion())
         
+        refCounted = self.isRefCounted()
+
+        def _refresh(items):
+            for item in items():
+                item._unloadItem(refCounted or item.isPinned(), self)
+            for item in items():
+                if refCounted or item.isPinned():
+                    self.find(item.itsUUID)
+
         if newVersion > self._version:
             histNotifications = ViewNotifications()
 
@@ -220,20 +232,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if item is not None:
                     unloads[uuid] = item
                     
-            self.logger.debug('refreshing view from version %d to %d',
-                              self._version, newVersion)
             self._version = newVersion
-
-            refCounted = self.isRefCounted()
-            for item in unloads.itervalues():
-                self.logger.debug('unloading version %d of %s',
-                                  item._version, item)
-                item._unloadItem(refCounted or item.isPinned(), self)
-            for item in unloads.itervalues():
-                if refCounted or item.isPinned():
-                    self.logger.debug('reloading version %d of %s',
-                                      newVersion, item)
-                    self.find(item._uuid)
+            _refresh(unloads.itervalues)
 
             before = time()
             count = len(histNotifications)
@@ -247,10 +247,11 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         elif newVersion < self._version:
             self.cancel()
-            for item in [item for item in self._registry.itervalues()
-                         if item._version > newVersion]:
-                item._unloadItem(True, self)
+            refCounted = self.isRefCounted()
+            unloads = [item for item in self._registry.itervalues()
+                       if item._version > newVersion]
             self._version = newVersion
+            _refresh(unloads.__iter__)
 
     def commit(self, mergeFn=None):
 
@@ -264,28 +265,19 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 size = 0L
                 txnStatus = 0
-                lock = None
+                newVersion = self._version
 
-                def finish(lock, txnStatus, commit):
+                def finish(txnStatus, commit):
                     if txnStatus:
                         if commit:
                             self._commitTransaction(txnStatus)
                         else:
                             self._abortTransaction(txnStatus)
-                    if lock is not None:
-                        lock = store.releaseLock(lock)
-                    return lock, 0
+                    return 0
         
                 while True:
                     try:
-                        while True:
-                            self.refresh(mergeFn)
-                            lock = store.acquireLock()
-                            newVersion = store.getVersion()
-                            if newVersion > self._version:
-                                lock = store.releaseLock(lock)
-                            else:
-                                break
+                        self.refresh(mergeFn)
 
                         count = len(self._log) + len(self._deletedRegistry)
                         if count > 500:
@@ -297,8 +289,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if txnStatus == 0:
                                 raise AssertionError, 'no transaction started'
 
-                            newVersion += 1
-                            store._values.setVersion(newVersion)
+                            newVersion = store.nextVersion()
+
                             itemWriter = DBItemWriter(store)
                             for item in self._log:
                                 size += self._saveItem(item, newVersion,
@@ -309,18 +301,18 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if self.isDirty():
                                 size += self._roots._saveValues(newVersion)
 
-                        lock, txnStatus = finish(lock, txnStatus, True)
+                        txnStatus = finish(txnStatus, True)
                         break
 
                     except DBLockDeadlockError:
                         self.logger.info('retrying commit aborted by deadlock')
-                        lock, txnStatus = finish(lock, txnStatus, False)
+                        txnStatus = finish(txnStatus, False)
                         continue
 
                     except:
                         if txnStatus:
                             self.logger.exception('aborting transaction (%d kb)', size >> 10)
-                        lock, txnStatus = finish(lock, txnStatus, False)
+                        txnStatus = finish(txnStatus, False)
                         raise
 
                 self._version = newVersion

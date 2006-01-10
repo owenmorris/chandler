@@ -128,8 +128,8 @@ class PersistentRefs(object):
             raise ValueError, 'key is None'
 
         store = self.store
-        return store._refs.saveRef(store.txn, self._key, version,
-                                   key, previous, next, alias)
+        return store._refs.c.saveRef(store.txn, self._key, version,
+                                     key, previous, next, alias)
 
     def _deleteRef(self, key, version):
 

@@ -12,6 +12,9 @@ from struct import pack
 
 from chandlerdb.util import lock
 from chandlerdb.util.c import UUID
+from chandlerdb.persistence.c import DBEnv, \
+    DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
+    DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
 
 from repository.item.Item import Item
 from repository.util.SAX import XMLGenerator
@@ -27,21 +30,7 @@ from repository.persistence.FileContainer import \
 from repository.persistence.DBItemIO import DBItemReader
 from repository.remote.CloudFilter import CloudFilter
 
-from bsddb.db import DBEnv, DB
-from bsddb.db import \
-    DB_CREATE, DB_BTREE, DB_THREAD, DB_LOG_AUTOREMOVE, \
-    DB_LOCK_WRITE, DB_ENCRYPT_AES, \
-    DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS, \
-    DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN, \
-    DB_ARCH_LOG, DB_ARCH_DATA, DB_TXN_NOWAIT
-from bsddb.db import \
-    DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError, \
-    DBLockDeadlockError, DBPermissionsError, DBInvalidArgError
-
-try:
-    from bsddb.db import DB_DSYNC_LOG
-except ImportError:
-    DB_DSYNC_LOG = 0x00008000
+DB_VERSION = DB_VERSION_MAJOR << 16 | DB_VERSION_MINOR << 8 | DB_VERSION_PATCH
 
 
 class DBRepository(OnDemandRepository):
@@ -107,6 +96,7 @@ class DBRepository(OnDemandRepository):
                 self._env = None
             except:
                 self._env = None
+
         if self._openLock is not None:
             try:
                 self._lockClose()
@@ -114,9 +104,9 @@ class DBRepository(OnDemandRepository):
                 self._openLock = None
 
         if kwds.get('ramdb', False):
-            flags = DB_INIT_MPOOL | DB_PRIVATE | DB_THREAD
+            flags = DBEnv.DB_INIT_MPOOL | DBEnv.DB_PRIVATE | DBEnv.DB_THREAD
             self._env = self._createEnv(True, kwds)
-            self._env.open(self.dbHome, DB_CREATE | flags, 0)
+            self._env.open(self.dbHome, DBEnv.DB_CREATE | flags, 0)
             
         else:
             if not os.path.exists(self.dbHome):
@@ -128,7 +118,7 @@ class DBRepository(OnDemandRepository):
 
             self._lockOpen()
             self._env = self._createEnv(True, kwds)
-            self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
+            self._env.open(self.dbHome, DBEnv.DB_CREATE | self.OPEN_FLAGS, 0)
 
         self.store = self._createStore()
         kwds['create'] = True
@@ -171,27 +161,27 @@ class DBRepository(OnDemandRepository):
         cache = 0x4000000
         
         if 'password' in kwds:
-            env.set_encrypt(kwds['password'], DB_ENCRYPT_AES)
+            env.set_encrypt(kwds['password'], DBEnv.DB_ENCRYPT_AES)
 
         if create and not ramdb:
             db_config = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'w+b')
 
         if create or ramdb:
-            env.set_lk_detect(DB_LOCK_MINLOCKS)
-            env.set_lk_max_locks(locks)
-            env.set_lk_max_objects(locks)
+            env.lk_detect = DBEnv.DB_LOCK_MINLOCKS
+            env.lk_max_locks = locks
+            env.lk_max_objects = locks
         if create and not ramdb:
             db_config.write("set_lk_detect DB_LOCK_MINLOCKS\n")
             db_config.write("set_lk_max_locks %d\n" %(locks))
             db_config.write("set_lk_max_objects %d\n" %(locks))
 
         if create and not ramdb:
-            env.set_flags(DB_LOG_AUTOREMOVE, 1)
+            env.set_flags(DBEnv.DB_LOG_AUTOREMOVE, 1)
             db_config.write("set_flags DB_LOG_AUTOREMOVE\n")
 
         if os.name == 'nt':
             if create or ramdb:
-                env.set_cachesize(0, cache, 1)
+                env.cachesize = (0, cache, 1)
             if create and not ramdb:
                 db_config.write("set_cachesize 0 %d 1\n" %(cache))
 
@@ -201,15 +191,16 @@ class DBRepository(OnDemandRepository):
             status, osname = getstatusoutput('uname')
             if status == 0:
 
-                if osname == 'Linux':
+                if (DB_VERSION <= 0x04031d and osname == 'Linux' or
+                    DB_VERSION >= 0x040410 and osname in ('Linux', 'Darwin')):
                     if create or ramdb:
-                        env.set_cachesize(0, cache, 1)
+                        env.cachesize = (0, cache, 1)
                     if create and not ramdb:
                         db_config.write("set_cachesize 0 %d 1\n" %(cache))
 
-                elif osname == 'Darwin':
+                if osname == 'Darwin':
                     if create and not ramdb:
-                        env.set_flags(DB_DSYNC_LOG, 1)
+                        env.set_flags(DBEnv.DB_DSYNC_LOG, 1)
                         db_config.write("set_flags DB_DSYNC_LOG\n")
 
         if create and not ramdb:
@@ -226,6 +217,15 @@ class DBRepository(OnDemandRepository):
                     os.remove(path)
 
         self._clearOpenDir()
+
+    def checkpoint(self):
+
+        if not self.isOpen():
+            raise RepositoryError, 'Repository is not open'
+
+        env = self._env
+        env.txn_checkpoint(0, 0, DBEnv.DB_FORCE)
+        env.log_archive(DBEnv.DB_ARCH_REMOVE)
 
     def backup(self, dbHome=None):
 
@@ -248,20 +248,18 @@ class DBRepository(OnDemandRepository):
         env = self._env
         store = self.store
 
-        lock = None
         try:
-            lock = store.acquireLock()
             for view in self.getOpenViews():
                 view._acquireExclusive()
 
-            env.txn_checkpoint()
+            self.checkpoint()
 
-            for db in env.log_archive(DB_ARCH_DATA):
+            for db in env.log_archive(DBEnv.DB_ARCH_DATA):
                 path = os.path.join(dbHome, db)
                 self.logger.info(path)
                 shutil.copy2(os.path.join(self.dbHome, db), path)
 
-            for log in env.log_archive(DB_ARCH_LOG):
+            for log in env.log_archive(DBEnv.DB_ARCH_LOG):
                 path = os.path.join(dbHome, log)
                 self.logger.info(path)
                 shutil.copy2(os.path.join(self.dbHome, log), path)
@@ -274,10 +272,40 @@ class DBRepository(OnDemandRepository):
         finally:
             for view in self.getOpenViews():
                 view._releaseExclusive()
-            if lock is not None:
-                store.releaseLock(lock)
 
         return dbHome
+
+    def compact(self):
+
+        store = self.store
+
+        try:
+            txnStatus = store.startTransaction(None, True)
+            if txnStatus == 0:
+                raise AssertionError, 'no transaction started'
+
+            prev = (None, None)
+
+            for uuid, version, status, parent, values in store.iterItems(None):
+                if uuid == prev[0]:
+                    store.purgeItem(uuid, version)
+                    print 'purged item', uuid, version
+                    for value in values:
+                        if value not in prev[1]:
+                            store.purgeValue(value)
+                            print 'purged value', value
+                else:
+                    if status & Item.DELETED:
+                        store.purgeItem(uuid, version)
+                    prev = (uuid, values)
+
+            store.compact()
+
+        except:
+            store.abortTransaction(None, txnStatus)
+            raise
+        else:
+            store.commitTransaction(None, txnStatus)
 
     def open(self, **kwds):
 
@@ -330,7 +358,7 @@ class DBRepository(OnDemandRepository):
 
                         if recover:
                             before = datetime.now()
-                            flags = (DB_RECOVER_FATAL | DB_CREATE |
+                            flags = (DBEnv.DB_RECOVER_FATAL | DBEnv.DB_CREATE |
                                      self.OPEN_FLAGS)
                             self._env.open(self.dbHome, flags, 0)
                             after = datetime.now()
@@ -422,7 +450,8 @@ class DBRepository(OnDemandRepository):
         return DBRepositoryView(self, name, version)
 
     openUUID = UUID('c54211ac-131a-11d9-8475-000393db837c')
-    OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
+    OPEN_FLAGS = (DBEnv.DB_INIT_MPOOL | DBEnv.DB_INIT_LOCK |
+                  DBEnv.DB_INIT_TXN | DBEnv.DB_THREAD)
 
 
 class DBTxn(object):
@@ -555,6 +584,20 @@ class DBStore(Store):
         self._acls.detachView(view)
         self._indexes.detachView(view)
 
+    def compact(self):
+
+        txn = self.txn
+
+        self._items.compact(txn)
+        self._values.compact(txn)
+        self._refs.compact(txn)
+        self._names.compact(txn)
+        self._lobs.compact(txn)
+        self._blocks.compact(txn)
+        self._index.compact(txn)
+        self._acls.compact(txn)
+        self._indexes.compact(txn)
+
     def loadItem(self, view, version, uuid):
 
         args = self._items.loadItem(view, version, uuid)
@@ -641,6 +684,18 @@ class DBStore(Store):
 
         return self._index.searchDocuments(version, query, attribute)
 
+    def iterItems(self, view):
+
+        return self._items.iterItems(view)
+
+    def purgeItem(self, uuid, version):
+
+        self._items.purgeItem(uuid, version)
+
+    def purgeValue(self, value):
+
+        self._values.purgeValue(value)
+
     def getItemVersion(self, view, version, uuid):
 
         return self._items.getItemVersion(view, version, uuid)
@@ -648,6 +703,10 @@ class DBStore(Store):
     def getVersion(self):
 
         return self._values.getVersion()
+
+    def nextVersion(self):
+
+        return self._values.nextVersion()
 
     def getVersionInfo(self):
 
@@ -751,7 +810,7 @@ class DBStore(Store):
             repository = self.repository
             return repository._env.lock_get(self._getLockId(),
                                             repository.itsUUID._uuid,
-                                            DB_LOCK_WRITE)
+                                            DBEnv.DB_LOCK_WRITE)
         return None
 
     def releaseLock(self, lock):
@@ -834,7 +893,8 @@ class DBCheckpointThread(Thread):
             try:
                 for view in repository.getOpenViews():
                     view._acquireExclusive()
-                repository._env.txn_checkpoint()
+
+                repository.checkpoint()
                 repository.logger.info('%s: %s, completed checkpoint',
                                        repository, datetime.now())
             finally:
@@ -851,5 +911,5 @@ class DBCheckpointThread(Thread):
             condition.notify()
             condition.release()
 
-            self._repository._env.txn_checkpoint()
+            self._repository.checkpoint()
             self.join()

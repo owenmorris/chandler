@@ -63,7 +63,7 @@ class Item(CItem):
         self._uuid = _uuid or UUID()
         self._name = itsName or None
         self._kind = itsKind
-        self._version = 0
+        self._version = 0L
 
         if itsKind is not None:
             itsKind._setupClass(cls)
