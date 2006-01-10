@@ -2,7 +2,7 @@
 // Name:        src/common/imagepng.cpp
 // Purpose:     wxImage PNG handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagpng.cpp,v 1.58 2005/11/10 16:16:05 ABX Exp $
+// RCS-ID:      $Id: imagpng.cpp,v 1.59 2006/01/10 16:52:02 ABX Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxPNGHandler,wxImageHandler)
 #if wxUSE_STREAMS
 
 #ifndef PNGLINKAGEMODE
-    #if defined(__WATCOMC__) && defined(__WXMSW__)
+    #if defined(__WATCOMC__) && ( defined(__WXMSW__) || defined(__WXMGL__) )
         // we need an explicit cdecl for Watcom, at least according to
         //
         // http://sf.net/tracker/index.php?func=detail&aid=651492&group_id=9863&atid=109863

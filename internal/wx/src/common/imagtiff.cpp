@@ -2,7 +2,7 @@
 // Name:        src/common/imagtiff.cpp
 // Purpose:     wxImage TIFF handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagtiff.cpp,v 1.41 2005/10/17 22:07:56 MW Exp $
+// RCS-ID:      $Id: imagtiff.cpp,v 1.42 2006/01/10 16:52:02 ABX Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,11 @@ extern "C"
 #include "wx/module.h"
 
 #ifndef TIFFLINKAGEMODE
-  #define TIFFLINKAGEMODE LINKAGEMODE
+  #if defined(__WATCOMC__) && defined(__WXMGL__)
+    #define TIFFLINKAGEMODE cdecl
+  #else
+    #define TIFFLINKAGEMODE LINKAGEMODE
+  #endif
 #endif
 
 //-----------------------------------------------------------------------------
