@@ -15,7 +15,7 @@ ifeq ($(findstring WINNT,$(OS)),WINNT)
 OS=Cygwin
 endif
 
-BP=a
+BP=
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
