@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.652 2006/01/05 04:31:18 RD Exp $
+// RCS-ID:      $Id: window.cpp,v 1.653 2006/01/10 21:37:16 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1613,7 +1613,7 @@ wxWindowMSW::DoMoveSibling(WXHWND hwnd, int x, int y, int width, int height)
     if ( hdwp )
     {
         hdwp = ::DeferWindowPos(hdwp, (HWND)hwnd, NULL, x, y, width, height,
-                                SWP_NOZORDER);
+                                SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE);
         if ( !hdwp )
         {
             wxLogLastError(_T("DeferWindowPos"));
@@ -2394,28 +2394,6 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
             break;
 #endif // !__WXWINCE__
 
-#if !(defined(_WIN32_WCE) && _WIN32_WCE < 400)
-        case WM_WINDOWPOSCHANGED:
-            {
-                WINDOWPOS *lpPos = (WINDOWPOS *)lParam;
-
-                if ( !(lpPos->flags & SWP_NOSIZE) )
-                {
-                    RECT rc;
-                    ::GetClientRect(GetHwnd(), &rc);
-
-                    AutoHRGN hrgnClient(::CreateRectRgnIndirect(&rc));
-                    AutoHRGN hrgnNew(::CreateRectRgn(lpPos->x,  lpPos->y,
-                                                     lpPos->cx, lpPos->cy));
-
-                    // we need to invalidate any new exposed areas here
-                    // to force them to repaint
-                    if ( ::CombineRgn(hrgnNew, hrgnNew, hrgnClient, RGN_DIFF) != NULLREGION )
-                        ::InvalidateRgn(GetHwnd(), hrgnNew, TRUE);
-                }
-            }
-            break;
-#endif
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
         case WM_ACTIVATEAPP:
             // This implicitly sends a wxEVT_ACTIVATE_APP event
@@ -5402,12 +5380,12 @@ wxMouseState wxGetMouseState()
     ms.SetLeftDown( (GetAsyncKeyState(VK_LBUTTON) & (1<<15)) != 0 );
     ms.SetMiddleDown( (GetAsyncKeyState(VK_MBUTTON) & (1<<15)) != 0 );
     ms.SetRightDown( (GetAsyncKeyState(VK_RBUTTON) & (1<<15)) != 0 );
-    
+
     ms.SetControlDown( (GetAsyncKeyState(VK_CONTROL) & (1<<15)) != 0 );
     ms.SetShiftDown( (GetAsyncKeyState(VK_SHIFT) & (1<<15)) != 0 );
     ms.SetAltDown( (GetAsyncKeyState(VK_MENU) & (1<<15)) != 0 );
 //    ms.SetMetaDown();
-    
+
     return ms;
 }
 
