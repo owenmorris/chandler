@@ -49,8 +49,12 @@ _treeList = [
     ('Recent Additions/Updates', [
         'FoldPanelBar',
         'GIFAnimationCtrl',
-        'ColumnHeader',
+        'HyperLinkCtrl',
+        'MultiSplitterWindow',
+        'Throbber',
         'GetMouseState',
+        'FloatCanvas',
+        'ColumnHeader',
         ]),
 
     # managed windows == things with a (optional) caption you can close
@@ -81,7 +85,6 @@ _treeList = [
     # dialogs from libraries
     ('More Dialogs', [
         'ImageBrowser',
-        'MultipleChoiceDialog',
         'ScrolledMessageDialog',
         ]),
 
@@ -158,12 +161,13 @@ _treeList = [
         'FoldPanelBar',
         'GIFAnimationCtrl',
         'HtmlWindow',
+        'HyperLinkCtrl',
         'IntCtrl',
-        'MediaCtrl',
         'MVCTree',   
         'MaskedEditControls',
         'MaskedNumCtrl',
-        'MimeTypesManager',
+        'MediaCtrl',
+        'MultiSplitterWindow',
         'PyCrust',
         'PyPlot',
         'PyShell',
@@ -230,7 +234,9 @@ _treeList = [
         'DrawXXXList',
         'FileHistory',
         'FontEnumerator',
+        'GLCanvas',
         'Joystick',
+        'MimeTypesManager',
         'MouseGestures',
         'OGL',
         'PrintFramework',
@@ -238,11 +244,6 @@ _treeList = [
         'Sound',
         'StandardPaths',
         'Unicode',
-        ]),
-
-    # need libs not coming with the demo
-    ('Samples using an external library', [
-        'GLCanvas',
         ]),
 
 
@@ -801,7 +802,8 @@ class DemoModules:
     def LoadDict(self, modID):
         if self.name != __name__:
             source = self.modules[modID][1]
-            description = self.modules[modID][3]
+            #description = self.modules[modID][3]
+            description = self.modules[modID][2]
 
             try:
                 self.modules[modID][0] = {}
@@ -937,7 +939,7 @@ class DemoErrorPanel(wx.Panel):
         self.box = wx.BoxSizer(wx.VERTICAL)
 
         # Main Label
-        self.box.Add(wx.StaticText(self, -1, "An error has occured while trying to run the demo")
+        self.box.Add(wx.StaticText(self, -1, "An error has occurred while trying to run the demo")
                      , 0, wx.ALIGN_CENTER | wx.TOP, 10)
 
         # Exception Information
@@ -1080,8 +1082,7 @@ class DemoTaskBarIcon(wx.TaskBarIcon):
 
 
     def OnTaskBarChange(self, evt):
-        names = [ "WXPdemo", "WXP", "Mondrian", "Test2m",
-                  "Blom08m", "Blom10m", "Blom15m" ]
+        names = [ "WXPdemo", "Mondrian", "Pencil", "Carrot" ]                  
         name = names[self.imgidx]
         
         getFunc = getattr(images, "get%sImage" % name)
@@ -1210,6 +1211,7 @@ class wxPythonDemo(wx.Frame):
         self.SetMenuBar(self.mainmenu)
 
         self.finddata = wx.FindReplaceData()
+        self.finddata.SetFlags(wx.FR_DOWN)
 
         if 0:
             # This is another way to set Accelerators, in addition to
@@ -1405,7 +1407,7 @@ class wxPythonDemo(wx.Frame):
         
         # o The RunTest() for all samples must now return a window that can
         #   be palced in a tab in the main notebook.
-        # o If an error occurs (or has occured before) an error tab is created.
+        # o If an error occurs (or has occurred before) an error tab is created.
         
         if module is not None:
             wx.LogMessage("Running demo module...")
@@ -1527,9 +1529,7 @@ class wxPythonDemo(wx.Frame):
         
         self.nb.SetSelection(1)
         self.finddlg = wx.FindReplaceDialog(self, self.finddata, "Find",
-                        wx.FR_NOUPDOWN |
-                        wx.FR_NOMATCHCASE |
-                        wx.FR_NOWHOLEWORD)
+                        wx.FR_NOMATCHCASE | wx.FR_NOWHOLEWORD)
         self.finddlg.Show(True)
 
 
@@ -1542,13 +1542,22 @@ class wxPythonDemo(wx.Frame):
         self.nb.SetSelection(1)
         end = editor.GetLastPosition()
         textstring = editor.GetRange(0, end).lower()
-        start = editor.GetSelection()[1]
         findstring = self.finddata.GetFindString().lower()
-        loc = textstring.find(findstring, start)
+        backward = not (self.finddata.GetFlags() & wx.FR_DOWN)
+        if backward:
+            start = editor.GetSelection()[0]
+            loc = textstring.rfind(findstring, 0, start)
+        else:
+            start = editor.GetSelection()[1]
+            loc = textstring.find(findstring, start)
         if loc == -1 and start != 0:
             # string not found, start at beginning
-            start = 0
-            loc = textstring.find(findstring, start)
+            if backward:
+                start = end
+                loc = textstring.rfind(findstring, 0, start)
+            else:
+                start = 0
+                loc = textstring.find(findstring, start)
         if loc == -1:
             dlg = wx.MessageDialog(self, 'Find String Not Found',
                           'Find String Not Found in Demo File',
@@ -1675,18 +1684,33 @@ class wxPythonDemo(wx.Frame):
 
 class MySplashScreen(wx.SplashScreen):
     def __init__(self):
-        bmp = wx.Image(opj("bitmaps/splash.gif")).ConvertToBitmap()
+        bmp = wx.Image(opj("bitmaps/splash.png")).ConvertToBitmap()
         wx.SplashScreen.__init__(self, bmp,
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
-                                 3000, None, -1)
+                                 5000, None, -1)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.fc = wx.FutureCall(2000, self.ShowMain)
+
 
     def OnClose(self, evt):
+        # Make sure the default handler runs too so this window gets
+        # destroyed
+        evt.Skip()
         self.Hide()
+        
+        # if the timer is still running then go ahead and show the
+        # main frame now
+        if self.fc.IsRunning():
+            self.fc.Stop()
+            self.ShowMain()
+
+
+    def ShowMain(self):
         frame = wxPythonDemo(None, "wxPython: (A Demonstration)")
         frame.Show()
-        evt.Skip()  # Make sure the default handler runs too...
-
+        if self.fc.IsRunning():
+            self.Raise()
+        
 
 class MyApp(wx.App):
     def OnInit(self):
@@ -1705,7 +1729,7 @@ class MyApp(wx.App):
         # initialization, finally creating and showing the main
         # application window(s).  In this case we have nothing else to
         # do so we'll delay showing the main frame until later (see
-        # OnClose above) so the users can see the SplashScreen effect.        
+        # ShowMain above) so the users can see the SplashScreen effect.        
         splash = MySplashScreen()
         splash.Show()
 
