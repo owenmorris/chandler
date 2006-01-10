@@ -714,9 +714,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             raise ValueError, "Must be visible on the calendar"
         
         delta = Calendar.datetimeOp(datetime, '-', startDay)
-        x = (self._dayWidth * delta.days) + self.xOffset
+        x = self.getColumnPositionForDay(delta.days)
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return wx.Point(x, y)
+
+    def getColumnPositionForDay(self, day):
+        return self.blockItem.calendarContainer.calendarControl.widget.columnPositions[day + 1]
 
 class TimedCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
@@ -886,8 +889,8 @@ class TimedCanvasItem(CalendarCanvasItem):
             
             try:
                 rect = TimedCanvasItem.MakeRectForRange(calendarCanvas,
-                                                           boundsStartTime,
-                                                           boundsEndTime)
+                                                        boundsStartTime,
+                                                        boundsEndTime)
                 rect.x += indent
                 rect.width = width
                 yield rect

@@ -191,7 +191,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
 
     def RebuildCanvasItems(self, resort=False):
-        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         currentRange = self.GetCurrentDateRange()
 
         if resort:
@@ -199,18 +198,13 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         self.canvasItemList = []
 
-        if self.blockItem.dayMode:
-            width = self.size.width - drawInfo.scrollbarWidth - drawInfo.xOffset
-        else:
-            width = drawInfo._dayWidth
-
         size = self.GetSize()
 
         oldNumEventRows = self.numEventRows
         if self.blockItem.dayMode:
             # daymode, just stack all the events
             for row, item in enumerate(self.visibleItems):
-                self.RebuildCanvasItem(item, width, 0,0, row)
+                self.RebuildCanvasItem(item, 0,0, row)
             self.numEventRows = len(self.visibleItems)
             
         else:
@@ -232,7 +226,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                 
                 #search downward, looking for a spot where it'll fit
                 row = grid.FitRange(dayStart, dayEnd)
-                self.RebuildCanvasItem(item, width, dayStart, dayEnd, row)
+                self.RebuildCanvasItem(item, dayStart, dayEnd, row)
                 numEventRows = max(row+1, self.numEventRows)
 
             self.numEventRows = numEventRows
@@ -259,18 +253,22 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     
     expandedHeight = property(GetExpandedHeight)
     
-    def RebuildCanvasItem(self, item, columnWidth, dayStart, dayEnd, gridRow):
+    def RebuildCanvasItem(self, item, dayStart, dayEnd, gridRow):
         """
-        @param columnWidth is pixel width of one column under the current view
-        but all the other paramters though are grid-based, NOT datetime or pixel-based.
+        @param columnWidth is pixel width of one column under the
+        @param dayStart is the day-column (0-based) of the first day
+        @param dayEnd is the day-column (0-based) of the last day
+        @param gridRow is the row (0-based) in the grid
         """
         size = self.GetSize()
         calendarBlock = self.blockItem
-        drawInfo = calendarBlock.calendarContainer.calendarControl.widget
-        rect = wx.Rect((drawInfo._dayWidth * dayStart) + drawInfo.xOffset,
-                       self.eventHeight * gridRow,
-                       columnWidth * (dayEnd - dayStart + 1),
-                       self.eventHeight)
+        
+        startX = self.getColumnPositionForDay(dayStart)
+        endX = self.getColumnPositionForDay(dayEnd+1)
+        width = endX - startX
+        
+        rect = wx.Rect(startX, self.eventHeight * gridRow,
+                       width, self.eventHeight)
 
         collection = calendarBlock.getContainingCollection(item)
         canvasItem = AllDayCanvasItem(collection, calendarBlock.contentsCollection,
@@ -283,6 +281,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             self.dragState.currentDragBox.item == item):
             self.dragState.currentDragBox = canvasItem
 
+    def getColumnPositionForDay(self, day):
+        return self.blockItem.calendarContainer.calendarControl.widget.columnPositions[day + 1]
         
     @staticmethod
     def DayOfWeekNumber(datetime):

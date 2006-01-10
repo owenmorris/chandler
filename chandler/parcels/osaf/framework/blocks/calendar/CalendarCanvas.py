@@ -1225,7 +1225,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         yPosition = min(yPosition, height)
         if mustBeInBounds:
             xPosition = min(xPosition, 
-                            drawInfo.xOffset + drawInfo._dayWidth * drawInfo.columns - 1)
+                            drawInfo.xOffset + drawInfo.middleWidth - 1)
         return wx.Point(xPosition, yPosition)
         
     def getDateTimeFromPosition(self, position, tzinfo=None, mustBeInBounds=True):
@@ -1672,6 +1672,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED,
                   self.OnDayColumnSelect, weekColumnHeader)
 
+        # this should be the width of the word "Week" in the column
+        # header, plus some padding
+        self.xOffset = 60
+        
         # set up initial selection
         weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,
                                       True)
@@ -1941,43 +1945,40 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         self.size = self.GetSize()
         
-        try:
-            oldDayWidth = self._dayWidth
-        except AttributeError:
-            oldDayWidth = -1
-
-        self.xOffset = 60
-        self._dayWidth = ((self.size.width - self.scrollbarWidth - self.xOffset) / 
-                          (self.blockItem.daysPerView))
+        allDayWidths = self.size.width - self.scrollbarWidth - self.xOffset
+        self._dayWidth =  allDayWidths / self.blockItem.daysPerView
 
         ### calculate column widths for the all-7-days week view case
         # column layout rules are funky (e.g. bug 3290 and bug 3521)
         #
 
         dayWidths = (self._dayWidth,) * 7
-
-        self.middleWidth = self._dayWidth * 7
-
         # due to rounding there may be up to 6 extra pixels to distribute
-        leftover = self.size.width - self.middleWidth - self.scrollbarWidth - self.xOffset
+        leftover = self.size.width - (self._dayWidth*7) - self.scrollbarWidth - self.xOffset
         # evenly distribute the leftover into a tuple of the right length
         # for instance, leftover==4 gives us (0,0,0,1,1,1,1)
         leftoverWidths = (0,) * (7-leftover) + (1,) * leftover
 
         # now add the extra bits to the individual columns
         dayWidths = tuple(map(add, dayWidths, leftoverWidths))
+        self.middleWidth = sum(dayWidths)
 
-        # finally bring all the lists together in one
+        # make sure our calculations were correct - we shouldn't have
+        # any more leftover pixels
+        assert self.middleWidth == allDayWidths
+
+        # finally bring all the lists together in one, and calculate
+        # absolute column positions
         self.columnWidths = (self.xOffset,) +dayWidths+ (self.scrollbarWidth,)
+
+        ## e.g. 10,40,40,40 => 0,10,50,90
+        columnPositions = [0] * len(self.columnWidths)
+        self.columnPositions = tuple(sum(self.columnWidths[:i])
+                                     for i in range(len(self.columnWidths)))
 
         # the gradient brushes are based on dayWidth, so blow it away
         # when _dayWidth changes
         styles = self.blockItem.calendarContainer
-        if oldDayWidth != self._dayWidth:
-            # Really, the gradients cache should be managing this for us,
-            # so that we may smoothly change sizes without loosing too much
-            # information
-            styles.brushes.ClearCache()
         
 
     def _getColumns(self):
