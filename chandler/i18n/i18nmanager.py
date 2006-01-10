@@ -63,7 +63,13 @@ class I18nManager(object):
         encountered.
         """
         #XXX: TO DO GET LocaleSet from OS
-        self.setLocaleSet(self._defaultLocaleSet)
+
+        localeStr = self.__convertPyICULocale(Locale.getDefault())
+
+        if localeStr is None:
+            self.setLocaleSet(self._defaultLocaleSet)
+        else:
+            self.setLocaleSet([localeStr])
 
 
     def setLocaleSet(self, localeSet=None, domain=None):
@@ -325,6 +331,19 @@ class I18nManager(object):
             return None
 
         return file
+
+    def __convertPyICULocale(self, pyICULocale):
+        if pyICULocale is None:
+            return None
+
+        langCode = pyICULocale.getLanguage()
+        countryCode = pyICULocale.getCountry()
+
+        if countryCode is not None:
+            return "%s_%s" % (langCode, countryCode)
+
+        return langCode
+
 
     def __setPythonLocale(self, lc):
         try:
