@@ -1,6 +1,6 @@
 
-VERSION=4.3.29
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+VERSION=4.4.16
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 DB=$(BUILD_ROOT)/persistence/db
 SRC=$(DB)/db-$(VERSION)
 
@@ -12,9 +12,9 @@ BUILD=build_win32
 BINDIR=$(SRC)/$(BUILD)/$(Snap)
 
 $(SRC)/$(BUILD)/Berkeley_DB.sln:
-	(cd win32; tar -cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar -xf -)
+	(cd win32/$(basename $(VERSION)); tar -cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar -xf -)
 
-build: expand compile installext
+build: expand apply compile installext
 
 compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
 	cd $(SRC)/$(BUILD); \
@@ -34,10 +34,9 @@ clean:
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
 binaries: 
-	cd $(BUILD_ROOT); \
-      tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/bin/libdb*.dll \
-          $(SNAP)/bin/db/db_*.exe
+	cd $(BUILD_ROOT); tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
+                                    $(SNAP)/bin/libdb*.dll \
+                                    $(SNAP)/bin/db/db_*.exe
 
 else
 
@@ -57,19 +56,21 @@ $(SRC)/$(BUILD)/Makefile:
                         --with-pic \
                         $(CONF_DBG)
 
-build: expand $(SRC)/$(BUILD)/Makefile
+build: expand apply $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
 binaries:
-	cd $(BUILD_ROOT); \
-      tar -czf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
-          --exclude '*.a' \
-          $(SNAP)/db/bin $(SNAP)/db/lib
+	cd $(BUILD_ROOT); tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
+                              --exclude '*.a'                         \
+                              $(SNAP)/db/bin $(SNAP)/db/lib
 
 endif
+
+apply: expand patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 db-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/db-$(VERSION).tar.gz
@@ -77,7 +78,7 @@ db-$(VERSION).tar.gz:
 sources: db-$(VERSION).tar.gz
 
 db-$(VERSION)-expanded: db-$(VERSION).tar.gz
-	tar xzf db-$(VERSION).tar.gz
+	tar -xvzf db-$(VERSION).tar.gz
 	touch db-$(VERSION)-expanded
 
 expand: db-$(VERSION)-expanded

@@ -1,11 +1,10 @@
 
-VERSION=1.0.1-$(SVNVER)
-SVNVER=206
+VERSION=1.9rc1-6
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
-SRC=$(PYLUCENE)/PyLucene-$(VERSION)
+SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
 
-DB_VER=4.3.29
+DB_VER=4.4.16
 DB_LIB_VER=$(basename $(DB_VER))
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -24,6 +23,7 @@ endif
 ifeq ($(OS),Cygwin)
 PREFIX_PYTHON=$(PREFIX)/bin
 PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-$(DB_VER)
+BUILD_DB=build_win32
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
          $(SNAP)/$(SITE)/libiconv-2.dll \
@@ -43,16 +43,12 @@ endif
 ifeq ($(OS),Darwin)
 PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
 PREFIX_DB=$(PREFIX)/db
-ifeq ($(DB_LIB_VER),4.3)
-_dylib=dylib
-else
-_dylib=jnilib
-endif
+BUILD_DB=build_$(SNAP)
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).$(_dylib) \
+         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).dylib \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la \
          $(SNAP)/lib/libgcj.$(LIBGCJ_VER).dylib
 ifeq ($(GCJ_VER),3)
@@ -65,6 +61,7 @@ else
 ifeq ($(OS),Linux)
 PREFIX_PYTHON=$(PREFIX)
 PREFIX_DB=$(PREFIX)/db
+BUILD_DB=build_$(SNAP)
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
          $(SNAP)/$(SITE)/security/classpath.security \
@@ -80,9 +77,8 @@ endif
 endif
 endif
 
-
 apply: patches-$(VERSION)
-	cd PyLucene-$(VERSION); patch -Nup1 < ../patches-$(VERSION); echo ok
+	cd $(SRC); patch -Nup1 < ../patches-$(VERSION); echo ok
 
 
 ifeq ($(PYLUCENE_CC),)
@@ -101,15 +97,6 @@ ifeq ($(PYLUCENE_JCCH),)
 PYLUCENE_JCCH=$(GCJ_HOME)/bin/gcjh
 endif
 
-ifeq ($(PYLUCENE_JAR),)
-ifeq ($(GCJ_VER),3)
-PYLUCENE_JAR=$(GCJ_HOME)/bin/jar
-endif
-ifeq ($(GCJ_VER),4)
-PYLUCENE_JAR=$(GCJ_HOME)/bin/fastjar
-endif
-endif
-
 build: expand apply
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
@@ -124,12 +111,11 @@ build: expand apply
             CXX=$(PYLUCENE_CXX) \
             JCC=$(PYLUCENE_JCC) \
             JCCH=$(PYLUCENE_JCCH) \
-            JAR=$(PYLUCENE_JAR) \
             DB=$(BUILD_ROOT)/persistence/db/db-$(DB_VER) \
             DB_VER=$(DB_VER) \
             DB_LIB_VER=$(DB_LIB_VER) \
             PREFIX_DB=$(PREFIX_DB) \
-            BUILD_DB=build_$(SNAP) \
+            BUILD_DB=$(BUILD_DB) \
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
@@ -149,10 +135,13 @@ upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
 	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
-sources: PyLucene-$(VERSION)-expanded
+PyLucene-src-$(VERSION).tar.gz:
+	$(CURL) http://builds.osafoundation.org/external/PyLucene-src-$(VERSION).tar.gz
 
-PyLucene-$(VERSION)-expanded:
-	svn export -r $(SVNVER) http://svn.osafoundation.org/pylucene/branches/release-1.0 PyLucene-$(VERSION)
+sources: PyLucene-src-$(VERSION).tar.gz
+
+PyLucene-$(VERSION)-expanded: PyLucene-src-$(VERSION).tar.gz
+	tar xvzf PyLucene-src-$(VERSION).tar.gz
 	touch PyLucene-$(VERSION)-expanded
 
 expand: PyLucene-$(VERSION)-expanded

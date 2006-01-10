@@ -87,9 +87,7 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{E1DBB220-D64B-423D-A545-539A55AA7FE2}.Debug.ActiveCfg = Debug|Win32
-		{E1DBB220-D64B-423D-A545-539A55AA7FE2}.Debug.Build.0 = Debug|Win32
 		{E1DBB220-D64B-423D-A545-539A55AA7FE2}.Release.ActiveCfg = Release|Win32
-		{E1DBB220-D64B-423D-A545-539A55AA7FE2}.Release.Build.0 = Release|Win32
 		{E1DBB220-D64B-423D-A545-539A55AA7FE2}.ReleaseItanium.ActiveCfg = ReleaseItanium|Win32
 		{E1DBB220-D64B-423D-A545-539A55AA7FE2}.ReleaseItanium.Build.0 = ReleaseItanium|Win32
 		{324F66C2-44D0-4D50-B979-F9DAE7FD36DB}.Debug.ActiveCfg = Debug|Win32

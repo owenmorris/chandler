@@ -1,6 +1,6 @@
 
 VERSION=2.4.2
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
 BZIP2VERSION=1.0.3
 ZLIBVERSION=1.2.3
 
@@ -138,8 +138,8 @@ $(SRC)/$(BUILD)/Makefile:
                        --disable-ipv6
 
 build: expand apply $(SRC)/$(BUILD)/Makefile
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallframework
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallapps
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 binaries: 
@@ -149,7 +149,7 @@ binaries:
             -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
             --exclude site-packages \
             --exclude test \
-                  $(SNAP)/Library/Frameworks/Python.framework
+            $(SNAP)/Library/Frameworks/Python.framework
 
 else
 
@@ -165,7 +165,7 @@ bzip2-$(BZIP2VERSION)/libbz2.a:
 build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 	install -D bzip2-$(BZIP2VERSION)/libbz2.a $(PREFIX)/lib/libbz2.a
 	install -D bzip2-$(BZIP2VERSION)/bzlib.h $(PREFIX)/include/bzlib.h
-	$(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) install
+	$(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) install
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 binaries: 
@@ -192,9 +192,16 @@ endif
 
 endif
 
+patches-$(VERSION):
+	diff -u Python-$(VERSION)/Mac/OSX/Makefile Python-$(VERSION)-patched/Mac/OSX/Makefile > patches-$(VERSION); true
+	diff -u Python-$(VERSION)/PC/getpathp.c Python-$(VERSION)-patched/PC/getpathp.c >> patches-$(VERSION); true
+	diff -u Python-$(VERSION)/setup.py Python-$(VERSION)-patched/setup.py >> patches-$(VERSION); true
+	diff -u Python-$(VERSION)/configure Python-$(VERSION)-patched/configure >> patches-$(VERSION); true
+	diff -u Python-$(VERSION)/Makefile.pre.in Python-$(VERSION)-patched/Makefile.pre.in >> patches-$(VERSION); true
 
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
+	rm -rf Python-$(VERSION)/Lib/bsddb
 
 Python-$(VERSION).tar.bz2:
 	$(CURL) http://builds.o11n.org/external/Python-$(VERSION).tar.bz2
