@@ -31,6 +31,7 @@ from operator import add
 
 from application import schema
 from itertools import islice, chain
+from bisect import bisect
 import copy
 import logging
 
@@ -81,6 +82,14 @@ def roundTo(v, r):
     round down v to the nearest r
     """
     return (v/r)*r
+
+def roundToColumnPosition(v, columnList):
+    """
+    round down to the nearest column value
+    """
+    index = bisect(columnList, v)-1
+    if index >= 0:
+        return columnList[index]
     
 class ColorInfo(object):
     def __init__(self, collection):
@@ -1240,12 +1249,12 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         position = \
             self.getBoundedPosition(position, drawInfo, mustBeInBounds)
 
-        # @@@ fixes Bug#1831, but doesn't really address the root cause
-        # (the window is drawn with (0,0) virtual size on mac)
-        if drawInfo._dayWidth > 0:
-            deltaDays = (position.x - drawInfo.xOffset) / drawInfo._dayWidth
-        else:
-            deltaDays = 0
+
+        # find the first column holding position.x
+        colPositions = drawInfo.columnPositions
+        deltaDays = bisect(drawInfo.columnPositions, position.x) - 1
+            
+        deltaDays -= 1 # subtract one to ignore the "Week" column
             
         startDay = self.blockItem.rangeStart
         deltaDays = timedelta(days=deltaDays)
@@ -1975,11 +1984,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         columnPositions = [0] * len(self.columnWidths)
         self.columnPositions = tuple(sum(self.columnWidths[:i])
                                      for i in range(len(self.columnWidths)))
-
-        # the gradient brushes are based on dayWidth, so blow it away
-        # when _dayWidth changes
-        styles = self.blockItem.calendarContainer
-        
 
     def _getColumns(self):
         if self.blockItem.dayMode:

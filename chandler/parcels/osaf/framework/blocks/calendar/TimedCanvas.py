@@ -8,7 +8,7 @@ from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundTo
+    wxCalendarCanvas, roundTo, roundToColumnPosition
     )
 from PyICU import FieldPosition, DateFormat, ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
@@ -637,8 +637,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         so that the event will sort of stick to the current column until
         it absolutely must move
         """
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         dx,dy = self.dragState.dragOffset
-        dx = roundTo(dx, self._dayWidth)
+        dx = roundToColumnPosition(dx, drawInfo.columnPositions)
         
         position = self.dragState.currentPosition - (dx, dy)
 

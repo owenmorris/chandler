@@ -8,7 +8,7 @@ from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundTo
+    wxCalendarCanvas, roundToColumnPosition
     )
 from PyICU import GregorianCalendar, ICUtzinfo
 
@@ -343,7 +343,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # if it was drawn
         
         # hack alert! We shouldn't need to adjust this
-        dx = roundTo(dx, drawInfo._dayWidth)
+        dx = roundToColumnPosition(dx, drawInfo.columnPositions)
 
         position = wx.Point(unscrolledPosition.x - dx,
                             unscrolledPosition.y - dy)
