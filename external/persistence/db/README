@@ -4,6 +4,7 @@ Upgrading db build
 
  On Windows:
    - upgrade the vc++ project files to 7.1
+   - verify the NMAKE command line for Clean is not empty
    - change the Berkeley_DB.sln project to *NOT* build the static versions
      of the libraries, for two reasons:
        1. we don't need them and speeding up the build is welcome
