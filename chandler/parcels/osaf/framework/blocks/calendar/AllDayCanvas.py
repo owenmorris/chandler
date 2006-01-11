@@ -262,10 +262,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         """
         size = self.GetSize()
         calendarBlock = self.blockItem
-        
-        startX = self.getColumnPositionForDay(dayStart)
-        endX = self.getColumnPositionForDay(dayEnd+1)
-        width = endX - startX
+
+        startX, width = self.getColumnForDay(dayStart, dayEnd)
         
         rect = wx.Rect(startX, self.eventHeight * gridRow,
                        width, self.eventHeight)
@@ -281,9 +279,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             self.dragState.currentDragBox.item == item):
             self.dragState.currentDragBox = canvasItem
 
-    def getColumnPositionForDay(self, day):
-        return self.blockItem.calendarContainer.calendarControl.widget.columnPositions[day + 1]
-        
     @staticmethod
     def DayOfWeekNumber(datetime):
         """

@@ -304,10 +304,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             dc.SetBrush(styles.selectionBrush)
             
             rects = \
-                TimedCanvasItem.GenerateBoundsRects(self,
-                                                    self._bgSelectionStartTime,
-                                                    self._bgSelectionEndTime,
-                                                    self._dayWidth)
+                self.GenerateBoundsRects(self._bgSelectionStartTime,
+                                         self._bgSelectionEndTime)
             for rect in rects:
                 dc.DrawRectangleRect(rect)
 
@@ -715,13 +713,74 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             raise ValueError, "Must be visible on the calendar"
         
         delta = Calendar.datetimeOp(datetime, '-', startDay)
-        x = self.getColumnPositionForDay(delta.days)
+        x,width = self.getColumnForDay(delta.days)
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
-        return wx.Point(x, y)
+        return x,y,width
 
-    def getColumnPositionForDay(self, day):
-        return self.blockItem.calendarContainer.calendarControl.widget.columnPositions[day + 1]
+    def MakeRectForRange(self, startTime, endTime):
+        """
+        Turn a datetime range into a single rectangle that can be
+        drawn on the screen
+        """
+        startX, startY, width = self.getPositionFromDateTime(startTime)
+        
+        duration = (endTime - startTime)
+        duration = duration.days * 24 + duration.seconds / float(3600)
+        if duration <= 0.5:
+            duration = 0.5
+            
+        height = int(duration * self.hourHeight)
+        
+        return wx.Rect(startX, startY, width+1, height+1)
+    
+    def GenerateBoundsRects(self, startTime, endTime):
+        """
+        Generate a bounds rectangle for each day period. For example, an event
+        that goes from noon monday to noon wednesday would have three bounds rectangles::
+            one from noon monday to midnight
+            one for all day tuesday
+            one from midnight wednesday morning to noon wednesday
+        """
 
+        # calculate how many unique days this appears on 
+        defaultTzinfo = ICUtzinfo.getDefault()
+        
+        if startTime.tzinfo is None:
+            startTime = startTime.replace(tzinfo=defaultTzinfo)
+        else:
+            startTime = startTime.astimezone(defaultTzinfo)
+
+
+        if endTime.tzinfo is None:
+            endTime = endTime.replace(tzinfo=defaultTzinfo)
+        else:
+            endTime = endTime.astimezone(defaultTzinfo)
+        
+        # Safe to do comparison here because we've made sure
+        # that neither datetime is naive
+        days = 1 + (endTime.date() - startTime.date()).days
+        
+        currentDayStart = datetime.combine(startTime, 
+                            time(tzinfo=startTime.tzinfo))
+        for i in xrange(days):
+            
+            # first calculate the midnight time for the beginning and end
+            # of the current day
+            currentDayEnd = currentDayStart + timedelta(days=1)
+            
+            # ok to use min, max, since startTime, endTime are not naive
+            boundsStartTime = max(startTime, currentDayStart)
+            boundsEndTime = min(endTime, currentDayEnd)
+            
+            try:
+                rect = self.MakeRectForRange(boundsStartTime,
+                                             boundsEndTime)
+                yield rect
+            except ValueError:
+                pass
+                
+            currentDayStart = currentDayEnd
+        
 class TimedCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     textMargin = 3
@@ -762,20 +821,30 @@ class TimedCanvasItem(CalendarCanvasItem):
        
         dayWidth = self._calendarCanvas._dayWidth
         if self._calendarCanvas.blockItem.dayMode:
-            # in day mode, canvasitems are drawn side-by-side	
-            maxDepth = self.GetMaxDepth()	
-            width = dayWidth / (maxDepth + 1)	
-            indent = width * self.GetIndentLevel()	
-        else:	
+            # in day mode, canvasitems are drawn side-by-side
+            maxDepth = max(self.GetMaxDepth(), 1)
+            indentLevel = self.GetIndentLevel()
+            def UpdateForConflicts(rect):
+                rect.width /= maxDepth
+                rect.x += rect.width * indentLevel
+        else:
             # in week mode, stagger the canvasitems by 5 pixels            
             indent = self.GetIndentLevel() * 10
-            width = dayWidth - self.GetMaxDepth() * 10
+            widthAdjust = self.GetMaxDepth() * 10
+            def UpdateForConflicts(rect):
+                rect.width -= widthAdjust
+                rect.x += indent
 
-        self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
-                                                          startTime, endTime,
-                                                          width+1, indent))
+        self._boundsRects = \
+            list(self._calendarCanvas.GenerateBoundsRects(startTime, endTime))
+
+        for rect in self._boundsRects:
+            UpdateForConflicts(rect)
+
         self._bounds = self._boundsRects[0]
 
+        # Store top/bottom resize rects for fast hit-testing to update
+        # the cursor
         r = self._boundsRects[-1]
         self._resizeLowBounds = wx.Rect(r.x, r.y + r.height - self.resizeBufferSize,
                                         r.width, self.resizeBufferSize)
@@ -848,78 +917,6 @@ class TimedCanvasItem(CalendarCanvasItem):
     def StartDrag(self, position):
         self.resizeMode = self.getResizeMode(position)
     
-    @staticmethod
-    def GenerateBoundsRects(calendarCanvas, startTime, endTime, width, indent=0):
-        """
-        Generate a bounds rectangle for each day period. For example, an event
-        that goes from noon monday to noon wednesday would have three bounds rectangles::
-            one from noon monday to midnight
-            one for all day tuesday
-            one from midnight wednesday morning to noon wednesday
-        """
-
-        # calculate how many unique days this appears on 
-        defaultTzinfo = ICUtzinfo.getDefault()
-        
-        if startTime.tzinfo is None:
-            startTime = startTime.replace(tzinfo=defaultTzinfo)
-        else:
-            startTime = startTime.astimezone(defaultTzinfo)
-
-
-        if endTime.tzinfo is None:
-            endTime = endTime.replace(tzinfo=defaultTzinfo)
-        else:
-            endTime = endTime.astimezone(defaultTzinfo)
-        
-        # Safe to do comparison here because we've made sure
-        # that neither datetime is naive
-        days = 1 + (endTime.date() - startTime.date()).days
-        
-        currentDayStart = datetime.combine(startTime, 
-                            time(tzinfo=startTime.tzinfo))
-        for i in xrange(days):
-            
-            # first calculate the midnight time for the beginning and end
-            # of the current day
-            currentDayEnd = currentDayStart + timedelta(days=1)
-            
-            # ok to use min, max, since startTime, endTime are not naive
-            boundsStartTime = max(startTime, currentDayStart)
-            boundsEndTime = min(endTime, currentDayEnd)
-            
-            try:
-                rect = TimedCanvasItem.MakeRectForRange(calendarCanvas,
-                                                        boundsStartTime,
-                                                        boundsEndTime)
-                rect.x += indent
-                rect.width = width
-                yield rect
-            except ValueError:
-                pass
-                
-            currentDayStart = currentDayEnd
-        
-    @staticmethod
-    def MakeRectForRange(calendarCanvas, startTime, endTime):
-        """
-        Turn a datetime range into a rectangle that can be drawn on the screen
-        This is a static method, and can be used outside this class
-        """
-        startPosition = calendarCanvas.getPositionFromDateTime(startTime)
-        
-        # ultimately, I'm not sure that we should be asking the calendarCanvas
-        # directly for dayWidth and hourHeight, we probably need some system 
-        # instead similar to getPositionFromDateTime where we pass in a duration
-        duration = (endTime - startTime)
-        duration = duration.days * 24 + duration.seconds / float(3600)
-        if duration <= 0.5:
-            duration = 0.5;
-        (cellWidth, cellHeight) = \
-                    (calendarCanvas._dayWidth,
-                     int(duration * calendarCanvas.hourHeight))
-        
-        return wx.Rect(startPosition.x, startPosition.y, cellWidth+1, cellHeight+1)
 
     def FindConflicts(self, possibleConflicts):
         """

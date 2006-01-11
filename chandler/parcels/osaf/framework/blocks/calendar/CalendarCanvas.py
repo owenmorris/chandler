@@ -1297,6 +1297,20 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         """
         Util.ok(self, _(u'Warning'), _(u'This item is read-only. You cannot change the time of read-only items.'))
 
+    def getColumnForDay(self, dayStart, dayEnd=None):
+        """
+        returns position,width for the given zero-based day(s)
+        """
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        
+        if self.blockItem.dayMode:
+            return (drawInfo.columnPositions[1], drawInfo.middleWidth)
+        else:
+            if dayEnd is None:
+                dayEnd = dayStart
+            return (drawInfo.columnPositions[dayStart + 1],
+                    sum(drawInfo.columnWidths[dayStart + 1:dayEnd+2]))
+
 class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):
         
