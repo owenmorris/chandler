@@ -3,7 +3,7 @@
 // Purpose:     Grid control wxWidgets sample
 // Author:      Michael Bedward
 // Modified by:
-// RCS-ID:      $Id: griddemo.cpp,v 1.14 2005/06/16 17:13:54 JS Exp $
+// RCS-ID:      $Id: griddemo.cpp,v 1.17 2006/01/07 00:31:32 VZ Exp $
 // Copyright:   (c) Michael Bedward, Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -15,11 +15,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation
-    #pragma interface
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -201,6 +196,7 @@ GridFrame::GridFrame()
     selectMenu->Append( ID_SELECT_ROW, _T("Select row 2"));
     selectMenu->Append( ID_SELECT_COL, _T("Select col 2"));
     selectMenu->Append( ID_SELECT_CELL, _T("Select cell (3, 1)"));
+    selectMenu->AppendSeparator();
     selectMenu->Append( ID_DESELECT_ALL, _T("Deselect all"));
     selectMenu->Append( ID_DESELECT_ROW, _T("Deselect row 2"));
     selectMenu->Append( ID_DESELECT_COL, _T("Deselect col 2"));
@@ -848,6 +844,82 @@ void GridFrame::OnColSize( wxGridSizeEvent& ev )
     ev.Skip();
 }
 
+
+void GridFrame::OnShowSelection(wxCommandEvent& WXUNUSED(event))
+{
+    // max number of elements to dump -- otherwise it can take too much time
+    static const size_t countMax = 100;
+
+    bool rows = false;
+
+    switch ( grid->GetSelectionMode() )
+    {
+        case wxGrid::wxGridSelectCells:
+            {
+                const wxGridCellCoordsArray cells(grid->GetSelectedCells());
+                size_t count = cells.size();
+                wxLogMessage(_T("%lu cells selected:"), (unsigned long)count);
+                if ( count > countMax )
+                {
+                    wxLogMessage(_T("[too many selected cells, ")
+                                 _T("showing only the first %lu]"),
+                                 (unsigned long)countMax);
+                    count = countMax;
+                }
+
+                for ( size_t n = 0; n < count; n++ )
+                {
+                    const wxGridCellCoords& c = cells[n];
+                    wxLogMessage(_T("  selected cell %lu: (%d, %d)"),
+                                 (unsigned long)n, c.GetCol(), c.GetRow());
+                }
+            }
+            break;
+
+        case wxGrid::wxGridSelectRows:
+            rows = true;
+            // fall through
+
+        case wxGrid::wxGridSelectColumns:
+            {
+                const wxChar *plural, *single;
+                if ( rows )
+                {
+                    plural = _T("rows");
+                    single = _T("row");
+                }
+                else // columns
+                {
+                    plural = _T("columns");
+                    single = _T("column");
+                }
+
+                const wxArrayInt sels(rows ? grid->GetSelectedRows()
+                                           : grid->GetSelectedCols());
+                size_t count = sels.size();
+                wxLogMessage(_T("%lu %s selected:"),
+                             (unsigned long)count, plural);
+                if ( count > countMax )
+                {
+                    wxLogMessage(_T("[too many selected %s, ")
+                                 _T("showing only the first %lu]"),
+                                 plural, (unsigned long)countMax);
+                    count = countMax;
+                }
+
+                for ( size_t n = 0; n < count; n++ )
+                {
+                    wxLogMessage(_T("  selected %s %lu: %d"),
+                                 single, (unsigned long)n, sels[n]);
+                }
+            }
+            break;
+
+        default:
+            wxFAIL_MSG( _T("unknown wxGrid selection mode") );
+            break;
+    }
+}
 
 void GridFrame::OnSelectCell( wxGridEvent& ev )
 {

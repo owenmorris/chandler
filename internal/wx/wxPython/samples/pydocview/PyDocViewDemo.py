@@ -5,19 +5,19 @@
 # Author:       Peter Yared, Morgan Hua
 #
 # Created:      5/15/03
-# CVS-ID:       $Id: PyDocViewDemo.py 6448 2005-08-09 20:42:28Z davids $
+# CVS-ID:       $Id: PyDocViewDemo.py,v 1.7 2005/12/30 23:01:23 RD Exp $
 # Copyright:    (c) 2003-2005 ActiveGrid, Inc.
 # License:      wxWindows License
 #----------------------------------------------------------------------------
 
 
 import sys
+import os.path
 import wx
 import wx.lib.docview as docview
 import wx.lib.pydocview as pydocview
 import TextEditor
 import FindService
-import os.path
 _ = wx.GetTranslation
 
 
@@ -90,7 +90,7 @@ class TextEditorApplication(pydocview.DocApp):
         if os.path.exists("tips.txt"):
             wx.CallAfter(self.ShowTip, wx.GetApp().GetTopWindow(), wx.CreateFileTipProvider("tips.txt", 0))
 
-        wx.UpdateUIEvent.SetUpdateInterval(400)  # Overhead of updating menus was too much.  Change to update every 400 milliseconds.
+        wx.UpdateUIEvent.SetUpdateInterval(1000)  # Overhead of updating menus was too much.  Change to update every N milliseconds.
 
         # Tell the framework that everything is great
         return True

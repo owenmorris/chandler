@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dnd.cpp,v 1.100 2005/08/23 23:10:59 MW Exp $
+// RCS-ID:      $Id: dnd.cpp,v 1.103 2005/10/17 23:45:25 MW Exp $
 // Copyright:
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -199,7 +199,7 @@ private:
 class DnDFrame : public wxFrame
 {
 public:
-    DnDFrame(wxFrame *frame, wxChar *title, int x, int y, int w, int h);
+    DnDFrame(wxFrame *frame, const wxChar *title, int x, int y, int w, int h);
     virtual ~DnDFrame();
 
     void OnPaint(wxPaintEvent& event);
@@ -920,7 +920,7 @@ bool DnDApp::OnInit()
 
 #if wxUSE_DRAG_AND_DROP || wxUSE_CLIPBOARD
 
-DnDFrame::DnDFrame(wxFrame *frame, wxChar *title, int x, int y, int w, int h)
+DnDFrame::DnDFrame(wxFrame *frame, const wxChar *title, int x, int y, int w, int h)
         : wxFrame(frame, wxID_ANY, title, wxPoint(x, y), wxSize(w, h)),
           m_strText(_T("wxWidgets drag & drop works :-)"))
 

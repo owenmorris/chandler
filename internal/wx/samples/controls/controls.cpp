@@ -3,7 +3,7 @@
 // Purpose:     Controls wxWidgets sample
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: controls.cpp,v 1.233 2005/08/17 13:13:42 VZ Exp $
+// RCS-ID:      $Id: controls.cpp,v 1.235 2005/12/19 11:09:19 ABX Exp $
 // Copyright:   (c) Robert Roebling, Julian Smart
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -19,9 +19,7 @@
     #include "wx/wx.h"
 #endif
 
-#if !defined( __WXMSW__ ) || defined( __WIN95__ )
 #include "wx/spinbutt.h"
-#endif
 #include "wx/tglbtn.h"
 #include "wx/bookctrl.h"
 #include "wx/imaglist.h"
@@ -882,7 +880,7 @@ MyPanel::MyPanel( wxFrame *frame, int x, int y, int w, int h )
                             _T("This is also supposed to demonstrate how ")
                             _T("to use static controls with line wrapping."),
                             wxDefaultPosition,
-                            wxSize(240, -1)
+                            wxSize(240, wxDefaultCoord)
                           );
 #endif
     wrapping_sizer->Add( m_wrappingText );
@@ -915,7 +913,7 @@ MyPanel::MyPanel( wxFrame *frame, int x, int y, int w, int h )
 #endif // wxUSE_SPINBTN
 
 #if wxUSE_SPINCTRL
-    m_spinctrl = new wxSpinCtrl( panel, ID_SPINCTRL, _T(""), wxPoint(200, 160), wxSize(80, wxDefaultCoord) );
+    m_spinctrl = new wxSpinCtrl( panel, ID_SPINCTRL, wxEmptyString, wxPoint(200, 160), wxSize(80, wxDefaultCoord) );
     m_spinctrl->SetRange(10,30);
     m_spinctrl->SetValue(15);
 #endif // wxUSE_SPINCTRL
@@ -1770,13 +1768,10 @@ void MyFrame::OnQuit (wxCommandEvent& WXUNUSED(event) )
 
 void MyFrame::OnAbout( wxCommandEvent& WXUNUSED(event) )
 {
-    SetSize(800, 600);
-#if 0
     wxBusyCursor bc;
 
     wxMessageDialog dialog(this, _T("This is a control sample"), _T("About Controls"), wxOK );
     dialog.ShowModal();
-#endif
 }
 
 void MyFrame::OnClearLog(wxCommandEvent& WXUNUSED(event))

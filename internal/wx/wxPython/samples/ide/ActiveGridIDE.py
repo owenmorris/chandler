@@ -5,7 +5,7 @@
 # Author:       Lawrence Bruhmuller
 #
 # Created:      3/30/05
-# CVS-ID:       $Id: ActiveGridIDE.py 5179 2005-04-30 01:45:07Z davids $
+# CVS-ID:       $Id: ActiveGridIDE.py,v 1.1 2005/04/08 22:51:59 RD Exp $
 # Copyright:    (c) 2004-2005 ActiveGrid, Inc.
 # License:      wxWindows License
 #----------------------------------------------------------------------------

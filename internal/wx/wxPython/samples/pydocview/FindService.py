@@ -5,7 +5,7 @@
 # Author:       Peter Yared, Morgan Hua
 #
 # Created:      8/15/03
-# CVS-ID:       $Id: FindService.py 6448 2005-08-09 20:42:28Z davids $
+# CVS-ID:       $Id: FindService.py,v 1.3 2005/05/05 00:10:24 RD Exp $
 # Copyright:    (c) 2003-2005 ActiveGrid, Inc.
 # License:      wxWindows License
 #----------------------------------------------------------------------------

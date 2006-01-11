@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxSlider
 // Author:      Vadim Zeitlin
 // Created:     16.04.01
-// Id:          $Id: slider.cpp,v 1.27 2005/08/28 08:54:55 MBN Exp $
+// Id:          $Id: slider.cpp,v 1.28 2005/12/19 10:47:44 ABX Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -562,11 +562,11 @@ void SliderWidgetsPage::OnUpdateUIRadioSides(wxUpdateUIEvent& event)
 
 void SliderWidgetsPage::OnUpdateUIBothSides(wxUpdateUIEvent& event)
 {
-#if defined(__WIN95__) || defined(__WXUNIVERSAL__)
+#if defined(__WXMSW__) || defined(__WXUNIVERSAL__)
     event.Enable( m_chkTicks->GetValue() );
 #else
     event.Enable( false );
-#endif // defined(__WIN95__) || defined(__WXUNIVERSAL__)
+#endif // defined(__WXMSW__) || defined(__WXUNIVERSAL__)
 }
 
 void SliderWidgetsPage::OnSlider(wxScrollEvent& event)

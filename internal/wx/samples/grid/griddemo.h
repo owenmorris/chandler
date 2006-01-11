@@ -3,7 +3,7 @@
 // Purpose:     Grid control wxWidgets sample
 // Author:      Michael Bedward
 // Modified by:
-// RCS-ID:      $Id: griddemo.h,v 1.8 2005/06/02 12:04:11 JS Exp $
+// RCS-ID:      $Id: griddemo.h,v 1.9 2006/01/07 00:31:32 VZ Exp $
 // Copyright:   (c) Michael Bedward, Julian Smart
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,7 @@ class GridFrame : public wxFrame
     void SelectRow(wxCommandEvent& event);
     void SelectAll(wxCommandEvent& event);
     void OnAddToSelectToggle(wxCommandEvent& event);
+    void OnShowSelection(wxCommandEvent& event);
 
     void OnLabelLeftClick( wxGridEvent& );
     void OnCellLeftClick( wxGridEvent& );
@@ -139,6 +140,7 @@ public:
         ID_BUGS_TABLE,
         ID_SMALL_GRID,
         ID_SELECT_UNSELECT,
+        ID_SHOW_SELECTION,
         ID_SELECT_ALL,
         ID_SELECT_ROW,
         ID_SELECT_COL,
