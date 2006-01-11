@@ -220,8 +220,6 @@ class FeedChannel(pim.ListCollection):
 
         logger.info("Channel downloaded: %s" % channel)
 
-        data = feedparser.parse(data)
-
         # set etag
         etag = headers.get('etag', None)
         if etag:
@@ -232,22 +230,12 @@ class FeedChannel(pim.ListCollection):
         if lastModified:
             self.lastModified = date_parse(lastModified[0])
 
-        # if the feed is bad, raise the sax exception
-        try:
-            if data.bozo and not isinstance(data.bozo_exception, feedparser.CharacterEncodingOverride):
-                logger.error("For url '%s', feedparser exception: %s" % (self.url, data.bozo_exception))
-                # raise data.bozo_exception
-        except KeyError, e:
-            logger.error("For url '%s', feedparser KeyError: %s" % \
-                (self.url, e))
-            return
-
-        self._DoChannel(data['channel'])
-        count = self._DoItems(data['items'])
+        count = self.parse(data)
         if count:
             logger.info("...added %d FeedItems" % count)
 
         self.itsView.commit()
+
 
     def feedFetchFailed(self, failure):
 
@@ -262,6 +250,25 @@ class FeedChannel(pim.ListCollection):
         logger.error("Failed to update channel: %s; Reason: %s",
             channel, failure.getErrorMessage())
 
+
+    def parse(self, rawData):
+        data = feedparser.parse(rawData)
+
+        # Map some external attribute names to internal attribute names:
+        attrs = {'title':'displayName', 'description':'body'}
+        SetAttributes(self, data['channel'], attrs)
+
+        # These attribute names don't need remapping:
+        attrs = ['link', 'copyright', 'category', 'language']
+        SetAttributes(self, data['channel'], attrs)
+
+        date = data['channel'].get('date')
+        if date:
+            self.date = date_parse(str(date))
+
+        return self._parseItems(data['items'])
+
+
     def addFeedItem(self, feedItem):
         """
             Add a single item, and add it to any listening collections
@@ -270,22 +277,7 @@ class FeedChannel(pim.ListCollection):
         self.add(feedItem)
 
 
-    def _DoChannel(self, data):
-        # fill in the item
-
-        # Map some external attribute names to internal attribute names:
-        attrs = {'title':'displayName', 'description':'body'}
-        SetAttributes(self, data, attrs)
-
-        # These attribute names don't need remapping:
-        attrs = ['link', 'copyright', 'category', 'language']
-        SetAttributes(self, data, attrs)
-
-        date = data.get('date')
-        if date:
-            self.date = date_parse(str(date))
-
-    def _DoItems(self, items):
+    def _parseItems(self, items):
         # make children
 
         # lets look for each existing item. This is ugly and is an O(n^2) problem
