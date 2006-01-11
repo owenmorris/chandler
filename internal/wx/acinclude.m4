@@ -5,7 +5,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWindows licence.
 dnl
-dnl Version: $Id: acinclude.m4 7288 2005-09-20 02:56:12Z davids $
+dnl Version: $Id: acinclude.m4,v 1.33 2005/10/03 18:19:02 VZ Exp $
 dnl ---------------------------------------------------------------------------
 
 
@@ -335,10 +335,11 @@ AC_DEFUN([WX_ARG_SYS_WITH],
         ])
 
 dnl this macro checks for a command line argument and caches the result
-dnl usage: WX_ARG_WITH(option, helpmessage, variable-name)
+dnl usage: WX_ARG_WITH(option, helpmessage, variable-name, [withstring])
 AC_DEFUN([WX_ARG_WITH],
         [
-          AC_MSG_CHECKING([for --with-$1])
+	  withstring=$4
+          AC_MSG_CHECKING([for --${withstring:-with}-$1])
           no_cache=0
           AC_ARG_WITH($1, [$2],
                       [

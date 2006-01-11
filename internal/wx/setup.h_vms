@@ -12,10 +12,6 @@
 #ifndef __WX_SETUP_H__
 #define __WX_SETUP_H__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 #include <wx/vms_x_fix.h>
 
 /* never undefine inline or const keywords for C++ compilation */
@@ -57,7 +53,7 @@
 #define HAVE_SSIZE_T 1
 
 /* Define if you have the ANSI C header files.  */
-#define STDC_HEADERS
+#define STDC_HEADERS 1
 
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef uid_t
@@ -160,9 +156,9 @@
 #endif
 
 
-#define WXWIN_COMPATIBILITY_2_2 1
-
 #define WXWIN_COMPATIBILITY_2_4 1
+
+#define WXWIN_COMPATIBILITY_2_6 1
 
 #define wxDIALOG_UNIT_COMPATIBILITY   1
 
@@ -348,12 +344,15 @@
 
 #define wxUSE_CHOICEBOOK 1
 
+#define wxUSE_TREEBOOK 1
+
 #define wxUSE_TAB_DIALOG    1
 
 #define wxUSE_GRID         1
 
-#define wxUSE_MINIFRAME 1
+#define wxUSE_DATAVIEWCTRL   1
 
+#define wxUSE_MINIFRAME 1
 
 #define wxUSE_ACCEL 1
 
@@ -431,6 +430,7 @@
 
 #define wxUSE_GLCANVAS       1
 
+#define wxUSE_RICHTEXT       1
 
 #define wxUSE_CLIPBOARD     1
 
@@ -520,10 +520,8 @@
  * the common values automatically */
 #if (defined(__WIN95__) && !defined(__WXUNIVERSAL__)) || defined(__WXPM__)
 #define wxUSE_OWNER_DRAWN 1
-#endif
-
-#if defined(__WXPM__)
-#define wxUSE_OWNER_DRAWN 1
+#else
+#define wxUSE_OWNER_DRAWN 0
 #endif
 
 /* enable rich edit under Win32 */
@@ -608,6 +606,11 @@
  */
 #undef WX_NO_REGEX_ADVANCED
 /*
+ * On GNU systems use re_search instead of regexec, since the latter does a
+ * strlen on the search text affecting the performance of some operations.
+ */
+#undef HAVE_RE_SEARCH
+/*
  * Use SDL for audio (Unix)
  */
 #define wxUSE_LIBSDL 0
@@ -615,6 +618,10 @@
  * Use GNOME print for printing under GTK+ 2.0
  */
 #define wxUSE_LIBGNOMEPRINT 0
+/*
+ * Use the Hildon framework
+ */
+#define wxUSE_LIBHILDON 0
 /*
  * Use iODBC
  */
@@ -775,13 +782,20 @@
 #define HAVE_LOCALTIME
 
 /* Define if you have nanosleep() */
+#if __CRTL_VER >= 70320000
+#define HAVE_NANOSLEEP 1
+#else
 #undef HAVE_NANOSLEEP
+#endif
 
 /* Define if you have sched_yield */
-#undef HAVE_SCHED_YIELD
+#define HAVE_SCHED_YIELD 1
 
 /* Define if you have pthread_mutexattr_t and functions to work with it */
-#undef HAVE_PTHREAD_MUTEXATTR_T
+#define HAVE_PTHREAD_MUTEXATTR_T 1
+
+/* Define if you have pthread_mutexattr_settype() declaration */
+#define HAVE_PTHREAD_MUTEXATTR_SETTYPE_DECL 1
 
 /* Define if you have PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP */
 #undef HAVE_PTHREAD_RECURSIVE_MUTEX_INITIALIZER
@@ -801,17 +815,32 @@
 /* Define if you have the putenv function.  */
 #define HAVE_PUTENV 1
 
+/* Define if you have the readdir_r function.  */
+#undef HAVE_READDIR_R
+
 /* Define if you have the setenv function.  */
+#   if __CRTL_VER >= 70000000
+#define HAVE_SETENV 1
+#else
 #undef HAVE_SETENV
- 
+#endif
+
 /* Define if you have shl_load() */
 #undef HAVE_SHL_LOAD
 
+#if __CRTL_VER >= 70312000
+/* Define if you have snprintf() */
+#define HAVE_SNPRINTF 1
+
+/* Define if you have snprintf() declaration in the header */
+#define HAVE_SNPRINTF_DECL 1
+#else
 /* Define if you have snprintf() */
 #undef HAVE_SNPRINTF
 
 /* Define if you have snprintf() declaration in the header */
 #undef HAVE_SNPRINTF_DECL
+#endif
 
 /* Define if you have a _broken_ snprintf() declaration in the header,
  * with 'char*' for the 3rd parameter instead of 'const char*' */
@@ -828,18 +857,29 @@
 
 /* Define if you have strptime() */
 #define HAVE_STRPTIME 1
- 
+
+/* Define if you have strptime() declaration */
+#define HAVE_STRPTIME_DECL 1
+
 /* Define if you have all functions to set thread priority */
 #define HAVE_THREAD_PRIORITY_FUNCTIONS 1
 
 /* Define if you have timegm() function */
 #undef HAVE_TIMEGM
 
+#if __CRTL_VER >= 70312000
+/* Define if you have vsnprintf() */
+#define HAVE_VSNPRINTF 1
+
+/* Define if you have vsnprintf() declaration in the header */
+#define HAVE_VSNPRINTF_DECL 1
+#else
 /* Define if you have vsnprintf() */
 #undef HAVE_VSNPRINTF
 
 /* Define if you have vsnprintf() declaration in the header */
 #undef HAVE_VSNPRINTF_DECL
+#endif
 
 /* Define if you have a _broken_ vsnprintf() declaration in the header,
  * with 'char*' for the 3rd parameter instead of 'const char*' */
@@ -896,14 +936,57 @@
 /* Define if you have BSD flock() function. */
 #undef HAVE_FLOCK
 
+/* Define if you have getaddrinfo function. */
+#define HAVE_GETADDRINFO 1
+
+/* Define if you have a gethostbyname_r function taking 6 arguments. */
+#undef HAVE_FUNC_GETHOSTBYNAME_R_6
+
+/* Define if you have a gethostbyname_r function taking 5 arguments. */
+#undef HAVE_FUNC_GETHOSTBYNAME_R_5
+
+/* Define if you have a gethostbyname_r function taking 3 arguments. */
+#undef HAVE_FUNC_GETHOSTBYNAME_R_3
+
+/* Define if you only have a gethostbyname function */
+#define HAVE_GETHOSTBYNAME 1
+
 /* Define if you have the gethostname function.  */
 #define HAVE_GETHOSTNAME 1
+
+/* Define if you have a getservbyname_r function taking 6 arguments. */
+#undef HAVE_FUNC_GETSERVBYNAME_R_6
+
+/* Define if you have a getservbyname_r function taking 5 arguments. */
+#undef HAVE_FUNC_GETSERVBYNAME_R_5
+
+/* Define if you have a getservbyname_r function taking 4 arguments. */
+#undef HAVE_FUNC_GETSERVBYNAME_R_4
+
+/* Define if you only have a getservbyname function */
+#define HAVE_GETSERVBYNAME 1
+
+/* Define if you have the gmtime_r function.  */
+#if __CRTL_VER >= 70000000 && \
+    (defined _POSIX_C_SOURCE || !defined _ANSI_C_SOURCE)
+#define HAVE_GMTIME_R 1
+#else
+#undef HAVE_GMTIME_R
+#endif
 
 /* Define if you have the inet_addr function.  */
 #define HAVE_INET_ADDR 1
 
 /* Define if you have the inet_aton function.  */
-#undef HAVE_INET_ATON
+#define HAVE_INET_ATON 1
+
+/* Define if you have the localtime_r function.  */
+#if __CRTL_VER >= 70000000 && \
+    (defined _POSIX_C_SOURCE || !defined _ANSI_C_SOURCE)
+#define HAVE_LOCALTIME_R 1
+#else
+#undef HAVE_LOCALTIME_R
+#endif
 
 /* Define if you have the mktemp function.  */
 #define HAVE_MKTEMP 1
@@ -911,20 +994,12 @@
 /* Define if you have the mkstemp function.  */
 #define HAVE_MKSTEMP 1
 
-/* Define if you have the nanosleep function.  */
-#undef HAVE_NANOSLEEP
-
-/* Define if you have the putenv function.  */
-#define HAVE_PUTENV 1
-
-/* Define if you have the setenv function.  */
-#undef HAVE_SETENV
-
-/* Define if you have the shl_load function.  */
-#undef HAVE_SHL_LOAD
-
 /* Define if you have strtok_r function. */
+#   if __CRTL_VER >= 70301000
+#define HAVE_STRTOK_R 1
+#else
 #undef HAVE_STRTOK_R
+#endif
 
 /* Define if you have thr_setconcurrency function */
 #undef HAVE_THR_SETCONCURRENCY
@@ -936,13 +1011,25 @@
 #define HAVE_USLEEP 1
 
 /* Define if you have the <X11/XKBlib.h> header file.  */
+#if __CRTL_VER >= 80200000
+#define HAVE_X11_XKBLIB_H 1
+#else
 #undef HAVE_X11_XKBLIB_H
+#endif
 
 /* Define if you have the fnmatch() function */
+#if __CRTL_VER >= 70320000
+#define HAVE_FNMATCH 1
+#else
 #undef HAVE_FNMATCH
+#endif
 
 /* Define if you have the <fnmatch.h> header file.  */
+#if __CRTL_VER >= 70320000
+#define HAVE_FNMATCH_H 1
+#else
 #undef HAVE_FNMATCH_H
+#endif
 
 /* Define if you have the <iostream> header file.  */
 #undef HAVE_IOSTREAM
@@ -966,7 +1053,11 @@
 #undef HAVE_WCSTR_H
 
 /* Define if you have the <wctype.h> header file.  */
+#if __CRTL_VER >= 70312000
+#define HAVE_WCTYPE_H 1
+#else
 #undef HAVE_WCTYPE_H
+#endif
 
 /* Define if you have the <iconv.h> header file and iconv() symbol.  */
 #define HAVE_ICONV_H 1
@@ -1056,8 +1147,6 @@
  *  This stuff is static, it doesn't get modified directly
  *  by configure.
  */
-
-#include "wx/chkconf.h"
 
 /*
     define some constants identifying wxWindows version in more details t
