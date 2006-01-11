@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrl.h,v 1.29 2005/09/23 12:49:03 MR Exp $
+// RCS-ID:      $Id: calctrl.h,v 1.30 2006/01/10 21:07:50 ABX Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -161,9 +161,14 @@ public:
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
+    void OnSysColourChanged(wxSysColourChangedEvent& event);
+
 private:
     // common part of all ctors
     void Init();
+
+    // startup colours and reinitialization after colour changes in system
+    void InitColours();
 
     // event handlers
     void OnPaint(wxPaintEvent& event);
@@ -286,7 +291,9 @@ private:
              m_colHolidayFg,
              m_colHolidayBg,
              m_colHeaderFg,
-             m_colHeaderBg;
+             m_colHeaderBg,
+             m_colBackground,
+             m_colSorrounding;
 
     // the attributes for each of the month days
     wxCalendarDateAttr *m_attrs[31];
