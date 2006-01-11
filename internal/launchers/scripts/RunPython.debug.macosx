@@ -47,8 +47,8 @@ echo Using $PYTHONBIN
 
 if [ "$GDB" != "" ]
 then
-    echo -O $@
+    echo $@
     exec gdb $PYTHONBIN
 else
-    exec $PYTHONBIN -O "$@"
+    exec $PYTHONBIN "$@"
 fi

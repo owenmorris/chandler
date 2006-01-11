@@ -52,7 +52,7 @@ echo Using $PYTHONBIN
 
 if [ "$GDB" != "" ]
 then
-    echo -O $@
+    echo $OPTIMIZE $@
     exec gdb $PYTHONBIN
 else
     exec $PYTHONBIN $OPTIMIZE "$@"
