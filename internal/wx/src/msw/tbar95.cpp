@@ -314,9 +314,7 @@ void wxToolBar::Recreate()
         m_disabledImgList = NULL;
     }
 
-    // OSAF: RD removed UpdateSize - regress against Bug 3750
     Realize();
-//    UpdateSize();
 }
 
 wxToolBar::~wxToolBar()
@@ -1059,8 +1057,6 @@ bool wxToolBar::Realize()
             SetRows(m_nButtons);
     }
 
-    // OSAF: disable this to fix a bug; re-enable when a deeper, better fix is developed...
-    // OSAF: RD added UpdateSize - regress against Bug 3750
     InvalidateBestSize();
     SetBestFittingSize();
     UpdateSize();

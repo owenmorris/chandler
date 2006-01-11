@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _menu.i,v 1.16 2005/06/01 02:09:33 RD Exp $
+// RCS-ID:      $Id: _menu.i,v 1.17 2006/01/10 23:15:34 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -407,10 +407,10 @@ public:
         wxColour GetTextColour() { return wxNullColour; }
         void SetBackgroundColour(const wxColour& colBack) {}
         wxColour GetBackgroundColour() { return wxNullColour; }
-
-        // OSAF: added the SetBitmap implementation
+        
         void SetBitmaps(const wxBitmap& bmpChecked,
-                        const wxBitmap& bmpUnchecked = wxNullBitmap) { self->SetBitmap( bmpChecked ); }
+                        const wxBitmap& bmpUnchecked = wxNullBitmap)
+            { self->SetBitmap( bmpChecked ); }
     
         void SetDisabledBitmap( const wxBitmap& bmpDisabled ) {}
         const wxBitmap& GetDisabledBitmap() const { return wxNullBitmap; }
