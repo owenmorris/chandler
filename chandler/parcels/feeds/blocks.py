@@ -59,10 +59,11 @@ class FeedController(Block.Block):
         if url and url != "":
             try:
                 # create the feed channel
-                channel = channels.NewChannelFromURL(view=self.itsView, url=url,
-                                                     update=True)
-
+                channel = channels.newChannelFromURL(view=self.itsView, url=url)
                 schema.ns("osaf.app", self).sidebarCollection.add (channel)
+                self.itsView.commit() # To make the channel avail to feedsView
+                channel.update() # an async task
+
                 return [channel]
             except:
                 application.dialogs.Util.ok(wx.GetApp().mainFrame,

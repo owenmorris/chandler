@@ -4,9 +4,9 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__    = "feeds"
 
-import time, os, logging, datetime
+import time, os, logging, datetime, urllib
 from PyICU import ICUtzinfo, TimeZone
-from dateutil.parser import parse
+from dateutil.parser import parse as date_parse
 from application import schema
 from util import feedparser
 from xml.sax import SAXParseException
@@ -14,9 +14,52 @@ import socket
 import application
 from osaf import pim
 from i18n import OSAFMessageFactory as _
-
+from twisted.web import client
+from twisted.internet import reactor
 
 logger = logging.getLogger(__name__)
+
+
+# The Feeds repository view, used for background updates
+view = None
+
+def getFeedsView(repository):
+    global view
+    if view is None:
+        view = repository.createView("Feeds")
+    return view
+
+
+
+class FeedUpdateTaskClass:
+
+    def __init__(self, item):
+        self.repository = item.itsView.repository
+        pass
+
+    def run(self):
+        updateFeeds(self.repository)
+        return True     # run it again next time
+
+
+def updateFeeds(repository):
+    view = getFeedsView(repository)
+    view.refresh()
+
+    for channel in FeedChannel.iterItems(view):
+        channel.update()
+
+
+def newChannelFromURL(view, url):
+
+    url = str(url)
+
+    channel = FeedChannel(itsView=view)
+    channel.displayName = url
+    channel.url = channel.getAttributeAspect('url', 'type').makeValue(url)
+
+    return channel
+
 
 
 # sets a given attribute overriding the name with newattr
@@ -39,26 +82,35 @@ def SetAttributes(self, data, attributes):
             SetAttribute(self, data, attr)
 
 
-##
-# FeedChannel
-##
-def NewChannelFromURL(view, url, update = True):
-    data = feedparser.parse(url)
 
-    if data['channel'] == {} or data.get('status', None) == 404:
-        return None
+class ConditionalHTTPClientFactory(client.HTTPClientFactory):
 
-    channel = FeedChannel(itsView=view)
-    channel.url = channel.getAttributeAspect('url', 'type').makeValue(url)
+    def __init__(self, url, lastModified=None, etag=None, method='GET',
+                 postdata=None, headers=None, agent="Chandler", timeout=0,
+                 cookies=None, followRedirect=1):
 
-    if update:
-        try:
-            channel.Update(data)
-        except:
-            channel.delete()
-            raise
+        if lastModified or etag:
+            if headers is None:
+                headers = { }
+            if lastModified:
+                headers['if-modified-since'] = lastModified
+            if etag:
+                headers['if-none-match'] = etag
 
-    return channel
+        client.HTTPClientFactory.__init__(self, url, method=method,
+            postdata=postdata, headers=headers, agent=agent, timeout=timeout,
+            cookies=cookies, followRedirect=followRedirect)
+
+        self.deferred.addCallback(
+            lambda data: (data, self.status, self.response_headers)
+        )
+
+    def noPage(self, reason):
+        if self.status == '304':
+            client.HTTPClientFactory.page(self, '')
+        else:
+            client.HTTPClientFactory.noPage(self, reason)
+
 
 class FeedChannel(pim.ListCollection):
 
@@ -121,35 +173,64 @@ class FeedChannel(pim.ListCollection):
     who = schema.Descriptor(redirectTo="author")
     about = schema.Descriptor(redirectTo="about")
 
-    def Update(self, data=None):
-        #getattr returns a unicode object which needs to be converted to bytes for
-        #logging
-        channel = getattr(self, 'displayName', None)
 
+    def update(self):
+
+        # Make sure we have the feedsView copy of the channel item
+        feedsView = getFeedsView(self.itsView.repository)
+        feedsView.refresh()
+        item = feedsView.findUUID(self.itsUUID)
+
+        return item.download().addCallback(item.feedFetchSuccess).addErrback(
+            item.feedFetchFailed)
+
+
+    def download(self):
+        url = str(self.url)
+        etag = getattr(self, 'etag', None)
+        lastModified = getattr(self, 'lastModified', None)
+        if lastModified:
+            lastModified = lastModified.strftime("%a, %d %b %Y %H:%M:%S %Z")
+
+        (scheme, host, port, path) = client._parse(url)
+        factory = ConditionalHTTPClientFactory(url=url,
+            lastModified=lastModified, etag=etag)
+        reactor.connectTCP(host, port, factory)
+
+        return factory.deferred
+
+
+
+    def feedFetchSuccess(self, info):
+
+        (data, status, headers) = info
+
+        # getattr returns a unicode object which needs to be converted to
+        # bytes for logging
+        channel = getattr(self, 'displayName', None)
         if channel is None:
             channel = str(self.url)
         else:
             channel = channel.encode('ascii', 'replace')
 
-        logger.info("Updating channel: %s" % channel)
-
-        etag = self.getAttributeValue('etag', default=None)
-        lastModified = self.getAttributeValue('lastModified', default=None)
-        if lastModified:
-            lastModified = lastModified.timetuple()
-
         if not data:
-            # fetch the data
-            et = etag is not None and etag.encode('utf8') or etag
-            data = feedparser.parse(str(self.url), et, lastModified)
+            # Page hasn't changed (304)
+            logger.info("Channel hasn't changed: %s" % channel)
+            return
+
+        logger.info("Channel downloaded: %s" % channel)
+
+        data = feedparser.parse(data)
 
         # set etag
-        SetAttribute(self, data, 'etag')
+        etag = headers.get('etag', None)
+        if etag:
+            self.etag = etag[0]
 
         # set lastModified
-        modified = data.get('modified')
-        if modified:
-            self.lastModified = datetime.datetime.fromtimestamp(time.mktime(modified))
+        lastModified = headers.get('last-modified', None)
+        if lastModified:
+            self.lastModified = date_parse(lastModified[0])
 
         # if the feed is bad, raise the sax exception
         try:
@@ -165,6 +246,21 @@ class FeedChannel(pim.ListCollection):
         count = self._DoItems(data['items'])
         if count:
             logger.info("...added %d FeedItems" % count)
+
+        self.itsView.commit()
+
+    def feedFetchFailed(self, failure):
+
+        # getattr returns a unicode object which needs to be converted to
+        # bytes for logging
+        channel = getattr(self, 'displayName', None)
+        if channel is None:
+            channel = str(self.url)
+        else:
+            channel = channel.encode('ascii', 'replace')
+
+        logger.error("Failed to update channel: %s; Reason: %s",
+            channel, failure.getErrorMessage())
 
     def addFeedItem(self, feedItem):
         """
@@ -187,7 +283,7 @@ class FeedChannel(pim.ListCollection):
 
         date = data.get('date')
         if date:
-            self.date = parse(str(date))
+            self.date = date_parse(str(date))
 
     def _DoItems(self, items):
         # make children
@@ -230,7 +326,7 @@ class FeedChannel(pim.ListCollection):
                 # check to see if this doesn't already exist
                 if oldItem.isSimilar(newItem):
                     found = True
-                    oldItem.Update(newItem)
+                    oldItem.update(newItem)
                     break
 
             if not found:
@@ -239,7 +335,7 @@ class FeedChannel(pim.ListCollection):
                     # No date was available in the feed, so assign it 'now'
                     newItem.date = datetime.datetime.now(ICUtzinfo.getDefault())
                 feedItem = FeedItem(itsView=view)
-                feedItem.Update(newItem)
+                feedItem.update(newItem)
 
 
                 try:
@@ -303,7 +399,7 @@ class FeedItem(pim.ContentItem):
         kw.setdefault('displayName', _(u"No Title"))
         super(FeedItem, self).__init__(*args, **kw)
 
-    def Update(self, data):
+    def update(self, data):
         # fill in the item
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs)
@@ -355,31 +451,3 @@ class FeedItem(pim.ContentItem):
             logger.error("%s vs %s" % (self.date, feedItem.date))
 
         return False
-
-
-class FeedUpdateTaskClass:
-
-    def __init__(self, item):
-        self.view = item.itsView.repository.createView("Feeds")
-
-    def run(self):
-        self.view.refresh()
-
-        for channel in FeedChannel.iterItems(self.view):
-            try:
-                channel.Update()
-            except socket.timeout:
-                logger.exception('socket timed out')
-                pass
-            except:
-                logger.exception('failed to update %s' % channel.url)
-                pass
-        try:
-            self.view.commit()
-        except Exception, e:
-            logger.exception('failed to commit')
-            pass
-
-        return True     # run it again next time
-
-

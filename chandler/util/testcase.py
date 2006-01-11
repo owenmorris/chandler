@@ -16,6 +16,14 @@ class NRVTestCase(unittest.TestCase):
         Utility.initLogging(Globals.options)
         self.view = NullRepositoryView()
 
+class SingleRepositoryTestCase(unittest.TestCase):
+
+    def setUp(self):
+        Globals.options = Utility.initOptions()
+        Globals.options.ramdb = True
+        profileDir = Globals.options.profileDir
+        Utility.initLogging(Globals.options)
+        self.view = Utility.initRepository("", Globals.options, True)
 
 class DualRepositoryTestCase(unittest.TestCase):
 
