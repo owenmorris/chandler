@@ -10907,6 +10907,9 @@ monodll_helpdlg.o: $(srcdir)/src/html/helpdlg.cpp $(MONODLL_ODEP)
 monodll_helpfrm.o: $(srcdir)/src/html/helpfrm.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/html/helpfrm.cpp
 
+monodll_helpwnd.o: $(srcdir)/src/html/helpwnd.cpp $(MONODLL_ODEP)
+	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/html/helpwnd.cpp
+
 monodll_htmlcell.o: $(srcdir)/src/html/htmlcell.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/html/htmlcell.cpp
 
@@ -12409,9 +12412,6 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@monodll_helpwin.o: $(srcdir)/src/os2/helpwin.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/os2/helpwin.cpp
-
-@COND_USE_GUI_1@monodll_helpwin.o: $(srcdir)/src/html/helpwin.cpp $(MONODLL_ODEP)
-@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/html/helpwin.cpp
 
 @COND_TOOLKIT_MSW_USE_GUI_1@monodll_automtn.o: $(srcdir)/src/msw/ole/automtn.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/msw/ole/automtn.cpp
