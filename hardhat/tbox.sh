@@ -293,46 +293,117 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
 
     for test in $TESTS ; do
-        TESTNAME=$test
-        P_DIR=$C_DIR
-        if [ "$OSTYPE" = "cygwin" ]; then
-            TESTNAME=`cygpath -w $TESTNAME`
-            P_DIR=`cygpath -w $P_DIR`
-        fi
+        # Don't run large data tests here
+        if [ `echo $test | grep -v PerfLargeData` ]; then
 
-        echo Running $TESTNAME | tee -a $BUILDLOG
-
-        cd $C_DIR
-
-        for run in $RUNS ; do 
-            T_LOG="$T_DIR/time$run.log"
-            if [ "$OSTYPE" = "cygwin" ]; then
-                T_LOG=`cygpath -w $T_LOG`
-            fi
-            $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
-            echo `<"$T_LOG"` | tee -a $BUILDLOG
-        done
-
-        # Pick the median
-        MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
-        for run in $RUNS ; do
-            if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
-                cat $T_DIR/test$run.log > $T_DIR/test.log
-                break
-            fi
-        done
-
-          # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
-        RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
-
-        echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
-        echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
-        cat $T_DIR/test.log      >> $T_DIR/tests.log
-
-        if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
-            PERFTEST_RESULT="failed"
-        fi
+	        TESTNAME=$test
+	        P_DIR=$C_DIR
+	        if [ "$OSTYPE" = "cygwin" ]; then
+	            TESTNAME=`cygpath -w $TESTNAME`
+	            P_DIR=`cygpath -w $P_DIR`
+	        fi
+	
+	        echo Running $TESTNAME | tee -a $BUILDLOG
+	
+	        cd $C_DIR
+	
+	        for run in $RUNS ; do 
+	            T_LOG="$T_DIR/time$run.log"
+	            if [ "$OSTYPE" = "cygwin" ]; then
+	                T_LOG=`cygpath -w $T_LOG`
+	            fi
+	            $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+	            echo `<"$T_LOG"` | tee -a $BUILDLOG
+	        done
+	
+	        # Pick the median
+	        MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
+	        for run in $RUNS ; do
+	            if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
+	                cat $T_DIR/test$run.log > $T_DIR/test.log
+	                break
+	            fi
+	        done
+	
+	          # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
+	        RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
+	
+	        echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+	        echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+	        cat $T_DIR/test.log      >> $T_DIR/tests.log
+	
+	        if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+	            PERFTEST_RESULT="failed"
+	        fi
+	    fi
     done
+    
+    echo Creating a large repository backup for the remaining tests | tee -a $BUILDLOG
+    rm -fr $C_DIR/__repository__.0*
+    REPO=$C_DIR/__repository__.001
+    BACKUP_REPO=$C_DIR/tools/QATestScripts/Performance/LargeDataBackupRepository.py
+    if [ "$OSTYPE" = "cygwin" ]; then
+        REPO=`cygpath -w $REPO`
+        BACKUP_REPO=`cygpath -w $BACKUP_REPO`
+    fi
+    
+    cd $C_DIR
+    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
+    
+    # scan the test output for the success message "OK"
+    RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+    
+    if [ "$RESULT" = "" ]; then
+        for test in $TESTS ; do
+            FAILED_TESTS="$FAILED_TESTS $test"
+        done
+    else
+        # Then run all tests with restored large repository
+        for test in $TESTS ; do
+            # Only run the large data tests
+            if [ `echo $test | grep PerfLargeData` ]; then
+		        TESTNAME=$test
+		        P_DIR=$C_DIR
+		        if [ "$OSTYPE" = "cygwin" ]; then
+		            TESTNAME=`cygpath -w $TESTNAME`
+		            P_DIR=`cygpath -w $P_DIR`
+		        fi
+		
+		        echo Running $TESTNAME | tee -a $BUILDLOG
+		
+		        cd $C_DIR
+		
+		        for run in $RUNS ; do 
+		            T_LOG="$T_DIR/time$run.log"
+		            if [ "$OSTYPE" = "cygwin" ]; then
+		                T_LOG=`cygpath -w $T_LOG`
+		            fi
+		            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+		            echo `<"$T_LOG"` | tee -a $BUILDLOG
+		        done
+		
+		        # Pick the median
+		        MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
+		        for run in $RUNS ; do
+		            if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
+		                cat $T_DIR/test$run.log > $T_DIR/test.log
+		                break
+		            fi
+		        done
+		
+		          # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
+		        RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
+		
+		        echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+		        echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+		        cat $T_DIR/test.log      >> $T_DIR/tests.log
+		
+		        if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+		            PERFTEST_RESULT="failed"
+		        fi
+		    fi
+		done
+    fi
     
     echo Running startup time tests | tee -a $BUILDLOG
 
