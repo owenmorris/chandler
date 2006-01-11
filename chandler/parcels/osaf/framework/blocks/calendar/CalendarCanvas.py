@@ -1151,7 +1151,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         shade the background of today, if today is in view
         """
 
-        # first make sure today is in view
+        # don't shade today in day mode
+        if self.blockItem.dayMode:
+            return
+
+        # next make sure today is in view
         today = datetime.today()
         startDay, endDay = self.blockItem.GetCurrentDateRange()
         if (today < startDay or endDay < today):
@@ -1162,9 +1166,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
         # rectangle goes from top to bottom, but the 
         dayNum = Calendar.datetimeOp(today, '-', startDay).days
-        x = drawInfo.dividerPositions[dayNum]
+        x = drawInfo.columnPositions[dayNum+1]
         y = 0
-        (width, height) = (drawInfo.dividerPositions[dayNum+1]-x,
+        (width, height) = (drawInfo.columnWidths[dayNum+1],
                            self.size.height)
         dc.SetBrush(styles.todayBrush)
         dc.DrawRectangle(x,y,width, height)
@@ -1183,12 +1187,12 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         # thick pens with the line centered at x - 1. Offset the
         # legend border because we want the righthand side of the line
         # to be at x - 1
-        legendBorderX = drawInfo.dividerPositions[0] - self.legendBorderWidth/2 - 1
+        legendBorderX = drawInfo.columnPositions[1] - self.legendBorderWidth/2 - 1
         dc.DrawLine(legendBorderX, 0,
                     legendBorderX, self.size.height)
         
         def drawDayLine(dayNum):
-            x = drawInfo.dividerPositions[dayNum]
+            x = drawInfo.columnPositions[dayNum+1]
             dc.DrawLine(x, 0,   x, self.size.height)
 
         # the rest are minor, 1 pixel wide
@@ -1251,10 +1255,12 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
 
         # find the first column holding position.x
-        colPositions = drawInfo.columnPositions
-        deltaDays = bisect(drawInfo.columnPositions, position.x) - 1
-            
-        deltaDays -= 1 # subtract one to ignore the "Week" column
+        if self.blockItem.dayMode:
+            deltaDays = 0
+        else:
+            # get the index of the nearest column
+            deltaDays = bisect(drawInfo.columnPositions, position.x) - 1
+            deltaDays -= 1 # subtract one to ignore the "Week" column
             
         startDay = self.blockItem.rangeStart
         deltaDays = timedelta(days=deltaDays)
@@ -1967,22 +1973,36 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         """
 
         self.size = self.GetSize()
-        
-        allDayWidths = self.size.width - self.scrollbarWidth - self.xOffset
-        self._dayWidth =  allDayWidths / self.blockItem.daysPerView
 
         ### calculate column widths for the all-7-days week view case
         # column layout rules are funky (e.g. bug 3290 and bug 3521)
-        #
+        # basically the day columns are almost all the same width but
+        # when there are rounding errors we distribute the extra
+        # pixels among the rightmost columns. When you're resizing,
+        # you generalize resize from the right so it looks smoother
+        # when you add the extra pixels there. When you resize from
+        # the left, the whole screen is changing anyway so we can't
+        # make that look any smoother.
 
-        dayWidths = (self._dayWidth,) * 7
+        # the sum of all day widths
+        allDayWidths = self.size.width - self.scrollbarWidth - self.xOffset
+
+        # the starting point for day widths - an integer, rounded down
+        baseDayWidth = allDayWidths / self.blockItem.daysPerView
+
         # due to rounding there may be up to 6 extra pixels to distribute
-        leftover = self.size.width - (self._dayWidth*7) - self.scrollbarWidth - self.xOffset
+        leftover = allDayWidths - baseDayWidth*7
+        
+        assert leftover == self.size.width - (baseDayWidth*7) - \
+                           self.scrollbarWidth - self.xOffset
+        
         # evenly distribute the leftover into a tuple of the right length
         # for instance, leftover==4 gives us (0,0,0,1,1,1,1)
         leftoverWidths = (0,) * (7-leftover) + (1,) * leftover
 
         # now add the extra bits to the individual columns
+        dayWidths = (baseDayWidth,) * 7 # like  (80,80,80,80,80,80,80)
+        # with 5 leftover, this makes them like (80,80,81,81,81,81,81)
         dayWidths = tuple(map(add, dayWidths, leftoverWidths))
         self.middleWidth = sum(dayWidths)
 
@@ -1995,9 +2015,14 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.columnWidths = (self.xOffset,) +dayWidths+ (self.scrollbarWidth,)
 
         ## e.g. 10,40,40,40 => 0,10,50,90
-        columnPositions = [0] * len(self.columnWidths)
         self.columnPositions = tuple(sum(self.columnWidths[:i])
                                      for i in range(len(self.columnWidths)))
+
+        # make sure everything adds up - the right side of the last column
+        # should be where all the columns added up would be
+        assert self.columnPositions[-1]+self.columnWidths[-1] == \
+               sum(self.columnWidths)
+        
 
     def _getColumns(self):
         if self.blockItem.dayMode:
@@ -2006,25 +2031,3 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             return self.blockItem.daysPerView
 
     columns = property(_getColumns)
-
-
-    def _getDividerPositions(self):
-        """
-        Tuple of divider lines for the canvases.
-        
-        unlike columnWidths, this IS sensitive whether you're viewing one day
-        vs. week
-        """
-        if not hasattr(self, 'columnWidths'):
-            self._doDrawingCalculations()
-        cw = self.columnWidths
-        if self.blockItem.dayMode:
-            lastDividerPos = sum(cw)
-            return (cw[0], lastDividerPos)
-        else:
-            ## e.g. 10,40,40,40 => 0,10,50,90
-            cumulSums =  [sum(cw[:i]) for i in range(len(cw))]
-            return cumulSums[1:]
-
-    dividerPositions = property(_getDividerPositions)
-

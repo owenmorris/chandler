@@ -183,11 +183,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         self.xOffset = drawInfo.xOffset
 
-        if self.blockItem.dayMode:
-            self._dayWidth = drawInfo.middleWidth
-        else:
-            self._dayWidth = drawInfo._dayWidth
-    
     def GetLocaleHourStrings(self, hourrange, dc):
         """
         use PyICU to format the hour, because some locales
@@ -761,9 +756,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         days = 1 + (endTime.date() - startTime.date()).days
         
         currentDayStart = datetime.combine(startTime, 
-                            time(tzinfo=startTime.tzinfo))
+                                           time(tzinfo=startTime.tzinfo))
         for i in xrange(days):
-            
             # first calculate the midnight time for the beginning and end
             # of the current day
             currentDayEnd = currentDayStart + timedelta(days=1)
@@ -819,13 +813,12 @@ class TimedCanvasItem(CalendarCanvasItem):
         if not endTime:
             endTime = item.endTime
        
-        dayWidth = self._calendarCanvas._dayWidth
         if self._calendarCanvas.blockItem.dayMode:
             # in day mode, canvasitems are drawn side-by-side
-            maxDepth = max(self.GetMaxDepth(), 1)
+            maxDepth = self.GetMaxDepth()
             indentLevel = self.GetIndentLevel()
             def UpdateForConflicts(rect):
-                rect.width /= maxDepth
+                rect.width /= (maxDepth + 1)
                 rect.x += rect.width * indentLevel
         else:
             # in week mode, stagger the canvasitems by 5 pixels            
