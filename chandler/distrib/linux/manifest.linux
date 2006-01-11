@@ -68,8 +68,8 @@ python2.4
 # Grab the DB libraries
 dest=release/db/lib
 src=chandler/release/db/lib
-libdb-4.3.so
-libdb_java-4.3.so
+libdb-4.4.so
+libdb_java-4.4.so
 src=chandler/release/lib
 dest=release/lib
 libxml2.so.2

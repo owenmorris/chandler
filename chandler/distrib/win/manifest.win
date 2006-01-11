@@ -13,8 +13,8 @@ exclude=.svn,*.pyo,*.pyc
 # Grab certain dll's from release/bin
 src=chandler/release/bin
 dest=release/bin
-libdb43.dll
-libdb_java43.dll
+libdb44.dll
+libdb_java44.dll
 msvcp71.dll
 msvcr71.dll
 python24.dll     
