@@ -15,7 +15,8 @@ try:
     App_ns.root.SelectedDateChanged(start=testdate)
 
     # Load a large calendar
-    testView = QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+    # NOTE: Don't do this when we restore from backed up repository
+    testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
     User.idle()
 
     # Test Phase: Action

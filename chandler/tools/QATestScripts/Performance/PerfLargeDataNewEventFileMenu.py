@@ -6,7 +6,7 @@ logger = QAUITestAppLib.QALogger(fileName, "Creating new event from the File Men
 
 try:
     # creation
-    QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+    QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
 
     # action
     event = QAUITestAppLib.UITestItem("Event", logger)

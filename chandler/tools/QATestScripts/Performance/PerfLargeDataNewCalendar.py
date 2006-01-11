@@ -6,7 +6,7 @@ logger = QAUITestAppLib.QALogger(fileName, "Creating a new calendar after large 
 
 try:
     # creation
-    QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+    QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
 
     # action
     col = QAUITestAppLib.UITestItem("Collection", logger)

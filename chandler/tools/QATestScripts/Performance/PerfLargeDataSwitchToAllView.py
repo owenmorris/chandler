@@ -6,7 +6,7 @@ logger = QAUITestAppLib.QALogger(fileName, "Switching view after importing large
 
 try:
     # creation
-    testView = QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+    testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
 
     # action
     # switch to all view

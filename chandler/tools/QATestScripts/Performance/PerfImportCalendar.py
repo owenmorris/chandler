@@ -11,9 +11,11 @@ logger = QAUITestAppLib.QALogger(fileName, "Importing 3000 event calendar")
 
 try:
     # creation
+    logger.Start("Import")
     QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+    logger.Stop()
     
-    # no action - we just verify imporation
+    # no action - we just verify import
 
     # verification
     def TestEventCreation(title):

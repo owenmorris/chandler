@@ -10,7 +10,8 @@ logger = QAUITestAppLib.QALogger("PerfLargeDataScrollTable.log",
 
 try:
     # Load a large calendar so we have events to scroll 
-    testView = QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+    # NOTE: Don't do this when we restore from backed up repository
+    testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
 
     # Switch views to the table after we load
     # Its currently important to do this after we load due

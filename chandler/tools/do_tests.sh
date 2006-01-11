@@ -266,32 +266,118 @@ else
         echo Running performance tests | tee -a $TESTLOG
 
         TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
-
+        TIME_LOG=$C_DIR/time.log
+        PERF_LOG=$C_DIR/perf.log
+        if [ "$OSTYPE" = "cygwin" ]; then
+            TIME_LOG=`cygpath -w $TIME_LOG`
+            PERF_LOG=`cygpath -w $PERF_LOG`
+        fi
+        rm -f $PERF_LOG
+        
+        # First run tests with empty repository
         for test in $TESTS ; do
-            if [ "$OSTYPE" = "cygwin" ]; then
-                TESTNAME=`cygpath -w $test`
-                P_DIR=`cygpath -w $C_DIR`
-            else
-                TESTNAME=$test
-                P_DIR=$C_DIR
-            fi
-
-            echo Running $TESTNAME | tee -a $TESTLOG
-
-            cd $C_DIR
-            $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
-
-              # scan the test output for the success messge "OK"
-            RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
-
-            echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
-            echo $TESTNAME [$RESULT] | tee -a $TESTLOG
-            cat $C_DIR/test.log      | tee -a $TESTLOG
-
-            if [ "$RESULT" = "" ]; then
-                FAILED_TESTS="$FAILED_TESTS $TESTNAME"
+			rm -f $TIME_LOG
+			            
+            # Don't run large data tests here
+            if [ `echo $test | grep -v PerfLargeData` ]; then
+                
+                if [ "$OSTYPE" = "cygwin" ]; then
+                    TESTNAME=`cygpath -w $test`
+                    P_DIR=`cygpath -w $C_DIR`
+                else
+                    TESTNAME=$test
+                    P_DIR=$C_DIR
+                fi
+    
+                echo -n $TESTNAME
+                cd $C_DIR
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+    
+                # scan the test output for the success message "OK"
+                RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+                
+                if [ "$RESULT" = "" ]; then
+                    RESULT=Failed
+                else
+                    RESULT=`cat $TIME_LOG`s
+                fi
+                
+                echo \ [ $RESULT ] | tee -a $TESTLOG
+                echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + >> $PERF_LOG
+                cat $C_DIR/test.log >> $PERF_LOG
+    
+                if [ "$RESULT" = "Failed" ]; then
+                    FAILED_TESTS="$FAILED_TESTS $TESTNAME"
+                fi
             fi
         done
+        
+        echo -n Creating a large repository backup for the remaining tests
+        rm -fr $C_DIR/__repository__.0*
+        REPO=$C_DIR/__repository__.001
+        BACKUP_REPO=$C_DIR/tools/QATestScripts/Performance/LargeDataBackupRepository.py
+        if [ "$OSTYPE" = "cygwin" ]; then
+            REPO=`cygpath -w $REPO`
+            BACKUP_REPO=`cygpath -w $BACKUP_REPO`
+        fi
+        
+        cd $C_DIR
+        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$BACKUP_REPO" &> $PERF_LOG
+        
+        # scan the test output for the success message "OK"
+        RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+        
+        if [ "$RESULT" = "" ]; then
+            for test in $TESTS ; do
+                FAILED_TESTS="$FAILED_TESTS $test"
+            done
+        else
+            # Show the time it took to create backup
+        	echo \ \[`<$TIME_LOG`s\]
+        	
+            # Then run large data tests with restored large repository
+            for test in $TESTS ; do
+                rm -f $TIME_LOG
+                
+                # Run only large data tests
+                if [ `echo $test | grep PerfLargeData` ]; then
+                
+                    if [ "$OSTYPE" = "cygwin" ]; then
+                        TESTNAME=`cygpath -w $test`
+                        P_DIR=`cygpath -w $C_DIR`
+                    else
+                        TESTNAME=$test
+                        P_DIR=$C_DIR
+                    fi
+        
+                    echo -n $TESTNAME
+                    cd $C_DIR
+                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --profileDir="$P_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+        
+                    # scan the test output for the success message "OK"
+                    RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+                    
+                    if [ "$RESULT" = "" ]; then
+                        RESULT=Failed
+                    else
+                        RESULT=`cat $TIME_LOG`s
+                    fi
+                    
+                    echo \ [ $RESULT ] | tee -a $TESTLOG
+                    echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + >> $PERF_LOG
+                    cat $C_DIR/test.log >> $PERF_LOG
+
+                    if [ "$RESULT" = "Failed" ]; then
+                        FAILED_TESTS="$FAILED_TESTS $TESTNAME"
+                    fi
+                fi
+            done
+        fi
+
+        SLEEP_TIME=5
+        echo Showing performance log in $SLEEP_TIME seconds, Ctrl+C to stop tests
+        sleep $SLEEP_TIME
+        cat $PERF_LOG
     fi
 fi
 

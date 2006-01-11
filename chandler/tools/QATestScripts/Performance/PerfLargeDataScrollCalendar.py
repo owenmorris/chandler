@@ -17,7 +17,8 @@ try:
     App_ns.root.SelectedDateChanged(start=testdate)
     
     # Load a large calendar so we have events to scroll
-    testView = QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
+    # NOTE: Don't do this when we restore from backed up repository
+    testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
 
     # Process idle and paint cycles, make sure we're only
     # measuring scrolling performance, and not accidentally
