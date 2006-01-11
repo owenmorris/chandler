@@ -57,8 +57,8 @@
  		curses $(MACHDEPS)
  libinstall:	$(BUILDPYTHON) $(srcdir)/Lib/$(PLATDIR)
 --- Python-2.4.2/setup.py	2005-03-09 14:27:24.000000000 -0800
-+++ Python-2.4.2-patched/setup.py	2006-01-10 22:15:38.980425768 -0800
-@@ -489,34 +489,34 @@
++++ Python-2.4.2-patched/setup.py	2006-01-10 22:40:03.970713392 -0800
+@@ -489,8 +489,8 @@
          #
          # http://www.sleepycat.com/update/index.html
  
@@ -69,47 +69,3 @@
          db_setup_debug = False   # verbose debug prints from this script?
  
          # construct a list of paths to look for the header file in on
-         # top of the normal inc_dirs.
-         db_inc_paths = [
--            '/usr/include/db4',
--            '/usr/local/include/db4',
--            '/opt/sfw/include/db4',
--            '/sw/include/db4',
--            '/usr/include/db3',
--            '/usr/local/include/db3',
--            '/opt/sfw/include/db3',
--            '/sw/include/db3',
-+#            '/usr/include/db4',
-+#            '/usr/local/include/db4',
-+#            '/opt/sfw/include/db4',
-+#            '/sw/include/db4',
-+#            '/usr/include/db3',
-+#            '/usr/local/include/db3',
-+#            '/opt/sfw/include/db3',
-+#            '/sw/include/db3',
-         ]
-         # 4.x minor number specific paths
--        for x in (0,1,2,3):
--            db_inc_paths.append('/usr/include/db4%d' % x)
--            db_inc_paths.append('/usr/local/BerkeleyDB.4.%d/include' % x)
--            db_inc_paths.append('/usr/local/include/db4%d' % x)
--            db_inc_paths.append('/pkg/db-4.%d/include' % x)
-+#        for x in (0,1,2,3):
-+#            db_inc_paths.append('/usr/include/db4%d' % x)
-+#            db_inc_paths.append('/usr/local/BerkeleyDB.4.%d/include' % x)
-+#            db_inc_paths.append('/usr/local/include/db4%d' % x)
-+#            db_inc_paths.append('/pkg/db-4.%d/include' % x)
-         # 3.x minor number specific paths
--        for x in (2,3):
--            db_inc_paths.append('/usr/include/db3%d' % x)
--            db_inc_paths.append('/usr/local/BerkeleyDB.3.%d/include' % x)
--            db_inc_paths.append('/usr/local/include/db3%d' % x)
--            db_inc_paths.append('/pkg/db-3.%d/include' % x)
-+#        for x in (2,3):
-+#            db_inc_paths.append('/usr/include/db3%d' % x)
-+#            db_inc_paths.append('/usr/local/BerkeleyDB.3.%d/include' % x)
-+#            db_inc_paths.append('/usr/local/include/db3%d' % x)
-+#            db_inc_paths.append('/pkg/db-3.%d/include' % x)
- 
-         db_ver_inc_map = {}
- 
