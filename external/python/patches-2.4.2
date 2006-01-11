@@ -45,9 +45,29 @@
    Darwin/*)
      OTHER_LIBTOOL_OPT=""
      ;;
+--- Python-2.4.2/Makefile.pre.in	2005-03-28 15:23:01.000000000 -0800
++++ Python-2.4.2-patched/Makefile.pre.in	2006-01-04 13:05:38.000000000 -0800
+@@ -660,7 +660,7 @@
+ LIBSUBDIRS=	lib-old lib-tk site-packages test test/output test/data \
+ 		test/decimaltestdata \
+ 		encodings email email/test email/test/data compiler hotshot \
+-		logging bsddb bsddb/test csv idlelib idlelib/Icons \
++		logging csv idlelib idlelib/Icons \
+ 		distutils distutils/command distutils/tests $(XMLLIBSUBDIRS) \
+ 		curses $(MACHDEPS)
+ libinstall:	$(BUILDPYTHON) $(srcdir)/Lib/$(PLATDIR)
 --- Python-2.4.2/setup.py	2005-03-09 14:27:24.000000000 -0800
-+++ Python-2.4.2-patched/setup.py	2006-01-04 12:45:27.000000000 -0800
-@@ -496,27 +496,27 @@
++++ Python-2.4.2-patched/setup.py	2006-01-10 22:15:38.980425768 -0800
+@@ -489,34 +489,34 @@
+         #
+         # http://www.sleepycat.com/update/index.html
+ 
+-        max_db_ver = (4, 3)
+-        min_db_ver = (3, 2)
++        max_db_ver = (0, 0)
++        min_db_ver = (0, 0)
+         db_setup_debug = False   # verbose debug prints from this script?
+ 
          # construct a list of paths to look for the header file in on
          # top of the normal inc_dirs.
          db_inc_paths = [
@@ -93,14 +113,3 @@
  
          db_ver_inc_map = {}
  
---- Python-2.4.2/Makefile.pre.in	2005-03-28 15:23:01.000000000 -0800
-+++ Python-2.4.2-patched/Makefile.pre.in	2006-01-04 13:05:38.000000000 -0800
-@@ -660,7 +660,7 @@
- LIBSUBDIRS=	lib-old lib-tk site-packages test test/output test/data \
- 		test/decimaltestdata \
- 		encodings email email/test email/test/data compiler hotshot \
--		logging bsddb bsddb/test csv idlelib idlelib/Icons \
-+		logging csv idlelib idlelib/Icons \
- 		distutils distutils/command distutils/tests $(XMLLIBSUBDIRS) \
- 		curses $(MACHDEPS)
- libinstall:	$(BUILDPYTHON) $(srcdir)/Lib/$(PLATDIR)
