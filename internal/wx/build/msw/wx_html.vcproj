@@ -2110,7 +2110,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\html\helpwin.cpp">
+				RelativePath="..\..\src\html\helpwnd.cpp">
 				<FileConfiguration
 					Name="Universal Unicode Release|Win32">
 					<Tool
@@ -4779,7 +4779,7 @@
 				RelativePath="..\..\include\wx\html\helpfrm.h">
 			</File>
 			<File
-				RelativePath="..\..\include\wx\html\helpwin.h">
+				RelativePath="..\..\include\wx\html\helpwnd.h">
 			</File>
 			<File
 				RelativePath="..\..\include\wx\html\htmlcell.h">

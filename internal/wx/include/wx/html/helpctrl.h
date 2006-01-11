@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpctrl.h,v 1.34 2006/01/09 13:42:50 JS Exp $
+// RCS-ID:      $Id: helpctrl.h,v 1.36 2006/01/11 09:08:31 JS Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,8 @@
 
 class WXDLLIMPEXP_HTML wxHtmlHelpDialog;
 class WXDLLIMPEXP_HTML wxHtmlHelpWindow;
+class WXDLLIMPEXP_HTML wxHtmlHelpFrame;
+class WXDLLIMPEXP_HTML wxHtmlHelpDialog;
 
 class WXDLLIMPEXP_HTML wxHtmlHelpController : public wxHelpControllerBase // wxEvtHandler
 {
@@ -60,6 +62,9 @@ public:
 
     wxHtmlHelpWindow* GetHelpWindow() { return m_helpWindow; }
     void SetHelpWindow(wxHtmlHelpWindow* helpWindow);
+
+    wxHtmlHelpFrame* GetFrame() { return m_helpFrame; }
+    wxHtmlHelpDialog* GetDialog() { return m_helpDialog; }
 
     void UseConfig(wxConfigBase *config, const wxString& rootpath = wxEmptyString);
 
@@ -117,7 +122,8 @@ protected:
     wxString            m_ConfigRoot;
     wxString            m_titleFormat;
     int                 m_FrameStyle;
-    // DECLARE_EVENT_TABLE()
+    wxHtmlHelpFrame*    m_helpFrame;
+    wxHtmlHelpDialog*   m_helpDialog;
 
     DECLARE_NO_COPY_CLASS(wxHtmlHelpController)
 };

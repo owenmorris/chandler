@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.294 2006/01/09 17:47:06 vell Exp $ -->
+<!-- $Id: files.bkl,v 1.295 2006/01/11 08:59:05 JS Exp $ -->
 <makefile>
 
 <!--
@@ -2553,7 +2553,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/html/helpdata.cpp
     src/html/helpdlg.cpp
     src/html/helpfrm.cpp
-    src/html/helpwin.cpp
+    src/html/helpwnd.cpp
     src/html/htmlcell.cpp
     src/html/htmlfilt.cpp
     src/html/htmlpars.cpp
@@ -2579,7 +2579,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/html/helpdata.h
     wx/html/helpdlg.h
     wx/html/helpfrm.h
-    wx/html/helpwin.h
+    wx/html/helpwnd.h
     wx/html/htmlcell.h
     wx/html/htmldefs.h
     wx/html/htmlfilt.h

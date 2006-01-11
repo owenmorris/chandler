@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        helpwin.h
+// Name:        helpwnd.h
 // Purpose:     wxHtmlHelpWindow
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpwin.h,v 1.2 2006/01/09 17:06:05 JS Exp $
+// RCS-ID:      $Id: helpwnd.h,v 1.2 2006/01/11 13:26:42 JJ Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -312,7 +312,7 @@ public:
 private:
     wxString    m_url;
 
-    DECLARE_DYNAMIC_CLASS(wxHtmlWindowEvent);
+    DECLARE_DYNAMIC_CLASS(wxHtmlWindowEvent)
 };
 
 typedef void (wxEvtHandler::*wxHtmlWindowEventFunction)(wxHtmlWindowEvent&);

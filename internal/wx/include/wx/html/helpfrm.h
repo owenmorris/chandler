@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpfrm.h,v 1.47 2006/01/09 13:42:50 JS Exp $
+// RCS-ID:      $Id: helpfrm.h,v 1.48 2006/01/11 09:00:31 JS Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@
 #include "wx/checkbox.h"
 #include "wx/stattext.h"
 #include "wx/html/htmlwin.h"
-#include "wx/html/helpwin.h"
+#include "wx/html/helpwnd.h"
 #include "wx/html/htmprint.h"
 
 class WXDLLIMPEXP_CORE wxButton;

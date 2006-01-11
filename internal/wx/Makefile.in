@@ -1137,7 +1137,7 @@ HTMLDLL_OBJECTS =  \
 	htmldll_helpdata.o \
 	htmldll_helpdlg.o \
 	htmldll_helpfrm.o \
-	htmldll_helpwin.o \
+	htmldll_helpwnd.o \
 	htmldll_htmlcell.o \
 	htmldll_htmlfilt.o \
 	htmldll_htmlpars.o \
@@ -1168,7 +1168,7 @@ HTMLLIB_OBJECTS =  \
 	htmllib_helpdata.o \
 	htmllib_helpdlg.o \
 	htmllib_helpfrm.o \
-	htmllib_helpwin.o \
+	htmllib_helpwnd.o \
 	htmllib_htmlcell.o \
 	htmllib_htmlfilt.o \
 	htmllib_htmlpars.o \
@@ -2699,10 +2699,10 @@ COND_USE_GUI_1_ALL_GUI_HEADERS =  \
 	wx/mediactrl.h \
 	$(MEDIA_PLATFORM_HDR) \
 	wx/html/helpctrl.h \
-	wx/html/helpdlg.h \
 	wx/html/helpdata.h \
+	wx/html/helpdlg.h \
 	wx/html/helpfrm.h \
-	wx/html/helpwin.h \
+	wx/html/helpwnd.h \
 	wx/html/htmlcell.h \
 	wx/html/htmldefs.h \
 	wx/html/htmlfilt.h \
@@ -2974,7 +2974,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS =  \
 	monodll_helpdata.o \
 	monodll_helpdlg.o \
 	monodll_helpfrm.o \
-	monodll_helpwin.o \
+	monodll_helpwnd.o \
 	monodll_htmlcell.o \
 	monodll_htmlfilt.o \
 	monodll_htmlpars.o \
@@ -4462,7 +4462,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS_1 =  \
 	monolib_helpdata.o \
 	monolib_helpdlg.o \
 	monolib_helpfrm.o \
-	monolib_helpwin.o \
+	monolib_helpwnd.o \
 	monolib_htmlcell.o \
 	monolib_htmlfilt.o \
 	monolib_htmlpars.o \
@@ -14414,6 +14414,9 @@ monolib_helpdlg.o: $(srcdir)/src/html/helpdlg.cpp $(MONOLIB_ODEP)
 monolib_helpfrm.o: $(srcdir)/src/html/helpfrm.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/html/helpfrm.cpp
 
+monolib_helpwnd.o: $(srcdir)/src/html/helpwnd.cpp $(MONOLIB_ODEP)
+	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/html/helpwnd.cpp
+
 monolib_htmlcell.o: $(srcdir)/src/html/htmlcell.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/html/htmlcell.cpp
 
@@ -15916,9 +15919,6 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@monolib_helpwin.o: $(srcdir)/src/os2/helpwin.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/os2/helpwin.cpp
-
-@COND_USE_GUI_1@monolib_helpwin.o: $(srcdir)/src/html/helpwin.cpp $(MONOLIB_ODEP)
-@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/html/helpwin.cpp
 
 @COND_TOOLKIT_MSW_USE_GUI_1@monolib_automtn.o: $(srcdir)/src/msw/ole/automtn.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/msw/ole/automtn.cpp
@@ -24125,8 +24125,8 @@ htmldll_helpdlg.o: $(srcdir)/src/html/helpdlg.cpp $(HTMLDLL_ODEP)
 htmldll_helpfrm.o: $(srcdir)/src/html/helpfrm.cpp $(HTMLDLL_ODEP)
 	$(CXXC) -c -o $@ $(HTMLDLL_CXXFLAGS) $(srcdir)/src/html/helpfrm.cpp
 
-htmldll_helpwin.o: $(srcdir)/src/html/helpwin.cpp $(HTMLDLL_ODEP)
-	$(CXXC) -c -o $@ $(HTMLDLL_CXXFLAGS) $(srcdir)/src/html/helpwin.cpp
+htmldll_helpwnd.o: $(srcdir)/src/html/helpwnd.cpp $(HTMLDLL_ODEP)
+	$(CXXC) -c -o $@ $(HTMLDLL_CXXFLAGS) $(srcdir)/src/html/helpwnd.cpp
 
 htmldll_htmlcell.o: $(srcdir)/src/html/htmlcell.cpp $(HTMLDLL_ODEP)
 	$(CXXC) -c -o $@ $(HTMLDLL_CXXFLAGS) $(srcdir)/src/html/htmlcell.cpp
@@ -24203,8 +24203,8 @@ htmllib_helpdlg.o: $(srcdir)/src/html/helpdlg.cpp $(HTMLLIB_ODEP)
 htmllib_helpfrm.o: $(srcdir)/src/html/helpfrm.cpp $(HTMLLIB_ODEP)
 	$(CXXC) -c -o $@ $(HTMLLIB_CXXFLAGS) $(srcdir)/src/html/helpfrm.cpp
 
-htmllib_helpwin.o: $(srcdir)/src/html/helpwin.cpp $(HTMLLIB_ODEP)
-	$(CXXC) -c -o $@ $(HTMLLIB_CXXFLAGS) $(srcdir)/src/html/helpwin.cpp
+htmllib_helpwnd.o: $(srcdir)/src/html/helpwnd.cpp $(HTMLLIB_ODEP)
+	$(CXXC) -c -o $@ $(HTMLLIB_CXXFLAGS) $(srcdir)/src/html/helpwnd.cpp
 
 htmllib_htmlcell.o: $(srcdir)/src/html/htmlcell.cpp $(HTMLLIB_ODEP)
 	$(CXXC) -c -o $@ $(HTMLLIB_CXXFLAGS) $(srcdir)/src/html/htmlcell.cpp
