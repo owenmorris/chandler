@@ -47,7 +47,6 @@ src=chandler/release/lib
 dest=release/lib
 recursive=yes
 glob=*.py,*.pyd,*.so,*.security
-python2.4/bsddb
 python2.4/compiler
 python2.4/curses
 python2.4/email
