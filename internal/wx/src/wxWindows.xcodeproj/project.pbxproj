@@ -822,8 +822,6 @@
 		4086CBDC063AB30000D4CD53 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08FB77AAFE841565C02AAC07 /* Carbon.framework */; };
 		4086CBDD063AB30000D4CD53 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5C5D3DF01FA2D0A01D0F0BA /* System.framework */; };
 		4086CBDE063AB30000D4CD53 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F55E08F801FDF9CC01000133 /* libz.dylib */; };
-		4095973708E05A4A0038F824 /* utilsexc_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4095973608E05A4A0038F824 /* utilsexc_base.cpp */; };
-		4095973808E05A4A0038F824 /* utilsexc_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4095973608E05A4A0038F824 /* utilsexc_base.cpp */; };
 		40ADC34A08156AE40009DA36 /* debugrpt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40ADC34908156AE40009DA36 /* debugrpt.cpp */; };
 		40ADC34D08156AE40009DA36 /* debugrpt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40ADC34908156AE40009DA36 /* debugrpt.cpp */; };
 		40ADC36008156DC10009DA36 /* xml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40ADC35F08156DC10009DA36 /* xml.cpp */; };
@@ -982,6 +980,18 @@
 		433EE23508B07F4400003CBE /* colheader.h in Headers */ = {isa = PBXBuildFile; fileRef = 433EE23308B07F4400003CBE /* colheader.h */; };
 		433EE23608B07F4400003CBE /* minical.h in Headers */ = {isa = PBXBuildFile; fileRef = 433EE23208B07F4400003CBE /* minical.h */; };
 		433EE23708B07F4400003CBE /* colheader.h in Headers */ = {isa = PBXBuildFile; fileRef = 433EE23308B07F4400003CBE /* colheader.h */; };
+		43CF6A6809770C6C0072CD13 /* evtloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A6709770C6C0072CD13 /* evtloop.cpp */; };
+		43CF6A6909770C6C0072CD13 /* evtloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A6709770C6C0072CD13 /* evtloop.cpp */; };
+		43CF6A6C09770C940072CD13 /* evtloop.h in Headers */ = {isa = PBXBuildFile; fileRef = 43CF6A6B09770C940072CD13 /* evtloop.h */; };
+		43CF6A6D09770C940072CD13 /* evtloop.h in Headers */ = {isa = PBXBuildFile; fileRef = 43CF6A6B09770C940072CD13 /* evtloop.h */; };
+		43CF6A72097715AF0072CD13 /* helpdlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A70097715AF0072CD13 /* helpdlg.cpp */; };
+		43CF6A73097715AF0072CD13 /* helpwnd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A71097715AF0072CD13 /* helpwnd.cpp */; };
+		43CF6A74097715AF0072CD13 /* helpdlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A70097715AF0072CD13 /* helpdlg.cpp */; };
+		43CF6A75097715AF0072CD13 /* helpwnd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A71097715AF0072CD13 /* helpwnd.cpp */; };
+		43CF6A78097715CA0072CD13 /* helpdlg.h in Headers */ = {isa = PBXBuildFile; fileRef = 43CF6A76097715CA0072CD13 /* helpdlg.h */; };
+		43CF6A79097715CA0072CD13 /* helpwnd.h in Headers */ = {isa = PBXBuildFile; fileRef = 43CF6A77097715CA0072CD13 /* helpwnd.h */; };
+		43CF6A7A097715CA0072CD13 /* helpdlg.h in Headers */ = {isa = PBXBuildFile; fileRef = 43CF6A76097715CA0072CD13 /* helpdlg.h */; };
+		43CF6A7B097715CA0072CD13 /* helpwnd.h in Headers */ = {isa = PBXBuildFile; fileRef = 43CF6A77097715CA0072CD13 /* helpwnd.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildStyle section */
@@ -1138,6 +1148,12 @@
 		433EE22D08B07A0F00003CBE /* colheader.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = colheader.h; sourceTree = "<group>"; };
 		433EE23208B07F4400003CBE /* minical.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = minical.h; sourceTree = "<group>"; };
 		433EE23308B07F4400003CBE /* colheader.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = colheader.h; sourceTree = "<group>"; };
+		43CF6A6709770C6C0072CD13 /* evtloop.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = evtloop.cpp; path = mac/carbon/evtloop.cpp; sourceTree = "<group>"; };
+		43CF6A6B09770C940072CD13 /* evtloop.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = evtloop.h; path = wx/mac/carbon/evtloop.h; sourceTree = "<group>"; };
+		43CF6A70097715AF0072CD13 /* helpdlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = helpdlg.cpp; path = html/helpdlg.cpp; sourceTree = "<group>"; };
+		43CF6A71097715AF0072CD13 /* helpwnd.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = helpwnd.cpp; path = html/helpwnd.cpp; sourceTree = "<group>"; };
+		43CF6A76097715CA0072CD13 /* helpdlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = helpdlg.h; path = wx/html/helpdlg.h; sourceTree = "<group>"; };
+		43CF6A77097715CA0072CD13 /* helpwnd.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = helpwnd.h; path = wx/html/helpwnd.h; sourceTree = "<group>"; };
 		CA0CB57B0450773900000102 /* accesscmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = accesscmn.cpp; sourceTree = "<group>"; };
 		CA0CB57C0450773900000102 /* datacmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = datacmn.cpp; sourceTree = "<group>"; };
 		CA0CB57D0450773900000102 /* dpycmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = dpycmn.cpp; sourceTree = "<group>"; };
@@ -2039,6 +2055,9 @@
 		F5A85C1A01FA022A0175ACA7 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				43CF6A76097715CA0072CD13 /* helpdlg.h */,
+				43CF6A77097715CA0072CD13 /* helpwnd.h */,
+				43CF6A6B09770C940072CD13 /* evtloop.h */,
 				F5A85C1C01FA022A0175ACA7 /* wx */,
 				F5FD822102CCECE601000133 /* setup.h */,
 			);
@@ -2460,6 +2479,9 @@
 		F5A85FA901FA022B0175ACA7 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				43CF6A70097715AF0072CD13 /* helpdlg.cpp */,
+				43CF6A71097715AF0072CD13 /* helpwnd.cpp */,
+				43CF6A6709770C6C0072CD13 /* evtloop.cpp */,
 				4086C62E063AAD4A00D4CD53 /* regex */,
 				F5A85FDD01FA022B0175ACA7 /* common */,
 				F5A8606E01FA022C0175ACA7 /* generic */,
@@ -2970,6 +2992,9 @@
 				433EE22F08B07A0F00003CBE /* colheader.h in Headers */,
 				433EE23408B07F4400003CBE /* minical.h in Headers */,
 				433EE23508B07F4400003CBE /* colheader.h in Headers */,
+				43CF6A6C09770C940072CD13 /* evtloop.h in Headers */,
+				43CF6A78097715CA0072CD13 /* helpdlg.h in Headers */,
+				43CF6A79097715CA0072CD13 /* helpwnd.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2982,6 +3007,9 @@
 				433EE23108B07A0F00003CBE /* colheader.h in Headers */,
 				433EE23608B07F4400003CBE /* minical.h in Headers */,
 				433EE23708B07F4400003CBE /* colheader.h in Headers */,
+				43CF6A6D09770C940072CD13 /* evtloop.h in Headers */,
+				43CF6A7A097715CA0072CD13 /* helpdlg.h in Headers */,
+				43CF6A7B097715CA0072CD13 /* helpwnd.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3666,6 +3694,9 @@
 				40ADC48A08160CAD0009DA36 /* dbgrptg.cpp in Sources */,
 				433EE22808B0797600003CBE /* minical.cpp in Sources */,
 				433EE22908B0797600003CBE /* colheader.cpp in Sources */,
+				43CF6A6809770C6C0072CD13 /* evtloop.cpp in Sources */,
+				43CF6A72097715AF0072CD13 /* helpdlg.cpp in Sources */,
+				43CF6A73097715AF0072CD13 /* helpwnd.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4138,6 +4169,9 @@
 				40ADC48708160CAD0009DA36 /* dbgrptg.cpp in Sources */,
 				433EE22A08B0797600003CBE /* minical.cpp in Sources */,
 				433EE22B08B0797600003CBE /* colheader.cpp in Sources */,
+				43CF6A6909770C6C0072CD13 /* evtloop.cpp in Sources */,
+				43CF6A74097715AF0072CD13 /* helpdlg.cpp in Sources */,
+				43CF6A75097715AF0072CD13 /* helpwnd.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4325,6 +4359,7 @@
 				);
 				INSTALL_PATH = "@executable_path/../Frameworks/";
 				LIBRARY_STYLE = DYNAMIC;
+				MACH_O_TYPE = mh_dylib;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"$(value)",
@@ -4385,6 +4420,7 @@
 				);
 				INSTALL_PATH = "@executable_path/../Frameworks/";
 				LIBRARY_STYLE = DYNAMIC;
+				MACH_O_TYPE = mh_dylib;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"$(value)",
