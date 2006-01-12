@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.72 2006/01/09 23:05:54 RD Exp $
+// RCS-ID:      $Id: html.i,v 1.73 2006/01/11 23:58:52 vell Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@
 #include <wx/html/htmlwin.h>
 #include <wx/html/htmprint.h>
 #include <wx/html/helpctrl.h>
-#include <wx/html/helpwin.h>
+#include <wx/html/helpwnd.h>
 #include <wx/html/helpfrm.h>
 #include <wx/html/helpdlg.h>
 
