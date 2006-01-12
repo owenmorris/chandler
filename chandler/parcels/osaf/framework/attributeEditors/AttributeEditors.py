@@ -31,9 +31,8 @@ from osaf import messages
 
 logger = logging.getLogger(__name__)
 
-# Should we do autocompletion?
-# @@@ not on Windows until the wx issue is fixed.
-bigAutocompletionSwitch = (not '__WXMSW__' in wx.PlatformInfo) or __debug__
+# Should we do autocompletion? (was handy for turning it off during development)
+bigAutocompletionSwitch = True
 
 #
 # The attribute editor registration mechanism:
