@@ -663,7 +663,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.blockItem.DeleteSelection(*args, **kwargs)
 
     def WarnReadOnlyAdd(self, collection):
-        Util.ok(self, _(u'Warning'), _(u'This collection is read-only. You add items to read-only collections'))
+        Util.ok(self, _(u'Warning'), _(u'This collection is read-only. You cannot add items to read-only collections'))
         
 
 class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
