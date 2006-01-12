@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: window.tex,v 1.193 2006/01/02 23:30:06 VZ Exp $
+%% RCS-ID:      $Id: window.tex,v 1.194 2006/01/12 15:25:26 KH Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -355,7 +355,7 @@ Usually it is only used with the top level windows (wxFrame and wxDialog
 classes) as the others are not supposed to have any special OnClose() logic.
 
 The close handler should check whether the window is being deleted forcibly,
-using \helpref{wxCloseEvent::GetForce}{wxcloseeventgetforce}, in which case it
+using \helpref{wxCloseEvent::CanVeto}{wxcloseeventcanveto}, in which case it
 should destroy the window using \helpref{wxWindow::Destroy}{wxwindowdestroy}.
 
 {\it Note} that calling Close does not guarantee that the window will be

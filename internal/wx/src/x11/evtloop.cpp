@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.cpp,v 1.22 2005/09/25 19:59:18 VZ Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.24 2006/01/12 18:57:28 VZ Exp $
 // Copyright:   (c) 2002 Julian Smart
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -339,8 +339,6 @@ bool wxEventLoopImpl::SendIdleEvent()
 // wxEventLoop implementation
 // ============================================================================
 
-wxEventLoop *wxEventLoopBase::ms_activeLoop = NULL;
-
 // ----------------------------------------------------------------------------
 // wxEventLoop running and exiting
 // ----------------------------------------------------------------------------
@@ -357,8 +355,7 @@ int wxEventLoop::Run()
 
     m_impl = new wxEventLoopImpl;
 
-    wxEventLoop *oldLoop = ms_activeLoop;
-    ms_activeLoop = this;
+    wxEventLoopActivator activate(this);
 
     m_impl->m_keepGoing = TRUE;
     while ( m_impl->m_keepGoing )
@@ -399,8 +396,6 @@ int wxEventLoop::Run()
     int exitcode = m_impl->GetExitCode();
     delete m_impl;
     m_impl = NULL;
-
-    ms_activeLoop = oldLoop;
 
     return exitcode;
 }

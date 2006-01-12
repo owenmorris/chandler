@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.h,v 1.19 2005/09/23 12:48:38 MR Exp $
+// RCS-ID:      $Id: evtloop.h,v 1.21 2006/01/12 20:08:57 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,14 +41,17 @@ public:
     // dispatch a single event, return false if we should exit from the loop
     virtual bool Dispatch() = 0;
 
-    // is the event loop running now?
-    virtual bool IsRunning() const = 0;
-
     // return currently active (running) event loop, may be NULL
     static wxEventLoop *GetActive() { return ms_activeLoop; }
 
     // set currently active (running) event loop
     static void SetActive(wxEventLoop* loop) { ms_activeLoop = loop; }
+
+    // is this event loop running now?
+    //
+    // notice that even if this event loop hasn't terminated yet but has just
+    // spawned a nested (e.g. modal) event loop, this would return false
+    bool IsRunning() const;
 
 protected:
     // this function should be called before the event loop terminates, whether
@@ -72,7 +75,9 @@ protected:
     #include "wx/palmos/evtloop.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/evtloop.h"
-#else
+#elif defined(__WXMAC__)
+    #include "wx/mac/evtloop.h"
+#else // other platform
 
 class WXDLLEXPORT wxEventLoopImpl;
 
@@ -86,16 +91,17 @@ public:
     virtual void Exit(int rc = 0);
     virtual bool Pending() const;
     virtual bool Dispatch();
-    virtual bool IsRunning() const { return GetActive() == this; }
 
 protected:
     // the pointer to the port specific implementation class
     wxEventLoopImpl *m_impl;
 
     DECLARE_NO_COPY_CLASS(wxEventLoop)
-        };
+};
 
-#endif // __WXMSW__/!__WXMSW__
+#endif // platforms
+
+inline bool wxEventLoopBase::IsRunning() const { return GetActive() == this; }
 
 // ----------------------------------------------------------------------------
 // wxModalEventLoop
@@ -124,6 +130,32 @@ protected:
 
 private:
     wxWindowDisabler *m_windowDisabler;
+};
+
+// ----------------------------------------------------------------------------
+// wxEventLoopActivator: helper class for wxEventLoop implementations
+// ----------------------------------------------------------------------------
+
+// this object sets the wxEventLoop given to the ctor as the currently active
+// one and unsets it in its dtor, this is especially useful in presence of
+// exceptions but is more tidy even when we don't use them
+class wxEventLoopActivator
+{
+public:
+    wxEventLoopActivator(wxEventLoop *evtLoop)
+    {
+        m_evtLoopOld = wxEventLoop::GetActive();
+        wxEventLoop::SetActive(evtLoop);
+    }
+
+    ~wxEventLoopActivator()
+    {
+        // restore the previously active event loop
+        wxEventLoop::SetActive(m_evtLoopOld);
+    }
+
+private:
+    wxEventLoop *m_evtLoopOld;
 };
 
 #endif // _WX_EVTLOOP_H_

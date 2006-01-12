@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.cpp,v 1.36 2005/12/19 03:51:34 vell Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.38 2006/01/12 18:57:21 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,39 +48,10 @@
     WX_DEFINE_LIST(wxMsgList)
 #endif // wxUSE_THREADS
 
-// ----------------------------------------------------------------------------
-// helper class
-// ----------------------------------------------------------------------------
-
-// this object sets the wxEventLoop given to the ctor as the currently active
-// one and unsets it in its dtor
-class wxEventLoopActivator
-{
-public:
-    wxEventLoopActivator(wxEventLoop **pActive,
-                         wxEventLoop *evtLoop)
-    {
-        m_pActive = pActive;
-        m_evtLoopOld = *pActive;
-        *pActive = evtLoop;
-    }
-
-    ~wxEventLoopActivator()
-    {
-        // restore the previously active event loop
-        *m_pActive = m_evtLoopOld;
-    }
-
-private:
-    wxEventLoop *m_evtLoopOld;
-    wxEventLoop **m_pActive;
-};
-
 // ============================================================================
 // wxEventLoop implementation
 // ============================================================================
 
-wxEventLoop *wxEventLoopBase::ms_activeLoop = NULL;
 wxWindowMSW *wxEventLoop::ms_winCritical = NULL;
 
 // ----------------------------------------------------------------------------
@@ -223,11 +194,6 @@ bool wxEventLoop::PreProcessMessage(WXMSG *msg)
 // wxEventLoop running and exiting
 // ----------------------------------------------------------------------------
 
-bool wxEventLoop::IsRunning() const
-{
-    return ms_activeLoop == this;
-}
-
 int wxEventLoop::Run()
 {
     // event loops are not recursive, you need to create another loop!
@@ -236,7 +202,7 @@ int wxEventLoop::Run()
     // ProcessIdle() and Dispatch() below may throw so the code here should
     // be exception-safe, hence we must use local objects for all actions we
     // should undo
-    wxEventLoopActivator activate(&ms_activeLoop, this);
+    wxEventLoopActivator activate(this);
 
     // we must ensure that OnExit() is called even if an exception is thrown
     // from inside Dispatch() but we must call it from Exit() in normal

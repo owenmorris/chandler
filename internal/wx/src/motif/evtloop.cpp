@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     01.11.02
-// RCS-ID:      $Id: evtloop.cpp,v 1.22 2005/10/08 17:10:07 VZ Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.24 2006/01/12 18:57:20 VZ Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -96,8 +96,6 @@ bool wxEventLoopImpl::SendIdleMessage()
 // wxEventLoop running and exiting
 // ----------------------------------------------------------------------------
 
-wxEventLoop *wxEventLoopBase::ms_activeLoop = NULL;
-
 wxEventLoop::~wxEventLoop()
 {
     wxASSERT_MSG( !m_impl, _T("should have been deleted in Run()") );
@@ -108,8 +106,7 @@ int wxEventLoop::Run()
     // event loops are not recursive, you need to create another loop!
     wxCHECK_MSG( !IsRunning(), -1, _T("can't reenter a message loop") );
 
-    wxEventLoop *oldLoop = ms_activeLoop;
-    ms_activeLoop = this;
+    wxEventLoopActivator activate(this);
 
     m_impl = new wxEventLoopImpl;
     m_impl->SetKeepGoing( true );
@@ -123,8 +120,6 @@ int wxEventLoop::Run()
     int exitcode = m_impl->GetExitCode();
     delete m_impl;
     m_impl = NULL;
-
-    ms_activeLoop = oldLoop;
 
     return exitcode;
 }

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-07-31
-// RCS-ID:      $Id: evtloop.h,v 1.3 2005/07/18 13:36:28 ABX Exp $
+// RCS-ID:      $Id: evtloop.h,v 1.4 2006/01/12 16:56:27 VZ Exp $
 // Copyright:   (c) 2003-2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,6 @@ public:
     virtual void Exit(int rc = 0);
     virtual bool Pending() const;
     virtual bool Dispatch();
-    virtual bool IsRunning() const;
 
     // MSW-specific methods
     // --------------------
