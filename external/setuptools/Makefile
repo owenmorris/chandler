@@ -29,12 +29,22 @@ apply: patches-$(VERSION)
 	if [ -f patches-$(VERSION) ]; then \
             patch -Nup0 < patches-$(VERSION); echo ok; \
         fi
+ifeq ($(OS),Cygwin)
+MFILE=`cygpath -aw $(SETUPTOOLS)/manifest.txt`
 
+build: expand apply
+	cd $(SRC); \
+    $(PYTHON) setup.py -v \
+        build --build-base=$(BUILD) $(DIST_OPT) \
+        install --record=$(MFILE) --force --single-version-externally-managed 
+
+else
 build: expand apply
 	cd $(SRC); \
     MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py -v \
         build --build-base=$(BUILD) $(DIST_OPT) \
         install --record=$(SETUPTOOLS)/manifest.txt --force --single-version-externally-managed 
+endif
 
 binaries: 
 	cd $(BUILD_ROOT); \
