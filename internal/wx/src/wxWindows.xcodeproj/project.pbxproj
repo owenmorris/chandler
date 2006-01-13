@@ -982,6 +982,8 @@
 		433EE23508B07F4400003CBE /* colheader.h in Headers */ = {isa = PBXBuildFile; fileRef = 433EE23308B07F4400003CBE /* colheader.h */; };
 		433EE23608B07F4400003CBE /* minical.h in Headers */ = {isa = PBXBuildFile; fileRef = 433EE23208B07F4400003CBE /* minical.h */; };
 		433EE23708B07F4400003CBE /* colheader.h in Headers */ = {isa = PBXBuildFile; fileRef = 433EE23308B07F4400003CBE /* colheader.h */; };
+		4396CA39097868B600A86F57 /* webkit.h in Headers */ = {isa = PBXBuildFile; fileRef = 4396CA38097868B500A86F57 /* webkit.h */; };
+		4396CA3A097868B600A86F57 /* webkit.h in Headers */ = {isa = PBXBuildFile; fileRef = 4396CA38097868B500A86F57 /* webkit.h */; };
 		43CF6A6809770C6C0072CD13 /* evtloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A6709770C6C0072CD13 /* evtloop.cpp */; };
 		43CF6A6909770C6C0072CD13 /* evtloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CF6A6709770C6C0072CD13 /* evtloop.cpp */; };
 		43CF6A6C09770C940072CD13 /* evtloop.h in Headers */ = {isa = PBXBuildFile; fileRef = 43CF6A6B09770C940072CD13 /* evtloop.h */; };
@@ -1050,6 +1052,8 @@
 		0A98CB6A07146A06007B4289 /* statbar.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = statbar.cpp; sourceTree = "<group>"; };
 		0A98CC470715CFBC007B4289 /* gdiobj.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = gdiobj.cpp; sourceTree = "<group>"; };
 		0A98CD2207172992007B4289 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
+		40011F3B0897D8DF00E4DE95 /* setup0.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = setup0.h; path = wx/mac/setup0.h; sourceTree = "<group>"; };
+		400EDEB2089D4FFD00E848D9 /* propdlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = propdlg.cpp; sourceTree = "<group>"; };
 		401640E507F94B2800A8837A /* imaglist.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = imaglist.cpp; sourceTree = "<group>"; };
 		405DD167063C2BFC00F579EE /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = /usr/lib/libiconv.dylib; sourceTree = "<absolute>"; };
 		40607C1407493C3F00DC0420 /* archive.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = archive.cpp; sourceTree = "<group>"; };
@@ -1070,7 +1074,7 @@
 		4086C643063AAD4A00D4CD53 /* regfree.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = regfree.c; sourceTree = "<group>"; };
 		4086C8CB063AB30000D4CD53 /* libwx_macd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libwx_macd.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		4086CBE1063AB30000D4CD53 /* libwx_macd.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libwx_macd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		4095973608E05A4A0038F824 /* utilsexc_base.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = utilsexc_base.cpp; path = mac/corefoundation/utilsexc_base.cpp; sourceTree = SOURCE_ROOT; };
+		409F026F0976CA5600D1030F /* xh_grid.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = xh_grid.cpp; path = xrc/xh_grid.cpp; sourceTree = "<group>"; };
 		40ADC34908156AE40009DA36 /* debugrpt.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = debugrpt.cpp; sourceTree = "<group>"; };
 		40ADC35F08156DC10009DA36 /* xml.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = xml.cpp; path = xml/xml.cpp; sourceTree = "<group>"; };
 		40ADC36508156DEB0009DA36 /* xh_bmp.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = xh_bmp.cpp; path = xrc/xh_bmp.cpp; sourceTree = "<group>"; };
@@ -1144,6 +1148,7 @@
 		40ECB139074BD1D0005AAC48 /* stdpaths.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = stdpaths.cpp; sourceTree = "<group>"; };
 		40F10E5606AD0230003C7AC3 /* tglbtn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = tglbtn.cpp; sourceTree = "<group>"; };
 		40F10E5706AD0230003C7AC3 /* thread.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = thread.cpp; sourceTree = "<group>"; };
+		40FF2B0C0869B1530013E961 /* webkit.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = webkit.mm; path = htmlctrl/webkit/webkit.mm; sourceTree = "<group>"; };
 		43328532097726670015B588 /* evtloopcmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = evtloopcmn.cpp; sourceTree = "<group>"; };
 		433EE22608B0797600003CBE /* minical.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = minical.cpp; sourceTree = "<group>"; };
 		433EE22708B0797600003CBE /* colheader.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = colheader.cpp; sourceTree = "<group>"; };
@@ -1151,6 +1156,7 @@
 		433EE22D08B07A0F00003CBE /* colheader.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = colheader.h; sourceTree = "<group>"; };
 		433EE23208B07F4400003CBE /* minical.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = minical.h; sourceTree = "<group>"; };
 		433EE23308B07F4400003CBE /* colheader.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = colheader.h; sourceTree = "<group>"; };
+		4396CA38097868B500A86F57 /* webkit.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = webkit.h; sourceTree = "<group>"; };
 		43CF6A6709770C6C0072CD13 /* evtloop.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = evtloop.cpp; sourceTree = "<group>"; };
 		43CF6A6B09770C940072CD13 /* evtloop.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = evtloop.h; sourceTree = "<group>"; };
 		43CF6A70097715AF0072CD13 /* helpdlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = helpdlg.cpp; sourceTree = "<group>"; };
@@ -1962,7 +1968,6 @@
 		40670A8107377A3600F7C08C /* mac/corefoundation */ = {
 			isa = PBXGroup;
 			children = (
-				4095973608E05A4A0038F824 /* utilsexc_base.cpp */,
 				40AF90B307C8A9CF006A6D3C /* hid.cpp */,
 				40AF90B407C8A9CF006A6D3C /* hidjoystick.cpp */,
 				40607C740749432A00DC0420 /* gsockosx.cpp */,
@@ -2013,6 +2018,7 @@
 				40ADC37008156DEB0009DA36 /* xh_frame.cpp */,
 				40ADC37108156DEB0009DA36 /* xh_gauge.cpp */,
 				40ADC37208156DEB0009DA36 /* xh_gdctl.cpp */,
+				409F026F0976CA5600D1030F /* xh_grid.cpp */,
 				40ADC37308156DEB0009DA36 /* xh_html.cpp */,
 				40ADC37408156DEB0009DA36 /* xh_listb.cpp */,
 				40ADC37508156DEB0009DA36 /* xh_listbk.cpp */,
@@ -2059,6 +2065,7 @@
 			isa = PBXGroup;
 			children = (
 				F5A85C1C01FA022A0175ACA7 /* wx */,
+				40011F3B0897D8DF00E4DE95 /* setup0.h */,
 				F5FD822102CCECE601000133 /* setup.h */,
 			);
 			name = include;
@@ -2350,6 +2357,7 @@
 		F5A85CFF01FA022B0175ACA7 /* html */ = {
 			isa = PBXGroup;
 			children = (
+				4396CA38097868B500A86F57 /* webkit.h */,
 				F5A85D0101FA022B0175ACA7 /* forcelnk.h */,
 				F5A85D0201FA022B0175ACA7 /* helpctrl.h */,
 				F5A85D0301FA022B0175ACA7 /* helpdata.h */,
@@ -2660,6 +2668,7 @@
 		F5A8606E01FA022C0175ACA7 /* generic */ = {
 			isa = PBXGroup;
 			children = (
+				400EDEB2089D4FFD00E848D9 /* propdlg.cpp */,
 				F5A8607001FA022C0175ACA7 /* busyinfo.cpp */,
 				F5A8607101FA022C0175ACA7 /* calctrl.cpp */,
 				F5A8607201FA022C0175ACA7 /* caret.cpp */,
@@ -2736,6 +2745,7 @@
 				CA89578904D705D700000080 /* m_style.cpp */,
 				F5A8611601FA022C0175ACA7 /* m_tables.cpp */,
 				F5A8611701FA022C0175ACA7 /* winpars.cpp */,
+				40FF2B0C0869B1530013E961 /* webkit.mm */,
 			);
 			path = html;
 			sourceTree = "<group>";
@@ -2999,6 +3009,7 @@
 				43CF6A6C09770C940072CD13 /* evtloop.h in Headers */,
 				43CF6A78097715CA0072CD13 /* helpdlg.h in Headers */,
 				43CF6A79097715CA0072CD13 /* helpwnd.h in Headers */,
+				4396CA39097868B600A86F57 /* webkit.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3014,6 +3025,7 @@
 				43CF6A6D09770C940072CD13 /* evtloop.h in Headers */,
 				43CF6A7A097715CA0072CD13 /* helpdlg.h in Headers */,
 				43CF6A7B097715CA0072CD13 /* helpwnd.h in Headers */,
+				4396CA3A097868B600A86F57 /* webkit.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
