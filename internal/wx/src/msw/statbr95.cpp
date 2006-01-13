@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.04.98
-// RCS-ID:      $Id: statbr95.cpp,v 1.65 2006/01/10 21:37:16 JG Exp $
+// RCS-ID:      $Id: statbr95.cpp,v 1.66 2006/01/13 01:32:04 JG Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -292,10 +292,6 @@ bool wxStatusBar95::GetFieldRect(int i, wxRect& rect) const
 
     return true;
 }
-
-#ifndef SWP_NOSENDCHANGING
-#define SWP_NOSENDCHANGING 0
-#endif
 
 void wxStatusBar95::DoMoveWindow(int x, int y, int width, int height)
 {

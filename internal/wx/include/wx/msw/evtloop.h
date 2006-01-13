@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-07-31
-// RCS-ID:      $Id: evtloop.h,v 1.5 2006/01/12 23:05:58 VZ Exp $
+// RCS-ID:      $Id: evtloop.h,v 1.6 2006/01/13 01:31:37 VZ Exp $
 // Copyright:   (c) 2003-2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,6 @@ public:
     wxEventLoop();
 
     // implement base class pure virtuals
-    virtual void Exit(int rc = 0);
     virtual bool Pending() const;
     virtual bool Dispatch();
 
@@ -52,10 +51,10 @@ public:
     }
 
 protected:
-    // implement base class pure virtual
+    // override/implement base class virtuals
     virtual void WakeUp();
+    virtual void OnNextIteration();
 
-protected:
     // check if the given window is a child of ms_winCritical (which must be
     // non NULL)
     static bool IsChildOfCriticalWindow(wxWindowMSW *win);

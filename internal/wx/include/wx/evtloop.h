@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.h,v 1.22 2006/01/12 23:06:10 VZ Exp $
+// RCS-ID:      $Id: evtloop.h,v 1.23 2006/01/13 01:32:38 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ public:
 
     // sets the "should exit" flag and wakes up the loop so that it terminates
     // soon
-    virtual void Exit(int rc);
+    virtual void Exit(int rc = 0);
 
 protected:
     // implement this to wake up the loop: usually done by posting a dummy event
