@@ -968,6 +968,8 @@
 		40F10E5906AD0230003C7AC3 /* thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40F10E5706AD0230003C7AC3 /* thread.cpp */; };
 		40F10E5C06AD0230003C7AC3 /* tglbtn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40F10E5606AD0230003C7AC3 /* tglbtn.cpp */; };
 		40F10E5D06AD0230003C7AC3 /* thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40F10E5706AD0230003C7AC3 /* thread.cpp */; };
+		43328533097726670015B588 /* evtloopcmn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43328532097726670015B588 /* evtloopcmn.cpp */; };
+		43328534097726670015B588 /* evtloopcmn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43328532097726670015B588 /* evtloopcmn.cpp */; };
 		433EE22808B0797600003CBE /* minical.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 433EE22608B0797600003CBE /* minical.cpp */; };
 		433EE22908B0797600003CBE /* colheader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 433EE22708B0797600003CBE /* colheader.cpp */; };
 		433EE22A08B0797600003CBE /* minical.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 433EE22608B0797600003CBE /* minical.cpp */; };
@@ -1142,18 +1144,19 @@
 		40ECB139074BD1D0005AAC48 /* stdpaths.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = stdpaths.cpp; sourceTree = "<group>"; };
 		40F10E5606AD0230003C7AC3 /* tglbtn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = tglbtn.cpp; sourceTree = "<group>"; };
 		40F10E5706AD0230003C7AC3 /* thread.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = thread.cpp; sourceTree = "<group>"; };
+		43328532097726670015B588 /* evtloopcmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = evtloopcmn.cpp; sourceTree = "<group>"; };
 		433EE22608B0797600003CBE /* minical.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = minical.cpp; sourceTree = "<group>"; };
 		433EE22708B0797600003CBE /* colheader.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = colheader.cpp; sourceTree = "<group>"; };
 		433EE22C08B07A0F00003CBE /* minical.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = minical.h; sourceTree = "<group>"; };
 		433EE22D08B07A0F00003CBE /* colheader.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = colheader.h; sourceTree = "<group>"; };
 		433EE23208B07F4400003CBE /* minical.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = minical.h; sourceTree = "<group>"; };
 		433EE23308B07F4400003CBE /* colheader.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = colheader.h; sourceTree = "<group>"; };
-		43CF6A6709770C6C0072CD13 /* evtloop.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = evtloop.cpp; path = mac/carbon/evtloop.cpp; sourceTree = "<group>"; };
-		43CF6A6B09770C940072CD13 /* evtloop.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = evtloop.h; path = wx/mac/carbon/evtloop.h; sourceTree = "<group>"; };
-		43CF6A70097715AF0072CD13 /* helpdlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = helpdlg.cpp; path = html/helpdlg.cpp; sourceTree = "<group>"; };
-		43CF6A71097715AF0072CD13 /* helpwnd.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = helpwnd.cpp; path = html/helpwnd.cpp; sourceTree = "<group>"; };
-		43CF6A76097715CA0072CD13 /* helpdlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = helpdlg.h; path = wx/html/helpdlg.h; sourceTree = "<group>"; };
-		43CF6A77097715CA0072CD13 /* helpwnd.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = helpwnd.h; path = wx/html/helpwnd.h; sourceTree = "<group>"; };
+		43CF6A6709770C6C0072CD13 /* evtloop.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = evtloop.cpp; sourceTree = "<group>"; };
+		43CF6A6B09770C940072CD13 /* evtloop.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = evtloop.h; sourceTree = "<group>"; };
+		43CF6A70097715AF0072CD13 /* helpdlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = helpdlg.cpp; sourceTree = "<group>"; };
+		43CF6A71097715AF0072CD13 /* helpwnd.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = helpwnd.cpp; sourceTree = "<group>"; };
+		43CF6A76097715CA0072CD13 /* helpdlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = helpdlg.h; sourceTree = "<group>"; };
+		43CF6A77097715CA0072CD13 /* helpwnd.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = helpwnd.h; sourceTree = "<group>"; };
 		CA0CB57B0450773900000102 /* accesscmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = accesscmn.cpp; sourceTree = "<group>"; };
 		CA0CB57C0450773900000102 /* datacmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = datacmn.cpp; sourceTree = "<group>"; };
 		CA0CB57D0450773900000102 /* dpycmn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = dpycmn.cpp; sourceTree = "<group>"; };
@@ -2055,9 +2058,6 @@
 		F5A85C1A01FA022A0175ACA7 /* include */ = {
 			isa = PBXGroup;
 			children = (
-				43CF6A76097715CA0072CD13 /* helpdlg.h */,
-				43CF6A77097715CA0072CD13 /* helpwnd.h */,
-				43CF6A6B09770C940072CD13 /* evtloop.h */,
 				F5A85C1C01FA022A0175ACA7 /* wx */,
 				F5FD822102CCECE601000133 /* setup.h */,
 			);
@@ -2353,7 +2353,9 @@
 				F5A85D0101FA022B0175ACA7 /* forcelnk.h */,
 				F5A85D0201FA022B0175ACA7 /* helpctrl.h */,
 				F5A85D0301FA022B0175ACA7 /* helpdata.h */,
+				43CF6A76097715CA0072CD13 /* helpdlg.h */,
 				F5A85D0401FA022B0175ACA7 /* helpfrm.h */,
+				43CF6A77097715CA0072CD13 /* helpwnd.h */,
 				F5A85D0501FA022B0175ACA7 /* htmlcell.h */,
 				F5A85D0601FA022B0175ACA7 /* htmldefs.h */,
 				F5A85D0701FA022B0175ACA7 /* htmlfilt.h */,
@@ -2399,6 +2401,7 @@
 				F5A85D5501FA022B0175ACA7 /* dirdlg.h */,
 				CADEF54C03C8C11300000133 /* display.h */,
 				F5A85D5601FA022B0175ACA7 /* dnd.h */,
+				43CF6A6B09770C940072CD13 /* evtloop.h */,
 				F5A85D5701FA022B0175ACA7 /* filedlg.h */,
 				F5A85D5801FA022B0175ACA7 /* font.h */,
 				F5A85D5901FA022B0175ACA7 /* fontdlg.h */,
@@ -2479,9 +2482,6 @@
 		F5A85FA901FA022B0175ACA7 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				43CF6A70097715AF0072CD13 /* helpdlg.cpp */,
-				43CF6A71097715AF0072CD13 /* helpwnd.cpp */,
-				43CF6A6709770C6C0072CD13 /* evtloop.cpp */,
 				4086C62E063AAD4A00D4CD53 /* regex */,
 				F5A85FDD01FA022B0175ACA7 /* common */,
 				F5A8606E01FA022C0175ACA7 /* generic */,
@@ -2542,6 +2542,7 @@
 				F5A8600201FA022B0175ACA7 /* effects.cpp */,
 				F5A8600301FA022B0175ACA7 /* encconv.cpp */,
 				F5A8600401FA022B0175ACA7 /* event.cpp */,
+				43328532097726670015B588 /* evtloopcmn.cpp */,
 				F5AC2EDC03803A3601000133 /* execcmn.cpp */,
 				F5A8600501FA022B0175ACA7 /* extended.c */,
 				F5A8600601FA022B0175ACA7 /* fddlgcmn.cpp */,
@@ -2715,7 +2716,9 @@
 				40AF90C207C8AA17006A6D3C /* chm.cpp */,
 				F5A8610401FA022C0175ACA7 /* helpctrl.cpp */,
 				F5A8610501FA022C0175ACA7 /* helpdata.cpp */,
+				43CF6A70097715AF0072CD13 /* helpdlg.cpp */,
 				F5A8610601FA022C0175ACA7 /* helpfrm.cpp */,
+				43CF6A71097715AF0072CD13 /* helpwnd.cpp */,
 				F5A8610701FA022C0175ACA7 /* htmlcell.cpp */,
 				F5A8610801FA022C0175ACA7 /* htmlfilt.cpp */,
 				F5A8610901FA022C0175ACA7 /* htmlpars.cpp */,
@@ -2824,6 +2827,7 @@
 				CADEF54103C8C0A800000133 /* display.cpp */,
 				F5A861B801FA022C0175ACA7 /* dnd.cpp */,
 				40AF90E507C8B18C006A6D3C /* drawer.cpp */,
+				43CF6A6709770C6C0072CD13 /* evtloop.cpp */,
 				F5A861B901FA022C0175ACA7 /* filedlg.cpp */,
 				F5A861BB01FA022C0175ACA7 /* font.cpp */,
 				40AF90E607C8B18C006A6D3C /* fontdlgosx.mm */,
@@ -3697,6 +3701,7 @@
 				43CF6A6809770C6C0072CD13 /* evtloop.cpp in Sources */,
 				43CF6A72097715AF0072CD13 /* helpdlg.cpp in Sources */,
 				43CF6A73097715AF0072CD13 /* helpwnd.cpp in Sources */,
+				43328533097726670015B588 /* evtloopcmn.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4172,6 +4177,7 @@
 				43CF6A6909770C6C0072CD13 /* evtloop.cpp in Sources */,
 				43CF6A74097715AF0072CD13 /* helpdlg.cpp in Sources */,
 				43CF6A75097715AF0072CD13 /* helpwnd.cpp in Sources */,
+				43328534097726670015B588 /* evtloopcmn.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
