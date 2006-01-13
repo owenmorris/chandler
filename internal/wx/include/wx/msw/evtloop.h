@@ -52,6 +52,10 @@ public:
     }
 
 protected:
+    // implement base class pure virtual
+    virtual void WakeUp();
+
+protected:
     // check if the given window is a child of ms_winCritical (which must be
     // non NULL)
     static bool IsChildOfCriticalWindow(wxWindowMSW *win);
