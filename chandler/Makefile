@@ -21,7 +21,7 @@ BP=
 
 # these get installed into release or debug
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)8.tar.gz \
+         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)9.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.16-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)1.tar.gz \
