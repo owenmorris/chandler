@@ -679,6 +679,9 @@ class wxTable(DragAndDrop.DraggableWidget,
         if remaining > 0:
             self.SetColSize(newColumns - 1, remaining)
         
+        # Workaround for bug #3994
+        wx.CallAfter (self.AdjustScrollbars)
+
         self.ClearSelection()
         contents = self.blockItem.contents
         for range in contents.getSelectionRanges():
@@ -687,7 +690,7 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         # Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
-        self.ProcessTableMessage (message) 
+        self.ProcessTableMessage (message)
         self.ForceRefresh () 
 
         # Either we should move selectedItemToView into the selection that is part of
