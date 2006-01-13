@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.73 2006/01/11 23:58:52 vell Exp $
+// RCS-ID:      $Id: html.i,v 1.74 2006/01/13 05:19:07 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1514,6 +1514,9 @@ public:
 
     wxHtmlHelpWindow* GetHelpWindow();
     void SetHelpWindow(wxHtmlHelpWindow* helpWindow);
+
+    wxHtmlHelpFrame* GetFrame();
+    wxHtmlHelpDialog* GetDialog();
 
     void SetTitleFormat(const wxString& format);
     void SetTempDir(const wxString& path);
