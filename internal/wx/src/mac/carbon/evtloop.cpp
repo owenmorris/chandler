@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.cpp,v 1.1 2006/01/12 20:08:54 VZ Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.2 2006/01/12 23:06:04 VZ Exp $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,29 +29,20 @@
 #include <Carbon/Carbon.h>
 
 // ============================================================================
-// implementation
+// wxEventLoop implementation
 // ============================================================================
 
-wxEventLoop::wxEventLoop()
-{
-    m_exitcode = 0;
-#if !wxMAC_USE_RUN_APP_EVENT_LOOP
-    m_shouldExit = false;
-#endif
-}
+// ----------------------------------------------------------------------------
+// high level functions for RunApplicationEventLoop() case
+// ----------------------------------------------------------------------------
+
+#if wxMAC_USE_RUN_APP_EVENT_LOOP
 
 int wxEventLoop::Run()
 {
     wxEventLoopActivator activate(this);
 
-#if wxMAC_USE_RUN_APP_EVENT_LOOP
     RunApplicationEventLoop();
-#else // manual event loop
-    while ( !m_shouldExit )
-    {
-        Dispatch();
-    }
-#endif // auto/manual event loop
 
     return m_exitcode;
 }
@@ -60,12 +51,29 @@ void wxEventLoop::Exit(int rc)
 {
     m_exitcode = rc;
 
-#if wxMAC_USE_RUN_APP_EVENT_LOOP
     QuitApplicationEventLoop();
-#else // manual event loop
-    m_shouldExit = true;
-#endif // auto/manual event loop
+
+    OnExit();
 }
+
+#else // manual event loop
+
+// ----------------------------------------------------------------------------
+// functions only used by wxEventLoopManual-based implementation
+// ----------------------------------------------------------------------------
+
+void wxEventLoop::WakeUp()
+{
+    extern void wxMacWakeUp();
+
+    wxMacWakeUp();
+}
+
+#endif // high/low-level event loop
+
+// ----------------------------------------------------------------------------
+// low level functions used in both cases
+// ----------------------------------------------------------------------------
 
 bool wxEventLoop::Pending() const
 {

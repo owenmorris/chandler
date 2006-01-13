@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.10.99
-// RCS-ID:      $Id: appcmn.cpp,v 1.114 2006/01/12 20:08:59 VZ Exp $
+// RCS-ID:      $Id: appcmn.cpp,v 1.115 2006/01/12 23:10:29 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -62,9 +62,6 @@ WX_CHECK_BUILD_OPTIONS("wxCore")
 
 // this defines wxEventLoopPtr
 wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop)
-
-// define it here as we don't have common/evtloopcmn.cpp for now
-wxEventLoop *wxEventLoopBase::ms_activeLoop = NULL;
 
 // ============================================================================
 // wxAppBase implementation

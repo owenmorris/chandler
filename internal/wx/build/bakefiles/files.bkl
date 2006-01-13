@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.296 2006/01/12 20:08:55 VZ Exp $ -->
+<!-- $Id: files.bkl,v 1.297 2006/01/12 23:05:54 VZ Exp $ -->
 <makefile>
 
 <!--
@@ -559,6 +559,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/common/dpycmn.cpp
     src/common/dseldlg.cpp
     src/common/effects.cpp
+    src/common/evtloopcmn.cpp
     src/common/fddlgcmn.cpp
     src/common/fldlgcmn.cpp
     src/common/fontcmn.cpp
