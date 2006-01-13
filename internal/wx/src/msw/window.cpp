@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.653 2006/01/10 21:37:16 JG Exp $
+// RCS-ID:      $Id: window.cpp,v 1.655 2006/01/13 22:07:44 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1511,14 +1511,24 @@ void wxWindowMSW::DoGetSize(int *x, int *y) const
 // Get size *available for subwindows* i.e. excluding menu bar etc.
 void wxWindowMSW::DoGetClientSize(int *x, int *y) const
 {
-    // this is only for top level windows whose resizing is never deferred, so
-    // we can safely use the current size here
-    RECT rect = wxGetClientRect(GetHwnd());
+    if ( IsTopLevel() || m_pendingSize == wxDefaultSize )
+    {
+        // top level windows resizing is never deferred, so we can safely use
+        // the current size here
+        RECT rect = wxGetClientRect(GetHwnd());
 
-    if ( x )
-        *x = rect.right;
-    if ( y )
-        *y = rect.bottom;
+        if ( x )
+            *x = rect.right;
+        if ( y )
+            *y = rect.bottom;
+    }
+    else // non top level
+    {
+        // size is the same as client size for non top level windows, so
+        // forward to GetSize() to take into account deferred sizing (which
+        // wxGetClientRect() doesn't)
+        DoGetSize(x, y);
+    }
 }
 
 void wxWindowMSW::DoGetPosition(int *x, int *y) const
@@ -4893,12 +4903,20 @@ int wxWindowMSW::HandleMenuChar(int WXUNUSED_IN_WINCE(chAccel),
     MENUITEMINFO mii;
     wxZeroMemory(mii);
     mii.cbSize = sizeof(MENUITEMINFO);
+
+    // we could use MIIM_FTYPE here as we only need to know if the item is
+    // ownerdrawn or not and not dwTypeData which MIIM_TYPE also returns, but
+    // MIIM_FTYPE is not supported under Win95
     mii.fMask = MIIM_TYPE | MIIM_DATA;
 
     // find if we have this letter in any owner drawn item
     const int count = ::GetMenuItemCount(hmenu);
     for ( int i = 0; i < count; i++ )
     {
+        // previous loop iteration could modify it, reset it back before
+        // calling GetMenuItemInfo() to prevent it from overflowing dwTypeData
+        mii.cch = 0;
+
         if ( ::GetMenuItemInfo(hmenu, i, TRUE, &mii) )
         {
             if ( mii.fType == MFT_OWNERDRAW )
@@ -4936,8 +4954,7 @@ int wxWindowMSW::HandleMenuChar(int WXUNUSED_IN_WINCE(chAccel),
         }
         else // failed to get the menu text?
         {
-            // it's not fatal, so don't show error, but still log
-            // it
+            // it's not fatal, so don't show error, but still log it
             wxLogLastError(_T("GetMenuItemInfo"));
         }
     }
