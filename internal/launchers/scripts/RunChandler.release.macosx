@@ -7,7 +7,7 @@ fi
 
 if [ "$CHANDLERBIN" = "" ]
 then
-    CHANDLERBIN=$CHANDLERHOME
+    CHANDLERBIN="$CHANDLERHOME"
 fi
 
-$CHANDLERBIN/release/RunPython $CHANDLERHOME/Chandler.py "$@"
+"$CHANDLERBIN"/release/RunPython "$CHANDLERHOME"/Chandler.py "$@"

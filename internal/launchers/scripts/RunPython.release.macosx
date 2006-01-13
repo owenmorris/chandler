@@ -7,7 +7,7 @@ fi
 
 if [ "$CHANDLERBIN" = "" ]
 then
-    export CHANDLERBIN=$CHANDLERHOME
+    export CHANDLERBIN="$CHANDLERHOME"
 fi
 
 if [ "$PYTHON_VER" = "" ]
@@ -20,19 +20,19 @@ then
     OPTIMIZE=-O
 fi
 
-if [ -f $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
+if [ -f "$CHANDLERBIN"/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
 then
-    export PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-    export DYLD_LIBRARY_PATH=$CHANDLERBIN/release/lib:$CHANDLERBIN/release/db/lib:$CHANDLERBIN/release/icu/lib
-    export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/release/Library/Frameworks
-    export PYTHONBIN=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+    export PYTHONHOME="$CHANDLERBIN"/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+    export DYLD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib
+    export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/release/Library/Frameworks
+    export PYTHONBIN="$CHANDLERBIN"/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
 else
-    if [ -f $CHANDLERBIN/../MacOS/python ]
+    if [ -f "$CHANDLERBIN"/../MacOS/python ]
     then
-        export PYTHONHOME=$CHANDLERBIN/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-        export DYLD_LIBRARY_PATH=$CHANDLERBIN/lib
-        export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/Library/Frameworks
-        export PYTHONBIN=$CHANDLERBIN/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+        export PYTHONHOME="$CHANDLERBIN"/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+        export DYLD_LIBRARY_PATH="$CHANDLERBIN"/lib
+        export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/Library/Frameworks
+        export PYTHONBIN="$CHANDLERBIN"/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
     else
         echo "Error:  Please unset the CHANDLERBIN environment variable or "
         echo "        set it to point to the directory that contains the release "
@@ -41,19 +41,19 @@ else
     fi
 fi
 
-export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
+export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
 
 if [ "$PARCELPATH" != "" ]
 then
-    export PYTHONPATH=$PYTHONPATH:$PARCELPATH
+    export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
-echo Using $PYTHONBIN
+echo Using "$PYTHONBIN"
 
 if [ "$GDB" != "" ]
 then
-    echo $OPTIMIZE $@
-    exec gdb $PYTHONBIN
+    echo -O $@
+    exec gdb "$PYTHONBIN"
 else
-    exec $PYTHONBIN $OPTIMIZE "$@"
+    exec "$PYTHONBIN" $OPTIMIZE "$@"
 fi

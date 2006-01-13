@@ -7,10 +7,10 @@ fi
 
 if [ "$CHANDLERBIN" = "" ]
 then
-    export CHANDLERBIN=$CHANDLERHOME
+    export CHANDLERBIN="$CHANDLERHOME"
 fi
 
-if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/debug/bin/python_d ]
+if [ -d "$CHANDLERHOME" -a -f "$CHANDLERBIN"/debug/bin/python_d ]
 then
     echo "Using $CHANDLERBIN/debug/bin/python_d"
     echo ""
@@ -24,13 +24,13 @@ else
     exit 1
 fi
 
-export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
-export PYTHONHOME=$CHANDLERBIN/debug
-export LD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/icu/lib
+export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+export PYTHONHOME="$CHANDLERBIN"/debug
+export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
 
 if [ "$PARCELPATH" != "" ]
 then
-    export PYTHONPATH=$PYTHONPATH:$PARCELPATH
+    export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
-$CHANDLERBIN/debug/bin/python_d "$@"
+"$CHANDLERBIN"/debug/bin/python_d "$@"

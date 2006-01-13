@@ -7,7 +7,7 @@ fi
 
 if [ "$CHANDLERBIN" = "" ]
 then
-    export CHANDLERBIN=$CHANDLERHOME
+    export CHANDLERBIN="$CHANDLERHOME"
 fi
 
 if [ "$CHANDLERNOOPTIMIZE" = "" ]
@@ -15,7 +15,7 @@ then
     OPTIMIZE=-O
 fi
 
-if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/release/bin/python ]
+if [ -d "$CHANDLERHOME" -a -f "$CHANDLERBIN"/release/bin/python ]
 then
     echo "Using $CHANDLERBIN/release/bin/python"
     echo ""
@@ -29,13 +29,13 @@ else
     exit 1
 fi
 
-export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
-export PYTHONHOME=$CHANDLERBIN/release
-export LD_LIBRARY_PATH=$CHANDLERBIN/release/lib:$CHANDLERBIN/release/db/lib:$CHANDLERBIN/release/icu/lib
+export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+export PYTHONHOME="$CHANDLERBIN"/release
+export LD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib
 
 if [ "$PARCELPATH" != "" ]
 then
-    export PYTHONPATH=$PYTHONPATH:$PARCELPATH
+    export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
-$CHANDLERBIN/release/bin/python $OPTIMIZE "$@"
+"$CHANDLERBIN"/release/bin/python $OPTIMIZE "$@"
