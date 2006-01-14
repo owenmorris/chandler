@@ -8,7 +8,7 @@
  *              Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main Unix and OS/2 file
  * Licence:     The wxWindows licence
- * CVSID:       $Id: gsocket.cpp,v 1.58 2006/01/08 01:33:58 SN Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.59 2006/01/14 13:30:58 SN Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -235,7 +235,7 @@ struct hostent * wxGethostbyname_r(const char *hostname, struct hostent *h,
 				   void *buffer, int size, int *err)
 
 {
-  struct hostent *he;
+  struct hostent *he = NULL;
   *err = 0;
 #if defined(HAVE_FUNC_GETHOSTBYNAME_R_6)
   if (gethostbyname_r(hostname, h, (char*)buffer, size, &he, err))
@@ -268,7 +268,7 @@ struct hostent * wxGethostbyaddr_r(const char *addr_buf, int buf_size,
 				   int proto, struct hostent *h,
 				   void *buffer, int size, int *err)
 {
-  struct hostent *he;
+  struct hostent *he = NULL;
   *err = 0;
 #if defined(HAVE_FUNC_GETHOSTBYNAME_R_6)
   if (gethostbyaddr_r(addr_buf, buf_size, proto, h,
@@ -338,7 +338,7 @@ static struct servent * deepCopyServent(struct servent *s,
 struct servent *wxGetservbyname_r(const char *port, const char *protocol,
 				  struct servent *serv, void *buffer, int size)
 {
-  struct servent *se;
+  struct servent *se = NULL;
 #if defined(HAVE_FUNC_GETSERVBYNAME_R_6)
   if (getservbyname_r(port, protocol, serv, (char*)buffer, size, &se))
     se = NULL;
