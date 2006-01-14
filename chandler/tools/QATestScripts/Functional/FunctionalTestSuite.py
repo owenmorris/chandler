@@ -21,12 +21,14 @@ execfile(os.path.join(functional_dir,"TestNewNote.py"))
 execfile(os.path.join(functional_dir,"TestStamping.py"))
 execfile(os.path.join(functional_dir,"TestMoveToTrash.py"))
 #execfile(os.path.join(functional_dir,"TestDeleteCollection.py"))
+execfile(os.path.join(functional_dir,"TestNewCollNoteStampMulti.py"))
 execfile(os.path.join(functional_dir,"TestCalView.py"))
 execfile(os.path.join(functional_dir,"TestSwitchingViews.py"))
 execfile(os.path.join(functional_dir,"TestExporting.py"))
 execfile(os.path.join(functional_dir,"TestFlickr.py"))
 execfile(os.path.join(functional_dir,"TestImporting.py"))
 execfile(os.path.join(functional_dir,"TestSharing.py"))
+
 
 #cleaning
 logger.Close()
