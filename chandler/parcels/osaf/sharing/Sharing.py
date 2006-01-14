@@ -1903,7 +1903,9 @@ class SimpleHTTPConduit(WebDAVConduit):
             raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
         lastModified = resp.headers.getHeader('Last-Modified')
-        self.lastModified = lastModified[-1]
+        if lastModified:
+            self.lastModified = lastModified[-1]
+
         logger.info("...imported, new last modified: %s" % self.lastModified)
 
         return stats
