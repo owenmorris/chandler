@@ -2,7 +2,7 @@
 // Name:        checkbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checkbox.cpp,v 1.70 2005/12/18 16:37:55 VZ Exp $
+// Id:          $Id: checkbox.cpp,v 1.71 2006/01/14 18:32:36 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ static void gtk_checkbox_toggled_callback(GtkWidget *widget, wxCheckBox *cb)
     if (!cb->m_hasVMT) return;
 
     if (g_blockEventsOnDrag) return;
-    
+
     if (cb->m_blockEvent) return;
 
 #ifdef __WXGTK20__
@@ -64,7 +64,7 @@ static void gtk_checkbox_toggled_callback(GtkWidget *widget, wxCheckBox *cb)
             bool inconsistent = gtk_toggle_button_get_inconsistent(toggle);
 
             cb->m_blockEvent = true;
-            
+
             if (!active && !inconsistent)
             {
                 // checked -> undetermined
@@ -85,7 +85,7 @@ static void gtk_checkbox_toggled_callback(GtkWidget *widget, wxCheckBox *cb)
             {
                 wxFAIL_MSG(_T("3state wxCheckBox in unexpected state!"));
             }
-            
+
             cb->m_blockEvent = false;
         }
         else
@@ -277,7 +277,7 @@ void wxCheckBox::OnInternalIdle()
             g_delayedFocus = NULL;
         }
     }
-    
+
     if (wxUpdateUIEvent::CanUpdate(this))
         UpdateWindowUI(wxUPDATE_UI_FROMIDLE);
 }

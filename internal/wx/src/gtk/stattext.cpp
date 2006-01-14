@@ -2,7 +2,7 @@
 // Name:        stattext.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.cpp,v 1.58 2005/09/23 12:53:42 MR Exp $
+// Id:          $Id: stattext.cpp,v 1.59 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ bool wxStaticText::Create(wxWindow *parent,
     // effect of changing the control size which might not be desirable
     wxControl::SetLabel(label);
     m_widget = gtk_label_new( wxGTK_CONV( m_label ) );
-    
+
     GtkJustification justify;
     if ( style & wxALIGN_CENTER )
       justify = GTK_JUSTIFY_CENTER;
@@ -86,7 +86,7 @@ bool wxStaticText::Create(wxWindow *parent,
     m_parent->DoAddChild( this );
 
     PostCreation(size);
-    
+
     // the bug below only happens with GTK 2
 #ifdef __WXGTK20__
     if ( justify != GTK_JUSTIFY_LEFT )
@@ -183,7 +183,7 @@ wxSize wxStaticText::DoGetBestSize() const
 
     // GetBestSize is supposed to return unwrapped size
     gtk_label_set_line_wrap( GTK_LABEL(m_widget), FALSE );
-    
+
     GtkRequisition req;
     req.width = -1;
     req.height = -1;
@@ -191,7 +191,7 @@ wxSize wxStaticText::DoGetBestSize() const
         (m_widget, &req );
 
     gtk_label_set_line_wrap( GTK_LABEL(m_widget), TRUE );
-    
+
     return wxSize (req.width, req.height);
 }
 

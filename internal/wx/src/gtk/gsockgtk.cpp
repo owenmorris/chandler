@@ -3,7 +3,7 @@
  * Name:    gsockgtk.c
  * Purpose: GSocket: GTK part
  * Licence: The wxWindows licence
- * CVSID:   $Id: gsockgtk.cpp,v 1.6 2005/09/03 01:01:06 KH Exp $
+ * CVSID:   $Id: gsockgtk.cpp,v 1.7 2006/01/14 18:32:37 MR Exp $
  * -------------------------------------------------------------------------
  */
 #include "wx/setup.h"
@@ -47,7 +47,7 @@ bool GSocketGUIFunctionsTableConcrete::OnInit(void)
 void GSocketGUIFunctionsTableConcrete::OnExit(void)
 {
 }
-    
+
 bool GSocketGUIFunctionsTableConcrete::Init_Socket(GSocket *socket)
 {
   gint *m_id;

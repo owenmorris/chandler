@@ -2,7 +2,7 @@
 // Name:        utilres.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: utilsres.cpp,v 1.29 2005/09/23 12:53:43 MR Exp $
+// Id:          $Id: utilsres.cpp,v 1.30 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,11 +25,11 @@ bool wxWriteResource(const wxString& section, const wxString& entry, const wxStr
 {
     wxString filename( file );
     if (filename.IsEmpty()) filename = wxT(".wxWindows");
-    
+
     wxFileConfig conf( wxTheApp->GetAppName(), wxTheApp->GetVendorName(), filename );
-    
+
     conf.SetPath( section );
-    
+
     return conf.Write( entry, value );
 }
 

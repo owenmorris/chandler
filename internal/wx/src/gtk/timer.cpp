@@ -2,7 +2,7 @@
 // Name:        gtk/timer.cpp
 // Purpose:     wxTimer implementation
 // Author:      Robert Roebling
-// Id:          $Id: timer.cpp,v 1.23 2005/09/23 12:53:43 MR Exp $
+// Id:          $Id: timer.cpp,v 1.24 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,13 +28,13 @@ static gint timeout_callback( gpointer data )
     wxTimer *timer = (wxTimer*)data;
 
     // Don't change the order of anything in this callback!
-    
+
     if (timer->IsOneShot())
     {
         // This sets m_tag to -1
         timer->Stop();
     }
-    
+
     // When getting called from GDK's timer handler we
     // are no longer within GDK's grab on the GUI
     // thread so we must lock it here ourselves.

@@ -2,7 +2,7 @@
 // Name:        statbmp.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbmp.cpp,v 1.33 2005/09/23 12:53:42 MR Exp $
+// Id:          $Id: statbmp.cpp,v 1.34 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:           wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ void wxStaticBitmap::SetBitmap( const wxBitmap &bitmap )
         GdkBitmap *mask = (GdkBitmap *) NULL;
         if (m_bitmap.GetMask())
             mask = m_bitmap.GetMask()->GetBitmap();
-    
+
 #ifdef __WXGTK20__
         if (m_bitmap.HasPixbuf())
         {

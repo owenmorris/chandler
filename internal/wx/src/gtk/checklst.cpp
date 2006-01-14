@@ -2,7 +2,7 @@
 // Name:        checklst.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checklst.cpp,v 1.26 2005/09/23 12:53:36 MR Exp $
+// Id:          $Id: checklst.cpp,v 1.27 2006/01/14 18:32:36 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ wxCheckListBox::wxCheckListBox() : wxListBox()
 wxCheckListBox::wxCheckListBox(wxWindow *parent, wxWindowID id,
                                const wxPoint& pos,
                                const wxSize& size,
-                               int nStrings, 
+                               int nStrings,
                                const wxString *choices,
                                long style,
                                const wxValidator& validator,

@@ -2,7 +2,7 @@
 // Name:        dcmemory.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcmemory.cpp,v 1.29 2006/01/02 15:42:24 MW Exp $
+// RCS-ID:      $Id: dcmemory.cpp,v 1.30 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ wxMemoryDC::wxMemoryDC() : wxWindowDC()
     m_ok = FALSE;
 
     m_cmap = gtk_widget_get_default_colormap();
-    
+
 #ifdef __WXGTK20__
     m_context = gdk_pango_context_get();
     // Note: The Sun customised version of Pango shipping with Solaris 10
@@ -43,7 +43,7 @@ wxMemoryDC::wxMemoryDC( wxDC *WXUNUSED(dc) )
     m_ok = FALSE;
 
     m_cmap = gtk_widget_get_default_colormap();
-    
+
 #ifdef __WXGTK20__
     m_context = gdk_pango_context_get();
     pango_context_set_language( m_context, gtk_get_default_language() );
@@ -115,7 +115,7 @@ void wxMemoryDC::SetBrush( const wxBrush& brushOrig )
     wxWindowDC::SetBrush( brush );
 }
 
-void wxMemoryDC::SetBackground( const wxBrush& brushOrig ) 
+void wxMemoryDC::SetBackground( const wxBrush& brushOrig )
 {
     wxBrush brush(brushOrig);
 

@@ -2,7 +2,7 @@
 // Name:        gauge.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: gauge.cpp,v 1.31 2005/09/23 12:53:39 MR Exp $
+// Id:          $Id: gauge.cpp,v 1.32 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ bool wxGauge::Create( wxWindow *parent,
 
     PostCreation(size);
     SetBestSize(size);
-    
+
     return TRUE;
 }
 

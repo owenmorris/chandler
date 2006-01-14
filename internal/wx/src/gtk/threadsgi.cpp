@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by:
 // Created:     04/22/98
-// RCS-ID:      $Id: threadsgi.cpp,v 1.17 2005/09/23 12:53:43 MR Exp $
+// RCS-ID:      $Id: threadsgi.cpp,v 1.18 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) Wolfram Gloger (1996, 1997); Guilhem Lavaux (1998)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@
 #include "gdk/gdk.h"
 #include "gtk/gtk.h"
 
-enum thread_state 
+enum thread_state
 {
   STATE_IDLE = 0,
   STATE_RUNNING,
@@ -84,7 +84,7 @@ wxMutexError wxMutex::TryLock()
 wxMutexError wxMutex::Unlock()
 {
   if (m_locked == 0)
-    return wxMUTEX_UNLOCKED; 
+    return wxMUTEX_UNLOCKED;
   release_lock(&(p_internal->p_mutex));
   m_locked--;
   return wxMUTEX_NO_ERROR;
@@ -251,7 +251,7 @@ private:
 
 IMPLEMENT_DYNAMIC_CLASS(wxThreadModule, wxModule)
 
-bool wxThreadModule::OnInit() 
+bool wxThreadModule::OnInit()
 {
     wxMainMutex = new wxMutex();
     wxThreadGuiInit();

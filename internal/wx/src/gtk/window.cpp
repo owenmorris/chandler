@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.559 2006/01/05 04:31:22 RD Exp $
+// Id:          $Id: window.cpp,v 1.560 2006/01/14 18:32:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2693,10 +2693,10 @@ wxMouseState wxGetMouseState()
     ms.SetShiftDown(mask & GDK_SHIFT_MASK);
     ms.SetAltDown(mask & GDK_MOD1_MASK);
     ms.SetMetaDown(mask & GDK_MOD2_MASK);
-    
+
     return ms;
 }
- 
+
 //-----------------------------------------------------------------------------
 // wxWindowGTK
 //-----------------------------------------------------------------------------
