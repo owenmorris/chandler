@@ -286,6 +286,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # invisible window and send all focus (i.e. keyboard) events
         # through it.
         self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0))
+        self._focusWindow.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
     def SetPanelFocus(self):
         self._focusWindow.SetFocus()
@@ -391,7 +392,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # create a drag state just in case
         self._initiateDrag(hitBox, unscrolledPosition)
 
-
     def OnMouseEvent(self, event):
         """
         Handles mouse events, calls overridable methods related to:
@@ -453,6 +453,48 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     
                 self.dragState.HandleDragEnd()
                 self.dragState = None
+
+    def EditCurrentItem(self):
+        """
+        Use the selection to find the currently selected canvas item,
+        so we can call OnEditItem()
+        """
+        
+        selection = self.SelectedItems()
+        # try our best to avoid iterating the entire selection
+        try:
+            selectedItem = selection.next()
+        except StopIteration:
+            return                  # no items selected, that's fine
+
+        try:
+            selection.next()
+        except StopIteration:
+            # great! exactly one item in the iteration
+
+            # find the associated canvasItem. Would be nice if we
+            # had dictionary mapping item->canvasItem, but this is
+            # the first time we've needed it!
+            selectedCanvasItems = [canvasItem
+                                  for canvasItem in self.canvasItemList
+                                  if canvasItem.item == selectedItem]
+
+            assert len(selectedCanvasItems) == 1
+
+            self.OnEditItem(selectedCanvasItems[0])
+
+        # success of the last .next() just means we have multiple
+        # items so we can't edit them all! (at least not right now...)
+        
+        # if any new code is added here, be sure to add a return after
+        # the previous StopIteration to ensure legitimate edits don't
+        # fall through to here
+
+    def OnKeyPressed(self, event):
+        keyCode = event.GetKeyCode()
+        if keyCode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            self.EditCurrentItem()
+            event.Skip()
 
     def ScrollIntoView(self, unscrolledPosition):
         clientSize = self.GetClientSize()

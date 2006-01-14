@@ -1124,16 +1124,16 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
                 self.blockItem.SelectCollectionInSidebar(collection)
 
 
-    def OnEditItem(self, box):
-        if not box.CanChangeTitle():
-            self.WarnReadOnlyTitle([box.item])
+    def OnEditItem(self, canvasItem):
+        if not canvasItem.CanChangeTitle():
+            self.WarnReadOnlyTitle([canvasItem.item])
             return
         
         styles = self.blockItem.calendarContainer
-        position = self.CalcScrolledPosition(box.GetEditorPosition())
-        size = box.GetMaxEditorSize()
+        position = self.CalcScrolledPosition(canvasItem.GetEditorPosition())
+        size = canvasItem.GetMaxEditorSize()
 
-        self.editor.SetItem(box.item, position, size, styles.eventLabelFont.GetPointSize())
+        self.editor.SetItem(canvasItem.item, position, size, styles.eventLabelFont.GetPointSize())
 
     def GrabFocusHack(self):
         if self.editor.IsShown():
