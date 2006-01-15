@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog.h,v 1.7 2005/09/23 12:49:32 MR Exp $
+// RCS-ID:      $Id: dialog.h,v 1.8 2006/01/15 01:27:09 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,8 +13,6 @@
 #define _WX_DIALOG_H_
 
 #include "wx/panel.h"
-
-WXDLLEXPORT_DATA(extern const wxChar*) wxDialogNameStr;
 
 WXDLLEXPORT_DATA(extern const wxChar*) wxDialogNameStr;
 
