@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.06.99
-// RCS-ID:      $Id: dialog.h,v 1.44 2005/09/25 20:16:59 VZ Exp $
+// RCS-ID:      $Id: dialog.h,v 1.45 2006/01/15 10:06:09 ABX Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,13 @@ extern WXDLLEXPORT_DATA(const wxChar*) wxDialogNameStr;
 class WXDLLEXPORT wxDialogBase : public wxTopLevelWindow
 {
 public:
+
+    enum
+    {
+        // all flags allowed in wxDialogBase::CreateButtonSizer()
+        ButtonSizerFlags = wxOK|wxCANCEL|wxYES|wxNO|wxHELP|wxNO_DEFAULT
+    };
+
     wxDialogBase() { Init(); }
     virtual ~wxDialogBase() { }
 
@@ -56,9 +63,11 @@ public:
     wxSizer *CreateTextSizer( const wxString &message );
 #endif // wxUSE_STATTEXT // && wxUSE_TEXTCTRL
 
-#if wxUSE_BUTTON
     // places buttons into a horizontal wxBoxSizer
-    wxSizer *CreateButtonSizer( long flags );
+    wxSizer *CreateButtonSizer( long flags,
+                                bool separated = false,
+                                wxCoord distance = 0 );
+#if wxUSE_BUTTON
     wxStdDialogButtonSizer *CreateStdDialogButtonSizer( long flags );
 #endif // wxUSE_BUTTON
 

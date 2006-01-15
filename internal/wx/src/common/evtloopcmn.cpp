@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloopcmn.cpp,v 1.2 2006/01/12 23:10:03 VZ Exp $
+// RCS-ID:      $Id: evtloopcmn.cpp,v 1.3 2006/01/15 10:15:28 ABX Exp $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,7 @@
 #endif
 
 #include "wx/evtloop.h"
+#include "wx/app.h"
 
 // ----------------------------------------------------------------------------
 // globals
@@ -149,4 +150,3 @@ void wxEventLoopManual::Exit(int rc)
 }
 
 #endif // __WXMSW__ || __WXMAC__
-

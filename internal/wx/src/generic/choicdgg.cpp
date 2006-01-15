@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     04/01/98
-// RCS-ID:      $Id: choicdgg.cpp,v 1.67 2006/01/05 11:26:07 SC Exp $
+// RCS-ID:      $Id: choicdgg.cpp,v 1.68 2006/01/15 10:06:14 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,10 +39,7 @@
     #include "wx/arrstr.h"
 #endif
 
-#if wxUSE_STATLINE
-    #include "wx/statline.h"
-#endif
-
+#include "wx/statline.h"
 #include "wx/generic/choicdgg.h"
 
 // ----------------------------------------------------------------------------
@@ -288,25 +285,17 @@ bool wxAnyChoiceDialog::Create(wxWindow *parent,
 
     topsizer->Add( m_listbox, 1, wxEXPAND|wxLEFT|wxRIGHT, wxLARGESMALL(15,0) );
 
-    // smart phones does not support or do not waste space for wxButtons
-#ifdef __SMARTPHONE__
-
-    SetRightMenu(wxID_CANCEL, _("Cancel"));
-
-#else // __SMARTPHONE__/!__SMARTPHONE__
-
-    // Mac Human Interface Guidelines recommend not to use static lines as grouping elements
-#ifndef __WXMAC__
-#if wxUSE_STATLINE
-    // 3) static line
-    topsizer->Add( new wxStaticLine( this, wxID_ANY ), 0, wxEXPAND | wxLEFT|wxRIGHT|wxTOP, 10 );
-#endif
-#endif
-    
-    // 4) buttons
-    topsizer->Add( CreateButtonSizer( styleDlg & (wxOK|wxCANCEL) ), 0, wxEXPAND | wxALL, 10 );
-
-#endif // !__SMARTPHONE__
+    // 3) buttons if any
+    wxSizer *buttonSizer = CreateButtonSizer( styleDlg & ButtonSizerFlags , true, wxLARGESMALL(10,0) );
+    if(buttonSizer->GetChildren().GetCount() > 0 )
+    {
+        topsizer->Add( buttonSizer, 0, wxEXPAND | wxALL, wxLARGESMALL(10,0) );
+    }
+    else
+    {
+        topsizer->AddSpacer( wxLARGESMALL(15,0) );
+        delete buttonSizer;
+    }
 
     SetSizer( topsizer );
 

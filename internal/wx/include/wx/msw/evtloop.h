@@ -4,13 +4,15 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-07-31
-// RCS-ID:      $Id: evtloop.h,v 1.6 2006/01/13 01:31:37 VZ Exp $
+// RCS-ID:      $Id: evtloop.h,v 1.7 2006/01/15 10:13:40 ABX Exp $
 // Copyright:   (c) 2003-2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_EVTLOOP_H_
 #define _WX_MSW_EVTLOOP_H_
+
+#include "wx/window.h"
 
 // ----------------------------------------------------------------------------
 // wxEventLoop
@@ -65,4 +67,3 @@ protected:
 };
 
 #endif // _WX_MSW_EVTLOOP_H_
-
