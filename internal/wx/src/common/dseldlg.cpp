@@ -4,7 +4,7 @@
 // Author:      Paul Thiessen
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id: dseldlg.cpp,v 1.7 2005/09/23 12:52:49 MR Exp $
+// RCS-ID:      $Id: dseldlg.cpp,v 1.8 2006/01/16 14:59:55 MR Exp $
 // Copyright:   (c) 2001 wxWidgets team
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@
 // implementation
 // ============================================================================
 
-const wxChar *wxDirSelectorPromptStr = wxT("Select a directory");
+const wxChar wxDirSelectorPromptStr[] = wxT("Select a directory");
 
 wxString wxDirSelector(const wxString& message,
                        const wxString& defaultPath,

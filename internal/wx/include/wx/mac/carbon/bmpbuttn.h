@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bmpbuttn.h,v 1.5 2005/09/23 12:49:29 MR Exp $
+// RCS-ID:      $Id: bmpbuttn.h,v 1.6 2006/01/16 14:59:31 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/button.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxButtonNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxButtonNameStr[];
 
 #define wxDEFAULT_BUTTON_MARGIN 4
 

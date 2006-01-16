@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbmp.h,v 1.37 2005/12/19 13:56:23 VZ Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.38 2006/01/16 14:59:43 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@
 #include "wx/icon.h"
 #include "wx/bitmap.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxStaticBitmapNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxStaticBitmapNameStr[];
 
 // a control showing an icon or a bitmap
 class WXDLLEXPORT wxStaticBitmap : public wxStaticBitmapBase

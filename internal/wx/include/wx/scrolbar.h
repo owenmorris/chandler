@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: scrolbar.h,v 1.14 2005/05/04 18:52:02 JS Exp $
+// RCS-ID:      $Id: scrolbar.h,v 1.15 2006/01/16 14:59:05 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,7 @@
 
 #include "wx/control.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxScrollBarNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxScrollBarNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxScrollBar: a scroll bar control

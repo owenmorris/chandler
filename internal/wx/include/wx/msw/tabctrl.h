@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: tabctrl.h,v 1.25 2005/09/23 12:50:16 MR Exp $
+// RCS-ID:      $Id: tabctrl.h,v 1.26 2006/01/16 14:59:44 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 class WXDLLIMPEXP_CORE wxImageList;
 
-// extern WXDLLEXPORT_DATA(const wxChar*) wxToolBarNameStr;
+// extern WXDLLEXPORT_DATA(const wxChar) wxToolBarNameStr[];
 
 /*
  * Flags returned by HitTest

@@ -4,7 +4,7 @@
 // Author:      Vadim Zetlin
 // Modified by:
 // Created:     15.08.00
-// RCS-ID:      $Id: button.h,v 1.26 2005/01/24 07:38:48 ABX Exp $
+// RCS-ID:      $Id: button.h,v 1.27 2006/01/16 14:59:03 MR Exp $
 // Copyright:   (c) Vadim Zetlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@
 
 class WXDLLEXPORT wxBitmap;
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxButtonNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxButtonNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxButton: a push button

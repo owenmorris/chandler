@@ -5,7 +5,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.h,v 1.5 2004/05/23 20:51:03 JS Exp $
+// RCS-ID:      $Id: tglbtn.h,v 1.6 2006/01/16 14:59:34 MR Exp $
 // Copyright:   (c) 2004 Stefan Csomor
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@
 #ifndef _WX_TOGGLEBUTTON_H_
 #define _WX_TOGGLEBUTTON_H_
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxCheckBoxNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxCheckBoxNameStr[];
 
 // Checkbox item (single checkbox)
 class WXDLLEXPORT wxToggleButton : public wxControl

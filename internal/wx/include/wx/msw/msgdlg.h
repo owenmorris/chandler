@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: msgdlg.h,v 1.13 2005/09/23 12:50:13 MR Exp $
+// RCS-ID:      $Id: msgdlg.h,v 1.14 2006/01/16 14:59:43 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
  * Message box dialog
  */
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxMessageBoxCaptionStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxMessageBoxCaptionStr[];
 
 class WXDLLEXPORT wxMessageDialog: public wxDialog, public wxMessageDialogBase
 {

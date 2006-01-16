@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: control.h,v 1.46 2005/09/23 12:48:33 MR Exp $
+// RCS-ID:      $Id: control.h,v 1.47 2006/01/16 14:59:03 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@
 
 #include "wx/window.h"      // base class
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxControlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxControlNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxControl is the base class for all controls

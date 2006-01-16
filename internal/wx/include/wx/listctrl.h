@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.12.99
-// RCS-ID:      $Id: listctrl.h,v 1.62 2005/09/23 12:48:43 MR Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.63 2006/01/16 14:59:04 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@
 // constants
 // ----------------------------------------------------------------------------
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxListCtrlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxListCtrlNameStr[];
 
 // ----------------------------------------------------------------------------
 // include the wxListCtrl class declaration

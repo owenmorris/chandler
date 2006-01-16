@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: combobox.h,v 1.54 2005/09/27 16:54:25 ABX Exp $
+// Id:          $Id: combobox.h,v 1.55 2006/01/16 14:59:27 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ class WXDLLIMPEXP_CORE wxComboBox;
 // global data
 //-----------------------------------------------------------------------------
 
-extern WXDLLIMPEXP_CORE const wxChar* wxComboBoxNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxComboBoxNameStr[];
 extern WXDLLIMPEXP_BASE const wxChar* wxEmptyString;
 
 //-----------------------------------------------------------------------------

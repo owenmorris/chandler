@@ -2,7 +2,7 @@
 // Name:        wx/gtk/mdi.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: mdi.h,v 1.43 2005/11/04 11:11:20 ABX Exp $
+// Id:          $Id: mdi.h,v 1.44 2006/01/16 14:59:27 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,8 +30,8 @@ class WXDLLIMPEXP_CORE wxMDIChildFrame;
 // global data
 //-----------------------------------------------------------------------------
 
-extern WXDLLIMPEXP_CORE const wxChar* wxFrameNameStr;
-extern WXDLLIMPEXP_CORE const wxChar* wxStatusLineNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxFrameNameStr[];
+extern WXDLLEXPORT_DATA(const wxChar) wxStatusLineNameStr[];
 
 //-----------------------------------------------------------------------------
 // wxMDIParentFrame

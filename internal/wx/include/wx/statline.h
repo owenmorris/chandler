@@ -3,7 +3,7 @@
 // Purpose:     wxStaticLine class interface
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statline.h,v 1.14 2005/04/10 15:22:53 VZ Exp $
+// Version:     $Id: statline.h,v 1.15 2006/01/16 14:59:05 MR Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@
 // ----------------------------------------------------------------------------
 
 // the default name for objects of class wxStaticLine
-extern WXDLLEXPORT_DATA(const wxChar*) wxStaticTextNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxStaticTextNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxStaticLine - a line in a dialog

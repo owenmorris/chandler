@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: tbarbase.h,v 1.59 2005/10/09 15:48:10 MBN Exp $
+// RCS-ID:      $Id: tbarbase.h,v 1.60 2006/01/16 14:59:05 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ class WXDLLEXPORT wxImage;
 // constants
 // ----------------------------------------------------------------------------
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxToolBarNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxToolBarNameStr[];
 extern WXDLLEXPORT_DATA(const wxSize) wxDefaultSize;
 extern WXDLLEXPORT_DATA(const wxPoint) wxDefaultPosition;
 

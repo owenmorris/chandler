@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.h,v 1.100 2005/09/25 18:14:51 VZ Exp $
+// RCS-ID:      $Id: gdicmn.h,v 1.101 2006/01/16 14:59:04 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -590,7 +590,7 @@ extern WXDLLEXPORT_DATA(wxCursor*)    wxCROSS_CURSOR;
 
 extern WXDLLEXPORT_DATA(wxColourDatabase*)  wxTheColourDatabase;
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxPanelNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxPanelNameStr[];
 
 extern WXDLLEXPORT_DATA(const wxSize) wxDefaultSize;
 extern WXDLLEXPORT_DATA(const wxPoint) wxDefaultPosition;

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: filedlg.h,v 1.41 2005/11/08 01:33:31 VZ Exp $
+// RCS-ID:      $Id: filedlg.h,v 1.42 2006/01/16 14:59:03 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -36,8 +36,8 @@ enum
     wxCHANGE_DIR        = 0x0040
 };
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxFileSelectorPromptStr;
-extern WXDLLEXPORT_DATA(const wxChar*) wxFileSelectorDefaultWildcardStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxFileSelectorPromptStr[];
+extern WXDLLEXPORT_DATA(const wxChar) wxFileSelectorDefaultWildcardStr[];
 
 //----------------------------------------------------------------------------
 // wxFileDialogBase

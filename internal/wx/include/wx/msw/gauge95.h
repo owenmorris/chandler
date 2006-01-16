@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gauge95.h,v 1.19 2005/09/23 12:50:11 MR Exp $
+// RCS-ID:      $Id: gauge95.h,v 1.20 2006/01/16 14:59:43 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #if wxUSE_GAUGE
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxGaugeNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxGaugeNameStr[];
 
 // Group box
 class WXDLLEXPORT wxGauge95 : public wxGaugeBase

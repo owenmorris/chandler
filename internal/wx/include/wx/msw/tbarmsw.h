@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 13.12.99 by VZ during toolbar classes reorganization
 // Created:     01/02/97
-// RCS-ID:      $Id: tbarmsw.h,v 1.22 2005/09/23 12:50:16 MR Exp $
+// RCS-ID:      $Id: tbarmsw.h,v 1.23 2006/01/16 14:59:44 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@
 
 #include "wx/tbarbase.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxButtonBarNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxButtonBarNameStr[];
 
 class WXDLLEXPORT wxMemoryDC;
 

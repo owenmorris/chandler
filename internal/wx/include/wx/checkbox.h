@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: checkbox.h,v 1.23 2005/01/25 06:55:06 ABX Exp $
+// RCS-ID:      $Id: checkbox.h,v 1.24 2006/01/16 14:59:03 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ enum wxCheckBoxState
 };
 
 
-extern WXDLLEXPORT_DATA(const wxChar *) wxCheckBoxNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxCheckBoxNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxCheckBox: a control which shows a label and a box which may be checked

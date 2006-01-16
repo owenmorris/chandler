@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: toolbar.h,v 1.8 2005/09/23 12:49:36 MR Exp $
+// RCS-ID:      $Id: toolbar.h,v 1.9 2006/01/16 14:59:34 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@
 #include "wx/tbarbase.h"
 #include "wx/dynarray.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxToolBarNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxToolBarNameStr[];
 
 class WXDLLEXPORT wxToolBar: public wxToolBarBase
 {

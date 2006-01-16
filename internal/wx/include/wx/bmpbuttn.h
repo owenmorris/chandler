@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: bmpbuttn.h,v 1.27 2005/11/03 16:47:22 ABX Exp $
+// RCS-ID:      $Id: bmpbuttn.h,v 1.28 2006/01/16 14:59:02 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 #include "wx/bitmap.h"
 #include "wx/button.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxButtonNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxButtonNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxBitmapButton: a button which shows bitmaps instead of the usual string.

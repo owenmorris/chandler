@@ -7,7 +7,7 @@
 // Author:      Robert Roebling, Harm van der Heijden, Julian Smart et al
 // Modified by:
 // Created:     21/3/2000
-// RCS-ID:      $Id: dirdlgg.h,v 1.30 2005/09/23 12:49:04 MR Exp $
+// RCS-ID:      $Id: dirdlgg.h,v 1.31 2006/01/16 14:59:20 MR Exp $
 // Copyright:   (c) Robert Roebling, Harm van der Heijden, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,8 +20,8 @@ class WXDLLEXPORT wxTextCtrl;
 class WXDLLEXPORT wxTreeEvent;
 
 // we may be included directly as well as from wx/dirdlg.h (FIXME)
-extern WXDLLEXPORT_DATA(const wxChar*) wxDirDialogNameStr;
-extern WXDLLEXPORT_DATA(const wxChar*) wxDirSelectorPromptStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxDirDialogNameStr[];
+extern WXDLLEXPORT_DATA(const wxChar) wxDirSelectorPromptStr[];
 #ifndef wxDD_DEFAULT_STYLE
 
 #ifdef __WXWINCE__

@@ -4,7 +4,7 @@
 // Author:      Julian Smart et al
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treebase.h,v 1.55 2005/10/09 15:48:10 MBN Exp $
+// RCS-ID:      $Id: treebase.h,v 1.56 2006/01/16 14:59:05 MR Exp $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ static const int wxTREE_HITTEST_ONITEM  = wxTREE_HITTEST_ONITEMICON |
                                           wxTREE_HITTEST_ONITEMLABEL;
 
 // tree ctrl default name
-extern WXDLLEXPORT_DATA(const wxChar*) wxTreeCtrlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxTreeCtrlNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxTreeItemAttr: a structure containing the visual attributes of an item

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button.h,v 1.8 2005/09/23 12:49:30 MR Exp $
+// RCS-ID:      $Id: button.h,v 1.9 2006/01/16 14:59:31 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 #include "wx/control.h"
 #include "wx/gdicmn.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxButtonNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxButtonNameStr[];
 
 // Pushbutton
 class WXDLLEXPORT wxButton: public wxButtonBase

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.33 2005/11/30 16:27:41 VZ Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.34 2006/01/16 14:59:04 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@
 
 #include "wx/ctrlsub.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxRadioBoxNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxRadioBoxNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxRadioBoxBase is not a normal base class, but rather a mix-in because the

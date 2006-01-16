@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h,v 1.63 2005/11/10 12:03:34 ABX Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.64 2006/01/16 14:59:05 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -21,8 +21,8 @@
 #include "wx/window.h"
 #include "wx/iconbndl.h"
 
-// the default names for various classs
-extern WXDLLEXPORT_DATA(const wxChar*) wxFrameNameStr;
+// the default names for various classes
+extern WXDLLEXPORT_DATA(const wxChar) wxFrameNameStr[];
 
 class WXDLLEXPORT wxTopLevelWindowBase;
 

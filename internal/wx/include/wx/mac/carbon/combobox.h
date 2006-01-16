@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h,v 1.14 2005/09/27 16:54:28 ABX Exp $
+// RCS-ID:      $Id: combobox.h,v 1.15 2006/01/16 14:59:31 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/choice.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxComboBoxNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxComboBoxNameStr[];
 
 // forward declaration of private implementation classes
 

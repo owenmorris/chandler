@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: listbox.h,v 1.28 2005/09/23 12:48:43 MR Exp $
+// RCS-ID:      $Id: listbox.h,v 1.29 2006/01/16 14:59:04 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ class WXDLLIMPEXP_BASE wxArrayString;
 // global data
 // ----------------------------------------------------------------------------
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxListBoxNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxListBoxNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxListBox interface is defined by the class wxListBoxBase

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: dirdlg.h,v 1.39 2005/05/04 18:51:57 JS Exp $
+// RCS-ID:      $Id: dirdlg.h,v 1.40 2006/01/16 14:59:03 MR Exp $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -20,9 +20,10 @@
 // constants
 // ----------------------------------------------------------------------------
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxDirDialogNameStr;
-extern WXDLLEXPORT_DATA(const wxChar*) wxDirDialogDefaultFolderStr;
-extern WXDLLEXPORT_DATA(const wxChar*) wxDirSelectorPromptStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxDirDialogNameStr[];
+extern WXDLLEXPORT_DATA(const wxChar) wxDirDialogDefaultFolderStr[];
+extern WXDLLEXPORT_DATA(const wxChar) wxDirSelectorPromptStr[];
+
 
 #ifdef __WXWINCE__
     #define wxDD_DEFAULT_STYLE \

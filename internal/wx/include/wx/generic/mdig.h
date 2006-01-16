@@ -4,7 +4,7 @@
 // Author:      Hans Van Leemputten
 // Modified by:
 // Created:     29/07/2002
-// RCS-ID:      $Id: mdig.h,v 1.20 2005/09/23 12:49:06 MR Exp $
+// RCS-ID:      $Id: mdig.h,v 1.21 2006/01/16 14:59:21 MR Exp $
 // Copyright:   (c) Hans Van Leemputten
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,8 +20,8 @@
 #include "wx/panel.h"
 #include "wx/notebook.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxFrameNameStr;
-extern WXDLLEXPORT_DATA(const wxChar*) wxStatusLineNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxFrameNameStr[];
+extern WXDLLEXPORT_DATA(const wxChar) wxStatusLineNameStr[];
 
 
 //-----------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: stattext.h,v 1.23 2005/08/18 22:15:40 VZ Exp $
+// RCS-ID:      $Id: stattext.h,v 1.24 2006/01/16 14:59:05 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,7 @@
 
 #include "wx/control.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxStaticTextNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxStaticTextNameStr[];
 
 class WXDLLEXPORT wxStaticTextBase : public wxControl
 {

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: statbox.h,v 1.18 2005/05/04 18:52:03 JS Exp $
+// RCS-ID:      $Id: statbox.h,v 1.19 2006/01/16 14:59:05 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,7 @@
 
 #include "wx/control.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxStaticBoxNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxStaticBoxNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxStaticBox: a grouping box with a label

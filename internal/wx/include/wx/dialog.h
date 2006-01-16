@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.06.99
-// RCS-ID:      $Id: dialog.h,v 1.45 2006/01/15 10:06:09 ABX Exp $
+// RCS-ID:      $Id: dialog.h,v 1.46 2006/01/16 14:59:03 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ class WXDLLEXPORT wxStdDialogButtonSizer;
 #define wxDEFAULT_DIALOG_STYLE  (wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX)
 #endif
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxDialogNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxDialogNameStr[];
 
 class WXDLLEXPORT wxDialogBase : public wxTopLevelWindow
 {

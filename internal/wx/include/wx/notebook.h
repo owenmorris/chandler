@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.02.01
-// RCS-ID:      $Id: notebook.h,v 1.55 2005/11/10 11:24:19 VZ Exp $
+// RCS-ID:      $Id: notebook.h,v 1.56 2006/01/16 14:59:04 MR Exp $
 // Copyright:   (c) 1996-2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,7 +37,7 @@ enum
 
 typedef wxWindow wxNotebookPage;  // so far, any window can be a page
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxNotebookNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxNotebookNameStr[];
 
 #if WXWIN_COMPATIBILITY_2_4
     #define wxNOTEBOOK_NAME wxNotebookNameStr

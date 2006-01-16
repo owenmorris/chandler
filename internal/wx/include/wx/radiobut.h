@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: radiobut.h,v 1.17 2005/05/04 18:52:02 JS Exp $
+// RCS-ID:      $Id: radiobut.h,v 1.18 2006/01/16 14:59:04 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 
 #include "wx/control.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxRadioButtonNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxRadioButtonNameStr[];
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/radiobut.h"

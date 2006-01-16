@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.07.99
-// RCS-ID:      $Id: textctrl.h,v 1.75 2005/09/23 12:48:48 MR Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.76 2006/01/16 14:59:05 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ typedef long wxTextCoord;
 // constants
 // ----------------------------------------------------------------------------
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxTextCtrlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxTextCtrlNameStr[];
 
 // this is intentionally not enum to avoid warning fixes with
 // typecasting from enum type to wxTextCoord

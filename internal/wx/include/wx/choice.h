@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: choice.h,v 1.37 2005/09/23 12:48:31 MR Exp $
+// RCS-ID:      $Id: choice.h,v 1.38 2006/01/16 14:59:03 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@
 // global data
 // ----------------------------------------------------------------------------
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxChoiceNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxChoiceNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxChoice allows to select one of a non-modifiable list of strings

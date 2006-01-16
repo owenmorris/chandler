@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp,v 1.174 2005/10/17 22:07:56 MW Exp $
+// RCS-ID:      $Id: intl.cpp,v 1.175 2006/01/16 15:51:35 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1795,6 +1795,7 @@ bool wxLocale::Init(int language, int flags)
         return false;
     }
 #else
+    wxUnusedVar(flags);
     return false;
     #define WX_NO_LOCALE_SUPPORT
 #endif

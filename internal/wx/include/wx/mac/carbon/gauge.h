@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: gauge.h,v 1.6 2005/09/23 12:49:33 MR Exp $
+// RCS-ID:      $Id: gauge.h,v 1.7 2006/01/16 14:59:32 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/control.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxGaugeNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxGaugeNameStr[];
 
 // Group box
 class WXDLLEXPORT wxGauge: public wxGaugeBase

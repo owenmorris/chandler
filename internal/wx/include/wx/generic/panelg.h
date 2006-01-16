@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: panelg.h,v 1.45 2005/09/23 12:49:06 MR Exp $
+// RCS-ID:      $Id: panelg.h,v 1.46 2006/01/16 14:59:21 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@
 
 class WXDLLEXPORT wxControlContainer;
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxPanelNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxPanelNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxPanel contains other controls and implements TAB traversal between them

@@ -3,7 +3,7 @@
 // Purpose:     wxDialog class
 // Author:      Vaclav Slavik
 // Created:     2001/09/16
-// RCS-ID:      $Id: dialog.h,v 1.13 2005/09/23 12:50:45 MR Exp $
+// RCS-ID:      $Id: dialog.h,v 1.14 2006/01/16 14:59:53 MR Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -11,7 +11,7 @@
 #ifndef _WX_UNIV_DIALOG_H_
 #define _WX_UNIV_DIALOG_H_
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxDialogNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxDialogNameStr[];
 class WXDLLEXPORT wxWindowDisabler;
 class WXDLLEXPORT wxEventLoop;
 

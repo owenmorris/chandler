@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.12.00
-// RCS-ID:      $Id: combobox.h,v 1.15 2005/02/15 12:16:33 VZ Exp $
+// RCS-ID:      $Id: combobox.h,v 1.16 2006/01/16 14:59:03 MR Exp $
 // Copyright:   (c) 1996-2000 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@
 
 #if wxUSE_COMBOBOX
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxComboBoxNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxComboBoxNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxComboBoxBase: this interface defines the methods wxComboBox must implement

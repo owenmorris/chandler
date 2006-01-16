@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobut.h,v 1.7 2005/09/23 12:49:35 MR Exp $
+// RCS-ID:      $Id: radiobut.h,v 1.8 2006/01/16 14:59:33 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ public:
 #if 0
 class WXDLLEXPORT wxBitmap ;
 
-WXDLLEXPORT_DATA(extern const char*) wxBitmapRadioButtonNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxBitmapRadioButtonNameStr[];
 
 class WXDLLEXPORT wxBitmapRadioButton: public wxRadioButton
 {

@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:
-// Id:          $Id: dialog.h,v 1.34 2005/09/23 12:49:15 MR Exp $
+// Id:          $Id: dialog.h,v 1.35 2006/01/16 14:59:27 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:           wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ class WXDLLIMPEXP_CORE wxDialog;
 // global data
 //-----------------------------------------------------------------------------
 
-extern WXDLLIMPEXP_CORE const wxChar *wxDialogNameStr;
+extern WXDLLIMPEXP_CORE const wxChar wxDialogNameStr[];
 
 //-----------------------------------------------------------------------------
 // wxDialog

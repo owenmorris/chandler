@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.h,v 1.14 2006/01/10 04:10:57 vell Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.15 2006/01/16 14:59:33 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@
 
 #include "wx/control.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxTextCtrlNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxTextCtrlNameStr[];
 
 class wxMacTextControl ;
 

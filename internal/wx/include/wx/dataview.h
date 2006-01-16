@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     08.01.06
-// RCS-ID:      $Id: dataview.h,v 1.1 2006/01/08 21:49:56 RR Exp $
+// RCS-ID:      $Id: dataview.h,v 1.2 2006/01/16 14:59:03 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@
 #include "wx/textctrl.h"
 #include "wx/bitmap.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxDataViewCtrlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxDataViewCtrlNameStr[];
 
 
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     09.02.01
-// RCS-ID:      $Id: slider.h,v 1.25 2005/05/04 18:52:03 JS Exp $
+// RCS-ID:      $Id: slider.h,v 1.26 2006/01/16 14:59:05 MR Exp $
 // Copyright:   (c) 1996-2001 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@
 #define wxSL_NOTIFY_DRAG     0x0000
 
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxSliderNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxSliderNameStr[];
 
 // ----------------------------------------------------------------------------
 // wxSliderBase: define wxSlider interface

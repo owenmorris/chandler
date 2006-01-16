@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: msgdlgg.h,v 1.20 2005/09/23 12:49:06 MR Exp $
+// RCS-ID:      $Id: msgdlgg.h,v 1.21 2006/01/16 14:59:21 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@
 // type is an 'or' (|) of wxOK, wxCANCEL, wxYES_NO
 // Returns wxYES/NO/OK/CANCEL
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxMessageBoxCaptionStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxMessageBoxCaptionStr[];
 
 class WXDLLEXPORT wxGenericMessageDialog: public wxDialog, public wxMessageDialogBase
 {

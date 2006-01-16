@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.h,v 1.9 2005/09/25 19:58:35 VZ Exp $
+// RCS-ID:      $Id: tglbtn.h,v 1.10 2006/01/16 14:59:27 MR Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ class WXDLLIMPEXP_CORE wxToggleBitmapButton;
 // global data
 //-----------------------------------------------------------------------------
 
-extern WXDLLIMPEXP_CORE const wxChar *wxCheckBoxNameStr;
+extern WXDLLIMPEXP_CORE const wxChar wxCheckBoxNameStr[];
 
 //-----------------------------------------------------------------------------
 // wxToggleBitmapButton

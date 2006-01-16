@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: textdlgg.h,v 1.31 2005/09/24 21:42:12 VZ Exp $
+// RCS-ID:      $Id: textdlgg.h,v 1.32 2006/01/16 14:59:21 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,8 +24,8 @@
 
 class WXDLLEXPORT wxTextCtrl;
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxGetTextFromUserPromptStr;
-extern WXDLLEXPORT_DATA(const wxChar*) wxGetPasswordFromUserPromptStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxGetTextFromUserPromptStr[];
+extern WXDLLEXPORT_DATA(const wxChar) wxGetPasswordFromUserPromptStr[];
 
 #define wxTextEntryDialogStyle (wxOK | wxCANCEL | wxCENTRE | wxWS_EX_VALIDATE_RECURSIVELY)
 

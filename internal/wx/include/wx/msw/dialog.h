@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dialog.h,v 1.51 2005/09/23 12:50:09 MR Exp $
+// RCS-ID:      $Id: dialog.h,v 1.52 2006/01/16 14:59:43 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,13 +14,13 @@
 
 #include "wx/panel.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxDialogNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxDialogNameStr[];
 
 class WXDLLEXPORT wxDialogModalData;
 
 #if wxUSE_TOOLBAR && (defined(__SMARTPHONE__) || defined(__POCKETPC__))
 class WXDLLEXPORT wxToolBar;
-extern WXDLLEXPORT_DATA(const wxChar*) wxToolBarNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxToolBarNameStr[];
 #endif
 
 // Dialog boxes

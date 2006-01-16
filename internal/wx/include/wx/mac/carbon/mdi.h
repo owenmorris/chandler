@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: mdi.h,v 1.9 2005/09/23 12:49:34 MR Exp $
+// RCS-ID:      $Id: mdi.h,v 1.10 2006/01/16 14:59:33 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,8 +16,8 @@
 
 #include "wx/frame.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxFrameNameStr;
-WXDLLEXPORT_DATA(extern const wxChar*) wxStatusLineNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxFrameNameStr[];
+WXDLLEXPORT_DATA(extern const wxChar) wxStatusLineNameStr[];
 
 class WXDLLEXPORT wxMDIClientWindow;
 class WXDLLEXPORT wxMDIChildFrame;

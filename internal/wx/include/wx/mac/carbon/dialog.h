@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog.h,v 1.8 2006/01/15 01:27:09 MR Exp $
+// RCS-ID:      $Id: dialog.h,v 1.9 2006/01/16 14:59:32 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/panel.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxDialogNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxDialogNameStr[];
 
 class WXDLLEXPORT wxMacToolTip ;
 

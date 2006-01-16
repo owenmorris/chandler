@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: control.h,v 1.5 2005/09/23 12:49:31 MR Exp $
+// RCS-ID:      $Id: control.h,v 1.6 2006/01/16 14:59:32 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef _WX_CONTROL_H_
 #define _WX_CONTROL_H_
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxControlNameStr;
+WXDLLEXPORT_DATA(extern const wxChar) wxControlNameStr[];
 
 // General item class
 class WXDLLEXPORT wxControl : public wxControlBase

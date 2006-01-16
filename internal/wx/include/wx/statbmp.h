@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: statbmp.h,v 1.24 2005/12/19 13:53:17 VZ Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.25 2006/01/16 14:59:05 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
 #include "wx/bitmap.h"
 #include "wx/icon.h"
 
-extern WXDLLEXPORT_DATA(const wxChar*) wxStaticBitmapNameStr;
+extern WXDLLEXPORT_DATA(const wxChar) wxStaticBitmapNameStr[];
 
 // a control showing an icon or a bitmap
 class WXDLLEXPORT wxStaticBitmapBase : public wxControl
