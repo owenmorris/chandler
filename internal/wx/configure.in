@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1103 2006/01/14 13:07:42 SN Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1104 2006/01/16 15:42:41 MR Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1103 2006/01/14 13:07:42 SN Exp $
+dnl Version: $Id: configure.in,v 1.1104 2006/01/16 15:42:41 MR Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -5079,7 +5079,9 @@ if test "$wxUSE_DEBUG_FLAG" = "yes" ; then
     WXCONFIG_CPPFLAGS="$WXCONFIG_CPPFLAGS -D__WXDEBUG__"
 else
     if test "$wxUSE_GTK" = 1 ; then
-        CPPFLAGS="-DGTK_NO_CHECK_CASTS $CPPFLAGS"
+        if test "x$wxGTK_VERSION" = "x1" ; then
+            CPPFLAGS="-DGTK_NO_CHECK_CASTS $CPPFLAGS"
+        fi
     fi
 fi
 

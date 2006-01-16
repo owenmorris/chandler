@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.297 2006/01/12 23:05:54 VZ Exp $ -->
+<!-- $Id: files.bkl,v 1.298 2006/01/16 15:41:54 ABX Exp $ -->
 <makefile>
 
 <!--
@@ -115,6 +115,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/gccpriv.h
     wx/msw/libraries.h
     wx/msw/mimetype.h
+    wx/msw/private.h
     wx/msw/stackwalk.h
     wx/msw/stdpaths.h
     wx/msw/winundef.h
@@ -1402,7 +1403,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/pen.h
     wx/msw/printdlg.h
     wx/msw/printwin.h
-    wx/msw/private.h
     wx/msw/radiobox.h
     wx/msw/radiobut.h
     wx/msw/regconf.h
