@@ -116,6 +116,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             if numAdded > 0:
                 self.RefreshCanvasItems(resort=True)
 
+            if numAdded == 1:
+                self.EditCurrentItem()
+
     def DrawBackground(self, dc):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         

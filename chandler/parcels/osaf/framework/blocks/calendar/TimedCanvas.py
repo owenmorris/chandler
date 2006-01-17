@@ -49,6 +49,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                                             currentRange[0], currentRange[1],
                                             hints)
 
+        numAdded = 0 # The events may not be timed, or may fall
+                     # outside our range, etc,
+                     
         if addedEvents is not None:
             defaultTzinfo = ICUtzinfo.getDefault()
             
@@ -60,8 +63,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     
             date, nextDate = (fixTimezone(d) for d in currentRange)
 
-            numAdded = 0 # The events may not be timed, or may fall
-                         # outside our range, etc,
 
             primaryCollection = self.blockItem.contents.collectionList[0]
             
@@ -118,6 +119,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         self.RealignCanvasItems()
         self.Refresh()
+        
+        if numAdded == 1:
+            self.EditCurrentItem()
 
     def OnSize(self, event):
         # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
