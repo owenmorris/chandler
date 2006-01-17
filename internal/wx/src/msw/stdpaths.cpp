@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp,v 1.10 2006/01/17 09:46:27 JS Exp $
+// RCS-ID:      $Id: stdpaths.cpp,v 1.11 2006/01/17 16:24:35 JS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,8 +117,7 @@ static void ResolveShellFunctions()
     wxDynamicLibrary dllShellFunctions( shellDllName );
     if ( !dllShellFunctions.IsLoaded() )
     {
-        wxString traceMessage = wxString::Format( _T("Failed to load %s.dll"), shellDllName );
-        wxLogTrace(TRACE_MASK, traceMessage );
+        wxLogTrace(TRACE_MASK, _T("Failed to load %s.dll"), shellDllName.c_str() );
     }
 
     // don't give errors if the functions are unavailable, we're ready to deal

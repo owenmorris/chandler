@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbmp.h,v 1.38 2006/01/16 14:59:43 MR Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.39 2006/01/17 16:08:57 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ protected:
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     // ctor/dtor helpers
-    void Init() { m_isIcon = true; m_image = NULL; }
+    void Init() { m_isIcon = true; m_image = NULL; m_currentHandle = 0; }
     void Free();
 
     // true if icon/bitmap is valid
@@ -71,6 +71,8 @@ protected:
     // we can have either an icon or a bitmap
     bool m_isIcon;
     wxGDIImage *m_image;
+    // handle used in last call to STM_SETIMAGE
+    HGDIOBJ m_currentHandle;
 
 private:
     DECLARE_DYNAMIC_CLASS(wxStaticBitmap)

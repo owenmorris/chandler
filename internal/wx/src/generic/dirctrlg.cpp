@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlg.cpp,v 1.134 2006/01/02 14:28:37 JS Exp $
+// RCS-ID:      $Id: dirctrlg.cpp,v 1.135 2006/01/17 16:20:05 JS Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -116,6 +116,14 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
         wxString path, name;
         path.Printf(wxT("%c:\\"), driveBuffer[i]);
         name.Printf(wxT("%c:"), driveBuffer[i]);
+
+#if !defined(__WXWINCE__)
+        wxChar pname[52];
+        if (GetVolumeInformation( path.c_str(), pname, 52, NULL, NULL, NULL, NULL, NULL ))
+        {
+            name.Printf(wxT("%s %s"), (const wxChar*) name, pname );
+        }
+#endif
 
         int imageId;
         int driveType = ::GetDriveType(path);
