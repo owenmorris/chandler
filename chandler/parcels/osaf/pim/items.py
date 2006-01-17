@@ -145,7 +145,7 @@ class ContentItem(schema.Item):
     tags = schema.Sequence(
         'Tag',
         displayName=u'Tags',
-        description='Tags this ContentItem are associated with',
+        description='All the Tags associated with this ContentItem',
         inverse='items',
         initialValue=[]
     )
@@ -722,7 +722,7 @@ class Tag(ContentItem):
     items = schema.Sequence(
         'ContentItem',
         displayName=u'Item',
-        description='ContentItems this Tag are associated with',
+        description='All the ContentItems associated with this Tag',
         inverse='tags',
         initialValue=[]
     )
