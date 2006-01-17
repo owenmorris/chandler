@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp,v 1.153 2006/01/02 14:26:35 JS Exp $
+// RCS-ID:      $Id: utilscmn.cpp,v 1.154 2006/01/16 20:10:17 ABX Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if !defined(__WATCOMC__)
+#if !wxONLY_WATCOM_EARLIER_THAN(1,4)
     #if !(defined(_MSC_VER) && (_MSC_VER > 800))
         #include <errno.h>
     #endif

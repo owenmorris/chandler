@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.57 2005/10/23 10:53:12 JS Exp $
+// RCS-ID:      $Id: missing.h,v 1.58 2006/01/17 02:13:05 RD Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -111,6 +111,10 @@
 
 #ifndef LVS_EX_LABELTIP
     #define LVS_EX_LABELTIP 0x00004000
+#endif
+
+#ifndef LVS_EX_SUBITEMIMAGES
+    #define LVS_EX_SUBITEMIMAGES 0x00000002
 #endif
 
  /*
