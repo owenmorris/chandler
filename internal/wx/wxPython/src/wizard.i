@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     16-Aug-2002
-// RCS-ID:      $Id: wizard.i,v 1.20 2004/12/23 20:43:46 RD Exp $
+// RCS-ID:      $Id: wizard.i,v 1.21 2006/01/17 05:42:22 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -126,7 +126,7 @@ public:
 
 %{  // C++ Version of a Python aware class
 class wxPyWizardPage : public wxWizardPage {
-    DECLARE_ABSTRACT_CLASS(wxPyWizardPage);
+    DECLARE_ABSTRACT_CLASS(wxPyWizardPage)
 public:
     wxPyWizardPage() : wxWizardPage() {}
     wxPyWizardPage(wxWizard *parent,

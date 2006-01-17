@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Mar-2004
-// RCS-ID:      $Id: _display.i,v 1.8 2005/03/09 22:28:41 RD Exp $
+// RCS-ID:      $Id: _display.i,v 1.9 2006/01/17 05:42:23 RD Exp $
 // Copyright:   (c) 2004 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -91,7 +91,7 @@ const wxVideoMode     wxDefaultVideoMode;
 #include <wx/dynarray.h>
 #include <wx/vidmode.h>
 
-WX_DECLARE_OBJARRAY(wxVideoMode, wxArrayVideoModes);
+    WX_DECLARE_OBJARRAY(wxVideoMode, wxArrayVideoModes);
 #include "wx/arrimpl.cpp"
 WX_DEFINE_OBJARRAY(wxArrayVideoModes);
 const wxVideoMode wxDefaultVideoMode;

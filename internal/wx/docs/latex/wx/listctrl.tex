@@ -4,7 +4,7 @@
 %% Author:
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: listctrl.tex,v 1.67 2005/11/19 01:07:35 MR Exp $
+%% RCS-ID:      $Id: listctrl.tex,v 1.68 2006/01/17 15:22:47 JS Exp $
 %% Copyright:   (c) wxWidgets
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -663,6 +663,9 @@ This function may be overloaded in the derived class for a control with
 {\tt wxLC\_VIRTUAL} style. It should return the attribute for the
 for the specified {\tt item} or {\tt NULL} to use the default appearance
 parameters.
+
+wxListCtrl will not delete the pointer or keep a reference of it. You can 
+return the same wxListItemAttr pointer for every OnGetItemAttr call.
 
 The base class version always returns {\tt NULL}.
 

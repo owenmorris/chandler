@@ -6,7 +6,7 @@
 // Author:      Robin Dunn
 //
 // Created:     14-Aug-2003
-// RCS-ID:      $Id: _vscroll.i,v 1.15 2005/04/09 20:16:16 RD Exp $
+// RCS-ID:      $Id: _vscroll.i,v 1.16 2006/01/17 05:42:22 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@
 %{
 class wxPyVScrolledWindow  : public wxVScrolledWindow
 {
-    DECLARE_ABSTRACT_CLASS(wxPyVScrolledWindow);
+    DECLARE_ABSTRACT_CLASS(wxPyVScrolledWindow)
 public:
     wxPyVScrolledWindow() : wxVScrolledWindow() {}
 
@@ -224,7 +224,7 @@ MAKE_CONST_WXSTRING(VListBoxNameStr);
 %{
 class wxPyVListBox  : public wxVListBox
 {
-    DECLARE_ABSTRACT_CLASS(wxPyVListBox);
+    DECLARE_ABSTRACT_CLASS(wxPyVListBox)
 public:
     wxPyVListBox() : wxVListBox() {}
 
@@ -463,7 +463,7 @@ public:
 %{
 class wxPyHtmlListBox  : public wxHtmlListBox
 {
-    DECLARE_ABSTRACT_CLASS(wxPyHtmlListBox);
+    DECLARE_ABSTRACT_CLASS(wxPyHtmlListBox)
 public:
     wxPyHtmlListBox() : wxHtmlListBox() {}
 

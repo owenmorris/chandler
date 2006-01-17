@@ -5,8 +5,8 @@ based on wxPython's wxStyledTextCtrl.
 Sponsored by Orbtech - Your source for Python programming expertise."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: shell.py,v 1.12 2006/01/09 21:09:50 RD Exp $"
-__revision__ = "$Revision: 1.12 $"[11:-2]
+__cvsid__ = "$Id: shell.py,v 1.13 2006/01/17 05:42:19 RD Exp $"
+__revision__ = "$Revision: 1.13 $"[11:-2]
 
 import wx
 from wx import stc
@@ -93,6 +93,11 @@ class ShellFrame(frame.Frame, frame.ShellFrameMixin):
                                   wx.OK | wx.ICON_INFORMATION)
         dialog.ShowModal()
         dialog.Destroy()
+
+
+    def OnHelp(self, event):
+        """Show a help dialog."""
+        frame.ShellFrameMixin.OnHelp(self, event)
 
 
     def LoadSettings(self):

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textctrl.cpp,v 1.253 2005/12/21 20:50:05 RD Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.254 2006/01/17 09:38:18 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2524,7 +2524,7 @@ bool wxTextCtrl::GetStyle(long position, wxTextAttr& style)
 
     if ( changeSel )
     {
-        DoSetSelection(position, position, false /* don't scroll caret into view */);
+        DoSetSelection(position, position+1, false /* don't scroll caret into view */);
     }
 
     // get the selection formatting

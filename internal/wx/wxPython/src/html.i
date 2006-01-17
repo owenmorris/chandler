@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.74 2006/01/13 05:19:07 RD Exp $
+// RCS-ID:      $Id: html.i,v 1.75 2006/01/17 05:42:22 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -245,7 +245,7 @@ public:
 
 %{
 class wxPyHtmlTagHandler : public wxHtmlTagHandler {
-    DECLARE_DYNAMIC_CLASS(wxPyHtmlTagHandler);
+    DECLARE_DYNAMIC_CLASS(wxPyHtmlTagHandler)
 public:
     wxPyHtmlTagHandler() : wxHtmlTagHandler() {};
 
@@ -283,7 +283,7 @@ public:
 
 %{
 class wxPyHtmlWinTagHandler : public wxHtmlWinTagHandler {
-    DECLARE_DYNAMIC_CLASS(wxPyHtmlWinTagHandler);
+    DECLARE_DYNAMIC_CLASS(wxPyHtmlWinTagHandler)
 public:
     wxPyHtmlWinTagHandler() : wxHtmlWinTagHandler() {};
 
@@ -642,7 +642,7 @@ public:
 
 %{ // here's the C++ version
 class wxPyHtmlFilter : public wxHtmlFilter {
-    DECLARE_ABSTRACT_CLASS(wxPyHtmlFilter);
+    DECLARE_ABSTRACT_CLASS(wxPyHtmlFilter)
 public:
     wxPyHtmlFilter() : wxHtmlFilter() {}
 
@@ -710,7 +710,7 @@ public:
 
 %{
 class wxPyHtmlWindow : public wxHtmlWindow {
-    DECLARE_ABSTRACT_CLASS(wxPyHtmlWindow);
+    DECLARE_ABSTRACT_CLASS(wxPyHtmlWindow)
 public:
     wxPyHtmlWindow(wxWindow *parent, wxWindowID id = -1,
                    const wxPoint& pos = wxDefaultPosition,
@@ -1497,6 +1497,7 @@ public:
 
     /// Get the window that can optionally be used for the help window's parent.
     virtual wxWindow* GetParentWindow() const;
+
 };
 
 

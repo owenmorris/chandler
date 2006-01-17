@@ -1,8 +1,8 @@
 """Crust combines the shell and filling into one control."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: crust.py,v 1.10 2005/12/30 23:00:54 RD Exp $"
-__revision__ = "$Revision: 1.10 $"[11:-2]
+__cvsid__ = "$Id: crust.py,v 1.11 2006/01/17 05:42:19 RD Exp $"
+__revision__ = "$Revision: 1.11 $"[11:-2]
 
 import wx
 
@@ -278,6 +278,10 @@ class CrustFrame(frame.Frame, frame.ShellFrameMixin):
         dialog.ShowModal()
         dialog.Destroy()
 
+
+    def OnHelp(self, event):
+        """Show a help dialog."""
+        frame.ShellFrameMixin.OnHelp(self, event)
 
 
     def LoadSettings(self):

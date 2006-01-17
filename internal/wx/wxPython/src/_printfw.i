@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Aug-2003
-// RCS-ID:      $Id: _printfw.i,v 1.23 2005/12/22 06:57:35 KO Exp $
+// RCS-ID:      $Id: _printfw.i,v 1.24 2006/01/17 05:42:23 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -721,7 +721,7 @@ public:
 %{
 class wxPyPreviewFrame : public wxPreviewFrame
 {
-    DECLARE_CLASS(wxPyPreviewFrame);
+    DECLARE_CLASS(wxPyPreviewFrame)
 public:
     wxPyPreviewFrame(wxPrintPreview* preview, wxFrame* parent,
                      const wxString& title,
@@ -780,7 +780,7 @@ public:
 %{
 class wxPyPreviewControlBar : public wxPreviewControlBar
 {
-    DECLARE_CLASS(wxPyPreviewControlBar);
+    DECLARE_CLASS(wxPyPreviewControlBar)
 public:
     wxPyPreviewControlBar(wxPrintPreview *preview,
                           long buttons,

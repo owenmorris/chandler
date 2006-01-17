@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.2000
-// RCS-ID:      $Id: filename.cpp,v 1.162 2006/01/15 22:16:02 SN Exp $
+// RCS-ID:      $Id: filename.cpp,v 1.163 2006/01/17 09:28:52 JS Exp $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1245,12 +1245,14 @@ wxString wxFileName::GetVolumeSeparator(wxPathFormat format)
 {
     wxString sepVol;
 
+#ifndef __WXWINCE__
     if ( (GetFormat(format) == wxPATH_DOS) ||
          (GetFormat(format) == wxPATH_VMS) )
     {
         sepVol = wxFILE_SEP_DSK;
     }
     //else: leave empty
+#endif
 
     return sepVol;
 }

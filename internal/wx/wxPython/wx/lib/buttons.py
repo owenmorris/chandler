@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     9-Dec-1999
-# RCS-ID:      $Id: buttons.py,v 1.12 2005/05/17 00:40:57 RD Exp $
+# RCS-ID:      $Id: buttons.py,v 1.13 2006/01/17 05:42:21 RD Exp $
 # Copyright:   (c) 1999 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -529,10 +529,10 @@ class __ToggleMixin:
         if not self.IsEnabled() or not self.HasCapture():
             return
         if self.HasCapture():
-            if self.up != self.saveUp:
-                self.Notify()
             self.ReleaseMouse()
             self.Refresh()
+            if self.up != self.saveUp:
+                self.Notify()
 
     def OnKeyDown(self, event):
         event.Skip()

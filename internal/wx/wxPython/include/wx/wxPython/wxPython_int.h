@@ -8,7 +8,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-July-1997
-// RCS-ID:      $Id: wxPython_int.h,v 1.38 2005/12/30 23:01:39 RD Exp $
+// RCS-ID:      $Id: wxPython_int.h,v 1.39 2006/01/17 05:42:27 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -286,7 +286,7 @@ PyObject* wxArrayInt2PyList_helper(const wxArrayInt& arr);
 #ifndef wxPyUSE_EXPORTED_API
 
 class wxPyCallback : public wxObject {
-    DECLARE_ABSTRACT_CLASS(wxPyCallback);
+    DECLARE_ABSTRACT_CLASS(wxPyCallback)
 public:
     wxPyCallback(PyObject* func);
     wxPyCallback(const wxPyCallback& other);
@@ -606,7 +606,7 @@ enum {
 
 class wxPyApp: public wxApp
 {
-    DECLARE_ABSTRACT_CLASS(wxPyApp);
+    DECLARE_ABSTRACT_CLASS(wxPyApp)
 
 public:
     wxPyApp();

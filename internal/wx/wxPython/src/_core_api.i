@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Sept-2003
-// RCS-ID:      $Id: _core_api.i,v 1.12 2005/12/30 23:01:18 RD Exp $
+// RCS-ID:      $Id: _core_api.i,v 1.13 2006/01/17 05:42:23 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@
 // in the wrapper code.
 
 #include <wx/hashmap.h>
-WX_DECLARE_STRING_HASH_MAP( swig_type_info*, wxPyTypeInfoHashMap );
+    WX_DECLARE_STRING_HASH_MAP( swig_type_info*, wxPyTypeInfoHashMap );
 
 
 // Maintains a hashmap of className to swig_type_info pointers.  Given the

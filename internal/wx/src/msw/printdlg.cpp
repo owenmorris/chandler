@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: printdlg.cpp,v 1.34 2005/09/23 12:55:07 MR Exp $
+// RCS-ID:      $Id: printdlg.cpp,v 1.35 2006/01/17 09:53:14 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -202,7 +202,8 @@ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
 
         //// Printer name
         if (devMode->dmDeviceName[0] != 0)
-            data.SetPrinterName( devMode->dmDeviceName );
+            // This syntax fixes a crash when using VS 7.1
+            data.SetPrinterName( wxString(devMode->dmDeviceName, CCHDEVICENAME) );
 
         //// Colour
         if (devMode->dmFields & DM_COLOR)

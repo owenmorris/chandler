@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp,v 1.165 2005/12/01 11:02:18 ABX Exp $
+// RCS-ID:      $Id: notebook.cpp,v 1.166 2006/01/17 15:36:47 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -450,7 +450,22 @@ bool wxNotebook::SetPageText(size_t nPage, const wxString& strText)
     tcItem.mask = TCIF_TEXT;
     tcItem.pszText = (wxChar *)strText.c_str();
 
-    return TabCtrl_SetItem(GetHwnd(), nPage, &tcItem) != 0;
+    if ( !HasFlag(wxNB_MULTILINE) )
+        return TabCtrl_SetItem(GetHwnd(), nPage, &tcItem) != 0;
+
+    // multiline - we need to set new page size if a line is added or removed
+    int rows = GetRowCount();
+    bool ret = TabCtrl_SetItem(GetHwnd(), nPage, &tcItem) != 0;
+
+    if ( ret && rows != GetRowCount() )
+    {
+        const wxRect r = GetPageSize();
+        const size_t count = m_pages.Count();
+        for ( size_t page = 0; page < count; page++ )
+            m_pages[page]->SetSize(r);
+    }
+
+    return ret;
 }
 
 wxString wxNotebook::GetPageText(size_t nPage) const

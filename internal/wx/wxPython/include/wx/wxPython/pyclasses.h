@@ -7,7 +7,7 @@
 // Author:      Robin Dunn
 //
 // Created:     11-Oct-2003
-// RCS-ID:      $Id: pyclasses.h,v 1.12 2005/03/09 22:28:46 RD Exp $
+// RCS-ID:      $Id: pyclasses.h,v 1.13 2006/01/17 05:42:27 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
 //---------------------------------------------------------------------------
 
 class wxPySizer : public wxSizer {
-    DECLARE_DYNAMIC_CLASS(wxPySizer);
+    DECLARE_DYNAMIC_CLASS(wxPySizer)
 public:
     wxPySizer() : wxSizer() {};
 
@@ -33,7 +33,7 @@ public:
 //---------------------------------------------------------------------------
 
 class wxPyValidator : public wxValidator {
-    DECLARE_DYNAMIC_CLASS(wxPyValidator);
+    DECLARE_DYNAMIC_CLASS(wxPyValidator)
 public:
     wxPyValidator() {
     }

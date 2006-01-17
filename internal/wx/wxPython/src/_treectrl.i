@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _treectrl.i,v 1.26 2005/04/06 04:19:03 RD Exp $
+// RCS-ID:      $Id: _treectrl.i,v 1.27 2006/01/17 05:42:22 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -263,7 +263,7 @@ public:
 
 %{ // C++ version of Python aware wxTreeCtrl
 class wxPyTreeCtrl : public wxTreeCtrl {
-    DECLARE_ABSTRACT_CLASS(wxPyTreeCtrl);
+    DECLARE_ABSTRACT_CLASS(wxPyTreeCtrl)
 public:
     wxPyTreeCtrl() : wxTreeCtrl() {}
     wxPyTreeCtrl(wxWindow *parent, wxWindowID id,
