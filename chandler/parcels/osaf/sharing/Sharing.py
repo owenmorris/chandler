@@ -1794,7 +1794,11 @@ class WebDAVConduit(ShareConduit):
         if not location.endswith("/"):
             location += "/"
         resource = handle.getResource(location)
-        handle.blockUntil(resource.setDisplayName, name)
+        try:
+            handle.blockUntil(resource.setDisplayName, name)
+        except zanshin.http.HTTPError:
+            # Ignore HTTP errors (like PROPPATCH not being supported)
+            pass
 
 
 class CalDAVConduit(WebDAVConduit):
@@ -1811,7 +1815,6 @@ class CalDAVConduit(WebDAVConduit):
         container = self._getContainerResource()
         resourcePath = container.path + itemName
         resource = serverHandle.getResource(resourcePath)
-        serverHandle.blockUntil(resource.setDisplayName, displayName)
 
         return result
 
