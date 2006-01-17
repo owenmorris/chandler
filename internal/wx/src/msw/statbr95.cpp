@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.04.98
-// RCS-ID:      $Id: statbr95.cpp,v 1.66 2006/01/13 01:32:04 JG Exp $
+// RCS-ID:      $Id: statbr95.cpp,v 1.67 2006/01/17 19:56:51 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -306,8 +306,11 @@ void wxStatusBar95::DoMoveWindow(int x, int y, int width, int height)
         // we must use SWP_NOCOPYBITS here otherwise it paints incorrectly
         // if other windows are size deferred
         ::SetWindowPos(GetHwnd(), NULL, x, y, width, height,
-                       SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE |
-                       SWP_NOCOPYBITS | SWP_NOSENDCHANGING);
+                       SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE
+#ifndef __WXWINCE__                       
+                       | SWP_NOCOPYBITS | SWP_NOSENDCHANGING
+#endif
+                       );
     }
 
     // adjust fields widths to the new size
