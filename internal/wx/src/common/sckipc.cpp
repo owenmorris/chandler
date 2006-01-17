@@ -7,7 +7,7 @@
 //                                  (callbacks deprecated)    Mar 2000
 //              Vadim Zeitlin (added support for Unix sockets) Apr 2002
 // Created:     1993
-// RCS-ID:      $Id: sckipc.cpp,v 1.48 2005/09/23 12:53:06 MR Exp $
+// RCS-ID:      $Id: sckipc.cpp,v 1.49 2006/01/17 18:09:32 JS Exp $
 // Copyright:   (c) Julian Smart 1993
 //              (c) Guilhem Lavaux 1997, 1998
 //              (c) 2000 Guillermo Rodriguez <guille@iies.es>
@@ -85,7 +85,7 @@ static wxSockAddress *
 GetAddressFromName(const wxString& serverName, const wxString& host = wxEmptyString)
 {
     // we always use INET sockets under non-Unix systems
-#if defined(__UNIX__) && !defined(__WINDOWS__) && !defined(__WXMAC__) && !defined(__WINE__)
+#if defined(__UNIX__) && !defined(__WINDOWS__) && !defined(__WINE__) && (!defined(__WXMAC__) || defined(__DARWIN__))
     // under Unix, if the server name looks like a path, create a AF_UNIX
     // socket instead of AF_INET one
     if ( serverName.Find(_T('/')) != wxNOT_FOUND )

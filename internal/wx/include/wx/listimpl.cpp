@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16/11/98
-// RCS-ID:      $Id: listimpl.cpp,v 1.8 2005/02/27 15:40:37 VZ Exp $
+// RCS-ID:      $Id: listimpl.cpp,v 1.9 2006/01/17 19:02:39 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@
 
     #undef  WX_DEFINE_LIST
     #define WX_DEFINE_LIST(name)                                        \
-        void name::DeleteFunction( const _WX_LIST_ITEM_TYPE_##name X )  \
+        void name::DeleteFunction( _WX_DELETEFUNCTIONCONST _WX_LIST_ITEM_TYPE_##name X )  \
         {                                                               \
             delete X;                                                   \
         }

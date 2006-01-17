@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: K. S. Sreeram (2002): POSIXified wxCondition, added wxSemaphore
 // Created:     04/22/98
-// RCS-ID:      $Id: threadpsx.cpp,v 1.88 2005/10/08 16:56:42 VZ Exp $
+// RCS-ID:      $Id: threadpsx.cpp,v 1.89 2006/01/17 19:17:40 JS Exp $
 // Copyright:   (c) Wolfram Gloger (1996, 1997)
 //                  Guilhem Lavaux (1998)
 //                  Vadim Zeitlin (1999-2002)
@@ -818,6 +818,7 @@ extern "C" void wxPthreadCleanup(void *ptr)
 
 void wxThreadInternal::Cleanup(wxThread *thread)
 {
+    if (pthread_getspecific(gs_keySelf) == 0) return;
     {
         wxCriticalSectionLocker lock(thread->m_critsect);
         if ( thread->m_internal->GetState() == STATE_EXITED )
@@ -1481,6 +1482,7 @@ void wxThread::Exit(ExitCode status)
         //       we make it a global object, but this would mean that we can
         //       only call one thread function at a time :-(
         DeleteThread(this);
+        pthread_setspecific(gs_keySelf, 0);
     }
     else
     {

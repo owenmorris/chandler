@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.186 2006/01/09 12:27:18 VZ Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.187 2006/01/17 19:10:29 JS Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -57,7 +57,9 @@
 
 /* Almost all compiler have strdup(), but not quite all: CodeWarrior under Mac */
 /* and VC++ for Windows CE don't provide it */
-#if !(defined(__MWERKS__) && defined(__WXMAC__)) && !defined(__WXWINCE__)
+#if defined(__VISUALC__) && __VISUALC__ >= 1400
+    #define wxStrdupA _strdup
+#elif !(defined(__MWERKS__) && defined(__WXMAC__)) && !defined(__WXWINCE__)
     /* use #define, not inline wrapper, as it is tested with #ifndef below */
     #define wxStrdupA strdup
 #endif
