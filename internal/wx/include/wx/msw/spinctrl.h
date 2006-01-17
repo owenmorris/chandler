@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.h,v 1.25 2005/09/23 12:50:15 MR Exp $
+// RCS-ID:      $Id: spinctrl.h,v 1.26 2006/01/17 16:59:02 JS Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -102,6 +102,7 @@ protected:
     // Handle processing of special keys
     void OnChar(wxKeyEvent& event);
     void OnSetFocus(wxFocusEvent& event);
+    void OnKillFocus(wxFocusEvent& event);
 
     // the data for the "buddy" text ctrl
     WXHWND     m_hwndBuddy;

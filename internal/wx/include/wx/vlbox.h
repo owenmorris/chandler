@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: vlbox.h,v 1.16 2005/04/10 15:22:53 VZ Exp $
+// RCS-ID:      $Id: vlbox.h,v 1.17 2006/01/17 16:58:58 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -13,6 +13,7 @@
 #define _WX_VLBOX_H_
 
 #include "wx/vscroll.h"         // base class
+#include "wx/bitmap.h"
 
 class WXDLLEXPORT wxSelectionStore;
 
@@ -286,6 +287,8 @@ private:
     // the selection bg colour
     wxColour m_colBgSel;
 
+    // double buffer
+    wxBitmap* m_doubleBuffer;
 
     DECLARE_EVENT_TABLE()
     DECLARE_NO_COPY_CLASS(wxVListBox)

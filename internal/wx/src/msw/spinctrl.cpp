@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.cpp,v 1.58 2005/09/23 12:55:10 MR Exp $
+// RCS-ID:      $Id: spinctrl.cpp,v 1.59 2006/01/17 16:47:55 JS Exp $
 // Copyright:   (c) 1999-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -109,11 +109,12 @@ wxCONSTRUCTOR_6( wxSpinCtrl , wxWindow* , Parent , wxWindowID , Id , wxString , 
 IMPLEMENT_DYNAMIC_CLASS(wxSpinCtrl, wxControl)
 #endif
 
+//pmg EVT_KILL_FOCUS
 BEGIN_EVENT_TABLE(wxSpinCtrl, wxSpinButton)
     EVT_CHAR(wxSpinCtrl::OnChar)
 
     EVT_SET_FOCUS(wxSpinCtrl::OnSetFocus)
-
+    EVT_KILL_FOCUS(wxSpinCtrl::OnKillFocus)
     EVT_SPIN(wxID_ANY, wxSpinCtrl::OnSpinChange)
 END_EVENT_TABLE()
 
@@ -259,6 +260,13 @@ void wxSpinCtrl::OnChar(wxKeyEvent& event)
     }
 
     // no, we didn't process it
+    event.Skip();
+}
+
+void wxSpinCtrl::OnKillFocus(wxFocusEvent& event)
+{
+    // ensure that the value is shown correctly
+    SetValue(GetValue()) ; 
     event.Skip();
 }
 
