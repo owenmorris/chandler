@@ -51,9 +51,6 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('PrintPreview',
                             'ActiveViewBubbleUp').install(parcel),
 
-        BlockEvent.template('SendShareItem',
-                            'FocusBubbleUp').install(parcel),
-
         # It's possible that Clear and Remove should be the same event,
         # contextually applied to either text or items. For now, I'm trying
         # them separately. --stearns
@@ -90,9 +87,6 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('Preferences',
                             'ActiveViewBubbleUp').install(parcel),
 
-        BlockEvent.template('SelectedDateChanged',
-                            'BroadcastEverywhere').install(parcel),
-        
         BlockEvent.template('SelectItemsBroadcast',
                             'BroadcastInsideMyEventBoundary',
                             methodName='onSelectItemsEvent').install(parcel),

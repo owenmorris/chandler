@@ -436,11 +436,19 @@ def make_mainview(parcel):
                             'SendToBlockByName',
                             dispatchToBlockName='MainView').install(parcel)
                   
+    SendShareItemEvent = \
+        BlockEvent.template('SendShareItem',
+                            'FocusBubbleUp').install(parcel)
+
     ShareItemEvent = \
         BlockEvent.template('ShareItem',
                             'SendToBlockByName',
                             dispatchToBlockName='MainView').install(parcel)
                   
+    SelectedDateChangedEvent = \
+        BlockEvent.template('SelectedDateChanged',
+                            'BroadcastEverywhere').install(parcel)
+        
     SelectWeekEvent = \
         BlockEvent.template('SelectWeek',
                             'BroadcastEverywhere').install(parcel)
@@ -487,6 +495,7 @@ def make_mainview(parcel):
         eventsForNamedLookup=[
             RequestSelectSidebarItemEvent,
             SendMailEvent,
+            SelectedDateChangedEvent,
             ShareItemEvent,
             SelectWeekEvent,
             ApplicationBarEventEvent,
@@ -686,7 +695,7 @@ def make_mainview(parcel):
                         title=_(u'&Item'),
                         childrenBlocks=[
                             MenuItem.template('SendMessageItem',
-                                event=globalBlocks.SendShareItem,
+                                event=SendShareItemEvent,
                                 title=messages.SEND,
                                 helpString=_(u'Send the selected Mail Message')),
                             MenuItem.template('ItemSeparator1',
@@ -971,7 +980,7 @@ def make_mainview(parcel):
                             ToolbarItem.template('ApplicationSeparator2',
                                 toolbarItemKind='Separator'),
                             ToolbarItem.template('ApplicationBarSendButton',
-                                event=globalBlocks.SendShareItem,
+                                event=SendShareItemEvent,
                                 bitmap='ApplicationBarSend.png',
                                 title=messages.SEND,
                                 toolbarItemKind='Button',

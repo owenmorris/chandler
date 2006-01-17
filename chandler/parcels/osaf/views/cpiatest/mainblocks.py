@@ -376,6 +376,10 @@ def make_mainview(parcel):
                             'SendToBlockByName',
                             dispatchToBlockName='MainView').install(parcel)
                   
+    SendShareItemEvent = \
+        BlockEvent.template('SendShareItem',
+                            'FocusBubbleUp').install(parcel)
+
     ShareItemEvent = \
         BlockEvent.template('ShareItem',
                             'SendToBlockByName',
@@ -383,6 +387,10 @@ def make_mainview(parcel):
                   
     SelectWeekEvent = \
         BlockEvent.template('SelectWeek',
+                            'BroadcastEverywhere').install(parcel)
+        
+    SelectedDateChangedEvent = \
+        BlockEvent.template('SelectedDateChanged',
                             'BroadcastEverywhere').install(parcel)
         
     SidebarBPBDelegateInstance = \
@@ -411,6 +419,7 @@ def make_mainview(parcel):
         eventsForNamedLookup=[
             RequestSelectSidebarItemEvent,
             SendMailEvent,
+            SelectedDateChangedEvent,
             ShareItemEvent,
             SelectWeekEvent,
             ApplicationBarEventEvent,
@@ -831,7 +840,7 @@ def make_mainview(parcel):
                             ToolbarItem.template('ApplicationSeparator2',
                                 toolbarItemKind='Separator'),
                             ToolbarItem.template('ApplicationBarSendButton',
-                                event=globalevents.SendShareItem,
+                                event=SendShareItemEvent,
                                 bitmap='ApplicationBarSend.png',
                                 title=messages.SEND,
                                 label=messages.SEND,
