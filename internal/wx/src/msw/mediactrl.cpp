@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.cpp,v 1.61 2005/11/20 21:55:20 DS Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.62 2006/01/17 04:19:32 RD Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1612,7 +1612,10 @@ wxAMMediaBackend::~wxAMMediaBackend()
 
     if(m_pAX)
     {
-        m_pAX->DissociateHandle();
+        {
+            wxLogNull noLog;
+            m_pAX->DissociateHandle();
+        }
         delete m_pAX;
         m_pAM->Release();
 
@@ -1629,7 +1632,10 @@ wxAMMediaBackend::~wxAMMediaBackend()
 void wxAMMediaBackend::Clear()
 {
     if(m_pTimer)
+    {
         delete m_pTimer;
+        m_pTimer = NULL;
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -1690,6 +1696,7 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     m_pAX = new wxActiveXContainer(ctrl,
                 m_pMP ? IID_IMediaPlayer : IID_IActiveMovie,
                 m_pAM);
+
 
     //
     //  Here we set up wx-specific stuff for the default
@@ -1869,33 +1876,7 @@ bool wxAMMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::Play()
 {
-    // if the movie isn't done loading yet
-    // go into an sync getmessage loop until it is :)
-    if(m_pMP)
-    {
-        MPReadyStateConstants nState;
-        m_pMP->get_ReadyState(&nState);
-        while(nState == mpReadyStateLoading && wxYieldIfNeeded())
-        {
-          m_pMP->get_ReadyState(&nState);
-        }
-    }
-    else
-    {
-        IActiveMovie2* pAM2;
-        ReadyStateConstants nState;
-        if(m_pAM->QueryInterface(IID_IActiveMovie2, (void**)&pAM2) == 0 &&
-            pAM2->get_ReadyState(&nState) == 0)
-        {
-            while(nState == amvLoading && wxYieldIfNeeded())
-            {
-                pAM2->get_ReadyState(&nState);
-            }
-            pAM2->Release();
-        }
-    }
-
-    //Actually try to play the movie
+    // Actually try to play the movie, even though it may not be loaded yet.
     HRESULT hr = m_pAM->Run();
     if(SUCCEEDED(hr))
     {
