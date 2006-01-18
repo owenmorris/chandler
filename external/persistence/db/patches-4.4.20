@@ -1,5 +1,5 @@
---- db-4.4.16/dbinc/db.in	2005-11-10 17:18:00.000000000 -0800
-+++ db-4.4.16-patched/dbinc/db.in	2005-12-26 09:28:41.000000000 -0800
+--- db-4.4.20/dbinc/db.in	2005-11-10 17:18:00.000000000 -0800
++++ db-4.4.20-patched/dbinc/db.in	2005-12-26 09:28:41.000000000 -0800
 @@ -181,6 +181,7 @@
  #define	DB_DBT_REALLOC		0x010	/* Return in realloc'd memory. */
  #define	DB_DBT_USERMEM		0x020	/* Return in user's memory. */
@@ -8,8 +8,8 @@
  	u_int32_t flags;
  };
  
---- db-4.4.16/db/db_iface.c	2005-11-09 07:21:22.000000000 -0800
-+++ db-4.4.16-patched/db/db_iface.c	2005-12-26 13:24:50.000000000 -0800
+--- db-4.4.20/db/db_iface.c	2005-11-09 07:21:22.000000000 -0800
++++ db-4.4.20-patched/db/db_iface.c	2005-12-26 13:24:50.000000000 -0800
 @@ -2339,20 +2339,21 @@
  	 */
  	if ((ret = __db_fchk(dbenv, name, dbt->flags, DB_DBT_APPMALLOC |
@@ -35,8 +35,8 @@
  		__db_err(dbenv,
  		    "DB_THREAD mandates memory allocation flag on DBT %s",
  		    name);
---- db-4.4.16/db/db_overflow.c	2005-08-08 10:30:51.000000000 -0700
-+++ db-4.4.16-patched/db/db_overflow.c	2006-01-03 11:01:42.000000000 -0800
+--- db-4.4.20/db/db_overflow.c	2005-08-08 10:30:51.000000000 -0700
++++ db-4.4.20-patched/db/db_overflow.c	2006-01-03 11:01:42.000000000 -0800
 @@ -85,8 +85,9 @@
  	DB_MPOOLFILE *mpf;
  	PAGE *h;
@@ -137,8 +137,8 @@
  	return (0);
  }
  
---- db-4.4.16/db/db_ret.c	2005-06-16 13:21:14.000000000 -0700
-+++ db-4.4.16-patched/db/db_ret.c	2006-01-03 11:12:03.000000000 -0800
+--- db-4.4.20/db/db_ret.c	2005-06-16 13:21:14.000000000 -0700
++++ db-4.4.20-patched/db/db_ret.c	2006-01-03 11:12:03.000000000 -0800
 @@ -126,6 +126,14 @@
  	} else if (F_ISSET(dbt, DB_DBT_USERMEM)) {
  		if (len != 0 && (dbt->data == NULL || dbt->ulen < len))
@@ -154,8 +154,8 @@
  	} else if (memp == NULL || memsize == NULL) {
  		ret = EINVAL;
  	} else {
---- db-4.4.16/build_win32/db.h	2005-11-12 09:42:57.000000000 -0800
-+++ db-4.4.16-patched/build_win32/db.h	2006-01-03 14:32:25.000000000 -0800
+--- db-4.4.20/build_win32/db.h	2005-11-12 09:42:57.000000000 -0800
++++ db-4.4.20-patched/build_win32/db.h	2006-01-03 14:32:25.000000000 -0800
 @@ -188,6 +188,7 @@
  #define	DB_DBT_REALLOC		0x010	/* Return in realloc'd memory. */
  #define	DB_DBT_USERMEM		0x020	/* Return in user's memory. */

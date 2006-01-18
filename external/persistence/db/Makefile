@@ -1,6 +1,6 @@
 
-VERSION=4.4.16
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=4.4.20
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 DB=$(BUILD_ROOT)/persistence/db
 SRC=$(DB)/db-$(VERSION)
 
@@ -87,4 +87,4 @@ upload: db-$(SNAP)-$(RELVER).tar.gz
 	scp db-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 
 install: db-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xzf db-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf db-$(SNAP)-$(RELVER).tar.gz
