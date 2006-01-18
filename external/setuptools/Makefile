@@ -38,7 +38,7 @@ build: expand apply
 	cd $(SRC); \
     $(PYTHON) setup.py -v \
         build --build-base=$(BUILD) $(DIST_OPT) \
-        install --record=$(MFILE) --install-scripts=$(SNAP)/bin \
+        install --record=$(MFILE) --install-scripts=bin \
                 --force --single-version-externally-managed 
 
 else
@@ -46,7 +46,7 @@ build: expand apply
 	cd $(SRC); \
     MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py -v \
         build --build-base=$(BUILD) $(DIST_OPT) \
-        install --record=$(SETUPTOOLS)/manifest.txt --install-scripts=$(SNAP)/bin \ 
+        install --record=$(SETUPTOOLS)/manifest.txt --install-scripts=bin \ 
                 --force --single-version-externally-managed 
 endif
 
