@@ -769,7 +769,7 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
 #         self.postSelectItemsBroadcast()
 
     def onSelectAllEventUpdateUI(self, event):
-        event.arguments['Enable'] =  len(self.contents) > 0
+        event.arguments['Enable'] =  self.contents is not None and len(self.contents) > 0
 
     def DeleteSelection(self, cutting=False, *args, **kwargs):
         selection = self.GetSelection()
