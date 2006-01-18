@@ -117,10 +117,8 @@ default: install
 
 downloads: $(ARCHIVES)
 
-$(CHANDLERARCHIVES):
+$(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
-
-$(ARCHIVES): $(CHANDLERARCHIVES)
 	$(CURL) $@ $(URL)/$(notdir $@)
 
 $(ARCHIVES_INST):
