@@ -221,7 +221,7 @@ class Photo(object):
         try:
             tag_id = tag.id
         except AttributeError:
-            raise FlickrError, "Tag object expected"
+            raise FlickrError, u"Tag object expected"
         _dopost(method, auth=True, photo_id=self.id, tag_id=tag_id)
         self._load_properties()
 
@@ -254,7 +254,7 @@ class Photo(object):
         for psize in data.rsp.sizes.size:
             if psize.label == size:
                 return getattr(psize, urlType)
-        raise FlickrError, "No URL found"
+        raise FlickrError, u"No URL found"
                 
 class Photoset(object):
     """A Flickr photoset."""
@@ -583,6 +583,10 @@ def photos_search(user_id='', auth=False,  tags='', tag_mode='', text='',\
                   license=license, per_page=per_page,\
                   page=page, sort=sort)
     photos = []
+
+    if not hasattr (data.rsp.photos, 'photo'):
+        raise FlickrError, u"No photos with that tag"
+    
     if isinstance(data.rsp.photos.photo, list):
         for photo in data.rsp.photos.photo:
             photos.append(_parse_photo(photo))
@@ -763,7 +767,7 @@ def _doget(method, auth=False, **params):
     xml = minidom.parse(urlopen(url))
     data = unmarshal(xml)
     if not data.rsp.stat == 'ok':
-        msg = "ERROR [%s]: %s" % (data.rsp.err.code, data.rsp.err.msg)
+        msg = u"ERROR [%s]: %s" % (data.rsp.err.code, data.rsp.err.msg)
         raise FlickrError, msg
     return data
 
@@ -790,7 +794,7 @@ def _dopost(method, auth=False, **params):
     xml = minidom.parse(urlopen(url, payload))
     data = unmarshal(xml)
     if not data.rsp.stat == 'ok':
-        msg = "ERROR [%s]: %s" % (data.rsp.err.code, data.rsp.err.msg)
+        msg = u"ERROR [%s]: %s" % (data.rsp.err.code, data.rsp.err.msg)
         raise FlickrError, msg
     return data
 

@@ -4,32 +4,27 @@ __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.dialogs.Util
-import application.Globals as Globals
 from application import schema
 import flickr
 from osaf import pim
 from photos import PhotoMixin
-import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
 from osaf.pim.collections import KindCollection, FilteredCollection
 from repository.util.URL import URL
 from datetime import datetime
 import dateutil
 import wx
-import os, logging
+import logging
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 from osaf.framework.types.DocumentTypes import SizeType, RectType
+from osaf.framework.blocks.Block import *
+from osaf.framework.blocks.MenusAndToolbars import MenuItem
+from osaf.startup import PeriodicTask
+from datetime import timedelta
 
 
 logger = logging.getLogger(__name__)
-
-def showError(errText):
-    """
-    Utility routine to display internationalized error messages
-    """
-    application.dialogs.Util.ok(wx.GetApp().mainFrame, _(u"Flickr Error"), errText)
-
 
 class FlickrPhotoMixin(PhotoMixin):
     schema.kindInfo(displayName=u"Flickr Photo Mixin",
@@ -124,116 +119,71 @@ def getPhotoByFlickrTitle(view, title):
     for x in filteredPhotos:
         return x
 
-class PhotoCollection(pim.ContentItem):
+class PhotoCollection(pim.ListCollection):
 
     schema.kindInfo(displayName=u"Collection of Flickr Photos")
 
-    photos = schema.Sequence(FlickrPhotoMixin, displayName=u"Flickr Photos")
-    username = schema.One(
+    userName = schema.One(
         schema.Text, displayName=messages.USERNAME, initialValue=u''
     )
     tag = schema.One(
         Tag, displayName=u"Tag", initialValue=None
     )
 
-    def getCollectionFromFlickr(self,repView):
-        coll = pim.ListCollection(itsView = repView).setup()
-        if self.username:
-            flickrUsername = flickr.people_findByUsername(self.username.encode('utf8'))
+    def onAddToCollection (self, event):
+        result = None
+        if event.collectionType == 'Owner':
+            userName = application.dialogs.Util.promptUser(
+                wx.GetApp().mainFrame,
+                messages.USERNAME,
+                _(u"Enter a Flickr user name"),
+                u"")
+            if userName is not None:
+                self.userName = userName
+        else:
+            assert (event.collectionType == 'Tag')
+            tagString = application.dialogs.Util.promptUser(
+                wx.GetApp().mainFrame,
+                _(u"Tag"),
+                _(u"Enter a Flickr Tag"),
+                u"")
+            if tagString is not None:
+                self.tag = Tag.getTag(self.itsView, tagString)
+
+        if self.userName or self.tag:
             try:
-                flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)
+                self.getCollectionFromFlickr(self.itsView)
+            except flickr.FlickrError, fe:
+                wx.MessageBox (unicode(fe))
+            else:
+                result = self
+
+        return result
+
+
+    def getCollectionFromFlickr(self, repView):
+        coll = pim.ListCollection(itsView = repView).setup()
+        if self.userName:
+            flickrUserName = flickr.people_findByUsername(self.userName.encode('utf8'))
+            try:
+                flickrPhotos = flickr.people_getPublicPhotos(flickrUserName.id,10)
             except AttributeError:
                 #This is raised if the user has no photos
                 flickrPhotos = []
 
-            coll.displayName = self.username
+            self.displayName = self.userName
         elif self.tag:
             flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-desc")
-            coll.displayName = self.tag.displayName
+            self.displayName = self.tag.displayName
 
-        self.sidebarCollection = coll
-
-        for i in flickrPhotos:
-            photoItem = getPhotoByFlickrID(repView, i.id)
+        userdata = self.itsView.findPath ("//userdata")
+        for flickrPhoto in flickrPhotos:
+            photoItem = getPhotoByFlickrID(repView, flickrPhoto.id)
             if photoItem is None:
-                photoItem = FlickrPhoto(photo=i,itsView=repView,itsParent=coll)
-            coll.add(photoItem)
+                photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView, itsParent=userdata)
+            self.add (photoItem)
         repView.commit()
 
-        return coll
-
-    def update(self,repView):
-        self.getCollectionFromFlickr(repView)
-
-#
-# Block related code
-#
-
-class FlickrCollectionController(Block.Block):
-    def onNewFlickrCollectionByOwnerEvent(self, event):
-        return CreateCollectionFromUsernamePrompter(self.itsView, Globals.views[0])
-
-    def onNewFlickrCollectionByTagEvent(self, event):
-        return CreateCollectionFromTagPrompter(self.itsView, Globals.views[0])
-
-def CreateCollectionFromUsernamePrompter(repView, cpiaView):
-    username = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                                   messages.USERNAME,
-                                                   _(u"Enter a Flickr Username"),
-                                                   u"")
-    if username:
-        try:
-            return CreateCollectionFromUsername(username, repView, cpiaView)
-        except flickr.FlickrError, fe:
-            if "User not found" in str(fe):
-                errMsg = _(u"Username '%(username)s' was not found.") % {'username': username}
-            else:
-                logger.exception(fe)
-                errMsg = _(u"An error occurred communicating with Flickr server.\nPlease see log for more details.")
-
-        except Exception, e:
-            logger.exception(e)
-            errMsg = _(u"Unable to communicate with Flickr server.\nPlease see log for more details.")
-
-        showError(errMsg)
-
-def CreateCollectionFromUsername(username, repView, cpiaView):
-    myPhotoCollection = PhotoCollection(itsView = repView)
-    myPhotoCollection.username = username
-    myPhotoCollection.getCollectionFromFlickr(repView)
-
-    # Add the channel to the sidebar
-    schema.ns("osaf.app", cpiaView).sidebarCollection.add(myPhotoCollection.sidebarCollection)
-    return myPhotoCollection.sidebarCollection
-
-    
-
-def CreateCollectionFromTagPrompter(repView, cpiaView):
-    tagstring = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                                   _(u"Tag"),
-                                                   _(u"Enter a Flickr Tag"),
-                                                   u"")
-    if tagstring:
-        try:
-            return CreateCollectionFromTag(tagstring, repView, cpiaView)
-        except flickr.FlickrError, fe:
-            logger.exception(fe)
-            errMsg = _(u"An error occurred communicating with Flickr server.\nPlease see log for more details.")
-        except AttributeError:
-            errMsg = _(u"No Flickr items found for tag '%(tag)s'.") % {'tag': tagstring}
-        except Exception, e:
-            logger.exception(e)
-            errMsg = _(u"Unable to communicate with Flickr server.\nPlease see log for more details.")
-        showError(errMsg)
-
-def CreateCollectionFromTag(tagstring, repView, cpiaView):
-    myPhotoCollection = PhotoCollection(itsView = repView)
-    myPhotoCollection.tag = Tag.getTag(repView, tagstring)
-    myPhotoCollection.getCollectionFromFlickr(repView)
-
-    # Add the channel to the sidebar
-    schema.ns("osaf.app", cpiaView).sidebarCollection.add(myPhotoCollection.sidebarCollection)
-    return myPhotoCollection.sidebarCollection
 
 #
 # Wakeup caller
@@ -251,32 +201,47 @@ class UpdateTask:
 
         # We need the Kind object for PhotoCollection
         for myPhotoCollection in PhotoCollection.iterItems(self.view):
-            myPhotoCollection.update(self.view)
+            myPhotoCollection.getCollectionFromFlickr(self.view)
 
         # We want to commit the changes to the repository
         self.view.commit()
         return True
 
-from osaf.framework.blocks.Block import BlockEvent
-from osaf.framework.blocks.MenusAndToolbars import MenuItem
-from osaf.startup import PeriodicTask
-from datetime import timedelta
+class CollectionTypeEnumType(schema.Enumeration):
+      values = "Tag", "Owner"
+
+class NewFlickrCollectionEvent(ModifyCollectionEvent):
+    collectionType = schema.One (CollectionTypeEnumType, initialValue = 'Tag')
 
 def installParcel(parcel, oldVersion=None):
 
-    controller = FlickrCollectionController.update(parcel, 'FlickrCollectionControllerItem')
+    PhotoCollectionTemplate = PhotoCollection.update(
+        parcel, 'PhotoCollectionTemplate',
+        displayName = messages.UNTITLED).setup()
 
-    ownerEvent = BlockEvent.update(parcel, 'NewFlickrCollectionByOwnerEvent',
-                      blockName = 'NewFlickrCollectionByOwner',
-                      dispatchEnum = 'SendToBlockByReference',
-                      destinationBlockReference = controller,
-                      commitAfterDispatch = True)
+    NewFlickrCollectionByOwnerEvent = NewFlickrCollectionEvent.update(
+        parcel, 'NewFlickrCollectionByOwnerEvent',
+        methodName='onModifyCollectionEvent',
+        copyItems = True,
+        disambiguateDisplayName = True,
+        dispatchToBlockName = 'MainView',
+        selectInBlockNamed = 'Sidebar',
+        items=[PhotoCollectionTemplate],
+        dispatchEnum = 'SendToBlockByName',
+        commitAfterDispatch = True,
+        collectionType = 'Owner')
 
-    tagEvent = BlockEvent.update(parcel, 'NewFlickrCollectionByTagEvent',
-                      blockName = 'NewFlickrCollectionByTag',
-                      dispatchEnum = 'SendToBlockByReference',
-                      destinationBlockReference = controller,
-                      commitAfterDispatch = True)
+    NewFlickrCollectionByTagEvent = NewFlickrCollectionEvent.update(
+        parcel, 'NewFlickrCollectionByOwnerEvent',
+        methodName='onModifyCollectionEvent',
+        copyItems = True,
+        disambiguateDisplayName = True,
+        dispatchToBlockName = 'MainView',
+        selectInBlockNamed = 'Sidebar',
+        items=[PhotoCollectionTemplate],
+        dispatchEnum = 'SendToBlockByName',
+        commitAfterDispatch = True,
+        collectionType = 'Tag')
 
     collectionMenu = schema.ns('osaf.views.main', parcel).CollectionMenu
 
@@ -286,17 +251,17 @@ def installParcel(parcel, oldVersion=None):
                     parentBlock = collectionMenu)
 
     MenuItem.update(parcel, 'NewFlickrCollectionByOwner',
-                    blockName = 'NewFlickrCollectionByOwnerItem',
+                    blockName = 'NewFlickrCollectionByOwnerMenuItem',
                     title = _(u'New Flickr Collection by Owner'),
-                    event = ownerEvent,
-                    eventsForNamedLookup = [ ownerEvent ],
+                    event = NewFlickrCollectionByOwnerEvent,
+                    eventsForNamedLookup = [NewFlickrCollectionByOwnerEvent],
                     parentBlock = collectionMenu)
  
     MenuItem.update(parcel, 'NewFlickrCollectionByTag',
-                    blockName = 'NewFlickrCollectionByTagItem',
+                    blockName = 'NewFlickrCollectionByTagIMenutem',
                     title = _(u'New Flickr Collection by Tag'),
-                    event = tagEvent,
-                    eventsForNamedLookup = [ tagEvent ],
+                    event = NewFlickrCollectionByTagEvent,
+                    eventsForNamedLookup = [NewFlickrCollectionByTagEvent],
                     parentBlock = collectionMenu)
 
 

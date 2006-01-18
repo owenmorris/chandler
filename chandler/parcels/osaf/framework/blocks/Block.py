@@ -487,6 +487,17 @@ class Block(schema.Item):
                 if method:
                     method (item)
 
+            # Call the item's onAddToCollection method if it has one. If it returns None
+            # Exit. If it returns something else, add that to the collection
+            method = getattr (type (item), "onAddToCollection", None)
+            if method:
+                result = method (item, event)
+                if result is None:
+                    if event.copyItems:
+                        item.delete (cloudAlias="copying")
+                    return
+                item = result
+
             if event.disambiguateDisplayName:
                 # You can only change the name if you make a copy
                 assert self.copy
@@ -503,16 +514,6 @@ class Block(schema.Item):
                         item.displayName = newDisplayName
                         break
             
-            # Call the item's onInit method if it has one. If it returns None
-            # Exit. If it returns something else, add that to the collection
-            # instead of the item.
-            method = getattr (type (item), "onAddToCollection", None)
-            if method:
-                result = method (item, event)
-                if result is False:
-                    return
-                if result is not None:
-                    item = result
             collection.add (item)
 
             # Optionally select the item in a named block and p;ossibly edit
