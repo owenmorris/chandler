@@ -5,7 +5,7 @@
 //               (derived in part from dynlib.cpp (c) 1998 Guilhem Lavaux)
 // Modified by:
 // Created:      03/12/01
-// RCS-ID:       $Id: dynload.h,v 1.26 2005/10/09 15:48:09 MBN Exp $
+// RCS-ID:       $Id: dynload.h,v 1.27 2006/01/18 11:46:40 JS Exp $
 // Copyright:    (c) 2001 Ron Lee <ron@debian.org>
 // Licence:      wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ class WXDLLIMPEXP_BASE wxPluginLibrary;
 
 
 WX_DECLARE_STRING_HASH_MAP_WITH_DECL(wxPluginLibrary *, wxDLManifest,
-                                     class WXDLLIMPEXP_BASE);
+                                     class WXDLLIMPEXP_BASE)
 typedef wxDLManifest wxDLImports;
 
 // ---------------------------------------------------------------------------

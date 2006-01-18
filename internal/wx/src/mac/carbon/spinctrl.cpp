@@ -3,7 +3,7 @@
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by: Mark Newsam (Based on GTK file)
-// RCS-ID:      $Id: spinctrl.cpp,v 1.19 2005/11/07 10:15:42 JS Exp $
+// RCS-ID:      $Id: spinctrl.cpp,v 1.20 2006/01/18 09:55:22 JS Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,6 +63,7 @@ protected:
             // Send event that the text was manually changed
             wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, m_spin->GetId());
             event.SetEventObject(m_spin);
+            event.SetString(m_spin->GetText()->GetValue());
             event.SetInt(val);
 
             m_spin->GetEventHandler()->ProcessEvent(event);

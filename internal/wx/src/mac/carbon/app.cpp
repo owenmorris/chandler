@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.cpp,v 1.194 2006/01/12 20:08:54 VZ Exp $
+// RCS-ID:      $Id: app.cpp,v 1.195 2006/01/15 07:20:59 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

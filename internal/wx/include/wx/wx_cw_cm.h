@@ -4,7 +4,7 @@
  Author:      Stefan Csomor
  Modified by:
  Created:
- RCS-ID:      $Id: wx_cw_cm.h,v 1.22 2005/05/09 16:07:06 SC Exp $
+ RCS-ID:      $Id: wx_cw_cm.h,v 1.23 2006/01/18 14:13:20 JS Exp $
  Copyright:   (c) Stefan Csomor
  Licence:     wxWindows licence
 */
@@ -21,8 +21,8 @@
 
 #define WX_COMP_INLINE_NO_CLASS // defined if the compiler does not want the classname repeated for inlines within a class definition
 
-#if __MWERKS__ >= 0x2400 && __MWERKS__ <= 0x3200
-#pragma old_argmatch on
+#if __MWERKS__ >= 0x2400 && __MWERKS__ < 0x3200
+    #pragma old_argmatch on
 #endif
 
 #if (__MWERKS__ < 0x0900) || macintosh || __MACH__
@@ -58,10 +58,18 @@
     #define USE_PRECOMPILED_MAC_HEADERS  0  /*Set to 0 if you don't want to use precompiled MacHeaders*/
     #define ACCESSOR_CALLS_ARE_FUNCTIONS 1
     #define OPAQUE_TOOLBOX_STRUCTS 1
-    #ifdef __MACH__
+    
+    /*CW9 has mbstate_t*/
+    #if defined(__MACH__) && __MWERKS__ < 0x3200
 		typedef int mbstate_t;
 		#define	_MBSTATE_T
     #endif
+    
+    /*CW9 has ssize_t*/
+    #if defined(__MACH__) && __MWERKS__ >= 0x3200
+        #define HAVE_SSIZE_T
+	#endif
+	
 	#include <mslconfig>
     // for getting the correct expat includes
     #define MACOS_CLASSIC

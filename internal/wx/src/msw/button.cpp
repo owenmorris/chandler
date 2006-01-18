@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: button.cpp,v 1.95 2005/12/28 23:40:21 vell Exp $
+// RCS-ID:      $Id: button.cpp,v 1.96 2006/01/18 16:16:36 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ wxSize wxButton::DoGetBestSize() const
 
     wxCoord wBtn,
             hBtn;
-    dc.GetMultiLineTextExtent(GetLabel(), &wBtn, &hBtn);
+    dc.GetMultiLineTextExtent(wxStripMenuCodes(GetLabel()), &wBtn, &hBtn);
 
     // add a margin -- the button is wider than just its label
     wBtn += 3*GetCharWidth();

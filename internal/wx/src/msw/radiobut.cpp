@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: radiobut.cpp,v 1.59 2005/09/23 12:55:09 MR Exp $
+// RCS-ID:      $Id: radiobut.cpp,v 1.60 2006/01/18 16:16:36 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -296,7 +296,7 @@ wxSize wxRadioButton::DoGetBestSize() const
     int wRadio, hRadio;
     if ( !str.empty() )
     {
-        GetTextExtent(str, &wRadio, &hRadio);
+        GetTextExtent(wxStripMenuCodes(str), &wRadio, &hRadio);
         wRadio += s_radioSize + GetCharWidth();
 
         if ( hRadio < s_radioSize )

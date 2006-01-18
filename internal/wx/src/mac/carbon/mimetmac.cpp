@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/16/2005
-// RCS-ID:      $Id: mimetmac.cpp,v 1.32 2006/01/07 17:29:16 vell Exp $
+// RCS-ID:      $Id: mimetmac.cpp,v 1.33 2006/01/18 13:02:08 JS Exp $
 // Copyright:   (c) 2005 Ryan Norton (<wxprojects@comcast.net>)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,6 +55,7 @@
 
 #ifndef __DARWIN__
     #include <InternetConfig.h>
+    #include <CoreServices.h>
 #endif
 
 

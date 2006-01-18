@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button.cpp,v 1.50 2006/01/02 02:29:16 vell Exp $
+// RCS-ID:      $Id: button.cpp,v 1.51 2006/01/15 07:20:59 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

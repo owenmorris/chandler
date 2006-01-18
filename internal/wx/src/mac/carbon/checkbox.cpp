@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: checkbox.cpp,v 1.36 2006/01/03 23:11:20 vell Exp $
+// RCS-ID:      $Id: checkbox.cpp,v 1.37 2006/01/15 07:20:59 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

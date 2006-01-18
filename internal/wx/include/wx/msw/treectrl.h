@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10/10/98
 // Created:     01/02/97
-// RCS-ID:      $Id: treectrl.h,v 1.83 2005/10/28 14:05:49 CE Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.84 2006/01/18 11:46:45 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ struct WXDLLEXPORT wxTreeViewItem;
 #define wxTREE_INSERT_LAST  0xFFFF0002
 
 // hash storing attributes for our items
-WX_DECLARE_EXPORTED_VOIDPTR_HASH_MAP(wxTreeItemAttr *, wxMapTreeAttr);
+WX_DECLARE_EXPORTED_VOIDPTR_HASH_MAP(wxTreeItemAttr *, wxMapTreeAttr)
 
 // ----------------------------------------------------------------------------
 // wxTreeCtrl

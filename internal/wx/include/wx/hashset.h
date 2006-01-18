@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     11/08/2003
-// RCS-ID:      $Id: hashset.h,v 1.6 2004/12/08 22:39:17 MBN Exp $
+// RCS-ID:      $Id: hashset.h,v 1.7 2006/01/18 11:46:41 JS Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ public:                                                                      \
     /* count() == 0 | 1 */                                                   \
     size_type count( const const_key_type& key )                             \
         { return GetNode( key ) ? 1 : 0; }                                   \
-}
+};
 
 #endif // !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)
 

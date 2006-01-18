@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: cursor.cpp,v 1.29 2005/09/23 12:54:03 MR Exp $
+// RCS-ID:      $Id: cursor.cpp,v 1.30 2006/01/15 07:20:59 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

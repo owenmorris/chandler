@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: filedlg.cpp,v 1.58 2005/09/23 12:54:06 MR Exp $
+// RCS-ID:      $Id: filedlg.cpp,v 1.59 2006/01/15 07:20:59 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

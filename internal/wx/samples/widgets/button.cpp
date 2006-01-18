@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxButton
 // Author:      Vadim Zeitlin
 // Created:     10.04.01
-// Id:          $Id: button.cpp,v 1.20 2005/11/03 19:29:18 VZ Exp $
+// Id:          $Id: button.cpp,v 1.21 2006/01/18 09:16:59 JS Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -341,7 +341,7 @@ void ButtonWidgetsPage::CreateButton()
             // fall through
 
         case ButtonVAlign_Centre:
-            flags |= wxALIGN_CENTRE_VERTICAL;
+            // centre vertical alignment is the default (no style)
             break;
 
         case ButtonVAlign_Bottom:

@@ -4,7 +4,7 @@
  * Author:      Julian Smart
  * Modified by:
  * Created:     01/02/97
- * RCS-ID:      $Id: chkconf.h,v 1.25 2005/11/23 13:53:22 ABX Exp $
+ * RCS-ID:      $Id: chkconf.h,v 1.26 2006/01/18 10:22:54 JS Exp $
  * Copyright:   (c) Julian Smart
  * Licence:     wxWindows licence
  */
@@ -71,7 +71,7 @@
 
 #    undef wxUSE_STACKWALKER
 #    define wxUSE_STACKWALKER 0
-#endif // compiler doesn't support SEH
+#endif /* compiler doesn't support SEH */
 
 /* wxUSE_DEBUG_NEW_ALWAYS doesn't work with CodeWarrior */
 #if defined(__MWERKS__)

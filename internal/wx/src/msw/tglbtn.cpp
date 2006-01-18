@@ -6,7 +6,7 @@
 // and William Gallafent.
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp,v 1.14 2005/09/23 12:55:13 MR Exp $
+// RCS-ID:      $Id: tglbtn.cpp,v 1.15 2006/01/18 16:16:36 JS Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,7 +114,7 @@ wxSize wxToggleButton::DoGetBestSize() const
 {
    wxString label = wxGetWindowText(GetHWND());
    int wBtn;
-   GetTextExtent(label, &wBtn, NULL);
+   GetTextExtent(wxStripMenuCodes(label), &wBtn, NULL);
 
    int wChar, hChar;
    wxGetCharSize(GetHWND(), &wChar, &hChar, GetFont());

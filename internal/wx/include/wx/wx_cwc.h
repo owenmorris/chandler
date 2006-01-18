@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     12/10/98
-// RCS-ID:      $Id: wx_cwc.h,v 1.8 2005/04/19 10:06:29 SC Exp $
+// RCS-ID:      $Id: wx_cwc.h,v 1.9 2006/01/18 14:13:20 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,8 +12,8 @@
 #ifndef _WX_CW__
 #define _WX_CW__
 
-#if __MWERKS__ >= 0x2400 && __MWERKS__ <= 0x3200
-#pragma old_argmatch on
+#if __MWERKS__ >= 0x2400 && __MWERKS__ < 0x3200
+    #pragma old_argmatch on
 #endif
 
 #if __option(profile)

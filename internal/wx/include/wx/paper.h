@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: paper.h,v 1.12 2005/09/23 12:48:45 MR Exp $
+// RCS-ID:      $Id: paper.h,v 1.13 2006/01/18 11:46:41 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ private:
     DECLARE_DYNAMIC_CLASS(wxPrintPaperType)
 };
 
-WX_DECLARE_STRING_HASH_MAP(wxPrintPaperType*, wxStringToPrintPaperTypeHashMap);
+WX_DECLARE_STRING_HASH_MAP(wxPrintPaperType*, wxStringToPrintPaperTypeHashMap)
 
 class WXDLLEXPORT wxPrintPaperTypeList;
 

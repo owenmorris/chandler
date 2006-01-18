@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: radiobox.cpp,v 1.130 2006/01/02 11:03:28 JG Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.131 2006/01/18 16:16:36 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -478,7 +478,7 @@ wxSize wxRadioBox::GetTotalButtonSize(const wxSize& sizeBtn) const
 
     // and also wide enough for its label
     int widthLabel;
-    GetTextExtent(GetLabel(), &widthLabel, NULL);
+    GetTextExtent(wxStripMenuCodes(GetLabel()), &widthLabel, NULL);
     widthLabel += RADIO_SIZE; // FIXME this is bogus too
     if ( widthLabel > width )
         width = widthLabel;

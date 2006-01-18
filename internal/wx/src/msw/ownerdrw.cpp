@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.11.97
-// RCS-ID:      $Id: ownerdrw.cpp,v 1.64 2005/09/25 20:43:35 VZ Exp $
+// RCS-ID:      $Id: ownerdrw.cpp,v 1.65 2006/01/18 11:46:52 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,7 +109,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxMSWSystemMenuFontModule, wxModule)
 #endif
 
 #include "wx/hashset.h"
-WX_DECLARE_HASH_SET(wxOwnerDrawn*, wxPointerHash, wxPointerEqual, OwnerDrawnSet);
+WX_DECLARE_HASH_SET(wxOwnerDrawn*, wxPointerHash, wxPointerEqual, OwnerDrawnSet)
 
 #ifdef POP_WARNINGS
     #pragma warning(pop)

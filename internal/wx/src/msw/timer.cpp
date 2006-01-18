@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (use hash map instead of list, global rewrite)
 // Created:     04/01/98
-// RCS-ID:      $Id: timer.cpp,v 1.40 2005/09/23 12:55:14 MR Exp $
+// RCS-ID:      $Id: timer.cpp,v 1.41 2006/01/18 11:46:53 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@
 // define a hash containing all the timers: it is indexed by timer id and
 // contains the corresponding timer
 WX_DECLARE_HASH_MAP(unsigned long, wxTimer *, wxIntegerHash, wxIntegerEqual,
-                    wxTimerMap);
+                    wxTimerMap)
 
 // instead of using a global here, wrap it in a static function as otherwise it
 // could have been used before being initialized if a timer object were created

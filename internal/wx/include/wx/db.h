@@ -17,7 +17,7 @@
 //                     databases operate the same in that respect
 //
 // Created:     9.96
-// RCS-ID:      $Id: db.h,v 1.100 2005/11/19 01:07:37 MR Exp $
+// RCS-ID:      $Id: db.h,v 1.101 2006/01/18 13:15:00 JS Exp $
 // Copyright:   (c) 1996 Remstar International, Inc.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -158,6 +158,7 @@ const int DB_DATA_TYPE_INTEGER        = 2;
 const int DB_DATA_TYPE_FLOAT          = 3;
 const int DB_DATA_TYPE_DATE           = 4;
 const int DB_DATA_TYPE_BLOB           = 5;
+const int DB_DATA_TYPE_MEMO           = 6;
 
 const int DB_SELECT_KEYFIELDS         = 1;
 const int DB_SELECT_WHERE             = 2;
@@ -555,6 +556,7 @@ private:
     wxDbSqlTypeInfo typeInfFloat;
     wxDbSqlTypeInfo typeInfDate;
     wxDbSqlTypeInfo typeInfBlob;
+    wxDbSqlTypeInfo typeInfMemo;
 #endif
 
 public:
@@ -694,6 +696,7 @@ public:
     wxDbSqlTypeInfo GetTypeInfFloat()      {return typeInfFloat;}
     wxDbSqlTypeInfo GetTypeInfDate()       {return typeInfDate;}
     wxDbSqlTypeInfo GetTypeInfBlob()       {return typeInfBlob;}
+    wxDbSqlTypeInfo GetTypeInfMemo()       {return typeInfMemo;}
 
     // tableName can refer to a table, view, alias or synonym
     bool         TableExists(const wxString &tableName, const wxChar *userID=NULL,

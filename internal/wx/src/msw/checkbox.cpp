@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: checkbox.cpp,v 1.69 2005/09/23 12:54:53 MR Exp $
+// RCS-ID:      $Id: checkbox.cpp,v 1.70 2006/01/18 16:16:36 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -214,7 +214,7 @@ wxSize wxCheckBox::DoGetBestSize() const
     int wCheckbox, hCheckbox;
     if ( !str.IsEmpty() )
     {
-        GetTextExtent(str, &wCheckbox, &hCheckbox);
+        GetTextExtent(wxStripMenuCodes(str), &wCheckbox, &hCheckbox);
         wCheckbox += s_checkSize + GetCharWidth();
 
         if ( hCheckbox < s_checkSize )

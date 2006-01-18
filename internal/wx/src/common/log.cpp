@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: log.cpp,v 1.162 2005/09/23 12:53:02 MR Exp $
+// RCS-ID:      $Id: log.cpp,v 1.163 2006/01/18 13:20:27 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -617,7 +617,7 @@ void wxLogStream::DoLogString(const wxChar *szString, time_t WXUNUSED(t))
 {
     wxString str;
     TimeStamp(&str);
-    (*m_ostr) << str << wxConvertWX2MB(szString) << wxSTD endl;
+    (*m_ostr) << wxConvertWX2MB(str) << wxConvertWX2MB(szString) << wxSTD endl;
 }
 #endif // wxUSE_STD_IOSTREAM
 

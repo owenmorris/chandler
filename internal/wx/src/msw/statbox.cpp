@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: statbox.cpp,v 1.84 2005/09/23 12:55:11 MR Exp $
+// RCS-ID:      $Id: statbox.cpp,v 1.85 2006/01/18 16:16:36 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ wxSize wxStaticBox::DoGetBestSize() const
     wxGetCharSize(GetHWND(), &cx, &cy, GetFont());
 
     int wBox;
-    GetTextExtent(wxGetWindowText(m_hWnd), &wBox, &cy);
+    GetTextExtent(wxStripMenuCodes(wxGetWindowText(m_hWnd)), &wBox, &cy);
 
     wBox += 3*cx;
     int hBox = EDIT_HEIGHT_FROM_CHAR_HEIGHT(cy);

@@ -4,7 +4,7 @@
 // Author:      Hajo Kirchhoff
 // Modified by:
 // Created:     06/11/2003
-// RCS-ID:      $Id: urlmsw.cpp,v 1.6 2005/11/09 20:14:32 ABX Exp $
+// RCS-ID:      $Id: urlmsw.cpp,v 1.7 2006/01/18 11:25:31 JS Exp $
 // Copyright:   (c) 2003 Hajo Kirchhoff
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -199,11 +199,11 @@ wxURLNativeImp *wxURL::CreateNativeImpObject()
 wxInputStream *wxWinINetURL::GetInputStream(wxURL *owner)
 {
     DWORD service;
-    if ( owner->GetProtocolName() == wxT("http") )
+    if ( owner->GetScheme() == wxT("http") )
     {
         service = INTERNET_SERVICE_HTTP;
     }
-    else if ( owner->GetProtocolName() == wxT("ftp") )
+    else if ( owner->GetScheme() == wxT("ftp") )
     {
         service = INTERNET_SERVICE_FTP;
     }

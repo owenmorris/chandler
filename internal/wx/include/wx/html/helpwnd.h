@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpwnd.h,v 1.2 2006/01/11 13:26:42 JJ Exp $
+// RCS-ID:      $Id: helpwnd.h,v 1.3 2006/01/18 15:30:20 VZ Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -318,7 +318,8 @@ private:
 typedef void (wxEvtHandler::*wxHtmlWindowEventFunction)(wxHtmlWindowEvent&);
 
 BEGIN_DECLARE_EVENT_TYPES()
-    DECLARE_EVENT_TYPE(wxEVT_COMMAND_HTMLWINDOW_URL_CLICKED, 1000)
+    DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_HTML,
+                                wxEVT_COMMAND_HTMLWINDOW_URL_CLICKED, 1000)
 END_DECLARE_EVENT_TYPES()
 
 #define EVT_HTMLWINDOW_URL_CLICKED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_HTMLWINDOW_URL_CLICKED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxHtmlWindowEventFunction) & fn, (wxObject *) NULL ),

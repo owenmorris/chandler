@@ -12,7 +12,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: stc.h,v 1.69 2005/10/07 08:36:01 ABX Exp $
+// RCS-ID:      $Id: stc.h,v 1.70 2006/01/18 13:27:19 JS Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -3201,9 +3201,9 @@ typedef void (wxEvtHandler::*wxStyledTextEventFunction)(wxStyledTextEvent&);
 #ifndef SWIG
 #if wxUSE_UNICODE
 
-wxString stc2wx(const char* str);
-wxString stc2wx(const char* str, size_t len);
-const wxWX2MBbuf wx2stc(const wxString& str);
+WXDLLIMPEXP_STC wxString stc2wx(const char* str);
+WXDLLIMPEXP_STC wxString stc2wx(const char* str, size_t len);
+WXDLLIMPEXP_STC const wxWX2MBbuf wx2stc(const wxString& str);
 
 #else // not UNICODE
 

@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.187 2006/01/17 19:10:29 JS Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.189 2006/01/18 12:45:24 JS Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -14,7 +14,9 @@
 #ifndef _WX_WXCHAR_H_
 #define _WX_WXCHAR_H_
 
-#include "wx/defs.h"        /* for wxUSE_UNICODE */
+/* defs.h indirectly includes this file, so don't include it here */
+#include "wx/platform.h"
+#include "wx/dlimpexp.h"
 
 #if defined(HAVE_STRTOK_R) && defined(__DARWIN__) && defined(_MSL_USING_MW_C_HEADERS) && _MSL_USING_MW_C_HEADERS
     char *strtok_r(char *, const char *, char **);
@@ -48,7 +50,7 @@
 /*
     Standard headers we need here.
 
-    NB: don't include any wxWidgets headers here because almost of them include
+    NB: don't include any wxWidgets headers here because almost all of them include
         this one!
  */
 
@@ -185,6 +187,13 @@
     /*     signed/unsigned version of it which (a) makes sense to me (unlike */
     /*     char wchar_t is always unsigned) and (b) was how the previous */
     /*     definitions worked so keep it like this */
+
+    /* Sun's SunPro compiler supports the wchar_t type and wide character */
+    /* functions, but does not define __WCHAR_TYPE__. Define it here to */
+    /* allow unicode enabled builds. */
+    #if defined(__SUNPRO_CC) || defined(__SUNPRO_C)
+    #define __WCHAR_TYPE__ wxchar_t
+    #endif
 
     /* GNU libc has __WCHAR_TYPE__ which requires special treatment, see */
     /* comment below */

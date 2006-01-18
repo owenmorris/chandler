@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.88 2005/12/19 10:54:04 ABX Exp $
+* RCS-ID:      $Id: platform.h,v 1.89 2006/01/18 10:22:52 JS Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -235,7 +235,7 @@
 #endif /* wxUSE_UNICODE */
 
 #if defined( __MWERKS__ ) && !defined(__INTEL__)
-// otherwise MSL headers bring in WIN32 dependant APIs
+/* otherwise MSL headers bring in WIN32 dependant APIs */
 #undef UNICODE
 #endif
 
