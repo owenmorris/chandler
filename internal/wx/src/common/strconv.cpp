@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.173 2006/01/18 11:46:49 JS Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.174 2006/01/18 16:45:37 JS Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -2525,7 +2525,7 @@ void wxCSConv::SetName(const wxChar *charset)
 #include "wx/hashmap.h"
 
 WX_DECLARE_HASH_MAP( wxFontEncoding, wxString, wxIntegerHash, wxIntegerEqual,
-                     wxEncodingNameCache )
+                     wxEncodingNameCache );
 
 static wxEncodingNameCache gs_nameCache;
 #endif

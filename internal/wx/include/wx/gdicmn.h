@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.h,v 1.102 2006/01/18 11:46:41 JS Exp $
+// RCS-ID:      $Id: gdicmn.h,v 1.103 2006/01/18 16:45:25 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -474,7 +474,7 @@ public:
                              wxFontEncoding encoding = wxFONTENCODING_DEFAULT);
 };
 
-WX_DECLARE_STRING_HASH_MAP( wxColour *, wxStringToColourHashMap )
+WX_DECLARE_STRING_HASH_MAP( wxColour *, wxStringToColourHashMap );
 
 class WXDLLEXPORT wxColourDatabase
 {

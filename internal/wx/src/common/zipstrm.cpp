@@ -2,7 +2,7 @@
 // Name:        zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp,v 1.39 2006/01/18 11:46:50 JS Exp $
+// RCS-ID:      $Id: zipstrm.cpp,v 1.40 2006/01/18 16:45:38 JS Exp $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -604,7 +604,7 @@ static void Unique(wxZipMemory*& zm, size_t size)
 // Collection of weak references to entries
 
 WX_DECLARE_HASH_MAP(long, wxZipEntry*, wxIntegerHash,
-                    wxIntegerEqual, wx__OffsetZipEntryMap)
+                    wxIntegerEqual, wx__OffsetZipEntryMap);
 
 class wxZipWeakLinks
 {

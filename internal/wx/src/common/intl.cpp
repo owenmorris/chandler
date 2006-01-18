@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp,v 1.176 2006/01/18 11:46:49 JS Exp $
+// RCS-ID:      $Id: intl.cpp,v 1.177 2006/01/18 16:45:37 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -870,7 +870,7 @@ wxPluralFormsCalculator* wxPluralFormsCalculator::make(const char* s)
 // This is a "low-level" class and is used only by wxMsgCatalog
 // ----------------------------------------------------------------------------
 
-WX_DECLARE_EXPORTED_STRING_HASH_MAP(wxString, wxMessagesHash)
+WX_DECLARE_EXPORTED_STRING_HASH_MAP(wxString, wxMessagesHash);
 
 class wxMsgCatalogFile
 {

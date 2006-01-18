@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     18/03/2002
-// RCS-ID:      $Id: artprov.cpp,v 1.24 2006/01/18 11:46:48 JS Exp $
+// RCS-ID:      $Id: artprov.cpp,v 1.25 2006/01/18 16:45:37 JS Exp $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ WX_DEFINE_LIST(wxArtProvidersList)
 // Cache class - stores already requested bitmaps
 // ----------------------------------------------------------------------------
 
-WX_DECLARE_EXPORTED_STRING_HASH_MAP(wxBitmap, wxArtProviderBitmapsHash)
+WX_DECLARE_EXPORTED_STRING_HASH_MAP(wxBitmap, wxArtProviderBitmapsHash);
 
 class WXDLLEXPORT wxArtProviderCache
 {

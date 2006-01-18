@@ -2,7 +2,7 @@
 // Name:        htmlwin.cpp
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML (implementation)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.cpp,v 1.112 2005/09/25 19:59:09 VZ Exp $
+// RCS-ID:      $Id: htmlwin.cpp,v 1.113 2006/01/18 16:47:42 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1306,8 +1306,7 @@ void wxHtmlWindow::OnMouseLeave(wxMouseEvent& event)
 
 void wxHtmlWindow::OnKeyUp(wxKeyEvent& event)
 {
-    if ( IsSelectionEnabled() &&
-         event.GetKeyCode() == 'C' && event.ControlDown() )
+    if ( IsSelectionEnabled() && event.GetKeyCode() == 'C' && event.CmdDown() )
     {
         (void) CopySelection();
     }

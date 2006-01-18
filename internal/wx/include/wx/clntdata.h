@@ -4,7 +4,7 @@
 // Author:      Robin Dunn
 // Modified by:
 // Created:     9-Oct-2001
-// RCS-ID:      $Id: clntdata.h,v 1.25 2006/01/18 11:46:40 JS Exp $
+// RCS-ID:      $Id: clntdata.h,v 1.26 2006/01/18 16:45:24 JS Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,12 +21,12 @@ WX_DECLARE_STRING_HASH_MAP_WITH_DECL(
     wxShadowObjectMethod,
     wxShadowObjectMethods,
     class WXDLLIMPEXP_BASE
-)
+);
 WX_DECLARE_STRING_HASH_MAP_WITH_DECL(
     void *,
     wxShadowObjectFields,
     class WXDLLIMPEXP_BASE
-)
+);
 
 class WXDLLIMPEXP_BASE wxShadowObject
 {

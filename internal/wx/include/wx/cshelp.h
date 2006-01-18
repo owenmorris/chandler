@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     08/09/2000
-// RCS-ID:      $Id: cshelp.h,v 1.19 2006/01/18 11:46:40 JS Exp $
+// RCS-ID:      $Id: cshelp.h,v 1.20 2006/01/18 16:45:24 JS Exp $
 // Copyright:   (c) 2000 Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ private:
 };
 
 WX_DECLARE_EXPORTED_HASH_MAP( wxUIntPtr, wxString, wxIntegerHash,
-                              wxIntegerEqual, wxSimpleHelpProviderHashMap )
+                              wxIntegerEqual, wxSimpleHelpProviderHashMap );
 
 // wxSimpleHelpProvider is an implementation of wxHelpProvider which supports
 // only plain text help strings and shows the string associated with the

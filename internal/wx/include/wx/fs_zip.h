@@ -3,7 +3,7 @@
 // Purpose:     ZIP file system
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// CVS-ID:      $Id: fs_zip.h,v 1.30 2006/01/18 11:46:41 JS Exp $
+// CVS-ID:      $Id: fs_zip.h,v 1.31 2006/01/18 16:45:25 JS Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,7 @@
 #include "wx/hashmap.h"
 
 
-WX_DECLARE_STRING_HASH_MAP(int, wxZipFilenameHashMap)
+WX_DECLARE_STRING_HASH_MAP(int, wxZipFilenameHashMap);
 
 
 //---------------------------------------------------------------------------

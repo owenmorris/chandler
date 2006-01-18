@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     August 1997
-// RCS-ID:      $Id: http.h,v 1.20 2006/01/18 11:46:46 JS Exp $
+// RCS-ID:      $Id: http.h,v 1.21 2006/01/18 16:45:33 JS Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 #include "wx/protocol/protocol.h"
 
 WX_DECLARE_STRING_HASH_MAP_WITH_DECL( wxString, wxStringToStringHashMap,
-                                      class WXDLLIMPEXP_NET )
+                                      class WXDLLIMPEXP_NET );
 
 class WXDLLIMPEXP_NET wxHTTP : public wxProtocol
 {

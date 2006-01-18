@@ -2,7 +2,7 @@
 // Name:        image.h
 // Purpose:     wxImage class
 // Author:      Robert Roebling
-// RCS-ID:      $Id: image.h,v 1.111 2006/01/18 11:46:41 JS Exp $
+// RCS-ID:      $Id: image.h,v 1.112 2006/01/18 16:45:25 JS Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -118,7 +118,7 @@ public:
 
 WX_DECLARE_EXPORTED_HASH_MAP(unsigned long, wxImageHistogramEntry,
                              wxIntegerHash, wxIntegerEqual,
-                             wxImageHistogramBase)
+                             wxImageHistogramBase);
 
 class WXDLLEXPORT wxImageHistogram : public wxImageHistogramBase
 {

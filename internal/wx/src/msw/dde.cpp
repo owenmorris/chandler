@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dde.cpp,v 1.51 2006/01/18 11:46:52 JS Exp $
+// RCS-ID:      $Id: dde.cpp,v 1.52 2006/01/18 16:45:41 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ static void DDELogError(const wxString& s, UINT error = DMLERR_NO_ERROR);
 // global variables
 // ----------------------------------------------------------------------------
 
-WX_DECLARE_STRING_HASH_MAP( HSZ, wxAtomMap )
+WX_DECLARE_STRING_HASH_MAP( HSZ, wxAtomMap );
 
 static DWORD DDEIdInst = 0L;
 static wxDDEConnection *DDECurrentlyConnecting = NULL;
