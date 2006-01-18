@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: valtext.h,v 1.22 2005/09/23 12:48:50 MR Exp $
+// RCS-ID:      $Id: valtext.h,v 1.23 2006/01/18 17:22:54 JS Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ public:
     // Called to transfer data to the window
     virtual bool TransferToWindow();
 
-    // Called to transfer data to the window
+    // Called to transfer data from the window
     virtual bool TransferFromWindow();
 
     // ACCESSORS
