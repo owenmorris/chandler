@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h,v 1.96 2006/01/17 19:02:39 JS Exp $
+// RCS-ID:      $Id: list.h,v 1.97 2006/01/18 08:33:43 JS Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -136,7 +136,7 @@ private:
 #endif // defined( __VISUALC__ )
 
 // Visual C++ 2005 complains about the const
-#if defined(__VISUALC__) && __VISUALC__ >= 1400
+#if (defined(__VISUALC__) && __VISUALC__ >= 1400) || defined(__MWERKS__)
 #define _WX_DELETEFUNCTIONCONST
 #else
 #define _WX_DELETEFUNCTIONCONST const
