@@ -73,15 +73,11 @@ endif
 
 ifeq ($(OS),Darwin)
 PLATFORM=macosx
-FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
-SITE=$(FRAMEWORK)/lib/python2.3/site-packages
 else
 ifeq ($(OS),Cygwin)
 PLATFORM=windows
-SITE=bin/Lib/site-packages
 else
 PLATFORM=linux
-SITE=lib/python2.3/site-packages
 endif
 endif
 
@@ -125,6 +121,32 @@ $(ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
+SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6a9-py2.4.egg
+SETUPTOOLS_INST = \
+    $(addsuffix .inst, \
+                $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
+                            $(notdir $(SETUPTOOLS_EGG))))
+SETUPTOOLS_ABS=$(SETUPTOOLS_EGG)
+SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
+PYTHON_BIN=$(CHANDLERBIN)/$(SNAP)/RunPython
+
+ifeq ($(OS),Cygwin)
+PYTHON_BIN:=$(SETUPTOOLS_BIN)/bin/python
+SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
+SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
+endif
+
+
+$(SETUPTOOLS_EGG):
+	mkdir -p $(CHANDLERARCHIVES)
+	$(CURL) $@ http://$(HOST)/external/$(notdir $@)
+
+$(SETUPTOOLS_INST): $(ARCHIVES_INST) $(SETUPTOOLS_EGG)
+	$(PYTHON_BIN) \
+        -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
+        --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
+	touch $@
+
 ifeq ($(OS),Cygwin)
 manifest_exe:
 	if [ -f "$(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
@@ -135,9 +157,9 @@ else
 manifest_exe:
 endif
 
-install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe
+install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST)
 
-download: $(ARCHIVES)
+download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
 # to install individual binaries, for example: make chandlerdb
 
