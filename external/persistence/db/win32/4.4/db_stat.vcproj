@@ -11,7 +11,7 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release IA64|Win32"
+			Name="Debug IA64|Win32"
 			ConfigurationType="1">
 			<Tool
 				Name="VCCLCompilerTool"/>
@@ -192,7 +192,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug IA64|Win32"
+			Name="Debug AMD64|Win32"
 			ConfigurationType="1">
 			<Tool
 				Name="VCCLCompilerTool"/>
@@ -343,7 +343,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug AMD64|Win32"
+			Name="Release IA64|Win32"
 			ConfigurationType="1">
 			<Tool
 				Name="VCCLCompilerTool"/>

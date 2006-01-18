@@ -125,7 +125,7 @@
 				Name="VCNMakeTool"
 				BuildCommandLine="echo DB Debug version built."
 				ReBuildCommandLine="echo DB Debug version built. "
-				CleanCommandLine="echo DB Debug version cleaned"
+				CleanCommandLine="echo DB Debug version cleaned."
 				Output="build_all.exe"/>
 		</Configuration>
 		<Configuration
