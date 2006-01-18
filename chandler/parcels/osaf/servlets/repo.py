@@ -54,11 +54,22 @@ class RepoResource(webserver.AuthenticatedResource):
                 else:
                     path = "//%s" % ("/".join(request.postpath))
 
-                result = "<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><title>Chandler : %s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % request.path
+                result = """<html>
+<head>
+<title>Chandler : %s</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" href="/site.css" type="text/css" />
+<script type="text/javascript" src="/jsolait/init.js"/>
+<script type="text/javascript" src="/jsolait/lib/urllib.js"/>
+<script type="text/javascript" src="/jsolait/lib/xml.js"/>
+<script type="text/javascript" src="/jsolait/lib/xmlrpc.js">
+<script type="text/javascript" src="/repo-editor.js"/>
+</head>
+"""                 % request.path
                 result += "<body>"
 
 
-                result += "<p class=footer>Repository view: <b>%s</b> | <a href=/repo/?mode=views>switch</a></p>" % repoView.name
+                result += '<p class="footer">Repository view: <b>%s</b> | <a href=/repo/?mode=views>switch</a></p>' % repoView.name
 
                 if mode == "kindquery":
                     item = repoView.findPath(path)
@@ -316,7 +327,7 @@ def _RenderNode(repoView, node, depth=1):
     result = ""
 
     keys = node.keys()
-    keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
+    keys.sort(key=string.lower)
     output = []
     for key in keys:
         if key == "":
@@ -516,7 +527,7 @@ def RenderKindQuery(repoView, item):
         items = []
         for i in item.iterItems(recursive=True):
             items.append(i)
-        items.sort(lambda x, y: cmp(x.getItemDisplayName().lower(), y.getItemDisplayName().lower()))
+        items.sort(key=lambda x: x.getItemDisplayName().lower())
         for i in items:
             output.append("<a href=%s>'%s'</a>  (%s) %s %s" % \
                           (toLink(i.itsPath), i.getItemDisplayName(),
@@ -625,7 +636,7 @@ def RenderItem(repoView, item):
             name = unicode(child.itsUUID)
         children[name] = child
     keys = children.keys()
-    keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
+    keys.sort(key=string.lower)
     output = []
     for key in keys:
         child = children[key]
@@ -644,27 +655,27 @@ def RenderItem(repoView, item):
 
 
     if isKind:
-        result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
-        result += "<tr class='toprow'>"
-        result += "<td colspan=7><b>Attributes defined for this kind:</b></td>"
-        result += "</tr>\n"
-
-        result += "<tr class='headingsrow'>\n"
-        result += "<td valign=top><b>Attribute</b> (inherited from)</td>\n"
-        result += "<td valign=top><b>Description / Issues</b></td>\n"
-        result += "<td valign=top><b>Cardinality</b></td>\n"
-        result += "<td valign=top><b>Type</b></td>\n"
-        result += "<td valign=top><b>Initial&nbsp;Value</b></td>\n"
-        # result += "<td valign=top><b>Required?</b></td>\n"
-        result += "<td valign=top><b>RedirectTo</b></td>\n"
-        result += "</tr>\n"
+        result += """
+<table width=100% border=0 cellpadding=4 cellspacing=0>\n
+  <tr class="toprow">
+    <td colspan="7"><b>Attributes defined for this kind:</b></td>
+  </tr>
+  <tr class="headingsrow">
+    <td valign="top"><b>Attribute</b> (inherited from)</td>
+    <td valign="top"><b>Description / Issues</b></td>
+    <td valign="top"><b>Cardinality</b></td>
+    <td valign="top"><b>Type</b></td>
+    <td valign="top"><b>Initial&nbsp;Value</b></td>
+    <!-- <td valign="top"><b>Required?</b></td> -->
+    <td valign="top"><b>RedirectTo</b></td>
+  </tr>"""
         count = 0
         displayedAttrs = { }
         for name, attr, kind in item.iterAttributes():
             if name is None: name = "Anonymous"
             displayedAttrs[name] = (attr, kind)
         keys = displayedAttrs.keys()
-        keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
+        keys.sort(key=string.lower)
         for key in keys:
             attribute, kind = displayedAttrs[key]
             result += oddEvenRow(count)
@@ -706,14 +717,15 @@ def RenderItem(repoView, item):
         result += "</table>\n"
         result += "<br />\n"
 
-    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
-    result += "<tr class='toprow'>\n"
-    result += "<td colspan=2><b>Attribute values for this item:</b></td>\n"
-    result += "</tr>\n"
-    result += "<tr class='headingsrow'>\n"
-    result += "<td valign=top><b>Attribute</b></td>\n"
-    result += "<td valign=top><b>Value</b></td>\n"
-    result += "</tr>\n"
+    result += """
+<table width="100%" border="0" cellpadding="4" cellspacing="0">
+  <tr class="toprow">
+    <td colspan="2"><b>Attribute values for this item:</b></td>
+  </tr>
+  <tr class="headingsrow">
+    <td valign="top"><b>Attribute</b></td>
+    <td valign="top"><b>Value</b></td>
+  </tr>"""
     count = 0
 
     displayedAttrs = { }
@@ -722,7 +734,7 @@ def RenderItem(repoView, item):
         displayedAttrs[name] = value
 
     keys = displayedAttrs.keys()
-    keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
+    keys.sort(key=string.lower)
     for name in keys:
         value = displayedAttrs[name]
 
