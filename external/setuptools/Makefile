@@ -38,7 +38,7 @@ build: expand apply
 	cd $(SRC); \
     $(PYTHON) setup.py -v \
         build --build-base=$(BUILD) $(DIST_OPT) \
-        install --record=$(MFILE) --install-scripts=$(BUILD)/bin \
+        install --record=$(MFILE) --install-scripts=$(BUILD_ROOT)/$(SNAP)/bin \
                 --force --single-version-externally-managed 
 
 else
@@ -46,13 +46,13 @@ build: expand apply
 	cd $(SRC); \
     MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py -v \
         build --build-base=$(BUILD) $(DIST_OPT) \
-        install --record=$(SETUPTOOLS)/manifest.txt --install-scripts=$(BUILD)/bin \ 
+        install --record=$(SETUPTOOLS)/manifest.txt --install-scripts=$(BUILD_ROOT)/$(SNAP)/bin \ 
                 --force --single-version-externally-managed 
 endif
 
 binaries: 
 	cd $(BUILD_ROOT); \
-      find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
+	      find $(MANIFEST) -name "*.pyc" | xargs rm -f; n\
       find $(MANIFEST) -name "*.pyo" | xargs rm -f
 	echo [$(BUILD_ROOT)] [$(MANIFEST)]
 	tar -C $(BUILD_ROOT) -cvzf $(SETUPTOOLS)/setuptools-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
