@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: statbmp.cpp,v 1.63 2006/01/17 16:08:59 JS Exp $
+// RCS-ID:      $Id: statbmp.cpp,v 1.64 2006/01/19 07:37:18 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -273,12 +273,12 @@ void wxStaticBitmap::SetImageNoCopy( wxGDIImage* image)
                   m_isIcon ? IMAGE_ICON : IMAGE_BITMAP, (LPARAM)handle);
     // detect if this is still the handle we passed before or
     // if the static-control made a copy of the bitmap!
-    if (m_currentHandle != 0 && oldHandle != m_currentHandle)
+    if (m_currentHandle != 0 && oldHandle != (HGDIOBJ) m_currentHandle)
     {
         // the static control made a copy and we are responsible for deleting it
-        DeleteObject(oldHandle);      
+        DeleteObject((HGDIOBJ) oldHandle);      
     }
-    m_currentHandle = (HGDIOBJ)handle;                  	
+    m_currentHandle = (WXHANDLE)handle;                  	
 #endif // Win32
 
     if ( ImageIsOk() )
