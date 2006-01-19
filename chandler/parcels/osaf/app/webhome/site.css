@@ -52,7 +52,7 @@ td
 {
     font-size: small;
     padding-top: 5px;
-    padding-bottom: 5x;
+    padding-bottom: 5px;
 }
 
 .footer
@@ -114,25 +114,25 @@ A
 
 A:link
 {
-    # color: #119;
+    /* color: #119; */
     text-decoration: none;
 }
 
 A:visited
 {
-    # color: #dd4;
+    /* color: #dd4; */
     text-decoration: none;
 }
 
 A:active
 {
-    # color: #ff0;
+    /* color: #ff0; */
     text-decoration: underline;
 }
 
 A:hover
 {
-    # color: #ff0;
+    /* color: #ff0; */
     text-decoration: underline;
 }
 
@@ -169,3 +169,22 @@ td.rssitem
     font-size: 13px;
     line-height: 150%;
 }
+
+#status-area { 
+  padding: 10px;
+  text-align: center;
+  float: right;
+}
+
+#status-area.error { 
+  background-color: red;
+}
+
+#status-area.busy { 
+  background-color: yellow;
+}
+
+#status-area.idle { 
+  background-color: green;
+}
+

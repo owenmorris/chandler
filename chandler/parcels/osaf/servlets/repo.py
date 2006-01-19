@@ -66,10 +66,15 @@ class RepoResource(webserver.AuthenticatedResource):
 <script type="text/javascript" src="/repo-editor.js"/>
 </head>
 """                 % request.path
-                result += "<body>"
+                result += '<body onload="onDocumentLoad()">'
 
+                result += '<div id="status-area">[status]</div>'
 
-                result += '<p class="footer">Repository view: <b>%s</b> | <a href=/repo/?mode=views>switch</a></p>' % repoView.name
+                result += """
+<p class="footer">Repository view: <b>%s</b> |
+<a href="/repo/?mode=views">switch</a> |
+<a href="#" onclick="commit()">commit</a></p>
+""" % repoView.name
 
                 if mode == "kindquery":
                     item = repoView.findPath(path)
@@ -86,16 +91,16 @@ class RepoResource(webserver.AuthenticatedResource):
 
                 elif mode == "blocks":
                     item = repoView.findPath(path)
-                    path = "<a href=%s>[top]</a>" % toLink("/")
+                    path = '<a href="%s">[top]</a>' % toLink("/")
                     i = 2
                     for part in item.itsPath[1:-1]:
-                        path += " &gt; <a href=%s>%s</a>" % (toLink(item.itsPath[:i]), part)
+                        path += ' &gt; <a href="%s">%s</a>' % (toLink(item.itsPath[:i]), part)
                         i += 1
 
                     name = item.itsName
                     if name is None:
                         name = unicode(item.itsUUID)
-                    result += "<div class='path'>%s &gt; <span class='itemname'><a href=%s>%s</a></span> | <a href=%s>Render attributes</a></div>" % (path, toLink(item.itsPath), name, toLink(item.itsPath))
+                    result += '<div class="path">%s &gt; <span class="itemname"><a href="%s">%s</a></span> | <a href="%s">Render attributes</a></div>' % (path, toLink(item.itsPath), name, toLink(item.itsPath))
 
                     result += RenderBlock(repoView, item)
 
@@ -195,7 +200,7 @@ def RenderSearchResults(repoView, text):
     for (item, attribute) in repoView.searchItems(text):
         result += oddEvenRow(count)
         #This will upcast to unicode since getItemDisplayName will return unicode
-        result += "<td><a href=%s>%s</a></td>" % (toLink(item.itsPath), item.getItemDisplayName())
+        result += '<td><a href="%s">%s</a></td>' % (toLink(item.itsPath), item.getItemDisplayName())
         result += "</tr>"
         count += 1
     result += "</table></form>\n"
@@ -212,7 +217,7 @@ def RenderRoots(repoView):
     result += "<td>"
     result += "<div class='tree'>"
     for child in repoView.iterRoots():
-        result += "<a href=%s>//%s</a> &nbsp;  " % (toLink(child.itsPath), child.itsName)
+        result += '<a href="%s">//%s</a> &nbsp;  ' % (toLink(child.itsPath), child.itsName)
     result += "</div>"
     result += "</td></tr></table>\n"
     return result
@@ -255,7 +260,7 @@ def RenderInheritance(repoView):
     for item in kinds:
         result += oddEvenRow(count)
         #This will upcast to unicode since getItemDisplayName will return unicode
-        result += "<td><a href=%s>%s</a></td>" % (toLink(item.itsPath), item.getItemDisplayName())
+        result += '<td><a href="%s">%s</a></td>' % (toLink(item.itsPath), item.getItemDisplayName())
         result += "<td>"
         klass = None
         if hasattr(item, 'classes'):
@@ -334,7 +339,7 @@ def _RenderNode(repoView, node, depth=1):
             continue
         if node[key].has_key(""):
             item = node[key][""]
-            output.append("<a href=%s>%s</a>" % (toLink(item.itsPath), 
+            output.append('<a href="%s">%s</a>' % (toLink(item.itsPath), 
              item.itsName))
     if output:
         result += ": "
@@ -388,7 +393,7 @@ def RenderAllClouds(repoView):
     for key in keys:
         cloud = clouds[key]
         result += "<p>"
-        result += "Cloud <a href=%s>%s</a> for kind <a href=%s>%s</a>" % \
+        result += 'Cloud <a href="%s">%s</a> for kind <a href="%s">%s</a>' % \
          (toLink(cloud.itsPath), cloud.itsPath, toLink(cloud.kind.itsPath), 
          cloud.kind.itsName)
         alias = cloud.kind.clouds.getAlias(cloud)
@@ -396,7 +401,7 @@ def RenderAllClouds(repoView):
             result += " (alias '%s')" % alias
         result += "<br>"
         for endpoint in cloud.endpoints:
-            result += "&nbsp;&nbsp;&nbsp;Endpoint <a href=%s>%s</a>:" % (toLink(endpoint.itsPath), endpoint.itsName)
+            result += '&nbsp;&nbsp;&nbsp;Endpoint <a href="%s">%s</a>:' % (toLink(endpoint.itsPath), endpoint.itsName)
             result += " attribute '"
             result += (".".join(endpoint.attribute))
             result += "', "
@@ -407,7 +412,7 @@ def RenderAllClouds(repoView):
             if endpoint.includePolicy == "byCloud":
                 if endpoint.getAttributeValue('cloud', default=None) is not \
                  None:
-                    result += " --&gt; <a href=%s>%s</a>" % (toLink(endpoint.cloud.itsPath), endpoint.cloud.itsName)
+                    result += ' --&gt; <a href="%s">%s</a>' % (toLink(endpoint.cloud.itsPath), endpoint.cloud.itsName)
                 elif endpoint.getAttributeValue('cloudAlias', default=None) \
                  is not None:
                     result += " to cloud alias '%s'" % endpoint.cloudAlias
@@ -735,6 +740,12 @@ def RenderItem(repoView, item):
 
     keys = displayedAttrs.keys()
     keys.sort(key=string.lower)
+
+    def MakeValueRow(attributeName, attributeValue, attributeType):
+        result = oddEvenRow(count)
+        result += '<td valign="top">%s</td><td valign="top"><div class="value-%s">%s</div></td></tr>\n' % (attributeName, attributeType, attributeValue)
+        return result
+    
     for name in keys:
         value = displayedAttrs[name]
 
@@ -748,11 +759,7 @@ def RenderItem(repoView, item):
 
         elif isinstance(value, RefList):
 
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
-            result += "<b>(ref collection)</b><br>\n<ul>"
+            itemString = "<b>(ref collection)</b><br>\n<ul>"
             output = []
             for j in value:
                 alias = value.getAlias(j)
@@ -762,84 +769,69 @@ def RenderItem(repoView, item):
                     alias = ""
                 output.append("<li>%s <a href=%s>%s</a> %s" % \
                  ( getattr(j, "blockName", j.getItemDisplayName()), toLink(j.itsPath), j.itsPath, alias))
-            result += ("".join(output))
+            itemString += ("".join(output))
 
-            result += "</ul></td></tr>\n"
+            itemString += "</ul></td></tr>\n"
+            result += MakeValueRow(name, itemString, type(value).__name__)
             count += 1
 
         elif isinstance(value, list):
 
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
-            result += "<ul>"
+            itemString = "<ul>"
             for j in value:
                 try:
-                    result += "<li>%s <a href=%s>%s</a><br>\n" % (j.itsName,
+                    itemString += "<li>%s <a href=%s>%s</a><br>\n" % (j.itsName,
                      toLink(j.itsPath), j.itsPath)
                 except:
-                    result += "<li>%s (%s)<br>\n" % (clean(j), clean(type(j)))
-            result += "</ul>"
-            result += "</td></tr>\n"
+                    itemString += "<li>%s (%s)<br>\n" % (clean(j), clean(type(j)))
+            result += MakeValueRow(name, itemString, type(value).__name__)
             count += 1
 
         elif isinstance(value, dict):
 
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
+            itemString = ""
             for key in value.keys():
                 try:
-                    result += "%s: %s <a href=%s>%s</a><br>" % \
+                    itemString += "%s: %s <a href=%s>%s</a><br>" % \
                      (key, value[key].itsName, toLink( value[key].itsPath),
                       value[key].itsPath)
                 except:
                     try:
-                        result += "%s: %s (%s)<br>" % (key, clean(value[key]),
+                        itemString += "%s: %s (%s)<br>" % (key, clean(value[key]),
                          clean(type(value[key])))
                     except:
-                        result += "%s: <i>(Can't display)</i> (%s)<br>" % \
+                        itemString += "%s: <i>(Can't display)</i> (%s)<br>" % \
                             (key, clean(type(value[key])))
 
-            result += "</td></tr>\n"
+            result += MakeValueRow(name, itemString, type(value).__name__)
             count += 1
 
         elif isinstance(value, Lob):
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
+            itemString = ""
             mimeType = value.mimetype
             if mimeType.startswith("image/"):
-                result += "<img src=/lobs/%s/%s><br>" % (item.itsUUID, name)
-                result += "(%s)<br>" % mimeType
+                itemString += "<img src=/lobs/%s/%s><br>" % (item.itsUUID, name)
+                itemString += "(%s)<br>" % mimeType
             else:
                 try:
                     theType = TypeHandler.typeHandler(repoView,
                      value)
                     typeName = theType.getImplementationType().__name__
-                    result += "<b>(%s)</b> " % typeName
+                    itemString += "<b>(%s)</b> " % typeName
                     content = value.getReader().read()
-                    result += clean(content)
+                    itemString += clean(content)
 
                 except Exception, e:
-                    result += clean(e)
-                    result += "(Couldn't read Lob content)"
+                    itemString += clean(e)
+                    itemString += "(Couldn't read Lob content)"
 
-            result += "</td></tr>\n"
+            result += MakeValueRow(name, itemString, type(value).__name__)
             count += 1
 
         elif isinstance(value, Item):
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
-            result += "<b>(itemref)</b> "
-            result += "%s <a href=%s>%s</a><br>" % (value.getItemDisplayName(),
+            itemString = "%s <a href=%s>%s</a><br>" % (value.getItemDisplayName(),
                 toLink(value.itsPath), value.itsPath)
-            result += "</td></tr>\n"
+            result += MakeValueRow(name, itemString, type(value).__name__)
             count += 1
 
         elif isinstance(value, URL):
@@ -883,24 +875,21 @@ def RenderItem(repoView, item):
 
         else:
 
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
             theType = TypeHandler.typeHandler(repoView, value)
             typeName = theType.getImplementationType().__name__
-            result += "<b>(%s)</b> " % typeName
+            itemString = "<b>(%s)</b> " % typeName
             try:
-                result += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
+                itemString += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
                  value.getItemDisplayName())
             except:
                 if name == "password":
-                    result += "<i>(hidden)</i><br>"
+                    itemString += "<i>(hidden)</i><br>"
                 else:
-                    result += "%s<br>" % (clean(value))
+                    itemString += "%s<br>" % (clean(value))
 
-            result += "</td></tr>\n"
+            result += MakeValueRow(name, itemString, type(value).__name__)
             count += 1
+            
     result += "</table>\n"
 
     if isBlock:
