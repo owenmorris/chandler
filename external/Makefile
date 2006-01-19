@@ -7,7 +7,6 @@ SYSTEMS=persistence/db \
         readline \
         openssl \
         python \
-        setuptools \
         epydoc \
         PyLucene \
         PyICU \
