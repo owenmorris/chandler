@@ -2,7 +2,7 @@
 // Name:        zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp,v 1.40 2006/01/18 16:45:38 JS Exp $
+// RCS-ID:      $Id: zipstrm.cpp,v 1.41 2006/01/18 22:58:32 MW Exp $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1405,9 +1405,7 @@ bool wxZipInputStream::LoadEndRecord()
         else {
             wxLogNull nolog;
             wxFileOffset pos = m_parent_i_stream->TellI();
-            // FIXME
-            //if (pos != wxInvalidOffset)
-            if (pos >= 0 && pos <= LONG_MAX)
+            if (pos != wxInvalidOffset)
                 m_offsetAdjustment = m_position = pos;
             return true;
         }
