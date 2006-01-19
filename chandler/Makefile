@@ -67,8 +67,10 @@ endif
 
 ifeq ($(DEBUG),1)
 SNAP=debug
+DEBUG_SUFFIX=_d
 else
 SNAP=release
+DEBUG_SUFFIX=
 endif
 
 ifeq ($(OS),Darwin)
@@ -131,7 +133,7 @@ SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
 PYTHON_BIN=$(CHANDLERBIN)/$(SNAP)/RunPython
 
 ifeq ($(OS),Cygwin)
-PYTHON_BIN:=$(SETUPTOOLS_BIN)/bin/python
+PYTHON_BIN:=$(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
 SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
 SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
 endif
