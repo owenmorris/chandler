@@ -2,7 +2,7 @@
 // Name:        src/common/image.cpp
 // Purpose:     wxImage
 // Author:      Robert Roebling
-// RCS-ID:      $Id: image.cpp,v 1.208 2005/12/13 02:30:18 MR Exp $
+// RCS-ID:      $Id: image.cpp,v 1.209 2006/01/19 09:55:11 JS Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -767,6 +767,46 @@ void wxImage::Replace( unsigned char r1, unsigned char g1, unsigned char b1,
             }
             data += 3;
         }
+}
+
+wxImage wxImage::ConvertToGreyscale( double lr, double lg, double lb ) const
+{
+    wxImage image;
+
+    wxCHECK_MSG( Ok(), image, wxT("invalid image") );
+
+    image.Create(M_IMGDATA->m_width, M_IMGDATA->m_height, false);
+
+    unsigned char *dest = image.GetData();
+
+    wxCHECK_MSG( dest, image, wxT("unable to create image") );
+
+    unsigned char *src = M_IMGDATA->m_data;
+    bool hasMask = M_IMGDATA->m_hasMask;
+    unsigned char maskRed = M_IMGDATA->m_maskRed;
+    unsigned char maskGreen = M_IMGDATA->m_maskGreen;
+    unsigned char maskBlue = M_IMGDATA->m_maskBlue;
+
+    if ( hasMask )
+        image.SetMaskColour(maskRed, maskGreen, maskBlue);
+
+    const long size = M_IMGDATA->m_width * M_IMGDATA->m_height;
+    for ( long i = 0; i < size; i++, src += 3, dest += 3 )
+    {
+        // don't modify the mask
+        if ( hasMask && src[0] == maskRed && src[1] == maskGreen && src[2] == maskBlue )
+        {
+            memcpy(dest, src, 3);
+        }
+        else
+        {
+            // calculate the luma
+            double luma = (src[0] * lr + src[1] * lg + src[2] * lb) + 0.5;
+            dest[0] = dest[1] = dest[2] = wx_static_cast(unsigned char, luma);
+        }
+    }
+
+    return image;
 }
 
 wxImage wxImage::ConvertToMono( unsigned char r, unsigned char g, unsigned char b ) const

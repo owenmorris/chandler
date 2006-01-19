@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: image.tex,v 1.83 2005/12/16 00:37:30 MR Exp $
+%% RCS-ID:      $Id: image.tex,v 1.84 2006/01/19 09:55:15 JS Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -302,6 +302,16 @@ ConvertAlphaToMask does nothing.
 
 Deprecated, use equivalent \helpref{wxBitmap constructor}{wxbitmapctor}
 (which takes wxImage and depth as its arguments) instead.
+
+
+\membersection{wxImage::ConvertToGreyscale}\label{wximageconverttogreyscale}
+
+\constfunc{wxImage}{ConvertToGreyscale}{\param{double}{ lr = 0.299}, \param{double}{ lg = 0.587}, \param{double}{ lb = 0.114}}
+
+Returns a greyscale version of the image. The returned image uses the luminance
+component of the original to calculate the greyscale. Defaults to using
+ITU-T BT.601 when converting to YUV, where every pixel equals
+(R * {\it lr}) + (G * {\it lg}) + (B * {\it lb}).
 
 
 \membersection{wxImage::ConvertToMono}\label{wxbitmapconverttomono}

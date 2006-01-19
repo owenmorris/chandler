@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: notebmac.cpp,v 1.66 2006/01/06 21:14:34 vell Exp $
+// RCS-ID:      $Id: notebmac.cpp,v 1.67 2006/01/19 11:03:46 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -353,7 +353,7 @@ int wxNotebook::HitTest(const wxPoint& pt, long * flags) const
     }
 
     if ( outPart >= 1 && outPart <= countPages )
-        resultV = outPart ;
+        resultV = outPart - 1 ;
 #endif // TARGET_API_MAC_OSX
 
     if (flags != NULL)
@@ -361,7 +361,7 @@ int wxNotebook::HitTest(const wxPoint& pt, long * flags) const
         *flags = 0;
 
         // we cannot differentiate better
-        if (resultV >= 1)
+        if (resultV >= 0)
             *flags |= wxNB_HITTEST_ONLABEL;
         else
             *flags |= wxNB_HITTEST_NOWHERE;
