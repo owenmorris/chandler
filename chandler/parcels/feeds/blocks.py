@@ -54,8 +54,10 @@ class FeedItemDetail(Detail.HTMLDetailArea):
 class FeedController(Block.Block):
     def onNewFeedChannelEvent(self, event):
         import wx
-        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-            _(u"New Channel"), _(u"Enter a URL for the RSS Channel"), "http://")
+        url = application.dialogs.Util.promptUser(
+            _(u"New Channel"),
+            _(u"Enter a URL for the RSS Channel"),
+            defaultValue = "http://")
         if url and url != "":
             try:
                 # create the feed channel

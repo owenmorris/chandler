@@ -716,8 +716,9 @@ class MainView(View):
         wx.GetApp().ChooseLogConfig()
 
     def onSearchWindowEvent(self, event):
-        query = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-            "Search", "Enter your PyLucene query:", "")
+        query = application.dialogs.Util.promptUser(
+            "Search",
+            "Enter your PyLucene query:")
         if query:
             view = self.itsView
             results = pim.InclusionExclusionCollection(itsView=view,

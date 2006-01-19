@@ -134,19 +134,15 @@ class PhotoCollection(pim.ListCollection):
         result = None
         if event.collectionType == 'Owner':
             userName = application.dialogs.Util.promptUser(
-                wx.GetApp().mainFrame,
                 messages.USERNAME,
-                _(u"Enter a Flickr user name"),
-                u"")
+                _(u"Enter a Flickr user name"))
             if userName is not None:
                 self.userName = userName
         else:
             assert (event.collectionType == 'Tag')
             tagString = application.dialogs.Util.promptUser(
-                wx.GetApp().mainFrame,
                 _(u"Tag"),
-                _(u"Enter a Flickr Tag"),
-                u"")
+                _(u"Enter a Flickr Tag"))
             if tagString is not None:
                 self.tag = Tag.getTag(self.itsView, tagString)
 

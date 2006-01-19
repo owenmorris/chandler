@@ -120,11 +120,9 @@ class ItemValuesDialog(wx.Dialog):
 
 # A simple "prompt-the-user-for-a-string" dialog
 
-def promptUser(frame, title, message, value):
+def promptUser(title, message, defaultValue=""):
     """ Prompt the user to enter in a string.  Return None if cancel is hit.
 
-        @param frame: A wx parent frame
-        @type frame: wx frame
         @param title: The title string for the dialog
         @type title: String
         @param message:  A message prompting the user for input
@@ -133,7 +131,7 @@ def promptUser(frame, title, message, value):
         @type item:  String
 
     """
-    win = promptUserDialog(frame, -1, title, message, value)
+    win = promptUserDialog(None, -1, title, message, defaultValue)
     win.CenterOnScreen()
     val = win.ShowModal()
 
