@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: tbarwce.cpp,v 1.29 2005/12/19 10:41:08 ABX Exp $
+// RCS-ID:      $Id: tbarwce.cpp,v 1.30 2006/01/19 21:57:13 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -491,6 +491,15 @@ bool wxToolMenuBar::MSWCommand(WXUINT WXUNUSED(cmd), WXWORD id)
     wxToolBarToolBase *tool = FindById((int)id);
     if ( !tool )
     {
+        if (m_menuBar)
+        {
+            wxMenuItem *item = m_menuBar->FindItem(id);
+            if (item && item->IsCheckable())
+            {
+                item->Toggle();
+            }
+        }
+
         wxCommandEvent event(wxEVT_COMMAND_MENU_SELECTED);
         event.SetEventObject(this);
         event.SetId(id);
