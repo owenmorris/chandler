@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.248 2005/12/17 19:19:45 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.249 2006/01/19 01:05:57 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2363,7 +2363,7 @@ void wxWindowBase::OnMiddleClick( wxMouseEvent& event )
 
         wxMessageBox(wxString::Format(
                                       _T(
-                                        "       wxWidgets Library (%s port)\nVersion %d.%d.%d%s%s, compiled at %s %s%s\n   Copyright (c) 1995-2005 wxWidgets team"
+                                        "       wxWidgets Library (%s port)\nVersion %d.%d.%d%s%s, compiled at %s %s%s\n   Copyright (c) 1995-2006 wxWidgets team"
                                         ),
                                       port.c_str(),
                                       wxMAJOR_VERSION,
