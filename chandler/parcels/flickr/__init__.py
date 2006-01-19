@@ -43,25 +43,22 @@ class FlickrPhotoMixin(PhotoMixin):
 
     def __init__(self, photo=None,*args,**kwargs):
         super(FlickrPhotoMixin,self).__init__(*args,**kwargs)
-        if photo:
-            self.populate(photo)
-
-    def populate(self, photo):
-        self.flickrID = photo.id
-        self.displayName = photo.title
-        self.description = photo.description.encode('utf8')
-        self.owner = photo.owner.username
-        if photo.owner.realname is not None and len(photo.owner.realname.strip()) > 0:
-            self.owner = photo.owner.realname
-
-        self.imageURL = URL(photo.getURL(urlType="source"))
-        self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
-        self.dateTaken = dateutil.parser.parse(photo.datetaken)
-        try:
-            if photo.tags:
-                self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
-        except Exception, e:
-            logging.exception(e)
+        if photo is not None:
+            self.flickrID = photo.id
+            self.displayName = photo.title
+            self.description = photo.description.encode('utf8')
+            self.owner = photo.owner.username
+            if photo.owner.realname is not None and len(photo.owner.realname.strip()) > 0:
+                self.owner = photo.owner.realname
+    
+            self.imageURL = URL(photo.getURL(urlType="source"))
+            self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
+            self.dateTaken = dateutil.parser.parse(photo.datetaken)
+            try:
+                if photo.tags:
+                    self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
+            except Exception, e:
+                logging.exception(e)
 
         self.importFromURL(self.imageURL)
 
@@ -161,12 +158,7 @@ class PhotoCollection(pim.ListCollection):
         coll = pim.ListCollection(itsView = repView).setup()
         if self.userName:
             flickrUserName = flickr.people_findByUsername(self.userName.encode('utf8'))
-            try:
-                flickrPhotos = flickr.people_getPublicPhotos(flickrUserName.id,10)
-            except AttributeError:
-                #This is raised if the user has no photos
-                flickrPhotos = []
-
+            flickrPhotos = flickr.people_getPublicPhotos(flickrUserName.id,10)
             self.displayName = self.userName
         elif self.tag:
             flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-desc")
@@ -228,7 +220,7 @@ def installParcel(parcel, oldVersion=None):
         collectionType = 'Owner')
 
     NewFlickrCollectionByTagEvent = NewFlickrCollectionEvent.update(
-        parcel, 'NewFlickrCollectionByOwnerEvent',
+        parcel, 'NewFlickrCollectionByTagEvent',
         methodName='onModifyCollectionEvent',
         copyItems = True,
         disambiguateDisplayName = True,
