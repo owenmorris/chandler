@@ -768,15 +768,15 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 {
     PyObject *name, *parent, *kind, *uuid, *values, *references, *hooks;
     int status, update;
-    long long version;
+    unsigned long long version;
 
-    if (!PyArg_ParseTuple(args, "OOOOOOiL|Oi", &name, &parent, &kind,
+    if (!PyArg_ParseTuple(args, "OOOOOOiK|Oi", &name, &parent, &kind,
                           &uuid, &values, &references, &status, &version,
                           &hooks, &update))
         return NULL;
 
     self->version = version;
-    if (version == 0)
+    if (!version)
         status |= NEW;
 
     self->status = status;

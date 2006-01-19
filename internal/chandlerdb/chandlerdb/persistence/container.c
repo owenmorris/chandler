@@ -764,12 +764,12 @@ static int _t_ref_container_load_ref(t_buffer_dbt *dbt, void *data,
 static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
 {
     PyObject *cursor;
-    char *prefix, *ref;
-    int prefixLen, refLen, flags = 0;
+    char *uCol, *uRef;
+    int uColLen, uRefLen, flags = 0;
     unsigned long long version;
 
     if (!PyArg_ParseTuple(args, "Os#s#K|i", &cursor,
-                          &prefix, &prefixLen, &ref, &refLen, &version, &flags))
+                          &uCol, &uColLen, &uRef, &uRefLen, &version, &flags))
         return NULL;
 
     if (!PyObject_TypeCheck(cursor, CDBCursor))
@@ -778,30 +778,30 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
         return NULL;
     }
 
-    if (prefixLen != 32)
+    if (uColLen != 16)
     {
-        PyErr_SetString(PyExc_ValueError, "invalid prefix length");
+        PyErr_SetString(PyExc_ValueError, "invalid uCol length");
         return NULL;
     }
 
-    if (refLen != 16)
+    if (uRefLen != 16)
     {
-        PyErr_SetString(PyExc_ValueError, "invalid ref length");
+        PyErr_SetString(PyExc_ValueError, "invalid uRef length");
         return NULL;
     }
 
     {
         DBC *dbc = ((t_cursor *) cursor)->dbc;
-        char keyBuffer[56];
+        char keyBuffer[40];
         DBT key;
         t_buffer_dbt data;
         int err;
 
         memset(&key, 0, sizeof(key));
-        memcpy(keyBuffer, prefix, 32);
-        memcpy(keyBuffer + 32, ref, 16);
+        memcpy(keyBuffer, uCol, 16);
+        memcpy(keyBuffer + 16, uRef, 16);
         key.data = keyBuffer;
-        key.size = 48;
+        key.size = 32;
         key.flags = DB_DBT_USERMEM;
         key.ulen = sizeof(keyBuffer);
 
@@ -821,9 +821,9 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
               {
                   unsigned long long ver;
 
-                  if (key.size != 56 ||
-                      memcmp(key.data, prefix, 32) ||
-                      memcmp((char *) key.data + 32, ref, 16))
+                  if (key.size != 40 ||
+                      memcmp(key.data, uCol, 16) ||
+                      memcmp((char *) key.data + 16, uRef, 16))
                   {
                       if (buffer != data.buffer)
                           free(buffer);
@@ -831,9 +831,9 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
                       Py_RETURN_NONE;
                   }
 
-                  ver = ntohl(*(unsigned long *) ((char *) key.data + 48));
+                  ver = ntohl(*(unsigned long *) ((char *) key.data + 32));
                   ver <<= 32;
-                  ver += ntohl(*(unsigned long *) ((char *) key.data + 52));
+                  ver += ntohl(*(unsigned long *) ((char *) key.data + 36));
 
                   if (~ver <= version)
                   {
@@ -870,7 +870,7 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
                 return raiseDBError(err);
             }
 
-            key.size = 48;
+            key.size = 32;
 
             if (buffer != data.buffer)
                 free(buffer);
@@ -886,10 +886,13 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
 
 static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
 {
-    PyObject *txn, *prefix, *uuid, *previous, *next, *alias;
+    PyObject *txn, *previous, *next, *alias;
+    char *uCol, *uRef;
+    int uColLen, uRefLen;
     unsigned long long version;
 
-    if (!PyArg_ParseTuple(args, "OOKOOOO", &txn, &prefix, &version, &uuid,
+    if (!PyArg_ParseTuple(args, "Os#Ks#OOO", &txn, &uCol, &uColLen,
+                          &version, &uRef, &uRefLen, 
                           &previous, &next, &alias))
         return NULL;
 
@@ -899,18 +902,30 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         return NULL;
     }
 
+    if (uColLen != 16)
+    {
+        PyErr_SetString(PyExc_ValueError, "invalid uCol length");
+        return NULL;
+    }
+
+    if (uRefLen != 16)
+    {
+        PyErr_SetString(PyExc_ValueError, "invalid uRef length");
+        return NULL;
+    }
+
     {
         DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
         DB *db = (((t_container *) self)->db)->db;
         valueType prevType, nextType, aliasType;
-        char keyBuffer[56], *dataBuffer, stackBuffer[128];
+        char keyBuffer[40], *dataBuffer, stackBuffer[128];
         DBT key, data;
         int len, err;
 
-        memcpy(&keyBuffer, PyString_AS_STRING(prefix), 32);
-        memcpy(&keyBuffer[32], PyString_AS_STRING(((t_uuid *) uuid)->uuid), 16);
-        *((unsigned long *) (&keyBuffer[48])) = htonl(~(unsigned long) (version >> 32));
-        *((unsigned long *) (&keyBuffer[52])) = htonl(~(unsigned long) version);
+        memcpy(keyBuffer, uCol, 16);
+        memcpy(keyBuffer + 16, uRef, 16);
+        *((unsigned long *) (&keyBuffer[32])) = htonl(~(unsigned long) (version >> 32));
+        *((unsigned long *) (&keyBuffer[36])) = htonl(~(unsigned long) version);
         memset(&key, 0, sizeof(key));
         key.data = keyBuffer;
         key.size = sizeof(keyBuffer);
@@ -955,21 +970,22 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
 }
 
 
-/* uItem, uCol, uRef, ~version -> uCol, version, uRef */
+/* uCol, uRef, ~version -> uCol, version, uRef */
 
 static int _t_ref_container_historyKey(DB *secondary,
                                        const DBT *key, const DBT *data,
                                        DBT *result)
 {
     char *buffer = (char *) malloc(40);
-    unsigned long long version = ~*(unsigned long long *) ((char *) key->data + 48);
+    unsigned long long version =
+        ~*(unsigned long long *) ((char *) key->data + 32);
 
     if (!buffer)
         return ENOMEM;
 
-    memcpy(buffer, (char *) key->data + 16, 16);
+    memcpy(buffer, key->data, 16);
     memcpy(buffer + 16, &version, 8);
-    memcpy(buffer + 24, (char *) key->data + 32, 16);
+    memcpy(buffer + 24, (char *) key->data + 16, 16);
 
     result->data = buffer;
     result->flags = DB_DBT_APPMALLOC;

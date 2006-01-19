@@ -12,11 +12,14 @@
 #include "c.h"
 
 enum {
-    V_READONLY  = 0x0001,        /* value is read-only */
+    V_READONLY  = 0x0001,        /* value is read-only      */
 
-    V_DIRTY     = 0x0100,        /* value is dirty     */
-    V_TRANSIENT = 0x0200,        /* value is transient */
-    V_SAVEMASK  = 0x00ff,        /* save these flags   */
+    /* flags in 0x00f0 are used by the persistence format   */
+    V_INDEXED   = 0x0010,        /* value is indexed        */
+
+    V_DIRTY     = 0x0100,        /* value is dirty          */
+    V_TRANSIENT = 0x0200,        /* value is transient      */
+    V_SAVEMASK  = 0x000f,        /* save these flags        */
     V_COPYMASK  = V_READONLY | V_TRANSIENT
 };
 
@@ -397,6 +400,7 @@ void _init_values(PyObject *m)
             CValues = &ValuesType;
 
             PyDict_SetItemString_Int(dict, "READONLY", V_READONLY);
+            PyDict_SetItemString_Int(dict, "INDEXED", V_INDEXED);
             PyDict_SetItemString_Int(dict, "DIRTY", V_DIRTY);
             PyDict_SetItemString_Int(dict, "TRANSIENT", V_TRANSIENT);
             PyDict_SetItemString_Int(dict, "SAVEMASK", V_SAVEMASK);

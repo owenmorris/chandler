@@ -62,6 +62,9 @@ PyObject *raiseDBError(int err)
       case EPERM:
         obj = PyExc_DBPermissionsError;
         break;
+      case ENOMEM:
+        obj = PyExc_MemoryError;
+        break;
       case DB_NOTFOUND:
         obj = PyExc_DBNotFoundError;
         break;
