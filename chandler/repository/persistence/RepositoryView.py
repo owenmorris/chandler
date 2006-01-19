@@ -105,7 +105,7 @@ class RepositoryView(CView):
         re-opening a closed view.
         """
 
-        self._roots = self._createChildren(self, False)
+        self._roots = self._createChildren(self, self.itsVersion == 0)
         self._registry = {}
         self._deletedRegistry = {}
         self._instanceRegistry = {}

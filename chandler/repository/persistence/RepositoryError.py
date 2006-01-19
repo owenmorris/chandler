@@ -40,6 +40,7 @@ class VersionConflictError(RepositoryError):
 
 
 class RepositoryVersionError(RepositoryError):
+    __doc__ = "%s%s"
 
     def __str__(self):
         return self.__doc__ %(self.args[0], self.args[1])
@@ -49,6 +50,9 @@ class RepositoryFormatVersionError(RepositoryVersionError):
 
 class RepositorySchemaVersionError(RepositoryVersionError):
     __doc__ = "Repository core schema version mismatch, expected version 0x%08x, but got 0x%08x"
+
+class RepositoryDatabaseVersionError(RepositoryVersionError):
+    __doc__ = "Repository database version mismatch, expected version %s, but got %s"
 
 
 class NoSuchItemError(RepositoryError):

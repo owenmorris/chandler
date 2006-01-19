@@ -93,6 +93,11 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
+    CompactRepositoryEvent = \
+        BlockEvent.template('CompactRepository',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
+    # from //parcels/osaf/views/main
     UnsubscribeSidebarCollectionEvent = \
         BlockEvent.template('UnsubscribeSidebarCollection',
             dispatchEnum='SendToBlockByName',
@@ -826,6 +831,10 @@ def make_mainview(parcel):
                                 event=BackupRepositoryEvent,
                                 title=u'Backup Repository',
                                 helpString=u'backup the repository'),
+                            MenuItem.template('CompactRepositoryItem',
+                                event=CompactRepositoryEvent,
+                                title=u'Compact Repository',
+                                helpString=u'compact the repository'),
                             MenuItem.template('RunSelectedScriptItem',
                                 event=RunSelectedScriptEvent,
                                 title=u'Run a Script',

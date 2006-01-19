@@ -8,9 +8,10 @@ from struct import pack, unpack
 from cStringIO import StringIO
 from time import time
 
-from PyLucene import DbDirectory, IndexWriter, StandardAnalyzer
-from PyLucene import IndexSearcher, QueryParser
-from PyLucene import Document, Field
+from PyLucene import \
+    Document, Field, \
+    DbDirectory, StandardAnalyzer, QueryParser, \
+    IndexReader, IndexWriter, IndexSearcher, Term, TermQuery
 
 from chandlerdb.util.c import UUID
 from repository.persistence.DBContainer import DBContainer
@@ -29,7 +30,7 @@ class FileContainer(DBContainer):
 
     def deleteFile(self, name):
 
-        File(self, name).delete()
+        return File(self, name).delete()
 
     def fileExists(self, name):
 
@@ -61,7 +62,8 @@ class FileContainer(DBContainer):
         while True:
             try:
                 cursor = self.openCursor()
-            
+                value = cursor.first(self._flags)
+
                 while value is not None:
                     value = value[0]
                     length = unpack('>H', value[0:2])[0]
@@ -102,9 +104,19 @@ class BlockContainer(DBContainer):
     pass
 
 
+class LOBContainer(FileContainer):
+
+    def purgeLob(self, txn, uLob):
+    
+        count = self.deleteFile(uLob._uuid)
+        self.delete(uLob._uuid, txn)
+
+        return 1, count
+
+
 class File(object):
 
-    def __init__(self, container, name, create=False):
+    def __init__(self, container, name, create=False, value=None):
 
         super(File, self).__init__()
 
@@ -154,20 +166,14 @@ class File(object):
         if value is None:
             return False
         
-        zero, self.length, timeHi, timeLo, uuid = unpack('>LLLL16s', value)
-
-        self.timeModified = timeHi << 32L | timeLo
+        zero, self.length, self.timeModified, uuid = unpack('>LLQ16s', value)
         self._uuid = UUID(uuid)
 
         return True
 
     def modify(self, length, timeModified):
 
-        timeHi = timeModified >> 32L
-        timeLo = timeModified & 0xffffffffL
-        uuid = self.getKey()._uuid
-        
-        data = pack('>LLLL16s', 0L, length, timeHi, timeLo, uuid)
+        data = pack('>LLQ16s', 0L, length, timeModified, self.getKey()._uuid)
         self._container.put(self._key, data)
         
         self.length = length
@@ -175,9 +181,7 @@ class File(object):
 
     def delete(self):
 
-        if not self.exists():
-            raise RepositoryError, "File does not exist: %s" %(self.getName())
-
+        count = 0
         cursor = None
         blocks = self._container.store._blocks
         
@@ -185,15 +189,18 @@ class File(object):
             cursor = blocks.openCursor()
             key = self.getKey()._uuid
             
-            value = cursor.set_range(key, self._flags, None)
+            value = cursor.set_range(key, blocks._flags, None)
             while value is not None and value[0].startswith(key):
                 cursor.delete()
-                value = cursor.next(self._flags, None)
+                count += 1
+                value = cursor.next(blocks._flags, None)
 
             self._container.delete(self._key)
 
         finally:
             blocks.closeCursor(cursor)
+
+        return count
 
     def rename(self, name):
 
@@ -412,32 +419,51 @@ class IndexContainer(FileContainer):
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
 
+    def getDirectory(self):
+
+        return DbDirectory(self.store.txn, self._db, self.store._blocks._db,
+                           self._flags)
+
+    def getIndexReader(self):
+
+        return IndexReader.open(self.getDirectory())
+
     def getIndexWriter(self):
 
-        writer = IndexWriter(DbDirectory(self.store.txn,
-                                         self._db, self.store._blocks._db,
-                                         self._flags),
-                             StandardAnalyzer(), False)
+        writer = IndexWriter(self.getDirectory(), StandardAnalyzer(), False)
         writer.setUseCompoundFile(False)
 
         return writer
 
+    def getIndexSearcher(self):
+
+        return IndexSearcher(self.getDirectory())
+
     def indexValue(self, indexWriter, value, owner, attribute, version):
 
+        YES = Field.Store.YES
+        NO = Field.Store.NO
+        UN_TOKENIZED = Field.Index.UN_TOKENIZED
+        TOKENIZED = Field.Index.TOKENIZED
+
         doc = Document()
-        doc.add(Field("owner", owner.str16(), True, False, False))
-        doc.add(Field("attribute", attribute, True, False, False))
-        doc.add(Field("version", str(version), True, False, False))
-        doc.add(Field.Text("contents", value))
+        doc.add(Field("owner", owner.str64(), YES, UN_TOKENIZED))
+        doc.add(Field("attribute", attribute.str64(), YES, UN_TOKENIZED))
+        doc.add(Field("version", str(version), YES, UN_TOKENIZED))
+        doc.add(Field("contents", value, YES, TOKENIZED))
 
         indexWriter.addDocument(doc)
 
     def indexReader(self, indexWriter, reader, owner, attribute, version):
 
+        YES = Field.Store.YES
+        NO = Field.Store.NO
+        UN_TOKENIZED = Field.Index.UN_TOKENIZED
+
         doc = Document()
-        doc.add(Field("owner", owner.str16(), True, False, False))
-        doc.add(Field("attribute", attribute, True, False, False))
-        doc.add(Field("version", str(version), True, False, False))
+        doc.add(Field("owner", owner.str64(), YES, UN_TOKENIZED))
+        doc.add(Field("attribute", attribute.str64(), YES, UN_TOKENIZED))
+        doc.add(Field("version", str(version), YES, UN_TOKENIZED))
         doc.add(Field.Text("contents", reader))
 
         indexWriter.addDocument(doc)
@@ -448,10 +474,7 @@ class IndexContainer(FileContainer):
 
     def searchDocuments(self, version, query, attribute=None):
 
-        directory = DbDirectory(self.store.txn,
-                                self._db, self.store._blocks._db,
-                                self._flags)
-        searcher = IndexSearcher(directory)
+        searcher = self.getIndexSearcher()
         query = QueryParser.parse(query, "contents", StandardAnalyzer())
 
         docs = {}
@@ -461,10 +484,42 @@ class IndexContainer(FileContainer):
                 uuid = UUID(doc['owner'])
                 dv = docs.get(uuid, None)
                 if dv is None or dv[0] < ver:
-                    docAttr = doc['attribute']
+                    docAttr = UUID(doc['attribute'])
                     if attribute is None or attribute == docAttr:
                         docs[uuid] = (ver, docAttr)
 
         searcher.close()
 
         return docs
+
+    def purgeDocuments(self, indexSearcher, indexReader, uItem, keeps):
+
+        count = 0
+        query = TermQuery(Term("owner", uItem.str64()))
+
+        if keeps:
+            prevs = {}
+            for i, doc in indexSearcher.search(query):
+                uAttr = UUID(doc['attribute'])
+
+                if uAttr in keeps:
+                    ver = long(doc['version'])
+                    prev = prevs.get(uAttr)
+
+                    if prev is None:
+                        prevs[uAttr] = (i, ver)
+                    elif ver > prev[1]:
+                        indexReader.deleteDocument(prev[0])
+                        count += 1
+                        prevs[uAttr] = (i, ver)
+
+                else:
+                    indexReader.deleteDocument(i)
+                    count += 1
+
+        else:
+            for i, doc in indexSearcher.search(query):
+                indexReader.deleteDocument(i)
+                count += 1
+
+        return count

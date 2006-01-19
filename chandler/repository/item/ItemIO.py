@@ -68,6 +68,12 @@ class ItemWriter(object):
     def writeUUID(self, buffer, value):
         raise NotImplementedError, "%s.writeUUID" %(type(self))
 
+    def writeLOB(self, buffer, value):
+        raise NotImplementedError, "%s.writeLOB" %(type(self))
+
+    def writeIndex(self, buffer, value):
+        raise NotImplementedError, "%s.writeIndex" %(type(self))
+
     def writeList(self, buffer, item, version, value, withSchema, attrType):
         raise NotImplementedError, "%s.writeList" %(type(self))
 
@@ -210,3 +216,9 @@ class ItemReader(object):
 
     def isDeleted(self):
         raise NotImplementedError, "%s.isDeleted" %(type(self))
+
+
+class ItemPurger(object):
+
+    def purgeItem(self, uuid, version):
+        raise NotImplementedError, "%s.purgeItem" %(type(self))

@@ -21,8 +21,8 @@ BP=
 
 # these get installed into release or debug
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)9.tar.gz \
-         $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.16-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)10.tar.gz \
+         $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-$(BP)4.tar.gz \
@@ -30,7 +30,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)3.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.4-49-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-1.9rc1-7-$(BP)1.tar.gz \
+         $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-1.9rc1-7-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)1.tar.gz \

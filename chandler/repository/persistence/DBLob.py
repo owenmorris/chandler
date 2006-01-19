@@ -18,21 +18,9 @@ class DBLob(Lob, ItemValue):
 
         Lob.__init__(self, *args, **kwds)
         ItemValue.__init__(self)
-        
+
         self._uuid = None
         self._view = view
-        self._version = 0
-
-    def getUUID(self):
-
-        if self._uuid is None:
-            self._uuid = UUID()
-
-        return self._uuid
-
-    def getVersion(self):
-
-        return self._version
 
     def _copy(self, item, attribute, copyPolicy, copyFn, key=None):
 
@@ -42,14 +30,14 @@ class DBLob(Lob, ItemValue):
 
         return self.copy(item.itsView, None)
 
-    def _writeData(self, uuid, store, db):
+    def _writeData(self, version, store, db):
 
-        if self._dirty or self._version == 0:
+        if self._dirty:
+            name = self._uuid._uuid
             if self._append:
-                out = db.appendFile(store.lobName(uuid, self._version))
+                out = db.appendFile(name)
             else:
-                self._version += 1
-                out = db.createFile(store.lobName(uuid, self._version))
+                out = db.createFile(name)
             size = 32
 
             out.write(self._data)
@@ -65,9 +53,10 @@ class DBLob(Lob, ItemValue):
                                                   False, None, False)
             if indexed:
                 reader = self.getPlainTextReader(replace=True)
-                store._index.indexReader(self._view._getIndexWriter(),
-                                         reader, item.itsUUID, attribute,
-                                         self.getVersion())
+                attribute = item.itsKind.getAttribute(attribute, False, item)
+                store._index.indexReader(self._view._getIndexWriter(), reader,
+                                         item.itsUUID, attribute.itsUUID,
+                                         version)
                 reader.close()
             
             self._dirty = False
@@ -75,16 +64,20 @@ class DBLob(Lob, ItemValue):
 
         return 0
 
-    def _writeValue(self, itemWriter, buffer, withSchema):
+    def _writeValue(self, itemWriter, buffer, version, withSchema):
 
-        uuid = self.getUUID()
+        if self._uuid is None:
+            self._uuid = UUID()
+            self._dirty = True
+        elif not self._append:
+            self._uuid = UUID()
+            self._dirty = True
+
         store = self._view.repository.store
-        size = self._writeData(uuid, store, store._lobs)
+        size = self._writeData(version, store, store._lobs)
 
-        itemWriter.writeUUID(buffer, uuid)
-        itemWriter.writeInteger(buffer, self._version)
+        itemWriter.writeLob(buffer, self._uuid, self._indexed)
         itemWriter.writeString(buffer, self.mimetype)
-        itemWriter.writeBoolean(buffer, self._indexed)
 
         if self.encoding:
             itemWriter.writeString(buffer, self.encoding)
@@ -110,10 +103,8 @@ class DBLob(Lob, ItemValue):
 
     def _readValue(self, itemReader, offset, data, withSchema):
 
-        offset, self._uuid = itemReader.readUUID(offset, data)
-        offset, self._version = itemReader.readInteger(offset, data)
+        offset, self._uuid, self._indexed = itemReader.readLob(offset, data)
         offset, self.mimetype = itemReader.readString(offset, data)
-        offset, self._indexed = itemReader.readBoolean(offset, data)
 
         offset, encoding = itemReader.readString(offset, data)
         self.encoding = encoding or None
@@ -129,7 +120,6 @@ class DBLob(Lob, ItemValue):
     def _xmlValue(self, generator):
 
         attrs = {}
-        attrs['version'] = str(self._version)
         attrs['mimetype'] = self.mimetype
 
         if self.encoding:
@@ -178,8 +168,14 @@ class DBLob(Lob, ItemValue):
 
         store = self._view.repository.store
         lobs = store._lobs
-        key = store.lobName(self.getUUID(), self._version)
+
+        if self._uuid is None:
+            if dataIn is None:
+                return NullInputStream()
+            return dataIn
         
+        key = self._uuid._uuid
+
         if dataIn is not None:
             if self._append:
                 if lobs.fileExists(key):

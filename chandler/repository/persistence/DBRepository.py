@@ -14,6 +14,7 @@ from chandlerdb.util import lock
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import DBEnv, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
+    DBLockDeadlockError, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
 
 from repository.item.Item import Item
@@ -26,8 +27,8 @@ from repository.persistence.DBContainer import \
     DBContainer, RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
     ItemContainer, ValueContainer
 from repository.persistence.FileContainer import \
-    FileContainer, BlockContainer, IndexContainer
-from repository.persistence.DBItemIO import DBItemReader
+    FileContainer, BlockContainer, IndexContainer, LOBContainer
+from repository.persistence.DBItemIO import DBItemReader, DBItemPurger
 from repository.remote.CloudFilter import CloudFilter
 
 DB_VERSION = DB_VERSION_MAJOR << 16 | DB_VERSION_MINOR << 8 | DB_VERSION_PATCH
@@ -154,17 +155,36 @@ class DBRepository(OnDemandRepository):
 
         self._status &= ~Repository.CLOSED
 
-        env = DBEnv()
-
         ramdb = kwds.get('ramdb', False)
         locks = 32767
         cache = 0x4000000
         
+        if create and not ramdb:
+            db_version = file(os.path.join(self.dbHome, 'DB_VERSION'), 'w+b')
+            db_version.write("%d.%d.%d\n" %(DB_VERSION_MAJOR,
+                                            DB_VERSION_MINOR,
+                                            DB_VERSION_PATCH))
+            db_version.close()
+            db_config = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'w+b')
+
+        elif not (create or ramdb):
+            try:
+                db_version = file(os.path.join(self.dbHome, 'DB_VERSION'))
+                version = db_version.readline().strip()
+                db_version.close()
+            except Exception, e:
+                raise RepositoryVersionError, ("Repository database version could not be determined", e)
+            else:
+                expected = "%d.%d.%d" %(DB_VERSION_MAJOR,
+                                        DB_VERSION_MINOR,
+                                        DB_VERSION_PATCH)
+                if version != expected:
+                    raise RepositoryDatabaseVersionError, (version, expected)
+
+        env = DBEnv()
+
         if 'password' in kwds:
             env.set_encrypt(kwds['password'], DBEnv.DB_ENCRYPT_AES)
-
-        if create and not ramdb:
-            db_config = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'w+b')
 
         if create or ramdb:
             env.lk_detect = DBEnv.DB_LOCK_MINLOCKS
@@ -211,7 +231,9 @@ class DBRepository(OnDemandRepository):
     def delete(self):
 
         for name in os.listdir(self.dbHome):
-            if name.startswith('__') or name.startswith('log.'):
+            if (name.startswith('__') or
+                name.startswith('log.') or
+                name in ('DB_CONFIG', 'DB_VERSION')):
                 path = os.path.join(self.dbHome, name)
                 if not os.path.isdir(path):
                     os.remove(path)
@@ -269,6 +291,11 @@ class DBRepository(OnDemandRepository):
                 self.logger.info(path)
                 shutil.copy2(os.path.join(self.dbHome, 'DB_CONFIG'), path)
             
+            if os.path.exists(os.path.join(self.dbHome, 'DB_VERSION')):
+                path = os.path.join(dbHome, 'DB_VERSION')
+                self.logger.info(path)
+                shutil.copy2(os.path.join(self.dbHome, 'DB_VERSION'), path)
+            
         finally:
             for view in self.getOpenViews():
                 view._releaseExclusive()
@@ -279,33 +306,69 @@ class DBRepository(OnDemandRepository):
 
         store = self.store
 
-        try:
-            txnStatus = store.startTransaction(None, True)
-            if txnStatus == 0:
-                raise AssertionError, 'no transaction started'
+        itemCount = 0
+        refCount = valueCount = 0
+        lobCount = blockCount = nameCount = indexCount = 0
+        documentCount = 0
 
-            prev = (None, None)
+        while True:
+            try:
+                txnStatus = store.startTransaction(None, True)
+                if txnStatus == 0:
+                    raise AssertionError, 'no transaction started'
+                txn = store.txn
 
-            for uuid, version, status, parent, values in store.iterItems(None):
-                if uuid == prev[0]:
-                    store.purgeItem(uuid, version)
-                    print 'purged item', uuid, version
-                    for value in values:
-                        if value not in prev[1]:
-                            store.purgeValue(value)
-                            print 'purged value', value
-                else:
-                    if status & Item.DELETED:
-                        store.purgeItem(uuid, version)
-                    prev = (uuid, values)
+                indexReader = store._index.getIndexReader()
+                indexSearcher = store._index.getIndexSearcher()
 
-            store.compact()
+                prevUUID, keepValues, purger = None, (), None
 
-        except:
-            store.abortTransaction(None, txnStatus)
-            raise
-        else:
-            store.commitTransaction(None, txnStatus)
+                for uuid, version, status, values in store.iterItems(None):
+                    if uuid == prevUUID:
+                        if purger is None:
+                            purger = DBItemPurger(txn, store, uuid, keepValues,
+                                                  indexSearcher, indexReader,
+                                                  status)
+                        purger.purgeItem(txn, values, version, status)
+                    else:
+                        if purger is not None:
+                            itemCount += purger.itemCount
+                            refCount += purger.refCount
+                            valueCount += purger.valueCount
+                            lobCount += purger.lobCount
+                            blockCount += purger.blockCount
+                            nameCount += purger.nameCount
+                            indexCount += purger.indexCount
+                            documentCount += purger.documentCount
+                            
+                        if status & Item.DELETED:
+                            purger = DBItemPurger(txn, store, uuid, (),
+                                                  indexSearcher, indexReader,
+                                                  status)
+                            purger.purgeItem(txn, values, version, status)
+                        else:
+                            purger = None
+
+                        prevUUID, keepValues = uuid, values
+
+                indexReader.close()
+                indexSearcher.close()
+
+                store.compact()
+
+            except DBLockDeadlockError:
+                self.logger.info('retrying compact aborted by deadlock')
+                store.abortTransaction(None, txnStatus)
+                continue
+            except:
+                store.abortTransaction(None, txnStatus)
+                raise
+            else:
+                store.commitTransaction(None, txnStatus)
+                break
+
+        return (itemCount, valueCount, refCount, lobCount, blockCount,
+                nameCount, indexCount, documentCount)
 
     def open(self, **kwds):
 
@@ -328,7 +391,7 @@ class DBRepository(OnDemandRepository):
                 for f in os.listdir(restore):
                     if (f.endswith('.db') or
                         f.startswith('log.') or
-                        f == 'DB_CONFIG'):
+                        f in ('DB_CONFIG', 'DB_VERSION')):
                         path = os.path.join(restore, f)
                         if not os.path.isdir(path):
                             self.logger.info(path)
@@ -507,7 +570,7 @@ class DBStore(Store):
         self._values = ValueContainer(self)
         self._refs = RefContainer(self)
         self._names = NamesContainer(self)
-        self._lobs = FileContainer(self)
+        self._lobs = LOBContainer(self)
         self._blocks = BlockContainer(self)
         self._index = IndexContainer(self)
         self._acls = ACLContainer(self)
@@ -651,7 +714,7 @@ class DBStore(Store):
 
         if kind is not None:
             items = self._items
-            for uuid, args in items.kindQuery(view, version, kind.itsUUID):
+            for uuid, args in items.kindQuery(view, version, kind):
                 if items.getItemVersion(view, version, uuid) == args[0]:
                     yield DBItemReader(self, uuid, *args)
 
@@ -666,7 +729,7 @@ class DBStore(Store):
         if kind is not None:
             items = self._items
             itemFinder = items._itemFinder(view)
-            for uuid, ver in items.kindQuery(view, version, kind.itsUUID, True):
+            for uuid, ver in items.kindQuery(view, version, kind, True):
                 if itemFinder.getVersion(version, uuid) == ver:
                     yield uuid
 
@@ -687,14 +750,6 @@ class DBStore(Store):
     def iterItems(self, view):
 
         return self._items.iterItems(view)
-
-    def purgeItem(self, uuid, version):
-
-        self._items.purgeItem(uuid, version)
-
-    def purgeValue(self, value):
-
-        self._values.purgeValue(value)
 
     def getItemVersion(self, view, version, uuid):
 
@@ -779,10 +834,6 @@ class DBStore(Store):
                 view._releaseExclusive()
 
         return status
-
-    def lobName(self, uuid, version):
-
-        return pack('>16sl', uuid._uuid, ~version)
 
     def _getTxn(self):
 

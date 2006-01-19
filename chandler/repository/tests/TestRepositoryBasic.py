@@ -10,7 +10,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, unittest
 
 from chandlerdb.persistence.c import DBNoSuchFileError
-from repository.persistence.RepositoryError import RepositoryOpenDeniedError
+from repository.persistence.RepositoryError import \
+    RepositoryOpenDeniedError, RepositoryVersionError
 from repository.persistence.DBRepository import DBRepository
 import util.timing
 
@@ -24,6 +25,8 @@ class TestRepositoryBasic(unittest.TestCase):
         except DBNoSuchFileError:
             pass
         except RepositoryOpenDeniedError:
+            pass
+        except RepositoryVersionError:
             pass
 
     def setUp(self):

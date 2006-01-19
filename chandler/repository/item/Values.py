@@ -563,10 +563,11 @@ class References(Values):
     def _setItem(self, item):
 
         self._item = item
+        isNew = item.isNew()
 
         for value in self._dict.itervalues():
             if value is not None and value._isRefList():
-                value._setItem(item, False)
+                value._setItem(item, isNew)
 
     def refCount(self, loaded):
 

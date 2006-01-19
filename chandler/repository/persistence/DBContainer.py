@@ -103,10 +103,10 @@ class DBContainer(object):
         self._db.put(key, value, self.store.txn)
         return len(key) + len(value)
 
-    def delete(self, key):
+    def delete(self, key, txn=None):
 
         try:
-            self._db.delete(key, self.store.txn)
+            self._db.delete(key, txn or self.store.txn)
         except DBNotFoundError:
             pass
 
@@ -291,13 +291,6 @@ class RefContainer(DBContainer):
         super(RefContainer, self).compact(txn)
         self._history.compact(txn)
 
-    def _packKey(self, buffer, key, version=None):
-
-        if version is None:
-            return buffer + key._uuid
-
-        return buffer + key._uuid + pack('>q', ~version)
-
     def applyHistory(self, view, fn, uuid, oldVersion, newVersion):
 
         store = self.store
@@ -348,9 +341,10 @@ class RefContainer(DBContainer):
                 self.closeCursor(cursor, self._history)
                 store.abortTransaction(view, txnStatus)
 
-    def deleteRef(self, keyBuffer, version, key):
+    def deleteRef(self, uCol, version, uRef):
 
-        return self.put(self._packKey(keyBuffer, key, version), '\0')
+        return self.put(pack('>16s16sq', uCol._uuid, uRef._uuid,
+                             ~version), '\0')
 
     def _readRef(self, value):
 
@@ -371,7 +365,7 @@ class RefContainer(DBContainer):
 
             return (previous, next, alias)
 
-    def loadRef(self, view, buffer, version, key):
+    def loadRef(self, view, uCol, version, uRef):
 
         store = self.store
 
@@ -384,7 +378,7 @@ class RefContainer(DBContainer):
                 cursor = self.openCursor()
 
                 try:
-                    return self.c.loadRef(cursor, buffer, key._uuid,
+                    return self.c.loadRef(cursor, uCol._uuid, uRef._uuid,
                                           version, self._flags)
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
@@ -396,7 +390,7 @@ class RefContainer(DBContainer):
                 self.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
-    def refIterator(self, view, buffer, version):
+    def refIterator(self, view, uCol, version):
 
         store = self.store
 
@@ -418,10 +412,10 @@ class RefContainer(DBContainer):
                 _self.cursor = None
                 _self.txnStatus = 0
 
-            def next(_self, key):
+            def next(_self, uRef):
 
                 try:
-                    return self.c.loadRef(_self.cursor, buffer, key._uuid,
+                    return self.c.loadRef(_self.cursor, uCol._uuid, uRef._uuid,
                                           version, self._flags)
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
@@ -431,6 +425,37 @@ class RefContainer(DBContainer):
                         raise
 
         return _iterator()
+
+    def purgeRefs(self, txn, uCol, keepOne):
+
+        count = 0
+        cursor = None
+
+        try:
+            cursor = self.openCursor()
+            key = uCol._uuid
+            value = cursor.set_range(key, self._flags, None)
+
+            if not keepOne:
+                while value is not None and value[0].startswith(key):
+                    cursor.delete(self._flags)
+                    count += 1
+                    value = cursor.next(self._flags, None)
+
+            else:
+                prevRef = None
+                while value is not None and value[0].startswith(key):
+                    ref = value[0][16:32]
+                    if ref == prevRef or len(value[1]) == 1:
+                        cursor.delete(self._flags)
+                        count += 1
+                    prevRef = ref
+                    value = cursor.next(self._flags, None)
+
+        finally:
+            self.closeCursor(cursor)
+
+        return count, self.store._names.purgeNames(txn, uCol, keepOne)
 
 
 class NamesContainer(DBContainer):
@@ -448,6 +473,37 @@ class NamesContainer(DBContainer):
 
         return self.put(pack('>16slq', key._uuid, _hash(name), ~version),
                         uuid._uuid)
+
+    def purgeNames(self, txn, uuid, keepOne):
+
+        count = 0
+        cursor = None
+
+        try:
+            cursor = self.openCursor()
+            key = uuid._uuid
+            prevHash = None
+            value = cursor.set_range(key, self._flags, None)
+
+            if not keepOne:
+                while value is not None and value[0].startswith(key):
+                    cursor.delete(self._flags)
+                    count += 1
+                    value = cursor.next(self._flags, None)
+
+            else:
+                while value is not None and value[0].startswith(key):
+                    hash = value[0][16:20]
+                    if hash == prevHash or key == value[1]:
+                        cursor.delete(self._flags)
+                        count += 1
+                    prevHash = hash
+                    value = cursor.next(self._flags, None)
+
+        finally:
+            self.closeCursor(cursor)
+
+        return count
 
     def readName(self, view, version, key, name):
 
@@ -742,6 +798,37 @@ class IndexesContainer(DBContainer):
             finally:
                 self.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
+
+    def purgeIndex(self, txn, uIndex, keepOne):
+
+        count = 0
+        cursor = None
+
+        try:
+            cursor = self.openCursor()
+            key = uIndex._uuid
+            value = cursor.set_range(key, self._flags, None)
+
+            if not keepOne:
+                while value is not None and value[0].startswith(key):
+                    cursor.delete(self._flags)
+                    count += 1
+                    value = cursor.next(self._flags, None)
+
+            else:
+                prevRef = None
+                while value is not None and value[0].startswith(key):
+                    ref = value[0][16:32]
+                    if ref == prevRef or value[1][0] == '\0':
+                        cursor.delete(self._flags)
+                        count += 1
+                    prevRef = ref
+                    value = cursor.next(self._flags, None)
+
+        finally:
+            self.closeCursor(cursor)
+
+        return count
 
     def nodeIterator(self, view, keyBuffer, version):
         
@@ -1080,9 +1167,10 @@ class ItemContainer(DBContainer):
 
         return None
 
-    def purgeItem(self, uuid, version):
+    def purgeItem(self, txn, uuid, version):
 
-        self.delete(pack('>16sq', uuid._uuid, ~version))
+        self.delete(pack('>16sq', uuid._uuid, ~version), txn)
+        return 1
 
     def findValue(self, view, version, uuid, name):
 
@@ -1299,7 +1387,6 @@ class ItemContainer(DBContainer):
 
                         value = value[1]
                         status, = unpack('>l', value[16:20])
-                        parent = UUID(value[20:36])
                         vCount, dCount = unpack('>ll', value[-8:])
                         offset = -(vCount * 20 + dCount * 4 + 8)
 
@@ -1308,7 +1395,7 @@ class ItemContainer(DBContainer):
                             values.append(UUID(value[offset+4:offset+20]))
                             offset += 20
 
-                        yield (UUID(uuid), ~version, status, parent, values)
+                        yield (UUID(uuid), ~version, status, values)
 
                     yield False
 
@@ -1342,8 +1429,9 @@ class ValueContainer(DBContainer):
     # 0.5.9: value flags and enum values saved as byte instead of int
     # 0.5.10: added support for storing selection ranges on indexes
     # 0.6.0: version reimplemented as 64 bit sequence, removed value index
+    # 0.6.1: version purge support
 
-    FORMAT_VERSION = 0x00060000
+    FORMAT_VERSION = 0x00060100
 
     def __init__(self, store):
 
@@ -1427,10 +1515,10 @@ class ValueContainer(DBContainer):
 
         return self._versionSeq.get(self.store.txn)
 
-    def purgeValue(self, value):
+    def purgeValue(self, txn, uuid):
 
-        self.delete(value._uuid)
-
+        self.delete(uuid._uuid, txn)
+        return 1
 
 class HashTuple(tuple):
 

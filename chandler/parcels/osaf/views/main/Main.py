@@ -433,6 +433,19 @@ class MainView(View):
         repository.logger.info('Repository was backed up into %s' % (dbHome))
         self.setStatusMessage(successMessage)
 
+    def onCompactRepositoryEvent(self, event):
+        # triggered from "Test | Compact Repository" Menu
+        self.RepositoryCommitWithStatus()
+        repository = self.itsView.repository
+        progressMessage = _(u'Compacting repository...')
+        repository.logger.info('Compacting up repository...')
+        self.setStatusMessage(progressMessage)
+        counts = repository.compact()
+
+        successMessage = _(u'Reclaimed %(counts)s (items, values, refs, lobs, blocks, names, index entries, lucene documents)') %{ 'counts': counts }
+        repository.logger.info(successMessage)
+        self.setStatusMessage(successMessage)
+
     def onImportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
         prefs = schema.ns("osaf.sharing", self.itsView).prefs

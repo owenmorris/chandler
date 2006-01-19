@@ -206,8 +206,8 @@ class Type(Item):
     def hashValue(self, value):
         return _hash(self.makeString(value))
 
-    def indexValue(self, itemWriter, item, name, version, value):
-        itemWriter.indexValue(self.makeUnicode(value), item, name, version)
+    def indexValue(self, itemWriter, item, attribute, version, value):
+        itemWriter.indexValue(self.makeUnicode(value), item, attribute, version)
 
     NoneString = "__NONE__"
 
@@ -1890,7 +1890,7 @@ class Lob(Type):
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
-        return value._writeValue(itemWriter, buffer, withSchema)
+        return value._writeValue(itemWriter, buffer, version, withSchema)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
@@ -1916,7 +1916,7 @@ class Lob(Type):
         # for now
         return 0
 
-    def indexValue(self, itemWriter, item, name, version, value):
+    def indexValue(self, itemWriter, item, attribute, version, value):
 
         # done during saving of lob data
         pass

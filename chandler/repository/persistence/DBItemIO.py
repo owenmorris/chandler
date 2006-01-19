@@ -7,12 +7,12 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from struct import pack, unpack
 
 from chandlerdb.util.c import UUID, _hash, isuuid
-from chandlerdb.item.c import Nil, Default, isitem
+from chandlerdb.item.c import Nil, Default, isitem, CValues
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
-from repository.item.ItemIO import ItemWriter, ItemReader
+from repository.item.ItemIO import ItemWriter, ItemReader, ItemPurger
 from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.schema.TypeHandler import TypeHandler
@@ -34,6 +34,7 @@ class DBItemWriter(ItemWriter):
     def writeItem(self, item, version):
 
         self.values = []
+
         self.uParent = DBItemWriter.NOITEM
 
         if not ((item._status & (Item.NEW | Item.MERGED)) != 0 or
@@ -112,6 +113,19 @@ class DBItemWriter(ItemWriter):
 
         buffer.append(value._uuid)
         return 16
+
+    def writeLob(self, buffer, value, indexed):
+
+        self.lobs.append((value, indexed))
+        size = self.writeUUID(buffer, value)
+        size += self.writeBoolean(buffer, indexed)
+
+        return size
+
+    def writeIndex(self, buffer, value):
+
+        self.indexes.append(value)
+        return self.writeUUID(buffer, value)
 
     def writeValue(self, buffer, item, version, value, withSchema, attrType):
 
@@ -231,6 +245,9 @@ class DBItemWriter(ItemWriter):
 
     def _value(self, item, name, value, version, flags, withSchema, attribute):
 
+        self.lobs = []
+        self.indexes = []
+
         uValue = UUID()
         self.values.append((name, uValue))
 
@@ -249,7 +266,10 @@ class DBItemWriter(ItemWriter):
         buffer = self.dataBuffer
         del buffer[:]
 
+        if indexed:
+            flags |= CValues.INDEXED
         buffer.append(chr(flags))
+
         if withSchema:
             self.writeSymbol(buffer, name)
 
@@ -267,7 +287,7 @@ class DBItemWriter(ItemWriter):
                 self.writeDict(buffer, item, version,
                                value, withSchema, attrType)
         except Exception, e:
-            raise SaveValueError, (item, name, e)
+            raise #SaveValueError, (item, name, e)
 
         if indexed:
 
@@ -278,20 +298,32 @@ class DBItemWriter(ItemWriter):
             else:
                 valueType = attrType
 
-            valueType.indexValue(self, item, name, version, value)
+            valueType.indexValue(self, item, attribute, version, value)
+
+        for uuid, indexed in self.lobs:
+            self.writeUUID(buffer, uuid)
+            self.writeBoolean(buffer, indexed)
+
+        for uuid in self.indexes:
+            self.writeUUID(buffer, uuid)
+
+        buffer.append(pack('>H', len(self.lobs)))
+        buffer.append(pack('>H', len(self.indexes)))
 
         return self.store._values.c.saveValue(self.store.txn,
                                               uAttr, uValue, ''.join(buffer))
 
-    def indexValue(self, value, item, name, version):
+    def indexValue(self, value, item, attribute, version):
 
         self.store._index.indexValue(item.itsView._getIndexWriter(),
-                                     value, item.itsUUID, name, version)
+                                     value, item.itsUUID, attribute.itsUUID,
+                                     version)
 
-    def indexReader(self, reader, item, name, version):
+    def indexReader(self, reader, item, attribute, version):
 
         self.store._index.indexReader(item.itsView._getIndexWriter(),
-                                      reader, item.itsUUID, name, version)
+                                      reader, item.itsUUID, attribute.itsUUID,
+                                      version)
 
     def _unchangedValue(self, item, name):
 
@@ -363,7 +395,7 @@ class DBItemWriter(ItemWriter):
 
         elif isitem(value):
             buffer.append(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
-            buffer.append(value._uuid._uuid)
+            buffer.append(value.itsUUID._uuid)
 
         elif value._isRefList():
             flags = DBItemWriter.LIST | DBItemWriter.REF
@@ -375,7 +407,12 @@ class DBItemWriter(ItemWriter):
                 self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
             size += value._saveValues(version)
             value._validateIndexes()
+            self.indexes = []
             size += self.writeIndexes(buffer, item, version, value)
+
+            for uuid in self.indexes:
+                self.writeUUID(buffer, uuid)
+            buffer.append(pack('>H', len(self.indexes)))
         
         else:
             raise TypeError, value
@@ -510,6 +547,14 @@ class DBItemReader(ItemReader):
     def readUUID(self, offset, data):
         return offset+16, UUID(data[offset:offset+16])
 
+    def readLob(self, offset, data):
+        offset, uuid = self.readUUID(offset, data)
+        offset, indexed = self.readBoolean(offset, data)
+        return offset, uuid, indexed
+
+    def readIndex(self, offset, data):
+        return self.readUUID(offset, data)
+
     def getUUID(self):
         return self.uItem
 
@@ -610,7 +655,9 @@ class DBItemReader(ItemReader):
             if value is not Nil:
                 d[name] = value
                 if vFlags != '\0':
-                    d._setFlags(name, ord(vFlags))
+                    vFlags = ord(vFlags) & CValues.SAVEMASK
+                    if vFlags:
+                        d._setFlags(name, vFlags)
 
     def _value(self, offset, data, kind, withSchema, attribute, view, name,
                afterLoadHooks):
@@ -929,3 +976,136 @@ class DBItemRMergeReader(DBItemMergeReader):
                     return offset, value
 
         return offset, Nil
+
+
+class DBItemPurger(ItemPurger):
+
+    def __init__(self, txn, store, uItem, keepValues,
+                 indexSearcher, indexReader, status):
+
+        self.store = store
+        self.uItem = uItem
+
+        self.keep = set(keepValues)
+        self.done = set()
+
+        withSchema = (status & Item.CORESCHEMA) != 0
+        keepOne = (status & Item.DELETED) == 0
+        keepDocuments = set()
+
+        for value in keepValues:
+            uAttr, vFlags, data = store._values.c.loadValue(txn, value)
+
+            if withSchema:
+                offset = self.skipSymbol(0, data)
+            else:
+                offset = 0
+                
+            flags = ord(data[offset])
+            offset += 1
+
+            if flags & DBItemWriter.VALUE:
+                for uuid, indexed in self.iterLobs(flags, data):
+                    self.keep.add(uuid)
+                    if indexed:
+                        keepDocuments.add(uAttr)
+                if ord(vFlags) & CValues.INDEXED:
+                    keepDocuments.add(uAttr)
+
+            elif flags & DBItemWriter.REF:
+                if flags & DBItemWriter.LIST:
+                    self.keep.add(UUID(data[offset:offset+16]))
+
+            self.keep.update(self.iterIndexes(flags, data))
+
+        self.itemCount = 0
+        self.valueCount = self.lobCount = self.blockCount = self.indexCount = 0
+        self.refCount, self.nameCount = \
+            store._refs.purgeRefs(txn, uItem, keepOne)
+        self.documentCount = \
+            store._index.purgeDocuments(indexSearcher, indexReader,
+                                        uItem, keepDocuments)
+
+    def iterLobs(self, flags, data):
+
+        if flags & DBItemWriter.VALUE:
+            lobCount, indexCount = unpack('>HH', data[-4:])
+
+            lobStart = -(lobCount * 17 + indexCount * 16) - 4
+            for i in xrange(lobCount):
+                uuid = UUID(data[lobStart:lobStart+16])
+                indexed = data[lobStart+16] == '\1'
+                lobStart += 17
+                yield uuid, indexed
+
+    def iterIndexes(self, flags, data):
+
+        if flags & DBItemWriter.VALUE:
+            indexCount, = unpack('>H', data[-2:])
+
+            indexStart = -indexCount * 16 - 4
+            for i in xrange(indexCount):
+                yield UUID(data[indexStart:indexStart+16])
+                indexStart += 16
+
+        elif flags & DBItemWriter.REF:
+            if flags & DBItemWriter.LIST:
+                indexCount, = unpack('>H', data[-2:])
+
+                indexStart = -indexCount * 16 - 2
+                for i in xrange(indexCount):
+                    yield UUID(data[indexStart:indexStart+16])
+                    indexStart += 16
+
+    def skipSymbol(self, offset, data):
+        offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
+        return offset + len
+
+    def purgeItem(self, txn, values, version, status):
+
+        withSchema = (status & Item.CORESCHEMA) != 0
+        store = self.store
+        keep = self.keep
+        done = self.done
+
+        for uValue in values:
+            if not (uValue in keep or uValue in done):
+                uAttr, vFlags, data = store._values.c.loadValue(txn, uValue)
+
+                indexedLob = False
+                if withSchema:
+                    offset = self.skipSymbol(0, data)
+                else:
+                    offset = 0
+
+                flags = ord(data[offset])
+                offset += 1
+
+                if flags & DBItemWriter.VALUE:
+                    for uuid, indexed in self.iterLobs(flags, data):
+                        if not (uuid in keep or uuid in done):
+                            count = store._lobs.purgeLob(txn, uuid)
+                            self.lobCount += count[0]
+                            self.blockCount += count[1]
+                            done.add(uuid)
+                    for uuid in self.iterIndexes(flags, data):
+                        if uuid not in done:
+                            self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
+                            done.add(uuid)
+
+                elif flags & DBItemWriter.REF and flags & DBItemWriter.LIST:
+                    uuid = UUID(data[offset:offset+16])
+                    if uuid not in done:
+                        count = store._refs.purgeRefs(txn, uuid, uuid in keep)
+                        self.refCount += count[0]
+                        self.nameCount += count[1]
+                        done.add(uuid)
+                    for uuid in self.iterIndexes(flags, data):
+                        if uuid not in done:
+                            self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
+                            done.add(uuid)
+
+                self.valueCount += store._values.purgeValue(txn, uValue)
+                done.add(uValue)
+
+        self.itemCount += store._items.purgeItem(txn, self.uItem, version)

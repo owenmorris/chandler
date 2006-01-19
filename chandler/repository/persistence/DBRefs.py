@@ -22,7 +22,6 @@ class PersistentRefs(object):
         self.view = view
         self.store = view.store
         self._changedRefs = {}
-        self._key = None
         
     def _iterrefs(self, firstKey, lastKey):
 
@@ -40,7 +39,7 @@ class PersistentRefs(object):
                     if version == 0:
                         raise KeyError, key
                     refs = self.store._refs
-                    refIterator = refs.refIterator(view, self._key, version)
+                    refIterator = refs.refIterator(view, self.uuid, version)
 
                 pKey, nKey, alias = refIterator.next(key)
                 map[key] = link = CLink(self, key, pKey, nKey, alias)
@@ -62,12 +61,9 @@ class PersistentRefs(object):
 
     def _setItem(self, item, new):
 
-        if self._key is None:
-            self._key = item.itsUUID._uuid + self.uuid._uuid
-
         if not new:
-            ref = self.store._refs.loadRef(self.view, self._key,
-                                           self._item._version, self.uuid)
+            ref = self.store._refs.loadRef(self.view, self.uuid,
+                                           self._item.itsVersion, self.uuid)
             if ref is not None:
                 self._firstKey, self._lastKey, self._count = ref
 
@@ -119,7 +115,7 @@ class PersistentRefs(object):
         if self._isRemoved(key):
             return None
         
-        return self.store._refs.loadRef(self.view, self._key,
+        return self.store._refs.loadRef(self.view, self.uuid,
                                         self._item._version, key)
 
     def _writeRef(self, key, version, previous, next, alias):
@@ -128,12 +124,12 @@ class PersistentRefs(object):
             raise ValueError, 'key is None'
 
         store = self.store
-        return store._refs.c.saveRef(store.txn, self._key, version,
-                                     key, previous, next, alias)
+        return store._refs.c.saveRef(store.txn, self.uuid._uuid, version,
+                                     key._uuid, previous, next, alias)
 
     def _deleteRef(self, key, version):
 
-        return self.store._refs.deleteRef(self._key, version, key)
+        return self.store._refs.deleteRef(self.uuid, version, key)
 
     def resolveAlias(self, alias, load=True):
 
@@ -491,7 +487,7 @@ class DBNumericIndex(NumericIndex):
         super(DBNumericIndex, self)._writeValue(itemWriter, buffer, version)
 
         itemWriter.writeInteger(buffer, self._count)
-        itemWriter.writeUUID(buffer, self._uuid)
+        itemWriter.writeIndex(buffer, self._uuid)
         itemWriter.writeUUID(buffer, self._headKey)
         itemWriter.writeUUID(buffer, self._tailKey)
 
@@ -500,7 +496,7 @@ class DBNumericIndex(NumericIndex):
         offset = super(DBNumericIndex, self)._readValue(itemReader,
                                                         offset, data)
         offset, self._count = itemReader.readInteger(offset, data)
-        offset, self._uuid = itemReader.readUUID(offset, data)
+        offset, self._uuid = itemReader.readIndex(offset, data)
         offset, self._headKey = itemReader.readUUID(offset, data)
         offset, self._tailKey = itemReader.readUUID(offset, data)
 

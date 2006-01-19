@@ -80,7 +80,8 @@ class DBRepositoryView(OnDemandRepositoryView):
         store = self.store
         
         for itemReader in store.queryItems(self, self._version,
-                                           kind, attribute):
+                                           kind and kind.itsUUID,
+                                           attribute and attribute.itsUUID):
             uuid = itemReader.getUUID()
             if uuid not in self._deletedRegistry:
                 # load and itemReader, trick to pass reader directly to find
@@ -92,7 +93,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         store = self.store
         
-        for uuid in store.queryItemKeys(self, self._version, kind, attribute):
+        for uuid in store.queryItemKeys(self, self._version,
+                                        kind and kind.itsUUID,
+                                        attribute and attribute.itsUUID):
             if uuid not in self._deletedRegistry:
                 yield uuid
 
@@ -111,12 +114,13 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         store = self.store
         results = []
-        docs = store.searchItems(self, self._version, query, attribute)
+        docs = store.searchItems(self, self._version, query,
+                                 attribute and attribute.itsUUID)
         for uuid, (ver, attribute) in docs.iteritems():
             if not uuid in self._deletedRegistry:
                 item = self.find(uuid, load)
                 if item is not None:
-                    results.append((item, attribute))
+                    results.append((item, self[attribute]))
 
         return results
 
@@ -498,13 +502,13 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         newParentId = item.itsParent.itsUUID
         if parentId != newParentId:
-            p = self.store._items.getItemParentId(self, oldVersion, item._uuid)
+            p = self.store._items.getItemParentId(self, oldVersion,
+                                                  item.itsUUID)
             if p != parentId and p != newParentId:
                 self._e_1_rename(item, p, newParentId)
     
         refs = self.store._refs
-        key = parentId._uuid + parentId._uuid
-        p, n, name = refs.loadRef(self, key, toVersion, item._uuid)
+        p, n, name = refs.loadRef(self, parentId, toVersion, item.itsUUID)
 
         if name != item._name:
             self._e_2_rename(item, name)
@@ -513,7 +517,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         dirties = HashTuple(dirties)
         store = self.store
-        args = store._items.loadItem(self, toVersion, item._uuid)
+        args = store._items.loadItem(self, toVersion, item.itsUUID)
         DBItemRMergeReader(store, item, dirties,
                            oldVersion, *args).readItem(self, [])
 
@@ -521,7 +525,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         dirties = HashTuple(dirties)
         store = self.store
-        args = store._items.loadItem(self, toVersion, item._uuid)
+        args = store._items.loadItem(self, toVersion, item.itsUUID)
         DBItemVMergeReader(store, item, dirties,
                            mergeFn, *args).readItem(self, [])
 
