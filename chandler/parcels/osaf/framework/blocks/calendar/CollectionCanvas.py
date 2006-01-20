@@ -494,6 +494,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         keyCode = event.GetKeyCode()
         if keyCode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
             self.EditCurrentItem()
+        else:
             event.Skip()
 
     def ScrollIntoView(self, unscrolledPosition):
