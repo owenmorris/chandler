@@ -345,13 +345,16 @@ def initRepository(directory, options, allowSchemaView=False):
 
 
 def stopRepository(view):
-    try:
+
+    if view.repository.isOpen():
         try:
-            view.commit()
-        except VersionConflictError, e:
-            logger.exception(e)
-    finally:
-        view.repository.close()
+            try:
+                if view.isOpen():
+                    view.commit()
+            except VersionConflictError, e:
+                logger.exception(e)
+        finally:
+            view.repository.close()
 
 
 def verifySchema(view):
