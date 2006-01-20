@@ -62,7 +62,7 @@ class RepoResource(webserver.AuthenticatedResource):
 <script type="text/javascript" src="/jsolait/init.js"/>
 <script type="text/javascript" src="/jsolait/lib/urllib.js"/>
 <script type="text/javascript" src="/jsolait/lib/xml.js"/>
-<script type="text/javascript" src="/jsolait/lib/xmlrpc.js">
+<script type="text/javascript" src="/jsolait/lib/xmlrpc.js"/>
 <script type="text/javascript" src="/repo-editor.js"/>
 </head>
 """                 % request.path
