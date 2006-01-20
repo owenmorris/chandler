@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98
-// RCS-ID:      $Id: config.cpp,v 1.77 2005/09/23 12:52:43 MR Exp $
+// RCS-ID:      $Id: config.cpp,v 1.78 2006/01/20 00:55:52 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   Ballueder@usa.net
 //                       Vadim Zeitlin      <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -225,8 +225,9 @@ bool wxConfigBase::DoWriteBool(const wxString& key, bool value)
 // ----------------------------------------------------------------------------
 
 wxConfigPathChanger::wxConfigPathChanger(const wxConfigBase *pContainer,
-                                 const wxString& strEntry)
+                                         const wxString& strEntry)
 {
+  m_bChanged = false;
   m_pContainer = (wxConfigBase *)pContainer;
 
   // the path is everything which precedes the last slash
@@ -243,7 +244,7 @@ wxConfigPathChanger::wxConfigPathChanger(const wxConfigBase *pContainer,
   {
     if ( m_pContainer->GetPath() != strPath )
     {
-        // do change the path
+        // we do change the path so restore it later
         m_bChanged = true;
 
         /* JACS: work around a memory bug that causes an assert
@@ -268,7 +269,6 @@ wxConfigPathChanger::wxConfigPathChanger(const wxConfigBase *pContainer,
   }
   else {
     // it's a name only, without path - nothing to do
-    m_bChanged = false;
     m_strName = strEntry;
   }
 }

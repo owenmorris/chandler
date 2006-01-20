@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp,v 1.143 2006/01/09 00:09:43 ABX Exp $
+// RCS-ID:      $Id: fileconf.cpp,v 1.144 2006/01/20 00:55:17 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -2030,8 +2030,11 @@ static wxString FilterInEntryName(const wxString& str)
   strResult.Alloc(str.Len());
 
   for ( const wxChar *pc = str.c_str(); *pc != '\0'; pc++ ) {
-    if ( *pc == wxT('\\') )
-      pc++;
+    if ( *pc == wxT('\\') ) {
+      // we need to test it here or we'd skip past the NUL in the loop line
+      if ( *++pc == _T('\0') )
+        break;
+    }
 
     strResult += *pc;
   }
