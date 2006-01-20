@@ -22,7 +22,7 @@ if [ ! -n "$1" ]; then
     echo if CHANDLER_PERFORMANCE_TEST=yes or -p then CATS Performance Tests are run
     echo if CHANDLER_UNIT_TEST=yes or -u then Chandler Unit Tests are run
     echo "if a specific test name or (pattern) is given using -t then only that test name will be run"
-    exit E_OPTERROR
+    exit $E_OPTERROR
 fi
 
 if [ "$CHANDLER_FUNCTIONAL_TEST" = "yes" ]; then
