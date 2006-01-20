@@ -100,7 +100,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
                                    repositoryView=view)
 
         sandbox = view.findPath("//sandbox")
-        account = sharing.WebDAVAccount(name='account', itsParent=sandbox,
+        account = sharing.WebDAVAccount('account', itsParent=sandbox,
                                         username=username,
                                         password=password,
                                         host=host,
