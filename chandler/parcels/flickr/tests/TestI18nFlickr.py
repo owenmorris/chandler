@@ -53,7 +53,7 @@ class TestI18nFlickr(TestContentModel.ContentModelTestCase):
         #Once that takes place the search on tag  "?~B??~C??~C??~B??~C??~A~J?~W?~C~E?| ? "
         #will be uncommented
         #return self._testI18n(tag=u"hawaii", key=u"Green Sand Beach")
-        #return self._testI18n(tag=u"オンライン�?�得情報 ", key=u"trünk")
+        #return self._testI18n(tag=u"オンライン�得情報 ", key=u"trünk")
         pass
 
     def _testI18n(self, key=None, username=None, tag=None):
@@ -71,7 +71,7 @@ class TestI18nFlickr(TestContentModel.ContentModelTestCase):
         else:
             self.fail("A username or tag must be passed to the _testI18n method")
 
-        col = p.getCollectionFromFlickr(self.view)
+        col = p.fillCollectionFromFlickr(self.view)
         self.assertTrue(self.hasKey(col, key))
 
 

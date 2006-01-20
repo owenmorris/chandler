@@ -145,7 +145,7 @@ class PhotoCollection(pim.ListCollection):
 
         if self.userName or self.tag:
             try:
-                self.getCollectionFromFlickr(self.itsView)
+                self.fillCollectionFromFlickr(self.itsView)
             except flickr.FlickrError, fe:
                 wx.MessageBox (unicode(fe))
             else:
@@ -154,7 +154,7 @@ class PhotoCollection(pim.ListCollection):
         return result
 
 
-    def getCollectionFromFlickr(self, repView):
+    def fillCollectionFromFlickr(self, repView):
         coll = pim.ListCollection(itsView = repView).setup()
         if self.userName:
             flickrUserName = flickr.people_findByUsername(self.userName.encode('utf8'))
@@ -189,7 +189,7 @@ class UpdateTask:
 
         # We need the Kind object for PhotoCollection
         for myPhotoCollection in PhotoCollection.iterItems(self.view):
-            myPhotoCollection.getCollectionFromFlickr(self.view)
+            myPhotoCollection.fillCollectionFromFlickr(self.view)
 
         # We want to commit the changes to the repository
         self.view.commit()

@@ -24,7 +24,12 @@ try:
     repView = app_ns().itsView
     cpiaView = Globals.views[0]
     # get a collection of photos from the oscon2005 tag
-    fc = flickr.CreateCollectionFromTag("oscon2005", repView, cpiaView)
+    fc = flickr.PhotoCollection(itsView = repView)
+    fc.tag = flickr.Tag.getTag(repView, "oscon2005")
+    fc.fillCollectionFromFlickr(repView)
+
+    # Add the channel to the sidebar
+    app_ns().sidebarCollection.add(fc)
 
     def sidebarCollectionNamed(name):
         """
