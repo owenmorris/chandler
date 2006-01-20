@@ -34,7 +34,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-$(BP)31.tar.gz \
+         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-$(BP)32.tar.gz \
          $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.2.2-$(BP)2.tar.gz \
