@@ -11,23 +11,26 @@ functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/Fun
 fileName = "FunctionalTestSuite.log"
 logger = QAUITestAppLib.QALogger(fileName,"FunctionalTestSuite")
 
-#actions
-execfile(os.path.join(functional_dir,"TestCreateAccounts.py"))
-execfile(os.path.join(functional_dir,"TestNewCollection.py"))
-execfile(os.path.join(functional_dir,"TestNewEvent.py"))
-execfile(os.path.join(functional_dir,"TestNewMail.py"))
-execfile(os.path.join(functional_dir,"TestNewTask.py"))
-execfile(os.path.join(functional_dir,"TestNewNote.py"))
-execfile(os.path.join(functional_dir,"TestStamping.py"))
-execfile(os.path.join(functional_dir,"TestMoveToTrash.py"))
-#execfile(os.path.join(functional_dir,"TestDeleteCollection.py"))
-execfile(os.path.join(functional_dir,"TestNewCollNoteStampMulti.py"))
-execfile(os.path.join(functional_dir,"TestCalView.py"))
-execfile(os.path.join(functional_dir,"TestSwitchingViews.py"))
-execfile(os.path.join(functional_dir,"TestExporting.py"))
-#execfile(os.path.join(functional_dir,"TestFlickr.py"))
-execfile(os.path.join(functional_dir,"TestImporting.py"))
-execfile(os.path.join(functional_dir,"TestSharing.py"))
+def run_tests(*tests):
+    for filename in tests:
+        execfile(os.path.join(functional_dir, filename))
+
+run_tests("TestCreateAccounts.py",
+          "TestNewCollection.py",
+          "TestNewEvent.py",
+          "TestNewMail.py",
+          "TestNewTask.py",
+          "TestNewNote.py",
+          "TestStamping.py",
+          "TestMoveToTrash.py",
+          #"TestDeleteCollection.py",
+          "TestNewCollNoteStampMulti.py",
+          "TestCalView.py",
+          "TestSwitchingViews.py",
+          "TestExporting.py",
+          #"TestFlickr.py",
+          "TestImporting.py",
+          "TestSharing.py")
 
 
 #cleaning
