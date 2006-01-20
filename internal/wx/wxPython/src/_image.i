@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Sept-2000
-// RCS-ID:      $Id: _image.i,v 1.33 2005/12/30 23:01:17 RD Exp $
+// RCS-ID:      $Id: _image.i,v 1.34 2006/01/20 17:23:02 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -872,6 +872,14 @@ indicates the orientation.", "");
                         byte r2, byte g2, byte b2 ),
         "Replaces the colour specified by ``(r1,g1,b1)`` by the colour
 ``(r2,g2,b2)``.", "");
+
+    DocDeclStr(
+        wxImage , ConvertToGreyscale( double lr = 0.299,
+                                      double lg = 0.587,
+                                      double lb = 0.114 ) const,
+        "Convert to greyscale image. Uses the luminance component (Y) of the
+image.  The luma value (YUV) is calculated using (R * lr) + (G * lg) + (B * lb),
+defaults to ITU-T BT.601", "");
     
 
     DocDeclStr(

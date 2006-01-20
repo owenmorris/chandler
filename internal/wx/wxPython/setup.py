@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     12-Oct-2000
-# RCS-ID:      $Id: setup.py,v 1.153 2005/12/30 23:02:03 RD Exp $
+# RCS-ID:      $Id: setup.py,v 1.155 2006/01/20 18:18:02 RD Exp $
 # Copyright:   (c) 2000 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -121,6 +121,7 @@ swig_sources = run_swig(['core.i'], 'src', GENDIR, PKGDIR,
                           'src/_validator.i',
                           'src/_window.i',
                           'src/_control.i',
+                          'src/_swigtype.i',
                           ],
                         True)
 
@@ -752,7 +753,7 @@ else:
 
 
 if INSTALL_MULTIVERSION:
-    EXTRA_PATH = getExtraPath(addOpts=EP_ADD_OPTS)
+    EXTRA_PATH = getExtraPath(addOpts=EP_ADD_OPTS, shortVer=not EP_FULL_VER)
     open("src/wx.pth", "w").write(EXTRA_PATH)
     CLEANUP.append("src/wx.pth")
 else:

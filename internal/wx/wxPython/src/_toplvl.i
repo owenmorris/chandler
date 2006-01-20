@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     27-Aug-1998
-// RCS-ID:      $Id: _toplvl.i,v 1.26 2005/03/08 00:43:06 RD Exp $
+// RCS-ID:      $Id: _toplvl.i,v 1.27 2006/01/20 17:26:29 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -121,14 +121,8 @@ public:
     // return True if the frame is in fullscreen mode
     virtual bool IsFullScreen() const;
 
-    // virtual void SetTitle(const wxString& title);
-    // virtual wxString GetTitle() const;
-    DocDeclStr(
-        virtual void , SetTitle( const wxString& title),
-        "Sets the window's title. Applicable only to frames and dialogs.", "");
-    DocDeclStr(
-        virtual wxString , GetTitle() const,
-        "Gets the window's title. Applicable only to frames and dialogs.", "");
+    virtual void SetTitle(const wxString& title);
+    virtual wxString GetTitle() const;
 
     // Set the shape of the window to the given region.
     // Returns True if the platform supports this feature (and the operation
@@ -288,6 +282,14 @@ MustHaveApp(wxDialog);
 
 class wxDialog : public wxTopLevelWindow {
 public:
+
+    enum
+    {
+        // all flags allowed in wxDialogBase::CreateButtonSizer()
+        ButtonSizerFlags = wxOK|wxCANCEL|wxYES|wxNO|wxHELP|wxNO_DEFAULT
+    };
+
+    
     %pythonAppend wxDialog   "self._setOORInfo(self)"
     %pythonAppend wxDialog() ""
     %typemap(out) wxDialog*;    // turn off this typemap
@@ -323,7 +325,9 @@ public:
     wxSizer* CreateTextSizer( const wxString &message );
 
     // places buttons into a horizontal wxBoxSizer
-    wxSizer* CreateButtonSizer( long flags );
+    wxSizer* CreateButtonSizer( long flags,
+                                bool separated = false,
+                                wxCoord distance = 0  );
     wxStdDialogButtonSizer* CreateStdDialogButtonSizer( long flags );
 
     //void SetModal(bool flag);

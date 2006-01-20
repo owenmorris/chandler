@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Aug-2003
-// RCS-ID:      $Id: _printfw.i,v 1.24 2006/01/17 05:42:23 RD Exp $
+// RCS-ID:      $Id: _printfw.i,v 1.25 2006/01/20 17:23:59 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -625,7 +625,7 @@ public:
     bool CLASS::CBNAME(wxPreviewCanvas* a, wxDC& b) {                                   \
         bool rval=false;                                                                \
         bool found;                                                                     \
-        wxPyBlock_t blocked = wxPyBeginBlockThreads();                                         \
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();                                  \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                        \
             PyObject* win = wxPyMake_wxObject(a,false);                                 \
             PyObject* dc  = wxPyMake_wxObject(&b,false);                                \
@@ -656,7 +656,7 @@ public:
     {}
     wxPyPrintPreview(wxPyPrintout* printout,
                      wxPyPrintout* printoutForPrinting,
-                     wxPrintData* data=NULL)
+                     wxPrintData* data)
         : wxPrintPreview(printout, printoutForPrinting, data)
     {}
 

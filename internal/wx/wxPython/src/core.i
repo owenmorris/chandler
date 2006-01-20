@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     22-May-1998
-// RCS-ID:      $Id: core.i,v 1.11 2004/09/23 01:01:31 RD Exp $
+// RCS-ID:      $Id: core.i,v 1.12 2006/01/20 18:17:59 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,8 @@ def _deprecated(callable, msg=None):
 %include _defs.i
 
 MAKE_CONST_WXSTRING(EmptyString);
+
+%include _swigtype.i
 
 %include _obj.i
 %include _gdicmn.i

@@ -7,7 +7,7 @@
 # Author:      Robin Dunn
 #
 # Created:     24-Sept-2004
-# RCS-ID:      $Id: wxversion.py,v 1.12 2005/05/17 00:36:14 RD Exp $
+# RCS-ID:      $Id: wxversion.py,v 1.13 2006/01/20 17:32:17 RD Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -74,7 +74,7 @@ found at: http://wiki.wxpython.org/index.cgi/MultiVersionInstalls
 
 """
 
-import sys, os, glob, fnmatch
+import re, sys, os, glob, fnmatch
 
 
 _selected = None
@@ -149,6 +149,10 @@ def select(versions, optionsRequired=False):
         raise VersionError("Requested version of wxPython not found")
 
     sys.path.insert(0, bestMatch.pathname)
+    # q.v. Bug #1409256
+    path64 = re.sub('/lib/','/lib64/',bestMatch.pathname)
+    if os.path.isdir(path64):
+        sys.path.insert(0, path64)
     _selected = bestMatch
         
 #----------------------------------------------------------------------
@@ -215,6 +219,10 @@ def ensureMinimal(minVersion, optionsRequired=False):
         sys.exit()
 
     sys.path.insert(0, bestMatch.pathname)
+    # q.v. Bug #1409256
+    path64 = re.sub('/lib/','/lib64/',bestMatch.pathname)
+    if os.path.isdir(path64):
+        sys.path.insert(0, path64)
     global _selected
     _selected = bestMatch
         
