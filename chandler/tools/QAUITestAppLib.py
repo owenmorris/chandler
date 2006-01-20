@@ -92,33 +92,67 @@ class UITestItem :
             scripting.User.idle()
             self.logger.Stop()
     
-    def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, body=None,
-                status=None, timeZone=None, recurrence=None, recurrenceEnd=None, alarm=None, fromAddress=None, toAddress=None,
-                allDay=None, stampEvent=None, stampMail=None,stampTask=None):
+    def SetAttr(self, **args):
         """
         Set the item attributes in a predefined order (see orderList)
         """
-        methodDict = {displayName:self.SetDisplayName, startDate:self.SetStartDate, startTime:self.SetStartTime, endDate:self.SetEndDate, endTime:self.SetEndTime,
-                      location:self.SetLocation, body:self.SetBody, status:self.SetStatus, alarm:self.SetAlarm, fromAddress:self.SetFromAddress,
-                      toAddress:self.SetToAddress, allDay:self.SetAllDay, stampEvent:self.StampAsCalendarEvent, stampMail:self.StampAsMailMessage,
-                      stampTask:self.StampAsTask, timeZone:self.SetTimeZone, recurrence:self.SetRecurrence, recurrenceEnd:self.SetRecurrenceEnd}
-        orderList = [displayName, startDate, startTime, endDate, endTime, location, body, status, alarm, fromAddress, toAddress, allDay,
-                     stampEvent, stampMail, stampTask, timeZone, recurrence, recurrenceEnd]
+        methodDict = {
+            'displayName': self.SetDisplayName,
+            'startDate': self.SetStartDate,
+            'startTime': self.SetStartTime,
+            'endDate': self.SetEndDate,
+            'endTime': self.SetEndTime,
+            'location': self.SetLocation,
+            'body': self.SetBody,
+            'status': self.SetStatus,
+            'alarm': self.SetAlarm,
+            'fromAddress': self.SetFromAddress,
+            'toAddress': self.SetToAddress,
+            'allDay': self.SetAllDay,
+            'stampEvent': self.StampAsCalendarEvent,
+            'stampMail': self.StampAsMailMessage,
+            'stampTask': self.StampAsTask,
+            'timeZone': self.SetTimeZone,
+            'recurrence': self.SetRecurrence,
+            'recurrenceEnd': self.SetRecurrenceEnd
+            }
+        
+        orderList = ['displayName', 'startDate', 'startTime', 'endDate',
+                     'endTime', 'location', 'body', 'status', 'alarm',
+                     'fromAddress', 'toAddress',
+                     'allDay', 'stampEvent', 'stampMail', 'stampTask',
+                     'timeZone', 'recurrence', 'recurrenceEnd']
 
         self.logger.Start("Multiple Attribute Setting")
         for param in orderList:
-            if param:
-                methodDict[param](param, timeInfo=False)
+            if param in args:
+                methodDict[param](args[param], timeInfo=False)
         self.logger.Stop()
             
     def SetAttrInOrder(self, argList):
         """
         Set the item attributes in the argList order
         """
-        methodDict = {"displayName":self.SetDisplayName, "startDate":self.SetStartDate, "startTime":self.SetStartTime, "endDate":self.SetEndDate, "endTime":self.SetEndTime,
-                      "location":self.SetLocation, "body":self.SetBody, "status":self.SetStatus, "alarm":self.SetAlarm, "fromAddress":self.SetFromAddress,
-                      "toAddress":self.SetToAddress, "allDay":self.SetAllDay, "stampEvent":self.StampAsCalendarEvent, "stampMail":self.StampAsMailMessage,
-                      "stampTask":self.StampAsTask, "timeZone":self.SetTimeZone, "recurrence":self.SetRecurrence, "recurrenceEnd":self.SetRecurrenceEnd}
+        methodDict = {
+            "displayName": self.SetDisplayName,
+            "startDate": self.SetStartDate,
+            "startTime": self.SetStartTime,
+            "endDate": self.SetEndDate,
+            "endTime": self.SetEndTime,
+            "location": self.SetLocation,
+            "body": self.SetBody,
+            "status": self.SetStatus,
+            "alarm": self.SetAlarm,
+            "fromAddress": self.SetFromAddress,
+            "toAddress": self.SetToAddress,
+            "allDay": self.SetAllDay,
+            "stampEvent": self.StampAsCalendarEvent,
+            "stampMail": self.StampAsMailMessage,
+            "stampTask": self.StampAsTask,
+            "timeZone": self.SetTimeZone,
+            "recurrence": self.SetRecurrence,
+            "recurrenceEnd": self.SetRecurrenceEnd
+            }
 
         self.logger.Start("Multiple Attribute Setting")
         for (key, value) in argList:
@@ -1109,7 +1143,7 @@ class UITestAccounts:
         return result
 
 
-class UITestView:
+class UITestView(object):
     def __init__(self, logger, environmentFile=None):
         self.logger = logger
         self.view = App_ns.itsView
@@ -1295,3 +1329,22 @@ class UITestView:
         else:
             self.logger.Print("DoubleClickInCalView is not available in the current view : %s" %self.state)
             return
+
+    def Check_CalendarView(testItem, **attrs):
+
+        item = testItem.item
+
+        # go look up the screen item in the timed events canvas
+
+        timedCanvas = App_ns.TimedEvents
+
+        # find the canvas item for the given item:
+        canvasItem = timedCanvas.widget.GetCanvasItems(item).next()
+
+        # now check the strings:
+
+        for attrName, attrValue in  attrs.keys():
+            if getattr(canvasItem, attrName) == attrValue:
+                self.logger.ReportPass("(On %s Checking)" % attrName)
+            else:
+                self.logger.ReportFailure("(On %s Checking) || calendar view value = %s ; expected value = %s" % (attrName, getattr(canvasItem, attrName), attrValue))
