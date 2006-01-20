@@ -14,16 +14,7 @@
 NO_ARGS=0 
 E_OPTERROR=65
 
-USAGE="Usage: `basename $0` -fpu [-t test_name] chandler-base-path"
-
-if [ ! -n "$1" ]; then
-    echo $USAGE
-    echo if CHANDLER_FUNCTIONAL_TEST=yes or -f then CATS Functional Tests are run
-    echo if CHANDLER_PERFORMANCE_TEST=yes or -p then CATS Performance Tests are run
-    echo if CHANDLER_UNIT_TEST=yes or -u then Chandler Unit Tests are run
-    echo "if a specific test name or (pattern) is given using -t then only that test name will be run"
-    exit $E_OPTERROR
-fi
+USAGE="Usage: `basename $0` -fpu [-t test_name] [chandler-base-path]"
 
 if [ "$CHANDLER_FUNCTIONAL_TEST" = "yes" ]; then
     RUN_FUNCTIONAL=yes
@@ -41,32 +32,49 @@ else
     RUN_UNIT=no
 fi
 
-while getopts ":fput:" Option
+hadError=0
+
+while getopts "fput:" Option
 do
   case $Option in
     f ) RUN_FUNCTIONAL=yes;;
     p ) RUN_PERFORMANCE=yes;;
     u ) RUN_UNIT=yes;;
     t ) TEST_TO_RUN=$OPTARG;;
-    * ) echo "Unimplemented option chosen.";;   # DEFAULT
+    * ) hadError=1
+		;;   # DEFAULT
   esac
 done
+
+if [ $hadError = 1 ]; then
+    echo $USAGE
+    echo "   if CHANDLER_FUNCTIONAL_TEST=yes or -f then CATS Functional Tests are run"
+    echo "   if CHANDLER_PERFORMANCE_TEST=yes or -p then CATS Performance Tests are run"
+    echo "   if CHANDLER_UNIT_TEST=yes or -u then Chandler Unit Tests are run"
+    echo "if a specific test name or (pattern) is given using -t then only that test name will be run"
+	echo "chandler-base-path is 'chandler' that has 'internal' and 'external' as sibling directories"
+    exit $E_OPTERROR
+fi
 
   # leave any remaining command line parameters on the command line
 shift $(($OPTIND - 1))
 
-C_DIR="$1"
+if [ ! -n "$1" ]; then
+	C_DIR="`dirname $0`/.."
+else
+    C_DIR="$1"
+fi
+
 T_DIR=$C_DIR
 
 if [ ! -d "$C_DIR/i18n" ]; then
     C_DIR=`pwd`
+    echo Using current directory [$C_DIR] as the chandler/ directory
 
     if [ ! -d "$C_DIR/i18n" ]; then
         echo Error: The path [$C_DIR] given does not point to a chandler/ directory
         echo $USAGE
         exit 65
-    else
-        echo Using current directory [$C_DIR] as the chandler/ directory
     fi
 fi
 
