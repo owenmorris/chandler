@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: frame.cpp,v 1.51 2006/01/20 19:49:10 vell Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.52 2006/01/20 21:16:55 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -232,14 +232,14 @@ void wxFrame::DetachMenuBar()
 
 void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
 {
-    wxTopLevelWindowMac* tlw = wxFindWinFromMacWindow( FrontNonFloatingWindow() );
+    wxFrame* tlf = wxDynamicCast( wxFindWinFromMacWindow( FrontNonFloatingWindow() ) , wxFrame );
     bool makeCurrent = false;
 
     // if this is already the current menubar or we are the frontmost window
-    if ( (tlw == this) || (m_frameMenuBar == wxMenuBar::MacGetInstalledMenuBar()) )
+    if ( (tlf == this) || (m_frameMenuBar == wxMenuBar::MacGetInstalledMenuBar()) )
         makeCurrent = true;
     // or there is an app-level menubar like MDI
-    else if ( (GetMenuBar() == NULL) && (((wxFrame*)wxTheApp->GetTopWindow()) == this) )
+    else if ( tlf && (tlf->GetMenuBar() == NULL) && (((wxFrame*)wxTheApp->GetTopWindow()) == this) )
         makeCurrent = true;
 
     wxFrameBase::AttachMenuBar( menuBar );
