@@ -37,7 +37,7 @@ class TestLogger:
             # add a time stamp at the end of the filename
             filepath = filepath+'.'+time_stamp
             try:
-                self.File = open(filepath, 'a')
+                self.File = open(filepath, 'w')
             except IOError:
                 print "Unable to open file %s" % filepath
                 print "log report in default_test.log"
@@ -81,6 +81,7 @@ class TestLogger:
             print "%s" %string
         else:
             self.File.write(string+'\n')
+            self.File.flush()
 
     def PrintTBOX(self, elapsed, level=None):
         description = string.join(string.split(self.mainDescription, " "), "_")
