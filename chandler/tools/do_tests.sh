@@ -374,6 +374,79 @@ else
             done
         fi
 
+		RUN_STARTUP_TESTS=yes
+		
+	    if [ "$OSTYPE" = "cygwin" ]; then
+	        TESTNAME=`cygpath -w $C_DIR/tools/QATestScripts/Performance/end.py`
+	        CREATEREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/quit.py`
+	        CREATE3KREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py`
+	        P_DIR=`cygpath -w $C_DIR`
+	        TIME='time.exe --format=%e'
+	    else
+	        TESTNAME=$C_DIR/tools/QATestScripts/Performance/end.py
+	        CREATEREPO=$C_DIR/tools/QATestScripts/Performance/quit.py
+	        CREATE3KREPO=$C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py
+	        P_DIR=$C_DIR
+	        if [ "${OSTYPE:0:6}" = "darwin" ]; then
+	            # NOTE: gtime is not part of OS X, you need to compile one
+	            # yourself (get source from http://directory.fsf.org/time.html)
+	            # or get it from darwinports project.
+	            TIME='gtime --format=%e'
+	            if [ -f `which gtime` ]; then
+	    			RUN_STARTUP_TESTS=yes        	
+	            else
+	            	echo gtime not found, skipping startup tests
+	            	RUN_STARTUP_TESTS=no
+	            fi
+	        fi
+	    fi
+	
+		if [ "$RUN_STARTUP_TESTS" = "yes" ]; then
+		    cd $C_DIR
+		
+			RUNS="1 2 3"
+			
+		    echo Creating new empty repository
+		    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$CREATEREPO" &> $C_DIR/test.log
+		    
+		    echo -n Timing startup
+		    for run in $RUNS ; do
+		        $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+		        cat $T_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $C_DIR/test.log
+		        cat $C_DIR/test.log > $T_DIR/start1.$run.log
+		        echo -n \ `<"$T_DIR/start1.$run.log"`
+		    done
+		    STARTUP=`cat $T_DIR/start1.1.log $T_DIR/start1.2.log $T_DIR/start1.3.log | sort -n | head -n 2 | tail -n 1`        
+			echo \ \[$STARTUP\s\]
+					
+		    echo Creating new large repository
+		    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --profileDir="$P_DIR" --scriptFile="$CREATEREPO" &> $C_DIR/test.log
+		    
+		    echo -n Timing startup with large repository
+		    for run in $RUNS ; do
+		        $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+		        cat $T_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $C_DIR/test.log
+		        cat $C_DIR/test.log > $T_DIR/start6.$run.log
+		        echo -n \ `<"$T_DIR/start6.$run.log"`
+		    done
+		    STARTUP_LARGE=`cat $T_DIR/start6.1.log $T_DIR/start6.2.log $T_DIR/start6.3.log | sort -n | head -n 2 | tail -n 1`
+			echo \ \[$STARTUP_LARGE\s\]
+		    
+		    echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $PERF_LOG
+		    echo $TESTNAME \[\#TINDERBOX\# Status = PASSED\]         >> $PERF_LOG
+		    echo OSAF_QA: Startup \| $REVISION \| $STARTUP           >> $PERF_LOG
+		    echo \#TINDERBOX\# Testname = Startup                    >> $PERF_LOG
+		    echo \#TINDERBOX\# Status = PASSED                       >> $PERF_LOG
+		    echo \#TINDERBOX\# Time elapsed = $STARTUP \(seconds\)   >> $PERF_LOG
+		
+		    echo - - - - - - - - - - - - - - - - - - - - - - - - - -                 >> $PERF_LOG
+		    echo $TESTNAME \[\#TINDERBOX\# Status = PASSED\]                         >> $PERF_LOG
+		    echo OSAF_QA: Startup_with_large_calendar \| $REVISION \| $STARTUP_LARGE >> $PERF_LOG
+		    echo \#TINDERBOX\# Testname = Startup_with_large_calendar                >> $PERF_LOG
+		    echo \#TINDERBOX\# Status = PASSED                                       >> $PERF_LOG
+		    echo \#TINDERBOX\# Time elapsed = $STARTUP_LARGE \(seconds\)             >> $PERF_LOG
+		fi
+
         SLEEP_TIME=5
         echo Showing performance log in $SLEEP_TIME seconds, Ctrl+C to stop tests
         sleep $SLEEP_TIME
