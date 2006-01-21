@@ -83,6 +83,49 @@ try:
                               "status":"FYI",
                               "body":"Resolution: call home weekly for good family relations",
                               "timeZone":"US/Central"})
+                              
+    # Monthly Event Test
+                            
+    # creation
+    monthlyEvent = QAUITestAppLib.UITestItem("Event", logger)
+    
+    # action
+    monthlyEvent.SetAttr(displayName="Monthly book club",
+                        startDate="01/01/2006",
+                        startTime="7:00 PM",
+                        endTime="9:00 PM",
+                        location="My house",
+                        status="CONFIRMED",
+                        body="Resolution: host book club once a month",
+                        timeZone="US/Central",
+                        recurrence="Monthly",
+                        recurrenceEnd="12/31/2006")
+                        
+    # verification
+      
+    monthlyEvent.Check_DetailView({"displayName":"Monthly book club",
+                                  "startDate":"1/1/06",
+                                  "endDate":"1/1/06",
+                                  "startTime":"7:00 PM",
+                                  "endTime":"9:00 PM",
+                                  "location":"My house",
+                                  "status":"Confirmed",
+                                  "body":"Resolution: host book club once a month",
+                                  "timeZone":"US/Central",
+                                  "recurrence":"Monthly",
+                                  "recurrenceEnd":"12/31/06"})
+
+    monthlyEvent.Check_Object({"displayName":"Monthly book club",
+                              "startDate":"1/1/2006",
+                              "endDate":"1/1/2006",
+                              "startTime":"7:00 PM",
+                              "endTime":"9:00 PM",
+                              "location":"My house",
+                              "status":"CONFIRMED",
+                              "body":"Resolution: host book club once a month",
+                              "timeZone":"US/Central"})
+
+
 
 finally:
     # cleaning
