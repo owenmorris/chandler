@@ -33,7 +33,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         self._bgSelectionStartTime = None
         self._bgSelectionEndTime = None
-        
+
+        self.canvasItemList = []
         # determines if we're dragging the start or the end of an event, usually
         # the end
         self._bgSelectionDragEnd = True
@@ -66,9 +67,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
             primaryCollection = self.blockItem.contents.collectionList[0]
             
-            if not hasattr(self, 'canvasItemList'):
-                self.canvasItemList = []
-                
             def insertInSortedList(eventList, newElement):
                 # Could binary search here, but hopefully we're never
                 # displaying that many events ... ?

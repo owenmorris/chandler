@@ -481,7 +481,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
             assert len(selectedCanvasItems) == 1
 
-            self.OnEditItem(selectedCanvasItems[0])
+            if len(selectedCanvasItems) == 1:
+                self.OnEditItem(selectedCanvasItems[0])
 
         # success of the last .next() just means we have multiple
         # items so we can't edit them all! (at least not right now...)
@@ -489,6 +490,21 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # if any new code is added here, be sure to add a return after
         # the previous StopIteration to ensure legitimate edits don't
         # fall through to here
+
+    def GetCanvasItems(self, *items):
+        """
+        Maps one or more items to their respective canvas items,
+        returning a generator
+
+        this isn't very efficient because its really only used for
+        tests (if we really cared, we would just use a dict which
+        maintains the mapping)
+        """
+
+        for item in items:
+            for canvasItem in self.canvasItemList:
+                if item == canvasItem.item:
+                    yield canvasItem
 
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
