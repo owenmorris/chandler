@@ -1,5 +1,6 @@
 from QALogger import *
 from datetime import datetime, timedelta
+from time import mktime, strptime
 from osaf import pim
 import osaf.pim.mail as Mail
 import osaf.pim.collections as Collection
@@ -49,7 +50,7 @@ def GetCollectionRow(cellName):
     return False
 
              
-class UITestItem :       
+class UITestItem(object):       
     def __init__(self, type, logger):
         if not type in ["Event", "Note", "Task", "MailMessage", "Collection"]:
             # "Copy constructor"
@@ -173,16 +174,22 @@ class UITestItem :
                 App_ns.summary.focus()
             # if in the Calendar view (select by clicking on the TimedCanvasItem)
             else:
+                foundItem = False
                 timedCanvas = App_ns.TimedEvents
                 allDayCanvas = App_ns.AllDayEvents
                 for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
                     if canvasItem.item == self.item:
                         allDayCanvas.widget.OnSelectItem(canvasItem.item)
+                        foundItem = True
                         break
-                for canvasItem in reversed(timedCanvas.widget.canvasItemList):
-                    if canvasItem.item == self.item:
-                        timedCanvas.widget.OnSelectItem(canvasItem.item)
-                        break
+                if not foundItem:
+                    for canvasItem in reversed(timedCanvas.widget.canvasItemList):
+                        if canvasItem.item == self.item:
+                            timedCanvas.widget.OnSelectItem(canvasItem.item)
+                            foundItem = True
+                            break
+
+                    
         else: # the item is a collection (sidebar selection)
             App_ns.sidebar.select(self.item)
             App_ns.sidebar.focus()
@@ -298,7 +305,6 @@ class UITestItem :
             self.SetEditableBlock("EditCalendarStartDate", "start date", startDate, timeInfo=timeInfo)
         else:
             self.logger.Print("SetStartDate is not available for this kind of item")
-            return
 
     def SetEndTime(self, endTime, timeInfo=True):
         """
@@ -1014,11 +1020,14 @@ class UITestItem :
 
         # now check the strings:
 
-        for attrName, attrValue in  attrs.keys():
+        self.logger.SetChecked(True)
+        for attrName, attrValue in  attrs.iteritems():
             if getattr(canvasItem, attrName) == attrValue:
                 self.logger.ReportPass("(On %s Checking)" % attrName)
             else:
                 self.logger.ReportFailure("(On %s Checking) || calendar view value = %s ; expected value = %s" % (attrName, getattr(canvasItem, attrName), attrValue))
+        self.logger.SetChecked(False)
+        self.logger.Report("Calendar View")
     
 class UITestAccounts:
     def __init__(self, logger=None):
@@ -1266,6 +1275,12 @@ class UITestView(object):
             self.logger.ReportPass("(On view checking)")
         #report the checkings
         self.logger.Report("View")
+
+    def GoToDate(self, datestring):
+        # convert to timestamp
+        timestamp = mktime(strptime(datestring, "%Y-%m-%d"))
+        
+        App_ns.root.SelectedDateChanged(start=datetime.fromtimestamp(timestamp))
         
     def DoubleClickInCalView(self, x=100, y=100, gotoTestDate=True):
         """
@@ -1274,6 +1289,10 @@ class UITestView(object):
         @param x : the x coordinate
         @type y : int
         @param y : the y coordinate
+        @param gotoTestDate: either True to go to a well known date,
+                             or an actual date string, in the form
+                             YYYY-mm-dd
+        @type gotoTestDate: bool or datetime
         """
         if self.state == "CalendarView":
             # move to a known date, otherwise we'll just be operating
@@ -1281,8 +1300,8 @@ class UITestView(object):
             if gotoTestDate:
                 if gotoTestDate is True:
                     # True sends us to the default test date
-                    gotoTestDate = datetime(2005, 12, 24) # Dec has some free days
-                App_ns.root.SelectedDateChanged(start=gotoTestDate)
+                    gotoTestDate = "2005-12-24" # Dec has some free days
+                self.GoToDate(gotoTestDate)
 
             self.timedCanvas = App_ns.TimedEvents
             canvasItem = None
