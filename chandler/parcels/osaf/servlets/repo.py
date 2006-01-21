@@ -65,10 +65,10 @@ class RepoResource(webserver.AuthenticatedResource):
 <script type="text/javascript" src="/jsolait/lib/xmlrpc.js"/>
 <script type="text/javascript" src="/repo-editor.js"/>
 </head>
-"""                 % request.path
-                result += '<body onload="onDocumentLoad()">'
 
-                result += '<div id="status-area">[status]</div>'
+<body onload="onDocumentLoad()">
+<div id="status-area">[status]</div>
+"""                 % request.path
 
                 result += """
 <p class="footer">Repository view: <b>%s</b> |
@@ -176,11 +176,12 @@ class RepoResource(webserver.AuthenticatedResource):
 
 
 def RenderSearchForm(repoView):
-    result = ""
-    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
-    result += "<tr class='toprow'>\n"
-    result += "<td><b>PyLucene Search:</b></td>\n"
-    result += "</tr>\n"
+    result = """
+<table width=100% border=0 cellpadding=4 cellspacing=0>
+<tr class="toprow">
+<b>PyLucene Search:</b></td>
+</tr>
+"""
 
     result += "<tr class='oddrow'>\n"
     result += "<td>"
@@ -577,14 +578,14 @@ def RenderBlock(repoView, block):
         pass
 
     if mode == 'horizontal':
-        result += "<tr class=block>"
+        result += '<tr class="block">'
 
     for child in block.childrenBlocks:
         childRender = RenderBlock(repoView, child)
         if mode == 'horizontal':
-            result += "<td class=block valign=top >%s</td>" % childRender
+            result += '<td class="block" valign="top" >%s</td>' % childRender
         else:
-            result += "<tr class=block><td class=block width=100%%>%s</td></tr>" % childRender
+            result += '<tr class="block"><td class="block" width="100%">%s</td></tr>' % childRender
 
     if mode == 'horizontal':
         result += "</tr>"
@@ -592,6 +593,147 @@ def RenderBlock(repoView, block):
     result += "</table>"
     return result
 
+
+class ValueRenderer(object):
+    """
+    At the moment, this is just a class-level container for rendering methods,
+    where each method just returns a string
+    """
+    def __init__(self, item):
+        self.item = item
+
+
+    def Render(self, name):
+        value = getattr(self.item, name)
+
+        # we're guaranteed that we'll fall all the way back to Render_object
+        for cls in value.__class__.__mro__:
+            renderMethod = getattr(self, 'Render_' + cls.__name__, None)
+            if renderMethod is not None:
+                return renderMethod(name, value)
+            
+    def __str__(self):
+        return self.renderMethod()
+
+    def Render_RefList(self, name, value):
+        itemString = "<b>(ref collection)</b><br>\n<ul>"
+        output = []
+        for j in value:
+            alias = value.getAlias(j)
+            if alias:
+                alias = "(alias = '%s')" % alias
+            else:
+                alias = ""
+            output.append("<li>%s <a href=%s>%s</a> %s" % \
+             ( getattr(j, "blockName", j.getItemDisplayName()), toLink(j.itsPath), j.itsPath, alias))
+        itemString += ("".join(output))
+
+        itemString += "</ul>"
+        return itemString
+
+    def Render_list(self, name, value):
+        itemString += "<ul>"
+        for j in value:
+            try:
+                itemString += ("<li>%s <a href=%s>%s</a><br>\n" %
+                               (j.itsName, toLink(j.itsPath), j.itsPath))
+            except:
+                itemString += "<li>%s (%s)<br>\n" % (clean(j), clean(type(j)))
+        return itemString
+
+    def Render_dict(self, name, value):
+        itemString = ""
+        for key, entryValue in value.iteritems():
+            try:
+                itemString += ("%s: %s <a href=%s>%s</a><br>" % 
+                               (key, entryValue.itsName,
+                                toLink(entryValue.itsPath),
+                                entryValue.itsPath))
+            except:
+                try:
+                    itemString += ("%s: %s (%s)<br>" %
+                                   (key, clean(entryValue),
+                                    clean(type(entryValue))))
+                except:
+                    itemString += "%s: <i>(Can't display)</i> (%s)<br>" % \
+                        (key, clean(type(entryValue)))
+        return itemString
+
+    def Render_Lob(self, name, value):
+        itemString = ""
+        mimeType = value.mimetype
+        if mimeType.startswith("image/"):
+            itemString += "<img src=/lobs/%s/%s><br>" % (self.item.itsUUID, name)
+            itemString += "(%s)<br>" % mimeType
+        else:
+            try:
+                theType = TypeHandler.typeHandler(self.item.itsView,
+                                                  value)
+                typeName = theType.getImplementationType().__name__
+                itemString += "<b>(%s)</b> " % typeName
+                content = value.getReader().read()
+                itemString += clean(content)
+
+            except Exception, e:
+                itemString += clean(e)
+                itemString += "(Couldn't read Lob content)"
+                
+        return itemString
+
+    def Render_Item(self, name, value):
+        return "%s <a href=%s>%s</a><br>" % (value.getItemDisplayName(),
+                                             toLink(value.itsPath),
+                                             value.itsPath)
+    def Render_URL(self, name, value):
+        theType = TypeHandler.typeHandler(self.item.itsView, value)
+        typeName = theType.getImplementationType().__name__
+        itemString = '<b>(%s)</b> ' % typeName
+        itemString += ' <a href="%s">%s</a><br>' %(value, value)
+
+        return itemString
+
+    def Render_AbstractSet(self, name, value):
+        theType = TypeHandler.typeHandler(self.item.itsView, value)
+        typeName = theType.getImplementationType().__name__
+
+        itemString = "<b>(%s)</b> " % typeName
+
+        itemString += "<ul>"
+        for j in value:
+            itemString += ('<li>%s <a href="%s">%s</a><br>\n' %
+                           (j.getItemDisplayName(),
+                            toLink(j.itsPath), j.itsPath))
+        itemString += "</ul>"
+
+        if getattr(value,'_indexes', None):
+            itemString += "<br>Indexes in %s:<ul>\n" % name
+            for indexName in value._indexes:
+                itemString += "<li>" + indexName
+                if value.getRanges(indexName):
+                    itemString += ", ranges: %s" % (value.getRanges(indexName),)
+                itemString += "</li>\n"
+            itemString += "</ul>\n"
+
+        return itemString
+
+    Render_PersistentSet = Render_AbstractSet
+
+    def Render_object(self, name, value):
+        """ Default renderer """
+        theType = TypeHandler.typeHandler(self.item.itsView, value)
+        typeName = theType.getImplementationType().__name__
+        itemString = "<b>(%s)</b> " % typeName
+        try:
+            itemString += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
+             value.getItemDisplayName())
+        except:
+            if name == "password":
+                itemString += "<i>(hidden)</i><br>"
+            else:
+                itemString += "%s<br>" % (clean(value))
+                
+        return itemString
+        
 
 def RenderItem(repoView, item):
 
@@ -614,14 +756,14 @@ def RenderItem(repoView, item):
         name = '{%s}' % item.itsUUID.str64()
     result += "<div class='path'>%s &gt; <span class='itemname'>%s</span>" % (path, name)
 
-    try: result += " (<a href=%s>%s</a>)" % (toLink(item.itsKind.itsPath), item.itsKind.itsName)
+    try: result += ' (<a href="%s">%s</a>)' % (toLink(item.itsKind.itsPath), item.itsKind.itsName)
     except: pass
 
     if isKind:
-        result += " | Run a <a href=%s?mode=kindquery>Kind Query</a>" % toLink(item.itsPath)
+        result += ' | Run a <a href="%s?mode=kindquery">Kind Query</a>' % toLink(item.itsPath)
 
     if isBlock:
-        result += " | <a href=%s?mode=blocks>Render block tree</a>" % toLink(item.itsPath)
+        result += ' | <a href="%s?mode=blocks">Render block tree</a>' % toLink(item.itsPath)
 
     result += "</div>\n"
 
@@ -730,7 +872,8 @@ def RenderItem(repoView, item):
   <tr class="headingsrow">
     <td valign="top"><b>Attribute</b></td>
     <td valign="top"><b>Value</b></td>
-  </tr>"""
+  </tr>
+"""
     count = 0
 
     displayedAttrs = { }
@@ -745,150 +888,25 @@ def RenderItem(repoView, item):
         result = oddEvenRow(count)
         result += '<td valign="top">%s</td><td valign="top"><div class="value-%s">%s</div></td></tr>\n' % (attributeName, attributeType, attributeValue)
         return result
+
+    vr = ValueRenderer(item)
     
     for name in keys:
         value = displayedAttrs[name]
+        valueType = type(value).__name__
 
-        if name == "attributes" or \
-           name == "notFoundAttributes" or \
-           name == "inheritedAttributes":
-            pass
+        if name in ("attributes",
+                    "notFoundAttributes",
+                    "inheritedAttributes",
+                    "originalValues"):
+            continue
 
-        elif name == "originalValues":
-            pass
 
-        elif isinstance(value, RefList):
 
-            itemString = "<b>(ref collection)</b><br>\n<ul>"
-            output = []
-            for j in value:
-                alias = value.getAlias(j)
-                if alias:
-                    alias = "(alias = '%s')" % alias
-                else:
-                    alias = ""
-                output.append("<li>%s <a href=%s>%s</a> %s" % \
-                 ( getattr(j, "blockName", j.getItemDisplayName()), toLink(j.itsPath), j.itsPath, alias))
-            itemString += ("".join(output))
+        itemString = vr.Render(name)
 
-            itemString += "</ul></td></tr>\n"
-            result += MakeValueRow(name, itemString, type(value).__name__)
-            count += 1
-
-        elif isinstance(value, list):
-
-            itemString = "<ul>"
-            for j in value:
-                try:
-                    itemString += "<li>%s <a href=%s>%s</a><br>\n" % (j.itsName,
-                     toLink(j.itsPath), j.itsPath)
-                except:
-                    itemString += "<li>%s (%s)<br>\n" % (clean(j), clean(type(j)))
-            result += MakeValueRow(name, itemString, type(value).__name__)
-            count += 1
-
-        elif isinstance(value, dict):
-
-            itemString = ""
-            for key in value.keys():
-                try:
-                    itemString += "%s: %s <a href=%s>%s</a><br>" % \
-                     (key, value[key].itsName, toLink( value[key].itsPath),
-                      value[key].itsPath)
-                except:
-                    try:
-                        itemString += "%s: %s (%s)<br>" % (key, clean(value[key]),
-                         clean(type(value[key])))
-                    except:
-                        itemString += "%s: <i>(Can't display)</i> (%s)<br>" % \
-                            (key, clean(type(value[key])))
-
-            result += MakeValueRow(name, itemString, type(value).__name__)
-            count += 1
-
-        elif isinstance(value, Lob):
-            itemString = ""
-            mimeType = value.mimetype
-            if mimeType.startswith("image/"):
-                itemString += "<img src=/lobs/%s/%s><br>" % (item.itsUUID, name)
-                itemString += "(%s)<br>" % mimeType
-            else:
-                try:
-                    theType = TypeHandler.typeHandler(repoView,
-                     value)
-                    typeName = theType.getImplementationType().__name__
-                    itemString += "<b>(%s)</b> " % typeName
-                    content = value.getReader().read()
-                    itemString += clean(content)
-
-                except Exception, e:
-                    itemString += clean(e)
-                    itemString += "(Couldn't read Lob content)"
-
-            result += MakeValueRow(name, itemString, type(value).__name__)
-            count += 1
-
-        elif isinstance(value, Item):
-            itemString = "%s <a href=%s>%s</a><br>" % (value.getItemDisplayName(),
-                toLink(value.itsPath), value.itsPath)
-            result += MakeValueRow(name, itemString, type(value).__name__)
-            count += 1
-
-        elif isinstance(value, URL):
-
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
-            theType = TypeHandler.typeHandler(repoView, value)
-            typeName = theType.getImplementationType().__name__
-            result += "<b>(%s)</b> " % typeName
-            result += ' <a href="%s">%s</a><br>' %(value, value)
-            result += "</td></tr>\n"
-            count += 1
-
-        elif isinstance(value, AbstractSet) or isinstance(value,PersistentSet):
-
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
-            theType = TypeHandler.typeHandler(repoView, value)
-            typeName = theType.getImplementationType().__name__
-            result += "<b>(%s)</b> " % typeName
-
-            result += "<ul>"
-            for j in value:
-                result +="<li>%s <a href=%s>%s</a><br>\n" % (j.getItemDisplayName(), toLink(j.itsPath), j.itsPath)
-            result += "</ul>"
-
-            if getattr(value,'_indexes', None):
-                result += "<br>Indexes in %s:<ul>\n" % name
-                for indexName in value._indexes:
-                    result += "<li>" + indexName
-                    if value.getRanges(indexName):
-                        result += ", ranges: %s" % (value.getRanges(indexName),)
-                    result += "</li>\n"
-                result += "</ul>\n"
-            result += "</td></tr>\n"
-            count += 1
-
-        else:
-
-            theType = TypeHandler.typeHandler(repoView, value)
-            typeName = theType.getImplementationType().__name__
-            itemString = "<b>(%s)</b> " % typeName
-            try:
-                itemString += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
-                 value.getItemDisplayName())
-            except:
-                if name == "password":
-                    itemString += "<i>(hidden)</i><br>"
-                else:
-                    itemString += "%s<br>" % (clean(value))
-
-            result += MakeValueRow(name, itemString, type(value).__name__)
-            count += 1
+        result += MakeValueRow(name, itemString, valueType)
+        count += 1
             
     result += "</table>\n"
 
