@@ -2,7 +2,7 @@
 // Name:        utils.cpp
 // Purpose:     DOS implementations of utility functions
 // Author:      Vaclav Slavik, M.J.Wetherell
-// Id:          $Id: utilsdos.cpp,v 1.3 2005/10/09 15:48:36 MBN Exp $
+// Id:          $Id: utilsdos.cpp,v 1.4 2006/01/21 01:34:42 MW Exp $
 // Copyright:   (c) 2001-2002 SciTech Software, Inc. (www.scitechsoft.com)
 //              (c) 2005 M.J.Wetherell
 // Licence:     wxWindows licence
@@ -476,4 +476,14 @@ wxToolkitInfo& wxConsoleAppTraits::GetToolkitInfo()
     info.name = _T("wxBase");
     info.os = wxDOS;
     return info;
+}
+
+//----------------------------------------------------------------------------
+// OS Description
+//----------------------------------------------------------------------------
+
+wxString wxGetOsDescription()
+{
+    wxString osname(_T("DOS"));
+    return osname;
 }
