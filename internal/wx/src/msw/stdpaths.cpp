@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp,v 1.11 2006/01/17 16:24:35 JS Exp $
+// RCS-ID:      $Id: stdpaths.cpp,v 1.12 2006/01/21 16:47:25 JS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -106,6 +106,8 @@ static ShellFunctions gs_shellFuncs;
 
 static void ResolveShellFunctions()
 {
+#if wxUSE_DYNLIB_CLASS
+
     // start with the newest functions, fall back to the oldest ones
 #ifdef __WXWINCE__
     wxString shellDllName(_T("coredll"));
@@ -153,6 +155,7 @@ static void ResolveShellFunctions()
     // because we also link to it statically, so it's ok
 
     gs_shellFuncs.initialized = true;
+#endif
 }
 
 // ============================================================================

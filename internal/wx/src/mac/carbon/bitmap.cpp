@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp,v 1.84 2006/01/08 18:52:03 vell Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.85 2006/01/21 12:16:57 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -945,7 +945,7 @@ wxBitmap wxBitmap::GetSubBitmap(const wxRect &rect) const
         unsigned char *destdata = (unsigned char * ) maskbuf.GetWriteBuf( maskbufsize ) ;
         wxASSERT( (source != NULL) && (destdata != NULL) ) ;
 
-        source += rect.x + rect.y * sourcelinesize ;
+        source += rect.x * 3 + rect.y * sourcelinesize ;
         unsigned char *dest = destdata ;
 
         for (int yy = 0; yy < destheight; ++yy, source += sourcelinesize , dest += destlinesize)

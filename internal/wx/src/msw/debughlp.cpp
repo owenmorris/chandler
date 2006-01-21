@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-08 (extracted from crashrpt.cpp)
-// RCS-ID:      $Id: debughlp.cpp,v 1.9 2005/07/20 18:32:57 VZ Exp $
+// RCS-ID:      $Id: debughlp.cpp,v 1.10 2006/01/21 16:47:24 JS Exp $
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@
 
 #include "wx/msw/debughlp.h"
 
-#if wxUSE_DBGHELP
+#if wxUSE_DBGHELP && wxUSE_DYNLIB_CLASS
 
 // ----------------------------------------------------------------------------
 // constants

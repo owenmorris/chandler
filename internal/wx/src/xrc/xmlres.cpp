@@ -3,7 +3,7 @@
 // Purpose:     XRC resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.cpp,v 1.75 2005/10/20 17:26:44 JS Exp $
+// RCS-ID:      $Id: xmlres.cpp,v 1.76 2006/01/21 16:47:28 JS Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1091,8 +1091,11 @@ wxBitmap wxXmlResourceHandler::GetBitmap(const wxString& param,
         return wxNullBitmap;
     }
     if (!(size == wxDefaultSize)) img.Rescale(size.x, size.y);
+#if !defined(__WXMSW__) || wxUSE_WXDIB
     return wxBitmap(img);
-
+#else
+    return wxBitmap();
+#endif
 }
 
 

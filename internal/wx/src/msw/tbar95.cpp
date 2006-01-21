@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.167 2006/01/13 23:21:37 RD Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.168 2006/01/21 16:47:25 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -665,7 +665,7 @@ bool wxToolBar::Realize()
                 if ( m_disabledImgList )
                 {
                     wxBitmap bmpDisabled = tool->GetDisabledBitmap();
-#if wxUSE_IMAGE
+#if wxUSE_IMAGE && wxUSE_WXDIB
                     if ( !bmpDisabled.Ok() )
                     {
                         // no disabled bitmap specified but we still need to

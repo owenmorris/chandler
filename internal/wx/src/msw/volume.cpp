@@ -4,7 +4,7 @@
 // Author:      George Policello
 // Modified by:
 // Created:     28 Jan 02
-// RCS-ID:      $Id: volume.cpp,v 1.30 2005/11/19 01:07:51 MR Exp $
+// RCS-ID:      $Id: volume.cpp,v 1.31 2006/01/21 16:47:25 JS Exp $
 // Copyright:   (c) 2002 George Policello
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,9 @@
 // Dynamic library function defs.
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+#if wxUSE_DYNLIB_CLASS
 static wxDynamicLibrary s_mprLib;
+#endif
 
 typedef DWORD (WINAPI* WNetOpenEnumPtr)(DWORD, DWORD, DWORD, LPNETRESOURCE, LPHANDLE);
 typedef DWORD (WINAPI* WNetEnumResourcePtr)(HANDLE, LPDWORD, LPVOID, LPDWORD);
@@ -378,6 +380,7 @@ wxArrayString wxFSVolumeBase::GetVolumes(int flagsSet, int flagsUnset)
 {
     ::InterlockedExchange(&s_cancelSearch, FALSE);     // reset
 
+#if wxUSE_DYNLIB_CLASS
     if (!s_mprLib.IsLoaded() && s_mprLib.Load(_T("mpr.dll")))
     {
 #ifdef UNICODE
@@ -389,6 +392,7 @@ wxArrayString wxFSVolumeBase::GetVolumes(int flagsSet, int flagsUnset)
 #endif
         s_pWNetCloseEnum = (WNetCloseEnumPtr)s_mprLib.GetSymbol(_T("WNetCloseEnum"));
     }
+#endif
 
     wxArrayString list;
 

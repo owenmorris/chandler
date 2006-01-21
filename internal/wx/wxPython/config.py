@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py,v 1.76 2006/01/06 07:05:15 RD Exp $
+# RCS-ID:      $Id: config.py,v 1.77 2006/01/21 06:45:34 RD Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -875,7 +875,6 @@ swig_force = force
 swig_args = ['-c++',
              '-Wall',
              '-nodefault',
-
              '-python',
              '-keyword',
              '-new_repr',

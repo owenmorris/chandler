@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: cursor.cpp,v 1.65 2005/09/23 12:54:54 MR Exp $
+// RCS-ID:      $Id: cursor.cpp,v 1.66 2006/01/21 16:47:23 JS Exp $
 // Copyright:   (c) 1997-2003 Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -209,11 +209,15 @@ wxCursor::wxCursor(const wxImage& image)
     HCURSOR hcursor = wxBitmapToHCURSOR( wxBitmap(imageSized),
                                          hotSpotX, hotSpotY );
 
+#if wxUSE_WXDIB
     if ( !hcursor )
     {
         wxLogWarning(_("Failed to create cursor."));
         return;
     }
+#else
+    HCURSOR hcursor = 0;
+#endif                                         
 
     m_refData = new wxCursorRefData(hcursor, true /* delete it later */);
 }

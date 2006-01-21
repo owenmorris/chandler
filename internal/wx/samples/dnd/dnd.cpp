@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dnd.cpp,v 1.103 2005/10/17 23:45:25 MW Exp $
+// RCS-ID:      $Id: dnd.cpp,v 1.104 2006/01/21 18:08:06 MR Exp $
 // Copyright:
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1509,7 +1509,7 @@ bool DnDFile::OnDropFiles(wxCoord, wxCoord, const wxArrayString& filenames)
 DnDShapeDialog::DnDShapeDialog(wxFrame *parent, DnDShape *shape)
   :wxDialog( parent, 6001, wxT("Choose Shape"), wxPoint( 10, 10 ),
              wxSize( 40, 40 ),
-             wxRAISED_BORDER|wxCAPTION|wxTHICK_FRAME|wxSYSTEM_MENU )
+             wxDEFAULT_DIALOG_STYLE | wxRAISED_BORDER | wxTHICK_FRAME )
 {
     m_shape = shape;
     wxBoxSizer* topSizer = new wxBoxSizer( wxVERTICAL );

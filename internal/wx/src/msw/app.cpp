@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: app.cpp,v 1.240 2005/12/19 10:41:02 ABX Exp $
+// RCS-ID:      $Id: app.cpp,v 1.241 2006/01/21 16:47:23 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -588,7 +588,8 @@ int wxApp::GetComCtl32Version()
 
         // we're prepared to handle the errors
         wxLogNull noLog;
-
+        
+#if wxUSE_DYNLIB_CLASS
         // do we have it?
         wxDynamicLibrary dllComCtl32(_T("comctl32.dll"), wxDL_VERBATIM);
 
@@ -646,6 +647,7 @@ int wxApp::GetComCtl32Version()
                 }
             }
         }
+#endif        
     }
 
     return s_verComCtl32;

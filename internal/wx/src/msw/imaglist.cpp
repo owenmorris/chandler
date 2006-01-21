@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: imaglist.cpp,v 1.32 2005/12/19 10:41:03 ABX Exp $
+// RCS-ID:      $Id: imaglist.cpp,v 1.34 2006/01/21 17:38:46 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -290,6 +290,7 @@ bool wxImageList::Draw(int index,
 // Get the bitmap
 wxBitmap wxImageList::GetBitmap(int index) const
 {
+#if wxUSE_WXDIB
     int bmp_width = 0, bmp_height = 0;
     GetSize(index, bmp_width, bmp_height);
 
@@ -320,7 +321,9 @@ wxBitmap wxImageList::GetBitmap(int index) const
     image = bitmap.ConvertToImage();
     image.SetMaskColour(r, g, b);
     bitmap = wxBitmap(image);
-
+#else
+    wxBitmap bitmap;
+#endif
     return bitmap;
 }
 

@@ -284,7 +284,6 @@
 		4086C822063AB2FF00D4CD53 /* jerror.c in Sources */ = {isa = PBXBuildFile; fileRef = F5A8616901FA022C0175ACA7 /* jerror.c */; };
 		4086C823063AB2FF00D4CD53 /* jfdctflt.c in Sources */ = {isa = PBXBuildFile; fileRef = F5A8616B01FA022C0175ACA7 /* jfdctflt.c */; };
 		4086C824063AB2FF00D4CD53 /* accel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619A01FA022C0175ACA7 /* accel.cpp */; };
-		4086C825063AB2FF00D4CD53 /* aga.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619B01FA022C0175ACA7 /* aga.cpp */; };
 		4086C826063AB2FF00D4CD53 /* app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619C01FA022C0175ACA7 /* app.cpp */; };
 		4086C827063AB2FF00D4CD53 /* bitmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619F01FA022C0175ACA7 /* bitmap.cpp */; };
 		4086C828063AB2FF00D4CD53 /* bmpbuttn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A861A001FA022C0175ACA7 /* bmpbuttn.cpp */; };
@@ -661,7 +660,6 @@
 		4086CB35063AB30000D4CD53 /* jerror.c in Sources */ = {isa = PBXBuildFile; fileRef = F5A8616901FA022C0175ACA7 /* jerror.c */; };
 		4086CB36063AB30000D4CD53 /* jfdctflt.c in Sources */ = {isa = PBXBuildFile; fileRef = F5A8616B01FA022C0175ACA7 /* jfdctflt.c */; };
 		4086CB37063AB30000D4CD53 /* accel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619A01FA022C0175ACA7 /* accel.cpp */; };
-		4086CB38063AB30000D4CD53 /* aga.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619B01FA022C0175ACA7 /* aga.cpp */; };
 		4086CB39063AB30000D4CD53 /* app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619C01FA022C0175ACA7 /* app.cpp */; };
 		4086CB3A063AB30000D4CD53 /* bitmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A8619F01FA022C0175ACA7 /* bitmap.cpp */; };
 		4086CB3B063AB30000D4CD53 /* bmpbuttn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A861A001FA022C0175ACA7 /* bmpbuttn.cpp */; };
@@ -1761,7 +1759,6 @@
 		F5A8618E01FA022C0175ACA7 /* jquant2.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = jquant2.c; sourceTree = "<group>"; };
 		F5A8618F01FA022C0175ACA7 /* jutils.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = jutils.c; sourceTree = "<group>"; };
 		F5A8619A01FA022C0175ACA7 /* accel.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = accel.cpp; sourceTree = "<group>"; };
-		F5A8619B01FA022C0175ACA7 /* aga.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = aga.cpp; sourceTree = "<group>"; };
 		F5A8619C01FA022C0175ACA7 /* app.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = app.cpp; sourceTree = "<group>"; };
 		F5A8619F01FA022C0175ACA7 /* bitmap.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = bitmap.cpp; sourceTree = "<group>"; };
 		F5A861A001FA022C0175ACA7 /* bmpbuttn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = bmpbuttn.cpp; sourceTree = "<group>"; };
@@ -2807,7 +2804,6 @@
 			isa = PBXGroup;
 			children = (
 				F5A8619A01FA022C0175ACA7 /* accel.cpp */,
-				F5A8619B01FA022C0175ACA7 /* aga.cpp */,
 				F5A8619C01FA022C0175ACA7 /* app.cpp */,
 				F5A8619F01FA022C0175ACA7 /* bitmap.cpp */,
 				F5A861A001FA022C0175ACA7 /* bmpbuttn.cpp */,
@@ -3463,7 +3459,6 @@
 				4086C822063AB2FF00D4CD53 /* jerror.c in Sources */,
 				4086C823063AB2FF00D4CD53 /* jfdctflt.c in Sources */,
 				4086C824063AB2FF00D4CD53 /* accel.cpp in Sources */,
-				4086C825063AB2FF00D4CD53 /* aga.cpp in Sources */,
 				4086C826063AB2FF00D4CD53 /* app.cpp in Sources */,
 				4086C827063AB2FF00D4CD53 /* bitmap.cpp in Sources */,
 				4086C828063AB2FF00D4CD53 /* bmpbuttn.cpp in Sources */,
@@ -3939,7 +3934,6 @@
 				4086CB35063AB30000D4CD53 /* jerror.c in Sources */,
 				4086CB36063AB30000D4CD53 /* jfdctflt.c in Sources */,
 				4086CB37063AB30000D4CD53 /* accel.cpp in Sources */,
-				4086CB38063AB30000D4CD53 /* aga.cpp in Sources */,
 				4086CB39063AB30000D4CD53 /* app.cpp in Sources */,
 				4086CB3A063AB30000D4CD53 /* bitmap.cpp in Sources */,
 				4086CB3B063AB30000D4CD53 /* bmpbuttn.cpp in Sources */,
@@ -4519,7 +4513,7 @@
 					ppc,
 					i386,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
 				PRODUCT_NAME = wx_mac;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 				ZERO_LINK = NO;

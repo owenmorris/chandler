@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp,v 1.166 2006/01/17 15:36:47 JS Exp $
+// RCS-ID:      $Id: notebook.cpp,v 1.167 2006/01/21 16:47:24 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -844,7 +844,11 @@ void wxNotebook::OnPaint(wxPaintEvent& WXUNUSED(event))
     memdc.SelectObject(bmp);
 
     // if there is no special brush just use the solid background colour
+#if wxUSE_UXTHEME
     HBRUSH hbr = (HBRUSH)m_hbrBackground;
+#else
+    HBRUSH hbr = 0;
+#endif    
     wxBrush brush;
     if ( !hbr )
     {

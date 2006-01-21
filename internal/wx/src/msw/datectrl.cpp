@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-09
-// RCS-ID:      $Id: datectrl.cpp,v 1.22 2005/05/31 09:20:30 JS Exp $
+// RCS-ID:      $Id: datectrl.cpp,v 1.23 2006/01/21 16:47:24 JS Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -111,6 +111,7 @@ wxDatePickerCtrl::Create(wxWindow *parent,
             return false;
         }
 
+#if wxUSE_DYNLIB_CLASS
         INITCOMMONCONTROLSEX icex;
         icex.dwSize = sizeof(icex);
         icex.dwICC = ICC_DATE_CLASSES;
@@ -126,6 +127,7 @@ wxDatePickerCtrl::Create(wxWindow *parent,
         }
 
         s_initDone = true;
+#endif        
     }
 
 

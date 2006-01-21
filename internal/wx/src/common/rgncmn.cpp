@@ -4,7 +4,7 @@
 // Author:      Robin Dunn
 // Modified by:
 // Created:     27-Mar-2003
-// RCS-ID:      $Id: rgncmn.cpp,v 1.12 2005/09/23 12:53:05 MR Exp $
+// RCS-ID:      $Id: rgncmn.cpp,v 1.13 2006/01/21 16:47:16 JS Exp $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -100,6 +100,7 @@ static bool DoRegionUnion(wxRegion& region,
 
 bool wxRegion::Union(const wxBitmap& bmp)
 {
+#if (!defined(__WXMSW__) || wxUSE_WXDIB)
     if (bmp.GetMask())
     {
         wxImage image = bmp.ConvertToImage();
@@ -111,6 +112,7 @@ bool wxRegion::Union(const wxBitmap& bmp)
                              0);
     }
     else
+#endif
     {
         return Union(0, 0, bmp.GetWidth(), bmp.GetHeight());
     }
@@ -120,12 +122,16 @@ bool wxRegion::Union(const wxBitmap& bmp,
                      const wxColour& transColour,
                      int   tolerance)
 {
+#if (!defined(__WXMSW__) || wxUSE_WXDIB)
     wxImage image = bmp.ConvertToImage();
     return DoRegionUnion(*this, image,
                          transColour.Red(),
                          transColour.Green(),
                          transColour.Blue(),
                          tolerance);
+#else
+    return false;
+#endif                         
 }
 
 #else
