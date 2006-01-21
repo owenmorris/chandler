@@ -124,6 +124,48 @@ try:
                               "status":"CONFIRMED",
                               "body":"Resolution: host book club once a month",
                               "timeZone":"US/Central"})
+                              
+   # Yearly Event Test
+                            
+    # creation
+    yearlyEvent = QAUITestAppLib.UITestItem("Event", logger)
+    
+    # action
+    yearlyEvent.SetAttr(displayName="Yearly dentist appointment",
+                        startDate="02/06/2006",
+                        startTime="10:00 AM",
+                        location="Downtown",
+                        status="CONFIRMED",
+                        body="Resolution: get teeth cleaned once a year",
+                        timeZone="US/Pacific",
+                        recurrence="Yearly",
+                        recurrenceEnd="02/07/2010")
+                        
+    # verification
+      
+    yearlyEvent.Check_DetailView({"displayName":"Yearly dentist appointment",
+                                  "startDate":"2/6/06",
+                                  "endDate":"2/6/06",
+                                  "startTime":"10:00 AM",
+                                  "endTime":"11:00 AM",
+                                  "location":"Downtown",
+                                  "status":"Confirmed",
+                                  "body":"Resolution: get teeth cleaned once a year",
+                                  "timeZone":"US/Pacific",
+                                  "recurrence":"Yearly",
+                                  "recurrenceEnd":"2/7/10"})
+
+    yearlyEvent.Check_Object({"displayName":"Yearly dentist appointment",
+                              "startDate":"2/6/2006",
+                              "endDate":"2/6/2006",
+                              "startTime":"10:00AM",
+                              "endTime":"11:00AM",
+                              "location":"Downtown",
+                              "status":"CONFIRMED",
+                              "body":"Resolution: get teeth cleaned once a year",
+                              "timeZone":"US/Pacific"})
+
+                              
 
 
 
