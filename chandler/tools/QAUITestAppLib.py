@@ -1000,6 +1000,25 @@ class UITestItem :
         else:
             self.logger.Print("Check_ItemInCollection is not available for this kind of item")
             return False 
+
+    def Check_CalendarView(self, **attrs):
+
+        item = self.item
+
+        # go look up the screen item in the timed events canvas
+
+        timedCanvas = App_ns.TimedEvents
+
+        # find the canvas item for the given item:
+        canvasItem = timedCanvas.widget.GetCanvasItems(item).next()
+
+        # now check the strings:
+
+        for attrName, attrValue in  attrs.keys():
+            if getattr(canvasItem, attrName) == attrValue:
+                self.logger.ReportPass("(On %s Checking)" % attrName)
+            else:
+                self.logger.ReportFailure("(On %s Checking) || calendar view value = %s ; expected value = %s" % (attrName, getattr(canvasItem, attrName), attrValue))
     
 class UITestAccounts:
     def __init__(self, logger=None):
@@ -1330,21 +1349,3 @@ class UITestView(object):
             self.logger.Print("DoubleClickInCalView is not available in the current view : %s" %self.state)
             return
 
-    def Check_CalendarView(testItem, **attrs):
-
-        item = testItem.item
-
-        # go look up the screen item in the timed events canvas
-
-        timedCanvas = App_ns.TimedEvents
-
-        # find the canvas item for the given item:
-        canvasItem = timedCanvas.widget.GetCanvasItems(item).next()
-
-        # now check the strings:
-
-        for attrName, attrValue in  attrs.keys():
-            if getattr(canvasItem, attrName) == attrValue:
-                self.logger.ReportPass("(On %s Checking)" % attrName)
-            else:
-                self.logger.ReportFailure("(On %s Checking) || calendar view value = %s ; expected value = %s" % (attrName, getattr(canvasItem, attrName), attrValue))
