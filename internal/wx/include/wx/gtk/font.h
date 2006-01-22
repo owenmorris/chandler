@@ -2,7 +2,7 @@
 // Name:        font.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: font.h,v 1.34 2005/09/23 12:49:16 MR Exp $
+// Id:          $Id: font.h,v 1.35 2006/01/22 21:00:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -96,10 +96,6 @@ public:
 
     // implementation from now on
     void Unshare();
-
-#ifndef __WXGTK20__
-    GdkFont* GetInternalFont(float scale = 1.0) const;
-#endif
 
     // no data :-)
 

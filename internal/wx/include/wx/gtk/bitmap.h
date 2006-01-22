@@ -2,7 +2,7 @@
 // Name:        wx/gtk/bitmap.h
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: bitmap.h,v 1.51 2005/11/30 07:58:34 ABX Exp $
+// RCS-ID:      $Id: bitmap.h,v 1.52 2006/01/22 21:00:17 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,9 +17,7 @@
 #include "wx/palette.h"
 #include "wx/gdiobj.h"
 
-#ifdef __WXGTK20__
 typedef struct _GdkPixbuf GdkPixbuf;
-#endif
 
 class WXDLLEXPORT wxPixelDataBase;
 
@@ -118,17 +116,13 @@ public:
     void SetDepth( int depth );
     void SetPixmap( GdkPixmap *pixmap );
     void SetBitmap( GdkBitmap *bitmap );
-#ifdef __WXGTK20__
     void SetPixbuf(GdkPixbuf *pixbuf);
-#endif
 
     GdkPixmap *GetPixmap() const;
     GdkBitmap *GetBitmap() const;
     bool HasPixmap() const;
-#ifdef __WXGTK20__
     bool HasPixbuf() const;
     GdkPixbuf *GetPixbuf() const;
-#endif
 
     // Basically, this corresponds to Win32 StretchBlt()
     wxBitmap Rescale( int clipx, int clipy, int clipwidth, int clipheight, int width, int height );
@@ -149,7 +143,6 @@ private:
     bool CreateFromImageAsBitmap(const wxImage& image);
     bool CreateFromImageAsPixmap(const wxImage& image);
 
-#ifdef __WXGTK20__
     bool CreateFromImageAsPixbuf(const wxImage& image);
 
     enum Representation
@@ -162,7 +155,6 @@ private:
     void PurgeOtherRepresentations(Representation keep);
 
     friend class wxMemoryDC;
-#endif
     friend class wxBitmapHandler;
 
 private:

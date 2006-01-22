@@ -2,7 +2,7 @@
 // Name:        wx/gtk/pen.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: pen.h,v 1.23 2005/10/04 18:14:08 ABX Exp $
+// Id:          $Id: pen.h,v 1.24 2006/01/22 21:00:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,11 +22,7 @@
 
 class WXDLLIMPEXP_CORE wxPen;
 
-#if defined(__WXGTK127__) || defined(__WXGTK20__)
 typedef    gint8 wxGTKDash;
-#else
-typedef    gchar wxGTKDash;
-#endif
 
 //-----------------------------------------------------------------------------
 // wxPen

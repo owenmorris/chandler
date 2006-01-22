@@ -2,7 +2,7 @@
 // Name:        win_gtk.h
 // Purpose:     wxWidgets's GTK base widget = GtkPizza
 // Author:      Robert Roebling
-// Id:          $Id: win_gtk.h,v 1.22 2005/08/02 22:57:59 MW Exp $
+// Id:          $Id: win_gtk.h,v 1.23 2006/01/22 21:00:19 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////// */
@@ -19,9 +19,6 @@ extern "C" {
 #include <gdk/gdkx.h>
 #include <gtk/gtkcontainer.h>
 #include <gtk/gtkadjustment.h>
-#ifndef __WXGTK20__
-#include <gtk/gtkfeatures.h>
-#endif
 
 #include "wx/dlimpexp.h"
 

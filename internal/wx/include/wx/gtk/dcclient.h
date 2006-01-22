@@ -2,7 +2,7 @@
 // Name:        dcclient.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dcclient.h,v 1.40 2005/09/23 12:49:15 MR Exp $
+// Id:          $Id: dcclient.h,v 1.41 2006/01/22 21:00:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -116,11 +116,9 @@ public:
     wxRegion      m_paintClippingRegion;
 
     // PangoContext stuff for GTK 2.0
-#ifdef __WXGTK20__
     PangoContext *m_context;
     PangoLayout *m_layout;
     PangoFontDescription *m_fontdesc;
-#endif
 
     void SetUpDC();
     void Destroy();

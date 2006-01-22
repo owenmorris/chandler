@@ -2,7 +2,7 @@
 // Name:        wx/gtk/menu.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.h,v 1.56 2005/09/23 12:49:17 MR Exp $
+// Id:          $Id: menu.h,v 1.57 2006/01/22 21:00:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,9 +44,6 @@ public:
     // common part of Append and Insert
     bool GtkAppend(wxMenu *menu, const wxString& title, int pos=-1);
 
-#ifndef __WXGTK20__
-    GtkAccelGroup   *m_accel;
-#endif
     GtkWidget       *m_menubar;
     long             m_style;
     wxWindow        *m_invokingWindow;
