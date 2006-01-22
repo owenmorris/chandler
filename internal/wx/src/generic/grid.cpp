@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.353 2005/12/31 09:19:15 vell Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.354 2006/01/22 13:43:14 rgammans Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -3824,7 +3824,7 @@ void wxGridWindow::ScrollWindow( int dx, int dy, const wxRect *rect )
 
 void wxGridWindow::OnMouseEvent( wxMouseEvent& event )
 {
-#if 1
+#if 0
     bool bGrabFocus = (event.ButtonDown(wxMOUSE_BTN_LEFT) && (FindFocus() != this));
     if (bGrabFocus)
         SetFocus();
@@ -4220,8 +4220,7 @@ bool wxGrid::SetTable( wxGridTableBase *table, bool takeOwnership,
 
         m_table = table;
         m_table->SetView( this );
-        if (takeOwnership)
-            m_ownTable = true;
+        m_ownTable = takeOwnership;
         m_selection = new wxGridSelection( this, selmode );
 
         CalcDimensions();
@@ -5503,8 +5502,10 @@ void wxGrid::ChangeCursorMode(CursorMode mode,
 
 void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
 {
+#if 0
 if (event.ButtonDown(wxMOUSE_BTN_LEFT))
 wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
+#endif
 
     int x, y;
     wxPoint pos( event.GetPosition() );
@@ -5793,9 +5794,9 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                 //m_selectingTopLeft = wxGridNoCellCoords;
                 //m_selectingBottomRight = wxGridNoCellCoords;
 
+                // Show the edit control, if it has been hidden for
+                // drag-shrinking.
                 if ( m_hasCursor )
-                    // Show the edit control, if it has been hidden for
-                    // drag-shrinking.
                     ShowCellEditControl();
             }
         }
@@ -6740,6 +6741,7 @@ void wxGrid::SetCurrentCell( const wxGridCellCoords& coords )
 
 void wxGrid::HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol, bool clearSelection)
 {
+#if 0
 if (! clearSelection)
 {
 static bool sFirstTime = true;
@@ -6752,6 +6754,7 @@ static bool sFirstTime = true;
 
 clearSelection = true;
 }
+#endif
 
     // When clearSelection is true the current selection will be cleared if is different
     // from the new selection. This eliminates unnecessary flicker.
@@ -7162,36 +7165,38 @@ void wxGrid::DrawCellHighlight( wxDC& dc, const wxGridCellAttr *attr )
     int row = m_currentCellCoords.GetRow();
     int col = m_currentCellCoords.GetCol();
 
-    if ( GetColWidth(col) > 0 && GetRowHeight(row) > 0 && m_hasCursor )
+    if ( GetColWidth(col) <= 0 || GetRowHeight(row) <= 0 )
+        return;
+    if ( !m_hasCursor )
+        return;
+
+    wxRect rect = CellToRect(row, col);
+
+    // hmmm... what could we do here to show that the cell is disabled?
+    // for now, I just draw a thinner border than for the other ones, but
+    // it doesn't look really good
+
+    int penWidth = attr->IsReadOnly() ? m_cellHighlightROPenWidth : m_cellHighlightPenWidth;
+
+    if (penWidth > 0)
     {
-        wxRect rect = CellToRect(row, col);
-
-        // hmmm... what could we do here to show that the cell is disabled?
-        // for now, I just draw a thinner border than for the other ones, but
-        // it doesn't look really good
-
-        int penWidth = attr->IsReadOnly() ? m_cellHighlightROPenWidth : m_cellHighlightPenWidth;
-
-        if (penWidth > 0)
-        {
-            // The center of th drawn line is where the position/width/height of
-            // the rectangle is actually at, (on wxMSW atr least,) so we will
-            // reduce the size of the rectangle to compensate for the thickness of
-            // the line.  If this is too strange on non wxMSW platforms then
-            // please #ifdef this appropriately.
-            rect.x += penWidth / 2;
-            rect.y += penWidth / 2;
-            rect.width -= penWidth - 1;
-            rect.height -= penWidth - 1;
+        // The center of th drawn line is where the position/width/height of
+        // the rectangle is actually at, (on wxMSW atr least,) so we will
+        // reduce the size of the rectangle to compensate for the thickness of
+        // the line.  If this is too strange on non wxMSW platforms then
+        // please #ifdef this appropriately.
+        rect.x += penWidth / 2;
+        rect.y += penWidth / 2;
+        rect.width -= penWidth - 1;
+        rect.height -= penWidth - 1;
 
 
-            // Now draw the rectangle
-            // use the cellHighlightColour if the cell is inside a selection, this
-            // will ensure the cell is always visible.
-            dc.SetPen(wxPen(IsInSelection(row,col) ? m_selectionForeground : m_cellHighlightColour, penWidth, wxSOLID));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRectangle(rect);
-        }
+        // Now draw the rectangle
+        // use the cellHighlightColour if the cell is inside a selection, this
+        // will ensure the cell is always visible.
+        dc.SetPen(wxPen(IsInSelection(row,col) ? m_selectionForeground : m_cellHighlightColour, penWidth, wxSOLID));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle(rect);
     }
 
 #if 0
@@ -8342,7 +8347,7 @@ bool wxGrid::MoveCursorUp( bool expandSelection )
     if ( m_currentCellCoords != wxGridNoCellCoords  &&
          m_currentCellCoords.GetRow() >= 0 )
     {
-        if ( expandSelection)
+        if ( expandSelection )
         {
             if ( m_selectingKeyboard == wxGridNoCellCoords )
                 m_selectingKeyboard = m_currentCellCoords;
