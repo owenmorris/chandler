@@ -2,7 +2,7 @@
 // Name:        gtk/bmpbuttn.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: bmpbuttn.cpp,v 1.62 2005/12/18 16:34:17 VZ Exp $
+// Id:          $Id: bmpbuttn.cpp,v 1.63 2006/01/22 20:29:13 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -224,29 +224,22 @@ void wxBitmapButton::OnSetBitmap()
     {
         // initial bitmap
         GtkWidget *pixmap;
-#ifdef __WXGTK20__
+
         if (the_one.HasPixbuf())
             pixmap = gtk_image_new_from_pixbuf(the_one.GetPixbuf());
         else
             pixmap = gtk_image_new_from_pixmap(the_one.GetPixmap(), mask);
-#else
-        pixmap = gtk_pixmap_new(the_one.GetPixmap(), mask);
-#endif
+
         gtk_widget_show(pixmap);
         gtk_container_add(GTK_CONTAINER(m_widget), pixmap);
     }
     else
     {   // subsequent bitmaps
-#ifdef __WXGTK20__
         GtkImage *pixmap = GTK_IMAGE(child);
         if (the_one.HasPixbuf())
             gtk_image_set_from_pixbuf(pixmap, the_one.GetPixbuf());
         else
             gtk_image_set_from_pixmap(pixmap, the_one.GetPixmap(), mask);
-#else
-        GtkPixmap *pixmap = GTK_PIXMAP(child);
-        gtk_pixmap_set(pixmap, the_one.GetPixmap(), mask);
-#endif
     }
 }
 

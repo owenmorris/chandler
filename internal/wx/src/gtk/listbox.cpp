@@ -2,7 +2,7 @@
 // Name:        src/gtk/listbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: listbox.cpp,v 1.155 2005/09/27 17:05:02 ABX Exp $
+// Id:          $Id: listbox.cpp,v 1.156 2006/01/22 20:29:15 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -887,11 +887,7 @@ wxString wxListBox::GetRealLabel(GList *item) const
 
     wxString str;
 
-#ifdef __WXGTK20__
     str = wxGTK_CONV_BACK( gtk_label_get_text( label ) );
-#else
-    str = wxString( label->label );
-#endif
 
 #if wxUSE_CHECKLISTBOX
     // checklistboxes have "[±] " prepended to their lables, remove it

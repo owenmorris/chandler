@@ -2,7 +2,7 @@
 // Name:        gtk/clipbrd.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: clipbrd.cpp,v 1.62 2006/01/14 18:32:36 MR Exp $
+// Id:          $Id: clipbrd.cpp,v 1.63 2006/01/22 20:29:13 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -274,7 +274,6 @@ selection_handler( GtkWidget *WXUNUSED(widget),
     // Text data will be in UTF8 in Unicode mode.
     data->GetDataHere( selection_data->target, d );
 
-#ifdef __WXGTK20__
     // NB: GTK+ requires special treatment of UTF8_STRING data, the text
     //     would show as UTF-8 data interpreted as latin1 (?) in other
     //     GTK+ apps if we used gtk_selection_data_set()
@@ -286,7 +285,6 @@ selection_handler( GtkWidget *WXUNUSED(widget),
             size-1 );
     }
     else
-#endif
     {
         gtk_selection_data_set(
             selection_data,

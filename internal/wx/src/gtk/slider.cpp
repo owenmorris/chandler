@@ -2,7 +2,7 @@
 // Name:        gtk/slider.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: slider.cpp,v 1.61 2005/12/24 02:55:00 VZ Exp $
+// Id:          $Id: slider.cpp,v 1.62 2006/01/22 20:29:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,6 @@ static void gtk_slider_callback( GtkAdjustment *adjust,
         return;
 
     wxEventType evtType;
-#ifdef __WXGTK20__
     if ( win->m_isScrolling )
         evtType = wxEVT_SCROLL_THUMBTRACK;
     // it could seem that UP/DOWN are inversed but this is what wxMSW does
@@ -109,9 +108,6 @@ static void gtk_slider_callback( GtkAdjustment *adjust,
         evtType = wxEVT_SCROLL_TOP;
     else if ( AreSameAdjustValues(adjust->value, adjust->upper) )
         evtType = wxEVT_SCROLL_BOTTOM;
-#else
-    evtType = GtkScrollTypeToWx(GET_SCROLL_TYPE(win->m_widget));
-#endif
 
     ProcessScrollEvent(win, evtType, dvalue);
 
@@ -202,10 +198,8 @@ bool wxSlider::Create(wxWindow *parent, wxWindowID id,
 
     m_adjust = gtk_range_get_adjustment( GTK_RANGE(m_widget) );
 
-#ifdef __WXGTK20__
     if (style & wxSL_INVERSE)
         gtk_range_set_inverted( GTK_RANGE(m_widget), TRUE );
-#endif
 
     GtkEnableEvents();
     gtk_signal_connect( GTK_OBJECT(m_widget),
@@ -333,15 +327,7 @@ int wxSlider::GetLineSize() const
 bool wxSlider::IsOwnGtkWindow( GdkWindow *window )
 {
     GtkRange *range = GTK_RANGE(m_widget);
-#ifdef __WXGTK20__
     return (range->event_window == window);
-#else
-    return ( (window == GTK_WIDGET(range)->window)
-                || (window == range->trough)
-                || (window == range->slider)
-                || (window == range->step_forw)
-                || (window == range->step_back) );
-#endif
 }
 
 void wxSlider::GtkDisableEvents()

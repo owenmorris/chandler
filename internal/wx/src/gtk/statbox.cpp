@@ -2,7 +2,7 @@
 // Name:        gtk/statbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbox.cpp,v 1.43 2005/12/18 16:37:56 VZ Exp $
+// Id:          $Id: statbox.cpp,v 1.44 2006/01/22 20:29:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -88,9 +88,7 @@ void wxStaticBox::SetLabel( const wxString& label )
 void wxStaticBox::DoApplyWidgetStyle(GtkRcStyle *style)
 {
     gtk_widget_modify_style(m_widget, style);
-#ifdef __WXGTK20__
     gtk_widget_modify_style(GTK_FRAME(m_widget)->label_widget, style);
-#endif
 }
 
 // static

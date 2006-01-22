@@ -2,7 +2,7 @@
 // Name:        src/gtk/utilsgtk.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: utilsgtk.cpp,v 1.63 2005/03/21 23:42:20 VZ Exp $
+// Id:          $Id: utilsgtk.cpp,v 1.64 2006/01/22 20:29:17 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,9 +31,6 @@
 #include "glib.h"
 #include "gdk/gdk.h"
 #include "gtk/gtk.h"
-#ifndef __WXGTK20__
-#include "gtk/gtkfeatures.h"
-#endif
 #include "gdk/gdkx.h"
 
 #ifdef HAVE_X11_XKBLIB_H
@@ -81,7 +78,6 @@ bool wxSetDetectableAutoRepeat( bool WXUNUSED(flag) )
 }
 #endif
 
-#ifdef __WXGTK20__
 // Escapes string so that it is valid Pango markup XML string:
 wxString wxEscapeStringForPangoMarkup(const wxString& str)
 {
@@ -115,7 +111,6 @@ wxString wxEscapeStringForPangoMarkup(const wxString& str)
     }
     return out;
 }
-#endif
 
 
 // ----------------------------------------------------------------------------
@@ -168,11 +163,7 @@ int wxDisplayDepth()
 wxToolkitInfo& wxGUIAppTraits::GetToolkitInfo()
 {
     static wxToolkitInfo info;
-#ifdef __WXGTK20__
     info.shortName = _T("gtk2");
-#else
-    info.shortName = _T("gtk");
-#endif
     info.name = _T("wxGTK");
 #ifdef __WXUNIVERSAL__
     info.shortName << _T("univ");

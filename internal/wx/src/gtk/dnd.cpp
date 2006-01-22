@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp,v 1.98 2005/09/28 09:30:16 VZ Exp $
+// Id:          $Id: dnd.cpp,v 1.99 2006/01/22 20:29:14 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -506,13 +506,7 @@ GdkAtom wxDropTarget::GetMatchingPair()
     GList *child = m_dragContext->targets;
     while (child)
     {
-        // in GTK+ 1.x GdkAtom was a gulong, but now it's a pointer
-        GdkAtom formatAtom =
-#ifdef __WXGTK20__
-                             (GdkAtom)(child->data);
-#else
-                             GPOINTER_TO_INT(child->data);
-#endif
+        GdkAtom formatAtom = (GdkAtom)(child->data);
         wxDataFormat format( formatAtom );
 
 #ifdef __WXDEBUG__
@@ -823,18 +817,12 @@ void wxDropSource::PrepareIcon( int action, GdkDragContext *context )
     gdk_window_get_size (pixmap, &width, &height);
 
     GdkColormap *colormap = gtk_widget_get_colormap( m_widget );
-#ifndef __WXGTK20__
-    gtk_widget_push_visual (gdk_colormap_get_visual (colormap));
-#endif
     gtk_widget_push_colormap (colormap);
 
     m_iconWindow = gtk_window_new (GTK_WINDOW_POPUP);
     gtk_widget_set_events (m_iconWindow, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
     gtk_widget_set_app_paintable (GTK_WIDGET (m_iconWindow), TRUE);
 
-#ifndef __WXGTK20__
-    gtk_widget_pop_visual ();
-#endif
     gtk_widget_pop_colormap ();
 
     gtk_widget_set_usize (m_iconWindow, width, height);
