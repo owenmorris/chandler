@@ -8,7 +8,7 @@
  *              Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main Unix and OS/2 file
  * Licence:     The wxWindows licence
- * CVSID:       $Id: gsocket.cpp,v 1.59 2006/01/14 13:30:58 SN Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.60 2006/01/23 22:54:56 SN Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -35,6 +35,14 @@
 #include <sys/time.h>
 #include <types.h>
 #include <netinet/in.h>
+#endif
+#ifdef __NETBSD__
+#ifndef _NETBSD_SOURCE
+#define _NETBSD_SOURCE
+#endif
+#ifndef _LIBC
+#define _LIBC
+#endif
 #endif
 #include <netdb.h>
 #include <sys/ioctl.h>
