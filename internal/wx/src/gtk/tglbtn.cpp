@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp,v 1.21 2005/06/08 14:49:36 ABX Exp $
+// RCS-ID:      $Id: tglbtn.cpp,v 1.22 2006/01/22 23:28:57 MR Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,9 +83,9 @@ bool wxToggleBitmapButton::Create(wxWindow *parent, wxWindowID id,
         OnSetBitmap();
     }
 
-    gtk_signal_connect(GTK_OBJECT(m_widget), "clicked",
-                      GTK_SIGNAL_FUNC(gtk_togglebutton_clicked_callback),
-                      (gpointer *)this);
+    g_signal_connect (m_widget, "clicked",
+                      G_CALLBACK (gtk_togglebutton_clicked_callback),
+                      this);
 
     m_parent->DoAddChild(this);
 
@@ -247,9 +247,9 @@ bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
     // Create the gtk widget.
     m_widget = gtk_toggle_button_new_with_label( wxGTK_CONV( m_label ) );
 
-    gtk_signal_connect(GTK_OBJECT(m_widget), "clicked",
-                       GTK_SIGNAL_FUNC(gtk_togglebutton_clicked_callback),
-                       (gpointer *)this);
+    g_signal_connect (m_widget, "clicked",
+                      G_CALLBACK (gtk_togglebutton_clicked_callback),
+                      this);
 
     m_parent->DoAddChild(this);
 

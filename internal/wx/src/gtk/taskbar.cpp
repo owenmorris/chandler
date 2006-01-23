@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/05/29
-// RCS-ID:      $Id: taskbar.cpp,v 1.9 2006/01/14 18:32:37 MR Exp $
+// RCS-ID:      $Id: taskbar.cpp,v 1.10 2006/01/22 23:28:56 MR Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -98,10 +98,9 @@ bool wxTaskBarIconAreaBase::DoPopupMenu( wxMenu *menu, int x, int y )
 
     bool is_waiting = true;
 
-    gulong handler = gtk_signal_connect( GTK_OBJECT(menu->m_menu),
-                                         "hide",
-                                         GTK_SIGNAL_FUNC(gtk_pop_hide_callback),
-                                         (gpointer)&is_waiting );
+    gulong handler = g_signal_connect (menu->m_menu, "hide",
+                                       G_CALLBACK (gtk_pop_hide_callback),
+                                       &is_waiting);
 
     wxPoint pos;
     gpointer userdata;
@@ -134,7 +133,7 @@ bool wxTaskBarIconAreaBase::DoPopupMenu( wxMenu *menu, int x, int y )
         gtk_main_iteration();
     }
 
-    gtk_signal_disconnect(GTK_OBJECT(menu->m_menu), handler);
+    g_signal_handler_disconnect (menu->m_menu, handler);
 
     return true;
 }

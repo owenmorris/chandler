@@ -3,7 +3,7 @@
 // Purpose:     GTK toolbar
 // Author:      Robert Roebling
 // Modified:    13.12.99 by VZ to derive from wxToolBarBase
-// RCS-ID:      $Id: tbargtk.cpp,v 1.104 2006/01/22 20:29:16 MR Exp $
+// RCS-ID:      $Id: tbargtk.cpp,v 1.105 2006/01/22 23:28:56 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -456,14 +456,12 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
                     return false;
                 }
 
-                gtk_signal_connect( GTK_OBJECT(tool->m_item),
-                                    "enter_notify_event",
-                                    GTK_SIGNAL_FUNC(gtk_toolbar_tool_callback),
-                                    (gpointer)tool );
-                gtk_signal_connect( GTK_OBJECT(tool->m_item),
-                                    "leave_notify_event",
-                                    GTK_SIGNAL_FUNC(gtk_toolbar_tool_callback),
-                                    (gpointer)tool );
+                g_signal_connect (tool->m_item, "enter_notify_event",
+                                  G_CALLBACK (gtk_toolbar_tool_callback),
+                                  tool);
+                g_signal_connect (tool->m_item, "leave_notify_event",
+                                  G_CALLBACK (gtk_toolbar_tool_callback),
+                                  tool);
             }
             break;
 

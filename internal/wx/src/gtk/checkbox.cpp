@@ -2,7 +2,7 @@
 // Name:        checkbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checkbox.cpp,v 1.72 2006/01/22 20:29:13 MR Exp $
+// Id:          $Id: checkbox.cpp,v 1.73 2006/01/22 23:28:52 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -161,10 +161,8 @@ bool wxCheckBox::Create(wxWindow *parent,
     }
     SetLabel( label );
 
-    gtk_signal_connect( GTK_OBJECT(m_widgetCheckbox),
-                        "toggled",
-                        GTK_SIGNAL_FUNC(gtk_checkbox_toggled_callback),
-                        (gpointer *)this );
+    g_signal_connect (m_widgetCheckbox, "toggled",
+                      G_CALLBACK (gtk_checkbox_toggled_callback), this);
 
     m_parent->DoAddChild( this );
 

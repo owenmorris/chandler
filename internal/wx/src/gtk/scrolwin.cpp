@@ -5,7 +5,7 @@
 // Modified by: Ron Lee
 //              Vadim Zeitlin: removed 90% of duplicated common code
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolwin.cpp,v 1.48 2005/10/10 18:24:27 VZ Exp $
+// RCS-ID:      $Id: scrolwin.cpp,v 1.49 2006/01/22 23:28:55 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -117,14 +117,14 @@ void wxScrollHelperNative::DoAdjustScrollbar(GtkAdjustment *adj,
             else
             {
                 // We need to actually scroll window
-                gtk_signal_emit_by_name( GTK_OBJECT(adj), "value_changed" );
+                g_signal_emit_by_name (adj, "value_changed");
             }
         }
     }
 
     *lines = (int)(adj->upper + 0.5);
     *linesPerPage = (int)(adj->page_increment + 0.5);
-    gtk_signal_emit_by_name( GTK_OBJECT(adj), "changed" );
+    g_signal_emit_by_name (adj, "changed");
 }
 
 void wxScrollHelperNative::AdjustScrollbars()

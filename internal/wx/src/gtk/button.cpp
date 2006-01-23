@@ -2,7 +2,7 @@
 // Name:        button.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: button.cpp,v 1.84 2006/01/22 20:29:13 MR Exp $
+// Id:          $Id: button.cpp,v 1.85 2006/01/22 23:28:52 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -155,11 +155,13 @@ bool wxButton::Create(  wxWindow *parent, wxWindowID id, const wxString &label,
     if (style & wxNO_BORDER)
        gtk_button_set_relief( GTK_BUTTON(m_widget), GTK_RELIEF_NONE );
 
-    gtk_signal_connect_after( GTK_OBJECT(m_widget), "clicked",
-      GTK_SIGNAL_FUNC(gtk_button_clicked_callback), (gpointer*)this );
+    g_signal_connect_after (m_widget, "clicked",
+                            G_CALLBACK (gtk_button_clicked_callback),
+                            this);
 
-    gtk_signal_connect_after( GTK_OBJECT(m_widget), "style_set",
-      GTK_SIGNAL_FUNC(gtk_button_style_set_callback), (gpointer*) this );
+    g_signal_connect_after (m_widget, "style_set",
+                            G_CALLBACK (gtk_button_style_set_callback),
+                            this);
 
     m_parent->DoAddChild( this );
 

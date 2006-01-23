@@ -2,7 +2,7 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp,v 1.88 2006/01/22 20:29:13 MR Exp $
+// Id:          $Id: choice.cpp,v 1.89 2006/01/22 23:28:52 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -541,8 +541,9 @@ int wxChoice::GtkAddHelper(GtkWidget *menu, int pos, const wxString& item)
     // it has to change. Adapted from Matt Ownby.
     InvalidateBestSize();
 
-    gtk_signal_connect_after( GTK_OBJECT( menu_item ), "activate",
-      GTK_SIGNAL_FUNC(gtk_choice_clicked_callback), (gpointer*)this );
+    g_signal_connect_after (menu_item, "activate",
+                            G_CALLBACK (gtk_choice_clicked_callback),
+                            this);
 
     gtk_widget_show( menu_item );
 

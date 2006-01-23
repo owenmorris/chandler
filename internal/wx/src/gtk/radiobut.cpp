@@ -2,7 +2,7 @@
 // Name:        radiobut.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobut.cpp,v 1.60 2005/12/18 16:37:56 VZ Exp $
+// Id:          $Id: radiobut.cpp,v 1.61 2006/01/22 23:28:55 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -111,8 +111,8 @@ bool wxRadioButton::Create( wxWindow *parent,
 
     SetLabel(label);
 
-    gtk_signal_connect( GTK_OBJECT(m_widget), "clicked",
-      GTK_SIGNAL_FUNC(gtk_radiobutton_clicked_callback), (gpointer*)this );
+    g_signal_connect (m_widget, "clicked",
+                      G_CALLBACK (gtk_radiobutton_clicked_callback), this);
 
     m_parent->DoAddChild( this );
 

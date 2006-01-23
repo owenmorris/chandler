@@ -2,7 +2,7 @@
 // Name:        frame.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: frame.cpp,v 1.205 2005/09/23 12:53:39 MR Exp $
+// Id:          $Id: frame.cpp,v 1.206 2006/01/22 23:28:53 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -180,11 +180,12 @@ static void wxInsertChildInFrame( wxFrame* parent, wxWindow* child )
             wxToolBar *toolBar = (wxToolBar*) child;
             if (toolBar->GetWindowStyle() & wxTB_DOCKABLE)
             {
-                gtk_signal_connect( GTK_OBJECT(toolBar->m_widget), "child_attached",
-                    GTK_SIGNAL_FUNC(gtk_toolbar_attached_callback), (gpointer)parent );
-
-                gtk_signal_connect( GTK_OBJECT(toolBar->m_widget), "child_detached",
-                    GTK_SIGNAL_FUNC(gtk_toolbar_detached_callback), (gpointer)parent );
+                g_signal_connect (toolBar->m_widget, "child_attached",
+                                  G_CALLBACK (gtk_toolbar_attached_callback),
+                                  parent);
+                g_signal_connect (toolBar->m_widget, "child_detached",
+                                  G_CALLBACK (gtk_toolbar_detached_callback),
+                                  parent);
             }
         }
 #endif // wxUSE_TOOLBAR
@@ -558,11 +559,13 @@ void wxFrame::DetachMenuBar()
 
         if (m_frameMenuBar->GetWindowStyle() & wxMB_DOCKABLE)
         {
-            gtk_signal_disconnect_by_func( GTK_OBJECT(m_frameMenuBar->m_widget),
-                GTK_SIGNAL_FUNC(gtk_menu_attached_callback), (gpointer)this );
+            g_signal_handlers_disconnect_by_func (m_frameMenuBar->m_widget,
+                    (gpointer) gtk_menu_attached_callback,
+                    this);
 
-            gtk_signal_disconnect_by_func( GTK_OBJECT(m_frameMenuBar->m_widget),
-                GTK_SIGNAL_FUNC(gtk_menu_detached_callback), (gpointer)this );
+            g_signal_handlers_disconnect_by_func (m_frameMenuBar->m_widget,
+                    (gpointer) gtk_menu_detached_callback,
+                    this);
         }
 
         gtk_widget_ref( m_frameMenuBar->m_widget );
@@ -591,11 +594,12 @@ void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
 
         if (menuBar->GetWindowStyle() & wxMB_DOCKABLE)
         {
-            gtk_signal_connect( GTK_OBJECT(menuBar->m_widget), "child_attached",
-                GTK_SIGNAL_FUNC(gtk_menu_attached_callback), (gpointer)this );
-
-            gtk_signal_connect( GTK_OBJECT(menuBar->m_widget), "child_detached",
-                GTK_SIGNAL_FUNC(gtk_menu_detached_callback), (gpointer)this );
+            g_signal_connect (menuBar->m_widget, "child_attached",
+                              G_CALLBACK (gtk_menu_attached_callback),
+                              this);
+            g_signal_connect (menuBar->m_widget, "child_detached",
+                              G_CALLBACK (gtk_menu_detached_callback),
+                              this);
         }
 
         gtk_widget_show( m_frameMenuBar->m_widget );

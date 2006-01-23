@@ -4,7 +4,7 @@
 // Author:      Denis Pershin
 // Modified by:
 // Created:     07/05/98
-// RCS-ID:      $Id: treegtk.cpp,v 1.10 2006/01/07 06:30:23 vell Exp $
+// RCS-ID:      $Id: treegtk.cpp,v 1.11 2006/01/22 23:28:57 MR Exp $
 // Copyright:   (c) Denis Pershin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -534,16 +534,14 @@ printf("m_tree = %p\n", m_tree);
 
   gtk_widget_show(GTK_WIDGET(item));
 
-  gtk_signal_connect(GTK_OBJECT(item), "select",
-    GTK_SIGNAL_FUNC(gtk_treeitem_select_callback), (gpointer)this );
-
-  gtk_signal_connect(GTK_OBJECT(item), "deselect",
-    GTK_SIGNAL_FUNC(gtk_treeitem_select_callback), (gpointer)this );
-
-  gtk_signal_connect(GTK_OBJECT(item), "expand",
-    GTK_SIGNAL_FUNC(gtk_treeitem_expand_callback), (gpointer)this );
-  gtk_signal_connect(GTK_OBJECT(item), "collapse",
-    GTK_SIGNAL_FUNC(gtk_treeitem_collapse_callback), (gpointer)this );
+  g_signal_connect (item, "select",
+                    G_CALLBACK (gtk_treeitem_select_callback), this);
+  g_signal_connect (item, "deselect",
+                    G_CALLBACK (gtk_treeitem_select_callback), this);
+  g_signal_connect (item, "expand",
+                    G_CALLBACK (gtk_treeitem_expand_callback), this);
+  g_signal_connect (item, "collapse",
+                    G_CALLBACK (gtk_treeitem_collapse_callback), this);
 
   return item;
 }
@@ -856,16 +854,14 @@ long wxTreeCtrl::InsertItem(long parent, wxTreeItem& info, long insertAfter) {
 
   gtk_widget_show(GTK_WIDGET(item));
 
-  gtk_signal_connect(GTK_OBJECT(item), "select",
-    GTK_SIGNAL_FUNC(gtk_treeitem_select_callback), (gpointer)this );
-
-  gtk_signal_connect(GTK_OBJECT(item), "deselect",
-    GTK_SIGNAL_FUNC(gtk_treeitem_select_callback), (gpointer)this );
-
-  gtk_signal_connect(GTK_OBJECT(item), "expand",
-    GTK_SIGNAL_FUNC(gtk_treeitem_expand_callback), (gpointer)this );
-  gtk_signal_connect(GTK_OBJECT(item), "collapse",
-    GTK_SIGNAL_FUNC(gtk_treeitem_collapse_callback), (gpointer)this );
+  g_signal_connect (item, "select",
+                    G_CALLBACK (gtk_treeitem_select_callback), this);
+  g_signal_connect (item, "deselect",
+                    G_CALLBACK (gtk_treeitem_select_callback), this);
+  g_signal_connect (item, "expand",
+                    G_CALLBACK (gtk_treeitem_expand_callback), this);
+  g_signal_connect (item, "collapse",
+                    G_CALLBACK (gtk_treeitem_collapse_callback), this);
 
   return info.m_itemId;
 }
