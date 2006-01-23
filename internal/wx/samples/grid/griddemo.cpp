@@ -110,6 +110,7 @@ BEGIN_EVENT_TABLE( GridFrame, wxFrame )
     EVT_MENU( ID_SELECT_ROW, GridFrame::SelectRow)
     EVT_MENU( ID_SELECT_ALL, GridFrame::SelectAll)
     EVT_MENU( ID_SELECT_UNSELECT, GridFrame::OnAddToSelectToggle)
+    EVT_MENU( ID_SHOW_SELECTION, GridFrame::OnShowSelection)
 
     EVT_MENU( ID_SET_HIGHLIGHT_WIDTH, GridFrame::OnSetHighlightWidth)
     EVT_MENU( ID_SET_RO_HIGHLIGHT_WIDTH, GridFrame::OnSetROHighlightWidth)
@@ -192,6 +193,9 @@ GridFrame::GridFrame()
     selectMenu->Append( ID_SELECT_UNSELECT, _T("Add new cells to the selection"),
                         _T("When off, old selection is deselected before ")
                         _T("selecting the new cells"), wxITEM_CHECK );
+    selectMenu->Append( ID_SHOW_SELECTION,
+                        _T("&Show current selection\tCtrl-Alt-S"));
+    selectMenu->AppendSeparator();
     selectMenu->Append( ID_SELECT_ALL, _T("Select all"));
     selectMenu->Append( ID_SELECT_ROW, _T("Select row 2"));
     selectMenu->Append( ID_SELECT_COL, _T("Select col 2"));
