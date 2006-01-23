@@ -2,7 +2,7 @@
 // Name:        src/common/image.cpp
 // Purpose:     wxImage
 // Author:      Robert Roebling
-// RCS-ID:      $Id: image.cpp,v 1.209 2006/01/19 09:55:11 JS Exp $
+// RCS-ID:      $Id: image.cpp,v 1.210 2006/01/23 18:12:29 JS Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1594,7 +1594,7 @@ bool wxImage::LoadFile( wxInputStream& stream, long type, int index )
         return false;
     }
 
-    if (!handler->CanRead(stream))
+    if (stream.IsSeekable() && !handler->CanRead(stream))
     {
         wxLogError(_("Image file is not of type %d."), type);
         return false;
@@ -1618,7 +1618,7 @@ bool wxImage::LoadFile( wxInputStream& stream, const wxString& mimetype, int ind
         return false;
     }
 
-    if (!handler->CanRead(stream))
+    if (stream.IsSeekable() && !handler->CanRead(stream))
     {
         wxLogError(_("Image file is not of type %s."), (const wxChar*) mimetype);
         return false;

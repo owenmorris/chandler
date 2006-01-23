@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: mdi.cpp,v 1.131 2006/01/07 01:14:45 VZ Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.132 2006/01/23 16:38:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1165,7 +1165,9 @@ WXLRESULT wxMDIChildFrame::MSWDefWindowProc(WXUINT message, WXWPARAM wParam, WXL
 
 bool wxMDIChildFrame::MSWTranslateMessage(WXMSG* msg)
 {
-    return wxFrame::MSWTranslateMessage(msg);
+    // we must pass the parent frame to ::TranslateAccelerator(), otherwise it
+    // doesn't do its job correctly for MDI child menus
+    return MSWDoTranslateMessage((wxMDIChildFrame *)GetParent(), msg);
 }
 
 // ---------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-July-1997
-// RCS-ID:      $Id: wxPython_int.h,v 1.39 2006/01/17 05:42:27 RD Exp $
+// RCS-ID:      $Id: wxPython_int.h,v 1.40 2006/01/23 20:06:39 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1678,6 +1678,7 @@ extern wxPyApp *wxPythonApp;
                 if (wxPyConvertSwigPtr(ro, (void **)&ptr, wxT("wxSize")))       \
                     rval = *ptr;                                                \
                 else if (PySequence_Check(ro) && PyObject_Length(ro) == 2) {    \
+                    PyErr_Clear();                                              \
                     PyObject* o1 = PySequence_GetItem(ro, 0);                   \
                     PyObject* o2 = PySequence_GetItem(ro, 1);                   \
                     if (PyNumber_Check(o1) && PyNumber_Check(o2))               \

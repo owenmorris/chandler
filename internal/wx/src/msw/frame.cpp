@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.cpp,v 1.195 2006/01/23 15:43:26 VZ Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.196 2006/01/23 16:38:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -726,7 +726,7 @@ WXHICON wxFrame::GetDefaultIcon() const
 // preprocessing
 // ---------------------------------------------------------------------------
 
-bool wxFrame::MSWTranslateMessage(WXMSG* pMsg)
+bool wxFrame::MSWDoTranslateMessage(wxFrame *frame, WXMSG *pMsg)
 {
     if ( wxWindow::MSWTranslateMessage(pMsg) )
         return true;
@@ -737,7 +737,7 @@ bool wxFrame::MSWTranslateMessage(WXMSG* pMsg)
     if ( menuBar )
     {
         const wxAcceleratorTable& acceleratorTable = menuBar->GetAccelTable();
-        return acceleratorTable.Translate(this, pMsg);
+        return acceleratorTable.Translate(frame, pMsg);
     }
 #endif // wxUSE_MENUS && wxUSE_ACCEL
 
