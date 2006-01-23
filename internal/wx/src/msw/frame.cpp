@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.cpp,v 1.194 2005/12/19 10:41:03 ABX Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.195 2006/01/23 15:43:26 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -734,14 +734,14 @@ bool wxFrame::MSWTranslateMessage(WXMSG* pMsg)
 #if wxUSE_MENUS && wxUSE_ACCEL && !defined(__WXUNIVERSAL__)
     // try the menu bar accels
     wxMenuBar *menuBar = GetMenuBar();
-    if ( !menuBar )
-        return false;
-
-    const wxAcceleratorTable& acceleratorTable = menuBar->GetAccelTable();
-    return acceleratorTable.Translate(this, pMsg);
-#else
-    return false;
+    if ( menuBar )
+    {
+        const wxAcceleratorTable& acceleratorTable = menuBar->GetAccelTable();
+        return acceleratorTable.Translate(this, pMsg);
+    }
 #endif // wxUSE_MENUS && wxUSE_ACCEL
+
+    return false;
 }
 
 // ---------------------------------------------------------------------------
