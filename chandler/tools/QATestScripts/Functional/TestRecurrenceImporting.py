@@ -1,7 +1,7 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
-import os, wx, sys
+import os, sys
 import osaf.pim as pim
 
 App_ns = app_ns()
@@ -29,6 +29,9 @@ try:
         logger.ReportPass("Importing calendar")
     
     def VerifyEventCreation(title):
+   	global logger
+	global App_ns
+	global pim
         testEvent = App_ns.item_named(pim.CalendarEvent, title)
         if testEvent is not None:
             logger.ReportPass("Testing event creation: '%s'" % title)
