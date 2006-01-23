@@ -615,6 +615,10 @@ def people_getPublicPhotos(user_id, per_page='', page=''):
     method = 'flickr.people.getPublicPhotos'
     data = _doget(method, user_id=user_id, per_page=per_page, page=page)
     photos = []
+
+    if not hasattr (data.rsp.photos, 'photo'):
+        raise FlickrError, u"No photos with that user name"
+    
     if isinstance(data.rsp.photos.photo, list):
         for photo in data.rsp.photos.photo:
             photos.append(_parse_photo(photo))

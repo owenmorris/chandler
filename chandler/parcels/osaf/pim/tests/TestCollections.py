@@ -131,7 +131,6 @@ class CollectionTests(CollectionTestCase):
         self.b1.subscribers.add(self.nh1)
         self.b2.subscribers.add(self.nh2)
 
-        print [ i for i in u ]
         u.addSource(self.b1)
         deliverNotifications(self.view)
         self.failUnless(self.nh.checkLog("add",u,self.i.itsUUID))

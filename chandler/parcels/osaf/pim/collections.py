@@ -222,30 +222,26 @@ class AbstractCollection(items.ContentItem):
         """
         pass
 
-    def __contains__(self, item):
-        if hasattr(self, 'rep'):
-            return self.rep.__contains__(item)
-        else:
-            return False
+    def __contains__(self, *args, **kwds):
+        return self.rep.__contains__(*args, **kwds)
 
+    def addIndex (self, *args, **kwds):
+        return self.rep.addIndex(*args, **kwds)
 
-    def __iter__(self):
+    def getByIndex (self, *args, **kwds):
+        return self.rep.getByIndex(*args, **kwds)
 
-        if hasattr(self, 'rep'):
-            return self.rep.__iter__()
-        return iter(())
+    def findInIndex (self, *args, **kwds):
+        return self.rep.findInIndex(*args, **kwds)
 
-    def iterkeys(self):
+    def __iter__(self, *args, **kwds):
+        return self.rep.__iter__(*args, **kwds)
 
-        if hasattr(self, 'rep'):
-            return self.rep.iterkeys()
-        return iter(())
+    def iterkeys(self, *args, **kwds):
+       return self.rep.iterkeys(*args, **kwds)
 
-    def itervalues(self):
-
-        if hasattr(self, 'rep'):
-            return self.rep.itervalues()
-        return iter(())
+    def itervalues(self, *args, **kwds):
+        return self.rep.itervalues(*args, **kwds)
 
     def __nonzero__(self):
         return True
@@ -782,8 +778,7 @@ class IndexedSelectionCollection (AbstractCollection):
             # it doesn't exist getIndex will create it.
             self.getIndex()
             return len(self.rep)
-        else:
-            return 0
+        return 0
 
     def moveItemToLocation (self, item, location):
         """
@@ -864,7 +859,6 @@ class IndexedSelectionCollection (AbstractCollection):
         index = self.index (item)
         self.rep.setRanges(self.indexName, [(index, index)])
 
-
     def getFirstSelectedItem (self):
         """
         Returns the first selected item in the index or None if there
@@ -873,8 +867,7 @@ class IndexedSelectionCollection (AbstractCollection):
         index = self.getIndex()._ranges.firstSelectedIndex()
         if index == None:
             return None
-        else:
-            return self[index]
+        return self[index]
 
     def isItemSelected(self, item):
         """
