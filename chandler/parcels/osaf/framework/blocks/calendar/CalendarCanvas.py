@@ -56,7 +56,7 @@ def nth(iterable, n):
 # 
 # -------------------------------------------------------------
 # | wxCalendarControl - block: CalendarControl                                       
-# | [color selector]   <- June 2005 ->      [timezone] 
+# | <--> June 2005                  [timezone] 
 # |                                                           
 # | also has the row of week/7-days buttons as an inset widget:
 # |-------------------------------------------------------
