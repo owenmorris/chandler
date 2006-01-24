@@ -12,8 +12,12 @@ import os, os.path, sys, unittest
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase
+from repository.util.URL import URL
 from osaf import pim
 from feeds import FeedChannel
+import logging
+
+logger = logging.getLogger(__name__)
 
 # get feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
@@ -29,7 +33,7 @@ else:
     _rssfiles = []
 
 # make them file URL's
-_defaultBlogs = [ "%s%s%s" %("", RSS_HOME, f) for f in _rssfiles ]
+_defaultBlogs = [ "file://%s%s%s" %("", RSS_HOME, f) for f in _rssfiles ]
 
 BASE_PATH = Path('//parcels/feeds')
 
@@ -45,7 +49,7 @@ class TestPerfWithRSS(RepositoryTestCase):
         self.loadParcel("osaf.pim")
 
         view.commit()
-        self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
+        logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
 
     def _stressTest(self, commitInsideLoop=False):
         """ grab a bunch of RSS data from disk and insert into the repository """
@@ -56,20 +60,20 @@ class TestPerfWithRSS(RepositoryTestCase):
         feeds = self.__getFeeds()
 
         if feeds == []:
-            self.rep.logger.info("got no feeds")
+            logger.info("got no feeds")
             print "If you haven't installed the feed data, you can retreive it from"
             print "http://aloha.osafoundation.org/~twl"
             print "select a tarball, download it, and unpack it in repository/tests/data"
             print "The data will be in a new directory called rssfeeds"
             print "You can now run the tests"
         else:
-            self.rep.logger.info('committing %d feeds', len(feeds))
-            self.rep.commit()
-            self.rep.logger.info('committed %d feeds', len(feeds))
+            logger.info('committing %d feeds', len(feeds))
+            view.commit()
+            logger.info('committed %d feeds', len(feeds))
 
         for feed in feeds:
-            feed = self.rep.findUUID(feed)
-            self.rep.logger.debug(feed.url)
+            feed = view.findUUID(feed)
+            logger.debug(feed.url)
             etag = feed.getAttributeValue('etag', default=None)
             lastModified = feed.getAttributeValue('lastModified', default=None)
             if lastModified:
@@ -77,16 +81,14 @@ class TestPerfWithRSS(RepositoryTestCase):
             else:
                 modified = None
             try:
-                data = feedparser.parse(feed.url, etag, modified)
-                itemCount += len(data['items'])
+                data = feedparser.parse(str(feed.url)[6:], etag, modified)
                 feedCount += 1
-                feed.Update(data)
+                itemCount += feed.fillAttributes(data)
                 if commitInsideLoop:
-                    self.rep.logger.info('%0.5d committing %s, %0.6d',
-                                         feedCount, feed.url, itemCount)
+                    logger.info('%0.5d committing %s, %0.6d', feedCount, feed.url, itemCount)
                     view.commit()
             except Exception:
-                self.rep.logger.exception('While processing %s', feed.url)
+                logger.exception('While processing %s', feed.url)
                 view.cancel()
 
         try:
@@ -95,10 +97,10 @@ class TestPerfWithRSS(RepositoryTestCase):
 #            profiler.close()
             view.commit()
         except Exception:
-            self.rep.logger.exception("Final commit:")
+            logger.exception("Final commit:")
             self.fail()
 
-        self.rep.logger.info('Processed %d items', itemCount)
+        logger.info('Processed %d items', itemCount)
 
         self.assert_(True)
         
@@ -115,7 +117,7 @@ class TestPerfWithRSS(RepositoryTestCase):
             item = view.find(Path(BASE_PATH, urlhash))
             if not item:
                 item = FeedChannel(itsView = view).setup()
-                item.url = url
+                item.url = URL(url)
             feeds.append(item.itsUUID)
 
         return feeds
@@ -147,7 +149,7 @@ class TestPerfWithRSS(RepositoryTestCase):
         if os.path.exists(self.rep.dbHome):
             self.rep.delete()
         else:
-            self.rep.logger.warn("no repository at %s", self.rep.dbHome)
+            logger.warn("no repository at %s", self.rep.dbHome)
         
 
 if __name__ == "__main__":
