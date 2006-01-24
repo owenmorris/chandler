@@ -1356,35 +1356,9 @@ void wxToolBar::OnMouseEvent(wxMouseEvent& event)
 void wxToolBar::OnEraseBackground(wxEraseEvent& event)
 {
     wxColour bgCol = GetBackgroundColour();
-    if (!bgCol.Ok() || !UseBgCol())
+    if (!bgCol.Ok())
     {
-#if !defined(__WXWINCE__) && wxUSE_UXTHEME
-        // SF patch 1358919
-
-        // we should draw parent background if possible on themed system
-        // for toolbar using DrawThemeParentBackground, which will make toolbar
-        // transparent for example on notebooks
-
-        wxUxThemeEngine *themeEngine = wxUxThemeEngine::GetIfActive();
-        if ( !themeEngine )
-        {
-            event.Skip();
-            return;
-        }
-
-        RECT rect;
-        HDC hdc = GetHdcOf((*event.GetDC()));
-
-        ::GetClientRect(GetHwnd(), &rect);
-        HRESULT hr =
-            themeEngine->DrawThemeParentBackground(GetHwnd(), hdc, &rect);
-        if ( FAILED(hr) )
-        {
-            wxLogApiError(_T("DrawThemeBackground(BP_TOOLBAR)"), hr);
-        }
-#else
         event.Skip();
-#endif
         return;
     }
 
