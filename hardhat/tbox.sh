@@ -83,10 +83,13 @@ echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $BUILD
 echo Started `date`                                              | tee -a $BUILDLOG
 echo Setting up script environment                               | tee -a $BUILDLOG
 
+PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
+
 if [ "$OSTYPE" = "cygwin" ]; then
     RUN_CHANDLER=RunChandler.bat
     RUN_PYTHON=RunPython.bat
     TBOX_UPDATE=`cygpath -w $HH_DIR/tbox_update.py`
+    PP_DIR=`cygpath -w $PP_DIR`
 else
     RUN_CHANDLER=RunChandler
     RUN_PYTHON=RunPython
@@ -263,7 +266,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
             echo Running $TESTNAME | tee -a $BUILDLOG
     
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptFile="$TESTNAME" &> $T_DIR/test.log
     
               # functional tests output a #TINDERBOX# Status = PASSED that we can scan for
             RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
