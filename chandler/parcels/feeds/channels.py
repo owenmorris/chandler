@@ -253,7 +253,7 @@ class FeedChannel(pim.ListCollection):
 
     def parse(self, rawData):
         data = feedparser.parse(rawData)
-        return self.fillAttrbutes(rawData)
+        return self.fillAttributes(data)
 
     def fillAttributes(self, data):
         # Map some external attribute names to internal attribute names:
