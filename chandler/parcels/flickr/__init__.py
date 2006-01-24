@@ -155,6 +155,7 @@ class PhotoCollection(pim.ListCollection):
         Fills the collection with photos from the flickr website.
         """
         coll = pim.ListCollection(itsView = repView).setup()
+        flickrPhotos = None
         if self.userName:
             flickrUserName = flickr.people_findByUsername(self.userName.encode('utf8'))
             flickrPhotos = flickr.people_getPublicPhotos(flickrUserName.id,10)
@@ -172,22 +173,23 @@ class PhotoCollection(pim.ListCollection):
         userdata = self.itsView.findPath ("//userdata")
         flickrPhotosCollection = schema.ns('flickr', repView).flickrPhotosCollection
 
-        for flickrPhoto in flickrPhotos:
-            """
-            If we've already downloaded a photo with this id use it instead.
-            """
-            photoUUID = flickrPhotosCollection.findInIndex (
-                'flickrIDIndex', # name of Index
-                'exact',         # require an exact match
-                lambda UUID: cmp(flickrPhoto.id, repView[UUID].flickrID)) # compare function
+        if flickrPhotos:
+            for flickrPhoto in flickrPhotos:
+                """
+                If we've already downloaded a photo with this id use it instead.
+                """
+                photoUUID = flickrPhotosCollection.findInIndex (
+                    'flickrIDIndex', # name of Index
+                    'exact',         # require an exact match
+                    lambda UUID: cmp(flickrPhoto.id, repView[UUID].flickrID)) # compare function
 
-            if photoUUID is None:
-                photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView, itsParent=userdata)
-            else:
-                photoItem = repView [photoUUID]
+                if photoUUID is None:
+                    photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView, itsParent=userdata)
+                else:
+                    photoItem = repView [photoUUID]
 
-            self.add (photoItem)
-        repView.commit()
+                self.add (photoItem)
+            repView.commit()
 
 class UpdateTask:
     """
