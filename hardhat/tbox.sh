@@ -275,7 +275,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
             echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
             cat $T_DIR/test.log      >> $T_DIR/tests.log
     
-            if [ ! "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+            if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
                 FUNCTEST_RESULT="failed"
             fi
         fi
