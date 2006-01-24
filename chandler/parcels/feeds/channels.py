@@ -253,7 +253,9 @@ class FeedChannel(pim.ListCollection):
 
     def parse(self, rawData):
         data = feedparser.parse(rawData)
+        return self.fillAttrbutes(rawData)
 
+    def fillAttributes(self, data):
         # Map some external attribute names to internal attribute names:
         attrs = {'title':'displayName', 'description':'body'}
         SetAttributes(self, data['channel'], attrs)
@@ -412,7 +414,7 @@ class FeedItem(pim.ContentItem):
             self.content = self.getAttributeAspect('content', 'type').makeValue(content, indexed=True)
 
         if 'date' in data:
-            self.date = data.date
+            self.date = date_parse(str(data.date))
 
     def isSimilar(self, feedItem):
         """
