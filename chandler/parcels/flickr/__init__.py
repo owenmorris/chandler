@@ -173,7 +173,7 @@ class PhotoCollection(pim.ListCollection):
         userdata = self.itsView.findPath ("//userdata")
         flickrPhotosCollection = schema.ns('flickr', repView).flickrPhotosCollection
 
-        if flickrPhotos:
+        if flickrPhotos is not None:
             for flickrPhoto in flickrPhotos:
                 """
                 If we've already downloaded a photo with this id use it instead.
