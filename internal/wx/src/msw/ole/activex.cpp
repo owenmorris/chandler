@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.10 2006/01/17 04:19:30 RD Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.11 2006/01/25 18:14:08 JS Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -376,7 +376,17 @@ public:
     //*************************IOleInPlaceSiteEx***********************
     HRESULT STDMETHODCALLTYPE OnInPlaceActivateEx(BOOL * pfNoRedraw, DWORD)
     {
+#ifdef __WXWINCE__
+        IRunnableObject* runnable = NULL;
+        HRESULT hr = QueryInterface(
+            IID_IRunnableObject, (void**)(& runnable));
+        if (SUCCEEDED(hr))
+        {
+            runnable->LockRunning(TRUE, FALSE);
+        }
+#else
         OleLockRunning(m_window->m_ActiveX, TRUE, FALSE);
+#endif
         if (pfNoRedraw)
             (*pfNoRedraw) = FALSE;
         return S_OK;
@@ -384,7 +394,17 @@ public:
 
     HRESULT STDMETHODCALLTYPE OnInPlaceDeactivateEx(BOOL)
     {
+#ifdef __WXWINCE__
+        IRunnableObject* runnable = NULL;
+        HRESULT hr = QueryInterface(
+            IID_IRunnableObject, (void**)(& runnable));
+        if (SUCCEEDED(hr))
+        {
+            runnable->LockRunning(FALSE, FALSE);
+        }
+#else
         OleLockRunning(m_window->m_ActiveX, FALSE, FALSE);
+#endif
         return S_OK;
     }
     STDMETHOD(RequestUIActivate)(){ return S_OK;}

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.98
-// RCS-ID:      $Id: oleutils.cpp,v 1.25 2005/09/23 12:55:24 MR Exp $
+// RCS-ID:      $Id: oleutils.cpp,v 1.26 2006/01/25 18:14:37 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,6 +65,83 @@ bool IsIidFromList(REFIID riid, const IID *aIids[], size_t nCount)
   }
 
   return false;
+}
+
+BSTR wxConvertStringToOle(const wxString& str)
+{
+/*
+    unsigned int len = strlen((const char*) str);
+    unsigned short* s = new unsigned short[len*2+2];
+    unsigned int i;
+    memset(s, 0, len*2+2);
+    for (i=0; i < len; i++)
+        s[i*2] = str[i];
+*/
+    wxBasicString bstr(str.mb_str());
+    return bstr.Get();
+}
+
+wxString wxConvertStringFromOle(BSTR bStr)
+{
+#if wxUSE_UNICODE
+    wxString str(bStr);
+#else
+    int len = SysStringLen(bStr) + 1;
+    char    *buf = new char[len];
+    (void)wcstombs( buf, bStr, len);
+    wxString str(buf);
+    delete[] buf;
+#endif
+    return str;
+}
+
+// ----------------------------------------------------------------------------
+// wxBasicString
+// ----------------------------------------------------------------------------
+
+// ctor takes an ANSI string and transforms it to Unicode
+wxBasicString::wxBasicString(const char *sz)
+{
+    Init(sz);
+}
+
+// ctor takes an ANSI or Unicode string and transforms it to Unicode
+wxBasicString::wxBasicString(const wxString& str)
+{
+#if wxUSE_UNICODE
+    m_wzBuf = new OLECHAR[str.Length() + 1];
+    memcpy(m_wzBuf, str.c_str(), str.Length()*2);
+    m_wzBuf[str.Length()] = L'\0';
+#else
+    Init(str.c_str());
+#endif
+}
+
+// Takes an ANSI string and transforms it to Unicode
+void wxBasicString::Init(const char *sz)
+{
+    // get the size of required buffer
+    UINT lenAnsi = strlen(sz);
+#ifdef __MWERKS__
+    UINT lenWide = lenAnsi * 2 ;
+#else
+    UINT lenWide = mbstowcs(NULL, sz, lenAnsi);
+#endif
+
+    if ( lenWide > 0 ) {
+        m_wzBuf = new OLECHAR[lenWide + 1];
+        mbstowcs(m_wzBuf, sz, lenAnsi);
+        m_wzBuf[lenWide] = L'\0';
+    }
+    else {
+        m_wzBuf = NULL;
+    }
+}
+
+// dtor frees memory
+wxBasicString::~wxBasicString()
+{
+  delete [] m_wzBuf;
 }
 
 #if wxUSE_DATAOBJ

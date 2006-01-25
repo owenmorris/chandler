@@ -8,7 +8,7 @@
  *              Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main Unix and OS/2 file
  * Licence:     The wxWindows licence
- * CVSID:       $Id: gsocket.cpp,v 1.61 2006/01/25 14:31:03 SN Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.62 2006/01/25 17:58:50 SN Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -299,7 +299,7 @@ struct hostent * wxGethostbyaddr_r(const char *addr_buf, int buf_size,
   return he;
 }
 
-#if defined(HAVE_GETHOSTBYNAME)
+#if defined(HAVE_GETSERVBYNAME)
 static struct servent * deepCopyServent(struct servent *s,
 					const struct servent *se,
 					char *buffer, int size)
