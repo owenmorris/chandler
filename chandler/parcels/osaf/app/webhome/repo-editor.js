@@ -27,6 +27,7 @@ function resetStatusArea(err) {
       statusArea.setAttribute("class", "idle");
     } else{
       statusArea.setAttribute("class", "error");
+      print(err);
     }
 }
 
@@ -36,21 +37,25 @@ function resetStatusArea(err) {
  * some of the statusArea work
  */
 
-function setAttribute(itemPath, attrName, value) {
+function setAttribute(itemPath, attrName, value, resultcallback) {
   var callback = function(result, err) {
     resetStatusArea(err);
+    if (errorcallback)
+      resultcallback(result, err);
   }
-  statusArea.setAttribute("class", "busy")
-  remoteChandler.setAttribute(itemPath, attrName, value, callback)
+  statusArea.setAttribute("class", "busy");
+  remoteChandler.setAttribute(itemPath, attrName, value, callback);
 }
 
-function getAttribute(itemPath, attrName, value) {
+function getAttribute(itemPath, attrName, value, resultcallback) {
   var callback = function(result, err) {
     resetStatusArea(err);
+    if (resultcallback)
+      resultcallback(result, err);
   }
 
-  statusArea.setAttribute("class", "busy")
-  remoteChandler.getAttribute(itemPath, attrName, value, callback)
+  statusArea.setAttribute("class", "busy");
+  remoteChandler.getAttribute(itemPath, attrName, value, callback);
 }
 
 function delAttribute(itemPath, attrName) {
@@ -69,8 +74,129 @@ function commit() {
   remoteChandler.commit(callback)
 }
 
+function print(txt) {
+  statusArea.appendChild(document.createElement("br"));
+  statusArea.appendChild(document.createTextNode(txt));
+}
+
+var editInProgress = false;
+
+function makeEditor(txt, originalNode, values) {
+  editor = document.createElement("INPUT");
+  editor.setAttribute("type", "text");
+
+  editor.value = txt;
+  
+  for (var key in values) {
+    editor["chandler" + key] = values[key];
+  }
+  editor.originalNode = originalNode;
+
+  editor.style.width = originalNode.offsetWidth + "px";
+  editor.style.height = originalNode.offsetHeight + "px";
+  return editor;
+}
+
+function finishEdit(event) {
+
+  /* first reset the node to the new value */
+  /* if (event.target.originalNode.nodeType ==  */
+  editor = event.target;
+  newValue = editor.value;
+  
+  textNode = document.createTextNode(newValue);
+  
+  /* swap the editor back in */
+  originalNode = replaceNode(editor);
+
+  /* swap the value into the original object */
+  originalNode.replaceChild(textNode, originalNode.firstChild);
+
+  /* now send an XMLRPC request to change the data in the database */
+  setAttribute(itemPath, editor.chandlerattr, editor.value);
+
+  /* finally, allow edits elswhere */
+  editInProgress = false;
+}
+
+function replaceNode(oldNode) {
+
+  oldNode.parentNode.replaceChild(oldNode.originalNode, oldNode);
+  return oldNode.originalNode
+}
+
+function isContainingNode(node) {
+  nodeName = node.nodeName.toLowerCase();
+  return (nodeName == "td" ||
+	  nodeName == "li");
+}
+
+function extractValues(str) {
+  /* extracts values from a string in the form "a-b c-d" to an array where
+     v.a = 'b', v.c = 'd' */
+
+  var result = Object();
+  var valuePairs = str.split(" ");
+
+  for (var i = 0; i<valuePairs.length; i++) {
+    nv = valuePairs[i].split("-", 2);
+    if (nv.length == 2)
+      result[nv[0]] = nv[1];
+  }
+  return result;
+}
+
+function onValueTableClick(event) {
+
+  if (editInProgress==true) 
+    return;
+
+  node = event.target;
+
+  editNode = node.firstChild;
+  /* walk up the tree till we hit the containing div */
+  while (node.className.indexOf("editable") == -1 &&
+	 !isContainingNode(node)) {
+
+    /* if we're in a link, let it just be handled */
+    if (node.nodeName.toLowerCase() == "a") {
+      return;
+    }
+    node = node.parentNode;
+  }
+  
+  if (!node || isContainingNode(node)) return;
+
+  editNode = node;
+
+  /* now we have our "editNode", we need to find the type */
+  while (node.className.indexOf("type-") == -1 &&
+	 !isContainingNode(node)) {
+    node = node.parentNode;
+  }
+  if (!node) return;
+
+  if (node.className.indexOf("type-") == -1) {
+    return;
+  }
+
+  typeNode = node;
+  
+
+  editInProgress = true;
+  
+  valuePairs = extractValues(node.className);
+
+  editor = makeEditor(editNode.innerHTML, editNode, valuePairs);
+  
+  /* the editable point is a <span class="editable"> */
+
+  editNode.parentNode.replaceChild(editor, editNode);
+  editor.focus();
+
+  editor.addEventListener("blur", finishEdit, false);
 
 
-function TestMe(path) {
-  setAttribute(path, "displayName", "set via XML-RPC")
+  /* don't let other event handlers deal with this */
+  event.preventBubble()
 }

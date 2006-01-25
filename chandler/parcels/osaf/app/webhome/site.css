@@ -188,3 +188,6 @@ td.rssitem
   background-color: green;
 }
 
+.editable { 
+  padding-left: 2px;
+}
