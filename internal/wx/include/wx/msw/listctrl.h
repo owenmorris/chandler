@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.58 2005/09/25 20:23:28 VZ Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.59 2006/01/25 23:28:57 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -407,8 +407,13 @@ protected:
     // return the text for the given column of the given item
     virtual wxString OnGetItemText(long item, long column) const;
 
-    // return the icon for the given item
+    // return the icon for the given item. In report view, OnGetItemImage will
+    // only be called for the first column. See OnGetItemColumnImage for 
+    // details.
     virtual int OnGetItemImage(long item) const;
+
+    // return the icon for the given item and column.
+    virtual int OnGetItemColumnImage(long item, long column) const;
 
     // return the attribute for the item (may return NULL if none)
     virtual wxListItemAttr *OnGetItemAttr(long item) const;
