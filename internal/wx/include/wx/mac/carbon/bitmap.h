@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.h,v 1.10 2005/09/23 12:49:29 MR Exp $
+// RCS-ID:      $Id: bitmap.h,v 1.11 2006/01/25 12:52:18 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ public:
     // Construct a mask from a mono bitmap (black meaning show pixels, white meaning transparent)
     wxMask(const wxBitmap& bitmap);
     
-    // implementation helper only : construct a mask from a 8 bit memory buffer
+    // implementation helper only : construct a mask from a 32 bit memory buffer
     wxMask(const wxMemoryBuffer& buf, int width , int height , int bytesPerRow ) ;
 
     ~wxMask();
