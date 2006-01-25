@@ -33,7 +33,7 @@ def getTime(date):
         hour = hour - 12
         minute = minute + " PM"
     else:
-        minute = minute + "AM"
+        minute = minute + " AM"
     return "%s:%s" %(hour, minute)
 
 def GetCollectionRow(cellName):
@@ -720,6 +720,18 @@ class UITestItem(object):
             self.logger.ReportFailure("(On %s Checking)  || detail view value = %s ; expected value = %s" %(description, menuValue, value))
         else:
             self.logger.ReportPass("(On %s Checking)" %description)
+            
+    def formatDate(self, dateStr):
+            """if year has 4 digits removes first 2
+                 also removes leading zeros from month/ day
+                 to resolve bug 5031"""
+            month, day, year = dateStr.split('/')
+            month = str(int(month)) # get rid of leading zeros
+            day = str(int(day))
+            if len(year) == 4:
+                year = year[2:]
+            return  '%s/%s/%s' % (month, day, year)
+                    
 
     def CheckButton(self, buttonName, description, value):
         """
@@ -751,11 +763,11 @@ class UITestItem(object):
             if field == "displayName": # display name checking
                 self.CheckEditableBlock("HeadlineBlock", "display name", dict[field])
             elif field == "startDate": # start date checking
-                self.CheckEditableBlock("EditCalendarStartDate", "start date", dict[field])
+                self.CheckEditableBlock("EditCalendarStartDate", "start date", self.formatDate(dict[field]))
             elif field == "startTime": # start time checking
                 self.CheckEditableBlock("EditCalendarStartTime", "start time", dict[field])
             elif field == "endDate": # end date checking
-                self.CheckEditableBlock("EditCalendarEndDate", "end date", dict[field])
+                self.CheckEditableBlock("EditCalendarEndDate", "end date", self.formatDate(dict[field]))
             elif field == "endTime": # end time checking
                 self.CheckEditableBlock("EditCalendarEndTime", "end time", dict[field])
             elif field == "location": # location checking
@@ -777,7 +789,7 @@ class UITestItem(object):
             elif field == "recurrence": # recurrence checking
                 self.CheckMenuBlock("EditRecurrence", "recurrence", dict[field])
             elif field == "recurrenceEnd": # recurrence end date checking
-                self.CheckEditableBlock("EditRecurrenceEnd", "recurrence end", dict[field])
+                self.CheckEditableBlock("EditRecurrenceEnd", "recurrence end", self.formatDate(dict[field]))
             elif field == "alarm": # status checking
                 self.CheckMenuBlock("EditReminder", "alarm", dict[field])
             elif field == "allDay": # status checking
@@ -814,9 +826,10 @@ class UITestItem(object):
                     self.logger.ReportPass("(On display name Checking)")
             elif field == "startDate": # start date checking
                 startTime = self.item.startTime
-                s_date = "%s/%s/%s" %(startTime.month, startTime.day, startTime.year) 
-                if not dict[field] == s_date :
-                    self.logger.ReportFailure("(On start date Checking) || object start date = %s ; expected start date = %s" %(s_date, dict[field]))
+                s_date = self.formatDate("%s/%s/%s" %(startTime.month, startTime.day, startTime.year) )
+                dictDate = self.formatDate(dict[field])
+                if not dictDate == s_date :
+                    self.logger.ReportFailure("(On start date Checking) || object start date = %s ; expected start date = %s" %(s_date, dictDate))
                 else:
                     self.logger.ReportPass("(On start date Checking)")
             elif field == "startTime": # start time checking
@@ -828,9 +841,10 @@ class UITestItem(object):
                     self.logger.ReportPass("(On start time Checking)")
             elif field == "endDate": # end date checking
                 endTime = self.item.endTime
-                e_date = "%s/%s/%s" %(endTime.month, endTime.day, endTime.year) 
-                if not dict[field] == e_date :
-                    self.logger.ReportFailure("(On end date Checking) || object end date = %s ; expected end date = %s" %(e_date, dict[field]))
+                e_date = self.formatDate("%s/%s/%s" %(endTime.month, endTime.day, endTime.year))
+                dictDate = self.formatDate(dict[field])
+                if not dictDate == e_date :
+                    self.logger.ReportFailure("(On end date Checking) || object end date = %s ; expected end date = %s" %(e_date, dictDate))
                 else:
                     self.logger.ReportPass("(On end date Checking)")
             elif field == "endTime": # end time checking
