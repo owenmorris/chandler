@@ -354,7 +354,11 @@ class DBRepository(OnDemandRepository):
                 indexReader.close()
                 indexSearcher.close()
 
+                store.commitTransaction(None, txnStatus)
+
+                txnStart = store.startTransaction(None, True)
                 store.compact()
+                store.commitTransaction(None, txnStatus)
 
             except DBLockDeadlockError:
                 self.logger.info('retrying compact aborted by deadlock')
@@ -364,7 +368,6 @@ class DBRepository(OnDemandRepository):
                 store.abortTransaction(None, txnStatus)
                 raise
             else:
-                store.commitTransaction(None, txnStatus)
                 break
 
         return (itemCount, valueCount, refCount, lobCount, blockCount,

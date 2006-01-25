@@ -496,10 +496,12 @@ class IndexContainer(FileContainer):
 
         count = 0
         query = TermQuery(Term("owner", uItem.str64()))
+        hits = indexSearcher.search(query)
 
         if keeps:
             prevs = {}
-            for i, doc in indexSearcher.search(query):
+            for i, doc in hits:
+                id = hits.id(i)
                 uAttr = UUID(doc['attribute'])
 
                 if uAttr in keeps:
@@ -507,19 +509,19 @@ class IndexContainer(FileContainer):
                     prev = prevs.get(uAttr)
 
                     if prev is None:
-                        prevs[uAttr] = (i, ver)
+                        prevs[uAttr] = (id, ver)
                     elif ver > prev[1]:
                         indexReader.deleteDocument(prev[0])
                         count += 1
-                        prevs[uAttr] = (i, ver)
+                        prevs[uAttr] = (id, ver)
 
                 else:
-                    indexReader.deleteDocument(i)
+                    indexReader.deleteDocument(id)
                     count += 1
 
         else:
-            for i, doc in indexSearcher.search(query):
-                indexReader.deleteDocument(i)
+            for i, doc in hits:
+                indexReader.deleteDocument(hits.id(i))
                 count += 1
 
         return count

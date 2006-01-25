@@ -1042,7 +1042,6 @@ class DBItemPurger(ItemPurger):
 
         if flags & DBItemWriter.VALUE:
             indexCount, = unpack('>H', data[-2:])
-
             indexStart = -indexCount * 16 - 4
             for i in xrange(indexCount):
                 yield UUID(data[indexStart:indexStart+16])
@@ -1051,7 +1050,6 @@ class DBItemPurger(ItemPurger):
         elif flags & DBItemWriter.REF:
             if flags & DBItemWriter.LIST:
                 indexCount, = unpack('>H', data[-2:])
-
                 indexStart = -indexCount * 16 - 2
                 for i in xrange(indexCount):
                     yield UUID(data[indexStart:indexStart+16])
