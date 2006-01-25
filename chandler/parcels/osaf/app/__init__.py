@@ -273,6 +273,8 @@ def MakeCollections(parcel):
         rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue / 360.0, 0.5, 1.0))
         return ColorType (rgb.red, rgb.green, rgb.blue, 255)
 
+    view = parcel.itsView
+
     collectionColors = CollectionColors.update(
         parcel, 'collectionColors',
         colors = [GetColorForHue (210),
@@ -293,7 +295,7 @@ def MakeCollections(parcel):
 
     notes = KindCollection.update(
         parcel, 'notes',
-        kind = pim.Note.getKind(parcel.itsView),
+        kind = pim.Note.getKind(view),
         recursive = True)
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
@@ -327,7 +329,7 @@ def MakeCollections(parcel):
 
     events = KindCollection.update(
         parcel, 'events',
-        kind = pim.CalendarEventMixin.getKind(parcel.itsView),
+        kind = pim.CalendarEventMixin.getKind(view),
         recursive = True)
 
     events.rep.addIndex("effectiveStart", 'compare', compare='cmpStartTime',
@@ -362,15 +364,22 @@ def MakeCollections(parcel):
 
     locations = KindCollection.update(
         parcel, 'locations',
-        kind = pim.Location.getKind(parcel.itsView),
+        kind = pim.Location.getKind(view),
         recursive = True)
 
     locations.rep.addIndex('locationName', 'attribute', attribute = 'displayName')
 
     mailCollection = KindCollection.update(
         parcel, 'mail',
-        kind = pim.mail.MailMessageMixin.getKind(parcel.itsView),
+        kind = pim.mail.MailMessageMixin.getKind(view),
         recursive = True)
+
+    emailAddressCollection = \
+        KindCollection.update(parcel, 'emailAddressCollection',
+                              kind=pim.mail.EmailAddress.getKind(view),
+                              recursive=True)
+    emailAddressCollection.rep.addIndex('emailAddress', 'compare',
+                                        compare='_compareAddr')
 
     inSource = FilteredCollection.update(
         parcel, 'inSource',
@@ -407,7 +416,7 @@ def MakeCollections(parcel):
     # The "Scripts" collection
     scriptsCollection = KindCollection.update(
         parcel, 'scripts',
-        kind = scripting.Script.getKind(parcel.itsView))
+        kind = scripting.Script.getKind(view))
 
     InclusionExclusionCollection.update(parcel, 'scriptsCollection',
         displayName = _(u"Scripts"),

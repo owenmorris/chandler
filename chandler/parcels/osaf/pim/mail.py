@@ -1049,6 +1049,24 @@ class EmailAddress(items.ContentItem):
             else:
                 return None
 
+    def _compareAddr(self, other):
+        return cmp(self.emailAddress.lower(), other.emailAddress.lower())
+
+    @classmethod
+    def findEmailAddress(cls, view, emailAddress):
+
+        collection = schema.ns("osaf.app", view).emailAddressCollection.rep
+        emailAddress = emailAddress.lower()
+
+        def compareAddr(key):
+            return cmp(emailAddress, view[key].emailAddress.lower())
+
+        uuid = collection.findInIndex('emailAddress', 'exact', compareAddr)
+        if uuid is None:
+            return None
+
+        return view[uuid]
+
     @classmethod
     def format(cls, emailAddress, encode=False):
         assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"

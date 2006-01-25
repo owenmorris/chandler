@@ -188,7 +188,7 @@ def populateEmailAddressList(emailAddressList, messageObject, key):
         messageObject[key] = ", ".join(addrs)
 
 
-def messageTextToKind(view, messageText):
+def messageTextToKind(view, messageText, indexText=False, compression='bz2'):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -200,10 +200,12 @@ def messageTextToKind(view, messageText):
 
     assert isinstance(messageText, str), "messageText must be a String"
 
-    return messageObjectToKind(view, email.message_from_string(messageText), messageText)
+    return messageObjectToKind(view, email.message_from_string(messageText),
+                               messageText, compression)
 
 
-def messageObjectToKind(view, messageObject, messageText=None):
+def messageObjectToKind(view, messageObject, messageText=None,
+                        indexText=False, compression='bz2'):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -228,8 +230,8 @@ def messageObjectToKind(view, messageObject, messageText=None):
     if messageText is None:
         messageText = messageObject.as_string()
 
-    m.rfc2822Message = dataToBinary(m, "rfc2822Message", messageText, \
-                                          'message/rfc822', 'bz2')
+    m.rfc2822Message = dataToBinary(m, "rfc2822Message", messageText,
+                                    'message/rfc822', compression, False)
 
     counter = Counter()
     bodyBuffer = []
@@ -243,15 +245,17 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
         buf = ["Message: %s\n-------------------------------" % messageId]
 
-    __parsePart(view, messageObject, m, bodyBuffer, counter, buf)
+    __parsePart(view, messageObject, m, bodyBuffer, counter, buf,
+                compression=compression)
 
     """If the message has attachments set hasMimeParts to True"""
     if len(m.mimeParts) > 0:
         m.hasMimeParts = True
 
-    body = (constants.LF.join(bodyBuffer)).replace(constants.CR, constants.EMPTY)
+    body = constants.LF.join(bodyBuffer).replace(constants.CR, constants.EMPTY)
 
-    m.body = unicodeToText(m, "body", body, indexText=False)
+    m.body = unicodeToText(m, "body", body,
+                           indexText=indexText, compression=compression)
 
     __parseHeaders(view, messageObject, m)
 
@@ -423,10 +427,21 @@ def __getEmailAddress(view, name, addr):
     """ Use any existing EmailAddress, but don't update them
         because that will cause the item to go stale in the UI thread."""
     #XXX: This method needs much better performance
-    return Mail.EmailAddress.getEmailAddress(view, addr, name, True)
+    #return Mail.EmailAddress.getEmailAddress(view, addr, name, True)
+
+    if Mail.EmailAddress.isValidEmailAddress(addr):
+        address = Mail.EmailAddress.findEmailAddress(view, addr)
+        if address is None:
+            address = Mail.EmailAddress(itsView=view,
+                                        emailAddress=addr, fullName=name)
+    else:
+        address = None
+
+    return address
 
 
-def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level=0):
+def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf,
+                level=0, compression='bz2'):
     __checkForDefects(mimePart)
 
     if isinstance(mimePart, str):
@@ -439,19 +454,24 @@ def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, l
     maintype  = mimePart.get_content_maintype()
 
     if maintype == "message":
-        __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+        __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
+                        counter, buf, level, compression)
 
     elif maintype == "multipart":
-        __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+        __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
+                          counter, buf, level, compression)
 
     elif maintype == "text":
-        __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+        __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
+                     counter, buf, level, compression)
 
     else:
-        __handleBinary(view, mimePart, parentMIMEContainer,  counter, buf, level)
+        __handleBinary(view, mimePart, parentMIMEContainer,
+                       counter, buf, level, compression)
 
 
-def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
+                    counter, buf, level, compression):
     subtype   = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
@@ -511,13 +531,15 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
 
     if multipart:
         for part in payload:
-            __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
+            __parsePart(view, part, parentMIMEContainer, bodyBuffer,
+                        counter, buf, level+1, compression)
 
     elif __debug__:
         trace("******WARNING****** message/%s payload not multipart" % subtype)
 
 
-def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
+                      counter, buf, level, compression):
     subtype   = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
@@ -537,7 +559,8 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
 
             for part in payload:
                 if part.get_content_type() == "text/plain":
-                    __handleText(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
+                    __handleText(view, part, parentMIMEContainer, bodyBuffer,
+                                 counter, buf, level+1, compression)
                     foundText = True
 
                 elif firstPart is None and not foundText and not part.is_multipart():
@@ -551,14 +574,14 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
                     """If we find a multipart sub-part with in the alternative part handle
                        it"""
                     __handleMultipart(view, part, parentMIMEContainer, bodyBuffer, \
-                                      counter, buf, level+1)
+                                      counter, buf, level+1, compression)
 
             if not foundText and firstPart is not None:
                 if firstPart.get_content_maintype() == "text":
                     __handleText(view, firstPart, parentMIMEContainer, bodyBuffer, \
                                  counter, buf, level+1)
                 else:
-                    __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level+1)
+                    __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level+1, compression)
         elif __debug__:
             trace("******WARNING****** multipart/alternative has no payload")
 
@@ -582,10 +605,12 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
                 trace("Chandler Mail Service does not validate multipart/encrypted at this time")
 
         for part in payload:
-            __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
+            __parsePart(view, part, parentMIMEContainer, bodyBuffer,
+                        counter, buf, level+1, compression)
 
 
-def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
+def __handleBinary(view, mimePart, parentMIMEContainer,
+                   counter, buf, level, compression):
     contype = mimePart.get_content_type()
 
     if verbose():
@@ -613,11 +638,13 @@ def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
         if result[0] is not None:
             mimeBinary.mimeType = result[0]
 
-    mimeBinary.body = dataToBinary(mimeBinary, "body", body, mimeBinary.mimeType, 'bz2')
+    mimeBinary.body = dataToBinary(mimeBinary, "body", body,
+                                   mimeBinary.mimeType, compression)
 
     parentMIMEContainer.mimeParts.append(mimeBinary)
 
-def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
+                 counter, buf, level, compression):
     subtype = mimePart.get_content_subtype()
 
     if verbose():
@@ -647,8 +674,9 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
             mimeText.lang = lang
 
         #XXX: This may cause issues since Note no longer a parent
-        mimeText.body = unicodeToText(mimeText, "body", getUnicodeValue(body, charset), \
-                                      indexText=False)
+        mimeText.body = unicodeToText(mimeText, "body",
+                                      getUnicodeValue(body, charset),
+                                      indexText=False, compression=compression)
 
         parentMIMEContainer.mimeParts.append(mimeText)
         parentMIMEContainer.hasMimeParts = True

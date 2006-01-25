@@ -201,16 +201,17 @@ def isString(var):
 
     return False
 
-def unicodeToText(contentItem, attribute, unicodeString, indexText=False, \
-              encoding=constants.DEFAULT_CHARSET, replaceError=True):
+def unicodeToText(contentItem, attribute, unicodeString, indexText=False,
+                  encoding=constants.DEFAULT_CHARSET, replaceError=True,
+                  compression='bz2'):
     """Converts a C{unicode} string  to {Lob}.
     """
     assert isinstance(unicodeString, unicode), "Only Unicode string may be passed to this method"
 
-    return contentItem.getAttributeAspect(attribute, \
-                                          'type').makeValue(unicodeString, \
-                                                  indexed=indexText, encoding=encoding, \
-                                                  replace=replaceError)
+    lobType = contentItem.getAttributeAspect(attribute, 'type')
+    return lobType.makeValue(unicodeString, indexed=indexText,
+                             encoding=encoding, replace=replaceError,
+                             compression=compression)
 
 
 def textToUnicode(text):
@@ -224,22 +225,15 @@ def textToUnicode(text):
 
     return uStr
 
-def dataToBinary(contentItem, attribute, data, mimeType="application/octet-stream", compression=None, indexed=False):
+def dataToBinary(contentItem, attribute, data,
+                 mimeType="application/octet-stream",
+                 compression='bz2', indexed=False):
     """Converts non-string data to a C{TLob}
     """
-    binary =  contentItem.getAttributeAspect(attribute, \
-                                          'type').makeValue(None, mimetype=mimeType, indexed=indexed)
+    lobType = contentItem.getAttributeAspect(attribute, 'type')
 
-    if compression:
-        binaryStream = binary.getOutputStream(compression=compression)
-
-    else:
-        binaryStream = binary.getOutputStream()
-
-    binaryStream.write(data)
-    binaryStream.close()
-
-    return binary
+    return lobType.makeValue(data, mimetype=mimeType, indexed=indexed,
+                             compression=compression)
 
 
 def binaryToData(binary):
