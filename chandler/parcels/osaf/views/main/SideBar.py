@@ -759,7 +759,7 @@ class SidebarBlock(ControlBlocks.Table):
         # first ask the user if we should be deleting the entire
         # collection including the items, or just some things
         shouldClearCollection = \
-            promptYesNoCancel(_(u'Do you want to remove the items in this collection?'), viewsmain.clearCollectionPref)
+            promptYesNoCancel(_(u'Do you also want to delete the items in this collection?'), viewsmain.clearCollectionPref)
 
         if shouldClearCollection is None: # user pressed cancel
             return
