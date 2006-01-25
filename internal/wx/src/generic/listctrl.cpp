@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.385 2006/01/25 23:28:47 RD Exp $
+// Id:          $Id: listctrl.cpp,v 1.386 2006/01/25 23:48:09 vell Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -5480,7 +5480,7 @@ int wxGenericListCtrl::OnGetItemColumnImage(long item, long column) const
         return OnGetItemImage(item);
 
    return -1;
-
+}
 
 wxListItemAttr *
 wxGenericListCtrl::OnGetItemAttr(long WXUNUSED_UNLESS_DEBUG(item)) const
@@ -5540,7 +5540,6 @@ void wxGenericListCtrl::Refresh(bool eraseBackground, const wxRect *rect)
                 rectHeader.Offset(-x, -y);
                 m_headerWin->Refresh(eraseBackground, &rectHeader);
             }
-
         }
 
         // Refresh the main window
