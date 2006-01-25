@@ -54,16 +54,18 @@ class RepoResource(webserver.AuthenticatedResource):
                 else:
                     path = "//%s" % ("/".join(request.postpath))
 
-                result = """<html>
+                result = """
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
 <title>Chandler : %s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <link rel="stylesheet" href="/site.css" type="text/css" />
-<script type="text/javascript" src="/jsolait/init.js"/>
-<script type="text/javascript" src="/jsolait/lib/urllib.js"/>
-<script type="text/javascript" src="/jsolait/lib/xml.js"/>
-<script type="text/javascript" src="/jsolait/lib/xmlrpc.js"/>
-<script type="text/javascript" src="/repo-editor.js"/>
+<script type="text/javascript" src="/jsolait/init.js"></script>
+<script type="text/javascript" src="/jsolait/lib/urllib.js"></script>
+<script type="text/javascript" src="/jsolait/lib/xml.js"></script>
+<script type="text/javascript" src="/jsolait/lib/xmlrpc.js"></script>
+<script type="text/javascript" src="/repo-editor.js"></script>
 </head>
 
 <body onload="onDocumentLoad()">
@@ -624,7 +626,7 @@ class ValueRenderer(object):
                 alias = "(alias = '%s')" % alias
             else:
                 alias = ""
-            output.append("<li>%s <a href=%s>%s</a> %s" % \
+            output.append('<li><span class="editable">%s</span> <a href=%s>%s</a> %s</li>' % \
              ( getattr(j, "blockName", j.getItemDisplayName()), toLink(j.itsPath), j.itsPath, alias))
         itemString += ("".join(output))
 
@@ -635,20 +637,22 @@ class ValueRenderer(object):
         itemString += "<ul>"
         for j in value:
             try:
-                itemString += ("<li>%s <a href=%s>%s</a><br>\n" %
+                itemString += ('<li><span class="editable">%s</span> <a href="%s">%s</a></li>\n' %
                                (j.itsName, toLink(j.itsPath), j.itsPath))
             except:
-                itemString += "<li>%s (%s)<br>\n" % (clean(j), clean(type(j)))
+                itemString += "<li>%s (%s)</li>\n" % (clean(j), clean(type(j)))
         return itemString
 
     def Render_dict(self, name, value):
         itemString = ""
         for key, entryValue in value.iteritems():
             try:
-                itemString += ("%s: %s <a href=%s>%s</a><br>" % 
-                               (key, entryValue.itsName,
-                                toLink(entryValue.itsPath),
-                                entryValue.itsPath))
+                itemString += (
+                    '<span class="editable">%s</span>: %s '
+                    '<a href=%s>%s</a><br>' % 
+                    (key, entryValue.itsName,
+                     toLink(entryValue.itsPath),
+                     entryValue.itsPath))
             except:
                 try:
                     itemString += ("%s: %s (%s)<br>" %
@@ -672,7 +676,7 @@ class ValueRenderer(object):
                 typeName = theType.getImplementationType().__name__
                 itemString += "<b>(%s)</b> " % typeName
                 content = value.getReader().read()
-                itemString += clean(content)
+                itemString += '<span class="editable">%s</span>' % clean(content)
 
             except Exception, e:
                 itemString += clean(e)
@@ -681,9 +685,9 @@ class ValueRenderer(object):
         return itemString
 
     def Render_Item(self, name, value):
-        return "%s <a href=%s>%s</a><br>" % (value.getItemDisplayName(),
-                                             toLink(value.itsPath),
-                                             value.itsPath)
+        return '%s <a href="%s">%s</a><br>' % (value.getItemDisplayName(),
+                                               toLink(value.itsPath),
+                                               value.itsPath)
     def Render_URL(self, name, value):
         theType = TypeHandler.typeHandler(self.item.itsView, value)
         typeName = theType.getImplementationType().__name__
@@ -724,13 +728,15 @@ class ValueRenderer(object):
         typeName = theType.getImplementationType().__name__
         itemString = "<b>(%s)</b> " % typeName
         try:
-            itemString += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
-             value.getItemDisplayName())
+            itemString += "<a href=%s>%s</a><br>" % (
+                toLink(value.itsPath),
+                value.getItemDisplayName())
         except:
             if name == "password":
                 itemString += "<i>(hidden)</i><br>"
             else:
-                itemString += "%s<br>" % (clean(value))
+                itemString += '<span class="editable">%s</span><br>' % \
+                              clean(value)
                 
         return itemString
         
@@ -754,8 +760,9 @@ def RenderItem(repoView, item):
     name = item.itsName
     if name is None:
         name = '{%s}' % item.itsUUID.str64()
-    result += "<div class='path'>%s &gt; <span class='itemname'>%s</span>" % (path, name)
+    result += '<div class="path">%s &gt; <span class="itemname">%s</span>\n' % (path, name)
 
+    result += '<script>var itemPath = "%s";</script>\n' % item.itsPath
     try: result += ' (<a href="%s">%s</a>)' % (toLink(item.itsKind.itsPath), item.itsKind.itsName)
     except: pass
 
@@ -865,7 +872,7 @@ def RenderItem(repoView, item):
         result += "<br />\n"
 
     result += """
-<table width="100%" border="0" cellpadding="4" cellspacing="0">
+<table width="100%" border="0" cellpadding="4" cellspacing="0" onclick="onValueTableClick(event)">
   <tr class="toprow">
     <td colspan="2"><b>Attribute values for this item:</b></td>
   </tr>
@@ -886,7 +893,7 @@ def RenderItem(repoView, item):
 
     def MakeValueRow(attributeName, attributeValue, attributeType):
         result = oddEvenRow(count)
-        result += '<td valign="top">%s</td><td valign="top"><div class="value-%s">%s</div></td></tr>\n' % (attributeName, attributeType, attributeValue)
+        result += '<td valign="top">%s</td><td valign="top"><div class="type-%s attr-%s">%s</div></td></tr>\n' % (attributeName, attributeType, attributeName, attributeValue)
         return result
 
     vr = ValueRenderer(item)
