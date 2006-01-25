@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.11 2006/01/25 18:14:08 JS Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.12 2006/01/25 20:28:10 RD Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -731,10 +731,7 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
         ::SetActiveWindow(m_oleObjectHWND);
         ::ShowWindow(m_oleObjectHWND, SW_SHOW);
 
-        {
-            wxLogNull  noLog;
-            this->AssociateHandle(m_oleObjectHWND);
-        }
+        this->AssociateHandle(m_oleObjectHWND);
         this->Reparent(m_realparent);
 
         wxWindow* pWnd = m_realparent;

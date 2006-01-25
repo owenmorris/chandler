@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.659 2006/01/24 02:04:53 VZ Exp $
+// RCS-ID:      $Id: window.cpp,v 1.660 2006/01/25 20:26:59 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1092,18 +1092,17 @@ void wxWindowMSW::DissociateHandle()
 bool wxCheckWindowWndProc(WXHWND hWnd,
                           WXFARPROC WXUNUSED_IN_WINCE(wndProc))
 {
-    // Unicows note: the code below works, but only because WNDCLASS contains
-    // original window handler rather that the unicows fake one. This may not
-    // be on purpose, though; if it stops working with future versions of
-    // unicows.dll, we can override unicows hooks by setting
-    // Unicows_{Set,Get}WindowLong and Unicows_RegisterClass to our own
-    // versions that keep track of fake<->real wnd proc mapping.
-
-    // On WinCE (at least), the wndproc comparison doesn't work,
-    // so have to use something like this.
-#ifdef __WXWINCE__
+// TODO: This list of window class names should be factored out so they can be
+// managed in one place and then accessed from here and other places, such as
+// wxApp::RegisterWindowClasses() and wxApp::UnregisterWindowClasses()
+    
+#ifdef __WXWINCE__    
     extern       wxChar *wxCanvasClassName;
     extern       wxChar *wxCanvasClassNameNR;
+#else
+    extern const wxChar *wxCanvasClassName;
+    extern const wxChar *wxCanvasClassNameNR;
+#endif
     extern const wxChar *wxMDIFrameClassName;
     extern const wxChar *wxMDIFrameClassNameNoRedraw;
     extern const wxChar *wxMDIChildFrameClassName;
@@ -1117,19 +1116,8 @@ bool wxCheckWindowWndProc(WXHWND hWnd,
         str == wxMDIChildFrameClassNameNoRedraw ||
         str == _T("wxTLWHiddenParent"))
         return true; // Effectively means don't subclass
-
-    return false;
-#else
-    WNDCLASS cls;
-    if ( !::GetClassInfo(wxGetInstance(), wxGetWindowClass(hWnd), &cls) )
-    {
-        wxLogLastError(_T("GetClassInfo"));
-
+    else
         return false;
-    }
-
-    return wndProc == (WXFARPROC)cls.lpfnWndProc;
-#endif
 }
 
 // ----------------------------------------------------------------------------
