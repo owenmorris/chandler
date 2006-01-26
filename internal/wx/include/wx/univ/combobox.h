@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: combobox.h,v 1.31 2005/09/27 16:54:43 ABX Exp $
+// RCS-ID:      $Id: combobox.h,v 1.32 2006/01/26 19:35:32 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,6 +66,7 @@ class WXDLLEXPORT wxComboPopup
 {
 public:
     wxComboPopup(wxComboControl *combo) { m_combo = combo; }
+    virtual ~wxComboPopup() {}
 
     // we must have an associated control which is subclassed by the combobox
     virtual wxControl *GetControl() = 0;

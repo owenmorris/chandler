@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.02.01
-// RCS-ID:      $Id: scrthumb.h,v 1.10 2005/09/23 12:50:48 MR Exp $
+// RCS-ID:      $Id: scrthumb.h,v 1.11 2006/01/26 19:35:32 ABX Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,6 +86,8 @@ private:
 class WXDLLEXPORT wxControlWithThumb
 {
 public:
+    virtual ~wxControlWithThumb() {}
+
     // simple accessors
     // ----------------
 

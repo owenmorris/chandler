@@ -1,13 +1,13 @@
 /* -------------------------------------------------------------------------
  * Project:     GSocket (Generic Socket) for WX
- * Name:        gsocket.cpp
+ * Name:        src/mac/carbon/gsocket.cpp
  * Copyright:   (c) Guilhem Lavaux
  * Licence:     wxWindows Licence
  * Authors:     Guilhem Lavaux,
  *              Guillermo Rodriguez Garcia <guille@iies.es> (maintainer)
  *              Stefan CSomor
  * Purpose:     GSocket main mac file
- * CVSID:       $Id: gsocket.cpp,v 1.11 2005/08/31 15:48:39 SN Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.12 2006/01/26 19:52:58 ABX Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -16,7 +16,6 @@
  */
 
 #ifndef __GSOCKET_STANDALONE__
-#include "wx/setup.h"
 #include "wx/platform.h"
 #endif
 

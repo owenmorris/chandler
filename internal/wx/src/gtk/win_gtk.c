@@ -1,10 +1,10 @@
 /* ///////////////////////////////////////////////////////////////////////////
-// Name:        win_gtk.c
+// Name:        src/gtk/win_gtk.c
 // Purpose:     Native GTK+ widget for wxWidgets, based on GtkLayout and
 //              GtkFixed. It makes use of the gravity window property and
 //              therefore does not work with GTK 1.0.
 // Author:      Robert Roebling
-// Id:          $Id: win_gtk.c,v 1.71 2006/01/22 20:29:17 MR Exp $
+// Id:          $Id: win_gtk.c,v 1.72 2006/01/26 19:52:49 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////// */
@@ -13,7 +13,7 @@
 #define XCheckIfEvent XCHECKIFEVENT
 #endif
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 #include "wx/gtk/win_gtk.h"
 #include "gtk/gtksignal.h"
 #include "gtk/gtkprivate.h"
@@ -886,4 +886,3 @@ gtk_pizza_scroll (GtkPizza *pizza, gint dx, gint dy)
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
