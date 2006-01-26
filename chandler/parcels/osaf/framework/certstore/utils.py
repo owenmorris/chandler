@@ -3,6 +3,11 @@ Certificate utilities.
 
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
+
+@var entropyInitialized: If this is true, then some crypto operation
+                         has needed to use entropy, and it is likely
+                         there will be more. At least the initialization
+                         (which can be slow) has happened.
 """
 
 import M2Crypto.EVP as EVP
@@ -11,9 +16,11 @@ import M2Crypto.util as util
 from application import schema
 from osaf import ChandlerException
 
-
+__all__ = ['CertificateException', 'fingerprint', 'getExtent', 
+           'entropyInitialized']
+            
 class CertificateException(ChandlerException):
-     pass
+    pass
 
 def fingerprint(x509, md='sha1'):
     """
@@ -40,3 +47,7 @@ def getExtent(cls, view=None, exact=False):
         name = 'Recursive%sCollection' % kind.itsName
 
     return kind.findPath("//userdata/%s" % name)
+
+# Make sure to set this to true if any operation initializes entropy.
+# For example, after creating random path names or starting an SSL connection.
+entropyInitialized = False

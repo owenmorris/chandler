@@ -39,6 +39,8 @@ def locateProfileDir():
     def _makeRandomProfileDir(pattern):
         import M2Crypto.BN as BN
         profileDir = pattern.replace('*', '%s') % (BN.randfname(8))
+        from osaf.framework.certstore import utils
+        utils.entropyInitialized = True
         os.makedirs(profileDir, 0700)
         return profileDir
 
@@ -453,7 +455,9 @@ def stopCrypto(profileDir):
                        It is not a fatal error if the file cannot be created.
     @warning: XXX [i18n] M2Crypto can not handle unicode
     """
-    Rand.save_file(_randpoolPath(profileDir))
+    from osaf.framework.certstore import utils
+    if utils.entropyInitialized:
+        Rand.save_file(_randpoolPath(profileDir))
     m2threading.cleanup()
 
 

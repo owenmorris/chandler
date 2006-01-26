@@ -224,6 +224,7 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
 
     def dataReceived(self, data):
         log.debug('TwistedProtocolWrapper.dataReceived')
+        utils.entropyInitialized = True
         try:
             wrapper.TLSProtocolWrapper.dataReceived(self, data)
         except M2Crypto.BIO.BIOError, e:
