@@ -15,6 +15,7 @@ table
     border-right: 1px solid #ccc;
     border-top: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
+  clear: both;
 }
 
 td
@@ -24,8 +25,9 @@ td
 
 .path
 {
-    font-size: small;
-    padding-bottom: 5px;
+  font-size: small;
+  padding-bottom: 5px;
+  padding-top: 4px;
 }
 
 .children
@@ -60,9 +62,13 @@ td
     color: #888;
     font-size: x-small;
     padding-top: 5px;
-    text-align: right;
+  float: right;
+  clear: right;
 }
 
+.search-form { 
+  clear: both;
+}
 
 .toprow
 {
@@ -171,9 +177,10 @@ td.rssitem
 }
 
 #status-area { 
-  padding: 10px;
+  padding: 3px;
   text-align: center;
   float: right;
+  clear: right;
 }
 
 #status-area.error { 

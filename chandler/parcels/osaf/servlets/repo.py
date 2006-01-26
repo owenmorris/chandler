@@ -54,8 +54,8 @@ class RepoResource(webserver.AuthenticatedResource):
                 else:
                     path = "//%s" % ("/".join(request.postpath))
 
-                result = """
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+                result = \
+"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Chandler : %s</title>
@@ -69,13 +69,13 @@ class RepoResource(webserver.AuthenticatedResource):
 </head>
 
 <body onload="onDocumentLoad()">
-<div id="status-area">[status]</div>
 """                 % request.path
 
                 result += """
 <p class="footer">Repository view: <b>%s</b> |
 <a href="/repo/?mode=views">switch</a> |
 <a href="#" onclick="commit()">commit</a></p>
+<div id="status-area">[status]</div>
 """ % repoView.name
 
                 if mode == "kindquery":
@@ -179,9 +179,9 @@ class RepoResource(webserver.AuthenticatedResource):
 
 def RenderSearchForm(repoView):
     result = """
-<table width=100% border=0 cellpadding=4 cellspacing=0>
+<table width="100%" border="0" cellpadding="4" cellspacing="0" class="search-form">
 <tr class="toprow">
-<b>PyLucene Search:</b></td>
+<td><b>PyLucene Search:</b></td>
 </tr>
 """
 

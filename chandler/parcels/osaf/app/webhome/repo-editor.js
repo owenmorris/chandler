@@ -25,6 +25,7 @@ function onDocumentLoad() {
 function resetStatusArea(err) {
     if (err == null) {
       statusArea.setAttribute("class", "idle");
+      clear();
     } else{
       statusArea.setAttribute("class", "error");
       print(err);
@@ -37,10 +38,10 @@ function resetStatusArea(err) {
  * some of the statusArea work
  */
 
-function setAttribute(itemPath, attrName, value, resultcallback) {
+function setChandlerAttribute(itemPath, attrName, value, resultcallback) {
   var callback = function(result, err) {
     resetStatusArea(err);
-    if (errorcallback)
+    if (resultcallback)
       resultcallback(result, err);
   }
   statusArea.setAttribute("class", "busy");
@@ -79,6 +80,13 @@ function print(txt) {
   statusArea.appendChild(document.createTextNode(txt));
 }
 
+function clear() {
+  /* clear all but the first text node */
+  children = statusArea.childNodes;
+  for (var i=children.length-1; i>0; --i)
+    statusArea.removeChild(children[i]);
+}
+
 var editInProgress = false;
 
 function makeEditor(txt, originalNode, values) {
@@ -100,20 +108,25 @@ function makeEditor(txt, originalNode, values) {
 function finishEdit(event) {
 
   /* first reset the node to the new value */
-  /* if (event.target.originalNode.nodeType ==  */
   editor = event.target;
   newValue = editor.value;
   
-  textNode = document.createTextNode(newValue);
+  newText = document.createTextNode(newValue);
   
   /* swap the editor back in */
   originalNode = replaceNode(editor);
 
   /* swap the value into the original object */
-  originalNode.replaceChild(textNode, originalNode.firstChild);
+  originalText = originalNode.firstChild;
+  originalNode.replaceChild(newText, originalText)
 
   /* now send an XMLRPC request to change the data in the database */
-  setAttribute(itemPath, editor.chandlerattr, editor.value);
+  undo = function(result, err) {
+    if (err != null) 
+      originalNode.replaceChild(originalText, newText);
+  }
+
+  setChandlerAttribute(itemPath, editor.chandlerattr, editor.value, undo);
 
   /* finally, allow edits elswhere */
   editInProgress = false;
