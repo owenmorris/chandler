@@ -4,13 +4,13 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpwnd.h,v 1.3 2006/01/18 15:30:20 VZ Exp $
+// RCS-ID:      $Id: helpwnd.h,v 1.4 2006/01/26 22:35:13 JS Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifndef _WX_HELPWIN_H_
-#define _WX_HELPWIN_H_
+#ifndef _WX_HELPWND_H_
+#define _WX_HELPWND_H_
 
 #include "wx/defs.h"
 
@@ -327,3 +327,4 @@ END_DECLARE_EVENT_TYPES()
 #endif // wxUSE_WXHTML_HELP
 
 #endif
+
