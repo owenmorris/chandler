@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2003/02/28
-// RCS-ID:      $Id: msgdlg.h,v 1.13 2006/01/16 14:59:27 MR Exp $
+// RCS-ID:      $Id: msgdlg.h,v 1.14 2006/01/26 17:20:14 ABX Exp $
 // Copyright:   (c) Vaclav Slavik, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef __MSGDLG_H__
 #define __MSGDLG_H__
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 #include "wx/dialog.h"
 
 // type is an 'or' (|) of wxOK, wxCANCEL, wxYES_NO

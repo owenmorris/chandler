@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: fontdlgg.h,v 1.19 2005/09/23 12:49:04 MR Exp $
+// RCS-ID:      $Id: fontdlgg.h,v 1.20 2006/01/26 17:20:07 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef _WX_GENERIC_FONTDLGG_H
 #define _WX_GENERIC_FONTDLGG_H
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 #include "wx/gdicmn.h"
 #include "wx/font.h"
 #include "wx/dialog.h"
@@ -90,4 +90,3 @@ WXDLLEXPORT int wxFontWeightStringToInt(wxChar *weight);
 WXDLLEXPORT int wxFontStyleStringToInt(wxChar *style);
 
 #endif // _WX_GENERIC_FONTDLGG_H
-

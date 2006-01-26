@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: msgdlgg.h,v 1.21 2006/01/16 14:59:21 MR Exp $
+// RCS-ID:      $Id: msgdlgg.h,v 1.22 2006/01/26 17:20:07 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef __MSGDLGH_G__
 #define __MSGDLGH_G__
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 #include "wx/dialog.h"
 
 // type is an 'or' (|) of wxOK, wxCANCEL, wxYES_NO

@@ -3,7 +3,7 @@
 // Purpose:     Information window when app is busy
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// RCS-ID:      $Id: busyinfo.cpp,v 1.20 2006/01/26 15:40:46 ABX Exp $
+// RCS-ID:      $Id: busyinfo.cpp,v 1.21 2006/01/26 18:59:49 ABX Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -17,6 +17,7 @@
 
 // for all others, include the necessary headers
 #ifndef WX_PRECOMP
+    #include "wx/frame.h"
     #include "wx/stattext.h"
     #include "wx/panel.h"
     #include "wx/utils.h"

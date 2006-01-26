@@ -4,13 +4,15 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: pen.h,v 1.15 2005/05/04 18:52:01 JS Exp $
+// RCS-ID:      $Id: pen.h,v 1.17 2006/01/25 00:18:01 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_PEN_H_BASE_
 #define _WX_PEN_H_BASE_
+
+#include "wx/defs.h"
 
 #if defined(__WXPALMOS__)
 #include "wx/palmos/pen.h"

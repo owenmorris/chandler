@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: msgdlg.h,v 1.11 2006/01/16 14:59:41 MR Exp $
+// RCS-ID:      $Id: msgdlg.h,v 1.12 2006/01/26 17:20:33 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@
 #ifndef _WX_MSGBOXDLG_H_
 #define _WX_MSGBOXDLG_H_
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 #include "wx/dialog.h"
 
 // ----------------------------------------------------------------------------

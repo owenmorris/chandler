@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colrdlgg.h,v 1.19 2005/09/23 12:49:03 MR Exp $
+// RCS-ID:      $Id: colrdlgg.h,v 1.20 2006/01/26 17:20:06 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef __COLORDLGH_G__
 #define __COLORDLGH_G__
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 #include "wx/gdicmn.h"
 #include "wx/dialog.h"
 #include "wx/cmndata.h"

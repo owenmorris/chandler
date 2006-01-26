@@ -1,15 +1,16 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        utils.cpp
+// Name:        src/cocoa/utils.cpp
 // Purpose:     Various utilities
 // Author:      AUTHOR
 // Modified by:
 // Created:     2003/??/??
-// RCS-ID:      $Id: utils.cpp,v 1.11 2005/05/23 12:26:15 ABX Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.12 2006/01/26 17:00:19 ABX Exp $
 // Copyright:   (c) AUTHOR
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#include "wx/setup.h"
+#include "wx/wxprec.h"
+
 #include "wx/utils.h"
 #include "wx/app.h"
 #include "wx/apptrait.h"
