@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listctrl.i,v 1.25 2006/01/17 05:42:23 RD Exp $
+// RCS-ID:      $Id: _listctrl.i,v 1.26 2006/01/26 00:31:27 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -393,6 +393,7 @@ public:
 
     // use the virtual version to avoid a confusing assert in the base class
     DEC_PYCALLBACK_INT_LONG_virtual(OnGetItemImage);
+    DEC_PYCALLBACK_INT_LONGLONG(OnGetItemColumnImage);
 
     PYPRIVATE;
 };
@@ -402,7 +403,8 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyListCtrl, wxListCtrl);
 IMP_PYCALLBACK_STRING_LONGLONG(wxPyListCtrl, wxListCtrl, OnGetItemText);
 IMP_PYCALLBACK_LISTATTR_LONG(wxPyListCtrl, wxListCtrl, OnGetItemAttr);
 IMP_PYCALLBACK_INT_LONG_virtual(wxPyListCtrl, wxListCtrl, OnGetItemImage);
- 
+IMP_PYCALLBACK_INT_LONGLONG(wxPyListCtrl, wxListCtrl, OnGetItemColumnImage); 
+
 %}
 
 

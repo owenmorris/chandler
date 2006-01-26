@@ -8,7 +8,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-July-1997
-// RCS-ID:      $Id: wxPython_int.h,v 1.40 2006/01/23 20:06:39 RD Exp $
+// RCS-ID:      $Id: wxPython_int.h,v 1.41 2006/01/26 00:31:29 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -2171,6 +2171,60 @@ extern wxPyApp *wxPythonApp;
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(l)",a));     \
+            if (ro) {                                                           \
+                rval = PyInt_AsLong(ro);                                        \
+                Py_DECREF(ro);                                                  \
+            }                                                                   \
+        }                                                                       \
+        wxPyEndBlockThreads(blocked);                                           \
+        return rval;                                                            \
+    }  
+
+
+//---------------------------------------------------------------------------
+
+#define DEC_PYCALLBACK_INT_LONGLONG(CBNAME)                                     \
+    int CBNAME(long a, long b) const;                                           \
+    int base_##CBNAME(long a, long b) const
+
+
+#define IMP_PYCALLBACK_INT_LONGLONG(CLASS, PCLASS, CBNAME)                      \
+    int CLASS::CBNAME(long a, long b) const {                                   \
+        int rval=-1;                                                            \
+        bool found;                                                             \
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();                          \
+        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
+            PyObject* ro;                                                       \
+            ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(ll)",a,b));  \
+            if (ro) {                                                           \
+                rval = PyInt_AsLong(ro);                                        \
+                Py_DECREF(ro);                                                  \
+            }                                                                   \
+        }                                                                       \
+        wxPyEndBlockThreads(blocked);                                           \
+        if (! found)                                                            \
+            rval = PCLASS::CBNAME(a, b);                                        \
+        return rval;                                                            \
+    }                                                                           \
+    int CLASS::base_##CBNAME(long a, long b) const {                            \
+        return PCLASS::CBNAME(a, b);                                            \
+    }
+
+
+
+
+#define DEC_PYCALLBACK_INT_LONGLONG_virtual(CBNAME)                             \
+    int CBNAME(long a, long b) const;
+
+
+#define IMP_PYCALLBACK_INT_LONGLONG_virtual(CLASS, PCLASS, CBNAME)              \
+    int CLASS::CBNAME(long a, long b) const {                                   \
+        int rval=-1;    /* this rval is important for OnGetItemImage */         \
+        bool found;                                                             \
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();                          \
+        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
+            PyObject* ro;                                                       \
+            ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(ll)",a,b));  \
             if (ro) {                                                           \
                 rval = PyInt_AsLong(ro);                                        \
                 Py_DECREF(ro);                                                  \
