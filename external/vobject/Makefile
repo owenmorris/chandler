@@ -1,21 +1,23 @@
 include ../Makefile.inc
 
-VERSION=0.2.2
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=0.2.3
+SVN_REVISION=113
+RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)1
 VOBJECT=$(BUILD_ROOT)/vobject
 MANIFEST=$(SNAP)/$(SITE)/vobject
+#MANIFEST=$(SNAP)/$(SITE)/vobject-$(VERSION)-py$(PYTHON_VER).egg
 BUILD=build_$(SNAP)
-SRC=vobject-$(VERSION)
+SRC=vobject-$(RELVER)
 
 .PHONY: patches-$(VERSION)
 
 $(SRC).tar.gz:
-	$(CURL) http://builds.o11n.org/external/$(SRC).tar.gz
+	svn export http://svn.osafoundation.org/vobject/trunk -r $(SVN_REVISION) $(SRC)
+	tar czf $(SRC).tar.gz $(SRC)
 
-sources: vobject-$(VERSION).tar.gz
+sources: $(SRC).tar.gz
 
 $(SRC)-expanded: $(SRC).tar.gz
-	tar xzf $(SRC).tar.gz
 	touch $(SRC)-expanded
 
 expand: $(SRC)-expanded
@@ -33,9 +35,8 @@ build: expand apply
 
 binaries: 
 	cd $(BUILD_ROOT); \
-      find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
-      find $(MANIFEST) -name "*.pyo" | xargs rm -f
 	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/vobject-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+
 
 upload: vobject-$(SNAP)-$(RELVER).tar.gz
 	scp vobject-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
