@@ -4,10 +4,17 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: window.cpp,v 1.92 2005/11/10 12:03:39 ABX Exp $
+// RCS-ID:      $Id: window.cpp,v 1.93 2006/01/26 16:50:23 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
+
+// for compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
+#if defined(__BORLANDC__)
+#pragma hdrstop
+#endif
 
 // ============================================================================
 // declarations
@@ -17,7 +24,6 @@
 // headers
 // ----------------------------------------------------------------------------
 
-#include "wx/setup.h"
 #include "wx/menu.h"
 #include "wx/dc.h"
 #include "wx/dcclient.h"

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: mdi.cpp,v 1.132 2006/01/23 16:38:07 VZ Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.133 2006/01/26 16:49:30 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,6 @@
 #if wxUSE_MDI && !defined(__WXUNIVERSAL__)
 
 #ifndef WX_PRECOMP
-    #include "wx/setup.h"
     #include "wx/frame.h"
     #include "wx/menu.h"
     #include "wx/app.h"

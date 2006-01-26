@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        ole/uuid.cpp
+// Name:        src/msw/ole/uuid.cpp
 // Purpose:     implements Uuid class, see uuid.h for details
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.96
-// RCS-ID:      $Id: uuid.cpp,v 1.22 2005/09/23 12:55:24 MR Exp $
+// RCS-ID:      $Id: uuid.cpp,v 1.23 2006/01/26 16:49:45 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,8 +19,6 @@
 #if defined(__BORLANDC__)
 #pragma hdrstop
 #endif
-
-#include  "wx/setup.h"
 
 #if wxUSE_OLE && ( wxUSE_DRAG_AND_DROP || (defined(__WXDEBUG__) && wxUSE_DATAOBJ) )
 

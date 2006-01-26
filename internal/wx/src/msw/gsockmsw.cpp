@@ -5,7 +5,7 @@
  * Licence:     wxWindows Licence
  * Author:      Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket GUI-specific MSW code
- * CVSID:       $Id: gsockmsw.cpp,v 1.17 2005/11/09 20:14:31 ABX Exp $
+ * CVSID:       $Id: gsockmsw.cpp,v 1.18 2006/01/26 16:49:30 ABX Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -52,7 +52,6 @@
 
 #ifndef __GSOCKET_STANDALONE__
 #   include "wx/platform.h"
-#   include "wx/setup.h"
 #endif
 
 #if wxUSE_SOCKETS || defined(__GSOCKET_STANDALONE__)

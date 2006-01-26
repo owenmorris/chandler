@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        gdiobj.cpp
+// Name:        src/msw/gdiobj.cpp
 // Purpose:     wxGDIObject class
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdiobj.cpp,v 1.11 2005/09/23 12:54:58 MR Exp $
+// RCS-ID:      $Id: gdiobj.cpp,v 1.12 2006/01/26 16:49:29 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,6 @@
 
 #ifndef WX_PRECOMP
 #include <stdio.h>
-#include "wx/setup.h"
 #include "wx/list.h"
 #include "wx/utils.h"
 #include "wx/app.h"
@@ -58,4 +57,3 @@ void wxGDIObject::DecrementResourceUsage(void)
 };
 
 */
-

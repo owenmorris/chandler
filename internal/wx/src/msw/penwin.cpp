@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        penwin.cpp
+// Name:        src/msw/penwin.cpp
 // Purpose:     PenWindows code
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: penwin.cpp,v 1.15 2005/09/23 12:55:07 MR Exp $
+// RCS-ID:      $Id: penwin.cpp,v 1.16 2006/01/26 16:49:30 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,8 +17,7 @@
 #endif
 
 #ifndef WX_PRECOMP
-#include "wx/setup.h"
-#include "wx/window.h"
+    #include "wx/window.h"
 #endif
 
 #include "wx/msw/private.h"
@@ -113,4 +112,3 @@ void wxCleanUpPenWin(void)
   }
 #endif
 }
-

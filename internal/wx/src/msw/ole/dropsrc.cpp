@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        msw/ole/dropsrc.cpp
+// Name:        src/msw/ole/dropsrc.cpp
 // Purpose:     implementation of wxIDropSource and wxDropSource
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.05.98
-// RCS-ID:      $Id: dropsrc.cpp,v 1.31 2005/11/26 13:08:09 VZ Exp $
+// RCS-ID:      $Id: dropsrc.cpp,v 1.32 2006/01/26 16:49:44 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,11 +23,10 @@
 #if defined(__BORLANDC__)
   #pragma hdrstop
 #endif
-#ifndef WX_PRECOMP
-#include "wx/window.h"
-#endif
 
-#include "wx/setup.h"
+#ifndef WX_PRECOMP
+    #include "wx/window.h"
+#endif
 
 #if wxUSE_OLE && wxUSE_DRAG_AND_DROP
 

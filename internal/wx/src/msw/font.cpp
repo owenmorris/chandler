@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.cpp,v 1.75 2005/09/24 21:42:52 VZ Exp $
+// RCS-ID:      $Id: font.cpp,v 1.76 2006/01/26 16:49:29 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,6 @@
 #endif
 
 #ifndef WX_PRECOMP
-    #include "wx/setup.h"
     #include "wx/list.h"
     #include "wx/utils.h"
     #include "wx/app.h"
@@ -1048,4 +1047,3 @@ bool wxFont::IsFixedWidth() const
 
     return wxFontBase::IsFixedWidth();
 }
-

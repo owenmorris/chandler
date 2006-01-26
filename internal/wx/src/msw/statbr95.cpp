@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.04.98
-// RCS-ID:      $Id: statbr95.cpp,v 1.67 2006/01/17 19:56:51 JS Exp $
+// RCS-ID:      $Id: statbr95.cpp,v 1.68 2006/01/26 16:49:31 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,6 @@
 #endif
 
 #ifndef WX_PRECOMP
-  #include "wx/setup.h"
   #include "wx/frame.h"
   #include "wx/settings.h"
   #include "wx/dcclient.h"
@@ -307,7 +306,7 @@ void wxStatusBar95::DoMoveWindow(int x, int y, int width, int height)
         // if other windows are size deferred
         ::SetWindowPos(GetHwnd(), NULL, x, y, width, height,
                        SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE
-#ifndef __WXWINCE__                       
+#ifndef __WXWINCE__
                        | SWP_NOCOPYBITS | SWP_NOSENDCHANGING
 #endif
                        );

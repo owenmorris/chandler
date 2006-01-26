@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp,v 1.174 2006/01/10 03:47:35 vell Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.175 2006/01/26 16:41:53 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -990,23 +990,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
     if (!eat_key)
     {
         // perform keystroke handling
-        if ( wxTheApp->MacGetCurrentEvent() != NULL && wxTheApp->MacGetCurrentEventHandlerCallRef() != NULL )
-        {
-            CallNextEventHandler( (EventHandlerCallRef)wxTheApp->MacGetCurrentEventHandlerCallRef(), (EventRef)wxTheApp->MacGetCurrentEvent() ) ;
-        }
-        else
-        {
-            EventRecord rec ;
-            if ( wxMacConvertEventToRecord( (EventRef) wxTheApp->MacGetCurrentEvent() , &rec ) )
-            {
-                short keycode, keychar ;
-                EventRecord *ev = &rec ;
-                keychar = short(ev->message & charCodeMask);
-                keycode = short(ev->message & keyCodeMask) >> 8 ;
-
-                m_peer->HandleKey( keycode , keychar , ev->modifiers ) ;
-            }
-        }
+        event.Skip(true) ;
     }
 
     if ( ( key >= 0x20 && key < WXK_START ) ||

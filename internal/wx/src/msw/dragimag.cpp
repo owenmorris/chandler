@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     08/04/99
-// RCS-ID:      $Id: dragimag.cpp,v 1.37 2006/01/21 16:47:24 JS Exp $
+// RCS-ID:      $Id: dragimag.cpp,v 1.38 2006/01/26 16:49:28 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,6 @@
 
 #ifndef WX_PRECOMP
 #include <stdio.h>
-#include "wx/setup.h"
 #include "wx/window.h"
 #include "wx/dcclient.h"
 #include "wx/dcscreen.h"

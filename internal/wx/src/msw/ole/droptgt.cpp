@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        ole/droptgt.cpp
+// Name:        src/msw/ole/droptgt.cpp
 // Purpose:     wxDropTarget implementation
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:
-// RCS-ID:      $Id: droptgt.cpp,v 1.43 2005/09/23 12:55:23 MR Exp $
+// RCS-ID:      $Id: droptgt.cpp,v 1.44 2006/01/26 16:49:44 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,8 +23,6 @@
 #if defined(__BORLANDC__)
 #pragma hdrstop
 #endif
-
-#include "wx/setup.h"
 
 #if wxUSE_OLE && wxUSE_DRAG_AND_DROP
 

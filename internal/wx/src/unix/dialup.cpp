@@ -1,18 +1,16 @@
 // -*- c++ -*- ////////////////////////////////////////////////////////////////
-// Name:        unix/dialup.cpp
+// Name:        src/unix/dialup.cpp
 // Purpose:     Network related wxWidgets classes and functions
 // Author:      Karsten Ballüder
 // Modified by:
 // Created:     03.10.99
-// RCS-ID:      $Id: dialup.cpp,v 1.47 2005/10/08 16:57:07 VZ Exp $
+// RCS-ID:      $Id: dialup.cpp,v 1.48 2006/01/26 16:50:15 ABX Exp $
 // Copyright:   (c) Karsten Ballüder
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#include "wx/setup.h"
 
 #if wxUSE_DIALUP_MANAGER
 
@@ -400,7 +398,7 @@ void wxDialUpManagerImpl::DisableAutoCheckOnlineStatus()
 
 void wxDialUpManagerImpl::SetWellKnownHost(const wxString& hostname, int portno)
 {
-   if(hostname.Length() == 0)
+   if(hostname.length() == 0)
    {
       m_BeaconHost = WXDIALUP_MANAGER_DEFAULT_BEACONHOST;
       m_BeaconPort = 80;
@@ -409,7 +407,7 @@ void wxDialUpManagerImpl::SetWellKnownHost(const wxString& hostname, int portno)
 
    // does hostname contain a port number?
    wxString port = hostname.After(wxT(':'));
-   if(port.Length())
+   if(port.length())
    {
       m_BeaconHost = hostname.Before(wxT(':'));
       m_BeaconPort = wxAtoi(port);
@@ -766,9 +764,9 @@ wxDialUpManagerImpl::NetConnection wxDialUpManagerImpl::CheckPing()
         if (wxFileExists( wxT("SYS$SYSTEM:TCPIP$PING.EXE") ))
             m_PingPath = wxT("$SYS$SYSTEM:TCPIP$PING");
 #elif defined(__AIX__)
-        m_PingPath = _T("/etc/ping"); 
+        m_PingPath = _T("/etc/ping");
 #elif defined(__SGI__)
-        m_PingPath = _T("/usr/etc/ping"); 
+        m_PingPath = _T("/usr/etc/ping");
 #else
         if (wxFileExists( wxT("/bin/ping") ))
             m_PingPath = wxT("/bin/ping");

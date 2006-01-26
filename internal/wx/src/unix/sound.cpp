@@ -1,18 +1,16 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        sound.cpp
+// Name:        src/unix/sound.cpp
 // Purpose:     wxSound
 // Author:      Marcel Rasche, Vaclav Slavik
 // Modified by:
 // Created:     25/10/98
-// RCS-ID:      $Id: sound.cpp,v 1.14 2005/10/08 21:24:32 VZ Exp $
+// RCS-ID:      $Id: sound.cpp,v 1.15 2006/01/26 16:50:16 ABX Exp $
 // Copyright:   (c) Julian Smart, Open Source Applications Foundation
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#include "wx/setup.h"
 
 #if defined(__BORLANDC__)
 #pragma hdrstop

@@ -1,12 +1,12 @@
 /* -------------------------------------------------------------------------
  * Project:     GSocket (Generic Socket)
- * Name:        gsocket.cpp
+ * Name:        src/msw/gsocket.cpp
  * Copyright:   (c) Guilhem Lavaux
  * Licence:     wxWindows Licence
  * Author:      Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main MSW file
  * Licence:     The wxWindows licence
- * CVSID:       $Id: gsocket.cpp,v 1.19 2005/09/24 22:31:47 VZ Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.20 2006/01/26 16:49:29 ABX Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -55,7 +55,6 @@
 
 #ifndef __GSOCKET_STANDALONE__
 #   include "wx/platform.h"
-#   include "wx/setup.h"
 #endif
 
 #if wxUSE_SOCKETS || defined(__GSOCKET_STANDALONE__)
@@ -1562,4 +1561,3 @@ GSocketError GAddress_UNIX_GetPath(GAddress *address, char *WXUNUSED(path), size
 typedef void (*wxDummy)();
 
 #endif  /* wxUSE_SOCKETS || defined(__GSOCKET_STANDALONE__) */
-

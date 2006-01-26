@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: pen.cpp,v 1.38 2005/10/04 18:14:34 ABX Exp $
+// RCS-ID:      $Id: pen.cpp,v 1.39 2006/01/26 16:49:30 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,6 @@
 
 #ifndef WX_PRECOMP
 #include <stdio.h>
-#include "wx/setup.h"
 #include "wx/list.h"
 #include "wx/utils.h"
 #include "wx/app.h"
