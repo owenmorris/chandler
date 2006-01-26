@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.661 2006/01/25 23:36:19 JG Exp $
+// RCS-ID:      $Id: window.cpp,v 1.662 2006/01/26 15:29:51 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1090,7 +1090,7 @@ void wxWindowMSW::DissociateHandle()
 
 
 bool wxCheckWindowWndProc(WXHWND hWnd,
-                          WXFARPROC WXUNUSED_IN_WINCE(wndProc))
+                          WXFARPROC WXUNUSED(wndProc))
 {
 // TODO: This list of window class names should be factored out so they can be
 // managed in one place and then accessed from here and other places, such as

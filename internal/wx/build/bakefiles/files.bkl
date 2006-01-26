@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.299 2006/01/22 11:37:58 SN Exp $ -->
+<!-- $Id: files.bkl,v 1.303 2006/01/26 15:40:34 ABX Exp $ -->
 <makefile>
 
 <!--
@@ -115,6 +115,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/gccpriv.h
     wx/msw/libraries.h
     wx/msw/mimetype.h
+    wx/msw/mslu.h
     wx/msw/private.h
     wx/msw/stackwalk.h
     wx/msw/stdpaths.h
@@ -724,6 +725,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/bitmap.h
     wx/bookctrl.h
     wx/busyinfo.h
+    wx/generic/busyinfo.h
     wx/caret.h
     wx/choicebk.h
     wx/clipbrd.h
@@ -1390,7 +1392,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/minifram.h
     wx/msw/missing.h
     wx/msw/msgdlg.h
-    wx/msw/mslu.h
     wx/msw/msvcrt.h
     wx/msw/notebook.h
     wx/msw/ole/access.h

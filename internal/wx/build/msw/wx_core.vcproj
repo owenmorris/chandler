@@ -37116,6 +37116,9 @@
 				RelativePath="..\..\include\wx\generic\accel.h">
 			</File>
 			<File
+				RelativePath="..\..\include\wx\generic\busyinfo.h">
+			</File>
+			<File
 				RelativePath="..\..\include\wx\generic\calctrl.h">
 			</File>
 			<File
