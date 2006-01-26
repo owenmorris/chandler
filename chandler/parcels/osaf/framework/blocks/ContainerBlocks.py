@@ -534,7 +534,7 @@ class ViewContainer(BoxContainer):
         choice = event.choice
         selectionIndex = 0
         for view in self.views:
-            if view.getItemDisplayName() == choice:
+            if view.blockName == choice:
                 if self.hasTabs:
                     self.selectionIndex = selectionIndex
                     self.synchronizeWidget()
