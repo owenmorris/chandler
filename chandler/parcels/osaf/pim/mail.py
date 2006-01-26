@@ -887,19 +887,14 @@ class EmailAddress(items.ContentItem):
             return super(EmailAddress, self).__unicode__()
             # Stale items shouldn't go through the code below
 
-        try:
-            if self is self.getCurrentMeEmailAddress(self.itsView):
-                fullName = messages.ME
-            else:
-                fullName = self.fullName
-        except AttributeError:
-            fullName = u''
-
-        if fullName is not None and len(fullName) > 0:
+        fullName = getattr(self, 'fullName', u'')
+        if len(fullName) > 0:
             if self.emailAddress:
                 return fullName + u' <' + self.emailAddress + u'>'
             else:
                 return fullName
+        elif self is self.getCurrentMeEmailAddress(self.itsView):
+            fullName = messages.ME
         else:
             return self.getItemDisplayName()
 

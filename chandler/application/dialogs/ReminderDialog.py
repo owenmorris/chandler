@@ -28,7 +28,7 @@ pluralFutureMessages = { DAY: _(u'%(numOf)d days from now'),
 
 class ReminderDialog(wx.Dialog):
     def __init__(self, parent, ID, size=wx.DefaultSize,
-     pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
+     pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
