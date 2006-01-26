@@ -4,7 +4,7 @@
 // Author:      Karsten Ballueder
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpext.cpp,v 1.46 2005/11/07 13:27:08 ABX Exp $
+// RCS-ID:      $Id: helpext.cpp,v 1.47 2006/01/26 16:01:25 ABX Exp $
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,6 @@
 #if wxUSE_HELP && !defined(__WXWINCE__) && (!defined(__WXMAC__) || defined(__WXMAC_OSX__))
 
 #ifndef WX_PRECOMP
-    #include "wx/setup.h"
     #include "wx/string.h"
     #include "wx/utils.h"
     #include "wx/list.h"

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: accel.cpp,v 1.14 2005/10/03 16:33:02 ABX Exp $
+// RCS-ID:      $Id: accel.cpp,v 1.15 2006/01/26 16:02:00 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#include "wx/setup.h"
 #include "wx/accel.h"
 #include "wx/string.h"
 #include "wx/utils.h"

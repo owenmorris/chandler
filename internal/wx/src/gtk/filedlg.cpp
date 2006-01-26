@@ -1,17 +1,14 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        gtk/filedlg.cpp
+// Name:        src/gtk/filedlg.cpp
 // Purpose:     native implementation of wxFileDialog
 // Author:      Robert Roebling, Zbigniew Zagorski, Mart Raudsepp
-// Id:          $Id: filedlg.cpp,v 1.69 2005/09/24 21:42:41 VZ Exp $
+// Id:          $Id: filedlg.cpp,v 1.70 2006/01/26 16:01:36 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling, 2004 Zbigniew Zagorski, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-// Include setup.h to get wxUSE flags for compilers that do not support precompilation of headers
-#include "wx/setup.h"
 
 #if wxUSE_FILEDLG
 

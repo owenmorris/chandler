@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        dragimgg.cpp
+// Name:        src/generic/dragimgg.cpp
 // Purpose:     Generic wxDragImage implementation
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/2/2000
-// RCS-ID:      $Id: dragimgg.cpp,v 1.19 2006/01/21 16:47:18 JS Exp $
+// RCS-ID:      $Id: dragimgg.cpp,v 1.20 2006/01/26 16:01:25 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,6 @@
 
 #ifndef WX_PRECOMP
 #include <stdio.h>
-#include "wx/setup.h"
 #include "wx/window.h"
 #include "wx/frame.h"
 #include "wx/dcclient.h"

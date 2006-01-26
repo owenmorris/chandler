@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.cpp,v 1.70 2005/12/19 10:41:00 ABX Exp $
+// RCS-ID:      $Id: statusbr.cpp,v 1.71 2006/01/26 16:01:26 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,6 @@
 #if wxUSE_STATUSBAR
 
 #ifndef WX_PRECOMP
-#include "wx/setup.h"
 #include "wx/frame.h"
 #include "wx/settings.h"
 #include "wx/dcclient.h"

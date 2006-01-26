@@ -1,16 +1,14 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        tooltip.cpp
+// Name:        src/gtk/tooltip.cpp
 // Purpose:     wxToolTip implementation
 // Author:      Robert Roebling
-// Id:          $Id: tooltip.cpp,v 1.23 2005/09/23 12:53:43 MR Exp $
+// Id:          $Id: tooltip.cpp,v 1.24 2006/01/26 16:01:37 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#include "wx/setup.h"
 
 #if wxUSE_TOOLTIPS
 
@@ -79,4 +77,3 @@ void wxToolTip::SetDelay( long msecs )
 }
 
 #endif
-

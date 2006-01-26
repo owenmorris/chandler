@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        bitmap.cpp
+// Name:        src/common/bmpbase.cpp
 // Purpose:     wxBitmapBase
 // Author:      VaclavSlavik
 // Created:     2001/04/11
-// RCS-ID:      $Id: bmpbase.cpp,v 1.19 2005/10/07 21:49:20 VZ Exp $
+// RCS-ID:      $Id: bmpbase.cpp,v 1.21 2006/01/26 16:03:33 ABX Exp $
 // Copyright:   (c) 2001, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,7 +21,6 @@
     defined(__WXMOTIF__) || \
     defined(__WXX11__)
 
-#include "wx/setup.h"
 #include "wx/utils.h"
 #include "wx/palette.h"
 #include "wx/bitmap.h"

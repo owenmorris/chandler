@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: utils.cpp,v 1.63 2005/10/08 17:10:07 VZ Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.64 2006/01/26 16:02:01 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,6 @@
 #define XtDisplay XTDISPLAY
 #endif
 
-#include "wx/setup.h"
 #include "wx/utils.h"
 #include "wx/apptrait.h"
 #include "wx/app.h"

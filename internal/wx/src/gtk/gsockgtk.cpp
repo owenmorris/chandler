@@ -1,12 +1,13 @@
 /* -------------------------------------------------------------------------
  * Project: GSocket (Generic Socket) for WX
- * Name:    gsockgtk.c
+ * Name:    src/gtk/gsockgtk.cpp
  * Purpose: GSocket: GTK part
  * Licence: The wxWindows licence
- * CVSID:   $Id: gsockgtk.cpp,v 1.7 2006/01/14 18:32:37 MR Exp $
+ * CVSID:   $Id: gsockgtk.cpp,v 1.8 2006/01/26 16:01:36 ABX Exp $
  * -------------------------------------------------------------------------
  */
-#include "wx/setup.h"
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
 
 #if wxUSE_SOCKETS
 

@@ -4,15 +4,13 @@
 // Author:      Julian Smart, Ian Brown
 // Modified by:
 // Created:     01/02/03
-// RCS-ID:      $Id: combobox_native.cpp,v 1.16 2005/10/03 16:33:03 ABX Exp $
+// RCS-ID:      $Id: combobox_native.cpp,v 1.17 2006/01/26 16:02:01 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#include "wx/setup.h"
 
 #if wxUSE_COMBOBOX
 
@@ -115,8 +113,8 @@ bool wxComboBox::Create(wxWindow *parent, wxWindowID id,
                    (XtPointer) this);
 
     wxSize best = GetBestSize();
-    if( size.x != -1 ) best.x = size.x;
-    if( size.y != -1 ) best.y = size.y;
+    if( size.x != wxDefaultCoord ) best.x = size.x;
+    if( size.y != wxDefaultCoord ) best.y = size.y;
 
     AttachWidget (parent, m_mainWidget, (WXWidget) NULL,
                   pos.x, pos.y, best.x, best.y);

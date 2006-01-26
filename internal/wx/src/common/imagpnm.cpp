@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        imagpnm.cpp
+// Name:        src/common/imagpnm.cpp
 // Purpose:     wxImage PNM handler
 // Author:      Sylvain Bougnoux
-// RCS-ID:      $Id: imagpnm.cpp,v 1.28 2005/09/23 12:53:00 MR Exp $
+// RCS-ID:      $Id: imagpnm.cpp,v 1.29 2006/01/26 16:01:10 ABX Exp $
 // Copyright:   (c) Sylvain Bougnoux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,6 @@
 #endif
 
 #ifndef WX_PRECOMP
-#  include "wx/setup.h"
 #endif
 
 #if wxUSE_IMAGE && wxUSE_PNM

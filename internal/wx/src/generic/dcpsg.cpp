@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Markus Holzhem
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dcpsg.cpp,v 1.136 2005/12/19 20:38:18 JS Exp $
+// RCS-ID:      $Id: dcpsg.cpp,v 1.137 2006/01/26 16:01:25 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,8 +21,6 @@
 #if wxUSE_PRINTING_ARCHITECTURE
 
 #if wxUSE_POSTSCRIPT
-
-#include "wx/setup.h"
 
 #include "wx/dcmemory.h"
 #include "wx/utils.h"

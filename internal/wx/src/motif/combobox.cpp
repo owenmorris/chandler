@@ -4,15 +4,13 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: combobox.cpp,v 1.36 2005/10/08 17:01:52 VZ Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.37 2006/01/26 16:02:00 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#include "wx/setup.h"
 
 #if wxUSE_COMBOBOX
 

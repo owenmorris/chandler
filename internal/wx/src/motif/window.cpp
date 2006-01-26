@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: window.cpp,v 1.143 2005/11/03 20:58:02 ABX Exp $
+// RCS-ID:      $Id: window.cpp,v 1.144 2006/01/26 16:02:02 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,6 @@
 #define XtScreen XTSCREEN
 #endif
 
-#include "wx/setup.h"
 #include "wx/menu.h"
 #include "wx/dc.h"
 #include "wx/dcclient.h"
@@ -2492,7 +2491,7 @@ void wxWindow::ChangeFont(bool keepOriginalSize)
         GetSize(& width1, & height1);
         if (keepOriginalSize && (width != width1 || height != height1))
         {
-            SetSize(-1, -1, width, height);
+            SetSize(wxDefaultCoord, wxDefaultCoord, width, height);
         }
     }
 }
