@@ -634,7 +634,7 @@ class ValueRenderer(object):
         return itemString
 
     def Render_list(self, name, value):
-        itemString += "<ul>"
+        itemString = "<ul>"
         for j in value:
             try:
                 itemString += ('<li><span class="editable">%s</span> <a href="%s">%s</a></li>\n' %
