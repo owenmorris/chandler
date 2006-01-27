@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.11.99
-// RCS-ID:      $Id: frame.h,v 1.58 2006/01/16 14:59:03 MR Exp $
+// RCS-ID:      $Id: frame.h,v 1.59 2006/01/23 03:27:32 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -242,8 +242,10 @@ protected:
         #include "wx/palmos/frame.h"
     #elif defined(__WXMSW__)
         #include "wx/msw/frame.h"
-    #elif defined(__WXGTK__)
+    #elif defined(__WXGTK20__)
         #include "wx/gtk/frame.h"
+    #elif defined(__WXGTK__)
+        #include "wx/gtk1/frame.h"
     #elif defined(__WXMOTIF__)
         #include "wx/motif/frame.h"
     #elif defined(__WXMAC__)

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.h,v 1.23 2005/03/16 16:18:20 ABX Exp $
+// RCS-ID:      $Id: spinctrl.h,v 1.24 2006/01/23 03:27:34 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,8 +63,10 @@ protected:
     #include "wx/msw/spinctrl.h"
 #elif defined(__WXPM__)
     #include "wx/os2/spinctrl.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/spinctrl.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/spinctrl.h"
 #elif defined(__WXMOTIF__)
     #include "wx/generic/spinctlg.h"
 #elif defined(__WXMAC__)

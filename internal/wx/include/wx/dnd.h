@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     26.05.99
-// RCS-ID:      $Id: dnd.h,v 1.34 2005/09/23 12:48:36 MR Exp $
+// RCS-ID:      $Id: dnd.h,v 1.35 2006/01/23 03:27:31 MR Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -218,8 +218,10 @@ protected:
     #include "wx/motif/dnd.h"
 #elif defined(__WXX11__)
     #include "wx/x11/dnd.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/dnd.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/dnd.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/dnd.h"
 #elif defined(__WXPM__)

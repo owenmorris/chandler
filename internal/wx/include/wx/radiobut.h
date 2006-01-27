@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: radiobut.h,v 1.18 2006/01/16 14:59:04 MR Exp $
+// RCS-ID:      $Id: radiobut.h,v 1.19 2006/01/23 03:27:33 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,8 +41,10 @@ extern WXDLLEXPORT_DATA(const wxChar) wxRadioButtonNameStr[];
     #include "wx/msw/radiobut.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/radiobut.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/radiobut.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/radiobut.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/radiobut.h"
 #elif defined(__WXCOCOA__)

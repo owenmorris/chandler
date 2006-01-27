@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.h,v 1.11 2005/05/04 18:52:05 JS Exp $
+// RCS-ID:      $Id: tglbtn.h,v 1.12 2006/01/23 03:27:34 MR Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,8 +29,10 @@ END_DECLARE_EVENT_TYPES()
 
 #if defined(__WXMSW__)
     #include "wx/msw/tglbtn.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/tglbtn.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/tglbtn.h"
 # elif defined(__WXMOTIF__)
     #include "wx/motif/tglbtn.h"
 #elif defined(__WXMAC__)

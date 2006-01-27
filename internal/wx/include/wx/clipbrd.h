@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: clipbrd.h,v 1.24 2005/09/23 12:48:32 MR Exp $
+// RCS-ID:      $Id: clipbrd.h,v 1.25 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -92,8 +92,10 @@ public:
     #include "wx/msw/clipbrd.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/clipbrd.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/clipbrd.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/clipbrd.h"
 #elif defined(__WXX11__)
     #include "wx/x11/clipbrd.h"
 #elif defined(__WXMGL__)

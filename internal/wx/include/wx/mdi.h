@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: mdi.h,v 1.18 2005/05/04 18:51:59 JS Exp $
+// RCS-ID:      $Id: mdi.h,v 1.19 2006/01/23 03:27:32 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -22,8 +22,10 @@
     #include "wx/msw/mdi.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/mdi.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/mdi.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/mdi.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/mdi.h"
 #elif defined(__WXCOCOA__)

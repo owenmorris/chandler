@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: statbmp.h,v 1.25 2006/01/16 14:59:05 MR Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.26 2006/01/23 03:27:34 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,8 +56,10 @@ protected:
     #include "wx/msw/statbmp.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/statbmp.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/statbmp.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/statbmp.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/statbmp.h"
 #elif defined(__WXCOCOA__)

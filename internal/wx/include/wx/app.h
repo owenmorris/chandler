@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: app.h,v 1.133 2006/01/12 20:08:57 VZ Exp $
+// RCS-ID:      $Id: app.h,v 1.134 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -555,8 +555,10 @@ protected:
         #include "wx/motif/app.h"
     #elif defined(__WXMGL__)
         #include "wx/mgl/app.h"
-    #elif defined(__WXGTK__)
+    #elif defined(__WXGTK20__)
         #include "wx/gtk/app.h"
+    #elif defined(__WXGTK__)
+        #include "wx/gtk1/app.h"
     #elif defined(__WXX11__)
         #include "wx/x11/app.h"
     #elif defined(__WXMAC__)

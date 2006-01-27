@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.34 2006/01/16 14:59:04 MR Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.35 2006/01/23 03:27:33 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,8 +83,10 @@ private:
     #include "wx/msw/radiobox.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/radiobox.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/radiobox.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/radiobox.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/radiobox.h"
 #elif defined(__WXCOCOA__)

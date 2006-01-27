@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dc.h,v 1.70 2005/09/23 12:48:36 MR Exp $
+// RCS-ID:      $Id: dc.h,v 1.71 2006/01/23 03:27:31 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -804,8 +804,10 @@ private:
     #include "wx/msw/dc.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/dc.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/dc.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/dc.h"
 #elif defined(__WXX11__)
     #include "wx/x11/dc.h"
 #elif defined(__WXMGL__)

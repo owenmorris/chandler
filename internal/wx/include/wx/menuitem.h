@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.10.99
-// RCS-ID:      $Id: menuitem.h,v 1.35 2005/05/31 09:18:16 JS Exp $
+// RCS-ID:      $Id: menuitem.h,v 1.36 2006/01/23 03:27:32 MR Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -163,8 +163,10 @@ private:
     #include "wx/msw/menuitem.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/menuitem.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/menuitem.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/menuitem.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/menuitem.h"
 #elif defined(__WXCOCOA__)

@@ -4,7 +4,7 @@
 // Author:      Vadim Zetlin
 // Modified by:
 // Created:     15.08.00
-// RCS-ID:      $Id: button.h,v 1.27 2006/01/16 14:59:03 MR Exp $
+// RCS-ID:      $Id: button.h,v 1.28 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) Vadim Zetlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,8 +86,10 @@ protected:
     #include "wx/msw/button.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/button.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/button.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/button.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/button.h"
 #elif defined(__WXCOCOA__)

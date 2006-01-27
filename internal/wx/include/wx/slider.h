@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     09.02.01
-// RCS-ID:      $Id: slider.h,v 1.26 2006/01/16 14:59:05 MR Exp $
+// RCS-ID:      $Id: slider.h,v 1.27 2006/01/23 03:27:33 MR Exp $
 // Copyright:   (c) 1996-2001 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,8 +130,10 @@ private:
     #endif
 #elif defined(__WXMOTIF__)
     #include "wx/motif/slider.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/slider.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/slider.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/slider.h"
 #elif defined(__WXCOCOA__)

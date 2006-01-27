@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: bmpbuttn.h,v 1.28 2006/01/16 14:59:02 MR Exp $
+// RCS-ID:      $Id: bmpbuttn.h,v 1.29 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -105,8 +105,10 @@ inline void wxBitmapButtonBase::SetLabel(const wxBitmap& bitmap)
     #include "wx/msw/bmpbuttn.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/bmpbuttn.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/bmpbuttn.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/bmpbuttn.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/bmpbuttn.h"
 #elif defined(__WXCOCOA__)

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: colour.h,v 1.11 2005/05/04 18:51:55 JS Exp $
+// RCS-ID:      $Id: colour.h,v 1.13 2006/01/25 00:18:00 MW Exp $
 // Copyright:   Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,14 +12,18 @@
 #ifndef _WX_COLOUR_H_BASE_
 #define _WX_COLOUR_H_BASE_
 
+#include "wx/defs.h"
+
 #if defined(__WXPALMOS__)
 #include "wx/palmos/colour.h"
 #elif defined(__WXMSW__)
 #include "wx/msw/colour.h"
 #elif defined(__WXMOTIF__)
 #include "wx/motif/colour.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
 #include "wx/gtk/colour.h"
+#elif defined(__WXGTK__)
+#include "wx/gtk1/colour.h"
 #elif defined(__WXMGL__)
 #include "wx/mgl/colour.h"
 #elif defined(__WXX11__)

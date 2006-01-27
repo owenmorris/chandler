@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: scrolwin.h,v 1.31 2005/10/11 12:50:23 VZ Exp $
+// RCS-ID:      $Id: scrolwin.h,v 1.32 2006/01/23 03:27:33 MR Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -245,8 +245,10 @@ protected:
         { return ScrollGetWindowSizeForVirtualSize(size); }
 
 // include the declaration of wxScrollHelperNative if needed
-#if defined(__WXGTK__) && !defined(__WXUNIVERSAL__)
+#if defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)
     #include "wx/gtk/scrolwin.h"
+#elif defined(__WXGTK__) && !defined(__WXUNIVERSAL__)
+    #include "wx/gtk1/scrolwin.h"
 #else
     typedef wxScrollHelper wxScrollHelperNative;
 #endif

@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     22.04.01
-// RCS-ID:      $Id: bitmap.h,v 1.30 2005/09/23 12:48:31 MR Exp $
+// RCS-ID:      $Id: bitmap.h,v 1.31 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,8 +167,10 @@ protected:
 #include "wx/msw/bitmap.h"
 #elif defined(__WXMOTIF__)
 #include "wx/x11/bitmap.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
 #include "wx/gtk/bitmap.h"
+#elif defined(__WXGTK__)
+#include "wx/gtk1/bitmap.h"
 #elif defined(__WXX11__)
 #include "wx/x11/bitmap.h"
 #elif defined(__WXMGL__)

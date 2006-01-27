@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: scrolbar.h,v 1.15 2006/01/16 14:59:05 MR Exp $
+// RCS-ID:      $Id: scrolbar.h,v 1.16 2006/01/23 03:27:33 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -62,8 +62,10 @@ private:
     #include "wx/msw/scrolbar.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/scrolbar.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/scrolbar.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/scrolbar.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/scrolbar.h"
 #elif defined(__WXCOCOA__)

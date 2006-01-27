@@ -5,12 +5,14 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: dcscreen.h,v 1.13 2005/05/04 18:51:56 JS Exp $
+// RCS-ID:      $Id: dcscreen.h,v 1.15 2006/01/25 00:18:01 MW Exp $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DCSCREEN_H_BASE_
 #define _WX_DCSCREEN_H_BASE_
+
+#include "wx/defs.h"
 
 #if defined(__WXPALMOS__)
 #include "wx/palmos/dcscreen.h"
@@ -18,8 +20,10 @@
 #include "wx/msw/dcscreen.h"
 #elif defined(__WXMOTIF__)
 #include "wx/motif/dcscreen.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
 #include "wx/gtk/dcscreen.h"
+#elif defined(__WXGTK__)
+#include "wx/gtk1/dcscreen.h"
 #elif defined(__WXX11__)
 #include "wx/x11/dcscreen.h"
 #elif defined(__WXMGL__)

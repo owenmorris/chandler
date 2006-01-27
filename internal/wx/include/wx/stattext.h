@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: stattext.h,v 1.24 2006/01/16 14:59:05 MR Exp $
+// RCS-ID:      $Id: stattext.h,v 1.25 2006/01/23 03:27:34 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -49,8 +49,10 @@ private:
     #include "wx/msw/stattext.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/stattext.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/stattext.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/stattext.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/stattext.h"
 #elif defined(__WXCOCOA__)

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: icon.h,v 1.16 2005/05/04 18:51:59 JS Exp $
+// RCS-ID:      $Id: icon.h,v 1.17 2006/01/23 03:27:32 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -20,8 +20,10 @@
   #include "wx/msw/icon.h"
 #elif defined(__WXMOTIF__)
   #include "wx/motif/icon.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
   #include "wx/gtk/icon.h"
+#elif defined(__WXGTK__)
+  #include "wx/gtk1/icon.h"
 #elif defined(__WXX11__)
   #include "wx/x11/icon.h"
 #elif defined(__WXMGL__)

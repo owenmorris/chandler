@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupwin.h,v 1.37 2005/09/23 12:48:45 MR Exp $
+// RCS-ID:      $Id: popupwin.h,v 1.38 2006/01/23 03:27:33 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,8 +56,10 @@ public:
     #include "wx/msw/popupwin.h"
 #elif defined(__WXPM__)
     #include "wx/os2/popupwin.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/popupwin.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/popupwin.h"
 #elif defined(__WXX11__)
     #include "wx/x11/popupwin.h"
 #elif defined(__WXMOTIF__)

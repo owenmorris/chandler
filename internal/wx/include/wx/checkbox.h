@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: checkbox.h,v 1.24 2006/01/16 14:59:03 MR Exp $
+// RCS-ID:      $Id: checkbox.h,v 1.25 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -127,8 +127,10 @@ private:
     #include "wx/msw/checkbox.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/checkbox.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/checkbox.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/checkbox.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/checkbox.h"
 #elif defined(__WXCOCOA__)

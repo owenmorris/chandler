@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: cursor.h,v 1.18 2005/05/22 14:03:47 VZ Exp $
+// RCS-ID:      $Id: cursor.h,v 1.19 2006/01/23 03:27:31 MR Exp $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -20,8 +20,10 @@
     #include "wx/msw/cursor.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/cursor.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/cursor.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/cursor.h"
 #elif defined(__WXX11__)
     #include "wx/x11/cursor.h"
 #elif defined(__WXMGL__)

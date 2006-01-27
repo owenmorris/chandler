@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: choice.h,v 1.38 2006/01/16 14:59:03 MR Exp $
+// RCS-ID:      $Id: choice.h,v 1.39 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,8 +64,10 @@ private:
     #include "wx/msw/choice.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/choice.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/choice.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/choice.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/choice.h"
 #elif defined(__WXCOCOA__)

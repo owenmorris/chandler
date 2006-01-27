@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.07.99
-// RCS-ID:      $Id: textctrl.h,v 1.76 2006/01/16 14:59:05 MR Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.77 2006/01/23 03:27:34 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -422,8 +422,10 @@ protected:
     #include "wx/msw/textctrl.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/textctrl.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/textctrl.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/textctrl.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/textctrl.h"
 #elif defined(__WXCOCOA__)

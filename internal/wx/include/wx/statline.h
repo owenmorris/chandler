@@ -3,7 +3,7 @@
 // Purpose:     wxStaticLine class interface
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statline.h,v 1.15 2006/01/16 14:59:05 MR Exp $
+// Version:     $Id: statline.h,v 1.16 2006/01/23 03:27:34 MR Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -84,8 +84,10 @@ protected:
     #include "wx/univ/statline.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/statline.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/statline.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/statline.h"
 #elif defined(__WXPM__)
     #include "wx/os2/statline.h"
 #elif defined(__WXMAC__)

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.12.00
-// RCS-ID:      $Id: combobox.h,v 1.16 2006/01/16 14:59:03 MR Exp $
+// RCS-ID:      $Id: combobox.h,v 1.17 2006/01/23 03:27:31 MR Exp $
 // Copyright:   (c) 1996-2000 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,8 +75,10 @@ public:
     #include "wx/msw/combobox.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/combobox.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/combobox.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/combobox.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/combobox.h"
 #elif defined(__WXCOCOA__)

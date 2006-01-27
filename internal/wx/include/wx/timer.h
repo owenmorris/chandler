@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin (wxTimerBase)
 //              Guillermo Rodriguez (global clean up)
 // Created:     04/01/98
-// RCS-ID:      $Id: timer.h,v 1.54 2005/09/23 12:48:48 MR Exp $
+// RCS-ID:      $Id: timer.h,v 1.55 2006/01/23 03:27:34 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -112,8 +112,10 @@ protected:
     #include "wx/msw/timer.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/timer.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/timer.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/timer.h"
 #elif defined(__WXX11__) || defined(__WXMGL__)
     #include "wx/generic/timer.h"
 #elif defined (__WXCOCOA__)

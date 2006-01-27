@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: font.h,v 1.51 2005/09/23 12:48:39 MR Exp $
+// RCS-ID:      $Id: font.h,v 1.52 2006/01/23 03:27:32 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -233,8 +233,10 @@ private:
     #include "wx/msw/font.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/font.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/font.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/font.h"
 #elif defined(__WXX11__)
     #include "wx/x11/font.h"
 #elif defined(__WXMGL__)

@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     31.05.01 (extracted from other files)
-// RCS-ID:      $Id: accel.h,v 1.16 2005/01/21 18:48:17 ABX Exp $
+// RCS-ID:      $Id: accel.h,v 1.17 2006/01/23 03:27:30 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,8 +118,10 @@ private:
     #include "wx/msw/accel.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/accel.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/accel.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/accel.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/accel.h"
 #elif defined(__WXCOCOA__)

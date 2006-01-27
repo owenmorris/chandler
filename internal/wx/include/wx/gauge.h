@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id: gauge.h,v 1.26 2006/01/16 14:59:04 MR Exp $
+// RCS-ID:      $Id: gauge.h,v 1.27 2006/01/23 03:27:32 MR Exp $
 // Copyright:   (c) 1996-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,8 +92,10 @@ protected:
     #define wxGauge wxGauge95
 #elif defined(__WXMOTIF__)
     #include "wx/motif/gauge.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/gauge.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/gauge.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/gauge.h"
 #elif defined(__WXCOCOA__)

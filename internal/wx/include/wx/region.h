@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: region.h,v 1.15 2005/05/04 18:52:02 JS Exp $
+// RCS-ID:      $Id: region.h,v 1.16 2006/01/23 03:27:33 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,8 +18,10 @@
     #include "wx/palmos/region.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/region.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/region.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/region.h"
 #elif defined(__WXMOTIF__) || defined(__WXX11__)
     #include "wx/x11/region.h"
 #elif defined(__WXMGL__)

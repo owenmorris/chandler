@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: tooltip.h,v 1.9 2005/05/04 18:52:05 JS Exp $
+// RCS-ID:      $Id: tooltip.h,v 1.10 2006/01/23 03:27:34 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -20,8 +20,10 @@
 #include "wx/msw/tooltip.h"
 #elif defined(__WXMOTIF__)
 // #include "wx/motif/tooltip.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
 #include "wx/gtk/tooltip.h"
+#elif defined(__WXGTK__)
+#include "wx/gtk1/tooltip.h"
 #elif defined(__WXMAC__)
 #include "wx/mac/tooltip.h"
 #elif defined(__WXCOCOA__)

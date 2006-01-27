@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.02.01
-// RCS-ID:      $Id: notebook.h,v 1.56 2006/01/16 14:59:04 MR Exp $
+// RCS-ID:      $Id: notebook.h,v 1.57 2006/01/23 03:27:33 MR Exp $
 // Copyright:   (c) 1996-2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -152,8 +152,10 @@ typedef void (wxEvtHandler::*wxNotebookEventFunction)(wxNotebookEvent&);
     #include  "wx/msw/notebook.h"
 #elif defined(__WXMOTIF__)
     #include  "wx/generic/notebook.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include  "wx/gtk/notebook.h"
+#elif defined(__WXGTK__)
+    #include  "wx/gtk1/notebook.h"
 #elif defined(__WXMAC__)
     #include  "wx/mac/notebook.h"
 #elif defined(__WXCOCOA__)

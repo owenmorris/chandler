@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: filedlg.h,v 1.42 2006/01/16 14:59:03 MR Exp $
+// RCS-ID:      $Id: filedlg.h,v 1.44 2006/01/23 14:29:22 MW Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -168,8 +168,10 @@ wxSaveFileSelector(const wxChar *what,
 #include "wx/msw/filedlg.h"
 #elif defined(__WXMOTIF__)
 #include "wx/motif/filedlg.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
 #include "wx/gtk/filedlg.h"
+#elif defined(__WXGTK__)
+#include "wx/gtk1/filedlg.h"
 #elif defined(__WXX11__)
 #include "wx/generic/filedlgg.h"
 #elif defined(__WXMGL__)

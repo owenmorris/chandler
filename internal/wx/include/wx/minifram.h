@@ -5,12 +5,14 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: minifram.h,v 1.9 2005/05/04 18:52:00 JS Exp $
+// RCS-ID:      $Id: minifram.h,v 1.11 2006/01/25 00:18:01 MW Exp $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MINIFRAM_H_BASE_
 #define _WX_MINIFRAMH_BASE_
+
+#include "wx/defs.h"
 
 #if defined(__WXPALMOS__)
 #include "wx/palmos/minifram.h"
@@ -18,8 +20,10 @@
 #include "wx/msw/minifram.h"
 #elif defined(__WXMOTIF__)
 #include "wx/motif/minifram.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
 #include "wx/gtk/minifram.h"
+#elif defined(__WXGTK__)
+#include "wx/gtk1/minifram.h"
 #elif defined(__WXX11__)
 #include "wx/x11/minifram.h"
 #elif defined(__WXMAC__)

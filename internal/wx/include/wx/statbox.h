@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: statbox.h,v 1.19 2006/01/16 14:59:05 MR Exp $
+// RCS-ID:      $Id: statbox.h,v 1.20 2006/01/23 03:27:34 MR Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -56,8 +56,10 @@ private:
     #include "wx/msw/statbox.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/statbox.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/statbox.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/statbox.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/statbox.h"
 #elif defined(__WXCOCOA__)
