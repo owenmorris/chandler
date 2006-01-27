@@ -2831,8 +2831,12 @@ typedef struct _GtkNotebook       GtkNotebook;
 typedef struct _GtkNotebookPage   GtkNotebookPage;
 typedef struct _GtkAccelGroup     GtkAccelGroup;
 typedef struct _GtkItemFactory    GtkItemFactory;
-typedef struct _GtkSelectionData  GtkSelectionData;
 typedef struct _GtkTextBuffer     GtkTextBuffer;
+
+// OSAF: FIXME - hack around wxGTK "dup symbol redef" compilation error at SVN 9190
+ #ifndef __GTK_CONTAINER_H__
+028typedef struct _GtkSelectionData  GtkSelectionData;
+#endif
 
 typedef GtkWidget *WXWidget;
 
