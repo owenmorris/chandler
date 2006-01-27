@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.06.99
-// RCS-ID:      $Id: dlgcmn.cpp,v 1.50 2006/01/15 10:06:12 ABX Exp $
+// RCS-ID:      $Id: dlgcmn.cpp,v 1.51 2006/01/27 00:23:48 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -262,13 +262,15 @@ private:
     wxString m_text;
 };
 
+// NB: don't "factor out" the scope operator, SGI MIPSpro 7.2 gets confused if
+//     it doesn't immediately follow the class name
 void
 #if defined(__WXGTK__) && !defined(__WXUNIVERSAL__)
-wxStaticText
+wxStaticText::
 #else
-wxStaticTextBase
+wxStaticTextBase::
 #endif
-::Wrap(int width)
+Wrap(int width)
 {
     wxLabelWrapper wrapper;
     wrapper.WrapLabel(this, width);
