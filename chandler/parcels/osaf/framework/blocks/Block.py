@@ -882,10 +882,11 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
                     spacerRequired = False
                     break
         """
-          wxWindows sizers only allow borders with the same width, or no width, however
-        blocks allow borders of different sizes for each of the 4 edges, so we need to
-        simulate this by adding spacers. I'm postponing this case for Jed to finish, and
-        until then an assert will catch this case. DJA
+          wxWindows sizers only allow borders with the same width, or
+          no width, however blocks allow borders of different sizes
+          for each of the 4 edges, so we need to simulate this by
+          adding spacers. I'm postponing this case for Jed to finish,
+          and until then an assert will catch this case. DJA
         """
         assert not spacerRequired
         

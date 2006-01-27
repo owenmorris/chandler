@@ -215,9 +215,12 @@ class AttributeDelegate (ListDelegate):
                 try:
                     typeName = item.getAttributeAspect (attributeName, 'type').itsName
                 except NoSuchAttributeError:
-                    # We special-case the non-Chandler attributes we want to use (_after_ trying the
-                    # Chandler attribute, to avoid a hit on Chandler-attribute performance). If we
-                    # want to add other itsKind-like non-Chandler attributes, we'd add more tests here.
+                    # We special-case the non-Chandler attributes we
+                    # want to use (_after_ trying the Chandler
+                    # attribute, to avoid a hit on Chandler-attribute
+                    # performance). If we want to add other
+                    # itsKind-like non-Chandler attributes, we'd add
+                    # more tests here.
                     raise
             elif attributeName == 'itsKind':
                 typeName = 'Kind'
