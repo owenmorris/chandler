@@ -77,15 +77,13 @@ clean: PyICU-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
-	$(MD5) $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz > $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz.md5
+        tar -cvzf $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 
 install: PyICU-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf PyICU-$(SNAP)-$(RELVER).tar.gz
 
 upload: $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz
 	scp $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 sources: PyICU-$(VERSION)-expanded
 

@@ -125,15 +125,13 @@ clean:
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
-	$(MD5) $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz > $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz.md5
+        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 
 install: PyLucene-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf PyLucene-$(SNAP)-$(RELVER).tar.gz
 
 upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
 	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 PyLucene-src-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/PyLucene-src-$(VERSION).tar.gz

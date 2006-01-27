@@ -39,19 +39,16 @@ binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/lib/libreadline* \
-          --exclude '*.a';
-	$(MD5) $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz > $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz.md5   
+          --exclude '*.a'
 
 upload: readline-$(SNAP)-$(RELVER).tar.gz
 	scp readline-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp readline-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 install: readline-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf readline-$(SNAP)-$(RELVER).tar.gz
 
 readline-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/readline-$(VERSION).tar.gz 
-#	$(CURL) http://builds.o11n.org/external/readline-$(VERSION).tar.gz.md5
 
 sources: readline-$(VERSION).tar.gz
 

@@ -70,7 +70,6 @@ openssl: apply $(SRC)/$(BUILD)
 
 upload: openssl-$(SNAP)-$(RELVER).tar.gz
 	scp openssl-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp openssl-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 install: openssl-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf openssl-$(SNAP)-$(RELVER).tar.gz
@@ -85,8 +84,7 @@ binaries:
           $(SNAP)/lib/libcrypto.dylib \
           $(SNAP)/lib/libssl.0.9.7.dylib \
           $(SNAP)/lib/libssl.0.dylib \
-          $(SNAP)/lib/libssl.dylib;
-	$(MD5) $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz > $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/lib/libssl.dylib
 
 else
 
@@ -98,15 +96,13 @@ binaries:
           $(SNAP)/lib/libcrypto.so \
           $(SNAP)/lib/libssl.so.0.9.7 \
           $(SNAP)/lib/libssl.so.0 \
-          $(SNAP)/lib/libssl.so;
-	$(MD5) $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz > $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/lib/libssl.so
 
 endif # if OS X or linux
 endif # if Cygwin or not
 
 openssl-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz.md5
 
 sources: openssl-$(VERSION).tar.gz
 

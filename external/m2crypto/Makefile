@@ -57,15 +57,13 @@ binaries:
       find $(SNAP)/$(SITE)/M2Crypto -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/M2Crypto -name "*.pyo" | xargs rm -f; \
       tar -cvzf $(BUILD_ROOT)/m2crypto/m2crypto-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/$(SITE)/M2Crypto;
-	$(MD5) $(BUILD_ROOT)/m2crypto/m2crypto-$(SNAP)-$(RELVER).tar.gz > $(BUILD_ROOT)/m2crypto/m2crypto-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/$(SITE)/M2Crypto
 
 install: binaries #m2crypto-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 	scp m2crypto-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp m2crypto-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

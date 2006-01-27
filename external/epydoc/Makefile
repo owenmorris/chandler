@@ -22,7 +22,6 @@ build: expand apply
 
 epydoc-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz.md5
 
 sources: epydoc-$(VERSION).tar.gz
 
@@ -38,15 +37,13 @@ binaries:
       find $(SNAP)/$(SITE)/epydoc -name "*.pyo" | xargs rm -f; \
       tar -cvzf $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz \
           --exclude test \
-          $(SNAP)/$(SITE)/epydoc;
-	$(MD5) $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz > $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/$(SITE)/epydoc
 
 install: epydoc-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf epydoc-$(SNAP)-$(RELVER).tar.gz
 
 upload: epydoc-$(SNAP)-$(RELVER).tar.gz
 	scp epydoc-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp epydoc-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

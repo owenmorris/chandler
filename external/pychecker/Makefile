@@ -26,7 +26,6 @@ build: expand
 
 pychecker-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/pychecker-$(VERSION).tar.gz
-#	$(CURL) http://builds.o11n.org/external/pychecker-$(VERSION).tar.gz.md5
 
 sources: pychecker-$(VERSION).tar.gz
 
@@ -42,15 +41,13 @@ binaries:
       find $(SNAP)/$(SITE)/pychecker -name "*.pyo" | xargs rm -f; \
       tar -cvzf $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/$(SITE)/pychecker \
-          $(SNAP)/$(BIN)/pychecker*;
-	$(MD5) $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz > $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz.md5
+          $(SNAP)/$(BIN)/pychecker*
 
 install: pychecker-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf pychecker-$(SNAP)-$(RELVER).tar.gz
 
 upload: pychecker-$(SNAP)-$(RELVER).tar.gz
 	scp pychecker-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp pychecker-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
