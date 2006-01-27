@@ -26421,6 +26421,8 @@ ALL_DIST: distrib_clean
 	mkdir $(DISTDIR)/include
 	mkdir $(DISTDIR)/include/wx
 	$(CP_P) $(INCDIR)/wx/fmappriv.h $(DISTDIR)/include/wx
+	mkdir $(DISTDIR)/build/aclocal
+	$(CP_P) $(WXDIR)/build/aclocal/*.m4 $(DISTDIR)/build/aclocal
 
 # this target is the common part of distribution script for all GUI toolkits,
 # but is not used when building wxBase distribution
@@ -26562,6 +26564,14 @@ GTK_DIST: UNIV_DIST
 	$(CP_P) $(GTKDIR)/*.c $(DISTDIR)/src/gtk
 	$(CP_P) $(GTKDIR)/*.xbm $(DISTDIR)/src/gtk
 	$(CP_P) $(GTKDIR)/*.mms $(DISTDIR)/src/gtk
+	mkdir $(DISTDIR)/include/wx/gtk1
+	$(CP_P) $(INCDIR)/wx/gtk1/*.h $(DISTDIR)/include/wx/gtk1
+	mkdir $(DISTDIR)/src/gtk1
+	$(CP_P) $(GTK1DIR)/*.h $(DISTDIR)/src/gtk1
+	$(CP_P) $(GTK1DIR)/*.cpp $(DISTDIR)/src/gtk1
+	$(CP_P) $(GTK1DIR)/*.c $(DISTDIR)/src/gtk1
+	$(CP_P) $(GTK1DIR)/*.xbm $(DISTDIR)/src/gtk1
+	$(CP_P) $(GTK1DIR)/*.mms $(DISTDIR)/src/gtk1
 
 	mkdir $(DISTDIR)/include/wx/gtk/gnome
 	mkdir $(DISTDIR)/src/gtk/gnome

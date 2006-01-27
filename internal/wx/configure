@@ -14831,48 +14831,6 @@ echo "${ECHO_T}no, using $LN_S" >&6
 fi
 
 
-for ac_prog in lndir
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_LNDIR+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$LNDIR"; then
-  ac_cv_prog_LNDIR="$LNDIR" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_LNDIR="$ac_prog"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-LNDIR=$ac_cv_prog_LNDIR
-if test -n "$LNDIR"; then
-  echo "$as_me:$LINENO: result: $LNDIR" >&5
-echo "${ECHO_T}$LNDIR" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-  test -n "$LNDIR" && break
-done
-test -n "$LNDIR" || LNDIR="cp -pR"
-
-
 
 
 if test "x$XLCXX" = "xyes" -a "x$USE_AIX" = "x1"; then
@@ -47468,14 +47426,39 @@ EOF
         COND_TOOLKIT_GTK=""
     fi
 
+    COND_TOOLKIT_GTK_TOOLKIT_VERSION_="#"
+    if test "x$TOOLKIT" = "xGTK" -a "x$TOOLKIT_VERSION" = "x" ; then
+        COND_TOOLKIT_GTK_TOOLKIT_VERSION_=""
+    fi
+
+    COND_TOOLKIT_GTK_TOOLKIT_VERSION_2="#"
+    if test "x$TOOLKIT" = "xGTK" -a "x$TOOLKIT_VERSION" = "x2" ; then
+        COND_TOOLKIT_GTK_TOOLKIT_VERSION_2=""
+    fi
+
+    COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1="#"
+    if test "x$TOOLKIT" = "xGTK" -a "x$TOOLKIT_VERSION" = "x2" -a "x$USE_GUI" = "x1" ; then
+        COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1=""
+    fi
+
+    COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1_WXUNIV_0="#"
+    if test "x$TOOLKIT" = "xGTK" -a "x$TOOLKIT_VERSION" = "x2" -a "x$USE_GUI" = "x1" -a "x$WXUNIV" = "x0" ; then
+        COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1_WXUNIV_0=""
+    fi
+
+    COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1="#"
+    if test "x$TOOLKIT" = "xGTK" -a "x$TOOLKIT_VERSION" = "x" -a "x$USE_GUI" = "x1" ; then
+        COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1=""
+    fi
+
+    COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0="#"
+    if test "x$TOOLKIT" = "xGTK" -a "x$TOOLKIT_VERSION" = "x" -a "x$USE_GUI" = "x1" -a "x$WXUNIV" = "x0" ; then
+        COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0=""
+    fi
+
     COND_TOOLKIT_GTK_USE_GUI_1="#"
     if test "x$TOOLKIT" = "xGTK" -a "x$USE_GUI" = "x1" ; then
         COND_TOOLKIT_GTK_USE_GUI_1=""
-    fi
-
-    COND_TOOLKIT_GTK_USE_GUI_1_WXUNIV_0="#"
-    if test "x$TOOLKIT" = "xGTK" -a "x$USE_GUI" = "x1" -a "x$WXUNIV" = "x0" ; then
-        COND_TOOLKIT_GTK_USE_GUI_1_WXUNIV_0=""
     fi
 
     COND_TOOLKIT_MAC="#"
@@ -48962,8 +48945,13 @@ s,@COND_TOOLKIT_COCOA@,$COND_TOOLKIT_COCOA,;t t
 s,@COND_TOOLKIT_COCOA_USE_GUI_1@,$COND_TOOLKIT_COCOA_USE_GUI_1,;t t
 s,@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@,$COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0,;t t
 s,@COND_TOOLKIT_GTK@,$COND_TOOLKIT_GTK,;t t
+s,@COND_TOOLKIT_GTK_TOOLKIT_VERSION_@,$COND_TOOLKIT_GTK_TOOLKIT_VERSION_,;t t
+s,@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@,$COND_TOOLKIT_GTK_TOOLKIT_VERSION_2,;t t
+s,@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@,$COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1,;t t
+s,@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1_WXUNIV_0@,$COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1_WXUNIV_0,;t t
+s,@COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@,$COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1,;t t
+s,@COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@,$COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0,;t t
 s,@COND_TOOLKIT_GTK_USE_GUI_1@,$COND_TOOLKIT_GTK_USE_GUI_1,;t t
-s,@COND_TOOLKIT_GTK_USE_GUI_1_WXUNIV_0@,$COND_TOOLKIT_GTK_USE_GUI_1_WXUNIV_0,;t t
 s,@COND_TOOLKIT_MAC@,$COND_TOOLKIT_MAC,;t t
 s,@COND_TOOLKIT_MAC_USE_GUI_1@,$COND_TOOLKIT_MAC_USE_GUI_1,;t t
 s,@COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@,$COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0,;t t
