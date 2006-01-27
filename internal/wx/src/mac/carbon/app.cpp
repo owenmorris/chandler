@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.cpp,v 1.196 2006/01/25 13:08:09 SC Exp $
+// RCS-ID:      $Id: app.cpp,v 1.197 2006/01/27 17:04:15 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1522,7 +1522,6 @@ bool wxApp::MacSendCharEvent( wxWindow* focus , long keymessage , long modifiers
     wxKeyEvent event(wxEVT_CHAR) ;
     MacCreateKeyEvent( event, focus , keymessage , modifiers , when , wherex , wherey , uniChar ) ;
     long keyval = event.m_keyCode ;
-    short realkeyval = short(keymessage & charCodeMask) ;
 
     bool handled = false ;
 
@@ -1531,9 +1530,6 @@ bool wxApp::MacSendCharEvent( wxWindow* focus , long keymessage , long modifiers
     if (tlw)
     {
         event.SetEventType( wxEVT_CHAR_HOOK );
-        // send original character, not the uppercase version
-        event.m_keyCode = realkeyval ;
-        
         handled = tlw->GetEventHandler()->ProcessEvent( event );
         if ( handled && event.GetSkipped() )
             handled = false ;
@@ -1597,7 +1593,6 @@ bool wxApp::MacSendCharEvent( wxWindow* focus , long keymessage , long modifiers
             }
         }
     }
-
     return handled ;
 }
 
@@ -1670,6 +1665,8 @@ void wxApp::MacCreateKeyEvent( wxKeyEvent& event, wxWindow* focus , long keymess
     event.m_keyCode = keyval ;
 #if wxUSE_UNICODE
     event.m_uniChar = uniChar ;
+    if ( event.GetEventType() == wxEVT_CHAR )
+        event.m_keyCode = uniChar ;
 #endif
 
     event.m_rawCode = keymessage;
