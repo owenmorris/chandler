@@ -2,9 +2,5 @@
 setlocal
 if "%CHANDLERHOME%"=="" set CHANDLERHOME=.
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
-if "%CHANDLERNOOPTIMIZE%"=="" set OPTIMIZE=-O
-echo CHANDLERHOME is %CHANDLERHOME%
-echo CHANDLERBIN is %CHANDLERBIN%
-path %CHANDLERBIN%\release\bin
-"%CHANDLERBIN%\release\bin\python.exe" %OPTIMIZE% "%CHANDLERHOME%\Chandler.py" %*
+"%CHANDLERBIN%\release\RunPython.bat" "%CHANDLERHOME%\Chandler.py" %*
 endlocal
