@@ -11,7 +11,11 @@ def get_divisions(l, key=None):
     i.e. in a list like
     [1, 1, 1, 2, 2, 3, 3, 4, 4, 4]
     return
-    [0, 3, 5, 7] because those are 
+    [0, 3, 5, 7] because those are the indexes of the first 1,2,3, and 4
+
+    You can use the key parameter to use another function to determine
+    the value to be used in the comparison. key() will only be called
+    once per value in the list.
     """
 
     division_stack = [(0,len(l)-1)]
