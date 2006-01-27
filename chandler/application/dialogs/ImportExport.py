@@ -235,7 +235,7 @@ class ImportDialog(FileChooserWithOptions):
             collection = share.get(monitor.callback)
         except:
             logger.exception("Failed importFile %s" % fullpath)
-            self.fail(_(u"There seems to be a problem with your file, we couldn't import it."))
+            self.fail(_(u"Problem with the file, import cancelled."))
             return False
 
         if targetCollection is None:
