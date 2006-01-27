@@ -4,7 +4,7 @@
 //              GtkFixed. It makes use of the gravity window property and
 //              therefore does not work with GTK 1.0.
 // Author:      Robert Roebling
-// Id:          $Id: win_gtk.c,v 1.72 2006/01/26 19:52:49 ABX Exp $
+// Id:          $Id: win_gtk.c,v 1.73 2006/01/27 15:43:16 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////// */
@@ -13,7 +13,7 @@
 #define XCheckIfEvent XCHECKIFEVENT
 #endif
 
-#include "wx/defs.h"
+#include "wx/platform.h"
 #include "wx/gtk/win_gtk.h"
 #include "gtk/gtksignal.h"
 #include "gtk/gtkprivate.h"

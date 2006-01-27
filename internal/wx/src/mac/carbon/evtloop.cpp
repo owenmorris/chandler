@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.cpp,v 1.2 2006/01/12 23:06:04 VZ Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.3 2006/01/27 09:50:40 SC Exp $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,7 @@
 #endif
 
 #include "wx/evtloop.h"
+#include "wx/app.h"
 
 #include <Carbon/Carbon.h>
 
