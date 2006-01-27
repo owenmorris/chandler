@@ -657,12 +657,20 @@ class wxEditText(DragAndDropTextCtrl):
 class AEStaticText(ShownSynchronizer,
                    wx.StaticText):
     """ 
-    Wrap wx.StaticText to give it the same GetValue/SetValue behavior
-    that other wx controls have. (This was simpler than putting lotsa special
-    cases all over the StringAttributeEditor...)
+    For some reason, wx.StaticText uses GetLabel/SetLabel instead of 
+    GetValue/SetValue; also, its Label functions don't display single ampersands
+    'cuz they might be menu accelerators.
+
+    To solve both these problems, I've added implementations of 
+    GetValue/SetValue that double any embedded ampersands.
     """
-    GetValue = wx.StaticText.GetLabel
-    SetValue = wx.StaticText.SetLabel
+    def GetValue(self):
+        """ Get the label, un-doubling any embedded ampersands """
+        return self.GetLabel().replace(u'&&', u'&')
+    
+    def SetValue(self, newValue):
+        """ Set the label, doubling any embedded ampersands """
+        self.SetLabel(newValue.replace(u'&', u'&&'))
     
 def NotifyBlockToSaveValue(widget):
     """ Notify this widget's block to save its value when we lose focus """
