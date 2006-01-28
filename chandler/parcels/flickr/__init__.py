@@ -30,15 +30,14 @@ class FlickrPhotoMixin(PhotoMixin):
     """
     A mixin that adds flickr attributes to a Note item
     """
-    schema.kindInfo(displayName=u"Flickr Photo Mixin",
-                    displayAttribute="displayName")
+    schema.kindInfo(displayName=u"Flickr Photo Mixin")
 
-    flickrID = schema.One(schema.Text, displayName=u"Flickr ID")
-    imageURL = schema.One(schema.URL, displayName=u"imageURL")
-    datePosted = schema.One(schema.DateTime, displayName=u"Upload Date")
-    tags = schema.Sequence(displayName=u"Tag")
-    owner = schema.One(schema.Text, displayName=_(u"owner"))
-    who = schema.One(redirectTo="owner")
+    flickrID = schema.One (schema.Text)
+    imageURL = schema.One (schema.URL)
+    datePosted = schema.One (schema.DateTime)
+    tags = schema.Sequence ()
+    owner = schema.One (schema.Text)
+    who = schema.One (redirectTo="owner")
 
     schema.addClouds(sharing = schema.Cloud(owner, flickrID, imageURL, tags))
 
@@ -74,7 +73,7 @@ class Tag(pim.ContentItem):
     """
     schema.kindInfo(displayName=u"Flickr Tag")
 
-    itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags, displayName=u"Tag")
+    itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags)
 
     @classmethod
     def getTag (cls, view, tagName):
@@ -111,12 +110,9 @@ class PhotoCollection(pim.ListCollection):
     """
     schema.kindInfo(displayName=u"Collection of Flickr Photos")
 
-    userName = schema.One(
-        schema.Text, displayName=messages.USERNAME, initialValue=u''
-    )
-    tag = schema.One(
-        Tag, displayName=u"Tag", initialValue=None
-    )
+    userName = schema.One (schema.Text, initialValue=u'')
+    tag = schema.One (Tag, initialValue=None)
+    fillInBackground = schema.One (schema.Boolean, defaultValue=False)
 
     def onAddToCollection (self, event):
         """
@@ -131,6 +127,7 @@ class PhotoCollection(pim.ListCollection):
                 _(u"Enter a Flickr user name"))
             if userName is not None:
                 self.userName = userName
+                self.displayName = userName
         else:
             assert (event.collectionType == 'Tag')
             tagString = application.dialogs.Util.promptUser(
@@ -138,6 +135,7 @@ class PhotoCollection(pim.ListCollection):
                 _(u"Enter a Flickr Tag"))
             if tagString is not None:
                 self.tag = Tag.getTag(self.itsView, tagString)
+                self.displayName = self.tag.displayName
 
         if self.userName or self.tag:
             try:
@@ -145,6 +143,7 @@ class PhotoCollection(pim.ListCollection):
             except flickr.FlickrError, fe:
                 wx.MessageBox (unicode(fe))
             else:
+                self.fillInBackground = True
                 result = self
 
         return result
@@ -155,14 +154,13 @@ class PhotoCollection(pim.ListCollection):
         Fills the collection with photos from the flickr website.
         """
         coll = pim.ListCollection(itsView = repView).setup()
-        flickrPhotos = None
         if self.userName:
             flickrUserName = flickr.people_findByUsername(self.userName.encode('utf8'))
             flickrPhotos = flickr.people_getPublicPhotos(flickrUserName.id,10)
-            self.displayName = self.userName
         elif self.tag:
             flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-desc")
-            self.displayName = self.tag.displayName
+        else:
+            assert (False) #we should have either a userName or tag
 
         #All newly created Items go in userdata.
         userdata = self.itsView.findPath ("//userdata")
@@ -172,24 +170,22 @@ class PhotoCollection(pim.ListCollection):
         # makes it easy to quickly lookup any photo by index.
         userdata = self.itsView.findPath ("//userdata")
         flickrPhotosCollection = schema.ns('flickr', repView).flickrPhotosCollection
+        for flickrPhoto in flickrPhotos:
+            """
+            If we've already downloaded a photo with this id use it instead.
+            """
+            photoUUID = flickrPhotosCollection.findInIndex (
+                'flickrIDIndex', # name of Index
+                'exact',         # require an exact match
+                lambda UUID: cmp(flickrPhoto.id, repView[UUID].flickrID)) # compare function
 
-        if flickrPhotos is not None:
-            for flickrPhoto in flickrPhotos:
-                """
-                If we've already downloaded a photo with this id use it instead.
-                """
-                photoUUID = flickrPhotosCollection.findInIndex (
-                    'flickrIDIndex', # name of Index
-                    'exact',         # require an exact match
-                    lambda UUID: cmp(flickrPhoto.id, repView[UUID].flickrID)) # compare function
+            if photoUUID is None:
+                photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView, itsParent=userdata)
+            else:
+                photoItem = repView [photoUUID]
 
-                if photoUUID is None:
-                    photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView, itsParent=userdata)
-                else:
-                    photoItem = repView [photoUUID]
-
-                self.add (photoItem)
-            repView.commit()
+            self.add (photoItem)
+        repView.commit()
 
 class UpdateTask:
     """
@@ -204,12 +200,12 @@ class UpdateTask:
         # We need the view for most repository operations
         self.view.refresh()
 
-        # We need the Kind object for PhotoCollection
+        # Go through all the PhotoCollections and update those that
+        # have fillInBackground set. fillCollectionFromFlickr commits
         for myPhotoCollection in PhotoCollection.iterItems(self.view):
-            myPhotoCollection.fillCollectionFromFlickr(self.view)
+            if myPhotoCollection.fillInBackground:
+                myPhotoCollection.fillCollectionFromFlickr(self.view)
 
-        # We want to commit the changes to the repository
-        self.view.commit()
         return True
 
 class CollectionTypeEnumType(schema.Enumeration):
@@ -247,6 +243,7 @@ def installParcel(parcel, oldVersion=None):
     # A NewFlickrCollectionEvent that adds a "Owner" collection to the sidebar
     newFlickrCollectionByOwnerEvent = NewFlickrCollectionEvent.update(
         parcel, 'newFlickrCollectionByOwnerEvent',
+        blockName = 'newFlickrCollectionByOwnerEvent',
         methodName='onModifyCollectionEvent',
         copyItems = True,
         disambiguateDisplayName = True,
@@ -260,6 +257,7 @@ def installParcel(parcel, oldVersion=None):
     # A NewFlickrCollectionEvent that adds a "Tag" collection to the sidebar
     newFlickrCollectionByTagEvent = NewFlickrCollectionEvent.update(
         parcel, 'newFlickrCollectionByTagEvent',
+        blockName = 'newFlickrCollectionByTagEvent',
         methodName='onModifyCollectionEvent',
         copyItems = True,
         disambiguateDisplayName = True,
@@ -273,31 +271,35 @@ def installParcel(parcel, oldVersion=None):
     # Add menu items to Chandler
     collectionMenu = schema.ns('osaf.views.main', parcel).CollectionMenu
 
-    MenuItem.update(parcel, 'FlickrParcelSeparator',
-                    blockName = 'FlickrParcelSeparator',
-                    menuItemKind = 'Separator',
-                    parentBlock = collectionMenu)
+    MenuItem.update(
+        parcel, 'FlickrParcelSeparator',
+        blockName = 'FlickrParcelSeparator',
+        menuItemKind = 'Separator',
+        parentBlock = collectionMenu)
 
-    MenuItem.update(parcel, 'NewFlickrCollectionByOwner',
-                    blockName = 'NewFlickrCollectionByOwnerMenuItem',
-                    title = _(u'New Flickr Collection by Owner'),
-                    event = newFlickrCollectionByOwnerEvent,
-                    eventsForNamedLookup = [newFlickrCollectionByOwnerEvent],
-                    parentBlock = collectionMenu)
+    MenuItem.update(
+        parcel, 'NewFlickrCollectionByOwner',
+        blockName = 'NewFlickrCollectionByOwnerMenuItem',
+        title = _(u'New Flickr Collection by Owner'),
+        event = newFlickrCollectionByOwnerEvent,
+        eventsForNamedLookup = [newFlickrCollectionByOwnerEvent],
+        parentBlock = collectionMenu)
  
-    MenuItem.update(parcel, 'NewFlickrCollectionByTag',
-                    blockName = 'NewFlickrCollectionByTagIMenutem',
-                    title = _(u'New Flickr Collection by Tag'),
-                    event = newFlickrCollectionByTagEvent,
-                    eventsForNamedLookup = [newFlickrCollectionByTagEvent],
-                    parentBlock = collectionMenu)
+    MenuItem.update(
+        parcel, 'NewFlickrCollectionByTag',
+        blockName = 'NewFlickrCollectionByTagIMenutem',
+        title = _(u'New Flickr Collection by Tag'),
+        event = newFlickrCollectionByTagEvent,
+        eventsForNamedLookup = [newFlickrCollectionByTagEvent],
+        parentBlock = collectionMenu)
 
 
     # The periodic task that adds new photos to the collection in the background
-    PeriodicTask.update(parcel, 'FlickrUpdateTask',
-                        invoke = 'flickr.UpdateTask',
-                        run_at_startup = True,
-                        interval = timedelta(minutes=2))
+    PeriodicTask.update(
+        parcel, 'FlickrUpdateTask',
+        invoke = 'flickr.UpdateTask',
+        run_at_startup = True,
+        interval = timedelta(minutes=2))
 
 
     # The detail view used to display a flickrPhoto
