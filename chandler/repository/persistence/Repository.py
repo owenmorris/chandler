@@ -250,6 +250,9 @@ class Store(object):
     def loadItem(self, view, version, uuid):
         raise NotImplementedError, "%s.loadItem" %(type(self))
     
+    def loadValue(self, view, version, uuid, name):
+        raise NotImplementedError, "%s.loadValue" %(type(self))
+    
     def serveItem(self, version, uuid, cloudAlias):
         raise NotImplementedError, "%s.serveItem" %(type(self))
     

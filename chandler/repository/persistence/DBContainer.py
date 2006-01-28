@@ -1187,10 +1187,10 @@ class ItemContainer(DBContainer):
             for i in xrange(vCount):
                 h, uValue = unpack('>l16s', item[pos:pos+20])
                 if h == hash:
-                    return UUID(uValue)
+                    return unpack('>l', item[16:20])[0], UUID(uValue)
                 pos += 20
 
-        return None
+        return None, None
 
     def getItemParentId(self, view, version, uuid):
 

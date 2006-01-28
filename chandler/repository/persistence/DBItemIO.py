@@ -12,7 +12,8 @@ from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
-from repository.item.ItemIO import ItemWriter, ItemReader, ItemPurger
+from repository.item.ItemIO import \
+    ItemWriter, ItemReader, ItemPurger, ValueReader
 from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.schema.TypeHandler import TypeHandler
@@ -435,7 +436,236 @@ class DBItemWriter(ItemWriter):
     NOITEM = UUID('6d4df428-32a7-11d9-f701-000393db837c')
 
 
-class DBItemReader(ItemReader):
+class DBValueReader(ValueReader):
+
+    def __init__(self, store, status):
+
+        self.store = store
+        self.status = status
+
+        self.uItem = None
+        self.name = None
+
+    def readValue(self, view, uValue):
+
+        store = self.store
+        uAttr, vFlags, data = store._values.c.loadValue(store.txn, uValue)
+        withSchema = (self.status & Item.CORESCHEMA) != 0
+
+        if withSchema:
+            attribute = None
+            offset, name = self.readSymbol(0, data)
+        else:
+            attribute = view[uAttr]
+            offset, name = 0, attribute.itsName
+
+
+        flags = ord(data[offset])
+
+        if flags & DBItemWriter.VALUE:
+            offset, value = self._value(offset, data, None, withSchema,
+                                        attribute, view, name, [])
+            return value
+
+        elif flags & DBItemWriter.REF:
+            if flags & DBItemWriter.SINGLE:
+                offset, uuid = self.readUUID(offset + 1, data)
+                return view[uuid]
+
+            elif flags & DBItemWriter.NONE:
+                return None
+
+            raise NotImplementedError, "loading ref collection without item"
+
+        else:
+            raise ValueError, flags
+
+    def _value(self, offset, data, kind, withSchema, attribute, view, name,
+               afterLoadHooks):
+
+        if withSchema:
+            attrType = None
+        else:
+            attrType = attribute.getAspect('type', None)
+
+        flags = ord(data[offset])
+
+        if flags & DBItemWriter.SINGLE:
+            return self._readValue(offset, data, withSchema, attrType,
+                                   view, name, afterLoadHooks)
+        elif flags & DBItemWriter.LIST:
+            return self._readList(offset, data, withSchema, attrType,
+                                  view, name, afterLoadHooks)
+        elif flags & DBItemWriter.SET:
+            return self._readSet(offset, data, withSchema, attrType,
+                                 view, name, afterLoadHooks)
+        elif flags & DBItemWriter.DICT:
+            return self._readDict(offset, data, withSchema, attrType,
+                                  view, name, afterLoadHooks)
+        else:
+            raise LoadValueError, (self.name or self.uItem, name,
+                                   "invalid cardinality: 0x%x" %(flags))
+
+    def _ref(self, offset, data, kind, withSchema, attribute, view, name,
+             afterLoadHooks):
+
+        flags = ord(data[offset])
+        offset += 1
+        
+        if flags & DBItemWriter.NONE:
+            return offset, None
+
+        elif flags & DBItemWriter.SINGLE:
+            return self.readUUID(offset, data)
+
+        elif flags & DBItemWriter.LIST:
+            offset, uuid = self.readUUID(offset, data)
+            if withSchema:
+                offset, otherName = self.readSymbol(offset, data)
+            else:
+                otherName = kind.getOtherName(name, None)
+            value = view._createRefList(None, name, otherName,
+                                        True, False, False, uuid)
+            offset = self._readIndexes(offset, data, value, afterLoadHooks)
+
+            return offset, value
+
+        else:
+            raise LoadValueError, (self.name or self.uItem, name,
+                                   "invalid cardinality: 0x%x" %(flags))
+
+    def _type(self, offset, data, attrType, view, name):
+
+        if ord(data[offset]) & DBItemWriter.TYPED:
+            typeId = UUID(data[offset+1:offset+17])
+            try:
+                return offset+17, view[typeId]
+            except KeyError:
+                raise LoadValueError, (self.name or self.uItem, name,
+                                       "type not found: %s" %(typeId))
+
+        return offset+1, attrType
+
+    def _readValue(self, offset, data, withSchema, attrType, view, name,
+                   afterLoadHooks):
+
+        offset, attrType = self._type(offset, data, attrType, view, name)
+        if attrType is None:
+            raise LoadValueError, (self.name or self.uItem, name,
+                                   "value type is None")
+        
+        return attrType.readValue(self, offset, data, withSchema, view, name,
+                                  afterLoadHooks)
+
+    def _readList(self, offset, data, withSchema, attrType, view, name,
+                  afterLoadHooks):
+
+        offset, attrType = self._type(offset, data, attrType, view, name)
+        count, = unpack('>I', data[offset:offset+4])
+        offset += 4
+
+        value = PersistentList()
+        for i in xrange(count):
+            offset, v = self._readValue(offset, data, withSchema, attrType,
+                                        view, name, afterLoadHooks)
+            value.append(v, False, False)
+
+        return offset, value
+
+    def _readSet(self, offset, data, withSchema, attrType, view, name,
+                 afterLoadHooks):
+
+        offset, attrType = self._type(offset, data, attrType, view, name)
+        count, = unpack('>I', data[offset:offset+4])
+        offset += 4
+
+        value = PersistentSet()
+        for i in xrange(count):
+            offset, v = self._readValue(offset, data, withSchema, attrType,
+                                        view, name, afterLoadHooks)
+            value.add(v, False, False)
+
+        return offset, value
+
+    def _readDict(self, offset, data, withSchema, attrType, view, name,
+                  afterLoadHooks):
+
+        offset, attrType = self._type(offset, data, attrType, view, name)
+        count, = unpack('>I', data[offset:offset+4])
+        offset += 4
+
+        value = PersistentDict()
+        for i in xrange(count):
+            offset, k = self._readValue(offset, data, False, None,
+                                        view, name, afterLoadHooks)
+            offset, v = self._readValue(offset, data, withSchema, attrType,
+                                        view, name, afterLoadHooks)
+            value.__setitem__(k, v, False, False)
+
+        return offset, value
+
+    def _readIndexes(self, offset, data, value, afterLoadHooks):
+
+        count, = unpack('>H', data[offset:offset+2])
+        offset += 2
+
+        if count > 0:
+            for i in xrange(count):
+                offset = value._loadIndex(self, offset, data)
+            afterLoadHooks.append(value._restoreIndexes)
+
+        return offset
+
+    def readString(self, offset, data):
+
+        offset, len = offset+4, unpack('>i', data[offset:offset+4])[0]
+        if len >= 0:
+            len -= 1
+            return offset+len, unicode(data[offset:offset+len], 'utf-8')
+        else:
+            len += 1
+            return offset-len, data[offset:offset-len]
+
+    def readSymbol(self, offset, data):
+
+        offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
+        return offset+len, data[offset:offset+len]
+
+    def readBoolean(self, offset, data):
+
+        value = data[offset]
+
+        if value == '\0':
+            value = False
+        elif value == '\1':
+            value = True
+        else:
+            value = None
+
+        return offset+1, value
+
+    def readInteger(self, offset, data):
+        return offset+4, unpack('>i', data[offset:offset+4])[0]
+
+    def readLong(self, offset, data):
+        return offset+8, unpack('>q', data[offset:offset+8])[0]
+        
+    def readFloat(self, offset, data):
+        return offset+8, unpack('>d', data[offset:offset+8])[0]
+
+    def readUUID(self, offset, data):
+        return offset+16, UUID(data[offset:offset+16])
+
+    def readLob(self, offset, data):
+        offset, uuid = self.readUUID(offset, data)
+        offset, indexed = self.readBoolean(offset, data)
+        return offset, uuid, indexed
+
+    def readIndex(self, offset, data):
+        return self.readUUID(offset, data)
+
+
+class DBItemReader(ItemReader, DBValueReader):
 
     def __init__(self, store, uItem,
                  version, uKind, status, uParent,
@@ -508,52 +738,6 @@ class DBItemReader(ItemReader):
             afterLoadHooks.append(item.onItemLoad)
 
         return item
-
-    def readString(self, offset, data):
-        offset, len = offset+4, unpack('>i', data[offset:offset+4])[0]
-        if len >= 0:
-            len -= 1
-            return offset+len, unicode(data[offset:offset+len], 'utf-8')
-        else:
-            len += 1
-            return offset-len, data[offset:offset-len]
-
-    def readSymbol(self, offset, data):
-        offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
-        return offset+len, data[offset:offset+len]
-
-    def readBoolean(self, offset, data):
-
-        value = data[offset]
-
-        if value == '\0':
-            value = False
-        elif value == '\1':
-            value = True
-        else:
-            value = None
-
-        return offset+1, value
-
-    def readInteger(self, offset, data):
-        return offset+4, unpack('>i', data[offset:offset+4])[0]
-
-    def readLong(self, offset, data):
-        return offset+8, unpack('>q', data[offset:offset+8])[0]
-        
-    def readFloat(self, offset, data):
-        return offset+8, unpack('>d', data[offset:offset+8])[0]
-
-    def readUUID(self, offset, data):
-        return offset+16, UUID(data[offset:offset+16])
-
-    def readLob(self, offset, data):
-        offset, uuid = self.readUUID(offset, data)
-        offset, indexed = self.readBoolean(offset, data)
-        return offset, uuid, indexed
-
-    def readIndex(self, offset, data):
-        return self.readUUID(offset, data)
 
     def getUUID(self):
         return self.uItem
@@ -634,7 +818,7 @@ class DBItemReader(ItemReader):
                     raise LoadError, (self.name or self.uItem,
                                       "attribute not found: %s" %(attrId))
                 else:
-                    offset, name = 0, attribute._name
+                    offset, name = 0, attribute.itsName
 
             flags = ord(data[offset])
 
@@ -658,142 +842,6 @@ class DBItemReader(ItemReader):
                     vFlags = ord(vFlags) & CValues.SAVEMASK
                     if vFlags:
                         d._setFlags(name, vFlags)
-
-    def _value(self, offset, data, kind, withSchema, attribute, view, name,
-               afterLoadHooks):
-
-        if withSchema:
-            attrType = None
-        else:
-            attrType = attribute.getAspect('type', None)
-
-        flags = ord(data[offset])
-
-        if flags & DBItemWriter.SINGLE:
-            return self.readValue(offset, data, withSchema, attrType,
-                                  view, name, afterLoadHooks)
-        elif flags & DBItemWriter.LIST:
-            return self.readList(offset, data, withSchema, attrType,
-                                 view, name, afterLoadHooks)
-        elif flags & DBItemWriter.SET:
-            return self.readSet(offset, data, withSchema, attrType,
-                                view, name, afterLoadHooks)
-        elif flags & DBItemWriter.DICT:
-            return self.readDict(offset, data, withSchema, attrType,
-                                 view, name, afterLoadHooks)
-        else:
-            raise LoadValueError, (self.name or self.uItem, name,
-                                   "invalid cardinality: 0x%x" %(flags))
-
-    def _ref(self, offset, data, kind, withSchema, attribute, view, name,
-             afterLoadHooks):
-
-        flags = ord(data[offset])
-        offset += 1
-        
-        if flags & DBItemWriter.NONE:
-            return offset, None
-
-        elif flags & DBItemWriter.SINGLE:
-            return self.readUUID(offset, data)
-
-        elif flags & DBItemWriter.LIST:
-            offset, uuid = self.readUUID(offset, data)
-            if withSchema:
-                offset, otherName = self.readSymbol(offset, data)
-            else:
-                otherName = kind.getOtherName(name, None)
-            value = view._createRefList(None, name, otherName,
-                                        True, False, False, uuid)
-            offset = self.readIndexes(offset, data, value, afterLoadHooks)
-
-            return offset, value
-
-        else:
-            raise LoadValueError, (self.name or self.uItem, name,
-                                   "invalid cardinality: 0x%x" %(flags))
-
-    def _type(self, offset, data, attrType, view, name):
-
-        if ord(data[offset]) & DBItemWriter.TYPED:
-            typeId = UUID(data[offset+1:offset+17])
-            try:
-                return offset+17, view[typeId]
-            except KeyError:
-                raise LoadValueError, (self.name or self.uItem, name,
-                                       "type not found: %s" %(typeId))
-
-        return offset+1, attrType
-
-    def readValue(self, offset, data, withSchema, attrType, view, name,
-                  afterLoadHooks):
-
-        offset, attrType = self._type(offset, data, attrType, view, name)
-        if attrType is None:
-            raise LoadValueError, (self.name or self.uItem, name,
-                                   "value type is None")
-        
-        return attrType.readValue(self, offset, data, withSchema, view, name,
-                                  afterLoadHooks)
-
-    def readList(self, offset, data, withSchema, attrType, view, name,
-                 afterLoadHooks):
-
-        offset, attrType = self._type(offset, data, attrType, view, name)
-        count, = unpack('>I', data[offset:offset+4])
-        offset += 4
-
-        value = PersistentList()
-        for i in xrange(count):
-            offset, v = self.readValue(offset, data, withSchema, attrType,
-                                       view, name, afterLoadHooks)
-            value.append(v, False, False)
-
-        return offset, value
-
-    def readSet(self, offset, data, withSchema, attrType, view, name,
-                afterLoadHooks):
-
-        offset, attrType = self._type(offset, data, attrType, view, name)
-        count, = unpack('>I', data[offset:offset+4])
-        offset += 4
-
-        value = PersistentSet()
-        for i in xrange(count):
-            offset, v = self.readValue(offset, data, withSchema, attrType,
-                                       view, name, afterLoadHooks)
-            value.add(v, False, False)
-
-        return offset, value
-
-    def readDict(self, offset, data, withSchema, attrType, view, name,
-                 afterLoadHooks):
-
-        offset, attrType = self._type(offset, data, attrType, view, name)
-        count, = unpack('>I', data[offset:offset+4])
-        offset += 4
-
-        value = PersistentDict()
-        for i in xrange(count):
-            offset, k = self.readValue(offset, data, False, None,
-                                       view, name, afterLoadHooks)
-            offset, v = self.readValue(offset, data, withSchema, attrType,
-                                       view, name, afterLoadHooks)
-            value.__setitem__(k, v, False, False)
-
-        return offset, value
-
-    def readIndexes(self, offset, data, value, afterLoadHooks):
-
-        count, = unpack('>H', data[offset:offset+2])
-        offset += 2
-
-        if count > 0:
-            for i in xrange(count):
-                offset = value._loadIndex(self, offset, data)
-            afterLoadHooks.append(value._restoreIndexes)
-
-        return offset
 
 
 class DBItemMergeReader(DBItemReader):

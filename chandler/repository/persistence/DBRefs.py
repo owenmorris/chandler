@@ -52,6 +52,35 @@ class PersistentRefs(object):
         if lastKey is not None:
             yield lastKey
 
+    def _iteraliases(self, firstKey, lastKey):
+
+        version = self._item._version
+        nextKey = firstKey or self._firstKey
+        view = self.view
+        refIterator = None
+        map = self._dict
+
+        while nextKey is not None:
+            key = nextKey
+            link = map.get(key, None)
+            if link is None:
+                if refIterator is None:
+                    if version == 0:
+                        raise KeyError, key
+                    refs = self.store._refs
+                    refIterator = refs.refIterator(view, self.uuid, version)
+
+                pKey, nextKey, alias = refIterator.next(key)
+            else:
+                nextKey = link._nextKey
+                alias = link.alias
+
+            if alias is not None:
+                yield alias, key
+
+            if key == lastKey:
+                break
+
     def _copy_(self, orig):
 
         self._changedRefs.clear()
@@ -229,6 +258,10 @@ class DBRefList(RefList, PersistentRefs):
     def iterkeys(self, firstKey=None, lastKey=None):
 
         return self._iterrefs(firstKey, lastKey)
+
+    def iteraliases(self, firstKey=None, lastKey=None):
+
+        return self._iteraliases(firstKey, lastKey)
 
     def _getView(self):
 

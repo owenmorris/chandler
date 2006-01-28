@@ -28,7 +28,8 @@ from repository.persistence.DBContainer import \
     ItemContainer, ValueContainer
 from repository.persistence.FileContainer import \
     FileContainer, BlockContainer, IndexContainer, LOBContainer
-from repository.persistence.DBItemIO import DBItemReader, DBItemPurger
+from repository.persistence.DBItemIO import \
+    DBItemReader, DBItemPurger, DBValueReader
 from repository.remote.CloudFilter import CloudFilter
 
 DB_VERSION = DB_VERSION_MAJOR << 16 | DB_VERSION_MINOR << 8 | DB_VERSION_PATCH
@@ -675,6 +676,14 @@ class DBStore(Store):
             return None
 
         return itemReader
+
+    def loadValue(self, view, version, uItem, name):
+
+        status, uValue = self._items.findValue(view, version, uItem, name)
+        if uValue is None:
+            return None, None
+
+        return DBValueReader(self, status), uValue
     
     def loadRef(self, view, version, uItem, uuid, key):
 

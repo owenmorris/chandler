@@ -1028,10 +1028,10 @@ class Struct(Type):
             offset, fieldName = itemReader.readSymbol(offset, data)
             if fieldName != '':
                 fieldType = fields[fieldName].get('type', None)
-                offset, fieldValue = itemReader.readValue(offset, data,
-                                                          withSchema, fieldType,
-                                                          view, name,
-                                                          afterLoadHooks)
+                offset, fieldValue = \
+                    itemReader._readValue(offset, data,
+                                          withSchema, fieldType,
+                                          view, name, afterLoadHooks)
                 setattr(value, fieldName, fieldValue)
             else:
                 return offset, value
@@ -1084,10 +1084,10 @@ class DateStruct(Struct):
             offset, fieldName = itemReader.readSymbol(offset, data)
             if fieldName != '':
                 fieldType = fields[fieldName].get('type', None)
-                offset, fieldValue = itemReader.readValue(offset, data,
-                                                          withSchema, fieldType,
-                                                          view, name,
-                                                          afterLoadHooks)
+                offset, fieldValue = \
+                    itemReader._readValue(offset, data,
+                                          withSchema, fieldType,
+                                          view, name, afterLoadHooks)
                 flds[fieldName] = fieldValue
             else:
                 break
@@ -1593,8 +1593,8 @@ class Dictionary(Collection):
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        return itemReader.readDict(offset, data, withSchema, None, view, name,
-                                   afterLoadHooks)
+        return itemReader._readDict(offset, data, withSchema, None, view, name,
+                                    afterLoadHooks)
 
     def hashValue(self, value):
         
@@ -1659,8 +1659,8 @@ class List(Collection):
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        return itemReader.readList(offset, data, withSchema, None, view, name,
-                                   afterLoadHooks)
+        return itemReader._readList(offset, data, withSchema, None, view, name,
+                                    afterLoadHooks)
 
 
 class Tuple(Collection):
@@ -1724,8 +1724,8 @@ class Tuple(Collection):
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        offset, value = itemReader.readList(offset, data, withSchema,
-                                            None, view, name, afterLoadHooks)
+        offset, value = itemReader._readList(offset, data, withSchema,
+                                             None, view, name, afterLoadHooks)
         return offset, PersistentTuple(None, None, value, False)
 
 
@@ -1781,8 +1781,8 @@ class Set(Collection):
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        return itemReader.readSet(offset, data, withSchema, None, view, name,
-                                  afterLoadHooks)
+        return itemReader._readSet(offset, data, withSchema, None, view, name,
+                                   afterLoadHooks)
 
 
 class AbstractSet(Type):
@@ -1827,7 +1827,7 @@ class AbstractSet(Type):
         value = AbstractSetType.makeValue(string)
         value._setView(view)
 
-        offset = itemReader.readIndexes(offset, data, value, afterLoadHooks)
+        offset = itemReader._readIndexes(offset, data, value, afterLoadHooks)
 
         return offset, value
 

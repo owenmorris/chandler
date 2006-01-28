@@ -220,6 +220,21 @@ class LinkedMap(CLinkedMap):
         if lastKey is not None:
             yield lastKey
 
+    def iteraliases(self, firstKey=None, lastKey=None):
+
+        nextKey = firstKey or self._firstKey
+        while nextKey is not None:
+            key = nextKey
+            link = self._get(nextKey)
+            nextKey = link._nextKey
+            alias = link.alias
+
+            if alias is not None:
+                yield alias, key
+
+            if key == lastKey:
+                break
+
     def _iterkeys(self):
 
         return self._dict.iterkeys()

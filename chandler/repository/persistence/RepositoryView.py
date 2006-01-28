@@ -334,10 +334,23 @@ class RepositoryView(CView):
 
         return self.find(uuid, load)
 
+    def findValue(self, uItem, name):
+
+        item = self.find(uItem, False)
+        if item is not None:
+            return getattr(item, name)
+
+        reader, uValue = self.repository.store.loadValue(self, self.itsVersion,
+                                                         uItem, name)
+        if reader is None:
+            raise KeyError, uItem
+
+        return reader.readValue(self, uValue)
+
     def findMatch(self, view, matches=None):
 
         return view
-    
+
     def _findKind(self, spec, withSchema):
 
         return self.find(spec)
@@ -1111,6 +1124,10 @@ class NullRepositoryView(RepositoryView):
     def _loadItem(self, uuid):
 
         return None
+
+    def findValue(self, uuid, name):
+        
+        return getattr(self[uuid], name)
 
     def setDirty(self, dirty):
 

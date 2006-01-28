@@ -222,3 +222,9 @@ class ItemPurger(object):
 
     def purgeItem(self, uuid, version):
         raise NotImplementedError, "%s.purgeItem" %(type(self))
+
+
+class ValueReader(object):
+
+    def readValue(self, view, uValue):
+        raise NotImplementedError, "%s.readValue" %(type(self))
