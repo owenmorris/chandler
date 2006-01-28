@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.279 2006/01/27 17:05:23 SC Exp $
+// RCS-ID:      $Id: window.cpp,v 1.280 2006/01/28 12:28:56 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1665,15 +1665,19 @@ bool wxWindowMac::DoPopupMenu(wxMenu *menu, int x, int y)
     long menuResult = ::PopUpMenuSelect((MenuHandle) menu->GetHMenu() , y, x, 0) ;
     if ( HiWord(menuResult) != 0 )
     {
-        MenuCommand id ;
-        GetMenuItemCommandID( GetMenuHandle(HiWord(menuResult)) , LoWord(menuResult) , &id ) ;
-        wxMenuItem* item = NULL ;
+        MenuCommand macid;
+        GetMenuItemCommandID( GetMenuHandle(HiWord(menuResult)) , LoWord(menuResult) , &macid );
+        int id = wxMacCommandToId( macid ); 
+        wxMenuItem* item = NULL ; 
         wxMenu* realmenu ;
         item = menu->FindItem( id, &realmenu ) ;
-        if (item->IsCheckable())
-            item->Check( !item->IsChecked() ) ;
+        if ( item )
+        {
+            if (item->IsCheckable())
+                item->Check( !item->IsChecked() ) ;
 
-        menu->SendEvent( id , item->IsCheckable() ? item->IsChecked() : -1 ) ;
+            menu->SendEvent( id , item->IsCheckable() ? item->IsChecked() : -1 ) ;
+        }
     }
 
     menu->MacAfterDisplay( true ) ;
