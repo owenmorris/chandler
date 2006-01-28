@@ -10,6 +10,7 @@ import osaf.sharing
 from time import time
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
+from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -120,16 +121,16 @@ class ImportDialog(FileChooserWithOptions):
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.onCancel, id=wx.ID_CANCEL)
 
-        
-        chooserBox = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.chooserLabel = wx.StaticText(self, -1, _(u"Import events into:"))
-        chooserBox.Add(self.chooserLabel, 0, wx.ALL, 3)
-
         sidebarCollection = schema.ns("osaf.app", view).sidebarCollection
         trash             = schema.ns("osaf.app", view).TrashCollection
         selected = Globals.views[0].getSidebarSelectedCollection()
         
+        # create a collection chooser
+        gs = wx.FlexGridSizer(2, 2, 2, 2)  # rows, cols, hgap, vgap        
+        
+        self.chooserLabel = wx.StaticText(self, -1, _(u"Import events into:"))
+        gs.Add(self.chooserLabel, 0, wx.ALL, 3)
+
         self.choices = [col for col in sidebarCollection if 
                         (col not in (trash, selected) and not isReadOnly(col))]
 
@@ -149,10 +150,30 @@ class ImportDialog(FileChooserWithOptions):
             self.chooser.SetSelection(0)
         else:
             self.chooser.SetSelection(1)
-            
-        chooserBox.Add(self.chooser, 0, wx.LEFT, 10)
+
+        gs.Add(self.chooser, 0, wx.ALIGN_LEFT, 0)
+
+        # create a timezone chooser
+        
+        self.tzchooserLabel = wx.StaticText(self, -1, _(u"Change timezones to:"))
+        gs.Add(self.tzchooserLabel, 0, wx.ALL, 3)
+
+        info = TimeZoneInfo.get(view)
+        tzdisplayChoices, self.tzchoices = map(list, (zip(*info.iterTimeZones())))
+        
+        self.tzchoices.insert(0, None)
+        tzdisplayChoices.insert(0, _(u"Preserve timezones"))
+
+        self.tzchoices.insert(1, info.default)
+        tzdisplayChoices.insert(1, _(u"Local timezone"))
+        
+        self.tzchooser = wx.Choice(self, -1, choices = tzdisplayChoices)
+        self.tzchooser.SetSelection(0)
+        
+        gs.Add(self.tzchooser, 0, wx.ALIGN_LEFT, 0)
     
-        self.box.Insert(1, chooserBox, 0, wx.LEFT, 16)
+        self.box.Insert(1, gs, 0, wx.LEFT, 16)
+        #self.box.Insert(2, tzchooserBox, 0, wx.LEFT, 16)
 
         self.feedbackBox = wx.BoxSizer(wx.VERTICAL)
         
@@ -215,14 +236,20 @@ class ImportDialog(FileChooserWithOptions):
         prefs = schema.ns("osaf.sharing", self.view).prefs
         prefs.import_dir = dir
         
-        targetCollection = self.choices[self.chooser.GetSelection()]            
+        tzinfo = self.tzchoices[self.tzchooser.GetSelection()]
+        coll = targetCollection = self.choices[self.chooser.GetSelection()]
+
+        # don't import directly into an existing collection if we need to change
+        # tzinfo
+        if tzinfo is not None and targetCollection is not None:
+            coll = None
 
         # set the preference for importing collections into new collections
         prefs.import_as_new = targetCollection is None
         
         share = osaf.sharing.OneTimeFileSystemShare(
             dir, filename, osaf.sharing.ICalendarFormat, itsView=self.view,
-            contents = targetCollection
+            contents = coll
         )
 
         for key, val in self.options.iteritems():
@@ -237,6 +264,21 @@ class ImportDialog(FileChooserWithOptions):
             logger.exception("Failed importFile %s" % fullpath)
             self.fail(_(u"Problem with the file, import cancelled."))
             return False
+        
+        if tzinfo is not None:
+            def coerce(dt):
+                return coerceTimeZone(dt, tzinfo)
+            for item in collection:
+                if getattr(item, 'rruleset', None) is not None:
+                    item.changeThisAndFuture('startTime', coerce(item.startTime))
+                    for mod in item.modifications or []:
+                        mod.startTime = coerce(mod.startTime)
+                else:
+                    item.startTime = coerce(item.startTime)
+                if targetCollection is not None:
+                    targetCollection.add(item)
+        
+            
 
         if targetCollection is None:
             name = "".join(filename.split('.')[0:-1]) or filename
@@ -245,6 +287,10 @@ class ImportDialog(FileChooserWithOptions):
             sideBarBlock = Block.Block.findBlockByName ('Sidebar')
             sideBarBlock.postEventByName ("SelectItemsBroadcast",
                                           {'items':[collection]})
+        else: # delete intermediate collection
+            # collection.delete(recursive=True)
+            # collection.delete is failing for some reason
+            pass
         logger.info("Imported collection in %s seconds" % (time() - before))
         assert (hasattr (collection, 'color'))
         return True # Successful import
