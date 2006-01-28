@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.cpp,v 1.67 2006/01/25 23:07:33 vell Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.68 2006/01/27 23:32:10 JS Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1661,25 +1661,45 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     }
 #endif
 
-    // determine which (if any) media player interface
-    // is available - IMediaPlayer or IActiveMovie
-    if ( ::CoCreateInstance(CLSID_MediaPlayer, NULL,
-                                  CLSCTX_INPROC_SERVER,
-                                  IID_IMediaPlayer, (void**)&m_pMP) != 0 )
-    {
-        if ( ::CoCreateInstance(CLSID_ActiveMovie, NULL,
-                                  CLSCTX_INPROC_SERVER,
-                                  IID_IActiveMovie, (void**)&m_pAM) != 0 )
-        {
-            return false;
-        }
+#ifdef __WXWINCE__
+   CLSID clsid;
+   if (CLSIDFromProgID(wxT("WPCEOCX.WMP"), &clsid) != S_OK &&
+       CLSIDFromProgID(wxT("MediaPlayer.MediaPlayer.1"), &clsid) != S_OK)
+    return false;
 
-        m_pAM->QueryInterface(IID_IMediaPlayer, (void**)&m_pMP);
-    }
-    else
-    {
-        m_pMP->QueryInterface(IID_IActiveMovie, (void**)&m_pAM);
-    }
+   // determine which (if any) media player interface
+   // is available - IMediaPlayer or IActiveMovie
+   if ( ::CoCreateInstance(clsid, NULL,
+                                 CLSCTX_INPROC_SERVER,
+                                 IID_IMediaPlayer, (void**)&m_pMP) != 0 )
+   {
+           return false;
+   }
+   else
+   {
+       m_pMP->QueryInterface(IID_IActiveMovie, (void**)&m_pAM);
+   }
+#else
+   // determine which (if any) media player interface
+   // is available - IMediaPlayer or IActiveMovie
+   if ( ::CoCreateInstance(CLSID_MediaPlayer, NULL,
+                                 CLSCTX_INPROC_SERVER,
+                                 IID_IMediaPlayer, (void**)&m_pMP) != 0 )
+   {
+       if ( ::CoCreateInstance(CLSID_ActiveMovie, NULL,
+                                 CLSCTX_INPROC_SERVER,
+                                 IID_IActiveMovie, (void**)&m_pAM) != 0 )
+       {
+           return false;
+       }
+
+       m_pAM->QueryInterface(IID_IMediaPlayer, (void**)&m_pMP);
+   }
+   else
+   {
+       m_pMP->QueryInterface(IID_IActiveMovie, (void**)&m_pAM);
+   }
+#endif
 
     // Create window
     // By default wxWindow(s) is created with a border -

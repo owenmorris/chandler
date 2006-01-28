@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.h,v 1.35 2005/12/01 12:54:57 VS Exp $
+// RCS-ID:      $Id: combobox.h,v 1.36 2006/01/28 00:43:23 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -91,7 +91,7 @@ public:
     virtual wxTextPos GetLastPosition() const;
     virtual void Replace(long from, long to, const wxString& value);
     virtual void Remove(long from, long to);
-    virtual void SetSelection(int n) { wxChoice::SetSelection(n); }
+    virtual void SetSelection(int n);
     virtual void SetSelection(long from, long to);
     virtual int GetSelection() const;
     virtual void GetSelection(long* from, long* to) const;

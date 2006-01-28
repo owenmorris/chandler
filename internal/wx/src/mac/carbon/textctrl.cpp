@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp,v 1.175 2006/01/26 16:41:53 SC Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.176 2006/01/27 23:05:23 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -401,8 +401,6 @@ private :
 #endif
 };
 
-#define TE_UNLIMITED_LENGTH 0xFFFFFFFFUL
-
 
 IMPLEMENT_DYNAMIC_CLASS(wxTextCtrl, wxControl)
 
@@ -435,7 +433,7 @@ void wxTextCtrl::Init()
     m_editable = true ;
     m_dirty = false;
 
-    m_maxLength = TE_UNLIMITED_LENGTH ;
+    m_maxLength = 0;
     m_privateContextMenu = NULL;
 }
 
@@ -895,13 +893,16 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
         return ;
     }
 
-    // Check if we have reached the max # of chars, but still allow navigation and deletion
-    if ( !IsMultiLine() && GetValue().Length() >= m_maxLength &&
+    // Check if we have reached the max # of chars (if it is set), but still
+    // allow navigation and deletion
+    if ( !IsMultiLine() && m_maxLength && GetValue().Length() >= m_maxLength &&
         key != WXK_LEFT && key != WXK_RIGHT && key != WXK_TAB &&
         key != WXK_BACK && !( key == WXK_RETURN && (m_windowStyle & wxPROCESS_ENTER) )
        )
     {
         // eat it, we don't want to add more than allowed # of characters
+
+        // TODO: generate EVT_TEXT_MAXLEN()
         return;
     }
 

@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.89 2006/01/18 10:22:52 JS Exp $
+* RCS-ID:      $Id: platform.h,v 1.90 2006/01/27 22:54:41 KO Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -541,7 +541,7 @@
 #endif
 
 #if defined (__WXMAC__)
-#    if !defined(WORDS_BIGENDIAN) && ( !defined(__MACH__) || ( defined(__BIG_ENDIAN__) && __BIG_ENDIAN__ ) )
+#    if ( !defined(__MACH__) || ( defined(__BIG_ENDIAN__) && __BIG_ENDIAN__ ) )
 #        define WORDS_BIGENDIAN 1
 #    endif
 #endif

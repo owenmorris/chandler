@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-03-07
-// RCS-ID:      $Id: chkconf.h,v 1.8 2005/12/11 16:11:15 ABX Exp $
+// RCS-ID:      $Id: chkconf.h,v 1.9 2006/01/27 23:32:12 JS Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,10 +39,6 @@
 // eVC doesn't support SEH
 #undef wxUSE_ON_FATAL_EXCEPTION
 #define wxUSE_ON_FATAL_EXCEPTION 0
-
-// media stuff not supported under CE
-#undef wxUSE_MEDIACTRL
-#define wxUSE_MEDIACTRL 0
 
 #undef wxUSE_WXHTML_HELP
 #define wxUSE_WXHTML_HELP 0

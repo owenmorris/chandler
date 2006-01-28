@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup.h,v 1.73 2005/12/10 14:40:23 ABX Exp $
+// RCS-ID:      $Id: setup.h,v 1.74 2006/01/27 23:32:12 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -470,7 +470,7 @@
 // Default is 1.
 //
 // Recommended setting: 1 
-#define wxUSE_MEDIACTRL     1
+#define wxUSE_MEDIACTRL     0
 
 // Use GStreamer for Unix (req a lot of dependancies)
 //

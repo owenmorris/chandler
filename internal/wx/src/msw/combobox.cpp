@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.cpp,v 1.114 2005/12/01 12:55:34 VS Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.115 2006/01/28 00:43:20 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -753,6 +753,16 @@ void wxComboBox::Clear()
     wxChoice::Clear();
     m_selectionOld = -1;
     m_value.clear();
+}
+
+// ----------------------------------------------------------------------------
+// overridden wxChoice methods
+// ----------------------------------------------------------------------------
+
+void wxComboBox::SetSelection(int n)
+{
+    wxChoice::SetSelection(n);
+    m_selectionOld = n;
 }
 
 // ----------------------------------------------------------------------------
