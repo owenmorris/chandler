@@ -404,7 +404,7 @@ class wxTableData(wx.grid.PyGridTableBase):
     def IsEmptyCell (self, row, column): 
         return False 
 
-    def GetValue (self, row, column): 
+    def GetValue (self, row, column):
         return self.GetView().GetElementValue (row, column)
 
     def SetValue (self, row, column, value):
@@ -420,7 +420,8 @@ class wxTableData(wx.grid.PyGridTableBase):
             delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
             grid = self.GetView()
-            assert (row < grid.GetElementCount() and column < grid.GetColumnCount())
+            assert (row < self.GetNumberRows() and
+                    column < self.GetNumberCols())
 
             if (not grid.blockItem.columnReadOnly[column] and
                 not grid.ReadOnly (row, column)[0] and
@@ -496,10 +497,13 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def InvalidateSelection (self):
         lastRow = self.GetNumberCols() - 1
-        for range in self.blockItem.contents.getSelectionRanges():
+        
+        selectionRanges = self.blockItem.contents.getSelectionRanges()
+        for selectionRow,selectionColumn in selectionRanges:
             dirtyRect = wx.Rect()
-            dirtyRect.SetTopLeft (self.CellToRect (range[0], 0).GetTopLeft())
-            dirtyRect.SetBottomRight (self.CellToRect (range[1], lastRow ).GetBottomRight())
+            dirtyRect.SetTopLeft(self.CellToRect(selectionRow, 0).GetTopLeft())
+            dirtyRect.SetBottomRight(self.CellToRect(selectionColumn,
+                                                     lastRow).GetBottomRight())
             dirtyRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
             self.RefreshRect (dirtyRect)
 
@@ -525,18 +529,22 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
             blockItem = self.blockItem
-            # Itnore notifications that arrise as a side effect of changes to the selection
+            # Ignore notifications that arrise as a side effect of
+            # changes to the selection
             blockItem.stopNotificationDirt()
             try:
-                # Extact the ranges from the grid using the top left block of the
-                # selection and thr bottom right block of the selection. Then
-                # assign the selected ranges to the content's selection
+                # Extact the ranges from the grid using the top left
+                # block of the selection and thr bottom right block of
+                # the selection. Then assign the selected ranges to
+                # the content's selection
                 contents = self.blockItem.contents
                 contents.setSelectionRanges ([])
                 topLeftList = self.GetSelectionBlockTopLeft()
-                for topLeft, bottomRight in zip (topLeftList,
-                                                 self.GetSelectionBlockBottomRight()):
-                    contents.addSelectionRange ((topLeft[0], bottomRight[0]))
+                bottomRightList = self.GetSelectionBlockBottomRight()
+                for ((topLeftRow, topLeftColumn),
+                     (bottomRightRow, bottomRightColumn)) in zip(topLeftList,
+                                                                 bottomRightList):
+                    contents.addSelectionRange ((topLeftRow, bottomRightRow))
                
                 topLeftList.sort()
                 try:
@@ -687,8 +695,9 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         self.ClearSelection()
         contents = self.blockItem.contents
-        for range in contents.getSelectionRanges():
-            self.SelectBlock (range[0], 0, range[1], newColumns, True)
+        for selectionStart,selectionEnd in contents.getSelectionRanges():
+            self.SelectBlock (selectionStart, 0,
+                              selectionEnd, newColumns, True)
         self.EndBatch() 
 
         # Update all displayed values
@@ -760,11 +769,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         
         # build up a list of selection ranges [[tl1, br1], [tl2, br2]]
         selectionRanges = []
-        for topLeft in topLeftList:
-            bottomRight = bottomRightList.pop (0)
-            selectionRanges.append ([topLeft[0], bottomRight[0]])
-        selectionRanges.sort()
-        selectionRanges.reverse()
+        for topLeftRow,topLeftColumn in topLeftList:
+            for bottomRightRow,bottomRightColumn in bottomRightList:
+                selectionRanges.append ([topLeftRow, bottomRightRow])
+        selectionRanges.sort(reverse=True)
 
         # now delete rows - since we reverse sorted, the 
         # "newRowSelection" will be the highest row that we're not deleting
@@ -777,8 +785,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         # becomes Collection and notifications work again)
         newRowSelection = 0
         contents = blockItem.contents
-        for range in selectionRanges:
-            for row in xrange (range[1], range [0] - 1, -1):
+        for selectionStart,selectionEnd in selectionRanges:
+            for row in xrange (selectionEnd, selectionStart - 1, -1):
                 DeleteItemCallback(contents[row])
                 newRowSelection = row
 
@@ -816,8 +824,8 @@ class wxTable(DragAndDrop.DraggableWidget,
                 yield detailItem
                 return
         
-        for selectionRange in selectionRanges:
-            for index in xrange(selectionRange[0], selectionRange[1]+1):
+        for selectionStart, selectionEnd in selectionRanges:
+            for index in xrange(selectionStart, selectionEnd+1):
 
                 yield self.blockItem.contents [index]
 
