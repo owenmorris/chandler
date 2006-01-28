@@ -123,6 +123,8 @@ def installParcel(parcel, oldVersion=None):
         'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',
         'TimeTransparencyEnum': 'ChoiceAttributeEditor',
+        'TriageEnum': 'StringAttributeEditor',
+        'URL': 'StaticStringAttributeEditor',
     }
     for characteristics, className in aeList.items():
         AttributeEditorMapping.update(parcel, characteristics, 

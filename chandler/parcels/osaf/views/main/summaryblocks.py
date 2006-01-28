@@ -34,13 +34,13 @@ def makeSummaryBlocks(parcel):
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
                 hasGridLines = True,
                 columnHeadings = 
-                    [u'', _(u'who'), _(u'about'), _(u'date')],
+                    [u'', _(u'who'), _(u'about'), _(u'date'), _(u'Triage')],
                 columnData = 
-                    [u'itsKind', u'who', u'about', u'date'],
+                    [u'itsKind', u'who', u'about', u'date', u'triageStatus'],
                 columnWidths = 
-                    [20, 130, 130, 130],
+                    [20, 130, 130, 130, 20],
                 columnReadOnly = 
-                    [True, True, False, True],
+                    [True, True, False, True, False],
                 selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBPB',
                 trunkDelegate = detailBPBDelegate,

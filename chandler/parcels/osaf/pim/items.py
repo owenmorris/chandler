@@ -39,6 +39,9 @@ class ImportanceEnum(schema.Enumeration):
     )
     values = "important", "normal", "fyi"
 
+class TriageEnum(schema.Enumeration):
+    schema.kindInfo(displayName=_(u"Triage Status Enum"))
+    values = "now", "later", "done"
 
 class Calculated(property):
     """ 
@@ -149,6 +152,10 @@ class ContentItem(schema.Item):
         inverse='items',
         initialValue=[]
     )
+
+    triageStatus = schema.One(TriageEnum,
+                              displayName=_(u"Triage Status"),
+                              initialValue="now")
 
     # We haven't ported the "other end" of these links, so we have to use
     # 'otherName' settings to ensure that they get hooked up correctly.
