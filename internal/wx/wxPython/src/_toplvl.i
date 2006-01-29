@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     27-Aug-1998
-// RCS-ID:      $Id: _toplvl.i,v 1.27 2006/01/20 17:26:29 RD Exp $
+// RCS-ID:      $Id: _toplvl.i,v 1.28 2006/01/29 02:09:21 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -344,11 +344,6 @@ public:
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
-
-    %pythoncode {
-        def SendSizeEvent(self):
-            self.ProcessEvent(wx.SizeEvent((-1,-1)))
-    }
 };
 
 //---------------------------------------------------------------------------

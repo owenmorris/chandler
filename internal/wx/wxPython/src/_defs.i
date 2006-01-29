@@ -5,27 +5,56 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.91 2005/12/30 23:01:18 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.94 2006/01/29 02:09:28 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
 
 //---------------------------------------------------------------------------
-// Globally turn on the autodoc feature
 
+// Globally turn on the autodoc feature
 %feature("autodoc", "1");  // 0 == no param types, 1 == show param types
 
-//---------------------------------------------------------------------------
-// Tell SWIG to wrap all the wrappers with our thread protection by default
+// Turn on kwargs by default
+%feature("kwargs", "1");
 
+// Don't generate separate wrappers for each default args combination
+%feature("compactdefaultargs");
+
+#if SWIG_VERSION < 0x010328
+// Don't generate default ctors or dtors if the C++ doesn't have them
+%feature("nodefault");
+#else
+// This is the SWIG 1.3.28 way to do the above...
+%feature("nodefaultctor");
+%feature("nodefaultdtor");
+#endif
+
+// For now, just supress the warning about using Python keywords as parameter
+// names.  Will need to come back later and correct these rather than just
+// hide them...
+#pragma SWIG nowarn=314
+
+//---------------------------------------------------------------------------
+
+// Tell SWIG to wrap all the wrappers with our thread protection
+%define %threadWrapperOn
 %exception {
     PyThreadState* __tstate = wxPyBeginAllowThreads();
     $action
     wxPyEndAllowThreads(__tstate);
     if (PyErr_Occurred()) SWIG_fail;
 }
+%enddef
 
+// This one will turn off the generation of the thread wrapper code
+%define %threadWrapperOff
+%exception 
+%enddef
+
+// Turn it on by default
+%threadWrapperOn
 
 // This one can be used to add a check for an existing wxApp before the real
 // work is done.  An exception is raised if there isn't one.
@@ -61,14 +90,20 @@ typedef unsigned long   wxUIntPtr;
 
 #define %pythonAppend   %feature("pythonappend")
 #define %pythonPrepend  %feature("pythonprepend")
+#define %noautodoc      %feature("noautodoc")
+
+#if SWIG_VERSION >= 0x010327
+#define %kwargs         %feature("kwargs", "1")
+#define %nokwargs       %feature("kwargs", "0")
+#else
 #define %kwargs         %feature("kwargs")
 #define %nokwargs       %feature("nokwargs")
-#define %noautodoc %feature("noautodoc")
+#endif
 
+#define %disownarg(typespec)   %typemap(in) typespec = SWIGTYPE* DISOWN
+#define %cleardisown(typespec) %typemap(in) typespec
+    
 
-//#ifndef %shadow
-//#define %shadow         %insert("shadow")
-//#endif
 
 #ifndef %pythoncode
 #define %pythoncode     %insert("python")

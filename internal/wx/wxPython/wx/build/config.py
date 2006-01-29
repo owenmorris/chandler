@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py,v 1.77 2006/01/21 06:45:34 RD Exp $
+# RCS-ID:      $Id: config.py,v 1.79 2006/01/29 02:09:44 RD Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -155,12 +155,12 @@ WX_CONFIG = None   # Usually you shouldn't need to touch this, but you can set
 
 SYS_WX_CONFIG = None # When installing an in tree build, setup.py uses wx-config
                      # for two different purposes.  First, to determine the prefix
-		     # where files will be installed, and secondly, to initialise
-		     # build_options.py with the correct options for it.
-		     # WX_CONFIG is used for the first task.  SYS_WX_CONFIG may
-		     # be set independently, to the value that should appear in
-		     # build_options.py, if it is different to that.  The default
-		     # is to use the value of WX_CONFIG.
+                     # where files will be installed, and secondly, to initialise
+                     # build_options.py with the correct options for it.
+                     # WX_CONFIG is used for the first task.  SYS_WX_CONFIG may
+                     # be set independently, to the value that should appear in
+                     # build_options.py, if it is different to that.  The default
+                     # is to use the value of WX_CONFIG.
 
 WXPORT = 'gtk2'    # On Linux/Unix there are several ports of wxWidgets available.
                    # Setting this value lets you select which will be used for
@@ -700,6 +700,7 @@ if os.name == 'nt':
                 ('WXUSINGDLL', '1'),
 
                 ('SWIG_TYPE_TABLE', WXPYTHON_TYPE_TABLE),
+                ('SWIG_PYTHON_OUTPUT_TUPLE', None),
                 ('WXP_USE_THREAD', '1'),
                 ]
 
@@ -754,7 +755,7 @@ elif os.name == 'posix':
     WXDIR = '..'
     includes = ['include', 'src']
     defines = [('SWIG_TYPE_TABLE', WXPYTHON_TYPE_TABLE),
-               ('HAVE_CONFIG_H', None),
+               ('SWIG_PYTHON_OUTPUT_TUPLE', None),
                ('WXP_USE_THREAD', '1'),
                ]
     if UNDEF_NDEBUG:
@@ -873,10 +874,8 @@ i_files_includes = [ '-I' + opj(WXPY_SRC, 'src'),
 swig_cmd = SWIG
 swig_force = force
 swig_args = ['-c++',
-             '-Wall',
-             '-nodefault',
+             #'-Wall',
              '-python',
-             '-keyword',
              '-new_repr',
              '-modern',
              '-D'+WXPLAT,

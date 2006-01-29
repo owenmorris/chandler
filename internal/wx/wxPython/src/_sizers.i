@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-Sept-1999
-// RCS-ID:      $Id: _sizers.i,v 1.37 2006/01/06 07:05:05 RD Exp $
+// RCS-ID:      $Id: _sizers.i,v 1.39 2006/01/29 02:09:23 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -43,6 +43,8 @@ methods are called.
 
 :see: `wx.SizerItemSpacer`, `wx.SizerItemWindow`, `wx.SizerItemSizer`", "");
 
+    
+    ~wxSizerItem();
 
 
     %extend {
@@ -86,6 +88,7 @@ methods are called.
                          int border, PyObject* userData=NULL ),
             "Constructs a `wx.SizerItem` for tracking a subsizer", "");
 
+        %disownarg( wxSizer *sizer );
         %RenameCtor(SizerItemSizer,  wxSizerItem( wxSizer *sizer, int proportion, int flag,
                                                   int border, PyObject* userData=NULL ))
         {
@@ -97,6 +100,7 @@ methods are called.
             }
             return new wxSizerItem(sizer, proportion, flag, border, data);
         }
+        %cleardisown( wxSizer *sizer );
     }
 
 
@@ -121,7 +125,7 @@ of item.", "");
 needed by borders.", "");
 
     DocDeclStr(
-        void , SetDimension( wxPoint pos, wxSize size ),
+        void , SetDimension( const wxPoint& pos, const wxSize& size ),
         "Set the position and size of the space allocated for this item by the
 sizer, and adjust the position and size of the item (window or
 subsizer) to be within that space taking alignment and borders into
@@ -214,9 +218,11 @@ added, if needed.", "");
         wxSizer *, GetSizer(),
         "Get the subsizer (if any) that is managed by this sizer item.", "");
 
+    %disownarg( wxSizer *sizer );
     DocDeclStr(
         void , SetSizer( wxSizer *sizer ),
         "Set the subsizer to be managed by this sizer item.", "");
+    %cleardisown( wxSizer *sizer );
 
 
     DocDeclStr(
@@ -395,7 +401,8 @@ method to determine where the drawing operations should take place.
 class wxSizer : public wxObject {
 public:
     // wxSizer();      ****  abstract, can't instantiate
-    // ~wxSizer();
+
+    ~wxSizer();
 
     %extend {
         void _setOORInfo(PyObject* _self) {
@@ -512,6 +519,8 @@ public:
             wxPySizerItemInfo info = wxPySizerItemTypeHelper(item, true, false);
             if ( userData && (info.window || info.sizer || info.gotSize) )
                 data = new wxPyUserData(userData);
+            if ( info.sizer )
+                PyObject_SetAttrString(item,"thisown",Py_False);
             wxPyEndBlockThreads(blocked);
 
             // Now call the real Add method if a valid item type was found
@@ -543,6 +552,8 @@ the item at index *before*.  See `Add` for a description of the parameters.", ""
             wxPySizerItemInfo info = wxPySizerItemTypeHelper(item, true, false);
             if ( userData && (info.window || info.sizer || info.gotSize) )
                 data = new wxPyUserData(userData);
+            if ( info.sizer )
+                PyObject_SetAttrString(item,"thisown",Py_False);
             wxPyEndBlockThreads(blocked);
 
             // Now call the real Insert method if a valid item type was found
@@ -575,6 +586,8 @@ this sizer.  See `Add` for a description of the parameters.", "");
             wxPySizerItemInfo info = wxPySizerItemTypeHelper(item, true, false);
             if ( userData && (info.window || info.sizer || info.gotSize) )
                 data = new wxPyUserData(userData);
+            if ( info.sizer )
+                PyObject_SetAttrString(item,"thisown",Py_False);
             wxPyEndBlockThreads(blocked);
 
             // Now call the real Prepend method if a valid item type was found
@@ -693,6 +706,9 @@ the item to be found.", "");
             return self._SetItemMinSize(item, args[0])
     }
 
+
+    %disownarg( wxSizerItem *item ); 
+
     DocDeclAStrName(
         wxSizerItem* , Add( wxSizerItem *item ),
         "AddItem(self, SizerItem item)",
@@ -711,6 +727,7 @@ the item to be found.", "");
         "Prepends a `wx.SizerItem` to the sizer.", "",
         PrependItem);
 
+    %cleardisown( wxSizerItem *item );
 
 
     %pythoncode {

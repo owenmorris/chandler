@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-June-1999
-// RCS-ID:      $Id: _process.i,v 1.8 2004/12/23 20:43:51 RD Exp $
+// RCS-ID:      $Id: _process.i,v 1.9 2006/01/29 02:09:23 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -187,7 +187,11 @@ long wxExecute(const wxString& command,
 {
     PyObject* o;
     o = PyInt_FromLong((long) (*$1));
+#if SWIG_VERSION < 0x010328
     $result = t_output_helper($result, o);
+#else
+    $result = SWIG_Python_AppendOutput($result, o);
+#endif
 }
 
 int wxKill(long pid, wxSignal sig = wxSIGTERM, wxKillError* rc, int flags = wxKILL_NOCHILDREN);

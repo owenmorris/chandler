@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listctrl.i,v 1.26 2006/01/26 00:31:27 RD Exp $
+// RCS-ID:      $Id: _listctrl.i,v 1.27 2006/01/29 02:09:26 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -153,7 +153,7 @@ public:
     wxListItemAttr(const wxColour& colText = wxNullColour,
                    const wxColour& colBack = wxNullColour,
                    const wxFont& font = wxNullFont);
-
+    ~wxListItemAttr();
 
     // setters
     void SetTextColour(const wxColour& colText);
@@ -169,6 +169,9 @@ public:
     wxColour GetBackgroundColour();
     wxFont GetFont();
 
+    void AssignFrom(const wxListItemAttr& source);
+
+    %pythonAppend Destroy "args[0].thisown = 0"
     %extend { void Destroy() { delete self; } }
 };
 
@@ -592,11 +595,9 @@ public:
     // Sets the image list
     void SetImageList(wxImageList *imageList, int which);
 
-    // is there a way to tell SWIG to disown this???
-
-    %apply SWIGTYPE *DISOWN { wxImageList *imageList };
+    %disownarg( wxImageList *imageList );
     void AssignImageList(wxImageList *imageList, int which);
-    %clear wxImageList *imageList;
+    %cleardisown( wxImageList *imageList );
 
     // are we in report mode?
     bool InReportView() const;

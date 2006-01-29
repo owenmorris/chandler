@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, XML_tree class
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: tree.py,v 1.27 2005/11/11 00:23:31 ROL Exp $
+# RCS-ID:       $Id: tree.py,v 1.28 2006/01/29 17:35:47 vell Exp $
 
 from xxx import *                       # xxx imports globals and params
 import types
@@ -441,7 +441,7 @@ class XML_Tree(wxTreeCtrl):
         EVT_TREE_ITEM_COLLAPSED(self, self.GetId(), self.OnItemExpandedCollapsed)
 
         self.selection = None
-	self.selectionChanging = False
+        self.selectionChanging = False
         self.needUpdate = False
         self.pendingHighLight = None
         self.ctrl = self.shift = False
@@ -683,10 +683,10 @@ class XML_Tree(wxTreeCtrl):
 
     def OnSelChanged(self, evt):
         if self.selectionChanging: return
-	self.selectionChanging = True
+        self.selectionChanging = True
         self.UnselectAll()
         self.SelectItem(evt.GetItem())
-	self.selectionChanging = False
+        self.selectionChanging = False
 
     def ChangeSelection(self, item):
         # Apply changes

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     31-October-1999
-// RCS-ID:      $Id: _dnd.i,v 1.16 2005/05/17 00:27:11 RD Exp $
+// RCS-ID:      $Id: _dnd.i,v 1.17 2006/01/29 02:09:27 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,8 @@ class wxPyDropTarget // : public wxDropTarget
 public:
     %pythonAppend wxPyDropTarget
        "self._setCallbackInfo(self, DropTarget)"
-    %apply SWIGTYPE *DISOWN { wxDataObject *dataObject };
+
+    %disownarg( wxDataObject *dataObject );
 
     wxPyDropTarget(wxDataObject *dataObject = NULL);
     void _setCallbackInfo(PyObject* self, PyObject* _class);
@@ -148,7 +149,7 @@ public:
     wxDataObject *GetDataObject();
     void SetDataObject(wxDataObject *dataObject);
 
-    %clear wxDataObject *dataObject;
+    %cleardisown( wxDataObject *dataObject );
 
     wxDragResult base_OnEnter(wxCoord x, wxCoord y, wxDragResult def);
     wxDragResult base_OnDragOver(wxCoord x, wxCoord y, wxDragResult def);

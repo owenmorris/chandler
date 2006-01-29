@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _menu.i,v 1.17 2006/01/10 23:15:34 RD Exp $
+// RCS-ID:      $Id: _menu.i,v 1.18 2006/01/29 02:09:25 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -133,8 +133,10 @@ public:
     bool Delete(int id);
     %Rename(DeleteItem,  bool, Delete(wxMenuItem *item));
 
-    // delete the item from menu and destroy it (if it's a submenu)
+    %pythonAppend Destroy "args[0].thisown = 0"
     %extend { void Destroy() { delete self; } }
+    
+    // delete the item from menu and destroy it (if it's a submenu)
     %Rename(DestroyId,  bool, Destroy(int id));
     %Rename(DestroyItem,  bool, Destroy(wxMenuItem *item));
 

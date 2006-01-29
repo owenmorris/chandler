@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     28-July-2001
-// RCS-ID:      $Id: _cshelp.i,v 1.8 2004/09/23 20:23:19 RD Exp $
+// RCS-ID:      $Id: _cshelp.i,v 1.9 2006/01/29 02:09:29 RD Exp $
 // Copyright:   (c) 2001 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -208,11 +208,14 @@ application using wx.HelpProvider.Set().", "");
 class wxHelpProvider 
 {
 public:
+    %disownarg( wxHelpProvider *helpProvider );
+    %newobject Set;
     DocDeclStr(
         static wxHelpProvider *, Set(wxHelpProvider *helpProvider),
         "Sset the current, application-wide help provider. Returns the previous
 one.  Unlike some other classes, the help provider is not created on
 demand. This must be explicitly done by the application.", "");
+    %cleardisown( wxHelpProvider *helpProvider );
     
     DocDeclStr(
         static wxHelpProvider *, Get(),
@@ -250,6 +253,7 @@ table of help strings will fill up and when window pointers are
 reused, the wrong help string will be found.", "");
     
     
+    %pythonAppend Destroy "args[0].thisown = 0"
     %extend { void Destroy() { delete self; } }
 };
 

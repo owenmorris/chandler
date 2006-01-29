@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: _config.i,v 1.11 2005/05/04 21:47:41 RD Exp $
+// RCS-ID:      $Id: _config.i,v 1.12 2006/01/29 02:09:30 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -85,12 +85,12 @@ public:
     };
 
 
-    %apply SWIGTYPE *DISOWN { wxConfigBase *config };
+    %disownarg( wxConfigBase *config );
     DocDeclStr(
         static wxConfigBase *, Set(wxConfigBase *config),
         "Sets the global config object (the one returned by Get) and returns a
 reference to the previous global config object.", "");
-    %clear wxConfigBase *config;
+    %cleardisown( wxConfigBase *config );
 
     DocDeclStr(
         static wxConfigBase *, Get(bool createOnDemand = true),

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listbox.i,v 1.16 2005/05/27 00:53:05 RD Exp $
+// RCS-ID:      $Id: _listbox.i,v 1.17 2006/01/29 02:09:26 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -79,15 +79,15 @@ public:
     // GetSelection which only works for listboxes with single selection)
     //virtual int GetSelections(wxArrayInt& aSelections) const;
     %extend {
-      PyObject* GetSelections() {
-          wxArrayInt lst;
-          self->GetSelections(lst);
-          PyObject *tup = PyTuple_New(lst.GetCount());
-          for(size_t i=0; i<lst.GetCount(); i++) {
-              PyTuple_SetItem(tup, i, PyInt_FromLong(lst[i]));
-          }
-          return tup;
-      }
+        PyObject* GetSelections() {
+            wxArrayInt lst;
+            self->GetSelections(lst);
+            PyObject *tup = PyTuple_New(lst.GetCount());
+            for(size_t i=0; i<lst.GetCount(); i++) {
+                PyTuple_SetItem(tup, i, PyInt_FromLong(lst[i]));
+            }
+            return tup;
+        }
     }
 
     // set the specified item at the first visible item or scroll to max

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-July-1998
-// RCS-ID:      $Id: _cmndlgs.i,v 1.23 2006/01/02 19:33:54 RD Exp $
+// RCS-ID:      $Id: _cmndlgs.i,v 1.24 2006/01/29 02:09:31 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -289,23 +289,22 @@ which will be used when the dialog is first displayed. After the
 dialog is shown, this is the index selected by the user.", "");
 
 
-    DocStr(GetFilenames,
-        "Returns a list of filenames chosen in the dialog.  This function
+    %extend {
+        DocStr(GetFilenames,
+               "Returns a list of filenames chosen in the dialog.  This function
 should only be used with the dialogs which have wx.MULTIPLE style, use
 GetFilename for the others.", "");
-
-    DocStr(GetPaths,
-        "Fills the array paths with the full paths of the files chosen. This
-function should only be used with the dialogs which have wx.MULTIPLE
-style, use GetPath for the others.", "");   
-    
-    %extend {
         PyObject* GetFilenames() {
             wxArrayString arr;
             self->GetFilenames(arr);
             return wxArrayString2PyList_helper(arr);
         }
 
+        DocStr(GetPaths,
+               "Fills the array paths with the full paths of the files chosen. This
+function should only be used with the dialogs which have wx.MULTIPLE
+style, use GetPath for the others.", "");   
+    
         PyObject* GetPaths() {
             wxArrayString arr;
             self->GetPaths(arr);

@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     30-April-2001
-# RCS-ID:      $Id: make_installer_inno4.py,v 1.2 2005/12/30 23:01:53 RD Exp $
+# RCS-ID:      $Id: make_installer_inno4.py,v 1.3 2006/01/29 17:35:42 vell Exp $
 # Copyright:   (c) 2003 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -621,7 +621,7 @@ def main():
     ISSFILE         = "__wxPython.iss"
     ISSDEMOFILE     = "__wxPythonDemo.iss"
     IFSFILE         = "__wxPython.ifs"
-    IFSFILEREF		= "CodeFile = " + IFSFILE
+    IFSFILEREF    = "CodeFile = " + IFSFILE
     IFSFILEREF = ""
     UNINSTALL_BATCH = get_batch_files()
     PKGDIR          = open('src/wx.pth').read()

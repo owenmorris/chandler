@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Sept-2003
-// RCS-ID:      $Id: _stockobjs.i,v 1.8 2005/04/02 03:46:42 RD Exp $
+// RCS-ID:      $Id: _stockobjs.i,v 1.9 2006/01/29 02:09:22 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,7 @@
 
 // See also wxPy_ReinitStockObjects in helpers.cpp
 %immutable;
+%threadWrapperOff;
 
 wxFont* const wxNORMAL_FONT;
 wxFont* const wxSMALL_FONT;
@@ -69,6 +70,7 @@ const wxPalette wxNullPalette;
 const wxFont   wxNullFont;
 const wxColour wxNullColour;
 
+%threadWrapperOn;
 %mutable;
 
 

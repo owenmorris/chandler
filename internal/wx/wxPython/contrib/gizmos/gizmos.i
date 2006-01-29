@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     23-Nov-2001
-// RCS-ID:      $Id: gizmos.i,v 1.42 2005/03/30 22:56:44 RD Exp $
+// RCS-ID:      $Id: gizmos.i,v 1.43 2006/01/29 02:09:42 RD Exp $
 // Copyright:   (c) 2001 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -582,11 +582,11 @@ public:
     void SetStateImageList(wxImageList *imageList);
     void SetButtonsImageList(wxImageList *imageList);
 
-    %apply SWIGTYPE *DISOWN { wxImageList *imageList };
+    %disownarg( wxImageList *imageList );
     void AssignImageList(wxImageList *imageList);
     void AssignStateImageList(wxImageList *imageList);
     void AssignButtonsImageList(wxImageList *imageList);
-    %clear wxImageList *imageList;
+    %cleardisown( wxImageList *imageList );
 
 
     // adds a column

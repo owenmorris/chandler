@@ -5,7 +5,7 @@
 # Author:      Gordon Williams
 #
 # Created:     2003/11/03
-# RCS-ID:      $Id: plot.py,v 1.14 2005/06/13 20:48:52 RD Exp $
+# RCS-ID:      $Id: plot.py,v 1.15 2006/01/29 17:35:44 vell Exp $
 # Copyright:   (c) 2002
 # Licence:     Use as you wish.
 #-----------------------------------------------------------------------------
@@ -688,7 +688,7 @@ class PlotCanvas(wx.Window):
     def ScrollUp(self, units):
         """Move view up number of axis units."""
         self.last_PointLabel = None        #reset pointLabel
-        if self.last_draw is not None: 	
+        if self.last_draw is not None:
              graphics, xAxis, yAxis= self.last_draw
              yAxis= (yAxis[0]+units, yAxis[1]+units)
              self.Draw(graphics,xAxis,yAxis)

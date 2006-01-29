@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     2-June-1998
-// RCS-ID:      $Id: _notebook.i,v 1.29 2005/12/22 06:57:35 KO Exp $
+// RCS-ID:      $Id: _notebook.i,v 1.30 2006/01/29 02:09:24 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -69,9 +69,9 @@ public:
     virtual void SetImageList(wxImageList *imageList);
 
     // as SetImageList() but we will delete the image list ourselves
-    %apply SWIGTYPE *DISOWN { wxImageList *imageList };
+    %disownarg( wxImageList *imageList );
     void AssignImageList(wxImageList *imageList);
-    %clear wxImageList *imageList;
+    %cleardisown( wxImageList *imageList );
 
     // get pointer (may be NULL) to the associated image list
     wxImageList* GetImageList() const;

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Sept-2003
-// RCS-ID:      $Id: _core_api.i,v 1.13 2006/01/17 05:42:23 RD Exp $
+// RCS-ID:      $Id: _core_api.i,v 1.14 2006/01/29 02:09:30 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -106,8 +106,9 @@ PyObject* wxPyMakeSwigPtr(void* ptr, const wxChar* className) {
     PyObject* robj = NULL;
 
     swig_type_info* swigType = wxPyFindSwigType(className);
-    wxCHECK_MSG(swigType != NULL, NULL, wxT("Unknown type in wxPyConvertSwigPtr"));
+    wxCHECK_MSG(swigType != NULL, NULL, wxT("Unknown type in wxPyMakeSwigPtr"));
 
+#if SWIG_VERSION < 0x010328
 #ifdef SWIG_COBJECT_TYPES
     robj = PySwigObject_FromVoidPtrAndDesc((void *) ptr, (char *)swigType->name);
 #else
@@ -117,7 +118,9 @@ PyObject* wxPyMakeSwigPtr(void* ptr, const wxChar* className) {
             PyString_FromString(result) : 0;
     }
 #endif
-
+#else // SWIG_VERSION >= 1.3.28
+    robj = PySwigObject_New(ptr, swigType, 0);
+#endif
     return robj;
 }
 

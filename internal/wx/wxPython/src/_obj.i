@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Aug-2003
-// RCS-ID:      $Id: _obj.i,v 1.5 2004/05/12 00:17:39 RD Exp $
+// RCS-ID:      $Id: _obj.i,v 1.6 2006/01/29 02:09:23 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -30,6 +30,7 @@ public:
             return self->GetClassInfo()->GetClassName();
         }
 
+        %pythonAppend Destroy "args[0].thisown = 0"
         DocStr(Destroy,
                "Deletes the C++ object this Python object is a proxy for.", "");
         void Destroy() {

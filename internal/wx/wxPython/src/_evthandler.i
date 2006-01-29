@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Aug-2003
-// RCS-ID:      $Id: _evthandler.i,v 1.9 2004/12/20 22:49:41 RD Exp $
+// RCS-ID:      $Id: _evthandler.i,v 1.10 2006/01/29 02:09:27 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -72,6 +72,7 @@ public:
         }
     }
 
+    %pythonAppend _setOORInfo   "args[0].thisown = 0";
     %extend {
         void _setOORInfo(PyObject* _self, bool incref=true) {
             if (_self && _self != Py_None) {

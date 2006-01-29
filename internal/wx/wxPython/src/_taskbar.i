@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     2-June-1998
-// RCS-ID:      $Id: _taskbar.i,v 1.12 2006/01/17 05:42:23 RD Exp $
+// RCS-ID:      $Id: _taskbar.i,v 1.13 2006/01/29 02:09:22 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -104,9 +104,11 @@ public:
     %pythonAppend wxPyTaskBarIcon   "self._setCallbackInfo(self, TaskBarIcon, 0)"
 
     wxPyTaskBarIcon();
+    ~wxPyTaskBarIcon();
 
     void _setCallbackInfo(PyObject* self, PyObject* _class, int incref);
 
+    %pythonAppend Destroy "args[0].thisown = 0";
     %extend {
         void Destroy() {
             self->RemoveIcon();

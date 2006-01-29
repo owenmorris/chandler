@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     31-October-1999
-// RCS-ID:      $Id: _clipbrd.i,v 1.10 2005/12/30 23:01:19 RD Exp $
+// RCS-ID:      $Id: _clipbrd.i,v 1.11 2006/01/29 02:09:31 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ True on success.", "");
     
 
 
-    %apply SWIGTYPE *DISOWN { wxDataObject *data };
+    %disownarg( wxDataObject *data );
     
     DocDeclStr(
         virtual bool , AddData( wxDataObject *data ),
@@ -84,8 +84,8 @@ do not delete the data explicitly.
 
 :see: `wx.DataObject`", "");
     
-
-    %clear wxDataObject *data;
+    %cleardisown( wxDataObject *data );
+    
     
     DocDeclStr(
         virtual bool , IsSupported( const wxDataFormat& format ),
