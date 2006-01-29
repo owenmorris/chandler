@@ -16,7 +16,7 @@
 #
 #
 # Created:     15-Dec-1999
-# RCS-ID:      $Id: editor.py,v 1.11 2006/01/06 07:05:02 RD Exp $
+# RCS-ID:      $Id: editor.py,v 1.12 2006/01/29 02:36:29 RD Exp $
 # Copyright:   (c) 1999 by Dirk Holtwick, 1999
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -552,12 +552,13 @@ class Editor(wx.ScrolledWindow):
 
 
     def AdjustScrollbars(self):
-        for i in range(2):
-            self.SetCharDimensions()
-            self.scroller.SetScrollbars(
-                self.fw, self.fh,
-                self.CalcMaxLineLen()+3, max(self.LinesInFile()+1, self.sh),
-                self.sx, self.sy)
+        if self:
+            for i in range(2):
+                self.SetCharDimensions()
+                self.scroller.SetScrollbars(
+                    self.fw, self.fh,
+                    self.CalcMaxLineLen()+3, max(self.LinesInFile()+1, self.sh),
+                    self.sx, self.sy)
 
 #------------ backspace, delete, return
 
