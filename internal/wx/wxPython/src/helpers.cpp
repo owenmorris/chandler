@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-July-1997
-// RCS-ID:      $Id: helpers.cpp,v 1.126 2005/12/30 23:01:15 RD Exp $
+// RCS-ID:      $Id: helpers.cpp,v 1.127 2006/01/29 02:32:52 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -15,6 +15,7 @@
 #include <Python.h>
 #include "wx/wxPython/wxPython_int.h"
 #include "wx/wxPython/pyistream.h"
+#include "wx/wxPython/swigver.h"
 
 #ifdef __WXMSW__
 #include <wx/msw/private.h>
@@ -29,8 +30,8 @@
 #include <gdk/gdkprivate.h>
 #include <wx/gtk/win_gtk.h>
 #define GetXWindow(wxwin) (wxwin)->m_wxwindow ? \
-                              GDK_WINDOW_XWINDOW(GTK_PIZZA((wxwin)->m_wxwindow)->bin_window) : \
-                              GDK_WINDOW_XWINDOW((wxwin)->m_widget->window)
+                          GDK_WINDOW_XWINDOW(GTK_PIZZA((wxwin)->m_wxwindow)->bin_window) : \
+                          GDK_WINDOW_XWINDOW((wxwin)->m_widget->window)
 #include <locale.h>
 #endif
 
@@ -690,7 +691,8 @@ PyObject* __wxPySetDictionary(PyObject* /* self */, PyObject* args)
 #else
     _AddInfoString("wx-assertions-off");
 #endif
-
+    _AddInfoString(wxPy_SWIG_VERSION);    
+    
 #undef _AddInfoString
 
     PyObject* PlatInfoTuple = PyList_AsTuple(PlatInfo);
