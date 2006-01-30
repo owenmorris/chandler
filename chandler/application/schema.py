@@ -718,6 +718,7 @@ class AnnotationClass(type):
 
     def _init_schema_item(cls, annInfo, view):
         annInfo.itsParent = parcel_for_module(cls.__module__, view)
+        annInfo.itsName = cls.__name__
         for attr in cls.__dict__.values():
             if isinstance(attr,Redirector):
                 itemFor(attr.cdesc, view)     # ensure all attributes exist
@@ -773,18 +774,21 @@ class StructClass(Activator):
             )
 
     def _find_schema_item(cls, view):
-        parent = parcel_for_module(cls.__module__, view)
-        item = parent.getItemChild(cls.__name__)
-        if isinstance(item,Types.Struct):
-            return item
+        parent = view.findPath(ModuleMaker(cls.__module__).getPath())
+        if parent is not None:
+            item = parent.getItemChild(cls.__name__)
+            if isinstance(item,Types.Struct):
+                return item
 
     def _create_schema_item(cls, view):
         return SchemaStruct(
-            cls.__name__, parcel_for_module(cls.__module__, view),
+            'tmp_'+cls.__name__, view,
             itemFor(Types.Struct, view)
         )
 
     def _init_schema_item(cls,typ, view):
+        typ.itsParent = parcel_for_module(cls.__module__, view)
+        typ.itsName = cls.__name__
         typ.fields = dict((k,{}) for k in cls.__slots__)
         typ.implementationTypes = {'python': cls}
 
@@ -868,18 +872,21 @@ class EnumerationClass(Activator):
             )
 
     def _find_schema_item(cls, view):
-        parent = parcel_for_module(cls.__module__, view)
-        item = parent.getItemChild(cls.__name__)
-        if isinstance(item,Types.Enumeration):
-            return item
+        parent = view.findPath(ModuleMaker(cls.__module__).getPath())
+        if parent is not None:
+            item = parent.getItemChild(cls.__name__)
+            if isinstance(item,Types.Enumeration):
+                return item
 
     def _create_schema_item(cls, view):
         return Types.Enumeration(
-            cls.__name__, parcel_for_module(cls.__module__, view),
+            'tmp_'+cls.__name__, view,
             itemFor(Types.Enumeration, view)
         )
 
     def _init_schema_item(cls, enum, view):
+        enum.itsParent = parcel_for_module(cls.__module__, view)
+        enum.itsName = cls.__name__
         enum.values = list(cls.values)
 
 
