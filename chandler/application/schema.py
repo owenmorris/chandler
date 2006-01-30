@@ -310,7 +310,7 @@ class Descriptor(ActiveDescriptor,CDescriptor):
         if isinstance(self.inverse,ForwardReference):
             self.inverse = self.inverse.referent()  # force resolution now
 
-        attr = Attribute("tmp_"+self.name, view, itemFor(Attribute, view))
+        attr = Attribute(None, view['Schema'], itemFor(Attribute, view))
         return attr
 
     def _init_schema_item(self, attr, view):
@@ -510,7 +510,7 @@ class ItemClass(Activator):
                 return item
 
     def _create_schema_item(cls, view):
-        return Kind("tmp_"+cls.__name__, view, itemFor(Kind, view))
+        return Kind(None, view['Schema'], itemFor(Kind, view))
 
     def _init_schema_item(cls, kind, view):
         kind.superKinds = [
@@ -530,8 +530,10 @@ class ItemClass(Activator):
                 if ai not in kind.attributes:
                     kind.attributes.append(ai,name)
 
-        kind.itsParent = parcel_for_module(cls.__module__, view)
-        kind.itsName = cls.__name__
+        def fixup():
+            kind.itsParent = parcel_for_module(cls.__module__, view)
+            kind.itsName = cls.__name__
+        return fixup
 
     def update(cls, parcel, itsName, **attrs):
         """Ensure that there is a `name` child of `parent` with `attrs`
@@ -713,15 +715,17 @@ class AnnotationClass(type):
 
     def _create_schema_item(cls, view):
         return AnnotationItem(
-            "tmp_"+cls.__name__, view
+            None, view['Schema']
         )
 
     def _init_schema_item(cls, annInfo, view):
-        annInfo.itsParent = parcel_for_module(cls.__module__, view)
-        annInfo.itsName = cls.__name__
         for attr in cls.__dict__.values():
             if isinstance(attr,Redirector):
                 itemFor(attr.cdesc, view)     # ensure all attributes exist
+        def fixup():
+            annInfo.itsParent = parcel_for_module(cls.__module__, view)
+            annInfo.itsName = cls.__name__
+        return fixup
 
     def targetType(cls):
         try:
@@ -782,15 +786,17 @@ class StructClass(Activator):
 
     def _create_schema_item(cls, view):
         return SchemaStruct(
-            'tmp_'+cls.__name__, view,
+            None, view['Schema'],
             itemFor(Types.Struct, view)
         )
 
     def _init_schema_item(cls,typ, view):
-        typ.itsParent = parcel_for_module(cls.__module__, view)
-        typ.itsName = cls.__name__
         typ.fields = dict((k,{}) for k in cls.__slots__)
         typ.implementationTypes = {'python': cls}
+        def fixup():
+            typ.itsParent = parcel_for_module(cls.__module__, view)
+            typ.itsName = cls.__name__
+        return fixup
 
 
 class SchemaStruct(Types.Struct):
@@ -880,14 +886,17 @@ class EnumerationClass(Activator):
 
     def _create_schema_item(cls, view):
         return Types.Enumeration(
-            'tmp_'+cls.__name__, view,
+            None, view['Schema'],
             itemFor(Types.Enumeration, view)
         )
 
     def _init_schema_item(cls, enum, view):
-        enum.itsParent = parcel_for_module(cls.__module__, view)
-        enum.itsName = cls.__name__
         enum.values = list(cls.values)
+        def fixup():
+            enum.itsParent = parcel_for_module(cls.__module__, view)
+            enum.itsName = cls.__name__
+        return fixup
+
 
 
 class Enumeration(object):
@@ -1199,7 +1208,7 @@ class ModuleMaker:
     def _create_schema_item(self,view):
         # Create a temporary item without a kind, so as not to
         # incur unintended circularities.
-        return Base("tmp_parcel_for-"+self.moduleName, view, None)
+        return Base(None, view['Schema'], None)
 
     def _init_schema_item(self,item,view):
         from application.Parcel import Parcel
@@ -1305,9 +1314,22 @@ def itemFor(obj, view):
                         item.description = obj.__doc__
                     for k,v in getattr(obj,'__kind_info__',{}).items():
                         setattr(item,k,v)
+
                     # set up possibly-recursive data
-                    obj._init_schema_item(item,view)
+                    level = view._schema_init_level
+                    queue = view._schema_init_queue
+                    try:
+                        view._schema_init_level += 1  # prevent recursion
+                        cb = obj._init_schema_item(item,view)
+                        if cb is not None:
+                            queue.append(cb)
+                        while queue and not level:
+                            queue.pop(0)()  # invoke callbacks                           
+                    finally:
+                        view._schema_init_level = level
+
             return item
+
     finally:
         global_lock.release()
 
@@ -1330,6 +1352,9 @@ def initRepository(rv,
         rv._schema_cache = {
             Base: item_kind, Item: item_kind,
         }
+        rv._schema_init_level = 0
+        rv._schema_init_queue = []
+
         # Make all core kinds available for subclassing, etc.
         for core_item in rv.findPath('//Schema/Core').iterChildren():
             if isinstance(core_item,Kind):
