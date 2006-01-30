@@ -18,7 +18,7 @@ build: expand apply
           install --force
 
 jabberpy$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/jabberpy$(VERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/jabberpy$(VERSION).tar.gz
 
 sources: jabberpy$(VERSION).tar.gz
 

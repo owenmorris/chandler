@@ -22,7 +22,7 @@ build: expand apply
           install --force
 
 Twisted-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/Twisted-$(VERSION).tar.gz
 
 sources: Twisted-$(VERSION).tar.gz
 

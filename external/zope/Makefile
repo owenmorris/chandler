@@ -22,7 +22,7 @@ build: expand apply
           install --force
 
 ZopeInterface-$(VERSION).tgz:
-	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz
+	$(CURL) http://builds.osafoundation.org/external/ZopeInterface-$(VERSION).tgz
 
 sources: ZopeInterface-$(VERSION).tgz
 

@@ -102,7 +102,7 @@ endif # if OS X or linux
 endif # if Cygwin or not
 
 openssl-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/openssl-$(VERSION).tar.gz
 
 sources: openssl-$(VERSION).tar.gz
 

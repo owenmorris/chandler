@@ -25,7 +25,7 @@ build: expand
           install --force
 
 pychecker-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/pychecker-$(VERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/pychecker-$(VERSION).tar.gz
 
 sources: pychecker-$(VERSION).tar.gz
 

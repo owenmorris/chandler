@@ -48,7 +48,7 @@ install: readline-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf readline-$(SNAP)-$(RELVER).tar.gz
 
 readline-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/readline-$(VERSION).tar.gz 
+	$(CURL) http://builds.osafoundation.org/external/readline-$(VERSION).tar.gz 
 
 sources: readline-$(VERSION).tar.gz
 

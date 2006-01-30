@@ -16,7 +16,7 @@ MANIFEST=$(SNAP)/$(SITE)/setuptools \
 .PHONY: patches-$(VERSION)
 
 $(SRC).zip:
-	$(CURL) http://builds.o11n.org/external/$(SRC).zip
+	$(CURL) http://builds.osafoundation.org/external/$(SRC).zip
 
 sources: setuptools-$(VERSION).zip
 

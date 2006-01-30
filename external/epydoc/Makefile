@@ -21,7 +21,7 @@ build: expand apply
                            install --force
 
 epydoc-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/epydoc-$(VERSION).tar.gz
 
 sources: epydoc-$(VERSION).tar.gz
 

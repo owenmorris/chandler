@@ -204,13 +204,13 @@ apply: patches-$(VERSION)
 	rm -rf Python-$(VERSION)/Lib/bsddb
 
 Python-$(VERSION).tar.bz2:
-	$(CURL) http://builds.o11n.org/external/Python-$(VERSION).tar.bz2
+	$(CURL) http://builds.osafoundation.org/external/Python-$(VERSION).tar.bz2
 
 bzip2-$(BZIP2VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/bzip2-$(BZIP2VERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/bzip2-$(BZIP2VERSION).tar.gz
 
 zlib-$(ZLIBVERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/zlib-$(ZLIBVERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/zlib-$(ZLIBVERSION).tar.gz
 
 Python-$(VERSION)-expanded: Python-$(VERSION).tar.bz2
 	bunzip2 -c Python-$(VERSION).tar.bz2 | tar -xvf -

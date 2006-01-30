@@ -95,7 +95,7 @@ apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 libxml2-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz
+	$(CURL) http://builds.osafoundation.org/external/libxml2-$(VERSION).tar.gz
 
 sources: libxml2-$(VERSION).tar.gz
 

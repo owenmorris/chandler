@@ -8,7 +8,7 @@ BUILD=build_$(SNAP)
 SRC=python-dateutil-$(VERSION)
 
 $(SRC).tar.bz2:
-	$(CURL) http://builds.o11n.org/external/$(SRC).tar.bz2
+	$(CURL) http://builds.osafoundation.org/external/$(SRC).tar.bz2
 
 sources: python-dateutil-$(VERSION).tar.bz2
 
