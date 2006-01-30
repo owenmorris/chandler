@@ -675,14 +675,14 @@ class UITestItem(object):
         if self.isCollection:
             # select the collection
             #self.SelectItem()
-            #if timeInfo:
-                #self.logger.Start("Remove collection")
+            if timeInfo:
+                self.logger.Start("Remove collection")
             # Processing of the corresponding CPIA event
             App_ns.root.Remove()
             # give the Yield
             wx.GetApp().Yield()
-            #if timeInfo:
-                #self.logger.Stop()
+            if timeInfo:
+                self.logger.Stop()
         else:
             self.logger.Print("Remove is not available for this kind of item")
         confimDialog.askNextTime = True

@@ -20,5 +20,4 @@ try:
 
 finally:
     #cleaning
-    pass
     logger.Close()
