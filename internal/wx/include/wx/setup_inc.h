@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:
-// RCS-ID:      $Id: setup_inc.h,v 1.27 2005/10/19 12:52:02 JS Exp $
+// RCS-ID:      $Id: setup_inc.h,v 1.28 2006/01/30 16:26:23 JS Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -616,6 +616,14 @@
 //
 // Recommended setting: 1
 #define wxUSE_TREEBOOK 1
+
+// wxToolbook control is similar to wxNotebook but uses wxToolBar instead of
+// tabs
+//
+// Default is 1.
+//
+// Recommended setting: 1
+#define wxUSE_TOOLBOOK 1
 
 // wxTabDialog is a generic version of wxNotebook but it is incompatible with
 // the new class. It shouldn't be used in new code.

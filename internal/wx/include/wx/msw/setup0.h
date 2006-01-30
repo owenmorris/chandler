@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup0.h,v 1.216 2006/01/01 01:42:13 VZ Exp $
+// RCS-ID:      $Id: setup0.h,v 1.217 2006/01/30 16:26:30 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -621,6 +621,14 @@
 // Recommended setting: 1
 #define wxUSE_TREEBOOK 1
 
+// wxToolbook control is similar to wxNotebook but uses wxToolBar instead of
+// tabs
+//
+// Default is 1.
+//
+// Recommended setting: 1
+#define wxUSE_TOOLBOOK 1
+
 // wxTabDialog is a generic version of wxNotebook but it is incompatible with
 // the new class. It shouldn't be used in new code.
 //
@@ -1131,6 +1139,9 @@
 // Set to 1 to auto-adapt to MS Windows XP themes where possible
 // (notably, wxNotebook pages)
 #define wxUSE_UXTHEME_AUTO      1
+
+// Set to 1 to use InkEdit control (Tablet PC), if available
+#define wxUSE_INKEDIT  0
 
 // ----------------------------------------------------------------------------
 // Generic versions of native controls

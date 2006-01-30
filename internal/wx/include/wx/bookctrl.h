@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.h,v 1.25 2005/11/10 11:24:19 VZ Exp $
+// RCS-ID:      $Id: bookctrl.h,v 1.26 2006/01/30 15:19:45 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -206,6 +206,9 @@ protected:
 
     // Always rely on GetBestSize, which will look at all the pages
     virtual void SetInitialBestSize(const wxSize& WXUNUSED(size)) { }
+
+    // Lay out controls
+    void DoSize();
 
     // the array of all pages of this control
     wxArrayPages m_pages;

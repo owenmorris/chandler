@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.304 2006/01/26 21:08:11 ABX Exp $ -->
+<!-- $Id: files.bkl,v 1.305 2006/01/30 15:38:41 JS Exp $ -->
 <makefile>
 
 <!--
@@ -634,6 +634,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/generic/splitter.cpp
     src/generic/textdlgg.cpp
     src/generic/tipwin.cpp
+    src/generic/toolbkg.cpp
     src/generic/treectlg.cpp
     src/generic/treebkg.cpp
     src/generic/vlbox.cpp
@@ -800,6 +801,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/tbarbase.h
     wx/tglbtn.h
     wx/tipwin.h
+    wx/toolbook.h
     wx/tooltip.h
     wx/toplevel.h
     wx/treebase.h

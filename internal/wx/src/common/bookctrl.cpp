@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.cpp,v 1.18 2005/10/21 19:00:37 ABX Exp $
+// RCS-ID:      $Id: bookctrl.cpp,v 1.19 2006/01/30 15:19:48 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -252,10 +252,9 @@ wxRect wxBookCtrlBase::GetPageRect() const
     return rectPage;
 }
 
-void wxBookCtrlBase::OnSize(wxSizeEvent& event)
+// Lay out controls
+void wxBookCtrlBase::DoSize()
 {
-    event.Skip();
-
     if ( !m_bookctrl )
     {
         // we're not fully created yet or OnSize() should be hidden by derived class
@@ -301,6 +300,13 @@ void wxBookCtrlBase::OnSize(wxSizeEvent& event)
         wxCHECK_RET( page, _T("NULL page?") );
         page->SetSize(GetPageRect());
     }
+}
+
+void wxBookCtrlBase::OnSize(wxSizeEvent& event)
+{
+    event.Skip();
+    
+    DoSize();
 }
 
 wxSize wxBookCtrlBase::GetControllerSize() const
