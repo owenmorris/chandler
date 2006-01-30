@@ -507,6 +507,38 @@ class AttributeIndex(SortedIndex):
         return offset
 
 
+class ValueIndex(AttributeIndex):
+
+    def compare(self, k0, k1):
+
+        view = self._valueMap._getView()
+        attribute = self._attribute
+
+        v0 = view.findValue(k0, attribute, None)
+        v1 = view.findValue(k1, attribute, None)
+
+        if v0 is v1:
+            return 0
+
+        if v0 is None:
+            return 1
+
+        if v1 is None:
+            return -1
+
+        if v0 == v1:
+            return 0
+
+        if v0 > v1:
+            return 1
+
+        return -1
+
+    def getIndexType(self):
+
+        return 'value'
+    
+
 class StringIndex(AttributeIndex):
 
     def __init__(self, valueMap, index, **kwds):

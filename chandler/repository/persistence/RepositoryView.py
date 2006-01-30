@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import logging, heapq, sys, gc, threading, os
 
 from chandlerdb.util.c import UUID
-from chandlerdb.item.c import CItem
+from chandlerdb.item.c import CItem, Nil, Default
 from chandlerdb.persistence.c import CView
 
 from repository.util.Path import Path
@@ -334,16 +334,23 @@ class RepositoryView(CView):
 
         return self.find(uuid, load)
 
-    def findValue(self, uItem, name):
+    def findValue(self, uItem, name, default=Default):
 
         item = self.find(uItem, False)
         if item is not None:
+            if default is not Default:
+                return getattr(item, name, default)
             return getattr(item, name)
 
         reader, uValue = self.repository.store.loadValue(self, self.itsVersion,
                                                          uItem, name)
         if reader is None:
-            raise KeyError, uItem
+            if uValue is Nil:
+                raise KeyError, uItem
+            if uValue is Default:
+                if default is Default:
+                    raise AttributeError, (uItem, name)
+            return default
 
         return reader.readValue(self, uValue)
 

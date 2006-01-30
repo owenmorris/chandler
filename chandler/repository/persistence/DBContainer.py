@@ -9,13 +9,13 @@ import sys, threading
 from struct import pack, unpack
 
 from chandlerdb.util.c import UUID, _hash, SkipList
+from chandlerdb.item.c import CItem, Nil, Default
 from chandlerdb.persistence.c import \
     DBSequence, DB, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \
     DBNotFoundError, DBLockDeadlockError, DBNoSuchFileError
 
 from repository.item.Access import ACL, ACE
-from repository.item.Item import Item
 from repository.persistence.Repository import Repository
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryError import \
@@ -323,8 +323,7 @@ class RefContainer(DBContainer):
                         if version > newVersion or uCol != uuid._uuid:
                             break
 
-                        fn(version, (UUID(uCol), UUID(uRef)),
-                           self._readRef(value[1]))
+                        fn(version, (uuid, UUID(uRef)), self._readRef(value[1]))
 
                         value = cursor.next(self._flags, None)
 
@@ -1190,7 +1189,9 @@ class ItemContainer(DBContainer):
                     return unpack('>l', item[16:20])[0], UUID(uValue)
                 pos += 20
 
-        return None, None
+            return None, Default
+
+        return None, Nil
 
     def getItemParentId(self, view, version, uuid):
 
@@ -1325,7 +1326,7 @@ class ItemContainer(DBContainer):
                         value = value[1]
                         status, parentId = unpack('>l16s', value[16:36])
 
-                        if status & Item.DELETED:
+                        if status & CItem.DELETED:
                             dirties = HashTuple()
                         else:
                             pos = -(unpack('>l', value[-4:])[0] + 2) << 2

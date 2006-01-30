@@ -12,6 +12,7 @@ from struct import pack
 
 from chandlerdb.util import lock
 from chandlerdb.util.c import UUID
+from chandlerdb.item.c import Nil, Default
 from chandlerdb.persistence.c import DBEnv, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
     DBLockDeadlockError, \
@@ -680,8 +681,8 @@ class DBStore(Store):
     def loadValue(self, view, version, uItem, name):
 
         status, uValue = self._items.findValue(view, version, uItem, name)
-        if uValue is None:
-            return None, None
+        if uValue in (Nil, Default):
+            return None, uValue
 
         return DBValueReader(self, status), uValue
     
