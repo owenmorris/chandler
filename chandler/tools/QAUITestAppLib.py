@@ -668,20 +668,25 @@ class UITestItem(object):
         Remove a collection from Chandler
         @type timeInfo: boolean
         """
+        #turn off delete confirmation dialog for collection deletion
+        confimDialog=scripting.schema.ns("osaf.views.main",Globals.mainViewRoot).clearCollectionPref
+        confimDialog.askNextTime = False
+        confimDialog.response = True
         if self.isCollection:
             # select the collection
-            self.SelectItem()
-            if timeInfo:
-                self.logger.Start("Remove collection")
+            #self.SelectItem()
+            #if timeInfo:
+                #self.logger.Start("Remove collection")
             # Processing of the corresponding CPIA event
             App_ns.root.Remove()
             # give the Yield
             wx.GetApp().Yield()
-            if timeInfo:
-                self.logger.Stop()
+            #if timeInfo:
+                #self.logger.Stop()
         else:
             self.logger.Print("Remove is not available for this kind of item")
-            return
+        confimDialog.askNextTime = True
+        return
         
     def CheckEditableBlock(self, blockName, description, value):
         """
@@ -954,7 +959,7 @@ class UITestItem(object):
             # check the changing values
             if not GetCollectionRow(self.item.displayName):
                 exist = False
-                description = "%s doesn't exists" %self.item.displayName
+                description = "%s doesn't exist" %self.item.displayName
             else:
                 exist = True
                 description = "%s exists" %self.item.displayName

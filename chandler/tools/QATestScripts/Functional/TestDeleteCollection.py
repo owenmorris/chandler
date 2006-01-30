@@ -1,4 +1,5 @@
 import tools.QAUITestAppLib as QAUITestAppLib
+import osaf.framework.scripting as scripting
 
 # initialization
 fileName = "TestDeleteCollection.log"
@@ -9,6 +10,9 @@ try:
     col = QAUITestAppLib.UITestItem("Collection", logger)
 
     # action
+    app_ns=scripting.app_ns()
+    sb=app_ns.sidebar
+    scripting.User.emulate_sidebarClick(sb,'Untitled') #move focus from collection name text to collection
     col.DeleteCollection()
 
     # verification
@@ -16,4 +20,5 @@ try:
 
 finally:
     #cleaning
+    pass
     logger.Close()
