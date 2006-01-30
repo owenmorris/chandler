@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+    xmlns:admin="http://webns.net/mvcb/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/">
+
+  <channel>
+    <title>OSAF News</title>
+    <link>http://www.osafoundation.org/</link>
+    <description>News from the Open Source Applications Foundation</description>
+    <dc:language>en-us</dc:language>
+    <dc:creator>sean@lpfi.org</dc:creator>
+    <dc:rights>Copyright 2006</dc:rights>
+    <dc:date>2006-01-12T10:52:56-08:00</dc:date>
+    <admin:generatorAgent rdf:resource="http://www.movabletype.org/?v=3.121" />
+    <admin:errorReportsTo rdf:resource="mailto:sean@lpfi.org"/>
+    <sy:updatePeriod>hourly</sy:updatePeriod>
+    <sy:updateFrequency>1</sy:updateFrequency>
+    <sy:updateBase>2000-01-01T12:00+00:00</sy:updateBase>
+
+<image>
+<title>OSAF logo</title>
+<url>
+http://wiki.osafoundation.org/twiki/pub/OSAFLogo.48x48t.png
+</url>
+<link>http://www.osafoundation.org</link>
+<width>48</width>
+<height>48</height>
+<description>Open Source Applications Foundation</description>
+</image>
+
+
+    <item>
+      <title>OSAF Welcomes Priscilla Chung</title>
+      <link>http://www.osafoundation.org/archives/000966.html</link>
+      <description>She is joining the design and program management team and will be working on projects that cover all the OSAF products (Chandler, Scooby and Cosmo). Read more about Priscilla on the People page....</description>
+      <guid isPermaLink="false">966@http://www.osafoundation.org/</guid>
+      <content:encoded><![CDATA[<p>She is joining the design and program management team and will be working on projects that cover all the OSAF products (Chandler, Scooby and Cosmo). Read more about Priscilla on the <a href="http://osafoundation.org/people.htm">People</a> page.</p>]]></content:encoded>
+      <dc:subject>OSAF News</dc:subject>
+      <dc:date>2006-01-12T10:52:56-08:00</dc:date>
+    </item>
+    <item>
+      <title>OSAF Welcomes Jeffrey Harris</title>
+      <link>http://www.osafoundation.org/archives/000965.html</link>
+      <description>Jeffrey has transitioned to a full time Software Development Engineer with OSAF. He had been contracting with us since November of 2003 and in September became a full time employee. Read more about Jeffrey on our People page....</description>
+      <guid isPermaLink="false">965@http://www.osafoundation.org/</guid>
+      <content:encoded><![CDATA[<p>Jeffrey has transitioned to a full time Software Development Engineer with OSAF.  He had been contracting with us since November of 2003 and in September became a full time employee.  Read more about Jeffrey on our <a href="http://osafoundation.org/people.htm">People</a> page.<br />
+</p>]]></content:encoded>
+      <dc:subject>OSAF News</dc:subject>
+      <dc:date>2006-01-10T09:38:57-08:00</dc:date>
+    </item>
+    <item>
+      <title>OSAF Welcomes Mikeal Rogers to the Team</title>
+      <link>http://www.osafoundation.org/archives/000964.html</link>
+      <description>Mikeal Rogers joins OSAF as a QA Engineer on the Chandler project. Mikeal joins OSAF from a long history at RealNetworks. Read more about Mikeal on our people page....</description>
+      <guid isPermaLink="false">964@http://www.osafoundation.org/</guid>
+      <content:encoded><![CDATA[<p>Mikeal Rogers joins OSAF as a QA Engineer on the Chandler project.  Mikeal joins OSAF from a long history at <a href="http://www.realnetworks.com" target="_blank">RealNetworks</a>. Read more about Mikeal on our <a href="http://osafoundation.org/people.htm">people</a> page.</p>]]></content:encoded>
+      <dc:subject>OSAF News</dc:subject>
+      <dc:date>2006-01-09T13:36:51-08:00</dc:date>
+    </item>
+    <item>
+      <title>Job Opening Java Development Manager</title>
+      <link>http://www.osafoundation.org/archives/000960.html</link>
+      <description>OSAF is looking for a hands-on software development manager to provide senior engineering management and leadership for Cosmo, an open source standards-based sharing/calendaring server, and Scooby, a calendar Web application. You will help design, implement, test, debug and tune the code. You will champion high quality code and professional development...</description>
+      <guid isPermaLink="false">960@http://www.osafoundation.org/</guid>
+      <content:encoded><![CDATA[<p>OSAF is looking for a hands-on software development manager to provide senior engineering management and leadership for Cosmo, an open source standards-based sharing/calendaring server, and Scooby, a calendar Web application.   You will help design, implement, test, debug and tune the code. You will champion high quality code and professional development habits and processes.</p>
+
+<p><strong>Responsibilities:</strong><br />
+<ul><br />
+<li>Coordinate development work on Cosmo and Scooby, including architecture plans, time estimates, code reviews and bug fixing.</li><br />
+<li>Design and implement scalable and robust architecture.</li><br />
+<li>Review work done by others and contribute to the overall high quality of the code</li><br />
+</ul><br />
+Requirements:<br />
+<ul><br />
+<li>Ideally: proven track record shipping high quality server software, experience with open standard protocols a plus.</li><br />
+<li>Proven experience managing a development team</li><br />
+<li>Expert knowledge in Object Oriented Design, agile development procedures, possibly SCRUM or XP</li><br />
+<li>Expert knowledge in Java, SQL and Web technology.</li><br />
+<li>Experience working with Apache projects (Tomcat, Jackrabbit,<br />
+Derby) and other open source server components (struts, spring,<br />
+hibernate) a plus.</li><br />
+<li>Experience with AJAX architecture/concepts a plus.</li><br />
+<li>Experience with or interest in calendaring standards (iCalendar,<br />
+CalDAV) a plus.</li><br />
+<li>Familiarity with or interest in Personal Information Management<br />
+applications: email, calendar, tasks, notes, etc...</li><br />
+<li>Interested by open standards and experience contributing to open source projects a plus</li><br />
+<li>Solid organizational skills</li><br />
+<li>Enjoys working in uncharted waters, highly motivated self starter</li><br />
+<li>Excellent collaboration and communication skills</li><br />
+<li>Willingness to work in a transparent and open way<br />
+</li></p>]]></content:encoded>
+      <dc:subject>OSAF News</dc:subject>
+      <dc:date>2005-12-27T08:33:16-08:00</dc:date>
+    </item>
+    <item>
+      <title>Open Source Applications Foundation (OSAF) Releases Chandler 0.6</title>
+      <link>http://www.osafoundation.org/archives/000959.html</link>
+      <description>OSAF today released, an early, but &quot;experimentally usable&quot; version of it&apos;s open source application, Chandler. Chandler is a Personal Information Management (PIM) client application with innovative design and ambitious plans for sharing, extensibility and cross-platform support. There is a wealth of information about the application and this particular release at...</description>
+      <guid isPermaLink="false">959@http://www.osafoundation.org/</guid>
+      <content:encoded><![CDATA[<p>OSAF today released, an early, but "experimentally usable" version of it's open source application, Chandler. Chandler is a Personal Information Management (PIM) client application with innovative design and ambitious plans for sharing, extensibility and cross-platform support.</p>
+
+<p>There is a wealth of information about the application and this particular release at the <a href="http://chandler.osafoundation.org">Chandler 0.6 Home Page</a> </p>]]></content:encoded>
+      <dc:subject>OSAF News</dc:subject>
+      <dc:date>2005-12-20T16:11:24-08:00</dc:date>
+    </item>
+
+
+  </channel>
+</rss>

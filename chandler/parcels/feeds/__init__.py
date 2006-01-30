@@ -6,6 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from channels import (newChannelFromURL, FeedChannel, FeedItem,
     FeedUpdateTaskClass, updateFeeds)
 from application import schema
+from osaf import pim
 import datetime
 
 def installParcel(parcel, oldName=None):

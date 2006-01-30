@@ -10,8 +10,6 @@ from dateutil.parser import parse as date_parse
 from application import schema
 from util import feedparser
 from xml.sax import SAXParseException
-import socket
-import application
 from osaf import pim
 from i18n import OSAFMessageFactory as _
 from twisted.web import client
@@ -112,7 +110,13 @@ class ConditionalHTTPClientFactory(client.HTTPClientFactory):
             client.HTTPClientFactory.noPage(self, reason)
 
 
+
 class FeedChannel(pim.ListCollection):
+
+    def __init__(self, *args, **kw):
+        super(FeedChannel, self).__init__(*args, **kw)
+        self.rep.addIndex('link', 'compare', compare='_compareLink',
+                          monitor=('link'))
 
     schema.kindInfo(displayName=u"Feed Channel")
 
@@ -172,6 +176,34 @@ class FeedChannel(pim.ListCollection):
 
     who = schema.Descriptor(redirectTo="author")
     about = schema.Descriptor(redirectTo="about")
+
+
+    def indexLookup(self, value, multiple=False):
+
+        rep = self.rep # This will go away once collections.py is
+                       # API-complete @@@MOR
+
+        def _compare(uuid):
+            item = self.itsView[uuid]
+            return cmp(str(value).lower(), str(getattr(item, 'link')).lower())
+
+        firstUUID = rep.findInIndex('link', 'first', _compare)
+
+        if firstUUID is None: # We're done
+            if multiple:
+                return []
+            else:
+                return None
+
+        if multiple: # Let's see if there are more than one
+            lastUUID = rep.findInIndex('link', 'last', _compare)
+            results = []
+            for uuid in rep.iterindexkeys('link', firstUUID, lastUUID):
+                results.append(self.itsView[uuid])
+            return results
+
+        else:
+            return self.itsView[firstUUID]
 
 
     def update(self):
@@ -252,8 +284,15 @@ class FeedChannel(pim.ListCollection):
 
 
     def parse(self, rawData):
+
         data = feedparser.parse(rawData)
+
+        # For fun, keep the latest copy of the feed inside the channel item
+        self.body = self.getAttributeAspect('body', 'type').makeValue(rawData,
+            indexed=False)
+
         return self.fillAttributes(data)
+
 
     def fillAttributes(self, data):
         # Map some external attribute names to internal attribute names:
@@ -280,10 +319,7 @@ class FeedChannel(pim.ListCollection):
 
 
     def _parseItems(self, items):
-        # make children
 
-        # lets look for each existing item. This is ugly and is an O(n^2) problem
-        # if the items are unsorted. Bleah.
         view = self.itsView
 
         count = 0
@@ -305,8 +341,8 @@ class FeedChannel(pim.ListCollection):
                     itemDate = datetime.datetime(d[0], d[1], d[2], d[3], d[4],
                         d[5], 0, ICUtzinfo(TimeZone.getGMT()))
 
-                    logger.debug("%s, %s, %s" % \
-                        (newItem.date, newItem.date_parsed, itemDate))
+                    # logger.debug("%s, %s, %s" % \
+                    #     (newItem.date, newItem.date_parsed, itemDate))
 
                     newItem.date = itemDate
 
@@ -315,28 +351,58 @@ class FeedChannel(pim.ListCollection):
                         (newItem.date, newItem.date_parsed))
                     newItem.date = None
 
-            found = False
-            for oldItem in self:
-                # check to see if this doesn't already exist
-                if oldItem.isSimilar(newItem):
-                    found = True
-                    oldItem.update(newItem)
-                    break
 
-            if not found:
-                # we have a new item - add it
-                if not hasattr(newItem, 'date'):
-                    # No date was available in the feed, so assign it 'now'
-                    newItem.date = datetime.datetime.now(ICUtzinfo.getDefault())
+            # Get the item content, using the 'content' attribute first,
+            # falling back to what's in'description'
+            content = newItem.get('content')
+            if content:
+                content = content[0]['value']
+            else:
+                content = newItem.get('description')
+
+            title = newItem.get('title')
+
+            matchingItem = None
+            link = getattr(newItem, 'link', None)
+            if link:
+                # Find all FeedItems (even those from other channels) that
+                # have this link
+                matchingItem = self.indexLookup(link)
+
+            # If no matching items (based on link), it's new
+            # If matching item, if title or description have changed,
+            # update the item and mark it unread
+
+            if matchingItem is None:
+
                 feedItem = FeedItem(itsView=view)
                 feedItem.update(newItem)
+                self.addFeedItem(feedItem)
+                logger.debug("Added new item: %s", title)
+                count += 1
 
+            else:
+                # A FeedItem exists within this Channel that has the
+                # same link.  @@@MOR For now I am only going to allow one
+                # FeedItem at a time (per Channel) to link to the same place,
+                # since it seems like that gets the behavior we want.
 
-                try:
-                    self.addFeedItem(feedItem)
-                    count += 1
-                except:
-                    logger.error("Error adding an Feed item")
+                oldContent = matchingItem.content.getReader().read()
+                oldTitle = matchingItem.displayName
+
+                # If no date in the item, just consider it a matching date;
+                # otherwise do compare datestamps:
+                dateDifferent = False
+                haveFeedDate = 'date' in newItem
+                if haveFeedDate:
+                    if matchingItem.date != newItem.date:
+                        dateDifferent = True
+
+                if ((oldContent != content) or (oldTitle != title) or
+                    dateDifferent):
+                    matchingItem.update(newItem)
+                    matchingItem.read = False
+                    logger.debug("Updated item: %s", title)
 
         return count
 
@@ -353,7 +419,8 @@ class FeedItem(pim.ContentItem):
 
     link = schema.One(
         schema.URL,
-        displayName=_(u"link")
+        displayName=_(u"link"),
+        initialValue="", # Needed because of the _compareLink( ) method
     )
 
     category = schema.One(
@@ -393,6 +460,9 @@ class FeedItem(pim.ContentItem):
         kw.setdefault('displayName', _(u"No Title"))
         super(FeedItem, self).__init__(*args, **kw)
 
+    def _compareLink(self, other):
+        return cmp(str(self.link).lower(), str(other.link).lower())
+
     def update(self, data):
         # fill in the item
         attrs = {'title':'displayName'}
@@ -415,33 +485,6 @@ class FeedItem(pim.ContentItem):
 
         if 'date' in data:
             self.date = date_parse(str(data.date))
-
-    def isSimilar(self, feedItem):
-        """
-            Returns True if the two items are the same, False otherwise
-            In this case, they're the same if title/link are the same, and
-            if the feed item has a date, compare that too.
-            Some feeds also define guids for items, so perhaps we should
-            look at those too.
-        """
-        try:
-
-            # If no date in the item, just consider it a matching date;
-            # otherwise do compare datestamps:
-            dateMatch = True
-            haveFeedDate = 'date' in feedItem
-            if haveFeedDate:
-                if self.date != feedItem.date:
-                    dateMatch = False
-
-            if self.displayName == feedItem.title and \
-               str(self.link) == feedItem.link and \
-               dateMatch:
-                    return True
-
-        except:
-            logger.exception("Feed item comparison failed")
-            logger.error("Failed in %s", feedItem.title)
-            logger.error("%s vs %s" % (self.date, feedItem.date))
-
-        return False
+        else:
+            # No date was available in the feed, so assign it 'now'
+            self.date = datetime.datetime.now(ICUtzinfo.getDefault())
