@@ -153,41 +153,40 @@ class PhotoCollection(pim.ListCollection):
         """
         Fills the collection with photos from the flickr website.
         """
-        coll = pim.ListCollection(itsView = repView).setup()
         if self.userName:
             flickrUserName = flickr.people_findByUsername(self.userName.encode('utf8'))
             flickrPhotos = flickr.people_getPublicPhotos(flickrUserName.id,10)
         elif self.tag:
             flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-desc")
         else:
-            assert (False) #we should have either a userName or tag
+            assert(False, "we should have either a userName or tag")
 
-        #All newly created Items go in userdata.
-        userdata = self.itsView.findPath ("//userdata")
-
-        # flickrPhotosCollection is a collection of all FlickrPhotos. It has an index
-        # named flickerIDIndex which indexes all the photos by their flickrID which
-        # makes it easy to quickly lookup any photo by index.
-        userdata = self.itsView.findPath ("//userdata")
+        # flickrPhotosCollection is a collection of all FlickrPhotos. It has
+        # an index named flickerIDIndex which indexes all the photos by
+        # their flickrID which makes it easy to quickly lookup any photo by
+        # index.
         flickrPhotosCollection = schema.ns('flickr', repView).flickrPhotosCollection
         for flickrPhoto in flickrPhotos:
             """
             If we've already downloaded a photo with this id use it instead.
             """
-            photoUUID = flickrPhotosCollection.findInIndex (
+            photoUUID = flickrPhotosCollection.findInIndex(
                 'flickrIDIndex', # name of Index
                 'exact',         # require an exact match
-                lambda UUID: cmp(flickrPhoto.id, repView[UUID].flickrID)) # compare function
+                                 # compare function
+                lambda uuid: cmp(flickrPhoto.id,
+                                 repView.findValue(uuid, 'flickrID')))
 
             if photoUUID is None:
-                photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView, itsParent=userdata)
+                photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView,
+                                        itsParent=repView['userdata'])
             else:
-                photoItem = repView [photoUUID]
+                photoItem = repView[photoUUID]
 
             self.add (photoItem)
         repView.commit()
 
-class UpdateTask:
+class UpdateTask(object):
     """
     Wakeup caller is periodically add more items to the PhotoCollections.
     """
