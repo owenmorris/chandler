@@ -20,7 +20,11 @@ from Views import View
 from ControlBlocks import (
     AEBlock, Button, ContentItemDetail,
     ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail, List,
-    ReminderTimer, StaticText, StatusBar, Table, Timer, Tree, PresentationStyle
+    ReminderTimer, StaticText, StatusBar, Timer, Tree, PresentationStyle
+)
+
+from Table import (
+    Table, wxTable, GridCellAttributeEditor
 )
 
 from MenusAndToolbars import (

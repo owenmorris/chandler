@@ -4,9 +4,11 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.views.main"
 
-import wx, os
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
-from osaf.framework.blocks import Block, Trunk, DrawingUtilities
+import wx, os
+from osaf.framework.blocks import (
+    Block, Trunk, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
+    )
 
 from osaf.pim import (
     AbstractCollection, IntersectionCollection, KindCollection,
@@ -36,7 +38,7 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
         return self.blockItem.contents [row], self.blockItem.columnData [column]
 
 
-class wxSidebar(ControlBlocks.wxTable):
+class wxSidebar(wxTable):
     def __init__(self, *arguments, **keywords):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
         gridWindow = self.GetGridWindow()
@@ -371,7 +373,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         dc.DestroyClippingRegion()
 
 
-class SSSidebarEditor (ControlBlocks.GridCellAttributeEditor):
+class SSSidebarEditor (GridCellAttributeEditor):
     """
       The sidebar design doesn't use any off the shelf parts, so we'll go roll a bunch
     of special purpose interface that can't be use anywhere else in CPIA.
@@ -669,7 +671,7 @@ class SSSidebarSharingButton (SSSidebarButton):
                 gridWindow.SetToolTip (None)
     
 
-class SidebarBlock(ControlBlocks.Table):
+class SidebarBlock(Table):
     filterKind = schema.One(
         schema.TypeReference('//Schema/Core/Kind'), initialValue = None,
     )
