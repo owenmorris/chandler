@@ -196,8 +196,10 @@ class AbstractSet(ItemValue, Indexed):
             view = self._view
             if not view.isLoading():
                 if item is None:
-                    oldItem.unwatchCollection(view[source[0]], source[1],
-                                              'set', oldAttribute)
+                    sourceItem = view.findUUID(source[0])
+                    if sourceItem is not None: # was deleted
+                        oldItem.unwatchCollection(sourceItem, source[1],
+                                                  'set', oldAttribute)
                 else:
                     item.watchCollection(view[source[0]], source[1],
                                          'set', attribute)
