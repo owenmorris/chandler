@@ -10,8 +10,8 @@ try:
     col = QAUITestAppLib.UITestItem("Collection", logger)
 
     # action
-    app_ns=scripting.app_ns()
-    sb=app_ns.sidebar
+    App_ns=scripting.app_ns()
+    sb=App_ns.sidebar
     scripting.User.emulate_sidebarClick(sb,'Untitled') #move focus from collection name text to collection
     col.DeleteCollection()
 
