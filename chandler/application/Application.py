@@ -157,7 +157,6 @@ class MainFrame(wx.Frame):
         # these changes, since they weren't caused by user actions.
 
         app.ignoreSynchronizeWidget = True
-        app.frame = None
         Globals.mainViewRoot.frame = None
         self.Destroy()
 
@@ -519,52 +518,35 @@ class wxApplication (wx.App):
         if wxID > wx.ID_HIGHEST:
             block = Block.widgetIDToBlock (wxID)
             updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
-            try:
-                blockEvent = block.event
-            except AttributeError:
-                # Ignore blocks that don't have events.
-                assert updateUIEvent
-            else:
+            blockEvent = getattr (block, 'event', None)
+            # If a block doesn't have an event, it should be an updateUI event
+            assert (blockEvent != None or updateUIEvent)
+
+            if blockEvent is not None:
                 arguments = {}
                 if updateUIEvent:
                     arguments ['UpdateUI'] = True
                 else:
-                    try:
-                        arguments ['buttonState'] = event.GetEventObject().GetToolState (wxID)
-                    except AttributeError: 
-                        pass
+                    eventObject = event.GetEventObject()
+                    if eventObject is not None:
+                        method = getattr (eventObject, "GetToolState", None)
+                        if method is not None:
+                            arguments ['buttonState'] = method (wxID)
  
                 block.post (blockEvent, arguments)
  
                 if updateUIEvent:
-                    try:
-                        event.Check (arguments ['Check'])
-                    except KeyError:
-                        pass
-
-                    try:
-                        enable = arguments ['Enable']
-                    except KeyError:
-                        enable = True
-                    event.Enable (enable)
-
-                    try:
-                        text = arguments ['Text']
-                    except KeyError:
-                        pass
-                    else:
+                    event.Check (arguments.get ('Check', False))
+                    event.Enable (arguments.get ('Enable', True))
+                    text = arguments.get ('Text', None)
+                    if text != None:
                         event.SetText (text)
-                        widget = block.widget
-
                         # Some widgets, e.g. wxToolbarItems don't properly handle
                         # setting the text of buttons, so we'll handle it here by
                         # looking for the method OnSetTextEvent to handle it
-                        
-                        try:
-                            method = widget.OnSetTextEvent
-                        except AttributeError:
-                            pass
-                        else:
+                        widget = block.widget
+                        method = getattr (widget, "OnSetTextEvent", None)
+                        if method is not None:
                             method (event)
         else:
             event.Skip()

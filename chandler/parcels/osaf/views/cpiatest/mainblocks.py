@@ -110,12 +110,12 @@ def makeCPIATestMainView (parcel):
             ]) # Toolbar ApplicationBar
 
     MainViewInstance = MainView.template(
-        'CPIATestMainView',
-        size=SizeType(1024, 720),
-        orientationEnum='Vertical',
-        eventBoundary=True,
-        displayName=_(u'Chandler\'s MainView'),
-        eventsForNamedLookup=[
+        'MainView',
+        size = SizeType(1024, 720),
+        orientationEnum = 'Vertical',
+        eventBoundary = True,
+        displayName = _(u'Chandler\'s MainView'),
+        eventsForNamedLookup = [
             main.RequestSelectSidebarItem,
             main.SendMail,
             main.SelectedDateChanged,

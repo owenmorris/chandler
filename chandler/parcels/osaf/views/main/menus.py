@@ -435,10 +435,12 @@ def makeMainMenus(parcel):
                             MenuItem.template('ChandlerSkinMenuItem',
                                 event = main.ChooseChandlerMainView,
                                 title = u'Chandler',
+                                menuItemKind = 'Check',
                                 helpString = u'Switch to Chandler'),
                             MenuItem.template('CPIATestSkinMenuItem',
                                 event = main.ChooseCPIATestMainView,
                                 title = u'CPIA Test',
+                                menuItemKind = 'Check',
                                 helpString = u'Switch to CPIA test'),
                             ]), # Menu SkinsMenu
                     Menu.template('AddAdditionalViews',

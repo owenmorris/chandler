@@ -503,9 +503,10 @@ class ViewContainer(BoxContainer):
     tabPositionEnum = schema.One(
         tabPositionEnumType, initialValue = 'Top',
     )
-    hasTabs = schema.One(schema.Boolean, initialValue = False)
-    selectionIndex = schema.One(schema.Integer, initialValue = 0)
-    views = schema.Sequence(Block, otherName = 'viewContainer')
+    hasTabs = schema.One (schema.Boolean, initialValue = False)
+    selectionIndex = schema.One (schema.Integer, initialValue = 0)
+    views = schema.Mapping (Block, initialValue = {})
+    activeView = schema.One (Block)
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[views])
@@ -530,30 +531,15 @@ class ViewContainer(BoxContainer):
         else:
             return wxViewContainer (parentWidget)
     
-    def onChoiceEvent (self, event):
-        choice = event.choice
-        selectionIndex = 0
-        for view in self.views:
-            if view.blockName == choice:
-                if self.hasTabs:
-                    self.selectionIndex = selectionIndex
-                    self.synchronizeWidget()
-                else:
-                    """
-                      If the view points to the read only section replace it with a copy
-                    in the soup
-                    """
-                    userData = self.findPath ('//userdata')
-                    if view.itsParent != userData:
-                        self.views.remove (view)
-                        view = view.copy (parent=userData,
-                                          cloudAlias="copying")
-                        self.views.append (view)
-                    self.postEventByName('SelectItemsBroadcast',
-                                         {'items':[view]})
-                break
-            selectionIndex = selectionIndex + 1
+    def onChoiceEventUpdateUI (self, event):
+        assert len (self.childrenBlocks) == 1
+        event.arguments ['Check'] = self.activeView == self.views [event.choice]
 
+    def onChoiceEvent (self, event):
+        view = self.views [event.choice]
+        if view != self.activeView:
+            self.activeView = view
+            self.postEventByName ('SelectItemsBroadcast', {'items':[view]})
 
 class wxFrameWindow (wxViewContainer):
     pass

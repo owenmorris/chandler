@@ -130,9 +130,10 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
                 if (detailItemChanged or
                     treeChanged or
                     hints.get ("sendSetContents", False)):
-                    newView.postEventByName("SetContents",
-                                            {'item':BPBDetailItem,
-                                             'collection': self.BPBDetailItemCollection})
+                    newView.postEventByName(
+                        "SetContents",
+                        {'item':BPBDetailItem,
+                         'collection': self.BPBDetailItemCollection})
 
                 if not hasattr (newView, "widget"):
                     newView.render()

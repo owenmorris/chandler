@@ -191,12 +191,14 @@ def makeMainView (parcel):
         childrenBlocks = [MainViewInstance],
         trunkDelegate = MainBPBDelegate).install(parcel)
 
-    CPIATestMainView = schema.ns("osaf.views.cpiatest", repositoryView).CPIATestMainView
-    MainViewRoot = FrameWindow.update(
+    CPIATestMainView = schema.ns("osaf.views.cpiatest", repositoryView).MainView
+    FrameWindow.update(
         parcel, 'MainViewRoot',
         blockName = 'MainViewRoot',
         size = SizeType(1024,720),
-        views = [MainViewInstance, CPIATestMainView],
+        views = {'MainView' : MainViewInstance,
+                 'CPIATestMainView' : CPIATestMainView},
+        activeView = MainViewInstance,
         childrenBlocks = [MainBPB])
 
     # Add certstore UI
