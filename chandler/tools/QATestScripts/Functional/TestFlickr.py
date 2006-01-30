@@ -26,6 +26,7 @@ try:
     # get a collection of photos from the oscon2005 tag
     fc = flickr.PhotoCollection(itsView = repView)
     fc.tag = flickr.Tag.getTag(repView, "oscon2005")
+    fc.displayName = "oscon2005"
     fc.fillCollectionFromFlickr(repView)
 
     # Add the channel to the sidebar
