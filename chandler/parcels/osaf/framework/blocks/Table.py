@@ -2,7 +2,8 @@
 import sys
 import wx.grid
 
-from application import schema, mixinAClass
+from application import schema
+from application.Application import mixinAClass
 
 from osaf.pim import AbstractCollection
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
