@@ -63,6 +63,33 @@ class URL(object):
 
         return "<URL: %s>" % self.__str__()
 
+    def __eq__(self, other):
+
+        return isinstance(other, URL) and str(self).__eq__(str(other))
+
+    def __ge__(self, other):
+
+        return isinstance(other, URL) and str(self).__ge__(str(other))
+
+    def __gt__(self, other):
+
+        return isinstance(other, URL) and str(self).__gt__(str(other))
+
+    def __le__(self, other):
+
+        return isinstance(other, URL) and str(self).__le__(str(other))
+
+    def __lt__(self, other):
+
+        return isinstance(other, URL) and str(self).__lt__(str(other))
+
+    def __ne__(self, other):
+
+        if isinstance(other, URL):
+            return str(self).__ne__(str(other))
+
+        return True
+
     def join(self, url):
         """
         Create a URL instance from a url string using this one for defaults.
