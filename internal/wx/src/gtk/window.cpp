@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.563 2006/01/22 23:28:57 MR Exp $
+// Id:          $Id: window.cpp,v 1.564 2006/01/30 20:04:55 JS Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -976,7 +976,12 @@ static gint gtk_window_key_press_callback( GtkWidget *widget,
     bool ret = false;
     bool return_after_IM = false;
 
-    if( wxTranslateGTKKeyEventToWx(event, win, gdk_event) == false )
+    if( wxTranslateGTKKeyEventToWx(event, win, gdk_event) )
+    {
+        // Emit KEY_DOWN event
+        ret = win->GetEventHandler()->ProcessEvent( event );
+    }
+    else
     {
         // Return after IM processing as we cannot do
         // anything with it anyhow.
@@ -1010,9 +1015,6 @@ static gint gtk_window_key_press_callback( GtkWidget *widget,
 
     if (return_after_IM)
         return false;
-
-    // Emit KEY_DOWN event
-    ret = win->GetEventHandler()->ProcessEvent( event );
 
 #if wxUSE_ACCEL
     if (!ret)
