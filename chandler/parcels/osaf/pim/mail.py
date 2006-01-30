@@ -1053,8 +1053,9 @@ class EmailAddress(items.ContentItem):
         collection = schema.ns("osaf.app", view).emailAddressCollection.rep
         emailAddress = emailAddress.lower()
 
-        def compareAddr(key):
-            return cmp(emailAddress, view[key].emailAddress.lower())
+        def compareAddr(uuid):
+            return cmp(emailAddress,
+                       view.findValue(uuid, 'emailAddress').lower())
 
         uuid = collection.findInIndex('emailAddress', 'exact', compareAddr)
         if uuid is None:
