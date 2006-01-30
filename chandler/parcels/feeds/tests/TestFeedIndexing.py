@@ -1,6 +1,7 @@
 import unittest, os, time
 import feeds
 from osaf import pim
+from repository.util.URL import URL
 from util import testcase
 from zanshin.util import blockUntil
 from application import Utility, schema
@@ -27,18 +28,21 @@ class TestFeedIndexing(testcase.SingleRepositoryTestCase):
         self.assertEqual(channel.displayName, 'OSAF News')
         self.assertEqual(5, len(channel))
 
-
-        url = 'http://www.osafoundation.org/archives/000966.html'
+        # Test successful lookup
+        url = URL('http://www.osafoundation.org/archives/000966.html')
         item = channel.indexLookup(url)
         self.assertEqual(item.displayName, 'OSAF Welcomes Priscilla Chung')
 
-        item = channel.indexLookup('http://www.osafoundation.org/nonexistent/')
+        # Test unsuccessful lookup
+        nonExistent = URL('http://www.osafoundation.org/nonexistent/')
+        item = channel.indexLookup(nonExistent)
         self.assertEqual(item, None)
 
         # Although the channels module doesn't allow duplicate links, let's
         # test the lookup mechanism's ability to return dupes.  We'll add a
         # duplicate, then pass the 'multiple=True' arg to indexLookup.
 
+        url = URL('http://www.osafoundation.org/archives/000964.html')
         item = feeds.FeedItem(itsView=view, displayName="Duplicate", link=url)
         channel.add(item)
 

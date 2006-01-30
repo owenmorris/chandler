@@ -115,8 +115,7 @@ class FeedChannel(pim.ListCollection):
 
     def __init__(self, *args, **kw):
         super(FeedChannel, self).__init__(*args, **kw)
-        self.rep.addIndex('link', 'compare', compare='_compareLink',
-                          monitor=('link'))
+        self.rep.addIndex('link', 'value', attribute='link')
 
     schema.kindInfo(displayName=u"Feed Channel")
 
@@ -184,8 +183,10 @@ class FeedChannel(pim.ListCollection):
                        # API-complete @@@MOR
 
         def _compare(uuid):
-            item = self.itsView[uuid]
-            return cmp(str(value).lower(), str(getattr(item, 'link')).lower())
+            # Use the new method for getting an attribute value without
+            # actually loading an item:
+            attrValue = self.itsView.findValue(uuid, 'link')
+            return cmp(str(value), str(attrValue))
 
         firstUUID = rep.findInIndex('link', 'first', _compare)
 
