@@ -705,17 +705,19 @@ class AnnotationClass(type):
                 ob.activateInClass(cls,name)
 
     def _find_schema_item(cls, view):
-        parent = parcel_for_module(cls.__module__, view)
-        item = parent.getItemChild(cls.__name__)
-        if isinstance(item, AnnotationItem):
-            return item
+        parent = view.findPath(ModuleMaker(cls.__module__).getPath())
+        if parent is not None:
+            item = parent.getItemChild(cls.__name__)
+            if isinstance(item, AnnotationItem):
+                return item
 
     def _create_schema_item(cls, view):
         return AnnotationItem(
-            cls.__name__, parcel_for_module(cls.__module__, view),
+            "tmp_"+cls.__name__, view
         )
 
     def _init_schema_item(cls, annInfo, view):
+        annInfo.itsParent = parcel_for_module(cls.__module__, view)
         for attr in cls.__dict__.values():
             if isinstance(attr,Redirector):
                 itemFor(attr.cdesc, view)     # ensure all attributes exist
