@@ -1214,3 +1214,4 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
         return win.ShowModal()
     else:
         win.Show()
+        return win

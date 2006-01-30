@@ -1066,8 +1066,7 @@ class UITestAccounts:
         """
         # Have to do it the hard way since Account Preferences is modal by default
         import application
-        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, rv=self.view, modal=False)
-        self.window = wx.FindWindowByLabel("Account Preferences")
+        self.window = application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, rv=self.view, modal=False)
         wx.GetApp().Yield()
         
     def Ok(self):
