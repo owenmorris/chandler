@@ -121,6 +121,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
+
 
     def OnGainFocus (self, event):
         self.SetSelectionBackground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT))
@@ -129,6 +131,11 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnLoseFocus (self, event):
         self.SetLightSelectionBackground()
         self.InvalidateSelection ()
+
+    def OnLabelLeftClicked (self, event):
+        assert (event.GetRow() == -1) # Currently Table only supports column headers
+        self.blockItem.contents.indexName = self.blockItem.columnData [event.GetCol()]
+        self.wxSynchronizeWidget()
 
     def SetLightSelectionBackground (self):
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
