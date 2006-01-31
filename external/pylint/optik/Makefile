@@ -16,7 +16,6 @@ build: expand
 
 optik-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/optik-$(VERSION).tar.gz
-	$(CURL) http://builds.osafoundation.org/external/optik-$(VERSION).tar.gz.md5
 
 sources: optik-$(VERSION).tar.gz
 
@@ -31,8 +30,7 @@ binaries:
 	find $(SNAP)/$(SITE)/optik -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/optik -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(OPTIK)/optik-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/optik; \
-	$(MD5) $(OPTIK)/optik-$(SNAP)-$(RELVER).tar.gz > $(OPTIK)/optik-$(SNAP)-$(RELVER).tar.gz.md5
+                  $(SNAP)/$(SITE)/optik
 
 install: optik-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf optik-$(SNAP)-$(RELVER).tar.gz
@@ -48,4 +46,3 @@ _realclean::
 
 upload: optik-$(SNAP)-$(RELVER).tar.gz
 	scp optik-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp optik-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)

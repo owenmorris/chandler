@@ -16,7 +16,6 @@ build: expand
 
 common-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/common-$(VERSION).tar.gz
-	$(CURL) http://builds.osafoundation.org/external/common-$(VERSION).tar.gz.md5
 
 sources: common-$(VERSION).tar.gz
 
@@ -33,8 +32,7 @@ binaries:
 	find $(SNAP)/$(SITE)/logilab -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(COMMON)/common-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/logilab \
-                  --exclude test; \
-	$(MD5) $(COMMON)/common-$(SNAP)-$(RELVER).tar.gz > $(COMMON)/common-$(SNAP)-$(RELVER).tar.gz.md5
+                  --exclude test
 
 install: common-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf common-$(SNAP)-$(RELVER).tar.gz
@@ -50,4 +48,3 @@ _realclean::
 
 upload: common-$(SNAP)-$(RELVER).tar.gz
 	scp common-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-	scp common-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
