@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.168 2006/01/21 16:47:25 JS Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.169 2006/01/31 01:55:59 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1058,7 +1058,6 @@ bool wxToolBar::Realize()
     }
 
     InvalidateBestSize();
-    SetBestFittingSize();
     UpdateSize();
 
     return true;

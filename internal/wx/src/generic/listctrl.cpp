@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.386 2006/01/25 23:48:09 vell Exp $
+// Id:          $Id: listctrl.cpp,v 1.387 2006/01/31 02:37:23 RD Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -341,6 +341,9 @@ public:
 
     void SetImage( int image ) { SetImage(0, image); }
     int GetImage() const { return GetImage(0); }
+    void SetImage( int index, int image );
+    int GetImage( int index ) const;
+
     bool HasImage() const { return GetImage() != -1; }
     bool HasText() const { return !GetText(0).empty(); }
 
@@ -390,11 +393,6 @@ private:
     // draw the text on the DC with the correct justification; also add an
     // ellipsis if the text is too large to fit in the current width
     void DrawTextFormatted(wxDC *dc, const wxString &text, int col, int x, int y, int width);
-
-    // these are only used by GetImage/SetImage above, we don't support images
-    // with subitems at the public API level yet
-    void SetImage( int index, int image );
-    int GetImage( int index ) const;
 };
 
 WX_DECLARE_EXPORTED_OBJARRAY(wxListLineData, wxListLineDataArray);
@@ -2226,7 +2224,7 @@ void wxListMainWindow::CacheLineData(size_t line)
     for ( size_t col = 0; col < countCol; col++ )
     {
         ld->SetText(col, listctrl->OnGetItemText(line, col));
-        ld->SetImage(listctrl->OnGetItemColumnImage(line, col));
+        ld->SetImage(col, listctrl->OnGetItemColumnImage(line, col));
     }
 
     ld->SetAttr(listctrl->OnGetItemAttr(line));

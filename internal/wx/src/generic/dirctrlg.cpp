@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlg.cpp,v 1.136 2006/01/21 16:47:18 JS Exp $
+// RCS-ID:      $Id: dirctrlg.cpp,v 1.137 2006/01/31 00:54:26 ABX Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
 
 #if !defined(__WXWINCE__)
         wxChar pname[52];
-        if (GetVolumeInformation( path.c_str(), pname, 52, NULL, NULL, NULL, NULL, NULL ))
+        if (GetVolumeInformation( path.c_str(), pname, 52, NULL, NULL, NULL, NULL, 0 ))
         {
             name.Printf(wxT("%s %s"), (const wxChar*) name, pname );
         }
