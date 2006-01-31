@@ -89,4 +89,10 @@ class TestI18nAmazon(TestContentModel.ContentModelTestCase):
 
 
 if __name__ == "__main__":
-   unittest.main()
+   #XXX: The unit test has been disabled for tinderbox builds till
+   #     a mock server can be put in place.
+   #     The test can fail on the Amazon server side
+   #     which can lead to false positives.
+   #     The test will still run using the run_tests framework
+   #unittest.main()
+   pass
