@@ -2618,7 +2618,7 @@ class CloudXMLFormat(ImportExportFormat):
         if item is None:
             # item search turned up empty, so create an item...
             if uuid:
-                parent = self.findPath("//userdata")
+                parent = schema.Item.getDefaultParent(view)
                 item = kind.instantiateItem(None, parent, uuid,
                                             withInitialValues=True)
             else:
