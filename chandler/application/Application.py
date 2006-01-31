@@ -8,6 +8,7 @@ import wx, Globals, Utility
 
 from new import classobj
 from i18n import OSAFMessageFactory as _, getImage
+import schema
 
 from repository.persistence.RepositoryError import \
     MergeError, RepositoryVersionError, VersionConflictError
@@ -430,7 +431,7 @@ class wxApplication (wx.App):
             mainViewRoot = None
         if mainViewRoot is None:
             template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
-            mainViewRoot = template.copy (parent = self.UIRepositoryView.findPath ("//userdata"),
+            mainViewRoot = template.copy (parent = schema.Item.getDefaultParent (self.UIRepositoryView),
                                           name = "MainViewRoot",
                                           cloudAlias="copying")
             if frame is not None:
