@@ -31,8 +31,8 @@ binaries:
 	find $(SNAP)/$(SITE)/logilab -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/logilab -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(COMMON)/common-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/logilab \
-                  --exclude test
+                  --exclude test $(SNAP)/$(SITE)/logilab
+
 
 install: common-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf common-$(SNAP)-$(RELVER).tar.gz
