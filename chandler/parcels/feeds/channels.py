@@ -164,11 +164,6 @@ class FeedChannel(pim.ListCollection):
         displayName=u"Language"
     )
 
-    isUnread = schema.One(
-        schema.Boolean,
-        displayName=u"Is Unread"
-    )
-
     schema.addClouds(
         sharing = schema.Cloud(author, copyright, link, url)
     )
@@ -399,11 +394,22 @@ class FeedChannel(pim.ListCollection):
                     if matchingItem.date != newItem.date:
                         dateDifferent = True
 
-                if ((oldContent != content) or (oldTitle != title) or
-                    dateDifferent):
+                contentDifferent = (oldContent != content)
+
+                titleDifferent = (oldTitle != title)
+
+                if contentDifferent or titleDifferent or dateDifferent:
+
                     matchingItem.update(newItem)
+
+                    if matchingItem.read:
+                        matchingItem.updated = True
+
                     matchingItem.read = False
-                    logger.debug("Updated item: %s", title)
+
+                    msg = "Updated item: %s (content %s, title %s, date %s)"
+                    logger.debug(msg, title, contentDifferent, titleDifferent,
+                                 dateDifferent)
 
         return count
 
@@ -447,6 +453,11 @@ class FeedItem(pim.ContentItem):
     content = schema.One(
         schema.Lob,
         displayName=u"Content"
+    )
+
+    updated = schema.One(
+        schema.Boolean,
+        displayName=_(u"Updated")
     )
 
     about = schema.Descriptor(redirectTo="displayName")
