@@ -984,16 +984,6 @@ class MainView(View):
         view.refresh()
 
     def onTestEvent (self, event):
-        import time
-        from colorsys import hsv_to_rgb
-
-        hsv = wx.Image_HSVValue (0.5, 0.5, 0.5)
-        start = time.clock()
-        for count in xrange (1000):
-            rgb = wx.Image.HSVtoRGB (hsv)
-        print time.clock() - start
-            
-        start = time.clock()
-        for count in xrange (1000):
-            rgb = hsv_to_rgb (0.5, 0.5, 0.5)
-        print time.clock() - start
+        f = wx.GetTopLevelWindows()[0]
+        p = f.GetChildren()[0].GetChildren()[0].GetChildren()[0].GetChildren()[0]
+        p.Layout()
