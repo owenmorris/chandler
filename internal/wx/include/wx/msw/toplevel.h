@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h,v 1.35 2005/11/13 11:46:22 ABX Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.36 2006/01/31 21:36:37 ABX Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,6 +84,7 @@ public:
     virtual void SetLeftMenu(int id = wxID_ANY, const wxString& label = wxEmptyString, wxMenu *subMenu = NULL);
     virtual void SetRightMenu(int id = wxID_ANY, const wxString& label = wxEmptyString, wxMenu *subMenu = NULL);
     bool HandleCommand(WXWORD id, WXWORD cmd, WXHWND control);
+    virtual bool MSWShouldPreProcessMessage(WXMSG* pMsg);
 #endif // __SMARTPHONE__ && __WXWINCE__
 
 #if defined(__SMARTPHONE__) || defined(__POCKETPC__)
