@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbkg.cpp,v 1.3 2006/01/31 15:37:19 JS Exp $
+// RCS-ID:      $Id: toolbkg.cpp,v 1.4 2006/01/31 16:22:54 JS Exp $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -319,10 +319,16 @@ wxToolbook::InsertPage(size_t n,
     if (!GetImageList())
         return false;
 
+    // TODO: make sure all platforms can convert between icon and bitmap,
+    // and/or test whether the image is a bitmap or an icon.
+#ifdef __WXMAC__
+    wxBitmap bitmap = GetImageList()->GetBitmap(imageId);
+#else
     // On Windows, we can lose information by using GetBitmap, so extract icon instead
     wxIcon icon = GetImageList()->GetIcon(imageId);
     wxBitmap bitmap;
     bitmap.CopyFromIcon(icon);
+#endif
     
     m_maxBitmapSize.x = wxMax(bitmap.GetWidth(), m_maxBitmapSize.x);
     m_maxBitmapSize.y = wxMax(bitmap.GetHeight(), m_maxBitmapSize.y);
