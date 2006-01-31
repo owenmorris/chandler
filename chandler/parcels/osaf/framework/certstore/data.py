@@ -90,23 +90,11 @@ def installParcel(parcel, oldVersion=None):
 
     loadCerts(parcel, __name__)
     
-    # XXX Create extents - this should go away since repository now has extents
     from osaf.pim.collections import KindCollection
 
     cert = schema.ns('osaf.framework.certstore', parcel)
     kind = schema.itemFor(cert.Certificate, parcel.itsView)
+    KindCollection.update(kind, 'fullExtent',  kind=kind, recursive=True)
+    KindCollection.update(kind, 'exactExtent', kind=kind, recursive=False)
  
-    def createExtent(name, exact):
-        collection = kind.findPath("//userdata/%s" % name)
-        if collection is not None:
-            raise Exception('Found unexpected collection')
-    
-        collection = KindCollection(name, itsView = parcel.itsView)
-        collection.kind = kind
-        collection.recursive = exact
- 
-    # XXX Should get the names from some shared source because they are used
-    # XXX in certificate.py as well.
-    createExtent('%sCollection' % kind.itsName, True)
-    createExtent('Recursive%sCollection' % kind.itsName, False)
 

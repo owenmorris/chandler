@@ -42,11 +42,11 @@ def getExtent(cls, view=None, exact=False):
     # XXX Should get the names from some shared source because they are used
     # XXX in data.py as well.
     if exact:
-        name = '%sCollection' % kind.itsName
+        name = 'exactExtent'
     else:
-        name = 'Recursive%sCollection' % kind.itsName
+        name = 'fullExtent'
 
-    return kind.findPath("//userdata/%s" % name)
+    return kind[name]
 
 # Make sure to set this to true if any operation initializes entropy.
 # For example, after creating random path names or starting an SSL connection.
