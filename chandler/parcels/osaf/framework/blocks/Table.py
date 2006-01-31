@@ -40,7 +40,8 @@ class wxTableData(wx.grid.PyGridTableBase):
         if grid.GetElementCount() == 0:
             item = None
         else:
-            item = grid.blockItem.contents [grid.GetGridCursorRow()]
+            row = grid.GetGridCursorRow()
+            item = grid.blockItem.contents [self.RowToIndex(row)]
         return grid.GetColumnHeading (column, item)
 
     def IsEmptyCell (self, row, column): 
@@ -71,7 +72,20 @@ class wxTableData(wx.grid.PyGridTableBase):
                 attribute = self.defaultRWAttribute
             attribute.IncRef()
         return attribute
-        
+
+    def RowToIndex(self, tableRow):
+        """
+        translates a UI row, such as row 3 in the grid, to the
+        appropriate row in the collection.
+        """
+        return tableRow
+
+    def IndexToRow(self, itemIndex):
+        """
+        translates an item index, such as item 3 in the collection,
+        into a row in the table.
+        """
+        return itemIndex
 
 class wxTable(DragAndDrop.DraggableWidget, 
               DragAndDrop.DropReceiveWidget, 
@@ -148,10 +162,12 @@ class wxTable(DragAndDrop.DraggableWidget,
         lastRow = self.GetNumberCols() - 1
         
         selectionRanges = self.blockItem.contents.getSelectionRanges()
-        for selectionRow,selectionColumn in selectionRanges:
+        for indexStart, indexEnd in selectionRanges:
+            rowStart = self.GetTable().IndexToRow(indexStart)
+            rowEnd = self.GetTable().IndexToRow(indexEnd)
             dirtyRect = wx.Rect()
-            dirtyRect.SetTopLeft(self.CellToRect(selectionRow, 0).GetTopLeft())
-            dirtyRect.SetBottomRight(self.CellToRect(selectionColumn,
+            dirtyRect.SetTopLeft(self.CellToRect(rowStart, 0).GetTopLeft())
+            dirtyRect.SetBottomRight(self.CellToRect(rowEnd,
                                                      lastRow).GetBottomRight())
             dirtyRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
             self.RefreshRect (dirtyRect)
@@ -193,7 +209,9 @@ class wxTable(DragAndDrop.DraggableWidget,
                 for ((topLeftRow, topLeftColumn),
                      (bottomRightRow, bottomRightColumn)) in zip(topLeftList,
                                                                  bottomRightList):
-                    contents.addSelectionRange ((topLeftRow, bottomRightRow))
+                    indexStart = self.GetTable().RowToIndex(topLeftRow)
+                    indexEnd = self.GetTable().RowToIndex(bottomRightRow)
+                    contents.addSelectionRange ((indexStart, indexEnd))
                
                 topLeftList.sort()
                 try:
@@ -201,7 +219,8 @@ class wxTable(DragAndDrop.DraggableWidget,
                 except IndexError:
                     item = None
                 else:
-                    item = blockItem.contents [row]
+                    itemIndex = self.GetTable().RowToIndex(row)
+                    item = blockItem.contents [itemIndex]
     
                 if item is not blockItem.selectedItemToView:
                     blockItem.selectedItemToView = item
@@ -277,7 +296,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         # If we don't have a selection, set it the firstRow of the event.
         contents = self.blockItem.contents
         if len (contents.getSelectionRanges()) == 0:
-            firstRow = event.GetRow()
+            selectedItemIndex = self.GetTable().RowToIndex(event.GetRow())
             contents.setSelectionRanges ([(firstRow, firstRow)])
         self.DoDragAndDrop(copyOnly=True)
 
@@ -290,8 +309,9 @@ class wxTable(DragAndDrop.DraggableWidget,
             item.addToCollection(collection)
 
     def OnRightClick(self, event):
+        itemIndex = self.GetTable().RowToIndex(event.GetRow())
         self.blockItem.DisplayContextMenu(event.GetPosition(),
-                                          self.blockItem.contents [event.GetRow()])
+                                          self.blockItem.contents[itemIndex])
 
     def wxSynchronizeWidget(self, **hints):
         """
@@ -345,8 +365,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.ClearSelection()
         contents = self.blockItem.contents
         for selectionStart,selectionEnd in contents.getSelectionRanges():
-            self.SelectBlock (selectionStart, 0,
-                              selectionEnd, newColumns, True)
+            rowStart = self.GetTable().IndexToRow(selectionStart)
+            rowEnd = self.GetTable().IndexToRow(selectionEnd)
+            self.SelectBlock (rowStart, 0,
+                              rowEnd, newColumns, True)
         self.EndBatch() 
 
         # Update all displayed values
@@ -354,10 +376,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.ProcessTableMessage (message)
         self.ForceRefresh () 
 
-        # Either we should move selectedItemToView into the selection that is part of
-        # the contents or get rid of it. This would eliminate the following code that
-        # keeps it up to date and when we install a different contents on a block
-        # it would get restored to the correct value -- DJA
+        # Either we should move selectedItemToView into the selection
+        # that is part of the contents or get rid of it. This would
+        # eliminate the following code that keeps it up to date and
+        # when we install a different contents on a block it would get
+        # restored to the correct value -- DJA
         selectedItemToView = self.blockItem.selectedItemToView
         if (selectedItemToView not in contents and
             selectedItemToView is not None):
@@ -377,20 +400,22 @@ class wxTable(DragAndDrop.DraggableWidget,
                 except ValueError:
                     editAttributeNamed = None
 
-            self.SetGridCursor (index, column)
-            self.MakeCellVisible (index, column)
+            cursorRow = self.GetTable().IndexToRow(index)
+            self.SetGridCursor (cursorRow, column)
+            self.MakeCellVisible (cursorRow, column)
             if editAttributeNamed is not None:
                 self.EnableCellEditControl()
 
     def GoToItem(self, item):
         if item != None:
             try:
-                row = self.blockItem.contents.index (item)
+                index = self.blockItem.contents.index (item)
+                row = self.GetTable().IndexToRow(index)
             except ValueError:
                 item = None
         blockItem = self.blockItem
         if item is not None:
-            blockItem.contents.addSelectionRange (row)
+            blockItem.contents.addSelectionRange (index)
             blockItem.selectedItemToView = item
             self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
             self.MakeCellVisible (row, 0)
@@ -420,11 +445,14 @@ class wxTable(DragAndDrop.DraggableWidget,
         selectionRanges = []
         for topLeftRow,topLeftColumn in topLeftList:
             for bottomRightRow,bottomRightColumn in bottomRightList:
-                selectionRanges.append ([topLeftRow, bottomRightRow])
+                indexStart = self.GetTable().RowToIndex(topLeftRow)
+                indexEnd = self.GetTable().RowToIndex(bottomRightRow)
+                selectionRanges.append ([indexStart, indexEnd])
         selectionRanges.sort(reverse=True)
 
-        # now delete rows - since we reverse sorted, the 
-        # "newRowSelection" will be the highest row that we're not deleting
+        # now delete rows - since we reverse sorted, the
+        # "newSelectedItemIndex" will be the highest row that we're
+        # not deleting
         
         # this is broken - we shouldn't be going through the widget
         # to delete the items! Instead, when items are removed from the
@@ -435,16 +463,16 @@ class wxTable(DragAndDrop.DraggableWidget,
         newRowSelection = 0
         contents = blockItem.contents
         for selectionStart,selectionEnd in selectionRanges:
-            for row in xrange (selectionEnd, selectionStart - 1, -1):
-                DeleteItemCallback(contents[row])
-                newRowSelection = row
-
+            for itemIndex in xrange (selectionEnd, selectionStart - 1, -1):
+                DeleteItemCallback(contents[itemIndex])
+                # remember the last deleted row
+                newSelectedItemIndex = itemIndex
+        
         blockItem.contents.setSelectionRanges([])
         blockItem.selectedItemToView = None
         blockItem.itsView.commit()
         
         # now select the "next" item
-        totalItems = len(contents)
         """
           We call wxSynchronizeWidget here because the postEvent
           causes the DetailView to call it's wxSynchrnoizeWidget,
@@ -456,9 +484,10 @@ class wxTable(DragAndDrop.DraggableWidget,
           wxSynchronizeWidget to be called. -- DJA
         """
         blockItem.synchronizeWidget()
+        totalItems = len(contents)
         if totalItems > 0:
-            newRowSelection = min(newRowSelection, totalItems - 1)
-            blockItem.PostSelectItems([contents[newRowSelection]])
+            newSelectedItemIndex = min(newSelectedItemIndex, totalItems - 1)
+            blockItem.PostSelectItems([contents[newSelectedItemIndex]])
         else:
             blockItem.PostSelectItems([])
 
@@ -653,7 +682,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         lastColumn = self.widget.GetColumnCount() - 1
         for item in items:
             try:
-                row = self.contents.index (item)
+                row = self.widget.GetTable().IndexToRow(self.contents.index (item))
             except ValueError:
                 continue
 
