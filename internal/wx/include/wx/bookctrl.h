@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.h,v 1.26 2006/01/30 15:19:45 JS Exp $
+// RCS-ID:      $Id: bookctrl.h,v 1.27 2006/01/31 13:51:30 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,6 +131,10 @@ public:
     // returns true if we have wxCHB_TOP or wxCHB_BOTTOM style
     bool IsVertical() const { return HasFlag(wxBK_BOTTOM | wxBK_TOP); }
 
+    // set/get option to shrink to fit current page
+    void SetShrinkMode(bool shrink) { m_shrinkToFit = shrink; }
+    bool GetShrinkMode() const { return m_shrinkToFit; }
+
     // operations
     // ----------
 
@@ -228,6 +232,9 @@ protected:
 
     // controller buddy if available, NULL otherwise (usually for native book controls like wxNotebook)
     wxControl *m_bookctrl;
+
+    // Whether to shrink to fit current page
+    bool m_shrinkToFit;
 
 private:
 

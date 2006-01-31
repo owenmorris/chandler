@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbkg.cpp,v 1.2 2006/01/30 16:38:19 RD Exp $
+// RCS-ID:      $Id: toolbkg.cpp,v 1.3 2006/01/31 15:37:19 JS Exp $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,7 @@
 
 #if wxUSE_TOOLBOOK
 
+#include "wx/imaglist.h"
 #include "wx/toolbar.h"
 #include "wx/toolbook.h"
 #include "wx/settings.h"

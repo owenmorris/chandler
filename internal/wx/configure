@@ -1008,6 +1008,7 @@ Optional Features:
   --enable-tbarnative     use native wxToolBar class
   --enable-tbarsmpl       use wxToolBarSimple class
   --enable-treebook       use wxTreebook class
+  --enable-toolbook       use wxToolbook class
   --enable-treectrl       use wxTreeCtrl class
   --enable-tipwindow      use wxTipWindow class
   --enable-popupwin       use wxPopUpWindow class
@@ -2218,6 +2219,7 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_TOOLBAR_NATIVE=no
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=no
   DEFAULT_wxUSE_TREEBOOK=no
+  DEFAULT_wxUSE_TOOLBOOK=no
   DEFAULT_wxUSE_TREECTRL=no
   DEFAULT_wxUSE_POPUPWIN=no
   DEFAULT_wxUSE_TIPWINDOW=no
@@ -2419,6 +2421,7 @@ else
   DEFAULT_wxUSE_TOOLBAR_NATIVE=yes
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=yes
   DEFAULT_wxUSE_TREEBOOK=yes
+  DEFAULT_wxUSE_TOOLBOOK=yes
   DEFAULT_wxUSE_TREECTRL=yes
   DEFAULT_wxUSE_POPUPWIN=yes
   DEFAULT_wxUSE_TIPWINDOW=yes
@@ -7482,6 +7485,7 @@ if test "$wxUSE_CONTROLS" = "yes"; then
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=yes
   DEFAULT_wxUSE_TOOLTIPS=yes
   DEFAULT_wxUSE_TREEBOOK=yes
+  DEFAULT_wxUSE_TOOLBOOK=yes
   DEFAULT_wxUSE_TREECTRL=yes
   DEFAULT_wxUSE_POPUPWIN=yes
   DEFAULT_wxUSE_TIPWINDOW=yes
@@ -7524,6 +7528,7 @@ elif test "$wxUSE_CONTROLS" = "no"; then
   DEFAULT_wxUSE_TOOLBAR_SIMPLE=no
   DEFAULT_wxUSE_TOOLTIPS=no
   DEFAULT_wxUSE_TREEBOOK=no
+  DEFAULT_wxUSE_TOOLBOOK=no
   DEFAULT_wxUSE_TREECTRL=no
   DEFAULT_wxUSE_POPUPWIN=no
   DEFAULT_wxUSE_TIPWINDOW=no
@@ -9162,6 +9167,47 @@ fi;
           fi
 
           if test "$wxUSE_TREEBOOK" = yes; then
+            echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+          else
+            echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+          fi
+
+
+	  enablestring=
+          echo "$as_me:$LINENO: checking for --${enablestring:-enable}-toolbook" >&5
+echo $ECHO_N "checking for --${enablestring:-enable}-toolbook... $ECHO_C" >&6
+          no_cache=0
+          # Check whether --enable-toolbook or --disable-toolbook was given.
+if test "${enable_toolbook+set}" = set; then
+  enableval="$enable_toolbook"
+
+                          if test "$enableval" = yes; then
+                            ac_cv_use_toolbook='wxUSE_TOOLBOOK=yes'
+                          else
+                            ac_cv_use_toolbook='wxUSE_TOOLBOOK=no'
+                          fi
+
+else
+
+                          LINE=`grep "wxUSE_TOOLBOOK" ${wx_arg_cache_file}`
+                          if test "x$LINE" != x ; then
+                            eval "DEFAULT_$LINE"
+                          else
+                            no_cache=1
+                          fi
+
+                          ac_cv_use_toolbook='wxUSE_TOOLBOOK='$DEFAULT_wxUSE_TOOLBOOK
+
+fi;
+
+          eval "$ac_cv_use_toolbook"
+          if test "$no_cache" != 1; then
+            echo $ac_cv_use_toolbook >> ${wx_arg_cache_file}.tmp
+          fi
+
+          if test "$wxUSE_TOOLBOOK" = yes; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
           else
@@ -12999,8 +13045,6 @@ echo "${ECHO_T}$ac_cv_prog_gcc_traditional" >&6
 fi
 
 
-
-
 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -15165,8 +15209,6 @@ echo "$as_me: WARNING: Building DLLs requires OMF mode, enabled" >&2;}
       fi
         ;;
   *)
-
-
 
       ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -21319,8 +21361,6 @@ if test "${wx_cv_STDC_EXT_required+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
-
-
                     ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -25251,8 +25291,6 @@ echo $ECHO_N "checking if expat.h is valid C++ header... $ECHO_C" >&6
 if test "${wx_cv_expat_is_not_broken+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-
-
 
                 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -32355,8 +32393,6 @@ _ACEOF
 fi
 
 
-
-
 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -33015,8 +33051,6 @@ else
     { echo "$as_me:$LINENO: WARNING: Wide character support is unavailable" >&5
 echo "$as_me: WARNING: Wide character support is unavailable" >&2;}
 fi
-
-
 
 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -33821,8 +33855,6 @@ fi
 if test "$TOOLKIT" != "MSW"; then
 
 
-
-
 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -34163,8 +34195,6 @@ echo "$as_me: WARNING: No POSIX signal functions on this system, wxApp::OnFatalE
     fi
 
     if test "$wxUSE_ON_FATAL_EXCEPTION" = "yes"; then
-
-
       ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -34251,8 +34281,6 @@ _ACEOF
 fi
 
 if test "$wxUSE_STACKWALKER" = "yes" -a "$wxUSE_UNIX" = "yes"; then
-
-
     ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -34586,9 +34614,7 @@ echo "$as_me:$LINENO: result: $wx_cv_func_statfs" >&5
 echo "${ECHO_T}$wx_cv_func_statfs" >&6
 
 if test "$wx_cv_func_statfs" = "yes"; then
-
-
-    ac_ext=cc
+        ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -34739,9 +34765,7 @@ echo "$as_me:$LINENO: result: $wx_cv_func_statvfs" >&5
 echo "${ECHO_T}$wx_cv_func_statvfs" >&6
 
     if test "$wx_cv_func_statvfs" = "yes"; then
-
-
-        ac_ext=cc
+                                                                ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -35626,8 +35650,6 @@ _ACEOF
  break
 fi
 done
-
-
 
 
 ac_ext=cc
@@ -38408,6 +38430,12 @@ _ACEOF
 fi
 
 
+ac_ext=cc
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
 
 
     ac_ext=c
@@ -38712,11 +38740,11 @@ echo "$as_me: error: internal error" >&2;}
     ;;
 esac
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=cc
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
@@ -39192,6 +39220,12 @@ fi
 done
 
       fi
+                                          ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 if test "$wxUSE_THREADS" = "yes"; then
   cat >>confdefs.h <<\_ACEOF
@@ -41029,8 +41063,6 @@ if test "${wx_cv_func_strptime_decl+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
-
-
                 ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -41572,9 +41604,7 @@ if test "${wx_cv_func_gettimeofday_has_2_args+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
-
-
-            ac_ext=cc
+                        ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -42952,8 +42982,6 @@ done
 
     if test "$ac_cv_header_ole2_h" = "yes" ; then
         if test "$GCC" = yes ; then
-
-
             ac_ext=cc
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -43537,6 +43565,14 @@ fi
 if test "$wxUSE_TREEBOOK" = "yes"; then
     cat >>confdefs.h <<\_ACEOF
 #define wxUSE_TREEBOOK 1
+_ACEOF
+
+    USES_CONTROLS=1
+fi
+
+if test "$wxUSE_TOOLBOOK" = "yes"; then
+    cat >>confdefs.h <<\_ACEOF
+#define wxUSE_TOOLBOOK 1
 _ACEOF
 
     USES_CONTROLS=1
