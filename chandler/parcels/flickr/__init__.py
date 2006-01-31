@@ -178,8 +178,7 @@ class PhotoCollection(pim.ListCollection):
                                  repView.findValue(uuid, 'flickrID')))
 
             if photoUUID is None:
-                photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView,
-                                        itsParent=repView['userdata'])
+                photoItem = FlickrPhoto(photo=flickrPhoto, itsView=repView)
             else:
                 photoItem = repView[photoUUID]
 

@@ -33,8 +33,6 @@ Design Issues:
       2. Date sent string could probally be gotten rid of
 """
 
-MAIL_DEFAULT_PATH = "//userdata"
-
 
 def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
     """
@@ -180,8 +178,6 @@ class AccountBase(items.ContentItem):
               'fetching email',
         initialValue = True,
     )
-
-    __default_path__ = MAIL_DEFAULT_PATH
 
     @classmethod
     def getActiveAccounts(cls, view):
@@ -349,8 +345,6 @@ class MailDeliveryError(items.ContentItem):
         inverse = 'deliveryErrors',
     )
 
-    __default_path__ = MAIL_DEFAULT_PATH
-
 
 class MailDeliveryBase(items.ContentItem):
 
@@ -374,8 +368,6 @@ class MailDeliveryBase(items.ContentItem):
         initialValue = [],
         inverse = MailDeliveryError.mailDelivery,
     )
-
-    __default_path__ = MAIL_DEFAULT_PATH
 
 
 class historyEnum(schema.Enumeration):
@@ -492,8 +484,6 @@ class MIMEBase(items.ContentItem):
     schema.addClouds(
         sharing = schema.Cloud(mimeType),
     )
-
-    __default_path__ = MAIL_DEFAULT_PATH
 
 
 class MIMENote(MIMEBase):
@@ -852,8 +842,6 @@ class EmailAddress(items.ContentItem):
     schema.addClouds(
         sharing = schema.Cloud(emailAddress, fullName)
     )
-
-    __default_path__ = MAIL_DEFAULT_PATH
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
         itsView=None, clone=None, **kw

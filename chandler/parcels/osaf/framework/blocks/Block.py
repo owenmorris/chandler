@@ -480,7 +480,7 @@ class Block(schema.Item):
 
             if event.copyItems:
                 # Do a cloud copy
-                item = item.copy (parent = self.itsView.findPath ("//userdata"),
+                item = item.copy (parent = self.getDefaultParent(self.itsView),
                                   cloudAlias="copying")
                 # And call setup if it exists
                 method = getattr (type (item), "setup", None)

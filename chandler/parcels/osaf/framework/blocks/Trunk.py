@@ -220,7 +220,7 @@ class BPBDelegate(schema.Item):
         try:
             userData = self.userData
         except AttributeError:
-            userData = self.findPath('//userdata')
+            userData = self.getDefaultParent(self.itsView)
             self.userData = userData
 
         if onlyIfReadOnly and item.itsParent == userData:
