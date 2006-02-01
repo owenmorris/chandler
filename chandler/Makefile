@@ -29,7 +29,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-$(BP)5.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)3.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)4.tar.gz \
-         $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.4-49-$(BP)1.tar.gz \
+         $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.4-51-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-1.9rc1-7-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-$(BP)4.tar.gz \
@@ -41,6 +41,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/zanshin-$(SNAP)-131-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/optik-$(SNAP)-1.5-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/common-$(SNAP)-0.12.0-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.7.0-$(BP)2.tar.gz
 
 
