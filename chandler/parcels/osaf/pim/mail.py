@@ -882,7 +882,7 @@ class EmailAddress(items.ContentItem):
             else:
                 return fullName
         elif self is self.getCurrentMeEmailAddress(self.itsView):
-            fullName = messages.ME
+            return messages.ME
         else:
             return self.getItemDisplayName()
 

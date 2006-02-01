@@ -99,12 +99,9 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         """
         def reNotifyInside(block, item):
             notifySelf = len(block.childrenBlocks) == 0 # True if no children
-            try:
-                # process from the children up
-                for child in block.childrenBlocks:
-                    notifySelf = reNotifyInside (child, item) or notifySelf
-            except AttributeError:
-                pass
+            # process from the children up
+            for child in block.childrenBlocks:
+                notifySelf = reNotifyInside(child, item) or notifySelf
             
             if notifySelf:
                 #logger.debug("SyncDetailView: syncWidgeting %s",
@@ -662,7 +659,7 @@ class ReadOnlyIconBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     def synchronizeItemDetail (self, item):
         # toggle this icon to reflect the read only status of the selected item
         enable = ( item.getSharedState() == ContentItem.READONLY )
-        self.parentBlock.widget.EnableTool(self.widget.toolID, enable)
+        self.parentBlock.widget.EnableTool(self.toolID, enable)
         return False
             
     def onReadOnlyEvent(self, event):
