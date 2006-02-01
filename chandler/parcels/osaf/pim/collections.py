@@ -243,6 +243,12 @@ class AbstractCollection(items.ContentItem):
     def itervalues(self, *args, **kwds):
         return self.rep.itervalues(*args, **kwds)
 
+    def setDescending(self, *args, **kwds):
+        return self.rep.setDescending(*args, **kwds)
+
+    def isDescending(self, *args, **kwds):
+        return self.rep.isDescending(*args, **kwds)
+
     def __nonzero__(self):
         return True
 

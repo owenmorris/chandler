@@ -134,8 +134,17 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def OnLabelLeftClicked (self, event):
         assert (event.GetRow() == -1) # Currently Table only supports column headers
-        self.blockItem.contents.indexName = self.blockItem.columnData [event.GetCol()]
-        self.wxSynchronizeWidget()
+        blockItem = self.blockItem
+        attributeName = blockItem.columnData [event.GetCol()]
+        contents = blockItem.contents
+        indexName = contents.indexName
+
+        if indexName != attributeName:
+            contents.indexName = attributeName
+        else:
+            contents.setDescending (indexName, not contents.isDescending(indexName))
+
+        self.wxSynchronizeWidget ()
 
     def SetLightSelectionBackground (self):
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
