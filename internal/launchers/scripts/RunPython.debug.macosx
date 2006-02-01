@@ -49,6 +49,9 @@ if [ "$GDB" != "" ]
 then
     echo $@
     exec gdb "$PYTHONBIN"
+elif [ "$PDB" != "" ]
+then
+    exec "$PYTHONBIN" -m pdb "$@"
 else
     exec "$PYTHONBIN" "$@"
 fi

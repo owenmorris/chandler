@@ -52,8 +52,11 @@ echo Using "$PYTHONBIN"
 
 if [ "$GDB" != "" ]
 then
-    echo -O $@
+    echo $OPTIMIZE $@
     exec gdb "$PYTHONBIN"
+elif [ "$PDB" != "" ]
+then
+    exec "$PYTHONBIN" $OPTIMIZE -m pdb "$@"
 else
     exec "$PYTHONBIN" $OPTIMIZE "$@"
 fi
