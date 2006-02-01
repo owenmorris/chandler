@@ -18,6 +18,8 @@ import dateutil.tz
 import datetime
 from datetime import date, time
 from PyICU import ICUtzinfo
+import PyICU
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from application import schema
 import itertools
 from i18n import OSAFMessageFactory as _
@@ -158,7 +160,9 @@ def itemsToVObject(view, items, cal=None, filters=None):
 
     return cal
 
-def convertToICUtzinfo(dt):
+tzid_mapping = {}
+
+def convertToICUtzinfo(dt, view=None):
     """
     This method returns a C{datetime} whose C{tzinfo} field
     (if any) is an instance of the ICUtzinfo class.
@@ -194,15 +198,49 @@ def convertToICUtzinfo(dt):
         # we want to use. This is kind of cheesy, but
         # works for now. This means that we're preferring
         # a tz like 'America/Chicago' over 'CST' or 'CDT'.
-        icuTzinfo = getICUInstance(getattr(oldTzinfo, '_tzid', None))
+        tzical_tzid = getattr(oldTzinfo, '_tzid', None)
+        icuTzinfo = getICUInstance(tzical_tzid)
         
-        # If that didn't work, get the name of the tz
-        # at the value of dt
+        if tzical_tzid is not None:
+            if tzid_mapping.has_key(tzical_tzid):
+                # we've already calculated a tzinfo for this tzid
+                icuTzinfo = tzid_mapping[tzical_tzid]
+        
+        # iterate over all PyICU timezones, return the first one whose
+        # offsets and DST transitions match oldTzinfo.  This is painfully
+        # inefficient, but we should do it only once per unrecognized timezone,
+        # so optimization seems premature.
+        
         if icuTzinfo is None:
-            icuTzinfo = getICUInstance(oldTzinfo.tzname(dt))
+            if view is not None:
+                info = TimeZoneInfo.get(view)
+                well_known = (t[1].tzid for t in info.iterTimeZones())
+            else:
+                well_known = []
+                
+            # canonicalTimeZone doesn't help us here, because our matching
+            # criteria aren't as strict as PyICU's, so iterate over well known
+            # timezones first
+            for tzid in itertools.chain(well_known,
+                                        PyICU.TimeZone.createEnumeration()):
+                test_tzinfo = getICUInstance(tzid)
+                # only test for the DST transitions for the year of the event
+                # being converted.  This could be very wrong, but sadly it's
+                # legal (and common practice) to serialize VTIMEZONEs with only
+                # one year's DST transitions in it.  Some clients (notably iCal)
+                # won't even bother to get that year's offset transitions right,
+                # but in that case, we really can't pin down a timezone
+                # definitively anyway (fortunately iCal uses standard zoneinfo
+                # tzid strings, so getICUInstance above should just work)
+                if vobject.icalendar.tzinfo_eq(test_tzinfo, oldTzinfo,
+                                               dt.year, dt.year + 1):
+                    icuTzinfo = test_tzinfo
+                    if tzical_tzid is not None:
+                        tzid_mapping[tzical_tzid] = icuTzinfo                    
+                    break
             
         # Here, if we have an unknown timezone, we'll turn
-        # it into a floating datetime, which is probably not right
+        # it into a floating datetime
         dt = dt.replace(tzinfo=icuTzinfo)
         
     return dt
@@ -397,7 +435,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         
                 # ignore timezones and recurrence till tzinfo -> PyICU is written
                 # give the repository a naive datetime, no timezone
-                dtstart = convertToICUtzinfo(dtstart)
+                dtstart = convertToICUtzinfo(dtstart, view)
                 # Because of restrictions on dateutil.rrule, we're going
                 # to have to make sure all the datetimes we create have
                 # the same naivete as dtstart
@@ -419,7 +457,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         else:
                             recurrenceID = convertToICUtzinfo(
                                                makeNaiveteMatch(recurrenceID,
-                                               tzinfo))
+                                               tzinfo), view)
                             
                         eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
                         if eventItem == None:
