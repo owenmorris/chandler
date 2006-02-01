@@ -177,6 +177,21 @@ class PersistentRefs(object):
 
         self._changedRefs.clear()
 
+    def _check_(self):
+
+        l = len(self)
+        key = self.firstKey()
+
+        while key:
+            l -= 1
+            link = self._get(key)
+            key = link._nextKey
+            
+        if l != 0:
+            return 1
+
+        return 0
+
     def _mergeChanges(self, oldVersion, toVersion):
 
         moves = {}
@@ -601,10 +616,13 @@ class DBChildren(Children, PersistentRefs):
 
     def _loadChild(self, key, child):
 
-        previousKey, nextKey, alias = self._loadRef(key)
-        self._dict[key] = CLink(self, child, previousKey, nextKey, alias)
-        if alias is not None:
-            self._aliases[alias] = key
+        if key not in self._dict: # setFuture() may have put it here already
+            previousKey, nextKey, alias = self._loadRef(key)
+            self._dict[key] = CLink(self, child, previousKey, nextKey, alias)
+            if alias is not None:
+                self._aliases[alias] = key
+        else:
+            self._dict[key]._value = child
 
     def resolveAlias(self, alias, load=True):
 
