@@ -46,7 +46,7 @@ try:
     url.SetFocus()
     url.Clear()
     wx.GetApp().Yield()
-    QAUITestAppLib.scripting.User.emulate_typing("webcal://qacosmo.osafoundation.org:8080/home/demo1/importTest.ics")
+    QAUITestAppLib.scripting.User.emulate_typing("http://qacosmo.osafoundation.org:8080/home/demo1/importTest-1?ticket=g0kplikch1")
     window.OnSubscribe(None)
     win.Destroy()
     User.idle()
