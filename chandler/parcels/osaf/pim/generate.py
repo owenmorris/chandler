@@ -43,7 +43,6 @@ def GenerateCalendarParticipant(view):
     email.emailAddress = "%s@%s" % (handle, domainName)
     return email
 
-IMPORTANCE = [u"important", u"normal", u"fyi"]
 LOCATIONS  = [u"Home", u"Office", u"School"]
 
 
@@ -89,7 +88,8 @@ def GenerateCalendarEvent(view, days=30, tzinfo=None):
 
 
 
-    event.importance = random.choice(IMPORTANCE)
+    event.importance = random.choice(pim.ImportanceEnum.values)
+    event.triageStatus = random.choice(pim.TriageEnum.values)
     return event
 
 
@@ -158,6 +158,7 @@ def GenerateMailMessage(view, tzinfo=None):
         body = addSurrogatePairToText(body)
 
     message.body = message.getAttributeAspect('body', 'type').makeValue(body)
+    message.triageStatus = random.choice(pim.TriageEnum.values)
 
     return message
 
@@ -172,6 +173,7 @@ def GenerateNote(view, tzinfo=None):
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
     note.createdOn = datetime.now(tzinfo) + delta
+    note.triageStatus = random.choice(pim.TriageEnum.values)
     return note
 
 def GenerateTask(view, tzinfo=None):
@@ -185,6 +187,7 @@ def GenerateTask(view, tzinfo=None):
     if TEST_I18N:
         task.displayName = addSurrogatePairToText(task.displayName)
 
+    task.triageStatus = random.choice(pim.TriageEnum.values)
     return task
 
 def GenerateEventTask(view, days=30, tzinfo=None):
