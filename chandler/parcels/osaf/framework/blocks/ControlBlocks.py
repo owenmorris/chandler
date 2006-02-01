@@ -192,8 +192,25 @@ class ListDelegate (object):
         """
         return False, True
 
+    def RowToIndex(self, tableRow):
+        """
+        translates a UI row, such as row 3 in the grid, to the
+        appropriate row in the collection.
+        """
+        return tableRow
+
+    def IndexToRow(self, itemIndex):
+        """
+        translates an item index, such as item 3 in the collection,
+        into a row in the table.
+        """
+        return itemIndex
+
 
 class AttributeDelegate (ListDelegate):
+    """
+    Overrides certain methods of wx.grid.Grid
+    """
     def GetElementType (self, row, column):
         """
           An apparent bug in wxWidgets occurs when there are no items in a table,
@@ -201,7 +218,8 @@ class AttributeDelegate (ListDelegate):
         """
         typeName = "_default"
         try:
-            item = self.blockItem.contents [row]
+            itemIndex = self.RowToIndex(row)
+            item = self.blockItem.contents [itemIndex]
         except IndexError:
             pass
         else:
@@ -230,10 +248,13 @@ class AttributeDelegate (ListDelegate):
         return typeName
 
     def GetElementValue (self, row, column):
-        return self.blockItem.contents [row], self.blockItem.columnData [column]
+        itemIndex = self.RowToIndex(row)
+        return (self.blockItem.contents [itemIndex],
+                self.blockItem.columnData [column])
     
     def SetElementValue (self, row, column, value):
-        item = self.blockItem.contents [row]
+        itemIndex = self.RowToIndex(row)
+        item = self.blockItem.contents [itemIndex]
         attributeName = self.blockItem.columnData [column]
         assert item.itsKind.hasAttribute (attributeName), "You cannot set a non-Chandler attribute value of an item (like itsKind)"
         item.setAttributeValue (attributeName, value)

@@ -41,7 +41,7 @@ class wxTableData(wx.grid.PyGridTableBase):
             item = None
         else:
             row = grid.GetGridCursorRow()
-            item = grid.blockItem.contents [self.RowToIndex(row)]
+            item = grid.blockItem.contents [self.GetView().RowToIndex(row)]
         return grid.GetColumnHeading (column, item)
 
     def IsEmptyCell (self, row, column): 
@@ -72,20 +72,6 @@ class wxTableData(wx.grid.PyGridTableBase):
                 attribute = self.defaultRWAttribute
             attribute.IncRef()
         return attribute
-
-    def RowToIndex(self, tableRow):
-        """
-        translates a UI row, such as row 3 in the grid, to the
-        appropriate row in the collection.
-        """
-        return tableRow
-
-    def IndexToRow(self, itemIndex):
-        """
-        translates an item index, such as item 3 in the collection,
-        into a row in the table.
-        """
-        return itemIndex
 
 class wxTable(DragAndDrop.DraggableWidget, 
               DragAndDrop.DropReceiveWidget, 
@@ -162,9 +148,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         lastRow = self.GetNumberCols() - 1
         
         selectionRanges = self.blockItem.contents.getSelectionRanges()
+        gridTable = self.GetTable()
         for indexStart, indexEnd in selectionRanges:
-            rowStart = self.GetTable().IndexToRow(indexStart)
-            rowEnd = self.GetTable().IndexToRow(indexEnd)
+            rowStart = self.IndexToRow(indexStart)
+            rowEnd = self.IndexToRow(indexEnd)
             dirtyRect = wx.Rect()
             dirtyRect.SetTopLeft(self.CellToRect(rowStart, 0).GetTopLeft())
             dirtyRect.SetBottomRight(self.CellToRect(rowEnd,
@@ -209,8 +196,8 @@ class wxTable(DragAndDrop.DraggableWidget,
                 for ((topLeftRow, topLeftColumn),
                      (bottomRightRow, bottomRightColumn)) in zip(topLeftList,
                                                                  bottomRightList):
-                    indexStart = self.GetTable().RowToIndex(topLeftRow)
-                    indexEnd = self.GetTable().RowToIndex(bottomRightRow)
+                    indexStart = self.RowToIndex(topLeftRow)
+                    indexEnd = self.RowToIndex(bottomRightRow)
                     contents.addSelectionRange ((indexStart, indexEnd))
                
                 topLeftList.sort()
@@ -219,7 +206,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 except IndexError:
                     item = None
                 else:
-                    itemIndex = self.GetTable().RowToIndex(row)
+                    itemIndex = self.RowToIndex(row)
                     item = blockItem.contents [itemIndex]
     
                 if item is not blockItem.selectedItemToView:
@@ -296,7 +283,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         # If we don't have a selection, set it the firstRow of the event.
         contents = self.blockItem.contents
         if len (contents.getSelectionRanges()) == 0:
-            selectedItemIndex = self.GetTable().RowToIndex(event.GetRow())
+            selectedItemIndex = self.RowToIndex(event.GetRow())
             contents.setSelectionRanges ([(firstRow, firstRow)])
         self.DoDragAndDrop(copyOnly=True)
 
@@ -309,7 +296,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             item.addToCollection(collection)
 
     def OnRightClick(self, event):
-        itemIndex = self.GetTable().RowToIndex(event.GetRow())
+        itemIndex = self.RowToIndex(event.GetRow())
         self.blockItem.DisplayContextMenu(event.GetPosition(),
                                           self.blockItem.contents[itemIndex])
 
@@ -365,13 +352,14 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.ClearSelection()
         contents = self.blockItem.contents
         for selectionStart,selectionEnd in contents.getSelectionRanges():
-            rowStart = self.GetTable().IndexToRow(selectionStart)
-            rowEnd = self.GetTable().IndexToRow(selectionEnd)
+            rowStart = self.IndexToRow(selectionStart)
+            rowEnd = self.IndexToRow(selectionEnd)
             self.SelectBlock (rowStart, 0,
                               rowEnd, newColumns, True)
         self.EndBatch() 
 
         # Update all displayed values
+        gridTable = self.GetTable()
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
         self.ProcessTableMessage (message)
         self.ForceRefresh () 
@@ -400,7 +388,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 except ValueError:
                     editAttributeNamed = None
 
-            cursorRow = self.GetTable().IndexToRow(index)
+            cursorRow = self.IndexToRow(index)
             self.SetGridCursor (cursorRow, column)
             self.MakeCellVisible (cursorRow, column)
             if editAttributeNamed is not None:
@@ -410,7 +398,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         if item != None:
             try:
                 index = self.blockItem.contents.index (item)
-                row = self.GetTable().IndexToRow(index)
+                row = self.IndexToRow(index)
             except ValueError:
                 item = None
         blockItem = self.blockItem
@@ -445,8 +433,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         selectionRanges = []
         for topLeftRow,topLeftColumn in topLeftList:
             for bottomRightRow,bottomRightColumn in bottomRightList:
-                indexStart = self.GetTable().RowToIndex(topLeftRow)
-                indexEnd = self.GetTable().RowToIndex(bottomRightRow)
+                indexStart = self.RowToIndex(topLeftRow)
+                indexEnd = self.RowToIndex(bottomRightRow)
                 selectionRanges.append ([indexStart, indexEnd])
         selectionRanges.sort(reverse=True)
 
@@ -682,7 +670,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         lastColumn = self.widget.GetColumnCount() - 1
         for item in items:
             try:
-                row = self.widget.GetTable().IndexToRow(self.contents.index (item))
+                row = self.widget.IndexToRow(self.contents.index (item))
             except ValueError:
                 continue
 
