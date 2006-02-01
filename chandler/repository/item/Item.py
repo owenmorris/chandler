@@ -671,12 +671,13 @@ class Item(CItem):
                         logger.error("Required value for attribute %s on %s is missing", name, self._repr_())
                         result = False
         
-        if recursive and self._children is not None:
+        if self._children is not None:
             l = len(self._children)
             for child in self.iterChildren():
                 l -= 1
-                check = child.check(True)
-                result = result and check
+                if recursive:
+                    check = child.check(True)
+                    result = result and check
             if l != 0:
                 logger.error("Iterator on children of %s doesn't match length (%d left for %d total)", self._repr_(), l, len(self._children))
                 return False
