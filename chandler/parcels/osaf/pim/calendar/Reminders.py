@@ -44,9 +44,7 @@ class Reminder(schema.Item):
     )
     
     schema.addClouds(
-        sharing = schema.Cloud(delta, relativeTo, snoozedUntil,
-            byCloud = [reminderItems, expiredReminderItems]
-        )
+        sharing = schema.Cloud(delta, relativeTo, snoozedUntil)
     )
     
     def getBaseTimeFor(self, remindable):

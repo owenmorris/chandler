@@ -188,11 +188,16 @@ class PublishCollectionDialog(wx.Dialog):
     def OnManageDone(self, evt):
         self._saveClassFilterState()
 
-        for share in self.collection.shares:
-            self._saveAttributeFilterState(share)
+        # Commenting this out for now since they can't be changed in the
+        # manage dialog anyway (the checkboxes are disabled), and it causes
+        # CalDAV CloudXML shares to lose attribute filters that they need to
+        # keep:
+        # for share in self.collection.shares:
+        #     self._saveAttributeFilterState(share)
 
         self.EndModal(False)
 
+        share = iter(self.collection.shares).next()
         if share.filterClasses != self.originalFilterClasses:
             SyncProgress.Show(wx.GetApp().mainFrame, rv=self.view,
                 collection=share.contents)
