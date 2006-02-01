@@ -177,6 +177,11 @@ class ICalendarTestCase(unittest.TestCase):
         # THISANDFUTURE change creates a new event, so there's nothing in
         # event.modifications
         self.assertEqual(event.modifications, None)
+
+    def importUnusualTzid(self):
+        format = self.Import(self.repo.view, u'UnusualTzid.ics')
+        event = format.findUID('42583280-8164-11da-c77c-0011246e17f0')
+        self.assertEqual(event.startTime.tzinfo, ICUtzinfo.getInstance('US/Mountain'))
         
     def importReminders(self):
         format = self.Import(self.repo.view, u'RecurrenceWithAlarm.ics')
