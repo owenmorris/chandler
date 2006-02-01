@@ -374,7 +374,14 @@ class SortedIndex(DelegatingIndex):
 
     def setDescending(self, descending=True):
 
+        wasDescending = self._descending
         self._descending = descending
+
+        return wasDescending
+
+    def isDescending(self):
+
+        return self._descending
 
     def getKey(self, n):
 

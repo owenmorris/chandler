@@ -189,8 +189,12 @@ class Indexed(object):
 
     def setDescending(self, indexName, descending=True):
 
-        self.getIndex(indexName).setDescending(descending)
-        self._setDirty(True) # noMonitors=True 
+        if self.getIndex(indexName).setDescending(descending) != descending:
+            self._setDirty(True) # noMonitors=True 
+
+    def isDescending(self, indexName):
+
+        return self.getIndex(indexName).isDescending()
 
     def _createIndex(self, indexType, **kwds):
 
