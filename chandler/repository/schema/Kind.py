@@ -924,6 +924,10 @@ class Extent(Item):
             for key in KindQuery(recursive).runKeys((self.kind,)):
                 yield key
 
+    def notify(self, op, other):
+
+        self._collectionChanged(op, 'notification', 'extent', other)
+
     def _collectionChanged(self, op, change, name, other, filterKind=None):
 
         callable = Item._collectionChanged

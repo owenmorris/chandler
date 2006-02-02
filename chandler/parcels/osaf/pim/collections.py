@@ -20,8 +20,6 @@ def deliverNotifications(view):
         view.addNotificationCallback(repositoryViewCallback)
     notificationQueue = view.notificationQueue
 
-    kc = schema.ns("osaf.pim.collections", view).kind_collections
-
     while True:
         while not notificationQueue.empty():
             (collection, op, item, name, other, args) = notificationQueue.get()
@@ -48,11 +46,10 @@ def deliverNotifications(view):
                     for i in collections:
                         i.contentsUpdated(item)
 
-                # handle changes to items in an existing KindCollection
-                # is the item in a kind collection?
-                for i in kc.collections:
-                    if item in i:
-                        i.contentsUpdated(item)
+                # handle changes to items in KindCollections
+                kind = item.itsKind
+                if kind is not None:
+                    kind.extent.notify('changed', item)
 
         if notificationQueue.empty():
             break
@@ -60,16 +57,19 @@ def deliverNotifications(view):
 
 def repositoryViewCallback(view, changes, reason):
     
-    kc = schema.ns("osaf.pim.collections", view).kind_collections
     for (uuid, reason, kwds) in changes:
         item = view.findUUID(uuid)
-        if item is not None and hasattr(item, 'collections'):
-            for i in item.collections:
-                i.contentsUpdated(item)
+        if item is not None:
 
-        for i in kc.collections:
-            if item in i:
-                i.contentsUpdated(item)
+            collections = getattr(item, 'collections', None)
+            if collections is not None:
+                for i in collections:
+                    i.contentsUpdated(item)
+
+            kind = item.itsKind
+            if kind is not None:
+                kind.extent.notify('changed', item)
+
 
 class CollectionColors(schema.Item):
     """
@@ -300,6 +300,7 @@ class AbstractCollection(items.ContentItem):
 
     readOnly = property(isReadOnly)
 
+
 class KindCollection(AbstractCollection):
     """
     A Collection of all of the items of a particular kind
@@ -316,15 +317,6 @@ class KindCollection(AbstractCollection):
 
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'), initialValue=None)
     recursive = schema.One(schema.Boolean, initialValue=False)
-    # the KindCollectionDirectory is a data structure the records all
-    # the KindCollections in the system, for use by mapChangesCallable
-    directory = schema.One("KindCollectionDirectory", initialValue=None)
-
-    def __init__(self, *args, **kw):
-        super(KindCollection, self).__init__(*args, **kw)
-        # find the global KindCollectionDirectory item.
-        kc = schema.ns("osaf.pim.collections", self.itsView).kind_collections
-        kc.collections.add(self)
 
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
@@ -339,22 +331,12 @@ class KindCollection(AbstractCollection):
         return "\n%skind: %s" %('  ' * indent, self.kind.itsPath)
 
 
-class KindCollectionDirectory(schema.Item):
-    """
-    Directory of all KindCollections in Chandler
-    """
-    # just a ref collection, really
-    collections = schema.Sequence(
-        "KindCollection",
-        inverse = KindCollection.directory,
-        doc="all KindCollections - intended to be a singleton.  Use to propagate change notifications", initialValue=[])
-
 def installParcel(parcel, old_version = None):
     """
     Parcel install time hook
     """
-    # create the global KindCollectionDirectory item.
-    KindCollectionDirectory.update(parcel, "kind_collections")
+    pass
+
 
 class ListCollection(AbstractCollection):
     """
