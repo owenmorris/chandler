@@ -407,7 +407,6 @@ class DBItemWriter(ItemWriter):
             if withSchema:
                 self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
             size += value._saveValues(version)
-            value._validateIndexes()
             self.indexes = []
             size += self.writeIndexes(buffer, item, version, value)
 

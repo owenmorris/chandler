@@ -58,8 +58,9 @@ class Indexed(object):
 
     def _anIndex(self):
 
-        if self._indexes:
-            return self._indexes.itervalues().next()
+        if self._valid:
+            if self._indexes:
+                return self._indexes.itervalues().next()
 
         return None
 
@@ -562,3 +563,20 @@ class Indexed(object):
     def getIndexSize(self, indexName):
 
         return len(self.getIndex(indexName))
+
+    def _checkIndexes(self, logger, item, attribute):
+
+        result = True
+
+        if not self._valid:
+            logger.error("Indexes installed on value '%s' of type %s in attribute %s on %s are invalid (_valid is False)", self, type(self), attribute, item._repr_())
+            result = False
+
+        if self._indexes:
+            count = len(self)
+            for name, index in self._indexes.iteritems():
+                if count != len(index):
+                    logger.error("Lengths of index '%s' (%d) installed on value '%s' (%d) of type %s in attribute %s on %s don't match", name, len(index), self, type(self), attribute, item._repr_())
+                    result = False
+
+        return result

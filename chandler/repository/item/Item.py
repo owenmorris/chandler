@@ -102,17 +102,6 @@ class Item(CItem):
                 for name in values.iterkeys():
                     onValueChanged(name)
 
-    def _setInitialValues(self, values, fireOnValueChanged):
-
-        for name, value in values.iteritems():
-            setattr(self, name, value)
-
-        if fireOnValueChanged:
-            onValueChanged = getattr(self, 'onValueChanged', None)
-            if onValueChanged is not None:
-                for name in values.iterkeys():
-                    onValueChanged(name)
-
     def __iter__(self):
         """
         (deprecated) Use L{iterChildren} instead.
@@ -626,7 +615,7 @@ class Item(CItem):
                     ref = self._references._getRef(name, ref)
                 yield name, ref
 
-    def check(self, recursive=False):
+    def check(self, recursive=False, checkItem=True):
         """
         Run consistency checks on this item.
 
@@ -682,7 +671,24 @@ class Item(CItem):
                 logger.error("Iterator on children of %s doesn't match length (%d left for %d total)", self._repr_(), l, len(self._children))
                 return False
 
+        if result and checkItem:
+            result = self.checkItem()
+
         return result
+
+    def checkItem(self):
+        """
+        A placeholder for subclasses to do more checking.
+
+        This method is meant to be used by developers to do implement checks
+        that the repository cannot do on its own such as semantic
+        constraints checking.
+
+        Failure should be logged, exceptions should not be raised.
+
+        @return: C{True} if all checks pass, C{False} otherwise
+        """
+        return True
 
     def getVersion(self, latest=False):
         """
@@ -2213,3 +2219,8 @@ class Item(CItem):
 
             else:
                 print indent2, "%s: <%s>" %(name, type(value).__name__), repr(value)
+
+    def _afterMerge(self):
+
+        self._values._afterMerge()
+        self._references._afterMerge()

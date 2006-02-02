@@ -1813,7 +1813,6 @@ class AbstractSet(Type):
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
-        value._validateIndexes()
         string = AbstractSetType.makeString(value)
         size = itemWriter.writeString(buffer, string)
         size += itemWriter.writeIndexes(buffer, item, version, value)

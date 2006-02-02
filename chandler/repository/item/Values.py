@@ -279,7 +279,15 @@ class Values(CValues):
             del self._original
         except AttributeError:
             pass
-        
+
+    def _afterMerge(self):
+
+        for key, value in self._dict.iteritems():
+            if isinstance(value, ItemValue):
+                value._setOwner(self._item, key)
+            if isinstance(value, Indexed):
+                value._validateIndexes()
+
     def _checkValue(self, logger, name, value, attrType):
 
         if isinstance(value, ItemValue):

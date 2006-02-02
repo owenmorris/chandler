@@ -175,7 +175,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             try:
                 self._indexWriter.close()
             except:
-                self.logger.exception('Exception while closing indexWriter')
+                self.logger.exception('Ignorable exception while closing indexWriter during _abortTransaction')
             self._indexWriter = None
             
         self.store.abortTransaction(self, status)
@@ -217,8 +217,9 @@ class DBRepositoryView(OnDemandRepositoryView):
             try:
                 self._log = set()
                 try:
-                    self._mergeItems(self._version, newVersion,
-                                     histNotifications, unloads, also, mergeFn)
+                    merges = self._mergeItems(self._version, newVersion,
+                                              histNotifications, unloads, also,
+                                              mergeFn)
                 except:
                     raise
                 else:
@@ -238,6 +239,11 @@ class DBRepositoryView(OnDemandRepositoryView):
                     
             self._version = newVersion
             _refresh(unloads.itervalues)
+
+            for uuid in merges.iterkeys():
+                item = self.find(uuid)
+                if item is not None:
+                    item._afterMerge()
 
             before = time()
             count = len(histNotifications)
@@ -488,7 +494,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                 item = self.find(uuid, False)
                 if item._status & Item.MERGED:
                     item._revertMerge()
-
             raise
 
         else:
@@ -497,6 +502,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if item._status & Item.MERGED:
                     item._commitMerge(toVersion)
                     self._i_merged(item)
+
+            return merges
 
     def _mergeNDIRTY(self, item, parentId, oldVersion, toVersion):
 

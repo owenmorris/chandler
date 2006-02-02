@@ -97,6 +97,10 @@ class AbstractSet(ItemValue, Indexed):
 
         raise NotImplementedError, "%s.iterSources" %(type(self))
 
+    def iterInnerSets(self):
+
+        raise NotImplementedError, "%s.iterInnerSets" %(type(self))
+
     def _iterSourceItems(self):
 
         for item, attribute in self.iterSources():
@@ -173,7 +177,11 @@ class AbstractSet(ItemValue, Indexed):
         if isinstance(source, AbstractSet):
             return len(source)
 
-        return len(getattr(self._view[source[0]], source[1]))
+        try:
+            return len(getattr(self._view[source[0]], source[1]))
+        except AttributeError:
+            print source, type(source), self, type(self)
+            raise
 
     def _reprSource(self, source, replace):
 
@@ -311,6 +319,23 @@ class AbstractSet(ItemValue, Indexed):
             
         return False
 
+    def _invalidateIndexes(self):
+
+        super(AbstractSet, self)._invalidateIndexes()
+        for inner in self.iterInnerSets():
+            inner._invalidateIndexes()
+
+    def _validateIndexes(self):
+
+        super(AbstractSet, self)._validateIndexes()
+        for inner in self.iterInnerSets():
+            inner._validateIndexes()
+
+    def _check(self, logger, item, attribute):
+
+        return (super(AbstractSet, self)._check(logger, item, attribute) and
+                self._checkIndexes(logger, item, attribute))
+
     @classmethod
     def makeValue(cls, string):
         return eval(string)
@@ -387,8 +412,12 @@ class Set(AbstractSet):
 
     def iterSources(self):
 
-        for source in self._iterSources(self._source):
-            yield source
+        return self._iterSources(self._source)
+
+    def iterInnerSets(self):
+
+        if isinstance(self._source, AbstractSet):
+            yield self._source
 
 
 class BiSet(AbstractSet):
@@ -448,6 +477,13 @@ class BiSet(AbstractSet):
             yield source
         for source in self._iterSources(self._right):
             yield source
+
+    def iterInnerSets(self):
+
+        if isinstance(self._left, AbstractSet):
+            yield self._left
+        if isinstance(self._right, AbstractSet):
+            yield self._right
 
 
 class Union(BiSet):
@@ -665,6 +701,12 @@ class MultiSet(AbstractSet):
             for src in self._iterSources(source):
                 yield src
 
+    def iterInnerSets(self):
+
+        for source in self._sources:
+            if isinstance(source, AbstractSet):
+                yield source
+
 
 class MultiUnion(MultiSet):
 
@@ -867,7 +909,15 @@ class KindSet(Set):
 
         return op
 
+    def _len(self):
+
+        return AbstractSet._len(self)
+
     def iterSources(self):
+
+        raise StopIteration
+
+    def iterInnerSets(self):
 
         raise StopIteration
 

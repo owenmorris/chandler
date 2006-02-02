@@ -645,7 +645,7 @@ class RefList(LinkedMap, Indexed):
             logger.error("iterator on %s doesn't finish on last key %s but on %s", self, self.lastKey(), prevKey)
             return False
 
-        return result
+        return result and self._checkIndexes(logger, self._item, self._name)
 
     def _clearDirties(self):
         pass
