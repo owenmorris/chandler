@@ -37,11 +37,14 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetColLabelValue (self, column):
         grid = self.GetView()
-        if grid.GetElementCount() == 0:
-            item = None
-        else:
+        item = None
+        
+        if grid.GetElementCount() != 0:
             row = grid.GetGridCursorRow()
-            item = grid.blockItem.contents [self.GetView().RowToIndex(row)]
+            itemIndex = grid.RowToIndex(row)
+            if itemIndex != -1:
+                item = grid.blockItem.contents [itemIndex]
+
         return grid.GetColumnHeading (column, item)
 
     def IsEmptyCell (self, row, column): 
@@ -213,9 +216,8 @@ class wxTable(DragAndDrop.DraggableWidget,
                     # section. It would be nice to avoid this case
                     # alltogether by making table sections
                     # un-selectable.
-                    if -1 in (indexStart, indexEnd):
-                        continue
-                    contents.addSelectionRange ((indexStart, indexEnd))
+                    if -1 not in (indexStart, indexEnd):
+                        contents.addSelectionRange ((indexStart, indexEnd))
                
                 topLeftList.sort()
                 item = None
@@ -304,8 +306,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         # If we don't have a selection, set it the firstRow of the event.
         contents = self.blockItem.contents
         if len (contents.getSelectionRanges()) == 0:
-            selectedItemIndex = self.RowToIndex(event.GetRow())
-            contents.setSelectionRanges ([(firstRow, firstRow)])
+            firstRow = event.GetRow()
+            selectedItemIndex = self.RowToIndex(firstRow)
+            if selectedItemIndex != -1:
+                contents.setSelectionRanges([(selectedItemIndex,
+                                              selectedItemIndex)])
         self.DoDragAndDrop(copyOnly=True)
 
     def AddItems(self, itemList):
@@ -318,8 +323,12 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def OnRightClick(self, event):
         itemIndex = self.RowToIndex(event.GetRow())
-        self.blockItem.DisplayContextMenu(event.GetPosition(),
-                                          self.blockItem.contents[itemIndex])
+        if itemIndex == -1:
+            item = []
+        else:
+            item = self.blockItem.contents[itemIndex]
+            
+        self.blockItem.DisplayContextMenu(event.GetPosition(), item)
 
     def wxSynchronizeWidget(self, **hints):
         """
@@ -458,7 +467,8 @@ class wxTable(DragAndDrop.DraggableWidget,
             for bottomRightRow,bottomRightColumn in bottomRightList:
                 indexStart = self.RowToIndex(topLeftRow)
                 indexEnd = self.RowToIndex(bottomRightRow)
-                selectionRanges.append ([indexStart, indexEnd])
+                if -1 not in (indexStart, indexEnd):
+                    selectionRanges.append ([indexStart, indexEnd])
         selectionRanges.sort(reverse=True)
 
         # now delete rows - since we reverse sorted, the

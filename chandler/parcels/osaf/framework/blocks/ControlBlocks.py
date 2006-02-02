@@ -225,6 +225,8 @@ class AttributeDelegate (ListDelegate):
         typeName = "_default"
         try:
             itemIndex = self.RowToIndex(row)
+            assert itemIndex != -1
+            
             item = self.blockItem.contents [itemIndex]
         except IndexError:
             pass
@@ -255,11 +257,15 @@ class AttributeDelegate (ListDelegate):
 
     def GetElementValue (self, row, column):
         itemIndex = self.RowToIndex(row)
+        assert itemIndex != -1
+        
         return (self.blockItem.contents [itemIndex],
                 self.blockItem.columnData [column])
     
     def SetElementValue (self, row, column, value):
         itemIndex = self.RowToIndex(row)
+        assert itemIndex != -1
+        
         item = self.blockItem.contents [itemIndex]
         attributeName = self.blockItem.columnData [column]
         assert item.itsKind.hasAttribute (attributeName), "You cannot set a non-Chandler attribute value of an item (like itsKind)"
