@@ -62,17 +62,11 @@ class TestNB(wx.Notebook):
         win = self.makeColorPanel(wx.CYAN)
         self.AddPage(win, "Cyan")
 
-#         win = self.makeColorPanel(wxWHITE)
-#         self.AddPage(win, "White")
+        win = self.makeColorPanel(wx.NamedColour('Midnight Blue'))
+        self.AddPage(win, "Midnight Blue")
 
-#         win = self.makeColorPanel(wxBLACK)
-#         self.AddPage(win, "Black")
-
-        win = self.makeColorPanel(wx.NamedColour('MIDNIGHT BLUE'))
-        self.AddPage(win, "MIDNIGHT BLUE")
-
-        win = self.makeColorPanel(wx.NamedColour('INDIAN RED'))
-        self.AddPage(win, "INDIAN RED")
+        win = self.makeColorPanel(wx.NamedColour('Indian Red'))
+        self.AddPage(win, "Indian Red")
 
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
