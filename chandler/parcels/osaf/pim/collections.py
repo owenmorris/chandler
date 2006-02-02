@@ -56,11 +56,23 @@ def deliverNotifications(view):
 
 
 def repositoryViewCallback(view, changes, reason):
-    
+
+    # kludge of concept to handle one of the currently unhandled cases
+    # of a collection not knowing about persistent changes that happened
+    # in another view because at the time the changes occurred that
+    # collection didn't exist in that view to be notified about them.
     for (uuid, reason, kwds) in changes:
         item = view.findUUID(uuid)
         if item is not None:
+            if reason == 'created':
+                kind = item.itsKind
+                if kind is not None:
+                    kind.extent._collectionChanged('add', 'collection',
+                                                   'extent', item)
 
+    for (uuid, reason, kwds) in changes:
+        item = view.findUUID(uuid)
+        if item is not None:
             collections = getattr(item, 'collections', None)
             if collections is not None:
                 for i in collections:

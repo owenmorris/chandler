@@ -445,6 +445,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                     
             if status & Item.DELETED:
                 histNotifications.history(uuid, 'deleted')
+            elif status & Item.NEW:
+                histNotifications.history(uuid, 'created')
             else:
                 histNotifications.history(uuid, 'changed', dirties=dirties)
 

@@ -35,13 +35,15 @@ class Indexed(object):
 
     def _validateIndexes(self):
 
-        if not self._valid:
-            if self._indexes:
+        if self._indexes:
+            if self._valid:
+                self._restoreIndexes()
+            else:
                 for index in self._indexes.itervalues():
                     index._clear_()
                     self.fillIndex(index)
                     index.validate()
-            self._valid = True
+        self._valid = True
 
     def getIndex(self, indexName):
 
@@ -236,13 +238,13 @@ class Indexed(object):
             index.insertKey(key, prevKey)
             prevKey = key
 
-    def _restoreIndexes(self, view):
+    def _restoreIndexes(self, *ignore):  # extra afterLoad callback view arg
 
         item, name = self._getOwner()
 
         for index in self._indexes.itervalues():
             if index.isPersistent():
-                index._restore(item._version)
+                index._restore(item.itsVersion)
             else:
                 self.fillIndex(index)
 
@@ -576,7 +578,14 @@ class Indexed(object):
             count = len(self)
             for name, index in self._indexes.iteritems():
                 if count != len(index):
-                    logger.error("Lengths of index '%s' (%d) installed on value '%s' (%d) of type %s in attribute %s on %s don't match", name, len(index), self, type(self), attribute, item._repr_())
+                    logger.error("Lengths of index '%s' (%d) installed on value '%s' (%d) of type %s in attribute %s on %s don't match", name, len(index), self, count, type(self), attribute, item._repr_())
                     result = False
-
+                else:
+                    size = len(index)
+                    for key in index:
+                        size -= 1
+                    if size != 0:
+                        logger.error("Iteration of index '%s' (%d) installed on value '%s' of type %s in attribute %s on %s doesn't match length (%d)", name, len(index) - size, self, type(self), attribute, item._repr_(), len(index))
+                        result = False
+                    
         return result

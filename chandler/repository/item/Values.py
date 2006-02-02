@@ -886,6 +886,12 @@ class References(Values):
             except AttributeError:
                 pass
 
+    def _afterMerge(self):
+
+        for key, value in self._dict.iteritems():
+            if isinstance(value, Indexed):
+                value._validateIndexes()
+
     def _checkRef(self, logger, name, other):
 
         if other is not None:
