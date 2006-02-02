@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextctrl.cpp,v 1.16 2005/11/06 20:44:43 ABX Exp $
+// RCS-ID:      $Id: richtextctrl.cpp,v 1.17 2006/02/02 13:05:30 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -454,6 +454,8 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
 
         EndBatchUndo();
         SetDefaultStyleToCursorStyle();
+
+        ScrollIntoView(m_caretPosition, WXK_RIGHT);
     }
     else if (event.GetKeyCode() == WXK_BACK)
     {
@@ -483,6 +485,7 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
             SetDefaultStyleToCursorStyle();
         }
 
+        ScrollIntoView(m_caretPosition, WXK_LEFT);
     }
     else if (event.GetKeyCode() == WXK_DELETE)
     {
@@ -524,6 +527,7 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
         EndBatchUndo();
 
         SetDefaultStyleToCursorStyle();
+        ScrollIntoView(m_caretPosition, WXK_RIGHT);
     }
 #if 0
     else
