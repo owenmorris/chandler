@@ -10,15 +10,16 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
     sectionRows = []
     def SynchronizeDelegate(self):
         """
-        its reasonably cheap to rebuild indexes
+        its reasonably cheap to rebuild section indexes, as
+        get_divisions is really optimized for this
         """
-        indexName = self.indexName
+        indexName = self.blockItem.contents.indexName
         
         
         # regenerate index-based sections - each entry in
         # self.sectionIndexes is the first index in the collection
         # where we would need a section
-        if indexName is None:
+        if indexName in (None, '__adhoc__'):
             self.sectionIndexes = []
         else:
             self.sectionIndexes = \
@@ -31,9 +32,6 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         for r in xrange(len(self.sectionIndexes)):
             self.sectionRows.append(self.sectionIndexes[r] + r)
             
-    def ChangeIndex(self, indexName):
-        self.indexName = indexName
-
     def GetElementCount(self):
         return len(self.blockItem.contents) + len(self.sectionRows)
 
@@ -55,9 +53,13 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         
         itemIndex = self.RowToIndex(row)
         if itemIndex == -1:
+            # section headers: we get the section title from the next row
             firstItemIndex = self.RowToIndex(row+1)
             firstItemInSection = self.blockItem.contents[firstItemIndex]
-            return _(u"[Section: %s]") % getattr(firstItemInSection, self.indexName)
+            
+            indexAttribute = self.blockItem.contents.indexName
+            return _(u"[Section: %s]") % \
+                   getattr(firstItemInSection, indexAttribute)
         
         attributeName = self.blockItem.columnData[column]
         return (self.blockItem.contents [itemIndex], attributeName)
