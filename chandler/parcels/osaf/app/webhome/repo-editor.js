@@ -45,7 +45,7 @@ function setChandlerAttribute(itemPath, attrName, value, resultcallback) {
       resultcallback(result, err);
   }
   statusArea.setAttribute("class", "busy");
-  remoteChandler.setAttribute(itemPath, attrName, value, callback);
+  remoteChandler.setAttribute(itemPath, attrName, value, repoView, callback);
 }
 
 function getAttribute(itemPath, attrName, value, resultcallback) {
@@ -56,7 +56,7 @@ function getAttribute(itemPath, attrName, value, resultcallback) {
   }
 
   statusArea.setAttribute("class", "busy");
-  remoteChandler.getAttribute(itemPath, attrName, value, callback);
+  remoteChandler.getAttribute(itemPath, attrName, value, repoView, callback);
 }
 
 function delAttribute(itemPath, attrName) {
@@ -64,7 +64,7 @@ function delAttribute(itemPath, attrName) {
     resetStatusArea(err);
   }
   statusArea.setAttribute("class", "busy")
-  remoteChandler.delAttribute(itemPath, attrName, value, callback)
+  remoteChandler.delAttribute(itemPath, attrName, value, repoView, callback)
 }
 
 function commit() {
@@ -72,7 +72,7 @@ function commit() {
     resetStatusArea(err);
   }
   statusArea.setAttribute("class", "busy");
-  remoteChandler.commit(callback)
+  remoteChandler.commit(repoView, callback)
 }
 
 function print(txt) {

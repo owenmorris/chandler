@@ -15,13 +15,18 @@ def setattr_withtype(item, attribute, stringValue):
     v = item.getAttributeAspect(attribute, 'type').makeValue(stringValue)
     return setattr(item, attribute, v)
 
-view = None
 
-def getServletView(repository):
-    global view
-    if view is None:
-        view = repository.createView("XMLRPC")
-    return view
+def getServletView(repository, name=None):
+
+    if name is None:
+        name = "XMLRPC"
+
+    for existingView in repository.views:
+        if existingView.name == name:
+            return existingView
+
+    return repository.createView(name)
+
 
 class XmlRpcResource(xmlrpc.XMLRPC):
 
@@ -51,15 +56,15 @@ class XmlRpcResource(xmlrpc.XMLRPC):
 
         return result
 
-    def xmlrpc_commandline(self, text):
-        view = getServletView(self.repositoryView.repository)
+    def xmlrpc_commandline(self, text, viewName=None):
+        view = getServletView(self.repositoryView.repository, viewName)
         view.refresh()
         commandline.execute_command(view, text)
         view.commit()
         return "OK" # ???
 
-    def xmlrpc_note(self, title, body):
-        view = getServletView(self.repositoryView.repository)
+    def xmlrpc_note(self, title, body, viewName=None):
+        view = getServletView(self.repositoryView.repository, viewName)
         view.refresh()
         note = pim.Note(itsView=view, displayName=title)
         note.body = note.getAttributeAspect('body', 'type').makeValue(body,
@@ -71,8 +76,8 @@ class XmlRpcResource(xmlrpc.XMLRPC):
     #
     # Generic repository API
     #
-    def generic_item_call(self, method, objectPath, *args, **kwds):
-        view = getServletView(self.repositoryView.repository)
+    def generic_item_call(self, viewName, method, objectPath, *args, **kwds):
+        view = getServletView(self.repositoryView.repository, viewName)
         view.refresh()
 
         try:
@@ -87,30 +92,30 @@ class XmlRpcResource(xmlrpc.XMLRPC):
             return True
         return result
 
-    def xmlrpc_setAttribute(self, objectPath, attrName, value):
+    def xmlrpc_setAttribute(self, objectPath, attrName, value, viewName=None):
         """
         generic setAttribute - assumes the value is a atomic value -
         i.e. a string or an integer or something
         """
-        return self.generic_item_call(setattr_withtype, objectPath, attrName, value)
+        return self.generic_item_call(viewName, setattr_withtype, objectPath, attrName, value)
 
-    def xmlrpc_getAttribute(self, objectPath, attrName, value):
+    def xmlrpc_getAttribute(self, objectPath, attrName, value, viewName=None):
         """
         generic getAttribute - assumes the resulting value will be an
         atomic value like a string or an integer
         """
-        return self.generic_item_call(getattr, objectPath, attrName, value)
+        return self.generic_item_call(viewName, getattr, objectPath, attrName, value)
 
-    def xmlrpc_delAttribute(self, objectPath, attrName):
+    def xmlrpc_delAttribute(self, objectPath, attrName, viewName=None):
         """
         removes an attribute from an object
         """
-        return self.generic_item_call(delattr, objectPath, attrName)
+        return self.generic_item_call(viewName, delattr, objectPath, attrName)
 
-    def xmlrpc_commit(self):
+    def xmlrpc_commit(self, viewName=None):
         """
         commits the xml-rpc view
         """
-        view = getServletView(self.repositoryView.repository)
+        view = getServletView(self.repositoryView.repository, viewName)
         view.commit()
         return True

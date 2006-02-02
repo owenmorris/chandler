@@ -66,10 +66,11 @@ class RepoResource(webserver.AuthenticatedResource):
 <script type="text/javascript" src="/jsolait/lib/xml.js"></script>
 <script type="text/javascript" src="/jsolait/lib/xmlrpc.js"></script>
 <script type="text/javascript" src="/repo-editor.js"></script>
+<script type="text/javascript">var repoView="%s"</script>
 </head>
 
 <body onload="onDocumentLoad()">
-"""                 % request.path
+"""                 % (request.path, repoView.name)
 
                 result += """
 <p class="footer">Repository view: <b>%s</b> |
