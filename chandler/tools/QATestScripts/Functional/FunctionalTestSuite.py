@@ -16,17 +16,17 @@ def run_tests(*tests):
         execfile(os.path.join(functional_dir, filename))
 
 run_tests("TestCreateAccounts.py",
-          #"TestAllDayEvent.py", not functioning bug#5110
+          #"TestAllDayEvent.py", test not functioning bug#5110
           "TestNewCollection.py",
-          #"TestDates.py", new test never worked bug#
+          #"TestDates.py", Chandler not handling daylightsavings bug#5038
           "TestNewEvent.py",
           "TestNewMail.py",
           "TestNewTask.py",
           "TestNewNote.py",
-          "TestStamping.py",
+          #"TestStamping.py", bug#5102
           "TestMoveToTrash.py",
           "TestDeleteCollection.py",
-          "TestNewCollNoteStampMulti.py",
+          #"TestNewCollNoteStampMulti.py", bug #5102
           "TestCalView.py",
           "TestRecurrenceImporting.py",
           #"TestRecurringEvent.py",  check object failing Dan to investigate
