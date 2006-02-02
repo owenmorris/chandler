@@ -102,8 +102,8 @@ class SectionRenderer(BaseAttributeEditor):
         dc.DrawRectangleRect(rect)
 
         if col == 0:
-            dc.SetBrush(wx.TRANSPARENT_BRUSH)
-            dc.SetPen(wx.BLACK_PEN)
+            dc.SetTextForeground(wx.BLACK)
+            dc.SetBackgroundMode(wx.TRANSPARENT)
             sectionTitle = _(u"Section: %s") % getattr(item, attributeName, "[None]")
             dc.DrawText(sectionTitle, 3, rect.y + 2)
 
