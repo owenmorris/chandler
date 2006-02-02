@@ -455,7 +455,8 @@ Notice that call 1 ran, even though there's a year between runs.  However, if
 we turn the flag back off, it doesn't get a ``run()`` call at startup::
 
     >>> counter.run_at_startup = False
-    >>> run_startup(rv)
+    >>> started = 0     # reset the counter
+    >>> run_startup(rv); wait_until(lambda: started)
     __init__ running ... in <RepositoryThread(reactor,...)>
 
 Finally, let's clean up after our ``PeriodicTask`` example::
