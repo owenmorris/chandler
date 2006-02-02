@@ -682,26 +682,30 @@ class User(object):
             else:
                 # in case the focus has changed, get the new focused widget
                 widget = wx.Window_FindFocus()
-                # try calling any bound key handler
-                keyPress = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
-                set_event_info(keyPress)
-                downWorked = widget.ProcessEvent(keyPress)
-                keyUp = wx.KeyEvent(wx.wxEVT_KEY_UP)
-                set_event_info(keyUp)
-                upWorked = widget.ProcessEvent(keyUp)
-                if not (downWorked or upWorked): # key handler worked?
-                    # try calling EmulateKeyPress
-                    emulateMethod = getattr(widget, 'EmulateKeyPress', lambda k: False)
-                    if '__WXMSW__' in wx.PlatformInfo:
-                        emulateMethod = lambda k: False
-                    if not emulateMethod(keyPress): # emulate worked?
-                        # try calling WriteText
-                        writeMethod = getattr(widget, 'WriteText', None)
-                        if writeMethod:
-                            writeMethod(char)
-                        else:
-                            success = False # remember we had a failure
-                app.Yield()
+                if widget is None:
+                    success = False
+                else:
+                    # try calling any bound key handler
+                    keyPress = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
+                    set_event_info(keyPress)
+                    downWorked = widget.ProcessEvent(keyPress)
+                    keyUp = wx.KeyEvent(wx.wxEVT_KEY_UP)
+                    set_event_info(keyUp)
+                    upWorked = widget.ProcessEvent(keyUp)
+                    if not (downWorked or upWorked): # key handler worked?
+                        # try calling EmulateKeyPress
+                        emulateMethod = getattr(widget, 'EmulateKeyPress', lambda k: False)
+                        if '__WXMSW__' in wx.PlatformInfo:
+                            emulateMethod = lambda k: False
+                        if not emulateMethod(keyPress): # emulate worked?
+                            # try calling WriteText
+                            writeMethod = getattr(widget, 'WriteText', None)
+                            if writeMethod:
+                                writeMethod(char)
+                            else:
+                                success = False # remember we had a failure
+                    if success:
+                        app.Yield()
         return success
 
     @classmethod 
