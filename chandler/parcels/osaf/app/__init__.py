@@ -190,6 +190,14 @@ The Chandler Team""")
                 ),
                 autoView=False
             ),
+            webserver.Resource.update(parcel, "xmlrpcResource",
+                displayName=u'XML-RPC Service',
+                location=u"xmlrpc",
+                resourceClass=schema.importString(
+                    "osaf.servlets.xmlrpc.XmlRpcResource"
+                ),
+                autoView=False
+            ),
         ]
     )
 
