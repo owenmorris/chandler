@@ -54,6 +54,7 @@ def newChannelFromURL(view, url):
 
     channel = FeedChannel(itsView=view)
     channel.displayName = url
+    channel.setup()
     channel.url = channel.getAttributeAspect('url', 'type').makeValue(url)
 
     return channel
