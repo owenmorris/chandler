@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     28.05.2004
-// RCS-ID:      $Id: menuce.cpp,v 1.7 2006/01/31 21:37:32 ABX Exp $
+// RCS-ID:      $Id: menuce.cpp,v 1.8 2006/02/01 15:23:19 ABX Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,7 @@
 #include <shellapi.h>
 #include <aygshell.h>
 #include <tpcshell.h>
+#include <tpcuser.h>
 #include "wx/msw/wince/missing.h"
 
 #include "wx/msw/wince/resources.h"
