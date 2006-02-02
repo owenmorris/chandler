@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     04/01/98
-// RCS-ID:      $Id: menu.cpp,v 1.128 2006/01/08 13:28:52 JG Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.129 2006/02/02 20:58:15 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -408,7 +408,8 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
         if ( pItem->GetBitmap().Ok() &&
                 !pItem->GetTextColour().Ok() &&
                     !pItem->GetBackgroundColour().Ok() &&
-                        !pItem->GetFont().Ok() )
+                        !pItem->GetFont().Ok() &&
+                            !pItem->GetBitmap(true).Ok() )
         {
             // try to use InsertMenuItem() as it's guaranteed to look correctly
             // while our owner-drawning code is not
