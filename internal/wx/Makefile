@@ -6,8 +6,10 @@ include ../Makefile.inc
 
 # version info 
 VERSION=2.6.2.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)33
-WXMAJORVERSIONCOMPACT=26
+VERSION_REVISION_INDEX=34
+WX_VERSION_NODOT=26
+
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)$(VERSION_REVISION_INDEX)
 
 SRC=$(INTERNAL)/wx
 SWIG_OPTION=1
@@ -80,8 +82,8 @@ wxWidgets: setup
 		export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
-	if [ -f "$(SRC)/lib/vc_dll/wxbase$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)_vc_custom.bsc" ]; \
+	install $(SRC)/lib/vc_dll/*$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
+	if [ -f "$(SRC)/lib/vc_dll/wxbase$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)_vc_custom.bsc" ]; \
 	then \
 		install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx; \
 	fi
