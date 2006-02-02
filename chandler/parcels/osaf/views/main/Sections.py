@@ -1,5 +1,10 @@
+import wx
+
 from osaf.framework.blocks import ControlBlocks
 from util.divisions import get_divisions
+
+from osaf.framework.attributeEditors.AttributeEditors import BaseAttributeEditor, AttributeEditorMapping
+from osaf.framework.blocks import DrawingUtilities
 
 from i18n import OSAFMessageFactory as _
 
@@ -58,8 +63,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             firstItemInSection = self.blockItem.contents[firstItemIndex]
             
             indexAttribute = self.blockItem.contents.indexName
-            return _(u"[Section: %s]") % \
-                   getattr(firstItemInSection, indexAttribute)
+            return (firstItemInSection, (indexAttribute, column))
         
         attributeName = self.blockItem.columnData[column]
         return (self.blockItem.contents [itemIndex], attributeName)
@@ -79,3 +83,40 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         # the last section
         return itemIndex + len(self.sectionIndexes)
+
+
+class SectionRenderer(BaseAttributeEditor):
+    def __init__(self, *args, **kwds):
+        super(SectionRenderer, self).__init__(*args, **kwds)
+        self.brushes = DrawingUtilities.Gradients()
+        
+    def ReadOnly(self, *args):
+        return True
+
+    def Draw(self, dc, rect, item, (attributeName, col), isInSelection=False):
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        brush = self.brushes.GetGradientBrush(0, rect.height,
+                                              (153, 204, 255), (203, 229, 255),
+                                              "Vertical")
+        dc.SetBrush(brush)
+        dc.DrawRectangleRect(rect)
+
+        if col == 0:
+            dc.SetBrush(wx.TRANSPARENT_BRUSH)
+            dc.SetPen(wx.BLACK_PEN)
+            sectionTitle = _(u"Section: %s") % getattr(item, attributeName, "[None]")
+            dc.DrawText(sectionTitle, 3, rect.y + 2)
+
+def makeSections(parcel):
+    """
+    Attribute editor for "sections"
+
+    the "Section" string maps
+    directly to the "Section" string returned by GetElementType() in
+    SectiondGridDelegate
+    """
+    AttributeEditorMapping.update(parcel, "Section",
+                                  className=(SectionRenderer.__module__ + "." +
+                                             SectionRenderer.__name__))
+
+    
