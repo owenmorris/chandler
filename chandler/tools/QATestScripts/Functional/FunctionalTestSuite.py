@@ -16,7 +16,9 @@ def run_tests(*tests):
         execfile(os.path.join(functional_dir, filename))
 
 run_tests("TestCreateAccounts.py",
+          #"TestAllDayEvent.py", not functioning bug#5110
           "TestNewCollection.py",
+          #"TestDates.py", new test never worked bug#
           "TestNewEvent.py",
           "TestNewMail.py",
           "TestNewTask.py",
@@ -26,6 +28,8 @@ run_tests("TestCreateAccounts.py",
           "TestDeleteCollection.py",
           "TestNewCollNoteStampMulti.py",
           "TestCalView.py",
+          "TestRecurrenceImporting.py",
+          #"TestRecurringEvent.py",  check object failing Dan to investigate
           "TestSwitchingViews.py",
           "TestExporting.py",
           "TestFlickr.py",
