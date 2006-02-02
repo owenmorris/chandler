@@ -6,7 +6,7 @@
 # Author:       Robin Dunn
 #
 # Created:      A long time ago, in a galaxy far, far away...
-# RCS-ID:       $Id: Main.py 5166 2005-04-29 01:36:53Z davids $
+# RCS-ID:       $Id: Main.py,v 1.172 2006/02/01 23:46:42 RD Exp $
 # Copyright:    (c) 1999 by Total Control Software
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -47,6 +47,8 @@ import images
 _treeList = [
     # new stuff
     ('Recent Additions/Updates', [
+        'Treebook',
+        'Toolbook',
         'FoldPanelBar',
         'GIFAnimationCtrl',
         'HyperLinkCtrl',
@@ -95,7 +97,6 @@ _treeList = [
         'CheckBox',
         'CheckListBox',
         'Choice',
-        'Choicebook',
         'ComboBox',
         'Gauge',
         'Grid',
@@ -104,9 +105,7 @@ _treeList = [
         'ListCtrl',
         'ListCtrl_virtual',
         'ListCtrl_edit',
-        'Listbook',
         'Menu',
-        'Notebook',
         'PopupMenu',
         'PopupWindow',
         'RadioBox',
@@ -127,6 +126,14 @@ _treeList = [
         'ToolBar',
         'TreeCtrl',
         'Validator',
+        ]),
+    
+    ('"Book" Controls', [
+        'Choicebook',
+        'Listbook',
+        'Notebook',
+        'Toolbook',
+        'Treebook',
         ]),
 
     ('Custom Controls', [

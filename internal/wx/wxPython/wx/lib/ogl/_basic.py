@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _basic.py,v 1.13 2005/12/30 23:00:58 RD Exp $
+# RCS-ID:       $Id: _basic.py,v 1.14 2006/02/01 10:25:54 ROL Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -749,18 +749,18 @@ class Shape(ShapeEvtHandler):
         if self._pen:
             dc.SetPen(self._pen)
 
-        region = self._regions[0]
-        if region.GetFont():
-            dc.SetFont(region.GetFont())
+        for region in self._regions:
+            if region.GetFont():
+                dc.SetFont(region.GetFont())
 
-        dc.SetTextForeground(region.GetActualColourObject())
-        dc.SetBackgroundMode(wx.TRANSPARENT)
-        if not self._formatted:
-            CentreText(dc, region.GetFormattedText(), self._xpos, self._ypos, bound_x - 2 * self._textMarginX, bound_y - 2 * self._textMarginY, region.GetFormatMode())
-            self._formatted = True
+            dc.SetTextForeground(region.GetActualColourObject())
+            dc.SetBackgroundMode(wx.TRANSPARENT)
+            if not self._formatted:
+                CentreText(dc, region.GetFormattedText(), self._xpos, self._ypos, bound_x - 2 * self._textMarginX, bound_y - 2 * self._textMarginY, region.GetFormatMode())
+                self._formatted = True
 
-        if not self.GetDisableLabel():
-            DrawFormattedText(dc, region.GetFormattedText(), self._xpos, self._ypos, bound_x - 2 * self._textMarginX, bound_y - 2 * self._textMarginY, region.GetFormatMode())
+            if not self.GetDisableLabel():
+                DrawFormattedText(dc, region.GetFormattedText(), self._xpos, self._ypos, bound_x - 2 * self._textMarginX, bound_y - 2 * self._textMarginY, region.GetFormatMode())
             
 
     def DrawContents(self, dc):

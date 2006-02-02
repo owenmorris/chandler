@@ -8,7 +8,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-July-1997
-// RCS-ID:      $Id: wxPython_int.h,v 1.41 2006/01/26 00:31:29 RD Exp $
+// RCS-ID:      $Id: wxPython_int.h,v 1.42 2006/02/01 23:46:40 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,9 @@
 #include <wx/taskbar.h>
 #include <wx/tglbtn.h>
 #include <wx/tipwin.h>
+#include <wx/toolbook.h>
 #include <wx/tooltip.h>
+#include <wx/treebook.h>
 #include <wx/vlbox.h>
 #include <wx/vscroll.h>
 #include <wx/dateevt.h>
