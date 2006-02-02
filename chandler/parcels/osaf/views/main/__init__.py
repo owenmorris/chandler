@@ -1,4 +1,5 @@
 from SideBar import SidebarBlock
+from Sections import SectionedGridDelegate
 from SideBar import CPIATestSidebarBPBDelegate, SidebarBPBDelegate
 
 

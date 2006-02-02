@@ -32,7 +32,6 @@ def makeSummaryBlocks(parcel):
                 contents = app.allCollection,
                 characterStyle = blocks.SummaryRowStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
-                hasGridLines = True,
                 columnHeadings = 
                     [u'', _(u'who'), _(u'about'), _(u'date'), _(u'Triage')],
                 columnData = 
@@ -41,6 +40,7 @@ def makeSummaryBlocks(parcel):
                     [20, 130, 130, 130, 20],
                 columnReadOnly = 
                     [True, True, False, True, False],
+                elementDelegate = 'osaf.views.main.SectionedGridDelegate',
                 selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBPB',
                 trunkDelegate = detailBPBDelegate,

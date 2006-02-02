@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.views.main"
 
-import osaf.framework.blocks.ControlBlocks as ControlBlocks
+from osaf.framework.blocks import ControlBlocks
 import wx, os
 from osaf.framework.blocks import (
     Block, Trunk, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
