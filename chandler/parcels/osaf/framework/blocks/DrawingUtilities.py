@@ -205,7 +205,8 @@ class Gradients(object):
         """
         self._gradientCache = {}
     
-    def MakeGradientBrush(self, offset, bitmapWidth, leftColor, rightColor):
+    def MakeGradientBrush(self, offset, bitmapWidth, leftColor, rightColor,
+                          orientation):
         """
         Creates a gradient brush from leftColor to rightColor, specified
         as color tuples (r,g,b)
@@ -218,7 +219,10 @@ class Gradients(object):
         # There is probably a nicer way to do this, without:
         # - going through wxImage
         # - individually setting each RGB pixel
-        image = wx.EmptyImage(bitmapWidth, 1)
+        if orientation == "Horizontal":
+            image = wx.EmptyImage(bitmapWidth, 1)
+        else:
+            image = wx.EmptyImage(1, bitmapWidth)
         leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
         rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
 
@@ -275,12 +279,14 @@ class Gradients(object):
         brush.SetStipple(wx.BitmapFromImage(image))
         return brush
         
-    def GetGradientBrush(self, offset, width, leftColor, rightColor):
+    def GetGradientBrush(self, offset, width, leftColor, rightColor,
+                         orientation="Horizontal"):
         """
         Gets an appropriately sized gradient brush from the cache, 
         or creates one if necessary
         """
-        key = (offset, width, leftColor, rightColor)
+        assert orientation in ("Horizontal", "Vertical")
+        key = (offset, width, leftColor, rightColor, orientation)
         brush = self._gradientCache.get(key, None)
         if brush is None:
             self.misses += 1
