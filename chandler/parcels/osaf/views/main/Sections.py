@@ -1,6 +1,7 @@
 from osaf.framework.blocks import ControlBlocks
 from util.divisions import get_divisions
 
+from i18n import OSAFMessageFactory as _
 
 class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
@@ -51,11 +52,15 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         return super(SectionedGridDelegate, self).ReadOnly(row, column)
     
     def GetElementValue(self, row, column):
+        
         itemIndex = self.RowToIndex(row)
         if itemIndex == -1:
-            return None, None
-        return (self.blockItem.contents [itemIndex],
-                self.blockItem.columnData [column])
+            firstItemIndex = self.RowToIndex(row+1)
+            firstItemInSection = self.blockItem.contents[firstItemIndex]
+            return _(u"[Section: %s]") % getattr(firstItemInSection, self.indexName)
+        
+        attributeName = self.blockItem.columnData[column]
+        return (self.blockItem.contents [itemIndex], attributeName)
 
     def RowToIndex(self, row):
         for sectionNum, sectionRow in enumerate(self.sectionRows):
