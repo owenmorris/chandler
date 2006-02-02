@@ -160,22 +160,36 @@ but it's looping, waiting for the start flag to be set::
     >>> finished
     False
 
-So, let's set the start flag, and wait a moment to allow the thread to finish::
+Because this and some of our later examples will need to wait a few moments for
+a thread to finish, we'll need a simple utility routine that sleeps until some
+condition occurs, or raises an error if it seems to be taking too long::
+
+    >>> from time import sleep
+
+    >>> def wait_until(condition):
+    ...     ms = 1
+    ...     while ms<=10000:  # Wait a maximum of 11.111 seconds
+    ...         if condition():
+    ...             return
+    ...         sleep(ms/1000.0)    # sleep for ms milliseconds
+    ...         ms *= 10    # wait 10 times as long on the next try
+    ...     raise AssertionError("Condition didn't happen before timeout")
+
+So, now that we have a way to wait for the thread, let's set the start flag
+and wait until the thread finishes::
 
     >>> start = True
-    >>> from time import sleep
-    >>> sleep(0.1)    # let the thread finish
+    >>> wait_until(lambda: finished)    # let the thread finish
 
 And now the finish flag should have been set by the thread::
 
     >>> finished
     True
 
-(Note: the sleep() duration above is 0.1 seconds because Windows machines have
-a fairly low resolution timer and may not actually perform the sleep()
-otherwise, which could break the test.)
+We don't want this ``startup.Thread`` to be active in subsequent examples, so
+we'll disable it now::
 
-    >>> t.active = False    # don't use this thread in the subsequent tests
+    >>> t.active = False    # don't start `t` in future tests
 
 
 Starting Twisted
@@ -283,7 +297,10 @@ the reactor will not start::
     >>> reactor.running
     0
 
-    >>> sleep(0.5)  # make sure exception has been sent to stderr
+    >>> wait_until(
+    ...     lambda: sys.stderr.getvalue()   # make sure exception has been sent
+    ... )
+
     >>> stop_reactor()
     >>> len(threading.enumerate())  # all other threads should be stopped now
     1
@@ -320,10 +337,13 @@ reactor setup it then needs to do, such as registering listening ports or
 scheduling timed callbacks.
 
 For our example, we'll just create a task that just prints what thread it was
-called from::
+called from, and counts the number of items started::
 
+    >>> started = 0
     >>> def hello_from(item):
+    ...     global started
     ...     print "running",item,"in",threading.currentThread()
+    ...     started += 1
 
 and put it in a module so we can import it (again, we're doing this so you
 don't have to go read another file to see the source; in the "real world" you
@@ -340,7 +360,7 @@ Now let's create the task item and run it::
 
 Giving it a chance to run and complete::
 
-    >>> run_startup(rv); sleep(0.1)     # give it a chance to run
+    >>> run_startup(rv); wait_until(lambda: started)  # give it a chance to run
     running <TwistedTask ... demo ...> in <RepositoryThread(reactor,...)>
 
     >>> stop_reactor()  # shut down the reactor again
@@ -371,18 +391,19 @@ repeated calls will cease.  The interval between calls is determined by the
 For our example, we'll create a simple class suitable for use as a periodic
 task::
 
+    >>> run_count = 0
     >>> class Counter:
     ...     def __init__(self, item):
     ...         self.item = item
-    ...         self.count = 0
     ...         print "__init__",
     ...         hello_from(item)        # show what thread we were called from
     ...
     ...     def run(self):
-    ...         self.count += 1
-    ...         print "run() call", self.count,
+    ...         global run_count
+    ...         run_count += 1
+    ...         print "run() call", run_count,
     ...         hello_from(self.item)   # show what thread we were called from
-    ...         return self.count<5     # stop when count reaches 5
+    ...         return run_count<5     # stop when count reaches 5
 
 And once again, we'll insert this class into the ``TestStartups`` module, so
 you don't have to go there to read the source.  (But you should just set
@@ -401,7 +422,7 @@ per microsecond (so the test runs quickly!)::
     ...     interval = timedelta(microseconds=1)
     ... )
 
-    >>> run_startup(rv); sleep(0.1)    # wait for it to run all 5 times
+    >>> run_startup(rv); wait_until(lambda: run_count==5)
     __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
     run() call 2 running ... in <RepositoryThread(RepositoryPoolThread...)>
@@ -425,17 +446,17 @@ delay interval.  You can set the ``run_at_startup`` flag to enable this::
 To demonstrate, we'll set the delay interval to a year::
 
     >>> counter.interval = timedelta(days=365)
-    >>> run_startup(rv); sleep(0.1)
+    >>> run_count = 0   # reset the counter
+    >>> run_startup(rv); wait_until(lambda: run_count)
     __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
 
 Notice that call 1 ran, even though there's a year between runs.  However, if
 we turn the flag back off, it doesn't get a ``run()`` call at startup::
 
-    >>> counter.run_at_startup = True
-    >>> run_startup(rv); sleep(0.1)
+    >>> counter.run_at_startup = False
+    >>> run_startup(rv)
     __init__ running ... in <RepositoryThread(reactor,...)>
-
 
 Finally, let's clean up after our ``PeriodicTask`` example::
 
