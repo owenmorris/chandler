@@ -144,7 +144,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         else:
             contents.setDescending (indexName, not contents.isDescending(indexName))
 
-        self.wxSynchronizeWidget ()
+        self.ChangeIndex(self.blockItem.contents.indexName)
+        self.wxSynchronizeWidget()
 
     def SetLightSelectionBackground (self):
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
@@ -207,16 +208,27 @@ class wxTable(DragAndDrop.DraggableWidget,
                                                                  bottomRightList):
                     indexStart = self.RowToIndex(topLeftRow)
                     indexEnd = self.RowToIndex(bottomRightRow)
+
+                    # this is the ugly case where the user "selects" a
+                    # section. It would be nice to avoid this case
+                    # alltogether by making table sections
+                    # un-selectable.
+                    if -1 in (indexStart, indexEnd):
+                        continue
                     contents.addSelectionRange ((indexStart, indexEnd))
                
                 topLeftList.sort()
+                item = None
                 try:
                     (row, column) = topLeftList [0]
                 except IndexError:
-                    item = None
+                    pass
                 else:
                     itemIndex = self.RowToIndex(row)
-                    item = blockItem.contents [itemIndex]
+                    if itemIndex != -1:
+                        item = blockItem.contents [itemIndex]
+                    else:
+                        blockItem.PostSelectItems([])
     
                 if item is not blockItem.selectedItemToView:
                     blockItem.selectedItemToView = item
@@ -320,6 +332,8 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.SetColLabelSize (0)
         else:
             self.SetColLabelSize (wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT)
+
+        self.SynchronizeDelegate()
 
         gridTable = self.GetTable()
         newColumns = gridTable.GetNumberCols()

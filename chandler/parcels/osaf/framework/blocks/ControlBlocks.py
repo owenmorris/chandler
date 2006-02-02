@@ -206,6 +206,12 @@ class ListDelegate (object):
         """
         return itemIndex
 
+    def ChangeIndex(self, indexName):
+        pass
+
+    def SynchronizeDelegate(self):
+        pass
+
 
 class AttributeDelegate (ListDelegate):
     """
