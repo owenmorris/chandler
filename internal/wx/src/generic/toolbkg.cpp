@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbkg.cpp,v 1.4 2006/01/31 16:22:54 JS Exp $
+// RCS-ID:      $Id: toolbkg.cpp,v 1.5 2006/02/01 23:45:14 RD Exp $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -91,14 +91,19 @@ wxToolbook::Create(wxWindow *parent,
                             wxDefaultValidator, name) )
         return false;
 
-    // TODO: make configurable
+    
+    int orient = wxTB_HORIZONTAL;
+    if ( (style & (wxBK_LEFT | wxBK_RIGHT)) != 0)
+        orient = wxTB_VERTICAL;
+    
+    // TODO: make more configurable
     m_bookctrl = new wxToolBar
                  (
                     this,
                     wxID_TOOLBOOKTOOLBAR,
                     wxDefaultPosition,
                     wxDefaultSize,
-                    wxTB_HORIZONTAL|wxTB_TEXT|wxTB_FLAT|wxTB_NODIVIDER
+                    orient | wxTB_TEXT|wxTB_FLAT|wxTB_NODIVIDER
                  );
 
     return true;
