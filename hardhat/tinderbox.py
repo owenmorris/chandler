@@ -60,6 +60,9 @@ def main():
     parser.add_option("-R", "--revision", action="store", type="string", dest="revID",
       default=None, help="revision # to checkout\n"
       " [default] None")
+    parser.add_option("-B", "--branch", action="store", type="string", dest="branchID",
+      default=None, help="branch to checkout\n"
+      " [default] None")
     parser.add_option("-w", "--work", action="store", type="string", dest="buildDir",
       default=buildDir, help="Name of working directory\n"
       " [default] ~/tinderbuild")
@@ -106,6 +109,7 @@ def main():
 
     nowString    = time.strftime("%Y-%m-%d %H:%M:%S")
     buildVersion = hardhatutil.RemovePunctuation(nowString)
+    svnRevision  = ""
 
     print "Starting:", nowString, buildVersion, buildDir
 
@@ -121,10 +125,11 @@ def main():
         treeName     = mod.treeName
         sleepMinutes = mod.sleepMinutes
 
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", treeName, None)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", treeName, None, "")
 
-        ret = mod.Start(hardhatFile, buildDir, buildVersion, 0, log,
-                        upload=options.uploadStaging, skipTests=options.skipTests, revID=options.revID)
+        (ret, svnRevision) = mod.Start(hardhatFile, buildDir, buildVersion, 0, log,
+                                       upload=options.uploadStaging, skipTests=options.skipTests, 
+                                       revID=options.revID, branchID=options.branchID)
 
     except TinderbuildError, e:
         print e
@@ -136,10 +141,8 @@ def main():
         log = open(logFile, "r")
         logContents = log.read()
         log.close()
-        SendMail(fromAddr, alertAddr, startTime, buildName,
-                 "The build failed", treeName, None)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status,
-         treeName, logContents)
+        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
         log = open(logFile, "w")
 
     except Exception, e:
@@ -152,8 +155,8 @@ def main():
         log = open(logFile, "r")
         logContents = log.read()
         log.close()
-        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents)
+        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
         log = open(logFile, "w")
 
     else:
@@ -221,12 +224,9 @@ def main():
             log = open(logFile, "r")
             logContents = log.read()
             log.close()
-            SendMail(fromAddr, alertAddr, startTime, buildName,
-                     "The build failed", treeName, None)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, status,
-             treeName, logContents)
+            SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
             log = open(logFile, "w")
-
 
         elif ret[:11] == "test_failed":
             print "Unit tests failed"
@@ -244,10 +244,8 @@ def main():
             log = open(logFile, "r")
             logContents = log.read()
             log.close()
-            SendMail(fromAddr, alertAddr, startTime, buildName,
-                     "Unit tests failed", treeName, None)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, status,
-             treeName, logContents)
+            SendMail(fromAddr, alertAddr, startTime, buildName, "Unit tests failed", treeName, None, svnRevision)
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
             log = open(logFile, "w")
 
         else:
@@ -268,12 +266,11 @@ def main():
             print "exception during log flush and close"
             print e
 
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
 
         if sleepMinutes:
             print "Sleeping %d minutes" % sleepMinutes
             time.sleep(sleepMinutes * 60)
-
 
 def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
     timestamp = nowString.replace("-", "")
@@ -316,7 +313,7 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
         hardhatutil.rmdirRecursive(timestamp)
 
 
-def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents):
+def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents, svnRevision):
     nowTime  = str(int(time.time()))
     subject = "[tinderbox] " + status + " from " + buildName
     msg  = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromAddr, toAddr, subject))
@@ -327,7 +324,9 @@ def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logConten
     msg += "tinderbox: errorparser: unix\n"
     msg += "tinderbox: status: " + status + "\n"
     msg += "tinderbox: administrator: " + adminAddr + defaultDomain + "\n"
+    msg += "tinderbox: revision: " + svnRevision + "\n"
     msg += "tinderbox: END\n"
+
     if logContents:
         msg += logContents
 

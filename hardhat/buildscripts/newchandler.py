@@ -27,7 +27,7 @@ reposRoot    = 'http://svn.osafoundation.org/chandler'
 reposModules = ['chandler', 'internal/installers']
 mainModule   = reposModules[0]
 
-def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, tagID=None, revID=None):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
 
     global buildenv, changes
 
@@ -62,10 +62,10 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         traceback.print_exc()
         sys.exit(1)
 
-    # if tagID is present then we have to modify reposBase as a tag has
+    # if branchID is present then we have to modify reposBase as a branch has
     # been requested instead of the trunk
-    if tagID:
-        reposBase='branches/%s' % tagID
+    if branchID:
+        reposBase='branches/%s' % branchID
     else:
         reposBase='trunk'
 
@@ -88,18 +88,16 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
-    runPerfTests = (os.getenv('CHANDLER_PERFORMANCE_TEST', 'no').lower() == 'yes')
+    buildModes = ('debug', 'release')
 
-    if runPerfTests:
-      buildModes = ('release',)
-    else:
-      buildModes = ('debug', 'release')
+    revisions = {}
 
     if not os.path.exists(chanDir):
         # Initialize sources
         print "Setup source tree..."
         log.write("- - - - tree setup - - - - - - -\n")
 
+        print reposModules
         for module in reposModules:
             svnSource = os.path.join(reposRoot, reposBase, module)
 
@@ -108,11 +106,13 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             # if revID is present then we have to modify the request to include
             # the given revision #
             if revID:
-                cmd = [svnProgram, "-q", "co", "-r %s" % revID, svnSource, module]
+                cmd = [svnProgram, "co", "-r %s" % revID, svnSource, module]
             else:
-                cmd = [svnProgram, "-q", "co", svnSource, module]
+                cmd = [svnProgram, "co", svnSource, module]
 
             outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
+
+            revisions[module] = determineRevision(outputList)
 
             hardhatutil.dumpOutputList(outputList, log)
 
@@ -120,12 +120,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         for releaseMode in buildModes:
             doInstall(releaseMode, workingDir, log)
-
-            if runPerfTests:
-                doCATS(workingDir, log)
-
+        
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
-
+        
             if skipTests:
                 ret = 'success'
             else:
@@ -133,12 +130,6 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
-                else:
-                    if runPerfTests:
-                        ret = doPerformanceTests(hardhatScript, releaseMode, workingDir,
-                                                 outputDir, buildVersion, log)
-                        if ret != 'success':
-                            break
 
         changes = "-first-run"
     else:
@@ -146,16 +137,14 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         print "Checking SVN for updates"
         log.write("Checking SVN for updates\n")
-        svnChanges = changesInSVN(chanDir, workingDir, log, revID)
+
+        (svnChanges, revisions['chandler']) = changesInSVN(chanDir, workingDir, log, revID)
 
         if svnChanges:
             log.write("Changes in SVN require install\n")
             changes = "-changes"
             for releaseMode in buildModes:
                 doInstall(releaseMode, workingDir, log)
-
-        if runPerfTests:
-            doCATS(workingDir, log)
 
         if svnChanges:
             log.write("Changes in SVN require making distributions\n")
@@ -177,15 +166,8 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
-                else:
-                    if runPerfTests:
-                        ret = doPerformanceTests(hardhatScript, releaseMode, workingDir,
-                                                 outputDir, buildVersion, log)
-                        if ret != 'success':
-                            break
 
-
-    return ret + changes
+    return (ret + changes, revisions['chandler'])
 
 
 def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
@@ -294,8 +276,33 @@ def doCopyLog(msg, workingDir, logPath, log):
     log.write(separator)
 
 
-def changesInSVN(moduleDir, workingDir, log, revID):
+def determineRevision(outputList):
+    """
+    Scan output of svn up command and extract the revision #
+    """
+    revision = ""
+
+    for line in outputList:
+        s = line.lower()
+
+          # handle "Update to revision ####." - svn up
+        if s.find("updated to revision") != -1:
+            revision = s[19:-2]
+            break
+          # handle "At revision ####." - svn up
+        if s.find("at revision") != -1:
+            revision = s[12:-2]
+            break
+          # handler "Checked out revision ####." - svn co
+        if s.find("checked out revision") != -1:
+            revision = s[21:-2]
+            break
+
+    return revision
+
+def changesInSVN(moduleDir, workingDir, log, revID=None):
     changesAtAll = False
+    svnRevision  = ""
 
     for module in reposModules:
         log.write("[tbox] Checking for updates [%s] [%s]\n" % (workingDir, module))
@@ -314,6 +321,8 @@ def changesInSVN(moduleDir, workingDir, log, revID):
 
         outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
 
+        svnRevision = determineRevision(outputList)
+
         hardhatutil.dumpOutputList(outputList, log) 
 
         if NeedsUpdate(outputList):
@@ -325,7 +334,8 @@ def changesInSVN(moduleDir, workingDir, log, revID):
 
     log.write(separator)
     log.write("Done with SVN\n")
-    return changesAtAll
+
+    return (changesAtAll, svnRevision)
 
 
 def doInstall(buildmode, workingDir, log, cleanFirst=False):
@@ -356,37 +366,6 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
         hardhatutil.dumpOutputList(outputList, log)
-    except hardhatutil.ExternalCommandErrorWithOutputList, e:
-        print "build error"
-        log.write("***Error during build***\n")
-        log.write(separator)
-        log.write("Build log:" + "\n")
-        hardhatutil.dumpOutputList(e.outputList, log)
-        log.write(separator)
-        forceBuildNextCycle(log, workingDir)
-        raise e
-    except Exception, e:
-        print "build error"
-        log.write("***Error during build***\n")
-        log.write(separator)
-        log.write("No build log!\n")
-        log.write(separator)
-        forceBuildNextCycle(log, workingDir)
-        raise e
-
-
-def doCATS(workingDir, log):
-    moduleDir = os.path.join(workingDir, mainModule)
-    os.chdir(moduleDir)
-
-    print "Doing make cats\n"
-    log.write("Doing make cats\n")
-
-    try:
-        outputList = hardhatutil.executeCommandReturnOutput([buildenv['make'], 'cats'])
-
-        hardhatutil.dumpOutputList(outputList, log)
-
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
         log.write("***Error during build***\n")

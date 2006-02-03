@@ -28,7 +28,7 @@ reposTest    = [('scooby',  'test'),
 reposDist    = [('scooby',  'dist:release', 'dist',   'scooby*.tar.gz'),
                ]
 
-def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, revID=None):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
 
       # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
@@ -47,6 +47,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
     sourceChanged = False
+    revision = ""
 
     log.write("[tbox] Pulling source tree\n")
 
@@ -60,6 +61,8 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             os.chdir(moduleDir)
 
             outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
+
+            revision = determineRevision(outputList)
 
             hardhatutil.dumpOutputList(outputList, log) 
 
@@ -77,7 +80,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
             os.chdir(workingDir)
 
-            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "-q", "co", svnSource, module])
+            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "co", svnSource, module])
+
+            revision = determineRevision(outputList)
 
             hardhatutil.dumpOutputList(outputList, log)
 
@@ -101,7 +106,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
     print ret + changes
 
-    return ret + changes
+    return (ret + changes, revision)
 
 
 def doBuild(workingDir, log):
@@ -186,6 +191,30 @@ def doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped
         except Exception, e:
             doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
             raise e
+
+def determineRevision(outputList):
+    """
+    Scan output of svn up command and extract the revision #
+    """
+    revision = ""
+    
+    for line in outputList:
+        s = line.lower()
+
+          # handle "Update to revision ####." - svn up
+        if s.find("updated to revision") != -1:
+            revision = s[19:-2]
+            break
+          # handle "At revision ####." - svn up
+        if s.find("at revision") != -1:
+            revision = s[12:-2]
+            break
+          # handler "Checked out revision ####." - svn co
+        if s.find("checked out revision") != -1:
+            revision = s[21:-2]
+            break
+
+    return revision
 
 def NeedsUpdate(outputList):
     for line in outputList:

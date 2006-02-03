@@ -28,7 +28,7 @@ reposTest    = [('cosmo',  'test'),
 reposDist    = [('cosmo',  'dist:release', 'dist',   'cosmo*.tar.gz'),
                ]
 
-def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, revID=None):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
 
       # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
@@ -47,11 +47,17 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
     sourceChanged = False
+    rev = ""
 
     log.write("[tbox] Pulling source tree\n")
 
     for (module, moduleSource) in reposModules:
         moduleDir = os.path.join(workingDir, module)
+
+        # if branchID is present then we have to modify moduleSource as a branch has
+        # been requested instead of the trunk
+        if branchID:
+            moduleSource = moduleSource.replace('/trunk', '/branches/%s' % branchID)
 
         if os.path.exists(moduleDir):
             log.write("[tbox] Checking for source updates\n")
@@ -59,7 +65,16 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
             os.chdir(moduleDir)
 
-            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
+            # if revID is present then we have to modify the request to include
+            # the given revision #
+            if revID:
+                cmd = [svnProgram, "up", "-r %s" % revID]
+            else:
+                cmd = [svnProgram, "up"]
+
+            outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
+
+            rev = determineRevision(outputList)
 
             hardhatutil.dumpOutputList(outputList, log) 
 
@@ -77,7 +92,16 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
             os.chdir(workingDir)
 
-            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "-q", "co", svnSource, module])
+            # if revID is present then we have to modify the request to include
+            # the given revision #
+            if revID:
+                cmd = [svnProgram, "co", "-r %s" % revID, svnSource, module]
+            else:
+                cmd = [svnProgram, "co", svnSource, module]
+
+            outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
+
+            rev = determineRevision(outputList)
 
             hardhatutil.dumpOutputList(outputList, log)
 
@@ -101,7 +125,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
     print ret + changes
 
-    return ret + changes
+    return (ret + changes, rev)
 
 
 def doBuild(workingDir, log):
@@ -186,6 +210,30 @@ def doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped
         except Exception, e:
             doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
             raise e
+
+def determineRevision(outputList):
+    """
+    Scan output of svn up command and extract the revision #
+    """
+    revision = ""
+
+    for line in outputList:
+        s = line.lower()
+
+          # handle "Update to revision ####." - svn up
+        if s.find("updated to revision") != -1:
+            revision = s[19:-2]
+            break
+          # handle "At revision ####." - svn up
+        if s.find("at revision") != -1:
+            revision = s[12:-2]
+            break
+          # handler "Checked out revision ####." - svn co
+        if s.find("checked out revision") != -1:
+            revision = s[21:-2]
+            break
+
+    return revision
 
 def NeedsUpdate(outputList):
     for line in outputList:
