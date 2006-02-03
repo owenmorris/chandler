@@ -3,7 +3,7 @@
 // Purpose:     wxSpinButton
 // Author:      Robert
 // Modified by:
-// RCS-ID:      $Id: spinbutt.cpp,v 1.41 2006/01/22 23:28:56 MR Exp $
+// RCS-ID:      $Id: spinbutt.cpp,v 1.42 2006/02/03 21:51:21 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -208,7 +208,7 @@ void wxSpinButton::OnSize( wxSizeEvent &WXUNUSED(event) )
     wxCHECK_RET( (m_widget != NULL), wxT("invalid spin button") );
 
     m_width = DoGetBestSize().x;
-    gtk_widget_set_usize( m_widget, m_width, m_height );
+    gtk_widget_set_size_request( m_widget, m_width, m_height );
 }
 
 bool wxSpinButton::IsOwnGtkWindow( GdkWindow *window )

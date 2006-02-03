@@ -2,7 +2,7 @@
 // Name:        gtk/bmpbuttn.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: bmpbuttn.cpp,v 1.64 2006/01/22 23:28:52 MR Exp $
+// Id:          $Id: bmpbuttn.cpp,v 1.65 2006/02/03 20:38:52 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ void wxBitmapButton::SetLabel( const wxString &label )
 
 void wxBitmapButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    if ( !BUTTON_CHILD(m_widget) )
+    if (!GTK_BIN(m_widget)->child)
         return;
 
     wxButton::DoApplyWidgetStyle(style);
@@ -220,7 +220,7 @@ void wxBitmapButton::OnSetBitmap()
     GdkBitmap *mask = (GdkBitmap *) NULL;
     if (the_one.GetMask()) mask = the_one.GetMask()->GetBitmap();
 
-    GtkWidget *child = BUTTON_CHILD(m_widget);
+    GtkWidget *child = GTK_BIN(m_widget)->child;
     if (child == NULL)
     {
         // initial bitmap

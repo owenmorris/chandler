@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.526 2006/01/26 13:15:34 JS Exp $
+*  RCS-ID:      $Id: defs.h,v 1.527 2006/02/03 21:27:04 MR Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -2839,6 +2839,11 @@ typedef GtkWidget *WXWidget;
 #ifndef __WXGTK20__
 #define GTK_OBJECT_GET_CLASS(object) (GTK_OBJECT(object)->klass)
 #define GTK_CLASS_TYPE(klass) ((klass)->type)
+#endif
+
+#ifdef __WXGTK20__
+#define G_DISABLE_DEPRECATED
+#define PANGO_DISABLE_DEPRECATED
 #endif
 
 #endif /*  __WXGTK__ */

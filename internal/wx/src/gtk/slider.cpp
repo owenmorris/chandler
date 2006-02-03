@@ -2,7 +2,7 @@
 // Name:        gtk/slider.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: slider.cpp,v 1.63 2006/01/22 23:28:55 MR Exp $
+// Id:          $Id: slider.cpp,v 1.64 2006/02/03 20:38:54 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,6 @@ ProcessScrollEvent(wxSlider *win, wxEventType evtType, double dvalue)
 
 extern "C" {
 static void gtk_slider_callback( GtkAdjustment *adjust,
-                                 SCROLLBAR_CBACK_ARG
                                  wxSlider *win )
 {
     if (g_isIdle) wxapp_install_idle_handler();

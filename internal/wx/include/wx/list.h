@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h,v 1.97 2006/01/18 08:33:43 JS Exp $
+// RCS-ID:      $Id: list.h,v 1.98 2006/02/03 18:26:51 MBN Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -135,13 +135,6 @@ private:
 
 #endif // defined( __VISUALC__ )
 
-// Visual C++ 2005 complains about the const
-#if (defined(__VISUALC__) && __VISUALC__ >= 1400) || defined(__MWERKS__)
-#define _WX_DELETEFUNCTIONCONST
-#else
-#define _WX_DELETEFUNCTIONCONST const
-#endif
-
 #define WX_DECLARE_LIST_XO(elT, liT, decl)                                    \
     VC6_WORKAROUND(elT, liT, decl)                                            \
     decl liT : public std::list<elT>                                          \
@@ -150,7 +143,7 @@ private:
         bool m_destroy;                                                       \
     private:                                                                  \
         typedef elT _WX_LIST_ITEM_TYPE_##liT;                                 \
-        static void DeleteFunction( _WX_DELETEFUNCTIONCONST _WX_LIST_ITEM_TYPE_##liT X );       \
+        static void DeleteFunction( _WX_LIST_ITEM_TYPE_##liT X );             \
     public:                                                                   \
         class compatibility_iterator                                          \
         {                                                                     \

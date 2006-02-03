@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp,v 1.100 2006/01/22 23:28:53 MR Exp $
+// Id:          $Id: dnd.cpp,v 1.101 2006/02/03 21:51:21 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -822,7 +822,7 @@ void wxDropSource::PrepareIcon( int action, GdkDragContext *context )
 
     gtk_widget_pop_colormap ();
 
-    gtk_widget_set_usize (m_iconWindow, width, height);
+    gtk_widget_set_size_request (m_iconWindow, width, height);
     gtk_widget_realize (m_iconWindow);
 
     g_signal_connect (m_iconWindow, "configure_event",

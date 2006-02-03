@@ -2,7 +2,7 @@
 // Name:        notebook.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: notebook.cpp,v 1.127 2006/01/22 23:28:54 MR Exp $
+// Id:          $Id: notebook.cpp,v 1.128 2006/02/03 20:38:53 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -830,7 +830,7 @@ void wxNotebook::DoApplyWidgetStyle(GtkRcStyle *style)
 bool wxNotebook::IsOwnGtkWindow( GdkWindow *window )
 {
     return ((m_widget->window == window) ||
-            (NOTEBOOK_PANEL(m_widget) == window));
+            GTK_NOTEBOOK(m_widget)->event_window == window);
 }
 
 // static

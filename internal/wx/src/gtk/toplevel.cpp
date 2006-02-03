@@ -2,7 +2,7 @@
 // Name:        src/gtk/toplevel.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.cpp,v 1.94 2006/01/22 23:28:57 MR Exp $
+// Id:          $Id: toplevel.cpp,v 1.96 2006/02/03 22:22:27 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ static void wxgtk_window_set_urgency_hint (GtkWindow *win,
     XFree(wm_hints);
 }
 
-static gint gtk_frame_urgency_timer_callback( wxTopLevelWindowGTK *win )
+static gboolean gtk_frame_urgency_timer_callback( wxTopLevelWindowGTK *win )
 {
 #if defined(__WXGTK20__) && GTK_CHECK_VERSION(2,7,0)
     if(!gtk_check_version(2,7,0))
@@ -150,7 +150,7 @@ static gint gtk_frame_focus_in_callback( GtkWidget *widget,
     switch( win->m_urgency_hint )
     {
         default:
-            gtk_timeout_remove( win->m_urgency_hint );
+            g_source_remove( win->m_urgency_hint );
             // no break, fallthrough to remove hint too
         case -1:
 #if defined(__WXGTK20__) && GTK_CHECK_VERSION(2,7,0)
@@ -333,9 +333,9 @@ gtk_frame_realized_callback( GtkWidget * WXUNUSED(widget),
 
     // GTK's shrinking/growing policy
     if ((win->m_gdkFunc & GDK_FUNC_RESIZE) == 0)
-        gtk_window_set_policy(GTK_WINDOW(win->m_widget), 0, 0, 1);
+        gtk_window_set_resizable(GTK_WINDOW(win->m_widget), FALSE);
     else
-        gtk_window_set_policy(GTK_WINDOW(win->m_widget), 1, 1, 1);
+        gtk_window_set_resizable(GTK_WINDOW(win->m_widget), TRUE);
 
     // reset the icon
     wxIconBundle iconsOld = win->GetIcons();
@@ -1247,7 +1247,7 @@ void wxTopLevelWindowGTK::RequestUserAttention(int flags)
     ::wxYieldIfNeeded();
 
     if(m_urgency_hint >= 0)
-        gtk_timeout_remove(m_urgency_hint);
+        g_source_remove(m_urgency_hint);
 
     m_urgency_hint = -2;
 
@@ -1257,7 +1257,7 @@ void wxTopLevelWindowGTK::RequestUserAttention(int flags)
 
         if (flags & wxUSER_ATTENTION_INFO)
         {
-            m_urgency_hint = gtk_timeout_add(5000, (GtkFunction)gtk_frame_urgency_timer_callback, this);
+            m_urgency_hint = g_timeout_add(5000, (GSourceFunc)gtk_frame_urgency_timer_callback, this);
         } else {
             m_urgency_hint = -1;
         }

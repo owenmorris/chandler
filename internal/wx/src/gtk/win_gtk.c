@@ -4,7 +4,7 @@
 //              GtkFixed. It makes use of the gravity window property and
 //              therefore does not work with GTK 1.0.
 // Author:      Robert Roebling
-// Id:          $Id: win_gtk.c,v 1.73 2006/01/27 15:43:16 ABX Exp $
+// Id:          $Id: win_gtk.c,v 1.74 2006/02/03 21:51:21 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////// */
@@ -306,7 +306,7 @@ gtk_pizza_put (GtkPizza   *pizza,
 
     gtk_widget_set_parent (widget, GTK_WIDGET (pizza));
 
-    gtk_widget_set_usize (widget, width, height);
+    gtk_widget_set_size_request (widget, width, height);
 }
 
 void
@@ -370,7 +370,7 @@ gtk_pizza_resize (GtkPizza    *pizza,
             child->width = width;
             child->height = height;
 
-            gtk_widget_set_usize (widget, width, height);
+            gtk_widget_set_size_request (widget, width, height);
 
             if (GTK_WIDGET_VISIBLE (widget) && GTK_WIDGET_VISIBLE (pizza))
                 gtk_widget_queue_resize (widget);
@@ -412,7 +412,7 @@ gtk_pizza_set_size (GtkPizza   *pizza,
             child->width = width;
             child->height = height;
 
-            gtk_widget_set_usize (widget, width, height);
+            gtk_widget_set_size_request (widget, width, height);
 
             if (GTK_WIDGET_VISIBLE (widget) && GTK_WIDGET_VISIBLE (pizza))
                 gtk_widget_queue_resize (widget);

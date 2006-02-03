@@ -2,7 +2,7 @@
 // Name:        popupwin.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: popupwin.cpp,v 1.21 2006/01/22 23:28:55 MR Exp $
+// Id:          $Id: popupwin.cpp,v 1.23 2006/02/03 22:08:01 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -120,7 +120,7 @@ gtk_dialog_realized_callback( GtkWidget * WXUNUSED(widget), wxPopupWindow *win )
     gdk_window_set_decorations( win->m_widget->window, (GdkWMDecoration)decor);
     gdk_window_set_functions( win->m_widget->window, (GdkWMFunction)func);
 
-    gtk_window_set_policy(GTK_WINDOW(win->m_widget), 0, 0, 1);
+    gtk_window_set_resizable(GTK_WINDOW(win->m_widget), FALSE);
 
     return FALSE;
 }
@@ -288,7 +288,7 @@ void wxPopupWindow::DoSetSize( int x, int y, int width, int height, int sizeFlag
 
     if ((m_width != old_width) || (m_height != old_height))
     {
-        gtk_widget_set_usize( m_widget, m_width, m_height );
+        gtk_widget_set_size_request( m_widget, m_width, m_height );
 
         /* actual resizing is deferred to GtkOnSize in idle time and
            when showing the dialog */

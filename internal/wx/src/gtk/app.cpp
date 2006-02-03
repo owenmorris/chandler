@@ -2,7 +2,7 @@
 // Name:        app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp,v 1.215 2006/01/22 20:29:12 MR Exp $
+// Id:          $Id: app.cpp,v 1.217 2006/02/03 21:44:31 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -374,14 +374,14 @@ void wxapp_install_idle_handler()
     g_isIdle = FALSE;
 
     if (g_pendingTag == 0)
-        g_pendingTag = gtk_idle_add_priority( 900, wxapp_pending_callback, (gpointer) NULL );
+        g_pendingTag = g_idle_add_full( 900, wxapp_pending_callback, NULL, NULL );
 
     // This routine gets called by all event handlers
     // indicating that the idle is over. It may also
     // get called from other thread for sending events
     // to the main thread (and processing these in
     // idle time). Very low priority.
-    wxTheApp->m_idleTag = gtk_idle_add_priority( 1000, wxapp_idle_callback, (gpointer) NULL );
+    wxTheApp->m_idleTag = g_idle_add_full( 1000, wxapp_idle_callback, NULL, NULL );
 }
 
 //-----------------------------------------------------------------------------
@@ -419,7 +419,7 @@ wxApp::wxApp()
     wxapp_install_idle_handler();
 
 #if wxUSE_THREADS
-    g_main_set_poll_func( wxapp_poll_func );
+    g_main_context_set_poll_func( NULL, wxapp_poll_func );
 #endif
 
     m_colorCube = (unsigned char*) NULL;
@@ -431,9 +431,11 @@ wxApp::wxApp()
 
 wxApp::~wxApp()
 {
-    if (m_idleTag) gtk_idle_remove( m_idleTag );
+    if (m_idleTag)
+        g_source_remove( m_idleTag );
 
-    if (m_colorCube) free(m_colorCube);
+    if (m_colorCube)
+        free(m_colorCube);
 }
 
 bool wxApp::OnInitGui()
@@ -695,7 +697,7 @@ void wxApp::RemoveIdleTag()
 #endif
     if (!g_isIdle)
     {
-        gtk_idle_remove( wxTheApp->m_idleTag );
+        g_source_remove( wxTheApp->m_idleTag );
         wxTheApp->m_idleTag = 0;
         g_isIdle = TRUE;
     }

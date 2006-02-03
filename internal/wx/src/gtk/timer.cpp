@@ -2,7 +2,7 @@
 // Name:        gtk/timer.cpp
 // Purpose:     wxTimer implementation
 // Author:      Robert Roebling
-// Id:          $Id: timer.cpp,v 1.24 2006/01/14 18:32:37 MR Exp $
+// Id:          $Id: timer.cpp,v 1.25 2006/02/03 22:22:27 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,9 +68,9 @@ bool wxTimer::Start( int millisecs, bool oneShot )
     (void)wxTimerBase::Start(millisecs, oneShot);
 
     if (m_tag != -1)
-        gtk_timeout_remove( m_tag );
+        g_source_remove( m_tag );
 
-    m_tag = gtk_timeout_add( m_milli, timeout_callback, this );
+    m_tag = g_timeout_add( m_milli, timeout_callback, this );
 
     return TRUE;
 }
@@ -79,7 +79,7 @@ void wxTimer::Stop()
 {
     if (m_tag != -1)
     {
-        gtk_timeout_remove( m_tag );
+        g_source_remove( m_tag );
         m_tag = -1;
     }
 }

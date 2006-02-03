@@ -2,7 +2,7 @@
 // Name:        src/gtk/combobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: combobox.cpp,v 1.139 2006/01/22 23:28:53 MR Exp $
+// Id:          $Id: combobox.cpp,v 1.141 2006/02/03 21:51:21 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -290,7 +290,7 @@ bool wxComboBox::Create( wxWindow *parent, wxWindowID id, const wxString& value,
 
     // This is required for tool bar support
 //    wxSize setsize = GetSize();
-//    gtk_widget_set_usize( m_widget, setsize.x, setsize.y );
+//    gtk_widget_set_size_request( m_widget, setsize.x, setsize.y );
 
     return true;
 }
@@ -691,7 +691,7 @@ void wxComboBox::Copy()
     wxCHECK_RET( m_widget != NULL, wxT("invalid combobox") );
 
     GtkWidget *entry = GTK_COMBO(m_widget)->entry;
-    gtk_editable_copy_clipboard( GTK_EDITABLE(entry) DUMMY_CLIPBOARD_ARG );
+    gtk_editable_copy_clipboard(GTK_EDITABLE(entry));
 }
 
 void wxComboBox::Cut()
@@ -699,7 +699,7 @@ void wxComboBox::Cut()
     wxCHECK_RET( m_widget != NULL, wxT("invalid combobox") );
 
     GtkWidget *entry = GTK_COMBO(m_widget)->entry;
-    gtk_editable_cut_clipboard( GTK_EDITABLE(entry) DUMMY_CLIPBOARD_ARG );
+    gtk_editable_cut_clipboard(GTK_EDITABLE(entry));
 }
 
 void wxComboBox::Paste()
@@ -707,7 +707,7 @@ void wxComboBox::Paste()
     wxCHECK_RET( m_widget != NULL, wxT("invalid combobox") );
 
     GtkWidget *entry = GTK_COMBO(m_widget)->entry;
-    gtk_editable_paste_clipboard( GTK_EDITABLE(entry) DUMMY_CLIPBOARD_ARG);
+    gtk_editable_paste_clipboard(GTK_EDITABLE(entry));
 }
 
 void wxComboBox::Undo()
@@ -780,7 +780,7 @@ void wxComboBox::SetInsertionPoint( long pos )
 
 long wxComboBox::GetInsertionPoint() const
 {
-    return (long) GET_EDITABLE_POS( GTK_COMBO(m_widget)->entry );
+    return (long) gtk_editable_get_position(GTK_EDITABLE(GTK_COMBO(m_widget)->entry));
 }
 
 wxTextPos wxComboBox::GetLastPosition() const

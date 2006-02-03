@@ -2,7 +2,7 @@
 // Name:        src/gtk/scrolbar.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: scrolbar.cpp,v 1.60 2006/01/22 23:28:55 MR Exp $
+// Id:          $Id: scrolbar.cpp,v 1.61 2006/02/03 20:38:54 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,6 @@ static const float sensitivity = 0.02;
 
 extern "C" {
 static void gtk_scrollbar_callback( GtkAdjustment *adjust,
-                                    SCROLLBAR_CBACK_ARG
                                     wxScrollBar *win )
 {
     if (g_isIdle) wxapp_install_idle_handler();
@@ -55,7 +54,7 @@ static void gtk_scrollbar_callback( GtkAdjustment *adjust,
 
     win->m_oldPos = adjust->value;
 
-    wxEventType command = GtkScrollTypeToWx(GET_SCROLL_TYPE(win->m_widget));
+    wxEventType command = GtkScrollTypeToWx(GTK_SCROLL_JUMP);
 
     double dvalue = adjust->value;
     int value = (int)(dvalue < 0 ? dvalue - 0.5 : dvalue + 0.5);

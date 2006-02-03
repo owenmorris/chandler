@@ -2,7 +2,7 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp,v 1.89 2006/01/22 23:28:52 MR Exp $
+// Id:          $Id: choice.cpp,v 1.90 2006/02/03 20:38:52 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -334,7 +334,7 @@ int wxChoice::FindString( const wxString &string, bool bCase ) const
         if (bin->child)
             label = GTK_LABEL(bin->child);
         if (!label)
-            label = GTK_LABEL( BUTTON_CHILD(m_widget) );
+            label = GTK_LABEL(GTK_BIN(m_widget)->child);
 
         wxASSERT_MSG( label != NULL , wxT("wxChoice: invalid label") );
 
@@ -373,7 +373,7 @@ void wxChoice::SetString( int n, const wxString& str )
             if (bin->child)
                 label = GTK_LABEL(bin->child);
             if (!label)
-                label = GTK_LABEL( BUTTON_CHILD(m_widget) );
+                label = GTK_LABEL(GTK_BIN(m_widget)->child);
 
             wxASSERT_MSG( label != NULL , wxT("wxChoice: invalid label") );
 
@@ -402,7 +402,7 @@ wxString wxChoice::GetString( int n ) const
             if (bin->child)
                 label = GTK_LABEL(bin->child);
             if (!label)
-                label = GTK_LABEL( BUTTON_CHILD(m_widget) );
+                label = GTK_LABEL(GTK_BIN(m_widget)->child);
 
             wxASSERT_MSG( label != NULL , wxT("wxChoice: invalid label") );
 
@@ -475,7 +475,7 @@ void wxChoice::DoApplyWidgetStyle(GtkRcStyle *style)
         if (bin->child)
             label = bin->child;
         if (!label)
-            label = BUTTON_CHILD(m_widget);
+            label = GTK_BIN(m_widget)->child;
 
         gtk_widget_modify_style( label, style );
 

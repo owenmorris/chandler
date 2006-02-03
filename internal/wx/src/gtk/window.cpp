@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.564 2006/01/30 20:04:55 JS Exp $
+// Id:          $Id: window.cpp,v 1.566 2006/02/03 21:57:03 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -358,23 +358,25 @@ static void draw_frame( GtkWidget *widget, wxWindowGTK *win )
 
     if (win->HasFlag(wxRAISED_BORDER))
     {
-        gtk_draw_shadow( widget->style,
-                         widget->window,
-                         GTK_STATE_NORMAL,
-                         GTK_SHADOW_OUT,
-                         dx, dy,
-                         widget->allocation.width-dw, widget->allocation.height-dh );
+        gtk_paint_shadow (widget->style,
+                          widget->window,
+                          GTK_STATE_NORMAL,
+                          GTK_SHADOW_OUT,
+                          NULL, NULL, NULL, // FIXME: No clipping?
+                          dx, dy,
+                          widget->allocation.width-dw, widget->allocation.height-dh );
         return;
     }
 
     if (win->HasFlag(wxSUNKEN_BORDER))
     {
-        gtk_draw_shadow( widget->style,
-                         widget->window,
-                         GTK_STATE_NORMAL,
-                         GTK_SHADOW_IN,
-                         dx, dy,
-                         widget->allocation.width-dw, widget->allocation.height-dh );
+        gtk_paint_shadow (widget->style,
+                          widget->window,
+                          GTK_STATE_NORMAL,
+                          GTK_SHADOW_IN,
+                          NULL, NULL, NULL, // FIXME: No clipping?
+                          dx, dy,
+                          widget->allocation.width-dw, widget->allocation.height-dh );
         return;
     }
 
@@ -2018,7 +2020,6 @@ static gint gtk_window_leave_callback( GtkWidget *widget, GdkEventCrossing *gdk_
 
 extern "C" {
 static void gtk_window_vscroll_callback( GtkAdjustment *adjust,
-                                         SCROLLBAR_CBACK_ARG
                                          wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
@@ -2035,7 +2036,7 @@ static void gtk_window_vscroll_callback( GtkAdjustment *adjust,
 
     win->m_oldVerticalPos = adjust->value;
 
-    wxEventType         command = GtkScrollWinTypeToWx(GET_SCROLL_TYPE(sw->vscrollbar));
+    wxEventType command = GtkScrollWinTypeToWx(GTK_SCROLL_JUMP);
 
     int value = (int)(adjust->value+0.5);
 
@@ -2051,7 +2052,6 @@ static void gtk_window_vscroll_callback( GtkAdjustment *adjust,
 
 extern "C" {
 static void gtk_window_hscroll_callback( GtkAdjustment *adjust,
-                                         SCROLLBAR_CBACK_ARG
                                          wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
@@ -2065,7 +2065,7 @@ static void gtk_window_hscroll_callback( GtkAdjustment *adjust,
     float diff = adjust->value - win->m_oldHorizontalPos;
     if (fabs(diff) < 0.2) return;
 
-    wxEventType         command = GtkScrollWinTypeToWx(GET_SCROLL_TYPE(sw->hscrollbar));
+    wxEventType command = GtkScrollWinTypeToWx(GTK_SCROLL_JUMP);
 
     win->m_oldHorizontalPos = adjust->value;
 
