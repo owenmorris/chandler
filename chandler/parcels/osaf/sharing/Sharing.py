@@ -1954,13 +1954,13 @@ def splitUrl(url):
 def changedAttributes(item, fromVersion, toVersion):
 
     changes = set([])
+    uuid = item.itsUUID
 
-    def historyCallback(i, version, status, values, references):
-        if i is item:
+    for (uItem, version, kind, status,
+         values, references) in item.itsView.mapHistory(fromVersion, toVersion):
+        if uItem == uuid:
             changes.update(values)
             changes.update(references)
-
-    item.itsView.mapHistory(historyCallback, fromVersion, toVersion)
 
     return changes
 
@@ -1969,16 +1969,15 @@ def localChanges(view, fromVersion, toVersion):
 
     changedItems = {}
 
-    def historyCallback(item, version, status, values, references):
-        if changedItems.has_key(item.itsUUID):
-            changes = changedItems[item.itsUUID]
+    for (uItem, version, kind, status,
+         values, references) in view.mapHistory(fromVersion, toVersion):
+        if uItem in changedItems:
+            changes = changedItems[uItem]
         else:
             changes = set([])
-            changedItems[item.itsUUID] = changes
+            changedItems[uItem] = changes
         changes.update(values)
         changes.update(references)
-
-    view.mapHistory(historyCallback, fromVersion, toVersion)
 
     return changedItems
 

@@ -1292,39 +1292,54 @@ class ItemContainer(DBContainer):
                     return
                 yield result
 
-    def applyHistory(self, view, fn, oldVersion, newVersion):
+    def iterHistory(self, view, fromVersion, toVersion):
 
         store = self.store
         
-        while True:
-            txnStatus = 0
-            cursor = None
+        class _iterator(object):
 
-            try:
-                txnStatus = store.startTransaction(view)
-                cursor = self.openCursor(self._versions)
+            def __init__(_self):
+
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def __del__(_self):
 
                 try:
-                    value = cursor.set_range(pack('>q', oldVersion + 1),
-                                             self._flags, None)
+                    self.closeCursor(_self.cursor, self._versions)
+                    store.commitTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def next(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor(self._versions)
+                
+                try:
+                    value = _self.cursor.set_range(pack('>q', fromVersion + 1),
+                                                   self._flags, None)
                     if value is None:
-                        return
+                        yield False
 
                 except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        self._logDL(18)
-                        continue
+                    if _self.txnStatus & store.TXN_STARTED:
+                        self._logDL(25)
+                        yield True
                     else:
                         raise
 
                 try:
                     while value is not None:
-                        version, uuid = unpack('>q16s', value[0])
-                        if version > newVersion:
+                        version, uItem = unpack('>q16s', value[0])
+                        if version > toVersion:
                             break
 
                         value = value[1]
-                        status, parentId = unpack('>l16s', value[16:36])
+                        uKind, status, uParent = unpack('>16sl16s', value[0:36])
 
                         if status & CItem.DELETED:
                             dirties = HashTuple()
@@ -1334,22 +1349,27 @@ class ItemContainer(DBContainer):
                             dirties = unpack('>%dl' %(len(value) >> 2), value)
                             dirties = HashTuple(dirties)
 
-                        fn(UUID(uuid), version, status, UUID(parentId), dirties)
+                        yield (UUID(uItem), version,
+                               UUID(uKind), status, UUID(uParent), dirties)
 
-                        value = cursor.next(self._flags, None)
+                        value = _self.cursor.next(self._flags, None)
+
+                    yield False
 
                 except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
+                    if _self.txnStatus & store.TXN_STARTED:
                         self._logDL(19)
-                        continue
+                        yield True
                     else:
                         raise
 
-                return
-
-            finally:
-                self.closeCursor(cursor, self._versions)
-                store.abortTransaction(view, txnStatus)
+        while True:
+            for result in _iterator().next():
+                if result is True:
+                    break
+                if result is False:
+                    return
+                yield result
 
     def iterItems(self, view):
 

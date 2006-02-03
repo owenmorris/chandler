@@ -14,7 +14,7 @@ from repository.item.RefCollections import TransientRefList
 from repository.persistence.RepositoryError \
      import RepositoryError, MergeError, VersionConflictError
 from repository.persistence.RepositoryView \
-     import RepositoryView, OnDemandRepositoryView, ViewNotifications
+     import RepositoryView, OnDemandRepositoryView
 from repository.persistence.Repository import Repository
 from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
@@ -208,8 +208,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     self.find(item.itsUUID)
 
         if newVersion > self._version:
-            histNotifications = ViewNotifications()
-
+            history = []
             unloads = {}
             also = set()
             _log = self._log
@@ -218,7 +217,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self._log = set()
                 try:
                     merges = self._mergeItems(self._version, newVersion,
-                                              histNotifications, unloads, also,
+                                              history, unloads, also,
                                               mergeFn)
                 except:
                     raise
@@ -246,8 +245,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                     item._afterMerge()
 
             before = time()
-            count = len(histNotifications)
-            histNotifications.dispatchHistory(self)
+            count = len(history)
+            self._dispatchHistory(history)
             duration = time() - before
             if duration > 1.0:
                 self.logger.warning('%s %d notifications ran in %s',
@@ -395,72 +394,63 @@ class DBRepositoryView(OnDemandRepositoryView):
                            item._values._getDirties(), 
                            item._references._getDirties())
     
-    def mapHistory(self, callable, fromVersion=0, toVersion=0):
+    def mapHistory(self, fromVersion=0, toVersion=0, history=None):
 
-        store = self.store
-        
-        if fromVersion == 0:
-            fromVersion = self._version
-        if toVersion == 0:
-            toVersion = store.getVersion()
+        if history is None:
+            store = self.store
+            if fromVersion == 0:
+                fromVersion = self._version
+            if toVersion == 0:
+                toVersion = store.getVersion()
+            history = store._items.iterHistory(self, fromVersion, toVersion)
 
-        def call(uuid, version, status, parentId, dirties):
-            item = self.find(uuid)
-            if item is not None:
-                values = []
-                references = []
-                kind = item.itsKind
-                if kind is not None:
-                    for name, attr, k in kind.iterAttributes():
-                        if name in dirties:
-                            if kind.getOtherName(name, item, None) is not None:
-                                references.append(name)
-                            else:
-                                values.append(name)
-                callable(item, version, status, values, references)
+        for uItem, version, uKind, status, uParent, dirties in history:
+            kind = self.find(uKind)
+            values = []
+            references = []
+            if kind is not None:
+                for name, attr, k in kind.iterAttributes():
+                    if name in dirties:
+                        if kind.getOtherName(name, None, None) is not None:
+                            references.append(name)
+                        else:
+                            values.append(name)
+            yield uItem, version, kind, status, values, references
 
-        store._items.applyHistory(self, call, fromVersion, toVersion)
-
-    def _mergeItems(self, oldVersion, toVersion, histNotifications,
+    def _mergeItems(self, oldVersion, toVersion, history,
                     unloads, also, mergeFn):
 
         merges = {}
 
-        def check(uuid, version, status, parent, dirties):
-            item = self.find(uuid, False)
+        for args in self.store._items.iterHistory(self, oldVersion, toVersion):
+            uItem, version, uKind, status, uParent, dirties = args
+            history.append(args)
 
+            item = self.find(uItem, False)
             if item is not None:
                 if item.isDirty():
                     oldDirty = status & Item.DIRTY
-                    if uuid in merges:
-                        od, x, d = merges[uuid]
-                        merges[uuid] = (od | oldDirty, parent, d.union(dirties))
+                    if uItem in merges:
+                        od, x, d = merges[uItem]
+                        merges[uItem] = (od | oldDirty, uParent,
+                                         d.union(dirties))
                     else:
-                        merges[uuid] = (oldDirty, parent, set(dirties))
+                        merges[uItem] = (oldDirty, uParent, set(dirties))
 
-                elif item._version < version:
-                    unloads[uuid] = item
+                elif item.itsVersion < version:
+                    unloads[uItem] = item
             else:
-                also.add(uuid)
+                also.add(uItem)
                     
-            if status & Item.DELETED:
-                histNotifications.history(uuid, 'deleted')
-            elif status & Item.NEW:
-                histNotifications.history(uuid, 'created')
-            else:
-                histNotifications.history(uuid, 'changed', dirties=dirties)
-
-        self.store._items.applyHistory(self, check, oldVersion, toVersion)
-
         try:
-            for uuid, (oldDirty, parent, dirties) in merges.iteritems():
+            for uItem, (oldDirty, uParent, dirties) in merges.iteritems():
             
-                item = self.find(uuid, False)
+                item = self.find(uItem, False)
                 newDirty = item.getDirty()
 
                 if newDirty & oldDirty & Item.NDIRTY:
                     item._status |= Item.NMERGED
-                    self._mergeNDIRTY(item, parent, oldVersion, toVersion)
+                    self._mergeNDIRTY(item, uParent, oldVersion, toVersion)
                     oldDirty &= ~Item.NDIRTY
 
                 if newDirty & oldDirty & Item.CDIRTY:
