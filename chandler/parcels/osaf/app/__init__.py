@@ -387,7 +387,11 @@ def MakeCollections(parcel):
                               kind=pim.mail.EmailAddress.getKind(view),
                               recursive=True)
     emailAddressCollection.rep.addIndex('emailAddress', 'compare',
-                                        compare='_compareAddr')
+                                        compare='_compareAddr', 
+                                        monitor='emailAddress')
+    emailAddressCollection.rep.addIndex('fullName', 'compare',
+                                        compare='_compareFullName', 
+                                        monitor='fullName')
 
     inSource = FilteredCollection.update(
         parcel, 'inSource',

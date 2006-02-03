@@ -165,8 +165,8 @@ class ContentItem(schema.Item):
     shares = schema.Sequence(initialValue=[], otherName="contents") # share
     sharedIn = schema.Sequence(initialValue=[], otherName="items") # share
     viewContainer = schema.Sequence(otherName="views")  # ViewContainer
-    BPBDetailItemOwner = schema.Sequence(otherName="BPBDetailItem") # Block
-    BPBSelectedItemOwner = schema.Sequence(otherName="BPBSelectedItem") # Block
+    branchPointDetailItemOwner = schema.Sequence(otherName="detailItem") # Block
+    branchPointSelectedItemOwner = schema.Sequence(otherName="selectedItem") # Block
 
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',

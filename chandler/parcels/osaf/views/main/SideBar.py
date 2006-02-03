@@ -7,7 +7,7 @@ __parcel__ = "osaf.views.main"
 from osaf.framework.blocks import ControlBlocks
 import wx, os
 from osaf.framework.blocks import (
-    Block, Trunk, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
+    Block, BranchPoint, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
     )
 
 from osaf.pim import (
@@ -341,10 +341,12 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             """
               Gray text forground color if the collection is empty
             """
-            sidebarBPB = Block.Block.findBlockByName ("SidebarBPB")
+            sidebarBPB = Block.Block.findBlockByName ("SidebarBranchPointBlock")
             if sidebarBPB is not None:
-                filteredCollection = sidebarBPB.trunkDelegate._mapItemToCacheKeyItem(item,
-                                                                                     {"getOnlySelectedCollection": True})
+                filteredCollection = sidebarBPB.delegate.\
+                                   _mapItemToCacheKeyItem(item, {
+                                       "getOnlySelectedCollection": True
+                                    })
                 if filteredCollection.isEmpty():
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
             """
@@ -921,7 +923,7 @@ class SidebarBlock(Table):
             key = os.path.basename (str (self.filterKind.itsPath))
         return item.displayNameAlternatives [key]
 
-class SidebarBPBDelegate(Trunk.BPBDelegate):
+class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     tableTemplatePath = schema.One(schema.Text)
     calendarTemplatePath = schema.One(schema.Text)
@@ -1027,27 +1029,27 @@ class SidebarBPBDelegate(Trunk.BPBDelegate):
                             break
         return key
 
-    def _makeTrunkForCacheKey(self, keyItem):
+    def _makeBranchForCacheKey(self, keyItem):
         if isinstance (keyItem, AbstractCollection):
-            sidebar = Block.Block.findBlockByName ("Sidebar")
+            sidebar = Block.Block.findBlockByName("Sidebar")
             if (not keyItem.dontDisplayAsCalendar and
                 sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
-                    trunk = self.findPath (self.calendarTemplatePath)
-                    keyUUID = trunk.itsUUID
+                    branch = self.findPath (self.calendarTemplatePath)
+                    keyUUID = branch.itsUUID
                     try:
-                        trunk = self.keyUUIDToTrunk[keyUUID]
+                        branch = self.keyUUIDToBranch[keyUUID]
                     except KeyError:
-                        trunk = self._copyItem(trunk, onlyIfReadOnly=True)
-                        self.keyUUIDToTrunk[keyUUID] = trunk
+                        branch = self._copyItem(branch, onlyIfReadOnly=True)
+                        self.keyUUIDToBranch[keyUUID] = branch
             else:
-                trunk = self.findPath (self.tableTemplatePath)
+                branch = self.findPath (self.tableTemplatePath)
         else:
-            trunk = keyItem
+            branch = keyItem
 
-        assert isinstance (trunk, Block.Block)
-        return self._copyItem(trunk, onlyIfReadOnly=True)
+        assert isinstance (branch, Block.Block)
+        return self._copyItem(branch, onlyIfReadOnly=True)
 
-    def _getContentsForTrunk(self, trunk, item, keyItem):
+    def _getContentsForBranch(self, branch, item, keyItem):
         return keyItem
 
     def getContentsCollection(self, item, collection):
@@ -1061,15 +1063,15 @@ class SidebarBPBDelegate(Trunk.BPBDelegate):
         if isinstance(item, AbstractCollection):
             return item
 
-class CPIATestSidebarBPBDelegate(Trunk.BPBDelegate):
+class CPIATestSidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     templatePath = schema.One(schema.Text)
 
-    def _makeTrunkForCacheKey(self, keyItem):
+    def _makeBranchForCacheKey(self, keyItem):
         if isinstance (keyItem, AbstractCollection):
-            trunk = self.findPath (self.templatePath)
+            branch = self.findPath (self.templatePath)
         else:
-            trunk = keyItem
+            branch = keyItem
 
-        assert isinstance (trunk, Block.Block)
-        return self._copyItem(trunk, onlyIfReadOnly=True)
+        assert isinstance (branch, Block.Block)
+        return self._copyItem(branch, onlyIfReadOnly=True)

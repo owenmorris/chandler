@@ -880,7 +880,7 @@ class wxAutoCompleter(wx.ListBox):
         unitSlop = 4        
         defaultBorderStyle = wx.SIMPLE_BORDER
     else:
-        totalSlop = 2
+        totalSlop = 0
         unitSlop = 0
         defaultBorderStyle = wx.SIMPLE_BORDER
 
@@ -980,11 +980,10 @@ class wxAutoCompleter(wx.ListBox):
         return False
             
     def updateChoices(self, choices):
+        choices = sorted(set(unicode(c) for c in choices))
         if self.choices != choices:
             self.choices = choices
-            choiceStrings = [ unicode(c) for c in choices ]
-            choiceStrings.sort()
-            self.Set(choiceStrings)
+            self.Set(choices)
             self.resize()
 
 class StringAttributeEditor (BaseAttributeEditor):
@@ -2029,17 +2028,7 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
 
     def generateCompletionMatches(self, target):
         view = wx.GetApp().UIRepositoryView
-        target = UnicodeString(target).toLower()
-        targetLen = len(target)
-        for anAddr in Mail.EmailAddress.iterItems(view):
-            addr = UnicodeString(anAddr.emailAddress).toLower()
-            if addr[:targetLen] == target and addr != target:
-                yield anAddr
-                continue
-            name = UnicodeString(anAddr.fullName).toLower()
-            if name[:targetLen] == target and name != target:
-                yield anAddr
-                continue
+        return Mail.EmailAddress.generateMatchingEmailAddresses(view, target)
 
 class BasePermanentAttributeEditor (BaseAttributeEditor):
     """ Base class for editors that always need controls """

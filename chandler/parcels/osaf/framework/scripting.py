@@ -111,17 +111,15 @@ def installParcel(parcel, oldVersion=None):
 
     # Block Subtree for the Detail View of a Script
     # ------------
-    detail.DetailTrunkSubtree.update(parcel, 'script_detail_view',
-                                     key=Script.getKind(parcel.itsView),
-                                     rootBlocks=[
-                                         detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
-                                         detail.HeadlineArea,
-                                         hotkeyArea,
-                                         testCheckboxArea,
-                                         filePathArea,
-                                         detail.makeSpacer(parcel, height=7, position=0.8).install(parcel),
-                                         scriptTextArea
-                                         ])
+    detail.makeSubtree(parcel, Script, [
+        detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
+        detail.HeadlineArea,
+        hotkeyArea,
+        testCheckboxArea,
+        filePathArea,
+        detail.makeSpacer(parcel, height=7, position=0.8).install(parcel),
+        scriptTextArea
+    ])
 
     AttributeEditors.AttributeEditorMapping.update(parcel, 
                                                    'Text+fileSynchronized',

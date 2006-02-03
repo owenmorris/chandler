@@ -5,6 +5,7 @@ from detailblocks import (
     makeEditor,
     makeLabel,
     makeSpacer,
+    makeSubtree,
     uniqueName
 )
 
@@ -27,8 +28,7 @@ from Detail import (
     DetailSynchronizedAttributeEditorBlock,
     DetailSynchronizedContentItemDetail,
     DetailSynchronizedLabeledTextAttributeBlock, 
-    DetailBPBDelegate, 
-    DetailTrunkSubtree, 
+    DetailBranchPointDelegate, 
     EmptyPanelBlock,
     HTMLDetailArea,
     InboundOnlyAreaBlock,

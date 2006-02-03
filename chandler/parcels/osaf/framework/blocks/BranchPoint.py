@@ -10,14 +10,26 @@ from application import schema
 import wx
 
 """
-Trunk.py - Classes for dynamically substituting child trees-of-blocks.
+Classes for dynamically substituting child trees-of-blocks.
 
-The idea is that you've got a block that wants different sets of child blocks substituted within itself,
-based on some key (like a content item to be displayed). The block inherits from this BranchPointBlock
-class; whenever synchronizeWidget happens, the appropriate set of child blocks will be swapped in. This
-mechanism is managed by a BPBDelegate object, which can be subclassed and/or configured from parcel XML
-to customize its behavior.
+The idea is that you've got a block that wants different sets of child blocks
+substituted within itself, based on some key (like a content item to be
+displayed). The block inherits from this BranchPointBlock class; whenever
+synchronizeWidget happens, the appropriate set of child blocks will be swapped
+in. This mechanism is managed by a BranchPointDelegate object, which can be
+subclassed and/or configured from parcel XML to customize its behavior. 
 """
+
+class BranchSubtree(schema.Annotation):
+    """
+    A mapping between an Item and the list of top-level blocks ('rootBlocks') 
+    that should appear when an Item inheriting from that Kind is displayed. 
+    Each rootBlock entry should have its 'position' attribute specified, to 
+    enable it to be sorted with other root blocks.)
+    """
+    schema.kindInfo(annotates=schema.Kind)
+    rootBlocks = schema.Sequence(Block.Block, 
+                                 inverse=Block.Block.parentBranchSubtrees)
 
 class wxBranchPointBlock(ContainerBlocks.wxBoxContainer):
     """ 
@@ -31,28 +43,31 @@ class wxBranchPointBlock(ContainerBlocks.wxBoxContainer):
     
 class BranchPointBlock(ContainerBlocks.BoxContainer):
     """
-    A block that can swap in different sets of child blocks ("trunks") based
-    on its detailContents. It uses a BPBDelegate to do the heavy lifting.
+    A block that can swap in different sets of child blocks (branch point 
+    "subtrees") based on its detailContents. It uses a BranchPointDelegate to 
+    do the heavy lifting.
     """    
     colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
 
-    trunkDelegate = schema.One(
-        'BPBDelegate', inverse = 'trunkParentBlocks', required = True
+    delegate = schema.One(
+        'BranchPointDelegate', inverse = 'blocks', required = True
     )
-    BPBDetailItem = schema.One(
-        schema.Item, defaultValue = None, otherName = 'BPBDetailItemOwner'
+    detailItem = schema.One(
+        schema.Item, defaultValue = None, 
+        otherName = 'branchPointDetailItemOwner'
     )
-    BPBDetailItemCollection = schema.One(
+    detailItemCollection = schema.One(
         schema.Item, defaultValue = None
     )
     
-    BPBSelectedItem = schema.One(
-        schema.Item, defaultValue = None, otherName = 'BPBSelectedItemOwner'
+    selectedItem = schema.One(
+        schema.Item, defaultValue = None, 
+        otherName = 'branchPointSelectedItemOwner'
     )
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef = [trunkDelegate,colorStyle,BPBDetailItem,BPBSelectedItem]
+            byRef = [delegate,colorStyle,detailItem,selectedItem]
         )
     )
 
@@ -64,16 +79,16 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
         # i.e. multiple selection in the summary view means selecting
         # nothing in the detail view
 
-        # eventually we might want BPBSelectedItem to be an iterable
+        # eventually we might want selectedItem to be an iterable
         # of some kind
         items = event.arguments['items']
         if len(items)==1:
-            self.BPBSelectedItem = items[0]
+            self.selectedItem = items[0]
         else:
-            self.BPBSelectedItem = None
+            self.selectedItem = None
             
-        self.BPBDetailItemCollection = \
-            self.trunkDelegate.getContentsCollection(self.BPBSelectedItem,
+        self.detailItemCollection = \
+            self.delegate.getContentsCollection(self.selectedItem,
                                                      event.arguments.get('collection'))
         widget = getattr (self, 'widget', None)
         if widget is not None:
@@ -82,32 +97,35 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
 
     def installTreeOfBlocks(self):
         """
-          If necessary, replace our children with a trunk of blocks appropriate for our content
+        If necessary, replace our children with a tree of blocks appropriate 
+        for our content.
         """
         hints = {}
-        keyItem = self.trunkDelegate._mapItemToCacheKeyItem(self.BPBSelectedItem, hints)
-        newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
+        keyItem = self.delegate._mapItemToCacheKeyItem(
+            self.selectedItem, hints)
+        newView = self.delegate.getBranchForKeyItem(keyItem)
         if keyItem is None:
-            BPBDetailItem = None
+            detailItem = None
         else:
             """
               Seems like we should always mark new views with an event boundary
             """
             assert newView is None or newView.eventBoundary
-            BPBDetailItem = self.trunkDelegate._getContentsForTrunk(
-                                newView, self.BPBSelectedItem, keyItem)
+            detailItem = self.delegate._getContentsForBranch(newView, 
+                                                             self.selectedItem, 
+                                                             keyItem)
 
-        detailItemChanged = self.BPBDetailItem is not BPBDetailItem
+        detailItemChanged = self.detailItem is not detailItem
             
-        self.BPBDetailItem = BPBDetailItem
+        self.detailItem = detailItem
         # For bug 4269 in 0.6: If we've been given a contents collection,
-        # it's so that we can put our BPBDetailItem in it, to get a notification
+        # it's so that we can put our detailItem in it, to get a notification
         # when that item is deleted. Update the collection if necessary.
         contents = getattr(self, 'contents', None)
-        if (contents is not None and contents.first() is not BPBDetailItem):
+        if (contents is not None and contents.first() is not detailItem):
             contents.clear()
-            if BPBDetailItem is not None:
-                contents.add(self.BPBDetailItem)
+            if detailItem is not None:
+                contents.add(self.detailItem)
 
         oldView = self.childrenBlocks.first()
         treeChanged = newView is not oldView
@@ -130,10 +148,9 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
                 if (detailItemChanged or
                     treeChanged or
                     hints.get ("sendSetContents", False)):
-                    newView.postEventByName(
-                        "SetContents",
-                        {'item':BPBDetailItem,
-                         'collection': self.BPBDetailItemCollection})
+                    newView.postEventByName("SetContents", {
+                        'item': detailItem,
+                        'collection': self.detailItemCollection})
 
                 if not hasattr (newView, "widget"):
                     newView.render()
@@ -145,9 +162,9 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
                 app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
 
-class BPBDelegate(schema.Item):
+class BranchPointDelegate(schema.Item):
     """
-    A mechanism to map an item to a view: call its getTrunkForKeyItem(item)
+    A mechanism to map an item to a view: call its getBranchForKeyItem(item)
     to get the view for that item.
 
     The default implementation is suitable when the item the view to be used;
@@ -159,37 +176,37 @@ class BPBDelegate(schema.Item):
        would work.
     """
 
-    trunkParentBlocks = schema.Sequence(
+    blocks = schema.Sequence(
         BranchPointBlock,
-        inverse = BranchPointBlock.trunkDelegate,
+        inverse = BranchPointBlock.delegate,
         required = True,
     )
 
-    keyUUIDToTrunk = schema.Mapping(Block.Block, initialValue = {})
+    keyUUIDToBranch = schema.Mapping(Block.Block, initialValue = {})
 
     def deleteCache(self):
-        for item in self.keyUUIDToTrunk.itervalues():
+        for item in self.keyUUIDToBranch.itervalues():
             if item is not None:
                 item.delete (cloudAlias="copying")
-        self.keyUUIDToTrunk = {}
+        self.keyUUIDToBranch = {}
 
-    def getTrunkForKeyItem(self, keyItem):
+    def getBranchForKeyItem(self, keyItem):
         """ 
         Given an item, return the view to be used to display it.
 
         Can be overridden if you don't want the default behavior, which is to 
         cache the views, keyed by a value returned by _mapItemToCacheKeyItem. Misses 
-        are handled by _makeTrunkForItem.
+        are handled by _makeBranchForItem.
         """
-        trunk = None
+        branch = None
         if not keyItem is None:
             keyUUID = keyItem.itsUUID
             try:
-                trunk = self.keyUUIDToTrunk[keyUUID]
+                branch = self.keyUUIDToBranch[keyUUID]
             except KeyError:
-                trunk = self._makeTrunkForCacheKey(keyItem)
-                self.keyUUIDToTrunk[keyUUID] = trunk
-        return trunk
+                branch = self._makeBranchForCacheKey(keyItem)
+                self.keyUUIDToBranch[keyUUID] = branch
+        return branch
 
     def _mapItemToCacheKeyItem(self, item, hints):
         """ 
@@ -201,7 +218,7 @@ class BPBDelegate(schema.Item):
         """
         return item
 
-    def _makeTrunkForCacheKey(self, keyItem):
+    def _makeBranchForCacheKey(self, keyItem):
         """ 
         Handle a cache miss; build and return a tree-of-blocks for this keyItem. 
         Defaults to using the keyItem itself, copying it if it's in the read-only
@@ -220,7 +237,7 @@ class BPBDelegate(schema.Item):
         try:
             userData = self.userData
         except AttributeError:
-            userData = self.getDefaultParent(self.itsView)
+            userData = self.findPath('//userdata')
             self.userData = userData
 
         if onlyIfReadOnly and item.itsParent == userData:
@@ -230,9 +247,10 @@ class BPBDelegate(schema.Item):
             
         return result
 
-    def _getContentsForTrunk(self, trunk, item, keyItem):
+    def _getContentsForBranch(self, branch, item, keyItem):
         """ 
-        Given a trunk, item and keyItem, return the contents for the trunk.
+        Given a branch, item and keyItem, 
+        return the contents for the branch.
         """
         return item
 

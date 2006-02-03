@@ -758,13 +758,7 @@ class EmailAddress(items.ContentItem):
             "might be an 'is operational' flag that tells whether this "
             "address is still in service, or whether mail to this has been "
             "bouncing lately. Another example might be a 'superceded by' "
-            "attribute, which would point to another Email Address item.\n"
-
-            "   Depending on how we end up using the 'emailAddress' attribute, "
-            "we might want to break it into two attributes, one for the 'Abe "
-            "Lincoln' part, and one for the 'abe@osafoundation.org' part. "
-            "Alternatively, we might want to use one of Andi's compound "
-            "types, with two fields.\n",
+            "attribute, which would point to another Email Address item.\n",
     )
 
     emailAddress = schema.One(
@@ -1021,13 +1015,13 @@ class EmailAddress(items.ContentItem):
                 return nameMatch
             if isValidAddress or inbound:
                 # make a new EmailAddress
-                newAddress = EmailAddress(itsView=view)
                 if address is None:
                     address = u""
                 if name is None:
                     name = u""
-                newAddress.emailAddress = address
-                newAddress.fullName = name
+                newAddress = EmailAddress(itsView=view,
+                                          emailAddress=address,
+                                          fullName=name)
                 return newAddress
             else:
                 return None
@@ -1035,9 +1029,12 @@ class EmailAddress(items.ContentItem):
     def _compareAddr(self, other):
         return cmp(self.emailAddress.lower(), other.emailAddress.lower())
 
+    def _compareFullName(self, other):
+        return cmp(self.fullName.lower(), other.fullName.lower())
+
     @classmethod
     def findEmailAddress(cls, view, emailAddress):
-
+        """ Find a single EmailAddress that exactly matches this one. """
         collection = schema.ns("osaf.app", view).emailAddressCollection.rep
         emailAddress = emailAddress.lower()
 
@@ -1051,6 +1048,29 @@ class EmailAddress(items.ContentItem):
 
         return view[uuid]
 
+    @classmethod
+    def generateMatchingEmailAddresses(cls, view, partialAddress):
+        """ 
+        Generate any EmailAddresses whose emailAddress or fullName starts 
+        with this.
+        """
+        collection = schema.ns("osaf.app", view).emailAddressCollection.rep
+        partialAddress = unicode(partialAddress).lower()
+        for indexName in ('emailAddress', 'fullName'):
+            def _compare(uuid):
+                attrValue = view.findValue(uuid, indexName).lower()
+                if attrValue.startswith(partialAddress):
+                    return 0
+                return cmp(partialAddress, attrValue)   
+            firstUUID = collection.findInIndex(indexName, 'first', _compare)
+    
+            if firstUUID is None:
+                continue
+            
+            lastUUID = collection.findInIndex(indexName, 'last', _compare)
+            for uuid in collection.iterindexkeys(indexName, firstUUID, lastUUID):
+                yield view[uuid]
+        
     @classmethod
     def format(cls, emailAddress, encode=False):
         assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"

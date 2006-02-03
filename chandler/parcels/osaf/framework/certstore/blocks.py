@@ -100,108 +100,102 @@ def installParcel(parcel, oldVersion=None):
         parentBlock = main.TestMenu,
     )
 
-    detail.DetailTrunkSubtree.update(
-        parcel, "detail_subtree",
-        key = certstore.Certificate.getKind(parcel.itsView),
-        rootBlocks = [
-            detail.MarkupBar,
-            detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-                parcel, "TypeArea",
-                position = 0.1, viewAttribute=u"type",
-                stretchFactor = 0,
-                childrenBlocks = [
-                    blocks.StaticText.update(
-                        parcel, "TypeLabel",
-                        title = _(u"Type"),
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Right",
-                        minimumSize = SizeType(70, 24),
-                        border = RectType(0.0, 0.0, 0.0, 5.0),
-                    ),
-                    detail.StaticRedirectAttribute.update(
-                        parcel, "TypeAttribute",
-                        title = u"author",
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Left",
-                    ),
-                ]                    
-            ),
+    detail.makeSubtree(parcel, certstore.Certificate, [
+        detail.MarkupBar,
+        detail.DetailSynchronizedLabeledTextAttributeBlock.update(
+            parcel, "TypeArea",
+            position = 0.1, viewAttribute=u"type",
+            stretchFactor = 0,
+            childrenBlocks = [
+                blocks.StaticText.update(
+                    parcel, "TypeLabel",
+                    title = _(u"Type"),
+                    characterStyle = blocks.LabelStyle,
+                    stretchFactor = 0.0,
+                    textAlignmentEnum = "Right",
+                    minimumSize = SizeType(70, 24),
+                    border = RectType(0.0, 0.0, 0.0, 5.0),
+                ),
+                detail.StaticRedirectAttribute.update(
+                    parcel, "TypeAttribute",
+                    title = u"author",
+                    characterStyle = blocks.LabelStyle,
+                    stretchFactor = 0.0,
+                    textAlignmentEnum = "Left",
+                ),
+            ]                    
+        ),
 
-            detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-                parcel, "TrustArea",
-                position = 0.2, viewAttribute=u"trust",
-                stretchFactor = 0,
-                childrenBlocks = [
-                    blocks.StaticText.update(
-                        parcel, "TrustLabel",
-                        title = _(u"Trust"),
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Right",
-                        minimumSize = SizeType(70, 24),
-                        border = RectType(0.0, 0.0, 0.0, 5.0),
-                    ),
-                    _EditIntegerAttribute.update(
-                        parcel, "TrustAttribute",
-                        lineStyleEnum = "SingleLine",
-                        textStyleEnum = "PlainText",
-                        characterStyle = blocks.TextStyle,
-                        readOnly = False,
-                        textAlignmentEnum = "Left",
-                        minimumSize = SizeType(50, 24),
-                    ),
-                ]                    
-            ),
+        detail.DetailSynchronizedLabeledTextAttributeBlock.update(
+            parcel, "TrustArea",
+            position = 0.2, viewAttribute=u"trust",
+            stretchFactor = 0,
+            childrenBlocks = [
+                blocks.StaticText.update(
+                    parcel, "TrustLabel",
+                    title = _(u"Trust"),
+                    characterStyle = blocks.LabelStyle,
+                    stretchFactor = 0.0,
+                    textAlignmentEnum = "Right",
+                    minimumSize = SizeType(70, 24),
+                    border = RectType(0.0, 0.0, 0.0, 5.0),
+                ),
+                _EditIntegerAttribute.update(
+                    parcel, "TrustAttribute",
+                    lineStyleEnum = "SingleLine",
+                    textStyleEnum = "PlainText",
+                    characterStyle = blocks.TextStyle,
+                    readOnly = False,
+                    textAlignmentEnum = "Left",
+                    minimumSize = SizeType(50, 24),
+                ),
+            ]                    
+        ),
 
-            detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-                parcel, "FingerprintArea",
-                position = 0.3, viewAttribute=u"fingerprint",
-                stretchFactor = 0,
-                childrenBlocks = [
-                    detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-                        parcel, "FingerprintLabel",
-                        position = 0.3,
-                        viewAttribute=u"fingerprintAlgorithm",
-                        stretchFactor = 0,
-                        childrenBlocks = [
-                            detail.StaticRedirectAttribute.update(
-                                parcel, "FingerprintAlgorithmAttribute",
-                                title = u"author",   # sic!
-                                characterStyle = blocks.LabelStyle,
-                                stretchFactor = 0.0,
-                                textAlignmentEnum = "Right",
-                                minimumSize = SizeType(70, 24),
-                                border = RectType(0.0, 0.0, 0.0, 5.0),
-                            ),
-                        ],
-                    ),
-                    detail.StaticRedirectAttribute.update(
-                        parcel, "FingerprintAttribute",
-                        title = u"author",   # sic!
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Left",
-                    )
-                ],
-            ),
+        detail.DetailSynchronizedLabeledTextAttributeBlock.update(
+            parcel, "FingerprintArea",
+            position = 0.3, viewAttribute=u"fingerprint",
+            stretchFactor = 0,
+            childrenBlocks = [
+                detail.DetailSynchronizedLabeledTextAttributeBlock.update(
+                    parcel, "FingerprintLabel",
+                    position = 0.3,
+                    viewAttribute=u"fingerprintAlgorithm",
+                    stretchFactor = 0,
+                    childrenBlocks = [
+                        detail.StaticRedirectAttribute.update(
+                            parcel, "FingerprintAlgorithmAttribute",
+                            title = u"author",   # sic!
+                            characterStyle = blocks.LabelStyle,
+                            stretchFactor = 0.0,
+                            textAlignmentEnum = "Right",
+                            minimumSize = SizeType(70, 24),
+                            border = RectType(0.0, 0.0, 0.0, 5.0),
+                        ),
+                    ],
+                ),
+                detail.StaticRedirectAttribute.update(
+                    parcel, "FingerprintAttribute",
+                    title = u"author",   # sic!
+                    characterStyle = blocks.LabelStyle,
+                    stretchFactor = 0.0,
+                    textAlignmentEnum = "Left",
+                )
+            ],
+        ),
 
-            detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-                parcel, "AsTextArea",
-                position = 0.9, viewAttribute=u"asText",
-                stretchFactor = 1,
-                childrenBlocks = [
-                    _AsTextAttribute.update(
-                        parcel, "AsTextAttribute",
-                        characterStyle = blocks.TextStyle,
-                        lineStyleEnum = "MultiLine",
-                        textStyleEnum = "PlainText",
-                        readOnly = True,
-                        textAlignmentEnum = "Left",
-                    ),
-                ],
-            ),
-        ],
-    )
-
+        detail.DetailSynchronizedLabeledTextAttributeBlock.update(
+            parcel, "AsTextArea",
+            position = 0.9, viewAttribute=u"asText",
+            stretchFactor = 1,
+            childrenBlocks = [
+                _AsTextAttribute.update(
+                    parcel, "AsTextAttribute",
+                    characterStyle = blocks.TextStyle,
+                    lineStyleEnum = "MultiLine",
+                    textStyleEnum = "PlainText",
+                    readOnly = True,
+                    textAlignmentEnum = "Left",
+                ),
+            ],
+        )])

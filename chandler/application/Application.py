@@ -409,17 +409,17 @@ class wxApplication (wx.App):
             # too difficult to track it down for now, and isn't worth it yet
             # since this code is used mostly for debugging. And in any event,
             # it would be easier to implement a garbage collector.
-            def deleteAllTrunkCaches (block):
+            def deleteAllBranchCaches (block):
                 for child in block.childrenBlocks:
-                    deleteAllTrunkCaches (child)
-                import osaf.framework.blocks.Trunk as Trunk
-                if isinstance (block, Trunk.BranchPointBlock):
-                    block.trunkDelegate.deleteCache()
+                    deleteAllBranchCaches (child)
+                import osaf.framework.blocks.BranchPoint as BranchPoint
+                if isinstance (block, BranchPoint.BranchPointBlock):
+                    block.delegate.deleteCache()
 
             frame = getattr (mainViewRoot, 'frame', None)
             self.UIRepositoryView.refresh()
             
-            deleteAllTrunkCaches (mainViewRoot)
+            deleteAllBranchCaches(mainViewRoot)
 
             from osaf.framework.blocks import Block
             for item in self.UIRepositoryView.findPath('//userdata/').iterChildren():

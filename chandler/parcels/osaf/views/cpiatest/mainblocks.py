@@ -17,8 +17,8 @@ def makeCPIATestMainView (parcel):
     cpiatest = schema.ns("osaf.views.cpiatest", repositoryView)
     app = schema.ns("osaf.app", repositoryView)
 
-    SidebarBPBDelegateInstance = SidebarBPBDelegate.update(
-        parcel, 'SidebarBPBDelegateInstance',
+    SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
+        parcel, 'SidebarBranchPointDelegateInstance',
         tableTemplatePath = '//parcels/osaf/views/main/TableSummaryViewTemplate',
         calendarTemplatePath = '//parcels/osaf/views/main/CalendarSummaryViewTemplate')
     
@@ -164,11 +164,11 @@ def makeCPIATestMainView (parcel):
                                                 stretchFactor = 0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
                                     ]), # SplitterWindow SidebarContainer
-                            BranchPointBlock.template('SidebarBPB',
-                                trunkDelegate = SidebarBPBDelegateInstance,
-                                BPBDetailItem = app.allCollection,
-                                BPBSelectedItem = app.allCollection,
-                                BPBDetailItemCollection = app.allCollection),
+                            BranchPointBlock.template('SidebarBranchPointBlock',
+                                delegate = SidebarBranchPointDelegateInstance,
+                                detailItem = app.allCollection,
+                                selectedItem = app.allCollection,
+                                detailItemCollection = app.allCollection),
                             ]) # BoxContainer SidebarContainerContainer
                     ]) # BoxContainer ToolbarContainer
             ]).install (parcel) # MainViewInstance MainView

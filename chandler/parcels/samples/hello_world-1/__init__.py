@@ -33,7 +33,7 @@ def installParcel(parcel, oldVersion=None):
         eventBoundary = True,
         childrenBlocks=[button, attributeEditorBlock])
     
-    blocks.Trunk.ViewableKind(MP3.getKind(repositoryView)).detailView = view
+    blocks.BranchPoint.ViewableKind(MP3.getKind(repositoryView)).detailView = view
 
     song = MP3.update(parcel, "French Rock",
                       about = "French Rock")

@@ -12,7 +12,7 @@ from osaf.framework.attributeEditors import \
      ChoiceAttributeEditor, StaticStringAttributeEditor
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
-     FocusEventHandlers, Trunk, TrunkSubtree, debugName
+     FocusEventHandlers, BranchPoint, debugName
 from osaf import sharing
 import osaf.pim.mail as Mail
 import osaf.pim.items as items
@@ -43,13 +43,7 @@ Classes for the ContentItem Detail View
 """
 
 logger = logging.getLogger(__name__)
-
-class DetailTrunkSubtree(TrunkSubtree):
-    """
-    Exactly like a L{TrunkSubtree}, but of a distinct Kind so that we can easily
-    find all the TrunkSubtrees to be considered for the detail view.
-    """
-
+    
 class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
     Root of the Detail View. The prototype instance of this block is copied
@@ -233,18 +227,18 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             titleBlock.widget.SetFocus()
             titleBlock.widget.SelectAll()
 
-class DetailBPBDelegate (Trunk.BPBDelegate):
+class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
     """ 
     Delegate for managing trees of blocks that compose the detail view.
     """    
-    trunkStub = schema.One(Block.Block, doc=
+    branchStub = schema.One(Block.Block, doc=
         """
         A stub block to copy as the root of each tree-of-blocks we build.
         Normally, this'll be a DetailRootBlock.
         """)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[trunkStub])
+        copying = schema.Cloud(byRef=[branchStub])
     )
 
     def _mapItemToCacheKeyItem(self, item, hints):
@@ -252,17 +246,17 @@ class DetailBPBDelegate (Trunk.BPBDelegate):
         Overrides to use the item's kind as our cache key
         """
         if item is None:
-            # We use the subtree kind itself as the key for displaying "nothing";
+            # We use Block's kind itself as the key for displaying "nothing";
             # Mimi wants a particular look when no item is selected; we've got a 
             # particular tree of blocks defined in parcel.xml for this Kind,
             # which will never get used for a real Item.
-            return DetailTrunkSubtree.getKind(self.itsView)
+            return Block.Block.getKind(self.itsView)
 
         # The normal case: we have an item, so use its Kind
         # as the key.
         return item.itsKind
     
-    def _makeTrunkForCacheKey(self, keyItem):
+    def _makeBranchForCacheKey(self, keyItem):
         """ 
         Handle a cache miss; build and return the detail tree-of-blocks for this keyItem, a Kind. 
         """
@@ -280,46 +274,28 @@ class DetailBPBDelegate (Trunk.BPBDelegate):
         # but I couldn't decide how to work in a lambda function, so I backed off and
         # opted for clarity.)
         decoratedSubtreeList = [] # each entry will be (position, path, subtreechild)
-        for subtree in self._getSubtrees():
-            if keyItem.isKindOf(subtree.key) and subtree.hasLocalAttributeValue('rootBlocks'):
-                for block in subtree.rootBlocks:
+        itemKinds = set(keyItem.getInheritedSuperKinds())
+        itemKinds.add(keyItem)
+        for itemKind in itemKinds:
+            subtreeAnnotation = BranchPoint.BranchSubtree(itemKind)
+            rootBlocks = getattr(subtreeAnnotation, 'rootBlocks', None)
+            if rootBlocks is not None:
+                for block in rootBlocks:
                     entryTobeSorted = (block.getAttributeValue('position', default=sys.maxint), 
                                        block.itsPath,
                                        self._copyItem(block))
                     decoratedSubtreeList.append(entryTobeSorted) 
                 
         if len(decoratedSubtreeList) == 0:
-            assert False, "Don't know how to build a trunk for this kind!"
+            assert False, "Don't know how to build a branch for this kind!"
             # (We can continue here - we'll end up just caching an empty view.)
 
         decoratedSubtreeList.sort()
         
         # Copy our stub block and move the new kids on(to) the block
-        trunk = self._copyItem(self.trunkStub)
-        trunk.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
-        return trunk
-    
-    def _getSubtrees(self):
-        """
-        Get a list of mappings from kind to subtree
-        """
-        # @@@ Note: we used to cache this here, but when we started
-        # caching prebuilt detail views from detailblocks' installParcel, 
-        # this list was getting built & cached before all parcels had been
-        # loaded, so some subtrees weren't put into the list -- this broke
-        # all the non-PIM items (flickr, feeds, amazon), bug 4433.
-        # For now, we're going to iterItems every time we need the 
-        # list; if this isn't performant, we'll build a refcollection at 
-        # installParcel time and add an __init__ DetailTrunkSubtree to 
-        # add all new ones to the refcollection (Andi says this would be faster).
-        #try:
-            #subtrees = self.subtreeList
-        #except AttributeError:
-            #subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
-            #self.subtreeList = subtrees
-        
-        subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
-        return subtrees
+        branch = self._copyItem(self.branchStub)
+        branch.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
+        return branch
         
 class DetailSynchronizer(Item):
     """

@@ -304,34 +304,29 @@ def installParcel(parcel, oldVersion=None):
     blocks = schema.ns('osaf.framework.blocks', parcel)
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
 
-    detail.DetailTrunkSubtree.update(parcel, "flickr_detail_view",
-        key = FlickrPhoto.getKind(parcel.itsView),
-        rootBlocks = [
-            detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-                parcel, "AuthorArea",
-                position = 0.6,
-                viewAttribute=u"owner",
-                stretchFactor = 0,
-                childrenBlocks = [
-                    detail.StaticRedirectAttributeLabel.update(
-                        parcel, "AuthorLabel",
-                        title = u"author",
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Right",
-                        minimumSize = SizeType(70, 24),
-                        border = RectType(0.0, 0.0, 0.0, 5.0),
-                    ),
-                    detail.StaticRedirectAttribute.update(
-                        parcel  , "AuthorAttribute",
-                        title = u"author",
-                        characterStyle = blocks.LabelStyle,
-                        stretchFactor = 0.0,
-                        textAlignmentEnum = "Left",
-                    ),
-                ]
-            )
-        ]
-    )
+    detail.makeSubtree(parcel, FlickrPhoto, [
+        detail.DetailSynchronizedLabeledTextAttributeBlock.update(
+            parcel, "AuthorArea",
+            position = 0.6,
+            viewAttribute=u"owner",
+            stretchFactor = 0,
+            childrenBlocks = [
+                detail.StaticRedirectAttributeLabel.update(
+                    parcel, "AuthorLabel",
+                    title = u"author",
+                    characterStyle = blocks.LabelStyle,
+                    stretchFactor = 0.0,
+                    textAlignmentEnum = "Right",
+                    minimumSize = SizeType(70, 24),
+                    border = RectType(0.0, 0.0, 0.0, 5.0),
+                ),
+                detail.StaticRedirectAttribute.update(
+                    parcel  , "AuthorAttribute",
+                    title = u"author",
+                    characterStyle = blocks.LabelStyle,
+                    stretchFactor = 0.0,
+                    textAlignmentEnum = "Left",
+                ),
+            ])])
 
 

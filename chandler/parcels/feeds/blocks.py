@@ -174,9 +174,5 @@ def installParcel(parcel, oldVersion=None):
         ),
     ]
     
-    # The DetailTrunkSubtree ties the blocks to our FeedItem's Kind.
-    detail.DetailTrunkSubtree.update(parcel, "ChannelSubtree",
-        key = feeds.FeedItem.getKind(parcel.itsView),
-        rootBlocks = feedItemRootBlocks,
-    )
-
+    # The BranchSubtree ties the blocks to our FeedItem's Kind.
+    detail.makeSubtree(parcel, feeds.FeedItem, feedItemRootBlocks)

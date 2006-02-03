@@ -25,8 +25,8 @@ def makeMainView (parcel):
         event = main.ReminderTime,
         contents = app.eventsWithReminders)
 
-    SidebarBPBDelegateInstance = SidebarBPBDelegate.update(
-        parcel, 'SidebarBPBDelegateInstance',
+    SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
+        parcel, 'SidebarBranchPointDelegateInstance',
         tableTemplatePath = '//parcels/osaf/views/main/TableSummaryViewTemplate',
         calendarTemplatePath = '//parcels/osaf/views/main/CalendarSummaryViewTemplate')
     
@@ -173,23 +173,24 @@ def makeMainView (parcel):
                                                 stretchFactor = 0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
                                     ]), # SplitterWindow SidebarContainer
-                            BranchPointBlock.template('SidebarBPB',
-                                trunkDelegate = SidebarBPBDelegateInstance,
-                                BPBDetailItem = app.allCollection,
-                                BPBSelectedItem = app.allCollection,
-                                BPBDetailItemCollection = app.allCollection),
+                            BranchPointBlock.template('SidebarBranchPointBlock',
+                                delegate = SidebarBranchPointDelegateInstance,
+                                detailItem = app.allCollection,
+                                selectedItem = app.allCollection,
+                                detailItemCollection = app.allCollection),
                             ]) # BoxContainer SidebarContainerContainer
                     ]) # BoxContainer ToolbarContainer
             ]).install (parcel) # MainViewInstance MainView
 
-    MainBPBDelegate = BPBDelegate.update(parcel, 'MainBPBDelegate')
+    MainBranchPointDelegate = BranchPointDelegate.update(parcel, 
+        'MainBranchPointDelegate')
 
-    MainBPB = BranchPointBlock.template(
-        'MainBPB',
-        BPBDetailItem = MainViewInstance,
-        BPBSelectedItem = MainViewInstance,
+    MainBranchPointBlock = BranchPointBlock.template(
+        'MainBranchPointBlock',
+        detailItem = MainViewInstance,
+        selectedItem = MainViewInstance,
         childrenBlocks = [MainViewInstance],
-        trunkDelegate = MainBPBDelegate).install(parcel)
+        delegate = MainBranchPointDelegate).install(parcel)
 
     CPIATestMainView = schema.ns("osaf.views.cpiatest", repositoryView).MainView
     FrameWindow.update(
@@ -199,7 +200,7 @@ def makeMainView (parcel):
         views = {'MainView' : MainViewInstance,
                  'CPIATestMainView' : CPIATestMainView},
         activeView = MainViewInstance,
-        childrenBlocks = [MainBPB])
+        childrenBlocks = [MainBranchPointBlock])
 
     # Add certstore UI
     schema.synchronize(repositoryView, "osaf.framework.certstore.blocks")

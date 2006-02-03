@@ -6,11 +6,11 @@ includes a few public utilities: any detail view client can use these to help
 assure consistent alignment...
 
 More docs to come, but the key points...
- - Adding to the detail view means creating a L{DetailTrunkSubtree}, which
-   maps a Kind to a list of rootBlocks that should appear if an item of
+ - Adding to the detail view means annotating your Kind with a L{BranchSubtree}, 
+   which adds a list of rootBlocks that should appear if an item of
    that Kind is displayed.
  - An item can inherit from multiple Kinds; each block in the 
-   L{DetailTrunkSubtree}'s rootBlocks list has a 'position' attribute that 
+   L{BranchSubtree}'s rootBlocks list has a 'position' attribute that 
    determines the ordering in the resulting detail view. 
  - The block hierarchies you create will likely look like:
      (area)
@@ -18,9 +18,9 @@ More docs to come, but the key points...
         (spacer)
         (Attribute Editor)
 
-I've created functions (L{makeArea}, L{makeSpacer}, L{makeEditor}) to simplify
-the process for the common case; there are lots of examples below in the
-basic pim Kinds' subtrees.
+I've created functions (L{makeSubtree}, L{makeArea}, L{makeSpacer}, 
+L{makeEditor}) to simplify the process for the common case; there are lots of 
+examples below in the basic pim Kinds' subtrees.
 """
 
 from Detail import *
@@ -209,7 +209,16 @@ def makeEditor(parcel, name, viewAttribute, border=None,
                             presentationStyle=ps, border=border, 
                             changeEvent=resyncEvent, **kwds)
     return ae
-          
+
+def makeSubtree(parcel, kindOrClass, rootBlocks):
+    """
+    Make a BranchSubtree annotation for this Kind, containing
+    these top-level blocks.
+    """
+    if not isinstance(kindOrClass, schema.Kind):
+        kindOrClass = kindOrClass.getKind(parcel.itsView)
+    BranchSubtree(kindOrClass).rootBlocks = rootBlocks
+
 #
 # The detail view parcel itself
 #
@@ -250,7 +259,8 @@ def registerAttributeEditors(parcel, oldVersion):
                                       __name__ + '.' + className)
     
 def makeRootStuff(parcel, oldVersion):
-    # The DetailTrunkCache starts each specific DetailTrunk by cloning this stub.
+    # The BranchPoint mechanism starts each specific detail view by cloning 
+    # this stub.
     detailRoot = DetailRootBlock.template('DetailRoot',
                                           orientationEnum='Vertical',
                                           size=SizeType(80, 20),
@@ -390,17 +400,14 @@ def makeNoteSubtree(parcel, oldVersion):
                             position=0.9).install(parcel)
 
     # Finally, the subtree
-    notesSubtree = \
-        DetailTrunkSubtree.update(parcel, 'NoteSubtree',
-            key=osaf.pim.Note.getKind(parcel.itsView),
-            rootBlocks=[
-                makeSpacer(parcel, height=6, position=0.01).install(parcel),
-                parcel['MarkupBar'],
-                headlineArea, 
-                makeSpacer(parcel, height=7, position=0.8999).install(parcel),
-                notesBlock,
-                appearsInArea,
-            ])
+    makeSubtree(parcel, osaf.pim.Note, [
+        makeSpacer(parcel, height=6, position=0.01).install(parcel),
+        parcel['MarkupBar'],
+        headlineArea, 
+        makeSpacer(parcel, height=7, position=0.8999).install(parcel),
+        notesBlock,
+        appearsInArea,
+    ])
 
 def makeCalendarEventSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
@@ -598,10 +605,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                            baseClass=CalendarReminderSpacerBlock),
                 reminderArea]).install(parcel)
 
-    calendarEventSubtree = \
-        DetailTrunkSubtree.update(parcel, 'CalendarEventSubtree',
-            key=osaf.pim.CalendarEventMixin.getKind(parcel.itsView),
-            rootBlocks=[calendarDetails])
+    makeSubtree(parcel, osaf.pim.CalendarEventMixin, [ calendarDetails ])
  
 def makeMailSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
@@ -687,22 +691,19 @@ def makeMailSubtree(parcel, oldVersion):
                     border=RectType(2, 2, 2, 2))],
             position=0.95).install(parcel)
     
-    mailSubtree = \
-        DetailTrunkSubtree.update(parcel, 'MailSubtree',
-            key=osaf.pim.mail.MailMessageMixin.getKind(parcel.itsView),
-            rootBlocks=[
-                outboundFromArea, 
-                inboundFromArea, 
-                toArea,
-                ccArea,
-                bccArea,
-                # @@@ Disabled until we resume work on sharing invitations
-                # acceptShareButton,
-                attachmentArea])
-
+    makeSubtree(parcel, osaf.pim.mail.MailMessageMixin, [
+        outboundFromArea, 
+        inboundFromArea, 
+        toArea,
+        ccArea,
+        bccArea,
+        # @@@ Disabled until we resume work on sharing invitations
+        # acceptShareButton,
+        attachmentArea,
+    ])
+    
 def makeEmptySubtree(parcel, oldVersion):
   # An empty panel, used when there's no item selected in the detail view
+  # (We use the Block kind as the key, though it's not a content kind)
   emptyPanel = EmptyPanelBlock.template('EmptyPanel').install(parcel)
-  noneSubtree = DetailTrunkSubtree.update(parcel, 'NoDetailView',
-                                          key=DetailTrunkSubtree.getKind(parcel.itsView),
-                                          rootBlocks=[emptyPanel])
+  makeSubtree(parcel, Block.Block, [ emptyPanel ])

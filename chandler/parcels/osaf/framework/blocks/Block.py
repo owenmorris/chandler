@@ -14,18 +14,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class TrunkSubtree(schema.Item):
-    """
-    A mapping between an Item and the 'root blocks' that should appear
-    when an Item inheriting from that Kind is displayed. (A 'root
-    block' should have a 'position' attribute to enable it to be
-    sorted with other root blocks.)
-    """
-
-    key = schema.One(schema.Item, required = True)
-    rootBlocks = schema.Sequence('Block', inverse = 'parentTrunkSubtrees')
-
-
 def getProxiedItem(item):
     """ Given an item, wrap it with a proxy if appropriate. """
     # @@@ BJS It's probably worthwhile to combine this with 
@@ -72,14 +60,14 @@ class Block(schema.Item):
 
     contextMenu = schema.One("ControlBlocks.ContextMenu") 
 
-    BPBDetailItemOwner = schema.Sequence(
+    branchPointDetailItemOwner = schema.Sequence(
         "Block", 
-        otherName = "BPBDetailItem"  # BranchPointBlock/BPBDetailItem
+        otherName = "detailItem"  # BranchPointBlock/detailItem
     )
 
-    BPBSelectedItemOwner = schema.Sequence(
+    branchPointSelectedItemOwner = schema.Sequence(
         "Block",
-        otherName = "BPBSelectedItem"     # BranchPointBlock/BPBSelectedItem
+        otherName = "selectedItem"     # BranchPointBlock/selectedItem
     )
 
     viewContainer = schema.Sequence(
@@ -90,9 +78,8 @@ class Block(schema.Item):
     blockName = schema.One(schema.Text)
     eventsForNamedLookup = schema.Sequence("BlockEvent", defaultValue=None)
 
-    parentTrunkSubtrees = schema.Sequence(
-        TrunkSubtree,
-        otherName = "rootBlocks"    # reference to parent tree of blocks
+    parentBranchSubtrees = schema.Sequence(
+        # The inverse of osaf.framework.blocks.BranchSubtree.rootBlocks
     )  
 
     position = schema.One(schema.Float)  #<!-- for tree-of-blocks sorting -->

@@ -2,6 +2,7 @@ from AmazonKinds import AmazonCollection, AmazonItem
 from AmazonBlocks import AmazonController, AmazonDetailBlock
 
 from application import schema
+from osaf.framework.blocks.detail import makeSubtree
 from i18n import OSAFMessageFactory as _
 from osaf.framework.types.DocumentTypes import SizeType, RectType
 
@@ -44,15 +45,11 @@ def installParcel(parcel, version=None):
         parentBlock = main.CollectionMenu,
     )
 
-    detail.DetailTrunkSubtree.update(parcel, "amazon_detail_view",
-        key = AmazonItem.getKind(parcel.itsView),
-        rootBlocks = [
-            detail.MarkupBar,
-            AmazonDetailBlock.update(parcel, "amazonDetail",
-                blockName = "amazonDetail",
-                size = SizeType(100,50),
-                minimumSize = SizeType(100,50),
-            ),
-        ],
-    )
-
+    makeSubtree(parcel, AmazonItem, [
+        detail.MarkupBar,
+        AmazonDetailBlock.update(parcel, "amazonDetail",
+            blockName = "amazonDetail",
+            size = SizeType(100,50),
+            minimumSize = SizeType(100,50),
+        ),
+    ])

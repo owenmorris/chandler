@@ -4,7 +4,7 @@ import wx
 
 
 from Block import (
-    RectangularChild, TrunkSubtree, BlockEvent, ChoiceEvent, ColorEvent,
+    RectangularChild, BlockEvent, ChoiceEvent, ColorEvent,
     KindParameterizedEvent, ModifyCollectionEvent, EventList, debugName,
     getProxiedItem
 )
@@ -14,7 +14,8 @@ from ContainerBlocks import (
     SplitterWindow, TabbedContainer, ViewContainer
 )
 
-from Trunk import BPBDelegate, BranchPointBlock
+from BranchPoint import BranchPointDelegate, BranchPointBlock, BranchSubtree
+
 from Views import View
 
 from ControlBlocks import (
@@ -46,7 +47,7 @@ def installParcel(parcel, oldName=None):
     EventList.update(parcel, 'GlobalEvents',
                      eventsForNamedLookup=[
         BlockEvent.template('Undo', 'FocusBubbleUp').install(parcel),
-
+        
         BlockEvent.template('Cut', 'FocusBubbleUp',
                             commitAfterDispatch=True).install(parcel),
 
@@ -55,12 +56,10 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('PrintPreview',
                             'ActiveViewBubbleUp').install(parcel),
 
-        # It's possible that Clear and Remove should be the same event,
-        # contextually applied to either text or items. For now, I'm trying
-        # them separately. --stearns
         BlockEvent.template('Remove',
                             'FocusBubbleUp',
                             commitAfterDispatch=True).install(parcel),
+
         BlockEvent.template('Clear',
                             'FocusBubbleUp',
                             commitAfterDispatch=True).install(parcel),

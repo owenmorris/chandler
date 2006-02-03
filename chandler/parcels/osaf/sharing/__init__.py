@@ -1021,7 +1021,7 @@ class UIDMap(schema.Item):
                     pass
 
         elif op == 'remove':
-            self.items.remove(item)
+            if item in self.items: self.items.remove(item)
 
 
 
