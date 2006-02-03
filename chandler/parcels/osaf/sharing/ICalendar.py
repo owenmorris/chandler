@@ -38,7 +38,7 @@ def translateToTimezone(dt, tzinfo):
 
 def dateForVObject(dt, asDate = False):
     """
-    Convert the given datetime into a date or datetime in Pacific time.
+    Convert the given datetime into a date or datetime, depending on asDate.
     """
     if asDate:
         return dt.date()
@@ -205,6 +205,12 @@ def convertToICUtzinfo(dt, view=None):
             if tzid_mapping.has_key(tzical_tzid):
                 # we've already calculated a tzinfo for this tzid
                 icuTzinfo = tzid_mapping[tzical_tzid]
+        
+        if icuTzinfo is None:
+            # special case UTC, because dateutil.tz.tzutc() doesn't have a TZID
+            # and a VTIMEZONE isn't used for UTC
+            if vobject.icalendar.tzinfo_eq(utc, oldTzinfo):
+                icuTzinfo = getICUInstance('UTC')
         
         # iterate over all PyICU timezones, return the first one whose
         # offsets and DST transitions match oldTzinfo.  This is painfully
