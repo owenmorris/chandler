@@ -147,6 +147,7 @@ _treeList = [
         'PopupControl',
         'PyColourChooser',
         'TreeListCtrl',
+        'ColumnHeader',
     ]),
     
     # controls coming from other libraries
