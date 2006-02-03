@@ -1680,7 +1680,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             # Do day names for days in the last week. We'll need to convert 
             # python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).
             wkDay = ((itemDateTime.weekday() + 1) % 7) + 1
-            value = DateTimeAttributeEditor.weekdays[wkDay]
+            value = unicode(DateTimeAttributeEditor.weekdays[wkDay])
 
         return value
 
