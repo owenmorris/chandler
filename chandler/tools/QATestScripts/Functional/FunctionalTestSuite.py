@@ -34,6 +34,7 @@ run_tests("TestCreateAccounts.py",
           "TestExporting.py",
           "TestFlickr.py",
           "TestImporting.py",
+          "TestImportOverwrite.py",
           "TestSharing.py")
 
 
