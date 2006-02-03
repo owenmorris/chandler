@@ -51,8 +51,6 @@ CLEANITEMSALL= \
 	$(SRC)/wxPython/src/$(OSTAG)/*_wrap.cpp \
 	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos.py \
 	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos_wrap.cpp \
-	$(SRC)/wxPython/contrib/glcanvas/$(OSTAG)/glcanvas.py \
-	$(SRC)/wxPython/contrib/glcanvas/$(OSTAG)/glcanvas_wrap.cpp \
 	$(SRC)/wxPython/contrib/stc/$(OSTAG)/stc.py \
 	$(SRC)/wxPython/contrib/stc/$(OSTAG)/stc_wrap.cpp
 
