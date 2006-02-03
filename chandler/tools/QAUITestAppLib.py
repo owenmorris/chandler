@@ -123,7 +123,7 @@ class UITestItem(object):
                      'fromAddress', 'toAddress',
                      'allDay', 'stampEvent', 'stampMail', 'stampTask',
                      'timeZone', 'recurrence', 'recurrenceEnd']
-
+        self.FocusInDetailView()
         self.logger.Start("Multiple Attribute Setting")
         for param in orderList:
             if param in args:
@@ -528,7 +528,30 @@ class UITestItem(object):
         self.SetStamp("Event", stampEvent, timeInfo)
         # update the item state
         self.isEvent = stampEvent
-
+        
+    def FocusInDetailView(self):
+        self.logger.Start("Focusing in Detail View")
+       #process the corresponding event
+        def traverse(block):
+            """Depth first traversal of blocks for a widget that accepts focus."""
+            if block.widget.AcceptsFocus():
+                return block
+            for block in block.childrenBlocks():
+                if traverse(block) is not None:
+                    return block
+            return None
+        focusBlock = traverse(App_ns.DetailRoot)
+        if focusBlock is not None:
+            focusBlock.widget.SetFocus()
+            # do it twice because if an event in the calendar view is being
+            # edited it will be re-selected after the first SetFocus()
+            focusBlock.widget.SetFocus() 
+            self.logger.ReportPass("Focus set in Detail View")
+        else:
+            self.logger.ReportFailure("Detail View had no focusable blocks")
+        wx.GetApp().Yield()
+        self.logger.Stop()
+        
     def SetTimeZone(self, timeZone, timeInfo=True):
         """
         Set the time zone
@@ -1386,27 +1409,4 @@ class UITestView(object):
             self.logger.Print("DoubleClickInCalView is not available in the current view : %s" %self.state)
             return
 
-    def FocusInDetailView(self):
-        self.logger.Start("Focusing in Detail View")
-        #process the corresponding event
-        def traverse(block):
-            """Depth first traversal of blocks for a widget that accepts focus."""
-            if block.widget.AcceptsFocus():
-                return block
-            for block in block.childrenBlocks():
-                if traverse(block) is not None:
-                    return block
-            return None
-        
-        focusBlock = traverse(App_ns.DetailRoot)
-        if focusBlock is not None:
-            focusBlock.widget.SetFocus()
-            # do it twice because if an event in the calendar view is being
-            # edited it will be re-selected after the first SetFocus()
-            focusBlock.widget.SetFocus() 
-            self.logger.ReportPass("Focus set in Detail View")
-        else:
-            self.logger.ReportFailure("Detail View had no focusable blocks")
-
-        wx.GetApp().Yield()
-        self.logger.Stop()
+   

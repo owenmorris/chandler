@@ -7,7 +7,6 @@ logger = QAUITestAppLib.QALogger(fileName, "TestNewEvent")
 try:
     # creation
     event = QAUITestAppLib.UITestItem("Event", logger)
-    QAUITestAppLib.UITestView(logger).FocusInDetailView()#put focus in detail view (allows this test to pass when run from cmd line)
     
     #action
     event.SetAttr(displayName="Birthday Party", startDate="09/12/2004", startTime="6:00 PM", location="Club101", status="FYI",body="This is a birthday party invitation",timeZone="US/Central", recurrence="Daily", recurrenceEnd="9/14/2005")

@@ -29,7 +29,7 @@ run_tests("TestCreateAccounts.py",
           #"TestNewCollNoteStampMulti.py", bug #5102
           "TestCalView.py",
           "TestRecurrenceImporting.py",
-          #"TestRecurringEvent.py",  check object failing Dan to investigate
+          "TestRecurringEvent.py",  
           "TestSwitchingViews.py",
           "TestExporting.py",
           "TestFlickr.py",
