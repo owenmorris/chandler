@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _basic.py,v 1.14 2006/02/01 10:25:54 ROL Exp $
+# RCS-ID:       $Id: _basic.py,v 1.15 2006/02/03 06:51:34 RD Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -288,8 +288,15 @@ class Shape(ShapeEvtHandler):
         return str(self.__class__).split(".")[-1][:-2]
 
     def Delete(self):
+        """
+        Fully disconnect this shape from parents, children, the
+        canvas, etc.
+        """
         if self._parent:
             self._parent.GetChildren().remove(self)
+
+        for child in self.GetChildren():
+            child.Delete()
 
         self.ClearText()
         self.ClearRegions()
@@ -3040,7 +3047,7 @@ class ShapeRegion(object):
             return None
         if self._penColour=="Invisible":
             return None
-        self._actualPenObject = wx.ThePenList.FindOrCreatePen(self._penColour, 1, self._penStyle)
+        self._actualPenObject = wx.Pen(self._penColour, 1, self._penStyle)
         return self._actualPenObject
 
     def SetText(self, s):

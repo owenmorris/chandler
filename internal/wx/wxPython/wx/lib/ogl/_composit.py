@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _composit.py,v 1.4 2005/06/03 23:59:17 RD Exp $
+# RCS-ID:       $Id: _composit.py,v 1.5 2006/02/03 06:51:34 RD Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -558,6 +558,18 @@ class CompositeShape(RectangleShape):
             self._divisions.remove(child)
         self.RemoveChildFromConstraints(child)
         child.SetParent(None)
+
+    def Delete(self):
+        """
+        Fully disconnect this shape from parents, children, the
+        canvas, etc.
+        """
+        for child in self.GetChildren():
+            self.RemoveChild(child)
+            child.Delete()
+        RectangleShape.Delete(self)
+        self._constraints = [] 
+        self._divisions = []
 
     def DeleteConstraintsInvolvingChild(self, child):
         """This function deletes constraints which mention the given child.

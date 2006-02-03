@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-08-25
-# RCS-ID:       $Id: _drawn.py,v 1.2 2004/09/18 17:21:57 RD Exp $
+# RCS-ID:       $Id: _drawn.py,v 1.3 2006/02/03 06:51:34 RD Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # License:      wxWindows license
 #----------------------------------------------------------------------------
@@ -90,7 +90,7 @@ class OpSetGDI(DrawOp):
             if self._gdiIndex in self._image._outlineColours:
                 # Need to construct a brush to match the outline pen's colour
                 if self._image._outlinePen:
-                    br = wx.TheBrushList.FindOrCreateBrush(self._image._outlinePen, wx.SOLID)
+                    br = wx.Brush(self._image._outlinePen, wx.SOLID)
                     if br:
                         dc.SetBrush(br)
             elif self._gdiIndex in self._image._fillColours:

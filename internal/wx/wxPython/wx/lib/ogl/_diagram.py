@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _diagram.py,v 1.5 2004/09/30 23:12:29 RD Exp $
+# RCS-ID:       $Id: _diagram.py,v 1.6 2006/02/03 06:51:34 RD Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -78,6 +78,7 @@ class Diagram(object):
         for shape in self._shapeList[:]:
             if not shape.GetParent():
                 self.RemoveShape(shape)
+                shape.Delete()
                 
     def ShowAll(self, show):
         """Call Show for each shape in the diagram."""
