@@ -400,9 +400,9 @@ task::
     ...
     ...     def run(self):
     ...         global run_count
-    ...         run_count += 1
-    ...         print "run() call", run_count,
+    ...         print "run() call", run_count+1,
     ...         hello_from(self.item)   # show what thread we were called from
+    ...         run_count += 1
     ...         return run_count<5     # stop when count reaches 5
 
 And once again, we'll insert this class into the ``TestStartups`` module, so
