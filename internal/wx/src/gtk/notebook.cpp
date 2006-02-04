@@ -2,7 +2,7 @@
 // Name:        notebook.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: notebook.cpp,v 1.128 2006/02/03 20:38:53 MR Exp $
+// Id:          $Id: notebook.cpp,v 1.131 2006/02/03 23:39:48 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -217,7 +217,7 @@ static gint gtk_notebook_key_press_callback( GtkWidget *widget, GdkEventKey *gdk
         }
 
         // m_selection = page;
-        gtk_notebook_set_page( GTK_NOTEBOOK(widget), page );
+        gtk_notebook_set_current_page( GTK_NOTEBOOK(widget), page );
 
         g_signal_stop_emission_by_name (widget, "key_press_event");
         return TRUE;
@@ -422,7 +422,7 @@ int wxNotebook::SetSelection( size_t page )
 
     // cache the selection
     m_selection = page;
-    gtk_notebook_set_page( GTK_NOTEBOOK(m_widget), page );
+    gtk_notebook_set_current_page( GTK_NOTEBOOK(m_widget), page );
 
     wxNotebookPage *client = GetPage(page);
     if ( client )
@@ -441,7 +441,7 @@ bool wxNotebook::SetPageText( size_t page, const wxString &text )
 
     nb_page->m_text = text;
 
-    gtk_label_set( nb_page->m_label, wxGTK_CONV( nb_page->m_text ) );
+    gtk_label_set_text( nb_page->m_label, wxGTK_CONV( nb_page->m_text ) );
 
     return TRUE;
 }
@@ -475,7 +475,7 @@ bool wxNotebook::SetPageImage( size_t page, int image )
     {
         /* Case 2) or 4). There is already an image in the gtkhbox. Let's find it */
 
-        GList *child = gtk_container_children(GTK_CONTAINER(nb_page->m_box));
+        GList *child = gtk_container_get_children(GTK_CONTAINER(nb_page->m_box));
         while (child)
         {
             if (GTK_IS_PIXMAP(child->data))
@@ -758,7 +758,7 @@ int wxNotebook::HitTest(const wxPoint& pt, long *flags) const
             {
                 GtkWidget *pixmap = NULL;
 
-                GList *children = gtk_container_children(GTK_CONTAINER(box));
+                GList *children = gtk_container_get_children(GTK_CONTAINER(box));
                 for ( GList *child = children; child; child = child->next )
                 {
                     if ( GTK_IS_PIXMAP(child->data) )

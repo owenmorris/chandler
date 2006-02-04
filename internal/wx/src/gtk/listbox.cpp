@@ -2,7 +2,7 @@
 // Name:        src/gtk/listbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: listbox.cpp,v 1.158 2006/02/03 21:44:31 MR Exp $
+// Id:          $Id: listbox.cpp,v 1.159 2006/02/03 22:58:26 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -913,7 +913,7 @@ void wxListBox::SetString( int n, const wxString &string )
 #endif // wxUSE_CHECKLISTBOX
         str += string;
 
-        gtk_label_set( label, wxGTK_CONV( str ) );
+        gtk_label_set_text( label, wxGTK_CONV( str ) );
     }
     else
     {

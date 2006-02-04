@@ -2,7 +2,7 @@
 // Name:        radiobut.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobut.cpp,v 1.62 2006/02/03 20:38:54 MR Exp $
+// Id:          $Id: radiobut.cpp,v 1.63 2006/02/04 00:09:15 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ bool wxRadioButton::Create( wxWindow *parent,
         if (chief)
         {
             // we are part of the group started by chief
-            radioButtonGroup = gtk_radio_button_group( GTK_RADIO_BUTTON(chief->m_widget) );
+            radioButtonGroup = gtk_radio_button_get_group( GTK_RADIO_BUTTON(chief->m_widget) );
         }
     }
 

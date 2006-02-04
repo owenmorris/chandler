@@ -2,7 +2,7 @@
 // Name:        gauge.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: gauge.cpp,v 1.32 2006/01/14 18:32:37 MR Exp $
+// Id:          $Id: gauge.cpp,v 1.33 2006/02/03 23:22:40 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -62,8 +62,8 @@ void wxGauge::DoSetGauge()
     wxASSERT_MSG( 0 <= m_gaugePos && m_gaugePos <= m_rangeMax,
                   _T("invalid gauge position in DoSetGauge()") );
 
-    gtk_progress_bar_update( GTK_PROGRESS_BAR(m_widget),
-                             m_rangeMax ? ((float)m_gaugePos)/m_rangeMax : 0.);
+    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (m_widget),
+                                   m_rangeMax ? ((float)m_gaugePos)/m_rangeMax : 0.);
 }
 
 wxSize wxGauge::DoGetBestSize() const

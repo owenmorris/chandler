@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp,v 1.23 2006/02/03 20:38:55 MR Exp $
+// RCS-ID:      $Id: tglbtn.cpp,v 1.24 2006/02/03 22:58:26 MR Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -289,7 +289,7 @@ void wxToggleButton::SetLabel(const wxString& label)
 
     wxControl::SetLabel(label);
 
-    gtk_label_set(GTK_LABEL(GTK_BIN(m_widget)->child), wxGTK_CONV(GetLabel()));
+    gtk_label_set_text(GTK_LABEL(GTK_BIN(m_widget)->child), wxGTK_CONV(GetLabel()));
 }
 
 bool wxToggleButton::Enable(bool enable /*=true*/)

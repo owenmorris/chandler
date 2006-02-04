@@ -2,7 +2,7 @@
 // Name:        src/gtk/radiobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.cpp,v 1.108 2006/02/03 20:38:53 MR Exp $
+// Id:          $Id: radiobox.cpp,v 1.111 2006/02/04 00:09:15 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -222,7 +222,7 @@ bool wxRadioBox::Create( wxWindow *parent, wxWindowID id, const wxString& title,
     for (int i = 0; i < n; i++)
     {
         if ( i != 0 )
-            radio_button_group = gtk_radio_button_group( GTK_RADIO_BUTTON(m_radio) );
+            radio_button_group = gtk_radio_button_get_group( GTK_RADIO_BUTTON(m_radio) );
 
         label.Empty();
         for ( const wxChar *pc = choices[i]; *pc; pc++ )
@@ -260,7 +260,8 @@ bool wxRadioBox::Create( wxWindow *parent, wxWindowID id, const wxString& title,
 
         ConnectWidget( GTK_WIDGET(m_radio) );
 
-        if (!i) gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(m_radio), TRUE );
+        if (!i)
+            gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(m_radio), TRUE );
 
         g_signal_connect (m_radio, "clicked",
                           G_CALLBACK (gtk_radiobutton_clicked_callback), this);
@@ -405,7 +406,7 @@ void wxRadioBox::SetString( int item, const wxString& label )
 
     GtkLabel *g_label = GTK_LABEL(GTK_BIN(node->GetData())->child);
 
-    gtk_label_set( g_label, wxGTK_CONV( label ) );
+    gtk_label_set_text( g_label, wxGTK_CONV( label ) );
 }
 
 bool wxRadioBox::Enable( bool enable )

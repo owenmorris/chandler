@@ -5,8 +5,8 @@ based on wxPython's wxStyledTextCtrl.
 Sponsored by Orbtech - Your source for Python programming expertise."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: shell.py,v 1.13 2006/01/17 05:42:19 RD Exp $"
-__revision__ = "$Revision: 1.13 $"[11:-2]
+__cvsid__ = "$Id: shell.py,v 1.14 2006/02/03 23:06:28 RD Exp $"
+__revision__ = "$Revision: 1.14 $"[11:-2]
 
 import wx
 from wx import stc
@@ -106,16 +106,16 @@ class ShellFrame(frame.Frame, frame.ShellFrameMixin):
             frame.Frame.LoadSettings(self, self.config)
             self.shell.LoadSettings(self.config)
 
-    def SaveSettings(self):
+    def SaveSettings(self, force=False):
         if self.config is not None:
             frame.ShellFrameMixin.SaveSettings(self)
-            if self.autoSaveSettings:
+            if self.autoSaveSettings or force:
                 frame.Frame.SaveSettings(self, self.config)
                 self.shell.SaveSettings(self.config)
 
     def DoSaveSettings(self):
         if self.config is not None:
-            self.SaveSettings()
+            self.SaveSettings(force=True)
             self.config.Flush()
         
 

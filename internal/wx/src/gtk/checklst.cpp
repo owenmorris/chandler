@@ -2,7 +2,7 @@
 // Name:        checklst.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checklst.cpp,v 1.27 2006/01/14 18:32:36 MR Exp $
+// Id:          $Id: checklst.cpp,v 1.28 2006/02/03 22:58:26 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ void wxCheckListBox::Check( int index, bool check )
 
         str.SetChar( 1, check ? wxCHECKLBOX_CHECKED : wxCHECKLBOX_UNCHECKED );
 
-        gtk_label_set( label, wxGTK_CONV( str ) );
+        gtk_label_set_text( label, wxGTK_CONV( str ) );
 
         return;
     }

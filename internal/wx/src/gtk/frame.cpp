@@ -2,7 +2,7 @@
 // Name:        frame.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: frame.cpp,v 1.206 2006/01/22 23:28:53 MR Exp $
+// Id:          $Id: frame.cpp,v 1.208 2006/02/04 02:10:53 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -490,7 +490,12 @@ void wxFrame::GtkOnSize( int WXUNUSED(x), int WXUNUSED(y),
         gtk_pizza_set_size( GTK_PIZZA(m_wxwindow),
                             m_frameStatusBar->m_widget,
                             xx, yy, ww, hh );
-        gtk_widget_draw( m_frameStatusBar->m_widget, (GdkRectangle*) NULL );
+        if (GTK_WIDGET_DRAWABLE (m_frameStatusBar->m_widget))
+        {
+            gtk_widget_queue_draw (m_frameStatusBar->m_widget);
+            // FIXME: Do we really want to force an immediate redraw?
+            gdk_window_process_updates (m_frameStatusBar->m_widget->window, TRUE);
+        }
     }
 #endif // wxUSE_STATUSBAR
 

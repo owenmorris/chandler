@@ -2,7 +2,7 @@
 // Name:        checkbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checkbox.cpp,v 1.74 2006/02/03 20:38:52 MR Exp $
+// Id:          $Id: checkbox.cpp,v 1.75 2006/02/03 22:53:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -180,7 +180,7 @@ void wxCheckBox::SetValue( bool state )
 
     m_blockEvent = TRUE;
 
-    gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(m_widgetCheckbox), state );
+    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(m_widgetCheckbox), state );
 
     m_blockEvent = FALSE;
 }

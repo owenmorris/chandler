@@ -2,7 +2,7 @@
 // Name:        menu.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.cpp,v 1.173 2006/01/22 23:28:54 MR Exp $
+// Id:          $Id: menu.cpp,v 1.176 2006/02/03 23:38:01 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -511,17 +511,7 @@ void wxMenuBar::SetLabelTop( size_t pos, const wxString& label )
     menu->SetTitle( str );
 
     if (menu->m_owner)
-    {
-        GtkLabel *glabel = GTK_LABEL( GTK_BIN(menu->m_owner)->child );
-
-        /* set new text */
-        gtk_label_set( glabel, wxGTK_CONV( str ) );
-
-        /* reparse key accel */
-        (void)gtk_label_parse_uline (GTK_LABEL(glabel), wxGTK_CONV( str ) );
-        gtk_accel_label_refetch( GTK_ACCEL_LABEL(glabel) );
-    }
-
+        gtk_label_set_text_with_mnemonic( GTK_LABEL( GTK_BIN(menu->m_owner)->child), wxGTK_CONV(str) );
 }
 
 //-----------------------------------------------------------------------------
@@ -875,7 +865,7 @@ void wxMenuItem::Check( bool check )
     {
         case wxITEM_CHECK:
         case wxITEM_RADIO:
-            gtk_check_menu_item_set_state( (GtkCheckMenuItem*)m_menuItem, (gint)check );
+            gtk_check_menu_item_set_active( (GtkCheckMenuItem*)m_menuItem, (gint)check );
             break;
 
         default:
@@ -924,7 +914,7 @@ void wxMenu::Init()
     {
         GtkWidget *tearoff = gtk_tearoff_menu_item_new();
 
-        gtk_menu_append(GTK_MENU(m_menu), tearoff);
+        gtk_menu_shell_append(GTK_MENU_SHELL(m_menu), tearoff);
     }
 
     m_prevRadio = NULL;

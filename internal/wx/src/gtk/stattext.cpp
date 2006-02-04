@@ -2,7 +2,7 @@
 // Name:        stattext.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.cpp,v 1.62 2006/01/31 16:01:12 JS Exp $
+// Id:          $Id: stattext.cpp,v 1.63 2006/02/04 00:09:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -119,6 +119,7 @@ void wxStaticText::SetLabel( const wxString &label )
 
     // Build the colorized version of the label (markup only allowed
     // under GTK2):
+    // FIXME: Does this handle background correct? I recall bug reports - MR
     if (m_foregroundColour.Ok())
     {
         // If the color has been set, create a markup string to pass to
@@ -131,7 +132,7 @@ void wxStaticText::SetLabel( const wxString &label )
         gtk_label_set_markup( GTK_LABEL(m_widget), wxGTK_CONV( colorlabel ) );
     }
     else
-        gtk_label_set( GTK_LABEL(m_widget), wxGTK_CONV( label1 ) );
+        gtk_label_set_text( GTK_LABEL(m_widget), wxGTK_CONV( label1 ) );
 
     // adjust the label size to the new label unless disabled
     if (!HasFlag(wxST_NO_AUTORESIZE))

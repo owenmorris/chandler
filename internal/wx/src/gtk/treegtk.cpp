@@ -4,7 +4,7 @@
 // Author:      Denis Pershin
 // Modified by:
 // Created:     07/05/98
-// RCS-ID:      $Id: treegtk.cpp,v 1.11 2006/01/22 23:28:57 MR Exp $
+// RCS-ID:      $Id: treegtk.cpp,v 1.13 2006/02/03 23:39:48 MR Exp $
 // Copyright:   (c) Denis Pershin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -222,7 +222,7 @@ void wxTreeCtrl::SetItemText(const wxTreeItemId& item, const wxString& text) {
     return;
 
   GtkLabel *l = GTK_LABEL(gtk_object_get_data(GTK_OBJECT((GtkTreeItem *)item), "w_label"));
-  gtk_label_set(l, text);
+  gtk_label_set_text(l, text);
 }
 
 void wxTreeCtrl::SetItemImage(const wxTreeItemId& item, int image) {
@@ -665,7 +665,7 @@ void wxTreeCtrl::EndEditLabel(const wxTreeItemId& item, bool discardChanges) {
 #warning "Need to implement EndEditLabel"
 /*
   GtkLabel *m_label = (GtkLabel *)gtk_object_get_data(GTK_OBJECT((GtkTreeItem *)m_editItem), "w_label");
-  gtk_label_set(m_label, m_textCtrl->GetValue());
+  gtk_label_set_text(m_label, m_textCtrl->GetValue());
 
   gtk_object_remove_data(GTK_OBJECT((GtkTreeItem *)m_editItem), "w_edit");
 
@@ -714,7 +714,7 @@ long wxTreeCtrl::GetChild(long item) const {
   GtkTreeItem *next = NULL;
 
   p = findGtkTreeItem(item);
-  GList *list = gtk_container_children(GTK_CONTAINER(p));
+  GList *list = gtk_container_get_children(GTK_CONTAINER(p));
   next = GTK_TREE_ITEM(list->data);
 
   if (next != NULL)
@@ -726,7 +726,7 @@ long wxTreeCtrl::GetChild(long item) const {
 long wxTreeCtrl::GetFirstVisibleItem(void) const {
   GtkTreeItem *next = NULL;
 
-  GList *list = gtk_container_children(GTK_CONTAINER(m_anchor));
+  GList *list = gtk_container_get_children(GTK_CONTAINER(m_anchor));
   next = GTK_TREE_ITEM(list->data);
 //  gtk_container_foreach(GTK_CONTAINER(m_anchor), gtk_treectrl_next_visible_callback, &next);
 
@@ -741,7 +741,7 @@ long wxTreeCtrl::GetNextVisibleItem(long item) const {
   GtkTreeItem *next = NULL;
 
   p = findGtkTreeItem(item);
-  GList *list = gtk_container_children(GTK_CONTAINER(p));
+  GList *list = gtk_container_get_children(GTK_CONTAINER(p));
   next = GTK_TREE_ITEM(list->data);
 //  gtk_container_foreach(GTK_CONTAINER(p), gtk_treectrl_next_visible_callback, &next);
 

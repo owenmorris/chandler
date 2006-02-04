@@ -1,8 +1,8 @@
 """Crust combines the shell and filling into one control."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: crust.py,v 1.11 2006/01/17 05:42:19 RD Exp $"
-__revision__ = "$Revision: 1.11 $"[11:-2]
+__cvsid__ = "$Id: crust.py,v 1.12 2006/02/03 23:06:28 RD Exp $"
+__revision__ = "$Revision: 1.12 $"[11:-2]
 
 import wx
 
@@ -291,17 +291,17 @@ class CrustFrame(frame.Frame, frame.ShellFrameMixin):
             self.crust.LoadSettings(self.config)
 
 
-    def SaveSettings(self):
+    def SaveSettings(self, force=False):
         if self.config is not None:
             frame.ShellFrameMixin.SaveSettings(self)
-            if self.autoSaveSettings:
+            if self.autoSaveSettings or force:
                 frame.Frame.SaveSettings(self, self.config)
                 self.crust.SaveSettings(self.config)
 
 
     def DoSaveSettings(self):
         if self.config is not None:
-            self.SaveSettings()
+            self.SaveSettings(force=True)
             self.config.Flush()
         
 

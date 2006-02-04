@@ -3,7 +3,7 @@
 // Purpose:     GTK toolbar
 // Author:      Robert Roebling
 // Modified:    13.12.99 by VZ to derive from wxToolBarBase
-// RCS-ID:      $Id: tbargtk.cpp,v 1.105 2006/01/22 23:28:56 MR Exp $
+// RCS-ID:      $Id: tbargtk.cpp,v 1.106 2006/02/03 22:53:37 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -540,7 +540,7 @@ void wxToolBar::DoToggleTool( wxToolBarToolBase *toolBase, bool toggle )
 
         m_blockEvent = true;
 
-        gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(item), toggle );
+        gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(item), toggle );
 
         m_blockEvent = false;
     }

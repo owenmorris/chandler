@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     17/08/98
-// RCS-ID:      $Id: glcanvas.cpp,v 1.29 2006/01/26 16:01:36 ABX Exp $
+// RCS-ID:      $Id: glcanvas.cpp,v 1.30 2006/02/04 01:49:25 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -401,7 +401,6 @@ bool wxGLCanvas::Create( wxWindow *parent,
         colormap = gdk_colormap_new( visual, TRUE );
 
         gtk_widget_push_colormap( colormap );
-        gtk_widget_push_visual( visual );
 
         wxWindow::Create( parent, id, pos, size, style, name );
         m_glWidget = m_wxwindow;
@@ -426,7 +425,6 @@ bool wxGLCanvas::Create( wxWindow *parent,
 
     if (gtk_check_version(2,2,0) != NULL)
     {
-        gtk_widget_pop_visual();
         gtk_widget_pop_colormap();
     }
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbkg.cpp,v 1.5 2006/02/01 23:45:14 RD Exp $
+// RCS-ID:      $Id: toolbkg.cpp,v 1.6 2006/02/03 23:05:15 RD Exp $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -275,10 +275,11 @@ void wxToolbook::Realize()
     if (m_needsRealizing)
     {
         GetToolBar()->SetToolBitmapSize(m_maxBitmapSize);
-        
+
+        int remap = wxSystemOptions::GetOptionInt(wxT("msw.remap"));
         wxSystemOptions::SetOption(wxT("msw.remap"), 0);
         GetToolBar()->Realize();
-        wxSystemOptions::SetOption(wxT("msw.remap"), 1);
+        wxSystemOptions::SetOption(wxT("msw.remap"), remap);
     }
     
     m_needsRealizing = false;

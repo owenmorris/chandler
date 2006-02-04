@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     02/04/05
-// RCS-ID:      $Id: mediactrl.cpp,v 1.11 2005/11/20 21:55:30 DS Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.12 2006/02/04 01:47:01 MR Exp $
 // Copyright:   (c) 2004-2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -478,10 +478,10 @@ bool wxGStreamerMediaBackend::Load(const wxURI& location)
     if(!GTK_WIDGET_REALIZED(m_ctrl->m_wxwindow))
     {
         //Not realized yet - set to connect at realization time
-        gtk_signal_connect( GTK_OBJECT(m_ctrl->m_wxwindow),
-                            "realize",
-                            GTK_SIGNAL_FUNC(wxGStreamerMediaBackend::OnGTKRealize),
-                            (gpointer) this );
+        g_signal_connect (m_ctrl->m_wxwindow,
+                          "realize",
+                          G_CALLBACK (wxGStreamerMediaBackend::OnGTKRealize),
+                          this);
     }
     else
     {
