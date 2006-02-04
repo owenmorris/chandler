@@ -2,7 +2,7 @@
 // Name:        src/gtk/minifram.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: minifram.cpp,v 1.40 2006/02/03 21:57:03 MR Exp $
+// Id:          $Id: minifram.cpp,v 1.43 2006/02/04 13:06:06 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ static gint gtk_window_button_release_callback( GtkWidget *widget, GdkEventButto
     y += org_y - win->m_diffY;
     win->m_x = x;
     win->m_y = y;
-    gtk_widget_set_uposition( win->m_widget, x, y );
+    gtk_window_move( GTK_WINDOW(win->m_widget), x, y );
 
     return TRUE;
 }
@@ -248,29 +248,15 @@ static void gtk_button_clicked_callback( GtkWidget *WXUNUSED(widget), wxMiniFram
 
 static const char *cross_xpm[] = {
 /* columns rows colors chars-per-pixel */
-"5 5 16 1",
-"  c Gray0",
-". c #bf0000",
-"X c #00bf00",
-"o c #bfbf00",
-"O c #0000bf",
-"+ c #bf00bf",
-"@ c #00bfbf",
-"# c None",
-"$ c #808080",
-"% c Red",
-"& c Green",
-"* c Yellow",
-"= c Blue",
-"- c Magenta",
-"; c Cyan",
-": c Gray100",
+"5 5 2 1",
+"# c Gray0",
+"  c None",
 /* pixels */
-" ### ",
-"# # #",
-"## ##",
-"# # #",
-" ### ",
+"#   #",
+" # # ",
+"  #  ",
+" # # ",
+"#   #",
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxMiniFrame,wxFrame)
@@ -316,6 +302,10 @@ bool wxMiniFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title
         gtk_widget_show( pw );
 
         GtkWidget *close_button = gtk_button_new();
+#ifdef __WXGTK24__
+        if (!gtk_check_version(2,4,0))
+            gtk_button_set_focus_on_click( GTK_BUTTON(close_button), FALSE );
+#endif
         gtk_container_add( GTK_CONTAINER(close_button), pw );
 
         gtk_pizza_put( GTK_PIZZA(m_mainWidget),

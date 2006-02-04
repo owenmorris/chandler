@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp,v 1.176 2006/01/27 23:05:23 VZ Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.177 2006/02/04 15:35:06 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1439,7 +1439,12 @@ bool wxMacUnicodeTextControl::CanPaste() const
 
 void wxMacUnicodeTextControl::SetEditable(bool editable)
 {
-    SetData<Boolean>( 0 , kControlEditTextLockedTag , (Boolean) !editable ) ;
+#if 0
+    // Comment out this line and the text control will still be uneditable but
+    // will continue to be selectable as well; however, it won't be focusable;
+    // however, leaving it enabled makes the text unable to be selected
+    SetData<Boolean>( 0, kControlEditTextLockedTag, (Boolean) !editable );
+#endif
 }
 
 void wxMacUnicodeTextControl::GetSelection( long* from, long* to ) const

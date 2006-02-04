@@ -2,7 +2,7 @@
 // Name:        popupwin.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: popupwin.cpp,v 1.23 2006/02/03 22:08:01 MR Exp $
+// Id:          $Id: popupwin.cpp,v 1.24 2006/02/04 12:15:31 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -282,7 +282,8 @@ void wxPopupWindow::DoSetSize( int x, int y, int width, int height, int sizeFlag
         {
             /* we set the position here and when showing the dialog
                for the first time in idle time */
-            gtk_widget_set_uposition( m_widget, m_x, m_y );
+            // Where does that happen in idle time? I do not see it anywhere - MR
+            gtk_window_move( GTK_WINDOW(m_widget), m_x, m_y );
         }
     }
 

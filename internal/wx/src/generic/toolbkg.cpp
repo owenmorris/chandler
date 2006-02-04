@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbkg.cpp,v 1.6 2006/02/03 23:05:15 RD Exp $
+// RCS-ID:      $Id: toolbkg.cpp,v 1.8 2006/02/04 18:49:39 vell Exp $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,11 +19,14 @@
 #if wxUSE_TOOLBOOK
 
 #include "wx/imaglist.h"
-#include "wx/icon.h"
 #include "wx/toolbar.h"
 #include "wx/toolbook.h"
 #include "wx/settings.h"
 #include "wx/sysopt.h"
+
+#ifndef WX_PRECOMP
+    #include "wx/icon.h"
+#endif
 
 // ----------------------------------------------------------------------------
 // various wxWidgets macros
@@ -395,7 +398,9 @@ void wxToolbook::OnToolSelected(wxCommandEvent& event)
 
     // change wasn't allowed, return to previous state
     if (m_selection != selNew)
+    {
         GetToolBar()->ToggleTool(m_selection, false);
+    }
 }
 
 #endif // wxUSE_TOOLBOOK
