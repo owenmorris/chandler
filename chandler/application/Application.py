@@ -537,7 +537,9 @@ class wxApplication (wx.App):
                 block.post (blockEvent, arguments)
  
                 if updateUIEvent:
-                    event.Check (arguments.get ('Check', False))
+                    check = arguments.get ('Check', None)
+                    if check is not None:
+                        event.Check (check)
                     event.Enable (arguments.get ('Enable', True))
                     text = arguments.get ('Text', None)
                     if text != None:
