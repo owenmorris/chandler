@@ -13,6 +13,7 @@ from osaf.pim import AbstractCollection
 from application import schema
 from application.dialogs import Util
 from wx.lib import buttons
+import osaf.sharing.ICalendar
 from i18n import OSAFMessageFactory as _
 
 # temporary hack because Mac/Linux force BitmapButtons to
@@ -223,7 +224,7 @@ class DragState(object):
 
 class wxCollectionCanvas(DragAndDrop.DropReceiveWidget, 
                          DragAndDrop.DraggableWidget,
-                         DragAndDrop.ItemClipboardHandler,
+                         DragAndDrop.FileOrItemClipboardHandler,
                          wx.ScrolledWindow):
 
     """
@@ -720,6 +721,11 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     # Methods for Drag and Drop and Cut and Paste
     def DeleteSelection(self, *args, **kwargs):
         self.blockItem.DeleteSelection(*args, **kwargs)
+
+    def OnFilePaste(self):
+        for filename in self.fileDataObject.GetFilenames():
+            osaf.sharing.ICalendar.importICalendarFile(filename,
+                              self.blockItem.itsView, selectedCollection = True)
 
     def WarnReadOnlyAdd(self, collection):
         Util.ok(self, _(u'Warning'), _(u'This collection is read-only. You cannot add items to read-only collections'))

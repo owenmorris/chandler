@@ -7,6 +7,7 @@ from application.Utility import getDesktopDir
 from application import schema
 import itertools
 import osaf.sharing
+from  osaf.sharing.ICalendar import importICalendarFile, ImportError
 from time import time
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
@@ -197,7 +198,8 @@ class ImportDialog(FileChooserWithOptions):
         self.box.Fit(self)
 
         widgets = (self.filechooser, self.FindWindowById(wx.ID_OK),
-                   self.chooser, self.chooserLabel)
+                   self.chooser, self.chooserLabel, self.tzchooser, 
+                   self.tzchooserLabel)
         for widget in itertools.chain(widgets, self.options.itervalues()):
             widget.Disable()
         
@@ -228,69 +230,27 @@ class ImportDialog(FileChooserWithOptions):
 
     def importFile(self):
         fullpath = self.filechooser.GetValue()
-        if not os.path.isfile(fullpath):
-            self.fail(_(u"File does not exist, import cancelled."))
-            return False
-        
         (dir, filename) = os.path.split(fullpath)
-        prefs = schema.ns("osaf.sharing", self.view).prefs
-        prefs.import_dir = dir
-        
+
         tzinfo = self.tzchoices[self.tzchooser.GetSelection()]
         coll = targetCollection = self.choices[self.chooser.GetSelection()]
-
-        # don't import directly into an existing collection if we need to change
-        # tzinfo
-        if tzinfo is not None and targetCollection is not None:
-            coll = None
+        filterAttributes = [key for key, val in self.options.iteritems()
+                            if not val.IsChecked()]
 
         # set the preference for importing collections into new collections
+        prefs = schema.ns("osaf.sharing", self.view).prefs
         prefs.import_as_new = targetCollection is None
-        
-        share = osaf.sharing.OneTimeFileSystemShare(
-            dir, filename, osaf.sharing.ICalendarFormat, itsView=self.view,
-            contents = coll
-        )
-
-        for key, val in self.options.iteritems():
-            if not val.IsChecked():
-                share.filterAttributes.append(key)
+        prefs.import_dir = dir
 
         monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
-        before = time()
+        
         try:
-            collection = share.get(monitor.callback)
-        except:
-            logger.exception("Failed importFile %s" % fullpath)
-            self.fail(_(u"Problem with the file, import cancelled."))
+            collection = importICalendarFile(fullpath, self.view, coll,
+                                             filterAttributes, monitor.callback,
+                                             tzinfo, logger)
+        except ImportError, e:
+            self.fail(unicode(e))
             return False
-        
-        if tzinfo is not None:
-            def coerce(dt):
-                return coerceTimeZone(dt, tzinfo)
-            for item in collection:
-                if getattr(item, 'rruleset', None) is not None:
-                    item.changeThisAndFuture('startTime', coerce(item.startTime))
-                    for mod in item.modifications or []:
-                        mod.startTime = coerce(mod.startTime)
-                else:
-                    item.startTime = coerce(item.startTime)
-                if targetCollection is not None:
-                    targetCollection.add(item)
-        
-            
 
-        if targetCollection is None:
-            name = "".join(filename.split('.')[0:-1]) or filename
-            collection.displayName = name
-            schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
-            sideBarBlock = Block.Block.findBlockByName ('Sidebar')
-            sideBarBlock.postEventByName ("SelectItemsBroadcast",
-                                          {'items':[collection]})
-        else: # delete intermediate collection
-            # collection.delete(recursive=True)
-            # collection.delete is failing for some reason
-            pass
-        logger.info("Imported collection in %s seconds" % (time() - before))
         assert (hasattr (collection, 'color'))
         return True # Successful import

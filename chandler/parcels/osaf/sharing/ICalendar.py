@@ -17,12 +17,16 @@ import logging
 import dateutil.tz
 import datetime
 from datetime import date, time
+from time import time as epoch_time
 from PyICU import ICUtzinfo
 import PyICU
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from application import schema
 import itertools
 from i18n import OSAFMessageFactory as _
+import os, logging
+import osaf.framework.blocks
+import application.Globals as Globals
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
@@ -438,9 +442,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     dtstart = TimeZone.forceToDateTime(dtstart)
                     # convert to Chandler's notion of all day duration
                     duration -= datetime.timedelta(days=1)
-                        
-                # ignore timezones and recurrence till tzinfo -> PyICU is written
-                # give the repository a naive datetime, no timezone
+                
+                # coerce timezones based on coerceTzinfo
+                coerceTzinfo = getattr(self, 'coerceTzinfo', None)
+                if coerceTzinfo is not None:
+                    dtstart = TimeZone.coerceTimeZone(dtstart, coerceTzinfo)
+                    
                 dtstart = convertToICUtzinfo(dtstart, view)
                 # Because of restrictions on dateutil.rrule, we're going
                 # to have to make sure all the datetimes we create have
@@ -658,3 +665,60 @@ class CalDAVFormat(ICalendarFormat):
         cal = itemsToVObject(self.itsView, [item],
                              filters=self.share.filterAttributes)
         return cal.serialize().encode('utf-8')
+
+class ImportError(Exception):
+    pass
+
+def importICalendarFile(fullpath, view, targetCollection = None,
+                        filterAttributes = None, updateCallback=None,
+                        tzinfo = None, logger=None, selectedCollection = False):
+    """Import ics file at fullpath into targetCollection.
+    
+    If selectedCollection is True, ignored targetCollection and import into
+    the currently selected sidebar collection.
+    If Trash is chosen as the target collection, a new collection will be 
+    created instead.
+
+    """
+    if selectedCollection:
+        targetCollection = Globals.views[0].getSidebarSelectedCollection()
+
+    trash = schema.ns("osaf.app", view).TrashCollection
+    if targetCollection == trash:
+        targetCollection = None
+        
+    if filterAttributes is None: filterAttributes = []
+    # not dealing with tzinfo yet
+    if not os.path.isfile(fullpath):
+        raise ImportError(_(u"File does not exist, import cancelled."))
+    (dir, filename) = os.path.split(fullpath)
+    
+    share = Sharing.OneTimeFileSystemShare(
+        dir, filename, ICalendarFormat, itsView=view, contents = targetCollection
+    )
+    if tzinfo is not None:
+        share.format.coerceTzinfo = tzinfo
+    
+    for key in filterAttributes:
+        share.filterAttributes.append(key)
+    
+    before = epoch_time()
+    
+    try:
+        collection = share.get(updateCallback)
+    except:
+        if logger:
+            logger.exception("Failed importFile %s" % fullpath)
+        raise ImportError(_(u"Problem with the file, import cancelled."))
+
+    if targetCollection is None:
+        name = "".join(filename.split('.')[0:-1]) or filename
+        collection.displayName = name
+        schema.ns("osaf.app", view).sidebarCollection.add(collection)
+        sideBarBlock = osaf.framework.blocks.Block.Block.findBlockByName('Sidebar')
+        sideBarBlock.postEventByName ("SelectItemsBroadcast",
+                                      {'items':[collection]})
+    if logger:
+        logger.info("Imported collection in %s seconds" % (epoch_time()-before))
+        
+    return collection

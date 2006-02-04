@@ -78,7 +78,7 @@ class wxTableData(wx.grid.PyGridTableBase):
 
 class wxTable(DragAndDrop.DraggableWidget, 
               DragAndDrop.DropReceiveWidget, 
-              DragAndDrop.ItemClipboardHandler,
+              DragAndDrop.FileOrItemClipboardHandler,
               wx.grid.Grid):
     def __init__(self, parent, widgetID, characterStyle, headerCharacterStyle, *arguments, **keywords):
         if '__WXMAC__' in wx.PlatformInfo:

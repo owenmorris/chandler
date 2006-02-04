@@ -18,6 +18,7 @@ from osaf.pim import (
 from osaf.framework.prompts import promptYesNoCancel
 
 from osaf import sharing, pim
+import osaf.sharing.ICalendar
 from application import schema
 from i18n import OSAFMessageFactory as _
 
@@ -281,9 +282,18 @@ class wxSidebar(wxTable):
         # Store current state
         self.hoverRow = hoverRow
         
-        # don't allow the drag if we're not over an item
         if hoverRow == wx.NOT_FOUND:
-            dragResult = wx.DragNone
+            # Allow file drops anywhere.  Unfortunately a wx.DropTarget
+            # doesn't provide information about what data is actually in the 
+            # DataObject hovering over it, so we can't use wx to determine if
+            # the object is a file.  We resort to the Chandler specific
+            # global, DraggedFromWidget, which gets set and unset by Chandler
+            # when a widget is dragged.
+            if self.GetDraggedFromWidget() is None:
+                dragResult = wx.DragCopy
+            # otherwise, don't allow the drag if we're not over an item
+            else:
+                dragResult = wx.DragNone
         else:
             # Switch to the "move" icon if we're over the trash
             possibleCollection = self.blockItem.contents[hoverRow]
@@ -319,6 +329,20 @@ class wxSidebar(wxTable):
         rect = self.CalculateCellRect (row)
         self.RefreshRect(rect)
         self.Update()
+
+    def OnFilePaste(self):
+        try:
+            whereToDropItem = self.whereToDropItem
+        except AttributeError:
+            coll = None
+        else:
+            coll = self.blockItem.contents[whereToDropItem]
+            self.SetRowHighlight(self.whereToDropItem, False)
+            del self.whereToDropItem
+        
+        for filename in self.fileDataObject.GetFilenames():
+            osaf.sharing.ICalendar.importICalendarFile(filename,
+                                                   self.blockItem.itsView, coll)
 
 class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
     """

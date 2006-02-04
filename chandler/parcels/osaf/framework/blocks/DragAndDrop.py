@@ -219,7 +219,14 @@ class _DropTarget(wx.DropTarget):
         self.SetDataObject(self.dataObject)
     
     def OnDrop(self, x, y):
-        return self.receiver.OnRequestDrop(x, y)
+	global DraggedFromWidget
+	droppable = self.receiver.OnRequestDrop(x, y)
+	if DraggedFromWidget is None:
+	    # Assume if we're not dragging something from Chandler, we're
+	    # dragging a file.  Allow file drops anywhere.
+	    return True
+	else:
+	    return droppable
     
     def OnData(self, x, y, dragResult):
         if self.GetData():
@@ -468,3 +475,62 @@ class ItemClipboardHandler(_ClipboardHandler):
         if rawData is not None:
             return self.ImportClipboardItems(rawData)
 
+
+class FileOrItemClipboardHandler(ItemClipboardHandler):
+    """
+    An experimental class.  Ultimately this should probably turn into a
+    CompositeClipboardHandler that can be initialized with multiple data objects
+    and which dispatches to them based on the format received, but that would
+    require either mixin effort or rewriting other ClipboardHandlers so they
+    don't expect to be mixins.
+    """
+
+    def ClipboardDataObject(self):
+	# why is ClipboardDataObject a method and not an attribute?
+	if getattr(self, 'clipboard', None) is None:
+	    self.clipboard = wx.DataObjectComposite()
+    
+	    self.fileDataObject = wx.FileDataObject()
+	    self.fileFormat = self.fileDataObject.GetFormat()
+	    
+	    self.itemFormat = wx.CustomDataFormat(self.ClipboardDataFormat())
+	    self.itemDataObject = wx.CustomDataObject(self.itemFormat)
+	    
+	    self.clipboard.Add(self.itemDataObject)
+	    self.clipboard.Add(self.fileDataObject)
+	    
+	    # for some reason compositeObject starts non-empty, empty it
+	    self.clipboard.SetData(self.itemFormat, '')
+        return self.clipboard
+
+    def PasteData(self, data):
+        """
+	Determine what kind of object is in data, paste accordingly.
+        """
+	dataFormat = None
+        for format in data.GetAllFormats():
+	    if data.GetDataSize(format) > 0:
+		dataFormat = format
+		break
+	if dataFormat is not None:
+	    if dataFormat.GetType() == self.fileFormat.GetType():
+		self.OnFilePaste()
+	    else:
+		self.OnItemPaste()
+		
+	    # based on Robin's suggestion at:
+	    # http://aspn.activestate.com/ASPN/Mail/Message/wxPython-users/1989308
+	    # composite data objects don't empty their last dragged item,
+	    # so their data needs to be set to '' by hand.
+	    data.SetData(dataFormat, '')
+	    
+    def OnItemPaste(self):
+	rawData = self.itemDataObject.GetData()
+	itemList = self.ImportClipboardItems(rawData)
+	if len(itemList) > 0:
+	    self.AddItems(itemList)
+	    
+    def OnFilePaste(self):
+	"""Override to implement drag and drop file import."""
+	print "Format is file"
+	print "filenames are: ", self.fileDataObject.GetFilenames()
