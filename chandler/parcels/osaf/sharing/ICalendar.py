@@ -25,7 +25,6 @@ from application import schema
 import itertools
 from i18n import OSAFMessageFactory as _
 import os, logging
-import osaf.framework.blocks
 import application.Globals as Globals
 
 logger = logging.getLogger(__name__)
@@ -680,6 +679,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
     created instead.
 
     """
+    import osaf.framework.blocks
     if selectedCollection:
         targetCollection = Globals.views[0].getSidebarSelectedCollection()
 
