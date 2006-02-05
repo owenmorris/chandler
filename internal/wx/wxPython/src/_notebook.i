@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     2-June-1998
-// RCS-ID:      $Id: _notebook.i,v 1.31 2006/02/01 23:46:39 RD Exp $
+// RCS-ID:      $Id: _notebook.i,v 1.32 2006/02/05 22:01:12 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -473,12 +473,11 @@ public:
                             int imageId = wxNOT_FOUND);
 
     // Inserts a new sub-page to the end of children of the page at given pos.
-    %Rename(InsertSubPage,
-            virtual bool, AddSubPage(size_t pos,
-                                     wxWindow *page,
-                                     const wxString& text,
-                                     bool select = false,
-                                     int imageId = wxNOT_FOUND));
+    virtual bool InsertSubPage(size_t pos,
+                               wxWindow *page,
+                               const wxString& text,
+                               bool select = false,
+                               int imageId = wxNOT_FOUND);
 
     // Adds a new page at top level after all other pages.
     virtual bool AddPage(wxWindow *page,

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     7-July-1997
-// RCS-ID:      $Id: _dc.i,v 1.31 2005/04/08 14:34:24 MW Exp $
+// RCS-ID:      $Id: _dc.i,v 1.32 2006/02/05 22:01:48 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -59,22 +59,15 @@ public:
     ~wxDC();
 
 
-    DocDeclStr(
-        virtual void , BeginDrawing(),
-        "Allows for optimization of drawing code on platforms that need it.  On
-other platforms this is just an empty function and is harmless.  To
-take advantage of this postential optimization simply enclose each
-group of calls to the drawing primitives within calls to
-`BeginDrawing` and `EndDrawing`.", "");
-    
-    DocDeclStr(
-        virtual void , EndDrawing(),
-        "Ends the group of drawing primitives started with `BeginDrawing`, and
-invokes whatever optimization is available for this DC type on the
-current platform.", "");
+    %pythoncode {
+        %# These have been deprecated in wxWidgets.  Since they never
+        %# really did anything to begin with, just make them be NOPs.
+        def BeginDrawing(self):  pass
+        def EndDrawing(self):  pass
+    }
     
 
-
+    
 // TODO    virtual void DrawObject(wxDrawObject* drawobject);
 
 
