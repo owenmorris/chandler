@@ -4,7 +4,7 @@
 // Author:      Evgeniy Tarassov, Vadim Zeitlin
 // Modified by:
 // Created:     2005-09-15
-// RCS-ID:      $Id: treebkg.cpp,v 1.3 2005/10/21 19:00:42 ABX Exp $
+// RCS-ID:      $Id: treebkg.cpp,v 1.4 2006/02/05 12:26:36 VZ Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -125,11 +125,11 @@ bool wxTreebook::InsertPage(size_t pagePos,
     return DoInsertPage(pagePos, page, text, bSelect, imageId);
 }
 
-bool wxTreebook::AddSubPage(size_t pagePos,
-                            wxWindow *page,
-                            const wxString& text,
-                            bool bSelect,
-                            int imageId)
+bool wxTreebook::InsertSubPage(size_t pagePos,
+                               wxWindow *page,
+                               const wxString& text,
+                               bool bSelect,
+                               int imageId)
 {
     return DoInsertSubPage(pagePos, page, text, bSelect, imageId);
 }

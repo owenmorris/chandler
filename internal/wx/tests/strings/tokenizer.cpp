@@ -3,7 +3,7 @@
 // Purpose:     wxStringTokenizer unit test
 // Author:      Vadim Zeitlin
 // Created:     2005-12-20 (extacted from strings.cpp)
-// RCS-ID:      $Id: tokenizer.cpp,v 1.11 2006/01/06 21:44:44 VZ Exp $
+// RCS-ID:      $Id: tokenizer.cpp,v 1.12 2006/02/05 14:01:37 rgammans Exp $
 // Copyright:   (c) 2004-2005 Vadim Zeitlin
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -205,7 +205,7 @@ DoTestGetString(const wxChar *s, const wxChar *delims, int pos, ...)
     {
         if ( !pos )
         {
-            CPPUNIT_ASSERT_EQUAL( wxString(), tkz.GetString() );
+            CPPUNIT_ASSERT( tkz.GetString().empty() ) ;
             break;
         }
 

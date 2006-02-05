@@ -3,7 +3,7 @@
 // Purpose:     wxPostScriptDC class
 // Author:      Julian Smart and others
 // Modified by:
-// RCS-ID:      $Id: dcpsg.h,v 1.34 2005/09/23 12:49:04 MR Exp $
+// RCS-ID:      $Id: dcpsg.h,v 1.35 2006/02/05 11:59:24 JG Exp $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,9 +43,6 @@ public:
     ~wxPostScriptDC();
 
   virtual bool Ok() const;
-
-  virtual void BeginDrawing() {}
-  virtual void EndDrawing() {}
 
   bool DoFloodFill(wxCoord x1, wxCoord y1, const wxColour &col, int style=wxFLOOD_SURFACE );
   bool DoGetPixel(wxCoord x1, wxCoord y1, wxColour *col) const;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbkg.cpp,v 1.8 2006/02/04 18:49:39 vell Exp $
+// RCS-ID:      $Id: toolbkg.cpp,v 1.9 2006/02/05 09:14:02 vell Exp $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,15 +18,15 @@
 
 #if wxUSE_TOOLBOOK
 
-#include "wx/imaglist.h"
-#include "wx/toolbar.h"
-#include "wx/toolbook.h"
-#include "wx/settings.h"
-#include "wx/sysopt.h"
-
 #ifndef WX_PRECOMP
     #include "wx/icon.h"
+    #include "wx/settings.h"
+    #include "wx/toolbar.h"
 #endif
+
+#include "wx/imaglist.h"
+#include "wx/sysopt.h"
+#include "wx/toolbook.h"
 
 // ----------------------------------------------------------------------------
 // various wxWidgets macros

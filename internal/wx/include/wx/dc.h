@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dc.h,v 1.71 2006/01/23 03:27:31 MR Exp $
+// RCS-ID:      $Id: dc.h,v 1.72 2006/02/05 11:59:19 JG Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -136,8 +136,10 @@ public:
 
     ~wxDCBase() { }
 
-    virtual void BeginDrawing() { }
-    virtual void EndDrawing() { }
+#if WXWIN_COMPATIBILITY_2_6
+    wxDEPRECATED( virtual void BeginDrawing() );
+    wxDEPRECATED( virtual void EndDrawing() );
+#endif // WXWIN_COMPATIBILITY_2_6
 
     // graphic primitives
     // ------------------

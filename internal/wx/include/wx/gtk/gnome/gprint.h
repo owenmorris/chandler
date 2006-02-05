@@ -3,7 +3,7 @@
 // Author:      Robert Roebling
 // Purpose:     GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id: gprint.h,v 1.10 2005/09/25 20:49:28 MW Exp $
+// RCS-ID:      $Id: gprint.h,v 1.11 2006/02/05 11:59:27 JG Exp $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -201,9 +201,6 @@ public:
     ~wxGnomePrintDC();
 
     bool Ok() const;
-
-    virtual void BeginDrawing() {}
-    virtual void EndDrawing() {}
 
     bool DoFloodFill(wxCoord x1, wxCoord y1, const wxColour &col, int style=wxFLOOD_SURFACE );
     bool DoGetPixel(wxCoord x1, wxCoord y1, wxColour *col) const;

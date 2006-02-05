@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ 07.01.00: implemented wxMetaFileDataObject
 // Created:     04/01/98
-// RCS-ID:      $Id: metafile.cpp,v 1.35 2006/01/26 16:49:30 ABX Exp $
+// RCS-ID:      $Id: metafile.cpp,v 1.36 2006/02/05 11:59:48 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -122,8 +122,6 @@ bool wxMetafile::Play(wxDC *dc)
     if (!m_refData)
         return false;
 
-    dc->BeginDrawing();
-
     if (dc->GetHDC() && M_METAFILEDATA->m_metafile)
     {
         if ( !::PlayMetaFile(GetHdcOf(*dc), (HMETAFILE)
@@ -132,8 +130,6 @@ bool wxMetafile::Play(wxDC *dc)
             wxLogLastError(_T("PlayMetaFile"));
         }
     }
-
-    dc->EndDrawing();
 
     return true;
 }

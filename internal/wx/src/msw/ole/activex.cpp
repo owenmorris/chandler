@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.12 2006/01/25 20:28:10 RD Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.13 2006/02/05 11:59:54 JG Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -813,7 +813,6 @@ void wxActiveXContainer::OnPaint(wxPaintEvent& WXUNUSED(event))
     // Draw only when control is windowless or deactivated
     if (m_viewObject)
     {
-        dc.BeginDrawing();
         int w, h;
         GetParent()->GetSize(&w, &h);
         RECT posRect;
@@ -830,8 +829,6 @@ void wxActiveXContainer::OnPaint(wxPaintEvent& WXUNUSED(event))
         RECTL *prcBounds = (RECTL *) &posRect;
         m_viewObject->Draw(DVASPECT_CONTENT, -1, NULL, NULL, NULL,
             (HDC)dc.GetHDC(), prcBounds, NULL, NULL, 0);
-
-        dc.EndDrawing();
     }
 
 //  We've got this one I think

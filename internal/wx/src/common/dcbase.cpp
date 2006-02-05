@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dcbase.cpp,v 1.41 2005/09/25 23:27:21 VZ Exp $
+// RCS-ID:      $Id: dcbase.cpp,v 1.42 2006/02/05 11:59:35 JG Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,16 @@
 // ============================================================================
 // implementation
 // ============================================================================
+
+#if WXWIN_COMPATIBILITY_2_6
+void wxDCBase::BeginDrawing()
+{
+}
+
+void wxDCBase::EndDrawing()
+{
+}
+#endif // WXWIN_COMPATIBILITY_2_6
 
 // ----------------------------------------------------------------------------
 // special symbols

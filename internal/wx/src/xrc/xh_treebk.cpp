@@ -3,7 +3,7 @@
 // Purpose:     XRC resource handler for wxTreebook
 // Author:      Evgeniy Tarassov
 // Created:     2005/09/28
-// RCS-ID:      $Id: xh_treebk.cpp,v 1.3 2005/10/30 20:20:27 VZ Exp $
+// RCS-ID:      $Id: xh_treebk.cpp,v 1.4 2006/02/05 13:00:43 VZ Exp $
 // Copyright:   (c) 2005 TT-Solutions <vadim@tt-solutions.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ wxObject *wxTreebookXmlHandler::DoCreateResource()
         }
         else
         {
-            m_tbk->AddSubPage(m_treeContext.Item(depth - 1), wnd,
+            m_tbk->InsertSubPage(m_treeContext.Item(depth - 1), wnd,
                 GetText(wxT("label")), GetBool(wxT("selected")), imgIndex);
         }
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.664 2006/02/03 16:29:41 JS Exp $
+// RCS-ID:      $Id: window.cpp,v 1.665 2006/02/05 11:59:48 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -4079,13 +4079,10 @@ bool wxWindowMSW::HandleEraseBkgnd(WXHDC hdc)
 
     dc.SetHDC(hdc);
     dc.SetWindow((wxWindow *)this);
-    dc.BeginDrawing();
 
     wxEraseEvent event(m_windowId, &dc);
     event.SetEventObject(this);
     bool rc = GetEventHandler()->ProcessEvent(event);
-
-    dc.EndDrawing();
 
     // must be called manually as ~wxDC doesn't do anything for wxDCTemp
     dc.SelectOldObjects(hdc);

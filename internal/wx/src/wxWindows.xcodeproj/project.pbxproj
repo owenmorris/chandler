@@ -980,6 +980,14 @@
 		40F10E5D06AD0230003C7AC3 /* thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40F10E5706AD0230003C7AC3 /* thread.cpp */; };
 		40FF2B0D0869B1530013E961 /* webkit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 40FF2B0C0869B1530013E961 /* webkit.mm */; };
 		40FF2B0E0869B1530013E961 /* webkit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 40FF2B0C0869B1530013E961 /* webkit.mm */; };
+		43DFF59D09926B080033000B /* helpdlg.h in Headers */ = {isa = PBXBuildFile; fileRef = 43DFF59B09926B080033000B /* helpdlg.h */; };
+		43DFF59E09926B080033000B /* helpwnd.h in Headers */ = {isa = PBXBuildFile; fileRef = 43DFF59C09926B080033000B /* helpwnd.h */; };
+		43DFF59F09926B080033000B /* helpdlg.h in Headers */ = {isa = PBXBuildFile; fileRef = 43DFF59B09926B080033000B /* helpdlg.h */; };
+		43DFF5A009926B080033000B /* helpwnd.h in Headers */ = {isa = PBXBuildFile; fileRef = 43DFF59C09926B080033000B /* helpwnd.h */; };
+		43DFF5BA09926F7B0033000B /* helpdlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF5B809926F7B0033000B /* helpdlg.cpp */; };
+		43DFF5BB09926F7B0033000B /* helpwnd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF5B909926F7B0033000B /* helpwnd.cpp */; };
+		43DFF5BC09926F7B0033000B /* helpdlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF5B809926F7B0033000B /* helpdlg.cpp */; };
+		43DFF5BD09926F7B0033000B /* helpwnd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF5B909926F7B0033000B /* helpwnd.cpp */; };
 		43DFF574099268A00033000B /* colheader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF573099268A00033000B /* colheader.cpp */; };
 		43DFF575099268A00033000B /* colheader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF573099268A00033000B /* colheader.cpp */; };
 		43DFF577099268B10033000B /* minical.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF576099268B10033000B /* minical.cpp */; };
@@ -992,8 +1000,6 @@
 		43DFF582099269020033000B /* minical.h in Headers */ = {isa = PBXBuildFile; fileRef = 43DFF580099269020033000B /* minical.h */; };
 		43DFF583099269020033000B /* colheader.h in Headers */ = {isa = PBXBuildFile; fileRef = 43DFF57F099269020033000B /* colheader.h */; };
 		43DFF584099269020033000B /* minical.h in Headers */ = {isa = PBXBuildFile; fileRef = 43DFF580099269020033000B /* minical.h */; };
-		43DFF5BA09926F7B0033000B /* helpdlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF5B809926F7B0033000B /* helpdlg.cpp */; };
-		43DFF5BB09926F7B0033000B /* helpwnd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43DFF5B909926F7B0033000B /* helpwnd.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */

@@ -75,6 +75,7 @@ All (GUI):
 - Added wxToolbook (uses a wxToolBar to control pages).
 - Added SetSheetStyle to wxPropertySheetDialog and allowed it to
   behave like a Mac OS X settings dialog.
+- wxDC::BeginDrawing() and wxDC::EndDrawing() deprecated.
 
 wxMSW:
 

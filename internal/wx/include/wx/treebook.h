@@ -4,7 +4,7 @@
 // Author:      Evgeniy Tarassov, Vadim Zeitlin
 // Modified by:
 // Created:     2005-09-15
-// RCS-ID:      $Id: treebook.h,v 1.3 2005/11/10 11:24:19 VZ Exp $
+// RCS-ID:      $Id: treebook.h,v 1.4 2006/02/05 12:26:31 VZ Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -77,11 +77,11 @@ public:
                             int imageId = wxNOT_FOUND);
 
     // Inserts a new sub-page to the end of children of the page at given pos.
-    virtual bool AddSubPage(size_t pos,
-                            wxWindow *page,
-                            const wxString& text,
-                            bool bSelect = false,
-                            int imageId = wxNOT_FOUND);
+    virtual bool InsertSubPage(size_t pos,
+                               wxWindow *page,
+                               const wxString& text,
+                               bool bSelect = false,
+                               int imageId = wxNOT_FOUND);
 
     // Adds a new page at top level after all other pages.
     virtual bool AddPage(wxWindow *page,

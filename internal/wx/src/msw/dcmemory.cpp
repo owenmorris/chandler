@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcmemory.cpp,v 1.33 2005/09/23 12:54:55 MR Exp $
+// RCS-ID:      $Id: dcmemory.cpp,v 1.34 2006/02/05 11:59:48 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,11 +58,7 @@ wxMemoryDC::wxMemoryDC(wxDC *dc)
 {
     wxCHECK_RET( dc, _T("NULL dc in wxMemoryDC ctor") );
 
-    dc->BeginDrawing();
-
     CreateCompatible(dc);
-
-    dc->EndDrawing();
 
     Init();
 }

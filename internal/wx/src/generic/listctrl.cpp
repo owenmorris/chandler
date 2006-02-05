@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.387 2006/01/31 02:37:23 RD Exp $
+// Id:          $Id: listctrl.cpp,v 1.388 2006/02/05 11:59:40 JG Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1683,8 +1683,6 @@ void wxListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
     PrepareDC( dc );
     AdjustDC( dc );
 
-    dc.BeginDrawing();
-
     dc.SetFont( GetFont() );
 
     // width and height of the entire header window
@@ -1794,8 +1792,6 @@ void wxListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
 
         x += wCol;
     }
-
-    dc.EndDrawing();
 }
 
 void wxListHeaderWindow::DrawCurrent()
@@ -2591,8 +2587,6 @@ void wxListMainWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
     int dev_x, dev_y;
     CalcScrolledPosition( 0, 0, &dev_x, &dev_y );
 
-    dc.BeginDrawing();
-
     dc.SetFont( GetFont() );
 
     if ( InReportView() )
@@ -2700,8 +2694,6 @@ void wxListMainWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
         }
     }
 #endif
-
-    dc.EndDrawing();
 }
 
 void wxListMainWindow::HighlightAll( bool on )
