@@ -447,7 +447,7 @@ def installParcel(parcel, oldVersion=None):
 <p>Recall from above that FeedChannel derived from ListCollection. When we create the FeedChannel collection object, we will add it to the Sidebar so that the user can see it. From here we will focus on the code called in the FeedController's <code>onNewFeedCollectionEvent</code> method.</p>
 <p>Creating a FeedChannel object is just like creating any other object in Python, except that you can also pass any attribute values along in the constructor and they will be set automatically.</p>
 <p>After creating the channel, we just have to add it to the list of collections that the sidebar uses. </p>
-<pre class="code">class FeedController(Block):
+<pre class="code">class FeedController(Block.Block):
     def onNewFeedChannelEvent(self, event):
         import wx
         from application.dialogs import Util
@@ -457,7 +457,7 @@ def installParcel(parcel, oldVersion=None):
                               &quot;http://&quot;)
 
         # create the feed
-        newFeed = FeedChannel(url=url)
+        newFeed = FeedChannel(itsView=self.itsView, url=url)
 
         # add it to the sidebar
         sidebarCollections = schema.ns(&quot;osaf.app&quot;, self.itsView).sidebarCollections
