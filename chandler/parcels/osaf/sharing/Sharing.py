@@ -2687,9 +2687,7 @@ class CloudXMLFormat(ImportExportFormat):
                                 value.encoding = encoding
 
                         else:
-                            content = attrElement.text or u""
-                            if isinstance(content, str):
-                                content = unicode(content, 'utf-8')
+                            content = unicode(attrElement.text or u"")
                             value = attrType.makeValue(content)
 
 
@@ -2717,9 +2715,7 @@ class CloudXMLFormat(ImportExportFormat):
                                     value.encoding = encoding
 
                             else:
-                                content = child.text or u""
-                                if isinstance(content, str):
-                                    content = unicode(content, 'utf-8')
+                                content = unicode(child.text or u"")
                                 value = attrType.makeValue(content)
 
 
