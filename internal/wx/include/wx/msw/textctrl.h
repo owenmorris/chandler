@@ -158,7 +158,7 @@ public:
     virtual bool SetForegroundColour(const wxColour& colour);
 #endif // wxUSE_RICHEDIT
 
-#if 1 || (wxUSE_INKEDIT && wxUSE_RICHEDIT)
+#if wxUSE_INKEDIT && wxUSE_RICHEDIT
     bool IsInkEdit() const { return m_isInkEdit != 0; }
 #else
     bool IsInkEdit() const { return false; }
@@ -246,7 +246,7 @@ protected:
 
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
-#if 1 || wxUSE_RICHEDIT
+#if wxUSE_RICHEDIT
     // we're using RICHEDIT (and not simple EDIT) control if this field is not
     // 0, it also gives the version of the RICHEDIT control being used (1, 2 or
     // 3 so far)
@@ -267,7 +267,7 @@ private:
 
     bool m_isNativeCaretShown;
 
-#if 1 || (wxUSE_INKEDIT && wxUSE_RICHEDIT)
+#if wxUSE_INKEDIT && wxUSE_RICHEDIT
     int  m_isInkEdit;
 #endif
 };
