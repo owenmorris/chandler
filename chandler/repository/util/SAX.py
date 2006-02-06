@@ -6,8 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys, traceback
 
-from libxml2mod import xmlEncodeSpecialChars as escape
-from libxml2 import createPushParser, SAXParseFile
+from elementtree.SimpleXMLWriter import XMLWriter
+from xml.sax import InputSource, make_parser, handler
 from cStringIO import StringIO
 
 
@@ -18,152 +18,48 @@ class ParserError(SAXError):
     pass
 
 
-class SAXCallback(object):
-    """
-    Base class for SAX handlers.
+# handler class are old-style
+# protocol as per expatreader.py
+class LexicalHandler:
 
-    Source was imported from libxml2 so that this class extends object.
-    """
-
-    def startDocument(self):
-        """
-        Called at the start of the document.
-        """
+    def comment(self, data):
         pass
 
-    def endDocument(self):
-        """
-        Called at the end of the document.
-        """
+    def startCDATA(self):
         pass
 
-    def startElement(self, tag, attrs):
-        """
-        Called at the start of every element, tag is the name of
-        the element, attrs is a dictionary of the element's attributes.
-        """
+    def endCDATA(self):
         pass
 
-    def endElement(self, tag):
-        """
-        Called at the start of every element, tag is the name of the element.
-        """
+    def startDTD(self, doctypeName, systemId, publicId, hasInternalSubset):
         pass
 
-    def characters(self, data):
-        """
-        Called when character data have been read, data is the string
-        containing the data, multiple consecutive characters() callback
-        are possible.
-        """
+    def endDTD(self):
         pass
 
-    def cdataBlock(self, data):
-        """
-        Called when CDATA section have been read, data is the string
-        containing the data, multiple consecutive cdataBlock() callback
-        are possible.
-        """
-        pass
 
-    def reference(self, name):
-        """
-        Called when an entity reference has been found.
-        """
-        pass
-
-    def ignorableWhitespace(self, data):
-        """
-        Called when potentially ignorable white spaces have been found.
-        """
-        pass
-
-    def processingInstruction(self, target, data):
-        """
-        Called when a PI has been found, target contains the PI name and
-        data is the associated data in the PI.
-        """
-        pass
-
-    def comment(self, content):
-        """
-        Called when a comment has been found, content contains the comment.
-        """
-        pass
-
-    def externalSubset(self, name, externalID, systemID):
-        """
-        Called when a DOCTYPE declaration has been found, name is the
-        DTD name and externalID, systemID are the DTD public and system
-        identifier for that DTd if available.
-        """
-        pass
-
-    def internalSubset(self, name, externalID, systemID):
-        """
-        Called when a DOCTYPE declaration has been found, name is the
-        DTD name and externalID, systemID are the DTD public and system
-        identifier for that DTD if available.
-        """
-        pass
-
-    def entityDecl(self, name, type, externalID, systemID, content):
-        """
-        Called when an ENTITY declaration has been found, name is the
-        entity name and externalID, systemID are the entity public and
-        system identifier for that entity if available, type indicates
-        the entity type, and content reports it's string content.
-        """
-        pass
-
-    def notationDecl(self, name, externalID, systemID):
-        """
-        Called when an NOTATION declaration has been found, name is the
-        notation name and externalID, systemID are the notation public and
-        system identifier for that notation if available.
-        """
-        pass
-
-    def attributeDecl(self, elem, name, type, defi, defaultValue, nameList):
-        """
-        Called when an ATTRIBUTE definition has been found.
-        """
-        pass
-
-    def elementDecl(self, name, type, content):
-        """
-        Called when an ELEMENT definition has been found.
-        """
-        pass
-
-    def entityDecl(self, name, publicId, systemID, notationName):
-        """
-        Called when an unparsed ENTITY declaration has been found,
-        name is the entity name and publicId,, systemID are the entity
-        public and system identifier for that entity if available,
-        and notationName indicate the associated NOTATION.
-        """
-        pass
-
-    def warning(self, msg):
-        print msg
-
-    def error(self, msg):
-        raise ParserError, msg
-
-    def fatalError(self, msg):
-        raise ParserError, msg
-
-
-class ContentHandler(SAXCallback):
+class SAXHandler(object,
+                 handler.ContentHandler, handler.ErrorHandler, LexicalHandler):
 
     def __init__(self):
 
+        self._cdata = False
+
+    def startCDATA(self):
+
+        self._cdata = True
+
+    def endCDATA(self):
+
+        self._cdata = False
+
+
+class ContentHandler(SAXHandler):
+
+    def __init__(self):
+
+        SAXHandler.__init__(self)
         self.exception = None
-    
-    def cdataBlock(self, data):
-        
-        self.characters(data)
 
     def saveException(self):
 
@@ -176,13 +72,29 @@ class ContentHandler(SAXCallback):
 
     def parse(self, xml):
 
-        createPushParser(self, xml, len(xml), 'filter').parseChunk('', 0, 1)
+        parser = make_parser()
+        parser.setContentHandler(self)
+        parser.setErrorHandler(self)
+        parser.setProperty(handler.property_lexical_handler, self)
+
+        input = InputSource()
+        input.setByteStream(StringIO(xml))
+        parser.parse(input)
+
         if self.errorOccurred():
             raise self.saxError()
         
-    def parseFile(self, file):
+    def parseFile(self, inputFile):
 
-        SAXParseFile(self, file, 0)
+        parser = make_parser()
+        parser.setContentHandler(self)
+        parser.setErrorHandler(self)
+        parser.setProperty(handler.property_lexical_handler, self)
+
+        input = InputSource(inputFile)
+        input.setByteStream(file(inputFile))
+        parser.parse(input)
+
         if self.errorOccurred():
             raise self.saxError()
         
@@ -200,10 +112,11 @@ class ContentHandler(SAXCallback):
             buffer.close()
 
 
-class XMLGenerator(object):
+class XMLGenerator(object, XMLWriter):
 
     def __init__(self, out, encoding='utf-8'):
 
+        XMLWriter.__init__(self, out, encoding)
         self.out = out
         self.encoding = encoding
 
@@ -213,45 +126,29 @@ class XMLGenerator(object):
 
     def write(self, data):
 
-        self.out.write(data)
+        self._XMLWriter__flush()
+        self._XMLWriter__write(data)
 
     def startDocument(self):
-
-        self.out.write('<?xml version="1.0" encoding="%s"?>' %(self.encoding))
+        
+        self.declaration()
 
     def endDocument(self):
 
-        self.out.flush()
+        self.flush()
 
     def startElement(self, tag, attrs):
 
-        self.out.write('<')
-        self.out.write(tag)
-        if attrs:
-            for name, value in attrs.iteritems():
-                if isinstance(value, unicode):
-                    value = value.encode(self.encoding)
-                self.out.write(' ')
-                self.out.write(name)
-                self.out.write('="')
-                self.out.write(escape(None, value))
-                self.out.write('"')
-                
-        self.out.write('>')
+        self.start(tag, attrs)
 
     def endElement(self, tag):
 
-        self.out.write('</')
-        self.out.write(tag)
-        self.out.write('>')
+        self.end(tag)
     
     def characters(self, data):
 
         if data:
-            if isinstance(data, unicode):
-                data = data.encode(self.encoding)
-
-            self.out.write(escape(None, data))
+            self.data(data)
 
     def cdataSection(self, data, start=True, end=True):
 
@@ -259,11 +156,11 @@ class XMLGenerator(object):
             data = data.encode(self.encoding)
 
         if start:
-            self.out.write('<![CDATA[')
+            self.write('<![CDATA[')
         if data:
-            self.out.write(data)
+            self.write(data)
         if end:
-            self.out.write(']]>')
+            self.write(']]>')
 
 
 class XMLPrettyGenerator(XMLGenerator):
@@ -275,7 +172,7 @@ class XMLPrettyGenerator(XMLGenerator):
         self._indents = 0
         self._nl = False
         
-        super(XMLPrettyGenerator, self).__init__(None)
+        super(XMLPrettyGenerator, self).__init__(generator.getOutputStream())
 
     def getOutputStream(self):
 
@@ -371,7 +268,9 @@ class XMLFilter(ContentHandler):
 
     def characters(self, data):
 
-        if self.output():
+        if self._cdata:
+            self.cdataBlock(self, data)
+        elif self.output():
             self.generator.characters(data)
 
     def cdataBlock(self, data):
@@ -381,6 +280,7 @@ class XMLFilter(ContentHandler):
                 self.generator.write('<![CDATA[')
                 self.cdata = True
             self.generator.write(data)
+
 
 class XMLOffFilter(XMLFilter):
 

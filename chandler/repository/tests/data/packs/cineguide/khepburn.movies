@@ -20,7 +20,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <lob encoding="utf-8" mimetype="text/vnd.osaf-stream64">ADQSW50ZXJuw6kgZGVwdWlzIHZpbmd0LWNpbnEgYW5zLCB1biBob21tZSBzJ8OpY2hhcHBlIGxlIGpvdXIgb8O5IGlsIGFwcHJlbmQgcXVlIHNhIGZlbW1lIHZhIGRpdm9yY2VyLiBJbCByZXRyb3V2ZSBzYSBmaWxsZSBxdWkgbHVpIGRvbm5lIHRvdXRlIHNvbiBhZmZlY3Rpb24u</lob>
+      <lob encoding="utf-8" mimetype="text/vnd.osaf-stream64"><![CDATA[ADQSW50ZXJuw6kgZGVwdWlzIHZpbmd0LWNpbnEgYW5zLCB1biBob21tZSBzJ8OpY2hhcHBlIGxlIGpvdXIgb8O5IGlsIGFwcHJlbmQgcXVlIHNhIGZlbW1lIHZhIGRpdm9yY2VyLiBJbCByZXRyb3V2ZSBzYSBmaWxsZSBxdWkgbHVpIGRvbm5lIHRvdXRlIHNvbiBhZmZlY3Rpb24u]]></lob>
     </attribute>
 
     <attribute name="website">http://www.billthemovie.html</attribute>
