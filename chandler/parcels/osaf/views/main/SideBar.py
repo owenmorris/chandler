@@ -237,9 +237,8 @@ class wxSidebar(wxTable):
         
     def AddItems (self, itemList):
         # Adding due to Drag and Drop?
-        try:
-            whereToDropItem = self.whereToDropItem
-        except AttributeError:
+        whereToDropItem = getattr (self, 'whereToDropItem', None)
+        if whereToDropItem is None:
             possibleCollections = self.SelectedItems()
         else:
             possibleCollections = [self.blockItem.contents[whereToDropItem]]
@@ -247,10 +246,10 @@ class wxSidebar(wxTable):
             del self.whereToDropItem
         for possibleCollection in possibleCollections:
             for item in itemList:
-                try:
-                    item.addToCollection(possibleCollection)
-                except AttributeError:
-                    break # possible collection doesn't know how to 'add'
+                # Some items don't know how to add themselves
+                method = getattr (type (item), "addToCollection", None)
+                if method is not None:
+                    method (item, possibleCollection)
     
     def OnItemDrag (self, event):
         # @@@ You currently can't drag out of the sidebar
@@ -328,9 +327,8 @@ class wxSidebar(wxTable):
         self.Update()
 
     def OnFilePaste(self):
-        try:
-            whereToDropItem = self.whereToDropItem
-        except AttributeError:
+        whereToDropItem = getattr (self, 'whereToDropItem', None)
+        if whereToDropItem is None:
             coll = None
         else:
             coll = self.blockItem.contents[whereToDropItem]
@@ -736,9 +734,8 @@ class SidebarBlock(Table):
             # We need to update the click state of the toolbar as well
             toolbar = Block.Block.findBlockByName("ApplicationBar")
             for button in toolbar.childrenBlocks:
-                try:
-                    buttonEvent = button.event
-                except:
+                buttonEvent = getattr (button, 'event', None)
+                if buttonEvent is None:
                     continue
                 if buttonEvent == event:
                     button.widget.selectTool()
@@ -754,9 +751,8 @@ class SidebarBlock(Table):
     def onRequestSelectSidebarItemEvent (self, event):
         # Request the sidebar to change selection
         # Item specified is usually by name
-        try:
-            item = event.arguments['item']
-        except KeyError:
+        item = arguments.get ('item', None)
+        if item is None:
             return self.select(None, event.arguments['itemName'])
         else:
             return self.select(item)
@@ -987,9 +983,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             
             tupleKey = tuple (tupleList)
 
-            try:
-                key = self.itemTupleKeyToCacheKey [tupleKey]
-            except KeyError:
+            key = self.itemTupleKeyToCacheKey.get (tupleKey, None)
+            if key is None:
                 # we don't have a cached version of this key, so we'll
                 # create a new one
                 if len (collectionList) == 1:
@@ -1007,9 +1002,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 # the kind collection
                 if filterKind is not None:
                     newKey = IntersectionCollection(itsView=self.itsView)
-                    try:
-                        kindCollection = self.kindToKindCollectionCache [filterKind]
-                    except KeyError:
+                    kindCollection = self.kindToKindCollectionCache.get (filterKind, None)
+                    if kindCollection is None:
                         kindCollection = KindCollection (itsView=self.itsView)
                         kindCollection.kind = filterKind
                         kindCollection.recursive = True
@@ -1031,7 +1025,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
                 key.collectionList = collectionList
                 self.itemTupleKeyToCacheKey [tupleKey] = key
-            else: # try/except
+            else: # if key is None
                 """
                 We found the key, but we might still need to reorder
                 collectionList. The list is kept sorted by the order
@@ -1055,12 +1049,11 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             sidebar = Block.Block.findBlockByName("Sidebar")
             if (not keyItem.dontDisplayAsCalendar and
                 sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
-                    branch = self.findPath (self.calendarTemplatePath)
-                    keyUUID = branch.itsUUID
-                    try:
-                        branch = self.keyUUIDToBranch[keyUUID]
-                    except KeyError:
-                        branch = self._copyItem(branch, onlyIfReadOnly=True)
+                    template = self.findPath (self.calendarTemplatePath)
+                    keyUUID = template.itsUUID
+                    branch = self.keyUUIDToBranch.get (keyUUID, None)
+                    if branch is None:
+                        branch = self._copyItem(template, onlyIfReadOnly=True)
                         self.keyUUIDToBranch[keyUUID] = branch
             else:
                 branch = self.findPath (self.tableTemplatePath)
