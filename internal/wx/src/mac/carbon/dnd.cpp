@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dnd.cpp,v 1.44 2006/01/14 08:49:42 vell Exp $
+// RCS-ID:      $Id: dnd.cpp,v 1.45 2006/02/06 16:24:26 vell Exp $
 // Copyright:   (c) 1998 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,8 +169,8 @@ bool wxDropTarget::GetData()
                     {
                         char *d = new char[size];
                         data->GetDataHere( format , (void*) d );
-                        m_dataObject->SetData( format , size , d ) ;
-                        delete [] d ;
+                        m_dataObject->SetData( format , size , d );
+                        delete [] d;
                     }
                 }
             }
@@ -237,7 +237,10 @@ bool wxDropTarget::GetData()
                             dataSize++ ;
                         }
 
-                        theData = new char[dataSize];
+                        if (dataSize > 0)
+                            theData = new char[dataSize];
+                        else
+                            theData = NULL;
 
                         GetFlavorData( (DragReference)m_currentDrag, theItem, theType, (void*) theData, &dataSize, 0L );
                         if ( theType == kScrapFlavorTypeText )
@@ -245,26 +248,34 @@ bool wxDropTarget::GetData()
                             theData[dataSize] = 0 ;
                             m_dataObject->SetData( wxDataFormat(wxDF_TEXT), dataSize , theData );
                         }
- #if wxUSE_UNICODE
+#if wxUSE_UNICODE
                         else if ( theType == kScrapFlavorTypeUnicode )
                         {
                             theData[dataSize + 0] =
                             theData[dataSize + 1] = 0 ;
                             m_dataObject->SetData( wxDataFormat(wxDF_UNICODETEXT), dataSize , theData );
                         }
- #endif
+#endif
                         else if ( theType == kDragFlavorTypeHFS )
                         {
-                            HFSFlavor* theFile = (HFSFlavor*) theData ;
-                            wxString name = wxMacFSSpec2MacFilename( &theFile->fileSpec ) ;
-                            if ( !firstFileAdded )
-                            {
-                                // reset file list
-                                ((wxFileDataObject*)m_dataObject)->SetData( 0 , "" ) ;
-                                firstFileAdded = true ;
-                            }
+                            wxFileDataObject *fdo = dynamic_cast<wxFileDataObject*>(m_dataObject);
+                            wxASSERT( fdo != NULL );
 
-                            ((wxFileDataObject*)m_dataObject)->AddFile( name ) ;
+                            if ((theData != NULL) && (fdo != NULL))
+                            {
+                                HFSFlavor* theFile = (HFSFlavor*) theData ;
+                                wxString name = wxMacFSSpec2MacFilename( &theFile->fileSpec ) ;
+
+                                if ( !firstFileAdded )
+                                {
+                                    // reset file list
+                                    fdo->SetData( 0 , "" ) ;
+                                    firstFileAdded = true ;
+                                }
+
+                                if (!name.IsEmpty())
+                                    fdo->AddFile( name ) ;
+                            }
                         }
                         else
                         {

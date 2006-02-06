@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: valtext.h,v 1.23 2006/01/18 17:22:54 JS Exp $
+// RCS-ID:      $Id: valtext.h,v 1.24 2006/02/06 04:23:02 KH Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -102,8 +102,6 @@ protected:
                      _T("No window associated with validator") );
         wxCHECK_MSG( m_validatorWindow->IsKindOf(CLASSINFO(wxTextCtrl)), false,
                      _T("wxTextValidator is only for wxTextCtrl's") );
-        wxCHECK_MSG( m_stringValue, false,
-                     _T("No variable storage for validator") );
 
         return true;
     }

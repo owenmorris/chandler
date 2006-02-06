@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.665 2006/02/05 11:59:48 JG Exp $
+// RCS-ID:      $Id: window.cpp,v 1.666 2006/02/06 13:44:06 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1113,6 +1113,10 @@ bool wxCheckWindowWndProc(WXHWND hWnd,
     wxString str(wxGetWindowClass(hWnd));
     if (str == wxCanvasClassName ||
         str == wxCanvasClassNameNR ||
+#if wxUSE_GLCANVAS
+        str == _T("wxGLCanvasClass") ||
+        str == _T("wxGLCanvasClassNR") ||
+#endif // wxUSE_GLCANVAS
         str == wxMDIFrameClassName ||
         str == wxMDIFrameClassNameNoRedraw ||
         str == wxMDIChildFrameClassName ||
