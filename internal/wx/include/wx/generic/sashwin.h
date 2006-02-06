@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sashwin.h,v 1.23 2005/09/23 12:49:07 MR Exp $
+// RCS-ID:      $Id: sashwin.h,v 1.24 2006/02/06 17:37:18 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,10 +39,17 @@ enum wxSashEdgePosition {
 class WXDLLIMPEXP_ADV wxSashEdge
 {
 public:
-    wxSashEdge() { m_show = false; m_border = false; m_margin = 0; }
+    wxSashEdge()
+    { m_show = false;
+#if WXWIN_COMPATIBILITY_2_6
+      m_border = false;
+#endif
+      m_margin = 0; }
 
     bool    m_show;     // Is the sash showing?
+#if WXWIN_COMPATIBILITY_2_6
     bool    m_border;   // Do we draw a border?
+#endif
     int     m_margin;   // The margin size
 };
 
@@ -91,11 +98,15 @@ public:
     // Get whether there's a sash in this position
     bool GetSashVisible(wxSashEdgePosition edge) const { return m_sashes[edge].m_show; }
 
+#if WXWIN_COMPATIBILITY_2_6
     // Set whether there's a border in this position
+    // This value is unused in wxSashWindow.
     void SetSashBorder(wxSashEdgePosition edge, bool border) { m_sashes[edge].m_border = border; }
 
     // Get whether there's a border in this position
+    // This value is unused in wxSashWindow.
     bool HasBorder(wxSashEdgePosition edge) const { return m_sashes[edge].m_border; }
+#endif
 
     // Get border size
     int GetEdgeMargin(wxSashEdgePosition edge) const { return m_sashes[edge].m_margin; }

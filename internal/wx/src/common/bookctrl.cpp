@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.cpp,v 1.20 2006/01/31 13:51:33 JS Exp $
+// RCS-ID:      $Id: bookctrl.cpp,v 1.21 2006/02/06 17:51:07 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ void wxBookCtrlBase::Init()
     m_bookctrl = NULL;
     m_imageList = NULL;
     m_ownsImageList = false;
-    m_shrinkToFit = false;
+    m_fitToCurrentPage = false;
 
 #if defined(__WXWINCE__)
     m_internalBorder = 1;
@@ -145,7 +145,7 @@ wxSize wxBookCtrlBase::DoGetBestSize() const
         }
     }
     
-    if (m_shrinkToFit && GetCurrentPage())
+    if (m_fitToCurrentPage && GetCurrentPage())
         bestSize = GetCurrentPage()->GetBestSize();
 
     // convert display area to window area, adding the size necessary for the

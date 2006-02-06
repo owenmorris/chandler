@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: glcanvas.cpp,v 1.24 2005/09/23 12:54:07 MR Exp $
+// RCS-ID:      $Id: glcanvas.cpp,v 1.25 2006/02/06 16:58:19 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -213,6 +213,8 @@ bool wxGLCanvas::Create(wxWindow *parent, const wxGLContext *shared, wxWindowID 
                         const wxPoint& pos, const wxSize& size, long style, const wxString& name,
                         int *attribList, const wxPalette& palette)
 {
+    m_macCanvasIsShown = false ;
+    m_glContext = 0 ;
     wxWindow::Create( parent, id, pos, size, style, name );
     
     AGLPixelFormat fmt = ChoosePixelFormat(attribList);

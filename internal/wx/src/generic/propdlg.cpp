@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-03-12
-// RCS-ID:      $Id: propdlg.cpp,v 1.14 2006/01/31 21:29:13 ABX Exp $
+// RCS-ID:      $Id: propdlg.cpp,v 1.15 2006/02/06 17:51:11 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ wxBookCtrlBase* wxPropertySheetDialog::CreateBookCtrl()
         bookCtrl = new wxBookCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, style );
     
     if (GetSheetStyle() & wxPROPSHEET_SHRINKTOFIT)
-        bookCtrl->SetShrinkMode(true);
+        bookCtrl->SetFitToCurrentPage(true);
     
     return bookCtrl;
 }

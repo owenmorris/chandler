@@ -4,7 +4,7 @@
  * Author:      Julian Smart
  * Modified by:
  * Created:     01/02/97
- * RCS-ID:      $Id: chkconf.h,v 1.27 2006/01/21 16:47:30 JS Exp $
+ * RCS-ID:      $Id: chkconf.h,v 1.28 2006/02/06 17:56:40 JS Exp $
  * Copyright:   (c) Julian Smart
  * Licence:     wxWindows licence
  */
@@ -253,6 +253,14 @@
 #       else
 #           undef wxUSE_MEDIACTRL
 #           define wxUSE_MEDIACTRL 0
+#       endif
+#   endif
+#   if wxUSE_INKEDIT
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxUSE_INKEDIT requires wxUSE_DYNLIB_CLASS"
+#       else
+#           undef wxUSE_INKEDIT
+#           define wxUSE_INKEDIT 0
 #       endif
 #   endif
 #endif  /* wxUSE_DYNLIB_CLASS */

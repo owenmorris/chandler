@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.58 2006/01/17 02:13:05 RD Exp $
+// RCS-ID:      $Id: missing.h,v 1.59 2006/02/06 17:42:08 JS Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -98,6 +98,27 @@
     #define VK_OEM_COMMA    0xBC
     #define VK_OEM_MINUS    0xBD
     #define VK_OEM_PERIOD   0xBE
+#endif
+
+#ifndef SM_TABLETPC
+    #define SM_TABLETPC 86
+#endif
+
+#ifndef INKEDIT_CLASS
+#   define INKEDIT_CLASSW  L"INKEDIT"
+#   ifdef UNICODE
+#       define INKEDIT_CLASS   INKEDIT_CLASSW
+#   else
+#       define INKEDIT_CLASS   "INKEDIT"
+#   endif
+#endif
+
+#ifndef EM_SETINKINSERTMODE
+#   define EM_SETINKINSERTMODE (WM_USER + 0x0204)
+#endif
+
+#ifndef EM_SETUSEMOUSEFORINPUT
+#define EM_SETUSEMOUSEFORINPUT (WM_USER + 0x224)
 #endif
 
 // ----------------------------------------------------------------------------

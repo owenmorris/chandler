@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1111 2006/01/30 15:38:27 JS Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1112 2006/02/06 18:01:46 MW Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1111 2006/01/30 15:38:27 JS Exp $
+dnl Version: $Id: configure.in,v 1.1112 2006/02/06 18:01:46 MW Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -6985,7 +6985,7 @@ if test "$wxUSE_GUI" = "yes"; then
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS artprov controls dialogs drawing \
                      dynamic erase event exec font image minimal mobile \
                      mobile/wxedit mobile/styles propsize render \
-                     richedit rotate shaped vscroll widgets"
+                     rotate shaped vscroll widgets"
 
     if test "$wxUSE_MONOLITHIC" != "yes"; then
         SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS console"

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: textctrl.h,v 1.69 2005/09/23 12:50:16 MR Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.70 2006/02/06 17:56:40 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -158,6 +158,12 @@ public:
     virtual bool SetForegroundColour(const wxColour& colour);
 #endif // wxUSE_RICHEDIT
 
+#if wxUSE_INKEDIT && wxUSE_RICHEDIT
+    bool IsInkEdit() const { return m_isInkEdit != 0; }
+#else
+    bool IsInkEdit() const { return false; }
+#endif
+
     virtual void AdoptAttributesFromHWND();
 
     virtual bool AcceptsFocus() const;
@@ -260,6 +266,11 @@ private:
     wxMenu* m_privateContextMenu;
 
     bool m_isNativeCaretShown;
+
+#if wxUSE_INKEDIT && wxUSE_RICHEDIT
+    int  m_isInkEdit;
+#endif
+
 };
 
 #endif

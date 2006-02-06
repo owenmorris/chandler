@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpfrm.cpp,v 1.128 2006/01/09 13:42:53 JS Exp $
+// RCS-ID:      $Id: helpfrm.cpp,v 1.129 2006/02/06 18:12:16 MW Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -198,11 +198,11 @@ void wxHtmlHelpFrame::AddGrabIfNeeded()
     
     // Check if there are any modal windows present,
     // in which case we need to add a grab.
-    for ( wxWindowList::Node * node = wxTopLevelWindows.GetFirst();
-          node;
-          node = node->GetNext() )
+    for ( wxWindowList::iterator it = wxTopLevelWindows.begin();
+          it != wxTopLevelWindows.end();
+          ++it )
     {
-        wxWindow *win = node->GetData();
+        wxWindow *win = *it;
         wxDialog *dialog = wxDynamicCast(win, wxDialog);
 
         if (dialog && dialog->IsModal())
