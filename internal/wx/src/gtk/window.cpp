@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.566 2006/02/03 21:57:03 MR Exp $
+// Id:          $Id: window.cpp,v 1.569 2006/02/05 23:50:13 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,6 +47,7 @@
 #include "wx/settings.h"
 #include "wx/log.h"
 #include "wx/fontutil.h"
+#include "wx/stattext.h"
 
 #ifdef __WXDEBUG__
     #include "wx/thread.h"
@@ -830,6 +831,10 @@ static void wxFillOtherKeyEventFields(wxKeyEvent& event,
     event.m_rawFlags = 0;
 #if wxUSE_UNICODE
     event.m_uniChar = gdk_keyval_to_unicode(gdk_event->keyval);
+    if ( gdk_event->type == GDK_KEY_PRESS ||  gdk_event->type == GDK_KEY_RELEASE )
+    {
+        event.m_uniChar = toupper(event.m_uniChar);
+    }
 #endif
     wxGetMousePosition( &x, &y );
     win->ScreenToClient( &x, &y );
@@ -1066,6 +1071,16 @@ static gint gtk_window_key_press_callback( GtkWidget *widget,
 
             event.m_keyCode = key_code;
 
+            // To conform to the docs we need to translate Ctrl-alpha
+            // characters to values in the range 1-26.
+            if (event.ControlDown() && key_code >= 'a' && key_code <= 'z' )
+            {
+                event.m_keyCode = key_code - 'a' + 1;
+#if wxUSE_UNICODE
+                event.m_uniChar = event.m_keyCode;
+#endif
+            }               
+
             // Implement OnCharHook by checking ancestor top level windows
             wxWindow *parent = win;
             while (parent && !parent->IsTopLevel())
@@ -1200,6 +1215,17 @@ static void gtk_wxwindow_commit_cb (GtkIMContext *context,
 #else
         event.m_keyCode = *pstr;
 #endif  // wxUSE_UNICODE
+
+        // To conform to the docs we need to translate Ctrl-alpha
+        // characters to values in the range 1-26.
+        if (event.ControlDown() && *pstr >= 'a' && *pstr <= 'z' )
+        {
+            event.m_keyCode = *pstr - 'a' + 1;
+#if wxUSE_UNICODE
+            event.m_uniChar = event.m_keyCode;
+#endif  
+        }               
+
         if (parent)
         {
             event.SetEventType( wxEVT_CHAR_HOOK );
@@ -2929,7 +2955,10 @@ void wxWindowGTK::DoSetSize( int x, int y, int width, int height, int sizeFlags 
 void wxWindowGTK::OnInternalIdle()
 {
     if ( m_dirtyTabOrder )
+    {
+        m_dirtyTabOrder = false;
         RealizeTabOrder();
+    }
 
     // Update style if the window was not yet realized
     // and SetBackgroundStyle(wxBG_STYLE_CUSTOM) was called
@@ -3512,14 +3541,42 @@ void wxWindowGTK::RealizeTabOrder()
 {
     if (m_wxwindow)
     {
-        if (m_children.size() > 0)
+        if ( !m_children.empty() )
         {
+#if wxUSE_STATTEXT
+            // we don't only construct the correct focus chain but also use
+            // this opportunity to update the mnemonic widgets for all labels
+            //
+            // it would be nice to extract this code from here and put it in
+            // stattext.cpp to reduce dependencies but there is no really easy
+            // way to do it unfortunately
+            wxStaticText *lastLabel = NULL;
+#endif // wxUSE_STATTEXT
+
             GList *chain = NULL;
 
-            for (wxWindowList::const_iterator i = m_children.begin();
-                    i != m_children.end(); ++i)
+            for ( wxWindowList::const_iterator i = m_children.begin();
+                  i != m_children.end();
+                  ++i )
             {
-                chain = g_list_prepend(chain, (*i)->m_widget);
+                wxWindowGTK *win = *i;
+#if wxUSE_STATTEXT
+                if ( lastLabel )
+                {
+                    if ( win->AcceptsFocusFromKeyboard() )
+                    {
+                        GtkLabel *l = GTK_LABEL(lastLabel->m_widget);
+                        gtk_label_set_mnemonic_widget(l, win->m_widget);
+                        lastLabel = NULL;
+                    }
+                }
+                else // check if this one is a label
+                {
+                    lastLabel = wxDynamicCast(win, wxStaticText);
+                }
+#endif // wxUSE_STATTEXT
+
+                chain = g_list_prepend(chain, win->m_widget);
             }
 
             chain = g_list_reverse(chain);
@@ -3527,13 +3584,11 @@ void wxWindowGTK::RealizeTabOrder()
             gtk_container_set_focus_chain(GTK_CONTAINER(m_wxwindow), chain);
             g_list_free(chain);
         }
-        else
+        else // no children
         {
             gtk_container_unset_focus_chain(GTK_CONTAINER(m_wxwindow));
         }
     }
-
-    m_dirtyTabOrder = false;
 }
 
 void wxWindowGTK::Raise()
