@@ -264,10 +264,9 @@ class wxSidebar(wxTable):
         event.arguments['Enable'] = self.blockItem.canRenameSelection()
 
     def OnHover (self, x, y, dragResult):
+        x, y = self.CalcUnscrolledPosition(x, y)
         hoverRow = self.YToRow(y)
-        try:
-            self.hoverRow
-        except AttributeError:
+        if not hasattr (self, 'hoverRow'):
             # If it's our first time hovering then set previous state to be NOT_FOUND
             self.hoverRow = wx.NOT_FOUND
 
@@ -310,22 +309,20 @@ class wxSidebar(wxTable):
 
     def OnLeave (self):
         # check if we had a hover row
-        try:
-            self.hoverRow
-        except AttributeError:
-            return
-        else:
+        hoverRow = getattr (self, 'hoverRow', None)
+        if hoverRow is not None:
             # Clear the selection colour if necessary
             self.SetRowHighlight(self.hoverRow, False)
             self.hoverRow = wx.NOT_FOUND
             
     def SetRowHighlight (self, row, highlightOn):
         if highlightOn:
-            self.SetCellBackgroundColour(row, 0, wx.LIGHT_GREY)
+            color = wx.LIGHT_GREY
         else:
-            self.SetCellBackgroundColour(row, 0, wx.WHITE)
-        # Just invalidate the changed rect
+            color = wx.WHITE
+        self.SetCellBackgroundColour(row, 0, color)
 
+        # Just invalidate the changed rect
         rect = self.CalculateCellRect (row)
         self.RefreshRect(rect)
         self.Update()
