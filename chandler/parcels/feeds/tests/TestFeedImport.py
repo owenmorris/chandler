@@ -1,7 +1,7 @@
 import unittest, os, time
 import feeds
 from osaf import pim
-from util import testcase
+from util import testcase, indexes
 from zanshin.util import blockUntil
 from application import Utility, schema
 from twisted.internet import reactor
@@ -43,7 +43,7 @@ class TestFeedImporting(testcase.SingleRepositoryTestCase):
 
         self.assertEqual(14, len(channel))
         url = 'http://blog.japan.cnet.com/kondo/archives/002364.html'
-        item = channel.indexLookup(url)
+        item = indexes.valueLookup(channel, 'link', 'link', url)
         self.assertEqual(item.displayName, u'\u30b3\u30e2\u30f3\u30bb\u30f3\u30b9\u306e\u78ba\u8a8d')
 
 if __name__ == "__main__":

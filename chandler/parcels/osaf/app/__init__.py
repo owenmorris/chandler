@@ -335,16 +335,8 @@ def MakeCollections(parcel):
     # kludge to improve on bug 4144 (not a good long term fix but fine for 0.6)
     allCollection.rep.addIndex('__adhoc__', 'numeric')
 
-    events = KindCollection.update(
-        parcel, 'events',
-        kind = pim.CalendarEventMixin.getKind(view),
-        recursive = True)
+    events = schema.ns('osaf.pim.calendar', view).events
 
-    events.rep.addIndex("effectiveStart", 'compare', compare='cmpStartTime',
-                        monitor=('startTime', 'allDay', 'anyTime'))
-    events.rep.addIndex('effectiveEnd', 'compare', compare='cmpEndTime',
-                    monitor=('startTime', 'allDay', 'anyTime', 'duration'))
-    
     # bug 4477
     eventsWithReminders = FilteredCollection.update(
         parcel, 'eventsWithReminders',

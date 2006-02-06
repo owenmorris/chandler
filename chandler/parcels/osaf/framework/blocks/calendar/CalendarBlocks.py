@@ -254,7 +254,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             view = self.blockItem.itsView
             app = schema.ns("osaf.app", view)
             
-            allEvents = app.events.rep
+            allEvents = schema.ns('osaf.pim.calendar', view).events.rep
             masterEvents = app.masterEvents.rep
     
             keys = self.blockItem.getKeysInRange(startDatetime, 'effectiveStartTime', 'effectiveStart',

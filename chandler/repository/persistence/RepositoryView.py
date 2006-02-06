@@ -1136,9 +1136,11 @@ class NullRepositoryView(RepositoryView):
 
         return None
 
-    def findValue(self, uuid, name):
-        
-        return getattr(self[uuid], name)
+    def findValue(self, uItem, name, default=Default):
+
+        if default is not Default:
+            return getattr(self[uItem], name, default)
+        return getattr(self[uItem], name)
 
     def setDirty(self, dirty):
 

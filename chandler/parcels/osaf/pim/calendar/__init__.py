@@ -18,3 +18,19 @@ from Calendar import Calendar as __Calendar
 from Calendar import CalendarEvent, CalendarEventMixin, Location, RecurrencePattern
 
 from TimeZone import TimeZoneInfo, formatTime
+from osaf.pim import collections
+
+def installParcel(parcel, oldVersion=None):
+    view = parcel.itsView
+
+    # from osaf import pim
+    events = collections.KindCollection.update(
+        parcel, 'events',
+        kind = CalendarEventMixin.getKind(view),
+        recursive = True)
+
+    events.rep.addIndex("effectiveStart", 'compare', compare='cmpStartTime',
+                        monitor=('startTime', 'allDay', 'anyTime'))
+    events.rep.addIndex('effectiveEnd', 'compare', compare='cmpEndTime',
+                    monitor=('startTime', 'allDay', 'anyTime', 'duration'))
+    events.rep.addIndex('icalUID', 'value', attribute='icalUID')

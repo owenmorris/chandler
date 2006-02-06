@@ -1,11 +1,11 @@
-__version__ = "$Revision$"
+Element = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import time, urlparse, libxml2, os, base64, logging
-
+import time, urlparse, os, base64, logging
+from elementtree.ElementTree import ElementTree
 from application import schema
 from osaf import pim, messages, ChandlerException
 import application.dialogs.AccountInfoPrompt as AccountInfoPrompt
@@ -19,6 +19,7 @@ from repository.schema.Types import Type
 from repository.util.Lob import Lob
 
 import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, wx
+from cStringIO import StringIO
 
 logger = logging.getLogger(__name__)
 
@@ -2362,8 +2363,7 @@ class CloudXMLFormat(ImportExportFormat):
 
     def importProcess(self, text, extension=None, item=None, changes=None,
         previousView=None, updateCallback=None):
-        doc = libxml2.parseDoc(text)
-        node = doc.children
+        root = ElementTree(file=StringIO(text)).getroot()
         try:
 
             # @@@MOR Disabling the use of queued notifications, as it is
@@ -2372,14 +2372,17 @@ class CloudXMLFormat(ImportExportFormat):
 
             # self.itsView.recordChangeNotifications()
 
-            item = self._importNode(node, item=item, changes=changes,
+            item = self._importElement(root, item=item, changes=changes,
                 previousView=previousView, updateCallback=updateCallback)
 
         finally:
 
             # self.itsView.playChangeNotifications()
 
-            doc.freeDoc()
+            # doc.freeDoc()
+            # I guess there's no equivalent in elementtree?
+
+            pass
 
         return item
 
@@ -2531,7 +2534,7 @@ class CloudXMLFormat(ImportExportFormat):
         return result
 
 
-    def _getNode(self, node, attribute):
+    def _getElement(self, element, attribute):
 
         # @@@MOR This method only supports traversal of single-cardinality
         # attributes
@@ -2541,57 +2544,48 @@ class CloudXMLFormat(ImportExportFormat):
         attribute = chain[0]
         remaining = chain[1:]
 
-        child = node.children
-        while child:
-            if child.type == "element":
-                if child.name == attribute:
-                    if not remaining:
-                        # we're at the end of the chain
-                        return child
-                    else:
-                        # we need to recurse. @@@MOR for now, not supporting
-                        # list
-                        grandChild = child.children
-                        while grandChild.type != "element":
-                            # skip over non-elements
-                            grandChild = grandChild.next
-                        return self._getNode(grandChild,
-                         ".".join(remaining))
+        for child in element.getchildren():
+            if child.tag == attribute:
+                if not remaining:
+                    # we're at the end of the chain
+                    return child
+                else:
+                    # we need to recurse. @@@MOR for now, not supporting
+                    # list
+                    return self._getElement(child.getchildren()[0],
+                     ".".join(remaining))
 
-            child = child.next
         return None
 
 
-    def _importNode(self, node, item=None, changes=None,
+    def _importElement(self, element, item=None, changes=None,
         previousView=None, updateCallback=None):
 
         view = self.itsView
         kind = None
         kinds = []
 
-        versionNode = node.hasProp('version')
-        if versionNode:
-            versionString = versionNode.content
-            if versionString != CLOUD_XML_VERSION:
-                raise VersionMismatch(_(u"Incompatible share"))
+        versionString = element.get('version')
+        if versionString and versionString != CLOUD_XML_VERSION:
+            raise VersionMismatch(_(u"Incompatible share"))
 
         if item is None:
 
-            uuidNode = node.hasProp('uuid')
-            if uuidNode:
+            uuidString = element.get('uuid')
+            if uuidString:
                 try:
-                    uuid = UUID(uuidNode.content)
+                    uuid = UUID(uuidString)
                     item = self.itsView.findUUID(uuid)
                 except Exception, e:
-                    logger.exception("Problem processing uuid %s" % uuid)
+                    logger.exception("Problem processing uuid %s" % uuidString)
                     return item
             else:
                 uuid = None
 
 
-        classNode = node.hasProp('class')
-        if classNode:
-            classNameList = classNode.content.split(",")
+        classNameList = element.get('class')
+        if classNameList:
+            classNameList = classNameList.split(",")
             for classPath in classNameList:
                 try:
                     klass = schema.importString(classPath)
@@ -2638,8 +2632,8 @@ class CloudXMLFormat(ImportExportFormat):
             attributes = self.share.getSharedAttributes(item)
             for attrName in attributes:
 
-                attrNode = self._getNode(node, attrName)
-                if attrNode is None:
+                attrElement = self._getElement(element, attrName)
+                if attrElement is None:
                     if item.hasLocalAttributeValue(attrName):
                         item.removeAttributeValue(attrName)
                     continue
@@ -2656,29 +2650,22 @@ class CloudXMLFormat(ImportExportFormat):
                     not isinstance(attrType, Type)): # it's a ref
 
                     if cardinality == 'single':
-                        valueNode = attrNode.children
-                        while valueNode and valueNode.type != "element":
-                            # skip over non-elements
-                            valueNode = valueNode.next
-                        if valueNode:
-                            valueItem = self._importNode(valueNode,
+                        children = attrElement.getchildren()
+                        if children:
+                            valueItem = self._importElement(children[0],
                                 changes=changes, previousView=previousView,
                                 updateCallback=updateCallback)
                             if valueItem is not None:
                                 setattr(item, attrName, valueItem)
 
                     elif cardinality == 'list':
-                        valueNode = attrNode.children
-                        while valueNode:
-                            if valueNode.type == "element":
-                                valueItem = self._importNode(valueNode,
-                                    changes=changes,
-                                    previousView=previousView,
-                                    updateCallback=updateCallback)
-                                if valueItem is not None:
-                                    item.addValue(attrName, valueItem)
-
-                            valueNode = valueNode.next
+                        for child in attrElement.getchildren():
+                            valueItem = self._importElement(child,
+                                changes=changes,
+                                previousView=previousView,
+                                updateCallback=updateCallback)
+                            if valueItem is not None:
+                                item.addValue(attrName, valueItem)
 
                     elif cardinality == 'dict':
                         pass
@@ -2687,22 +2674,22 @@ class CloudXMLFormat(ImportExportFormat):
 
                     if cardinality == 'single':
 
-                        mimeTypeNode = attrNode.hasProp('mimetype')
+                        mimeType = attrElement.get('mimetype')
 
-                        if mimeTypeNode: # Lob
-                            mimeType = mimeTypeNode.content
+                        if mimeType: # Lob
                             indexed = mimeType == "text/plain"
-                            value = base64.b64decode(attrNode.content)
+                            value = base64.b64decode(attrElement.text)
                             value = utils.dataToBinary(item, attrName, value,
                                 mimeType=mimeType, indexed=indexed)
 
-                            encodingNode = attrNode.hasProp('encoding')
-                            if encodingNode:
-                                value.encoding = encodingNode.content
+                            encoding = attrElement.get('encoding')
+                            if encoding:
+                                value.encoding = encoding
 
                         else:
-                            content = attrNode.content
-                            content = unicode(content, 'utf-8')
+                            content = attrElement.text or u""
+                            if isinstance(content, str):
+                                content = unicode(content, 'utf-8')
                             value = attrType.makeValue(content)
 
 
@@ -2714,32 +2701,29 @@ class CloudXMLFormat(ImportExportFormat):
                     elif cardinality == 'list':
 
                         values = []
-                        valueNode = attrNode.children
-                        while valueNode:
-                            if valueNode.type == "element":
+                        for child in attrElement.getchildren():
 
-                                mimeTypeNode = valueNode.hasProp('mimetype')
+                            mimeType = child.get('mimetype')
 
-                                if mimeTypeNode: # Lob
-                                    mimeType = mimeTypeNode.content
-                                    indexed = mimeType == "text/plain"
-                                    value = base64.b64decode(attrNode.content)
-                                    value = utils.dataToBinary(item, attrName,
-                                        value, mimeType=mimeType,
-                                        indexed=indexed)
+                            if mimeType: # Lob
+                                indexed = mimeType == "text/plain"
+                                value = base64.b64decode(child.text)
+                                value = utils.dataToBinary(item, attrName,
+                                    value, mimeType=mimeType,
+                                    indexed=indexed)
 
-                                    encodingNode = valueNode.hasProp('encoding')
-                                    if encodingNode:
-                                        value.encoding = encodingNode.content
+                                encoding = child.get('encoding')
+                                if encoding:
+                                    value.encoding = encoding
 
-                                else:
-                                    content = valueNode.content
+                            else:
+                                content = child.text or u""
+                                if isinstance(content, str):
                                     content = unicode(content, 'utf-8')
-                                    value = attrType.makeValue(content)
+                                value = attrType.makeValue(content)
 
 
-                                values.append(value)
-                            valueNode = valueNode.next
+                            values.append(value)
 
                         logger.debug("for %s setting %s to %s" % \
                             (item.getItemDisplayName().encode('ascii',

@@ -67,18 +67,9 @@ class SharingPreferences(schema.Item):
     import_dir = schema.One(schema.Text, defaultValue = getDesktopDir())
     import_as_new = schema.One(schema.Boolean, defaultValue = True)
 
-def installParcel(parcel, old_version=None):
-    """
-    Install an instance of UIDMap which maintains a calendar UID lookup table
-    """
 
-    uid_map = UIDMap.update(parcel, 'uid_map')
+def installParcel(parcel, oldVersion=None):
 
-    # Anytime someone sets/removes an icalUID attribute, the UIDMap will
-    # get updated:
-    Monitors.attach(uid_map, 'icaluid_changed', 'set', 'icalUID')
-    Monitors.attach(uid_map, 'icaluid_changed', 'remove', 'icalUID')
-    
     SharingPreferences.update(parcel, "prefs")
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -631,46 +622,47 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
         totalWork = 0
 
-        if hasSubCollection:
-            # Here is the Share for the subcollection with cloudXML
-            subShare = Share(itsView=view)
-            subShare.mode = shareMode
-            subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
-
-            if account:
-                subShare.conduit = WebDAVConduit(itsParent=subShare,
-                                                 shareName=subShareName,
-                                                 account=account)
-            else:
-                subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
-                    port=port, sharePath=parentPath, shareName=subShareName,
-                    useSSL=useSSL, ticket=ticket)
-
-            subShare.format = CloudXMLFormat(itsParent=subShare)
-
-            for attr in CALDAVFILTER:
-                subShare.filterAttributes.append(attr)
-
-            totalWork += subShare.getCount()
-
-        else:
+        try:
+            share = None
             subShare = None
 
-        share = Share(itsView=view)
-        share.mode = shareMode
-        share.format = CalDAVFormat(itsParent=share)
-        if account:
-            share.conduit = CalDAVConduit(itsParent=share,
-                                          shareName=shareName,
-                                          account=account)
-        else:
-            share.conduit = CalDAVConduit(itsParent=share, host=host,
-                port=port, sharePath=parentPath, shareName=shareName,
-                useSSL=useSSL, ticket=ticket)
+            if hasSubCollection:
+                # Here is the Share for the subcollection with cloudXML
+                subShare = Share(itsView=view)
+                subShare.mode = shareMode
+                subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
 
-        totalWork += share.getCount()
+                if account:
+                    subShare.conduit = WebDAVConduit(itsParent=subShare,
+                                                     shareName=subShareName,
+                                                     account=account)
+                else:
+                    subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
+                        port=port, sharePath=parentPath, shareName=subShareName,
+                        useSSL=useSSL, ticket=ticket)
 
-        try:
+                subShare.format = CloudXMLFormat(itsParent=subShare)
+
+                for attr in CALDAVFILTER:
+                    subShare.filterAttributes.append(attr)
+
+                totalWork += subShare.getCount()
+
+
+            share = Share(itsView=view)
+            share.mode = shareMode
+            share.format = CalDAVFormat(itsParent=share)
+            if account:
+                share.conduit = CalDAVConduit(itsParent=share,
+                                              shareName=shareName,
+                                              account=account)
+            else:
+                share.conduit = CalDAVConduit(itsParent=share, host=host,
+                    port=port, sharePath=parentPath, shareName=shareName,
+                    useSSL=useSSL, ticket=ticket)
+
+            totalWork += share.getCount()
+
             if subShare is not None:
                 share.follows = subShare
 
@@ -692,10 +684,10 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 share.contents.shares.append(share)
 
         except Exception, err:
-            location = share.getLocation()
-            logger.exception("Failed to subscribe to %s", location)
+            logger.exception("Failed to subscribe to %s", url)
 
-            share.delete(True)
+            if share:
+                share.delete(True)
             if subShare:
                 subShare.delete(True)
             raise
@@ -994,35 +986,6 @@ def _uniqueName(basename, existing):
         name = "%s-%d" % (basename, counter)
         counter += 1
     return name
-
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-# The import/export mechanism needs a way to quickly map iCalendar UIDs to
-# Chandler event items, so this singleton exists to store a ref collection
-# containing imported calendar events, aliased by iCalendar UID:
-
-class UIDMap(schema.Item):
-
-    items = schema.Sequence("osaf.pim.CalendarEventMixin",
-        otherName = "icalUIDMap",
-        initialValue = {}
-    )
-
-    def icaluid_changed(self, op, item, attrName, *args, **kwds):
-
-        if op == 'set':
-            uid = getattr(item, 'icalUID', u'')
-            if uid:
-                try:
-                    self.items.append(item, uid)
-                except ValueError:
-                    # Another event with this uid is in the map.
-                    pass
-
-        elif op == 'remove':
-            if item in self.items: self.items.remove(item)
-
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

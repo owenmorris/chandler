@@ -25,11 +25,6 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
     def PrepareTestData(self):
 
-        # Make sure these are initialized, otherwise they won't be tracking
-        # icalUIDs
-        schema.ns('osaf.sharing', self.views[0]).uid_map
-        schema.ns('osaf.sharing', self.views[1]).uid_map
-
         view = self.views[0]
         # create a sandbox root
         Item("sandbox", view, None)

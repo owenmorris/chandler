@@ -970,7 +970,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
         events = self.contents.rep
         view = self.itsView
-        allEvents = schema.ns("osaf.app", view).events.rep
+        allEvents = schema.ns("osaf.pim.calendar", view).events.rep
         keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
                                    allEvents, nextDate,'effectiveEndTime',
                                    'effectiveEnd', allEvents,
@@ -985,7 +985,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         events = self.contents.rep
         view = self.itsView
         app = schema.ns("osaf.app", view)
-        allEvents = app.events.rep
+        allEvents = schema.ns("osaf.pim.calendar", view).events.rep
         masterEvents = app.masterEvents.rep
         keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
                                    allEvents, nextDate, 'recurrenceEnd',

@@ -2,7 +2,7 @@ import unittest, os, time
 import feeds
 from osaf import pim
 from repository.util.URL import URL
-from util import testcase
+from util import testcase, indexes
 from zanshin.util import blockUntil
 from application import Utility, schema
 from twisted.internet import reactor
@@ -30,12 +30,12 @@ class TestFeedIndexing(testcase.SingleRepositoryTestCase):
 
         # Test successful lookup
         url = URL('http://www.osafoundation.org/archives/000966.html')
-        item = channel.indexLookup(url)
+        item = indexes.valueLookup(channel, 'link', 'link', url)
         self.assertEqual(item.displayName, 'OSAF Welcomes Priscilla Chung')
 
         # Test unsuccessful lookup
         nonExistent = URL('http://www.osafoundation.org/nonexistent/')
-        item = channel.indexLookup(nonExistent)
+        item = indexes.valueLookup(channel, 'link', 'link', nonExistent)
         self.assertEqual(item, None)
 
         # Although the channels module doesn't allow duplicate links, let's
@@ -46,7 +46,7 @@ class TestFeedIndexing(testcase.SingleRepositoryTestCase):
         item = feeds.FeedItem(itsView=view, displayName="Duplicate", link=url)
         channel.add(item)
 
-        items = channel.indexLookup(url, multiple=True)
+        items = indexes.valueLookup(channel, 'link', 'link', url, multiple=True)
         self.assertEqual(len(items), 2)
 
 if __name__ == "__main__":

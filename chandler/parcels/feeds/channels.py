@@ -8,7 +8,7 @@ import time, os, logging, datetime, urllib
 from PyICU import ICUtzinfo, TimeZone
 from dateutil.parser import parse as date_parse
 from application import schema
-from util import feedparser
+from util import feedparser, indexes
 from xml.sax import SAXParseException
 from osaf import pim
 from i18n import OSAFMessageFactory as _
@@ -173,36 +173,6 @@ class FeedChannel(pim.ListCollection):
     about = schema.Descriptor(redirectTo="about")
 
 
-    def indexLookup(self, value, multiple=False):
-
-        rep = self.rep # This will go away once collections.py is
-                       # API-complete @@@MOR
-
-        def _compare(uuid):
-            # Use the new method for getting an attribute value without
-            # actually loading an item:
-            attrValue = self.itsView.findValue(uuid, 'link')
-            return cmp(str(value), str(attrValue))
-
-        firstUUID = rep.findInIndex('link', 'first', _compare)
-
-        if firstUUID is None: # We're done
-            if multiple:
-                return []
-            else:
-                return None
-
-        if multiple: # Let's see if there are more than one
-            lastUUID = rep.findInIndex('link', 'last', _compare)
-            results = []
-            for uuid in rep.iterindexkeys('link', firstUUID, lastUUID):
-                results.append(self.itsView[uuid])
-            return results
-
-        else:
-            return self.itsView[firstUUID]
-
-
     def update(self):
 
         # Make sure we have the feedsView copy of the channel item
@@ -362,9 +332,8 @@ class FeedChannel(pim.ListCollection):
             matchingItem = None
             link = getattr(newItem, 'link', None)
             if link:
-                # Find all FeedItems (even those from other channels) that
-                # have this link
-                matchingItem = self.indexLookup(link)
+                # Find all FeedItems that have this link
+                matchingItem = indexes.valueLookup(self, 'link', 'link', link)
 
             # If no matching items (based on link), it's new
             # If matching item, if title or description have changed,

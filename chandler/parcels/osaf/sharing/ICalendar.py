@@ -24,6 +24,7 @@ from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from application import schema
 import itertools
 from i18n import OSAFMessageFactory as _
+from util import indexes
 import os, logging
 import application.Globals as Globals
 
@@ -288,12 +289,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         """
         Return the master event whose icalUID matched uid, or None.
         """
-        uid_map = schema.ns('osaf.sharing', self.itsView).uid_map
-        match = uid_map.items.getByAlias(uid)
-        if match is None:
+        events = schema.ns('osaf.pim.calendar', self.itsView).events
+        event = indexes.valueLookup(events, 'icalUID', 'icalUID', uid)
+        if event is None:
             return None
         else:
-            return match.getMaster()
+            return event.getMaster()
 
     def importProcess(self, text, extension=None, item=None, changes=None,
         previousView=None, updateCallback=None):
@@ -578,6 +579,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     #change('icalUID', event.uid[0].value)
                     eventItem = pickKind.newItem(None, newItemParent, **changesDict)
                     # set icalUID seperately to make sure uid_map gets set
+                    # @@@MOR Needed anymore since we got rid of uid_map?
                     eventItem.icalUID = event.uid[0].value
                     for tup in changeLast:
                         eventItem.changeThis(*tup)
