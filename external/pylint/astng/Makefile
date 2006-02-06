@@ -28,8 +28,8 @@ expand: astng-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/astng -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/astng -name "*.pyo" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/logilab/astng -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/logilab/astng -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(ASTNG)/astng-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/logilab/astng
 
