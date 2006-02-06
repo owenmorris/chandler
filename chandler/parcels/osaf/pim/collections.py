@@ -116,10 +116,6 @@ class AbstractCollection(items.ContentItem):
     rep = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
     # the set of subscribers 
     subscribers = schema.Many(initialValue=set())
-    # collectionEventHandler is used when a collection subscribes to
-    # the results of another collection.
-    #collectionEventHandler = schema.One(schema.Bytes, initialValue="collectionChanged")
-
 
     """
       The following collection attributes may be moved once the dust
@@ -261,26 +257,27 @@ class AbstractCollection(items.ContentItem):
     def __nonzero__(self):
         return True
 
-    def __str__(self):
-        """ for debugging """
-        return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
+    if __debug__:
+        def __str__(self):
+            """ for debugging """
+            return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
                                 self.itsUUID.str16())
 
-    def _inspect(self, indent=0):
-        """ more debugging """
-
-        indexes = self.rep._indexes
-        if indexes is None:
-            indexes = ''
-        else:
-            indexes = ', '.join((str(t) for t in indexes.iteritems()))
-        return "%s%s\n%s  indexes: %s%s" %('  ' * indent, self._repr_(),
-                                           '  ' * indent, indexes,
-                                           self._inspect_(indent + 1))
-
-    def _inspect_(self, indent):
-        """ more debugging """
-        raise NotImplementedError, "%s._inspect_" %(type(self))
+        def _inspect(self, indent=0):
+            """ more debugging """
+    
+            indexes = self.rep._indexes
+            if indexes is None:
+                indexes = ''
+            else:
+                indexes = ', '.join((str(t) for t in indexes.iteritems()))
+            return "%s%s\n%s  indexes: %s%s" %('  ' * indent, self._repr_(),
+                                               '  ' * indent, indexes,
+                                               self._inspect_(indent + 1))
+    
+        def _inspect_(self, indent):
+            """ more debugging """
+            raise NotImplementedError, "%s._inspect_" %(type(self))
         
     def isEmpty(self):
         """
@@ -387,10 +384,11 @@ class ListCollection(AbstractCollection):
     def __len__(self):
         return len(self.refCollection)
 
-    def _inspect_(self, indent):
-        """ more debugging """
-
-        return ''
+    if __debug__:
+        def _inspect_(self, indent):
+            """ more debugging """
+    
+            return ''
 
 
 class DifferenceCollection(AbstractCollection):
@@ -941,7 +939,8 @@ class IndexedSelectionCollection (AbstractCollection):
     def empty(self):
         self.source.empty()
 
-    def _inspect_(self, indent):
-        """ more debugging """
-
-        return "\n%s" %(self.source._inspect(indent))
+    if __debug__:
+        def _inspect_(self, indent):
+            """ more debugging """
+    
+            return "\n%s" %(self.source._inspect(indent))
