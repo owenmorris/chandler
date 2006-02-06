@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     2-June-1998
-// RCS-ID:      $Id: _notebook.i,v 1.32 2006/02/05 22:01:12 RD Exp $
+// RCS-ID:      $Id: _notebook.i,v 1.33 2006/02/06 20:43:56 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -107,8 +107,8 @@ public:
     bool IsVertical() const;
 
     // set/get option to shrink to fit current page
-    void SetShrinkMode(bool shrink);
-    bool GetShrinkMode() const;
+    void SetFitToCurrentPage(bool fit);
+    bool GetFitToCurrentPage() const;
 
 
     // remove one page from the control and delete it
