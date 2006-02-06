@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: fontcmn.cpp,v 1.53 2006/02/06 22:34:32 vell Exp $
+// RCS-ID:      $Id: fontcmn.cpp,v 1.54 2006/02/06 22:53:31 vell Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
