@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.76 2006/01/29 02:09:19 RD Exp $
+// RCS-ID:      $Id: html.i,v 1.78 2006/02/07 04:17:53 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,6 @@ MAKE_CONST_WXSTRING2(HtmlPrintingTitleStr, wxT("Printing"))
 // TODO: Split this file into multiple %included files that coresponds to the
 // wx/html include files (more or less.)
 
-//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 %newgroup
 
@@ -730,7 +729,6 @@ public:
     }
 
     void OnLinkClicked(const wxHtmlLinkInfo& link);
-    void base_OnLinkClicked(const wxHtmlLinkInfo& link);
 
     wxHtmlOpeningStatus OnOpeningURL(wxHtmlURLType type,
                                       const wxString& url,
@@ -759,9 +757,6 @@ void wxPyHtmlWindow::OnLinkClicked(const wxHtmlLinkInfo& link) {
     wxPyEndBlockThreads(blocked);
     if (! found)
         wxHtmlWindow::OnLinkClicked(link);
-}
-void wxPyHtmlWindow::base_OnLinkClicked(const wxHtmlLinkInfo& link) {
-    wxHtmlWindow::OnLinkClicked(link);
 }
 
 
@@ -939,12 +934,16 @@ public:
     // Converts current page to text:
     wxString ToText();
 
-    void base_OnLinkClicked(const wxHtmlLinkInfo& link);
-    void base_OnSetTitle(const wxString& title);
-    void base_OnCellMouseHover(wxHtmlCell *cell, wxCoord x, wxCoord y);
-    void base_OnCellClicked(wxHtmlCell *cell,
-                            wxCoord x, wxCoord y,
-                            const wxMouseEvent& event);
+    void OnLinkClicked(const wxHtmlLinkInfo& link);
+    void OnSetTitle(const wxString& title);
+    void OnCellMouseHover(wxHtmlCell *cell, wxCoord x, wxCoord y);
+    void OnCellClicked(wxHtmlCell *cell,
+                       wxCoord x, wxCoord y,
+                       const wxMouseEvent& event);
+    %MAKE_BASE_FUNC(HtmlWindow, OnLinkClicked);
+    %MAKE_BASE_FUNC(HtmlWindow, OnSetTitle);
+    %MAKE_BASE_FUNC(HtmlWindow, OnCellMouseHover);
+    %MAKE_BASE_FUNC(HtmlWindow, OnCellClicked);
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);

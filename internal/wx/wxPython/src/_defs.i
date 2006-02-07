@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.94 2006/01/29 02:09:28 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.95 2006/02/07 03:56:37 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -381,6 +381,23 @@ typedef unsigned long   wxUIntPtr;
     %enddef
 #endif
 
+
+//---------------------------------------------------------------------------
+// Generates a base_On* method that just wraps a call to the On*, and mark it
+// deprecated.  We need this because there is no longer any need for a
+// base_On* method to be able to call the C++ base class method, since our
+// virtualization code can now sense when an attempt is being made to call
+// the base class version from the derived class override.
+        
+%define %MAKE_BASE_FUNC(Class, Method)
+    %pythoncode {
+        def base_##Method(*args, **kw):
+            return Class.Method(*args, **kw)
+        base_##Method = wx._deprecated(base_##Method,
+                                       "Please use Class.Method instead.")
+    }
+%enddef    
+    
 //---------------------------------------------------------------------------
 // Forward declarations and %renames for some classes, so the autodoc strings
 // will be able to use the right types even when the real class declaration is

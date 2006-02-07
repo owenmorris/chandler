@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-June-1999
-// RCS-ID:      $Id: _process.i,v 1.9 2006/01/29 02:09:23 RD Exp $
+// RCS-ID:      $Id: _process.i,v 1.10 2006/02/07 03:56:37 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -104,8 +104,9 @@ public:
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
-    void base_OnTerminate(int pid, int status);
-
+    void OnTerminate(int pid, int status);
+    %MAKE_BASE_FUNC(Process, OnTerminate);
+        
     // call Redirect before passing the object to wxExecute() to redirect the
     // launched process stdin/stdout, then use GetInputStream() and
     // GetOutputStream() to get access to them

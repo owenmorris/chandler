@@ -5,7 +5,7 @@
 # Author:       Peter Yared
 #
 # Created:      5/15/03
-# CVS-ID:       $Id: docview.py,v 1.12 2005/12/30 23:01:12 RD Exp $
+# CVS-ID:       $Id: docview.py,v 1.13 2006/02/07 03:56:30 RD Exp $
 # Copyright:    (c) 2003-2005 ActiveGrid, Inc. (Port of wxWindows classes by Julian Smart et al)
 # License:      wxWindows license
 #----------------------------------------------------------------------------
@@ -2896,7 +2896,7 @@ class DocPrintout(wx.Printout):
         """
         Not quite sure why this was overridden, but it was in wxWindows! :)
         """
-        if not wx.Printout.base_OnBeginDocument(self, startPage, endPage):
+        if not wx.Printout.OnBeginDocument(self, startPage, endPage):
             return False
         return True
 

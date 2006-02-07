@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     3-July-1997
-// RCS-ID:      $Id: _settings.i,v 1.11 2005/03/24 16:47:40 RD Exp $
+// RCS-ID:      $Id: _settings.i,v 1.12 2006/02/07 04:04:02 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -129,7 +129,8 @@ enum wxSystemMetric
 enum wxSystemFeature
 {
     wxSYS_CAN_DRAW_FRAME_DECORATIONS = 1,
-    wxSYS_CAN_ICONIZE_FRAME
+    wxSYS_CAN_ICONIZE_FRAME,
+    wxSYS_TABLET_PRESENT 
 };
 
 

@@ -5,7 +5,7 @@
 // Created:     01/02/97
 // Modified:    Alberto Griggio, 2002
 //              22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treelistctrl.cpp,v 1.24 2005/11/28 22:24:00 vell Exp $
+// Id:          $Id: treelistctrl.cpp,v 1.25 2006/02/07 09:32:05 vell Exp $
 // Copyright:   (c) Robert Roebling, Julian Smart, Alberto Griggio,
 //              Vadim Zeitlin, Otto Wyss
 // Licence:     wxWindows licence
@@ -1216,7 +1216,6 @@ void wxTreeListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
     dc.SetBackground(wxBrush(GetBackgroundColour()));
     dc.Clear();
     
-    dc.BeginDrawing();
     dc.SetFont( GetFont() );
     dc.SetBackgroundMode(wxTRANSPARENT);
 
@@ -1307,7 +1306,6 @@ void wxTreeListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
     }
 
     // Finish up by drawing the buffer to the real dc
-    dc.EndDrawing();
     dc.SelectObject(wxNullBitmap);
     real_dc.DrawBitmap(buffer, 0, 0, false);
 }

@@ -76,12 +76,12 @@ class TestNB(wx.Notebook):
         p = wx.Panel(self, -1)
         win = ColorPanel.ColoredPanel(p, color)
         p.win = win
-
         def OnCPSize(evt, win=win):
+            win.SetPosition((0,0))
             win.SetSize(evt.GetSize())
-
         p.Bind(wx.EVT_SIZE, OnCPSize)
         return p
+
 
     def OnPageChanged(self, event):
         old = event.GetOldSelection()

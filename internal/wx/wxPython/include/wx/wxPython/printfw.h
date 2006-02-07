@@ -6,7 +6,7 @@
 // Author:      Robin Dunn
 //
 // Created:     29-Oct-1999
-// RCS-ID:      $Id: printfw.h,v 1.4 2006/01/17 05:42:27 RD Exp $
+// RCS-ID:      $Id: printfw.h,v 1.5 2006/02/07 03:56:41 RD Exp $
 // Copyright:   (c) 1999 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,6 @@ public:
 
     // Since this one would be tough and ugly to do with the Macros...
     void GetPageInfo(int *minPage, int *maxPage, int *pageFrom, int *pageTo);
-    void base_GetPageInfo(int *minPage, int *maxPage, int *pageFrom, int *pageTo);
 
     PYPRIVATE;
     DECLARE_ABSTRACT_CLASS(wxPyPrintout)

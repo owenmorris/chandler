@@ -4,7 +4,7 @@
 #
 # Author:      Robin Dunn
 #
-# RCS-ID:      $Id: activexwrapper.py,v 1.6 2004/06/16 02:22:30 RD Exp $
+# RCS-ID:      $Id: activexwrapper.py,v 1.7 2006/02/07 03:56:30 RD Exp $
 # Copyright:   (c) 2000 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -135,7 +135,7 @@ def axw_OEB(self, event):
 
 
 def axw_Cleanup(self):
-    del self._wnd
+    #del self._wnd
     self.close()
     pass
 

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-June-1999
-// RCS-ID:      $Id: _log.i,v 1.12 2006/01/29 02:09:25 RD Exp $
+// RCS-ID:      $Id: _log.i,v 1.14 2006/02/07 04:14:37 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -388,8 +388,10 @@ public:
             wxLog::DoLogString(szString, t);
     }
 
+    DEC_PYCALLBACK_VOID_(Flush);
     PYPRIVATE;
 };
+IMP_PYCALLBACK_VOID_(wxPyLog, wxLog, Flush);
 %}
 
 // Now tell SWIG about it
