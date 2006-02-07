@@ -2,6 +2,8 @@
    See the file COPYING for copying permission.
 */
 
+#include <stddef.h>
+
 #ifdef COMPILED_FROM_DSP
 #include "winconfig.h"
 #elif defined(OS2_32)
@@ -10,10 +12,13 @@
 #include "dosconfig.h"
 #elif defined(MACOS_CLASSIC)
 #include "macconfig.h"
-#else
+#elif defined(__amigaos4__)
+#include "amigaconfig.h"
+#elif defined(HAVE_EXPAT_CONFIG_H) || 1 // NB: the "|| 1" is a wx change
 #include "expat_config.h"
 #endif /* ndef COMPILED_FROM_DSP */
 
+#include "expat_external.h"
 #include "internal.h"
 #include "xmlrole.h"
 #include "ascii.h"
@@ -372,6 +377,8 @@ internalSubset(PROLOG_STATE *state,
   case XML_TOK_CLOSE_BRACKET:
     state->handler = doctype5;
     return XML_ROLE_DOCTYPE_NONE;
+  case XML_TOK_NONE:
+    return XML_ROLE_NONE;
   }
   return common(state, tok);
 }
@@ -790,7 +797,7 @@ attlist2(PROLOG_STATE *state,
     return XML_ROLE_ATTLIST_NONE;
   case XML_TOK_NAME:
     {
-      static const char *types[] = {
+      static const char * const types[] = {
         KW_CDATA,
         KW_ID,
         KW_IDREF,

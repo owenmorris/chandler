@@ -1,25 +1,29 @@
-/* expat_config.h.in.  Generated from configure.in by autoheader.  */
+#ifndef AMIGACONFIG_H
+#define AMIGACONFIG_H
 
 /* 1234 = LIL_ENDIAN, 4321 = BIGENDIAN */
-#undef BYTEORDER
+#define BYTEORDER 4321
 
 /* Define to 1 if you have the `bcopy' function. */
-#undef HAVE_BCOPY
+#define HAVE_BCOPY 1
+
+/* Define to 1 if you have the <check.h> header file. */
+#undef HAVE_CHECK_H
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
 /* Define to 1 if you have the <fcntl.h> header file. */
-#undef HAVE_FCNTL_H
+#define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#undef HAVE_INTTYPES_H
+#define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the `memmove' function. */
-#undef HAVE_MEMMOVE
+#define HAVE_MEMMOVE 1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -28,59 +32,56 @@
 #undef HAVE_MMAP
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#undef HAVE_STDINT_H
+#define HAVE_STDINT_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
-#undef HAVE_STDLIB_H
+#define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
-#undef HAVE_STRINGS_H
+#define HAVE_STRINGS_H 1
 
 /* Define to 1 if you have the <string.h> header file. */
-#undef HAVE_STRING_H
+#define HAVE_STRING_H 1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-#undef HAVE_SYS_STAT_H
+#define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#undef HAVE_SYS_TYPES_H
+#define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#undef HAVE_UNISTD_H
+#define HAVE_UNISTD_H 1
 
 /* Define to the address where bug reports for this package should be sent. */
-#undef PACKAGE_BUGREPORT
+#define PACKAGE_BUGREPORT "expat-bugs@mail.libexpat.org"
 
 /* Define to the full name of this package. */
-#undef PACKAGE_NAME
+#define PACKAGE_NAME "expat"
 
 /* Define to the full name and version of this package. */
-#undef PACKAGE_STRING
+#define PACKAGE_STRING "expat 1.95.8"
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
 /* Define to the version of this package. */
-#undef PACKAGE_VERSION
+#define PACKAGE_VERSION "1.95.8"
 
 /* Define to 1 if you have the ANSI C header files. */
-#undef STDC_HEADERS
+#define STDC_HEADERS 1
 
 /* whether byteorder is bigendian */
-#undef WORDS_BIGENDIAN
+#define WORDS_BIGENDIAN
 
 /* Define to specify how much context to retain around the current parse
    point. */
-#undef XML_CONTEXT_BYTES
+#define XML_CONTEXT_BYTES 1024
 
 /* Define to make parameter entity parsing functionality available. */
-#undef XML_DTD
+#define XML_DTD
 
 /* Define to make XML Namespaces functionality available. */
-#undef XML_NS
-
-/* Define to __FUNCTION__ or "" if `__func__' does not conform to ANSI C. */
-#undef __func__
+#define XML_NS
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
@@ -90,3 +91,6 @@
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
+
+
+#endif  /* AMIGACONFIG_H */

@@ -2,6 +2,8 @@
    See the file COPYING for copying permission.
 */
 
+#include <stddef.h>
+
 #ifdef COMPILED_FROM_DSP
 #include "winconfig.h"
 #elif defined(OS2_32)
@@ -10,10 +12,13 @@
 #include "dosconfig.h"
 #elif defined(MACOS_CLASSIC)
 #include "macconfig.h"
-#else
+#elif defined(__amigaos4__)
+#include "amigaconfig.h"
+#elif defined(HAVE_EXPAT_CONFIG_H) || 1 // NB: the "|| 1" is a wx change
 #include "expat_config.h"
 #endif /* ndef COMPILED_FROM_DSP */
 
+#include "expat_external.h"
 #include "internal.h"
 #include "xmltok.h"
 #include "nametab.h"
@@ -1235,7 +1240,7 @@ XmlUtf16Encode(int charNum, unsigned short *buf)
 
 struct unknown_encoding {
   struct normal_encoding normal;
-  int (*convert)(void *userData, const char *p);
+  CONVERTER convert;
   void *userData;
   unsigned short utf16[256];
   char utf8[256][4];
@@ -1334,7 +1339,7 @@ unknown_toUtf16(const ENCODING *enc,
 ENCODING *
 XmlInitUnknownEncoding(void *mem,
                        int *table,
-                       CONVERTER convert,
+                       CONVERTER convert, 
                        void *userData)
 {
   int i;
@@ -1450,7 +1455,7 @@ static const char KW_UTF_16LE[] = {
 static int FASTCALL
 getEncodingIndex(const char *name)
 {
-  static const char *encodingNames[] = {
+  static const char * const encodingNames[] = {
     KW_ISO_8859_1,
     KW_US_ASCII,
     KW_UTF_8,
@@ -1483,7 +1488,7 @@ getEncodingIndex(const char *name)
 
 
 static int
-initScan(const ENCODING **encodingTable,
+initScan(const ENCODING * const *encodingTable,
          const INIT_ENCODING *enc,
          int state,
          const char *ptr,
@@ -1624,7 +1629,7 @@ initScan(const ENCODING **encodingTable,
 ENCODING *
 XmlInitUnknownEncodingNS(void *mem,
                          int *table,
-                         CONVERTER convert,
+                         CONVERTER convert, 
                          void *userData)
 {
   ENCODING *enc = XmlInitUnknownEncoding(mem, table, convert, userData);
