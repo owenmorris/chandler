@@ -140,7 +140,7 @@ def main():
         # SendMail(fromAddr, toAddr, nowString, nowString, buildName,
         # "building", None)
 
-        mod.Start(hardhatFile, buildDir, buildVersion, 1, log, skipTests=noTests, tagID=svnTagArg)
+        mod.Start(hardhatFile, buildDir, buildVersion, 1, log, skipTests=noTests, branchID=svnTagArg)
 
     except Exception, e:
         import traceback
