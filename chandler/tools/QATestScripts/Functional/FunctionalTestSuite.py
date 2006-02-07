@@ -23,12 +23,12 @@ run_tests("TestCreateAccounts.py",
           "TestNewMail.py",
           "TestNewTask.py",
           "TestNewNote.py",
-          #"TestStamping.py", bug#5102
+          #"TestStamping.py", Chandler bug#5097
           "TestMoveToTrash.py",
           "TestDeleteCollection.py",
-          #"TestNewCollNoteStampMulti.py", bug #5102
+          #"TestNewCollNoteStampMulti.py", Chandler bug #5097
           "TestCalView.py",
-          "TestRecurrenceImporting.py",
+          #"TestRecurrenceImporting.py", Chandler bug #5116
           "TestRecurringEvent.py",  
           "TestSwitchingViews.py",
           "TestExporting.py",
