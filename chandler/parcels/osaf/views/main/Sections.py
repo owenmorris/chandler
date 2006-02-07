@@ -36,6 +36,10 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         self.RebuildSections()
 
     def RebuildSections(self):
+        """
+        rebuild the sections - this is relatively cheap as long as
+        there aren't a lot of sections
+        """
         indexName = self.blockItem.contents.indexName
         self.sectionRows = []
         self.totalRows = 0
@@ -120,36 +124,115 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         attributeName = self.blockItem.columnData[column]
         return (self.blockItem.contents [itemIndex], attributeName)
 
-    def SectionRowCount(self, section):
-        if section in self.collapsedSections:
-            # collapsed sections are easy
-            return 0
-        elif section == len(self.sectionIndexes) - 1:
-            # the last section needs special calculation - because its
-            # the total items minux the position of the last index
-            return len(self.blockItem.contents) - self.sectionIndexes[-1]
-        else:
-            # everybody else is easy
-            return (self.sectionIndexes[section+1] -
-                    self.sectionIndexes[section])
-
     def RowToIndex(self, row):
-        for (sectionNum, (sectionRow, sectionSize)) in enumerate(self.sectionRows):
-            if row == sectionRow:
-                return -1
-            if row < sectionRow:
-                return row - sectionNum
+        """
+        Map Row->Index taking into account collapsed sections.
+
+        Right now this is a linear search of sections - if we need to
+        worry about performance then we probably need to switch to a
+        binary search. Generally, there aren't many sections so we
+        won't optimize this.
+        """
+
+        if len(self.sectionRows) == 0:
+            return row
+
+        sectionAdjust = len(self.sectionRows) - 1
+        # search backwards so we can jump right to the section number
+        for (reversedSection, (sectionRow, sectionSize)) in enumerate(reversed(self.sectionRows)):
+            section = sectionAdjust - reversedSection
             
-        return row - len(self.sectionRows)
+            if row == sectionRow:
+                # this row is a section header, there is no valid data
+                # row here
+                return -1
+            
+            if row > sectionRow:
+                # We are in an expanded section. We need to find the
+                # relative position of this row within the section,
+                # and then go look up that relative position in
+                # self.sectionIndexes (+1 accounts for the header row)
+                
+                rowOffset = row - (sectionRow + 1)
+                itemIndex = self.sectionIndexes[section] + rowOffset
+                
+                assert itemIndex < len(self.blockItem.contents)
+                return itemIndex
+
+        assert False, "Couldn't find index for row %s in %s" % (row, [x[0] for x in reversed(self.sectionRows)])
 
     def IndexToRow(self, itemIndex):
-        for sectionNum, sectionIndex in enumerate(self.sectionIndexes):
-            if itemIndex < sectionIndex:
-                return itemIndex + sectionNum
+        """
+        Find the row for the corresponding item. This is done with a
+        linear search through the sections. Generally there aren't a
+        lot of sections though so this should be reasonably fast.
+        """
+        if len(self.sectionIndexes) == 0:
+            return itemIndex
 
-        # the last section
-        return itemIndex + len(self.sectionIndexes)
+        sectionAdjust = len(self.sectionIndexes) - 1
+        for reversedSection, sectionIndex in enumerate(reversed(self.sectionIndexes)):
+            section = sectionAdjust - reversedSection
+            
+            if itemIndex > sectionIndex:
+                if section in self.collapsedSections:
+                    # section is collapsed! That's not good. Perhaps
+                    # we should assert? Or maybe this is a valid case?
+                    return -1
+                else:
+                    # Expanded sxection. Find the relative position
+                    # +1 accounts for header row
+                    indexOffset = itemIndex - sectionIndex
+                    sectionRow = self.sectionRows[section][0]
+                    row = (sectionRow + 1) + indexOffset
+                    assert row < self.totalRows
+                    
+                    return row
 
+        assert False, "Couldn't find row for index %s" % itemIndex
+
+
+    def CollapseSection(self, section):
+        """
+        Collapse a given section - i.e. make it zero-length
+        """
+        assert section not in self.collapsedSections
+
+        # subtract the oldLength
+        (oldPosition, oldLength) = self.sectionRows[section]
+
+        self.AdjustSectionPosition(section, -oldLength)
+            
+    def ExpandSection(self, section):
+        """
+        Expand the given section to be the same as the original data
+        """
+        assert section not in self.collapsedSections
+
+        # we look back in the original data to find the section length
+        if section == len(self.sectionIndexes) - 1:
+            # last section, need to look this up
+            newLength = (len(self.blockItem.contents) - 
+                         self.sectionIndexes[section])
+        else:
+            newLength = (self.sectionIndexes[section+1] -
+                         self.sectionIndexes[section])
+
+        self.AdjustSectionPosition(section, newLength)
+
+    def AdjustSectionPosition(self, startSection, delta):
+        """
+        Adjust a section's position by delta - may be positive or
+        negative. Since section positions are somewhat interdependent,
+        we have to adjust the given section as well as all sections
+        following it.
+        """
+        for sectionNum, (sectionPosition, sectionLength) \
+                in range(section, len(self.sectionRows)):
+            
+            self.sectionRows[sectionNum] = (sectionPosition + delta,
+                                            sectionLength)
+        
 
 class SectionRenderer(BaseAttributeEditor):
     def __init__(self, *args, **kwds):
