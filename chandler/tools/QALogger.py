@@ -253,8 +253,6 @@ class TestLogger:
             self.Print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
             if status == "PASSED":
                 self.PrintTBOX(elapsed)
-            if status == "FAILED":
-                self.PrintTBOX(elapsed)
             self.Print("")
             self.Print("*******               End of Report               *******")
             print("#TINDERBOX# Testname = %s" %description)    
@@ -286,8 +284,6 @@ class TestLogger:
             self.Print("Testcase Name= %s" %self.subTestcaseDesc)
             self.Print("Testcase Status = %s" %status)
             if status == "PASSED":
-                self.PrintTBOX(elapsed, "Testcase")
-            if status == "FAILED":
                 self.PrintTBOX(elapsed, "Testcase")
             # new testcase inits
             self.Reset()
