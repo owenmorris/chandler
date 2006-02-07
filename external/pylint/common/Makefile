@@ -1,6 +1,6 @@
 
 VERSION=0.13.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 COMMON=$(BUILD_ROOT)/pylint/common
 SRC=$(COMMON)/common-$(VERSION)
 
@@ -31,7 +31,8 @@ binaries:
 	find $(SNAP)/$(SITE)/logilab -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/logilab -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(COMMON)/common-$(SNAP)-$(RELVER).tar.gz \
-                  --exclude test $(SNAP)/$(SITE)/logilab/common
+                  --exclude test $(SNAP)/$(SITE)/logilab/common \
+                  $(SNAP)/$(SITE)/logilab/__init__.py
 
 
 install: common-$(SNAP)-$(RELVER).tar.gz
