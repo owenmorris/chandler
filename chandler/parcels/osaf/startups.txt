@@ -298,13 +298,9 @@ the reactor will not start::
     0
 
     >>> wait_until(
-    ...     # make sure exception has been sent
-    ...     lambda: "main thread" in sys.stderr.getvalue()   
+    ...     # wait until only one thread is running
+    ...     lambda: len(threading.enumerate())==1   
     ... )
-
-    >>> stop_reactor()
-    >>> len(threading.enumerate())  # all other threads should be stopped now
-    1
 
     >>> print sys.stderr.getvalue()
     Exception in thread //userdata/dont_do_this:
@@ -313,7 +309,7 @@ the reactor will not start::
     AssertionError: can't start reactor thread except from the main thread...
 
     >>> sys.stderr = old_stderr
-    >>> twisted_thread.active = False
+    >>> twisted_thread.active = False   # deactivate the startup we used
 
 
 Background Tasks using Twisted and Threads
