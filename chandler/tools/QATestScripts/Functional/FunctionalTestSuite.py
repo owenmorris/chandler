@@ -24,7 +24,7 @@ run_tests("TestCreateAccounts.py",
           "TestNewTask.py",
           "TestNewNote.py",
           #"TestStamping.py", Chandler bug#5097
-          "TestMoveToTrash.py",
+          #"TestMoveToTrash.py", bug # 5150
           "TestDeleteCollection.py",
           #"TestNewCollNoteStampMulti.py", Chandler bug #5097
           "TestCalView.py",
