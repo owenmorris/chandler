@@ -15,28 +15,29 @@ def run_tests(*tests):
     for filename in tests:
         execfile(os.path.join(functional_dir, filename))
 
-run_tests("TestCreateAccounts.py",
-          #"TestAllDayEvent.py", test not functioning bug#5110
-          "TestNewCollection.py",
-          #"TestDates.py", Chandler not handling daylightsavings bug#5038
-          "TestNewEvent.py",
-          "TestNewMail.py",
-          "TestNewTask.py",
-          "TestNewNote.py",
-          #"TestStamping.py", Chandler bug#5097
-          #"TestMoveToTrash.py", bug # 5150
-          "TestDeleteCollection.py",
-          #"TestNewCollNoteStampMulti.py", Chandler bug #5097
-          "TestCalView.py",
-          #"TestRecurrenceImporting.py", Chandler bug #5116
-          "TestRecurringEvent.py",  
-          "TestSwitchingViews.py",
-          "TestExporting.py",
-          "TestFlickr.py",
-          "TestImporting.py",
-          "TestImportOverwrite.py",
-          "TestSharing.py")
-
-
-#cleaning
-logger.Close()
+try:
+    run_tests("TestCreateAccounts.py",
+              #"TestAllDayEvent.py", test not functioning bug#5110
+              "TestNewCollection.py",
+              #"TestDates.py", Chandler not handling daylightsavings bug#5038
+              "TestNewEvent.py",
+              "TestNewMail.py",
+              "TestNewTask.py",
+              "TestNewNote.py",
+              #"TestStamping.py", Chandler bug#5097
+              #"TestMoveToTrash.py", bug # 5150
+              "TestDeleteCollection.py",
+              #"TestNewCollNoteStampMulti.py", Chandler bug #5097
+              "TestCalView.py",
+              #"TestRecurrenceImporting.py", Chandler bug #5116
+              "TestRecurringEvent.py",  
+              "TestSwitchingViews.py",
+              "TestExporting.py",
+              "TestFlickr.py",
+              "TestImporting.py",
+              "TestImportOverwrite.py",
+              "TestSharing.py")
+    
+finally:    
+    #cleaning
+    logger.Close()
