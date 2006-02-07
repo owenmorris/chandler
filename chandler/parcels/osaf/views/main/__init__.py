@@ -7,13 +7,11 @@ def installParcel(parcel, oldVersion=None):
     from menus import makeMainMenus
     from mainblocks import makeMainView 
     from summaryblocks import makeSummaryBlocks
-    from Sections import makeSections
 
     makeMainEvents (parcel)
     makeMainMenus (parcel)
     makeMainView (parcel)
     makeSummaryBlocks (parcel)
-    makeSections(parcel)
     
     from osaf.framework import prompts
 

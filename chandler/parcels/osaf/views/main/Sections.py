@@ -3,7 +3,6 @@ import wx
 from osaf.framework.blocks import ControlBlocks
 from util.divisions import get_divisions
 
-from osaf.framework.attributeEditors.AttributeEditors import BaseAttributeEditor, AttributeEditorMapping
 from osaf.framework.blocks import DrawingUtilities
 
 from i18n import OSAFMessageFactory as _
@@ -26,6 +25,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         # total rows in the table
         self.totalRows = 0
+
+        self.RegisterDataType("Section", SectionRenderer(), None)
         
     def SynchronizeDelegate(self):
         """
@@ -119,7 +120,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             firstItemInSection = self.blockItem.contents[firstItemIndex]
             
             indexAttribute = self.blockItem.contents.indexName
-            return (firstItemInSection, indexAttribute, column)
+            return (firstItemInSection, indexAttribute)
         
         attributeName = self.blockItem.columnData[column]
         return (self.blockItem.contents [itemIndex], attributeName)
@@ -234,7 +235,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                                             sectionLength)
         
 
-class SectionRenderer(BaseAttributeEditor):
+class SectionRenderer(wx.grid.PyGridCellRenderer):
     def __init__(self, *args, **kwds):
         super(SectionRenderer, self).__init__(*args, **kwds)
         self.brushes = DrawingUtilities.Gradients()
@@ -242,7 +243,9 @@ class SectionRenderer(BaseAttributeEditor):
     def ReadOnly(self, *args):
         return True
 
-    def Draw(self, dc, rect, (firstItem, attributeName, col), isInSelection=False):
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        (firstItem, attributeName) = grid.GetElementValue(row, col)
+        
         dc.SetPen(wx.TRANSPARENT_PEN)
         brush = self.brushes.GetGradientBrush(0, rect.height,
                                               (153, 204, 255), (203, 229, 255),
@@ -256,16 +259,4 @@ class SectionRenderer(BaseAttributeEditor):
             sectionTitle = _(u"Section: %s") % getattr(firstItem, attributeName, "[None]")
             dc.DrawText(sectionTitle, 3, rect.y + 2)
 
-def makeSections(parcel):
-    """
-    Attribute editor for "sections"
 
-    the "Section" string maps
-    directly to the "Section" string returned by GetElementType() in
-    SectiondGridDelegate
-    """
-    AttributeEditorMapping.update(parcel, "Section",
-                                  className=(SectionRenderer.__module__ + "." +
-                                             SectionRenderer.__name__))
-
-    
