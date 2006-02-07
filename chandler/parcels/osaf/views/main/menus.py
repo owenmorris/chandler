@@ -48,9 +48,7 @@ def makeMainMenus(parcel):
     main = schema.ns("osaf.views.main", repositoryView)
     globalBlocks = schema.ns("osaf.framework.blocks", repositoryView)
 
-    MenuBar.template('MenuBar',
-        childrenBlocks = [
-            Menu.template('FileMenu',
+    fileMenu =  Menu.template('FileMenu',
                 title = _(u'&File'),
                 childrenBlocks = [
                     MenuItem.template('PrintPreviewItem',
@@ -99,14 +97,20 @@ def makeMainMenus(parcel):
                         event = main.EditAccountPreferences,
                         title = _(u'Accounts...'),
                         helpString = messages.ACCOUNT_PREFERENCES),
-                    MenuItem.template('FileSeparator2',
-                        menuItemKind = 'Separator'),
-                    MenuItem.template('QuitItem',
-                        event = globalBlocks.Quit,
-                        title = _(u'Quit'),
-                        accel = _(u'Ctrl+Q'),
-                        helpString = _(u'Quit Chandler')),
-                    ]), # Menu FileMenu
+                    ])
+
+    if wx.Platform != '__WXMAC__':
+        fileMenu.attrs['childrenBlocks'].append(MenuItem.template('FileSeparator2',
+                                                         menuItemKind = 'Separator'))
+        fileMenu.attrs['childrenBlocks'].append(MenuItem.template('QuitItem',
+                                                        event=globalBlocks.Quit,
+                                                        title = _(u'Quit'),
+                                                        accel = _(u'Ctrl+Q'),
+                                                        helpString = _(u'Quit Chandler')))
+
+    MenuBar.template('MenuBar',
+        childrenBlocks = [
+            fileMenu,
             Menu.template('EditMenu',
                 title = _(u'&Edit'),
                 childrenBlocks = [
