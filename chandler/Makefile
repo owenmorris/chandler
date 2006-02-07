@@ -39,10 +39,10 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.2.3-r116-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/zanshin-$(SNAP)-141-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/optik-$(SNAP)-1.5-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/common-$(SNAP)-0.12.0-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.7.0-$(BP)2.tar.gz
+         $(CHANDLERARCHIVES)/astng-$(SNAP)-0.14.0-$(BP)1.tar.gz \
+         $(CHANDLERARCHIVES)/common-$(SNAP)-0.13.0-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.9.0-$(BP)1.tar.gz
 
 
 # OpenSSL gets bundled into M2Crypto on Windows
