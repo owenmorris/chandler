@@ -75,7 +75,7 @@ class MainFrame(wx.Frame):
         # useful in debugging Mac background drawing problems
         #self.MacSetMetalAppearance(True)
 
-        self.icon = wx.Icon("resources/images/Chandler_16.ico", wx.BITMAP_TYPE_ICO)
+        self.icon = wx.Icon("resources/images/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
         self.SetIcon(self.icon)
 
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
