@@ -298,7 +298,8 @@ the reactor will not start::
     0
 
     >>> wait_until(
-    ...     lambda: sys.stderr.getvalue()   # make sure exception has been sent
+    ...     # make sure exception has been sent
+    ...     lambda: "main thread" in sys.stderr.getvalue()   
     ... )
 
     >>> stop_reactor()
