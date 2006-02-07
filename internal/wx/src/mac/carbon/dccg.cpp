@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dccg.cpp,v 1.39 2006/01/14 06:55:06 vell Exp $
+// RCS-ID:      $Id: dccg.cpp,v 1.40 2006/02/07 21:54:48 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1584,7 +1584,7 @@ void wxDC::DoDrawRoundedRectangle(wxCoord x, wxCoord y,
 
     wxMacCGContext* mctx = ((wxMacCGContext*) m_graphicContext) ;
     CGContextRef ctx = mctx->GetNativeContext() ;
-    AddRoundedRectToPath( ctx , CGRectMake( xx , yy , ww , hh ) , 16 ,16 ) ;
+    AddRoundedRectToPath( ctx , CGRectMake( xx , yy , ww , hh ) , radius , radius ) ;
     CGContextDrawPath( ctx , mctx->GetDrawingMode() ) ;
 }
 
