@@ -206,10 +206,17 @@ class ListDelegate (object):
         """
         return itemIndex
 
-    def ChangeIndex(self, indexName):
+    def InitElementDelegate(self):
+        """
+        Called right after the delegate has been mixed in
+        """
         pass
-
+    
     def SynchronizeDelegate(self):
+        """
+        Companion to wxSynchronizeWidget - gets called after the main
+        class has synchronized itself.
+        """
         pass
 
 

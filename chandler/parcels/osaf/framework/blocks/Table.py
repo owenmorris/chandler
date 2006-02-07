@@ -86,9 +86,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         else:
             theStyle=wx.BORDER_STATIC
         """
-          Giant hack. Calling event.GetEventObject in OnShow of application, while the
-        object is being created cause the object to get the wrong type because of a
-        "feature" of SWIG. So we need to avoid OnShows in this case.
+          Giant hack. Calling event.GetEventObject in OnShow of
+          application, while the object is being created cause the
+          object to get the wrong type because of a
+          "feature" of SWIG. So we need to avoid OnShows in this case.
         """
         app = wx.GetApp()
         oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
@@ -147,7 +148,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         else:
             contents.setDescending (indexName, not contents.isDescending(indexName))
 
-        self.ChangeIndex(self.blockItem.contents.indexName)
         self.wxSynchronizeWidget()
 
     def SetLightSelectionBackground (self):
@@ -177,6 +177,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         if not elementDelegate:
             elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
         mixinAClass (self, elementDelegate)
+        self.InitElementDelegate()
         """
           wxTableData handles the callbacks to display the elements of the
         table. Setting the second argument to True cause the table to be deleted
@@ -538,10 +539,12 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
           Currently only handles left justified multiline text
         """
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
-        item, attributeName = grid.GetElementValue (row, column)
-        assert not item.isDeleted()
-        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
-        self.delegate.Draw (dc, rect, item, attributeName, isInSelection)
+        value = grid.GetElementValue (row, column)
+        if __debug__:
+            item, attributeName = value
+            assert not item.isDeleted()
+            
+        self.delegate.Draw (dc, rect, value, isInSelection)
 
 class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
     def __init__(self, type):

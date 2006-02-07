@@ -26,6 +26,7 @@ from osaf.framework.blocks.Block import (ShownSynchronizer,
                                          wxRectangularChild, debugName)
 from osaf.pim.items import ContentItem
 from application import schema
+from application.dialogs import RecurrenceDialog
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 
@@ -262,7 +263,7 @@ class BaseAttributeEditor (object):
         else:
             return not isAttrModifiable(attribute)
 
-    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         """ 
         Draw the value of the this item attribute.
         
@@ -1009,12 +1010,13 @@ class StringAttributeEditor (BaseAttributeEditor):
             fixedWidth = False # yes, let our textctrl fill the space.
         return fixedWidth
 
-    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         """
         Draw this control's value; used only by Grid when the attribute's not
         being edited.
         @@@ Currently only handles left justified single line text.
         """
+        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         #logger.debug("StringAE.Draw: %s, %s of %s; %s in selection",
                      #self.isShared and "shared" or "dv",
                      #attributeName, item,
@@ -2045,7 +2047,7 @@ class AECheckBox(ShownSynchronizer, wx.CheckBox):
 
 class CheckboxAttributeEditor (BasePermanentAttributeEditor):
     """ A checkbox control. """
-    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         # We have to implement Draw, but we don't need to do anything
         # because we've always got a control to do it for us.
         pass
@@ -2092,7 +2094,7 @@ class AEChoice(ShownSynchronizer, wx.Choice):
 
 class ChoiceAttributeEditor(BasePermanentAttributeEditor):
     """ A pop-up control. The list of choices comes from presentationStyle.choices """        
-    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         # We have to implement Draw, but we don't need to do anything
         # because we've always got a control to do it for us.
         pass
@@ -2230,7 +2232,8 @@ class IconAttributeEditor (BaseAttributeEditor):
             value = ""
         return value
 
-    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         dc.SetPen (wx.TRANSPARENT_PEN)
         dc.DrawRectangleRect(rect) # always draw the background
         imageName = self.GetAttributeValue(item, attributeName)
