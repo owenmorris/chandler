@@ -75,7 +75,7 @@ def get_divisions(l, key=None):
             return result
                 
     def try_division(i,j):
-        assert i < j
+        assert i <= j, "%s > %s - confused" % (i,j)
 
         if get_value(l[i]) != get_value(l[j]):
 
@@ -87,6 +87,10 @@ def get_divisions(l, key=None):
                 # Since they are far apart, we should search this range
                 division_stack.append((i,j))
 
+    # this saves time
+    if len(l) == 0:
+        return []
+    
     # the meat of it - the binary search
     while len(division_stack) != 0:
 
