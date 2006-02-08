@@ -20,13 +20,16 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         # rows including the section header
         self.sectionRows = []
 
+        self.sectionLabels = []
+
         # a set indicating which sections are collapsed
         self.collapsedSections = set()
 
         # total rows in the table
         self.totalRows = 0
 
-        self.RegisterDataType("Section", SectionRenderer(), None)
+        self.RegisterDataType("Section", SectionRenderer(),
+                              SectionEditor())
         
     def SynchronizeDelegate(self):
         """
@@ -43,6 +46,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         """
         indexName = self.blockItem.contents.indexName
         self.sectionRows = []
+        self.sectionLabels = []
         self.totalRows = 0
         
         # regenerate index-based sections - each entry in
@@ -87,6 +91,9 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             
             self.sectionRows.append((sectionRow, sectionLength))
             self.totalRows += sectionLength + 1
+            label = _(u"Section: %s") % \
+                    getattr(self.blockItem.contents[self.sectionIndexes[section]], indexName, _(u"<unknown>"))
+            self.sectionLabels.append(label)
 
         # make sure we're sane
         assert len(self.sectionRows) == len(self.sectionIndexes)
@@ -107,7 +114,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
     def ReadOnly(self, row, column):
         itemIndex = self.RowToIndex(row)
         if itemIndex == -1:
-            return True, True
+            return False, True
 
         return super(SectionedGridDelegate, self).ReadOnly(row, column)
     
@@ -115,12 +122,9 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         
         itemIndex = self.RowToIndex(row)
         if itemIndex == -1:
-            # section headers: we get the section title from the next row
-            firstItemIndex = self.RowToIndex(row+1)
-            firstItemInSection = self.blockItem.contents[firstItemIndex]
-            
-            indexAttribute = self.blockItem.contents.indexName
-            return (firstItemInSection, indexAttribute)
+            # this is just a hack because this value is getting passed
+            # to the default attribute editor
+            return object(), None
         
         attributeName = self.blockItem.columnData[column]
         return (self.blockItem.contents [itemIndex], attributeName)
@@ -160,7 +164,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                 assert itemIndex < len(self.blockItem.contents)
                 return itemIndex
 
-        assert False, "Couldn't find index for row %s in %s" % (row, [x[0] for x in reversed(self.sectionRows)])
+        #assert False, "Couldn't find index for row %s in %s" % (row, [x[0] for x in reversed(self.sectionRows)])
+        return -1
 
     def IndexToRow(self, itemIndex):
         """
@@ -190,8 +195,18 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                     
                     return row
 
-        assert False, "Couldn't find row for index %s" % itemIndex
+                #assert False, "Couldn't find row for index %s" % itemIndex
+        return -1
 
+    def ToggleRow(self, row):
+        for (section, (sectionRow, length)) in enumerate(self.sectionRows):
+            if row == sectionRow:
+                if section in self.collapsedSections:
+                    self.ExpandSection(section)
+                else:
+                    self.CollapseSection(section)
+                self.blockItem.synchronizeWidget()
+                return
 
     def CollapseSection(self, section):
         """
@@ -203,6 +218,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         (oldPosition, oldLength) = self.sectionRows[section]
 
         self.AdjustSectionPosition(section, -oldLength)
+        self.totalRows -= oldLength
+        self.collapsedSections.add(section)
             
     def ExpandSection(self, section):
         """
@@ -220,6 +237,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                          self.sectionIndexes[section])
 
         self.AdjustSectionPosition(section, newLength)
+        self.totalRows += newLength
+        self.collapsedSections.remove(section)
 
     def AdjustSectionPosition(self, startSection, delta):
         """
@@ -228,11 +247,11 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         we have to adjust the given section as well as all sections
         following it.
         """
-        for sectionNum, (sectionPosition, sectionLength) \
-                in range(section, len(self.sectionRows)):
-            
-            self.sectionRows[sectionNum] = (sectionPosition + delta,
-                                            sectionLength)
+        for section, (sectionPosition, sectionLength) \
+            in enumerate(self.sectionRows):
+            if section >= startSection:
+                self.sectionRows[section] = (sectionPosition + delta,
+                                             sectionLength)
         
 
 class SectionRenderer(wx.grid.PyGridCellRenderer):
@@ -241,11 +260,10 @@ class SectionRenderer(wx.grid.PyGridCellRenderer):
         self.brushes = DrawingUtilities.Gradients()
         
     def ReadOnly(self, *args):
-        return True
+        print "Who is calling RO?"
+        return False, False
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
-        (firstItem, attributeName) = grid.GetElementValue(row, col)
-        
         dc.SetPen(wx.TRANSPARENT_PEN)
         brush = self.brushes.GetGradientBrush(0, rect.height,
                                               (153, 204, 255), (203, 229, 255),
@@ -254,9 +272,50 @@ class SectionRenderer(wx.grid.PyGridCellRenderer):
         dc.DrawRectangleRect(rect)
 
         if col == 0:
+            dc.SetFont(attr.GetFont())
             dc.SetTextForeground(wx.BLACK)
             dc.SetBackgroundMode(wx.TRANSPARENT)
-            sectionTitle = _(u"Section: %s") % getattr(firstItem, attributeName, "[None]")
+            # look up row in section list
+            for section, (sectionRow, length) in enumerate(grid.sectionRows):
+                if row == sectionRow:
+                    sectionTitle = grid.sectionLabels[section]
+                    break
             dc.DrawText(sectionTitle, 3, rect.y + 2)
 
 
+class SectionEditor(wx.grid.PyGridCellEditor):
+    def __init__(self, *args, **kwds):
+        super(SectionEditor, self).__init__(*args, **kwds)
+
+    def StartingClick(self):
+        #print "StartingClick()"
+        (grid, row) = self.collapseInfo
+        grid.ToggleRow(row)
+
+    def StartingKey(self, event):
+        #print "StartingKey()"
+        pass
+
+    def Create(self, parent, id, evtHandler):
+        """
+        Create a dummy control to make wx happy - the key here is SetControl()
+        """
+        self.control = wx.Control(parent, id)
+        self.SetControl(self.control)
+        if evtHandler:
+            self.control.PushEventHandler(evtHandler)
+        #print "Create(%s, %s, %s)" % (parent, id, evtHandler)
+
+    def BeginEdit(self, row, col, grid):
+        """
+        Don't 
+        """
+        self.control.Hide()
+        self.collapseInfo = (grid, row)
+        #print "BeginEdit(%s, %s)" % (row,col)
+
+    def EndEdit(self, row, col, grid):
+        del self.collapseInfo
+        #print "EndEdit(%s, %s)" % (row,col)
+        return False
+        
