@@ -22,7 +22,7 @@ endif
 
 ifeq ($(OS),Cygwin)
 PREFIX_PYTHON=$(PREFIX)/bin
-PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-$(DB_VER)
+PREFIX_DB=$(BUILD_ROOT)/db/db-$(DB_VER)
 BUILD_DB=build_win32
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
@@ -111,7 +111,7 @@ build: expand apply
             CXX=$(PYLUCENE_CXX) \
             JCC=$(PYLUCENE_JCC) \
             JCCH=$(PYLUCENE_JCCH) \
-            DB=$(BUILD_ROOT)/persistence/db/db-$(DB_VER) \
+            DB=$(BUILD_ROOT)/db/db-$(DB_VER) \
             DB_VER=$(DB_VER) \
             DB_LIB_VER=$(DB_LIB_VER) \
             PREFIX_DB=$(PREFIX_DB) \
