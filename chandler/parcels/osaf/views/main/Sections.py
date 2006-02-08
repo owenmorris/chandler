@@ -238,7 +238,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         """
         Expand the given section to be the same as the original data
         """
-        assert section not in self.collapsedSections
+        assert section in self.collapsedSections
 
         # we look back in the original data to find the section length
         if section == len(self.sectionIndexes) - 1:
