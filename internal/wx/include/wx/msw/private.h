@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: private.h,v 1.149 2005/11/15 07:40:09 ABX Exp $
+// RCS-ID:      $Id: private.h,v 1.150 2006/02/08 14:00:34 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -518,6 +518,41 @@ private:
 
     DECLARE_NO_COPY_CLASS(HDCClipper)
 };
+
+// set the given map mode for the life time of this object
+//
+// NB: SetMapMode() is not supported by CE so we also define a helper macro
+//     to avoid using it there
+#ifdef __WXWINCE__
+    #define wxCHANGE_HDC_MAP_MODE(hdc, mm)
+#else // !__WXWINCE__
+    class HDCMapModeChanger
+    {
+    public:
+        HDCMapModeChanger(HDC hdc, int mm)
+            : m_hdc(hdc)
+        {
+            m_modeOld = ::SetMapMode(hdc, mm);
+            if ( !m_modeOld )
+                wxLogLastError(_T("SelectClipRgn"));
+        }
+
+        ~HDCMapModeChanger()
+        {
+            if ( m_modeOld )
+                ::SetMapMode(m_hdc, m_modeOld);
+        }
+
+    private:
+        HDC m_hdc;
+        int m_modeOld;
+
+        DECLARE_NO_COPY_CLASS(HDCMapModeChanger)
+    };
+
+    #define wxCHANGE_HDC_MAP_MODE(hdc, mm) \
+        HDCMapModeChanger wxMAKE_UNIQUE_NAME(wxHDCMapModeChanger)(hdc, mm)
+#endif // __WXWINCE__/!__WXWINCE__
 
 // smart buffeer using GlobalAlloc/GlobalFree()
 class GlobalPtr

@@ -441,6 +441,8 @@ bitmapsize                 Size                    -1,-1
 margins                    Size                    -1,-1
 packing                    Integer                 -1
 separation                 Integer                 -1
+bg                         Background colour       None
+dontattachtoframe          Boolean                 False
 
 wxToolBar node may have children <object> and <object_ref> nodes. Their class
 may be either "tool", "separator" or any wxWidgets class derived from
@@ -457,6 +459,7 @@ appear within wxToolBar node. Their attributes are as follows:
     bitmap2                Bitmap                  wxNullBitmap
     toggle                 Boolean                 0
     radio                  Boolean                 0
+    disabled               Boolean                 0
     label                  I18nString              ""
     tooltip                I18nString              ""
     longhelp               I18nString              ""
@@ -485,4 +488,4 @@ FIXME -- "platform" property handling
 
 === EOF ===
 
-Version: $Id: tn0014.txt,v 1.18 2005/05/31 09:18:07 JS Exp $
+Version: $Id: tn0014.txt,v 1.21 2006/02/08 13:33:55 VZ Exp $

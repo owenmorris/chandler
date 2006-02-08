@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.97
-// RCS-ID:      $Id: dynarray.cpp,v 1.56 2006/01/18 16:45:37 JS Exp $
+// RCS-ID:      $Id: dynarray.cpp,v 1.57 2006/02/08 13:04:14 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -434,7 +434,7 @@ _WX_DEFINE_BASEARRAY(double,       wxBaseArrayDouble)
 #include <functional>
 #include "wx/afterstd.h"
 
-_WX_DEFINE_BASEARRAY(wxString, wxBaseArrayStringBase);
+_WX_DEFINE_BASEARRAY(wxString, wxBaseArrayStringBase)
 
 // some compilers (Sun CC being the only known example) distinguish between
 // extern "C" functions and the functions with C++ linkage and ptr_fun and

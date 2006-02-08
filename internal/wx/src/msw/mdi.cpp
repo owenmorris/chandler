@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: mdi.cpp,v 1.133 2006/01/26 16:49:30 ABX Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.135 2006/02/08 15:41:45 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -213,6 +213,8 @@ bool wxMDIParentFrame::Create(wxWindow *parent,
   {
       return false;
   }
+
+  SetOwnBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
 
   // unlike (almost?) all other windows, frames are created hidden
   m_isShown = false;
@@ -1110,13 +1112,6 @@ bool wxMDIChildFrame::HandleWindowPosChanging(void *pos)
             lpPos->cx = rectClient.right - rectClient.left;
             lpPos->cy = rectClient.bottom - rectClient.top;
         }
-#if wxUSE_TOOLBAR
-        wxMDIParentFrame* pFrameWnd = (wxMDIParentFrame *)GetParent();
-        if (pFrameWnd && pFrameWnd->GetToolBar() && pFrameWnd->GetToolBar()->IsShown())
-        {
-            pFrameWnd->GetToolBar()->Refresh();
-        }
-#endif
     }
 
     return false;

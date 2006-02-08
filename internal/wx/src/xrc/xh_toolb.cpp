@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for wxBoxSizer
 // Author:      Vaclav Slavik
 // Created:     2000/08/11
-// RCS-ID:      $Id: xh_toolb.cpp,v 1.18 2005/09/23 12:56:15 MR Exp $
+// RCS-ID:      $Id: xh_toolb.cpp,v 1.20 2006/02/08 13:22:51 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,6 +76,9 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
                                kind,
                                GetText(wxT("tooltip")),
                                GetText(wxT("longhelp")));
+
+            if ( GetBool(wxT("disabled")) )
+                m_toolbar->EnableTool(GetID(), false);
         }
         return m_toolbar; // must return non-NULL
     }
@@ -115,6 +118,8 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
         long separation = GetLong(wxT("separation"), -1);
         if (separation != -1)
             toolbar->SetToolSeparation(separation);
+        if (HasParam(wxT("bg")))
+            toolbar->SetBackgroundColour(GetColour(wxT("bg")));
 
         wxXmlNode *children_node = GetParamNode(wxT("object"));
         if (!children_node)
