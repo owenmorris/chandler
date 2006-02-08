@@ -10,8 +10,7 @@ from osaf import pim
 import datetime
 
 def installParcel(parcel, oldName=None):
-
-    startup = schema.ns("osaf.startup", parcel)
+    from osaf import startup
 
     startup.PeriodicTask.update(parcel, "FeedUpdateTask",
         invoke="feeds.FeedUpdateTaskClass",
