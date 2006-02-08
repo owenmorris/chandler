@@ -25,7 +25,7 @@ reposBuild   = [('cosmo',  'clean build'),
                ]
 reposTest    = [('cosmo',  'test'),
                ]
-reposDist    = [('cosmo',  'dist:release', 'dist',   'cosmo*.tar.gz'),
+reposDist    = [('cosmo',  'dist:release war:deploy', 'dist', 'cosmo*.tar.gz'),
                ]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):

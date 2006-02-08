@@ -25,7 +25,7 @@ reposBuild   = [('scooby',  'clean'),
                ]
 reposTest    = [('scooby',  'test'),
                ]
-reposDist    = [('scooby',  'dist:release', 'dist',   'scooby*.tar.gz'),
+reposDist    = [('scooby',  'dist:release war:deploy', 'dist',   'scooby*.tar.gz'),
                ]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
