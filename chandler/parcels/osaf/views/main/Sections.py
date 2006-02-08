@@ -61,6 +61,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         # dont' show section headers for zero or one section
         if len(self.sectionIndexes) <= 1:
+            self.sectionIndexes = []
             self.totalRows = len(self.blockItem.contents)
             return
             
