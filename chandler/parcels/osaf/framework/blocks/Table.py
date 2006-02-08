@@ -422,10 +422,11 @@ class wxTable(DragAndDrop.DraggableWidget,
                     editAttributeNamed = None
 
             cursorRow = self.IndexToRow(index)
-            self.SetGridCursor (cursorRow, column)
-            self.MakeCellVisible (cursorRow, column)
-            if editAttributeNamed is not None:
-                self.EnableCellEditControl()
+            if cursorRow != -1:
+                self.SetGridCursor (cursorRow, column)
+                self.MakeCellVisible (cursorRow, column)
+                if editAttributeNamed is not None:
+                    self.EnableCellEditControl()
 
     def GoToItem(self, item):
         if item != None:
@@ -710,6 +711,9 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
             except ValueError:
                 continue
 
+            if row == -1:
+                continue
+            
             if visiblerow is None:
                 visiblerow = row
                 
