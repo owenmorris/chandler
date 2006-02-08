@@ -11,12 +11,6 @@ functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/Fun
 fileName = "FunctionalTestSuite.log"
 logger = QAUITestAppLib.QALogger(fileName,"FunctionalTestSuite")
 
-def exclude(fullList, excludeList):
-    for item in excludeList:
-        if item in fullList:
-            fullList.remove(item)
-    return fullList
-
 def run_tests(tests):
     for filename in tests:
         execfile(os.path.join(functional_dir, filename))
@@ -43,25 +37,28 @@ allTests = ["TestCreateAccounts.py",
                         "TestImportOverwrite.py",
                         "TestSharing.py"]
 
-exclude_on_linux = [                                          
-                                        ]
-exclude_on_mac = [ 
-                                        ]
-exclude_on_windows = [ 
-                                        ]
-exclude_on_all = [
+if sys.platform == 'win32': 
+    platform = 'windows'
+elif sys.platform == 'darwin': 
+    platform = 'mac'
+else:
+    platform = 'other'
+    
+exclusions = { 'other':(                                     
+                                        ),
+                        'mac':( 
+                                        ),
+                        'windows':(
+                                        ),
+                        'all':(
                                         "TestMoveToTrash.py", #bug # 5150  
-                                        "TestStamping.py", #Chandler bug#5097
-                                        "TestNewCollNoteStampMulti.py", #Chandler bug #5097
                                         "TestAllDayEvent.py", #test not functioning bug#5110
                                         "TestDates.py", #Chandler not handling daylightsavings bug#5038
                                         "TestRecurrenceImporting.py", #Chandler bug #5116
-                                    ]
+                                    )
+                     }
 
-tests_to_run = exclude(allTests, exclude_on_all)
-if sys.platform == "linux2" : tests_to_run = exclude(tests_to_run, exclude_on_linux)
-if sys.platform == "darwin" : tests_to_run = exclude(tests_to_run, exclude_on_mac)
-if sys.platform == "win32" : tests_to_run = exclude(tests_to_run, exclude_on_windows)
+tests_to_run = filter(lambda test : test not in exclusions['all'] and test not in exclusions[platform], allTests)
 
 try:
     run_tests(tests_to_run)
