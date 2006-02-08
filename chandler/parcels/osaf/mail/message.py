@@ -578,8 +578,8 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
 
             if not foundText and firstPart is not None:
                 if firstPart.get_content_maintype() == "text":
-                    __handleText(view, firstPart, parentMIMEContainer, bodyBuffer, \
-                                 counter, buf, level+1)
+                    __handleText(view, firstPart, parentMIMEContainer,
+                                 bodyBuffer, counter, buf, level+1, compression)
                 else:
                     __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level+1, compression)
         elif __debug__:
