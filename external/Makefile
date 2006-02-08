@@ -1,7 +1,7 @@
 
 include Makefile.inc
 
-SYSTEMS=persistence/db \
+SYSTEMS=db \
         swig \
         icu \
         readline \
@@ -10,7 +10,6 @@ SYSTEMS=persistence/db \
         epydoc \
         PyLucene \
         PyICU \
-        persistence/libxml2 \
         jabber-py \
         SOAPpy \
         zope \
