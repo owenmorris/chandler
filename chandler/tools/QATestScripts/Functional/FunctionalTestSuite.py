@@ -44,14 +44,13 @@ elif sys.platform == 'darwin':
 else:
     platform = 'other'
     
-exclusions = { 'other':(                                     
+exclusions = { 'other':( "TestMoveToTrash.py", #bug # 5150                                     
                                         ),
                         'mac':( 
                                         ),
                         'windows':(
                                         ),
-                        'all':(
-                                        "TestMoveToTrash.py", #bug # 5150  
+                        'all':(                                         
                                         "TestAllDayEvent.py", #test not functioning bug#5110
                                         "TestDates.py", #Chandler not handling daylightsavings bug#5038
                                         "TestRecurrenceImporting.py", #Chandler bug #5116
