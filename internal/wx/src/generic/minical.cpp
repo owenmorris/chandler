@@ -804,7 +804,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
     wxColour lightColour = wxColour(255, 255, 255);
     wxColour highlightColour = wxColour(204, 204, 204);
     wxColour lineColour = wxColour(229, 229, 229);
-    wxColour busyColour = wxColour(0, 128, 255);
+    wxColour busyColour = wxColour(138, 184, 229);
 
     dc.SetTextForeground(mainColour);
     for ( size_t nWeek = 1; nWeek <= WEEKS_TO_DISPLAY; nWeek++, *y += m_heightRow )
@@ -873,7 +873,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 if ( (GetWindowStyle() & wxCAL_SHOW_BUSY) != 0 )
                 {
                     double busyPercentage = GetBusy(dayPosition);
-                    int height = (int) ((m_heightRow - 4) * busyPercentage);
+                    int height = (int) ((m_heightRow - 3) * busyPercentage);
 
                     dc.SetTextBackground(busyColour);
                     dc.SetBrush(wxBrush(busyColour, wxSOLID));
@@ -885,9 +885,9 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
 #endif
 
 #if defined(__WXMAC__) && !wxMAC_USE_CORE_GRAPHICS
-                    dc.DrawRectangle(x-4, *y + m_heightRow - height - 1, 3, height);
+                    dc.DrawRectangle(x-3, *y + m_heightRow - height - 1, 2, height);
 #else
-                    dc.DrawRectangle(x-4, *y + m_heightRow - height - 2, 3, height);
+                    dc.DrawRectangle(x-3, *y + m_heightRow - height - 2, 2, height);
 #endif
 
                     changedColours = true;
