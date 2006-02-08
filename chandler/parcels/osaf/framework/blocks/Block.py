@@ -906,7 +906,7 @@ class alignmentEnumType(schema.Enumeration):
 
 class RectangularChild (Block):
 
-    from osaf.framework.types.DocumentTypes import SizeType, RectType
+    from osaf.pim.structs import SizeType, RectType
 
     size = schema.One(SizeType, initialValue = SizeType(0, 0))
     minimumSize = schema.One(SizeType, initialValue = SizeType(-1, -1))
@@ -971,7 +971,7 @@ class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.Text, required = True)
 
 class ColorEvent(BlockEvent):
-    from osaf.framework.types.DocumentTypes import ColorType
+    from osaf.pim.structs import ColorType
     color = schema.One(ColorType, required = True)
 
 class KindParameterizedEvent(BlockEvent):

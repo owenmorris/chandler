@@ -42,7 +42,7 @@ class RestoreSharesDialog(wx.Dialog):
         self.gauge = wx.xrc.XRCCTRL(self, "GAUGE")
         self.gauge.SetRange(100)
 
-        self.currentAccount = sharing.schema.ns('osaf.app',
+        self.currentAccount = sharing.schema.ns('osaf.sharing',
             self.view).currentWebDAVAccount.item
         self.choiceAccounts.Clear()
         accounts = sorted(sharing.WebDAVAccount.iterItems(view),
@@ -107,7 +107,7 @@ class RestoreSharesDialog(wx.Dialog):
     def OnRestore(self, evt):
         view = self.view
 
-        me = schema.ns("osaf.app", view).currentContact.item
+        me = schema.ns("osaf.pim", view).currentContact.item
 
         accountUrl = self.currentAccount.getLocation()
         if not accountUrl.endswith('/'):

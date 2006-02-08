@@ -1,7 +1,7 @@
 import application.schema as schema
 import osaf.framework.attributeEditors as attributeEditors
 import osaf.framework.blocks as blocks
-from osaf.framework.types.DocumentTypes import RectType, SizeType
+from osaf.pim.structs import RectType, SizeType
 from hello_world import MP3
 
 def installParcel(parcel, oldVersion=None):

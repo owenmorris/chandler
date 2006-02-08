@@ -2,7 +2,7 @@ from osaf.framework.blocks import *
 from osaf.framework.blocks.calendar import *
 from osaf.views.main.Main import *
 from osaf.views.main.SideBar import *
-from osaf.framework.types.DocumentTypes import SizeType, RectType
+from osaf.pim.structs import SizeType, RectType
 from osaf import pim
 from osaf import messages
 from i18n import OSAFMessageFactory as _
@@ -15,7 +15,8 @@ def makeCPIATestMainView (parcel):
     globalBlocks = schema.ns("osaf.framework.blocks", repositoryView)
     main = schema.ns("osaf.views.main", repositoryView)
     cpiatest = schema.ns("osaf.views.cpiatest", repositoryView)
-    app = schema.ns("osaf.app", repositoryView)
+    app_ns = schema.ns("osaf.app", repositoryView)
+    pim_ns = schema.ns("osaf.pim", repositoryView)
 
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',
@@ -34,7 +35,7 @@ def makeCPIATestMainView (parcel):
 
     sidebarSelectionCollection = pim.IndexedSelectionCollection.update(
         parcel, 'sidebarSelectionCollection',
-        source = app.sidebarCollection)
+        source = app_ns.sidebarCollection)
 
     Sidebar = SidebarBlock.template(
         'Sidebar',
@@ -45,13 +46,13 @@ def makeCPIATestMainView (parcel):
         editRectOffsets = [17, -17, 0],
         buttons = [IconButton, SharingButton],
         contents = sidebarSelectionCollection,
-        selectedItemToView = app.allCollection,
+        selectedItemToView = pim_ns.allCollection,
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
         hideColumnHeadings = True,
         columnWidths = [150],
         columnData = [u'displayName'],
         filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView)).install(parcel)
-    Sidebar.contents.selectItem (app.allCollection)
+    Sidebar.contents.selectItem (pim_ns.allCollection)
 
     ApplicationBar = Toolbar.template(
         'ApplicationBar',
@@ -146,7 +147,7 @@ def makeCPIATestMainView (parcel):
                                         orientationEnum = 'Vertical',
                                         childrenBlocks = [
                                             PreviewArea.template('PreviewArea',
-                                                contents = app.allEventsCollection,
+                                                contents = pim_ns.allEventsCollection,
                                                 calendarContainer = None,
                                                 timeCharacterStyle = \
                                                     CharacterStyle.update(parcel, 
@@ -159,16 +160,16 @@ def makeCPIATestMainView (parcel):
                                                                           fontSize = 11),
                                                 stretchFactor = 0.0),
                                             MiniCalendar.template('MiniCalendar',
-                                                contents = app.allEventsCollection,
+                                                contents = pim_ns.allEventsCollection,
                                                 calendarContainer = None,
                                                 stretchFactor = 0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
                                     ]), # SplitterWindow SidebarContainer
                             BranchPointBlock.template('SidebarBranchPointBlock',
                                 delegate = SidebarBranchPointDelegateInstance,
-                                detailItem = app.allCollection,
-                                selectedItem = app.allCollection,
-                                detailItemCollection = app.allCollection),
+                                detailItem = pim_ns.allCollection,
+                                selectedItem = pim_ns.allCollection,
+                                detailItemCollection = pim_ns.allCollection),
                             ]) # BoxContainer SidebarContainerContainer
                     ]) # BoxContainer ToolbarContainer
             ]).install (parcel) # MainViewInstance MainView

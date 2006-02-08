@@ -14,10 +14,8 @@ def installParcel(parcel, oldVersion=None):
     from osaf import sharing, startup
     from osaf.framework import scripting
 
-    curDav = Reference.update(parcel, 'currentWebDAVAccount')
-    curMail = Reference.update(parcel, 'currentMailAccount')
-    curSmtp = Reference.update(parcel, 'currentSMTPAccount')
-    curCon = Reference.update(parcel, 'currentContact')
+    pim_ns = schema.ns('osaf.pim', parcel)
+    sharing_ns = schema.ns('osaf.sharing', parcel)
 
     me = pim.Contact.update(parcel, 'me',
         displayName=_(u'Me'),
@@ -25,12 +23,16 @@ def installParcel(parcel, oldVersion=None):
            firstName=_(u'Chandler'),
            lastName=_(u'User')
         ),
-        references=[curCon]
+        references=[pim_ns.currentContact]
     )
 
-    # Items created in osaf.app (this parcel):
 
-    MakeCollections(parcel)
+    # The Sidebar collection
+    sidebarListCollection = pim.ListCollection.update(parcel,
+        'sidebarCollection',
+        refCollection=[pim_ns.allCollection, pim_ns.trashCollection]
+    )
+
 
     sharing.WebDAVAccount.update(parcel, 'CosmoWebDAVAccount',
         displayName=_(u'Sharing'),
@@ -40,21 +42,21 @@ def installParcel(parcel, oldVersion=None):
         password=u'',
         useSSL=True,
         port=443,
-        references=[curDav]
+        references=[sharing_ns.currentWebDAVAccount]
     )
 
     preReply = pim.EmailAddress.update(parcel, 'PredefinedReplyAddress')
 
     preSmtp = pim.mail.SMTPAccount.update(parcel, 'PredefinedSMTPAccount',
         displayName=_(u'Outgoing %(accountType)s mail') % {'accountType': 'SMTP'},
-        references=[curSmtp]
+        references=[pim_ns.currentSMTPAccount]
     )
 
     pim.mail.IMAPAccount.update(parcel, 'PredefinedIMAPAccount',
         displayName=_(u'Incoming %(accountType)s mail') % {'accountType': 'IMAP'},
         replyToAddress=preReply,
         defaultSMTPAccount=preSmtp,
-        references=[curMail]
+        references=[pim_ns.currentMailAccount]
     )
 
     pim.mail.POPAccount.update(parcel, 'PredefinedPOPAccount',
@@ -97,7 +99,7 @@ def installParcel(parcel, oldVersion=None):
     noonToday = datetime.datetime.combine(
         datetime.date.today(),
         datetime.time(12, tzinfo=ICUtzinfo.getDefault()))
-        
+
     WelcomeEvent = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
         displayName=_(u'Welcome to Chandler 0.6'),
         startTime=noonToday,
@@ -106,7 +108,7 @@ def installParcel(parcel, oldVersion=None):
         creator=osafDev,
         location=pim.Location.update(parcel, "OSAFLocation",
             displayName=u"Open Source Applications Foundation"
-        )
+        ),
     )
 
     body = _(u"""Welcome to the Chandler 0.6 Release!
@@ -140,6 +142,7 @@ Thank you for trying Chandler. Your feedback is welcome on our mail lists:
 The Chandler Team""")
 
     WelcomeEvent.body = WelcomeEvent.getAttributeAspect('body', 'type').makeValue(body)
+
 
 
     # Set up the main web server
@@ -267,180 +270,3 @@ The Chandler Team""")
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
 
 
-def MakeCollections(parcel):
-
-    import wx
-    from osaf.pim import (
-        KindCollection, ListCollection, FilteredCollection,
-        DifferenceCollection, InclusionExclusionCollection,
-        UnionCollection, CollectionColors, IntersectionCollection
-    )
-    from osaf.framework.types.DocumentTypes import ColorType
-    
-    def GetColorForHue (hue):
-        rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue / 360.0, 0.5, 1.0))
-        return ColorType (rgb.red, rgb.green, rgb.blue, 255)
-
-    view = parcel.itsView
-
-    collectionColors = CollectionColors.update(
-        parcel, 'collectionColors',
-        colors = [GetColorForHue (210),
-                  GetColorForHue (120),
-                  GetColorForHue (0),
-                  GetColorForHue (30),
-                  GetColorForHue (270),
-                  GetColorForHue (240),
-                  GetColorForHue (330)],
-        colorIndex = 0)
-    
-    TrashCollection = ListCollection.update(
-        parcel, 'TrashCollection',
-        displayName=_(u"Trash"),
-        renameable=False,
-        dontDisplayAsCalendar=True,
-        outOfTheBoxCollection = True)
-
-    notes = KindCollection.update(
-        parcel, 'notes',
-        kind = pim.Note.getKind(view),
-        recursive = True)
-
-    nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
-        source=notes,
-        filterExpression=u"(not item.hasLocalAttributeValue('isGenerated') or not getattr(item, 'isGenerated', False)) and not item.hasLocalAttributeValue('modificationFor')",
-        filterAttributes=['isGenerated', 'modificationFor']
-    )
-
-    notMine = UnionCollection.update(parcel, 'notMine')
-    # @@@MOR Hmm, I need to somehow make rep's initialValue be a MultiUnion()
-    notMine._sourcesChanged()
-
-    mine = DifferenceCollection.update(parcel, 'mine',
-        sources=[nonRecurringNotes, notMine]
-    )
-
-    # the "All" collection
-    allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
-        displayName=_(u"My items"),
-        renameable = False,
-        color = collectionColors.nextColor(),
-        outOfTheBoxCollection = True,
-
-        displayNameAlternatives = {'None': _(u'My items'),
-                                   'MailMessageMixin': _(u'My mail'),
-                                   'CalendarEventMixin': _(u'My calendar'),
-                                   'TaskMixin': _(u'My tasks')}
-    ).setup(source=mine, exclusions=TrashCollection, trash=None)
-    # kludge to improve on bug 4144 (not a good long term fix but fine for 0.6)
-    allCollection.rep.addIndex('__adhoc__', 'numeric')
-
-    events = schema.ns('osaf.pim.calendar', view).events
-
-    # bug 4477
-    eventsWithReminders = FilteredCollection.update(
-        parcel, 'eventsWithReminders',
-        source=events,
-        filterExpression='item.reminders',
-        filterAttributes=['reminders'])
-
-    # the monitor list assumes all reminders will be relativeTo
-    # effectiveStartTime, which is true in 0.6, but may not be in the future
-    eventsWithReminders.rep.addIndex('reminderTime', 'compare',
-                                     compare='cmpReminderTime',
-                                     monitor=('startTime', 'allDay', 'anyTime'
-                                              'reminders'))
-    
-    masterFilter = "item.hasTrueAttributeValue('occurrences') and "\
-                   "item.hasTrueAttributeValue('rruleset')"
-    masterEvents = FilteredCollection.update(
-        parcel, 'masterEvents',
-        source = events,
-        filterExpression = masterFilter,
-        filterAttributes = ['occurrences', 'rruleset'])
-
-    masterEvents.rep.addIndex("recurrenceEnd", 'compare', compare='cmpRecurEnd',
-                        monitor=('recurrenceEnd'))
-
-    locations = KindCollection.update(
-        parcel, 'locations',
-        kind = pim.Location.getKind(view),
-        recursive = True)
-
-    locations.rep.addIndex('locationName', 'attribute', attribute = 'displayName')
-
-    mailCollection = KindCollection.update(
-        parcel, 'mail',
-        kind = pim.mail.MailMessageMixin.getKind(view),
-        recursive = True)
-
-    emailAddressCollection = \
-        KindCollection.update(parcel, 'emailAddressCollection',
-                              kind=pim.mail.EmailAddress.getKind(view),
-                              recursive=True)
-    emailAddressCollection.rep.addIndex('emailAddress', 'compare',
-                                        compare='_compareAddr', 
-                                        monitor='emailAddress')
-    emailAddressCollection.rep.addIndex('fullName', 'compare',
-                                        compare='_compareFullName', 
-                                        monitor='fullName')
-
-    inSource = FilteredCollection.update(
-        parcel, 'inSource',
-        source=mailCollection,
-        filterExpression=u'getattr(item, \'isInbound\', False)',
-        filterAttributes=['isInbound'])
-
-    # The "In" collection
-    inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',
-        displayName=_(u"In"),
-        renameable=False,
-        dontDisplayAsCalendar=True,
-        color = collectionColors.nextColor(),
-        outOfTheBoxCollection = True,
-        visible = False
-    ).setup(source=inSource)
-
-    outSource = FilteredCollection.update(
-        parcel, 'outSource',
-        source=mailCollection,
-        filterExpression=u'getattr(item, \'isOutbound\', False)',
-        filterAttributes=['isOutbound'])
-
-    # The "Out" collection
-    outCollection = InclusionExclusionCollection.update(parcel, 'outCollection',
-        displayName=_(u"Out"),
-        renameable=False,
-        dontDisplayAsCalendar=True,
-        color = collectionColors.nextColor(),
-        outOfTheBoxCollection = True,
-        visible = False
-    ).setup(source=outSource)
-
-    # The "Scripts" collection
-    scriptsCollection = KindCollection.update(
-        parcel, 'scripts',
-        kind = scripting.Script.getKind(view))
-
-    InclusionExclusionCollection.update(parcel, 'scriptsCollection',
-        displayName = _(u"Scripts"),
-        renameable = False,
-        private = False,
-        dontDisplayAsCalendar=True,
-        color = collectionColors.nextColor(),
-        ).setup(source=scriptsCollection)
-
-    # The Sidebar collection
-    sidebarListCollection = ListCollection.update(parcel,
-                                                  'sidebarCollection',
-                                                  refCollection=[allCollection,
-                                                                 TrashCollection])
-
-    TrashCollection.color = collectionColors.nextColor()
-
-
-    InclusionExclusionCollection.update (parcel,
-                                         'untitledCollection',
-                                         displayName=messages.UNTITLED)
-
-    allEventsCollection = IntersectionCollection.update(parcel, 'allEventsCollection', sources=[allCollection, events])

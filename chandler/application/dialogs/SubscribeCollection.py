@@ -46,7 +46,8 @@ class SubscribeDialog(wx.Dialog):
         if url is not None:
             self.textUrl.SetValue(url)
         else:
-            account = sharing.schema.ns('osaf.app', self.view).currentWebDAVAccount.item
+            account = sharing.schema.ns('osaf.sharing',
+                self.view).currentWebDAVAccount.item
             if account:
                 url = account.getLocation()
                 self.textUrl.SetValue(url)
@@ -124,7 +125,7 @@ class SubscribeDialog(wx.Dialog):
             # Keep this collection out of "My items" if checked:
             if self.checkboxKeepOut.GetValue():
                 logger.info(_(u'Moving collection out of My Items'))
-                schema.ns('osaf.app', view).notMine.addSource(collection)
+                schema.ns('osaf.pim', view).notMine.addSource(collection)
 
             assert (hasattr (collection, 'color'))
             schema.ns("osaf.app", view).sidebarCollection.add (collection)

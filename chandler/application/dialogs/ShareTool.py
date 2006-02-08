@@ -217,7 +217,8 @@ class ShareEditorDialog(wx.Dialog):
 
         else: # creating the share
 
-            account = sharing.schema.ns('osaf.app', self.view).currentWebDAVAccount.item
+            account = sharing.schema.ns('osaf.sharing',
+                self.view).currentWebDAVAccount.item
             self.textTitle.SetValue(_(u"Enter a descriptive title"))
             self.textShareName.SetValue(_(u"Enter directory name to use"))
 

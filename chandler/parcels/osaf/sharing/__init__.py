@@ -18,6 +18,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import logging, urlparse
 
 from application import schema, Utility
+from application.Parcel import Reference
 from osaf import pim
 from i18n import OSAFMessageFactory as _
 
@@ -71,6 +72,7 @@ class SharingPreferences(schema.Item):
 def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
+    Reference.update(parcel, 'currentWebDAVAccount')
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -708,7 +710,7 @@ def restoreFromAccount(account):
 
     view = account.itsView
 
-    me = schema.ns("osaf.app", view).currentContact.item
+    me = schema.ns("osaf.pim", view).currentContact.item
 
     accountUrl = account.getLocation()
     if not accountUrl.endswith('/'):
@@ -778,7 +780,7 @@ def findMatchingShare(view, url):
 def isSharedByMe(share):
     if share is None:
         return False
-    me = schema.ns("osaf.app", share.itsView).currentContact.item
+    me = schema.ns("osaf.pim", share.itsView).currentContact.item
     sharer = getattr(share, 'sharer', None)
     return sharer is me
 
@@ -850,7 +852,7 @@ def isWebDAVSetUp(view):
     @return: True if accounts are set up; False otherwise.
     """
 
-    account = schema.ns('osaf.app', view).currentWebDAVAccount.item
+    account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
     if account and account.host and account.username and account.password:
         return True
     else:
@@ -949,7 +951,7 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
 
     if account is None:
         # Find the default WebDAV account
-        account = schema.ns('osaf.app', view).currentWebDAVAccount.item
+        account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
         if account is None:
             return None
 
@@ -975,7 +977,7 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
 
     share.displayName = displayName or collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
-    share.sharer = schema.ns("osaf.app", view).currentContact.item
+    share.sharer = schema.ns("osaf.pim", view).currentContact.item
     return share
 
 
@@ -1086,7 +1088,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             """ Returns the defaultSMTPAccount or None"""
             account = pim.mail.getCurrentSMTPAccount(view)
         else:
-            account = schema.ns('osaf.app', view).currentWebDAVAccount.item
+            account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
 
         response = \
           application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
@@ -1120,7 +1122,7 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
 
     name = collection.displayName
 
-    if collection is schema.ns('osaf.app', collection.itsView).allCollection:
+    if collection is schema.ns('osaf.pim', collection.itsView).allCollection:
         name = _(u"My")
         if ext == u"":
             ext = _(u" items")

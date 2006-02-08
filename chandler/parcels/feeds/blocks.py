@@ -14,7 +14,7 @@ import channels
 from i18n import OSAFMessageFactory as _
 from osaf import messages 
 from application import schema
-from osaf.framework.types.DocumentTypes import SizeType, RectType
+from osaf.pim.structs import SizeType, RectType
 
 logger = logging.getLogger(__name__)
 

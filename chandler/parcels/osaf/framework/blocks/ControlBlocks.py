@@ -907,7 +907,7 @@ class ReminderTimer(Timer):
                 return 0
             return -1
 
-        events = schema.ns('osaf.app', view).eventsWithReminders.rep
+        events = schema.ns('osaf.pim', view).eventsWithReminders.rep
         lastPastKey = events.findInIndex('reminderTime', 'last', matches)
 
         if lastPastKey is not None:
@@ -948,7 +948,7 @@ class ReminderTimer(Timer):
         if nextReminderTime is None:
             # The dialog didn't give us a time to fire; we'll fire at the
             # next non-pending reminder's time.
-            events = schema.ns('osaf.app', self.itsView).eventsWithReminders.rep
+            events = schema.ns('osaf.pim', self.itsView).eventsWithReminders.rep
             firstReminder = events.firstInIndex('reminderTime')
             if firstReminder is not None:
                 nextReminderTime = firstReminder.reminderFireTime

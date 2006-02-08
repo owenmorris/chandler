@@ -123,7 +123,7 @@ class ImportDialog(FileChooserWithOptions):
         self.Bind(wx.EVT_BUTTON, self.onCancel, id=wx.ID_CANCEL)
 
         sidebarCollection = schema.ns("osaf.app", view).sidebarCollection
-        trash             = schema.ns("osaf.app", view).TrashCollection
+        trash             = schema.ns("osaf.pim", view).trashCollection
         selected = Globals.views[0].getSidebarSelectedCollection()
         
         # create a collection chooser

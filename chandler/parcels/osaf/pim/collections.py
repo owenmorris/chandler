@@ -8,7 +8,7 @@ from repository.item.Item import Item
 from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
 import logging, os, re, Queue
-from osaf.framework.types.DocumentTypes import ColorType
+from osaf.pim.structs import ColorType
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
@@ -167,7 +167,7 @@ class AbstractCollection(items.ContentItem):
         setup the color of a collection
         """
         if not hasattr (self, 'color'):
-            self.color = schema.ns('osaf.app', self.itsView).collectionColors.nextColor()
+            self.color = schema.ns('osaf.pim', self.itsView).collectionColors.nextColor()
         return self
 
     def collectionChanged(self, op, item, name, other, *args):
@@ -672,20 +672,20 @@ class InclusionExclusionCollection(DifferenceCollection):
                          item.getItemDisplayName().encode('ascii', 'replace'),
                          self.getItemDisplayName().encode('ascii', 'replace'))
 
-    def setup(self, source=None, exclusions=None,  trash="TrashCollection"):
+    def setup(self, source=None, exclusions=None,  trash="trashCollection"):
         """
         setup all the extra parts of a InclusionExclusionCollection. Sets the
         color, source, exclusions and trash collections. source, exclusions and
         trash may be collections or strings. If they are strings, then the
-        corresponding collection is looked up in the osaf.app namespace
+        corresponding collection is looked up in the osaf.pim namespace
         """
 
         def collectionLookup (collection):
             if isinstance (collection, str):
-                collection = getattr (appNameSpace, collection)
+                collection = getattr (pimNameSpace, collection)
             return collection
 
-        appNameSpace = schema.ns('osaf.app', self.itsView)
+        pimNameSpace = schema.ns('osaf.pim', self.itsView)
         
         source = collectionLookup (source)
         exclusions = collectionLookup (exclusions)

@@ -9,7 +9,7 @@ from i18n import OSAFMessageFactory as _
 
 from osaf.framework.blocks import Block
 from osaf.framework.blocks.detail import Detail
-from osaf.framework.types.DocumentTypes import SizeType, RectType
+from osaf.pim.structs import SizeType, RectType
 from osaf.pim import KindCollection
 
 class _CertificateImportController(Block.Block):

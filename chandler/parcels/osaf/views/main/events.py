@@ -4,6 +4,7 @@ import osaf.pim.notes
 import osaf.pim.calendar
 import osaf.pim.mail
 import osaf.pim.tasks
+from osaf import pim, messages
 
 def makeMainEvents(parcel):
 
@@ -292,6 +293,10 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
+    untitledCollection = pim.InclusionExclusionCollection.update(parcel,
+        'untitledCollection',
+        displayName=messages.UNTITLED)
+
     ModifyCollectionEvent.template(
         'NewCollection',
         methodName = 'onModifyCollectionEvent',
@@ -300,7 +305,7 @@ def makeMainEvents(parcel):
         dispatchToBlockName = 'MainView',
         selectInBlockNamed = 'Sidebar',
         editAttributeNamed = 'displayName',
-        items = [schema.ns("osaf.app", repositoryView).untitledCollection],
+        items = [untitledCollection],
         dispatchEnum = 'SendToBlockByName').install(parcel)
 
     BlockEvent.template(

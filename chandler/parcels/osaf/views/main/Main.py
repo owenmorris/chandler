@@ -125,11 +125,11 @@ class MainView(View):
         return splash
 
     def onEmptyTrashEvent(self, event):
-        trash = schema.ns("osaf.app", self).TrashCollection
+        trash = schema.ns("osaf.pim", self).trashCollection
         trash.empty()
 
     def onEmptyTrashEventUpdateUI(self, event):
-        trash = schema.ns("osaf.app", self).TrashCollection
+        trash = schema.ns("osaf.pim", self).trashCollection
         event.arguments['Enable'] = not trash.isEmpty()
 
     def onEditAccountPreferencesEvent (self, event):
@@ -157,7 +157,7 @@ class MainView(View):
         isReadOnly = getattr(sidebaritem, 'isReadOnly', None)
         if isReadOnly and isReadOnly():
             # Tell the sidebar we want to go to the All collection
-            allCollection = schema.ns('osaf.app', self).allCollection
+            allCollection = schema.ns('osaf.pim', self).allCollection
             self.postEventByName ('RequestSelectSidebarItem',
                                   {'item': allCollection})
         elif hasattr(sidebaritem, 'add'):
@@ -311,7 +311,7 @@ class MainView(View):
         # out and we don't.
         if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
             return
-        webdavAccount = schema.ns('osaf.app',
+        webdavAccount = schema.ns('osaf.sharing',
                                    self.itsView).currentWebDAVAccount.item
 
         # commit changes, since we'll be switching to Twisted thread
@@ -516,12 +516,12 @@ class MainView(View):
         self.setStatusMessage (_(u"Importing %(filePath)s") % {'filePath': path})
         photo = Photo(itsView=self.itsView)
         photo.displayName = filename
-        photo.creator = schema.ns("osaf.app", self.itsView).currentContact.item
+        photo.creator = schema.ns("osaf.pim", self.itsView).currentContact.item
         photo.importFromFile(path)
         self.setStatusMessage(u"")
 
         # Tell the sidebar we want to go to the All collection
-        self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.app', self).allCollection})
+        self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.pim', self).allCollection})
         self.postEventByName ('ApplicationBarAll', { })
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemsBroadcastInsideActiveView',
@@ -652,7 +652,8 @@ class MainView(View):
 
     def onAddScriptsToSidebarEvent(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
-        scriptsSet = schema.ns('osaf.app', self.itsView).scriptsCollection
+        scriptsSet = schema.ns('osaf.framework.scripting',
+            self.itsView).scriptsCollection
         # if already present, just select it
         if scriptsSet in sidebar:
             self.postEventByName('RequestSelectSidebarItem', {'item': scriptsSet})
@@ -666,7 +667,8 @@ class MainView(View):
     def onAddScriptsToSidebarEventUpdateUI(self, event):
         # Triggered from "Tests | Add Scripts to Sidebar"
         sidebar = Block.findBlockByName ("Sidebar").contents
-        scriptsSet = schema.ns('osaf.app', self.itsView).scriptsCollection
+        scriptsSet = schema.ns('osaf.framework.scripting',
+            self.itsView).scriptsCollection
         if scriptsSet in sidebar:
             menuTitle = u'Show Scripts'
         else:

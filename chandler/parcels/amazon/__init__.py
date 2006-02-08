@@ -4,7 +4,7 @@ from AmazonBlocks import AmazonController, AmazonDetailBlock
 from application import schema
 from osaf.framework.blocks.detail import makeSubtree
 from i18n import OSAFMessageFactory as _
-from osaf.framework.types.DocumentTypes import SizeType, RectType
+from osaf.pim.structs import SizeType, RectType
 
 def installParcel(parcel, version=None):
 

@@ -253,7 +253,8 @@ class OccurrenceProxy(object):
         if self.proxiedItem.rruleset is None:
             collection.add(self.proxiedItem.getMaster())
         else:
-            trash = schema.ns('osaf.app', self.proxiedItem.itsView).TrashCollection
+            trash = schema.ns('osaf.pim',
+                self.proxiedItem.itsView).trashCollection
             if collection == trash:
                 self.removeFromCollection(collection)
             else:
@@ -355,7 +356,7 @@ class OccurrenceProxy(object):
         just remove self.proxiedItem from that collection.
 
         """
-        trash = schema.ns('osaf.app', self.proxiedItem.itsView).TrashCollection
+        trash = schema.ns('osaf.pim', self.proxiedItem.itsView).trashCollection
         master = self.proxiedItem.getMaster()
         if collection == trash:
             collection.add(master)

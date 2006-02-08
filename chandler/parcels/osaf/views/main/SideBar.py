@@ -295,7 +295,7 @@ class wxSidebar(wxTable):
         else:
             # Switch to the "move" icon if we're over the trash
             possibleCollection = self.blockItem.contents[hoverRow]
-            theTrash = schema.ns('osaf.app', self.blockItem.itsView).TrashCollection
+            theTrash = schema.ns('osaf.pim', self.blockItem.itsView).trashCollection
             if possibleCollection is theTrash:
                 if self.GetDragData() is not None: # make sure the data is the kind we want.
                     dragResult = wx.DragMove
@@ -662,7 +662,7 @@ class SSSidebarSharingButton (SSSidebarButton):
                 iconName = shared + partial
         
         # We need an indication of NotMine
-        if item in schema.ns('osaf.app', self.itsView).notMine.sources:
+        if item in schema.ns('osaf.pim', self.itsView).notMine.sources:
             iconName += "NotMine"
 
         # First lookup full image name
@@ -826,10 +826,11 @@ class SidebarBlock(Table):
         itemsForRemoval = []
         itemsForDeletion = []
 
-        app = schema.ns('osaf.app', self.itsView)
-        sidebarCollections = app.sidebarCollection
-        notMine = app.notMine
-        trash = app.TrashCollection
+        app_ns = schema.ns('osaf.app', self.itsView)
+        pim_ns = schema.ns('osaf.pim', self.itsView)
+        sidebarCollections = app_ns.sidebarCollection
+        notMine = pim_ns.notMine
+        trash = pim_ns.trashCollection
         
         # filter out the usable collections
         def IsValidCollection(col):
@@ -892,7 +893,7 @@ class SidebarBlock(Table):
 
     def onToggleMineEvent(self, event):
         if self.selectedItemToView is not None:
-            notMine = schema.ns('osaf.app', self.itsView).notMine
+            notMine = schema.ns('osaf.pim', self.itsView).notMine
             if self.selectedItemToView in notMine.sources:
                 notMine.removeSource(self.selectedItemToView)
             else:
@@ -910,7 +911,7 @@ class SidebarBlock(Table):
             collectionName = ""
 
         arguments = {'collection': collectionName,
-                     'kind': self.getNameAlternative (schema.ns('osaf.app', self.itsView).allCollection)}
+                     'kind': self.getNameAlternative (schema.ns('osaf.pim', self.itsView).allCollection)}
 
         if not isCollection:
             enabled = False
@@ -920,7 +921,7 @@ class SidebarBlock(Table):
             menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
         else:
             enabled = True
-            notMine = schema.ns('osaf.app', self.itsView).notMine
+            notMine = schema.ns('osaf.pim', self.itsView).notMine
             if self.selectedItemToView in notMine.sources:
                 menuTitle = _(u'Add "%(collection)s" to %(kind)s') % arguments
             else:

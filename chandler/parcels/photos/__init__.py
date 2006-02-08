@@ -1,6 +1,6 @@
 from Photos import PhotoMixin, Photo
 from application import schema
-from osaf.framework.types.DocumentTypes import RectType
+from osaf.pim.structs import RectType
 from osaf.framework.blocks.detail import makeSubtree
 
 def installParcel(parcel, old_version=None):

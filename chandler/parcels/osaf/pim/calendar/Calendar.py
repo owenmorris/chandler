@@ -285,7 +285,7 @@ class CalendarEventMixin(RemindableMixin):
             self.duration = timedelta(hours=1)
 
         # set the organizer to "me"
-        self.organizer = schema.ns("osaf.app", self.itsView).currentContact.item
+        self.organizer = schema.ns("osaf.pim", self.itsView).currentContact.item
 
         # give a starting display name
         try:
@@ -1311,11 +1311,7 @@ class Location(ContentItem):
         """
         # make sure the locationName looks reasonable
         assert locationName, "Invalid locationName passed to getLocation factory"
-
-        # This introduces a dependence on osaf.app into Location, which is
-        # perhaps not ideal.  If anyone thinks of a better separation of
-        # getLocation and the basic Location Kind, that would be welcome
-        locations = schema.ns('osaf.app', view).locations
+        locations = schema.ns('osaf.pim', view).locations
 
         def callback(key):
             return cmp(locationName, view[key].displayName)

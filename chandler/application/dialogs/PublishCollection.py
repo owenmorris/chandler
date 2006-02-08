@@ -87,7 +87,8 @@ class PublishCollectionDialog(wx.Dialog):
                                                             self.filterClasses)
         wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
 
-        self.currentAccount = schema.ns('osaf.app', self.view).currentWebDAVAccount.item
+        self.currentAccount = schema.ns('osaf.sharing',
+            self.view).currentWebDAVAccount.item
 
         # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()
@@ -352,7 +353,7 @@ class PublishCollectionDialog(wx.Dialog):
             self._showStatus(_(u"Wait for Sharing URLs...\n"))
             self._showStatus(_(u"Publishing collection to server..."))
 
-            if self.collection is schema.ns('osaf.app',
+            if self.collection is schema.ns('osaf.pim',
                 self.view).allCollection:
 
                 ext = _(u'items')

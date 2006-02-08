@@ -258,18 +258,19 @@ class FocusEventHandlers(Item):
         if not isValidSelection(selection, selectedCollection):
             return False
 
-        app = schema.ns('osaf.app', self.itsView)
+        app_ns = schema.ns('osaf.app', self.itsView)
+        pim_ns = schema.ns('osaf.pim', self.itsView)
 
         # you can never 'remove' from the trash
-        if selectedCollection is app.TrashCollection:
+        if selectedCollection is pim_ns.trashCollection:
             return False
 
         # for OOTB collections, you can only remove not-mine items
         if selectedCollection.outOfTheBoxCollection:
-            return AllItemsInCollection(selection, app.notMine)
+            return AllItemsInCollection(selection, pim_ns.notMine)
 
         # For "mine" collections, item is always removable
-        isMineCollection = selectedCollection not in app.notMine.sources
+        isMineCollection = selectedCollection not in pim_ns.notMine.sources
         if isMineCollection:
             return True
 
@@ -277,7 +278,7 @@ class FocusEventHandlers(Item):
         # somewhere else... but it's possible that each item exists in
         # a separate collection (i.e. every item of the selection may
         # not appear in a single 'other' collection)
-        sidebarCollections = app.sidebarCollection
+        sidebarCollections = app_ns.sidebarCollection
         for selectedItem in selection:
             selectedItem = selectedItem.getMembershipItem()
 
@@ -311,8 +312,8 @@ class FocusEventHandlers(Item):
         if not isValidSelection(selection, selectedCollection):
             return False
 
-        app = schema.ns('osaf.app', self.itsView)
-        sidebarCollections = app.sidebarCollection
+        app_ns = schema.ns('osaf.app', self.itsView)
+        sidebarCollections = app_ns.sidebarCollection
 
         # Make sure that there are no items in the selection that are
         # in a readonly collection
@@ -358,7 +359,7 @@ class FocusEventHandlers(Item):
 
         assert selectedCollection, "Can't delete without a primary collection!"
 
-        trash = schema.ns('osaf.app', self.itsView).TrashCollection
+        trash = schema.ns('osaf.pim', self.itsView).trashCollection
         for selectedItem in selection:
             selectedItem.addToCollection(trash)
 

@@ -8,7 +8,7 @@ import application.Globals as Globals
 from application import schema
 import wx
 import logging
-from osaf.framework.types.DocumentTypes import ColorType
+from osaf.pim.structs import ColorType
 
 logger = logging.getLogger(__name__)
 

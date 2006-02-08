@@ -53,7 +53,7 @@ try:
     # Make sure the new event appears in the trash, and
     # no other collections.
     collections = list(newEvent.collections)
-    if collections != [App_ns.TrashCollection]:
+    if collections != [App_ns.trashCollection]:
         logger.ReportFailure("Event was not removed: it's in %s" %
                              (collections,))
     else:

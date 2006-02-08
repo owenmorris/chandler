@@ -1,19 +1,11 @@
 from osaf.framework.blocks import *
 from application import schema
 from i18n import OSAFMessageFactory as _
-from osaf import messages
-from osaf.framework.types.DocumentTypes import ColorType
+from osaf import messages, pim
+from osaf.pim.structs import ColorType
 
 def makeMainMenus(parcel):
-    # in the form 'Color', _('LocalizableColorString'), 360-degree based hue
-    collectionHues = [('Blue', _(u'Blue'), 210),
-                      ('Green', (u'Green'), 120),
-                      ('Rose', _(u'Rose'), 0),
-                      ('Salmon', _(u'Salmon'), 30),
-                      ('Purple', _(u'Purple'), 270),
-                      ('Violet', _(u'Violet'), 240),
-                      ('Fuschia', _(u'Fuschia'), 330)]
-    
+
     def makeColorMenuItems (parcel, cls, hues):
         """
         dynamically creates an array of type 'cls' based on a list of colors
@@ -314,7 +306,7 @@ def makeMainMenus(parcel):
                         title = _(u'&Collection Color'),
                         childrenBlocks = makeColorMenuItems(parcel,
                                                             MenuItem,
-                                                            collectionHues)),
+                                                            pim.collectionHues)),
                     MenuItem.template('RestoreSharesItem',
                         event = main.RestoreShares,
                         title = u'Restore published shares...',

@@ -17,7 +17,7 @@ import wx
 import logging
 from i18n import OSAFMessageFactory as _
 from osaf import messages
-from osaf.framework.types.DocumentTypes import SizeType, RectType
+from osaf.pim.structs import SizeType, RectType
 from osaf.framework.blocks.Block import *
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from osaf.startup import PeriodicTask

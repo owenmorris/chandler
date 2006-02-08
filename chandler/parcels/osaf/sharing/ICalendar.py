@@ -289,7 +289,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         """
         Return the master event whose icalUID matched uid, or None.
         """
-        events = schema.ns('osaf.pim.calendar', self.itsView).events
+        events = schema.ns('osaf.pim', self.itsView).events
         event = indexes.valueLookup(events, 'icalUID', 'icalUID', uid)
         if event is None:
             return None
@@ -609,7 +609,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         work=(self.fileStyle() == self.STYLE_SINGLE)):
                     raise Sharing.SharingError(_(u"Cancelled by user"))
 
-                allCollection = schema.ns("osaf.app", view).allCollection
+                allCollection = schema.ns("osaf.pim", view).allCollection
 
                 if self.fileStyle() == self.STYLE_SINGLE:
                     if item != allCollection:
@@ -685,7 +685,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
     if selectedCollection:
         targetCollection = Globals.views[0].getSidebarSelectedCollection()
 
-    trash = schema.ns("osaf.app", view).TrashCollection
+    trash = schema.ns("osaf.pim", view).trashCollection
     if targetCollection == trash:
         targetCollection = None
         

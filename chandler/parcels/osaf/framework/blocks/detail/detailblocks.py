@@ -27,7 +27,7 @@ from Detail import *
 from osaf.framework.blocks import *
 import osaf.pim
 from i18n import OSAFMessageFactory as _
-from osaf.framework.types.DocumentTypes import SizeType, RectType
+from osaf.pim.structs import SizeType, RectType
 
 
 _uniqueNameIndicies = {} 

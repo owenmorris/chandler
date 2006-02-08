@@ -612,7 +612,7 @@ class ContentItem(schema.Item):
         # those inbound shares are read-only, but none of those shares
         # actually *share* that attribute (i.e., it's being filtered either
         # by sharing cloud or explicit filter), then it's modifiable.
-        me = schema.ns("osaf.app", self.itsView).currentContact.item
+        me = schema.ns("osaf.pim", self.itsView).currentContact.item
         basedAttributeNames = None # we'll look these up if necessary
         isSharedInAnyReadOnlyShares = False
         for share in self.sharedIn:

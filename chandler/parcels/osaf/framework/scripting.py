@@ -6,7 +6,7 @@ import application.schema as schema
 import osaf.pim as pim
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
-import osaf.framework.types.DocumentTypes as DocumentTypes
+import osaf.pim.structs as DocumentTypes
 import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
 import osaf.framework.blocks.detail.Detail as Detail
 import application.dialogs.Util as Util
@@ -29,6 +29,18 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 def installParcel(parcel, oldVersion=None):
+
+    scripts = pim.KindCollection.update(parcel, 'scripts',
+        kind=Script.getKind(parcel.itsView)
+    )
+
+    pim.InclusionExclusionCollection.update(parcel, 'scriptsCollection',
+        displayName = _(u"Scripts"),
+        renameable = False,
+        private = False,
+        dontDisplayAsCalendar=True,
+        ).setup(source=scripts)
+
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
@@ -790,10 +802,10 @@ class User(object):
     def emulate_sidebarClick(cls, sidebar, cellName, double=False):
         ''' Process a left click on the given cell in the given sidebar'''
         # for All, In, Out, Trash collection find by item rather than itemName
-        chandler_collections = {"All":schema.ns('osaf.app', Globals.mainViewRoot).allCollection,
-                                "Out":schema.ns('osaf.app', Globals.mainViewRoot).outCollection,
-                                "In":schema.ns('osaf.app', Globals.mainViewRoot).inCollection,
-                                "Trash":schema.ns('osaf.app', Globals.mainViewRoot).TrashCollection}
+        chandler_collections = {"All":schema.ns('osaf.pim', Globals.mainViewRoot).allCollection,
+                                "Out":schema.ns('osaf.pim', Globals.mainViewRoot).outCollection,
+                                "In":schema.ns('osaf.pim', Globals.mainViewRoot).inCollection,
+                                "Trash":schema.ns('osaf.pim', Globals.mainViewRoot).trashCollection}
         if cellName in chandler_collections.keys():
             cellName = chandler_collections[cellName]
 

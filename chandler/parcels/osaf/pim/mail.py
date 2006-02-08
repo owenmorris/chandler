@@ -64,7 +64,7 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
         return (smtpAccount, replyToAddress)
 
     """Get the default Mail Account"""
-    parentAccount = schema.ns('osaf.app', view).currentMailAccount.item
+    parentAccount = schema.ns('osaf.pim', view).currentMailAccount.item
 
     if parentAccount is not None:
         if hasattr(parentAccount, 'replyToAddress'):
@@ -96,7 +96,7 @@ def getCurrentMailAccount(view, uuid=None):
         account = view.findUUID(uuid)
 
     else:
-        account = schema.ns('osaf.app', view).currentMailAccount.item
+        account = schema.ns('osaf.pim', view).currentMailAccount.item
 
     return account
 
@@ -1035,7 +1035,7 @@ class EmailAddress(items.ContentItem):
     @classmethod
     def findEmailAddress(cls, view, emailAddress):
         """ Find a single EmailAddress that exactly matches this one. """
-        collection = schema.ns("osaf.app", view).emailAddressCollection.rep
+        collection = schema.ns("osaf.pim", view).emailAddressCollection.rep
         emailAddress = emailAddress.lower()
 
         def compareAddr(uuid):
@@ -1054,7 +1054,7 @@ class EmailAddress(items.ContentItem):
         Generate any EmailAddresses whose emailAddress or fullName starts 
         with this.
         """
-        collection = schema.ns("osaf.app", view).emailAddressCollection.rep
+        collection = schema.ns("osaf.pim", view).emailAddressCollection.rep
         partialAddress = unicode(partialAddress).lower()
         for indexName in ('emailAddress', 'fullName'):
             def _compare(uuid):

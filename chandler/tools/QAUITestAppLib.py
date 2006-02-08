@@ -1014,10 +1014,10 @@ class UITestItem(object):
         if not self.isCollection or collectionName == "Trash":
             if self.logger: self.logger.SetChecked(True)
             # for All, In, Out, Trash collection find by item rather than itemName
-            chandler_collections = {"All":scripting.schema.ns('osaf.app', Globals.mainViewRoot).allCollection,
-                                    "Out":scripting.schema.ns('osaf.app', Globals.mainViewRoot).outCollection,
-                                    "In":scripting.schema.ns('osaf.app', Globals.mainViewRoot).inCollection,
-                                    "Trash":scripting.schema.ns('osaf.app', Globals.mainViewRoot).TrashCollection}
+            chandler_collections = {"All":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).allCollection,
+                                    "Out":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).outCollection,
+                                    "In":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).inCollection,
+                                    "Trash":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).trashCollection}
             if collectionName in chandler_collections.keys():
                 col = chandler_collections[collectionName]
             else:

@@ -3,7 +3,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
 
 from Block import Block, RectangularChild, wxRectangularChild, debugName
-from osaf.framework.types.DocumentTypes import PositionType
+from osaf.pim.structs import PositionType
 import DragAndDrop
 from MenusAndToolbars import Toolbar as Toolbar
 from repository.item.Item import Item

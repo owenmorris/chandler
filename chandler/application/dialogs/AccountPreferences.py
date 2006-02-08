@@ -164,6 +164,7 @@ PANELS = {
             },
             "IMAP_DEFAULT" : {
                 "type" : "currentPointer",
+                "ns" : "osaf.pim",
                 "pointer" : "currentMailAccount",
                 "exclusive" : True,
             },
@@ -231,6 +232,7 @@ PANELS = {
             },
             "POP_DEFAULT" : {
                 "type" : "currentPointer",
+                "ns" : "osaf.pim",
                 "pointer" : "currentMailAccount",
                 "exclusive" : True,
             },
@@ -341,6 +343,7 @@ PANELS = {
             },
             "WEBDAV_DEFAULT" : {
                 "type" : "currentPointer",
+                "ns" : "osaf.sharing",
                 "pointer" : "currentWebDAVAccount",
                 "exclusive" : True,
             },
@@ -484,8 +487,8 @@ class AccountPreferencesDialog(wx.Dialog):
                 if desc['type'] == 'currentPointer':
                     # See if this item is the current item for the given
                     # pointer name, storing a boolean.
-                    app = schema.ns('osaf.app', self.rv)
-                    ref = getattr(app, desc['pointer'])
+                    ns = schema.ns(desc['ns'], self.rv)
+                    ref = getattr(ns, desc['pointer'])
                     setting = (ref.item == item)
 
                 elif desc['type'] == 'itemRef':
@@ -581,8 +584,8 @@ class AccountPreferencesDialog(wx.Dialog):
                     if desc['type'] == 'currentPointer':
                         # If this value is True, make this item current:
                         if values[field]:
-                            app = schema.ns('osaf.app', self.rv)
-                            ref = getattr(app, desc['pointer'])
+                            ns = schema.ns(desc['ns'], self.rv)
+                            ref = getattr(ns, desc['pointer'])
                             ref.item = item
 
                     elif desc['type'] == 'itemRef':
@@ -917,10 +920,11 @@ class AccountPreferencesDialog(wx.Dialog):
             self.__ApplyDeletions()
             if sharing.isInboundMailSetUp (self.rv):
                 app = schema.ns('osaf.app', self.rv)
+                pim_ns = schema.ns('osaf.pim', self.rv)
                 sidebarCollection = app.sidebarCollection
                 sidebarSelectionCollection = Block.findBlockByName("Sidebar").contents
                 assert (isinstance (sidebarSelectionCollection, IndexedSelectionCollection))
-                for collection in [app.outCollection, app.inCollection]:
+                for collection in [pim_ns.outCollection, pim_ns.inCollection]:
                     if collection not in sidebarCollection:
                         # Add the item and locate it in the sidebar collection
                         sidebarCollection.add (collection)

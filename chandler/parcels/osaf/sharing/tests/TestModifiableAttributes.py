@@ -1,5 +1,6 @@
 import unittest
 from osaf import pim, sharing
+from application import schema
 from util import testcase
 
 class TestModifiableAttributes(testcase.NRVTestCase):
@@ -11,14 +12,22 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         # Our test subject
         e1 = pim.CalendarEvent(itsView=view)
 
+        # We need a currentContact set for isAttributeModifiable to work;
+        # normally this is set by the app
+        me = pim.Contact(itsView=view, displayName='me',
+            references=[schema.ns('osaf.pim', view).currentContact]
+        )
+
         # Add the subject to a read-only share:
 
-        share_ro = sharing.Share(itsView=view)
+        share_ro = sharing.Share(itsView=view, displayName="share_ro")
         share_ro.mode = 'get'
 
         e1.sharedIn.append(share_ro)
 
         # Test modifiability against...
+
+        print e1.sharedIn
 
         # ...an attribute which is always shared
         self.assert_(not e1.isAttributeModifiable('displayName'))

@@ -1,6 +1,6 @@
 from Repository import RepositoryItemDetail
 from osaf.framework.blocks import Tree, SplitterWindow
-from osaf.framework.types.DocumentTypes import SizeType
+from osaf.pim.structs import SizeType
 from i18n import OSAFMessageFactory as _
 
 def installParcel(parcel, oldName=None):

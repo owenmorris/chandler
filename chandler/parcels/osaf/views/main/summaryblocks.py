@@ -11,7 +11,7 @@ from osaf.framework.blocks import *
 def makeSummaryBlocks(parcel):
     view = parcel.itsView
     detailblocks = schema.ns('osaf.framework.blocks.detail', view)
-    app = schema.ns('osaf.app', view)
+    pim_ns = schema.ns('osaf.pim', view)
     blocks = schema.ns('osaf.framework.blocks', view)
     
     # Our detail views share the same delegate instance and contents collection
@@ -28,7 +28,7 @@ def makeSummaryBlocks(parcel):
         splitPercentage = 0.65,
         childrenBlocks = [
             Table.template('TableSummaryView',
-                contents = app.allCollection,
+                contents = pim_ns.allCollection,
                 characterStyle = blocks.SummaryRowStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
                 columnHeadings = 
@@ -89,8 +89,8 @@ def makeSummaryBlocks(parcel):
         'CalendarDetailBranchPointBlock',
         delegate = detailBranchPointDelegate,
         contents = detailContentsCollection).install(parcel)
-    
-    WelcomeEvent = schema.ns("osaf.app", view).WelcomeEvent
+
+    WelcomeEvent = schema.ns('osaf.app', view).WelcomeEvent
     CalendarDetailBranchPointBlock.selectedItem = WelcomeEvent
     detailContentsCollection.clear()
     detailContentsCollection.add(WelcomeEvent)

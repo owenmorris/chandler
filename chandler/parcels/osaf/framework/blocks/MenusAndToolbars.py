@@ -888,7 +888,7 @@ class wxToolbarItem (wxToolbarMixin, wx.ToolBarToolBase):
 class Toolbar(Block.RectangularChild, DynamicContainer):
 
     colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
-    toolSize = schema.One('osaf.framework.types.DocumentTypes.SizeType')
+    toolSize = schema.One('osaf.pim.structs.SizeType')
     separatorWidth = schema.One(schema.Integer, initialValue = 5)
     buttons3D = schema.One(schema.Boolean, initialValue = False)
     buttonsLabeled = schema.One(schema.Boolean, initialValue = False)
