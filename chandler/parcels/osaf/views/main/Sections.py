@@ -102,7 +102,20 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                    
 
     def GetElementCount(self):
-        return self.totalRows
+
+        # ack. temporary fix for Functional test suite - bug 5150. in
+        # general if an item is dragged to the trash, the sections
+        # probably need to be recalculated (or at least readjusted!) -
+        # but the sections code doesn't get any notification (yet)
+        # that this has happened.
+
+        # temporary fix: when there are no sections (which is the
+        # condition under which the functional tests are running) then
+        # use the original collection for row length
+        if len(self.sectionRows) == 0:
+            return len(self.blockItem.contents)
+        else:
+            return self.totalRows
 
     def GetElementType(self, row, column):
         itemIndex = self.RowToIndex(row)
