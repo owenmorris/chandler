@@ -60,6 +60,7 @@ def makeCPIATestMainView (parcel):
         toolSize = SizeType(26, 26),
         buttonsLabeled = True,
         separatorWidth = 20,
+        mainFrameToolbar = True,
         childrenBlocks = [
             ToolbarItem.template('ApplicationBarAllButton',
                 event = main.ApplicationBarAll,
