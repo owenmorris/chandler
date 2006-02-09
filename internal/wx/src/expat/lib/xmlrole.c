@@ -10,7 +10,7 @@
 #include "os2config.h"
 #elif defined(__MSDOS__)
 #include "dosconfig.h"
-#elif defined(MACOS_CLASSIC)
+#elif defined(MACOS_CLASSIC) // FIXME: should this be expanded to cover MacOS X as well? If so, how?
 #include "macconfig.h"
 #elif defined(__amigaos4__)
 #include "amigaconfig.h"
