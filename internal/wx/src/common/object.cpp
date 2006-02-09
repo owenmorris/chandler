@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     04/01/98
-// RCS-ID:      $Id: object.cpp,v 1.96 2005/09/23 12:53:04 MR Exp $
+// RCS-ID:      $Id: object.cpp,v 1.97 2006/02/09 00:49:14 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -282,15 +282,6 @@ wxObject *wxCreateDynamicObject(const wxChar *name)
 // ----------------------------------------------------------------------------
 // wxObject
 // ----------------------------------------------------------------------------
-
-// Initialize ref data from another object (needed for copy constructor and
-// assignment operator)
-void wxObject::InitFrom(const wxObject& other)
-{
-    m_refData = other.m_refData;
-    if ( m_refData )
-        m_refData->m_count++;
-}
 
 void wxObject::Ref(const wxObject& clone)
 {

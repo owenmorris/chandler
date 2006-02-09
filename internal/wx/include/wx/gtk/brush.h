@@ -2,7 +2,7 @@
 // Name:        wx/gtk/brush.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: brush.h,v 1.24 2006/02/08 21:45:40 VZ Exp $
+// Id:          $Id: brush.h,v 1.25 2006/02/09 00:48:42 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,11 +35,6 @@ public:
     wxBrush( const wxColour &colour, int style = wxSOLID );
     wxBrush( const wxBitmap &stippleBitmap );
     ~wxBrush();
-
-    wxBrush( const wxBrush &brush )
-        : wxBrushBase()
-        { Ref(brush); }
-    wxBrush& operator = ( const wxBrush& brush ) { Ref(brush); return *this; }
 
     bool Ok() const { return m_refData != NULL; }
 

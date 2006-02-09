@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colour.cpp,v 1.24 2006/01/18 09:59:59 JS Exp $
+// RCS-ID:      $Id: colour.cpp,v 1.25 2006/02/09 00:49:40 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,22 +78,6 @@ void wxColour::Init()
     m_red =
     m_blue =
     m_green = 0;
-}
-
-wxColour::wxColour(const wxColour& col)
-         :wxObject()
-{
-    *this = col;
-}
-
-wxColour& wxColour::operator=(const wxColour& col)
-{
-    m_red = col.m_red;
-    m_green = col.m_green;
-    m_blue = col.m_blue;
-    m_isInit = col.m_isInit;
-    m_pixel = col.m_pixel;
-    return *this;
 }
 
 void wxColour::InitFromName(const wxString& name)

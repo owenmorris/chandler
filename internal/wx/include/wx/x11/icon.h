@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: icon.h,v 1.12 2005/09/23 12:51:00 MR Exp $
+// RCS-ID:      $Id: icon.h,v 1.13 2006/02/09 00:49:09 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,6 @@ class WXDLLIMPEXP_CORE wxIcon: public wxBitmap
 {
 public:
     wxIcon();
-    wxIcon( const wxIcon& icon);
     wxIcon( const char **bits, int width=-1, int height=-1 );
 
     // For compatibility with wxMSW where desired size is sometimes required to
@@ -39,7 +38,6 @@ public:
     {
     }
 
-    wxIcon& operator=(const wxIcon& icon);
     bool operator==(const wxIcon& icon) const { return m_refData == icon.m_refData; }
     bool operator!=(const wxIcon& icon) const { return !(*this == icon); }
 

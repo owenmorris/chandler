@@ -2,7 +2,7 @@
 // Name:        icon.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: icon.h,v 1.25 2005/09/23 12:49:16 MR Exp $
+// Id:          $Id: icon.h,v 1.26 2006/02/09 00:48:43 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,6 @@ class WXDLLIMPEXP_CORE wxIcon: public wxBitmap
 {
 public:
     wxIcon();
-    wxIcon( const wxIcon& icon);
     wxIcon( const char **bits, int width=-1, int height=-1 );
 
     // For compatibility with wxMSW where desired size is sometimes required to
@@ -45,7 +44,6 @@ public:
     {
     }
 
-    wxIcon& operator=(const wxIcon& icon);
     bool operator==(const wxIcon& icon) const { return m_refData == icon.m_refData; }
     bool operator!=(const wxIcon& icon) const { return !(*this == icon); }
 

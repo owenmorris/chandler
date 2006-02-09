@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: brush.h,v 1.10 2005/10/04 18:14:10 ABX Exp $
+// RCS-ID:      $Id: brush.h,v 1.11 2006/02/09 00:48:46 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,9 +35,6 @@ public:
     wxBrush(short macThemeBrush ) ;
     wxBrush(const wxColour& col, int style = wxSOLID);
     wxBrush(const wxBitmap& stipple);
-    wxBrush(const wxBrush& brush)
-        : wxBrushBase()
-        { Ref(brush); }
     ~wxBrush();
 
     virtual void SetColour(const wxColour& col) ;
@@ -47,8 +44,6 @@ public:
     virtual void MacSetTheme(short macThemeBrush) ;
     virtual void MacSetThemeBackground(unsigned long macThemeBackground ,  WXRECTPTR extent) ;
 
-    wxBrush& operator = (const wxBrush& brush)
-    { if (*this == brush) return (*this); Ref(brush); return *this; }
     bool operator == (const wxBrush& brush) const
     { return m_refData == brush.m_refData; }
     bool operator != (const wxBrush& brush) const

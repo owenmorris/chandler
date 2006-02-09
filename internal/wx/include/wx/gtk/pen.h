@@ -2,7 +2,7 @@
 // Name:        wx/gtk/pen.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: pen.h,v 1.25 2006/02/08 21:45:44 VZ Exp $
+// Id:          $Id: pen.h,v 1.26 2006/02/09 00:48:43 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,11 +35,6 @@ public:
 
     wxPen( const wxColour &colour, int width = 1, int style = wxSOLID );
     ~wxPen();
-
-    wxPen( const wxPen& pen )
-        : wxGDIObject()
-        { Ref(pen); }
-    wxPen& operator = ( const wxPen& pen ) { Ref(pen); return *this; }
 
     bool Ok() const { return m_refData != NULL; }
 

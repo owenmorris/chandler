@@ -2,7 +2,7 @@
 // Name:        wx/gtk/colour.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: colour.h,v 1.24 2005/10/05 16:22:27 ABX Exp $
+// Id:          $Id: colour.h,v 1.25 2006/02/09 00:48:42 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -52,12 +52,6 @@ public:
 #if wxUSE_UNICODE
     wxColour( const wxChar *colourName ) { InitFromName( wxString(colourName) ); }
 #endif
-
-
-    wxColour( const wxColour& col )
-        : wxGDIObject()
-        { Ref(col); }
-    wxColour& operator = ( const wxColour& col ) { Ref(col); return *this; }
 
     ~wxColour();
 

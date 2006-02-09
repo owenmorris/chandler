@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: cursor.h,v 1.16 2005/09/23 12:49:56 MR Exp $
+// RCS-ID:      $Id: cursor.h,v 1.17 2006/02/09 00:48:56 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,10 +24,7 @@ class WXDLLEXPORT wxCursor: public wxObject
         
 public:
     wxCursor();
-    
-    // Copy constructors
-    wxCursor(const wxCursor& cursor) { Ref(cursor); }
-    
+
     wxCursor(const char bits[], int width, int height,
              int hotSpotX = -1, int hotSpotY = -1,
              const char maskBits[] = NULL);
@@ -44,8 +41,6 @@ public:
     
     virtual bool Ok() const;
     
-    wxCursor& operator = (const wxCursor& cursor)
-        { if (*this == cursor) return (*this); Ref(cursor); return *this; }
     bool operator == (const wxCursor& cursor) const
         { return m_refData == cursor.m_refData; }
     bool operator != (const wxCursor& cursor) const

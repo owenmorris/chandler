@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: paletteg.h,v 1.11 2005/10/06 14:37:11 ABX Exp $
+// RCS-ID:      $Id: paletteg.h,v 1.12 2006/02/09 00:48:40 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,9 +35,7 @@ class WXDLLIMPEXP_CORE wxPalette: public wxPaletteBase
 
     wxPalette();
     wxPalette( int n, const unsigned char *red, const unsigned char *green, const unsigned char *blue );
-    wxPalette( const wxPalette& palette );
     ~wxPalette();
-    wxPalette& operator = ( const wxPalette& palette );
     bool operator == ( const wxPalette& palette ) const;
     bool operator != ( const wxPalette& palette ) const;
     virtual bool Ok() const;

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.h,v 1.11 2006/01/25 12:52:18 SC Exp $
+// RCS-ID:      $Id: bitmap.h,v 1.12 2006/02/09 00:48:46 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,13 +104,6 @@ class WXDLLEXPORT wxBitmap: public wxBitmapBase
 public:
     wxBitmap(); // Platform-specific
 
-    // Copy constructors
-    wxBitmap(const wxBitmap& bitmap)
-        : wxBitmapBase()
-    {
-        Ref(bitmap);
-    }
-
     // Initialize with raw data.
     wxBitmap(const char bits[], int width, int height, int depth = 1);
 
@@ -177,7 +170,6 @@ public:
     wxMask *GetMask() const;
     void SetMask(wxMask *mask) ;
 
-    inline wxBitmap& operator = (const wxBitmap& bitmap) { if (*this == bitmap) return (*this); Ref(bitmap); return *this; }
     inline bool operator == (const wxBitmap& bitmap) const { return m_refData == bitmap.m_refData; }
     inline bool operator != (const wxBitmap& bitmap) const { return m_refData != bitmap.m_refData; }
 

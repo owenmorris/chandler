@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: region.h,v 1.9 2005/09/23 12:49:35 MR Exp $
+// RCS-ID:      $Id: region.h,v 1.10 2006/02/09 00:48:47 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,13 +53,6 @@ public:
     }
 
     ~wxRegion();
-
-    //# Copying
-    wxRegion(const wxRegion& r)
-        : wxGDIObject()
-    { Ref(r); }
-    wxRegion& operator = (const wxRegion& r)
-    { Ref(r); return (*this); }
 
     //# Modify region
     // Clear current region

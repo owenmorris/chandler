@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: brush.h,v 1.15 2006/02/08 21:47:01 VZ Exp $
+// RCS-ID:      $Id: brush.h,v 1.16 2006/02/09 00:49:09 VZ Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,9 +34,6 @@ public:
     wxBrush( const wxColour &colour, int style = wxSOLID );
     wxBrush( const wxBitmap &stippleBitmap );
     ~wxBrush();
-
-    wxBrush( const wxBrush &brush ) { Ref(brush); }
-    wxBrush& operator = ( const wxBrush& brush ) { Ref(brush); return *this; }
 
     bool Ok() const { return m_refData != NULL; }
 

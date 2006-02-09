@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: colour.h,v 1.7 2005/10/05 16:22:28 ABX Exp $
+// RCS-ID:      $Id: colour.h,v 1.8 2006/02/09 00:48:46 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,10 +38,6 @@ public:
         { InitFromName(colourName); }
     wxColour( const wxChar *colourName )
         { InitFromName(colourName); }
-
-    // copy ctors and assignment operators
-    wxColour( const wxColour& col );
-    wxColour& operator = ( const wxColour& col );
 
     // dtor
     ~wxColour();

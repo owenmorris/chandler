@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.h,v 1.7 2005/09/23 12:49:33 MR Exp $
+// RCS-ID:      $Id: font.h,v 1.8 2006/02/09 00:48:47 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,13 +20,7 @@ class WXDLLEXPORT wxFont : public wxFontBase
 {
 public:
     // ctors and such
-    wxFont() { Init(); }
-    wxFont(const wxFont& font)
-        : wxFontBase()
-    {
-        Init();
-        Ref(font);
-    }
+    wxFont() { }
 
     wxFont(int size,
            int family,
@@ -36,15 +30,11 @@ public:
            const wxString& face = wxEmptyString,
            wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
     {
-        Init();
-
         (void)Create(size, family, style, weight, underlined, face, encoding);
     }
 
     wxFont(const wxNativeFontInfo& info)
     {
-        Init();
-
         (void)Create(info);
     }
 
@@ -63,9 +53,6 @@ public:
     bool MacCreateThemeFont( wxUint16 themeFontID ) ;
     
     virtual ~wxFont();
-
-    // assignment
-    wxFont& operator=(const wxFont& font);
 
     // implement base class pure virtuals
     virtual int GetPointSize() const;
@@ -111,9 +98,6 @@ public:
     void* MacGetATSUStyle() const ; 
     
 protected:
-    // common part of all ctors
-    void Init();
-
     void Unshare();
 
 private:

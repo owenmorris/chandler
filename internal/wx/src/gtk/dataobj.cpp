@@ -2,7 +2,7 @@
 // Name:        dataobj.cpp
 // Purpose:     wxDataObject class
 // Author:      Robert Roebling
-// Id:          $Id: dataobj.cpp,v 1.50 2006/01/14 18:32:36 MR Exp $
+// Id:          $Id: dataobj.cpp,v 1.51 2006/02/09 00:37:56 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -280,9 +280,9 @@ bool wxFileDataObject::SetData(size_t WXUNUSED(size), const void *buf)
                 AddFile(wxURI::Unescape(filename.c_str() + lenPrefix));
                 filename.Empty();
             }
-            else
+            else if ( !filename.empty() )
             {
-                wxLogDebug(_T("Unsupported URI '%s' in wxFileDataObject"),
+                wxLogDebug(_T("Unsupported URI \"%s\" in wxFileDataObject"),
                            filename.c_str());
             }
 

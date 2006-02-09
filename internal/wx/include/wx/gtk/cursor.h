@@ -2,7 +2,7 @@
 // Name:        cursor.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: cursor.h,v 1.13 2005/09/23 12:49:15 MR Exp $
+// Id:          $Id: cursor.h,v 1.14 2006/02/09 00:48:43 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,6 @@ public:
 
     wxCursor();
     wxCursor( int cursorId );
-    wxCursor( const wxCursor &cursor );
 #if wxUSE_IMAGE
     wxCursor( const wxImage & image );
 #endif
@@ -36,7 +35,6 @@ public:
               int hotSpotX=-1, int hotSpotY=-1,
               const char maskBits[]=0, wxColour *fg=0, wxColour *bg=0 );
     ~wxCursor();
-    wxCursor& operator = ( const wxCursor& cursor );
     bool operator == ( const wxCursor& cursor ) const;
     bool operator != ( const wxCursor& cursor ) const;
     bool Ok() const;

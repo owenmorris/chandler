@@ -4,12 +4,14 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: tabctrl.cpp,v 1.24 2006/01/09 09:46:05 vell Exp $
+// RCS-ID:      $Id: tabctrl.cpp,v 1.25 2006/02/09 00:28:31 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
+
+#if wxUSE_TAB_DIALOG
 
 #include "wx/control.h"
 #include "wx/tabctrl.h"
@@ -196,3 +198,4 @@ void wxTabCtrl::SetPadding(const wxSize& padding)
     // TODO:
 }
 
+#endif // wxUSE_TAB_DIALOG

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: font.cpp,v 1.38 2006/01/04 09:36:36 vell Exp $
+// RCS-ID:      $Id: font.cpp,v 1.39 2006/02/09 00:49:21 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -371,10 +371,6 @@ void wxFontRefData::MacFindFont()
 // ----------------------------------------------------------------------------
 // wxFont
 // ----------------------------------------------------------------------------
-
-void wxFont::Init()
-{
-}
 
 bool wxFont::Create(const wxNativeFontInfo& info)
 {

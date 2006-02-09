@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/08/02 (stubs from 22.03.2003)
-// RCS-ID:      $Id: pen.h,v 1.9 2005/10/04 18:14:07 ABX Exp $
+// RCS-ID:      $Id: pen.h,v 1.10 2006/02/09 00:48:39 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,17 +28,12 @@ public:
     wxPen();
     wxPen(const wxColour& col, int width = 1, int style = wxSOLID);
     wxPen(const wxBitmap& stipple, int width);
-    wxPen(const wxPen& pen)
-        : wxGDIObject()
-        { Ref(pen); }
     ~wxPen();
 
     // wxObjectRefData
     wxObjectRefData *CreateRefData() const;
     wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;
 
-    inline wxPen& operator = (const wxPen& pen)
-    {   if (*this == pen) return (*this); Ref(pen); return *this; }
     inline bool operator == (const wxPen& pen) const
     {   return m_refData == pen.m_refData; }
     inline bool operator != (const wxPen& pen) const

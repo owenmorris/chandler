@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin: fixed operator=(), ==(), !=()
 // Created:     01/02/97
-// RCS-ID:      $Id: pen.h,v 1.27 2005/10/04 18:14:15 ABX Exp $
+// RCS-ID:      $Id: pen.h,v 1.28 2006/02/09 00:49:00 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,16 +77,7 @@ public:
     wxPen();
     wxPen(const wxColour& col, int width = 1, int style = wxSOLID);
     wxPen(const wxBitmap& stipple, int width);
-    wxPen(const wxPen& pen) : wxGDIObject(pen) { Ref(pen); }
     virtual ~wxPen();
-
-    wxPen& operator=(const wxPen& pen)
-    {
-        if ( this != &pen )
-            Ref(pen);
-
-        return *this;
-    }
 
     bool operator==(const wxPen& pen) const
     {

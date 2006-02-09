@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tabctrl.cpp,v 1.41 2005/12/19 10:41:04 ABX Exp $
+// RCS-ID:      $Id: tabctrl.cpp,v 1.42 2006/02/09 00:28:27 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,6 +15,8 @@
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
+
+#if wxUSE_TAB_DIALOG
 
 #ifndef WX_PRECOMP
 #include "wx/wx.h"
@@ -428,3 +430,5 @@ void wxMapBitmap(HBITMAP hBitmap, int width, int height)
 
 }
 #endif
+
+#endif // wxUSE_TAB_DIALOG

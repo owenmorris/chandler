@@ -2,7 +2,7 @@
 // Name:        src/common/image.cpp
 // Purpose:     wxImage
 // Author:      Robert Roebling
-// RCS-ID:      $Id: image.cpp,v 1.211 2006/01/26 12:07:10 RR Exp $
+// RCS-ID:      $Id: image.cpp,v 1.212 2006/02/09 00:49:13 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -147,17 +147,6 @@ wxImage::wxImage( wxInputStream& stream, const wxString& mimetype, int index )
     LoadFile( stream, mimetype, index );
 }
 #endif // wxUSE_STREAMS
-
-wxImage::wxImage( const wxImage& image )
-    : wxObject()
-{
-    Ref(image);
-}
-
-wxImage::wxImage( const wxImage* image )
-{
-    if (image) Ref(*image);
-}
 
 wxImage::wxImage( const char** xpmData )
 {

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: pen.h,v 1.13 2006/02/08 21:47:02 VZ Exp $
+// RCS-ID:      $Id: pen.h,v 1.14 2006/02/09 00:49:10 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,9 +37,6 @@ public:
     wxPen( const wxColour &colour, int width = 1, int style = wxSOLID );
     wxPen( const wxBitmap &stipple, int width );
     ~wxPen();
-
-    wxPen( const wxPen& pen ) { Ref(pen); }
-    wxPen& operator = ( const wxPen& pen ) { Ref(pen); return *this; }
 
     bool Ok() const { return m_refData != NULL; }
 

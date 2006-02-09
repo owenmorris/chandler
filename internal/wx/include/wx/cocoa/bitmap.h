@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/07/19
-// RCS-ID:      $Id: bitmap.h,v 1.10 2004/12/29 04:00:19 DE Exp $
+// RCS-ID:      $Id: bitmap.h,v 1.11 2006/02/09 00:48:38 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,10 +68,6 @@ class WXDLLEXPORT wxBitmap: public wxGDIObject
 public:
     // Platform-specific default constructor
     wxBitmap();
-    // Copy constructors
-    wxBitmap(const wxBitmap& bitmap)
-    :   wxGDIObject()
-    {   Ref(bitmap); }
     // Initialize with raw data.
     wxBitmap(const char bits[], int width, int height, int depth = 1);
     // Initialize with XPM data
@@ -138,8 +134,6 @@ public:
 
     int GetBitmapType() const;
   
-    inline wxBitmap& operator = (const wxBitmap& bitmap)
-    {   if (*this == bitmap) return (*this); Ref(bitmap); return *this; }
     inline bool operator == (const wxBitmap& bitmap) const
     {   return m_refData == bitmap.m_refData; }
     inline bool operator != (const wxBitmap& bitmap) const

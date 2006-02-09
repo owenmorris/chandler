@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/12
-// RCS-ID:      $Id: region.h,v 1.5 2005/09/24 21:42:12 VZ Exp $
+// RCS-ID:      $Id: region.h,v 1.6 2006/02/09 00:48:41 VZ Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,13 +34,6 @@ public:
     wxRegionGeneric(const wxRect& rect);
     wxRegionGeneric();
     ~wxRegionGeneric();
-
-    //# Copying
-    wxRegionGeneric(const wxRegionGeneric& r)
-    :   wxGDIObject()
-    {   Ref(r); }
-    wxRegionGeneric& operator= (const wxRegionGeneric& r)
-    {   Ref(r); return (*this); }
 
     bool Ok() const { return m_refData != NULL; }
 

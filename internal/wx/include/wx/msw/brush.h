@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: brush.h,v 1.20 2005/10/04 18:14:14 ABX Exp $
+// RCS-ID:      $Id: brush.h,v 1.21 2006/02/09 00:48:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,6 @@ public:
     wxBrush();
     wxBrush(const wxColour& col, int style = wxSOLID);
     wxBrush(const wxBitmap& stipple);
-    wxBrush(const wxBrush& brush) : wxBrushBase(brush) { Ref(brush); }
     virtual ~wxBrush();
 
     virtual void SetColour(const wxColour& col);
@@ -36,7 +35,6 @@ public:
     virtual void SetStyle(int style);
     virtual void SetStipple(const wxBitmap& stipple);
 
-    wxBrush& operator=(const wxBrush& brush);
     bool operator==(const wxBrush& brush) const;
     bool operator!=(const wxBrush& brush) const { return !(*this == brush); }
 

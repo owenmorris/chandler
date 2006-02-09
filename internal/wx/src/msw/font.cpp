@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.cpp,v 1.76 2006/01/26 16:49:29 ABX Exp $
+// RCS-ID:      $Id: font.cpp,v 1.77 2006/02/09 00:49:40 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -759,10 +759,6 @@ wxString wxNativeFontInfo::ToString() const
 // ----------------------------------------------------------------------------
 // wxFont
 // ----------------------------------------------------------------------------
-
-void wxFont::Init()
-{
-}
 
 bool wxFont::Create(const wxNativeFontInfo& info, WXHFONT hFont)
 {

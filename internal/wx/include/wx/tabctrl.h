@@ -5,12 +5,16 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: tabctrl.h,v 1.8 2005/05/04 18:52:03 JS Exp $
+// RCS-ID:      $Id: tabctrl.h,v 1.9 2006/02/09 00:28:25 VZ Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TABCTRL_H_BASE_
 #define _WX_TABCTRL_H_BASE_
+
+#include "wx/defs.h"
+
+#if wxUSE_TAB_DIALOG
 
 BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_TAB_SEL_CHANGED, 800)
@@ -28,5 +32,5 @@ END_DECLARE_EVENT_TYPES()
 #include "wx/os2/tabctrl.h"
 #endif
 
-#endif
-    // _WX_TABCTRL_H_BASE_
+#endif // wxUSE_TAB_DIALOG
+#endif // _WX_TABCTRL_H_BASE_

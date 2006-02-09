@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: colour.h,v 1.13 2005/10/05 16:22:34 ABX Exp $
+// RCS-ID:      $Id: colour.h,v 1.14 2006/02/09 00:49:09 VZ Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -57,9 +57,6 @@ public:
 
     // Get colour from name or wxNullColour
     static wxColour CreateByName(const wxString& name);
-
-    wxColour( const wxColour& col ) { Ref(col); }
-    wxColour& operator = ( const wxColour& col ) { Ref(col); return *this; }
 
     ~wxColour();
 

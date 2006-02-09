@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: font.cpp,v 1.19 2005/09/23 12:56:05 MR Exp $
+// RCS-ID:      $Id: font.cpp,v 1.20 2006/02/09 00:49:47 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -522,14 +522,8 @@ void wxFontRefData::SetNativeFontInfo(const wxNativeFontInfo& info)
 // wxFont
 // ----------------------------------------------------------------------------
 
-void wxFont::Init()
-{
-}
-
 wxFont::wxFont(const wxNativeFontInfo& info)
 {
-    Init();
-
 #if wxUSE_UNICODE
     Create( info.GetPointSize(),
             info.GetFamily(),

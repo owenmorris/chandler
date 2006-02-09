@@ -2,7 +2,7 @@
 // Name:        wx/generic/accel.h
 // Purpose:     wxAcceleratorTable class
 // Author:      Robert Roebling
-// RCS-ID:      $Id: accel.h,v 1.11 2005/09/23 12:49:03 MR Exp $
+// RCS-ID:      $Id: accel.h,v 1.12 2006/02/09 00:48:40 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,12 +22,6 @@ public:
     wxAcceleratorTable();
     wxAcceleratorTable(int n, const wxAcceleratorEntry entries[]);
     virtual ~wxAcceleratorTable();
-
-    wxAcceleratorTable(const wxAcceleratorTable& accel)
-        : wxObject()
-        { Ref(accel); }
-    wxAcceleratorTable& operator=(const wxAcceleratorTable& accel)
-      { if ( m_refData != accel.m_refData ) Ref(accel); return *this; }
 
 #if WXWIN_COMPATIBILITY_2_4
     bool operator==(const wxAcceleratorTable& accel) const

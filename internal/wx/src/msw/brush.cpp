@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: brush.cpp,v 1.24 2005/10/04 18:14:34 ABX Exp $
+// RCS-ID:      $Id: brush.cpp,v 1.25 2006/02/09 00:49:39 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -242,16 +242,6 @@ wxBrush::~wxBrush()
 // ----------------------------------------------------------------------------
 // wxBrush house keeping stuff
 // ----------------------------------------------------------------------------
-
-wxBrush& wxBrush::operator=(const wxBrush& brush)
-{
-    if ( this != &brush )
-    {
-        Ref(brush);
-    }
-
-    return *this;
-}
 
 bool wxBrush::operator==(const wxBrush& brush) const
 {

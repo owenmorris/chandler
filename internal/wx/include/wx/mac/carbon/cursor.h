@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: cursor.h,v 1.7 2005/09/23 12:49:31 MR Exp $
+// RCS-ID:      $Id: cursor.h,v 1.8 2006/02/09 00:48:47 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,11 +22,6 @@ class WXDLLEXPORT wxCursor: public wxBitmap
 public:
   wxCursor();
 
-  // Copy constructors
-  wxCursor(const wxCursor& cursor)
-      : wxBitmap()
-  { Ref(cursor); }
-
   wxCursor(const char bits[], int width, int height, int hotSpotX = -1, int hotSpotY = -1,
     const char maskBits[] = NULL);
 
@@ -42,7 +37,6 @@ public:
 	bool CreateFromXpm(const char **bits) ;
   virtual bool Ok() const ;
 
-  inline wxCursor& operator = (const wxCursor& cursor) { if (*this == cursor) return (*this); Ref(cursor); return *this; }
   inline bool operator == (const wxCursor& cursor) const { return m_refData == cursor.m_refData; }
   inline bool operator != (const wxCursor& cursor) const { return m_refData != cursor.m_refData; }
 

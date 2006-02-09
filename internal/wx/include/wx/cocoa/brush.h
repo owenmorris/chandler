@@ -4,7 +4,7 @@
 // Author:      David Elliott <dfe@cox.net>
 // Modified by:
 // Created:     2003/07/03
-// RCS-ID:      $Id: brush.h,v 1.10 2005/10/04 18:14:07 ABX Exp $
+// RCS-ID:      $Id: brush.h,v 1.11 2006/02/09 00:48:38 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,9 +31,6 @@ public:
     wxBrush();
     wxBrush(const wxColour& col, int style = wxSOLID);
     wxBrush(const wxBitmap& stipple);
-    wxBrush(const wxBrush& brush)
-    :   wxBrushBase()
-    {   Ref(brush); }
     ~wxBrush();
 
 // ------------------------------------------------------------------------
@@ -43,10 +40,6 @@ public:
     virtual void SetColour(unsigned char r, unsigned char g, unsigned char b) ;
     virtual void SetStyle(int style) ;
     virtual void SetStipple(const wxBitmap& stipple) ;
-
-    // assignment
-    wxBrush& operator = (const wxBrush& brush)
-    {   if (*this == brush) return (*this); Ref(brush); return *this; }
 
     // comparison
     bool operator == (const wxBrush& brush) const

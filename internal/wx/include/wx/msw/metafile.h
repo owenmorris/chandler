@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ 07.01.00: implemented wxMetaFileDataObject
 // Created:     01/02/97
-// RCS-ID:      $Id: metafile.h,v 1.16 2005/12/25 13:06:02 VZ Exp $
+// RCS-ID:      $Id: metafile.h,v 1.17 2006/02/09 00:48:59 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,6 @@ class WXDLLEXPORT wxMetafile: public wxGDIObject
 {
 public:
     wxMetafile(const wxString& file = wxEmptyString);
-    wxMetafile(const wxMetafile& metafile) { Ref(metafile); }
     virtual ~wxMetafile();
 
     // After this is called, the metafile cannot be used for anything
@@ -69,8 +68,6 @@ public:
     void SetWindowsMappingMode(int mm);
 
     // Operators
-    wxMetafile& operator=(const wxMetafile& metafile)
-        { if (*this != metafile) Ref(metafile); return *this; }
     bool operator==(const wxMetafile& metafile) const
         { return m_refData == metafile.m_refData; }
     bool operator!=(const wxMetafile& metafile) const

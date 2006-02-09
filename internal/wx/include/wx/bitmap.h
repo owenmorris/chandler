@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     22.04.01
-// RCS-ID:      $Id: bitmap.h,v 1.31 2006/01/23 03:27:30 MR Exp $
+// RCS-ID:      $Id: bitmap.h,v 1.32 2006/02/09 00:48:33 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,9 +79,6 @@ private:
 class WXDLLEXPORT wxBitmapBase : public wxGDIObject
 {
 public:
-    wxBitmapBase() : wxGDIObject() {}
-    virtual ~wxBitmapBase() {}
-
     /*
     Derived class must implement these:
 
@@ -90,10 +87,8 @@ public:
     wxBitmap(const char bits[], int width, int height, int depth = 1);
     wxBitmap(const char **bits);
     wxBitmap(char **bits);
-    wxBitmap(const wxBitmap& bmp);
     wxBitmap(const wxString &filename, wxBitmapType type = wxBITMAP_TYPE_XPM);
     wxBitmap(const wxImage& image, int depth = -1);
-    wxBitmap& operator = (const wxBitmap& bmp);
     bool operator == (const wxBitmap& bmp) const;
     bool operator != (const wxBitmap& bmp) const;
 

@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: paletteg.cpp,v 1.12 2005/10/06 14:37:29 ABX Exp $
+// RCS-ID:      $Id: paletteg.cpp,v 1.13 2006/02/09 00:49:16 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,21 +66,8 @@ wxPalette::wxPalette(int n, const unsigned char *red, const unsigned char *green
     Create(n, red, green, blue);
 }
 
-wxPalette::wxPalette(const wxPalette& palette)
-    : wxPaletteBase()
-{
-    Ref(palette);
-}
-
 wxPalette::~wxPalette()
 {
-}
-
-wxPalette& wxPalette::operator = (const wxPalette& palette)
-{
-    if (*this == palette) return (*this);
-    Ref(palette);
-    return *this;
 }
 
 bool wxPalette::operator == (const wxPalette& palette) const

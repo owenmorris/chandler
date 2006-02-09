@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: cursor.cpp,v 1.13 2005/09/23 12:56:03 MR Exp $
+// RCS-ID:      $Id: cursor.cpp,v 1.14 2006/02/09 00:49:47 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -124,12 +124,6 @@ wxCursor::wxCursor(const char bits[], int width, int  height,
    wxFAIL_MSG( wxT("wxCursor creation from bits not yet implemented") );
 }
 
-
-wxCursor::wxCursor( const wxCursor &cursor )
-{
-    Ref( cursor );
-}
-
 #if wxUSE_IMAGE
 wxCursor::wxCursor( const wxImage & image )
 {
@@ -139,16 +133,6 @@ wxCursor::wxCursor( const wxImage & image )
 
 wxCursor::~wxCursor()
 {
-}
-
-wxCursor& wxCursor::operator = ( const wxCursor& cursor )
-{
-    if (*this == cursor)
-        return (*this);
-
-    Ref( cursor );
-
-    return *this;
 }
 
 bool wxCursor::operator == ( const wxCursor& cursor ) const

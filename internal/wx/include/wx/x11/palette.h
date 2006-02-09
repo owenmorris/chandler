@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: palette.h,v 1.9 2005/10/06 14:37:28 ABX Exp $
+// RCS-ID:      $Id: palette.h,v 1.10 2006/02/09 00:49:10 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,6 @@ class WXDLLEXPORT wxPalette: public wxPaletteBase
 
 public:
     wxPalette();
-    wxPalette(const wxPalette& palette) { Ref(palette); }
 
     wxPalette(int n, const unsigned char *red, const unsigned char *green, const unsigned char *blue);
     ~wxPalette();
@@ -61,7 +60,6 @@ public:
 
     virtual bool Ok() const { return (m_refData != NULL) ; }
 
-    wxPalette& operator = (const wxPalette& palette) { if (*this == palette) return (*this); Ref(palette); return *this; }
     bool operator == (const wxPalette& palette) const { return m_refData == palette.m_refData; }
     bool operator != (const wxPalette& palette) const { return m_refData != palette.m_refData; }
 

@@ -2,7 +2,7 @@
 // Name:        gtk/font.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: font.cpp,v 1.95 2006/01/22 20:29:14 MR Exp $
+// Id:          $Id: font.cpp,v 1.96 2006/02/09 00:49:18 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -345,14 +345,8 @@ void wxFontRefData::SetNativeFontInfo(const wxNativeFontInfo& info)
 
 IMPLEMENT_DYNAMIC_CLASS(wxFont, wxGDIObject)
 
-void wxFont::Init()
-{
-}
-
 wxFont::wxFont(const wxNativeFontInfo& info)
 {
-    Init();
-
     Create( info.GetPointSize(),
             info.GetFamily(),
             info.GetStyle(),

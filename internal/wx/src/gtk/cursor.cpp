@@ -2,7 +2,7 @@
 // Name:        cursor.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: cursor.cpp,v 1.47 2005/12/24 02:20:15 VZ Exp $
+// Id:          $Id: cursor.cpp,v 1.48 2006/02/09 00:49:18 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -151,13 +151,6 @@ wxCursor::wxCursor(const char bits[], int width, int  height,
 
     gdk_bitmap_unref( data );
     gdk_bitmap_unref( mask );
-}
-
-
-wxCursor::wxCursor( const wxCursor &cursor )
-    : wxObject()
-{
-    Ref( cursor );
 }
 
 #if wxUSE_IMAGE
@@ -318,16 +311,6 @@ wxCursor::wxCursor( const wxImage & image )
 
 wxCursor::~wxCursor()
 {
-}
-
-wxCursor& wxCursor::operator = ( const wxCursor& cursor )
-{
-    if (*this == cursor)
-        return (*this);
-
-    Ref( cursor );
-
-    return *this;
 }
 
 bool wxCursor::operator == ( const wxCursor& cursor ) const

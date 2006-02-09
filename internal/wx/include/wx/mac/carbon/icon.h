@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: icon.h,v 1.8 2005/09/23 12:49:33 MR Exp $
+// RCS-ID:      $Id: icon.h,v 1.9 2006/02/09 00:48:47 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,13 +19,6 @@ class WXDLLEXPORT wxIcon: public wxGDIObject
 {
 public:
     wxIcon();
-
-    // Copy constructors
-    wxIcon(const wxIcon& icon)
-        : wxGDIObject()
-    {
-        Ref(icon);
-    }
 
     wxIcon(const char **data);
     wxIcon(char **data);
@@ -43,8 +36,6 @@ public:
     bool LoadFile(const wxString& name ,wxBitmapType flags = wxBITMAP_TYPE_ICON_RESOURCE )
       { return LoadFile( name , flags , -1 , -1 ) ; }
 
-    wxIcon& operator=(const wxIcon& icon)
-    { if (this != &icon) Ref(icon); return *this; }
     bool operator==(const wxIcon& icon) const { return m_refData == icon.m_refData; }
     bool operator!=(const wxIcon& icon) const { return !(*this == icon); }
 

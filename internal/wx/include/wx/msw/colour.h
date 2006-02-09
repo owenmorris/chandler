@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colour.h,v 1.23 2005/09/23 12:50:08 MR Exp $
+// RCS-ID:      $Id: colour.h,v 1.24 2006/02/09 00:48:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,11 +37,6 @@ public:
     // implicit conversion from the colour name
     wxColour(const wxString &colourName) { InitFromName(colourName); }
     wxColour(const wxChar *colourName) { InitFromName(colourName); }
-
-
-    // copy ctors and assignment operators
-    wxColour(const wxColour& col);
-    wxColour& operator=( const wxColour& col);
 
     // dtor
     ~wxColour();

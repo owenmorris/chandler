@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: icon.h,v 1.24 2005/09/23 12:49:58 MR Exp $
+// RCS-ID:      $Id: icon.h,v 1.25 2006/02/09 00:48:56 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,9 +19,6 @@ class WXDLLEXPORT wxIcon : public wxBitmap
 {
 public:
     wxIcon();
-
-    // Copy constructors
-    inline wxIcon(const wxIcon& icon) { Ref(icon); }
 
     // Initialize with XBM data
     wxIcon(const char bits[], int width, int height);
@@ -58,8 +55,6 @@ public:
     // ctors, assignment operators...), but it's ok to have such function
     void CopyFromBitmap(const wxBitmap& bmp);
 
-    wxIcon& operator = (const wxIcon& icon)
-        { if (this != &icon) Ref(icon); return *this; }
     bool operator == (const wxIcon& icon) const
         { return m_refData == icon.m_refData; }
     bool operator != (const wxIcon& icon) const

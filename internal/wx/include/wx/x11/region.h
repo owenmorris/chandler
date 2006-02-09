@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: region.h,v 1.13 2005/09/24 21:42:29 VZ Exp $
+// RCS-ID:      $Id: region.h,v 1.14 2006/02/09 00:49:10 VZ Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,9 +81,6 @@ public:
     }
 
     ~wxRegion();
-
-    wxRegion( const wxRegion& region ) { Ref(region); }
-    wxRegion& operator = ( const wxRegion& region ) { Ref(region); return *this; }
 
     bool Ok() const { return m_refData != NULL; }
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: cursor.h,v 1.17 2005/09/23 12:50:08 MR Exp $
+// RCS-ID:      $Id: cursor.h,v 1.18 2006/02/09 00:48:59 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,6 @@ class WXDLLEXPORT wxCursor : public wxGDIImage
 public:
     // constructors
     wxCursor();
-    wxCursor(const wxCursor& cursor) : wxGDIImage(cursor) { Ref(cursor); }
     wxCursor(const wxImage& image);
     wxCursor(const char bits[], int width, int height,
              int hotSpotX = -1, int hotSpotY = -1,
@@ -32,9 +31,6 @@ public:
              int hotSpotX = 0, int hotSpotY = 0);
     wxCursor(int idCursor);
     virtual ~wxCursor();
-
-    wxCursor& operator=(const wxCursor& cursor)
-        { if (*this == cursor) return (*this); Ref(cursor); return *this; }
 
     bool operator==(const wxCursor& cursor) const;
     bool operator!=(const wxCursor& cursor) const

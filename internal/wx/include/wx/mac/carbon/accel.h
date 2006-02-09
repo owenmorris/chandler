@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: accel.h,v 1.6 2005/09/24 21:42:17 VZ Exp $
+// RCS-ID:      $Id: accel.h,v 1.7 2006/02/09 00:48:46 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,17 +22,8 @@ public:
     wxAcceleratorTable();
     wxAcceleratorTable(int n, const wxAcceleratorEntry entries[]); // Load from array
 
-    // Copy constructors
-    wxAcceleratorTable(const wxAcceleratorTable& accel)
-        : wxObject()
-    { Ref(accel); }
-    wxAcceleratorTable(const wxAcceleratorTable* accel)
-    { if (accel) Ref(*accel); }
-
     ~wxAcceleratorTable();
 
-    wxAcceleratorTable& operator = (const wxAcceleratorTable& accel)
-    { if (*this == accel) return (*this); Ref(accel); return *this; }
     bool operator == (const wxAcceleratorTable& accel) const
     { return m_refData == accel.m_refData; }
     bool operator != (const wxAcceleratorTable& accel) const

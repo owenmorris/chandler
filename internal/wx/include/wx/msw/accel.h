@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     31/7/98
-// RCS-ID:      $Id: accel.h,v 1.15 2005/09/23 12:50:06 MR Exp $
+// RCS-ID:      $Id: accel.h,v 1.16 2006/02/09 00:48:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,23 +20,13 @@ class WXDLLEXPORT wxAcceleratorTable : public wxObject
 {
 public:
     // default ctor
-    wxAcceleratorTable() : wxObject() { }
-
-    // copy ctor
-    wxAcceleratorTable(const wxAcceleratorTable& accel) : wxObject(accel) { Ref(accel); }
+    wxAcceleratorTable() { }
 
     // load from .rc resource (Windows specific)
     wxAcceleratorTable(const wxString& resource);
 
     // initialize from array
     wxAcceleratorTable(int n, const wxAcceleratorEntry entries[]);
-
-    wxAcceleratorTable& operator=(const wxAcceleratorTable& accel)
-    {
-        if ( *this != accel )
-            Ref(accel);
-        return *this;
-    }
 
     bool operator==(const wxAcceleratorTable& accel) const;
     bool operator!=(const wxAcceleratorTable& accel) const

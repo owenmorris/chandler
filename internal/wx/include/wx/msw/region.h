@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: region.h,v 1.23 2005/09/23 12:50:15 MR Exp $
+// RCS-ID:      $Id: region.h,v 1.24 2006/02/09 00:49:00 VZ Exp $
 // Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,12 +55,6 @@ public:
     }
 
     virtual ~wxRegion();
-
-    // Copying
-    wxRegion(const wxRegion& r) : wxGDIObject(r)
-        { Ref(r); }
-    wxRegion& operator = (const wxRegion& r)
-        { Ref(r); return (*this); }
 
     // Modify region
     // -------------

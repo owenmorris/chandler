@@ -2,7 +2,7 @@
 // Name:        icon.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: icon.cpp,v 1.12 2005/09/23 12:53:39 MR Exp $
+// Id:          $Id: icon.cpp,v 1.13 2006/02/09 00:49:19 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,18 +30,6 @@ wxIcon::wxIcon( char **bits, int WXUNUSED(width), int WXUNUSED(height) ) :
 
 wxIcon::wxIcon() :  wxBitmap()
 {
-}
-
-wxIcon::wxIcon( const wxIcon& icon ) : wxBitmap()
-{
-    Ref(icon);
-}
-
-wxIcon& wxIcon::operator = ( const wxIcon& icon )
-{
-    if (*this == icon) return (*this);
-    Ref(icon);
-    return *this;
 }
 
 void wxIcon::CopyFromBitmap(const wxBitmap& bmp)

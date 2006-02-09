@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: icon.cpp,v 1.9 2005/09/23 12:56:05 MR Exp $
+// RCS-ID:      $Id: icon.cpp,v 1.10 2006/02/09 00:49:48 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,18 +32,6 @@ wxIcon::wxIcon( char **bits, int WXUNUSED(width), int WXUNUSED(height) ) :
 
 wxIcon::wxIcon() :  wxBitmap()
 {
-}
-
-wxIcon::wxIcon( const wxIcon& icon ) : wxBitmap()
-{
-    Ref(icon);
-}
-
-wxIcon& wxIcon::operator = ( const wxIcon& icon )
-{
-    if (*this == icon) return (*this);
-    Ref(icon);
-    return *this;
 }
 
 void wxIcon::CopyFromBitmap(const wxBitmap& bmp)

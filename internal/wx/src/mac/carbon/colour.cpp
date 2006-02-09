@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: colour.cpp,v 1.18 2006/01/07 17:29:16 vell Exp $
+// RCS-ID:      $Id: colour.cpp,v 1.19 2006/02/09 00:49:21 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,29 +35,6 @@ void wxColour::Init()
     m_green = 0;
 
     wxComposeRGBColor( &m_pixel, m_red, m_blue, m_green );
-}
-
-wxColour::wxColour (const wxColour& col)
-    : wxObject()
-{
-    m_red = col.m_red;
-    m_green = col.m_green;
-    m_blue = col.m_blue;
-    m_isInit = col.m_isInit;
-
-    memcpy( &m_pixel, &col.m_pixel, 6 );
-}
-
-wxColour& wxColour::operator =(const wxColour& col)
-{
-    m_red = col.m_red;
-    m_green = col.m_green;
-    m_blue = col.m_blue;
-    m_isInit = col.m_isInit;
-
-    memcpy( &m_pixel, &col.m_pixel, 6 );
-
-    return *this;
 }
 
 void wxColour::InitFromName(const wxString& name)

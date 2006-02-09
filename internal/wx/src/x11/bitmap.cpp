@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.38 2005/10/08 17:10:09 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.39 2006/02/09 00:49:47 VZ Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -902,11 +902,6 @@ wxImage wxBitmap::ConvertToImage() const
     // wxUSE_NANOX
 }
 
-wxBitmap::wxBitmap( const wxBitmap& bmp )
-{
-    Ref( bmp );
-}
-
 wxBitmap::wxBitmap( const wxString &filename, wxBitmapType type )
 {
     LoadFile( filename, type );
@@ -921,14 +916,6 @@ wxBitmap::wxBitmap( const char bits[], int width, int height, int depth )
 
 wxBitmap::~wxBitmap()
 {
-}
-
-wxBitmap& wxBitmap::operator = ( const wxBitmap& bmp )
-{
-    if ( m_refData != bmp.m_refData )
-        Ref( bmp );
-
-    return *this;
 }
 
 bool wxBitmap::operator == ( const wxBitmap& bmp ) const

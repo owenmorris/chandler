@@ -4,7 +4,7 @@
 // Author:      AUTHOR
 // Modified by:
 // Created:     ??/??/98
-// RCS-ID:      $Id: font.cpp,v 1.8 2005/09/23 12:52:37 MR Exp $
+// RCS-ID:      $Id: font.cpp,v 1.9 2006/02/09 00:49:12 VZ Exp $
 // Copyright:   (c) AUTHOR
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,10 +30,6 @@ void wxFontRefData::Init(int size, int family, int style, int weight, bool under
 wxFontRefData::~wxFontRefData()
 {
     // TODO: delete font data
-}
-
-void wxFont::Init()
-{
 }
 
 bool wxFont::Create(const wxNativeFontInfo&)

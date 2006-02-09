@@ -2,7 +2,7 @@
 // Name:        font.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: font.h,v 1.35 2006/01/22 21:00:18 MR Exp $
+// Id:          $Id: font.h,v 1.36 2006/02/09 00:48:43 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,15 +29,11 @@ class WXDLLIMPEXP_CORE wxFont;
 class WXDLLIMPEXP_CORE wxFont : public wxFontBase
 {
 public:
-    // ctors and such
-    wxFont() { Init(); }
-    wxFont(const wxFont& font) : wxFontBase() { Init(); Ref(font); }
+    wxFont() { }
 
     // wxGTK-specific
     wxFont(const wxString& fontname)
     {
-        Init();
-
         Create(fontname);
     }
 
@@ -51,8 +47,6 @@ public:
            const wxString& face = wxEmptyString,
            wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
     {
-        Init();
-
         (void)Create(size, family, style, weight, underlined, face, encoding);
     }
 
@@ -68,9 +62,6 @@ public:
     bool Create(const wxString& fontname);
 
     ~wxFont();
-
-    // assignment
-    wxFont& operator=(const wxFont& font);
 
     // implement base class pure virtuals
     virtual int GetPointSize() const;

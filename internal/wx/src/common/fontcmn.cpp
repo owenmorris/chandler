@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: fontcmn.cpp,v 1.54 2006/02/06 22:53:31 vell Exp $
+// RCS-ID:      $Id: fontcmn.cpp,v 1.55 2006/02/09 00:49:13 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -298,14 +298,6 @@ void wxFontBase::SetNativeFontInfoUserDesc(const wxString& info)
     {
         SetNativeFontInfo(fontInfo);
     }
-}
-
-wxFont& wxFont::operator=(const wxFont& font)
-{
-    if ( this != &font )
-        Ref(font);
-
-    return (wxFont &)*this;
 }
 
 bool wxFontBase::operator==(const wxFont& font) const
