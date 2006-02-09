@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: textctrl.h,v 1.59 2006/02/08 21:45:45 VZ Exp $
+// Id:          $Id: textctrl.h,v 1.60 2006/02/09 03:50:58 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -151,10 +151,6 @@ public:
     virtual void Freeze();
     virtual void Thaw();
 
-    // textctrl specific scrolling
-    virtual bool ScrollLines(int lines);
-    virtual bool ScrollPages(int pages);
-
     // implementation only from now on
 
     // wxGTK-specific: called recursively by Enable,
@@ -177,13 +173,6 @@ protected:
 
     // common part of all ctors
     void Init();
-
-    // get the vertical adjustment, if any, NULL otherwise
-    GtkAdjustment *GetVAdj() const;
-
-    // scroll the control by the given number of pixels, return true if the
-    // scroll position changed
-    bool DoScroll(GtkAdjustment *adj, int diff);
 
     // Widgets that use the style->base colour for the BG colour should
     // override this and return true.

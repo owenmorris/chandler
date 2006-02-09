@@ -2,7 +2,7 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h,v 1.138 2006/02/08 21:45:45 VZ Exp $
+// Id:          $Id: window.h,v 1.139 2006/02/09 03:50:59 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -99,6 +99,8 @@ public:
     virtual int GetScrollRange( int orient ) const;
     virtual void ScrollWindow( int dx, int dy,
                                const wxRect* rect = (wxRect *) NULL );
+    virtual bool ScrollLines(int lines);
+    virtual bool ScrollPages(int pages);
 
 #if wxUSE_DRAG_AND_DROP
     virtual void SetDropTarget( wxDropTarget *dropTarget );
@@ -267,6 +269,10 @@ protected:
     // helper function to ease native widgets wrapping, called by
     // ApplyWidgetStyle -- override this, not ApplyWidgetStyle
     virtual void DoApplyWidgetStyle(GtkRcStyle *style);
+
+protected:
+    // GtkAdjustment to be used by Scroll{Lines,Pages}
+    void SetVScrollAdjustment(GtkAdjustment* adj);
 
 private:
     DECLARE_DYNAMIC_CLASS(wxWindowGTK)

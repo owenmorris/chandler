@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.569 2006/02/05 23:50:13 VZ Exp $
+// Id:          $Id: window.cpp,v 1.570 2006/02/09 03:53:16 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -3652,6 +3652,39 @@ void wxWindowGTK::WarpPointer( int x, int y )
         gdk_window_warp_pointer( window, x, y );
 }
 
+static bool wxScrollAdjust(GtkAdjustment* adj, double change)
+{
+    double value_start = adj->value;
+    double value = value_start + change;
+    double upper = adj->upper - adj->page_size;
+    if (value > upper)
+    {
+        value = upper;
+    }
+    // Lower bound will be checked by gtk_adjustment_set_value
+    gtk_adjustment_set_value(adj, value);
+    return adj->value != value_start;
+}
+
+bool wxWindowGTK::ScrollLines(int lines)
+{
+    return
+        m_vAdjust != NULL &&
+        wxScrollAdjust(m_vAdjust, lines * m_vAdjust->step_increment);
+}
+
+bool wxWindowGTK::ScrollPages(int pages)
+{
+    return
+        m_vAdjust != NULL &&
+        wxScrollAdjust(m_vAdjust, pages * m_vAdjust->page_increment);
+}
+
+void wxWindowGTK::SetVScrollAdjustment(GtkAdjustment* adj)
+{
+    wxASSERT(m_vAdjust == NULL);
+    m_vAdjust = adj;
+}
 
 void wxWindowGTK::Refresh( bool eraseBackground, const wxRect *rect )
 {

@@ -2,7 +2,7 @@
 // Name:        src/gtk/scrolbar.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: scrolbar.cpp,v 1.61 2006/02/03 20:38:54 MR Exp $
+// Id:          $Id: scrolbar.cpp,v 1.62 2006/02/09 03:53:16 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -186,6 +186,10 @@ bool wxScrollBar::Create(wxWindow *parent, wxWindowID id,
         m_widget = gtk_hscrollbar_new( (GtkAdjustment *) NULL );
 
     m_adjust = gtk_range_get_adjustment( GTK_RANGE(m_widget) );
+    if ( style & wxSB_VERTICAL )
+    {
+        SetVScrollAdjustment(m_adjust);
+    }
 
     g_signal_connect (m_adjust, "value_changed",
                       G_CALLBACK (gtk_scrollbar_callback), this);

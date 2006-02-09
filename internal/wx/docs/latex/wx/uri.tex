@@ -4,7 +4,7 @@
 %% Author:      Ryan Norton <wxprojects@comcast.net>
 %% Modified by:
 %% Created:     7/7/2004
-%% RCS-ID:      $Id: uri.tex,v 1.16 2005/05/31 09:18:02 JS Exp $
+%% RCS-ID:      $Id: uri.tex,v 1.17 2006/02/09 03:09:31 VZ Exp $
 %% Copyright:   (c) Ryan Norton
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,6 +74,12 @@ wxURI myuri(wxT("http://mysite.com"));
 if(myuri.HasScheme())
    protocol = myuri.GetScheme();
 \end{verbatim}
+
+\membersection{Deviations from the RFC}\label{deviationsfromrfc}
+
+Note that on URIs with a "file" scheme wxURI does not
+parse the userinfo, server, or port portion.  This is to keep 
+compatability with wxFileSystem, the old wxURL, and older url specifications.
 
 \membersection{wxURI::wxURI}\label{wxuriwxuri}
 

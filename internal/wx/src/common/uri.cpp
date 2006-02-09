@@ -3,7 +3,7 @@
 // Purpose:     Implementation of a uri parser
 // Author:      Ryan Norton
 // Created:     10/26/04
-// RCS-ID:      $Id: uri.cpp,v 1.31 2005/12/14 17:49:05 vell Exp $
+// RCS-ID:      $Id: uri.cpp,v 1.32 2006/02/09 03:09:36 VZ Exp $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows
 /////////////////////////////////////////////////////////////////////////////
@@ -432,11 +432,18 @@ const wxChar* wxURI::ParseAuthority(const wxChar* uri)
     // authority     = [ userinfo "@" ] host [ ":" port ]
     if (*uri == wxT('/') && *(uri+1) == wxT('/'))
     {
+        //skip past the two slashes
         uri += 2;
 
+        // ############# DEVIATION FROM RFC #########################
+        // Don't parse the server component for file URIs
+        if(m_scheme != wxT("file"))
+        {
+            //normal way
         uri = ParseUserInfo(uri);
         uri = ParseServer(uri);
         return ParsePort(uri);
+        }
     }
 
     return uri;
