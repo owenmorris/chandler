@@ -17,7 +17,7 @@ class orientationEnumType(schema.Enumeration):
 
 class wxBoxContainer (wxRectangularChild):
     #import util.autolog; __metaclass__ = util.autolog.LogTheMethods; logMatch = "^On.*"
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         super (wxBoxContainer, self).wxSynchronizeWidget ()
 
         colorStyle = getattr (self, 'colorStyle', None)
@@ -108,7 +108,7 @@ class wxLayoutChooser(wxBoxContainer):
     def __init__(self, *arguments, **keywords):
         super (wxLayoutChooser, self).__init__ (*arguments, **keywords)
             
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         selectedChoice = self._getSelectedChoice()
         if selectedChoice != self.blockItem.selection:
             for childBlock in self.blockItem.childrenBlocks:
@@ -201,7 +201,7 @@ class LayoutChooser(BoxContainer):
 
         
 class wxScrolledContainer (wx.ScrolledWindow):
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         if self.blockItem.isShown:
             sizer = self.GetSizer()
             sizer.Clear()
@@ -344,7 +344,7 @@ class wxSplitterWindow(wx.SplitterWindow):
             self.SetSashPosition(floatSize)
         return didAdjust
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
 
         assert (len (self.blockItem.childrenBlocks) >= 1 and
@@ -459,7 +459,7 @@ class wxTabbedViewContainer(DragAndDrop.DropReceiveWidget,
             blockItem.selectionIndex = newIndex
             blockItem.synchronizeWidget()
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         self.Freeze()
         blockItem = self.blockItem
         self.DeleteAllPages()
@@ -621,7 +621,7 @@ class wxTabbedContainer(DragAndDrop.DropReceiveWidget,
             self.SetSelection(currentTab)
         return dragResult
             
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         assert(len(self.blockItem.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
         self.Freeze()
         for pageNum in range (self.GetPageCount()):

@@ -617,9 +617,16 @@ class wxApplication (wx.App):
         # Redraw all the blocks dirtied by notifications
 
         from osaf.framework.blocks.Block import Block
-        for theUUID, hints in Block.dirtyBlocks.iteritems():
-            Globals.mainViewRoot.findUUID(theUUID).synchronizeWidget(**hints)
-        Block.dirtyBlocks = {}
+
+        # make the list first in case it gets tweaked during synchronizeWidget
+        dirtyBlocks = [Globals.mainViewRoot.findUUID(theUUID)
+                       for theUUID in Block.dirtyBlocks]
+        
+        # now send out syncs
+        for block in dirtyBlocks:
+            block.synchronizeWidget(useHints=True)
+            
+        Block.dirtyBlocks = set()
 
         if self.needsUpdateUI:
             try:

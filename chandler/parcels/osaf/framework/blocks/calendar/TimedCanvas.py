@@ -39,16 +39,20 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # the end
         self._bgSelectionDragEnd = True
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         currentRange = self.GetCurrentDateRange()
         self._doDrawingCalculations()
 
         # The only hints we understand are event additions.
         # So, if any other kind of hints have been received,
         # fall back to a full synchronize.
-        addedEvents = self.blockItem._getAddedEventsFromHints(
-                                            currentRange[0], currentRange[1],
-                                            hints)
+        if useHints:
+            addedEvents = self.blockItem._getAddedEventsFromHints(
+                currentRange[0], currentRange[1],
+                self.hints)
+        else:
+            addedEvents = None
+        self.hints = {}
 
         numAdded = 0 # The events may not be timed, or may fall
                      # outside our range, etc,

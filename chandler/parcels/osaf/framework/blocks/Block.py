@@ -342,20 +342,19 @@ class Block(schema.Item):
           When our item collection has changed, we need to synchronize
         """
         if not self.ignoreNotifications:
-            self.synchronizeSoon(collectionChange=(op, item, name, other, args))
+            onItemNotification = getattr(self.widget, 'onItemNotification', None)
+            if onItemNotification is not None:
+                onItemNotification('collectionChange', (op, item, name, other, args))
+            self.synchronizeSoon()
 
-    def synchronizeSoon(self, **hints):
+    def synchronizeSoon(self):
         """ Invoke our general deferred-synchronization mechanism """
         # each block should have a hints dictionary
-        blockHints = self.dirtyBlocks.setdefault(self.itsUUID, {})
-
-        # add these hints
-        for key,value in hints.iteritems():
-            blockHints.setdefault(key, []).append(value)
+        self.dirtyBlocks.add(self.itsUUID)
 
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
-    dirtyBlocks = {}            # A dictionary of blocks that need to be redrawn in OnIdle
+    dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle
 
     @classmethod
     def wxOnDestroyWidget (theClass, widget):
@@ -519,19 +518,24 @@ class Block(schema.Item):
         # Need to SelectFirstItem -- DJA based on self.selectInBlock
         return itemList
 
-    def synchronizeWidget (self, **hints):
+    def synchronizeWidget (self, useHints=False):
         """
-          synchronizeWidget's job is to make the wxWidget match the state of
-        the data persisted in the block. There's a tricky problem that occurs: Often
-        we add a handler to the wxWidget of a block to, for example, get called
-        when the user changes the selection, which we use to update the block's selection
-        and post a selection item block event. It turns out that while we are in
-        synchronizeWidget, changes to the wxWidget cause these handlers to be
-        called, and in this case we don't want to post an event. So we wrap calls
-        to synchronizeWidget and set a flag indicating that we're inside
-        synchronizeWidget so the handlers can tell when not to post selection
-        changed events. We use this flag in other similar situations, for example,
-        during shutdown to ignore events caused by the framework tearing down wxWidgets.
+        synchronizeWidget's job is to make the wxWidget match the
+        state of the data persisted in the block.
+
+        There's a tricky problem that occurs: Often we add a handler
+        to the wxWidget of a block to, for example, get called when
+        the user changes the selection, which we use to update the
+        block's selection and post a selection item block event.
+
+        It turns out that while we are in synchronizeWidget, changes
+        to the wxWidget cause these handlers to be called, and in this
+        case we don't want to post an event. So we wrap calls to
+        synchronizeWidget and set a flag indicating that we're inside
+        synchronizeWidget so the handlers can tell when not to post
+        selection changed events. We use this flag in other similar
+        situations, for example, during shutdown to ignore events
+        caused by the framework tearing down wxWidgets.
         """
         widget = getattr (self, "widget", None)
         if widget is not None:
@@ -542,7 +546,7 @@ class Block(schema.Item):
                     oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
                     app.ignoreSynchronizeWidget = True
                     try:
-                        method (widget, **hints)
+                        method (widget, useHints)
                     finally:
                         app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
@@ -837,7 +841,7 @@ class ShownSynchronizer(object):
     A mixin that handles isShown-ness: Make sure my visibility
     matches my block's.
     """
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
 

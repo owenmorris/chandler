@@ -1101,6 +1101,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     legendBorderWidth = 3
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
+        self.hints = {}
 
         self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
         
@@ -1311,6 +1312,14 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
                 dayEnd = dayStart
             return (drawInfo.columnPositions[dayStart + 1],
                     sum(drawInfo.columnWidths[dayStart + 1:dayEnd+2]))
+
+    def onItemNotification(self, notificationType, data):
+        # queue up notifications if the widget wants them
+        self.hints.setdefault(notificationType, []).append(data)
+
+    def wxSynchronizeWidget(self, useHints=False):
+        # clear notifications
+        self.hints = {}
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):
@@ -1779,7 +1788,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.ResizeHeader()
         event.Skip()
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         selectedDate = self.blockItem.selectedDate
         startDate = self.blockItem.rangeStart
 

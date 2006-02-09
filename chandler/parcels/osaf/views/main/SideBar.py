@@ -64,7 +64,7 @@ class wxSidebar(wxTable):
         cellRect.SetTop (top)
         return cellRect
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         sidebar = self.blockItem
         # sidebar.checkedItems is a python set,
         # it cannot be modified while iterating

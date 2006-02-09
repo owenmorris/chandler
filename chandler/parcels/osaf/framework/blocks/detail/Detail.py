@@ -182,10 +182,10 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             logger.debug(" ")
             #print
 
-    def synchronizeWidget (self, **hints):
+    def synchronizeWidget (self, useHints=False):
         item = self.item
         # logger.debug("DetailRoot.synchronizeWidget: %s", item)
-        super(DetailRootBlock, self).synchronizeWidget (**hints)
+        super(DetailRootBlock, self).synchronizeWidget (useHints)
         self.synchronizeDetailView(item)
         if __debug__:
             dumpSynchronizeWidget = False

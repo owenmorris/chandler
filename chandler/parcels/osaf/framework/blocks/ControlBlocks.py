@@ -350,7 +350,7 @@ class wxList (DragAndDrop.DraggableWidget,
             if curIndex is -1:
                 break
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         self.Freeze()
         self.ClearAll()
         self.SetItemCount (self.GetElementCount())
@@ -458,7 +458,7 @@ class wxStatusBar (ShownSynchronizer, wx.StatusBar):
         self.blockItem.getFrame().SetStatusBar(None)
         super (wxStatusBar, self).Destroy()
         
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         super (wxStatusBar, self).wxSynchronizeWidget()
         self.blockItem.getFrame().Layout()
 
@@ -614,7 +614,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
     def OnItemDrag(self, event):
         self.DoDragAndDrop()
         
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         def ExpandContainer (self, openedContainers, id):
             try:
                 expand = openedContainers [self.GetItemData(id).GetData()]
@@ -760,7 +760,7 @@ class wxItemDetail(wx.html.HtmlWindow):
             self.blockItem.postEventByName("SelectItemsBroadcast",
                                            {'items':[item]})
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         if self.blockItem.selection is not None:
             self.SetPage (self.blockItem.getHTMLText (self.blockItem.selection))
         else:
@@ -870,9 +870,9 @@ class Timer(Block):
 class ReminderTimer(Timer):
     """ Watches for reminders & drives the reminder dialog. """
     
-    def synchronizeWidget (self, **hints):
+    def synchronizeWidget (self, *args, **kwds):
         # logger.debug("*** Synchronizing ReminderTimer widget!")
-        super(ReminderTimer, self).synchronizeWidget(**hints)
+        super(ReminderTimer, self).synchronizeWidget(*args, **kwds)
         if not wx.GetApp().ignoreSynchronizeWidget:
             self.primeReminderTimer()
     
@@ -1104,7 +1104,7 @@ class AEBlock(BoxContainer):
                     
         return widget
         
-    def synchronizeWidget (self, **hints):
+    def synchronizeWidget (self, useHints=False):
         """
         Override to call the editor to do the synchronization
         

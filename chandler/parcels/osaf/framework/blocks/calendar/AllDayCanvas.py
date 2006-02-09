@@ -83,16 +83,20 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.RefreshCanvasItems()
         event.Skip()
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         #print "%s rebuilding canvas items" % self
         currentRange = self.GetCurrentDateRange()
         
         # The only hints we understand are event additions.
         # So, if any other kind of hints have been received,
         # fall back to a full synchronize.
-        addedEvents = self.blockItem._getAddedEventsFromHints(
-                                    currentRange[0], currentRange[1],
-                                    hints)
+        if useHints:
+            addedEvents = self.blockItem._getAddedEventsFromHints(
+                currentRange[0], currentRange[1],
+                self.hints)
+        else:
+            addedEvents = None
+        self.hints = {}
 
         if addedEvents is not None:
             addedEvents = [event for event in addedEvents

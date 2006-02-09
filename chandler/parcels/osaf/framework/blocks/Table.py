@@ -331,7 +331,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             
         self.blockItem.DisplayContextMenu(event.GetPosition(), item)
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         """
           A Grid can't easily redisplay its contents, so we write the following
         helper function to readjust everything after the contents change

@@ -54,7 +54,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.setFreeBusy)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.minical.CAL_SHOW_BUSY
         if '__WXMAC__' in wx.PlatformInfo:
             style |= wx.BORDER_SIMPLE
@@ -64,8 +64,11 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         if isMainCalendarVisible() and self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
-        self.setFreeBusy(None, **hints)
-
+        if useHints:
+            self.setFreeBusy(None, self.hints)
+        else:
+            self.setFreeBusy(None, {})
+        self.hints = {}
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -111,7 +114,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
         self.Refresh()
 
-    def setFreeBusy(self, event, **hints):
+    def setFreeBusy(self, event, hints):
         
         if self._recalcCount == 0:
             startWxDate = self.GetStartDate();
@@ -541,7 +544,7 @@ class wxPreviewArea(wx.Panel):
         self.GetParent().Thaw()
         self.GetParent().GetParent().Thaw()
         
-    def wxSynchronizeWidget(self, **hints):
+    def wxSynchronizeWidget(self, useHints=False):
         # We now want the preview area to always appear.  If the calendar is visible, however, we always want the
         # preview area to describe today, rather than the currently selected day.
         minical = Block.Block.findBlockByName("MiniCalendar")
@@ -551,9 +554,13 @@ class wxPreviewArea(wx.Panel):
         else:
             startDay = minical.widget.getSelectedDate()
         endDay = startDay + timedelta(days=1)
-        
-        addedEvents = self.blockItem._getAddedEventsFromHints(startDay, endDay,
-                                                             hints)
+
+        if useHints:
+            addedEvents = self.blockItem._getAddedEventsFromHints(
+                startDay, endDay, self.hints)
+        else:
+            addedEvents = None
+            
 
         if addedEvents is not None:
             addedEvents = set(item for item in addedEvents
@@ -572,6 +579,7 @@ class wxPreviewArea(wx.Panel):
         drawnHeight = self.Draw(dc)
         
         self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
+        self.hints = {}
 
 
     @staticmethod
