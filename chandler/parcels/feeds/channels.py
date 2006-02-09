@@ -17,6 +17,9 @@ from twisted.internet import reactor
 
 logger = logging.getLogger(__name__)
 
+FETCH_UPDATED = 2
+FETCH_NOCHANGE = 1
+FETCH_FAILED = 0
 
 # The Feeds repository view, used for background updates
 view = None
@@ -215,7 +218,7 @@ class FeedChannel(pim.ListCollection):
         if not data:
             # Page hasn't changed (304)
             logger.info("Channel hasn't changed: %s" % channel)
-            return
+            return FETCH_NOCHANGE
 
         logger.info("Channel downloaded: %s" % channel)
 
@@ -234,6 +237,7 @@ class FeedChannel(pim.ListCollection):
             logger.info("...added %d FeedItems" % count)
 
         self.itsView.commit()
+        return FETCH_UPDATED
 
 
     def feedFetchFailed(self, failure):
@@ -248,6 +252,8 @@ class FeedChannel(pim.ListCollection):
 
         logger.error("Failed to update channel: %s; Reason: %s",
             channel, failure.getErrorMessage())
+
+        return FETCH_FAILED
 
 
     def parse(self, rawData):

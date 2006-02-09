@@ -22,10 +22,14 @@ class TestFeedImporting(testcase.SingleRepositoryTestCase):
         url = 'http://wp.osafoundation.org/rss2'
         channel = feeds.newChannelFromURL(view, url)
         view.commit() # Make the channel available to feedsView
-        blockUntil(channel.update)
+        status = blockUntil(channel.update)
         view.refresh()
-        self.assertEqual(channel.displayName,
-            'Open Source Applications Foundation Blog')
+
+        # Only bother checking if the fetch was successful.  If there is a
+        # timeout or other network problem, that shouldn't fail the test.
+        if status == feeds.FETCH_UPDATED:
+            self.assertEqual(channel.displayName,
+                'Open Source Applications Foundation Blog')
 
     def NonASCII(self):
 
