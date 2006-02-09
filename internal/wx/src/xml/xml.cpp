@@ -26,6 +26,11 @@
 #include "wx/intl.h"
 #include "wx/strconv.h"
 
+// FIXME: OSAF - added to fix link failure
+#if defined(__WXMSW__) && !defined(XML_STATIC)
+#define XML_STATIC
+#endif
+
 #include "expat.h" // from Expat
 
 // DLL options compatibility check:
