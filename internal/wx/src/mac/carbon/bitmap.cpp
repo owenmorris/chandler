@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp,v 1.86 2006/01/24 12:58:32 SC Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.87 2006/02/09 15:09:59 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -802,7 +802,7 @@ wxBitmap::wxBitmap(const char bits[], int the_width, int the_height, int no_bits
                 bit = x % 8 ;
                 mask = 1 << bit ;
 
-                if ( linestart[index] & mask )
+                if ( !(linestart[index] & mask ) )
                 {
                     *destination++ = 0xFF ;
                     *destination++ = 0 ;

@@ -3,7 +3,7 @@
 // Purpose:   Region class
 // Author:    Stefan Csomor
 // Created:   Fri Oct 24 10:46:34 MET 1997
-// RCS-ID:    $Id: region.cpp,v 1.24 2006/01/08 18:51:24 vell Exp $
+// RCS-ID:    $Id: region.cpp,v 1.25 2006/02/09 15:16:21 SC Exp $
 // Copyright: (c) 1997 Stefan Csomor
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -282,7 +282,10 @@ wxRect wxRegion::GetBox() const
 // Is region empty?
 bool wxRegion::Empty() const
 {
-    return EmptyRgn( M_REGION ) ;
+    if ( m_refData )
+        return EmptyRgn( M_REGION ) ;
+    else
+        return true ;
 }
 
 const WXHRGN wxRegion::GetWXHRGN() const

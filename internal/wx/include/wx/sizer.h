@@ -4,7 +4,7 @@
 // Author:      Robert Roebling and Robin Dunn
 // Modified by: Ron Lee, Vadim Zeitlin (wxSizerFlags)
 // Created:
-// RCS-ID:      $Id: sizer.h,v 1.80 2006/02/08 22:22:47 VZ Exp $
+// RCS-ID:      $Id: sizer.h,v 1.81 2006/02/09 15:25:18 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -252,6 +252,10 @@ public:
         { return m_kind == Item_Sizer ? m_sizer : NULL; }
     wxSize GetSpacer() const;
 
+    // this function behaves obviously for the windows and spacers but for the
+    // sizers it returns true if any sizer element is shown and only returns
+    // false if all of them are hidden
+    bool IsShown() const;
     void Show(bool show);
 
     void SetUserData(wxObject* userData)
@@ -267,11 +271,6 @@ public:
     void SetSizer(wxSizer *sizer);
     void SetSpacer(const wxSize& size);
     void SetSpacer(int width, int height) { SetSpacer(wxSize(width, height)); }
-
-    // this function is deprecated because if this item is a sizer, then it
-    // doesn't really make sense: sizer is neither shown nor hidden, because
-    // some of its elements may be hidden while others are shown
-    wxDEPRECATED( bool IsShown() const );
 
 protected:
     // common part of several ctors

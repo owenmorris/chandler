@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.10.99
-// RCS-ID:      $Id: spinctrl.h,v 1.6 2005/09/23 12:49:35 MR Exp $
+// RCS-ID:      $Id: spinctrl.h,v 1.7 2006/02/09 15:03:51 SC Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,6 @@ public:
     // forward these functions to all subcontrols
     virtual bool Enable(bool enable = TRUE);
     virtual bool Show(bool show = TRUE);
-    virtual void SetFocus();
 
     // get the subcontrols
     wxTextCtrl *GetText() const { return m_text; }
@@ -89,6 +88,8 @@ public:
     // TRUE or return FALSE if the text ctrl doesn't contain a number or if the
     // number is out of range
     bool GetTextValue(int *val) const;
+
+    WX_DECLARE_CONTROL_CONTAINER();
 
 protected:
     // override the base class virtuals involved into geometry calculations
@@ -104,6 +105,7 @@ private:
     wxSpinButton *m_btn;
     
 private:
+    DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxSpinCtrl)
 };
 

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     1998
-// RCS-ID:      $Id: image.cpp,v 1.107 2005/08/24 17:46:59 ABX Exp $
+// RCS-ID:      $Id: image.cpp,v 1.108 2006/01/29 15:44:21 RR Exp $
 // Copyright:   (c) 1998-2005 Robert Roebling
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -304,8 +304,33 @@ public:
         // another possibility: wxNativePixelData (don't forget to remove code
         // setting alpha in the loop below then)
         typedef wxAlphaPixelData Data;
+        // typedef wxNativePixelData Data;
+        
+        // First, clear the whole bitmap by making it alpha
+        {
+            Data data( m_bitmap, wxPoint(0,0), wxSize(SIZE, SIZE) );
+            if ( !data )
+            {
+                wxLogError(_T("Failed to gain raw access to bitmap data"));
+                return;
+            }
+            data.UseAlpha();
+            Data::Iterator p(data);
+            for ( int y = 0; y < SIZE; ++y )
+            {
+                Data::Iterator rowStart = p;
+                for ( int x = 0; x < SIZE; ++x )
+                {
+                    p.Alpha() = 0;
+                    ++p; // same as p.OffsetX(1)
+                }
+                p = rowStart;
+                p.OffsetY(data, 1);
+            }
+        }
 
-        Data data(m_bitmap, wxPoint(BORDER, BORDER), wxSize(REAL_SIZE, REAL_SIZE));
+        // Then, draw colourful alpha-blended stripes
+        Data data(m_bitmap, wxPoint(BORDER, BORDER) , wxSize(REAL_SIZE, REAL_SIZE));
         if ( !data )
         {
             wxLogError(_T("Failed to gain raw access to bitmap data"));

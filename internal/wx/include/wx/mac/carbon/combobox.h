@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h,v 1.16 2006/02/08 21:46:09 VZ Exp $
+// RCS-ID:      $Id: combobox.h,v 1.17 2006/02/09 15:03:51 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,13 +27,12 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
   DECLARE_DYNAMIC_CLASS(wxComboBox)
 
  public:
-    inline wxComboBox() {}
+    wxComboBox() ;
     virtual ~wxComboBox();
 
     // forward these functions to all subcontrols
     virtual bool Enable(bool enable = true);
     virtual bool Show(bool show = true);
-    virtual void SetFocus();
 
     // callback functions
     virtual void DelegateTextChanged( const wxString& value );
@@ -125,6 +124,7 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
 
     wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST
 
+    WX_DECLARE_CONTROL_CONTAINER();
 protected:
     // override the base class virtuals involved in geometry calculations
     virtual wxSize DoGetBestSize() const;
@@ -143,6 +143,8 @@ protected:
     // the subcontrols
     wxComboBoxText*     m_text;
     wxComboBoxChoice*   m_choice;
+
+    DECLARE_EVENT_TABLE()
 };
 
 #endif

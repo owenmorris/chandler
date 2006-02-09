@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.cpp,v 1.122 2005/12/24 17:10:36 vell Exp $
+// RCS-ID:      $Id: dc.cpp,v 1.123 2006/02/09 15:20:39 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2155,7 +2155,21 @@ void wxDC::MacInstallBrush() const
     int brushStyle = m_brush.GetStyle();
     if (brushStyle == wxSOLID)
     {
-        ::PenPat(GetQDGlobalsBlack(&blackColor));
+        switch ( m_brush.MacGetBrushKind() )
+        {
+            case kwxMacBrushTheme :
+                {
+                    Pattern whiteColor ;
+                    ::BackPat(GetQDGlobalsWhite(&whiteColor));
+                    ::SetThemePen( m_brush.MacGetTheme() , wxDisplayDepth() , true ) ;
+                }   
+            break ;
+        
+            default :
+                ::PenPat(GetQDGlobalsBlack(&blackColor));
+                break ;
+                
+        }
     }
     else if (m_brush.IsHatch())
     {

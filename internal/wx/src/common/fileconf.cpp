@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp,v 1.144 2006/01/20 00:55:17 VZ Exp $
+// RCS-ID:      $Id: fileconf.cpp,v 1.145 2006/02/09 15:28:42 JS Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -1160,9 +1160,6 @@ bool wxFileConfig::DeleteAll()
                         m_strLocalFile.c_str());
           return false;
       }
-
-      m_strLocalFile =
-      m_strGlobalFile = wxEmptyString;
   }
 
   Init();

@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.174 2006/01/18 16:45:37 JS Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.175 2006/02/09 14:58:08 VZ Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -2462,7 +2462,11 @@ wxCSConv::wxCSConv(const wxChar *charset)
         SetName(charset);
     }
 
+#if wxUSE_FONTMAP
+    m_encoding = wxFontMapperBase::GetEncodingFromName(charset);
+#else
     m_encoding = wxFONTENCODING_SYSTEM;
+#endif
 }
 
 wxCSConv::wxCSConv(wxFontEncoding encoding)
@@ -2542,7 +2546,8 @@ wxMBConv *wxCSConv::DoCreate() const
     // check for the special case of ASCII or ISO8859-1 charset: as we have
     // special knowledge of it anyhow, we don't need to create a special
     // conversion object
-    if ( m_encoding == wxFONTENCODING_ISO8859_1 )
+    if ( m_encoding == wxFONTENCODING_ISO8859_1 ||
+            m_encoding == wxFONTENCODING_DEFAULT )
     {
         // don't convert at all
         return NULL;

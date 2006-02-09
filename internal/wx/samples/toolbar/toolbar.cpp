@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp,v 1.48 2005/08/23 15:54:39 ABX Exp $
+// RCS-ID:      $Id: toolbar.cpp,v 1.49 2006/01/26 19:06:06 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@
         #error wxToolBarSimple is not compiled in, set wxUSE_TOOLBAR_SIMPLE \
                to 1 in setup.h and recompile the library.
     #else
-        #include <wx/tbarsmpl.h>
+        #include "wx/tbarsmpl.h"
     #endif
 #endif // USE_GENERIC_TBAR
 
