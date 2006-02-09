@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-Sept-1999
-// RCS-ID:      $Id: _sizers.i,v 1.39 2006/01/29 02:09:23 RD Exp $
+// RCS-ID:      $Id: _sizers.i,v 1.40 2006/02/09 16:09:16 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -939,7 +939,7 @@ subsizer.  Returns True if the item was found.", "");
 
         DocAStr(IsShown,
                 "IsShown(self, item)",
-                "Determines if the item is currently shown. sizer.  To make a sizer
+                "Determines if the item is currently shown. To make a sizer
 item disappear or reappear, use Show followed by `Layout`.  The *item*
 parameter can be either a window, a sizer, or the zero-based index of
 the item.", "");
@@ -971,10 +971,6 @@ the item.", "");
         void , ShowItems(bool show),
         "Recursively call `wx.SizerItem.Show` on all sizer items.", "");
 
-    // TODO:
-    //          void Show(bool show);
-    //          bool IsShown();
-    
 };
 
 
