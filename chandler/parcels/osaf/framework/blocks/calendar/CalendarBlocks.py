@@ -65,9 +65,9 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
         if useHints:
-            self.setFreeBusy(None, self.hints)
+            self.setFreeBusy(None, **self.hints)
         else:
-            self.setFreeBusy(None, {})
+            self.setFreeBusy(None)
         self.hints = {}
 
     def OnWXSelectItem(self, event):
@@ -114,7 +114,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
         self.Refresh()
 
-    def setFreeBusy(self, event, hints):
+    def setFreeBusy(self, event, **hints):
         
         if self._recalcCount == 0:
             startWxDate = self.GetStartDate();
