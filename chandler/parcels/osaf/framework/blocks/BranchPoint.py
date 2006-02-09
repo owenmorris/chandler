@@ -154,7 +154,7 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
 
                 if not hasattr (newView, "widget"):
                     newView.render()
-                else:
+                elif detailItemChanged or treeChanged:
                     layoutMethod = getattr(newView, 'Layout', None)
                     if layoutMethod is not None: 
                         layoutMethod()
