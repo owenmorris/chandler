@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.08.00
-// RCS-ID:      $Id: statbox.h,v 1.14 2005/09/23 12:50:49 MR Exp $
+// RCS-ID:      $Id: statbox.h,v 1.15 2006/02/08 21:46:52 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,16 +47,16 @@ public:
     // take account of this
     virtual wxPoint GetBoxAreaOrigin() const;
 
+    // returning true from here ensures that we act as a container window for
+    // our children
+    virtual bool IsStaticBox() const { return true; }
+
 protected:
     // draw the control
     virtual void DoDraw(wxControlRenderer *renderer);
 
     // get the size of the border
     wxRect GetBorderGeometry() const;
-
-    // returning true from here ensures that we act as a container window for
-    // our children
-    virtual bool IsStaticBox() const { return true; }
 
 private:
     DECLARE_DYNAMIC_CLASS(wxStaticBox)

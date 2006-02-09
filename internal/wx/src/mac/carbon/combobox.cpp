@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor, Dan "Bud" Keith (composite combobox)
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.cpp,v 1.64 2006/01/04 03:14:01 vell Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.65 2006/02/08 21:47:08 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -209,6 +209,8 @@ protected:
 
 private:
     wxComboBox *m_cb;
+
+    friend class wxComboBox;
 
     DECLARE_EVENT_TABLE()
 };

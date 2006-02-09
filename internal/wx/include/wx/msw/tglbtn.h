@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.h,v 1.7 2006/01/16 14:59:44 MR Exp $
+// RCS-ID:      $Id: tglbtn.h,v 1.8 2006/02/08 21:46:23 VZ Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,11 +46,11 @@ public:
 
     virtual bool MSWCommand(WXUINT param, WXWORD id);
     virtual void Command(wxCommandEvent& event);
+    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
 
 protected:
     virtual wxSize DoGetBestSize() const;
     virtual wxBorder GetDefaultBorder() const;
-    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxToggleButton)

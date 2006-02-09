@@ -3,7 +3,7 @@
 // Purpose:     wxNotebook class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: notebook.h,v 1.59 2005/11/19 01:07:41 MR Exp $
+// RCS-ID:      $Id: notebook.h,v 1.60 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -103,10 +103,6 @@ public:
     void SetConstraintSizes(bool recurse);
     bool DoPhase(int phase);
 #endif
-
-    // set all page's attributes
-    void DoApplyWidgetStyle(GtkRcStyle *style);
-
     // report if window belongs to notebook
     bool IsOwnGtkWindow( GdkWindow *window );
 
@@ -127,6 +123,9 @@ public:
     bool m_inSwitchPage;
 
 protected:
+    // set all page's attributes
+    void DoApplyWidgetStyle(GtkRcStyle *style);
+
     // remove one page from the notebook but do not destroy it
     virtual wxNotebookPage *DoRemovePage(size_t nPage);
 

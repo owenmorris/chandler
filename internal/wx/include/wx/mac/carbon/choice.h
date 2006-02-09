@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: choice.h,v 1.9 2006/01/16 14:59:31 MR Exp $
+// RCS-ID:      $Id: choice.h,v 1.10 2006/02/08 21:46:09 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,9 +69,6 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxChoiceNameStr);
 
-    // implement base class pure virtuals
-    virtual int DoAppend(const wxString& item);
-    virtual int DoInsert(const wxString& item, int pos);
     virtual void Delete(int n);
     virtual void Clear();
 
@@ -87,14 +84,14 @@ public:
 
 protected:
     virtual wxSize DoGetBestSize() const ;
+    virtual int DoAppend(const wxString& item);
+    virtual int DoInsert(const wxString& item, int pos);
 
-public: // for wxComboBox only
     virtual void DoSetItemClientData( int n, void* clientData );
     virtual void* DoGetItemClientData( int n ) const;
     virtual void DoSetItemClientObject( int n, wxClientData* clientData );
     virtual wxClientData* DoGetItemClientObject( int n ) const;
 
-protected:
     // free all memory we have (used by Clear() and dtor)
     // prevent collision with some BSD definitions of macro Free()
     void FreeData();

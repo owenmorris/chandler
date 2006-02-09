@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: control.h,v 1.53 2005/12/19 10:54:07 ABX Exp $
+// RCS-ID:      $Id: control.h,v 1.54 2006/02/08 21:46:19 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,6 +68,9 @@ public:
     // could call it
     virtual WXHBRUSH MSWControlColor(WXHDC pDC, WXHWND hWnd);
 
+    // default style for the control include WS_TABSTOP if it AcceptsFocus()
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
 protected:
     // choose the default border for this window
     virtual wxBorder GetDefaultBorder() const;
@@ -110,9 +113,6 @@ protected:
                           const wxSize& size = wxDefaultSize,
                           const wxString& label = wxEmptyString,
                           WXDWORD exstyle = (WXDWORD)-1);
-
-    // default style for the control include WS_TABSTOP if it AcceptsFocus()
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     // call this from the derived class MSWControlColor() if you want to show
     // the control greyed out (and opaque)

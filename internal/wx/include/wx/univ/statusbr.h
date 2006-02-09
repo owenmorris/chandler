@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.10.01
-// RCS-ID:      $Id: statusbr.h,v 1.10 2005/09/23 12:50:49 MR Exp $
+// RCS-ID:      $Id: statusbr.h,v 1.11 2006/02/08 21:46:52 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,16 +58,16 @@ public:
     virtual int GetBorderX() const;
     virtual int GetBorderY() const;
 
+    // wxInputConsumer pure virtual
+    virtual wxWindow *GetInputWindow() const
+        { return wx_const_cast(wxStatusBar*, this); }
+
 protected:
     // recalculate the field widths
     void OnSize(wxSizeEvent& event);
 
     // draw the statusbar
     virtual void DoDraw(wxControlRenderer *renderer);
-
-    // wxInputConsumer pure virtual
-    virtual wxWindow *GetInputWindow() const
-        { return wxConstCast(this, wxStatusBar); }
 
     // tell them about our preferred height
     virtual wxSize DoGetBestSize() const;

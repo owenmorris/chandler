@@ -6,7 +6,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.00
-// RCS-ID:      $Id: window.h,v 1.38 2005/09/27 16:23:25 ABX Exp $
+// RCS-ID:      $Id: window.h,v 1.39 2006/02/08 21:46:52 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -106,8 +106,6 @@ public:
     // NB: all menu related functions are implemented in menu.cpp
 
 #if wxUSE_MENUS
-    virtual bool DoPopupMenu(wxMenu *menu, int x, int y);
-
     // this is wxUniv-specific private method to be used only by wxMenu
     void DismissPopupMenu();
 #endif // wxUSE_MENUS
@@ -187,7 +185,9 @@ protected:
     // common part of all ctors
     void Init();
 
-    // overridden base class virtuals
+#if wxUSE_MENUS
+    virtual bool DoPopupMenu(wxMenu *menu, int x, int y);
+#endif // wxUSE_MENUS
 
     // we deal with the scrollbars in these functions
     virtual void DoSetClientSize(int width, int height);

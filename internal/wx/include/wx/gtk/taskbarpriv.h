@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/05/29
-// RCS-ID:      $Id: taskbarpriv.h,v 1.4 2005/09/23 12:49:19 MR Exp $
+// RCS-ID:      $Id: taskbarpriv.h,v 1.5 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,8 @@ public:
     bool IsProtocolSupported();
     
     wxEvtHandler *m_invokingWindow;
-    
+
+protected:
 #if wxUSE_MENUS_NATIVE
     virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
 #endif // wxUSE_MENUS_NATIVE

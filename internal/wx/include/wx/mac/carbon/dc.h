@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dc.h,v 1.15 2006/01/18 19:41:30 vell Exp $
+// RCS-ID:      $Id: dc.h,v 1.16 2006/02/08 21:46:10 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -108,12 +108,6 @@ public:
 
     virtual wxCoord GetCharHeight() const;
     virtual wxCoord GetCharWidth() const;
-    virtual void DoGetTextExtent(const wxString& string,
-        wxCoord *x, wxCoord *y,
-        wxCoord *descent = NULL,
-        wxCoord *externalLeading = NULL,
-        wxFont *theFont = NULL) const;
-    virtual bool DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) const;
 
     virtual bool CanDrawBitmap() const;
     virtual bool CanGetTextExtent() const;
@@ -229,6 +223,13 @@ public:
 #endif
 
 protected:
+    virtual void DoGetTextExtent(const wxString& string,
+        wxCoord *x, wxCoord *y,
+        wxCoord *descent = NULL,
+        wxCoord *externalLeading = NULL,
+        wxFont *theFont = NULL) const;
+    virtual bool DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) const;
+
     virtual bool DoFloodFill(wxCoord x, wxCoord y, const wxColour& col,
                              int style = wxFLOOD_SURFACE);
 

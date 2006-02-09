@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolbar.h,v 1.20 2005/09/23 12:50:15 MR Exp $
+// RCS-ID:      $Id: scrolbar.h,v 1.21 2006/02/08 21:46:21 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,9 +56,10 @@ public:
     // override wxControl version to not use solid background here
     virtual WXHBRUSH MSWControlColor(WXHDC pDC, WXHWND hWnd);
 
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
 protected:
     virtual wxSize DoGetBestSize() const;
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     int m_pageSize;
     int m_viewSize;

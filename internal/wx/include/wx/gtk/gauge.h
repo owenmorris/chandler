@@ -2,7 +2,7 @@
 // Name:        gauge.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: gauge.h,v 1.23 2006/01/16 14:59:27 MR Exp $
+// Id:          $Id: gauge.h,v 1.24 2006/02/08 21:45:43 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,8 @@ public:
     
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
+    virtual wxVisualAttributes GetDefaultAttributes() const;
     
     // implementation
     // -------------
@@ -90,8 +92,6 @@ protected:
     void DoSetGauge();
 
     virtual wxSize DoGetBestSize() const;
-
-    virtual wxVisualAttributes GetDefaultAttributes() const;
 
 private:
     DECLARE_DYNAMIC_CLASS(wxGauge)

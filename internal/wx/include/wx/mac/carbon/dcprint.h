@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dcprint.h,v 1.7 2005/09/23 12:49:31 MR Exp $
+// RCS-ID:      $Id: dcprint.h,v 1.8 2006/02/08 21:46:10 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,11 +32,11 @@ class WXDLLEXPORT wxPrinterDC: public wxDC
     virtual void StartPage(void) ;
     virtual void EndPage(void) ;
     wxPrintData& GetPrintData() { return m_printData; }
-    virtual void DoGetSize( int *width, int *height ) const;
 #if wxMAC_USE_CORE_GRAPHICS
     void MacSetCGContext( void * cg ) ;
 #endif    
  protected:
+    virtual void DoGetSize( int *width, int *height ) const;
     wxPrintData   m_printData ;
     wxNativePrinterDC* m_nativePrinterDC ;
 #endif // wxUSE_PRINTING_ARCHITECTURE

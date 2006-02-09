@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.05.98
-// RCS-ID:      $Id: dropsrc.cpp,v 1.32 2006/01/26 16:49:44 ABX Exp $
+// RCS-ID:      $Id: dropsrc.cpp,v 1.33 2006/02/08 21:45:04 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,11 +54,11 @@ public:
   wxIDropSource(wxDropSource *pDropSource);
   virtual ~wxIDropSource() { }
 
-  DECLARE_IUNKNOWN_METHODS;
-
   // IDropSource
   STDMETHODIMP QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState);
   STDMETHODIMP GiveFeedback(DWORD dwEffect);
+
+    DECLARE_IUNKNOWN_METHODS;
 
 private:
   DWORD         m_grfInitKeyState;  // button which started the d&d operation

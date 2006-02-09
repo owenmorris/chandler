@@ -2,7 +2,7 @@
 // Name:        wx/gtk/toplevel.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.h,v 1.23 2005/11/07 20:00:45 MR Exp $
+// Id:          $Id: toplevel.h,v 1.24 2006/02/08 21:45:45 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,10 +78,6 @@ public:
     // implementation from now on
     // --------------------------
 
-    // move the window to the specified location and resize it: this is called
-    // from both DoSetSize() and DoSetClientSize()
-    virtual void DoMoveWindow(int x, int y, int width, int height);
-
     // GTK callbacks
     virtual void GtkOnSize( int x, int y, int width, int height );
     virtual void OnInternalIdle();
@@ -110,6 +106,10 @@ public:
 protected:
     // common part of all ctors
     void Init();
+
+    // move the window to the specified location and resize it: this is called
+    // from both DoSetSize() and DoSetClientSize()
+    virtual void DoMoveWindow(int x, int y, int width, int height);
 
     // override wxWindow methods to take into account tool/menu/statusbars
     virtual void DoSetSize(int x, int y,

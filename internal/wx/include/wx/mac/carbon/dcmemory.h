@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dcmemory.h,v 1.5 2005/09/23 12:49:31 MR Exp $
+// RCS-ID:      $Id: dcmemory.h,v 1.6 2006/02/08 21:46:10 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,8 +23,11 @@ class WXDLLEXPORT wxMemoryDC: public wxPaintDC
     wxMemoryDC( wxDC *dc ); // Create compatible DC
     ~wxMemoryDC(void);
     virtual void SelectObject( const wxBitmap& bitmap );
-    virtual void DoGetSize( int *width, int *height ) const;
         wxBitmap    GetSelectedObject() { return m_selected ; }
+
+protected:
+    virtual void DoGetSize( int *width, int *height ) const;
+
   private:
     wxBitmap  m_selected;
 };

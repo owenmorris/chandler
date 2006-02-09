@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.h,v 1.10 2006/01/16 14:59:27 MR Exp $
+// RCS-ID:      $Id: tglbtn.h,v 1.11 2006/02/08 21:45:45 VZ Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,10 +75,12 @@ public:
     wxBitmap  m_bitmap;
 
     void OnSetBitmap();
-    void DoApplyWidgetStyle(GtkRcStyle *style);
     bool IsOwnGtkWindow(GdkWindow *window);
 
     virtual void OnInternalIdle();
+
+protected:
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     virtual wxSize DoGetBestSize() const;
 
 private:
@@ -129,10 +131,12 @@ public:
     // implementation
     bool m_blockEvent;
 
-    void DoApplyWidgetStyle(GtkRcStyle *style);
     bool IsOwnGtkWindow(GdkWindow *window);
 
     virtual void OnInternalIdle();
+
+protected:
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     virtual wxSize DoGetBestSize() const;
 
 private:

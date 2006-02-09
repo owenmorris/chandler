@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: slider95.h,v 1.27 2005/09/23 12:50:15 MR Exp $
+// RCS-ID:      $Id: slider95.h,v 1.28 2006/02/08 21:46:21 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -92,6 +92,8 @@ public:
     virtual bool Enable(bool show = true);
     virtual bool SetFont(const wxFont& font);
 
+    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
+
 protected:
     // common part of all ctors
     void Init();
@@ -113,8 +115,6 @@ protected:
     virtual wxSize DoGetBestSize() const;
 
     virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
-
-    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
 
 
     // the labels windows, if any

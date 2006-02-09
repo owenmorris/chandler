@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: statbmp.h,v 1.6 2005/09/23 12:49:35 MR Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.7 2006/02/08 21:46:12 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,9 +53,10 @@ class WXDLLEXPORT wxStaticBitmap: public wxStaticBitmapBase
 
   // overriden base class virtuals
   virtual bool AcceptsFocus() const { return FALSE; }
-  virtual  wxSize DoGetBestSize() const ;
 
  protected:
+    virtual wxSize DoGetBestSize() const;
+
     wxBitmap m_bitmap;
     DECLARE_EVENT_TABLE() 
 };

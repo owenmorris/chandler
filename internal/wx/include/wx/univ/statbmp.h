@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: statbmp.h,v 1.12 2005/09/23 12:50:49 MR Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.13 2006/02/08 21:46:51 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,10 +60,11 @@ public:
     wxIcon GetIcon() const;
 
     virtual bool HasTransparentBackground() { return true; }
-    
-private:
+
+protected:
     virtual void DoDraw(wxControlRenderer *renderer);
 
+private:
     // the bitmap which we show
     wxBitmap m_bitmap;
 

@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:
-// Id:          $Id: popupwin.h,v 1.11 2005/09/23 12:49:17 MR Exp $
+// Id:          $Id: popupwin.h,v 1.12 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) 2001 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,8 +34,6 @@ public:
     // implementation
     // --------------
 
-    virtual void DoMoveWindow(int x, int y, int width, int height);
-
     virtual void OnInternalIdle();
 
 
@@ -45,6 +43,8 @@ protected:
     virtual void DoSetSize(int x, int y,
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);
+
+    virtual void DoMoveWindow(int x, int y, int width, int height);
 
 private:
     DECLARE_EVENT_TABLE()

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/radiobut.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobut.h,v 1.27 2005/12/08 21:44:42 vell Exp $
+// Id:          $Id: radiobut.h,v 1.28 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,13 +51,13 @@ public:
 
     virtual bool IsRadioButton() const { return TRUE; }
 
-    void DoApplyWidgetStyle(GtkRcStyle *style);
     bool IsOwnGtkWindow( GdkWindow *window );
     void OnInternalIdle();
 
     bool m_blockEvent;
 
 protected:
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     virtual wxSize DoGetBestSize() const;
 
 private:

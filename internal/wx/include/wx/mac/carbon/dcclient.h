@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dcclient.h,v 1.5 2005/09/23 12:49:31 MR Exp $
+// RCS-ID:      $Id: dcclient.h,v 1.6 2006/02/08 21:46:10 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,8 +32,8 @@ class WXDLLEXPORT wxWindowDC: public wxDC
   wxWindowDC(wxWindow *win);
 
   ~wxWindowDC(void);
-  virtual void DoGetSize( int *width, int *height ) const;
   protected :
+    virtual void DoGetSize( int *width, int *height ) const;
     wxWindow     *m_window;
 };
 
@@ -49,6 +49,8 @@ class WXDLLEXPORT wxClientDC: public wxWindowDC
   wxClientDC(wxWindow *win);
 
   ~wxClientDC(void);
+
+protected:
   virtual void DoGetSize( int *width, int *height ) const;
 };
 
@@ -63,6 +65,8 @@ class WXDLLEXPORT wxPaintDC: public wxWindowDC
   wxPaintDC(wxWindow *win);
 
   ~wxPaintDC(void);
+
+protected:
   virtual void DoGetSize( int *width, int *height ) const;
 };
 

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: frame.cpp,v 1.52 2006/01/20 21:16:55 SC Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.53 2006/02/08 21:47:08 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -382,5 +382,16 @@ void wxFrame::PositionToolBar()
         }
     }
 }
+
+void wxFrame::PositionBars()
+{
+#if wxUSE_STATUSBAR
+    PositionStatusBar();
+#endif
+#if wxUSE_TOOLBAR
+    PositionToolBar();
+#endif
+}
+
 #endif
 

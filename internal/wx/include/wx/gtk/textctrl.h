@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: textctrl.h,v 1.58 2006/01/22 21:00:18 MR Exp $
+// Id:          $Id: textctrl.h,v 1.59 2006/02/08 21:45:45 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -139,7 +139,6 @@ public:
 
     GtkWidget* GetConnectWidget();
     bool IsOwnGtkWindow( GdkWindow *window );
-    void DoApplyWidgetStyle(GtkRcStyle *style);
     void CalculateScrollbar();
     void OnInternalIdle();
 
@@ -174,6 +173,7 @@ public:
 
 protected:
     virtual wxSize DoGetBestSize() const;
+    void DoApplyWidgetStyle(GtkRcStyle *style);
 
     // common part of all ctors
     void Init();

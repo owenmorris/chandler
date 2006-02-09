@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: slider.h,v 1.11 2006/01/16 14:59:33 MR Exp $
+// RCS-ID:      $Id: slider.h,v 1.12 2006/02/08 21:46:11 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,14 +79,14 @@ public:
                                  int maxW = -1, int maxH = -1,
                                  int incW = -1, int incH = -1 );
 
+    void Command(wxCommandEvent& event);
+    virtual wxInt32 MacControlHit(WXEVENTHANDLERREF handler, WXEVENTREF event);
+    void MacHandleControlClick(WXWidget control, wxInt16 controlpart, bool mouseStillDown);
+
 protected:
     virtual wxSize DoGetBestSize() const;
     virtual void   DoSetSize(int x, int y, int w, int h, int sizeFlags);
     virtual void   DoMoveWindow(int x, int y, int w, int h);
-
-    void Command(wxCommandEvent& event);
-    virtual wxInt32 MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF event ) ;
-    void                     MacHandleControlClick( WXWidget control , wxInt16 controlpart , bool mouseStillDown ) ;
 
     // Common processing to invert slider values based on wxSL_INVERSE
     virtual int ValueInvertOrNot(int value) const;

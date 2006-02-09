@@ -2,7 +2,7 @@
 // Name:        wx/toplevel.h
 // Purpose:     Top level window, abstraction of wxFrame and wxDialog
 // Author:      Vaclav Slavik
-// Id:          $Id: toplevel.h,v 1.25 2005/09/23 12:50:50 MR Exp $
+// Id:          $Id: toplevel.h,v 1.26 2006/02/08 21:46:52 VZ Exp $
 // Copyright:   (c) 2001-2002 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -118,8 +118,6 @@ public:
     // implement base class pure virtuals
     virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL);
     virtual wxPoint GetClientAreaOrigin() const;
-    virtual void DoGetClientSize(int *width, int *height) const;
-    virtual void DoSetClientSize(int width, int height);
     virtual void SetIcon(const wxIcon& icon) { SetIcons( wxIconBundle( icon ) ); }
     virtual void SetIcons(const wxIconBundle& icons);
 
@@ -139,11 +137,14 @@ public:
     virtual int GetMinWidth() const;
     virtual int GetMinHeight() const;
 
+    virtual wxWindow *GetInputWindow() const { return wx_const_cast(wxTopLevelWindow*, this); }
+
 protected:
+    virtual void DoGetClientSize(int *width, int *height) const;
+    virtual void DoSetClientSize(int width, int height);
+
     // handle titlebar button click event
     virtual void ClickTitleBarButton(long button);
-
-    virtual wxWindow *GetInputWindow() const { return (wxWindow*)this; }
 
     // return wxTOPLEVEL_xxx combination based on current state of the frame
     long GetDecorationsStyle() const;

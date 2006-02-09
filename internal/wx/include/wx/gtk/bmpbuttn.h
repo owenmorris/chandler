@@ -2,7 +2,7 @@
 // Name:        wx/gtk/bmpbutton.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: bmpbuttn.h,v 1.32 2005/12/18 16:34:13 VZ Exp $
+// Id:          $Id: bmpbuttn.h,v 1.33 2006/02/08 21:45:40 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,6 @@ public:
     void NotFocus();
     void StartSelect();
     void EndSelect();
-    void DoApplyWidgetStyle(GtkRcStyle *style);
 
     bool         m_hasFocus:1;
     bool         m_isSelected:1;
@@ -64,6 +63,7 @@ public:
 protected:
     virtual void OnSetBitmap();
     virtual wxSize DoGetBestSize() const;
+    void DoApplyWidgetStyle(GtkRcStyle *style);
 
     void Init();
 

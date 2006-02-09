@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: tbar95.h,v 1.38 2005/09/23 12:50:16 MR Exp $
+// RCS-ID:      $Id: tbar95.h,v 1.39 2006/02/08 21:46:22 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -70,6 +70,11 @@ public:
 
     static WXHBITMAP MapBitmap(WXHBITMAP bitmap, int width, int height);
 
+    // override WndProc mainly to process WM_SIZE
+    virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
 protected:
     // common part of all ctors
     void Init();
@@ -98,12 +103,8 @@ protected:
                                           const wxString& longHelp);
     virtual wxToolBarToolBase *CreateTool(wxControl *control);
 
-    // override WndProc mainly to process WM_SIZE
-    virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-
     // return the appropriate size and flags for the toolbar control
     virtual wxSize DoGetBestSize() const;
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     // handlers for various events
     bool HandleSize(WXWPARAM wParam, WXLPARAM lParam);

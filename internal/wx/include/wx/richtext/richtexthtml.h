@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtexthtml.h,v 1.1 2005/12/18 12:31:04 JS Exp $
+// RCS-ID:      $Id: richtexthtml.h,v 1.2 2006/02/08 21:46:42 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,11 +30,6 @@ public:
         : wxRichTextFileHandler(name, ext, type)
         { }
 
-#if wxUSE_STREAMS
-    virtual bool DoLoadFile(wxRichTextBuffer *buffer, wxInputStream& stream);
-    virtual bool DoSaveFile(wxRichTextBuffer *buffer, wxOutputStream& stream);
-#endif
-
     /// Can we save using this handler?
     virtual bool CanSave() const { return true; }
 
@@ -51,7 +46,10 @@ public:
     virtual void OutputParagraphFormatting(const wxTextAttrEx& currentStyle, const wxTextAttrEx& thisStyle, wxOutputStream& stream, bool start);
 
 protected:
-
+#if wxUSE_STREAMS
+    virtual bool DoLoadFile(wxRichTextBuffer *buffer, wxInputStream& stream);
+    virtual bool DoSaveFile(wxRichTextBuffer *buffer, wxOutputStream& stream);
+#endif
 };
 
 #endif

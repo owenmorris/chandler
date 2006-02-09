@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbmp.h,v 1.40 2006/01/19 07:37:14 JS Exp $
+// RCS-ID:      $Id: statbmp.h,v 1.41 2006/02/08 21:46:22 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -52,11 +52,11 @@ public:
     virtual wxBitmap GetBitmap() const;
     virtual wxIcon GetIcon() const;
 
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
 protected:
     virtual wxBorder GetDefaultBorder() const;
     virtual wxSize DoGetBestSize() const;
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     // ctor/dtor helpers
     void Init() { m_isIcon = true; m_image = NULL; m_currentHandle = 0; }

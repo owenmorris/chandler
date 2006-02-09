@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: brush.h,v 1.14 2005/10/04 18:14:20 ABX Exp $
+// RCS-ID:      $Id: brush.h,v 1.15 2006/02/08 21:47:01 VZ Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ public:
     void SetStyle( int style );
     void SetStipple( const wxBitmap& stipple );
 
-private:
+protected:
     // ref counting code
     virtual wxObjectRefData *CreateRefData() const;
     virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;

@@ -2,7 +2,7 @@
 // Name:        dcmemory.h
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcmemory.h,v 1.18 2005/09/23 12:49:15 MR Exp $
+// RCS-ID:      $Id: dcmemory.h,v 1.19 2006/02/08 21:45:42 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,6 @@ public:
     wxMemoryDC( wxDC *dc ); // Create compatible DC
     ~wxMemoryDC();
     virtual void SelectObject( const wxBitmap& bitmap );
-    void DoGetSize( int *width, int *height ) const;
 
     // these get reimplemented for mono-bitmaps to behave
     // more like their Win32 couterparts. They now interpret
@@ -45,7 +44,9 @@ public:
     // implementation
     wxBitmap  m_selected;
 
-private:
+protected:
+    void DoGetSize( int *width, int *height ) const;
+
     DECLARE_DYNAMIC_CLASS(wxMemoryDC)
 };
 

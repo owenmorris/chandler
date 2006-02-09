@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.11.97
-// RCS-ID:      $Id: checklst.h,v 1.25 2005/09/23 12:50:07 MR Exp $
+// RCS-ID:      $Id: checklst.h,v 1.26 2006/02/08 21:46:18 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,12 +71,12 @@ public:
   // accessors
   size_t GetItemHeight() const { return m_nItemHeight; }
 
-protected:
   // we create our items ourselves and they have non-standard size,
   // so we need to override these functions
   virtual wxOwnerDrawn *CreateLboxItem(size_t n);
   virtual bool          MSWOnMeasure(WXMEASUREITEMSTRUCT *item);
 
+protected:
   // this can't be called DoHitTest() because wxWindow already has this method
   int DoHitTestItem(wxCoord x, wxCoord y) const;
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: button.h,v 1.29 2005/09/23 12:50:07 MR Exp $
+// RCS-ID:      $Id: button.h,v 1.30 2006/02/08 21:46:18 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,6 +55,7 @@ public:
     virtual bool SetForegroundColour(const wxColour &colour);
 
     virtual bool MSWOnDraw(WXDRAWITEMSTRUCT *item);
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
 private:
     void MakeOwnerDrawn();
@@ -72,7 +73,6 @@ protected:
 
     // usually overridden base class virtuals
     virtual wxSize DoGetBestSize() const;
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const ;
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxButton)

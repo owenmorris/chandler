@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.132 2006/01/07 06:30:25 vell Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.133 2006/02/08 21:55:02 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -758,10 +758,11 @@ bool wxTopLevelWindowMSW::IsIconized() const
 #ifdef __WXWINCE__
     return false;
 #else
-    // also update the current state
-    ((wxTopLevelWindowMSW *)this)->m_iconized = ::IsIconic(GetHwnd()) != 0;
-
-    return m_iconized;
+    // don't use m_iconized, it may be briefly out of sync with the real state
+    // as it's only modified when we receive a WM_SIZE and we could be called
+    // from an event handler from one of the messages we receive before it,
+    // such as WM_MOVE
+    return ::IsIconic(GetHwnd()) != 0;
 #endif
 }
 

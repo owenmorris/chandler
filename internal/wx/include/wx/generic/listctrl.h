@@ -3,7 +3,7 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.103 2006/01/25 23:28:59 RD Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.104 2006/02/08 21:45:26 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -156,6 +156,8 @@ public:
     bool ScrollList( int dx, int dy );
     bool SortItems( wxListCtrlCompare fn, long data );
     bool Update( long item );
+    // Must provide overload to avoid hiding it (and warnings about it)
+    virtual void Update() { wxControl::Update(); }
 
     // are we in report mode?
     bool InReportView() const { return HasFlag(wxLC_REPORT); }
@@ -208,12 +210,8 @@ public:
     virtual wxDropTarget *GetDropTarget() const;
 #endif
 
-    virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
-
     virtual bool ShouldInheritColours() const { return false; }
     virtual void SetFocus();
-
-    virtual wxSize DoGetBestSize() const;
 
     // implementation
     // --------------
@@ -229,6 +227,10 @@ public:
     wxCoord              m_headerHeight;
 
 protected:
+    virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
+
+    virtual wxSize DoGetBestSize() const;
+
     // return the text for the given column of the given item
     virtual wxString OnGetItemText(long item, long column) const;
 
@@ -247,9 +249,6 @@ protected:
     friend class WXDLLEXPORT wxListMainWindow;
 
 private:
-    // Virtual function hiding supression
-    virtual void Update() { wxWindow::Update(); }
-
     // create the header window
     void CreateHeaderWindow();
 

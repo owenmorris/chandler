@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.h,v 1.36 2006/01/28 00:43:23 VZ Exp $
+// RCS-ID:      $Id: combobox.h,v 1.37 2006/02/08 21:46:19 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -130,9 +130,9 @@ public:
     void OnUpdateDelete(wxUpdateUIEvent& event);
     void OnUpdateSelectAll(wxUpdateUIEvent& event);
 
-protected:
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
+protected:
     // common part of all ctors
     void Init() { m_selectionOld = -1; }
 

@@ -3,7 +3,7 @@
 // Purpose:     MSW version of wxStaticLine class
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statline.h,v 1.10 2005/09/23 12:50:16 MR Exp $
+// Version:     $Id: statline.h,v 1.11 2006/02/08 21:46:22 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -41,7 +41,6 @@ public:
     // overriden base class virtuals
     virtual bool AcceptsFocus() const { return false; }
 
-protected:
     // usually overridden base class virtuals
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 

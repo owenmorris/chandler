@@ -4,7 +4,7 @@
 // Author:      Evgeniy Tarassov, Vadim Zeitlin
 // Modified by:
 // Created:     2005-09-15
-// RCS-ID:      $Id: treebook.h,v 1.4 2006/02/05 12:26:31 VZ Exp $
+// RCS-ID:      $Id: treebook.h,v 1.5 2006/02/08 21:44:23 VZ Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -138,6 +138,9 @@ public:
     virtual bool DeleteAllPages();
 
 protected:
+    // Implementation of a page removal. See DeletPage for comments.
+    wxTreebookPage *DoRemovePage(size_t pos);
+
     // This subclass of wxBookCtrlBase accepts NULL page pointers (empty pages)
     virtual bool AllowNullPage() const { return true; }
 
@@ -179,9 +182,6 @@ private:
                          const wxString& text,
                          bool bSelect = false,
                          int imageId = wxNOT_FOUND);
-
-    // Implementation of a page removal. See DeletPage for comments.
-    wxTreebookPage *DoRemovePage(size_t pos);
 
     // Sets selection in the tree control and updates the page being shown.
     int DoSetSelection(size_t pos);

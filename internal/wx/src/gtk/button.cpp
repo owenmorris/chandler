@@ -2,7 +2,7 @@
 // Name:        button.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: button.cpp,v 1.86 2006/02/03 20:38:52 MR Exp $
+// Id:          $Id: button.cpp,v 1.87 2006/02/08 21:44:48 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,10 +86,11 @@ gtk_button_style_set_callback( GtkWidget *m_widget, GtkStyle *WXUNUSED(style), w
             bottom_border += default_border->bottom;
             g_free( default_border );
         }
-        win->DoMoveWindow( win->m_x-top_border,
-                           win->m_y-left_border,
-                           win->m_width+left_border+right_border,
-                           win->m_height+top_border+bottom_border );
+        win->MoveWindow(
+            win->m_x - top_border,
+            win->m_y - left_border,
+            win->m_width + left_border + right_border,
+            win->m_height + top_border + bottom_border);
     }
 
     return FALSE;

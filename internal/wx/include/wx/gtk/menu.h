@@ -2,7 +2,7 @@
 // Name:        wx/gtk/menu.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.h,v 1.57 2006/01/22 21:00:18 MR Exp $
+// Id:          $Id: menu.h,v 1.58 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,11 +69,6 @@ public:
 
     virtual ~wxMenu();
 
-    // implement base class virtuals
-    virtual wxMenuItem* DoAppend(wxMenuItem *item);
-    virtual wxMenuItem* DoInsert(size_t pos, wxMenuItem *item);
-    virtual wxMenuItem* DoRemove(wxMenuItem *item);
-
     // TODO: virtual void SetTitle(const wxString& title);
 
     // implementation
@@ -83,6 +78,11 @@ public:
     GtkWidget       *m_menu;  // GtkMenu
     GtkWidget       *m_owner;
     GtkAccelGroup   *m_accel;
+
+protected:
+    virtual wxMenuItem* DoAppend(wxMenuItem *item);
+    virtual wxMenuItem* DoInsert(size_t pos, wxMenuItem *item);
+    virtual wxMenuItem* DoRemove(wxMenuItem *item);
 
 private:
     // common code for all constructors:

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: stattext.h,v 1.29 2005/09/23 12:50:16 MR Exp $
+// RCS-ID:      $Id: stattext.h,v 1.30 2006/02/08 21:46:22 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,14 +40,14 @@ public:
     virtual void SetLabel(const wxString& label);
     virtual bool SetFont( const wxFont &font );
 
+    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
+
 protected:
     // implement/override some base class virtuals
     virtual wxBorder GetDefaultBorder() const;
     virtual void DoSetSize(int x, int y, int w, int h,
                            int sizeFlags = wxSIZE_AUTO);
     virtual wxSize DoGetBestSize() const;
-    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
-
 
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxStaticText)
 };

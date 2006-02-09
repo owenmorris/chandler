@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: mdi.h,v 1.10 2006/01/16 14:59:33 MR Exp $
+// RCS-ID:      $Id: mdi.h,v 1.11 2006/02/08 21:46:10 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -179,15 +179,14 @@ class WXDLLEXPORT wxMDIClientWindow: public wxWindow
   // Note: this is virtual, to allow overridden behaviour.
   virtual bool CreateClient(wxMDIParentFrame *parent, long style = wxVSCROLL | wxHSCROLL);
 
-  // Gets the size available for subwindows after menu size, toolbar size
-  // and status bar size have been subtracted. If you want to manage your own
-  // toolbar(s), don't call SetToolBar.
-  void DoGetClientSize(int *width, int *height) const;
-
   // Explicitly call default scroll behaviour
   void OnScroll(wxScrollEvent& event);
 
 protected:
+    // Gets the size available for subwindows after menu size, toolbar size
+    // and status bar size have been subtracted. If you want to manage your own
+    // toolbar(s), don't call SetToolBar.
+    void DoGetClientSize(int *width, int *height) const;
 
 DECLARE_EVENT_TABLE()
 };

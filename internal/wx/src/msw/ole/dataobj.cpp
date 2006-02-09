@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.05.98
-// RCS-ID:      $Id: dataobj.cpp,v 1.89 2005/10/17 22:08:05 MW Exp $
+// RCS-ID:      $Id: dataobj.cpp,v 1.90 2006/02/08 21:45:03 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,13 +75,13 @@ public:
     wxIEnumFORMATETC(const wxDataFormat* formats, ULONG nCount);
     virtual ~wxIEnumFORMATETC() { delete [] m_formats; }
 
-    DECLARE_IUNKNOWN_METHODS;
-
     // IEnumFORMATETC
     STDMETHODIMP Next(ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched);
     STDMETHODIMP Skip(ULONG celt);
     STDMETHODIMP Reset();
     STDMETHODIMP Clone(IEnumFORMATETC **ppenum);
+
+    DECLARE_IUNKNOWN_METHODS;
 
 private:
     CLIPFORMAT *m_formats;  // formats we can provide data in
@@ -106,8 +106,6 @@ public:
     // when this object is deleted - setting this flag enables such logic
     void SetDeleteFlag() { m_mustDelete = true; }
 
-    DECLARE_IUNKNOWN_METHODS;
-
     // IDataObject
     STDMETHODIMP GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium);
     STDMETHODIMP GetDataHere(FORMATETC *pformatetc, STGMEDIUM *pmedium);
@@ -118,6 +116,8 @@ public:
     STDMETHODIMP DAdvise(FORMATETC *pfetc, DWORD ad, IAdviseSink *p, DWORD *pdw);
     STDMETHODIMP DUnadvise(DWORD dwConnection);
     STDMETHODIMP EnumDAdvise(IEnumSTATDATA **ppenumAdvise);
+
+    DECLARE_IUNKNOWN_METHODS;
 
 private:
     wxDataObject *m_pDataObject;      // pointer to C++ class we belong to
@@ -1103,7 +1103,7 @@ class CFSTR_SHELLURLDataObject : public wxCustomDataObject
 {
 public:
     CFSTR_SHELLURLDataObject() : wxCustomDataObject(CFSTR_SHELLURL) {}
-protected:
+
     virtual size_t GetBufferOffset( const wxDataFormat& WXUNUSED(format) )
     {
         return 0;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.cpp,v 1.256 2006/01/16 20:10:16 ABX Exp $
+// RCS-ID:      $Id: filefn.cpp,v 1.257 2006/02/08 22:24:29 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -242,8 +242,7 @@ bool wxPathList::Member (const wxString& path)
 
 wxString wxPathList::FindValidPath (const wxString& file)
 {
-  if (wxFileExists (wxExpandPath(wxFileFunctionsBuffer, file)))
-    return wxString(wxFileFunctionsBuffer);
+  wxExpandPath(wxFileFunctionsBuffer, file);
 
   wxChar buf[_MAXPATHLEN];
   wxStrcpy(buf, wxFileFunctionsBuffer);

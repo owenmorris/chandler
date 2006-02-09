@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     01/02/97
-// RCS-ID:      $Id: choice.h,v 1.35 2005/09/27 16:54:35 ABX Exp $
+// RCS-ID:      $Id: choice.h,v 1.36 2006/02/08 21:46:19 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,9 +66,6 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxChoiceNameStr);
 
-    // implement base class pure virtuals
-    virtual int DoAppend(const wxString& item);
-    virtual int DoInsert(const wxString& item, int pos);
     virtual void Delete(int n);
     virtual void Clear();
 
@@ -85,11 +82,15 @@ public:
     virtual bool MSWCommand(WXUINT param, WXWORD id);
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
     virtual WXHBRUSH MSWControlColor(WXHDC hDC, WXHWND hWnd);
+    virtual bool MSWShouldPreProcessMessage(WXMSG *pMsg);
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
 protected:
     // common part of all ctors
     void Init() { m_lastAcceptedSelection = wxID_NONE; }
 
+    virtual int DoAppend(const wxString& item);
+    virtual int DoInsert(const wxString& item, int pos);
     virtual void DoMoveWindow(int x, int y, int width, int height);
     virtual void DoSetItemClientData( int n, void* clientData );
     virtual void* DoGetItemClientData( int n ) const;
@@ -102,10 +103,6 @@ protected:
     virtual void DoSetSize(int x, int y,
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);
-
-    virtual bool MSWShouldPreProcessMessage(WXMSG *pMsg);
-
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     // update the height of the drop down list to fit the number of items we
     // have (without changing the visible height)

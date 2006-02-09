@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h,v 1.20 2005/11/10 12:03:37 ABX Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.21 2006/02/08 21:47:02 VZ Exp $
 // Copyright:   (c) 2002 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,6 +70,12 @@ public:
 
     virtual bool SetShape(const wxRegion& region);
 
+    // For implementation purposes - sometimes decorations make the
+    // client area smaller
+    virtual wxPoint GetClientAreaOrigin() const;
+
+    virtual void OnInternalIdle();
+
 protected:
     // common part of all ctors
     void Init();
@@ -77,13 +83,8 @@ protected:
     // set the icon for the window
     void DoSetIcon( const wxIcon& icon );
 
-    // For implementation purposes - sometimes decorations make the
-    // client area smaller
-    virtual wxPoint GetClientAreaOrigin() const;
-
     // For implementation of delayed resize events
     bool m_needResizeInIdle;
-    virtual void OnInternalIdle();
 
     virtual void DoGetClientSize( int *width, int *height ) const;
     virtual void DoGetSize( int *width, int *height ) const;

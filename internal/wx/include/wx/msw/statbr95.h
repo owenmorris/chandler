@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.04.98
-// RCS-ID:      $Id: statbr95.h,v 1.20 2005/09/23 12:50:15 MR Exp $
+// RCS-ID:      $Id: statbr95.h,v 1.21 2006/02/08 21:46:22 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,16 +57,15 @@ public:
     virtual int GetBorderX() const;
     virtual int GetBorderY() const;
 
+    virtual WXLRESULT MSWWindowProc(WXUINT nMsg,
+                                    WXWPARAM wParam,
+                                    WXLPARAM lParam);
 protected:
     void CopyFieldsWidth(const int widths[]);
     void SetFieldsWidth();
 
     // override base class virtual
     void DoMoveWindow(int x, int y, int width, int height);
-
-    virtual WXLRESULT MSWWindowProc(WXUINT nMsg,
-                                    WXWPARAM wParam,
-                                    WXLPARAM lParam);
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxStatusBar95)

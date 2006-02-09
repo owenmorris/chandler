@@ -4,7 +4,7 @@
 // Author:      Andreas Pflug
 // Modified by:
 // Created:     2005-01-19
-// RCS-ID:      $Id: datectlg.cpp,v 1.37 2005/09/25 19:58:56 VZ Exp $
+// RCS-ID:      $Id: datectlg.cpp,v 1.38 2006/02/08 21:44:37 VZ Exp $
 // Copyright:   (c) 2005 Andreas Pflug <pgadmin@pse-consulting.de>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -128,9 +128,8 @@ public:
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator);
 
-    virtual void DoMoveWindow(int x, int y, int w, int h);
-
 protected:
+    virtual void DoMoveWindow(int x, int y, int w, int h);
 
     void OnSize(wxSizeEvent& event);
     void OnMouseEnter(wxMouseEvent& event);

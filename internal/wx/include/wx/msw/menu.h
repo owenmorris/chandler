@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (wxMenuItem is now in separate file)
 // Created:     01/02/97
-// RCS-ID:      $Id: menu.h,v 1.63 2005/09/23 12:50:13 MR Exp $
+// RCS-ID:      $Id: menu.h,v 1.64 2006/02/08 21:46:21 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,11 +56,6 @@ public:
 
     virtual ~wxMenu();
 
-    // implement base class virtuals
-    virtual wxMenuItem* DoAppend(wxMenuItem *item);
-    virtual wxMenuItem* DoInsert(size_t pos, wxMenuItem *item);
-    virtual wxMenuItem* DoRemove(wxMenuItem *item);
-
     virtual void Break();
 
     virtual void SetTitle(const wxString& title);
@@ -90,6 +85,11 @@ public:
     // helper used by wxMenu itself (returns the index in m_accels)
     int FindAccel(int id) const;
 #endif // wxUSE_ACCEL
+
+protected:
+    virtual wxMenuItem* DoAppend(wxMenuItem *item);
+    virtual wxMenuItem* DoInsert(size_t pos, wxMenuItem *item);
+    virtual wxMenuItem* DoRemove(wxMenuItem *item);
 
 private:
     // common part of all ctors

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: checkbox.h,v 1.6 2005/09/23 12:49:30 MR Exp $
+// RCS-ID:      $Id: checkbox.h,v 1.7 2006/02/08 21:46:09 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,11 +34,12 @@ public:
     virtual void SetValue(bool);
     virtual bool GetValue() const;
 
-    void DoSet3StateValue(wxCheckBoxState val);
-    virtual wxCheckBoxState DoGet3StateValue() const;
-
     virtual wxInt32 MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF event ) ;
     virtual void Command(wxCommandEvent& event);
+
+protected:
+    void DoSet3StateValue(wxCheckBoxState val);
+    virtual wxCheckBoxState DoGet3StateValue() const;
 
     DECLARE_DYNAMIC_CLASS(wxCheckBox)
 };

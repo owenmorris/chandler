@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.59 2006/01/25 23:28:57 RD Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.60 2006/02/08 21:46:20 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -365,13 +365,6 @@ public:
     // obsolete stuff, for compatibility only -- don't use
     wxDEPRECATED( int GetItemSpacing(bool isSmall) const);
 
-protected:
-    // common part of all ctors
-    void Init();
-
-    // free memory taken by all internal data
-    void FreeAllInternalData();
-
     // convert our styles to Windows
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
@@ -380,6 +373,12 @@ protected:
                                     WXWPARAM wParam,
                                     WXLPARAM lParam);
 
+protected:
+    // common part of all ctors
+    void Init();
+
+    // free memory taken by all internal data
+    void FreeAllInternalData();
 
     wxTextCtrl*       m_textCtrl;        // The control used for editing a label
     wxImageList *     m_imageListNormal; // The image list for normal icons

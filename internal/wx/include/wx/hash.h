@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 25.02.00: type safe hashes with WX_DECLARE_HASH()
 // Created:     01/02/97
-// RCS-ID:      $Id: hash.h,v 1.43 2005/09/23 12:48:40 MR Exp $
+// RCS-ID:      $Id: hash.h,v 1.44 2006/02/08 21:44:22 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -393,8 +393,6 @@ public:
 
     size_t GetCount() const { return wxHashTableBase::GetCount(); }
 protected:
-    virtual void DoDeleteContents( wxHashTableBase_Node* node );
-
     // copy helper
     void DoCopy( const wxHashTable& copy );
 
@@ -402,6 +400,8 @@ protected:
     // m_curr to it and m_currBucket to its bucket
     void GetNextNode( size_t bucketStart );
 private:
+    virtual void DoDeleteContents( wxHashTableBase_Node* node );
+
     // current node
     Node* m_curr;
 
@@ -525,7 +525,7 @@ private:
         eltype *Delete(long key) { return (eltype*)DoDelete(key, key); }      \
         eltype *Delete(long lhash, long key)                                  \
             { return (eltype*)DoDelete(key, lhash); }                         \
-    protected:                                                                \
+    private:                                                                  \
         virtual void DoDeleteContents( wxHashTableBase_Node* node )           \
             { delete (eltype*)node->GetData(); }                              \
                                                                               \

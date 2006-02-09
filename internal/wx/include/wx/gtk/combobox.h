@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: combobox.h,v 1.55 2006/01/16 14:59:27 MR Exp $
+// Id:          $Id: combobox.h,v 1.56 2006/02/08 21:45:42 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -152,7 +152,6 @@ public:
     void EnableEvents();
     GtkWidget* GetConnectWidget();
     bool IsOwnGtkWindow( GdkWindow *window );
-    void DoApplyWidgetStyle(GtkRcStyle *style);
 
     wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST
 
@@ -160,6 +159,7 @@ public:
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
 protected:
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     virtual int DoAppend(const wxString& item);
     virtual int DoInsert(const wxString& item, int pos);
 

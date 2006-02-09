@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: toolbar.h,v 1.17 2005/09/23 12:50:50 MR Exp $
+// RCS-ID:      $Id: toolbar.h,v 1.18 2006/02/08 21:46:52 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,10 @@ public:
     virtual void SetMargins(int x, int y);
     void SetMargins(const wxSize& size)
         { SetMargins((int) size.x, (int) size.y); }
-    
+
+    virtual bool PerformAction(const wxControlAction& action,
+                               long numArg = -1,
+                               const wxString& strArg = wxEmptyString);
 protected:
     // common part of all ctors
     void Init();
@@ -89,10 +92,6 @@ protected:
                                           const wxString& longHelp);
     virtual wxToolBarToolBase *CreateTool(wxControl *control);
 
-    // implement wxUniversal methods
-    virtual bool PerformAction(const wxControlAction& action,
-                               long numArg = -1,
-                               const wxString& strArg = wxEmptyString);
     virtual wxSize DoGetBestClientSize() const;
     virtual void DoSetSize(int x, int y,
                            int width, int height,

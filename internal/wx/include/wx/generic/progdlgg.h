@@ -4,7 +4,7 @@
 // Author:      Karsten Ballüder
 // Modified by:
 // Created:     09.05.1999
-// RCS-ID:      $Id: progdlgg.h,v 1.37 2005/09/23 12:49:07 MR Exp $
+// RCS-ID:      $Id: progdlgg.h,v 1.38 2006/02/08 21:45:26 VZ Exp $
 // Copyright:   (c) Karsten Ballüder
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////
@@ -52,6 +52,8 @@ public:
        @returns true if ABORT button has not been pressed
    */
    virtual bool Update(int value, const wxString& newmsg = wxEmptyString, bool *skip = NULL);
+    // Must provide overload to avoid hiding it (and warnings about it)
+    virtual void Update() { wxDialog::Update(); }
 
    /* Can be called to continue after the cancel button has been pressed, but
        the program decided to continue the operation (e.g., user didn't
@@ -150,10 +152,6 @@ private:
     class WXDLLEXPORT wxWindowDisabler *m_winDisabler;
 
     DECLARE_EVENT_TABLE()
-private:
-    // Virtual function hiding supression
-    virtual void Update() { wxDialog::Update(); }
-
     DECLARE_NO_COPY_CLASS(wxProgressDialog)
 };
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dcclient.h,v 1.13 2005/09/23 12:50:58 MR Exp $
+// RCS-ID:      $Id: dcclient.h,v 1.14 2006/02/08 21:47:02 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -100,11 +100,6 @@ public:
 
     virtual wxCoord GetCharHeight() const;
     virtual wxCoord GetCharWidth() const;
-    virtual void DoGetTextExtent(const wxString& string,
-        wxCoord *x, wxCoord *y,
-        wxCoord *descent = NULL,
-        wxCoord *externalLeading = NULL,
-        wxFont *theFont = NULL) const;
 
     virtual int GetDepth() const;
     virtual wxSize GetPPI() const;
@@ -112,9 +107,16 @@ public:
     virtual void DestroyClippingRegion();
     WXWindow GetWindow() const { return m_window; }
 
+    virtual void ComputeScaleAndOrigin();
+
 protected:
     // implementation
     // --------------
+    virtual void DoGetTextExtent(const wxString& string,
+        wxCoord *x, wxCoord *y,
+        wxCoord *descent = NULL,
+        wxCoord *externalLeading = NULL,
+        wxFont *theFont = NULL) const;
 
     WXDisplay    *m_display;
     WXWindow      m_window;
@@ -136,7 +138,6 @@ protected:
 
     void SetUpDC();
     void Destroy();
-    virtual void ComputeScaleAndOrigin();
 
 private:
     DECLARE_DYNAMIC_CLASS(wxWindowDC)

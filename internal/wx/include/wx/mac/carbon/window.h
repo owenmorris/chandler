@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.h,v 1.27 2006/01/19 18:32:23 vell Exp $
+// RCS-ID:      $Id: window.h,v 1.28 2006/02/08 21:46:12 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,9 +82,9 @@ public:
                                int *externalLeading = NULL,
                                const wxFont *theFont = NULL )
                                const;
-
+protected:
     virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
-
+public:
     virtual void SetScrollbar( int orient, int pos, int thumbVisible,
                                int range, bool refresh = true );
     virtual void SetScrollPos( int orient, int pos, bool refresh = true );

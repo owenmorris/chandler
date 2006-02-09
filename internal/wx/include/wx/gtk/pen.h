@@ -2,7 +2,7 @@
 // Name:        wx/gtk/pen.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: pen.h,v 1.24 2006/01/22 21:00:18 MR Exp $
+// Id:          $Id: pen.h,v 1.25 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ public:
     int GetDashCount() const;
     wxDash* GetDash() const;
 
-private:
+protected:
     // ref counting code
     virtual wxObjectRefData *CreateRefData() const;
     virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;

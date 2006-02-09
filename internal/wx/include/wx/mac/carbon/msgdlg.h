@@ -5,7 +5,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: msgdlg.h,v 1.8 2006/01/26 17:20:22 ABX Exp $
+// RCS-ID:      $Id: msgdlg.h,v 1.9 2006/02/08 21:46:11 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,6 +39,7 @@ public:
 
     int ShowModal();
 
+protected:
     // not supported for message dialog, RR
     virtual void DoSetSize(int WXUNUSED(x), int WXUNUSED(y),
                            int WXUNUSED(width), int WXUNUSED(height),

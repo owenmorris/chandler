@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.01.01
-// RCS-ID:      $Id: spinbutt.h,v 1.11 2005/09/23 12:50:49 MR Exp $
+// RCS-ID:      $Id: spinbutt.h,v 1.12 2006/02/08 21:46:51 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,14 +58,14 @@ public:
     // for wxStdSpinButtonInputHandler
     const wxScrollArrows& GetArrows() { return m_arrows; }
 
+    virtual bool PerformAction(const wxControlAction& action,
+                               long numArg = 0,
+                               const wxString& strArg = wxEmptyString);
+
 protected:
     virtual wxSize DoGetBestClientSize() const;
     virtual void DoDraw(wxControlRenderer *renderer);
     virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
-
-    virtual bool PerformAction(const wxControlAction& action,
-                               long numArg = 0,
-                               const wxString& strArg = wxEmptyString);
 
     // the common part of all ctors
     void Init();

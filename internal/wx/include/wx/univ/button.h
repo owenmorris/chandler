@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.08.00
-// RCS-ID:      $Id: button.h,v 1.17 2005/09/23 12:50:44 MR Exp $
+// RCS-ID:      $Id: button.h,v 1.18 2006/02/08 21:46:50 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,16 +100,17 @@ public:
     virtual void Release();
     virtual void Click();
 
-protected:
     virtual bool PerformAction(const wxControlAction& action,
                                long numArg = -1,
                                const wxString& strArg = wxEmptyString);
+
+    virtual bool CanBeHighlighted() const { return true; }
+
+protected:
     virtual wxSize DoGetBestClientSize() const;
     
     virtual bool DoDrawBackground(wxDC& dc);
     virtual void DoDraw(wxControlRenderer *renderer);
-
-    virtual bool CanBeHighlighted() const { return true; }
 
     // common part of all ctors
     void Init();

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/frame.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: frame.h,v 1.76 2005/09/23 12:49:16 MR Exp $
+// Id:          $Id: frame.h,v 1.77 2006/02/08 21:45:43 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -54,8 +54,6 @@ public:
     virtual ~wxFrame();
 
 #if wxUSE_STATUSBAR
-    virtual void PositionStatusBar();
-
     virtual wxStatusBar* CreateStatusBar(int number = 1,
                                          long style = wxST_SIZEGRIP|wxFULL_REPAINT_ON_RESIZE,
                                          wxWindowID id = 0,
@@ -87,6 +85,10 @@ public:
 protected:
     // common part of all ctors
     void Init();
+
+#if wxUSE_STATUSBAR
+    virtual void PositionStatusBar();
+#endif // wxUSE_STATUSBAR
 
     // override wxWindow methods to take into account tool/menu/statusbars
     virtual void DoSetClientSize(int width, int height);

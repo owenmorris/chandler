@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: pen.h,v 1.12 2005/10/04 18:14:20 ABX Exp $
+// RCS-ID:      $Id: pen.h,v 1.13 2006/02/08 21:47:02 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ public:
     wxDash* GetDash() const;
     wxBitmap* GetStipple() const;
 
-private:
+protected:
     // ref counting code
     virtual wxObjectRefData *CreateRefData() const;
     virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;

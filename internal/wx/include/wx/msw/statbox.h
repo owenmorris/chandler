@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbox.h,v 1.35 2005/09/23 12:50:15 MR Exp $
+// RCS-ID:      $Id: statbox.h,v 1.36 2006/02/08 21:46:22 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,17 +38,19 @@ public:
     /// Implementation only
     virtual void GetBordersForSizer(int *borderTop, int *borderOther) const;
 
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
 protected:
     virtual wxSize DoGetBestSize() const;
 
     // choose the default border for this window
     virtual wxBorder GetDefaultBorder() const;
 
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
-
 #ifndef __WXWINCE__
+public:
     virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 
+protected:
     // return the region with all the windows inside this static box excluded
     virtual WXHRGN MSWGetRegionWithoutChildren();
 

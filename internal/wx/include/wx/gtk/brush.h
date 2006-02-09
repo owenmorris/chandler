@@ -2,7 +2,7 @@
 // Name:        wx/gtk/brush.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: brush.h,v 1.23 2005/10/04 18:14:08 ABX Exp $
+// Id:          $Id: brush.h,v 1.24 2006/02/08 21:45:40 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ public:
     void SetStyle( int style );
     void SetStipple( const wxBitmap& stipple );
 
-private:
+protected:
     // ref counting code
     virtual wxObjectRefData *CreateRefData() const;
     virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;

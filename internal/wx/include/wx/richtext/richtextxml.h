@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextxml.h,v 1.5 2005/12/18 12:31:04 JS Exp $
+// RCS-ID:      $Id: richtextxml.h,v 1.6 2006/02/08 21:46:42 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,9 +35,6 @@ public:
         { }
 
 #if wxUSE_STREAMS
-    virtual bool DoLoadFile(wxRichTextBuffer *buffer, wxInputStream& stream);
-    virtual bool DoSaveFile(wxRichTextBuffer *buffer, wxOutputStream& stream);
-
     /// Recursively export an object
     bool ExportXML(wxOutputStream& stream, wxMBConv* convMem, wxMBConv* convFile, wxRichTextObject& obj, int level);
 
@@ -66,7 +63,10 @@ public:
     wxString GetText(wxXmlNode *node, const wxString& param = wxEmptyString, bool translate = false);
 
 protected:
-
+#if wxUSE_STREAMS
+    virtual bool DoLoadFile(wxRichTextBuffer *buffer, wxInputStream& stream);
+    virtual bool DoSaveFile(wxRichTextBuffer *buffer, wxOutputStream& stream);
+#endif
 };
 
 #endif

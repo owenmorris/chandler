@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextctrl.h,v 1.9 2006/02/06 22:48:25 VZ Exp $
+// RCS-ID:      $Id: richtextctrl.h,v 1.10 2006/02/08 21:46:42 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -671,6 +671,7 @@ public:
     long GetFirstVisiblePosition() const;
 
 // Overrides
+protected:
 
     virtual wxSize DoGetBestSize() const ;
 

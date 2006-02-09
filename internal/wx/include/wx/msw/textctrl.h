@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: textctrl.h,v 1.70 2006/02/06 17:56:40 JS Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.71 2006/02/08 21:46:23 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -196,12 +196,16 @@ public:
     // called HideNativeCaret() before
     void OnSetFocus(wxFocusEvent& event);
 
+    // intercept WM_GETDLGCODE
+    virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+
+    virtual bool MSWShouldPreProcessMessage(WXMSG* pMsg);
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+    virtual wxVisualAttributes GetDefaultAttributes() const;
+
 protected:
     // common part of all ctors
     void Init();
-
-    // intercept WM_GETDLGCODE
-    virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 
     // return true if this control has a user-set limit on amount of text (i.e.
     // the limit is due to a previous call to SetMaxLength() and not built in)
@@ -240,11 +244,7 @@ protected:
     // send TEXT_UPDATED event, return true if it was handled, false otherwise
     bool SendUpdateEvent();
 
-    // override some base class virtuals
-    virtual bool MSWShouldPreProcessMessage(WXMSG* pMsg);
     virtual wxSize DoGetBestSize() const;
-
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
 #if wxUSE_RICHEDIT
     // we're using RICHEDIT (and not simple EDIT) control if this field is not
@@ -257,8 +257,6 @@ protected:
     // text ourselves: we want this to be exactly 1
     int m_updatesCount;
 
-    virtual wxVisualAttributes GetDefaultAttributes() const;
-
 private:
     DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxTextCtrl)
@@ -270,6 +268,7 @@ private:
 #if wxUSE_INKEDIT && wxUSE_RICHEDIT
     int  m_isInkEdit;
 #endif
+
 };
 
 #endif

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.169 2006/01/25 13:10:16 SC Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.170 2006/02/08 21:47:09 VZ Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -723,12 +723,7 @@ static pascal OSStatus wxMacTopLevelWindowEventHandler( EventHandlerCallRef hand
                 wxFrame *frame = wxDynamicCast( toplevelWindow , wxFrame ) ;
                 if ( frame )
                 {
-#if wxUSE_STATUSBAR
-                    frame->PositionStatusBar();
-#endif
-#if wxUSE_TOOLBAR
-                    frame->PositionToolBar();
-#endif
+                    frame->PositionBars();
                 }
 
                 wxSizeEvent event( r.GetSize() , toplevelWindow->GetId() ) ;

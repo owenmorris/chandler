@@ -3,7 +3,7 @@
 // Purpose:     MSW/GTK compatible notebook (a.k.a. property sheet)
 // Author:      Stefan Csomor
 // Modified by:
-// RCS-ID:      $Id: notebook.h,v 1.10 2005/11/10 09:17:14 SC Exp $
+// RCS-ID:      $Id: notebook.h,v 1.11 2006/02/08 21:46:11 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,9 +114,10 @@ public:
   // base class virtuals
   // -------------------
   virtual void Command(wxCommandEvent& event);
+    virtual wxInt32 MacControlHit(WXEVENTHANDLERREF handler, WXEVENTREF event);
+
 protected:
   virtual wxNotebookPage *DoRemovePage(size_t page) ;
-  virtual wxInt32 MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF event ) ;
   // common part of all ctors
   void Init();
 

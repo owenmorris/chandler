@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: checkbox.h,v 1.23 2005/09/23 12:50:07 MR Exp $
+// RCS-ID:      $Id: checkbox.h,v 1.24 2006/02/08 21:46:18 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,10 +45,10 @@ public:
     virtual bool MSWCommand(WXUINT param, WXWORD id);
     virtual void Command(wxCommandEvent& event);
     virtual bool SetForegroundColour(const wxColour& colour);
+    virtual bool MSWOnDraw(WXDRAWITEMSTRUCT *item);
 
 protected:
     virtual wxSize DoGetBestSize() const;
-    virtual bool MSWOnDraw(WXDRAWITEMSTRUCT *item);
 
     virtual void DoSet3StateValue(wxCheckBoxState value);
     virtual wxCheckBoxState DoGet3StateValue() const;

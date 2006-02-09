@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.09.00
-// RCS-ID:      $Id: textctrl.h,v 1.21 2005/10/18 00:03:33 VZ Exp $
+// RCS-ID:      $Id: textctrl.h,v 1.22 2006/02/08 21:46:52 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -219,9 +219,6 @@ public:
     virtual void CalcUnscrolledPosition(int x, int y, int *xx, int *yy) const;
     virtual void CalcScrolledPosition(int x, int y, int *xx, int *yy) const;
 
-    // ensure we have correct default border
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_SUNKEN; }
-
     // perform an action
     virtual bool PerformAction(const wxControlAction& action,
                                long numArg = -1,
@@ -239,7 +236,17 @@ public:
     // only for wxStdTextCtrlInputHandler
     void RefreshSelection();
 
+    // override wxScrollHelper method to prevent (auto)scrolling beyond the end
+    // of line
+    virtual bool SendAutoScrollEvents(wxScrollWinEvent& event) const;
+
+    // idle processing
+    virtual void OnInternalIdle();
+
 protected:
+    // ensure we have correct default border
+    virtual wxBorder GetDefaultBorder() const { return wxBORDER_SUNKEN; }
+
     // override base class methods
     virtual void DoDrawBorder(wxDC& dc, const wxRect& rect);
     virtual void DoDraw(wxControlRenderer *renderer);
@@ -425,10 +432,6 @@ protected:
     void OnChar(wxKeyEvent& event);
     void OnSize(wxSizeEvent& event);
 
-    // overrdie wxScrollHelper method to prevent (auto)scrolling beyond the end
-    // of line
-    virtual bool SendAutoScrollEvents(wxScrollWinEvent& event) const;
-
     // return the struct containing control-type dependent data
     struct wxTextSingleLineData& SData() { return *m_data.sdata; }
     struct wxTextMultiLineData& MData() { return *m_data.mdata; }
@@ -442,8 +445,6 @@ protected:
     bool DoCut();
     bool DoPaste();
 
-    // idle processing
-    virtual void OnInternalIdle();
 private:
     // all these methods are for multiline text controls only
 

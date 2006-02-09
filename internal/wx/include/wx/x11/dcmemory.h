@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dcmemory.h,v 1.8 2005/09/23 12:50:58 MR Exp $
+// RCS-ID:      $Id: dcmemory.h,v 1.9 2006/02/08 21:47:02 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,12 +21,13 @@ public:
     wxMemoryDC( wxDC *dc ); // Create compatible DC
     ~wxMemoryDC();
     virtual void SelectObject( const wxBitmap& bitmap );
-    void DoGetSize( int *width, int *height ) const;
 
     // implementation
     wxBitmap  m_selected;
 
-private:
+protected:
+    void DoGetSize( int *width, int *height ) const;
+
     DECLARE_DYNAMIC_CLASS(wxMemoryDC)
 };
 

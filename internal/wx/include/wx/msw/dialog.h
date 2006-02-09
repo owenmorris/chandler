@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dialog.h,v 1.52 2006/01/16 14:59:43 MR Exp $
+// RCS-ID:      $Id: dialog.h,v 1.53 2006/02/08 21:46:19 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -124,6 +124,9 @@ public:
     // use IsModal()
     wxDEPRECATED( bool IsModalShowing() const );
 
+    // handle Escape here
+    virtual bool MSWProcessMessage(WXMSG* pMsg);
+
 protected:
     // find the window to use as parent for this dialog if none has been
     // specified explicitly by the user
@@ -141,9 +144,6 @@ protected:
     //
     // return true if button was "clicked" or false if we don't have it
     bool EmulateButtonClickIfPresent(int id);
-
-    // handle Escape here
-    virtual bool MSWProcessMessage(WXMSG* pMsg);
 
 private:
     wxWindow*   m_oldFocus;

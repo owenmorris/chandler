@@ -2,7 +2,7 @@
 // Name:        filedlg.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: filedlg.h,v 1.29 2005/09/23 12:49:16 MR Exp $
+// Id:          $Id: filedlg.h,v 1.30 2006/02/08 21:45:43 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,6 +51,7 @@ public:
 //private:
     bool m_destroyed_by_delete;
 
+protected:
     // override this from wxTLW since the native
     // form doesn't have any m_wxwindow
     virtual void DoSetSize(int x, int y,

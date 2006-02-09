@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gauge95.h,v 1.20 2006/01/16 14:59:43 MR Exp $
+// RCS-ID:      $Id: gauge95.h,v 1.21 2006/02/08 21:46:20 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,8 +51,9 @@ public:
     virtual bool SetForegroundColour(const wxColour& col);
     virtual bool SetBackgroundColour(const wxColour& col);
 
-protected:
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
+protected:
     virtual wxSize DoGetBestSize() const;
 
 

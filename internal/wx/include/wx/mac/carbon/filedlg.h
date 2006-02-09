@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: filedlg.h,v 1.5 2005/09/23 12:49:32 MR Exp $
+// RCS-ID:      $Id: filedlg.h,v 1.6 2006/02/08 21:46:10 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,8 @@ public:
     virtual void GetFilenames(wxArrayString& files) const { files = m_fileNames ; }
 
     virtual int ShowModal();
-    
+
+protected:
     // not supported for file dialog, RR
     virtual void DoSetSize(int WXUNUSED(x), int WXUNUSED(y),
                            int WXUNUSED(width), int WXUNUSED(height),

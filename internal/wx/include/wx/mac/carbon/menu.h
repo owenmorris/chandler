@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menu.h,v 1.9 2005/09/23 12:49:34 MR Exp $
+// RCS-ID:      $Id: menu.h,v 1.10 2006/02/08 21:46:11 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,10 +31,6 @@ public:
 
     virtual ~wxMenu();
 
-    // implement base class virtuals
-    virtual wxMenuItem* DoAppend(wxMenuItem *item);
-    virtual wxMenuItem* DoInsert(size_t pos, wxMenuItem *item);
-    virtual wxMenuItem* DoRemove(wxMenuItem *item);
     virtual void Attach(wxMenuBarBase *menubar) ;
 
     virtual void Break();
@@ -64,6 +60,11 @@ public:
     WXHMENU GetHMenu() const { return m_hMenu; }
 
     short MacGetMenuId() { return m_macMenuId ; }
+
+protected:
+    virtual wxMenuItem* DoAppend(wxMenuItem *item);
+    virtual wxMenuItem* DoInsert(size_t pos, wxMenuItem *item);
+    virtual wxMenuItem* DoRemove(wxMenuItem *item);
 
 private:
     // common part of all ctors

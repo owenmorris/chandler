@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.05.01
-// RCS-ID:      $Id: frame.h,v 1.26 2005/09/23 12:50:46 MR Exp $
+// RCS-ID:      $Id: frame.h,v 1.27 2006/02/08 21:46:51 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,7 +54,6 @@ public:
     virtual wxToolBar* CreateToolBar(long style = -1,
                                      wxWindowID id = wxID_ANY,
                                      const wxString& name = wxToolBarNameStr);
-    virtual void PositionToolBar();
 #endif // wxUSE_TOOLBAR
 
     virtual int GetMinWidth() const;
@@ -81,6 +80,11 @@ protected:
     // override to update statusbar position when the frame size changes
     virtual void PositionStatusBar();
 #endif // wxUSE_MENUS
+
+protected:
+#if wxUSE_TOOLBAR
+    virtual void PositionToolBar();
+#endif // wxUSE_TOOLBAR
 
     DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxFrame)

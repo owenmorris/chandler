@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listbox.h,v 1.45 2005/09/27 16:54:35 ABX Exp $
+// RCS-ID:      $Id: listbox.h,v 1.46 2006/02/08 21:46:20 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -87,20 +87,8 @@ public:
     virtual int FindString(const wxString& s, bool bCase = false) const;
 
     virtual bool IsSelected(int n) const;
-    virtual void DoSetSelection(int n, bool select);
     virtual int GetSelection() const;
     virtual int GetSelections(wxArrayInt& aSelections) const;
-
-    virtual int DoAppend(const wxString& item);
-    virtual void DoInsertItems(const wxArrayString& items, int pos);
-    virtual void DoSetItems(const wxArrayString& items, void **clientData);
-
-    virtual void DoSetFirstItem(int n);
-
-    virtual void DoSetItemClientData(int n, void* clientData);
-    virtual void* DoGetItemClientData(int n) const;
-    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
-    virtual wxClientData* DoGetItemClientObject(int n) const;
 
     // wxCheckListBox support
 #if wxUSE_OWNER_DRAWN
@@ -124,6 +112,14 @@ public:
 
     // Windows callbacks
     bool MSWCommand(WXUINT param, WXWORD id);
+    WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
+    // under XP when using "transition effect for menus and tooltips" if we
+    // return true for WM_PRINTCLIENT here then it causes noticable slowdown
+    virtual bool MSWShouldPropagatePrintChild()
+    {
+        return false;
+    }
 
     virtual wxVisualAttributes GetDefaultAttributes() const
     {
@@ -137,7 +133,15 @@ public:
     }
 
 protected:
-    WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+    virtual void DoSetSelection(int n, bool select);
+    virtual int DoAppend(const wxString& item);
+    virtual void DoInsertItems(const wxArrayString& items, int pos);
+    virtual void DoSetItems(const wxArrayString& items, void **clientData);
+    virtual void DoSetFirstItem(int n);
+    virtual void DoSetItemClientData(int n, void* clientData);
+    virtual void* DoGetItemClientData(int n) const;
+    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(int n) const;
 
     // free memory (common part of Clear() and dtor)
     void Free();
@@ -146,13 +150,6 @@ protected:
     int m_selected;
 
     virtual wxSize DoGetBestSize() const;
-
-    // under XP when using "transition effect for menus and tooltips" if we
-    // return true for WM_PRINTCLIENT here then it causes noticable slowdown
-    virtual bool MSWShouldPropagatePrintChild()
-    {
-        return false;
-    }
 
 #if wxUSE_OWNER_DRAWN
     // control items

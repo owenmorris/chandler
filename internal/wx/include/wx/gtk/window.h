@@ -2,7 +2,7 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h,v 1.137 2006/01/22 21:00:19 MR Exp $
+// Id:          $Id: window.h,v 1.138 2006/02/08 21:45:45 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -90,10 +90,6 @@ public:
                                int *externalLeading = (int *) NULL,
                                const wxFont *theFont = (const wxFont *) NULL)
                                const;
-
-#if wxUSE_MENUS_NATIVE
-    virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
-#endif // wxUSE_MENUS_NATIVE
 
     virtual void SetScrollbar( int orient, int pos, int thumbVisible,
                                int range, bool refresh = true );
@@ -226,6 +222,7 @@ public:
     // wxMDIFrame, wxNotebook etc. this is the callback that will get used.
     wxInsertChildFunction  m_insertCallback;
 
+protected:
     // implement the base class pure virtuals
     virtual void DoClientToScreen( int *x, int *y ) const;
     virtual void DoScreenToClient( int *x, int *y ) const;
@@ -238,6 +235,10 @@ public:
     virtual void DoSetClientSize(int width, int height);
     virtual void DoMoveWindow(int x, int y, int width, int height);
 
+#if wxUSE_MENUS_NATIVE
+    virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
+#endif // wxUSE_MENUS_NATIVE
+
     virtual void DoCaptureMouse();
     virtual void DoReleaseMouse();
 
@@ -245,7 +246,6 @@ public:
     virtual void DoSetToolTip( wxToolTip *tip );
 #endif // wxUSE_TOOLTIPS
 
-protected:
     // common part of all ctors (not virtual because called from ctor)
     void Init();
 

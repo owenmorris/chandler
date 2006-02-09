@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: listbox.h,v 1.25 2005/10/18 11:13:29 ABX Exp $
+// RCS-ID:      $Id: listbox.h,v 1.26 2006/02/08 21:46:51 VZ Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,11 +109,11 @@ public:
 
     virtual bool IsSelected(int n) const
         { return m_selections.Index(n) != wxNOT_FOUND; }
-    virtual void DoSetSelection(int n, bool select);
     virtual int GetSelection() const;
     virtual int GetSelections(wxArrayInt& aSelections) const;
 
 protected:
+    virtual void DoSetSelection(int n, bool select);
     virtual int DoAppendOnly(const wxString& item);
     virtual int DoAppend(const wxString& item);
     virtual void DoInsertItems(const wxArrayString& items, int pos);

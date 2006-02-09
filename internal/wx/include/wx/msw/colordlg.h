@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colordlg.h,v 1.11 2006/01/26 17:20:38 ABX Exp $
+// RCS-ID:      $Id: colordlg.h,v 1.12 2006/02/08 21:46:19 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,9 +36,8 @@ public:
 
     virtual int ShowModal();
 
-    virtual void DoGetPosition( int *x, int *y ) const;
-
 protected:
+    virtual void DoGetPosition( int *x, int *y ) const;
     virtual void DoGetSize(int *width, int *height) const;
     virtual void DoGetClientSize(int *width, int *height) const;
     virtual void DoSetSize(int x, int y,

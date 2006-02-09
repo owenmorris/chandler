@@ -2,7 +2,7 @@
 // Name:        htmlwin.h
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.h,v 1.69 2005/12/09 12:34:29 VS Exp $
+// RCS-ID:      $Id: htmlwin.h,v 1.70 2006/02/08 21:46:04 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -213,6 +213,8 @@ public:
     wxString ToText();
 #endif // wxUSE_CLIPBOARD
 
+    virtual void OnInternalIdle();
+
 protected:
     void Init();
 
@@ -239,8 +241,6 @@ protected:
     void OnMouseEnter(wxMouseEvent& event);
     void OnMouseLeave(wxMouseEvent& event);
 #endif // wxUSE_CLIPBOARD
-
-    virtual void OnInternalIdle();
 
     // Returns new filter (will be stored into m_DefaultFilter variable)
     virtual wxHtmlFilter *GetDefaultFilter() {return new wxHtmlFilterPlainText;}

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/choice.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.h,v 1.44 2005/09/27 16:54:25 ABX Exp $
+// Id:          $Id: choice.h,v 1.45 2006/02/08 21:45:41 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,6 +77,8 @@ public:
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
+    virtual bool IsOwnGtkWindow( GdkWindow *window );
+
 protected:
     wxList m_clientList;    // contains the client data for the items
 
@@ -90,8 +92,6 @@ protected:
     virtual wxClientData* DoGetItemClientObject( int n ) const;
 
     virtual wxSize DoGetBestSize() const;
-
-    virtual bool IsOwnGtkWindow( GdkWindow *window );
 
 private:
     // common part of Create() and DoAppend()

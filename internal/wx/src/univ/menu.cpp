@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: menu.cpp,v 1.59 2006/01/26 19:22:56 ABX Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.60 2006/02/08 21:45:15 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -127,9 +127,6 @@ public:
     // override the base class version to dismiss any open submenus
     virtual void Dismiss();
 
-    // notify the menu when the window disappears from screen
-    virtual void OnDismiss();
-
     // called when a submenu is dismissed
     void OnSubmenuDismiss(bool dismissParent);
 
@@ -164,6 +161,8 @@ public:
     // don't dismiss the popup window if the parent menu was clicked
     virtual bool ProcessLeftDown(wxMouseEvent& event);
 
+    virtual bool SetCurrent(bool doit = true) { return wxPopupTransientWindow::SetCurrent(doit); };
+
 protected:
     // how did we perform this operation?
     enum InputMethod
@@ -171,6 +170,9 @@ protected:
         WithKeyboard,
         WithMouse
     };
+
+    // notify the menu when the window disappears from screen
+    virtual void OnDismiss();
 
     // draw the menu inside this window
     virtual void DoDraw(wxControlRenderer *renderer);
@@ -186,7 +188,6 @@ protected:
 
     // set the current node and item withotu refreshing anything
     void SetCurrent(wxMenuItemList::compatibility_iterator node);
-    virtual bool SetCurrent(bool doit = true){return wxPopupTransientWindow::SetCurrent(doit);};
 
     // change the current item refreshing the old and new items
     void ChangeCurrent(wxMenuItemList::compatibility_iterator node);

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h,v 1.15 2006/01/16 14:59:31 MR Exp $
+// RCS-ID:      $Id: combobox.h,v 1.16 2006/02/08 21:46:09 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,9 +29,6 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
  public:
     inline wxComboBox() {}
     virtual ~wxComboBox();
-    // override the base class virtuals involved in geometry calculations
-    virtual wxSize DoGetBestSize() const;
-    virtual void DoMoveWindow(int x, int y, int width, int height);
 
     // forward these functions to all subcontrols
     virtual bool Enable(bool enable = true);
@@ -129,6 +126,10 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
     wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST
 
 protected:
+    // override the base class virtuals involved in geometry calculations
+    virtual wxSize DoGetBestSize() const;
+    virtual void DoMoveWindow(int x, int y, int width, int height);
+
     virtual int DoAppend(const wxString& item) ;
     virtual int DoInsert(const wxString& item, int pos) ;
 

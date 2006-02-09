@@ -3,7 +3,7 @@
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by: Mark Newsam (Based on GTK file)
-// RCS-ID:      $Id: spinctrl.cpp,v 1.20 2006/01/18 09:55:22 JS Exp $
+// RCS-ID:      $Id: spinctrl.cpp,v 1.21 2006/02/08 21:47:09 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,6 +43,15 @@ public:
         SetSizeHints(-1,-1);
     }
 
+    bool ProcessEvent(wxEvent &event)
+    {
+        // Hand button down events to wxSpinCtrl. Doesn't work.
+        if (event.GetEventType() == wxEVT_LEFT_DOWN && m_spin->ProcessEvent( event ))
+            return TRUE;
+
+        return wxTextCtrl::ProcessEvent( event );
+    }
+
 protected:
     void OnTextChange(wxCommandEvent& event)
     {
@@ -70,15 +79,6 @@ protected:
         }
 
         event.Skip();
-    }
-
-    bool ProcessEvent(wxEvent &event)
-    {
-        // Hand button down events to wxSpinCtrl. Doesn't work.
-        if (event.GetEventType() == wxEVT_LEFT_DOWN && m_spin->ProcessEvent( event ))
-            return TRUE;
-
-        return wxTextCtrl::ProcessEvent( event );
     }
 
 private:

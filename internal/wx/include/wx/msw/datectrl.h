@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-09
-// RCS-ID:      $Id: datectrl.h,v 1.3 2005/02/17 23:17:15 VZ Exp $
+// RCS-ID:      $Id: datectrl.h,v 1.4 2006/02/08 21:46:19 VZ Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,11 +53,11 @@ public:
     virtual void SetRange(const wxDateTime& dt1, const wxDateTime& dt2);
     virtual bool GetRange(wxDateTime *dt1, wxDateTime *dt2) const;
 
-protected:
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result);
 
+protected:
     virtual wxSize DoGetBestSize() const;
 
 

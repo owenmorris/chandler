@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.243 2006/01/25 23:28:45 RD Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.245 2006/02/08 22:15:34 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,9 @@ static void wxConvertFromMSWListItem(HWND hwndListCtrl,
                                      /* const */ LV_ITEM& lvItem);
 
 // convert our wxListItem to LV_COLUMN
-static void wxConvertToMSWListCol(int col, const wxListItem& item,
+static void wxConvertToMSWListCol(HWND hwndList,
+                                  int col,
+                                  const wxListItem& item,
                                   LV_COLUMN& lvCol);
 
 // ----------------------------------------------------------------------------
@@ -666,7 +668,7 @@ bool wxListCtrl::GetColumn(int col, wxListItem& item) const
 bool wxListCtrl::SetColumn(int col, const wxListItem& item)
 {
     LV_COLUMN lvCol;
-    wxConvertToMSWListCol(col, item, lvCol);
+    wxConvertToMSWListCol(GetHwnd(), col, item, lvCol);
 
     return ListView_SetColumn(GetHwnd(), col, &lvCol) != 0;
 }
@@ -1569,7 +1571,7 @@ long wxListCtrl::InsertItem(long index, const wxString& label, int imageIndex)
 long wxListCtrl::InsertColumn(long col, const wxListItem& item)
 {
     LV_COLUMN lvCol;
-    wxConvertToMSWListCol(col, item, lvCol);
+    wxConvertToMSWListCol(GetHwnd(), col, item, lvCol);
 
     if ( !(lvCol.mask & LVCF_WIDTH) )
     {
@@ -2475,13 +2477,23 @@ void wxListCtrl::OnPaint(wxPaintEvent& event)
 
         if (GetItemRect(i, itemRect))
         {
-            int col;
+            // this is a fix for bug 673394: erase the pixels which we would
+            // otherwise leave on the screen
+            static const int gap = 2;
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.SetBrush(wxBrush(GetBackgroundColour()));
+            dc.DrawRectangle(0, firstItemRect.GetY() - gap,
+                             clientSize.GetWidth(), gap);
+
+            dc.SetPen(pen);
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
             int x = itemRect.GetX();
-            for (col = 0; col < GetColumnCount(); col++)
+            for (int col = 0; col < GetColumnCount(); col++)
             {
                 int colWidth = GetColumnWidth(col);
                 x += colWidth ;
-                dc.DrawLine(x-1, firstItemRect.GetY() - 2, x-1, itemRect.GetBottom());
+                dc.DrawLine(x-1, firstItemRect.GetY() - gap,
+                            x-1, itemRect.GetBottom());
             }
         }
     }
@@ -2786,7 +2798,9 @@ static void wxConvertToMSWListItem(const wxListCtrl *ctrl,
         lvItem.mask |= LVIF_IMAGE;
 }
 
-static void wxConvertToMSWListCol(int WXUNUSED(col), const wxListItem& item,
+static void wxConvertToMSWListCol(HWND hwndList,
+                                  int col,
+                                  const wxListItem& item,
                                   LV_COLUMN& lvCol)
 {
     wxZeroMemory(lvCol);
@@ -2826,9 +2840,9 @@ static void wxConvertToMSWListCol(int WXUNUSED(col), const wxListItem& item,
     {
         if ( wxTheApp->GetComCtl32Version() >= 470 )
         {
-            lvCol.mask |= LVCF_IMAGE | LVCF_FMT;
+            lvCol.mask |= LVCF_IMAGE;
 
-            // we use LVCFMT_BITMAP_ON_RIGHT because thei mages on the right
+            // we use LVCFMT_BITMAP_ON_RIGHT because the images on the right
             // seem to be generally nicer than on the left and the generic
             // version only draws them on the right (we don't have a flag to
             // specify the image location anyhow)
@@ -2836,7 +2850,24 @@ static void wxConvertToMSWListCol(int WXUNUSED(col), const wxListItem& item,
             // we don't use LVCFMT_COL_HAS_IMAGES because it doesn't seem to
             // make any difference in my tests -- but maybe we should?
             if ( item.m_image != -1 )
+            {
+                // as we're going to overwrite the format field, get its
+                // current value first -- unless we want to overwrite it anyhow
+                if ( !(lvCol.mask & LVCF_FMT) )
+                {
+                    LV_COLUMN lvColOld;
+                    wxZeroMemory(lvColOld);
+                    lvColOld.mask = LVCF_FMT;
+                    if ( ListView_GetColumn(hwndList, col, &lvColOld) )
+                    {
+                        lvCol.fmt = lvColOld.fmt;
+                    }
+
+                    lvCol.mask |= LVCF_FMT;
+                }
+
                 lvCol.fmt |= LVCFMT_BITMAP_ON_RIGHT | LVCFMT_IMAGE;
+            }
 
             lvCol.iImage = item.m_image;
         }

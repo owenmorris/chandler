@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.12.00
-// RCS-ID:      $Id: combobox.cpp,v 1.44 2005/09/27 17:05:26 ABX Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.45 2006/02/08 21:45:14 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -127,6 +127,11 @@ public:
     virtual void SetSelection(int n) { DoSetSelection(n, true); }
     void SetSelection(int n, bool select) { DoSetSelection(n, select); }
 
+    // used to process wxUniv actions
+    bool PerformAction(const wxControlAction& action,
+                       long numArg,
+                       const wxString& strArg);
+
 protected:
     // we shouldn't return height too big from here
     virtual wxSize DoGetBestClientSize() const;
@@ -139,11 +144,6 @@ protected:
 
     // called whenever the user selects or activates a listbox item
     void OnSelect(wxCommandEvent& event);
-
-    // used to process wxUniv actions
-    bool PerformAction(const wxControlAction& action,
-                       long numArg,
-                       const wxString& strArg);
 
 private:
     // has the mouse been released on this control?

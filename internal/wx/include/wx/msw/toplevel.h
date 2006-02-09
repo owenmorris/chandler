@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h,v 1.36 2006/01/31 21:36:37 ABX Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.37 2006/02/08 21:46:23 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,6 +92,15 @@ public:
     virtual bool HandleSettingChange(WXWPARAM wParam, WXLPARAM lParam);
 #endif
 
+    // translate wxWidgets flags to Windows ones
+    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle) const;
+
+    // choose the right parent to use with CreateWindow()
+    virtual WXHWND MSWGetParent() const;
+
+    // window proc for the frames
+    WXLRESULT MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam);
+
 protected:
     // common part of all ctors
     void Init();
@@ -110,15 +119,6 @@ protected:
 
     // common part of Iconize(), Maximize() and Restore()
     void DoShowWindow(int nShowCmd);
-
-    // translate wxWidgets flags to Windows ones
-    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle) const;
-
-    // choose the right parent to use with CreateWindow()
-    virtual WXHWND MSWGetParent() const;
-
-    // window proc for the frames
-    WXLRESULT MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam);
 
     // is the window currently iconized?
     bool m_iconized;

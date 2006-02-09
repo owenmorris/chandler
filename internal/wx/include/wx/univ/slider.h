@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     09.02.01
-// RCS-ID:      $Id: slider.h,v 1.13 2005/09/23 12:50:48 MR Exp $
+// RCS-ID:      $Id: slider.h,v 1.14 2006/02/08 21:46:51 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -121,6 +121,10 @@ public:
     // for wxStdSliderButtonInputHandler
     wxScrollThumb& GetThumb() { return m_thumb; }
 
+    virtual bool PerformAction(const wxControlAction& action,
+                               long numArg = 0,
+                               const wxString& strArg = wxEmptyString);
+
 protected:
     enum
     {
@@ -131,10 +135,6 @@ protected:
     virtual wxSize DoGetBestClientSize() const;
     virtual void DoDraw(wxControlRenderer *renderer);
     virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
-
-    virtual bool PerformAction(const wxControlAction& action,
-                               long numArg = 0,
-                               const wxString& strArg = wxEmptyString);
 
     // event handlers
     void OnSize(wxSizeEvent& event);

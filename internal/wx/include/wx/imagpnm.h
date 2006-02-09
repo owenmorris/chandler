@@ -2,7 +2,7 @@
 // Name:        imagpnm.h
 // Purpose:     wxImage PNM handler
 // Author:      Sylvain Bougnoux
-// RCS-ID:      $Id: imagpnm.h,v 1.9 2005/09/23 12:48:41 MR Exp $
+// RCS-ID:      $Id: imagpnm.h,v 1.10 2006/02/08 21:44:23 VZ Exp $
 // Copyright:   (c) Sylvain Bougnoux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@ public:
 #if wxUSE_STREAMS
     virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 );
     virtual bool SaveFile( wxImage *image, wxOutputStream& stream, bool verbose=true );
+protected:
     virtual bool DoCanRead( wxInputStream& stream );
 #endif
 

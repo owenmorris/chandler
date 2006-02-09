@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: stattext.h,v 1.7 2005/09/23 12:49:36 MR Exp $
+// RCS-ID:      $Id: stattext.h,v 1.8 2006/02/08 21:46:12 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,10 +38,11 @@ public:
   void SetLabel( const wxString &str ) ;
   bool SetFont( const wxFont &font );
 
+    virtual bool AcceptsFocus() const { return FALSE; }
+
 protected :
 
   virtual wxSize DoGetBestSize() const ;
-  virtual bool AcceptsFocus() const { return FALSE; }
 
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxStaticText)
 };

@@ -2,7 +2,7 @@
 // Name:        dcclient.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dcclient.h,v 1.41 2006/01/22 21:00:18 MR Exp $
+// Id:          $Id: dcclient.h,v 1.42 2006/02/08 21:45:42 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,6 +75,8 @@ protected:
                                 wxCoord *descent = (wxCoord *) NULL,
                                 wxCoord *externalLeading = (wxCoord *) NULL,
                                 wxFont *theFont = (wxFont *) NULL) const;
+    virtual void DoSetClippingRegion( wxCoord x, wxCoord y, wxCoord width, wxCoord height );
+    virtual void DoSetClippingRegionAsRegion( const wxRegion &region );
 
 public:
     virtual wxCoord GetCharWidth() const;
@@ -92,9 +94,7 @@ public:
     virtual void SetBackgroundMode( int mode );
     virtual void SetPalette( const wxPalette& palette );
 
-    virtual void DoSetClippingRegion( wxCoord x, wxCoord y, wxCoord width, wxCoord height );
     virtual void DestroyClippingRegion();
-    virtual void DoSetClippingRegionAsRegion( const wxRegion &region  );
 
     // Resolution in pixels per logical inch
     virtual wxSize GetPPI() const;

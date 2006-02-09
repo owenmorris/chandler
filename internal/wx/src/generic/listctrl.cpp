@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.388 2006/02/05 11:59:40 JG Exp $
+// Id:          $Id: listctrl.cpp,v 1.389 2006/02/08 21:44:38 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -520,8 +520,6 @@ public:
 
     virtual ~wxListMainWindow();
 
-    wxWindow *GetMainWindowOfCompositeControl() { return GetParent(); }
-
     bool HasFlag(int flag) const { return m_parent->HasFlag(flag); }
 
     // return true if this is a virtual list control
@@ -780,6 +778,8 @@ public:
     wxListTextCtrl*     m_textctrl;
 
 protected:
+    wxWindow *GetMainWindowOfCompositeControl() { return GetParent(); }
+
     // the total count of items in a virtual list control
     size_t m_countVirt;
 

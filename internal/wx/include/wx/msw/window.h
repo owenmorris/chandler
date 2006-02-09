@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.157 2005/12/19 10:54:07 ABX Exp $
+// RCS-ID:      $Id: window.h,v 1.158 2006/02/08 21:46:23 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -96,10 +96,6 @@ public:
                                int *externalLeading = (int *) NULL,
                                const wxFont *theFont = (const wxFont *) NULL)
                                const;
-
-#if wxUSE_MENUS_NATIVE
-    virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
-#endif // wxUSE_MENUS_NATIVE
 
     virtual void SetScrollbar( int orient, int pos, int thumbVisible,
                                int range, bool refresh = true );
@@ -403,6 +399,11 @@ public:
     virtual void OnInternalIdle();
 
 protected:
+
+#if wxUSE_MENUS_NATIVE
+    virtual bool DoPopupMenu( wxMenu *menu, int x, int y );
+#endif // wxUSE_MENUS_NATIVE
+
     // the window handle
     WXHWND                m_hWnd;
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: logg.h,v 1.7 2005/09/23 12:49:05 MR Exp $
+// RCS-ID:      $Id: logg.h,v 1.8 2006/02/08 21:45:26 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,10 +28,11 @@ class WXDLLEXPORT wxLogTextCtrl : public wxLog
 public:
     wxLogTextCtrl(wxTextCtrl *pTextCtrl);
 
-private:
+protected:
     // implement sink function
     virtual void DoLogString(const wxChar *szString, time_t t);
 
+private:
     // the control we use
     wxTextCtrl *m_pTextCtrl;
 

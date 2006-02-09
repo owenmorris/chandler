@@ -2,7 +2,7 @@
 // Name:        wx/gtk/radiobox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.h,v 1.46 2005/11/30 16:39:23 VZ Exp $
+// Id:          $Id: radiobox.h,v 1.47 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,7 +114,6 @@ public:
     void GtkDisableEvents();
     void GtkEnableEvents();
     bool IsOwnGtkWindow( GdkWindow *window );
-    void DoApplyWidgetStyle(GtkRcStyle *style);
 #if wxUSE_TOOLTIPS
     void ApplyToolTip( GtkTooltips *tips, const wxChar *tip );
 #endif // wxUSE_TOOLTIPS
@@ -126,6 +125,8 @@ public:
     wxList           m_boxes;
 
 protected:
+    void DoApplyWidgetStyle(GtkRcStyle *style);
+
     // common part of all ctors
     void Init();
 

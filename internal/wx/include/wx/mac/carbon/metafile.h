@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: metafile.h,v 1.7 2005/09/24 21:42:18 VZ Exp $
+// RCS-ID:      $Id: metafile.h,v 1.8 2006/02/08 21:46:11 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,13 +85,14 @@ class WXDLLEXPORT wxMetafileDC: public wxDC
 
   // Should be called at end of drawing
   virtual wxMetafile *Close(void);
-  virtual void DoGetSize(int *width, int *height) const ;
 
   // Implementation
   inline wxMetafile *GetMetaFile(void) const { return m_metaFile; }
   inline void SetMetaFile(wxMetafile *mf) { m_metaFile = mf; }
 
 protected:
+    virtual void DoGetSize(int *width, int *height) const;
+
   wxMetafile*   m_metaFile;
 };
 
