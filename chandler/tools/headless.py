@@ -272,7 +272,9 @@ def main():
         sys.exit(1)
     # Also add 'view' and 'app' to exportedSymbols
     exportedSymbols['view'] = view
-    exportedSymbols['app'] = schema.ns('osaf.app', view)
+    exportedSymbols['schema'] = schema
+    exportedSymbols['app_ns'] = schema.ns('osaf.app', view)
+    exportedSymbols['pim_ns'] = schema.ns('osaf.pim', view)
 
     setDisplayHook()
 

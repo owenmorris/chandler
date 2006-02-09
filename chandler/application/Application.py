@@ -745,7 +745,8 @@ class wxApplication (wx.App):
         """
         import wx.py
         import tools.headless as headless
-        headless.view = self.UIRepositoryView
+
+        headless.view = view = self.UIRepositoryView
 
         def run(scriptText):
             import osaf.framework.scripting as Scripting
@@ -755,7 +756,12 @@ class wxApplication (wx.App):
         # whatever other methods we want to the mix (such as the run method,
         # above).  locals will be passed to PyCrust/Shell to make those
         # symbols available to the developer
-        locals = headless.getExports(run=run, view=self.UIRepositoryView)
+        locals = headless.getExports(run=run,
+                                     view=view,
+                                     schema=schema,
+                                     app_ns=schema.ns('osaf.app', view),
+                                     pim_ns=schema.ns('osaf.pim', view),
+                                    )
 
         browseableObjects = {
          "globals" : Globals,
