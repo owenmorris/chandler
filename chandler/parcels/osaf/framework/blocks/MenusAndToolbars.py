@@ -725,18 +725,18 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         # keep track of ToolbarItems so we can tell when/how they change in synchronize
         self.toolItemList = [] # non-persistent list
         self.toolItems = 0
+
+    
+    if '__WXMAC__' in wx.PlatformInfo:
+        def Destroy(self):
+            if (self.blockItem.mainFrameToolbar):
+                self.blockItem.getFrame().SetToolBar (None)
+            super (wxToolbar, self).Destroy()
         
     def wxSynchronizeWidget(self, useHints=False):
         super (wxToolbar, self).wxSynchronizeWidget()
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
-
-        if '__WXMAC__' in wx.PlatformInfo:
-            # if this is the first toolbar in the frame, install it
-            parentWidget = self.blockItem.getFrame()
-            if (parentWidget != None):
-                if (parentWidget.GetToolBar() == None):
-                    parentWidget.SetToolBar( self )
 
         try:
             colorStyle = self.blockItem.colorStyle
@@ -892,6 +892,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
     separatorWidth = schema.One(schema.Integer, initialValue = 5)
     buttons3D = schema.One(schema.Boolean, initialValue = False)
     buttonsLabeled = schema.One(schema.Boolean, initialValue = False)
+    mainFrameToolbar = schema.One(schema.Boolean, defaultValue = False)
     schema.addClouds(
         copying = schema.Cloud(byRef=[colorStyle])
     )
@@ -899,21 +900,19 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
         heightGutter = self.buttonsLabeled and 23 or 6
-        toolbar = wxToolbar(self.parentBlock.widget, 
-                         Block.Block.getWidgetID(self),
-                         wx.DefaultPosition,
-                         (-1, self.toolSize.height+heightGutter),
-                         style=self.calculate_wxStyle())
+        parentWidget = self.parentBlock.widget
+        toolbar = wxToolbar(parentWidget, 
+                            Block.Block.getWidgetID(self),
+                            wx.DefaultPosition,
+                            (-1, self.toolSize.height+heightGutter),
+                            style=self.calculate_wxStyle())
         # set the tool bitmap size right away
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
 
-        """
-        # @@@davids - debugging code - might eventually be useful to have UI items name themselves
-        if (self.toolSize.width >= 26):
-            toolbar.SetLabel("Main")
-        else:
-            toolbar.SetLabel("Markup")
-        """
+        if '__WXMAC__' in wx.PlatformInfo:
+            # widgets on the Mac has a bug causing it not to sett the Toolbar on the FrameWindow
+            if (self.mainFrameToolbar):
+                self.getFrame().SetToolBar (toolbar)
 
         return toolbar
     

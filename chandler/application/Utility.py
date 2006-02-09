@@ -24,7 +24,7 @@ from repository.persistence.RepositoryError \
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "144" # Morgen: refactored certain items out of osaf.app
+SCHEMA_VERSION = "145" # John: Updated toolbar schema
 
 logger = None # initialized in initLogging()
 
