@@ -265,14 +265,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return size
         
     
-    def GetStatusPen(self, color):
+    def DrawStatusBar(self, dc, color, (x,y1,y2)):
         # probably should use styles to determine a good pen color
         item = self.item
 
-        if (item.transparency == "confirmed"):
-            pen = wx.Pen(color, 4)
-        elif (item.transparency == "fyi"):
-            pen = wx.Pen(color, 1)
+        if item.transparency in ("fyi", "confirmed"):
+            pen = wx.Pen(color, 5)
         elif (item.transparency == "tentative"):
             if '__WXMAC__' in wx.PlatformInfo:
                 pen = wx.Pen(color, 4, wx.USER_DASH)
@@ -280,7 +278,14 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             else:
                 pen = wx.Pen(color, 4, wx.DOT)
 
-        return pen
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        dc.DrawLine(x, y1, x, y2)
+        if item.transparency == "fyi":
+            pen = wx.Pen(wx.WHITE, 2)
+            pen.SetCap(wx.CAP_BUTT)
+            dc.SetPen(pen)
+            dc.DrawLine(x+1, y1, x+1, y2)
 
     def getEventColors(self, selected):
         """
@@ -388,12 +393,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                     rightSideCutOff)
             
             # if the left side is rounded, we don't need a status bar
-            if not hasLeftRounded: 
-                pen = self.GetStatusPen(outlineColor)
-                pen.SetCap(wx.CAP_BUTT)
-                dc.SetPen(pen)
-                dc.DrawLine(itemRect.x+1, itemRect.y,
-                            itemRect.x+1, itemRect.y + itemRect.height)
+            if not hasLeftRounded:
+                self.DrawStatusBar(dc, outlineColor,
+                                   (itemRect.x+1,
+                                    itemRect.y+1,
+                                    itemRect.y-1 + itemRect.height))
 
  
             self.textOffset = wx.Point(self.textMargin, self.textMargin)
