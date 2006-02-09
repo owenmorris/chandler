@@ -153,6 +153,12 @@ class ContentItem(schema.Item):
         initialValue=[]
     )
 
+    notifications = schema.Sequence('UserNotification',
+        displayName=u'User Notifications',
+        description='All notifications for this ContentItem',
+        initialValue=[]
+    )
+
     triageStatus = schema.One(TriageEnum,
                               displayName=_(u"Triage Status"),
                               initialValue="now")
@@ -790,3 +796,23 @@ class Group(ContentItem):
                 '"playlists"/"item collections" are modeled.\n'
             '   We need to find a name for these things.\n'
     )
+
+class UserNotification(ContentItem):
+
+    schema.kindInfo(
+        displayName = u'User Notification',
+        description = "Notifications meant for the user to see"
+    )
+
+    items = schema.Sequence(ContentItem, inverse='notifications')
+
+    timestamp = schema.One(schema.DateTime,
+        displayName=_(u"timestamp"),
+        doc="DateTime this notification ocurred"
+    )
+
+    def __init__(self, *args, **kw):
+        super(UserNotification, self).__init__(*args, **kw)
+        if not hasattr(self, 'timestamp'):
+            self.timestamp = datetime.now()
+

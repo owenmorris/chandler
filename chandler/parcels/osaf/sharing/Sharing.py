@@ -929,6 +929,8 @@ class ShareConduit(pim.ContentItem):
 
                         if not filterClasses or isinstance(item, filterClasses):
 
+                            SharingNotification(itsView=view,
+                                displayName="Removed item from collection")
                             logger.info("...removing %s from collection" % item)
                             if item in self.share.contents:
                                 self.share.contents.remove(item)
@@ -1156,6 +1158,22 @@ class ShareConduit(pim.ContentItem):
         """
         pass
 
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+class SharingNotification(pim.UserNotification):
+    pass
+
+class SharingNewItemNotification(SharingNotification):
+    pass
+
+class SharingChangeNotification(SharingNotification):
+    attribute = schema.One(schema.Text)
+    value = schema.One(schema.Text)
+
+class SharingConflictNotification(SharingChangeNotification):
+    remote = schema.One(schema.Text)
+    local = schema.One(schema.Text)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -2067,6 +2085,13 @@ def importValue(item, changes, attribute, value, previousView,
 
         if conflict:
 
+            SharingConflictNotification(itsView=item.itsView,
+                displayName="Conflict for attribute %s" % attribute,
+                attribute=attribute,
+                local=str(getattr(item, attribute, None)),
+                remote=str(value),
+                items=[item])
+
             logger.warning("Sharing conflict: item '%s', attr '%s', "
                 "local '%s', remote '%s'" %
                 (item.getItemDisplayName().encode('ascii', 'replace'),
@@ -2089,6 +2114,12 @@ def importValue(item, changes, attribute, value, previousView,
                 )
         else:
 
+            if not item.isNew():
+                SharingChangeNotification(itsView=item.itsView,
+                    displayName="Changed attribute %s" % attribute,
+                    attribute=attribute,
+                    value=str(value),
+                    items=[item])
             logger.info("Sharing change: item '%s', attr '%s', value '%s'" % (item.getItemDisplayName().encode('ascii', 'replace'), attribute, value))
 
 
@@ -2616,6 +2647,9 @@ class CloudXMLFormat(ImportExportFormat):
                                             withInitialValues=True)
             else:
                 item = kind.newItem(None, None)
+
+            SharingNewItemNotification(itsView=item.itsView,
+                displayName="New item", items=[item])
 
         else:
             # there is a chance that the incoming kind is different than the

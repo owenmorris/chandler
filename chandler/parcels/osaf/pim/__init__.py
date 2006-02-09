@@ -2,7 +2,8 @@
 # (this should include all ContentItem subclasses in this package)
 #
 from items import (
-    ContentKind, ContentItem, ImportanceEnum, Group, Project, Tag, TriageEnum
+    ContentKind, ContentItem, ImportanceEnum, Group, Project, Tag, TriageEnum,
+    UserNotification
 )
 from notes import Note
 from contacts import Contact, ContactName
@@ -222,7 +223,12 @@ def installParcel(parcel, oldVersion=None):
          sources=[allCollection, events]
     )
 
-
+    KindCollection.update(parcel, 'notificationCollection',
+        displayName=_(u"Notifications"),
+        kind=UserNotification.getKind(view),
+        recursive=True)# .rep.addIndex('timestamp', 'compare',
+                       #              compare='_compareTimestamp',
+                       #              monitor='timestamp')
 
 del schema  # don't leave this lying where others might accidentally import it
 
