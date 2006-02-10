@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-May-1998
-// RCS-ID:      $Id: _event.i,v 1.26 2005/12/30 23:01:17 RD Exp $
+// RCS-ID:      $Id: _event.i,v 1.27 2006/02/10 18:32:41 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1218,6 +1218,17 @@ public:
         "Construct a new `wx.KeyEvent`.  Valid event types are:
     * ", "");
 
+
+    DocDeclStr(
+        int, GetModifiers() const,
+        "Returns a bitmask of the current modifier settings.  Can be used to
+check if the key event has exactly the given modifiers without having
+to explicitly check that the other modifiers are not down.  For
+example::
+
+    if event.GetModifers() == wx.MOD_CONTROL:
+        DoSomething()
+", "");
 
     DocDeclStr(
         bool , ControlDown() const,

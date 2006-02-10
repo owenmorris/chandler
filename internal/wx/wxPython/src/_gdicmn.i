@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Sept-2003
-// RCS-ID:      $Id: _gdicmn.i,v 1.22 2005/03/09 22:28:41 RD Exp $
+// RCS-ID:      $Id: _gdicmn.i,v 1.23 2006/02/10 18:33:26 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -541,7 +541,7 @@ bottom, otherwise it is moved to the left or top respectively.", "",
     
     DocDeclStr(
         void, Offset(const wxPoint& pt),
-        "Same as OffsetXY but uses dx,dy from Point", "");
+        "Same as `OffsetXY` but uses dx,dy from Point", "");
 
     DocDeclStr(
         wxRect, Intersect(const wxRect& rect),
@@ -577,6 +577,12 @@ bottom, otherwise it is moved to the left or top respectively.", "",
         bool, Intersects(const wxRect& rect) const,
         "Returns True if the rectangles have a non empty intersection.", "");
 
+    DocDeclStr(
+        wxRect, CenterIn(const wxRect& r, int dir = wxBOTH),
+        "Center this rectangle within the one passed to the method, which is
+usually, but not necessarily, the larger one.", "");
+    %pythoncode { CentreIn = CenterIn }
+    
     
     int x, y, width, height;
 

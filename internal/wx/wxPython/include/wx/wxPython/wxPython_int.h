@@ -8,7 +8,7 @@
 // Author:      Robin Dunn
 //
 // Created:     1-July-1997
-// RCS-ID:      $Id: wxPython_int.h,v 1.43 2006/02/07 03:56:41 RD Exp $
+// RCS-ID:      $Id: wxPython_int.h,v 1.44 2006/02/10 18:37:59 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1451,7 +1451,7 @@ extern wxPyApp *wxPythonApp;
         bool found;                                                             \
         wxPyBlock_t blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyConstructObject((void*)cell, wxT("wxHtmlCell"), 0);  \
+            PyObject* obj = wxPyMake_wxObject(cell, 0);                         \
             wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(Oii)",obj,x,y));  \
             Py_DECREF(obj);                                                     \
         }                                                                       \
@@ -1489,7 +1489,7 @@ extern wxPyApp *wxPythonApp;
         bool found;                                                                     \
         wxPyBlock_t blocked = wxPyBeginBlockThreads();                                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                        \
-            PyObject* obj = wxPyConstructObject((void*)cell, wxT("wxHtmlCell"), 0);     \
+            PyObject* obj = wxPyMake_wxObject(cell, 0);                                 \
             PyObject* o2  = wxPyConstructObject((void*)&e, wxT("wxMouseEvent"), 0);     \
             wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(OiiO)",obj,x,y,o2));      \
             Py_DECREF(obj);                                                             \

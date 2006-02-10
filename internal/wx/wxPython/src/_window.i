@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _window.i,v 1.60 2006/01/29 02:09:20 RD Exp $
+// RCS-ID:      $Id: _window.i,v 1.61 2006/02/10 18:34:02 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -560,17 +560,10 @@ cetering, and may be wx.HORIZONTAL, wx.VERTICAL or wx.BOTH. It may
 also include wx.CENTER_ON_SCREEN flag if you want to center the window
 on the entire screen and not on its parent window.  If it is a
 top-level window and has no parent then it will always be centered
-relative to the screen.", "");
-    
+relative to the screen.", "");    
     %pythoncode { Centre = Center }
 
     
-    DocDeclStr(
-        void , CenterOnScreen(int dir = wxBOTH),
-        "Center on screen (only works for top level windows)", "");
-    %pythoncode { CentreOnScreen = CenterOnScreen }
-
-
     DocDeclStr(
         void , CenterOnParent(int dir = wxBOTH),
         "Center with respect to the the parent window", "");

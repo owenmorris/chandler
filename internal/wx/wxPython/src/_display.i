@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Mar-2004
-// RCS-ID:      $Id: _display.i,v 1.9 2006/01/17 05:42:23 RD Exp $
+// RCS-ID:      $Id: _display.i,v 1.10 2006/02/10 18:32:10 RD Exp $
 // Copyright:   (c) 2004 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -159,14 +159,8 @@ doesn't belong to any display", "");
     DocStr(GetFromWindow,
            "Find the display where the given window lies, return wx.NOT_FOUND if
 it is not shown at all.", "");
-#ifdef __WXMSW__
     static int GetFromWindow(wxWindow *window);
-#else
-    %extend {
-        static int GetFromWindow(wxWindow *window) 
-            { wxPyRaiseNotImplemented(); return wxNOT_FOUND; }
-    }
-#endif
+
     
     DocDeclStr(
         virtual bool , IsOk() const,
