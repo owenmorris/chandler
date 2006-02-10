@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp,v 1.87 2006/02/09 15:09:59 SC Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.88 2006/02/10 17:40:25 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1146,11 +1146,17 @@ wxImage wxBitmap::ConvertToImage() const
         for (int xx = 0; xx < width; xx++)
         {
             color = *((long*) source) ;
+#ifdef WORDS_BIGENDIAN
             a = ((color&0xFF000000) >> 24) ;
             r = ((color&0x00FF0000) >> 16) ;
             g = ((color&0x0000FF00) >> 8) ;
             b = (color&0x000000FF);
-
+#else
+            b = ((color&0xFF000000) >> 24) ;
+            g = ((color&0x00FF0000) >> 16) ;
+            r = ((color&0x0000FF00) >> 8) ;
+            a = (color&0x000000FF);
+#endif
             if ( hasMask )
             {
                 if ( *maskp++ == 0xFF )
