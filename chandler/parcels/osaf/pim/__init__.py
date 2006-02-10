@@ -226,9 +226,8 @@ def installParcel(parcel, oldVersion=None):
     KindCollection.update(parcel, 'notificationCollection',
         displayName=_(u"Notifications"),
         kind=UserNotification.getKind(view),
-        recursive=True)# .rep.addIndex('timestamp', 'compare',
-                       #              compare='_compareTimestamp',
-                       #              monitor='timestamp')
+        recursive=True).rep.addIndex('timestamp', 'value',
+                                     attribute='timestamp')
 
 del schema  # don't leave this lying where others might accidentally import it
 

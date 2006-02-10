@@ -811,6 +811,13 @@ class UserNotification(ContentItem):
         doc="DateTime this notification ocurred"
     )
 
+    who = schema.One(schema.Text, initialValue = u"")
+
+    # redirections
+    about = schema.One(redirectTo = "displayName")
+
+    date = schema.One(redirectTo = "timestamp")
+
     def __init__(self, *args, **kw):
         super(UserNotification, self).__init__(*args, **kw)
         if not hasattr(self, 'timestamp'):
