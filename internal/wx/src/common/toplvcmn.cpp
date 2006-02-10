@@ -3,7 +3,7 @@
 // Purpose:     common (for all platforms) wxTopLevelWindow functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: toplvcmn.cpp,v 1.35 2005/09/23 12:53:09 MR Exp $
+// Id:          $Id: toplvcmn.cpp,v 1.36 2006/02/10 00:02:06 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,8 @@
     #include "wx/dcclient.h"
     #include "wx/app.h"
 #endif // WX_PRECOMP
+
+#include "wx/display.h"
 
 // ----------------------------------------------------------------------------
 // event table
@@ -149,6 +151,35 @@ wxSize wxTopLevelWindowBase::GetDefaultSize()
     }
 
     return size;
+}
+
+void wxTopLevelWindowBase::DoCentre(int dir)
+{
+    wxRect rectCentre;
+    if ( !(dir & wxCENTRE_ON_SCREEN) && GetParent() )
+    {
+        // centre on parent window
+        rectCentre = GetParent()->GetRect();
+    }
+    else
+    {
+        // we were explicitely asked to centre this window on the entire screen
+        // or if we have no parent anyhow and so can't centre on it
+#if wxUSE_DISPLAY
+        const int nDisplay = wxDisplay::GetFromWindow(this);
+        if ( nDisplay != wxNOT_FOUND )
+        {
+            rectCentre = wxDisplay(nDisplay).GetGeometry();
+        }
+        else
+#endif // wxUSE_DISPLAY
+        {
+            wxDisplaySize(&rectCentre.width, &rectCentre.height);
+        }
+    }
+
+    // window may be at -1 if it's centered on a secondary display, for example
+    SetSize(GetRect().CentreIn(rectCentre, dir), wxSIZE_ALLOW_MINUS_ONE);
 }
 
 // ----------------------------------------------------------------------------

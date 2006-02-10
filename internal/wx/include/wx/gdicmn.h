@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.h,v 1.103 2006/01/18 16:45:25 JS Exp $
+// RCS-ID:      $Id: gdicmn.h,v 1.104 2006/02/10 00:01:17 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -427,6 +427,20 @@ public:
         return *this;
     }
 
+
+    // centre this rectangle in the given (usually, but not necessarily,
+    // larger) one
+    wxRect CentreIn(const wxRect& r, int dir = wxBOTH) const
+    {
+        return wxRect(dir & wxHORIZONTAL ? r.x + (r.width - width)/2 : x,
+                      dir & wxVERTICAL ? r.y + (r.height - height)/2 : y,
+                      width, height);
+    }
+
+    wxRect CenterIn(const wxRect& r, int dir = wxBOTH) const
+    {
+        return CentreIn(r, dir);
+    }
 
 public:
     int x, y, width, height;

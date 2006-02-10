@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.201 2006/01/23 03:27:34 MR Exp $
+// RCS-ID:      $Id: window.h,v 1.202 2006/02/10 00:02:04 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -332,15 +332,11 @@ public:
         // the generic centre function - centers the window on parent by`
         // default or on screen if it doesn't have parent or
         // wxCENTER_ON_SCREEN flag is given
-    void Centre( int direction = wxBOTH );
-    void Center( int direction = wxBOTH ) { Centre(direction); }
-
-        // centre on screen (only works for top level windows)
-    void CentreOnScreen(int dir = wxBOTH) { Centre(dir | wxCENTER_ON_SCREEN); }
-    void CenterOnScreen(int dir = wxBOTH) { CentreOnScreen(dir); }
+    void Centre(int dir = wxBOTH) { DoCentre(dir); }
+    void Center(int dir = wxBOTH) { DoCentre(dir); }
 
         // centre with respect to the the parent window
-    void CentreOnParent(int dir = wxBOTH) { Centre(dir | wxCENTER_FRAME); }
+    void CentreOnParent(int dir = wxBOTH) { DoCentre(dir); }
     void CenterOnParent(int dir = wxBOTH) { CentreOnParent(dir); }
 
         // set window size to wrap around its children
@@ -1294,6 +1290,11 @@ protected:
     // reposition this window except for composite controls which will want to
     // arrange themselves inside the given rectangle
     virtual void DoMoveWindow(int x, int y, int width, int height) = 0;
+
+    // centre the window in the specified direction on parent, note that
+    // wxCENTRE_ON_SCREEN shouldn't be specified here, it only makes sense for
+    // TLWs
+    virtual void DoCentre(int dir);
 
 #if wxUSE_TOOLTIPS
     virtual void DoSetToolTip( wxToolTip *tip );

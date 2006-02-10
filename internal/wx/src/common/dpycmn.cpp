@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.03.03
-// RCS-ID:      $Id: dpycmn.cpp,v 1.12 2005/09/25 23:28:02 VZ Exp $
+// RCS-ID:      $Id: dpycmn.cpp,v 1.13 2006/02/10 02:29:30 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,6 +43,20 @@ wxDisplayBase::wxDisplayBase(size_t index)
     wxASSERT_MSG( m_index < GetCount(),
                     wxT("An invalid index was passed to wxDisplay") );
 }
+
+// MSW has its own specific implementation of this
+#ifndef __WXMSW__
+
+int wxDisplayBase::GetFromWindow(wxWindow *window)
+{
+    wxCHECK_MSG( window, wxNOT_FOUND, _T("NULL window") );
+
+    // consider that the window belong to the display containing its centre
+    const wxRect r(window->GetRect());
+    return GetFromPoint(wxPoint(r.x + r.width/2, r.y + r.height/2));
+}
+
+#endif // !__WXMSW__
 
 #endif // wxUSE_DISPLAY
 
