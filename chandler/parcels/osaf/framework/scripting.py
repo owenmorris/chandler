@@ -6,7 +6,7 @@ import application.schema as schema
 import osaf.pim as pim
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
-import osaf.pim.structs as DocumentTypes
+from osaf.pim import structs
 import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
 import osaf.framework.blocks.detail.Detail as Detail
 import application.dialogs.Util as Util
@@ -54,7 +54,7 @@ def installParcel(parcel, oldVersion=None):
                                 detail.makeEditor(parcel, 'EditFKey',
                                            viewAttribute=u'fkey',
                                            stretchFactor=0.0,
-                                           size=DocumentTypes.SizeType(75, -1)),
+                                           size=structs.SizeType(75, -1)),
                                 detail.makeSpacer(parcel, width=60),
                                 ]).install(parcel)
 
@@ -67,7 +67,7 @@ def installParcel(parcel, oldVersion=None):
                                              buttonKind='Text',
                                              characterStyle=blocks.LabelStyle,
                                              stretchFactor=0.0,
-                                             size=DocumentTypes.SizeType(100, -1),
+                                             size=structs.SizeType(100, -1),
                                              event=saveFileEvent
                                              ).install(parcel)
 
@@ -76,7 +76,7 @@ def installParcel(parcel, oldVersion=None):
                                              buttonKind='Text',
                                              characterStyle=blocks.LabelStyle,
                                              stretchFactor=0.0,
-                                             size=DocumentTypes.SizeType(100, -1),
+                                             size=structs.SizeType(100, -1),
                                              event=saveFileEvent
                                              ).install(parcel)
 
@@ -85,7 +85,7 @@ def installParcel(parcel, oldVersion=None):
                                              buttonKind='Text',
                                              characterStyle=blocks.LabelStyle,
                                              stretchFactor=0.0,
-                                             size=DocumentTypes.SizeType(100, -1),
+                                             size=structs.SizeType(100, -1),
                                              event=saveFileEvent
                                              ).install(parcel)
 
@@ -97,7 +97,7 @@ def installParcel(parcel, oldVersion=None):
                                 detail.makeEditor(parcel, 'EditTest',
                                            viewAttribute=u'test',
                                            stretchFactor=0.0,
-                                           minimumSize=DocumentTypes.SizeType(16,-1)),
+                                           minimumSize=structs.SizeType(16,-1)),
                                 detail.makeSpacer(parcel, width=6),
                                 openFileButton, saveFileButton, saveAsFileButton,
                                 ]).install(parcel)
