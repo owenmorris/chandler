@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.667 2006/02/09 12:42:25 JG Exp $
+// RCS-ID:      $Id: window.cpp,v 1.668 2006/02/10 21:44:54 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1428,6 +1428,10 @@ void wxWindowMSW::Update()
 // a drop target
 static inline void AdjustStaticBoxZOrder(wxWindow *parent)
 {
+    // no sibling static boxes if we have no parent (ie TLW)
+    if ( !parent )
+        return;
+
     for ( wxWindowList::compatibility_iterator node = parent->GetChildren().GetFirst();
           node;
           node = node->GetNext() )
