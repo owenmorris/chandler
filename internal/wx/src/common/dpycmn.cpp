@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        common/dpycmn.cpp
+// Name:        src/common/dpycmn.cpp
 // Purpose:     wxDisplayBase implementation
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.03.03
-// RCS-ID:      $Id: dpycmn.cpp,v 1.13 2006/02/10 02:29:30 VZ Exp $
+// RCS-ID:      $Id: dpycmn.cpp,v 1.14 2006/02/10 11:33:22 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,9 +24,14 @@
     #pragma hdrstop
 #endif
 
-#include "wx/display.h"
-
 #if wxUSE_DISPLAY
+
+#ifndef WX_PRECOMP
+    #include "wx/gdicmn.h"
+    #include "wx/window.h"
+#endif //WX_PRECOMP
+
+#include "wx/display.h"
 
 #include "wx/arrimpl.cpp"
 WX_DEFINE_OBJARRAY(wxArrayVideoModes)
@@ -59,4 +64,3 @@ int wxDisplayBase::GetFromWindow(wxWindow *window)
 #endif // !__WXMSW__
 
 #endif // wxUSE_DISPLAY
-
