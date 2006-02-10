@@ -207,6 +207,16 @@ def show(arg=None, recursive=False):
 
 
 @exportMethod
+def browse(arg=None):
+    item = _argToItem(arg)
+
+    import webbrowser
+    path = unicode(item.itsPath)[1:]
+    url = 'http://localhost:1888/repo%s' % path.encode('utf8')
+    webbrowser.open(url)
+
+
+@exportMethod
 def readme():
     print """
 This is a version of Chandler which doesn't start up the wx portion
@@ -248,6 +258,9 @@ the repository:  cd, pwd, ls, grab, show
     a number from the most recent ls(), a repository path, or if nothing
     is passed in it will use the "current" item.  There is an optional
     'recursive' boolean argument which defaults to False.
+
+- browse(item or list number or repository path or None)
+    Opens the web browser, rendering the item's info in the repository servlet.
 
 - create(kind name)
     Creates and returns an item of the kind 'kind name'
