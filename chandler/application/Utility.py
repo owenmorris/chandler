@@ -342,6 +342,7 @@ def initRepository(directory, options, allowSchemaView=False):
     # //userdata) gets created just-in-time in two separate views, an
     # exception is raised by the repository.
     schema.Item.getDefaultParent(view)
+    view.commit()
 
     # tell the schema API about this view so that it doesn't setup its own
     # (also load Chandler pack)
