@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: multilib.bkl,v 1.35 2005/10/21 16:18:40 MW Exp $ -->
+<!-- $Id: multilib.bkl,v 1.36 2006/02/10 19:37:22 VZ Exp $ -->
 
 <makefile>
 
@@ -102,7 +102,7 @@
     <!-- ================================================================= -->
 
     <dll id="mediadll" template="wx_dll"
-         cond="SHARED=='1' and USE_GUI=='1' and MONOLITHIC=='0'">
+         cond="SHARED=='1' and USE_MEDIA=='1' and USE_GUI=='1' and MONOLITHIC=='0'">
         <define>WXUSINGDLL</define>
         <define>WXMAKINGDLL_MEDIA</define>
         <sources>$(MEDIA_SRC)</sources>
@@ -112,7 +112,7 @@
     </dll>
 
     <lib id="medialib" template="wx_lib"
-         cond="SHARED=='0' and USE_GUI=='1' and MONOLITHIC=='0'">
+         cond="SHARED=='0' and USE_MEDIA=='1' and USE_GUI=='1' and MONOLITHIC=='0'">
         <sources>$(MEDIA_SRC)</sources>
         <msvc-headers>$(MEDIA_HDR)</msvc-headers>
     </lib>

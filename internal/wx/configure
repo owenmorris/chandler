@@ -313,7 +313,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all src/expat"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA STRIP ac_ct_STRIP WINDRES ac_ct_WINDRES DLLTOOL ac_ct_DLLTOOL IF_GNU_MAKE LN_S CXXCPP subdirs PKG_CONFIG GTK_CFLAGS GTK_LIBS GTK_CONFIG X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS PANGOX_CFLAGS PANGOX_LIBS PANGOFT2_CFLAGS PANGOFT2_LIBS PANGOXFT_CFLAGS PANGOXFT_LIBS REZ DEREZ SETFILE LIBICONV EXTRALIBS_ESD SDL_CONFIG SDL_CFLAGS SDL_LIBS LIBGNOMEPRINTUI_CFLAGS LIBGNOMEPRINTUI_LIBS HILDON_CFLAGS HILDON_LIBS GSTREAMER_CFLAGS GSTREAMER_LIBS GST_INSPECT CORE_BASE_LIBS CORE_GUI_LIBS wxUSE_ZLIB wxUSE_REGEX wxUSE_EXPAT wxUSE_ODBC wxUSE_LIBJPEG wxUSE_LIBPNG wxUSE_LIBTIFF VENDOR OFFICIAL_BUILD WX_FLAVOUR WX_LIB_FLAVOUR WXUNIV MONOLITHIC USE_PLUGINS EXTRALIBS EXTRALIBS_XML EXTRALIBS_HTML EXTRALIBS_ODBC EXTRALIBS_GUI EXTRALIBS_OPENGL EXTRALIBS_SDL WITH_PLUGIN_SDL EXTRALIBS_GNOMEPRINT EXTRALIBS_HILDON UNICODE BUILD DEBUG_INFO DEBUG_FLAG TOOLKIT_LOWERCASE TOOLKIT_VERSION SAMPLES_RPATH_FLAG SAMPLES_RPATH_POSTLINK HOST_SUFFIX CPPUNIT_CFLAGS CPPUNIT_LIBS SET_MAKE MAKE_SET NM ac_ct_NM INSTALL_DIR LDFLAGS_GUI PLATFORM_UNIX PLATFORM_WIN32 PLATFORM_MSDOS PLATFORM_MAC PLATFORM_MACOS PLATFORM_MACOSX PLATFORM_OS2 PLATFORM_BEOS SO_SUFFIX SO_SUFFIX_MODULE DLLIMP_SUFFIX LIBPREFIX LIBEXT DLLPREFIX DLLPREFIX_MODULE dlldir AIX_CXX_LD SHARED_LD_CC SHARED_LD_CXX SHARED_LD_MODULE_CC SHARED_LD_MODULE_CXX PIC_FLAG WINDOWS_IMPLIB USE_SOVERSION USE_SOVERLINUX USE_SOVERSOLARIS USE_SOVERCYGWIN USE_MACVERSION USE_SOSYMLINKS SONAME_FLAG DEPS_TRACKING GCC_PCH COND_BUILD_DEBUG COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT COND_BUILD_DEBUG_UNICODE_0 COND_BUILD_DEBUG_UNICODE_1 COND_BUILD_RELEASE COND_BUILD_RELEASE_DEBUG_INFO_DEFAULT COND_BUILD_RELEASE_UNICODE_0 COND_BUILD_RELEASE_UNICODE_1 COND_DEBUG_FLAG_1 COND_DEBUG_INFO_0 COND_DEBUG_INFO_1 COND_DEPS_TRACKING_0 COND_DEPS_TRACKING_1 COND_GCC_PCH_1 COND_MONOLITHIC_0 COND_MONOLITHIC_0_SHARED_0 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_XRC_1 COND_MONOLITHIC_0_SHARED_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_XRC_1 COND_MONOLITHIC_0_USE_ODBC_1 COND_MONOLITHIC_1 COND_MONOLITHIC_1_SHARED_0 COND_MONOLITHIC_1_SHARED_1 COND_OFFICIAL_BUILD_0_PLATFORM_WIN32_1 COND_OFFICIAL_BUILD_1_PLATFORM_WIN32_1 COND_PLATFORM_MACOSX_0_USE_SOVERCYGWIN_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_1 COND_PLATFORM_MACOSX_1_TOOLKIT_ COND_PLATFORM_MACOSX_1_TOOLKIT_COCOA COND_PLATFORM_MACOSX_1_TOOLKIT_GTK COND_PLATFORM_MACOSX_1_TOOLKIT_MAC COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1 COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF COND_PLATFORM_MACOSX_1_TOOLKIT_X11 COND_PLATFORM_MACOSX_1_USE_GUI_1 COND_PLATFORM_MACOSX_1_USE_SOVERSION_1 COND_PLATFORM_MACOS_1 COND_PLATFORM_MAC_1 COND_PLATFORM_MSDOS_1 COND_PLATFORM_OS2_1 COND_PLATFORM_UNIX_0 COND_PLATFORM_UNIX_1 COND_PLATFORM_UNIX_1_USE_GUI_1 COND_PLATFORM_UNIX_1_USE_PLUGINS_0 COND_PLATFORM_WIN32_0 COND_PLATFORM_WIN32_1 COND_SHARED_0 COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0 COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0 COND_SHARED_0_TOOLKIT_PM_WXUNIV_0 COND_SHARED_0_USE_GUI_1_USE_OPENGL_1 COND_SHARED_0_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_SHARED_0_USE_XRC_1 COND_SHARED_0_WXUSE_EXPAT_BUILTIN COND_SHARED_0_WXUSE_ODBC_BUILTIN COND_SHARED_0_WXUSE_REGEX_BUILTIN COND_SHARED_0_WXUSE_ZLIB_BUILTIN COND_SHARED_1 COND_SHARED_1_USE_GUI_1_USE_OPENGL_1 COND_SHARED_1_USE_XRC_1 COND_TOOLKIT_ COND_TOOLKIT_COCOA COND_TOOLKIT_COCOA_USE_GUI_1 COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK COND_TOOLKIT_GTK_TOOLKIT_VERSION_ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2 COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1 COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1 COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK_USE_GUI_1 COND_TOOLKIT_MAC COND_TOOLKIT_MAC_USE_GUI_1 COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MGL COND_TOOLKIT_MGL_USE_GUI_1 COND_TOOLKIT_MOTIF COND_TOOLKIT_MOTIF_USE_GUI_1 COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW COND_TOOLKIT_MSW_USE_GUI_1 COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW_WXUNIV_0 COND_TOOLKIT_PM COND_TOOLKIT_PM_USE_GUI_1 COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE COND_TOOLKIT_WINCE_USE_GUI_1 COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE_WXUNIV_0 COND_TOOLKIT_X11 COND_TOOLKIT_X11_USE_GUI_1 COND_UNICODE_1 COND_USE_EXCEPTIONS_0 COND_USE_EXCEPTIONS_1 COND_USE_GUI_0 COND_USE_GUI_1 COND_USE_GUI_1_WXUNIV_0 COND_USE_GUI_1_WXUNIV_1 COND_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_USE_ODBC_1 COND_USE_OPENGL_1 COND_USE_PLUGINS_0 COND_USE_RTTI_0 COND_USE_RTTI_1 COND_USE_SOSYMLINKS_1 COND_USE_SOVERCYGWIN_1_USE_SOVERSION_1 COND_USE_SOVERLINUX_1 COND_USE_SOVERSION_0 COND_USE_SOVERSOLARIS_1 COND_USE_THREADS_0 COND_USE_THREADS_1 COND_USE_XRC_1 COND_WINDOWS_IMPLIB_1 COND_WITH_PLUGIN_SDL_1 COND_WXUNIV_0 COND_WXUNIV_1 COND_WXUSE_EXPAT_BUILTIN COND_WXUSE_LIBJPEG_BUILTIN COND_WXUSE_LIBPNG_BUILTIN COND_WXUSE_LIBTIFF_BUILTIN COND_WXUSE_ODBC_BUILTIN COND_WXUSE_REGEX_BUILTIN COND_WXUSE_ZLIB_BUILTIN SHARED WX_LIBRARY_BASENAME_NOGUI WX_LIBRARY_BASENAME_GUI USE_GUI AFMINSTALL WIN32INSTALL TOOLKIT TOOLKIT_DIR TOOLCHAIN_NAME TOOLCHAIN_FULLNAME cross_compiling WIDGET_SET WX_RELEASE WX_VERSION WX_SUBVERSION WX_CHARTYPE WX_DEBUGTYPE WXCONFIG_CPPFLAGS WXCONFIG_CFLAGS WXCONFIG_CXXFLAGS WXCONFIG_LIBS WXCONFIG_RPATH WXCONFIG_LDFLAGS_GUI WXCONFIG_RESFLAGS EXE_LINKER GUIDIST DISTDIR SAMPLES_SUBDIRS LDFLAGS_GL OPENGL_LIBS DMALLOC_LIBS WX_VERSION_TAG RESCOMP RESFLAGS RESPROGRAMOBJ WX_RESOURCES_MACOSX_ASCII WX_RESOURCES_MACOSX_DATA LIBWXMACRES POSTLINK_COMMAND MACSETFILE GCC CPPUNIT_CONFIG LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA STRIP ac_ct_STRIP WINDRES ac_ct_WINDRES DLLTOOL ac_ct_DLLTOOL IF_GNU_MAKE LN_S CXXCPP subdirs PKG_CONFIG GTK_CFLAGS GTK_LIBS GTK_CONFIG X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS PANGOX_CFLAGS PANGOX_LIBS PANGOFT2_CFLAGS PANGOFT2_LIBS PANGOXFT_CFLAGS PANGOXFT_LIBS REZ DEREZ SETFILE LIBICONV EXTRALIBS_ESD SDL_CONFIG SDL_CFLAGS SDL_LIBS LIBGNOMEPRINTUI_CFLAGS LIBGNOMEPRINTUI_LIBS HILDON_CFLAGS HILDON_LIBS GST_CFLAGS GST_LIBS CORE_BASE_LIBS CORE_GUI_LIBS wxUSE_ZLIB wxUSE_REGEX wxUSE_EXPAT wxUSE_ODBC wxUSE_LIBJPEG wxUSE_LIBPNG wxUSE_LIBTIFF VENDOR OFFICIAL_BUILD WX_FLAVOUR WX_LIB_FLAVOUR WXUNIV MONOLITHIC USE_PLUGINS EXTRALIBS EXTRALIBS_XML EXTRALIBS_HTML EXTRALIBS_ODBC EXTRALIBS_GUI EXTRALIBS_OPENGL EXTRALIBS_SDL WITH_PLUGIN_SDL EXTRALIBS_GNOMEPRINT EXTRALIBS_HILDON UNICODE BUILD DEBUG_INFO DEBUG_FLAG TOOLKIT_LOWERCASE TOOLKIT_VERSION SAMPLES_RPATH_FLAG SAMPLES_RPATH_POSTLINK HOST_SUFFIX CPPUNIT_CFLAGS CPPUNIT_LIBS SET_MAKE MAKE_SET NM ac_ct_NM INSTALL_DIR LDFLAGS_GUI PLATFORM_UNIX PLATFORM_WIN32 PLATFORM_MSDOS PLATFORM_MAC PLATFORM_MACOS PLATFORM_MACOSX PLATFORM_OS2 PLATFORM_BEOS SO_SUFFIX SO_SUFFIX_MODULE DLLIMP_SUFFIX LIBPREFIX LIBEXT DLLPREFIX DLLPREFIX_MODULE dlldir AIX_CXX_LD SHARED_LD_CC SHARED_LD_CXX SHARED_LD_MODULE_CC SHARED_LD_MODULE_CXX PIC_FLAG WINDOWS_IMPLIB USE_SOVERSION USE_SOVERLINUX USE_SOVERSOLARIS USE_SOVERCYGWIN USE_MACVERSION USE_SOSYMLINKS SONAME_FLAG DEPS_TRACKING GCC_PCH ICC_PCH COND_BUILD_DEBUG COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT COND_BUILD_DEBUG_UNICODE_0 COND_BUILD_DEBUG_UNICODE_1 COND_BUILD_RELEASE COND_BUILD_RELEASE_DEBUG_INFO_DEFAULT COND_BUILD_RELEASE_UNICODE_0 COND_BUILD_RELEASE_UNICODE_1 COND_DEBUG_FLAG_1 COND_DEBUG_INFO_0 COND_DEBUG_INFO_1 COND_DEPS_TRACKING_0 COND_DEPS_TRACKING_1 COND_GCC_PCH_1 COND_ICC_PCH_1 COND_MONOLITHIC_0 COND_MONOLITHIC_0_SHARED_0 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_MEDIA_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_0_USE_XRC_1 COND_MONOLITHIC_0_SHARED_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_MEDIA_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_QA_1 COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1 COND_MONOLITHIC_0_SHARED_1_USE_XRC_1 COND_MONOLITHIC_0_USE_ODBC_1 COND_MONOLITHIC_1 COND_MONOLITHIC_1_SHARED_0 COND_MONOLITHIC_1_SHARED_1 COND_OFFICIAL_BUILD_0_PLATFORM_WIN32_1 COND_OFFICIAL_BUILD_1_PLATFORM_WIN32_1 COND_PLATFORM_MACOSX_0_USE_SOVERCYGWIN_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_0_USE_SOVERSION_1 COND_PLATFORM_MACOSX_1 COND_PLATFORM_MACOSX_1_TOOLKIT_ COND_PLATFORM_MACOSX_1_TOOLKIT_COCOA COND_PLATFORM_MACOSX_1_TOOLKIT_GTK COND_PLATFORM_MACOSX_1_TOOLKIT_MAC COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1 COND_PLATFORM_MACOSX_1_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF COND_PLATFORM_MACOSX_1_TOOLKIT_X11 COND_PLATFORM_MACOSX_1_USE_GUI_1 COND_PLATFORM_MACOSX_1_USE_SOVERSION_1 COND_PLATFORM_MACOS_1 COND_PLATFORM_MAC_1 COND_PLATFORM_MSDOS_1 COND_PLATFORM_OS2_1 COND_PLATFORM_UNIX_0 COND_PLATFORM_UNIX_1 COND_PLATFORM_UNIX_1_USE_GUI_1 COND_PLATFORM_UNIX_1_USE_PLUGINS_0 COND_PLATFORM_WIN32_0 COND_PLATFORM_WIN32_1 COND_SHARED_0 COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0 COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0 COND_SHARED_0_TOOLKIT_PM_WXUNIV_0 COND_SHARED_0_USE_GUI_1_USE_OPENGL_1 COND_SHARED_0_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_SHARED_0_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_SHARED_0_USE_XRC_1 COND_SHARED_0_WXUSE_EXPAT_BUILTIN COND_SHARED_0_WXUSE_ODBC_BUILTIN COND_SHARED_0_WXUSE_REGEX_BUILTIN COND_SHARED_0_WXUSE_ZLIB_BUILTIN COND_SHARED_1 COND_SHARED_1_USE_GUI_1_USE_OPENGL_1 COND_SHARED_1_USE_XRC_1 COND_TOOLKIT_ COND_TOOLKIT_COCOA COND_TOOLKIT_COCOA_USE_GUI_1 COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK COND_TOOLKIT_GTK_TOOLKIT_VERSION_ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2 COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1 COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1 COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0 COND_TOOLKIT_GTK_USE_GUI_1 COND_TOOLKIT_MAC COND_TOOLKIT_MAC_USE_GUI_1 COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MGL COND_TOOLKIT_MGL_USE_GUI_1 COND_TOOLKIT_MOTIF COND_TOOLKIT_MOTIF_USE_GUI_1 COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW COND_TOOLKIT_MSW_USE_GUI_1 COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_MSW_WXUNIV_0 COND_TOOLKIT_PM COND_TOOLKIT_PM_USE_GUI_1 COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE COND_TOOLKIT_WINCE_USE_GUI_1 COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0 COND_TOOLKIT_WINCE_WXUNIV_0 COND_TOOLKIT_X11 COND_TOOLKIT_X11_USE_GUI_1 COND_UNICODE_1 COND_USE_EXCEPTIONS_0 COND_USE_EXCEPTIONS_1 COND_USE_GUI_0 COND_USE_GUI_1 COND_USE_GUI_1_WXUNIV_0 COND_USE_GUI_1_WXUNIV_1 COND_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN COND_USE_ODBC_1 COND_USE_OPENGL_1 COND_USE_PCH_1 COND_USE_PLUGINS_0 COND_USE_RTTI_0 COND_USE_RTTI_1 COND_USE_SOSYMLINKS_1 COND_USE_SOVERCYGWIN_1_USE_SOVERSION_1 COND_USE_SOVERLINUX_1 COND_USE_SOVERSION_0 COND_USE_SOVERSOLARIS_1 COND_USE_THREADS_0 COND_USE_THREADS_1 COND_USE_XRC_1 COND_WINDOWS_IMPLIB_1 COND_WITH_PLUGIN_SDL_1 COND_WXUNIV_0 COND_WXUNIV_1 COND_WXUSE_EXPAT_BUILTIN COND_WXUSE_LIBJPEG_BUILTIN COND_WXUSE_LIBPNG_BUILTIN COND_WXUSE_LIBTIFF_BUILTIN COND_WXUSE_ODBC_BUILTIN COND_WXUSE_REGEX_BUILTIN COND_WXUSE_ZLIB_BUILTIN SHARED WX_LIBRARY_BASENAME_NOGUI WX_LIBRARY_BASENAME_GUI USE_GUI AFMINSTALL WIN32INSTALL TOOLKIT TOOLKIT_DIR TOOLCHAIN_NAME TOOLCHAIN_FULLNAME cross_compiling WIDGET_SET WX_RELEASE WX_VERSION WX_SUBVERSION WX_CHARTYPE WX_DEBUGTYPE WXCONFIG_CPPFLAGS WXCONFIG_CFLAGS WXCONFIG_CXXFLAGS WXCONFIG_LIBS WXCONFIG_RPATH WXCONFIG_LDFLAGS_GUI WXCONFIG_RESFLAGS EXE_LINKER GUIDIST DISTDIR SAMPLES_SUBDIRS LDFLAGS_GL OPENGL_LIBS DMALLOC_LIBS WX_VERSION_TAG RESCOMP RESFLAGS RESPROGRAMOBJ WX_RESOURCES_MACOSX_ASCII WX_RESOURCES_MACOSX_DATA LIBWXMACRES POSTLINK_COMMAND MACSETFILE GCC CPPUNIT_CONFIG LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -938,6 +938,7 @@ Optional Features:
   --enable-unicode        compile wxString with Unicode support
   --enable-sound          use wxSound class
   --enable-mediactrl      use wxMediaCtrl class
+  --enable-gstreamer8      force GStreamer 0.8 instead of 0.10 with the wxMediaCtrl class on unix
   --enable-wxprintfv      use wxWidgets implementation of vprintf()
   --enable-zipstream      use wxZip streams
   --enable-url            use wxURL class
@@ -1053,6 +1054,9 @@ Optional Features:
   --disable-gtktest       Do not try to compile and run a test GTK program
   --disable-sdltest       Do not try to compile and run a test SDL program
   --enable-omf            use OMF object format (OS/2)
+  --disable-dependency-tracking
+                          don't use dependency tracking even if the compiler
+                          can
   --disable-precomp-headers
                           don't use precompiled headers even if compiler can
 
@@ -1198,7 +1202,7 @@ esac
     else
       echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2
     fi
-    cd $ac_popdir
+    cd "$ac_popdir"
   done
 fi
 
@@ -2104,6 +2108,7 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_TEXTFILE=no
   DEFAULT_wxUSE_SOUND=no
   DEFAULT_wxUSE_MEDIACTRL=no
+  DEFAULT_wxUSE_GSTREAMER8=no
   DEFAULT_wxUSE_INTL=no
   DEFAULT_wxUSE_CONFIG=no
   DEFAULT_wxUSE_FONTMAP=no
@@ -2212,7 +2217,7 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_STATLINE=no
   DEFAULT_wxUSE_STATTEXT=no
   DEFAULT_wxUSE_STATUSBAR=yes
-  DEFAULT_wxUSE_TABDIALOG=no
+  DEFAULT_wxUSE_TAB_DIALOG=no
   DEFAULT_wxUSE_TEXTCTRL=no
   DEFAULT_wxUSE_TOGGLEBTN=no
   DEFAULT_wxUSE_TOOLBAR=no
@@ -2306,6 +2311,7 @@ else
   DEFAULT_wxUSE_TEXTFILE=yes
   DEFAULT_wxUSE_SOUND=yes
   DEFAULT_wxUSE_MEDIACTRL=no
+  DEFAULT_wxUSE_GSTREAMER8=no
   DEFAULT_wxUSE_INTL=yes
   DEFAULT_wxUSE_CONFIG=yes
   DEFAULT_wxUSE_FONTMAP=yes
@@ -2414,7 +2420,7 @@ else
   DEFAULT_wxUSE_STATLINE=yes
   DEFAULT_wxUSE_STATTEXT=yes
   DEFAULT_wxUSE_STATUSBAR=yes
-  DEFAULT_wxUSE_TABDIALOG=no
+  DEFAULT_wxUSE_TAB_DIALOG=no
   DEFAULT_wxUSE_TEXTCTRL=yes
   DEFAULT_wxUSE_TOGGLEBTN=yes
   DEFAULT_wxUSE_TOOLBAR=yes
@@ -6200,6 +6206,47 @@ echo "${ECHO_T}no" >&6
 
 
 	  enablestring=
+          echo "$as_me:$LINENO: checking for --${enablestring:-enable}-gstreamer8" >&5
+echo $ECHO_N "checking for --${enablestring:-enable}-gstreamer8... $ECHO_C" >&6
+          no_cache=0
+          # Check whether --enable-gstreamer8 or --disable-gstreamer8 was given.
+if test "${enable_gstreamer8+set}" = set; then
+  enableval="$enable_gstreamer8"
+
+                          if test "$enableval" = yes; then
+                            ac_cv_use_gstreamer8='wxUSE_GSTREAMER8=yes'
+                          else
+                            ac_cv_use_gstreamer8='wxUSE_GSTREAMER8=no'
+                          fi
+
+else
+
+                          LINE=`grep "wxUSE_GSTREAMER8" ${wx_arg_cache_file}`
+                          if test "x$LINE" != x ; then
+                            eval "DEFAULT_$LINE"
+                          else
+                            no_cache=1
+                          fi
+
+                          ac_cv_use_gstreamer8='wxUSE_GSTREAMER8='$DEFAULT_wxUSE_GSTREAMER8
+
+fi;
+
+          eval "$ac_cv_use_gstreamer8"
+          if test "$no_cache" != 1; then
+            echo $ac_cv_use_gstreamer8 >> ${wx_arg_cache_file}.tmp
+          fi
+
+          if test "$wxUSE_GSTREAMER8" = yes; then
+            echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+          else
+            echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+          fi
+
+
+	  enablestring=
           echo "$as_me:$LINENO: checking for --${enablestring:-enable}-wxprintfv" >&5
 echo $ECHO_N "checking for --${enablestring:-enable}-wxprintfv... $ECHO_C" >&6
           no_cache=0
@@ -8897,21 +8944,21 @@ if test "${enable_tabdialog+set}" = set; then
   enableval="$enable_tabdialog"
 
                           if test "$enableval" = yes; then
-                            ac_cv_use_tabdialog='wxUSE_TABDIALOG=yes'
+                            ac_cv_use_tabdialog='wxUSE_TAB_DIALOG=yes'
                           else
-                            ac_cv_use_tabdialog='wxUSE_TABDIALOG=no'
+                            ac_cv_use_tabdialog='wxUSE_TAB_DIALOG=no'
                           fi
 
 else
 
-                          LINE=`grep "wxUSE_TABDIALOG" ${wx_arg_cache_file}`
+                          LINE=`grep "wxUSE_TAB_DIALOG" ${wx_arg_cache_file}`
                           if test "x$LINE" != x ; then
                             eval "DEFAULT_$LINE"
                           else
                             no_cache=1
                           fi
 
-                          ac_cv_use_tabdialog='wxUSE_TABDIALOG='$DEFAULT_wxUSE_TABDIALOG
+                          ac_cv_use_tabdialog='wxUSE_TAB_DIALOG='$DEFAULT_wxUSE_TAB_DIALOG
 
 fi;
 
@@ -8920,7 +8967,7 @@ fi;
             echo $ac_cv_use_tabdialog >> ${wx_arg_cache_file}.tmp
           fi
 
-          if test "$wxUSE_TABDIALOG" = yes; then
+          if test "$wxUSE_TAB_DIALOG" = yes; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
           else
@@ -11613,8 +11660,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"
-			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17166,10 +17212,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -17574,10 +17618,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -17982,10 +18024,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -18390,10 +18430,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -18798,10 +18836,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -19206,10 +19242,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -19617,10 +19651,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -20027,10 +20059,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -20440,10 +20470,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -20952,10 +20980,8 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
+  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
+echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -27543,9 +27569,12 @@ echo "$as_me: error: Cannot find MicroWindows libraries, make sure they are comp
     fi
 
         if test "$wxUSE_X11" = 1 -o "$wxUSE_MOTIF" = 1; then
-                                echo "$as_me:$LINENO: checking for X" >&5
+
+if test "x$ac_path_x_has_been_run" != xyes; then
+  echo "$as_me:$LINENO: checking for X" >&5
 echo $ECHO_N "checking for X... $ECHO_C" >&6
 
+ac_path_x_has_been_run=yes
 
 # Check whether --with-x or --without-x was given.
 if test "${with_x+set}" = set; then
@@ -27638,7 +27667,7 @@ ac_x_header_dirs='
 /usr/openwin/share/include'
 
 if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for Intrinsic.h.
+  # Guess where to find include files, by looking for a specified header file.
   # First, try using that file with no special directory specified.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -27646,7 +27675,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -27673,7 +27702,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Intrinsic.h"; then
+  if test -r "$ac_dir/X11/Xlib.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -27687,18 +27716,18 @@ if test "$ac_x_libraries" = no; then
   # See if we find them without any special options.
   # Don't add to $LIBS permanently.
   ac_save_LIBS=$LIBS
-  LIBS="-lXt $LIBS"
+  LIBS="-lX11 $LIBS"
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 int
 main ()
 {
-XtMalloc (0)
+XrmInitialize ()
   ;
   return 0;
 }
@@ -27736,7 +27765,7 @@ for ac_dir in `echo "$ac_x_includes $ac_x_header_dirs" | sed s/include/lib/g`
 do
   # Don't even attempt the hair of trying to link an X program!
   for ac_extension in a so sl; do
-    if test -r $ac_dir/libXt.$ac_extension; then
+    if test -r $ac_dir/libX11.$ac_extension; then
       ac_x_libraries=$ac_dir
       break 2
     fi
@@ -27772,10 +27801,15 @@ else
   # Update the cache value to reflect the command line values.
   ac_cv_have_x="have_x=yes \
 		ac_x_includes=$x_includes ac_x_libraries=$x_libraries"
-  echo "$as_me:$LINENO: result: libraries $x_libraries, headers $x_includes" >&5
-echo "${ECHO_T}libraries $x_libraries, headers $x_includes" >&6
+  # It might be that x_includes is empty (headers are found in the
+  # standard search path. Then output the corresponding message
+  ac_out_x_includes=$x_includes
+  test "x$x_includes" = x && ac_out_x_includes="in standard search path"
+  echo "$as_me:$LINENO: result: libraries $x_libraries, headers $ac_out_x_includes" >&5
+echo "${ECHO_T}libraries $x_libraries, headers $ac_out_x_includes" >&6
 fi
 
+fi
 if test "$no_x" = yes; then
   # Not all programs may use this symbol, but it does not hurt to define it.
 
@@ -38815,7 +38849,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -38912,7 +38946,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -38967,7 +39001,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -39015,7 +39049,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -39063,7 +39097,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -39184,7 +39218,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -43477,7 +43511,7 @@ _ACEOF
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS statbar"
 fi
 
-if test "$wxUSE_TABDIALOG" = "yes"; then
+if test "$wxUSE_TAB_DIALOG" = "yes"; then
     cat >>confdefs.h <<\_ACEOF
 #define wxUSE_TAB_DIALOG 1
 _ACEOF
@@ -44019,10 +44053,19 @@ _ACEOF
 fi
 
 
+USE_MEDIA=0
+
 if test "$wxUSE_MEDIACTRL" = "yes"; then
                 if test "$wxUSE_GTK" = 1; then
         wxUSE_GSTREAMER="yes"
 
+                                                                GST_VERSION_MAJOR=0
+        GST_VERSION_MINOR=10
+        GST_VERSION_RELEASE=0
+        GSTREAMER_REQ=$GST_VERSION_MAJOR.$GST_VERSION_MINOR.$GST_VERSION_RELEASE
+        GST_MAJORMINOR=$GST_VERSION_MAJOR.$GST_VERSION_MINOR
+
+        if test "$wxUSE_GSTREAMER8" = "no"; then
 
   succeeded=no
 
@@ -44077,31 +44120,43 @@ fi
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        echo "$as_me:$LINENO: checking for gstreamer-0.8" >&5
-echo $ECHO_N "checking for gstreamer-0.8... $ECHO_C" >&6
+        echo "$as_me:$LINENO: checking for gstreamer-$GST_MAJORMINOR
+                               gstreamer-plugins-base-$GST_MAJORMINOR
+                               gconf-2.0" >&5
+echo $ECHO_N "checking for gstreamer-$GST_MAJORMINOR
+                               gstreamer-plugins-base-$GST_MAJORMINOR
+                               gconf-2.0... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "gstreamer-0.8" ; then
+        if $PKG_CONFIG --exists "gstreamer-$GST_MAJORMINOR
+                               gstreamer-plugins-base-$GST_MAJORMINOR
+                               gconf-2.0" ; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes
 
-            echo "$as_me:$LINENO: checking GSTREAMER_CFLAGS" >&5
-echo $ECHO_N "checking GSTREAMER_CFLAGS... $ECHO_C" >&6
-            GSTREAMER_CFLAGS=`$PKG_CONFIG --cflags "gstreamer-0.8"`
-            echo "$as_me:$LINENO: result: $GSTREAMER_CFLAGS" >&5
-echo "${ECHO_T}$GSTREAMER_CFLAGS" >&6
+            echo "$as_me:$LINENO: checking GST_CFLAGS" >&5
+echo $ECHO_N "checking GST_CFLAGS... $ECHO_C" >&6
+            GST_CFLAGS=`$PKG_CONFIG --cflags "gstreamer-$GST_MAJORMINOR
+                               gstreamer-plugins-base-$GST_MAJORMINOR
+                               gconf-2.0"`
+            echo "$as_me:$LINENO: result: $GST_CFLAGS" >&5
+echo "${ECHO_T}$GST_CFLAGS" >&6
 
-            echo "$as_me:$LINENO: checking GSTREAMER_LIBS" >&5
-echo $ECHO_N "checking GSTREAMER_LIBS... $ECHO_C" >&6
-            GSTREAMER_LIBS=`$PKG_CONFIG --libs "gstreamer-0.8"`
-            echo "$as_me:$LINENO: result: $GSTREAMER_LIBS" >&5
-echo "${ECHO_T}$GSTREAMER_LIBS" >&6
+            echo "$as_me:$LINENO: checking GST_LIBS" >&5
+echo $ECHO_N "checking GST_LIBS... $ECHO_C" >&6
+            GST_LIBS=`$PKG_CONFIG --libs "gstreamer-$GST_MAJORMINOR
+                               gstreamer-plugins-base-$GST_MAJORMINOR
+                               gconf-2.0"`
+            echo "$as_me:$LINENO: result: $GST_LIBS" >&5
+echo "${ECHO_T}$GST_LIBS" >&6
         else
-            GSTREAMER_CFLAGS=""
-            GSTREAMER_LIBS=""
+            GST_CFLAGS=""
+            GST_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
-            GSTREAMER_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gstreamer-0.8"`
+            GST_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gstreamer-$GST_MAJORMINOR
+                               gstreamer-plugins-base-$GST_MAJORMINOR
+                               gconf-2.0"`
 
         fi
 
@@ -44115,160 +44170,140 @@ echo "${ECHO_T}$GSTREAMER_LIBS" >&6
 
   if test $succeeded = yes; then
 
-            CPPFLAGS="$GSTREAMER_CFLAGS $CPPFLAGS"
-            LIBS="$LIBS $GSTREAMER_LIBS -lgstplay-0.8"
+                    CPPFLAGS="$GST_CFLAGS $CPPFLAGS"
+                    LIBS="$LIBS $GST_LIBS -lgstinterfaces-$GST_MAJORMINOR"
 
   else
 
-            { echo "$as_me:$LINENO: WARNING: GStreamer installation not found" >&5
-echo "$as_me: WARNING: GStreamer installation not found" >&2;}
-            wxUSE_GSTREAMER="no"
+                    GST_VERSION_MINOR=8
 
   fi
 
+            else
+            GST_VERSION_MINOR=8
+        fi
 
+        GSTREAMER_REQ=$GST_VERSION_MAJOR.$GST_VERSION_MINOR.$GST_VERSION_RELEASE
+        GST_MAJORMINOR=$GST_VERSION_MAJOR.$GST_VERSION_MINOR
 
+        if test x$GST_VERSION_MINOR = x8; then
 
+  succeeded=no
 
-        if test "x$GST_INSPECT" == "x"; then
-            # Extract the first word of "gst-inspect", so it can be a program name with args.
-set dummy gst-inspect; ac_word=$2
+  if test -z "$PKG_CONFIG"; then
+    # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_GST_INSPECT+set}" = set; then
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$GST_INSPECT"; then
-  ac_cv_prog_GST_INSPECT="$GST_INSPECT" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_GST_INSPECT="gst-inspect"
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
 
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
 fi
-fi
-GST_INSPECT=$ac_cv_prog_GST_INSPECT
-if test -n "$GST_INSPECT"; then
-  echo "$as_me:$LINENO: result: $GST_INSPECT" >&5
-echo "${ECHO_T}$GST_INSPECT" >&6
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 
-        fi
+  fi
 
-        if test "x$GST_INSPECT" != "x"; then
-            echo "$as_me:$LINENO: checking GStreamer element xvimagesink" >&5
-echo $ECHO_N "checking GStreamer element xvimagesink... $ECHO_C" >&6
-            if  $GST_INSPECT xvimagesink > /dev/null 2> /dev/null ; then
-            echo "$as_me:$LINENO: result: found." >&5
-echo "${ECHO_T}found." >&6
+  if test "$PKG_CONFIG" = "no" ; then
+     echo "*** The pkg-config script could not be found. Make sure it is"
+     echo "*** in your path, or set the PKG_CONFIG environment variable"
+     echo "*** to the full path to pkg-config."
+     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        echo "$as_me:$LINENO: checking for gstreamer-$GST_MAJORMINOR
+                gstreamer-interfaces-$GST_MAJORMINOR
+                gstreamer-gconf-$GST_MAJORMINOR" >&5
+echo $ECHO_N "checking for gstreamer-$GST_MAJORMINOR
+                gstreamer-interfaces-$GST_MAJORMINOR
+                gstreamer-gconf-$GST_MAJORMINOR... $ECHO_C" >&6
 
-            else
-            echo "$as_me:$LINENO: result: not found." >&5
-echo "${ECHO_T}not found." >&6
-
-                            wxUSE_GSTREAMER="no"
-                            { echo "$as_me:$LINENO: WARNING: x video sink not found - cannot use GStreamer" >&5
-echo "$as_me: WARNING: x video sink not found - cannot use GStreamer" >&2;}
-
-            fi
-        fi
-
-
-                                echo "$as_me:$LINENO: checking for gst/xoverlay/xoverlay.h" >&5
-echo $ECHO_N "checking for gst/xoverlay/xoverlay.h... $ECHO_C" >&6
-if test "${ac_cv_header_gst_xoverlay_xoverlay_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <gst/gst.h>
-
-#include <gst/xoverlay/xoverlay.h>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_cv_header_gst_xoverlay_xoverlay_h=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_cv_header_gst_xoverlay_xoverlay_h=no
-fi
-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: $ac_cv_header_gst_xoverlay_xoverlay_h" >&5
-echo "${ECHO_T}$ac_cv_header_gst_xoverlay_xoverlay_h" >&6
-if test $ac_cv_header_gst_xoverlay_xoverlay_h = yes; then
-  :
-else
-
-                            wxUSE_GSTREAMER="no"
-                            { echo "$as_me:$LINENO: WARNING: xoverlay header not found, cannot use GStreamer" >&5
-echo "$as_me: WARNING: xoverlay header not found, cannot use GStreamer" >&2;}
-
-fi
-
-
-
-        echo "$as_me:$LINENO: checking for gstplay 0.8" >&5
-echo $ECHO_N "checking for gstplay 0.8... $ECHO_C" >&6
-
-  ac_find_libraries=
-  for ac_dir in $SEARCH_LIB;
-  do
-    for ac_extension in a so sl dylib dll.a; do
-      if test -f "$ac_dir/libgstplay-0.8.$ac_extension"; then
-        ac_find_libraries=$ac_dir
-        break 2
-      fi
-    done
-  done
-
-
-        if test "$ac_find_libraries" = "" ; then
-            echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-            wxUSE_GSTREAMER="no"
-        else
+        if $PKG_CONFIG --exists "gstreamer-$GST_MAJORMINOR
+                gstreamer-interfaces-$GST_MAJORMINOR
+                gstreamer-gconf-$GST_MAJORMINOR" ; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
+            succeeded=yes
+
+            echo "$as_me:$LINENO: checking GST_CFLAGS" >&5
+echo $ECHO_N "checking GST_CFLAGS... $ECHO_C" >&6
+            GST_CFLAGS=`$PKG_CONFIG --cflags "gstreamer-$GST_MAJORMINOR
+                gstreamer-interfaces-$GST_MAJORMINOR
+                gstreamer-gconf-$GST_MAJORMINOR"`
+            echo "$as_me:$LINENO: result: $GST_CFLAGS" >&5
+echo "${ECHO_T}$GST_CFLAGS" >&6
+
+            echo "$as_me:$LINENO: checking GST_LIBS" >&5
+echo $ECHO_N "checking GST_LIBS... $ECHO_C" >&6
+            GST_LIBS=`$PKG_CONFIG --libs "gstreamer-$GST_MAJORMINOR
+                gstreamer-interfaces-$GST_MAJORMINOR
+                gstreamer-gconf-$GST_MAJORMINOR"`
+            echo "$as_me:$LINENO: result: $GST_LIBS" >&5
+echo "${ECHO_T}$GST_LIBS" >&6
+        else
+            GST_CFLAGS=""
+            GST_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GST_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gstreamer-$GST_MAJORMINOR
+                gstreamer-interfaces-$GST_MAJORMINOR
+                gstreamer-gconf-$GST_MAJORMINOR"`
+
         fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+
+                    CPPFLAGS="$GST_CFLAGS $CPPFLAGS"
+                    LIBS="$LIBS $GST_LIBS"
+
+  else
+
+                    { echo "$as_me:$LINENO: WARNING: Proper GStreamer .8/.10 installation not found" >&5
+echo "$as_me: WARNING: Proper GStreamer .8/.10 installation not found" >&2;}
+            wxUSE_GSTREAMER="no"
+
+  fi
+
+        fi
+
 
         if test "$wxUSE_GSTREAMER" = "yes"; then
             cat >>confdefs.h <<\_ACEOF
@@ -44279,6 +44314,7 @@ _ACEOF
 echo "${ECHO_T}GStreamer detection successful" >&6
         fi
     fi
+    USE_MEDIA=1
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS mediaplayer"
     cat >>confdefs.h <<\_ACEOF
 #define wxUSE_MEDIACTRL 1
@@ -45013,6 +45049,12 @@ fi
 
 
     if test "x$BAKEFILE_HOST" = "x"; then
+               if test "x${host}" = "x" ; then
+                       { { echo "$as_me:$LINENO: error: You must call the autoconf \"CANONICAL_HOST\" macro in your configure.ac (or .in) file." >&5
+echo "$as_me: error: You must call the autoconf \"CANONICAL_HOST\" macro in your configure.ac (or .in) file." >&2;}
+   { (exit 1); exit 1; }; }
+               fi
+
         BAKEFILE_HOST="${host}"
     fi
 
@@ -45726,7 +45768,7 @@ main ()
 {
 
                         #ifndef __INTEL_COMPILER
-                        #error Not icc
+                        #error Not ICC
                         #endif
 
   ;
@@ -46598,54 +46640,66 @@ echo "$as_me: error: unknown system type $BAKEFILE_HOST." >&2;}
 
 
 
+    # Check whether --enable-dependency-tracking or --disable-dependency-tracking was given.
+if test "${enable_dependency_tracking+set}" = set; then
+  enableval="$enable_dependency_tracking"
+  bk_use_trackdeps="$enableval"
+fi;
+
     echo "$as_me:$LINENO: checking for dependency tracking method" >&5
 echo $ECHO_N "checking for dependency tracking method... $ECHO_C" >&6
-    DEPS_TRACKING=1
 
-    if test "x$GCC" = "xyes"; then
-        DEPSMODE=gcc
-        case "${BAKEFILE_HOST}" in
-            *-*-darwin* )
-                                                DEPSFLAG="-no-cpp-precomp -MMD"
-            ;;
-            * )
-                DEPSFLAG="-MMD"
-            ;;
-        esac
-        echo "$as_me:$LINENO: result: gcc" >&5
-echo "${ECHO_T}gcc" >&6
-    elif test "x$MWCC" = "xyes"; then
-        DEPSMODE=mwcc
-        DEPSFLAG="-MM"
-        echo "$as_me:$LINENO: result: mwcc" >&5
-echo "${ECHO_T}mwcc" >&6
-    elif test "x$SUNCC" = "xyes"; then
-        DEPSMODE=unixcc
-        DEPSFLAG="-xM1"
-        echo "$as_me:$LINENO: result: Sun cc" >&5
-echo "${ECHO_T}Sun cc" >&6
-    elif test "x$SGICC" = "xyes"; then
-        DEPSMODE=unixcc
-        DEPSFLAG="-M"
-        echo "$as_me:$LINENO: result: SGI cc" >&5
-echo "${ECHO_T}SGI cc" >&6
-    elif test "x$HPCC" = "xyes"; then
-        DEPSMODE=unixcc
-        DEPSFLAG="+make"
-        echo "$as_me:$LINENO: result: HP cc" >&5
-echo "${ECHO_T}HP cc" >&6
-    elif test "x$COMPAQCC" = "xyes"; then
-        DEPSMODE=gcc
-        DEPSFLAG="-MD"
-        echo "$as_me:$LINENO: result: Compaq cc" >&5
-echo "${ECHO_T}Compaq cc" >&6
-    else
+    if test "x$bk_use_trackdeps" = "xno" ; then
         DEPS_TRACKING=0
-        echo "$as_me:$LINENO: result: none" >&5
-echo "${ECHO_T}none" >&6
-    fi
+        echo "$as_me:$LINENO: result: disabled" >&5
+echo "${ECHO_T}disabled" >&6
+    else
+        DEPS_TRACKING=1
 
-    if test $DEPS_TRACKING = 1 ; then
+        if test "x$GCC" = "xyes"; then
+            DEPSMODE=gcc
+            case "${BAKEFILE_HOST}" in
+                *-*-darwin* )
+                                                            DEPSFLAG="-no-cpp-precomp -MMD"
+                ;;
+                * )
+                    DEPSFLAG="-MMD"
+                ;;
+            esac
+            echo "$as_me:$LINENO: result: gcc" >&5
+echo "${ECHO_T}gcc" >&6
+        elif test "x$MWCC" = "xyes"; then
+            DEPSMODE=mwcc
+            DEPSFLAG="-MM"
+            echo "$as_me:$LINENO: result: mwcc" >&5
+echo "${ECHO_T}mwcc" >&6
+        elif test "x$SUNCC" = "xyes"; then
+            DEPSMODE=unixcc
+            DEPSFLAG="-xM1"
+            echo "$as_me:$LINENO: result: Sun cc" >&5
+echo "${ECHO_T}Sun cc" >&6
+        elif test "x$SGICC" = "xyes"; then
+            DEPSMODE=unixcc
+            DEPSFLAG="-M"
+            echo "$as_me:$LINENO: result: SGI cc" >&5
+echo "${ECHO_T}SGI cc" >&6
+        elif test "x$HPCC" = "xyes"; then
+            DEPSMODE=unixcc
+            DEPSFLAG="+make"
+            echo "$as_me:$LINENO: result: HP cc" >&5
+echo "${ECHO_T}HP cc" >&6
+        elif test "x$COMPAQCC" = "xyes"; then
+            DEPSMODE=gcc
+            DEPSFLAG="-MD"
+            echo "$as_me:$LINENO: result: Compaq cc" >&5
+echo "${ECHO_T}Compaq cc" >&6
+        else
+            DEPS_TRACKING=0
+            echo "$as_me:$LINENO: result: none" >&5
+echo "${ECHO_T}none" >&6
+        fi
+
+        if test $DEPS_TRACKING = 1 ; then
 
 D='$'
 cat <<EOF >bk-deps
@@ -46750,7 +46804,8 @@ else
 fi
 EOF
 
-        chmod +x bk-deps
+            chmod +x bk-deps
+        fi
     fi
 
 
@@ -46920,10 +46975,10 @@ fi
 
 
 
-    BAKEFILE_BAKEFILE_M4_VERSION="0.1.9"
+    BAKEFILE_BAKEFILE_M4_VERSION="0.2.0"
 
 
-BAKEFILE_AUTOCONF_INC_M4_VERSION="0.1.9"
+BAKEFILE_AUTOCONF_INC_M4_VERSION="0.2.0"
 
 
 
@@ -46934,6 +46989,8 @@ if test "${enable_precomp_headers+set}" = set; then
 fi;
 
     GCC_PCH=0
+    ICC_PCH=0
+    USE_PCH=0
 
     case ${BAKEFILE_HOST} in
         *-*-cygwin* )
@@ -46964,7 +47021,8 @@ main ()
                     #endif
                     #if (__GNUC__ == 3) && \
                        ((!defined(__APPLE_CC__) && (__GNUC_MINOR__ < 4)) || \
-                       ( defined(__APPLE_CC__) && (__GNUC_MINOR__ < 3)))
+                       ( defined(__APPLE_CC__) && (__GNUC_MINOR__ < 3))) || \
+                       ( defined(__INTEL_COMPILER) )
                         #error "no pch support"
                     #endif
 
@@ -47003,12 +47061,67 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-                    echo "$as_me:$LINENO: result: no" >&5
+                    cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+                            #if !defined(__INTEL_COMPILER) || \
+                                (__INTEL_COMPILER < 800)
+                                #error "no pch support"
+                            #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+                            echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+                            ICC_PCH=1
+
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+                            echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-            if test $GCC_PCH = 1 ; then
+
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+            if test $GCC_PCH = 1 -o $ICC_PCH = 1 ; then
+                USE_PCH=1
 
 D='$'
 cat <<EOF >bk-make-pch
@@ -47024,9 +47137,11 @@ header="${D}{2}"
 shift
 shift
 
-compiler=
-headerfile=
+compiler=""
+headerfile=""
+
 while test ${D}{#} -gt 0; do
+    add_to_cmdline=1
     case "${D}{1}" in
         -I* )
             incdir=\`echo ${D}{1} | sed -e 's/-I\\(.*\\)/\\1/g'\`
@@ -47034,13 +47149,19 @@ while test ${D}{#} -gt 0; do
                 headerfile="${D}{incdir}/${D}{header}"
             fi
         ;;
+        -use-pch|-use_pch )
+            shift
+            add_to_cmdline=0
+        ;;
     esac
-    compiler="${D}{compiler} ${D}{1}"
+    if test ${D}add_to_cmdline = 1 ; then
+        compiler="${D}{compiler} ${D}{1}"
+    fi
     shift
 done
 
 if test "x${D}{headerfile}" = "x" ; then
-    echo "error: can't find header ${D}{header} in include paths" >2
+    echo "error: can't find header ${D}{header} in include paths" >&2
 else
     if test -f ${D}{outfile} ; then
         rm -f ${D}{outfile}
@@ -47049,8 +47170,21 @@ else
     fi
     depsfile=".deps/\`echo ${D}{outfile} | tr '/.' '__'\`.d"
     mkdir -p .deps
-    # can do this because gcc is >= 3.4:
-    ${D}{compiler} -o ${D}{outfile} -MMD -MF "${D}{depsfile}" "${D}{headerfile}"
+    if test "x${GCC_PCH}" = "x1" ; then
+        # can do this because gcc is >= 3.4:
+        ${D}{compiler} -o ${D}{outfile} -MMD -MF "${D}{depsfile}" "${D}{headerfile}"
+    elif test "x${ICC_PCH}" = "x1" ; then
+        filename=pch_gen-${D}${D}
+        file=${D}{filename}.c
+        dfile=${D}{filename}.d
+        cat > ${D}file <<EOT
+#include "${D}header"
+EOT
+        # using -MF icc complains about differing command lines in creation/use
+        ${D}compiler -c -create_pch ${D}outfile -MMD ${D}file && \\
+          sed -e "s,^.*:,${D}outfile:," -e "s, ${D}file,," < ${D}dfile > ${D}depsfile && \\
+          rm -f ${D}file ${D}dfile ${D}{filename}.o
+    fi
     exit ${D}{?}
 fi
 EOF
@@ -47059,6 +47193,7 @@ EOF
             fi
         fi
     fi
+
 
 
 
@@ -47137,6 +47272,11 @@ EOF
         COND_GCC_PCH_1=""
     fi
 
+    COND_ICC_PCH_1="#"
+    if test "x$ICC_PCH" = "x1" ; then
+        COND_ICC_PCH_1=""
+    fi
+
     COND_MONOLITHIC_0="#"
     if test "x$MONOLITHIC" = "x0" ; then
         COND_MONOLITHIC_0=""
@@ -47155,6 +47295,11 @@ EOF
     COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1="#"
     if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x0" -a "x$USE_GUI" = "x1" -a "x$USE_HTML" = "x1" ; then
         COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1=""
+    fi
+
+    COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_MEDIA_1="#"
+    if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x0" -a "x$USE_GUI" = "x1" -a "x$USE_MEDIA" = "x1" ; then
+        COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_MEDIA_1=""
     fi
 
     COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_ODBC_1="#"
@@ -47190,6 +47335,11 @@ EOF
     COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1="#"
     if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x1" -a "x$USE_GUI" = "x1" -a "x$USE_HTML" = "x1" ; then
         COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1=""
+    fi
+
+    COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_MEDIA_1="#"
+    if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x1" -a "x$USE_GUI" = "x1" -a "x$USE_MEDIA" = "x1" ; then
+        COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_MEDIA_1=""
     fi
 
     COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_ODBC_1="#"
@@ -47660,6 +47810,11 @@ EOF
     COND_USE_OPENGL_1="#"
     if test "x$USE_OPENGL" = "x1" ; then
         COND_USE_OPENGL_1=""
+    fi
+
+    COND_USE_PCH_1="#"
+    if test "x$USE_PCH" = "x1" ; then
+        COND_USE_PCH_1=""
     fi
 
     COND_USE_PLUGINS_0="#"
@@ -48823,9 +48978,8 @@ s,@LIBGNOMEPRINTUI_CFLAGS@,$LIBGNOMEPRINTUI_CFLAGS,;t t
 s,@LIBGNOMEPRINTUI_LIBS@,$LIBGNOMEPRINTUI_LIBS,;t t
 s,@HILDON_CFLAGS@,$HILDON_CFLAGS,;t t
 s,@HILDON_LIBS@,$HILDON_LIBS,;t t
-s,@GSTREAMER_CFLAGS@,$GSTREAMER_CFLAGS,;t t
-s,@GSTREAMER_LIBS@,$GSTREAMER_LIBS,;t t
-s,@GST_INSPECT@,$GST_INSPECT,;t t
+s,@GST_CFLAGS@,$GST_CFLAGS,;t t
+s,@GST_LIBS@,$GST_LIBS,;t t
 s,@CORE_BASE_LIBS@,$CORE_BASE_LIBS,;t t
 s,@CORE_GUI_LIBS@,$CORE_GUI_LIBS,;t t
 s,@wxUSE_ZLIB@,$wxUSE_ZLIB,;t t
@@ -48901,6 +49055,7 @@ s,@USE_SOSYMLINKS@,$USE_SOSYMLINKS,;t t
 s,@SONAME_FLAG@,$SONAME_FLAG,;t t
 s,@DEPS_TRACKING@,$DEPS_TRACKING,;t t
 s,@GCC_PCH@,$GCC_PCH,;t t
+s,@ICC_PCH@,$ICC_PCH,;t t
 s,@COND_BUILD_DEBUG@,$COND_BUILD_DEBUG,;t t
 s,@COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT@,$COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT,;t t
 s,@COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT@,$COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT,;t t
@@ -48916,10 +49071,12 @@ s,@COND_DEBUG_INFO_1@,$COND_DEBUG_INFO_1,;t t
 s,@COND_DEPS_TRACKING_0@,$COND_DEPS_TRACKING_0,;t t
 s,@COND_DEPS_TRACKING_1@,$COND_DEPS_TRACKING_1,;t t
 s,@COND_GCC_PCH_1@,$COND_GCC_PCH_1,;t t
+s,@COND_ICC_PCH_1@,$COND_ICC_PCH_1,;t t
 s,@COND_MONOLITHIC_0@,$COND_MONOLITHIC_0,;t t
 s,@COND_MONOLITHIC_0_SHARED_0@,$COND_MONOLITHIC_0_SHARED_0,;t t
 s,@COND_MONOLITHIC_0_SHARED_0_USE_GUI_1@,$COND_MONOLITHIC_0_SHARED_0_USE_GUI_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1@,$COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_HTML_1,;t t
+s,@COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_MEDIA_1@,$COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_MEDIA_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_ODBC_1@,$COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_ODBC_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_QA_1@,$COND_MONOLITHIC_0_SHARED_0_USE_GUI_1_USE_QA_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1@,$COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1,;t t
@@ -48927,6 +49084,7 @@ s,@COND_MONOLITHIC_0_SHARED_0_USE_XRC_1@,$COND_MONOLITHIC_0_SHARED_0_USE_XRC_1,;
 s,@COND_MONOLITHIC_0_SHARED_1@,$COND_MONOLITHIC_0_SHARED_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_1_USE_GUI_1@,$COND_MONOLITHIC_0_SHARED_1_USE_GUI_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1@,$COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_HTML_1,;t t
+s,@COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_MEDIA_1@,$COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_MEDIA_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_ODBC_1@,$COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_ODBC_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_QA_1@,$COND_MONOLITHIC_0_SHARED_1_USE_GUI_1_USE_QA_1,;t t
 s,@COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1@,$COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1,;t t
@@ -49021,6 +49179,7 @@ s,@COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN@,$COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN,;t 
 s,@COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN@,$COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN,;t t
 s,@COND_USE_ODBC_1@,$COND_USE_ODBC_1,;t t
 s,@COND_USE_OPENGL_1@,$COND_USE_OPENGL_1,;t t
+s,@COND_USE_PCH_1@,$COND_USE_PCH_1,;t t
 s,@COND_USE_PLUGINS_0@,$COND_USE_PLUGINS_0,;t t
 s,@COND_USE_RTTI_0@,$COND_USE_RTTI_0,;t t
 s,@COND_USE_RTTI_1@,$COND_USE_RTTI_1,;t t
@@ -49253,11 +49412,6 @@ esac
   *) ac_INSTALL=$ac_top_builddir$INSTALL ;;
   esac
 
-  if test x"$ac_file" != x-; then
-    { echo "$as_me:$LINENO: creating $ac_file" >&5
-echo "$as_me: creating $ac_file" >&6;}
-    rm -f "$ac_file"
-  fi
   # Let's still pretend it is `configure' which instantiates (i.e., don't
   # use $as_me), people would be surprised to read:
   #    /* config.h.  Generated by config.status.  */
@@ -49296,6 +49450,12 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
 	 fi;;
       esac
     done` || { (exit 1); exit 1; }
+
+  if test x"$ac_file" != x-; then
+    { echo "$as_me:$LINENO: creating $ac_file" >&5
+echo "$as_me: creating $ac_file" >&6;}
+    rm -f "$ac_file"
+  fi
 _ACEOF
 cat >>$CONFIG_STATUS <<_ACEOF
   sed "$ac_vpsub
@@ -49880,7 +50040,7 @@ echo "$as_me: error: $ac_sub_configure failed for $ac_dir" >&2;}
    { (exit 1); exit 1; }; }
     fi
 
-    cd $ac_popdir
+    cd "$ac_popdir"
   done
 fi
 

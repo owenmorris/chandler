@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.cpp,v 1.21 2006/02/10 17:53:02 vell Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.23 2006/02/10 21:38:24 vell Exp $
 // Copyright:   (c) 2004-2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,14 +12,17 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // There are several known bugs with CreateMovieControl
 // on systems > 10.2 - see main.c of QTCarbonShell sample for details
+//
+// Also, with either version it will overdraw anything below its TLW - so
+// it's relatively useless on a notebook page (this happens in Opera too).
+//
+// Even though though the CreateMovieControl version is the default
+// for OSX, the MovieController version is heavily tested and works
+// just as well...
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
 
 #include "wx/mediactrl.h"
 
@@ -28,9 +31,10 @@
 #include "wx/timer.h"
 
 #ifndef __DARWIN__
+// standard QT stuff
 #include <Movies.h>
 #include <Gestalt.h>
-#include <QuickTimeComponents.h>    // standard QT stuff
+#include <QuickTimeComponents.h>
 #else
 #include <QuickTime/QuickTimeComponents.h>
 #endif
@@ -106,13 +110,22 @@ public:
 
     virtual bool ShowPlayerControls(wxMediaCtrlPlayerControls flags);
 
+    virtual wxLongLong GetDownloadProgress();
+    virtual wxLongLong GetDownloadTotal();
+
+    //
     //  ------  Implementation from now on  --------
+    //
+    bool DoPause();
+    bool DoStop();
 
     void DoLoadBestSize();
     void DoSetControllerVisible(wxMediaCtrlPlayerControls flags);
 
+    wxLongLong GetDataSizeFromStart(TimeValue end);
+
     //TODO: Last param actually long - does this work on 64bit machines?
-    static Boolean MCFilterProc (MovieController theController,
+    static pascal Boolean MCFilterProc(MovieController theController,
         short action, void *params, long refCon);
 
 #if wxUSE_CREATEMOVIECONTROL
@@ -120,7 +133,7 @@ public:
 #else
     Boolean IsQuickTime4Installed();
     void DoNewMovieController();
-    static void PPRMProc (Movie theMovie, OSErr theErr, void* theRefCon);
+    static pascal void PPRMProc(Movie theMovie, OSErr theErr, void* theRefCon);
 #endif
 
     wxSize m_bestSize;          // Original movie size
@@ -138,6 +151,9 @@ public:
 
 #if !wxUSE_CREATEMOVIECONTROL
     EventHandlerRef m_pEventHandlerRef; // Event handler to cleanup
+    MoviePrePrerollCompleteUPP  m_preprerollupp;
+    EventHandlerUPP             m_eventupp;
+    MCActionFilterWithRefConUPP m_mcactionupp;
 
     friend class wxQTMediaEvtHandler;
 #endif
@@ -172,7 +188,6 @@ private:
 static pascal OSStatus wxQTMediaWindowEventHandler(
     EventHandlerCallRef inHandlerCallRef,
     EventRef inEvent, void *inUserData);
-DEFINE_ONE_SHOT_HANDLER_GETTER( wxQTMediaWindowEventHandler );
 
 #endif
 
@@ -209,7 +224,7 @@ public:
     void Notify()
     {
         // Note that the CreateMovieControl variety performs
-        // its own custom idleing
+        // its own custom idling
 #if !wxUSE_CREATEMOVIECONTROL
         ::MCIdle(m_parent->m_mc);
 #endif
@@ -290,6 +305,9 @@ protected:
 wxQTMediaBackend::wxQTMediaBackend()
     : m_movie(NULL), m_bPlaying(false), m_timer(NULL)
       , m_mc(NULL), m_interfaceflags(wxMEDIACTRLPLAYERCONTROLS_NONE)
+#if !wxUSE_CREATEMOVIECONTROL
+      , m_preprerollupp(NULL)
+#endif
 {
 }
 
@@ -314,7 +332,11 @@ wxQTMediaBackend::~wxQTMediaBackend()
         // destroy wxQTMediaEvtHandler we pushed on it
         m_ctrl->PopEventHandler(true);
         RemoveEventHandler((EventHandlerRef&)m_pEventHandlerRef);
+        DisposeEventHandlerUPP(m_eventupp);
+
+        // Dispose of the movie controller
         ::DisposeMovieController(m_mc);
+        DisposeMCActionFilterWithRefConUPP(m_mcactionupp);
     }
 #endif
 
@@ -352,9 +374,10 @@ bool wxQTMediaBackend::CreateControl(
     //
     // Since we don't have a child window like most other
     // backends, we don't need wxCLIP_CHILDREN
-    if ( !ctrl->wxControl::Create(parent, id, pos, size,
-                                 wxWindow::MacRemoveBordersFromStyle(style),
-                                  validator, name))
+    if ( !ctrl->wxControl::Create(
+        parent, id, pos, size,
+        wxWindow::MacRemoveBordersFromStyle(style),
+        validator, name))
     {
         return false;
     }
@@ -371,7 +394,7 @@ bool wxQTMediaBackend::CreateControl(
 // wxQTMediaBackend::IsQuickTime4Installed
 //
 // Determines whether version 4 of QT is installed
-// (Pretty much for classic only)
+// (Pretty much for Classic only)
 //---------------------------------------------------------------------------
 #if !wxUSE_CREATEMOVIECONTROL
 Boolean wxQTMediaBackend::IsQuickTime4Installed()
@@ -404,12 +427,11 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
 
     // FIXME:wxMacFilename2FSSpec crashes on empty string -
     // does it crash on other strings too and should this
-    // "fix" be put in the carbon wxSound?
+    // "fix" be put in the Carbon wxSound?
     if (fileName.empty())
         return false;
 
     wxMacFilename2FSSpec( fileName, &sfFile );
-
     if (OpenMovieFile( &sfFile, &movieResFile, fsRdPerm ) != noErr)
         return false;
 
@@ -424,10 +446,10 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
         movieName,
         newMovieActive,
         NULL); // wasChanged
-    result = (err == noErr);
 
     // No ::GetMoviesStickyError() here because it returns -2009
     // a.k.a. invalid track on valid mpegs
+    result = (err == noErr);
     if (result)
     {
         ::CloseMovieFile(movieResFile);
@@ -453,9 +475,10 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
 // Anyway we set up the loading timer here to tell us when the movie is done
 //---------------------------------------------------------------------------
 #if !wxUSE_CREATEMOVIECONTROL
-void wxQTMediaBackend::PPRMProc (Movie theMovie,
-                                 OSErr WXUNUSED_UNLESS_DEBUG(theErr),
-                                 void* theRefCon)
+pascal void wxQTMediaBackend::PPRMProc(
+    Movie theMovie,
+    OSErr WXUNUSED_UNLESS_DEBUG(theErr),
+    void* theRefCon)
 {
     wxASSERT( theMovie );
     wxASSERT( theRefCon );
@@ -499,11 +522,11 @@ bool wxQTMediaBackend::Load(const wxURI& location)
     ::BlockMoveData(theURI.mb_str(), *theHandle, theURI.length() + 1);
 
     // create the movie from the handle that refers to the URI
-    err = ::NewMovieFromDataRef(&m_movie, newMovieActive |
-                                                    newMovieAsyncOK
-                                                    /* | newMovieIdleImportOK*/,
-                                NULL, theHandle,
-                                URLDataHandlerSubType);
+    err = ::NewMovieFromDataRef(
+        &m_movie,
+        newMovieActive | newMovieAsyncOK /* | newMovieIdleImportOK*/,
+        NULL, theHandle,
+        URLDataHandlerSubType);
 
     ::DisposeHandle(theHandle);
 
@@ -511,7 +534,8 @@ bool wxQTMediaBackend::Load(const wxURI& location)
     if (result)
     {
 #if wxUSE_CREATEMOVIECONTROL
-        // Movie control resets prerolling, so we must create first
+        // Movie control does its own "(pre)prerolling"
+        // but we still need to buffer the movie for the URL
         DoCreateMovieControl();
 
         // Setup timer to catch load event
@@ -538,10 +562,8 @@ bool wxQTMediaBackend::Load(const wxURI& location)
         //  require it if you don't use a Movie Controller,
         //  which we don't by default.
         //
-        ::PrePrerollMovie(
-            m_movie, timeNow, playRate,
-            wxQTMediaBackend::PPRMProc,
-            (void*)this);
+        m_preprerollupp = NewMoviePrePrerollCompleteUPP( wxQTMediaBackend::PPRMProc );
+        ::PrePrerollMovie( m_movie, timeNow, playRate, m_preprerollupp, (void*)this);
 #endif
     }
 
@@ -582,15 +604,13 @@ void wxQTMediaBackend::DoCreateMovieControl()
     // SetKeysEnabled - Allows keyboard input
     // ManuallyIdled - app handles movie idling rather than internal timer event loop
     ::CreateMovieControl(
-        (WindowRef)
-        m_ctrl->MacGetTopLevelWindowRef(), //parent
-        &bounds,                         //control bounds
-        m_movie,                         //movie handle
-        kMovieControlOptionHideController
-            | kMovieControlOptionLocateTopLeft
-            | kMovieControlOptionSetKeysEnabled
+        (WindowRef) m_ctrl->MacGetTopLevelWindowRef(), //parent
+        &bounds,                         // control bounds
+        m_movie,                         // movie handle
+        kMovieControlOptionHideController// flags
             // | kMovieControlOptionManuallyIdled
-        ,                                // flags
+            | kMovieControlOptionLocateTopLeft
+            | kMovieControlOptionSetKeysEnabled,
         m_ctrl->m_peer->GetControlRefAddr() );
 
     ::EmbedControl(
@@ -609,7 +629,8 @@ void wxQTMediaBackend::DoCreateMovieControl()
     // Setup a callback so we can tell when the user presses
     // play on the player controls
     ::MCSetActionFilterWithRefCon(m_mc,
-            wxQTMediaBackend::MCFilterProc, (long)this);
+            (MCActionFilterWithRefConUPP)wxQTMediaBackend::MCFilterProc,
+            (long)this);
 }
 #endif
 
@@ -627,10 +648,8 @@ void wxQTMediaBackend::DoNewMovieController()
         // Get top level window ref for some mac functions
         WindowRef wrTLW = (WindowRef) m_ctrl->MacGetTopLevelWindowRef();
 
-        // MovieController not setup yet:
-        // so we need to create a new one.
-        // You have to pass a valid movie to
-        // NewMovieController, evidently
+        // MovieController not set up yet, so we need to create a new one.
+        // You have to pass a valid movie to NewMovieController, evidently
         ::SetMovieGWorld(m_movie,
                        (CGrafPtr) GetWindowPort(wrTLW),
                        NULL);
@@ -646,17 +665,16 @@ void wxQTMediaBackend::DoNewMovieController()
             mcTopLeftMovie | mcNotVisible /* | mcWithFrame */ );
         wxASSERT(::GetMoviesError() == noErr);
 
-        ::MCDoAction(m_mc, 32, (void*)true); //mcActionSetKeysEnabled
+        ::MCDoAction(m_mc, 32, (void*)true); // mcActionSetKeysEnabled
         wxASSERT(::GetMoviesError() == noErr);
 
         // Setup a callback so we can tell when the user presses
         // play on the player controls
-        ::MCSetActionFilterWithRefCon(m_mc,
-            wxQTMediaBackend::MCFilterProc, (long)this);
+        m_mcactionupp = NewMCActionFilterWithRefConUPP( wxQTMediaBackend::MCFilterProc );
+        ::MCSetActionFilterWithRefCon( m_mc, m_mcactionupp, (long)this );
         wxASSERT(::GetMoviesError() == noErr);
 
-        // Part of a suggestion from Greg Hazel to repaint
-        // movie when idle
+        // Part of a suggestion from Greg Hazel to repaint movie when idle
         m_ctrl->PushEventHandler(new wxQTMediaEvtHandler(this));
 
         // Event types to catch from the TLW
@@ -665,6 +683,7 @@ void wxQTMediaBackend::DoNewMovieController()
         {
             { kEventClassMouse,     kEventMouseDown },
             { kEventClassMouse,     kEventMouseUp },
+            { kEventClassMouse,     kEventMouseDragged },
             { kEventClassKeyboard,  kEventRawKeyDown },
             { kEventClassKeyboard,  kEventRawKeyRepeat },
             { kEventClassKeyboard,  kEventRawKeyUp },
@@ -676,10 +695,12 @@ void wxQTMediaBackend::DoNewMovieController()
         // Catch window messages:
         // if we do not do this and if the user clicks the play
         // button on the controller, for instance, nothing will happen...
-        InstallWindowEventHandler( wrTLW,
-                GetwxQTMediaWindowEventHandlerUPP(),
-                GetEventTypeCount( theEventTypes ), theEventTypes,
-                m_mc, (&(EventHandlerRef&)m_pEventHandlerRef) );
+        m_eventupp = NewEventHandlerUPP( wxQTMediaWindowEventHandler );
+        InstallWindowEventHandler(
+            wrTLW,
+            m_eventupp,
+            GetEventTypeCount( theEventTypes ), theEventTypes,
+            m_mc, (&(EventHandlerRef&)m_pEventHandlerRef) );
     }
     else
     {
@@ -689,8 +710,7 @@ void wxQTMediaBackend::DoNewMovieController()
         thePoint.h = thePoint.v = 0;
         ::MCSetMovie(m_mc, m_movie,
               (WindowRef)m_ctrl->MacGetTopLevelWindowRef(),
-               thePoint);
-
+              thePoint);
         wxASSERT(::GetMoviesError() == noErr);
     }
 }
@@ -703,6 +723,11 @@ void wxQTMediaBackend::DoNewMovieController()
 //---------------------------------------------------------------------------
 void wxQTMediaBackend::FinishLoad()
 {
+    // Dispose of the PrePrerollMovieUPP if we used it
+#if !wxUSE_CREATEMOVIECONTROL
+    DisposeMoviePrePrerollCompleteUPP(m_preprerollupp);
+#endif
+
     // get the real size of the movie
     DoLoadBestSize();
 
@@ -719,7 +744,7 @@ void wxQTMediaBackend::FinishLoad()
     wxASSERT(m_timer);
     m_timer->Start(MOVIE_DELAY, wxTIMER_CONTINUOUS);
 
-    // send loaded event & refresh size
+    // send loaded event and refresh size
     NotifyMovieLoaded();
 }
 
@@ -732,7 +757,7 @@ void wxQTMediaBackend::DoLoadBestSize()
 {
     // get the real size of the movie
     Rect outRect;
-    ::GetMovieNaturalBoundsRect (m_movie, &outRect);
+    ::GetMovieNaturalBoundsRect(m_movie, &outRect);
     wxASSERT(::GetMoviesError() == noErr);
 
     // determine best size
@@ -744,6 +769,7 @@ void wxQTMediaBackend::DoLoadBestSize()
 // wxQTMediaBackend::Play
 //
 // Start the QT movie
+// (Apple recommends mcActionPrerollAndPlay but that's QT 4.1+)
 //---------------------------------------------------------------------------
 bool wxQTMediaBackend::Play()
 {
@@ -756,8 +782,14 @@ bool wxQTMediaBackend::Play()
     if (!m_bPlaying)
         ::MCDoAction( m_mc, 8 /* mcActionPlay */, (void*) fixRate);
 
-    m_bPlaying = true;
-    return ::GetMoviesError() == noErr;
+    bool result = (::GetMoviesError() == noErr);
+    if (result)
+    {
+        m_bPlaying = true;
+        QueuePlayEvent();
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------
@@ -765,18 +797,27 @@ bool wxQTMediaBackend::Play()
 //
 // Stop the movie
 //---------------------------------------------------------------------------
-bool wxQTMediaBackend::Pause()
+bool wxQTMediaBackend::DoPause()
 {
     // Stop the movie A.K.A. ::StopMovie(m_movie);
     if (m_bPlaying)
     {
-        ::MCDoAction( m_mc, 8 /*mcActionPlay*/, (void*) 0);
+        ::MCDoAction( m_mc, 8 /*mcActionPlay*/,  (void *) 0);
         m_bPlaying = false;
         return ::GetMoviesError() == noErr;
     }
 
     // already paused
     return true;
+}
+
+bool wxQTMediaBackend::Pause()
+{
+    bool bSuccess = DoPause();
+    if (bSuccess)
+        this->QueuePauseEvent();
+
+    return bSuccess;
 }
 
 //---------------------------------------------------------------------------
@@ -792,6 +833,15 @@ bool wxQTMediaBackend::Stop()
 
     ::GoToBeginningOfMovie(m_movie);
     return ::GetMoviesError() == noErr;
+}
+
+bool wxQTMediaBackend::Stop()
+{
+    bool bSuccess = DoStop();
+    if (bSuccess)
+        QueueStopEvent();
+
+    return bSuccess;
 }
 
 //---------------------------------------------------------------------------
@@ -892,7 +942,7 @@ bool wxQTMediaBackend::SetVolume(double dVolume)
     return true;
 }
 
- //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // wxQTMediaBackend::GetDuration
 //
 // Calls GetMovieDuration
@@ -964,7 +1014,7 @@ void wxQTMediaBackend::Cleanup()
 //
 // Callback for when the movie controller recieves a message
 //---------------------------------------------------------------------------
-Boolean wxQTMediaBackend::MCFilterProc(
+pascal Boolean wxQTMediaBackend::MCFilterProc(
     MovieController WXUNUSED(theController),
     short action,
     void * WXUNUSED(params),
@@ -1004,8 +1054,15 @@ wxSize wxQTMediaBackend::GetVideoSize() const
 //---------------------------------------------------------------------------
 // wxQTMediaBackend::Move
 //
-// We need to do this even when using native qt control because
-// CreateMovieControl is broken in this regard...
+// Move the movie controller or movie control
+// (we need to actually move the movie control manually...)
+// Top 10 things to do with quicktime in March 93's issue
+// of DEVELOP - very useful
+// http:// www.mactech.com/articles/develop/issue_13/031-033_QuickTime_column.html
+// OLD NOTE: Calling MCSetControllerBoundsRect without detaching
+//          supposively resulted in a crash back then. Current code even
+//          with CFM classic runs fine. If there is ever a problem,
+//          take out the if 0 lines below
 //---------------------------------------------------------------------------
 void wxQTMediaBackend::Move(int x, int y, int w, int h)
 {
@@ -1013,16 +1070,30 @@ void wxQTMediaBackend::Move(int x, int y, int w, int h)
     if (m_timer)
     {
         m_ctrl->GetParent()->MacWindowToRootWindow(&x, &y);
-        Rect theRect = {y, x, y+h, x+w};
+        Rect theRect = {y, x, y + h, x + w};
+
+#if 0
+        // see note above
+        ::MCSetControllerAttached(m_mc, false);
+         wxASSERT(::GetMoviesError() == noErr);
+#endif
 
         ::MCSetControllerBoundsRect(m_mc, &theRect);
         wxASSERT(::GetMoviesError() == noErr);
+
+#if 0 // see note above
+        if (m_interfaceflags)
+        {
+            ::MCSetVisible(m_mc, true);
+            wxASSERT(::GetMoviesError() == noErr);
+        }
+#endif
     }
 #else
+
     if (m_timer && m_ctrl)
     {
-        m_ctrl->GetParent()->MacWindowToRootWindow(&x, &y);
-
+        m_ctrl->GetParent()->MacWindowToRootWindow( &x, &y );
         ::MoveControl( (ControlRef) m_ctrl->GetHandle(), x, y );
         m_ctrl->GetParent()->Refresh();
         m_ctrl->GetParent()->Update();
@@ -1075,7 +1146,7 @@ void wxQTMediaBackend::DoSetControllerVisible(wxMediaCtrlPlayerControls flags)
 bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
 {
     if (!m_mc)
-        return false; //no movie controller...
+        return false; // no movie controller...
 
     bool bSizeChanged = false;
 
@@ -1086,7 +1157,7 @@ bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
         DoLoadBestSize();
         ::MCSetVisible(m_mc, false);
     }
-    else if (!m_interfaceflags && flags) //show controller if hidden
+    else if (!m_interfaceflags && flags) // show controller if hidden
     {
         bSizeChanged = true;
         DoSetControllerVisible(flags);
@@ -1097,11 +1168,60 @@ bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
     {
         NotifyMovieSizeChanged();
 
-        //remember state in case of loading new media
+        // remember state in case of loading new media
         m_interfaceflags = flags;
     }
 
     return ::GetMoviesError() == noErr;
+}
+
+//---------------------------------------------------------------------------
+// wxQTMediaBackend::GetDataSizeFromStart
+//
+// Calls either GetMovieDataSize or GetMovieDataSize64 with a value
+// of 0 for the starting value
+//---------------------------------------------------------------------------
+wxLongLong wxQTMediaBackend::GetDataSizeFromStart(TimeValue end)
+{
+#if 0 // old pre-qt4 way
+    return ::GetMovieDataSize(m_movie, 0, end)
+#else // qt4 way
+    wide llDataSize;
+    ::GetMovieDataSize64(m_movie, 0, end, &llDataSize);
+    return wxLongLong(llDataSize.hi, llDataSize.lo);
+#endif
+}
+
+//---------------------------------------------------------------------------
+// wxQTMediaBackend::GetDownloadProgress
+//---------------------------------------------------------------------------
+wxLongLong wxQTMediaBackend::GetDownloadProgress()
+{
+#if 0 // hackish and slow
+    Handle hMovie = NewHandle(0);
+    PutMovieIntoHandle(m_movie, hMovie);
+    long lSize = GetHandleSize(hMovie);
+    DisposeHandle(hMovie);
+
+    return lSize;
+#else
+    TimeValue tv;
+    if (::GetMaxLoadedTimeInMovie(m_movie, &tv) != noErr)
+    {
+        wxLogDebug(wxT("GetMaxLoadedTimeInMovie failed"));
+        return 0;
+    }
+
+    return wxQTMediaBackend::GetDataSizeFromStart(tv);
+#endif
+}
+
+//---------------------------------------------------------------------------
+// wxQTMediaBackend::GetDownloadTotal
+//---------------------------------------------------------------------------
+wxLongLong wxQTMediaBackend::GetDownloadTotal()
+{
+    return wxQTMediaBackend::GetDataSizeFromStart( ::GetMovieDuration(m_movie) );
 }
 
 //---------------------------------------------------------------------------
@@ -1113,10 +1233,9 @@ bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
 #if !wxUSE_CREATEMOVIECONTROL
 void wxQTMediaEvtHandler::OnEraseBackground(wxEraseEvent& evt)
 {
-    // Work around Nasty OSX drawing bug -
+    // Work around Nasty OSX drawing bug:
     // http://lists.apple.com/archives/QuickTime-API/2002/Feb/msg00311.html
-    WindowRef wrTLW =
-        (WindowRef) m_qtb->m_ctrl->MacGetTopLevelWindowRef();
+    WindowRef wrTLW = (WindowRef) m_qtb->m_ctrl->MacGetTopLevelWindowRef();
 
     RgnHandle region = MCGetControllerBoundsRgn(m_qtb->m_mc);
     MCInvalidate(m_qtb->m_mc, wrTLW, region);
@@ -1128,16 +1247,35 @@ void wxQTMediaEvtHandler::OnEraseBackground(wxEraseEvent& evt)
 // wxQTMediaWindowEventHandler
 //
 // Event callback for the top level window of our control that passes
-// messages to our moviecontroller so it can recieve mouse clicks etc.
+// messages to our moviecontroller so it can receive mouse clicks etc.
 //---------------------------------------------------------------------------
 #if !wxUSE_CREATEMOVIECONTROL
-OSStatus wxQTMediaWindowEventHandler(
+static pascal OSStatus wxQTMediaWindowEventHandler(
     EventHandlerCallRef inHandlerCallRef,
-    EventRef inEvent, void *inUserData)
+    EventRef inEvent,
+    void *inUserData)
 {
+    // for the overly paranoid....
+#if 0
+    UInt32 eventClass = GetEventClass( eventRef );
+    UInt32 eventKind = GetEventKind( inEvent );
+
+    if (eventKind != kEventMouseDown &&
+       eventKind != kEventMouseUp &&
+       eventKind != kEventMouseDragged &&
+       eventKind != kEventRawKeyDown &&
+       eventKind != kEventRawKeyRepeat &&
+       eventKind != kEventRawKeyUp &&
+       eventKind != kEventWindowUpdate &&
+       eventKind != kEventWindowActivated &&
+       eventKind != kEventWindowDeactivated)
+            return eventNotHandledErr;
+#endif
+
     EventRecord theEvent;
     ConvertEventRefToEventRecord( inEvent, &theEvent );
     OSStatus err;
+
     err = ::MCIsPlayerEvent( (MovieController) inUserData, &theEvent );
 
     // pass on to other event handlers if not handled- i.e. wx

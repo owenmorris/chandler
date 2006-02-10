@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: build_cfg.bkl,v 1.8 2005/09/29 13:54:37 ABX Exp $ -->
+<!-- $Id: build_cfg.bkl,v 1.9 2006/02/10 19:37:21 VZ Exp $ -->
 
 <makefile>
 
@@ -39,6 +39,7 @@
                 @echo USE_THREADS=$(USE_THREADS) >>$(BUILD_CFG_FILE)
                 @echo USE_GUI=$(USE_GUI) >>$(BUILD_CFG_FILE)
                 @echo USE_HTML=$(USE_HTML) >>$(BUILD_CFG_FILE)
+                @echo USE_MEDIA=$(USE_MEDIA) >>$(BUILD_CFG_FILE)
                 @echo USE_ODBC=$(USE_ODBC) >>$(BUILD_CFG_FILE)
                 @echo USE_OPENGL=$(USE_OPENGL) >>$(BUILD_CFG_FILE)
                 @echo USE_QA=$(USE_QA) >>$(BUILD_CFG_FILE)

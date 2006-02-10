@@ -1411,7 +1411,11 @@ SOURCE=.\msw\mdi.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\msw\mediactrl.cpp
+SOURCE=.\msw\mediactrl_am.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\msw\mediactrl_wmp10.cpp
 # End Source File
 # Begin Source File
 
@@ -3731,10 +3735,6 @@ SOURCE=..\include\wx\msw\tbar95.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\wx\msw\tbarmsw.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\include\wx\msw\textctrl.h
 # End Source File
 # Begin Source File
@@ -3792,6 +3792,10 @@ SOURCE=..\include\wx\msw\wrapwin.h
 # Begin Source File
 
 SOURCE=..\include\wx\generic\accel.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\generic\busyinfo.h
 # End Source File
 # Begin Source File
 
