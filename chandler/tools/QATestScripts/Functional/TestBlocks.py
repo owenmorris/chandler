@@ -8,22 +8,15 @@ logger = QAUITestAppLib.QALogger("TestBlocks.log","TestBlocks")
 try:
     logger.Start('TestBlocks')
     logger.SetChecked(True)
-    try:
-        app_ns().root.ChooseCPIATestMainView()
-        logger.ReportPass('CPIATestMainView')
-    except:
-        logger.ReportFailure('CPIATestMainView')
-    try:
-        app_ns().root.ChooseChandlerMainView()
-        logger.ReportPass('ChandlerMainView')
-    except:
-        logger.ReportFailure('ChandlerMainView')
-    try:
-        app_ns().root.ReloadParcels()
-        logger.ReportPass('ReloadParcels')
-    except:
-        logger.ReportFailure('ReloadParcels')
+    app_ns().root.ChooseCPIATestMainView()
+    logger.ReportPass('CPIATestMainView')
+    app_ns().root.ChooseChandlerMainView()
+    logger.ReportPass('ChandlerMainView')
+    app_ns().root.ReloadParcels()
+    logger.ReportPass('ReloadParcels')
     logger.Stop()
 finally:
+    if len(logger.passedList) < 3:
+        logger.ReportFailure('TestBlocks')
     logger.Report('TestBlocks')
     logger.Close()
