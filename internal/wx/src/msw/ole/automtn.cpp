@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     11/6/98
-// RCS-ID:      $Id: automtn.cpp,v 1.45 2006/01/26 15:29:58 ABX Exp $
+// RCS-ID:      $Id: automtn.cpp,v 1.46 2006/02/11 00:30:20 vell Exp $
 // Copyright:   (c) 1998, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -544,7 +544,7 @@ bool wxAutomationObject::CreateInstance(const wxString& classId) const
 }
 
 
-bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant)
+WXDLLEXPORT bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant)
 {
     ClearVariant(&oleVariant);
     if (variant.IsNull())
@@ -666,7 +666,7 @@ bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant)
 #define VT_TYPEMASK 0xfff
 #endif
 
-bool wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
+WXDLLEXPORT bool wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
 {
     switch (oleVariant.vt & VT_TYPEMASK)
     {

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.1998
-// RCS-ID:      $Id: oleutils.h,v 1.26 2005/09/23 12:50:23 MR Exp $
+// RCS-ID:      $Id: oleutils.h,v 1.27 2006/02/11 00:30:15 vell Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -231,14 +231,14 @@ private:
 // Convert variants
 class WXDLLIMPEXP_BASE wxVariant;
 
-bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant) ;
-bool wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant) ;
+WXDLLEXPORT bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant);
+WXDLLEXPORT bool wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant);
 
 // Convert string to Unicode
-BSTR wxConvertStringToOle(const wxString& str);
+WXDLLEXPORT BSTR wxConvertStringToOle(const wxString& str);
 
 // Convert string from BSTR to wxString
-wxString wxConvertStringFromOle(BSTR bStr);
+WXDLLEXPORT wxString wxConvertStringFromOle(BSTR bStr);
 
 #else // !wxUSE_OLE
 

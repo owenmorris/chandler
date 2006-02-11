@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.98
-// RCS-ID:      $Id: oleutils.cpp,v 1.27 2006/01/26 16:49:44 ABX Exp $
+// RCS-ID:      $Id: oleutils.cpp,v 1.28 2006/02/11 00:30:20 vell Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ bool IsIidFromList(REFIID riid, const IID *aIids[], size_t nCount)
   return false;
 }
 
-BSTR wxConvertStringToOle(const wxString& str)
+WXDLLEXPORT BSTR wxConvertStringToOle(const wxString& str)
 {
 /*
     unsigned int len = strlen((const char*) str);
@@ -80,7 +80,7 @@ BSTR wxConvertStringToOle(const wxString& str)
     return bstr.Get();
 }
 
-wxString wxConvertStringFromOle(BSTR bStr)
+WXDLLEXPORT wxString wxConvertStringFromOle(BSTR bStr)
 {
 #if wxUSE_UNICODE
     wxString str(bStr);
