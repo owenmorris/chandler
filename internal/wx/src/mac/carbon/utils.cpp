@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.cpp,v 1.108 2005/12/27 19:50:23 vell Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.109 2006/02/11 16:19:03 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -644,7 +644,7 @@ wxChar *wxGetUserHome (const wxString& user)
     return NULL;
 }
 
-bool wxGetDiskSpace(const wxString& path, wxLongLong *pTotal, wxLongLong *pFree)
+bool wxGetDiskSpace(const wxString& path, wxDiskspaceSize_t *pTotal, wxDiskspaceSize_t *pFree)
 {
     if ( path.empty() )
         return false;
@@ -674,9 +674,9 @@ bool wxGetDiskSpace(const wxString& path, wxLongLong *pTotal, wxLongLong *pFree)
             if ( noErr == err )
             {
                 if ( pTotal )
-                    *pTotal = wxLongLong( totalBytes ) ;
+                    *pTotal = wxDiskspaceSize_t( totalBytes ) ;
                 if ( pFree )
-                    *pFree = wxLongLong( freeBytes ) ;
+                    *pFree = wxDiskspaceSize_t( freeBytes ) ;
             }
         }
     }

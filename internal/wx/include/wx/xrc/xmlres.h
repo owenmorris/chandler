@@ -3,7 +3,7 @@
 // Purpose:     XML resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.h,v 1.48 2005/09/25 20:23:30 VZ Exp $
+// RCS-ID:      $Id: xmlres.h,v 1.49 2006/02/11 16:40:10 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,12 +68,18 @@ class wxXmlResourceModule;
 class WXDLLIMPEXP_XRC wxXmlResourceDataRecord
 {
 public:
-    wxXmlResourceDataRecord() : Doc(NULL), Time(wxDateTime::Now()) {}
+    wxXmlResourceDataRecord() : Doc(NULL) {
+#if wxUSE_DATETIME
+        Time = wxDateTime::Now();
+#endif
+    }
     ~wxXmlResourceDataRecord() {delete Doc;}
 
     wxString File;
     wxXmlDocument *Doc;
+#if wxUSE_DATETIME
     wxDateTime Time;
+#endif
 };
 
 

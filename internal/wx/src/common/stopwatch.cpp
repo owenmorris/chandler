@@ -8,7 +8,7 @@
 //    Guillermo Rodriguez <guille@iies.es> rewrote from scratch (Dic/99)
 // Modified by:
 // Created:     20.06.2003 (extracted from common/timercmn.cpp)
-// RCS-ID:      $Id: stopwatch.cpp,v 1.18 2005/07/24 13:33:57 SC Exp $
+// RCS-ID:      $Id: stopwatch.cpp,v 1.19 2006/02/11 16:38:28 VZ Exp $
 // Copyright:   (c) 1998-2003 wxWidgets Team
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -364,6 +364,13 @@ wxLongLong wxGetLocalTimeMillis()
 #endif // time functions
 }
 
-#endif // wxUSE_LONGLONG
+#else // !wxUSE_LONGLONG
+
+double wxGetLocalTimeMillis(void)
+{
+    return (double(clock()) / double(CLOCKS_PER_SEC)) * 1000.0;
+}
+
+#endif // wxUSE_LONGLONG/!wxUSE_LONGLONG
 
 

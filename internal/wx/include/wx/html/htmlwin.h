@@ -2,7 +2,7 @@
 // Name:        htmlwin.h
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.h,v 1.70 2006/02/08 21:46:04 VZ Exp $
+// RCS-ID:      $Id: htmlwin.h,v 1.72 2006/02/11 17:17:08 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -11,11 +11,13 @@
 #define _WX_HTMLWIN_H_
 
 #include "wx/defs.h"
+
 #if wxUSE_HTML
 
 #include "wx/window.h"
 #include "wx/scrolwin.h"
 #include "wx/config.h"
+#include "wx/stopwatch.h"
 #include "wx/html/winpars.h"
 #include "wx/html/htmlcell.h"
 #include "wx/filesys.h"
@@ -234,6 +236,7 @@ protected:
     void OnMouseMove(wxMouseEvent& event);
     void OnMouseDown(wxMouseEvent& event);
     void OnMouseUp(wxMouseEvent& event);
+
 #if wxUSE_CLIPBOARD
     void OnKeyUp(wxKeyEvent& event);
     void OnDoubleClick(wxMouseEvent& event);
@@ -289,6 +292,7 @@ protected:
 
     wxFrame *m_RelatedFrame;
     wxString m_TitleFormat;
+
 #if wxUSE_STATUSBAR
     // frame in which page title should be displayed & number of it's statusbar
     // reserved for usage with this html window
@@ -310,7 +314,7 @@ protected:
 #if wxUSE_CLIPBOARD
     // time of the last doubleclick event, used to detect tripleclicks
     // (tripleclicks are used to select whole line):
-    wxLongLong m_lastDoubleClick;
+    wxMilliClock_t m_lastDoubleClick;
 
     // helper class to automatically scroll the window if the user is selecting
     // text and the mouse leaves wxHtmlWindow:

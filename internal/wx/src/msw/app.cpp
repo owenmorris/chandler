@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: app.cpp,v 1.241 2006/01/21 16:47:23 JS Exp $
+// RCS-ID:      $Id: app.cpp,v 1.242 2006/02/11 14:57:25 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -300,6 +300,12 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     SHInitExtraControls();
 #endif
 
+#ifndef __WXWINCE__
+    // Don't show a message box if a function such as SHGetFileInfo
+    // fails to find a device.
+    SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
+#endif
+    
     wxOleInitialize();
 
     RegisterWindowClasses();

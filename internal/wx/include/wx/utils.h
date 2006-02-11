@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h,v 1.126 2006/01/05 04:31:24 RD Exp $
+// RCS-ID:      $Id: utils.h,v 1.127 2006/02/11 16:19:01 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -449,10 +449,16 @@ WXDLLIMPEXP_BASE const wxMB2WXbuf wxGetUserHome(const wxString& user = wxEmptySt
 WXDLLIMPEXP_BASE wxChar* wxGetUserHome(const wxString& user = wxEmptyString);
 #endif
 
+#if wxUSE_LONGLONG
+    typedef wxLongLong wxDiskspaceSize_t;
+#else
+    typedef long wxDiskspaceSize_t;
+#endif
+
 // get number of total/free bytes on the disk where path belongs
 WXDLLIMPEXP_BASE bool wxGetDiskSpace(const wxString& path,
-                                wxLongLong *pTotal = NULL,
-                                wxLongLong *pFree = NULL);
+                                     wxDiskspaceSize_t *pTotal = NULL,
+                                     wxDiskspaceSize_t *pFree = NULL);
 
 #if wxUSE_GUI // GUI only things from now on
 

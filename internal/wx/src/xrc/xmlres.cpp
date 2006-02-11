@@ -3,7 +3,7 @@
 // Purpose:     XRC resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.cpp,v 1.76 2006/01/21 16:47:28 JS Exp $
+// RCS-ID:      $Id: xmlres.cpp,v 1.77 2006/02/11 16:20:22 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -411,7 +411,11 @@ bool wxXmlResource::UpdateResources()
         {
 #           if wxUSE_FILESYSTEM
             file = fsys.OpenFile(m_data[i].File);
+#           if wxUSE_DATETIME
             modif = file && file->GetModificationTime() > m_data[i].Time;
+#           else // wxUSE_DATETIME
+            modif = true;
+#           endif // wxUSE_DATETIME
             if (!file)
             {
                 wxLogError(_("Cannot open file '%s'."), m_data[i].File.c_str());
@@ -419,9 +423,13 @@ bool wxXmlResource::UpdateResources()
             }
             wxDELETE(file);
             wxUnusedVar(file);
-#           else
+#           else // wxUSE_FILESYSTEM
+#           if wxUSE_DATETIME
             modif = wxDateTime(wxFileModificationTime(m_data[i].File)) > m_data[i].Time;
-#           endif
+#           else // wxUSE_DATETIME
+            modif = true;
+#           endif // wxUSE_DATETIME
+#           endif // wxUSE_FILESYSTEM
         }
 
         if (modif)
@@ -477,11 +485,13 @@ bool wxXmlResource::UpdateResources()
                 }
 
                 ProcessPlatformProperty(m_data[i].Doc->GetRoot());
+#if wxUSE_DATETIME
 #if wxUSE_FILESYSTEM
                 m_data[i].Time = file->GetModificationTime();
-#else
+#else // wxUSE_FILESYSTEM
                 m_data[i].Time = wxDateTime(wxFileModificationTime(m_data[i].File));
-#endif
+#endif // wxUSE_FILESYSTEM
+#endif // wxUSE_DATETIME
             }
 
 #           if wxUSE_FILESYSTEM

@@ -3,7 +3,7 @@
 // Purpose:     wxLongLong unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-01
-// RCS-ID:      $Id: longlongtest.cpp,v 1.5 2005/02/28 00:20:31 VZ Exp $
+// RCS-ID:      $Id: longlongtest.cpp,v 1.6 2006/02/11 16:51:32 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +23,8 @@
 
 #include "wx/longlong.h"
 #include "wx/timer.h"
+
+#if wxUSE_LONGLONG
 
 // ----------------------------------------------------------------------------
 // helpers for testing
@@ -322,3 +324,4 @@ void LongLongTestCase::ToString()
 
 }
 
+#endif // wxUSE_LONGLONG

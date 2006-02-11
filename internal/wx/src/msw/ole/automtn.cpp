@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     11/6/98
-// RCS-ID:      $Id: automtn.cpp,v 1.46 2006/02/11 00:30:20 vell Exp $
+// RCS-ID:      $Id: automtn.cpp,v 1.47 2006/02/11 14:50:21 JS Exp $
 // Copyright:   (c) 1998, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -851,9 +851,11 @@ static void ReleaseVariant(VARIANTARG *pvarg)
                 break;
 
             case VT_I2:
+            case VT_I4:
             case VT_BOOL:
             case VT_R8:
             case VT_ERROR:        // to avoid erroring on an error return from Excel
+            case VT_EMPTY:
                 // no work for these types
                 break;
 

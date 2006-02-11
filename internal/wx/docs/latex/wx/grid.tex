@@ -4,7 +4,7 @@
 %% Author:
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: grid.tex,v 1.31 2005/11/02 16:52:23 ABX Exp $
+%% RCS-ID:      $Id: grid.tex,v 1.32 2006/02/11 12:05:52 JS Exp $
 %% Copyright:   (c) wxWidgets
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1079,10 +1079,10 @@ used at present.
 
 The sequence of actions begins with the grid object requesting the underlying grid
 table to insert new columns. If this is successful the table notifies the grid and the
-grid updates the display. For a default grid (one where you have called
+grid updates the display. For a default grid (one where you have called 
 \helpref{wxGrid::CreateGrid}{wxgridcreategrid}) this process is automatic. If you are
 using a custom grid table (specified with \helpref{wxGrid::SetTable}{wxgridsettable})
-then you must override
+then you must override 
 \helpref{wxGridTableBase::InsertCols}{wxgridtablebaseinsertcols} in your derived
 table class.
 
@@ -1098,10 +1098,10 @@ present.
 
 The sequence of actions begins with the grid object requesting the underlying grid
 table to insert new rows. If this is successful the table notifies the grid and the
-grid updates the display. For a default grid (one where you have called
+grid updates the display. For a default grid (one where you have called 
 \helpref{wxGrid::CreateGrid}{wxgridcreategrid}) this process is automatic. If you are
 using a custom grid table (specified with \helpref{wxGrid::SetTable}{wxgridsettable})
-then you must override
+then you must override 
 \helpref{wxGridTableBase::InsertRows}{wxgridtablebaseinsertrows} in your derived
 table class.
 
@@ -1455,7 +1455,7 @@ function for those cells that contain string values.
 
 The last form is for backward compatibility only.
 
-See \helpref{wxGridTableBase::CanSetValueAs}{wxgridtablebasecangetvalueas}
+See \helpref{wxGridTableBase::CanSetValueAs}{wxgridtablebasecangetvalueas} 
 and the \helpref{wxGrid overview}{gridoverview} for more information.
 
 
@@ -1466,8 +1466,8 @@ and the \helpref{wxGrid overview}{gridoverview} for more information.
 
 Sets the cell attributes for all cells in the specified column.
 
-For more information about controlling grid cell attributes see the
-\helpref{wxGridCellAttr}{wxgridcellattr} cell attribute class and the
+For more information about controlling grid cell attributes see the 
+\helpref{wxGridCellAttr}{wxgridcellattr} cell attribute class and the 
 \helpref{wxGrid classes overview}{gridoverview}.
 
 
@@ -1896,7 +1896,7 @@ Displays the in-place cell edit control for the current cell.
 
 \func{int}{XToCol}{\param{int }{x}}
 
-Returns the grid column that corresponds to the logical x coordinate. Returns
+Returns the grid column that corresponds to the logical x coordinate. Returns 
 {\tt wxNOT\_FOUND} if there is no column at the x position.
 
 
@@ -1923,5 +1923,6 @@ If no row edge is near to this position {\tt wxNOT\_FOUND} is returned.
 
 \func{int}{YToRow}{\param{int }{y}}
 
-Returns the grid row that corresponds to the logical y coordinate. Returns
+Returns the grid row that corresponds to the logical y coordinate. Returns 
 {\tt wxNOT\_FOUND} if there is no row at the y position.
+

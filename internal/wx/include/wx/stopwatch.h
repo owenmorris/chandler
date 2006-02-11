@@ -3,7 +3,7 @@
 // Purpose:     wxStopWatch and global time-related functions
 // Author:      Julian Smart (wxTimer), Sylvain Bougnoux (wxStopWatch)
 // Created:     26.06.03 (extracted from wx/timer.h)
-// RCS-ID:      $Id: stopwatch.h,v 1.9 2005/05/04 18:52:03 JS Exp $
+// RCS-ID:      $Id: stopwatch.h,v 1.10 2006/02/11 16:38:25 VZ Exp $
 // Copyright:   (c) 1998-2003 Julian Smart, Sylvain Bougnoux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,9 +89,13 @@ extern long WXDLLIMPEXP_BASE wxGetLocalTime();
 extern long WXDLLIMPEXP_BASE wxGetUTCTime();
 
 #if wxUSE_LONGLONG
-// Get number of milliseconds since local time 00:00:00 Jan 1st 1970
-extern wxLongLong WXDLLIMPEXP_BASE wxGetLocalTimeMillis();
+    typedef wxLongLong wxMilliClock_t;
+#else
+    typedef double wxMilliClock_t;
 #endif // wxUSE_LONGLONG
+
+// Get number of milliseconds since local time 00:00:00 Jan 1st 1970
+extern wxMilliClock_t WXDLLIMPEXP_BASE wxGetLocalTimeMillis();
 
 #define wxGetCurrentTime() wxGetLocalTime()
 

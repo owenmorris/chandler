@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     02/04/05
-// RCS-ID:      $Id: mediactrl.cpp,v 1.13 2006/02/10 19:37:40 VZ Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.14 2006/02/11 11:47:12 MR Exp $
 // Copyright:   (c) 2004-2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -990,7 +990,30 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     //
     //init gstreamer
     //
+#if wxUSE_UNICODE
+    int i;
+    char **argvGST = new char*[wxTheApp->argc + 1];
+    for ( i = 0; i < wxTheApp->argc; i++ )
+    {
+        argvGST[i] = wxStrdupA(wxConvUTF8.cWX2MB(wxTheApp->argv[i]));
+    }
+
+    argvGST[wxTheApp->argc] = NULL;
+
+    int argcGST = wxTheApp->argc;
+
+    gst_init(&argcGST, &argvGST);
+
+    // free our copy
+    for ( i = 0; i < argcGST; i++ )
+    {
+        free(argvGST[i]);
+    }
+
+    delete [] argvGST;
+#else
     gst_init(&wxTheApp->argc, &wxTheApp->argv);
+#endif
 
     //
     // wxControl creation

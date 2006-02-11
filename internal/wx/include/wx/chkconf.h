@@ -4,7 +4,7 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     09.08.00
- * RCS-ID:      $Id: chkconf.h,v 1.111 2005/10/31 16:55:52 ABX Exp $
+ * RCS-ID:      $Id: chkconf.h,v 1.113 2006/02/11 15:44:21 VZ Exp $
  * Copyright:   (c) 2000 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -831,6 +831,17 @@
    check consistency of the settings
  */
 
+#if wxUSE_ARCHIVE_STREAMS
+#   if !wxUSE_DATETIME
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxArchive requires wxUSE_DATETIME"
+#       else
+#           undef wxUSE_ARCHIVE_STREAMS
+#           define wxUSE_ARCHIVE_STREAMS 0
+#       endif
+#   endif
+#endif /* wxUSE_ARCHIVE_STREAMS */
+
 #if wxUSE_CRASHREPORT && !wxUSE_ON_FATAL_EXCEPTION
 #   ifdef wxABORT_ON_CONFIG_ERROR
 #       error "wxUSE_CRASHREPORT requires wxUSE_ON_FATAL_EXCEPTION"
@@ -937,6 +948,17 @@
 #       define wxUSE_TEXTFILE 1
 #   endif
 #endif /* wxUSE_MIMETYPE */
+
+#if wxUSE_ODBC
+#   if !wxUSE_DATETIME
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxODBC requires wxUSE_DATETIME"
+#       else
+#           undef wxUSE_ODBC
+#           define wxUSE_ODBC 0
+#       endif
+#   endif
+#endif /* wxUSE_ODBC */
 
 #if wxUSE_TEXTFILE && !wxUSE_TEXTBUFFER
 #   ifdef wxABORT_ON_CONFIG_ERROR

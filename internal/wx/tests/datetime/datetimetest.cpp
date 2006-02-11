@@ -3,7 +3,7 @@
 // Purpose:     wxDateTime unit test
 // Author:      Vadim Zeitlin
 // Created:     2004-06-23 (extracted from samples/console/console.cpp)
-// RCS-ID:      $Id: datetimetest.cpp,v 1.8 2006/02/05 14:05:39 rgammans Exp $
+// RCS-ID:      $Id: datetimetest.cpp,v 1.9 2006/02/11 16:20:28 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +26,8 @@
 // is not usually the case, but if we're under Win32 we can try it -- define
 // the macro below to do it
 //#define CHANGE_SYSTEM_DATE
+
+#if wxUSE_DATETIME
 
 #ifndef __WINDOWS__
     #undef CHANGE_SYSTEM_DATE
@@ -823,3 +825,4 @@ void DateTimeTestCase::TestDSTBug()
 #endif // CHANGE_SYSTEM_DATE
 }
 
+#endif // wxUSE_DATETIME

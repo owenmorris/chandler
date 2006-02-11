@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp,v 1.167 2006/01/21 16:47:24 JS Exp $
+// RCS-ID:      $Id: notebook.cpp,v 1.168 2006/02/11 15:41:39 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -275,19 +275,16 @@ bool wxNotebook::Create(wxWindow *parent,
         style |= wxBORDER_SUNKEN;
 #endif
 
-    // comctl32.dll 6.0 doesn't support non-top tabs with visual styles (the
-    // control is simply not rendered correctly), so disable them in this case
+#if !wxUSE_UXTHEME 
+    // ComCtl32 notebook tabs simply don't work unless they're on top if we have uxtheme, we can
+    // work around it later (after control creation), but if we don't have uxtheme, we have to clear
+    // those styles
     const int verComCtl32 = wxApp::GetComCtl32Version();
     if ( verComCtl32 == 600 )
     {
-        // check if we use themes at all -- if we don't, we're still ok
-#if wxUSE_UXTHEME
-        if ( wxUxThemeEngine::GetIfActive() )
-#endif
-        {
-            style &= ~(wxBK_BOTTOM | wxBK_LEFT | wxBK_RIGHT);
-        }
+        style &= ~(wxNB_BOTTOM | wxNB_LEFT | wxNB_RIGHT);
     }
+#endif //wxUSE_UXTHEME
 
     LPCTSTR className = WC_TABCONTROL;
 
@@ -347,6 +344,22 @@ bool wxNotebook::Create(wxWindow *parent,
     {
         // create backing store
         UpdateBgBrush();
+    }
+    
+    // comctl32.dll 6.0 doesn't support non-top tabs with visual styles (the
+    // control is simply not rendered correctly), so we disable themes
+    // if possible, otherwise we simply clear the styles.
+    // It's probably not possible to have UXTHEME without ComCtl32 6 or better, but lets
+    // check it anyway.
+    const int verComCtl32 = wxApp::GetComCtl32Version();
+    if ( verComCtl32 == 600 ) 
+    {
+        // check if we use themes at all -- if we don't, we're still okay
+        if ( wxUxThemeEngine::GetIfActive() && (style & (wxNB_BOTTOM|wxNB_LEFT|wxNB_RIGHT)))
+        {
+            wxUxThemeEngine::GetIfActive()->SetWindowTheme((HWND)this->GetHandle(), L"", L"");
+            SetBackgroundColour(GetThemeBackgroundColour());    //correct the background color for the new non-themed control
+        }
     }
 #endif // wxUSE_UXTHEME
 

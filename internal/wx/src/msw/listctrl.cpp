@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.245 2006/02/08 22:15:34 VZ Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.246 2006/02/11 15:16:35 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1372,11 +1372,25 @@ wxTextCtrl* wxListCtrl::EditLabel(long item, wxClassInfo* textControlClass)
 }
 
 // End label editing, optionally cancelling the edit
-bool wxListCtrl::EndEditLabel(bool WXUNUSED(cancel))
+bool wxListCtrl::EndEditLabel(bool cancel)
 {
-    wxFAIL_MSG( _T("not implemented") );
-
-    return false;
+    // m_textCtrl is not always ready, ie. in EVT_LIST_BEGIN_LABEL_EDIT
+    HWND hwnd = ListView_GetEditControl(GetHwnd());
+    bool b = (hwnd != NULL);
+    if (b)
+    {
+        if (cancel)
+            ::SetWindowText(hwnd, wxEmptyString); // dubious but better than nothing
+        if (m_textCtrl)
+        {
+            m_textCtrl->UnsubclassWin();
+            m_textCtrl->SetHWND(0);
+            delete m_textCtrl;
+            m_textCtrl = NULL;
+        }
+        ::DestroyWindow(hwnd);
+    }
+    return b;
 }
 
 // Ensures this item is visible
