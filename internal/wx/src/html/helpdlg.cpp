@@ -4,14 +4,10 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden, Vaclav Slavik and Julian Smart
-// RCS-ID:      $Id: helpdlg.cpp,v 1.1 2006/01/09 13:42:53 JS Exp $
+// RCS-ID:      $Id: helpdlg.cpp,v 1.2 2006/02/11 04:53:56 MR Exp $
 // Copyright:   (c) Harm van der Heijden, Vaclav Slavik and Julian Smart
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma implementation "helpdlgex.h"
-#endif
 
 // For compilers that support precompilation, includes "wx.h"
 #include "wx/wxprec.h"

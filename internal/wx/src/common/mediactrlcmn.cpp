@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrlcmn.cpp,v 1.19 2006/02/10 19:37:33 VZ Exp $
+// RCS-ID:      $Id: mediactrlcmn.cpp,v 1.20 2006/02/11 04:53:54 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,10 +18,6 @@
 //---------------------------------------------------------------------------
 // Pre-compiled header stuff
 //---------------------------------------------------------------------------
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-#pragma implementation "mediactrl.h"
-#endif
 
 #include "wx/wxprec.h"
 
