@@ -34,6 +34,7 @@ import application # via callbacks
 
 
 from Sharing import *
+from conduits import *
 from WebDAV import *
 from ICalendar import *
 from application.Utility import getDesktopDir
