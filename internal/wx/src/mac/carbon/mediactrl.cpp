@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.cpp,v 1.23 2006/02/10 21:38:24 vell Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.24 2006/02/10 23:57:36 vell Exp $
 // Copyright:   (c) 2004-2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -826,9 +826,9 @@ bool wxQTMediaBackend::Pause()
 // 1) Stop the movie
 // 2) Seek to the beginning of the movie
 //---------------------------------------------------------------------------
-bool wxQTMediaBackend::Stop()
+bool wxQTMediaBackend::DoStop()
 {
-    if (!wxQTMediaBackend::Pause())
+    if (!wxQTMediaBackend::DoPause())
         return false;
 
     ::GoToBeginningOfMovie(m_movie);
