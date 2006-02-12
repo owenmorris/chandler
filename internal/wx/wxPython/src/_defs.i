@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.95 2006/02/07 03:56:37 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.96 2006/02/11 19:46:49 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,7 @@ typedef unsigned long   wxUIntPtr;
 #define %noautodoc      %feature("noautodoc")
 
 #if SWIG_VERSION >= 0x010327
+#undef %kwargs
 #define %kwargs         %feature("kwargs", "1")
 #define %nokwargs       %feature("kwargs", "0")
 #else

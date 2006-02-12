@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _window.i,v 1.61 2006/02/10 18:34:02 RD Exp $
+// RCS-ID:      $Id: _window.i,v 1.62 2006/02/11 19:45:38 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1833,9 +1833,13 @@ are none.", "");
     DocDeclStr(
         void , SetAutoLayout( bool autoLayout ),
         "Determines whether the Layout function will be called automatically
-when the window is resized.  It is called implicitly by SetSizer but
-if you use SetConstraints you should call it manually or otherwise the
-window layout won't be correctly updated when its size changes.", "");
+when the window is resized.  lease note that this only happens for the
+windows usually used to contain children, namely `wx.Panel` and
+`wx.TopLevelWindow` (and the classes deriving from them).
+
+This method is called implicitly by `SetSizer` but if you use
+`SetConstraints` you should call it manually or otherwise the window
+layout won't be correctly updated when its size changes.", "");
     
     DocDeclStr(
         bool , GetAutoLayout() const,
