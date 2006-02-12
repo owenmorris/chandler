@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.11.99
-// RCS-ID:      $Id: fontmap.cpp,v 1.73 2005/09/26 00:29:32 VZ Exp $
+// RCS-ID:      $Id: fontmap.cpp,v 1.74 2006/02/12 23:39:48 VZ Exp $
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -491,16 +491,23 @@ bool wxFontMapper::GetAltForEncoding(wxFontEncoding encoding,
                                      const wxString& facename,
                                      bool interactive)
 {
+    wxCHECK_MSG( encodingAlt, false,
+                    _T("wxFontEncoding::GetAltForEncoding(): NULL pointer") );
+
+#ifdef __WXGTK20__
+    // in GTK+ 2 we can always use UTF-8 for everything so just do it,
+    // especially as no other font encodings are currently supported
+    *encodingAlt = wxFONTENCODING_UTF8;
+    return true;
+#else // !wxGTK2
     wxNativeEncodingInfo info;
     if ( !GetAltForEncoding(encoding, &info, facename, interactive) )
         return false;
 
-    wxCHECK_MSG( encodingAlt, false,
-                    _T("wxFontEncoding::GetAltForEncoding(): NULL pointer") );
-
     *encodingAlt = info.encoding;
 
     return true;
+#endif // wxGTK2/!wxGTK2
 }
 
 bool wxFontMapper::IsEncodingAvailable(wxFontEncoding encoding,

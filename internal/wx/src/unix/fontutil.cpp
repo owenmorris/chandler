@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.cpp,v 1.65 2005/10/03 16:37:30 ABX Exp $
+// RCS-ID:      $Id: fontutil.cpp,v 1.66 2006/02/12 23:39:55 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -304,7 +304,7 @@ wxString wxNativeFontInfo::ToUserString() const
 // wxNativeEncodingInfo
 // ----------------------------------------------------------------------------
 
-bool wxNativeEncodingInfo::FromString(const wxString& s)
+bool wxNativeEncodingInfo::FromString(const wxString& WXUNUSED(s))
 {
     return false;
 }
@@ -314,7 +314,7 @@ wxString wxNativeEncodingInfo::ToString() const
     return wxEmptyString;
 }
 
-bool wxTestFontEncoding(const wxNativeEncodingInfo& info)
+bool wxTestFontEncoding(const wxNativeEncodingInfo& WXUNUSED(info))
 {
     return true;
 }
@@ -322,17 +322,25 @@ bool wxTestFontEncoding(const wxNativeEncodingInfo& info)
 bool wxGetNativeFontEncoding(wxFontEncoding encoding,
                              wxNativeEncodingInfo *info)
 {
-    // we *must* return true for default encoding as otherwise wxFontMapper
-    // considers that we can't load any font and aborts with wxLogFatalError!
-    if ( encoding == wxFONTENCODING_SYSTEM )
-    {
-        info->facename.clear();
-        info->encoding = wxFONTENCODING_SYSTEM;
-    }
+    info->facename.clear();
 
-    // pretend that we support everything, it's better than to always return
-    // false as the old code did
-    return true;
+    switch ( encoding )
+    {
+        // we *must* return true for default encodings as otherwise wxFontMapper
+        // considers that we can't load any font and aborts with wxLogFatalError!
+        case wxFONTENCODING_DEFAULT:
+        case wxFONTENCODING_SYSTEM:
+            info->encoding = wxFONTENCODING_SYSTEM;
+            return true;
+
+        case wxFONTENCODING_UTF8:
+            info->encoding = wxFONTENCODING_UTF8;
+            return true;
+
+        default:
+            // everything else must be converted to UTF-8
+            return false;
+    }
 }
 
 #else // GTK+ 1.x
