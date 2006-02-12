@@ -69,7 +69,7 @@ source tree. Here is the minimal.bkl Bakefile used in the sample:
 minimal.bkl
 -------------------------------------------------------------
 <?xml version="1.0" ?>
-<!-- $Id: bakefile_quickstart.txt,v 1.4 2005/05/31 09:17:06 JS Exp $ -->
+<!-- $Id: bakefile_quickstart.txt,v 1.5 2006/02/11 18:41:11 KO Exp $ -->
 
 <makefile>
 
@@ -235,6 +235,8 @@ options are:
 
     Option              Values              Description
     ------              ------              -------------
+    WX_MONOLITHIC       0(default),1        Set this to 1 if you built wx 
+                                            as a monolithic library
     WX_SHARED           0(default),1        Specify static or dynamic wx libs
     WX_UNICODE          0(defualt),1        Use ANSI or UNICODE wx libs
     WX_DEBUG            0,1(default)        Use release or debug wx libs

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h,v 1.17 2006/02/09 15:03:51 SC Exp $
+// RCS-ID:      $Id: combobox.h,v 1.18 2006/02/12 03:11:37 KH Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,6 +12,7 @@
 #ifndef _WX_COMBOBOX_H_
 #define _WX_COMBOBOX_H_
 
+#include "wx/containr.h"
 #include "wx/choice.h"
 
 WXDLLEXPORT_DATA(extern const wxChar) wxComboBoxNameStr[];

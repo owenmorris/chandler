@@ -41,10 +41,13 @@ All:
 - Fixed wxSocketBase::InterruptWait on wxBase.
 - Important code cleanup (Paul Cornett)
 - Added support for wxLongLong in wx stream classes (Mark Junker)
+- wxSOCKET_REUSEADDR can be used with wxSocketClient.
+- Overloaded Connect and SetLocal methods for binding to local address/port.
 
 All (GUI):
 
 - Added wxTreebook (uses a wxTreeCtrl to control pages).
+- Added wxDC::GradientFillLinear/Concentric()
 - Added wxKeyEvent::GetModifiers()
 - Added wxDialog::SetEscapeId().
 - wxItemContainerImmutable::FindString unified (affects wxRadioBox, wxListBox,
@@ -201,7 +204,7 @@ wxWinCE:
 - Fixed getting standard folder paths on WinCE.
 - Support for backspace key on smartphone.
 - Made both windows wxMediaCtrl Windows backends compilable with wxWinCE - it
-  is reccommended that you use wxMEDIABACKEND_WMP10 on this platform
+  is recommended that you use wxMEDIABACKEND_WMP10 on this platform
   directly, however.
 
 wxUniv:

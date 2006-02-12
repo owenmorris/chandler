@@ -5,7 +5,7 @@
 // Created:    April 1997
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 2000-1999, Guillermo Rodriguez Garcia
-// RCS_ID:     $Id: socket.cpp,v 1.138 2006/01/27 00:46:45 KH Exp $
+// RCS_ID:     $Id: socket.cpp,v 1.139 2006/02/11 23:39:25 KH Exp $
 // License:    see wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1198,6 +1198,20 @@ bool wxSocketBase::SetOption(int level, int optname, const void *optval,
     return true;
 }
 
+bool wxSocketBase::SetLocal(wxSockAddress& local)
+{
+  GAddress* la = local.GetAddress();
+
+  if (la && la->m_addr)
+  {
+    m_socket->SetLocal(la);
+
+    return true;
+  }
+
+  return false;
+}
+
 // ==========================================================================
 // wxSocketClient
 // ==========================================================================
@@ -1219,7 +1233,7 @@ wxSocketClient::~wxSocketClient()
 // Connect
 // --------------------------------------------------------------------------
 
-bool wxSocketClient::Connect(wxSockAddress& addr_man, bool wait)
+bool wxSocketClient::DoConnect(wxSockAddress& addr_man, wxSockAddress* local, bool wait)
 {
   GSocketError err;
 
@@ -1249,6 +1263,21 @@ bool wxSocketClient::Connect(wxSockAddress& addr_man, bool wait)
   if (!wait)
     m_socket->SetNonBlocking(1);
 
+  // Reuse makes sense for clients too, if we are trying to rebind to the same port
+  if (GetFlags() & wxSOCKET_REUSEADDR)
+  {
+    m_socket->SetReusable();
+  }
+
+  // Bind to the local IP address and port, when provided
+  if (local)
+  {
+    GAddress* la = local->GetAddress();
+
+    if (la && la->m_addr)
+      m_socket->SetLocal(la);
+  }
+
   m_socket->SetPeer(addr_man.GetAddress());
   err = m_socket->Connect(GSOCK_STREAMED);
 
@@ -1265,6 +1294,16 @@ bool wxSocketClient::Connect(wxSockAddress& addr_man, bool wait)
 
   m_connected = true;
   return true;
+}
+
+bool wxSocketClient::Connect(wxSockAddress& addr_man, bool wait)
+{
+  return (DoConnect(addr_man, NULL, wait));
+}
+
+bool wxSocketClient::Connect(wxSockAddress& addr_man, wxSockAddress& local, bool wait)
+{
+  return (DoConnect(addr_man, &local, wait));
 }
 
 bool wxSocketClient::WaitOnConnect(long seconds, long milliseconds)

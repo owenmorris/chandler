@@ -8,7 +8,7 @@
  *              Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket main Unix and OS/2 file
  * Licence:     The wxWindows licence
- * CVSID:       $Id: gsocket.cpp,v 1.62 2006/01/25 17:58:50 SN Exp $
+ * CVSID:       $Id: gsocket.cpp,v 1.63 2006/02/11 23:43:17 KH Exp $
  * -------------------------------------------------------------------------
  */
 
@@ -691,7 +691,12 @@ GSocketError GSocket::SetServer()
      state after being previously closed.
    */
   if (m_reusable)
+  {
     setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&arg, sizeof(u_long));
+#ifdef SO_REUSEPORT
+    setsockopt(m_fd, SOL_SOCKET, SO_REUSEPORT, (const char*)&arg, sizeof(u_long));
+#endif
+  }
 
   /* Bind to the local address,
    * retrieve the actual address bound,
@@ -889,6 +894,21 @@ GSocketError GSocket::Connect(GSocketStream stream)
 #else
   ioctl(m_fd, FIONBIO, &arg);
 #endif
+
+  // If the reuse flag is set, use the applicable socket reuse flags(s)
+  if (m_reusable)
+  {
+    setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&arg, sizeof(u_long));
+#ifdef SO_REUSEPORT
+    setsockopt(m_fd, SOL_SOCKET, SO_REUSEPORT, (const char*)&arg, sizeof(u_long));
+#endif
+  }
+
+  // If a local address has been set, then we need to bind to it before calling connect
+  if (m_local && m_local->m_addr)
+  {
+     bind(m_fd, m_local->m_addr, m_local->m_len);
+  }
 
   /* Connect it to the peer address, with a timeout (see below) */
   ret = connect(m_fd, m_peer->m_addr, m_peer->m_len);

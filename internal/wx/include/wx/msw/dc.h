@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.h,v 1.54 2006/02/08 21:46:19 VZ Exp $
+// RCS-ID:      $Id: dc.h,v 1.55 2006/02/12 01:57:24 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -163,6 +163,11 @@ protected:
 
     virtual bool DoFloodFill(wxCoord x, wxCoord y, const wxColour& col,
                              int style = wxFLOOD_SURFACE);
+
+    virtual void DoGradientFillLinear(const wxRect& rect,
+                                      const wxColour& initialColour,
+                                      const wxColour& destColour,
+                                      wxDirection nDirection = wxEAST);
 
     virtual bool DoGetPixel(wxCoord x, wxCoord y, wxColour *col) const;
 

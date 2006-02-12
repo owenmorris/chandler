@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.10.99
-// RCS-ID:      $Id: spinctrl.h,v 1.7 2006/02/09 15:03:51 SC Exp $
+// RCS-ID:      $Id: spinctrl.h,v 1.8 2006/02/12 03:43:53 KH Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +21,8 @@
 // ----------------------------------------------------------------------------
 
 #if wxUSE_SPINBTN 
+
+#include "wx/containr.h"
 
 class WXDLLEXPORT wxSpinButton;
 class WXDLLEXPORT wxTextCtrl;

@@ -36672,35 +36672,35 @@ echo "$as_me: WARNING: BeOS threads are not yet supported... disabled" >&2;}
         case "${host}" in
           *-*-solaris2* | *-*-sunos4* )
                 if test "x$GCC" = "xyes"; then
-                    THREAD_OPTS="-pthreads $THREAD_OPTS"
+                                        THREAD_OPTS="-pthreads $THREAD_OPTS"
                 else
                     THREAD_OPTS="-mt $THREAD_OPTS"
                 fi
                 ;;
-          *-*-freebsd* )
-                    THREAD_OPTS="-kthread lthread $THREAD_OPTS c_r"
+          *-*-freebsd*)
+                                                THREAD_OPTS="-kthread lthread $THREAD_OPTS c_r"
                 ;;
           *-*-darwin* | *-*-cygwin* )
-                    THREAD_OPTS=""
+                                                THREAD_OPTS=""
                 ;;
           *-*-aix*)
-                    THREAD_OPTS="pthreads"
+                                THREAD_OPTS="pthreads"
                 ;;
           *-hp-hpux* )
                 if test "x$GCC" = "xyes"; then
-                    $CXX -dumpspecs | grep 'pthread:' >/dev/null ||
+                                        $CXX -dumpspecs | grep 'pthread:' >/dev/null ||
                         THREAD_OPTS=""
                 else
-                    THREAD_OPTS="-mt"
+                                                            THREAD_OPTS="-mt"
                 fi
                 ;;
           *-*-irix* )
-                if test "x$GCC" = "xyes"; then
+                                                                if test "x$GCC" = "xyes"; then
                     THREAD_OPTS=""
                 fi
                 ;;
-          *-*-*UnixWare* )
-                if test "x$GCC" != "xyes"; then
+          *-*-*UnixWare*)
+                                if test "x$GCC" != "xyes"; then
                     THREAD_OPTS="-Ethread"
                 fi
                 ;;
@@ -39392,7 +39392,7 @@ if test "$wxUSE_OPTIMISE" = "no" ; then
     fi
 else
     if test "$GCC" = yes ; then
-        OPTIMISE_CFLAGS="-O2"
+                                OPTIMISE_CFLAGS="-O2 -fno-strict-aliasing"
     else
         OPTIMISE_CFLAGS="-O"
     fi
