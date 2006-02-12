@@ -88,9 +88,6 @@ public:
 
     // No constructor as it can not be used directly from Python
 
-    // OSAF - added
-    virtual void ForceRedraw();
-
     // maximize = True => maximize, otherwise - restore
     virtual void Maximize(bool maximize = true);
 

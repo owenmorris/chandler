@@ -154,9 +154,6 @@ public:
     // return true if the frame is in fullscreen mode
     virtual bool IsFullScreen() const = 0;
 
-    // OSAF - added
-    virtual void ForceRedraw( void );
-
     // the title of the top level window: the text which the
     // window shows usually at the top of the frame/dialog in dedicated bar
     virtual void SetTitle(const wxString& title) = 0;

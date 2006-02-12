@@ -1235,30 +1235,6 @@ void  wxTopLevelWindowMac::MacCreateRealWindow(
     GetEventHandler()->ProcessEvent(event);
 }
 
-void wxTopLevelWindowMac::ForceRedraw( void )
-{
-HIViewRef		viewRef;
-
-	if (m_macWindow != NULL)
-	{
-		viewRef = HIViewGetRoot( (WindowRef)m_macWindow );
-		if (viewRef != NULL)
-		{
-		wxClientDC	windowDC( (wxWindowMac*)this ) ;
-
-			windowDC.Clear();
-
-			// invalidate window
-			HIViewSetNeedsDisplay( viewRef, true );
-
-			// render the root control and its' children
-			HIViewRender( viewRef );
-
-			HIWindowFlush( (WindowRef)m_macWindow );
-		}
-	}
-}
-
 void wxTopLevelWindowMac::ClearBackground()
 {
     wxWindow::ClearBackground() ;
