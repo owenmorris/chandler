@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp,v 1.173 2006/01/09 00:06:50 ABX Exp $
+// RCS-ID:      $Id: event.cpp,v 1.174 2006/02/12 12:16:41 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1139,7 +1139,7 @@ void wxEvtHandler::ProcessPendingEvents()
 
         wxENTER_CRIT_SECT( Lock() );
 
-        if ( !--n )
+        if ( --n == 0 )
             break;
     }
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     04/01/98
-// RCS-ID:      $Id: object.cpp,v 1.97 2006/02/09 00:49:14 VZ Exp $
+// RCS-ID:      $Id: object.cpp,v 1.98 2006/02/12 12:16:41 MW Exp $
 // Copyright:   (c) 1998 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -310,7 +310,7 @@ void wxObject::UnRef()
     {
         wxASSERT_MSG( m_refData->m_count > 0, _T("invalid ref data count") );
 
-        if ( !--m_refData->m_count )
+        if ( --m_refData->m_count == 0 )
             delete m_refData;
         m_refData = NULL;
     }

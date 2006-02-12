@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrlcmn.cpp,v 1.20 2006/02/11 04:53:54 MR Exp $
+// RCS-ID:      $Id: mediactrlcmn.cpp,v 1.21 2006/02/12 13:01:05 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,15 +46,15 @@
 // RTTI and Event implementations
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-IMPLEMENT_CLASS(wxMediaCtrl, wxControl);
+IMPLEMENT_CLASS(wxMediaCtrl, wxControl)
 DEFINE_EVENT_TYPE(wxEVT_MEDIA_STATECHANGED)
 DEFINE_EVENT_TYPE(wxEVT_MEDIA_PLAY)
 DEFINE_EVENT_TYPE(wxEVT_MEDIA_PAUSE)
-IMPLEMENT_CLASS(wxMediaBackend, wxObject);
-IMPLEMENT_DYNAMIC_CLASS(wxMediaEvent, wxEvent);
-DEFINE_EVENT_TYPE(wxEVT_MEDIA_FINISHED);
-DEFINE_EVENT_TYPE(wxEVT_MEDIA_LOADED);
-DEFINE_EVENT_TYPE(wxEVT_MEDIA_STOP);
+IMPLEMENT_CLASS(wxMediaBackend, wxObject)
+IMPLEMENT_DYNAMIC_CLASS(wxMediaEvent, wxEvent)
+DEFINE_EVENT_TYPE(wxEVT_MEDIA_FINISHED)
+DEFINE_EVENT_TYPE(wxEVT_MEDIA_LOADED)
+DEFINE_EVENT_TYPE(wxEVT_MEDIA_STOP)
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
@@ -537,10 +537,10 @@ void wxMediaBackendCommonBase::QueueStopEvent()
 #include "wx/html/forcelnk.h"
 
 #ifdef __WXMSW__ // MSW has huge backends so we do it seperately
-FORCE_LINK(wxmediabackend_am);
-FORCE_LINK(wxmediabackend_wmp10);
+FORCE_LINK(wxmediabackend_am)
+FORCE_LINK(wxmediabackend_wmp10)
 #else
-FORCE_LINK(basewxmediabackends);
+FORCE_LINK(basewxmediabackends)
 #endif
 //---------------------------------------------------------------------------
 // End of compilation guard and of file

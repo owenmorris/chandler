@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.07.99
-// RCS-ID:      $Id: dialup.cpp,v 1.54 2005/07/28 21:15:53 VZ Exp $
+// RCS-ID:      $Id: dialup.cpp,v 1.55 2006/02/12 12:16:52 MW Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1188,7 +1188,7 @@ void wxDialUpManagerMSW::DisableAutoCheckOnlineStatus()
 {
     wxCHECK_RET( IsOk(), wxT("using uninitialized wxDialUpManager") );
 
-    if ( --m_autoCheckLevel )
+    if ( --m_autoCheckLevel != 0 )
     {
         // still checking
         return;

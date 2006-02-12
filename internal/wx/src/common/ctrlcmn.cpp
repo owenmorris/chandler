@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        ctrlcmn.cpp
+// Name:        src/common/ctrlcmn.cpp
 // Purpose:     wxControl common interface
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: ctrlcmn.cpp,v 1.29 2005/09/23 12:52:43 MR Exp $
+// RCS-ID:      $Id: ctrlcmn.cpp,v 1.31 2006/02/12 17:51:44 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +29,7 @@
 #ifndef WX_PRECOMP
     #include "wx/control.h"
     #include "wx/log.h"
+    #include "wx/radiobut.h"
 #endif
 
 #if wxUSE_STATBMP
@@ -124,6 +125,32 @@ bool wxControlBase::SetFont(const wxFont& font)
     return wxWindow::SetFont(font);
 }
 
+// wxControl-specific processing after processing the update event
+void wxControlBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
+{
+    // call inherited
+    wxWindowBase::DoUpdateWindowUI(event);
+
+    // update label
+    if ( event.GetSetText() )
+    {
+        if ( event.GetText() != GetLabel() )
+            SetLabel(event.GetText());
+    }
+
+    // Unfortunately we don't yet have common base class for
+    // wxRadioButton, so we handle updates of radiobuttons here.
+    // TODO: If once wxRadioButtonBase will exist, move this code there.
+#if wxUSE_RADIOBTN
+    if ( event.GetSetChecked() )
+    {
+        wxRadioButton *radiobtn = wxDynamicCastThis(wxRadioButton);
+        if ( radiobtn )
+            radiobtn->SetValue(event.GetChecked());
+    }
+#endif // wxUSE_RADIOBTN
+}
+
 // ----------------------------------------------------------------------------
 // wxStaticBitmap
 // ----------------------------------------------------------------------------
@@ -151,4 +178,3 @@ wxSize wxStaticBitmapBase::DoGetBestSize() const
 #endif // wxUSE_STATBMP
 
 #endif // wxUSE_CONTROLS
-

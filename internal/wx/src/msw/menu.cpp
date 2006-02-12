@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     04/01/98
-// RCS-ID:      $Id: menu.cpp,v 1.130 2006/02/03 16:28:18 JS Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.131 2006/02/12 13:13:56 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1133,6 +1133,7 @@ bool wxMenuBar::Insert(size_t pos, wxMenu *menu, const wxString& title)
             wxLogLastError(wxT("TB_INSERTBUTTON"));
             return false;
         }
+        wxUnusedVar(mswpos);
 #else
         if ( !::InsertMenu(GetHmenu(), mswpos,
                            MF_BYPOSITION | MF_POPUP | MF_STRING,

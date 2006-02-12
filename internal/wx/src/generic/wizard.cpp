@@ -8,7 +8,7 @@
 //              3) Fixed ShowPage() bug on displaying bitmaps
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.cpp,v 1.67 2005/10/09 15:48:32 MBN Exp $
+// RCS-ID:      $Id: wizard.cpp,v 1.69 2006/02/12 13:48:49 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,11 +52,21 @@ class wxWizardSizer : public wxSizer
 public:
     wxWizardSizer(wxWizard *owner);
 
-    void RecalcSizes();
-    wxSize CalcMin();
+    virtual wxSizerItem *Insert(size_t index, wxSizerItem *item);
 
+    virtual void RecalcSizes();
+    virtual wxSize CalcMin();
+
+    // get the max size of all wizard pages
     wxSize GetMaxChildSize();
-    int Border() const;
+
+    // return the border which can be either set using wxWizard::SetBorder() or
+    // have default value
+    int GetBorder() const;
+
+    // hide the pages which we temporarily "show" when they're added to this
+    // sizer (see Insert())
+    void HidePages();
 
 private:
     wxSize SiblingSize(wxSizerItem *child);
@@ -168,9 +178,34 @@ wxWizardPage *wxWizardPageSimple::GetNext() const
 // ----------------------------------------------------------------------------
 
 wxWizardSizer::wxWizardSizer(wxWizard *owner)
-    : m_owner(owner)
+             : m_owner(owner)
 {
     m_childSizeValid = false;
+}
+
+wxSizerItem *wxWizardSizer::Insert(size_t index, wxSizerItem *item)
+{
+    if ( item->IsWindow() )
+    {
+        // we must pretend that the window is shown as otherwise it wouldn't be
+        // taken into account for the layout -- but avoid really showing it, so
+        // just set the internal flag instead of calling wxWindow::Show()
+        item->GetWindow()->wxWindowBase::Show();
+    }
+
+    return wxSizer::Insert(index, item);
+}
+
+void wxWizardSizer::HidePages()
+{
+    for ( wxSizerItemList::compatibility_iterator node = GetChildren().GetFirst();
+          node;
+          node = node->GetNext() )
+    {
+        wxSizerItem * const item = node->GetData();
+        if ( item->IsWindow() )
+            item->GetWindow()->wxWindowBase::Show(false);
+    }
 }
 
 void wxWizardSizer::RecalcSizes()
@@ -179,7 +214,7 @@ void wxWizardSizer::RecalcSizes()
     // it should be called whenever it changes (wxWizard::ShowPage)
     if ( m_owner->m_page )
     {
-        m_owner->m_page->SetSize(m_position.x,m_position.y, m_size.x,m_size.y);
+        m_owner->m_page->SetSize(m_position.x, m_position.y, m_size.x, m_size.y);
     }
 }
 
@@ -227,7 +262,7 @@ wxSize wxWizardSizer::GetMaxChildSize()
     return maxOfMin;
 }
 
-int wxWizardSizer::Border() const
+int wxWizardSizer::GetBorder() const
 {
     if ( m_owner->m_calledSetBorder )
         return m_owner->m_border;
@@ -498,7 +533,7 @@ void wxWizard::FinishLayout()
         m_sizerPage,
         1, // Horizontal stretching
         wxEXPAND | wxALL, // Vertically stretchable
-        m_sizerPage->Border()
+        m_sizerPage->GetBorder()
     );
 
     if (!isPda)
@@ -507,6 +542,10 @@ void wxWizard::FinishLayout()
         if ( m_posWizard == wxDefaultPosition )
             CentreOnScreen();
     }
+
+    // now that our layout is computed correctly, hide the pages artificially
+    // shown in wxWizardSizer::Insert() back again
+    m_sizerPage->HidePages();
 }
 
 void wxWizard::FitToPage(const wxWizardPage *page)

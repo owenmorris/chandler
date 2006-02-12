@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextctrl.h,v 1.10 2006/02/08 21:46:42 VZ Exp $
+// RCS-ID:      $Id: richtextctrl.h,v 1.11 2006/02/12 16:32:46 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -607,7 +607,10 @@ public:
     void InitCommandEvent(wxCommandEvent& event) const;
 
     /// do the window-specific processing after processing the update event
+    //  (duplicated code from wxTextCtrlBase)
+#if !wxRICHTEXT_DERIVES_FROM_TEXTCTRLBASE
     virtual void DoUpdateWindowUI(wxUpdateUIEvent& event);
+#endif
 
     /// Should we inherit colours?
     virtual bool ShouldInheritColours() const { return false; }

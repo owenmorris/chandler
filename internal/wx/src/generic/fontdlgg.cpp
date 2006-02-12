@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: fontdlgg.cpp,v 1.52 2005/09/23 12:53:26 MR Exp $
+// RCS-ID:      $Id: fontdlgg.cpp,v 1.53 2006/02/12 12:16:46 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ void wxFontPreviewer::OnPaint(wxPaintEvent& WXUNUSED(event))
     {
         dc.SetFont(font);
         // Calculate vertical centre
-        long w, h;
+        long w = 0, h = 0;
         dc.GetTextExtent( wxT("X"), &w, &h);
         dc.SetTextForeground(GetForegroundColour());
         dc.SetClippingRegion(2, 2, size.x-4, size.y-4);

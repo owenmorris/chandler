@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/2/2000
-// RCS-ID:      $Id: dragimgg.cpp,v 1.20 2006/01/26 16:01:25 ABX Exp $
+// RCS-ID:      $Id: dragimgg.cpp,v 1.21 2006/02/12 12:16:46 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ bool wxGenericDragImage::Create(const wxString& str, const wxCursor& cursor)
 {
     wxFont font(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
-    long w, h;
+    long w = 0, h = 0;
     wxScreenDC dc;
     dc.SetFont(font);
     dc.GetTextExtent(str, & w, & h);

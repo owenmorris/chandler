@@ -11,7 +11,6 @@
 #define _WX_HTMLWIN_H_
 
 #include "wx/defs.h"
-
 #if wxUSE_HTML
 
 #include "wx/window.h"
@@ -236,7 +235,6 @@ protected:
     void OnMouseMove(wxMouseEvent& event);
     void OnMouseDown(wxMouseEvent& event);
     void OnMouseUp(wxMouseEvent& event);
-
 #if wxUSE_CLIPBOARD
     void OnKeyUp(wxKeyEvent& event);
     void OnDoubleClick(wxMouseEvent& event);
@@ -292,7 +290,6 @@ protected:
 
     wxFrame *m_RelatedFrame;
     wxString m_TitleFormat;
-
 #if wxUSE_STATUSBAR
     // frame in which page title should be displayed & number of it's statusbar
     // reserved for usage with this html window

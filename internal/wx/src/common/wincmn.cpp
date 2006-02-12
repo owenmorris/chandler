@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.250 2006/02/10 00:02:06 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.252 2006/02/12 16:32:48 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1703,7 +1703,7 @@ bool wxWindowBase::Layout()
     // If there is a sizer, use it instead of the constraints
     if ( GetSizer() )
     {
-        int w, h;
+        int w = 0, h = 0;
         GetVirtualSize(&w, &h);
         GetSizer()->SetDimension( 0, 0, w, h );
     }
@@ -1992,44 +1992,13 @@ void wxWindowBase::UpdateWindowUI(long flags)
 }
 
 // do the window-specific processing after processing the update event
-// TODO: take specific knowledge out of this function and
-// put in each control's base class. Unfortunately we don't
-// yet have base implementation files for wxCheckBox and wxRadioButton.
 void wxWindowBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
 {
     if ( event.GetSetEnabled() )
         Enable(event.GetEnabled());
 
-#if wxUSE_CONTROLS
-    if ( event.GetSetText() )
-    {
-        wxControl *control = wxDynamicCastThis(wxControl);
-        if ( control )
-        {
-            if ( event.GetText() != control->GetLabel() )
-                control->SetLabel(event.GetText());
-        }
-    }
-#endif // wxUSE_CONTROLS
-
-    if ( event.GetSetChecked() )
-    {
-#if wxUSE_CHECKBOX
-        wxCheckBox *checkbox = wxDynamicCastThis(wxCheckBox);
-        if ( checkbox )
-        {
-            checkbox->SetValue(event.GetChecked());
-        }
-#endif // wxUSE_CHECKBOX
-
-#if wxUSE_RADIOBTN
-        wxRadioButton *radiobtn = wxDynamicCastThis(wxRadioButton);
-        if ( radiobtn )
-        {
-            radiobtn->SetValue(event.GetChecked());
-        }
-#endif // wxUSE_RADIOBTN
-    }
+    if ( event.GetSetShown() )
+        Show(event.GetShown());
 }
 
 #if 0

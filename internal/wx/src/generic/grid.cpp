@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.354 2006/01/22 13:43:14 rgammans Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.355 2006/02/12 12:16:46 MW Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -7571,8 +7571,8 @@ void wxGrid::DrawTextRectangle( wxDC& dc,
                                int vertAlign,
                                int textOrientation )
 {
-    long textWidth, textHeight;
-    long lineWidth, lineHeight;
+    long textWidth = 0, textHeight = 0;
+    long lineWidth = 0, lineHeight = 0;
     int nLines;
 
     dc.SetClippingRegion( rect );
@@ -7701,7 +7701,7 @@ void wxGrid::GetTextBoxSize( const wxDC& dc,
 {
     long w = 0;
     long h = 0;
-    long lineW, lineH;
+    long lineW = 0, lineH = 0;
 
     size_t i;
     for ( i = 0;  i < lines.GetCount();  i++ )

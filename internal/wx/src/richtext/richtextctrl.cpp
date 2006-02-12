@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextctrl.cpp,v 1.17 2006/02/02 13:05:30 JS Exp $
+// RCS-ID:      $Id: richtextctrl.cpp,v 1.19 2006/02/12 16:32:50 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -703,7 +703,7 @@ bool wxRichTextCtrl::ScrollIntoView(long position, int keyCode)
     startX = 0;
     startY = startY * ppuY;
 
-    int sx, sy;
+    int sx = 0, sy = 0;
     GetVirtualSize(& sx, & sy);
     sx = 0;
     if (ppuY != 0)
@@ -796,7 +796,7 @@ bool wxRichTextCtrl::IsPositionVisible(long pos) const
     startX = 0;
     startY = startY * ppuY;
 
-    int sx, sy;
+    int sx = 0, sy = 0;
     GetVirtualSize(& sx, & sy);
     sx = 0;
     if (ppuY != 0)
@@ -1581,17 +1581,20 @@ wxString wxRichTextCtrl::GetStringSelection() const
 }
 
 // do the window-specific processing after processing the update event
+#if !wxRICHTEXT_DERIVES_FROM_TEXTCTRLBASE
 void wxRichTextCtrl::DoUpdateWindowUI(wxUpdateUIEvent& event)
 {
-    if ( event.GetSetEnabled() )
-        Enable(event.GetEnabled());
+    // call inherited
+    wxWindowBase::DoUpdateWindowUI(event);
 
+    // update text
     if ( event.GetSetText() )
     {
         if ( event.GetText() != GetValue() )
             SetValue(event.GetText());
     }
 }
+#endif // !wxRICHTEXT_DERIVES_FROM_TEXTCTRLBASE
 
 // ----------------------------------------------------------------------------
 // hit testing

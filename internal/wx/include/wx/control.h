@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: control.h,v 1.48 2006/01/23 03:27:31 MR Exp $
+// RCS-ID:      $Id: control.h,v 1.49 2006/02/12 16:32:43 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -61,6 +61,9 @@ public:
 
     virtual void SetLabel( const wxString &label );
     virtual bool SetFont(const wxFont& font);
+
+    // wxControl-specific processing after processing the update event
+    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event);
 
     // Reserved for future use
     virtual void ReservedControlFunc1() {}

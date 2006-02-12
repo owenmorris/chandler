@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-03-12
-// RCS-ID:      $Id: propdlg.cpp,v 1.15 2006/02/06 17:51:11 JS Exp $
+// RCS-ID:      $Id: propdlg.cpp,v 1.16 2006/02/12 13:16:52 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -97,11 +97,12 @@ void wxPropertySheetDialog::LayoutDialog(int centreFlags)
     GetSizer()->SetSizeHints(this);
     if (centreFlags)
         Centre(centreFlags);
+#else
+    wxUnusedVar(centreFlags);
 #endif
 #if defined(__SMARTPHONE__)
     if (m_bookCtrl)
         m_bookCtrl->SetFocus();
-    wxUnusedVar(centreFlags);
 #endif
 }
 

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.183 2006/01/09 02:55:18 RD Exp $
+// Id:          $Id: treectlg.cpp,v 1.184 2006/02/12 12:16:49 MW Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -3518,7 +3518,7 @@ void wxGenericTreeCtrl::Thaw()
 {
     wxCHECK_RET( m_freezeCount > 0, _T("thawing unfrozen tree control?") );
 
-    if ( !--m_freezeCount )
+    if ( --m_freezeCount == 0 )
     {
         Refresh();
     }

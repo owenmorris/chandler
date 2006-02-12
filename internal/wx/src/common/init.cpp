@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.10.99
-// RCS-ID:      $Id: init.cpp,v 1.59 2005/11/08 01:02:48 VZ Exp $
+// RCS-ID:      $Id: init.cpp,v 1.60 2006/02/12 12:16:41 MW Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -477,7 +477,7 @@ void wxUninitialize()
 {
     wxCRIT_SECT_LOCKER(lockInit, gs_initData.csInit);
 
-    if ( !--gs_initData.nInitCount )
+    if ( --gs_initData.nInitCount == 0 )
     {
         wxEntryCleanup();
     }

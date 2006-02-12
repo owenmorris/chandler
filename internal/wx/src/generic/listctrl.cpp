@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.390 2006/02/11 14:39:23 JS Exp $
+// Id:          $Id: listctrl.cpp,v 1.391 2006/02/12 12:16:47 MW Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2564,7 +2564,7 @@ void wxListMainWindow::Thaw()
 {
     wxCHECK_RET( m_freezeCount > 0, _T("thawing unfrozen list control?") );
 
-    if ( !--m_freezeCount )
+    if ( --m_freezeCount == 0 )
         Refresh();
 }
 

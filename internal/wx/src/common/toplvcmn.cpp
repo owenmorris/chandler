@@ -3,7 +3,7 @@
 // Purpose:     common (for all platforms) wxTopLevelWindow functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: toplvcmn.cpp,v 1.36 2006/02/10 00:02:06 VZ Exp $
+// Id:          $Id: toplvcmn.cpp,v 1.37 2006/02/12 16:32:48 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -288,9 +288,12 @@ bool wxTopLevelWindowBase::SendIconizeEvent(bool iconized)
 // do the window-specific processing after processing the update event
 void wxTopLevelWindowBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
 {
-    if ( event.GetSetEnabled() )
-        Enable(event.GetEnabled());
+    // call inherited, but skip the wxControl's version, and call directly the
+    // wxWindow's one instead, because the only reason why we are overriding this
+    // function is that we want to use SetTitle() instead of wxControl::SetLabel()
+    wxWindowBase::DoUpdateWindowUI(event);
 
+    // update title
     if ( event.GetSetText() )
     {
         if ( event.GetText() != GetTitle() )
@@ -304,6 +307,3 @@ void wxTopLevelWindowBase::RequestUserAttention(int WXUNUSED(flags))
     Raise();
 }
 
-void wxTopLevelWindowBase::ForceRedraw( void )
-{
-}

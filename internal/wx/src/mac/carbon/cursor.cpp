@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: cursor.cpp,v 1.30 2006/01/15 07:20:59 vell Exp $
+// RCS-ID:      $Id: cursor.cpp,v 1.31 2006/02/12 09:00:44 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -195,6 +195,13 @@ CursHandle wxGetStockCursor( int number )
     CursHandle c = (CursHandle) NewHandle( sizeof(Cursor) ) ;
     memcpy( *c, &gMacCursors[number], sizeof(Cursor) ) ;
 
+#ifndef WORDS_BIGENDIAN
+    short *sptr = (short*) *c ;
+    for ( int i = 0 ; i < 2 * 16 /* image and mask */ ; ++i, ++sptr )
+    {
+        *sptr = CFSwapInt16( *sptr ) ;
+    }
+#endif
     return c ;
 }
 
@@ -418,9 +425,13 @@ void wxCursor::CreateFromImage(const wxImage & image)
             *((*(**ch).crsrData) + y * bytesPerRow + x) =
                 GetCTabIndex( newColors , &col) ;
         }
-
+#ifdef WORDS_BIGENDIAN
         (**ch).crsr1Data[y] = rowbits ;
         (**ch).crsrMask[y] = maskbits ;
+#else
+        (**ch).crsr1Data[y] = CFSwapInt16(rowbits) ;
+        (**ch).crsrMask[y] = CFSwapInt16(maskbits) ;
+#endif
     }
 
     if ( !bHasMask )

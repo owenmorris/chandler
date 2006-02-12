@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     13.07.99
-// RCS-ID:      $Id: textcmn.cpp,v 1.44 2005/09/23 12:53:09 MR Exp $
+// RCS-ID:      $Id: textcmn.cpp,v 1.45 2006/02/12 16:32:48 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -471,9 +471,12 @@ wxString wxTextCtrlBase::GetRange(long from, long to) const
 // do the window-specific processing after processing the update event
 void wxTextCtrlBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
 {
-    if ( event.GetSetEnabled() )
-        Enable(event.GetEnabled());
+    // call inherited, but skip the wxControl's version, and call directly the
+    // wxWindow's one instead, because the only reason why we are overriding this
+    // function is that we want to use SetValue() instead of wxControl::SetLabel()
+    wxWindowBase::DoUpdateWindowUI(event);
 
+    // update text
     if ( event.GetSetText() )
     {
         if ( event.GetText() != GetValue() )

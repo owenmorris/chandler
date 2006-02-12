@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 31.08.00: wxScrollHelper allows to implement.
 //              Ron Lee on 10.4.02:  virtual size / auto scrollbars et al.
 // Created:     01/02/97
-// RCS-ID:      $Id: scrlwing.cpp,v 1.72 2005/10/10 18:24:25 VZ Exp $
+// RCS-ID:      $Id: scrlwing.cpp,v 1.73 2006/02/12 12:16:48 MW Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -868,7 +868,7 @@ void wxScrollHelper::Scroll( int x_pos, int y_pos )
     if (((x_pos == -1) || (x_pos == m_xScrollPosition)) &&
         ((y_pos == -1) || (y_pos == m_yScrollPosition))) return;
 
-    int w, h;
+    int w = 0, h = 0;
     GetTargetSize(&w, &h);
 
     if ((x_pos != -1) && (m_xScrollPixelsPerLine))
@@ -957,7 +957,7 @@ bool wxScrollHelper::ScrollLayout()
         // If we're the scroll target, take into account the
         // virtual size and scrolled position of the window.
 
-        int x, y, w, h;
+        int x = 0, y = 0, w = 0, h = 0;
         CalcScrolledPosition(0,0, &x,&y);
         m_win->GetVirtualSize(&w, &h);
         m_win->GetSizer()->SetDimension(x, y, w, h);
@@ -1048,9 +1048,9 @@ void wxScrollHelper::HandleOnPaint(wxPaintEvent& WXUNUSED(event))
 // this they always have the priority
 void wxScrollHelper::HandleOnChar(wxKeyEvent& event)
 {
-    int stx, sty,       // view origin
-        szx, szy,       // view size (total)
-        clix, cliy;     // view size (on screen)
+    int stx = 0, sty = 0,       // view origin
+        szx = 0, szy = 0,       // view size (total)
+        clix = 0, cliy = 0;     // view size (on screen)
 
     GetViewStart(&stx, &sty);
     GetTargetSize(&clix, &cliy);

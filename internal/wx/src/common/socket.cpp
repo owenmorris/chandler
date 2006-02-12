@@ -5,7 +5,7 @@
 // Created:    April 1997
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 2000-1999, Guillermo Rodriguez Garcia
-// RCS_ID:     $Id: socket.cpp,v 1.139 2006/02/11 23:39:25 KH Exp $
+// RCS_ID:     $Id: socket.cpp,v 1.140 2006/02/12 12:16:41 MW Exp $
 // License:    see wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -159,7 +159,7 @@ void wxSocketBase::Shutdown()
 {
     // we should be initialized
     wxASSERT_MSG( m_countInit, _T("extra call to Shutdown()") );
-    if ( !--m_countInit )
+    if ( --m_countInit == 0 )
     {
         GSocket_Cleanup();
     }

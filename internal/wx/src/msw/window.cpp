@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.668 2006/02/10 21:44:54 JG Exp $
+// RCS-ID:      $Id: window.cpp,v 1.669 2006/02/12 12:16:53 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1359,7 +1359,7 @@ void wxWindowMSW::Thaw()
 {
     wxASSERT_MSG( m_frozenness > 0, _T("Thaw() without matching Freeze()") );
 
-    if ( !--m_frozenness )
+    if ( --m_frozenness == 0 )
     {
         if ( IsShown() )
         {

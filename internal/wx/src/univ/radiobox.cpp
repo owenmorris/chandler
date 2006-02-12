@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.09.00
-// RCS-ID:      $Id: radiobox.cpp,v 1.26 2005/11/30 17:28:18 VZ Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.27 2006/02/12 12:16:56 MW Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -392,7 +392,7 @@ void wxRadioBox::DoSetToolTip(wxToolTip *tooltip)
 
 wxSize wxRadioBox::GetMaxButtonSize() const
 {
-    int widthMax, heightMax, width, height;
+    int widthMax, heightMax, width = 0, height = 0;
     widthMax = heightMax = 0;
 
     int count = GetCount();

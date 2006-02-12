@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: checkbox.h,v 1.25 2006/01/23 03:27:30 MR Exp $
+// RCS-ID:      $Id: checkbox.h,v 1.26 2006/02/12 16:32:43 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,6 +107,13 @@ public:
     }
 
     virtual bool HasTransparentBackground() { return true; }
+
+    // wxCheckBox-specific processing after processing the update event
+    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event)
+    {
+        if ( event.GetSetChecked() )
+            SetValue(event.GetChecked());
+    }
 
 protected:
     virtual void DoSet3StateValue(wxCheckBoxState WXUNUSED(state)) { wxFAIL; }

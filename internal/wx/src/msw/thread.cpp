@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: Vadim Zeitlin to make it work :-)
 // Created:     04/22/98
-// RCS-ID:      $Id: thread.cpp,v 1.96 2005/09/23 12:55:14 MR Exp $
+// RCS-ID:      $Id: thread.cpp,v 1.97 2006/02/12 12:16:52 MW Exp $
 // Copyright:   (c) Wolfram Gloger (1996, 1997), Guilhem Lavaux (1998);
 //                  Vadim Zeitlin (1999-2002)
 // Licence:     wxWindows licence
@@ -925,7 +925,7 @@ bool wxThread::SetConcurrency(size_t WXUNUSED_IN_WINCE(level))
             dwProcMask |= bit;
 
             // another process added
-            if ( !--level )
+            if ( --level == 0 )
             {
                 // and that's enough
                 break;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.cpp,v 1.71 2006/01/26 16:01:26 ABX Exp $
+// RCS-ID:      $Id: statusbr.cpp,v 1.72 2006/02/12 12:16:48 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -232,7 +232,7 @@ void wxStatusBarGeneric::DrawFieldText(wxDC& dc, int i)
 
     wxString text(GetStatusText(i));
 
-    long x, y;
+    long x = 0, y = 0;
 
     dc.GetTextExtent(text, &x, &y);
 

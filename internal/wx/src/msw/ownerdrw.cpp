@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.11.97
-// RCS-ID:      $Id: ownerdrw.cpp,v 1.66 2006/01/18 16:45:41 JS Exp $
+// RCS-ID:      $Id: ownerdrw.cpp,v 1.67 2006/02/12 12:16:52 MW Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,12 +100,12 @@ IMPLEMENT_DYNAMIC_CLASS(wxMSWSystemMenuFontModule, wxModule)
 //      a UDT.  Will produce errors if applied using infix notation.
 //
 // shut it down
-#ifdef __VISUALC__
-    #if __VISUALC__ <= 1300
+#if defined __VISUALC__ && __VISUALC__ <= 1300
+    #if __VISUALC__ >= 1200
         #pragma warning(push)
-        #pragma warning(disable: 4284)
         #define POP_WARNINGS
     #endif
+    #pragma warning(disable: 4284)
 #endif
 
 #include "wx/hashset.h"

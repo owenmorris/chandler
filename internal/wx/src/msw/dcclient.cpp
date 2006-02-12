@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp,v 1.46 2005/09/25 11:13:35 VZ Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.47 2006/02/12 12:16:51 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -253,7 +253,7 @@ wxPaintDC::~wxPaintDC()
 
         wxCHECK_RET( info, wxT("existing DC should have a cache entry") );
 
-        if ( !--info->count )
+        if ( --info->count == 0 )
         {
             ::EndPaint(GetHwndOf(m_canvas), &g_paintStruct);
 
@@ -338,7 +338,7 @@ wxPaintDCEx::~wxPaintDCEx()
 
     wxCHECK_RET( info, wxT("existing DC should have a cache entry") );
 
-    if ( !--info->count )
+    if ( --info->count == 0 )
     {
         RestoreDC((HDC) m_hDC, saveState);
         ms_cache.RemoveAt(index);

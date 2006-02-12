@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.173 2006/02/08 15:23:42 VZ Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.174 2006/02/12 12:16:52 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1333,7 +1333,7 @@ void wxToolBar::OnMouseEvent(wxMouseEvent& event)
     if ( event.RightDown() )
     {
         // find the tool under the mouse
-        wxCoord x,y;
+        wxCoord x = 0, y = 0;
         event.GetPosition(&x, &y);
 
         wxToolBarToolBase *tool = FindToolForPosition(x, y);

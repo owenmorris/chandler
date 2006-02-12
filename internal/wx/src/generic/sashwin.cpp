@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sashwin.cpp,v 1.49 2005/12/29 06:43:26 vell Exp $
+// RCS-ID:      $Id: sashwin.cpp,v 1.50 2006/02/12 12:16:48 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ void wxSashWindow::OnPaint(wxPaintEvent& WXUNUSED(event))
 
 void wxSashWindow::OnMouseEvent(wxMouseEvent& event)
 {
-    wxCoord x, y;
+    wxCoord x = 0, y = 0;
     event.GetPosition(&x, &y);
 
     wxSashEdgePosition sashHit = SashHitTest(x, y);
