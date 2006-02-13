@@ -15,7 +15,7 @@ def run_tests(tests):
     for filename in tests:
         execfile(os.path.join(functional_dir, filename))
         
-allTests = ["TestBlocks.py",
+allTests = [
             "TestCreateAccounts.py",
             "TestAllDayEvent.py", 
             "TestNewCollection.py",
@@ -36,7 +36,8 @@ allTests = ["TestBlocks.py",
             "TestFlickr.py",
             "TestImporting.py",
             "TestImportOverwrite.py",
-            "TestSharing.py"]
+            "TestSharing.py",
+            "TestBlocks.py"]
 
 if sys.platform == 'win32': 
     platform = 'windows'
@@ -51,7 +52,7 @@ exclusions = { 'other':( "TestCalView.py", #emulate typing starting with unhighl
                                         ),
                         'windows':(
                                         ),
-                        'all':(                                         
+                        'all':(        
                                         "TestAllDayEvent.py", #test not functioning bug#5110
                                         "TestDates.py", #Chandler not handling daylightsavings bug#5038
                                         "TestRecurrenceImporting.py", #Chandler bug #5116
@@ -63,5 +64,7 @@ tests_to_run = filter(lambda test : test not in exclusions['all'] and test not i
 try:
     run_tests(tests_to_run)
 finally:    
+    if len(logger.passedList) < len(tests_to_run):
+        logger.ReportFailure('TestBlocks')
     #cleaning
     logger.Close()

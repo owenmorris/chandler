@@ -225,7 +225,7 @@ class TestLogger:
                 self.Print("Total number of Testcases FAILED : %s" %nbTCFailed)
                 self.Print("")
                 # compute the status of the Testscript if is composed by sub-testcases
-                if nbTCFailed == 0:
+                if nbTCPassed == len(self.testcaseList):
                     status = "PASSED"
                 else:
                     status = "FAILED"
