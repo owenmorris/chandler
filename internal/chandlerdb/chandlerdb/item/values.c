@@ -218,7 +218,10 @@ static int t_values_dict_set(t_values *self, PyObject *key, PyObject *value)
     if (item != NULL && item->values == self)
     {
         PyObject *oldValue = PyDict_GetItem(self->dict, key);
-        
+
+        if (oldValue == value)
+            return 0;
+
         if (oldValue != NULL && PyObject_TypeCheck(oldValue, ItemValue))
         {
             PyObject *result =
