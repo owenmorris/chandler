@@ -2,7 +2,7 @@
 // Name:        xpmdecod.cpp
 // Purpose:     wxXPMDecoder
 // Author:      John Cristy, Vaclav Slavik
-// RCS-ID:      $Id: xpmdecod.cpp,v 1.47 2006/02/13 03:04:40 VZ Exp $
+// RCS-ID:      $Id: xpmdecod.cpp,v 1.48 2006/02/13 15:30:28 VZ Exp $
 // Copyright:   (c) John Cristy, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -737,6 +737,9 @@ wxImage wxXPMDecoder::ReadData(const char **xpm_data)
         {
             img.SetMask(true);
             img.SetMaskColour(255, 0, 255);
+            clr_data.R =
+            clr_data.B = 255;
+            clr_data.G = 0;
             hasMask = true;
             maskKey = key;
         }

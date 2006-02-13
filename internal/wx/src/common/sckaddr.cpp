@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     26/04/97
-// RCS-ID:      $Id: sckaddr.cpp,v 1.49 2005/09/25 19:58:46 VZ Exp $
+// RCS-ID:      $Id: sckaddr.cpp,v 1.50 2006/02/13 15:16:37 VZ Exp $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,8 +82,11 @@ wxSockAddress::~wxSockAddress()
 
 void wxSockAddress::SetAddress(GAddress *address)
 {
-  GAddress_destroy(m_address);
-  m_address = GAddress_copy(address);
+    if ( address != m_address )
+    {
+        GAddress_destroy(m_address);
+        m_address = GAddress_copy(address);
+    }
 }
 
 wxSockAddress& wxSockAddress::operator=(const wxSockAddress& addr)
