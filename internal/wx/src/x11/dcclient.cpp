@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp,v 1.44 2006/01/21 14:45:47 JS Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.45 2006/02/13 22:12:33 MW Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1188,19 +1188,12 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
             new_pixmap = XCreatePixmap( xdisplay, xroot, ww, hh, 1 );
             GC gc = XCreateGC( xdisplay, new_pixmap, 0, NULL );
 
-            int bpp = wxTheApp->GetVisualInfo(m_display)->m_visualDepth;
-            if (bpp == 8)
-                XSetForeground( xdisplay, gc, WhitePixel(xdisplay,xscreen) );
-            else
-                XSetForeground( xdisplay, gc, BlackPixel(xdisplay,xscreen) );
+            XSetForeground( xdisplay, gc, BlackPixel(xdisplay,xscreen) );
         
             XSetFillStyle( xdisplay, gc, FillSolid );
             XFillRectangle( xdisplay, new_pixmap, gc, 0, 0, ww, hh );
 
-            if (bpp == 8)
-                XSetForeground( xdisplay, gc, BlackPixel(xdisplay,xscreen) );
-            else
-                XSetForeground( xdisplay, gc, WhitePixel(xdisplay,xscreen) );
+            XSetForeground( xdisplay, gc, WhitePixel(xdisplay,xscreen) );
 
             if (useMask && mask)
             {
