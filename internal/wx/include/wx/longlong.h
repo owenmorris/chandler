@@ -5,7 +5,7 @@
 // Author:      Jeffrey C. Ollie <jeff@ollie.clive.ia.us>, Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: longlong.h,v 1.70 2006/02/11 17:30:26 VZ Exp $
+// RCS-ID:      $Id: longlong.h,v 1.71 2006/02/13 00:26:33 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -129,10 +129,12 @@ public:
 
     // assignment operators
         // from native 64 bit integer
+#ifndef wxLongLongIsLong
     wxLongLongNative& operator=(wxLongLong_t ll)
         { m_ll = ll; return *this; }
     wxLongLongNative& operator=(wxULongLong_t ll)
         { m_ll = ll; return *this; }
+#endif // !wxLongLongNative
     wxLongLongNative& operator=(const wxULongLongNative &ll);
     wxLongLongNative& operator=(int l)
         { m_ll = l; return *this; }
@@ -363,10 +365,12 @@ public:
 
     // assignment operators
         // from native 64 bit integer
+#ifndef wxLongLongIsLong
     wxULongLongNative& operator=(wxULongLong_t ll)
         { m_ll = ll; return *this; }
     wxULongLongNative& operator=(wxLongLong_t ll)
         { m_ll = ll; return *this; }
+#endif // !wxLongLongNative
     wxULongLongNative& operator=(int l)
         { m_ll = l; return *this; }
     wxULongLongNative& operator=(long l)

@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.391 2006/02/12 12:16:47 MW Exp $
+// Id:          $Id: listctrl.cpp,v 1.392 2006/02/13 00:49:24 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -5430,6 +5430,16 @@ bool wxGenericListCtrl::DoPopupMenu( wxMenu *menu, int x, int y )
 #else
     return false;
 #endif
+}
+
+void wxGenericListCtrl::DoClientToScreen( int *x, int *y ) const
+{
+    return m_mainWin->DoClientToScreen(x, y);
+}
+
+void wxGenericListCtrl::DoScreenToClient( int *x, int *y ) const
+{
+    return m_mainWin->DoScreenToClient(x, y);
 }
 
 void wxGenericListCtrl::SetFocus()
