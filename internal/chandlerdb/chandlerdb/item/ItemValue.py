@@ -72,7 +72,7 @@ class ItemValue(object):
     def _check(self, logger, item, attribute):
 
         if not (item is self._item and attribute == self._attribute):
-            logger.error('Value %s of type %s in attribute %s on %s is owned by  attribute %s on %s', value, type(value), name, item._repr_(), self._attribute, self._item)
+            logger.error('Value %s of type %s in attribute %s on %s is owned by  attribute %s on %s', self, type(self), attribute, item._repr_(), self._attribute, self._item)
             return False
 
         return True
