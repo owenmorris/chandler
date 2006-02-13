@@ -64,7 +64,5 @@ tests_to_run = filter(lambda test : test not in exclusions['all'] and test not i
 try:
     run_tests(tests_to_run)
 finally:    
-    if len(logger.passedList) < len(tests_to_run):
-        logger.ReportFailure('TestBlocks')
     #cleaning
     logger.Close()
