@@ -6,7 +6,7 @@
 # Author:       Robin Dunn
 #
 # Created:      A long time ago, in a galaxy far, far away...
-# RCS-ID:       $Id: Main.py,v 1.172 2006/02/01 23:46:42 RD Exp $
+# RCS-ID:       $Id: Main.py,v 1.173 2006/02/13 19:20:24 RD Exp $
 # Copyright:    (c) 1999 by Total Control Software
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -36,8 +36,8 @@ import images
 
 # For debugging
 ##wx.Trap();
-##print "wx.VERSION_STRING = ", wx.VERSION_STRING
-##print os.getpid();
+##print "wx.VERSION_STRING = %s (%s)" % (wx.VERSION_STRING, wx.USE_UNICODE and 'unicode' or 'ansi')
+##print "pid:", os.getpid()
 ##raw_input("Press Enter...")
 
 

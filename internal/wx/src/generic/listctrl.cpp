@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.392 2006/02/13 00:49:24 VZ Exp $
+// Id:          $Id: listctrl.cpp,v 1.393 2006/02/13 21:20:26 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -268,7 +268,7 @@ private:
 //  wxListLineData (internal)
 //-----------------------------------------------------------------------------
 
-WX_DECLARE_LIST(wxListItemData, wxListItemDataList);
+WX_DECLARE_EXPORTED_LIST(wxListItemData, wxListItemDataList);
 #include "wx/listimpl.cpp"
 WX_DEFINE_LIST(wxListItemDataList)
 
@@ -503,7 +503,7 @@ private:
 //  wxListMainWindow (internal)
 //-----------------------------------------------------------------------------
 
-WX_DECLARE_LIST(wxListHeaderData, wxListHeaderDataList);
+WX_DECLARE_EXPORTED_LIST(wxListHeaderData, wxListHeaderDataList);
 #include "wx/listimpl.cpp"
 WX_DEFINE_LIST(wxListHeaderDataList)
 
