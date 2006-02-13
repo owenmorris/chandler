@@ -129,33 +129,27 @@ class Block(schema.Item):
 
     @classmethod
     def findBlockByName (theClass, name):
-        try:
-            list = theClass.blockNameToItemUUID [name]
-        except KeyError:
-            return None
-        else:
+        list = theClass.blockNameToItemUUID.get (name, None)
+        if list is not None:
             return wx.GetApp().UIRepositoryView.find (list[0])
+        else:
+            return None
 
     @classmethod
     def findBlockEventByName (theClass, name):
-        try:
-            list = theClass.eventNameToItemUUID [name]
-        except KeyError:
-            return None
-        else:
+        list = theClass.eventNameToItemUUID.get (name, None)
+        if list is not None:
             return wx.GetApp().UIRepositoryView.find (list[0])
+        else:
+            return None
 
     @classmethod
     def addToNameToItemUUIDDictionary (theClass, list, dictionary):
         for item in list:
-            try:
-                name = item.blockName
-            except AttributeError:
-                pass
-            else:
-                try:
-                    list = dictionary [name]
-                except KeyError:
+            name = getattr (item, "blockName", None)
+            if name is not None:
+                list = dictionary.get (name, None)
+                if list is None:
                     dictionary [name] = [item.itsUUID, 1]
                 else:
                     list [1] = list [1] + 1 #increment the reference count
