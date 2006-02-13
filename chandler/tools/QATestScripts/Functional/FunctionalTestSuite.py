@@ -49,6 +49,7 @@ else:
 exclusions = { 'other':( "TestCalView.py", #emulate typing starting with unhighlighted text appends rather than overwrites                                     
                                         ),
                         'mac':( 
+                                        "TestBlocks.py" #Bug 5182
                                         ),
                         'windows':(
                                         ),
