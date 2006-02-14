@@ -52,7 +52,7 @@ enum {
     SCHEMA     = 0x00000020,
     NEW        = 0x00000040,
     STALE      = 0x00000080,
-    NDIRTY     = 0x00000100,          /* parent, name or kind changed */
+    NDIRTY     = 0x00000100,          /* parent, name changed */
     CDIRTY     = 0x00000200,          /* children list changed */
     RDIRTY     = 0x00000400,          /* ref collection changed */
     CORESCHEMA = 0x00000800,          /* core schema item */
@@ -67,11 +67,12 @@ enum {
     COPYEXPORT = 0x00100000,          /* item instance is copied on export */
     IMPORTING  = 0x00200000,          /* item is being imported */
     MUTATING   = 0x00400000,          /* kind is being removed */
+    KDIRTY     = 0x00800000           /* kind changed */
 };
 
 enum {
     VRDIRTY    = VDIRTY | RDIRTY,
-    DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY,
+    DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY | KDIRTY,
     MERGED     = VMERGED | RMERGED | NMERGED | CMERGED,
     SAVEMASK   = (DIRTY | ADIRTY |
                   NEW | DELETED |
