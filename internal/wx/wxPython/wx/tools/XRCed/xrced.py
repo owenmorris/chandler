@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, main module
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      20.08.2001
-# RCS-ID:       $Id: xrced.py,v 1.34 2005/11/11 00:23:31 ROL Exp $
+# RCS-ID:       $Id: xrced.py,v 1.35 2006/02/14 20:58:11 ROL Exp $
 
 """
 
@@ -415,7 +415,7 @@ class Frame(wxFrame):
         xxx = tree.GetPyData(selected)
         wx.TheClipboard.Open()
         data = wx.CustomDataObject('XRCED')
-        data.SetData(cPickle.dumps(xxx.element))
+        data.SetData(cPickle.dumps(xxx.element.toxml()))
         wx.TheClipboard.SetData(data)
         wx.TheClipboard.Close()
         self.SetStatusText('Copied')
@@ -455,10 +455,10 @@ class Frame(wxFrame):
             return
         wx.TheClipboard.GetData(data)
         wx.TheClipboard.Close()
-        elem = cPickle.loads(data.GetData())
+        xml = cPickle.loads(data.GetData()) # xml representation of element
+        elem = minidom.parseString(xml).childNodes[0]
         # Tempopary xxx object to test things
         xxx = MakeXXXFromDOM(parent, elem)
-
         # Check compatibility
         error = False
         # Top-level
@@ -925,7 +925,7 @@ Homepage: http://xrced.sourceforge.net\
         # Update tools
         g.tools.UpdateUI()
 
-        #undoMan.RegisterUndo(UndoPasteCreate(parentLeaf, parent, newItem, selected))
+        undoMan.RegisterUndo(UndoPasteCreate(parentLeaf, parent, newItem, selected))
         # Update view?
         if g.testWin and tree.IsHighlatable(selected):
             if conf.autoRefresh:
