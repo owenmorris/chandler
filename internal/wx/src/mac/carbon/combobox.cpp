@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor, Dan "Bud" Keith (composite combobox)
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.cpp,v 1.66 2006/02/09 15:45:12 SC Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.67 2006/02/14 04:00:39 KH Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -226,11 +226,6 @@ BEGIN_EVENT_TABLE(wxComboBoxChoice, wxChoice)
     EVT_CHOICE(-1, wxComboBoxChoice::OnChoice)
 END_EVENT_TABLE()
 
-wxComboBox::wxComboBox()
-{
-    m_container.SetContainerWindow(this);
-}
-
 wxComboBox::~wxComboBox()
 {
     // delete client objects
@@ -333,6 +328,11 @@ void wxComboBox::DelegateTextChanged( const wxString& value )
 void wxComboBox::DelegateChoice( const wxString& value )
 {
     SetStringSelection( value );
+}
+
+void wxComboBox::Init()
+{
+    m_container.SetContainerWindow(this);
 }
 
 bool wxComboBox::Create(wxWindow *parent,

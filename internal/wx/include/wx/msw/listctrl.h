@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.60 2006/02/08 21:46:20 VZ Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.61 2006/02/14 03:49:20 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -379,6 +379,11 @@ protected:
 
     // free memory taken by all internal data
     void FreeAllInternalData();
+
+    // get the item attribute, either by quering it for virtual control, or by
+    // returning the one previously set using setter methods for a normal one
+    wxListItemAttr *DoGetItemAttr(long item) const;
+
 
     wxTextCtrl*       m_textCtrl;        // The control used for editing a label
     wxImageList *     m_imageListNormal; // The image list for normal icons
