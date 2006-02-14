@@ -225,20 +225,23 @@ class AbstractSet(ItemValue, Indexed):
                                       True, other)
 
         elif sourceOwner is self._view[source[0]] and sourceName == source[1]:
-            if op == 'refresh':
-                index = self._anIndex()
-                if index is not None:
-                    if isitem(other):
-                        other = other.itsUUID
-                    sourceContains = other in getattr(sourceOwner, sourceName)
-                    indexContains = other in index
-
-                    if sourceContains and not indexContains:
-                        op = 'add'
-                    elif not sourceContains and indexContains:
-                        op = 'remove'
+            pass
         else:
             op = None
+
+        if op == 'refresh':
+            index = self._anIndex()
+            if index is not None:
+                sourceContains = self._sourceContains(other, source)
+                if isuuid(other):
+                    indexContains = other in index
+                else:
+                    indexContains = other.itsUUID in index
+
+                if sourceContains and not indexContains:
+                    op = 'add'
+                elif not sourceContains and indexContains:
+                    op = 'remove'
 
         return op
 
@@ -901,6 +904,10 @@ class KindSet(Set):
         
         return False
 
+    def _sourceContains(self, item, source, excludeMutating=False):
+
+        return item in self
+
     def _itervalues(self):
 
         return self._view[self._extent].iterItems(self._recursive)
@@ -917,8 +924,8 @@ class KindSet(Set):
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
         if change == 'collection':
-            if sourceName != 'extent':
-                op = None
+            op = self._sourceChanged(self._source, op, change,
+                                     sourceOwner, sourceName, other)
 
         elif change == 'notification':
             if other not in self:

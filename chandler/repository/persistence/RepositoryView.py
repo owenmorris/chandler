@@ -935,14 +935,15 @@ class RepositoryView(CView):
 
         refs = self.store._refs
         for uItem, version, uKind, status, uParent, pKind, dirties in history:
+
+            if pKind is not None:
+                kind = self.find(pKind)
+                if kind is not None:
+                    kind.extent._collectionChanged('refresh', 'collection',
+                                                   'extent', uItem)
+
             item = self.find(uItem)
             if item is not None:
-
-                if pKind is not None:
-                    kind = self.find(pKind)
-                    if kind is not None:
-                        kind.extent._collectionChanged('refresh', 'collection',
-                                                       'extent', item)
 
                 kind = item.itsKind
                 if kind is not None:

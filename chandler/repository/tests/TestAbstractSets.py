@@ -238,6 +238,40 @@ class TestAbstractSets(RepositoryTestCase):
         self.m5.writers.add(w)
         self.assert_(len(m.calls) == 0)
 
+    def testRefreshDelete1(self):
+
+        m = movie('movie', self.cineguide, self.movie)
+        m.set = Union((self.m4, 'writers'), (self.m5, 'writers'))
+        m.set.addIndex('n', 'numeric')
+        w = self.m4.writers.last().itsUUID
+        size = len(m.set)
+        self.assert_(w in m.set)
+
+        view = self.rep.createView("other")
+        view.findPath('//CineGuide/m4').writers.last().delete()
+        view.commit()
+
+        self.rep.view.refresh()
+        self.assert_(w not in m.set)
+        self.assert_(len(m.set) == size - 1)
+
+    def testRefreshDelete2(self):
+
+        m = movie('movie', self.cineguide, self.movie)
+        w = self.m4.writers.last()
+        m.set = Set(KindSet(w.itsKind))
+        m.set.addIndex('n', 'numeric')
+        size = len(m.set)
+        self.assert_(w.itsUUID in m.set)
+
+        view = self.rep.createView("other")
+        view.findPath('//CineGuide/m4').writers.last().delete()
+        view.commit()
+
+        self.rep.view.refresh()
+        self.assert_(w.itsUUID not in m.set)
+        self.assert_(len(m.set) == size - 1)
+
 
 if __name__ == "__main__":
 #    import hotshot

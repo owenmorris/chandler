@@ -30,7 +30,7 @@ from repository.persistence.DBContainer import \
 from repository.persistence.FileContainer import \
     FileContainer, BlockContainer, IndexContainer, LOBContainer
 from repository.persistence.DBItemIO import \
-    DBItemReader, DBItemPurger, DBValueReader
+    DBItemReader, DBItemPurger, DBValueReader, DBItemWriter
 from repository.remote.CloudFilter import CloudFilter
 
 DB_VERSION = DB_VERSION_MAJOR << 16 | DB_VERSION_MINOR << 8 | DB_VERSION_PATCH
@@ -754,7 +754,11 @@ class DBStore(Store):
 
     def kindForKey(self, view, version, uuid):
 
-        return self._items.getItemKindId(view, version, uuid)
+        uuid = self._items.getItemKindId(view, version, uuid)
+        if uuid == DBItemWriter.NOITEM:
+            uuid = None
+
+        return uuid
 
     def searchItems(self, view, version, query, attribute=None):
 
