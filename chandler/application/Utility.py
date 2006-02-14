@@ -337,18 +337,17 @@ def initRepository(directory, options, allowSchemaView=False):
 
     view = repository.view
 
-    # Ensure the default parent item has been created early on -- before
-    # other views have been set up.  Otherwise, if this parent item (aka
-    # //userdata) gets created just-in-time in two separate views, an
-    # exception is raised by the repository.
-    schema.Item.getDefaultParent(view)
-    view.commit()
-
     # tell the schema API about this view so that it doesn't setup its own
     # (also load Chandler pack)
     if isinstance(schema.reset(view), NullRepositoryView):
         if not allowSchemaView:
             raise AssertionError, "schema.py was used before it was initialized here causing it to setup a NullRepositoryView"
+
+    # Ensure the default parent item has been created early on -- before
+    # other views have been set up.  Otherwise, if this parent item (aka
+    # //userdata) gets created just-in-time in two separate views, an
+    # exception is raised by the repository.
+    schema.Item.getDefaultParent(view)
 
     return view
 
