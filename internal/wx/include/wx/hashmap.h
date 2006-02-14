@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     29/01/2002
-// RCS-ID:      $Id: hashmap.h,v 1.54 2006/02/08 13:04:11 VZ Exp $
+// RCS-ID:      $Id: hashmap.h,v 1.55 2006/02/14 09:21:37 MR Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -344,10 +344,11 @@ protected: \
         { \
             if( m_equals( m_getKey( (*node)->m_value ), key ) ) \
                 return node; \
-            node = (Node**)&(*node)->m_nxt; \
+            /* Tell the compiler to not do any strict-aliasing assumptions with the void cast */ \
+            node = (Node**)(void*)&(*node)->m_nxt; \
         } \
  \
-        return 0; \
+        return NULL; \
     } \
  \
     /* returns NULL if not found */ \
