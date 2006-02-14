@@ -93,6 +93,13 @@ echo Setting up script environment                               | tee -a $TESTL
 
 PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
 
+if [ "$CATSPROFILEDIR" = "" ]
+then
+    PC_DIR="$C_DIR"
+else
+    PC_DIR="$CATSPROFILEDIR"
+fi
+
 if [ "$OSTYPE" = "cygwin" ]; then
     RUN_CHANDLER=RunChandler.bat
     RUN_PYTHON=RunPython.bat
@@ -141,8 +148,10 @@ if [ -n "$TEST_TO_RUN" ]; then
             for test in $DIRS ; do
                 if [ "$OSTYPE" = "cygwin" ]; then
                     TESTNAME=`cygpath -w $test`
+                    P_DIR=`cygpath -w $PC_DIR`
                 else
                     TESTNAME=$test
+                    P_DIR="$PC_DIR"
                 fi
 
                 echo Running $TESTNAME | tee -a $TESTLOG
@@ -238,10 +247,10 @@ else
 
             if [ "$OSTYPE" = "cygwin" ]; then
                 TESTNAME=`cygpath -w $test`
-                P_DIR=`cygpath -w $C_DIR`
+                P_DIR=`cygpath -w $PC_DIR`
             else
                 TESTNAME=$test
-                P_DIR=$C_DIR
+                P_DIR="$PC_DIR"
             fi
             if [ "$mode" = "debug" ]; then
                 STDERR_FLAG="--stderr"
@@ -291,10 +300,10 @@ else
 
                 if [ "$OSTYPE" = "cygwin" ]; then
                     TESTNAME=`cygpath -w $test`
-                    P_DIR=`cygpath -w $C_DIR`
+                    P_DIR=`cygpath -w $PC_DIR`
                 else
                     TESTNAME=$test
-                    P_DIR=$C_DIR
+                    P_DIR="$PC_DIR"
                 fi
 
                 echo -n $TESTNAME
@@ -352,10 +361,10 @@ else
 
                     if [ "$OSTYPE" = "cygwin" ]; then
                         TESTNAME=`cygpath -w $test`
-                        P_DIR=`cygpath -w $C_DIR`
+                        P_DIR=`cygpath -w $PC_DIR`
                     else
                         TESTNAME=$test
-                        P_DIR=$C_DIR
+                        P_DIR="$PC_DIR"
                     fi
 
                     echo -n $TESTNAME
@@ -388,13 +397,13 @@ else
             TESTNAME=`cygpath -w $C_DIR/tools/QATestScripts/Performance/end.py`
             CREATEREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/quit.py`
             CREATE3KREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py`
-            P_DIR=`cygpath -w $C_DIR`
+            P_DIR=`cygpath -w $PC_DIR`
             TIME='time.exe --format=%e'
         else
             TESTNAME=$C_DIR/tools/QATestScripts/Performance/end.py
             CREATEREPO=$C_DIR/tools/QATestScripts/Performance/quit.py
             CREATE3KREPO=$C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py
-            P_DIR=$C_DIR
+            P_DIR="$PC_DIR"
 
             if [ "${OSTYPE:0:6}" = "darwin" ]; then
                 # NOTE: gtime is not part of OS X, you need to compile one
