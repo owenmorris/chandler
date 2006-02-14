@@ -1,6 +1,6 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 import os
-import application.dialogs.PublishCollection as PublishCollection
+from application.dialogs.PublishCollection import ShowPublishDialog
 import application.Globals as Globals
 import wx
 from i18n import OSAFMessageFactory as _
@@ -46,17 +46,14 @@ try:
         else:
             klass = sidebar.filterKind.classes['python']
             filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
-        xrcFile = os.path.join(Globals.chandlerDirectory, 'application', 'dialogs', 'PublishCollection_wdr.xrc')
-        resources = wx.xrc.XmlResource(xrcFile)
-        win = PublishCollection.PublishCollectionDialog(wx.GetApp().mainFrame, _("Collection Sharing"),resources=resources, view=App_ns.itsView,
-                                                        collection=collection, filterClassName=filterClassName)
-        win.CenterOnScreen()
-        win.Show()
+        win = ShowPublishDialog(wx.GetApp().mainFrame, view=App_ns.itsView,
+                                collection=collection,
+                                filterClassName=filterClassName,
+                                modal=False)
         #Share button call
         win.OnPublish(None)
         #Done button call
         win.OnPublishDone(None)
-        win.Destroy()
         wx.GetApp().Yield()
         logger.Stop()
 

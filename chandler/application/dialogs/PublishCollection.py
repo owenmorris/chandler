@@ -21,13 +21,14 @@ class PublishCollectionDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
-                 filterClassName=None):
+                 filterClassName=None, modal=True):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.resources = resources
         self.view = view
         self.parent = parent
         self.collection = collection    # The collection to share
+        self.modal = modal
 
         # List of classes to share
         if filterClassName is None:
@@ -196,7 +197,9 @@ class PublishCollectionDialog(wx.Dialog):
         # for share in self.collection.shares:
         #     self._saveAttributeFilterState(share)
 
-        self.EndModal(False)
+        if self.modal:
+            self.EndModal(False)
+        self.Destroy()
 
         share = iter(self.collection.shares).next()
         if share.filterClasses != self.originalFilterClasses:
@@ -435,10 +438,14 @@ class PublishCollectionDialog(wx.Dialog):
         self.cancelPressed = True
 
     def OnCancel(self, evt):
-        self.EndModal(False)
+        if self.modal:
+            self.EndModal(False)
+        self.Destroy()
 
     def OnPublishDone(self, evt):
-        self.EndModal(True)
+        if self.modal:
+            self.EndModal(False)
+        self.Destroy()
 
     def OnUnPubSub(self, evt):
         share = sharing.getShare(self.collection)
@@ -446,7 +453,9 @@ class PublishCollectionDialog(wx.Dialog):
             sharing.unpublish(self.collection)
         else:
             sharing.unsubscribe(self.collection)
-        self.EndModal(True)
+        if self.modal:
+            self.EndModal(False)
+        self.Destroy()
 
 
     def OnCopy(self, evt):
@@ -509,7 +518,8 @@ class PublishCollectionDialog(wx.Dialog):
             key = lambda x: x.displayName.lower()
         )
 
-def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None):
+def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
+                      modal=True):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'PublishCollection_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -518,7 +528,10 @@ def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None):
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, _(u"Collection Sharing"),
      resources=resources, view=view, collection=collection,
-     filterClassName=filterClassName)
+     filterClassName=filterClassName, modal=modal)
     win.CenterOnScreen()
-    win.ShowModal()
-    win.Destroy()
+    if modal:
+        return win.ShowModal()
+    else:
+        win.Show()
+        return win
