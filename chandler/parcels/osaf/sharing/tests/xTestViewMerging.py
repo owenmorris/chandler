@@ -12,10 +12,11 @@ from application import schema
 
 logger = logging.getLogger(__name__)
 
-class InMemoryTestCase(testcase.DualRepositoryTestCase):
+class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
     def runTest(self):
         self.setUp()
+        sharing.Sharing.USE_VIEW_MERGING = True
         self.PrepareTestData()
         self.PrepareShares()
         self.RoundTrip()

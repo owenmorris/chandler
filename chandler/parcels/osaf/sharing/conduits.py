@@ -4,20 +4,22 @@ __all__ = [
 
 import Sharing
 
+shareDict = { }
+
 class InMemoryConduit(Sharing.ShareConduit):
     """ A test conduit, storing data in a dictionary """
 
     def __init__(self, *args, **kw):
         super(InMemoryConduit, self).__init__(*args, **kw)
 
-        self.shareDict = kw['shareDict'] # The dictionary to store shares into
+        # self.shareDict = kw['shareDict'] # The dictionary to store shares into
         self.shareName = kw['shareName'] # The name of share within dictionary
 
     def getLocation(self):
         return self.shareName
 
     def exists(self):
-        return self.shareDict.has_key(self.shareName)
+        return shareDict.has_key(self.shareName)
 
     def create(self):
         super(InMemoryConduit, self).create()
@@ -27,7 +29,7 @@ class InMemoryConduit(Sharing.ShareConduit):
 
         style = self.share.format.fileStyle()
         if style == Sharing.ImportExportFormat.STYLE_DIRECTORY:
-            self.shareDict[self.shareName] = { }
+            shareDict[self.shareName] = { }
         # Nothing to do if style is SINGLE
 
     def destroy(self):
@@ -36,7 +38,7 @@ class InMemoryConduit(Sharing.ShareConduit):
         if not self.exists():
             raise NotFound(_(u"Share does not exist"))
 
-        del self.shareDict[self.shareName]
+        del shareDict[self.shareName]
 
 
     def _getResourceList(self, location):
@@ -44,7 +46,7 @@ class InMemoryConduit(Sharing.ShareConduit):
 
         style = self.share.format.fileStyle()
         if style == Sharing.ImportExportFormat.STYLE_DIRECTORY:
-            for (key, val) in self.shareDict[self.shareName].iteritems():
+            for (key, val) in shareDict[self.shareName].iteritems():
                 fileList[key] = { 'data' : val[0] }
 
         return fileList
@@ -61,13 +63,13 @@ class InMemoryConduit(Sharing.ShareConduit):
         if text is None:
             return None
 
-        if self.shareDict[self.shareName].has_key(path):
-            etag = self.shareDict[self.shareName][path][0]
+        if shareDict[self.shareName].has_key(path):
+            etag = shareDict[self.shareName][path][0]
             etag += 1
         else:
             etag = 0
 
-        self.shareDict[self.shareName][path] = (etag, text)
+        shareDict[self.shareName][path] = (etag, text)
 
         return etag
 
@@ -75,7 +77,7 @@ class InMemoryConduit(Sharing.ShareConduit):
         updateCallback=None):
 
         view = self.itsView
-        text = self.shareDict[self.shareName][itemPath][1]
+        text = shareDict[self.shareName][itemPath][1]
 
         try:
             item = self.share.format.importProcess(text,
@@ -85,9 +87,9 @@ class InMemoryConduit(Sharing.ShareConduit):
             logging.exception(e)
             raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
-        return (item, self.shareDict[self.shareName][itemPath][0])
+        return (item, shareDict[self.shareName][itemPath][0])
 
 
     def _deleteItem(self, itemPath):
-        if self.shareDict[self.shareName].has_key(itemPath):
-            del self.shareDict[self.shareName][itemPath]
+        if shareDict[self.shareName].has_key(itemPath):
+            del shareDict[self.shareName][itemPath]

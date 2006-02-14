@@ -56,7 +56,11 @@ class PhotoMixin(pim.ContentItem):
         out.close()
 
     def processEXIF(self):
-        input = self.photoBody.getInputStream()
+        if hasattr(self, 'photoBody'):
+            input = self.photoBody.getInputStream()
+        else:
+            input = file(self.file, 'r')
+
         data = input.read()
         input.close()
         stream = cStringIO.StringIO(data)
@@ -69,9 +73,9 @@ class PhotoMixin(pim.ContentItem):
             self.exif = {}
             for (key, value) in exif.iteritems():
                 if isinstance(value, EXIF.IFD_Tag):
-                    self.exif[key] = value.printable
+                    self.exif[key] = unicode(value.printable)
                 else:
-                    self.exif[key] = value
+                    self.exif[key] = unicode(value)
 
         except Exception, e:
             logger.debug("Couldn't process EXIF of Photo %s (%s)" % \
