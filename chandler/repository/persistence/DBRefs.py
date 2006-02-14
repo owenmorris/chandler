@@ -196,7 +196,10 @@ class PersistentRefs(object):
 
         moves = {}
 
-        def merge(version, (collection, item), ref):
+        for (version, (collection, item),
+             ref) in self.store._refs.iterHistory(self.view, self.uuid,
+                                                  oldVersion, toVersion):
+
             if collection == self.uuid:     # the collection
 
                 if item == self.uuid:       # the list head
@@ -237,9 +240,6 @@ class PersistentRefs(object):
                         self.place(item, previousKey)
                     else:
                         moves[previousKey] = item
-
-        self.store._refs.applyHistory(self.view, merge, self.uuid,
-                                      oldVersion, toVersion)
 
         for previousKey, item in moves.iteritems():
             self.place(item, previousKey)

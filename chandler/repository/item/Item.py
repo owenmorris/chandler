@@ -77,10 +77,11 @@ class Item(CItem):
         self._setParent(itsParent)
 
         try:
-            self.setDirty(Item.NDIRTY | Item.NODIRTY)
-
             if itsKind is not None:
+                self.setDirty(Item.NDIRTY | Item.KDIRTY | Item.NODIRTY)
                 itsKind.getInitialValues(self, True)
+            else:
+                self.setDirty(Item.NDIRTY | Item.NODIRTY)
 
             if values:
                 self._setInitialValues(values, fireOnValueChanged)
@@ -614,6 +615,27 @@ class Item(CItem):
                 if ref is not None and isuuid(ref):
                     ref = self._references._getRef(name, ref)
                 yield name, ref
+
+    def iterAttributeNames(self, valuesOnly=False, referencesOnly=False):
+        """
+        Return a generator of attribute names for iterating over
+        Chandler attributes of this item. 
+
+        @param valuesOnly: if C{True}, iterate over attributes containing
+        literal values only. C{False} by default.
+        @type valuesOnly: boolean
+        @param referencesOnly: if C{True}, iterate over attributes
+        containing item reference values only. C{False} by default.
+        @type referencesOnly: boolean
+        """
+
+        if not referencesOnly:
+            for name in self._values._dict.iterkeys():
+                yield name
+
+        if not valuesOnly:
+            for name in self._references._dict.iterkeys():
+                yield name
 
     def check(self, recursive=False, checkItem=True):
         """
@@ -1236,7 +1258,10 @@ class Item(CItem):
         finally:
             item._status &= ~Item.NODIRTY
             
-        item.setDirty(Item.NDIRTY)
+        if kind is not None:
+            item.setDirty(Item.NDIRTY | Item.KDIRTY)
+        else:
+            item.setDirty(Item.NDIRTY)
 
         view = item.itsView
         for hook in hooks:
@@ -1274,8 +1299,11 @@ class Item(CItem):
                 item._setInitialValues(values, fireOnValueChanged)
         finally:
             item._status &= ~Item.NODIRTY
-            
-        item.setDirty(Item.NDIRTY)
+        
+        if kind is not None:
+            item.setDirty(Item.NDIRTY | Item.KDIRTY)
+        else:
+            item.setDirty(Item.NDIRTY)
 
         view = item.itsView
         for hook in hooks:
@@ -1520,7 +1548,13 @@ class Item(CItem):
                 raise NotImplementedError, 'recursive kind change'
 
             self._futureKind = kind
-            self.setDirty(Item.NDIRTY | Item.MUTATING)
+            if not self._isKDirty():
+                if self._kind is None:
+                    self._pastKind = None
+                else:
+                    self._pastKind = self._kind.itsUUID
+
+            self.setDirty(Item.KDIRTY | Item.MUTATING)
             view = self.itsView
 
             prevKind = self._kind

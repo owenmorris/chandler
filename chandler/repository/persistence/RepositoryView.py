@@ -15,7 +15,7 @@ from repository.util.Lob import Lob
 from repository.persistence.RepositoryError import *
 from repository.item.Children import Children
 from repository.item.Indexes import NumericIndex
-from repository.item.RefCollections import TransientRefList
+from repository.item.RefCollections import RefList, TransientRefList
 
 
 class RepositoryView(CView):
@@ -267,7 +267,7 @@ class RepositoryView(CView):
     def _fwalk(self, path, load=True):
 
         if not isinstance(path, Path):
-            raise TypeError, '%s is not Path or UUID' %(type(spec))
+            raise TypeError, '%s is not Path or UUID' %(type(path))
 
         item = self
         for name in path:
@@ -555,9 +555,13 @@ class RepositoryView(CView):
 
         return not self.isLoading()
 
-    def _unsavedItems(self):
+    def dirtyItems(self):
 
-        raise NotImplementedError, "%s._unsavedItems" %(type(self))
+        raise NotImplementedError, "%s.dirtyItems" %(type(self))
+
+    def hasDirtyItems(self):
+
+        raise NotImplementedError, "%s.hasDirtyItems" %(type(self))
 
     def _addItem(self, item):
 
@@ -760,6 +764,8 @@ class RepositoryView(CView):
 
             - a list of changed references attribute names
 
+            - None or the item's previous kind if it changed
+
         @param fromVersion: the version to start iterating changes from, the
         current version by default.
         @type fromVersion: integer
@@ -900,6 +906,7 @@ class RepositoryView(CView):
 
             - the view instance refresh() was called on
             - the list of history tuples to be used with L{mapHistory}
+            - the set of the uuids of the refreshed items
 
         @param callable: the callback to add
         @type callable: a python callable
@@ -919,11 +926,39 @@ class RepositoryView(CView):
         if callable in self._historyCallbacks:
             self._historyCallbacks.remove(callable)
 
-    def _dispatchHistory(self, history):
+    def _dispatchHistory(self, history, refreshes):
 
         for callback in self._historyCallbacks:
-            callback(self, history)
+            callback(self, history, refreshes)
 
+    def _dispatchChanges(self, history, refreshes, oldVersion, newVersion):
+
+        refs = self.store._refs
+        for uItem, version, uKind, status, uParent, pKind, dirties in history:
+            item = self.find(uItem)
+            if item is not None:
+
+                if pKind is not None:
+                    kind = self.find(pKind)
+                    if kind is not None:
+                        kind.extent._collectionChanged('refresh', 'collection',
+                                                       'extent', item)
+
+                kind = item.itsKind
+                if kind is not None:
+                    kind.extent._collectionChanged('refresh', 'collection',
+                                                   'extent', item)
+
+                dispatch = getattr(item, 'watcherDispatch', None)
+                if dispatch:
+                    isNew = (status & CItem.NEW) != 0
+                    for attribute, watchers in dispatch.iteritems():
+                        if watchers and (isNew or attribute in dirties):
+                            value = getattr(item, attribute, None)
+                            if isinstance(value, RefList) and len(value) > 0:
+                                for uRef in refs.iterHistory(self, value.uuid, oldVersion, newVersion, True):
+                                    if uRef in refreshes:
+                                        item._collectionChanged('refresh', 'collection', attribute, uRef)
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     itsPath = property(_getPath)
@@ -1195,9 +1230,13 @@ class NullRepositoryView(RepositoryView):
 
         return True
 
-    def _unsavedItems(self):
+    def dirtyItems(self):
 
         return self._registry.itervalues()
+
+    def hasDirtyItems(self):
+
+        return len(self._registry) > 0
 
     def getLogger(self):
 

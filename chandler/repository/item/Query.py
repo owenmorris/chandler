@@ -48,8 +48,8 @@ class KindQuery(Query):
             matches = set()
             changedItems = set()
 
-            for item in kinds[0].itsView._unsavedItems():
-                if item._isNDirty():
+            for item in kinds[0].itsView.dirtyItems():
+                if item._isKDirty():
                     changedItems.add(item)
 
             for item in self._run(kinds, changedItems):
@@ -81,8 +81,8 @@ class KindQuery(Query):
             matches = set()
             changedItems = {}
 
-            for item in kinds[0].itsView._unsavedItems():
-                if item._isNDirty():
+            for item in kinds[0].itsView.dirtyItems():
+                if item._isKDirty():
                     changedItems[item.itsUUID] = item
 
             for key in self._runKeys(kinds, changedItems):

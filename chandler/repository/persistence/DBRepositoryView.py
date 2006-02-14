@@ -40,9 +40,13 @@ class DBRepositoryView(OnDemandRepositoryView):
         
         return False
 
-    def _unsavedItems(self):
+    def dirtyItems(self):
 
         return iter(self._log)
+
+    def hasDirtyItems(self):
+
+        return len(self._log) > 0
 
     def dirlog(self):
 
@@ -209,6 +213,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         if newVersion > self._version:
             history = []
+            refreshes = set()
             unloads = {}
             also = set()
             _log = self._log
@@ -217,7 +222,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self._log = set()
                 try:
                     merges = self._mergeItems(self._version, newVersion,
-                                              history, unloads, also,
+                                              history, refreshes, unloads, also,
                                               mergeFn)
                 except:
                     raise
@@ -236,6 +241,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if item is not None:
                     unloads[uuid] = item
                     
+            oldVersion = self._version
             self._version = newVersion
             _refresh(unloads.itervalues)
 
@@ -245,12 +251,13 @@ class DBRepositoryView(OnDemandRepositoryView):
                     item._afterMerge()
 
             before = time()
-            count = len(history)
-            self._dispatchHistory(history)
+            self._dispatchChanges(history, refreshes, oldVersion, newVersion)
+            self._dispatchHistory(history, refreshes)
             duration = time() - before
             if duration > 1.0:
                 self.logger.warning('%s %d notifications ran in %s',
-                                    self, count, timedelta(seconds=duration))
+                                    self, len(history),
+                                    timedelta(seconds=duration))
 
             self.prune(10000)
 
@@ -404,8 +411,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                 toVersion = store.getVersion()
             history = store._items.iterHistory(self, fromVersion, toVersion)
 
-        for uItem, version, uKind, status, uParent, dirties in history:
+        for uItem, version, uKind, status, uParent, pKind, dirties in history:
             kind = self.find(uKind)
+            if pKind is not None:
+                prevKind = self.find(pKind)
+            else:
+                prevKind = None
             values = []
             references = []
             if kind is not None:
@@ -415,16 +426,18 @@ class DBRepositoryView(OnDemandRepositoryView):
                             references.append(name)
                         else:
                             values.append(name)
-            yield uItem, version, kind, status, values, references
+            yield uItem, version, kind, status, values, references, prevKind
 
-    def _mergeItems(self, oldVersion, toVersion, history,
+    def _mergeItems(self, oldVersion, toVersion, history, refreshes,
                     unloads, also, mergeFn):
 
         merges = {}
 
         for args in self.store._items.iterHistory(self, oldVersion, toVersion):
-            uItem, version, uKind, status, uParent, dirties = args
+            uItem, version, uKind, status, uParent, prevKind, dirties = args
+
             history.append(args)
+            refreshes.add(uItem)
 
             item = self.find(uItem, False)
             if item is not None:

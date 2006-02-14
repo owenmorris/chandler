@@ -17,7 +17,6 @@ def deliverNotifications(view):
     # first play back the notification queue
     if not hasattr(view,'notificationQueue'):
         view.notificationQueue = Queue.Queue()
-        view.addHistoryCallback(repositoryViewCallback)
     notificationQueue = view.notificationQueue
 
     while True:
@@ -53,31 +52,6 @@ def deliverNotifications(view):
 
         if notificationQueue.empty():
             break
-
-
-def repositoryViewCallback(view, history):
-
-    for (uItem, version, kind, status,
-         values, references) in view.mapHistory(history=history):
-        item = view.find(uItem)
-        if item is not None:
-
-            # kludge of concept to handle one of the currently unhandled cases
-            # of a collection not knowing about persistent changes that happened
-            # in another view because at the time the changes occurred that
-            # collection didn't exist in that view to be notified about them.
-            if status & Item.NEW:
-                if kind is not None:
-                    kind.extent._collectionChanged('add', 'collection',
-                                                   'extent', item)
-
-            collections = getattr(item, 'collections', None)
-            if collections is not None:
-                for i in collections:
-                    i.contentsUpdated(item)
-
-            if kind is not None:
-                kind.extent.notify('changed', item)
 
 
 class CollectionColors(schema.Item):
@@ -185,7 +159,6 @@ class AbstractCollection(items.ContentItem):
                          self, op, item, name, other)
         if not hasattr(self.itsView,'notificationQueue'):
             self.itsView.notificationQueue = Queue.Queue()
-            self.itsView.addHistoryCallback(repositoryViewCallback)
         if DEBUG:
             logger.debug("%s is queuing %s %s", self, op, other)
         self.itsView.notificationQueue.put((self, op, item, name, other, args))
@@ -257,27 +230,26 @@ class AbstractCollection(items.ContentItem):
     def __nonzero__(self):
         return True
 
-    if __debug__:
-        def __str__(self):
-            """ for debugging """
-            return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
-                                self.itsUUID.str16())
+    def __str__(self):
+        """ for debugging """
+        return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
+                            self.itsUUID.str16())
 
-        def _inspect(self, indent=0):
-            """ more debugging """
+    def _inspect(self, indent=0):
+        """ more debugging """
     
-            indexes = self.rep._indexes
-            if indexes is None:
-                indexes = ''
-            else:
-                indexes = ', '.join((str(t) for t in indexes.iteritems()))
-            return "%s%s\n%s  indexes: %s%s" %('  ' * indent, self._repr_(),
-                                               '  ' * indent, indexes,
-                                               self._inspect_(indent + 1))
+        indexes = self.rep._indexes
+        if indexes is None:
+            indexes = ''
+        else:
+            indexes = ', '.join((str(t) for t in indexes.iteritems()))
+        return "%s%s\n%s  indexes: %s%s" %('  ' * indent, self._repr_(),
+                                           '  ' * indent, indexes,
+                                           self._inspect_(indent + 1))
     
-        def _inspect_(self, indent):
-            """ more debugging """
-            raise NotImplementedError, "%s._inspect_" %(type(self))
+    def _inspect_(self, indent):
+        """ more debugging """
+        raise NotImplementedError, "%s._inspect_" %(type(self))
         
     def isEmpty(self):
         """
@@ -384,11 +356,10 @@ class ListCollection(AbstractCollection):
     def __len__(self):
         return len(self.refCollection)
 
-    if __debug__:
-        def _inspect_(self, indent):
-            """ more debugging """
+    def _inspect_(self, indent):
+        """ more debugging """
     
-            return ''
+        return ''
 
 
 class DifferenceCollection(AbstractCollection):
@@ -939,8 +910,7 @@ class IndexedSelectionCollection (AbstractCollection):
     def empty(self):
         self.source.empty()
 
-    if __debug__:
-        def _inspect_(self, indent):
-            """ more debugging """
+    def _inspect_(self, indent):
+        """ more debugging """
     
-            return "\n%s" %(self.source._inspect(indent))
+        return "\n%s" %(self.source._inspect(indent))

@@ -35,7 +35,7 @@ class DBItemWriter(ItemWriter):
     def writeItem(self, item, version):
 
         self.values = []
-
+        
         self.uParent = DBItemWriter.NOITEM
 
         if not ((item._status & (Item.NEW | Item.MERGED)) != 0 or
@@ -47,10 +47,15 @@ class DBItemWriter(ItemWriter):
         else:
             self.oldValues = None
 
+        if item._isKDirty() and not item.isNew():
+            prevKind = item._pastKind or DBItemWriter.NOITEM
+        else:
+            prevKind = None
+
         size = super(DBItemWriter, self).writeItem(item, version)
         size += self.store._items.saveItem(self.valueBuffer,
                                            item._uuid, version,
-                                           self.uKind,
+                                           self.uKind, prevKind,
                                            item._status & Item.SAVEMASK,
                                            self.uParent, self.name,
                                            self.moduleName, self.className,
@@ -193,7 +198,7 @@ class DBItemWriter(ItemWriter):
         if kind is None:
             self.uKind = DBItemWriter.NOITEM
         else:
-            self.uKind = kind._uuid
+            self.uKind = kind.itsUUID
 
         return 0
 

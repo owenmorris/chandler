@@ -2066,8 +2066,8 @@ def changedAttributes(item, fromVersion, toVersion):
     changes = set([])
     uuid = item.itsUUID
 
-    for (uItem, version, kind, status,
-         values, references) in item.itsView.mapHistory(fromVersion, toVersion):
+    for (uItem, version, kind, status, values, references,
+         prevKind) in item.itsView.mapHistory(fromVersion, toVersion):
         if uItem == uuid:
             changes.update(values)
             changes.update(references)
@@ -2079,8 +2079,8 @@ def localChanges(view, fromVersion, toVersion):
 
     changedItems = {}
 
-    for (uItem, version, kind, status,
-         values, references) in view.mapHistory(fromVersion, toVersion):
+    for (uItem, version, kind, status, values, references,
+         prevKind) in view.mapHistory(fromVersion, toVersion):
         if uItem in changedItems:
             changes = changedItems[uItem]
         else:

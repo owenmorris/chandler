@@ -291,54 +291,67 @@ class RefContainer(DBContainer):
         super(RefContainer, self).compact(txn)
         self._history.compact(txn)
 
-    def applyHistory(self, view, fn, uuid, oldVersion, newVersion):
+    def iterHistory(self, view, uuid, fromVersion, toVersion, refsOnly=False):
 
         store = self.store
         
-        while True:
-            txnStatus = 0
-            cursor = None
+        class _iterator(object):
 
-            try:
-                txnStatus = store.startTransaction(view)
-                cursor = self.openCursor(self._history)
+            def __init__(_self):
 
-                try:
-                    value = cursor.set_range(pack('>16sq', uuid._uuid,
-                                                  oldVersion + 1),
-                                             self._flags, None)
-                    if value is None:
-                        return
+                _self.cursor = None
+                _self.txnStatus = 0
 
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        self._logDL(16)
-                        continue
-                    else:
-                        raise
+            def __del__(_self):
 
                 try:
+                    self.closeCursor(_self.cursor, self._history)
+                    store.commitTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def next(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor(self._history)
+                
+                try:
+                    value = _self.cursor.set_range(pack('>16sq', uuid._uuid,
+                                                        fromVersion + 1),
+                                                   self._flags, None)
+
                     while value is not None:
                         uCol, version, uRef = unpack('>16sq16s', value[0])
-                        if version > newVersion or uCol != uuid._uuid:
+                        if version > toVersion or uCol != uuid._uuid:
                             break
 
-                        fn(version, (uuid, UUID(uRef)), self._readRef(value[1]))
+                        if refsOnly:
+                            yield UUID(uRef)
+                        else:
+                            yield (version, (uuid, UUID(uRef)),
+                                   self._readRef(value[1]))
 
-                        value = cursor.next(self._flags, None)
+                        value = _self.cursor.next(self._flags, None)
+
+                    yield False
 
                 except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
+                    if _self.txnStatus & store.TXN_STARTED:
                         self._logDL(17)
-                        continue
+                        yield True
                     else:
                         raise
 
-                return
-
-            finally:
-                self.closeCursor(cursor, self._history)
-                store.abortTransaction(view, txnStatus)
+        while True:
+            for result in _iterator().next():
+                if result is True:
+                    break
+                if result is False:
+                    return
+                yield result
 
     def deleteRef(self, uCol, version, uRef):
 
@@ -957,7 +970,7 @@ class ItemContainer(DBContainer):
         self._kinds.compact(txn)
         self._versions.compact(txn)
 
-    def saveItem(self, buffer, uItem, version, uKind, status,
+    def saveItem(self, buffer, uItem, version, uKind, prevKind, status,
                  uParent, name, moduleName, className,
                  values, dirtyValues, dirtyRefs):
 
@@ -966,6 +979,8 @@ class ItemContainer(DBContainer):
         buffer.append(uKind._uuid)
         buffer.append(pack('>l', status))
         buffer.append(uParent._uuid)
+        if not (status & CItem.NEW) and (status & CItem.KDIRTY):
+            buffer.append(prevKind._uuid)
 
         self._writeString(buffer, name)
         self._writeString(buffer, moduleName)
@@ -1001,6 +1016,9 @@ class ItemContainer(DBContainer):
         uParent = UUID(value[20:36])
         
         offset = 36
+        if not (status & CItem.NEW) and (status & CItem.KDIRTY):
+            offset += 16
+
         l, name = self._readValue(value, offset)
         offset += l
         l, moduleName = self._readValue(value, offset)
@@ -1322,17 +1340,7 @@ class ItemContainer(DBContainer):
                 try:
                     value = _self.cursor.set_range(pack('>q', fromVersion + 1),
                                                    self._flags, None)
-                    if value is None:
-                        yield False
 
-                except DBLockDeadlockError:
-                    if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(25)
-                        yield True
-                    else:
-                        raise
-
-                try:
                     while value is not None:
                         version, uItem = unpack('>q16s', value[0])
                         if version > toVersion:
@@ -1340,6 +1348,10 @@ class ItemContainer(DBContainer):
 
                         value = value[1]
                         uKind, status, uParent = unpack('>16sl16s', value[0:36])
+                        if not (status & CItem.NEW) and (status & CItem.KDIRTY):
+                            prevKind = UUID(value[36:52])
+                        else:
+                            prevKind = None
 
                         if status & CItem.DELETED:
                             dirties = HashTuple()
@@ -1350,7 +1362,8 @@ class ItemContainer(DBContainer):
                             dirties = HashTuple(dirties)
 
                         yield (UUID(uItem), version,
-                               UUID(uKind), status, UUID(uParent), dirties)
+                               UUID(uKind), status, UUID(uParent), prevKind,
+                               dirties)
 
                         value = _self.cursor.next(self._flags, None)
 
@@ -1451,8 +1464,9 @@ class ValueContainer(DBContainer):
     # 0.5.10: added support for storing selection ranges on indexes
     # 0.6.0: version reimplemented as 64 bit sequence, removed value index
     # 0.6.1: version purge support
+    # 0.6.2: added KDIRTY flag and storing of previous kind to item record
 
-    FORMAT_VERSION = 0x00060100
+    FORMAT_VERSION = 0x00060200
 
     def __init__(self, store):
 

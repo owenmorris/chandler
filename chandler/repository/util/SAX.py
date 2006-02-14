@@ -70,33 +70,29 @@ class ContentHandler(SAXHandler):
 
         return self.exception is not None
 
-    def parse(self, xml):
+    def parseSource(self, inputSource):
 
         parser = make_parser()
         parser.setContentHandler(self)
         parser.setErrorHandler(self)
         parser.setProperty(handler.property_lexical_handler, self)
+
+        parser.parse(inputSource)
+
+        if self.errorOccurred():
+            raise self.saxError()
+
+    def parse(self, xml):
 
         input = InputSource()
         input.setByteStream(StringIO(xml))
-        parser.parse(input)
-
-        if self.errorOccurred():
-            raise self.saxError()
+        self.parseSource(input)
         
     def parseFile(self, inputFile):
 
-        parser = make_parser()
-        parser.setContentHandler(self)
-        parser.setErrorHandler(self)
-        parser.setProperty(handler.property_lexical_handler, self)
-
         input = InputSource(inputFile)
         input.setByteStream(file(inputFile))
-        parser.parse(input)
-
-        if self.errorOccurred():
-            raise self.saxError()
+        self.parseSource(input)
         
     def saxError(self):
 

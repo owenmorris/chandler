@@ -221,17 +221,26 @@ class AbstractSet(ItemValue, Indexed):
                        sourceOwner, sourceName, other):
 
         if isinstance(source, AbstractSet):
-            return source.sourceChanged(op, change, sourceOwner, sourceName,
-                                        True, other)
+            op = source.sourceChanged(op, change, sourceOwner, sourceName,
+                                      True, other)
 
-        if (change == 'collection' and
-            sourceOwner is self._view[source[0]] and sourceName == source[1]):
-            return op
+        elif sourceOwner is self._view[source[0]] and sourceName == source[1]:
+            if op == 'refresh':
+                index = self._anIndex()
+                if index is not None:
+                    if isitem(other):
+                        other = other.itsUUID
+                    sourceContains = other in getattr(sourceOwner, sourceName)
+                    indexContains = other in index
 
-        if change == 'notification' and other in self:
-            return op
+                    if sourceContains and not indexContains:
+                        op = 'add'
+                    elif not sourceContains and indexContains:
+                        op = 'remove'
+        else:
+            op = None
 
-        return None
+        return op
 
     def _collectionChanged(self, op, change, other):
 
@@ -258,6 +267,9 @@ class AbstractSet(ItemValue, Indexed):
                             if key in index:
                                 index.removeKey(key)
                                 dirty = True
+
+                    elif op == 'refresh':
+                        pass
 
                     else:
                         raise ValueError, op
@@ -460,7 +472,10 @@ class BiSet(AbstractSet):
                                          sourceOwner, sourceName, other)
             rightOp = self._sourceChanged(self._right, op, change,
                                           sourceOwner, sourceName, other)
-            op = self._op(leftOp, rightOp, other)
+            if op == 'refresh':
+                op = self._op(leftOp, rightOp, other) or 'refresh'
+            else:
+                op = self._op(leftOp, rightOp, other)                
 
         elif change == 'notification':
             if other not in self:
@@ -684,7 +699,10 @@ class MultiSet(AbstractSet):
             ops = [self._sourceChanged(source, op, change,
                                        sourceOwner, sourceName, other)
                    for source in self._sources]
-            op = self._op(ops, other)
+            if op == 'refresh':
+                op = self._op(ops, other) or 'refresh'
+            else:
+                op = self._op(ops, other)
 
         elif change == 'notification':
             if other not in self:
@@ -898,11 +916,13 @@ class KindSet(Set):
         
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
-        if change == 'collection' and sourceName != 'extent':
-            op = None
+        if change == 'collection':
+            if sourceName != 'extent':
+                op = None
 
-        elif change == 'notification' and other not in self:
-            op = None
+        elif change == 'notification':
+            if other not in self:
+                op = None
 
         if not (inner is True or op is None):
             self._collectionChanged(op, change, other)
@@ -915,11 +935,11 @@ class KindSet(Set):
 
     def iterSources(self):
 
-        raise StopIteration
+        return iter(())
 
     def iterInnerSets(self):
 
-        raise StopIteration
+        return iter(())
 
 
 class FilteredSet(Set):
@@ -986,17 +1006,24 @@ class FilteredSet(Set):
 
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
-        op = self._sourceChanged(self._source, op, change,
-                                 sourceOwner, sourceName, other)
+        if change == 'collection':
+            op = self._sourceChanged(self._source, op, change,
+                                     sourceOwner, sourceName, other)
+
+        elif change == 'notification':
+            if other not in self:
+                op = None
 
         if op is not None:
             if change == 'collection':
-                if isuuid(other):
-                    other = self._view.find(other)
-                    if other is None:
+                if op != 'refresh':
+                    if isuuid(other):
+                        other = self._view.find(other)
+                        if other is None:
+                            op = None
+                    if (not (op is None or other.isDeleted() or
+                             self.filter(other))):
                         op = None
-                if not (op is None or other.isDeleted() or self.filter(other)):
-                    op = None
 
             if not (inner is True or op is None):
                 self._collectionChanged(op, change, other)

@@ -9,7 +9,7 @@ import re
 from new import classobj
 from struct import pack
 from datetime import datetime, date, time, timedelta
-from PyICU import ICUtzinfo
+from PyICU import ICUtzinfo, FloatingTZ
 
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.util.c import _hash, _combine
@@ -41,7 +41,7 @@ class TypeKind(Kind):
 
     def _collectTypes(self, view):  # run when loading core schema pack
 
-        self.types = [item for item in view._unsavedItems()
+        self.types = [item for item in view.dirtyItems()
                       if item.isItemOf(self)]
 
     def onItemCopy(self, view, orig):
@@ -1445,7 +1445,7 @@ class TimeZone(Type):
     
     def recognizes(self, value):
 
-        return value is None or type(value) is ICUtzinfo
+        return value is None or type(value) in (ICUtzinfo, FloatingTZ)
 
     def _compareTypes(self, other):
 
