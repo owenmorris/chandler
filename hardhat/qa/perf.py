@@ -565,56 +565,60 @@ class perf:
           print 'Processing file %s' % filename
 
         for line in file(datafile):
-          (itemDate, itemTime, testname, revision, runtime) = string.split(string.lower(line[:-1]), '|')
+          try:
+            (itemDate, itemTime, testname, revision, runtime) = string.split(string.lower(line[:-1]), '|')
 
-          itemDateTime = datetime.datetime(int(itemDate[:4]), int(itemDate[4:6]), int(itemDate[6:8]), int(itemTime[:2]), int(itemTime[2:4]), int(itemTime[4:6]))
+            itemDateTime = datetime.datetime(int(itemDate[:4]), int(itemDate[4:6]), int(itemDate[6:8]), int(itemTime[:2]), int(itemTime[2:4]), int(itemTime[4:6]))
 
-          delta = today - itemDateTime
+            delta = today - itemDateTime
 
-          if delta.days < 14:
-            testname = string.strip(testname)
-            hour     = itemTime[:2]
+            if delta.days < 14:
+              testname = string.strip(testname)
+              hour     = itemTime[:2]
 
-            try:
-              runtime  = float(runtime)
-            except ValueError:
-              runtime = 0.0
+              try:
+                runtime  = float(runtime)
+              except ValueError:
+                runtime = 0.0
 
-              # only work with data that have positive runtimes
-              # as all other values are from bogus/broken runs
-            if runtime > 0.0:
-              if itemDate < startdate:
-                startdate = itemDate
+                # only work with data that have positive runtimes
+                # as all other values are from bogus/broken runs
+              if runtime > 0.0:
+                if itemDate < startdate:
+                  startdate = itemDate
 
-              if itemDate > enddate:
-                enddate = itemDate
+                if itemDate > enddate:
+                  enddate = itemDate
 
-                # data points are put into test and date buckets
-                #   each test has a dictionary of builds
-                #   each build has a dictionary of dates
-                #   each date has a dictionary of times (hour resolution)
-                #   each time is a list of data points
-                # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, revision, runtime) ] }}}}
+                  # data points are put into test and date buckets
+                  #   each test has a dictionary of builds
+                  #   each build has a dictionary of dates
+                  #   each date has a dictionary of times (hour resolution)
+                  #   each time is a list of data points
+                  # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, revision, runtime) ] }}}}
 
-              if not tests.has_key(testname):
-                tests[testname] = {}
+                if not tests.has_key(testname):
+                  tests[testname] = {}
 
-              testitem = tests[testname]
+                testitem = tests[testname]
 
-              if not testitem.has_key(buildname):
-                testitem[buildname] = {}
+                if not testitem.has_key(buildname):
+                  testitem[buildname] = {}
 
-              builditem = testitem[buildname]
+                builditem = testitem[buildname]
 
-              if not builditem.has_key(itemDate):
-                builditem[itemDate] = {}
+                if not builditem.has_key(itemDate):
+                  builditem[itemDate] = {}
 
-              dateitem = builditem[itemDate]
+                dateitem = builditem[itemDate]
 
-              if not dateitem.has_key(hour):
-                dateitem[hour] = []
+                if not dateitem.has_key(hour):
+                  dateitem[hour] = []
 
-              dateitem[hour].append((testname, itemDateTime, delta.days, buildname, hour, revision, runtime))
+                dateitem[hour].append((testname, itemDateTime, delta.days, buildname, hour, revision, runtime))
+
+          except:
+            print "Error processing line for file [%s] [%s]" % (filename, line[:-1])
 
     return (tests, startdate, enddate)
 
