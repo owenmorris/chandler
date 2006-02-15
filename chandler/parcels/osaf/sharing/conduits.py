@@ -3,6 +3,9 @@ __all__ = [
 ]
 
 import Sharing
+import logging
+
+logger = logging.getLogger(__name__)
 
 shareDict = { }
 
@@ -69,6 +72,8 @@ class InMemoryConduit(Sharing.ShareConduit):
         else:
             etag = 0
 
+        logger.debug("Putting text %s" % text)
+
         shareDict[self.shareName][path] = (etag, text)
 
         return etag
@@ -78,6 +83,7 @@ class InMemoryConduit(Sharing.ShareConduit):
 
         view = self.itsView
         text = shareDict[self.shareName][itemPath][1]
+        logger.debug("Getting text %s" % text)
 
         try:
             item = self.share.format.importProcess(text,

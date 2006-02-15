@@ -68,9 +68,11 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
     def mergeFunction(code, item, attribute, value):
 
         logger.debug("Conflict during sync on item %(item)s, attribute "
-            "%(attribute)s" % {
+            "%(attribute)s: %(local)s vs %(remote)s" % {
                 'item' : item,
                 'attribute' : attribute,
+                'local' : str(value),
+                'remote' : str(item.getAttributeValue(attribute)),
             })
 
         LOCAL_CHANGES_WIN = False
@@ -123,11 +125,15 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
         for existingView in view.repository.views:
             if existingView.name == 'Sharing':
                 sharingView = existingView
+                logger.debug("Using existing sharing view")
 
         if sharingView is None:
             sharingView = view.repository.createView("Sharing", syncVersion)
+            logger.debug("Created new sharing view")
         else:
             sharingView.itsVersion = syncVersion
+
+        logger.debug("Sharing view version: %d" % syncVersion)
 
         workingShares = []
         for share in shares:
@@ -2102,6 +2108,39 @@ def importValue(item, changes, attribute, value, previousView,
     changes win.  setCallback takes an item, an attribute name, and a value.
     """
 
+    if not isinstance(value, Item):
+        # For literal values, let's see if this is a no-op:
+
+        attrType = item.getAttributeAspect(attribute, 'type')
+
+        if type(value) in (str, unicode, int, float):
+            needSerialized = False
+        else:
+            needSerialized = True
+
+            curValue = getattr(item, attribute, "")
+            if curValue is None:
+                mimeType, encoding, curSerialized = None, None, curValue
+            else:
+                (mimeType, encoding, curSerialized) = \
+                    serializeLiteral(getattr(item, attribute, ""), attrType)
+
+            (mimeType, encoding, newSerialized) = serializeLiteral(value,
+                attrType)
+
+        # See if the new value equals the current value.
+        # If it matches, then this is a no-op.
+
+        if hasattr(item, attribute):
+            if needSerialized:
+                if curSerialized == newSerialized:
+                    return
+            else:
+                currentValue = getattr(item, attribute)
+                if currentValue == value:
+                    return
+
+
     if isinstance(value, Item) or previousView is None:
         # For non-literals, just go ahead and set the new value; we don't
         # merge reference changes; if previousView is None, then we must
@@ -2116,30 +2155,6 @@ def importValue(item, changes, attribute, value, previousView,
 
     try:
         conflict = False
-        attrType = item.getAttributeAspect(attribute, 'type')
-
-        if type(value) in (str, unicode, int, float):
-            needSerialized = False
-        else:
-            needSerialized = True
-            (mimeType, encoding, curSerialized) = serializeLiteral(getattr(item,
-                attribute, ""), attrType)
-            (mimeType, encoding, newSerialized) = serializeLiteral(value,
-                attrType)
-
-
-        # First see if the new value equals the current value.  If it's the same
-        # then we can skip the rest:
-
-        if hasattr(item, attribute):
-            if needSerialized:
-                if curSerialized == newSerialized:
-                    return
-            else:
-                currentValue = getattr(item, attribute)
-                if currentValue == value:
-                    return
-
 
         if changes and item.itsUUID in changes:
             modifiedAttributes = changes[item.itsUUID]
