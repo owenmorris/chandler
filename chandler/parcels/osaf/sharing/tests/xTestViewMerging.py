@@ -94,6 +94,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         )
         self.share0.follows = subShare
 
+        for attr in sharing.CALDAVFILTER:
+            subShare.filterAttributes.append(attr)
+
         if self.share0.exists():
             self.share0.destroy()
         self.share0.create()
@@ -113,6 +116,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             format=sharing.CloudXMLFormat(itsView=view1)
         )
         self.share1.follows = subShare
+
+        for attr in sharing.CALDAVFILTER:
+            subShare.filterAttributes.append(attr)
 
 
     def RoundTrip(self):
