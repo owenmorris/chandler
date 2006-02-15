@@ -7,7 +7,8 @@ from application.Application import mixinAClass
 from application import schema
 from Block import ( 
     Block, RectangularChild, BlockEvent, 
-    ShownSynchronizer, lineStyleEnumType, logger, debugName
+    ShownSynchronizer, lineStyleEnumType, logger, debugName,
+    WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
 from ContainerBlocks import BoxContainer
 import DragAndDrop
@@ -315,25 +316,25 @@ class wxList (DragAndDrop.DraggableWidget,
         if not elementDelegate:
             elementDelegate = 'osaf.framework.blocks.ControlBlocks.ListDelegate'
         mixinAClass (self, elementDelegate)
-        
+
+    @WithoutSynchronizeWidget
     def OnSize(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            size = self.GetClientSize()
-            widthMinusLastColumn = 0
-            assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
-            for column in xrange (self.GetColumnCount() - 1):
-                widthMinusLastColumn += self.GetColumnWidth (column)
-            lastColumnWidth = size.width - widthMinusLastColumn
-            if lastColumnWidth > 0:
-                self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+        size = self.GetClientSize()
+        widthMinusLastColumn = 0
+        assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
+        for column in xrange (self.GetColumnCount() - 1):
+            widthMinusLastColumn += self.GetColumnWidth (column)
+        lastColumnWidth = size.width - widthMinusLastColumn
+        if lastColumnWidth > 0:
+            self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
         event.Skip()
 
+    @WithoutSynchronizeWidget
     def OnWXSelectItem(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            item = self.blockItem.contents [event.GetIndex()]
-            if self.blockItem.selection != item:
-                self.blockItem.selection = item
-            self.blockItem.postEventByName("SelectItemsBroadcast", {'items':[item]})
+        item = self.blockItem.contents [event.GetIndex()]
+        if self.blockItem.selection != item:
+            self.blockItem.selection = item
+        self.blockItem.postEventByName("SelectItemsBroadcast", {'items':[item]})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -526,24 +527,24 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
     def OnInit (self):
         mixinAClass (self, self.blockItem.elementDelegate)
         
+    @WithoutSynchronizeWidget
     def OnSize(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            if isinstance (self, wx.gizmos.TreeListCtrl):
-                size = self.GetClientSize()
-                widthMinusLastColumn = 0
-                assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
-                for column in xrange (self.GetColumnCount() - 1):
-                    widthMinusLastColumn += self.GetColumnWidth (column)
-                lastColumnWidth = size.width - widthMinusLastColumn
-                if lastColumnWidth > 0:
-                    self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
-            else:
-                assert isinstance (self, wx.TreeCtrl), "We're assuming the only other choice is a wx.Tree"
+        if isinstance (self, wx.gizmos.TreeListCtrl):
+            size = self.GetClientSize()
+            widthMinusLastColumn = 0
+            assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
+            for column in xrange (self.GetColumnCount() - 1):
+                widthMinusLastColumn += self.GetColumnWidth (column)
+            lastColumnWidth = size.width - widthMinusLastColumn
+            if lastColumnWidth > 0:
+                self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+        else:
+            assert isinstance (self, wx.TreeCtrl), "We're assuming the only other choice is a wx.Tree"
         event.Skip()
 
+    @WithoutSynchronizeWidget
     def OnExpanding(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            self.LoadChildren(event.GetItem())
+        self.LoadChildren(event.GetItem())
 
     def LoadChildren(self, parentId):
         """
@@ -578,24 +579,24 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         del self.blockItem.openedContainers [self.GetItemData(id).GetData()]
         self.DeleteChildren (id)
 
+    @WithoutSynchronizeWidget
     def OnColumnDrag(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            columnIndex = event.GetColumn()
-            try:
-                self.blockItem.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
-            except AttributeError:
-                pass
+        columnIndex = event.GetColumn()
+        try:
+            self.blockItem.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+        except AttributeError:
+            pass
 
+    @WithoutSynchronizeWidget
     def OnWXSelectItem(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
     
-            itemUUID = self.GetItemData(self.GetSelection()).GetData()
-            selection = self.blockItem.find (itemUUID)
-            if self.blockItem.selection != selection:
-                self.blockItem.selection = selection
-        
-                self.blockItem.postEventByName("SelectItemsBroadcast",
-                                               {'items':[selection]})
+        itemUUID = self.GetItemData(self.GetSelection()).GetData()
+        selection = self.blockItem.find (itemUUID)
+        if self.blockItem.selection != selection:
+            self.blockItem.selection = selection
+
+            self.blockItem.postEventByName("SelectItemsBroadcast",
+                                           {'items':[selection]})
         event.Skip()
         
     def SelectedItems(self):
@@ -1110,16 +1111,13 @@ class AEBlock(BoxContainer):
         
         @param hints: Ignored here for now
         """
-        app = wx.GetApp()
-        if not app.ignoreSynchronizeWidget and hasattr(self, 'widget'):
-            oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-            app.ignoreSynchronizeWidget = True
-            try:
-                editor = self.lookupEditor()
-                if editor is not None:
-                    editor.BeginControlEdit(editor.item, editor.attributeName, self.widget)
-            finally:
-                app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+        def BeginEdit():
+            editor = self.lookupEditor()
+            if editor is not None:
+                editor.BeginControlEdit(editor.item, editor.attributeName, self.widget)
+
+        IgnoreSynchronizeWidget(True, BeginEdit)
+            
 
     def onWidgetChangedSize(self):
         """ 

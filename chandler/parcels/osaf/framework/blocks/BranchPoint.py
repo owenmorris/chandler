@@ -3,8 +3,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
 
 import sys
-from osaf.framework.blocks import Block
-from osaf.framework.blocks import ContainerBlocks
+from Block import Block, IgnoreSynchronizeWidget
+from ContainerBlocks import wxBoxContainer, BoxContainer
 from repository.item.Item import Item
 from application import schema
 import wx
@@ -28,10 +28,10 @@ class BranchSubtree(schema.Annotation):
     enable it to be sorted with other root blocks.)
     """
     schema.kindInfo(annotates=schema.Kind)
-    rootBlocks = schema.Sequence(Block.Block, 
-                                 inverse=Block.Block.parentBranchSubtrees)
+    rootBlocks = schema.Sequence(Block, 
+                                 inverse=Block.parentBranchSubtrees)
 
-class wxBranchPointBlock(ContainerBlocks.wxBoxContainer):
+class wxBranchPointBlock(wxBoxContainer):
     """ 
     A widget block that gives its BranchPointBlock a chance to change 
     the tree of blocks within it. 
@@ -41,7 +41,7 @@ class wxBranchPointBlock(ContainerBlocks.wxBoxContainer):
             self.blockItem.installTreeOfBlocks()
         super(wxBranchPointBlock, self).wxSynchronizeWidget()
     
-class BranchPointBlock(ContainerBlocks.BoxContainer):
+class BranchPointBlock(BoxContainer):
     """
     A block that can swap in different sets of child blocks (branch point 
     "subtrees") based on its detailContents. It uses a BranchPointDelegate to 
@@ -141,10 +141,8 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
                 self.childrenBlocks.append(newView)
 
         if newView is not None:
-            app = wx.GetApp()
-            oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-            app.ignoreSynchronizeWidget = False
-            try:
+            def Rerender():
+                
                 if (detailItemChanged or
                     treeChanged or
                     hints.get ("sendSetContents", False)):
@@ -158,8 +156,8 @@ class BranchPointBlock(ContainerBlocks.BoxContainer):
                     layoutMethod = getattr(newView, 'Layout', None)
                     if layoutMethod is not None: 
                         layoutMethod()
-            finally:
-                app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+
+            IgnoreSynchronizeWidget(False, Rerender)
 
 
 class BranchPointDelegate(schema.Item):
@@ -182,7 +180,7 @@ class BranchPointDelegate(schema.Item):
         required = True,
     )
 
-    keyUUIDToBranch = schema.Mapping(Block.Block, initialValue = {})
+    keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
 
     def deleteCache(self):
         for item in self.keyUUIDToBranch.itervalues():

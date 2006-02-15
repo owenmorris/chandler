@@ -2,7 +2,10 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
 
-from Block import Block, RectangularChild, wxRectangularChild, debugName
+from Block import (
+    Block, RectangularChild, wxRectangularChild, debugName,
+    WithoutSynchronizeWidget
+)
 from osaf.pim.structs import PositionType
 import DragAndDrop
 from MenusAndToolbars import Toolbar as Toolbar
@@ -261,26 +264,25 @@ class wxSplitterWindow(wx.SplitterWindow):
         #wx.GetApp().Yield()
         
         
- 
+
+    @WithoutSynchronizeWidget
     def OnSize(self, event):
-        #indentlog("ignoreSyncWidget: %s" %wx.GetApp().ignoreSynchronizeWidget)
         #indentlog("splitperc: %s" % self.blockItem.splitPercentage)
-        if not wx.GetApp().ignoreSynchronizeWidget:
             
-            newSize = self.GetSize()
-            
-            self.blockItem.size.width = newSize.width
-            self.blockItem.size.height = newSize.height
-            self.blockItem.setDirty(self.blockItem.VDIRTY, 'size', self.blockItem._values)   # Temporary repository hack -- DJA
-            
-            if self.blockItem.orientationEnum == "Horizontal":
-                distance = self.blockItem.size.height
-            else:
-                distance = self.blockItem.size.width
-            #indentlog("SetSashPosition to: %s" % int (distance * self.blockItem.splitPercentage + 0.5))
-            position = int (distance * self.blockItem.splitPercentage + 0.5)
-            self.SetSashPosition (position)
-            self.adjustSplit(position)
+        newSize = self.GetSize()
+
+        self.blockItem.size.width = newSize.width
+        self.blockItem.size.height = newSize.height
+        self.blockItem.setDirty(self.blockItem.VDIRTY, 'size', self.blockItem._values)   # Temporary repository hack -- DJA
+
+        if self.blockItem.orientationEnum == "Horizontal":
+            distance = self.blockItem.size.height
+        else:
+            distance = self.blockItem.size.width
+        #indentlog("SetSashPosition to: %s" % int (distance * self.blockItem.splitPercentage + 0.5))
+        position = int (distance * self.blockItem.splitPercentage + 0.5)
+        self.SetSashPosition (position)
+        self.adjustSplit(position)
         if event:
             event.Skip()
 
@@ -289,17 +291,17 @@ class wxSplitterWindow(wx.SplitterWindow):
             event.SetSashPosition(-1)
         event.Skip()
 
+    @WithoutSynchronizeWidget
     def OnSplitChanged(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            width, height = self.GetSizeTuple()
-            position = float (event.GetSashPosition())
-            splitMode = self.GetSplitMode()
-            if not self.adjustSplit(position):
-                if splitMode == wx.SPLIT_HORIZONTAL:
-                    self.blockItem.splitPercentage = position / height
-                else:
-                    self.blockItem.splitPercentage = position / width
-                    #indentlog("%sset splitperc to %s%s" %(util.autolog.BOLDGREEN, self.blockItem.splitPercentage, util.autolog.NORMAL))
+        width, height = self.GetSizeTuple()
+        position = float (event.GetSashPosition())
+        splitMode = self.GetSplitMode()
+        if not self.adjustSplit(position):
+            if splitMode == wx.SPLIT_HORIZONTAL:
+                self.blockItem.splitPercentage = position / height
+            else:
+                self.blockItem.splitPercentage = position / width
+                #indentlog("%sset splitperc to %s%s" %(util.autolog.BOLDGREEN, self.blockItem.splitPercentage, util.autolog.NORMAL))
             
         event.Skip()
 
@@ -578,14 +580,14 @@ class wxTabbedContainer(DragAndDrop.DropReceiveWidget,
         return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
 
+    @WithoutSynchronizeWidget
     def OnWXSelectItem (self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            selection = event.GetSelection()
-            if self.selectedTab != selection:
-                self.selectedTab = selection
-                page = self.GetPage(self.selectedTab)
-                self.blockItem.postEventByName("SelectItemsBroadcast",
-                                               {'items':[page.blockItem]})
+        selection = event.GetSelection()
+        if self.selectedTab != selection:
+            self.selectedTab = selection
+            page = self.GetPage(self.selectedTab)
+            self.blockItem.postEventByName("SelectItemsBroadcast",
+                                           {'items':[page.blockItem]})
         event.Skip()
         
     def OnRequestDrop(self, x, y):
