@@ -36,7 +36,7 @@ allTests = [
             "TestFlickr.py",
             "TestImporting.py",
             "TestImportOverwrite.py",
-            "TestSharing.py",
+            "TestSharing.py",  #assert traceback when run in debug mode bug#5185
             "TestBlocks.py"]
 
 if sys.platform == 'win32': 
@@ -46,7 +46,7 @@ elif sys.platform == 'darwin':
 else:
     platform = 'other'
     
-exclusions = { 'other':( "TestCalView.py", #emulate typing starting with unhighlighted text appends rather than overwrites                                     
+exclusions = { 'other':( "TestCalView.py", #bug 5109 emulate typing starting with unhighlighted text appends rather than overwrites                                     
                                         ),
                         'mac':( 
                                         "TestBlocks.py", #Bug 5182
@@ -54,6 +54,7 @@ exclusions = { 'other':( "TestCalView.py", #emulate typing starting with unhighl
                         'windows':(
                                         ),
                         'all':(        
+                                        "TestDeleteCollection.py", #chandler bug 5194
                                         "TestAllDayEvent.py", #test not functioning bug#5110
                                         "TestDates.py", #Chandler not handling daylightsavings bug#5038
                                         "TestRecurrenceImporting.py", #Chandler bug #5116
