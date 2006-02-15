@@ -92,7 +92,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
                                             shareName="viewmerging/.chandler"),
             format=sharing.CloudXMLFormat(itsView=view0)
         )
-        subShare.follows = self.share0
+        self.share0.follows = subShare
 
         if self.share0.exists():
             self.share0.destroy()
@@ -112,7 +112,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
                                             shareName="viewmerging/.chandler"),
             format=sharing.CloudXMLFormat(itsView=view1)
         )
-        subShare.follows = self.share1
+        self.share1.follows = subShare
 
 
     def RoundTrip(self):
