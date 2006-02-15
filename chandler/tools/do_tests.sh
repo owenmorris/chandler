@@ -158,8 +158,8 @@ if [ -n "$TEST_TO_RUN" ]; then
 
                 cd $C_DIR
 
-                if echo "$TESTNAME" | grep -q "QATestScripts/" ; then
-                    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                if echo "$TESTNAME" | grep -q "QATestScripts" ; then
+                    $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptFile="$TESTNAME" &> $C_DIR/test.log
                     SUCCESS="#TINDERBOX# Status = PASSED"
                 else
                     $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
