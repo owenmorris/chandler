@@ -54,7 +54,6 @@ exclusions = { 'other':( "TestCalView.py", #bug 5109 emulate typing starting wit
                         'windows':(
                                         ),
                         'all':(        
-                                        "TestDeleteCollection.py", #chandler bug 5194
                                         "TestAllDayEvent.py", #test not functioning bug#5110
                                         "TestDates.py", #Chandler not handling daylightsavings bug#5038
                                         "TestRecurrenceImporting.py", #Chandler bug #5116
