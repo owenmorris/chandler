@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, re
+import os, re, sys
 
 from chandlerdb.util.c import UUID
 from repository.util.Path import Path
@@ -26,6 +26,10 @@ class PackHandler(ContentHandler):
         self.view = view
         self.hooks = []
 
+        # the xml parser may return unicode for non-ascii paths or names
+        # which need to be encoded according to the system's file system
+        self.fsenc = sys.getfilesystemencoding()
+
         packs = view.getRoot('Packs')
         if packs is None:
             packs = Item('Packs', view, None)
@@ -42,7 +46,7 @@ class PackHandler(ContentHandler):
             method = getattr(PackHandler, tag + 'Start', None)
             if method is not None:
                 method(self, attrs)
-            
+
             self.tagAttrs.append(attrs)
 
     def characters(self, data):
@@ -61,13 +65,20 @@ class PackHandler(ContentHandler):
     def packStart(self, attrs):
 
         if attrs.has_key('cwd'):
-            self.cwd[-1] = os.path.join(self.cwd[-1], attrs['cwd'])
+            cwd = attrs['cwd']
+            if isinstance(cwd, unicode):
+                cwd = cwd.encode(self.fsenc)
+
+            self.cwd[-1] = os.path.join(self.cwd[-1], cwd)
 
         if attrs.has_key('file'):
             if not self.view.find(Path('//', 'Packs', attrs['name'])):
                 try:
-                    self.view.loadPack(os.path.join(self.cwd[-1],
-                                                    attrs['file']),
+                    file = attrs['file']
+                    if isinstance(file, unicode):
+                        file = file.encode(self.fsenc)
+
+                    self.view.loadPack(os.path.join(self.cwd[-1], file),
                                        self.parent[-1])
                 except:
                     self.saveException()
@@ -89,7 +100,11 @@ class PackHandler(ContentHandler):
 
     def cwdStart(self, attrs):
 
-        self.cwd.append(os.path.join(self.cwd[-1], attrs['path']))
+        path = attrs['path']
+        if isinstance(path, unicode):
+            path = path.encode(self.fsenc)
+
+        self.cwd.append(os.path.join(self.cwd[-1], path))
 
     def cwdEnd(self, attrs):
 
@@ -101,16 +116,25 @@ class PackHandler(ContentHandler):
 
         if attrs.get('afterLoadHooks', 'False') == 'True':
             self.hooks.append([])
-        
+
         if attrs.has_key('path'):
             parent = self.view.find(Path(attrs['path']))
         elif attrs.has_key('uuid'):
             parent = self.view.find(UUID(attrs['uuid']))
         elif attrs.has_key('file'):
-            parent = self.loadItem(os.path.join(self.cwd[-1], attrs['file']),
+            file = attrs['file']
+            if isinstance(file, unicode):
+                file = file.encode(self.fsenc)
+
+            parent = self.loadItem(os.path.join(self.cwd[-1], file),
                                    self.parent[-1])
+
         elif attrs.has_key('files'):
-            pattern = '^' + attrs['files'] + '$'
+            files = attrs['files']
+            if isinstance(files, unicode):
+                files = files.encode(self.fsenc)
+
+            pattern = '^' + files + '$'
             pattern = pattern.replace('.', '\\.').replace('*', '.*')
             exp = re.compile(pattern)
 
@@ -120,11 +144,15 @@ class PackHandler(ContentHandler):
                                            self.parent[-1])
                     if self.errorOccurred():
                         return
-            
+
         self.parent.append(parent)
 
         if attrs.has_key('cwd'):
-            self.cwd.append(os.path.join(self.cwd[-1], attrs['cwd']))
+            cwd = attrs['cwd']
+            if isinstance(cwd, unicode):
+                cwd = cwd.encode(self.fsenc)
+
+            self.cwd.append(os.path.join(self.cwd[-1], cwd))
 
     def itemEnd(self, attrs):
 
