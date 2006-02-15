@@ -2,7 +2,7 @@
 // Name:        tests/streams/largefile.cpp
 // Purpose:     Tests for large file support
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: largefile.cpp,v 1.2 2005/02/04 15:15:20 RN Exp $
+// RCS-ID:      $Id: largefile.cpp,v 1.3 2006/02/15 21:16:10 MW Exp $
 // Copyright:   (c) 2004 Mike Wetherell
 // Licence:     wxWidgets licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -255,7 +255,7 @@ wxOutputStream *LargeFileTest_wxFFile::MakeOutStream(const wxString& name) const
 
 bool LargeFileTest_wxFFile::HasLFS() const
 {
-#if HAVE_FSEEKO
+#ifdef HAVE_FSEEKO
     return (wxFileOffset)0xffffffff > 0;
 #else
     return false;

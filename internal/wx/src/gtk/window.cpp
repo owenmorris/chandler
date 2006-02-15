@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.574 2006/02/15 15:49:09 MR Exp $
+// Id:          $Id: window.cpp,v 1.576 2006/02/15 20:14:12 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

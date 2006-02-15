@@ -3,7 +3,7 @@
 // Purpose:     wxString unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-19
-// RCS-ID:      $Id: strings.cpp,v 1.31 2005/12/20 16:30:10 VZ Exp $
+// RCS-ID:      $Id: strings.cpp,v 1.32 2006/02/15 21:16:45 MW Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -459,8 +459,11 @@ void StringTestCase::CaseChanges()
     if ( locRu.IsOk() )
     {
         // try upper casing 8bit strings
-        wxString sUpper("\xdf"),
-                 sLower("\xff");
+        const wchar_t capital_ya[] = { 0x42f, 0 },
+                      small_ya[]   = { 0x44f, 0 };
+
+        wxString sUpper(wxConvLibc.cWC2MB(capital_ya)),
+                 sLower(wxConvLibc.cWC2MB(small_ya));
 
         CPPUNIT_ASSERT( sUpper.Lower() == sLower );
         CPPUNIT_ASSERT( sLower.Upper() == sUpper );
