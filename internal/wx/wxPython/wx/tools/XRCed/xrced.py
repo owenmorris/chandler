@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, main module
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      20.08.2001
-# RCS-ID:       $Id: xrced.py,v 1.35 2006/02/14 20:58:11 ROL Exp $
+# RCS-ID:       $Id: xrced.py,v 1.36 2006/02/14 23:06:34 ROL Exp $
 
 """
 
@@ -925,7 +925,7 @@ Homepage: http://xrced.sourceforge.net\
         # Update tools
         g.tools.UpdateUI()
 
-        undoMan.RegisterUndo(UndoPasteCreate(parentLeaf, parent, newItem, selected))
+        #undoMan.RegisterUndo(UndoPasteCreate(parentLeaf, parent, newItem, selected))
         # Update view?
         if g.testWin and tree.IsHighlatable(selected):
             if conf.autoRefresh:
