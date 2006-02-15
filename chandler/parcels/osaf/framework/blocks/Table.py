@@ -219,27 +219,22 @@ class wxTable(DragAndDrop.DraggableWidget,
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
                 """
-                  So happens that under some circumstances widgets
-                  needs to clear the selection before setting a new
-                  selection, e.g. when you have some rows in a table
-                  selected and you click on another cell. However, we
-                  need to catch changes to the selection in
-                  OnRangeSelect to keep track of the selection and
-                  broadcast selection changes to other blocks. So
-                  under some circumstances you get two OnRangeSelect
-                  calls, one to clear the selection and another to set
-                  the new selection. When the first OnRangeSelect is
-                  called to clear the selection we used to broadcast a
-                  select item event with None as the selection. This
-                  has two unfortunate side effects: it causes other
-                  views (e.g. the detail view) to draw blank and it
-                  causes the subsequent call to OnRangeSelect to not
-                  occur, causing the selection to vanish.  It turns
-                  out that ignoring all the clear selections except
-                  when control is down skips the extra clear
-                  selections.
+                Widgets needs to clear the selection before setting a
+                brand new selection, e.g. when you have some rows in a
+                table selected and you click on another cell. So you
+                get two OnRangeSelect calls, one to clear the old
+                selection and another to set the new selection.
+
+                We don't want to broadcast the first deselection if
+                we're pretty sure we're actually going to select
+                something next.
+
+                It turns out that ignoring all the clear selections
+                except when control is down skips the extra clear
+                selections.
                 """
-                if (item is not None or event.Selecting() or event.ControlDown()):
+                if (item is not None or event.Selecting() or
+                    event.ControlDown()):
                     blockItem.PostSelectItems([item])
         finally:
             blockItem.startNotificationDirt()
@@ -327,21 +322,36 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         gridTable = self.GetTable()
         newColumns = gridTable.GetNumberCols()
+        newRows = gridTable.GetNumberRows()
 
+        oldColumns = self.GetNumberCols()
+        oldRows = self.GetNumberRows()
         # update the widget to reflect the new or removed rows or
         # columns. Note that we're only telling the grid HOW MANY rows
         # or columns to add/remove - the per-cell callbacks will
         # determine what actual text to display in each cell
+
+        def SendTableMessage(current, new, deleteMessage, addMessage):
+            if new == current: return
+            
+            if new < current: 
+                message = wx.grid.GridTableMessage(gridTable, deleteMessage,
+                                                   new, current-new) 
+            elif new > current: 
+                message = wx.grid.GridTableMessage(gridTable, addMessage,
+                                                   new-current) 
+            self.ProcessTableMessage (message) 
+
+
         self.BeginBatch()
-        for current, new, deleteMessage, addMessage in [
-            (self.GetNumberRows(), gridTable.GetNumberRows(), wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED), 
-            (self.GetNumberCols(), newColumns, wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)]: 
-                if new < current: 
-                    message = wx.grid.GridTableMessage (gridTable, deleteMessage, new, current-new) 
-                    self.ProcessTableMessage (message) 
-                elif new > current: 
-                    message = wx.grid.GridTableMessage (gridTable, addMessage, new-current) 
-                    self.ProcessTableMessage (message) 
+        SendTableMessage(oldRows, newRows,
+                         wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED,
+                         wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED)
+        
+        SendTableMessage(oldColumns, newColumns,
+                         wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED,
+                         wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)
+        
         assert (self.GetNumberCols() == gridTable.GetNumberCols() and
                 self.GetNumberRows() == gridTable.GetNumberRows())
         
@@ -468,11 +478,6 @@ class wxTable(DragAndDrop.DraggableWidget,
             DeleteItemCallback = DefaultCallback
         topLeftList = self.GetSelectionBlockTopLeft()
         bottomRightList = self.GetSelectionBlockBottomRight()
-        """
-          Clear the selection before removing the elements from the collection
-        otherwise our delegate will get called asking for deleted items
-        """
-        self.ClearSelection()
         
         selectionRanges = []
         # build up a list of selection ranges [[tl1, br1], [tl2, br2]]
@@ -480,6 +485,11 @@ class wxTable(DragAndDrop.DraggableWidget,
             selectionRanges.append ([indexStart, indexEnd])
         selectionRanges.sort(reverse=True)
 
+        """
+          Clear the selection before removing the elements from the collection
+        otherwise our delegate will get called asking for deleted items
+        """
+        self.ClearSelection()
         # now delete rows - since we reverse sorted, the
         # "newSelectedItemIndex" will be the highest row that we're
         # not deleting
@@ -490,8 +500,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         # the corresponding rows.
         # (that probably can't be fixed until ItemCollection
         # becomes Collection and notifications work again)
+        
         newRowSelection = 0
         contents = blockItem.contents
+        newSelectedItemIndex = -1
         for selectionStart,selectionEnd in selectionRanges:
             for itemIndex in xrange (selectionEnd, selectionStart - 1, -1):
                 DeleteItemCallback(contents[itemIndex])
@@ -516,7 +528,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem.synchronizeWidget()
         totalItems = len(contents)
         if totalItems > 0:
-            newSelectedItemIndex = min(newSelectedItemIndex, totalItems - 1)
+            if newSelectedItemIndex != -1:
+                newSelectedItemIndex = min(newSelectedItemIndex, totalItems - 1)
             blockItem.PostSelectItems([contents[newSelectedItemIndex]])
         else:
             blockItem.PostSelectItems([])
