@@ -28,6 +28,46 @@ def getProxiedItem(item):
             item = RecurrenceDialog.getProxy(u'ui', item)
     return item
 
+def WithoutSynchronizeWidget(method):
+    """
+    method decorator for making use of 'ignoreSynchronizeWidget' -
+    usually used in wx event handlers that would otherwise cause
+    recursive event calls
+    
+    usage:
+    @WithoutSynchronizeWidget
+    def OnSomeEvent(self,...)
+        self.PostSelectItems(...) # PostSelectItems would normally
+                                  # end up calling OnSomeEvent
+    """
+    def with_sync(*args, **kwds):
+        if not wx.GetApp().ignoreSynchronizeWidget:
+            method(*args, **kwds)
+
+    return with_sync
+
+def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
+    """
+    wrapper method to call something while temporarily suspending
+    or enabling SynchronizeWidget
+
+    usage:
+
+    IgnoreSyncWidget(True, method, arg1, kw1=blah)
+
+    this will block wxSynchronizeWidget calls
+    """
+    app = wx.GetApp()
+    oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
+    app.ignoreSynchronizeWidget = syncValue
+    try:
+        result = method(*args, **kwds)
+    finally:
+        app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+
+    return result
+    
+
 
 class Block(schema.Item):
     # @@@BJS: Should we show borders for debugging?
@@ -232,19 +272,13 @@ class Block(schema.Item):
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)
         if method:
-            app = wx.GetApp()
-            oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-            app.ignoreSynchronizeWidget = True
-            try:
-                widget = method (self)
-            finally:
-                app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+            widget = IgnoreSynchronizeWidget(True, method, self)
             """
               Store a non persistent pointer to the widget in the block. Store a pointer to
             the block in the widget. Undo all this when the widget is destroyed.
             """
             if widget:
-                app.needsUpdateUI = True
+                wx.GetApp().needsUpdateUI = True
                 assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
                 self.widget = widget
                 widget.blockItem = self
@@ -290,12 +324,7 @@ class Block(schema.Item):
                   After the blocks are wired up give the window a chance
                 to synchronize itself to any persistent state.
                 """
-                oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-                app.ignoreSynchronizeWidget = False
-                try:
-                    self.synchronizeWidget()
-                finally:
-                    app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                IgnoreSynchronizeWidget(False, self.synchronizeWidget)
 
                 method = getattr (type (widget), "Thaw", None)
                 if method:
@@ -535,14 +564,7 @@ class Block(schema.Item):
         if widget is not None:
             method = getattr (type (widget), 'wxSynchronizeWidget', None)
             if method is not None:
-                app = wx.GetApp()
-                if not app.ignoreSynchronizeWidget:
-                    oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-                    app.ignoreSynchronizeWidget = True
-                    try:
-                        method (widget, useHints)
-                    finally:
-                        app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                IgnoreSynchronizeWidget(True, method, widget, useHints)
 
     def pushView (self):
         """ 

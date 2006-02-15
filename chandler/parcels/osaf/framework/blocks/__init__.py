@@ -6,7 +6,7 @@ import wx
 from Block import (
     RectangularChild, BlockEvent, ChoiceEvent, ColorEvent,
     KindParameterizedEvent, ModifyCollectionEvent, EventList, debugName,
-    getProxiedItem
+    getProxiedItem, WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
 
 from ContainerBlocks import (

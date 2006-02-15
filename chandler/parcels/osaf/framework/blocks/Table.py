@@ -10,7 +10,9 @@ import application.dialogs.RecurrenceDialog as RecurrenceDialog
 
 from Block import (
     RectangularChild,
-    Block
+    Block,
+    WithoutSynchronizeWidget,
+    IgnoreSynchronizeWidget
     )
 import Styles
 import DragAndDrop
@@ -91,13 +93,9 @@ class wxTable(DragAndDrop.DraggableWidget,
           object to get the wrong type because of a
           "feature" of SWIG. So we need to avoid OnShows in this case.
         """
-        app = wx.GetApp()
-        oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-        app.ignoreSynchronizeWidget = True
-        try:
-            super (wxTable, self).__init__ (parent, widgetID, style=theStyle, *arguments, **keywords)
-        finally:
-            app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+        IgnoreSynchronizeWidget(True, super(wxTable, self).__init__,
+                                parent, widgetID, style=theStyle,
+                                *arguments, **keywords)
 
         self.SetDefaultCellFont(Styles.getFont(characterStyle))
         self.SetLabelFont(Styles.getFont(headerCharacterStyle))
@@ -192,90 +190,91 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         self.EnableGridLines (self.blockItem.hasGridLines)
 
+    @WithoutSynchronizeWidget
     def OnRangeSelect(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            blockItem = self.blockItem
-            # Ignore notifications that arrise as a side effect of
-            # changes to the selection
-            blockItem.stopNotificationDirt()
-            try:
-                # map row ranges to index ranges 
-                contents = self.blockItem.contents
-                contents.setSelectionRanges ([])
-                firstItemIndex = -1
-                for indexStart, indexEnd in self.SelectedIndexRanges():
+        blockItem = self.blockItem
+        # Ignore notifications that arrise as a side effect of
+        # changes to the selection
+        blockItem.stopNotificationDirt()
+        try:
+            # map row ranges to index ranges 
+            contents = self.blockItem.contents
+            contents.setSelectionRanges ([])
+            firstItemIndex = -1
+            for indexStart, indexEnd in self.SelectedIndexRanges():
 
-                    # We'll need the first selected index later..
-                    if firstItemIndex == -1 or firstItemIndex > indexStart:
-                        firstItemIndex = indexStart
-                        
-                    contents.addSelectionRange ((indexStart, indexEnd))
-                item = None
-                if firstItemIndex != -1:
-                    item = blockItem.contents[firstItemIndex]
-    
-                if item is not blockItem.selectedItemToView:
-                    blockItem.selectedItemToView = item
-                    if item is not None:
-                        gridTable = self.GetTable()
-                        for columnIndex in xrange (gridTable.GetNumberCols()):
-                            self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                    """
-                      So happens that under some circumstances widgets
-                      needs to clear the selection before setting a new
-                      selection, e.g. when you have some rows in a table
-                      selected and you click on another cell. However, we
-                      need to catch changes to the selection in
-                      OnRangeSelect to keep track of the selection and
-                      broadcast selection changes to other blocks. So
-                      under some circumstances you get two OnRangeSelect
-                      calls, one to clear the selection and another to set
-                      the new selection. When the first OnRangeSelect is
-                      called to clear the selection we used to broadcast a
-                      select item event with None as the selection. This
-                      has two unfortunate side effects: it causes other
-                      views (e.g. the detail view) to draw blank and it
-                      causes the subsequent call to OnRangeSelect to not
-                      occur, causing the selection to vanish.  It turns
-                      out that ignoring all the clear selections except
-                      when control is down skips the extra clear
-                      selections.
-                    """
-                    if (item is not None or event.Selecting() or event.ControlDown()):
-                        blockItem.PostSelectItems([item])
-            finally:
-                blockItem.startNotificationDirt()
+                # We'll need the first selected index later..
+                if firstItemIndex == -1 or firstItemIndex > indexStart:
+                    firstItemIndex = indexStart
+
+                contents.addSelectionRange ((indexStart, indexEnd))
+            item = None
+            if firstItemIndex != -1:
+                item = blockItem.contents[firstItemIndex]
+
+            if item is not blockItem.selectedItemToView:
+                blockItem.selectedItemToView = item
+                if item is not None:
+                    gridTable = self.GetTable()
+                    for columnIndex in xrange (gridTable.GetNumberCols()):
+                        self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
+                """
+                  So happens that under some circumstances widgets
+                  needs to clear the selection before setting a new
+                  selection, e.g. when you have some rows in a table
+                  selected and you click on another cell. However, we
+                  need to catch changes to the selection in
+                  OnRangeSelect to keep track of the selection and
+                  broadcast selection changes to other blocks. So
+                  under some circumstances you get two OnRangeSelect
+                  calls, one to clear the selection and another to set
+                  the new selection. When the first OnRangeSelect is
+                  called to clear the selection we used to broadcast a
+                  select item event with None as the selection. This
+                  has two unfortunate side effects: it causes other
+                  views (e.g. the detail view) to draw blank and it
+                  causes the subsequent call to OnRangeSelect to not
+                  occur, causing the selection to vanish.  It turns
+                  out that ignoring all the clear selections except
+                  when control is down skips the extra clear
+                  selections.
+                """
+                if (item is not None or event.Selecting() or event.ControlDown()):
+                    blockItem.PostSelectItems([item])
+        finally:
+            blockItem.startNotificationDirt()
 
         event.Skip()
 
+    @WithoutSynchronizeWidget
     def OnSize(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            size = event.GetSize()
-            widthMinusLastColumn = 0
+        size = event.GetSize()
+        widthMinusLastColumn = 0
 
-            assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
-            lastColumnIndex = self.GetNumberCols() - 1
-            for column in xrange (lastColumnIndex):
-                widthMinusLastColumn += self.GetColSize (column)
-            lastColumnWidth = size.width - widthMinusLastColumn
-            """
-              This is a temporary fix to get around an apparent bug in grids.  We only want to adjust
-            for scrollbars if they are present.  The -2 is a hack, without which the sidebar will grow
-            indefinitely when resizing the window.
-            """
-            if (self.GetSize() == self.GetVirtualSize()):
-                lastColumnWidth = lastColumnWidth - 2
-            else:
-                lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) - 1
-            if lastColumnWidth > 0:
-                self.SetColSize (lastColumnIndex, lastColumnWidth)
-                self.ForceRefresh()
+        assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
+        lastColumnIndex = self.GetNumberCols() - 1
+        for column in xrange (lastColumnIndex):
+            widthMinusLastColumn += self.GetColSize (column)
+        lastColumnWidth = size.width - widthMinusLastColumn
+        """
+          This is a temporary fix to get around an apparent bug in
+          grids.  We only want to adjust for scrollbars if they
+          are present.  The -2 is a hack, without which the
+          sidebar will grow indefinitely when resizing the window.
+        """
+        if (self.GetSize() == self.GetVirtualSize()):
+            lastColumnWidth = lastColumnWidth - 2
+        else:
+            lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) - 1
+        if lastColumnWidth > 0:
+            self.SetColSize (lastColumnIndex, lastColumnWidth)
+            self.ForceRefresh()
         event.Skip()
 
+    @WithoutSynchronizeWidget
     def OnColumnDrag(self, event):
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            columnIndex = event.GetRowOrCol()
-            self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+        columnIndex = event.GetRowOrCol()
+        self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
     def OnItemDrag(self, event):
 
