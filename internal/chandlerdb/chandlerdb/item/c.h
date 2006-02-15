@@ -7,6 +7,7 @@
  */
 
 #include "item.h"
+#include "../util/uuid.h"
 #include "../persistence/view.h"
 
 #define LOAD_TYPE(m, name) \
@@ -36,6 +37,7 @@ extern PyObject *Nil;
 extern PyObject *Default;
 
 extern CView_invokeMonitors_fn CView_invokeMonitors;
+extern PyUUID_Check_fn PyUUID_Check;
 extern PyCFunction _countAccess;
 
 

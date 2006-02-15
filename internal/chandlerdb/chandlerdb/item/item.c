@@ -49,6 +49,7 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args);
 static PyObject *t_item_setDirty(t_item *self, PyObject *args);
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args);
 static PyObject *t_item_collectionChanged(t_item *self, PyObject *args);
+static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *name);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
@@ -79,7 +80,8 @@ static PyObject *onValueChanged_NAME;
 static PyObject *logger_NAME;
 static PyObject *_verifyAssignment_NAME;
 static PyObject *_setDirty_NAME;
-static PyObject *set_NAME, *remove_NAME, *kind_NAME;
+static PyObject *set_NAME, *remove_NAME;
+static PyObject *kind_NAME, *collection_NAME, *item_NAME;
 static PyObject *_logItem_NAME;
 static PyObject *_clearDirties_NAME;
 static PyObject *_flags_NAME;
@@ -771,6 +773,9 @@ static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
         Py_DECREF(result);
     }
 
+    if (self->status & WATCHED && _t_item__itemChanged(self, op, name) < 0)
+        return NULL;
+
     Py_RETURN_NONE;
 }
 
@@ -1054,20 +1059,14 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 
     while (PyDict_Next(dict, &pos, &key, &value)) {
         PyObject *watcher = PyTuple_GetItem(key, 0);
-        PyObject *args = PyTuple_GetItem(key, 1);
-        int size;
+        PyObject *watch = PyTuple_GetItem(key, 1);
 
-        if (!watcher || !args)
+        if (!watcher || !watch)
             return NULL;
 
         if (!PyObject_TypeCheck(watcher, SingleRef))
         {
             PyErr_SetObject(PyExc_TypeError, watcher);
-            return NULL;
-        }
-        if (!PyTuple_Check(args))
-        {
-            PyErr_SetObject(PyExc_TypeError, args);
             return NULL;
         }
 
@@ -1076,76 +1075,52 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
         if (!watcher)
             return NULL;
 
-        size = PyTuple_Size(args);
-
-        if (size == 2)
+        if (!PyObject_Compare(watch, set_NAME))
         {
-            PyObject *arg0 = PyTuple_GetItem(args, 0);
+            PyObject *attrName = PyTuple_GetItem(key, 2);
+            PyObject *set = PyObject_GetAttr(watcher, attrName);
 
-            if (!PyObject_Compare(arg0, set_NAME))
+            if (!set)
             {
-                PyObject *attrName = PyTuple_GetItem(args, 1);
-                PyObject *set = PyObject_GetAttr(watcher, attrName);
-
-                if (!set)
-                {
-                    Py_DECREF(watcher);
-                    return NULL;
-                }
-
-                result = PyObject_CallMethodObjArgs(set, sourceChanged_NAME,
-                                                    op, change, self, name,
-                                                    Py_False, other, NULL);
                 Py_DECREF(watcher);
-                Py_DECREF(set);
-
-                if (!result)
-                    return NULL;
-                Py_DECREF(result);
-                continue;
+                return NULL;
             }
-            else if (!PyObject_Compare(arg0, kind_NAME))
-            {
-                PyObject *methName = PyTuple_GetItem(args, 1);
-                PyObject *kind = PyObject_GetAttr((PyObject *) self, kind_NAME);
 
-                result = PyObject_CallMethodObjArgs(watcher, methName,
-                                                    op, kind, other, NULL);
-                Py_DECREF(kind);
-                Py_DECREF(watcher);
+            result = PyObject_CallMethodObjArgs(set, sourceChanged_NAME,
+                                                op, change, self, name,
+                                                Py_False, other, NULL);
+            Py_DECREF(watcher);
+            Py_DECREF(set);
 
-                if (!result)
-                    return NULL;
-                Py_DECREF(result);
-                continue;
-            }
+            if (!result)
+                return NULL;
+            Py_DECREF(result);
         }
-
-        /* else call generic collectionChanged() on watcher */
+        else if (!PyObject_Compare(watch, kind_NAME))
         {
-            PyObject *tuple = PyTuple_New(4 + size);
-            PyObject *mth = PyObject_GetAttr(watcher, collectionChanged_NAME);
-            int i;
+            PyObject *methName = PyTuple_GetItem(key, 2);
+            PyObject *kind = PyObject_GetAttr((PyObject *) self, kind_NAME);
 
-            PyTuple_SET_ITEM(tuple, 0, op); Py_INCREF(op);
-            PyTuple_SET_ITEM(tuple, 1, (PyObject *) self); Py_INCREF(self);
-            PyTuple_SET_ITEM(tuple, 2, name); Py_INCREF(name);
-            PyTuple_SET_ITEM(tuple, 3, other); Py_INCREF(other);
+            result = PyObject_CallMethodObjArgs(watcher, methName,
+                                                op, kind, other, NULL);
+            Py_DECREF(kind);
+            Py_DECREF(watcher);
 
-            for (i = 0; i < size; i++) {
-                PyObject *o = PyTuple_GetItem(args, i);
-                PyTuple_SET_ITEM(tuple, i + 4, o); Py_INCREF(o);
-            }
-
-            result = PyObject_Call(mth, tuple, NULL);
-
-            Py_DECREF(tuple);
-            Py_DECREF(mth);
+            if (!result)
+                return NULL;
+            Py_DECREF(result);
+        }
+        else if (!PyObject_Compare(watch, collection_NAME))
+        {
+            result = PyObject_CallMethodObjArgs(watcher, collectionChanged_NAME,
+                                                op, self, name, other, NULL);
             Py_DECREF(watcher);
             if (!result)
                 return NULL;
             Py_DECREF(result);
         }
+        else
+            Py_DECREF(watcher);
     }
 
     Py_RETURN_NONE;
@@ -1154,6 +1129,143 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 static PyObject *t_item_collectionChanged(t_item *self, PyObject *args)
 {
     Py_RETURN_NONE;
+}
+
+static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *name)
+{
+    if (self->status & NODIRTY)
+        return 0;
+
+    if (self->status & P_WATCHED)
+    {
+        PyObject *dispatch =
+            PyDict_GetItem(self->values->dict, watcherDispatch_NAME);
+
+        if (dispatch)
+        {
+            /* name part of item watch is None */
+            PyObject *watchers = PyDict_GetItem(dispatch, Py_None); 
+
+            if (watchers)
+            {
+                PyObject *dict, *key, *value;
+                int pos = 0;
+
+                if (!PyAnySet_Check(watchers))
+                {
+                    PyErr_SetObject(PyExc_TypeError, watchers);
+                    return -1;
+                }
+
+                /* a set's dict is organized as { value: True } */
+                dict = ((PySetObject *) watchers)->data;
+
+                while (PyDict_Next(dict, &pos, &key, &value)) {
+                    PyObject *watcher = PyTuple_GetItem(key, 0);
+                    PyObject *watch = PyTuple_GetItem(key, 1);
+
+                    if (!watcher || !watch)
+                        return -1;
+
+                    if (!PyObject_TypeCheck(watcher, SingleRef))
+                    {
+                        PyErr_SetObject(PyExc_TypeError, watcher);
+                        return -1;
+                    }
+
+                    if (!PyObject_Compare(watch, item_NAME))
+                    {
+                        PyObject *methName, *result;
+
+                        watcher =
+                            PyObject_GetItem(((t_item *) self->root)->parent,
+                                             ((t_sr *) watcher)->uuid);
+                        if (!watcher)
+                            return -1;
+
+                        methName = PyTuple_GetItem(key, 2);
+                        result =
+                            PyObject_CallMethodObjArgs(watcher, methName, 
+                                                       op, self, name, NULL);
+
+                        Py_DECREF(watcher);
+                        if (!result)
+                            return -1;
+                        Py_DECREF(result);
+                    }
+                }
+            }
+        }
+    }
+
+    if (self->status & T_WATCHED)
+    {
+        t_view *view = (t_view *) ((t_item *) self->root)->parent;
+
+        if (view->watcherDispatch)
+        {
+            PyObject *dispatch =
+                PyDict_GetItem(view->watcherDispatch, self->uuid);
+
+            if (dispatch)
+            {
+                /* name part of item watch is None */
+                PyObject *watchers = PyDict_GetItem(dispatch, Py_None); 
+
+                if (watchers)
+                {
+                    PyObject *dict, *key, *value;
+                    int pos = 0;
+
+                    if (!PyAnySet_Check(watchers))
+                    {
+                        PyErr_SetObject(PyExc_TypeError, watchers);
+                        return -1;
+                    }
+
+                    /* a set's dict is organized as { value: True } */
+                    dict = ((PySetObject *) watchers)->data;
+
+                    while (PyDict_Next(dict, &pos, &key, &value)) {
+                        PyObject *watcher = PyTuple_GetItem(key, 0);
+                        PyObject *watch = PyTuple_GetItem(key, 1);
+
+                        if (!watcher || !watch)
+                            return -1;
+
+                        if (!PyUUID_Check(watcher))
+                        {
+                            PyErr_SetObject(PyExc_TypeError, watcher);
+                            return -1;
+                        }
+
+                        if (!PyObject_Compare(watch, item_NAME))
+                        {
+                            PyObject *methName, *result;
+
+                            watcher = PyObject_GetItem((PyObject *) view,
+                                                       watcher);
+                            if (!watcher)
+                                return -1;
+
+                            methName = PyTuple_GetItem(key, 2);
+                            result =
+                                PyObject_CallMethodObjArgs(watcher, methName, 
+                                                           op, self, name,
+                                                           NULL);
+
+                            Py_DECREF(watcher);
+                            if (!result)
+                                return -1;
+                            Py_DECREF(result);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
 }
 
 
@@ -1423,6 +1535,9 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "COPYEXPORT", COPYEXPORT);
             PyDict_SetItemString_Int(dict, "IMPORTING", IMPORTING);
             PyDict_SetItemString_Int(dict, "MUTATING", MUTATING);
+            PyDict_SetItemString_Int(dict, "P_WATCHED", P_WATCHED);
+            PyDict_SetItemString_Int(dict, "T_WATCHED", T_WATCHED);
+            PyDict_SetItemString_Int(dict, "WATCHED", WATCHED);
 
             PyDict_SetItemString_Int(dict, "VRDIRTY", VRDIRTY);
             PyDict_SetItemString_Int(dict, "DIRTY", DIRTY);
@@ -1446,8 +1561,10 @@ void _init_item(PyObject *m)
             _verifyAssignment_NAME = PyString_FromString("_verifyAssignment");
             _setDirty_NAME = PyString_FromString("_setDirty");
             set_NAME = PyString_FromString("set");
+            collection_NAME = PyString_FromString("collection");
             remove_NAME = PyString_FromString("remove");
             kind_NAME = PyString_FromString("kind");
+            item_NAME = PyString_FromString("item");
             _logItem_NAME = PyString_FromString("_logItem");
             _clearDirties_NAME = PyString_FromString("_clearDirties");
             _flags_NAME = PyString_FromString("_flags");

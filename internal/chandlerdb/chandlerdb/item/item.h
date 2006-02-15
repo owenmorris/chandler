@@ -67,7 +67,9 @@ enum {
     COPYEXPORT = 0x00100000,          /* item instance is copied on export */
     IMPORTING  = 0x00200000,          /* item is being imported */
     MUTATING   = 0x00400000,          /* kind is being removed */
-    KDIRTY     = 0x00800000           /* kind changed */
+    KDIRTY     = 0x00800000,          /* kind changed */
+    P_WATCHED  = 0x01000000,          /* watched, persistently */
+    T_WATCHED  = 0x02000000,          /* watched, transiently  */
 };
 
 enum {
@@ -75,8 +77,9 @@ enum {
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY | KDIRTY,
     MERGED     = VMERGED | RMERGED | NMERGED | CMERGED,
     SAVEMASK   = (DIRTY | ADIRTY |
-                  NEW | DELETED |
+                  NEW | DELETED | P_WATCHED |
                   SCHEMA | CORESCHEMA | CONTAINER),
+    WATCHED    = P_WATCHED | T_WATCHED,
 };
 
 #endif

@@ -73,6 +73,7 @@ static PyMemberDef t_view_members[] = {
     { "_registry", T_OBJECT, offsetof(t_view, registry), 0, "" },
     { "_deletedRegistry", T_OBJECT, offsetof(t_view, deletedRegistry), 0, "" },
     { "_monitors", T_OBJECT, offsetof(t_view, monitors), 0, "" },
+    { "_watcherDispatch", T_OBJECT, offsetof(t_view, watcherDispatch), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -188,6 +189,7 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->uuid);
     Py_VISIT(self->monitors);
     Py_VISIT(self->singletons);
+    Py_VISIT(self->watcherDispatch);
 
     return 0;
 }
@@ -202,6 +204,7 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->uuid);
     Py_CLEAR(self->monitors);
     Py_CLEAR(self->singletons);
+    Py_CLEAR(self->watcherDispatch);
 
     return 0;
 }
@@ -237,6 +240,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     Py_INCREF(uuid); self->uuid = uuid;
     self->monitors = NULL;
     self->singletons = PyDict_New();
+    self->watcherDispatch = NULL;
 
     return 0;
 }

@@ -24,6 +24,7 @@ PyObject *Nil = NULL;
 PyObject *Default = NULL;
 
 CView_invokeMonitors_fn CView_invokeMonitors = NULL;
+PyUUID_Check_fn PyUUID_Check;
 PyCFunction _countAccess = NULL;
 
 
@@ -116,6 +117,7 @@ void initc(void)
     m = PyImport_ImportModule("chandlerdb.util.c");
     LOAD_TYPE(m, SingleRef);
     LOAD_TYPE(m, CLinkedMap);
+    LOAD_FN(m, PyUUID_Check);
     Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.item.ItemValue");
