@@ -441,8 +441,8 @@ class PyMiniCalendar(wx.PyControl):
             return False
 
         if self.GetMonthControl():
-            self.GetMonthControl.Enable(enable)
-            self.GetYearControl.Enable(enable)
+            self.GetMonthControl().Enable(enable)
+            self.GetYearControl().Enable(enable)
 
         return True
 
@@ -453,8 +453,8 @@ class PyMiniCalendar(wx.PyControl):
             return False
 
         if self.GetMonthControl():
-            self.GetMonthControl.Show(show)
-            self.GetYearControl.Show(show)
+            self.GetMonthControl().Show(show)
+            self.GetYearControl().Show(show)
 
         return True
 
