@@ -67,13 +67,39 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
     def mergeFunction(code, item, attribute, value):
 
-        logger.debug("Conflict during sync on item %(item)s, attribute "
+        logger.debug("Sharing conflict on item %(item)s, attribute "
             "%(attribute)s: %(local)s vs %(remote)s" % {
                 'item' : item,
                 'attribute' : attribute,
                 'local' : str(value),
                 'remote' : str(item.getAttributeValue(attribute)),
             })
+
+        # @@@MOR Probably not a good idea to create new items inside the
+        # conflict resolution callback.
+
+        """ Commenting out for now
+        SharingConflictNotification(itsView=item.itsView,
+            displayName="Conflict for attribute %s" % attribute,
+            attribute=attribute,
+            local=str(getattr(item, attribute, None)),
+            remote=str(value),
+            items=[item])
+        """
+
+        if updateCallback:
+            updateCallback(
+                msg=_(u"Conflict for item '%(name)s' "
+                "attribute: %(attribute)s '%(local)s' vs '%(remote)s'") %
+                (
+                    {
+                       'name' : item.getItemDisplayName(),
+                       'attribute' : attribute,
+                       'local' : getattr(item, attribute),
+                       'remote' : value
+                    }
+                )
+            )
 
         LOCAL_CHANGES_WIN = False
         if LOCAL_CHANGES_WIN:
