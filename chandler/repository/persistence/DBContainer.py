@@ -1555,6 +1555,7 @@ class ValueContainer(DBContainer):
         self.delete(uuid._uuid, txn)
         return 1
 
+
 class HashTuple(tuple):
 
     def __contains__(self, name):

@@ -29,6 +29,10 @@ class Movie(Item):
 
         print op, self, name, other, args
 
+    def itemChanged(self, op, item, name):
+
+        print self, 'itemChanged', op, item, name
+
 
 class Cartoon(Movie):
     pass

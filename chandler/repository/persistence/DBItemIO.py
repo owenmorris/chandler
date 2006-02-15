@@ -706,7 +706,10 @@ class DBItemReader(ItemReader, DBValueReader):
         withSchema = (status & Item.CORESCHEMA) != 0
         isContainer = (status & Item.CONTAINER) != 0
 
-        status &= Item.CORESCHEMA
+        status &= (Item.CORESCHEMA | Item.P_WATCHED)
+        watcherDispatch = view._watcherDispatch
+        if watcherDispatch and self.uItem in watcherDispatch:
+            status |= Item.T_WATCHED
 
         kind = self._kind(self.uKind, withSchema, view, afterLoadHooks)
         parent = self._parent(self.uParent, withSchema, view, afterLoadHooks)

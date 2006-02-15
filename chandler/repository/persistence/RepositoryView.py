@@ -38,8 +38,9 @@ class RepositoryView(CView):
     # 0.5.9: removed repository.query.Query and Query kind
     # 0.5.10: added Importable type
     # 0.5.11: removed inheritedAttributes transient cache
+    # 0.6.1: watcherDispatch layout changed
     
-    CORE_SCHEMA_VERSION = 0x00050b00
+    CORE_SCHEMA_VERSION = 0x00060100
 
     def __init__(self, repository, name, version):
         """
@@ -933,33 +934,51 @@ class RepositoryView(CView):
 
     def _dispatchChanges(self, history, refreshes, oldVersion, newVersion):
 
-        refs = self.store._refs
-        for uItem, version, uKind, status, uParent, pKind, dirties in history:
+        raise NotImplementedError, "%s._dispatchChanges" %(type(self))
 
-            if pKind is not None:
-                kind = self.find(pKind)
-                if kind is not None:
-                    kind.extent._collectionChanged('refresh', 'collection',
-                                                   'extent', uItem)
+    def _registerWatch(self, watcher, item, attribute, watch, name):
 
-            item = self.find(uItem)
-            if item is not None:
+        dispatch = self._watcherDispatch
+        watcher = (watcher.itsUUID, watch, name)
+        uItem = item.itsUUID
 
-                kind = item.itsKind
-                if kind is not None:
-                    kind.extent._collectionChanged('refresh', 'collection',
-                                                   'extent', item)
+        if dispatch is None:
+            self._watcherDispatch = { uItem: { attribute: set([watcher]) } }
+        else:
+            watchers = dispatch.get(uItem, None)
+            if watchers is None:
+                dispatch[uItem] = { attribute: set([watcher]) }
+            else:
+                watchers = watchers.get(attribute)
+                if watchers is None:
+                    dispatch[uItem][attribute] = set([watcher])
+                else:
+                    watchers.add(watcher)
 
-                dispatch = getattr(item, 'watcherDispatch', None)
-                if dispatch:
-                    isNew = (status & CItem.NEW) != 0
-                    for attribute, watchers in dispatch.iteritems():
-                        if watchers and (isNew or attribute in dirties):
-                            value = getattr(item, attribute, None)
-                            if isinstance(value, RefList) and len(value) > 0:
-                                for uRef in refs.iterHistory(self, value.uuid, oldVersion, newVersion, True):
-                                    if uRef in refreshes:
-                                        item._collectionChanged('refresh', 'collection', attribute, uRef)
+        if watch == 'item':
+            item._status |= CItem.T_WATCHED
+
+    def _unregisterWatch(self, watcher, item, attribute, watch, name):
+
+        dispatch = self._watcherDispatch
+        if dispatch:
+            watcher = (watcher.itsUUID, watch, name)
+            uItem = item.itsUUID
+            watchers = dispatch.get(uItem, None)
+            if watchers:
+                watchers = watchers.get(attribute)
+                if watchers:
+                    watchers.remove(watcher)
+
+                    if watch == 'item' and not watchers:
+                        item._status &= ~CItem.T_WATCHED
+
+    def watchItem(self, watcher, item, methodName):
+        self._registerWatch(watcher, item, None, 'item', methodName)
+
+    def unwatchItem(self, watcher, item, methodName):
+        self._unregisterWatch(watcher, item, None, 'item', methodName)
+
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     itsPath = property(_getPath)

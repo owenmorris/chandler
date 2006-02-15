@@ -7,10 +7,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from datetime import timedelta
 from time import time
 
+from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import DBLockDeadlockError
 
-from repository.item.Item import Item
-from repository.item.RefCollections import TransientRefList
+from repository.item.RefCollections import RefList, TransientRefList
 from repository.persistence.RepositoryError \
      import RepositoryError, MergeError, VersionConflictError
 from repository.persistence.RepositoryView \
@@ -194,6 +194,36 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return self._indexWriter
 
+    def _dispatchChanges(self, history, refreshes, oldVersion, newVersion):
+
+        refs = self.store._refs
+        for uItem, version, uKind, status, uParent, pKind, dirties in history:
+
+            if not (pKind is None or pKind == DBItemWriter.NOITEM):
+                kind = self.find(pKind)
+                if kind is not None:
+                    kind.extent._collectionChanged('refresh', 'collection',
+                                                   'extent', uItem)
+
+            item = self.find(uItem)
+            if item is not None:
+
+                kind = item.itsKind
+                if kind is not None:
+                    kind.extent._collectionChanged('refresh', 'collection',
+                                                   'extent', item)
+
+                dispatch = getattr(item, 'watcherDispatch', None)
+                if dispatch:
+                    isNew = (status & CItem.NEW) != 0
+                    for attribute, watchers in dispatch.iteritems():
+                        if watchers and (isNew or attribute in dirties):
+                            value = getattr(item, attribute, None)
+                            if isinstance(value, RefList) and len(value) > 0:
+                                for uRef in refs.iterHistory(self, value.uuid, oldVersion, newVersion, True):
+                                    if uRef in refreshes:
+                                        item._collectionChanged('refresh', 'collection', attribute, uRef)
+    
     def refresh(self, mergeFn=None, version=None):
 
         store = self.store
@@ -337,7 +367,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     for item in self._log:
                         item._version = newVersion
                         item.setDirty(0, None)
-                        item._status &= ~(Item.NEW | Item.MERGED)
+                        item._status &= ~(CItem.NEW | CItem.MERGED)
                     self._log.clear()
 
                     if self.isDirty():
@@ -385,9 +415,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         for item in list(self._log):   # self._log may change while looping
             status = item._status
-            if not freshOnly or freshOnly and status & Item.FDIRTY:
+            if not freshOnly or freshOnly and status & CItem.FDIRTY:
                 if freshOnly:
-                    status &= ~Item.FDIRTY
+                    status &= ~CItem.FDIRTY
                     item._status = status
 
                 if item.isDeleted():
@@ -413,7 +443,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         for uItem, version, uKind, status, uParent, pKind, dirties in history:
             kind = self.find(uKind)
-            if pKind is not None:
+            if not (pKind is None or pKind == DBItemWriter.NOITEM):
                 prevKind = self.find(pKind)
             else:
                 prevKind = None
@@ -442,7 +472,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             item = self.find(uItem, False)
             if item is not None:
                 if item.isDirty():
-                    oldDirty = status & Item.DIRTY
+                    oldDirty = status & CItem.DIRTY
                     if uItem in merges:
                         od, x, d = merges[uItem]
                         merges[uItem] = (od | oldDirty, uParent,
@@ -461,35 +491,35 @@ class DBRepositoryView(OnDemandRepositoryView):
                 item = self.find(uItem, False)
                 newDirty = item.getDirty()
 
-                if newDirty & oldDirty & Item.NDIRTY:
-                    item._status |= Item.NMERGED
+                if newDirty & oldDirty & CItem.NDIRTY:
+                    item._status |= CItem.NMERGED
                     self._mergeNDIRTY(item, uParent, oldVersion, toVersion)
-                    oldDirty &= ~Item.NDIRTY
+                    oldDirty &= ~CItem.NDIRTY
 
-                if newDirty & oldDirty & Item.CDIRTY:
-                    item._status |= Item.CMERGED
+                if newDirty & oldDirty & CItem.CDIRTY:
+                    item._status |= CItem.CMERGED
                     item._children._mergeChanges(oldVersion, toVersion)
-                    oldDirty &= ~Item.CDIRTY
+                    oldDirty &= ~CItem.CDIRTY
 
-                if newDirty & oldDirty & Item.RDIRTY:
-                    item._status |= Item.RMERGED
+                if newDirty & oldDirty & CItem.RDIRTY:
+                    item._status |= CItem.RMERGED
                     self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
-                    oldDirty &= ~Item.RDIRTY
+                    oldDirty &= ~CItem.RDIRTY
 
-                if newDirty & oldDirty & Item.VDIRTY:
-                    item._status |= Item.VMERGED
+                if newDirty & oldDirty & CItem.VDIRTY:
+                    item._status |= CItem.VMERGED
                     self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
-                    oldDirty &= ~Item.VDIRTY
+                    oldDirty &= ~CItem.VDIRTY
 
                 if newDirty & oldDirty == 0:
-                    if oldDirty & Item.VDIRTY:
-                        item._status |= Item.VMERGED
+                    if oldDirty & CItem.VDIRTY:
+                        item._status |= CItem.VMERGED
                         self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
-                        oldDirty &= ~Item.VDIRTY
-                    if oldDirty & Item.RDIRTY:
-                        item._status |= Item.RMERGED
+                        oldDirty &= ~CItem.VDIRTY
+                    if oldDirty & CItem.RDIRTY:
+                        item._status |= CItem.RMERGED
                         self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
-                        oldDirty &= ~Item.RDIRTY
+                        oldDirty &= ~CItem.RDIRTY
 
                 if newDirty and oldDirty:
                     raise VersionConflictError, (item, newDirty, oldDirty)
@@ -497,14 +527,14 @@ class DBRepositoryView(OnDemandRepositoryView):
         except VersionConflictError:
             for uuid in merges.iterkeys():
                 item = self.find(uuid, False)
-                if item._status & Item.MERGED:
+                if item._status & CItem.MERGED:
                     item._revertMerge()
             raise
 
         else:
             for uuid in merges.iterkeys():
                 item = self.find(uuid, False)
-                if item._status & Item.MERGED:
+                if item._status & CItem.MERGED:
                     item._commitMerge(toVersion)
                     self._i_merged(item)
 
@@ -543,7 +573,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _i_merged(self, item):
 
-        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item.itsPath, (item._status & Item.MERGED))
+        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item.itsPath, (item._status & CItem.MERGED))
 
     def _e_1_rename(self, item, parentId, newParentId):
 

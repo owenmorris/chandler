@@ -308,40 +308,54 @@ class Item(CItem):
         if not (item.isDeleting() or self._isNoDirty()):
             getattr(self, name).itemChanged(item, attribute)
 
-    def _registerCollectionWatch(self, watcher, name, *args):
+    def _registerWatch(self, watcher, attribute, watch, name):
 
         dispatch = self._values.get('watcherDispatch', None)
-        watcher = (watcher, tuple(args))
+        watcher = (watcher, watch, name)
 
         if dispatch is None:
-            self.watcherDispatch = { name: set([watcher]) }
+            self.watcherDispatch = { attribute: set([watcher]) }
         else:
-            watchers = dispatch.get(name, None)
+            watchers = dispatch.get(attribute, None)
             if watchers is None:
-                dispatch[name] = set([watcher])
+                dispatch[attribute] = set([watcher])
             else:
                 watchers.add(watcher)
 
-    def _unregisterCollectionWatch(self, watcher, name, *args):
+        if watch == 'item':
+            self._status |= Item.P_WATCHED
+
+    def _unregisterWatch(self, watcher, attribute, watch, name):
 
         dispatch = self._values.get('watcherDispatch', None)
         if dispatch:
-            watcher = (watcher, tuple(args))
-            watchers = dispatch.get(name, None)
+            watcher = (watcher, watch, name)
+            watchers = dispatch.get(attribute, None)
             if watchers:
                 watchers.remove(watcher)
 
-    def watchCollection(self, owner, name, *args):
-        owner._registerCollectionWatch(self, name, *args)
+                if watch == 'item' and not watchers:
+                    self._status &= ~Item.P_WATCHED
 
-    def unwatchCollection(self, owner, name, *args):
-        owner._unregisterCollectionWatch(self, name, *args)
+    def watchCollection(self, owner, attribute,
+                        _watch='collection', _name=None):
+        owner._registerWatch(self, attribute, _watch, _name)
+
+    def unwatchCollection(self, owner, attribute,
+                          _watch='collection', _name=None):
+        owner._unregisterWatch(self, attribute, _watch, _name)
 
     def watchKind(self, kind, methodName):
-        kind.extent._registerCollectionWatch(self, 'extent', 'kind', methodName)
+        kind.extent._registerWatch(self, 'extent', 'kind', methodName)
 
     def unwatchKind(self, kind, methodName):
-        kind.extent._unregisterCollectionWatch(self, 'extent', 'kind', methodName)
+        kind.extent._unregisterWatch(self, 'extent', 'kind', methodName)
+
+    def watchItem(self, item, methodName):
+        item._registerWatch(self, None, 'item', methodName)
+
+    def unwatchItem(self, item, methodName):
+        item._unregisterWatch(self, None, 'item', methodName)
 
     def getAttributeValue(self, name, _attrDict=None, _attrID=None,
                           default=Default):
