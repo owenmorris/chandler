@@ -78,21 +78,42 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
-        conduit = sharing.InMemoryConduit("conduit", itsView=view0,
-            shareName="exportedCollection")
-        format = sharing.CloudXMLFormat("format", itsView=view0)
-        self.share0 = sharing.Share("share", itsView=view0,
-            contents=coll0, conduit=conduit, format=format)
+
+        self.share0 = sharing.Share(itsView=view0,
+            contents=coll0,
+            conduit=sharing.InMemoryConduit(itsView=view0,
+                                            shareName="viewmerging"),
+            format=sharing.CalDAVFormat(itsView=view0)
+        )
+
+        subShare = sharing.Share(itsView=view0,
+            contents=coll0,
+            conduit=sharing.InMemoryConduit(itsView=view0,
+                                            shareName="viewmerging/.chandler"),
+            format=sharing.CloudXMLFormat(itsView=view0)
+        )
+        subShare.follows = self.share0
 
         if self.share0.exists():
             self.share0.destroy()
+        self.share0.create()
+        subShare.create()
 
         view1 = self.views[1]
-        conduit = sharing.InMemoryConduit("conduit", itsView=view1,
-            shareName="exportedCollection")
-        format = sharing.CloudXMLFormat("format", itsView=view1)
-        self.share1 = sharing.Share("share", itsView=view1,
-            conduit=conduit, format=format)
+
+        self.share1 = sharing.Share(itsView=view1,
+            conduit=sharing.InMemoryConduit(itsView=view1,
+                                            shareName="viewmerging"),
+            format=sharing.CalDAVFormat(itsView=view1)
+        )
+
+        subShare = sharing.Share(itsView=view1,
+            conduit=sharing.InMemoryConduit(itsView=view1,
+                                            shareName="viewmerging/.chandler"),
+            format=sharing.CloudXMLFormat(itsView=view1)
+        )
+        subShare.follows = self.share1
+
 
     def RoundTrip(self):
 
@@ -100,7 +121,6 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
-        self.share0.create()
         self.share0.sync()
 
         # Import
@@ -146,6 +166,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
                 uuid = item.itsUUID
                 break
 
+        # Make non-overlapping changes to the item
         item0 = view0.findUUID(uuid)
         item0.displayName = u"meeting rescheduled"
         oldStart = item0.startTime
@@ -169,6 +190,24 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.startTime, newStart,
          u"startTime is %s" % (item1.startTime))
 
+
+        # Make overlapping changes to the item
+        newStart0 = datetime.datetime(2006, 1, 1, 12, 0, 0, 0, tzinfo)
+        item0.startTime = newStart0
+        newStart1 = datetime.datetime(2006, 1, 2, 12, 0, 0, 0, tzinfo)
+        item1.startTime = newStart1
+
+        sharing.sync(coll0)
+        sharing.sync(coll1)
+        sharing.sync(coll0)
+
+        # Since we sync'd coll0 first, its change wins out over coll1
+        self.assertEqual(item0.startTime, newStart0,
+         u"startTime is %s" % (item0.startTime))
+        self.assertEqual(item1.startTime, newStart0,
+         u"startTime is %s" % (item1.startTime))
+
+
     def Remove(self):
 
         view0 = self.views[0]
@@ -189,7 +228,6 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         coll0.remove(item0)
 
         sharing.sync(coll0)
-        time.sleep(1)
 
         self.assert_(item1 in coll1)
         sharing.sync(coll1)
