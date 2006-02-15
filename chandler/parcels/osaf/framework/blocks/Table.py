@@ -199,39 +199,20 @@ class wxTable(DragAndDrop.DraggableWidget,
             # changes to the selection
             blockItem.stopNotificationDirt()
             try:
-                # Extact the ranges from the grid using the top left
-                # block of the selection and thr bottom right block of
-                # the selection. Then assign the selected ranges to
-                # the content's selection
+                # map row ranges to index ranges 
                 contents = self.blockItem.contents
                 contents.setSelectionRanges ([])
-                topLeftList = self.GetSelectionBlockTopLeft()
-                bottomRightList = self.GetSelectionBlockBottomRight()
-                for ((topLeftRow, topLeftColumn),
-                     (bottomRightRow, bottomRightColumn)) in zip(topLeftList,
-                                                                 bottomRightList):
-                    indexStart = self.RowToIndex(topLeftRow)
-                    indexEnd = self.RowToIndex(bottomRightRow)
+                firstItemIndex = -1
+                for indexStart, indexEnd in self.SelectedIndexRanges():
 
-                    # this is the ugly case where the user "selects" a
-                    # section. It would be nice to avoid this case
-                    # alltogether by making table sections
-                    # un-selectable.
-                    if -1 not in (indexStart, indexEnd):
-                        contents.addSelectionRange ((indexStart, indexEnd))
-               
-                topLeftList.sort()
+                    # We'll need the first selected index later..
+                    if firstItemIndex == -1 or firstItemIndex > indexStart:
+                        firstItemIndex = indexStart
+                        
+                    contents.addSelectionRange ((indexStart, indexEnd))
                 item = None
-                try:
-                    (row, column) = topLeftList [0]
-                except IndexError:
-                    pass
-                else:
-                    itemIndex = self.RowToIndex(row)
-                    if itemIndex != -1:
-                        item = blockItem.contents [itemIndex]
-                    else:
-                        blockItem.PostSelectItems([])
+                if firstItemIndex != -1:
+                    item = blockItem.contents[firstItemIndex]
     
                 if item is not blockItem.selectedItemToView:
                     blockItem.selectedItemToView = item
@@ -448,6 +429,37 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.blockItem.postEventByName("SelectItemsBroadcast",
                                        {'items':[item]})
 
+    def SelectedIndexRanges(self):
+        """
+        Uses RowRangeToIndexRange to convert the selected rows to
+        selected indexes
+        """
+        # filter out columns from grid selection
+        topLeftList = self.GetSelectionBlockTopLeft()
+        bottomRightList = self.GetSelectionBlockBottomRight()
+        selectedRows = ((row1, row2) for ((row1, col1), (row2, col2)) in
+                zip(topLeftList, bottomRightList))
+        
+        return self.RowRangeToIndexRange(selectedRows)
+
+    def RowRangeToIndexRange(self, rowRanges):
+        """
+        Given a list of row ranges, [(a,b), (c,d), ...], generate
+        corresponding index ranges [(w,x), (y, z),..]
+        """
+        
+        for (topRow, bottomRow) in rowRanges:
+            indexStart = self.RowToIndex(topRow)
+            indexEnd = self.RowToIndex(bottomRow)
+
+            # this is the ugly case where the user "selects" a
+            # section. It would be nice to avoid this case
+            # alltogether by making table sections
+            # un-selectable.
+            if -1 not in (indexStart, indexEnd):
+                yield (indexStart, indexEnd)
+        
+
     def DeleteSelection (self, DeleteItemCallback=None, *args, **kwargs):
         def DefaultCallback(item, collection=self.blockItem.contents):
             collection.remove(item)
@@ -463,14 +475,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         """
         self.ClearSelection()
         
-        # build up a list of selection ranges [[tl1, br1], [tl2, br2]]
         selectionRanges = []
-        for topLeftRow,topLeftColumn in topLeftList:
-            for bottomRightRow,bottomRightColumn in bottomRightList:
-                indexStart = self.RowToIndex(topLeftRow)
-                indexEnd = self.RowToIndex(bottomRightRow)
-                if -1 not in (indexStart, indexEnd):
-                    selectionRanges.append ([indexStart, indexEnd])
+        # build up a list of selection ranges [[tl1, br1], [tl2, br2]]
+        for indexStart, indexEnd in self.SelectedIndexRanges():
+            selectionRanges.append ([indexStart, indexEnd])
         selectionRanges.sort(reverse=True)
 
         # now delete rows - since we reverse sorted, the
