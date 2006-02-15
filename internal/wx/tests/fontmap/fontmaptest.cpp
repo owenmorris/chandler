@@ -3,7 +3,7 @@
 // Purpose:     wxFontMapper unit test
 // Author:      Vadim Zeitlin
 // Created:     14.02.04
-// RCS-ID:      $Id: fontmaptest.cpp,v 1.4 2005/08/08 22:05:05 MW Exp $
+// RCS-ID:      $Id: fontmaptest.cpp,v 1.5 2006/02/15 12:58:50 MW Exp $
 // Copyright:   (c) 2003 TT-Solutions
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +110,7 @@ void FontMapperTestCase::NamesAndDesc()
     for ( size_t n = 0; n < WXSIZEOF(charsets); n++ )
     {
         wxFontEncoding enc = wxFontMapperBase::Get()->CharsetToEncoding(charsets[n]);
-        CPPUNIT_ASSERT( wxFontMapperBase::Get()->GetEncodingName(enc) == names[n] );
+        CPPUNIT_ASSERT( wxFontMapperBase::Get()->GetEncodingName(enc).CmpNoCase(names[n]) == 0 );
         CPPUNIT_ASSERT( wxFontMapperBase::Get()->GetEncodingDescription(enc) == descriptions[n] );
     }
 }

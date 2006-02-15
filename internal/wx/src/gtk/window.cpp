@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.570 2006/02/09 03:53:16 VZ Exp $
+// Id:          $Id: window.cpp,v 1.574 2006/02/15 15:49:09 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1835,9 +1835,9 @@ static bool DoSendFocusEvents(wxWindow *win)
 }
 
 extern "C" {
-static gint gtk_window_focus_in_callback( GtkWidget *widget,
-                                          GdkEvent *WXUNUSED(event),
-                                          wxWindow *win )
+static gboolean gtk_window_focus_in_callback( GtkWidget *widget,
+                                              GdkEvent *WXUNUSED(event),
+                                              wxWindow *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1867,20 +1867,25 @@ static gint gtk_window_focus_in_callback( GtkWidget *widget,
     }
 #endif // wxUSE_CARET
 
+    gboolean ret = FALSE;
+
     // does the window itself think that it has the focus?
     if ( !win->m_hasFocus )
     {
         // not yet, notify it
         win->m_hasFocus = true;
 
-        if ( DoSendFocusEvents(win) )
-        {
-           g_signal_stop_emission_by_name (widget, "focus_in_event");
-           return TRUE;
-        }
+        (void)DoSendFocusEvents(win);
+        
+        ret = TRUE;
     }
 
-    return FALSE;
+    // Disable default focus handling for custom windows
+    // since the default GTK+ handler issues a repaint
+    if (win->m_wxwindow)
+        g_signal_stop_emission_by_name (widget, "focus_in_event");
+        
+    return ret;
 }
 }
 
@@ -1889,7 +1894,9 @@ static gint gtk_window_focus_in_callback( GtkWidget *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_focus_out_callback( GtkWidget *widget, GdkEventFocus *gdk_event, wxWindowGTK *win )
+static gboolean gtk_window_focus_out_callback( GtkWidget *widget,
+                                               GdkEventFocus *gdk_event,
+                                               wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1923,6 +1930,8 @@ static gint gtk_window_focus_out_callback( GtkWidget *widget, GdkEventFocus *gdk
     }
 #endif // wxUSE_CARET
 
+    gboolean ret = FALSE;
+
     // don't send the window a kill focus event if it thinks that it doesn't
     // have focus already
     if ( win->m_hasFocus )
@@ -1932,14 +1941,17 @@ static gint gtk_window_focus_out_callback( GtkWidget *widget, GdkEventFocus *gdk
         wxFocusEvent event( wxEVT_KILL_FOCUS, win->GetId() );
         event.SetEventObject( win );
 
-        // even if we did process the event in wx code, still let GTK itself
-        // process it too as otherwise bad things happen, especially in GTK2
-        // where the text control simply aborts the program if it doesn't get
-        // the matching focus out event
         (void)win->GetEventHandler()->ProcessEvent( event );
+        
+        ret = TRUE;
     }
-
-    return FALSE;
+    
+    // Disable default focus handling for custom windows
+    // since the default GTK+ handler issues a repaint
+    if (win->m_wxwindow)
+        g_signal_stop_emission_by_name (widget, "focus_out_event");
+           
+    return ret;
 }
 }
 
@@ -1948,10 +1960,10 @@ static gint gtk_window_focus_out_callback( GtkWidget *widget, GdkEventFocus *gdk
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static
-gint gtk_window_enter_callback( GtkWidget *widget,
-                                GdkEventCrossing *gdk_event,
-                                wxWindowGTK *win )
+static gboolean
+gtk_window_enter_callback( GtkWidget *widget,
+                           GdkEventCrossing *gdk_event,
+                           wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1993,7 +2005,10 @@ gint gtk_window_enter_callback( GtkWidget *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_leave_callback( GtkWidget *widget, GdkEventCrossing *gdk_event, wxWindowGTK *win )
+static gboolean
+gtk_window_leave_callback( GtkWidget *widget,
+                           GdkEventCrossing *gdk_event,
+                           wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -2709,7 +2724,7 @@ void wxWindowGTK::PostCreation()
             g_signal_connect (m_wxwindow, "expose_event",
                               G_CALLBACK (gtk_window_expose_callback), this);
 
-            // gtk_widget_set_redraw_on_allocate( GTK_WIDGET(m_wxwindow), !HasFlag( wxFULL_REPAINT_ON_RESIZE ) );
+            gtk_widget_set_redraw_on_allocate( GTK_WIDGET(m_wxwindow), HasFlag( wxFULL_REPAINT_ON_RESIZE ) );
         }
 
         // Create input method handler

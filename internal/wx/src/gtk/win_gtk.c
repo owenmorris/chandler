@@ -4,7 +4,7 @@
 //              GtkFixed. It makes use of the gravity window property and
 //              therefore does not work with GTK 1.0.
 // Author:      Robert Roebling
-// Id:          $Id: win_gtk.c,v 1.75 2006/02/12 23:21:55 VZ Exp $
+// Id:          $Id: win_gtk.c,v 1.76 2006/02/15 14:26:53 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////// */
@@ -394,13 +394,15 @@ gtk_pizza_set_size (GtkPizza   *pizza,
     g_return_if_fail (GTK_IS_PIZZA (pizza));
     g_return_if_fail (widget != NULL);
 
+#ifndef WX_WARN_ILLEGAL_SETSIZE
     /* this really shouldn't happen -- but it does, a lot, right now and we
-       can't pass negative values to gtk_widget_set_size_request(), so filter
-       them out here */
+       can't pass negative values to gtk_widget_set_size_request() without getting
+       a warning printed out, so filter them out here */
     if ( width < 0 )
         width = 0;
     if ( height < 0 )
         height = 0;
+#endif
 
     children = pizza->children;
     while (children)

@@ -3,7 +3,7 @@
 // Purpose:     wxLongLong unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-01
-// RCS-ID:      $Id: longlongtest.cpp,v 1.6 2006/02/11 16:51:32 VZ Exp $
+// RCS-ID:      $Id: longlongtest.cpp,v 1.7 2006/02/15 12:59:37 MW Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -305,7 +305,7 @@ void LongLongTestCase::ToString()
     a.Negate();
     CPPUNIT_ASSERT( a.ToString() == _T("-1311768467139281697") );
 
-    wxLongLong llMin(LONG_MIN, 0);
+    wxLongLong llMin(-2147483647L - 1L, 0);
     CPPUNIT_ASSERT( llMin.ToString() == _T("-9223372036854775808") );
 
 #if wxUSE_LONGLONG_WX

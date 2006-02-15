@@ -2,7 +2,7 @@
 // Name:        src/gtk/toplevel.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.cpp,v 1.97 2006/02/05 00:23:32 MR Exp $
+// Id:          $Id: toplevel.cpp,v 1.99 2006/02/15 13:26:28 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -173,7 +173,7 @@ static gint gtk_frame_focus_in_callback( GtkWidget *widget,
     event.SetEventObject(g_activeFrame);
     g_activeFrame->GetEventHandler()->ProcessEvent(event);
 
-    return FALSE;
+    return false;
 }
 }
 
@@ -208,7 +208,7 @@ static gint gtk_frame_focus_out_callback( GtkWidget *widget,
         g_activeFrame = NULL;
     }
 
-    return FALSE;
+    return false;
 }
 }
 
