@@ -77,23 +77,6 @@ def MonthDelta(dt, months):
     return date(newYear, newMonth, day)
     
 
-class PyMiniCalendarEvent(wx.CommandEvent):
-    """
-    Not sure if these are even used?
-    """
-
-    def GetDate(self):
-        return self.selected
-
-    def SetDate(self, date):
-        self.selected = date
-
-    def SetWeekDay(self, wd):
-        self.wday = wd
-
-    def GetWeekDay(self):
-        return self.wday
-
 EVT_MINI_CALENDAR_SEL_CHANGED   = wx.PyEventBinder(wx.NewEventType(), 1)
 EVT_MINI_CALENDAR_DAY_CHANGED   = wx.PyEventBinder(wx.NewEventType(), 1)
 EVT_MINI_CALENDAR_MONTH_CHANGED = wx.PyEventBinder(wx.NewEventType(), 1)
@@ -903,6 +886,6 @@ class PyMiniCalendar(wx.PyControl):
         generate the given calendar event(s)
         """
         for evt in events:
-            event = PyMiniCalendarEvent(evt.evtType[0])
+            event = wx.PyCommandEvent(evt.evtType[0])
             self.GetEventHandler().ProcessEvent(event)
 
