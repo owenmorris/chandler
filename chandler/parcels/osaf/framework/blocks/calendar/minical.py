@@ -99,8 +99,8 @@ class PyMiniCalendar(wx.PyControl):
     def Init(self):
 
         # date
-        self.selected = None
-        self.visible = None
+        self.selectedDate = None
+        self.firstVisibleDate = None
 
         self.lowerDateLimit = None
         self.upperDateLimit = None
@@ -144,10 +144,10 @@ class PyMiniCalendar(wx.PyControl):
         self.SetWindowStyle(style)
 
         if targetDate is not None:
-            self.selected = targetDate
+            self.selectedDate = targetDate
         else:
-            self.selected = date.today()
-        self.visible = self.selected
+            self.selectedDate = date.today()
+        self.firstVisibleDate = self.selectedDate
 
         self.lowerDateLimit = self.upperDateLimit = None
 
@@ -159,7 +159,7 @@ class PyMiniCalendar(wx.PyControl):
 
         # Since we don't paint the whole background make sure that the
         # platform will use the right one.
-        self.SetBackgroundColour(self.GetBackgroundColour())
+        self.SetBackgroundColour(wx.WHITE)
 
         self.RecalcGeometry()
 
@@ -171,8 +171,8 @@ class PyMiniCalendar(wx.PyControl):
 
     def SetDate(self, date):
 
-        sameMonth = (self.selected.month == date.month and
-                     self.selected.year == date.year)
+        sameMonth = (self.selectedDate.month == date.month and
+                     self.selectedDate.year == date.year)
 
         if self.IsDateInRange(date):
 
@@ -180,13 +180,13 @@ class PyMiniCalendar(wx.PyControl):
                 self.ChangeDay(date)
 
             else:
-                self.visible = self.selected = date
+                self.firstVisibleDate = self.selectedDate = date
                 self.GenerateEvents(EVT_MINI_CALENDAR_UPDATE_BUSY)
 
                 self.Refresh()
                      
     def GetDate(self):
-        return self.selected
+        return self.selectedDate
         
     # set/get the range in which selection can occur
     # ---------------------------------------------
@@ -202,9 +202,6 @@ class PyMiniCalendar(wx.PyControl):
 
         return False
     
-    def GetLowerDateLimit(self):
-        return self.lowerDateLimit
-
     def SetUpperDateLimit(self, highdate):
 
         # XXX WTF is this crazy algebra
@@ -215,9 +212,6 @@ class PyMiniCalendar(wx.PyControl):
 
         return False
         
-    def GetUpperDateLimit(self):
-        return self.upperDateLimit
-
     def SetDateRange(self, lowerdate=None, upperdate=None):
 
         # XXX WTF is this crazy algebra
@@ -230,37 +224,6 @@ class PyMiniCalendar(wx.PyControl):
             return True
 
         return False
-
-    # calendar mode
-    # -------------
-
-    # some calendar styles can't be changed after the control creation by
-    # just using SetWindowStyle() and Refresh() and the functions below
-    # should be used instead for them
-
-    # customization
-    # -------------
-
-    # header colours are used for painting the weekdays at the top
-    
-    def SetHeaderColours(self, colFg, colBg):
-        self.colHeaderFg = colFg
-        self.colHeaderBg = colBg
-
-    def GetHeaderColourFg(self):
-        return self.colHeaderFg
-    def GetHeaderColourBg(self):
-        return self.colHeaderBg
-
-    # highlight colour is used for the currently selected date
-    def SetHighlightColours(self, colFg, colBg):
-        self.colHighlightFg = colFg
-        self.colHighlightBg = colBg
-
-    def GetHighlightColourFg(self):
-        return self.colHighlightFg
-    def GetHighlightColourBg(self):
-        return self.colHighlightBg
 
     def SetBusy(self, busyDate, busy):
         self.busyPercent[busyDate] = busy
@@ -280,18 +243,18 @@ class PyMiniCalendar(wx.PyControl):
         y = pos.y
 
         if self.leftArrowRect.Inside(pos):
-            lastMonth = MonthDelta(self.visible, -1)
+            lastMonth = MonthDelta(self.firstVisibleDate, -1)
             if self.IsDateInRange(lastMonth):
                 return (CAL_HITTEST_DECMONTH, lastMonth)
             else:
-                return (CAL_HITTEST_DECMONTH, self.GetLowerDateLimit())
+                return (CAL_HITTEST_DECMONTH, self.lowerDateLimit)
 
         if self.rightArrowRect.Inside(pos):
-            nextMonth = MonthDelta(self.visible, 1)
+            nextMonth = MonthDelta(self.firstVisibleDate, 1)
             if self.IsDateInRange(nextMonth):
                 return (CAL_HITTEST_INCMONTH, nextMonth)
             else:
-                return (CAL_HITTEST_INCMONTH, self.GetUpperDateLimit())
+                return (CAL_HITTEST_INCMONTH, self.upperDateLimit)
 
         if self.todayRect.Inside(pos):
             return (CAL_HITTEST_TODAY, date.today())
@@ -330,12 +293,12 @@ class PyMiniCalendar(wx.PyControl):
         if wday >= DAYS_PER_WEEK or not found:
             return (CAL_HITTEST_NOWHERE, None)
 
-        clickDate = date(self.visible.year, self.visible.month, 1)
+        clickDate = date(self.firstVisibleDate.year, self.firstVisibleDate.month, 1)
         clickDate = MonthDelta(clickDate, month)
         clickDate = PreviousWeekday(clickDate, self.firstDayOfWeek)
 
         clickDate += timedelta(days=DAYS_PER_WEEK * week + wday)
-        targetMonth = self.visible.month + month
+        targetMonth = self.firstVisibleDate.month + month
         if targetMonth > 12:
             targetMonth -= 12
 
@@ -344,7 +307,7 @@ class PyMiniCalendar(wx.PyControl):
 
         if self.IsDateShown(clickDate):
 
-            if clickDate.month == self.visible.month:
+            if clickDate.month == self.firstVisibleDate.month:
                 return (CAL_HITTEST_DAY, clickDate)
             else:
                 return (CAL_HITTEST_SURROUNDING_WEEK, clickDate)
@@ -357,7 +320,7 @@ class PyMiniCalendar(wx.PyControl):
     def GetStartDate(self):
         
         # roll back to the beginning of the month
-        startDate = date(self.visible.year, self.visible.month, 1)
+        startDate = date(self.firstVisibleDate.year, self.firstVisibleDate.month, 1)
 
         # now to back to the beginning of the week
         return PreviousWeekday(startDate, self.firstDayOfWeek)
@@ -449,7 +412,7 @@ class PyMiniCalendar(wx.PyControl):
 
         y += self.todayHeight
 
-        dateToDraw = self.visible
+        dateToDraw = self.firstVisibleDate
         for i in xrange(MONTHS_TO_DISPLAY):
             y = self.DrawMonth(dc, dateToDraw, y, True)
             dateToDraw = MonthDelta(dateToDraw, 1)
@@ -663,10 +626,10 @@ class PyMiniCalendar(wx.PyControl):
                                          CAL_HIGHLIGHT_WEEK) != 0
                         if ((highlightWeek and
                              (self.GetWeek(weekDate, False) ==
-                              self.GetWeek(self.selected, False))) or
+                              self.GetWeek(self.selectedDate, False))) or
                             
                             (not highlightWeek and
-                             (weekDate == self.selected))):
+                             (weekDate == self.selectedDate))):
 
                             startX = weekDay * self.widthCol
                             if weekDay == 0:
@@ -739,7 +702,7 @@ class PyMiniCalendar(wx.PyControl):
                 weekDate += timedelta(days=1)
 
             # draw lines between each set of weeks
-            if  nWeek <= WEEKS_TO_DISPLAY and nWeek != 1:
+            if nWeek <= WEEKS_TO_DISPLAY and nWeek != 1:
                 pen = wx.Pen(lineColour, 2, wx.SOLID)
                 pen.SetCap(wx.CAP_BUTT)
                 dc.SetPen(pen)
@@ -759,8 +722,8 @@ class PyMiniCalendar(wx.PyControl):
 
     def SetVisibleDate(self, date, setVisible):
 
-        sameMonth = (self.visible.month == date.month)
-        sameYear  = (self.visible.year == date.year)
+        sameMonth = (self.firstVisibleDate.month == date.month)
+        sameYear  = (self.firstVisibleDate.year == date.year)
 
         if self.IsDateInRange(date):
             if sameMonth and sameYear:
@@ -768,9 +731,9 @@ class PyMiniCalendar(wx.PyControl):
             else:
 
                 if setVisible:
-                    self.visible = date
+                    self.firstVisibleDate = date
                 else:
-                    self.selected = date
+                    self.selectedDate = date
 
                 self.GenerateEvents(EVT_MINI_CALENDAR_UPDATE_BUSY)
                 
@@ -779,9 +742,9 @@ class PyMiniCalendar(wx.PyControl):
                 
     def SetVisibleDateAndNotify(self, newDate, setVisible):
         if setVisible:
-            oldDate = self.visible
+            oldDate = self.firstVisibleDate
         else:
-            oldDate = self.selected
+            oldDate = self.selectedDate
 
         if newDate.year != oldDate.year:
             eventType = EVT_MINI_CALENDAR_YEAR_CHANGED
@@ -813,7 +776,7 @@ class PyMiniCalendar(wx.PyControl):
         is this date shown?
         """
         if not (self.GetWindowStyle() & CAL_SHOW_SURROUNDING_WEEKS):
-            return date.month == self.visible.month
+            return date.month == self.firstVisibleDate.month
         
         return True
 
@@ -869,17 +832,17 @@ class PyMiniCalendar(wx.PyControl):
         """
         change the date inside the same month/year
         """
-        if self.selected != date:
+        if self.selectedDate != date:
             # we need to refresh the row containing the old date and the one
             # containing the new one
-            dateOld = self.selected
-            self.visible = self.selected = date
+            dateOld = self.selectedDate
+            self.firstVisibleDate = self.selectedDate = date
             self.RefreshDate(dateOld)
             
 
             # if the date is in the same row, it was already drawn correctly
-            if self.GetWeek(self.selected) != self.GetWeek(dateOld):
-                self.RefreshDate(self.selected)
+            if self.GetWeek(self.selectedDate) != self.GetWeek(dateOld):
+                self.RefreshDate(self.selectedDate)
 
     def GenerateEvents(self, *events):
         """
