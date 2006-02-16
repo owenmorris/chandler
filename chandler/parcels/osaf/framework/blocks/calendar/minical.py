@@ -157,11 +157,6 @@ class PyMiniCalendar(wx.PyControl):
         
     def Create(self, parent, id=-1, pos=wx.DefaultPosition,
                size=wx.DefaultSize, style=0, name="PyMiniCalendar", targetDate=None):
-        if not super(PyMiniCalendar, self).Create(parent, id, pos, size,
-                                                  style | wx.CLIP_CHILDREN,
-                                                  wx.DefaultValidator, name):
-            return False
-
         # needed to get the arrow keys normally used for the dialog navigation
         self.SetWindowStyle(style)
 
@@ -374,13 +369,6 @@ class PyMiniCalendar(wx.PyControl):
         else:
             return (CAL_HITTEST_NOWHERE, None)
         
-
-    def GetDefaultAttributes(self):
-        return self.GetClassDefaultAttributes(self.GetWindowVariant())
-
-    @staticmethod
-    def GetClassDefaultAttributes(variant):
-        return wx.ListBox.GetClassDefaultAttributes(variant)
 
     # get the date from which we start drawing days
     def GetStartDate(self):
