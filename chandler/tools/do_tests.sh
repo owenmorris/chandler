@@ -339,11 +339,13 @@ else
         fi
 
         cd $C_DIR
-        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$BACKUP_REPO" &> $PERF_LOG
+        $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
 
         # scan the test output for the success message "OK"
         RESULT=`grep '#TINDERBOX# Status = PASSED' $PERF_LOG`
 
+		cat $C_DIR/test.log >> $PERF_LOG
+		
         if [ "$RESULT" = "" ]; then
             for test in $TESTS ; do
                 FAILED_TESTS="$FAILED_TESTS $test"
