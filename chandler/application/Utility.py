@@ -151,6 +151,7 @@ def initOptions(**kwds):
         'verify':     ('-V', '--verify-assignments', 
                                              'b', False,  None, 'Verify attribute assignments against schema'),
         'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
+        'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
     }
 
 
@@ -304,7 +305,7 @@ def initRepository(directory, options, allowSchemaView=False):
              'ramdb': options.ramdb,
              'create': True,
              'recover': options.recover,
-             'exclusive': True,
+             'exclusive': not options.nonexclusive,
              'refcounted': True,
              'logged': not not options.logging,
              'verify': options.verify or __debug__ }
