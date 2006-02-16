@@ -119,8 +119,6 @@ class PyMiniCalendar(wx.PyControl):
         self.Create(parent, id, *args, **kwds)
 
     def Init(self):
-        self.staticYear = None
-        self.staticMonth = None
 
         # date
         self.selected = None
@@ -135,17 +133,14 @@ class PyMiniCalendar(wx.PyControl):
         self.colHeaderFg = wx.BLACK
         self.colHeaderBg = wx.WHITE
 
-        self.userChangedYear = False
 
         self.widthCol = 0
         self.heightRow = 0
-        self.todayHeight = 0
 
         # TODO fill weekdays with names from PyICU
         self.weekdays = ["S", "M", "T", "W", "T", "F", "S"]
 
-        self.busyPercent = [0.0] * (DAYS_PER_WEEK *
-                                    WEEKS_TO_DISPLAY * MONTHS_TO_DISPLAY)
+        self.busyPercent = {}
 
         # I'm sure this will really get initialized in RecalcGeometry
         self.rowOffset = 0
@@ -159,6 +154,7 @@ class PyMiniCalendar(wx.PyControl):
         self.boldFont = None
 
         self.Bind(wx.EVT_PAINT, self.OnMiniCalPaint)
+        self.Bind(wx.EVT_SIZE, self.OnMiniCalSize)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
 
@@ -181,8 +177,6 @@ class PyMiniCalendar(wx.PyControl):
 
         self.lowerDateLimit = self.upperDateLimit = None
 
-        self.ShowCurrentControls()
-
         # we need to set the position as well because the main control
         # position is not the same as the one specified in pos if we
         # have the controls above it
@@ -193,12 +187,10 @@ class PyMiniCalendar(wx.PyControl):
         # platform will use the right one.
         self.SetBackgroundColour(self.GetBackgroundColour())
 
+        self.RecalcGeometry()
+
         return True
     
-    def Destroy(self):
-        # this is just a stub in case I need to deal with it later, otherwise it should be destroying self.staticMonth and self.staticYear
-        super(PyMiniCalendar, self).Destroy()
-        
 
     # set/get the current date
     # ------------------------
@@ -215,12 +207,10 @@ class PyMiniCalendar(wx.PyControl):
 
             else:
                 self.visible = self.selected = date
-                self.GenerateEvent(EVT_MINI_CALENDAR_UPDATE_BUSY)
+                self.GenerateEvents(EVT_MINI_CALENDAR_UPDATE_BUSY)
 
                 self.Refresh()
                      
-        self.userChangedYear = False
-
     def GetDate(self):
         return self.selected
         
@@ -234,33 +224,27 @@ class PyMiniCalendar(wx.PyControl):
         if ( (lowdate is None) or (self.upperDateLimit is not None and
                                    lowdate <= self.upperDateLimit)):
             self.lowerDateLimit = lowdate
+            return True
 
-        else:
-            retval = False
-            
-        return retval
+        return False
     
     def GetLowerDateLimit(self):
         return self.lowerDateLimit
 
     def SetUpperDateLimit(self, highdate):
-        retval = True
 
         # XXX WTF is this crazy algebra
         if ( (highdate is None) or (self.lowerDateLimit is not None and
                                     highdate >= self.lowerDateLimit)):
             self.upperDateLimit = date
+            return True
 
-        else:
-            retval = False
-            
-        return retval
+        return False
         
     def GetUpperDateLimit(self):
         return self.upperDateLimit
 
     def SetDateRange(self, lowerdate=None, upperdate=None):
-        retval = True
 
         # XXX WTF is this crazy algebra
         if ((lowerdate is None or (upperdate is not None and
@@ -269,10 +253,9 @@ class PyMiniCalendar(wx.PyControl):
                                    upperdate >= lowerdate))):
             self.lowerDateLimit = lowerdate
             self.upperDateLimit = upperdate
-        else:
-            retval = False
+            return True
 
-        return retval
+        return False
 
     # calendar mode
     # -------------
@@ -342,7 +325,6 @@ class PyMiniCalendar(wx.PyControl):
     # with the corresponding value (none for NOWHERE, the date for DAY and wd
     # for HEADER)
     def HitTest(self, pos):
-        self.RecalcGeometry()
         
         # we need to find out if the hit is on left arrow, on month or
         # on right arrow
@@ -427,34 +409,6 @@ class PyMiniCalendar(wx.PyControl):
             return (CAL_HITTEST_NOWHERE, None)
         
 
-    # implementation only from now on
-    # -------------------------------
-
-    # forward these functions to all subcontrols
-    def Enable(self, enable):
-        # XXX do we really need to even implement this function?
-        # shouldn't child widgets hide themselves?
-        if not super(PyMiniCalendar, self).Enable(enable):
-            return False
-
-        if self.GetMonthControl():
-            self.GetMonthControl().Enable(enable)
-            self.GetYearControl().Enable(enable)
-
-        return True
-
-    def Show(self, show):
-        # XXX do we really need to even implement this function?
-        # shouldn't child widgets hide themselves?
-        if not super(PyMiniCalendar, self).Show(show):
-            return False
-
-        if self.GetMonthControl():
-            self.GetMonthControl().Show(show)
-            self.GetYearControl().Show(show)
-
-        return True
-
     def GetDefaultAttributes(self):
         return self.GetClassDefaultAttributes(self.GetWindowVariant())
 
@@ -478,7 +432,6 @@ class PyMiniCalendar(wx.PyControl):
 
     # Get sizes of individual components
     def GetHeaderSize(self):
-        self.RecalcGeometry()
 
         width = DAYS_PER_WEEK * self.widthCol
         height = self.todayHeight + self.heightPreview + VERT_MARGIN
@@ -486,26 +439,19 @@ class PyMiniCalendar(wx.PyControl):
         return wx.Size(width,height)
 
     def GetMonthSize(self):
-        self.RecalcGeometry()
 
         width = DAYS_PER_WEEK * self.widthCol
         height = WEEKS_TO_DISPLAY * self.heightRow + self.rowOffset + EXTRA_MONTH_HEIGHT
         return wx.Size(width, height)
+
+    def OnMiniCalSize(self, event):
+        self.RecalcGeometry()
     
     # event handlers
     def OnMiniCalPaint(self, event):
         dc = wx.PaintDC(self)
 
-        font = self.GetFont()
-
-        if "__WXMAC__" in wx.PlatformInfo:
-            font = wx.Font(font.GetPointSize() - 2, font.GetFamily(),
-                              font.GetStyle(), font.GetWeight(), font.GetUnderlined(), font.GetFaceName(), font.GetEncoding())
-
-        dc.SetFont(font)
-
-        self.RecalcGeometry()
-
+        self.SetDeviceFont(dc)
         y = 0
 
         # draw the preview portion
@@ -518,9 +464,9 @@ class PyMiniCalendar(wx.PyControl):
         dc.SetPen(wx.Pen(wx.LIGHT_GREY, 1, wx.SOLID))
         #    dc.DrawLine(0, y, GetClientSize().x, y)
         dc.DrawLine(0, y + self.todayHeight, self.GetClientSize().x, y + self.todayHeight)
-        buttonCoord = self.GetClientSize().x / 5
-        dc.DrawLine(buttonCoord, y, buttonCoord, y + self.todayHeight)
-        dc.DrawLine(buttonCoord * 4, y, buttonCoord * 4, y + self.todayHeight)
+        buttonWidth = self.GetClientSize().x / 5
+        dc.DrawLine(buttonWidth, y, buttonWidth, y + self.todayHeight)
+        dc.DrawLine(buttonWidth * 4, y, buttonWidth * 4, y + self.todayHeight)
 
         # Get extent of today button
         self.normalFont = dc.GetFont()
@@ -532,7 +478,7 @@ class PyMiniCalendar(wx.PyControl):
         (todayw, todayh) = dc.GetTextExtent(todaytext)
 
         # Draw today button
-        self.todayRect = wx.Rect(buttonCoord, y, buttonCoord * 4, self.todayHeight)
+        self.todayRect = wx.Rect(buttonWidth, y, buttonWidth * 4, self.todayHeight)
         todayx = ((self.widthCol * DAYS_PER_WEEK) - todayw) / 2
         todayy = ((self.todayHeight - todayh) / 2) + y
         dc.DrawText(todaytext, todayx, todayy)
@@ -552,18 +498,18 @@ class PyMiniCalendar(wx.PyControl):
 
         # draw the "month-arrows"
         arrowy = (self.todayHeight - arrowheight) / 2 + y
-        larrowx = (buttonCoord - (arrowheight / 2)) / 2
-        rarrowx = (buttonCoord / 2) + buttonCoord * 4
+        larrowx = (buttonWidth - (arrowheight / 2)) / 2
+        rarrowx = (buttonWidth / 2) + buttonWidth * 4
 
         # Draw left arrow
-        self.leftArrowRect = wx.Rect(0, y, buttonCoord - 1, self.todayHeight)
+        self.leftArrowRect = wx.Rect(0, y, buttonWidth - 1, self.todayHeight)
         dc.SetBrush(wx.Brush(wx.BLACK, wx.SOLID))
         dc.SetPen(wx.Pen(wx.BLACK, 1, wx.SOLID))
         dc.DrawPolygon(leftarrow, larrowx , arrowy, wx.WINDING_RULE)
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
 
         # Draw right arrow
-        self.rightArrowRect = wx.Rect(buttonCoord * 4 + 1, y, buttonCoord - 1, self.todayHeight)
+        self.rightArrowRect = wx.Rect(buttonWidth * 4 + 1, y, buttonWidth - 1, self.todayHeight)
         dc.SetBrush(wx.Brush(wx.BLACK, wx.SOLID))
         dc.SetPen(wx.Pen(wx.BLACK, 1, wx.SOLID))
         dc.DrawPolygon(rightarrow, rarrowx , arrowy, wx.WINDING_RULE)
@@ -619,7 +565,7 @@ class PyMiniCalendar(wx.PyControl):
             event.Skip()
 
         else:
-            self.GenerateEvent(EVT_MINI_CALENDAR_DOUBLECLICKED)
+            self.GenerateEvents(EVT_MINI_CALENDAR_DOUBLECLICKED)
             
 
     # override some base class virtuals
@@ -655,13 +601,8 @@ class PyMiniCalendar(wx.PyControl):
     
     def DoMoveWindow(self, x, y, width, height):
         return super(PyMiniCalendar, self).DoMoveWindow(x,y,width,height)
-    
-    def RecalcGeometry(self):
-        """
-        (re)calc self.widthCol and self.heightRow
-        """
-        dc = wx.ClientDC(self)
 
+    def SetDeviceFont(self, dc):
         font = self.GetFont()
 
         if "__WXMAC__" in wx.PlatformInfo:
@@ -669,6 +610,17 @@ class PyMiniCalendar(wx.PyControl):
                               font.GetStyle(), font.GetWeight(), font.GetUnderlined(), font.GetFaceName(), font.GetEncoding())
             
         dc.SetFont(font)
+
+        
+    
+    def RecalcGeometry(self, dc=None):
+        """
+        (re)calc self.widthCol and self.heightRow
+        """
+        if dc is None:
+            dc = wx.ClientDC(self)
+
+        self.SetDeviceFont(dc)
 
         # determine the column width (we assume that the widest digit
         # plus busy bar is wider than any weekday character (hopefully
@@ -898,14 +850,10 @@ class PyMiniCalendar(wx.PyControl):
                 else:
                     self.selected = date
 
-                self.GenerateEvent(EVT_MINI_CALENDAR_UPDATE_BUSY)
+                self.GenerateEvents(EVT_MINI_CALENDAR_UPDATE_BUSY)
                 
                 # update the calendar
                 self.Refresh()
-
-        self.userChangedYear = False
-
-        return True
                 
     def SetVisibleDateAndNotify(self, newDate, setVisible):
         if setVisible:
@@ -922,13 +870,12 @@ class PyMiniCalendar(wx.PyControl):
         else:
             return
 
-        if (self.SetVisibleDate(newDate, setVisible)):
-            self.GenerateEvents(eventType, EVT_MINI_CALENDAR_SEL_CHANGED)
+        self.SetVisibleDate(newDate, setVisible)
+        self.GenerateEvents(eventType, EVT_MINI_CALENDAR_SEL_CHANGED)
 
     def GetWeek(self, targetDate, useRelative=True):
         """
         get the week (row, in range 1..WEEKS_TO_DISPLAY) for the given date
-        XXX some issues with monday/sunday first in the week
         """
         if useRelative:
             # week of the month
@@ -974,10 +921,11 @@ class PyMiniCalendar(wx.PyControl):
         """
         redraw the given date
         """
-        self.RecalcGeometry()
 
         x = 0
-        y = (self.heightRow * (self.GetWeek(date) - 1)) + self.todayHeight + EXTRA_MONTH_HEIGHT + self.rowOffset + self.heightPreview
+        y = (self.heightRow * (self.GetWeek(date) - 1) +
+             self.todayHeight + EXTRA_MONTH_HEIGHT +
+             self.rowOffset + self.heightPreview)
 
         width = DAYS_PER_WEEK * self.widthCol
         height = self.heightRow
@@ -999,7 +947,7 @@ class PyMiniCalendar(wx.PyControl):
         """
         get the busy state for the desired position
         """
-        return self.busyPercent[dayPosition]
+        return self.busyPercent.get(dayPosition, 0.0)
      
     def ChangeDay(self, date):
         """
@@ -1017,29 +965,11 @@ class PyMiniCalendar(wx.PyControl):
             if self.GetWeek(self.selected) != self.GetWeek(dateOld):
                 self.RefreshDate(self.selected)
 
-    def GenerateEvent(self, eventType):
+    def GenerateEvents(self, *events):
         """
         generate the given calendar event(s)
         """
-        event = PyMiniCalendarEvent(eventType.evtType[0])
-        self.GetEventHandler().ProcessEvent(event)
+        for evt in events:
+            event = PyMiniCalendarEvent(evt.evtType[0])
+            self.GetEventHandler().ProcessEvent(event)
 
-    def GenerateEvents(self, type1, type2):
-        self.GenerateEvent(type1)
-        self.GenerateEvent(type2)
-
-    def ShowCurrentControls(self):
-        """
-        show the correct controls
-        """
-        # XXX wow, no implementation at all!
-        pass
-
-    def GetMonthControl(self):
-        """
-        get the currently shown control for month/year
-        """
-        return self.staticMonth
-    
-    def GetYearControl(self):
-        return self.staticYear
