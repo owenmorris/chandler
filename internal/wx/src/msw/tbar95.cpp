@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.174 2006/02/12 12:16:52 MW Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.175 2006/02/16 03:02:21 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -455,6 +455,7 @@ bool wxToolBar::DoDeleteTool(size_t pos, wxToolBarToolBase *tool)
     {
         nButtonsToDelete = ((wxToolBarTool *)tool)->GetSeparatorsCount();
         width *= nButtonsToDelete;
+        tool->GetControl()->Destroy();
     }
 
     // do delete all buttons

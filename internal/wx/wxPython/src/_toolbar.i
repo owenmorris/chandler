@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-Aug-1998
-// RCS-ID:      $Id: _toolbar.i,v 1.11 2004/12/23 20:43:49 RD Exp $
+// RCS-ID:      $Id: _toolbar.i,v 1.12 2006/02/16 03:04:38 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -380,6 +380,8 @@ public:
 
     // return True if this is a vertical toolbar, otherwise False
     bool IsVertical();
+
+    size_t GetToolsCount() const;
 };
 
 
