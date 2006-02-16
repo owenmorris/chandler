@@ -49,7 +49,7 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args);
 static PyObject *t_item_setDirty(t_item *self, PyObject *args);
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args);
 static PyObject *t_item_collectionChanged(t_item *self, PyObject *args);
-static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *name);
+static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
@@ -773,8 +773,15 @@ static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
         Py_DECREF(result);
     }
 
-    if (self->status & WATCHED && _t_item__itemChanged(self, op, name) < 0)
-        return NULL;
+    if (self->status & WATCHED)
+    {
+        PyObject *names = PyTuple_Pack(1, name);
+        int result = _t_item__itemChanged(self, op, names);
+
+        Py_DECREF(names);
+        if (result < 0)
+            return NULL;
+    }
 
     Py_RETURN_NONE;
 }
@@ -1131,7 +1138,67 @@ static PyObject *t_item_collectionChanged(t_item *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *name)
+static int __t_item__itemChanged(t_item *self, PyObject *dispatch,
+                                 PyObject *op, PyObject *names)
+{
+    /* name part of item watch is None */
+    PyObject *watchers = PyDict_GetItem(dispatch, Py_None); 
+
+    if (watchers)
+    {
+        PyObject *dict, *key, *value;
+        int pos = 0;
+
+        if (!PyAnySet_Check(watchers))
+        {
+            PyErr_SetObject(PyExc_TypeError, watchers);
+            return -1;
+        }
+
+        /* a set's dict is organized as { value: True } */
+        dict = ((PySetObject *) watchers)->data;
+
+        while (PyDict_Next(dict, &pos, &key, &value)) {
+            PyObject *watcher = PyTuple_GetItem(key, 0);
+            PyObject *watch = PyTuple_GetItem(key, 1);
+
+            if (!watcher || !watch)
+                return -1;
+
+            if (!PyObject_Compare(watch, item_NAME))
+            {
+                PyObject *methName, *result;
+
+                if (PyObject_TypeCheck(watcher, SingleRef))
+                    watcher = PyObject_GetItem(((t_item *) self->root)->parent,
+                                               ((t_sr *) watcher)->uuid);
+                else if (PyUUID_Check(watcher))
+                    watcher = PyObject_GetItem(((t_item *) self->root)->parent,
+                                               watcher);
+                else
+                {
+                    PyErr_SetObject(PyExc_TypeError, watcher);
+                    return -1;
+                }
+
+                if (!watcher)
+                    return -1;
+
+                methName = PyTuple_GetItem(key, 2);
+                result = PyObject_CallMethodObjArgs(watcher, methName, 
+                                                    op, self, names, NULL);
+                Py_DECREF(watcher);
+                if (!result)
+                    return -1;
+                Py_DECREF(result);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
 {
     if (self->status & NODIRTY)
         return 0;
@@ -1141,61 +1208,8 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *name)
         PyObject *dispatch =
             PyDict_GetItem(self->values->dict, watcherDispatch_NAME);
 
-        if (dispatch)
-        {
-            /* name part of item watch is None */
-            PyObject *watchers = PyDict_GetItem(dispatch, Py_None); 
-
-            if (watchers)
-            {
-                PyObject *dict, *key, *value;
-                int pos = 0;
-
-                if (!PyAnySet_Check(watchers))
-                {
-                    PyErr_SetObject(PyExc_TypeError, watchers);
-                    return -1;
-                }
-
-                /* a set's dict is organized as { value: True } */
-                dict = ((PySetObject *) watchers)->data;
-
-                while (PyDict_Next(dict, &pos, &key, &value)) {
-                    PyObject *watcher = PyTuple_GetItem(key, 0);
-                    PyObject *watch = PyTuple_GetItem(key, 1);
-
-                    if (!watcher || !watch)
-                        return -1;
-
-                    if (!PyObject_TypeCheck(watcher, SingleRef))
-                    {
-                        PyErr_SetObject(PyExc_TypeError, watcher);
-                        return -1;
-                    }
-
-                    if (!PyObject_Compare(watch, item_NAME))
-                    {
-                        PyObject *methName, *result;
-
-                        watcher =
-                            PyObject_GetItem(((t_item *) self->root)->parent,
-                                             ((t_sr *) watcher)->uuid);
-                        if (!watcher)
-                            return -1;
-
-                        methName = PyTuple_GetItem(key, 2);
-                        result =
-                            PyObject_CallMethodObjArgs(watcher, methName, 
-                                                       op, self, name, NULL);
-
-                        Py_DECREF(watcher);
-                        if (!result)
-                            return -1;
-                        Py_DECREF(result);
-                    }
-                }
-            }
-        }
+        if (dispatch && __t_item__itemChanged(self, dispatch, op, names) < 0)
+            return -1;
     }
 
     if (self->status & T_WATCHED)
@@ -1207,61 +1221,9 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *name)
             PyObject *dispatch =
                 PyDict_GetItem(view->watcherDispatch, self->uuid);
 
-            if (dispatch)
-            {
-                /* name part of item watch is None */
-                PyObject *watchers = PyDict_GetItem(dispatch, Py_None); 
-
-                if (watchers)
-                {
-                    PyObject *dict, *key, *value;
-                    int pos = 0;
-
-                    if (!PyAnySet_Check(watchers))
-                    {
-                        PyErr_SetObject(PyExc_TypeError, watchers);
-                        return -1;
-                    }
-
-                    /* a set's dict is organized as { value: True } */
-                    dict = ((PySetObject *) watchers)->data;
-
-                    while (PyDict_Next(dict, &pos, &key, &value)) {
-                        PyObject *watcher = PyTuple_GetItem(key, 0);
-                        PyObject *watch = PyTuple_GetItem(key, 1);
-
-                        if (!watcher || !watch)
-                            return -1;
-
-                        if (!PyUUID_Check(watcher))
-                        {
-                            PyErr_SetObject(PyExc_TypeError, watcher);
-                            return -1;
-                        }
-
-                        if (!PyObject_Compare(watch, item_NAME))
-                        {
-                            PyObject *methName, *result;
-
-                            watcher = PyObject_GetItem((PyObject *) view,
-                                                       watcher);
-                            if (!watcher)
-                                return -1;
-
-                            methName = PyTuple_GetItem(key, 2);
-                            result =
-                                PyObject_CallMethodObjArgs(watcher, methName, 
-                                                           op, self, name,
-                                                           NULL);
-
-                            Py_DECREF(watcher);
-                            if (!result)
-                                return -1;
-                            Py_DECREF(result);
-                        }
-                    }
-                }
-            }
+            if (dispatch &&
+                __t_item__itemChanged(self, dispatch, op, names) < 0)
+                return -1;
         }
     }
 
