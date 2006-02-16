@@ -197,6 +197,15 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _dispatchChanges(self, history, refreshes, oldVersion, newVersion):
 
         refs = self.store._refs
+        watcherDispatch = self._watcherDispatch
+
+        def dirtyNames(kind, dirties):
+            if kind is None:
+                return ()
+            else:
+                return tuple([name for name, a, k in kind.iterAttributes()
+                              if name in dirties])
+
         for uItem, version, uKind, status, uParent, pKind, dirties in history:
 
             if not (pKind is None or pKind == DBItemWriter.NOITEM):
@@ -206,6 +215,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                                    'extent', uItem)
 
             item = self.find(uItem)
+            names = None
             if item is not None:
 
                 kind = item.itsKind
@@ -217,12 +227,25 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if dispatch:
                     isNew = (status & CItem.NEW) != 0
                     for attribute, watchers in dispatch.iteritems():
-                        if watchers and (isNew or attribute in dirties):
-                            value = getattr(item, attribute, None)
-                            if isinstance(value, RefList) and len(value) > 0:
-                                for uRef in refs.iterHistory(self, value.uuid, oldVersion, newVersion, True):
-                                    if uRef in refreshes:
-                                        item._collectionChanged('refresh', 'collection', attribute, uRef)
+                        if watchers:
+                            if attribute is None:  # item watchers
+                                names = dirtyNames(kind, dirties)
+                                for watcher, watch, methodName in watchers:
+                                    getattr(watcher, methodName)('refresh', item, names)
+                            elif isNew or attribute in dirties:
+                                value = getattr(item, attribute, None)
+                                if isinstance(value, RefList) and len(value) > 0:
+                                    for uRef in refs.iterHistory(self, value.uuid, oldVersion, newVersion, True):
+                                        if uRef in refreshes:
+                                            item._collectionChanged('refresh', 'collection', attribute, uRef)
+
+                if watcherDispatch and uItem in watcherDispatch:
+                    watchers = watcherDispatch[uItem].get(None)
+                    if watchers:
+                        if names is None:
+                            names = dirtyNames(kind, dirties)
+                        for watcher, watch, methodName in watchers:
+                            getattr(self[watcher], methodName)('refresh', item, names)
     
     def refresh(self, mergeFn=None, version=None):
 
