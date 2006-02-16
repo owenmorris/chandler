@@ -728,10 +728,12 @@ class PyMiniCalendar(wx.PyControl):
 
                         if '__WXMAC__' in wx.PlatformInfo:
                             dc.SetPen(wx.TRANSPARENT_PEN)
+                            YAdjust = -2
                         else:
                             dc.SetPen(wx.Pen(busyColour, 1, wx.SOLID))
+                            YAdjust = 0
 
-                        dc.DrawRectangle(x-3, y + self.heightRow - height - 4, 2, height)
+                        dc.DrawRectangle(x-3, y + self.heightRow - height - 4 + YAdjust, 2, height)
                         changedColours = True
 
                     if (weekDate.month != startDate.month or
