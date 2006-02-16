@@ -29,9 +29,9 @@ class Movie(Item):
 
         print op, self, name, other, args
 
-    def itemChanged(self, op, item, name):
+    def itemChanged(self, op, item, names):
 
-        print self, 'itemChanged', op, item, name
+        print self, 'itemChanged', op, item, names
 
 
 class Cartoon(Movie):

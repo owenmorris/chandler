@@ -203,8 +203,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             if kind is None:
                 return ()
             else:
-                return tuple([name for name, a, k in kind.iterAttributes()
-                              if name in dirties])
+                return kind._nameTuple(dirties)
 
         for uItem, version, uKind, status, uParent, pKind, dirties in history:
 
@@ -234,7 +233,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                     getattr(watcher, methodName)('refresh', item, names)
                             elif isNew or attribute in dirties:
                                 value = getattr(item, attribute, None)
-                                if isinstance(value, RefList) and len(value) > 0:
+                                if isinstance(value, RefList) and value:
                                     for uRef in refs.iterHistory(self, value.uuid, oldVersion, newVersion, True):
                                         if uRef in refreshes:
                                             item._collectionChanged('refresh', 'collection', attribute, uRef)

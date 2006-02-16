@@ -39,6 +39,7 @@ class Kind(Item):
         self._initialReferences = None
         self._inheritedAttributes = {}
         self._allAttributes = {}
+        self._allNames = {}
 
         references = self._references
 
@@ -452,21 +453,26 @@ class Kind(Item):
 
         c = self.c
         allAttributes = self._allAttributes
-        
+        allNames = self._allNames
+
         if not c.attributesCached:
             allAttributes.clear()
+            allNames.clear()
 
             references = self._references
             for superKind in references['superKinds']:
                 for name, attribute, kind in superKind.iterAttributes():
                     if name not in allAttributes:
                         allAttributes[name] = (attribute.itsUUID, kind.itsUUID, False, False)
+                        allNames[_hash(name)] = name
 
             attributes = references.get('attributes', None)
             if attributes is not None:
                 uuid = self.itsUUID
                 for attribute in attributes:
-                    allAttributes[attributes.getAlias(attribute)] = (attribute.itsUUID, uuid, attribute.itsParent is self, True)
+                    name = attributes.getAlias(attribute)
+                    allAttributes[name] = (attribute.itsUUID, uuid, attribute.itsParent is self, True)
+                    allNames[_hash(name)] = name
 
             c.attributesCached = True
 
@@ -476,6 +482,15 @@ class Kind(Item):
                     (localOnly and not local) or
                     (not inherited and not defined)):
                 yield (name, view[aUUID], view[kUUID])
+
+    def _nameTuple(self, hashTuple):
+
+        if self.c.attributesCached:
+            allNames = self._allNames
+            return tuple([allNames[hash] for hash in hashTuple])
+        else:
+            return tuple([name for name, a, k in self.iterAttributes()
+                          if name in hashTuple])
 
     def getInheritedSuperKinds(self):
 
