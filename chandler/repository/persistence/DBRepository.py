@@ -508,7 +508,8 @@ class DBRepository(OnDemandRepository):
             if ramdb:
                 self._status &= ~Repository.RAMDB
             elif self._openFile is not None:
-                os.remove(self._openFile)
+                if os.path.exists(self._openFile):
+                    os.remove(self._openFile)
                 self._openFile = None
 
             self._status |= Repository.CLOSED
