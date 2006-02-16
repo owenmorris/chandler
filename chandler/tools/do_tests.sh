@@ -342,7 +342,7 @@ else
         $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$BACKUP_REPO" &> $PERF_LOG
 
         # scan the test output for the success message "OK"
-        RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+        RESULT=`grep '#TINDERBOX# Status = PASSED' $PERF_LOG`
 
         if [ "$RESULT" = "" ]; then
             for test in $TESTS ; do
