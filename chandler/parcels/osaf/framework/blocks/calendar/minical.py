@@ -1,5 +1,4 @@
 
-
 import wx
 from i18n import OSAFMessageFactory as _
 
@@ -24,10 +23,6 @@ CAL_HITTEST_DECMONTH = 5
 CAL_HITTEST_SURROUNDING_WEEK = 6
 
 
-CAL_SUNDAY_FIRST           = 0x0000 # show Sunday as the first day of
-                                    # the week (default)
-CAL_MONDAY_FIRST           = 0x0001 # show Monder as the first day of
-                                    # the week
 CAL_SHOW_SURROUNDING_WEEKS = 0x0002 # show the neighbouring weeks in
                                     # the previous and next
                                     # month
@@ -138,7 +133,8 @@ class PyMiniCalendar(wx.PyControl):
         self.heightRow = 0
 
         # TODO fill weekdays with names from PyICU
-        self.weekdays = ["S", "M", "T", "W", "T", "F", "S"]
+        self.weekdays = ["M", "T", "W", "T", "F", "S", "S"]
+        self.firstDayOfWeek = calendar.SUNDAY
 
         self.busyPercent = {}
 
@@ -289,34 +285,7 @@ class PyMiniCalendar(wx.PyControl):
         return self.colHighlightBg
 
     def SetBusy(self, busyDate, busy):
-        startDate = self.GetStartDate()
-        firstOfMonth = date(self.visible.year, self.visible.month, 1)
-
-        # Only update months that are being displayed
-        if (busyDate<firstOfMonth or
-            busyDate >= MonthDelta(startDate, MONTHS_TO_DISPLAY)):
-            return
-
-        # Figure out which month this date is in
-        monthDiff = busyDate.month - self.visible.month
-        if monthDiff < 0:
-            monthDiff += 12
-
-        # Calculate the startDate of the proper month
-        startDate = date(busyDate.year, busyDate.month, 1)
-        if self.GetWindowStyle() & CAL_MONDAY_FIRST:
-            startDate = PreviousWeekday(startDate, 0) # monday
-        else:
-            startDate = PreviousWeekday(startDate, 6) # sunday
-
-        difference = (busyDate - startDate).days
-        if difference < 0:
-            days += 365
-
-        difference += (monthDiff * DAYS_PER_WEEK * WEEKS_TO_DISPLAY)
-
-        self.busyPercent[difference] = busy
-        self.Refresh()
+        self.busyPercent[busyDate] = busy
         
 
     # returns a tuple (CAL_HITTEST_XXX...) and then a date, and maybe a weekday
@@ -385,10 +354,7 @@ class PyMiniCalendar(wx.PyControl):
 
         clickDate = date(self.visible.year, self.visible.month, 1)
         clickDate = MonthDelta(clickDate, month)
-        if self.GetWindowStyle() & CAL_MONDAY_FIRST:
-            clickDate = PreviousWeekday(clickDate, 0)
-        else:
-            clickDate = PreviousWeekday(clickDate, 6)
+        clickDate = PreviousWeekday(clickDate, self.firstDayOfWeek)
 
         clickDate += timedelta(days=DAYS_PER_WEEK * week + wday)
         targetMonth = self.visible.month + month
@@ -422,13 +388,8 @@ class PyMiniCalendar(wx.PyControl):
         # roll back to the beginning of the month
         startDate = date(self.visible.year, self.visible.month, 1)
 
-        # now to back to the previous sun/mon
-        if self.GetWindowStyle() & CAL_MONDAY_FIRST:
-            targetDay = 0               # monday
-        else:
-            targetDay = 6               # sunday
-
-        return PreviousWeekday(startDate, targetDay)
+        # now to back to the beginning of the week
+        return PreviousWeekday(startDate, self.firstDayOfWeek)
 
     # Get sizes of individual components
     def GetHeaderSize(self):
@@ -518,11 +479,9 @@ class PyMiniCalendar(wx.PyControl):
         y += self.todayHeight
 
         dateToDraw = self.visible
-        dayPosition = 0
         for i in xrange(MONTHS_TO_DISPLAY):
-            y = self.DrawMonth(dc, dateToDraw, y, dayPosition, True)
+            y = self.DrawMonth(dc, dateToDraw, y, True)
             dateToDraw = MonthDelta(dateToDraw, 1)
-            dayPosition += DAYS_PER_WEEK * WEEKS_TO_DISPLAY
 
 
     def OnClick(self, event):
@@ -643,7 +602,7 @@ class PyMiniCalendar(wx.PyControl):
         self.rowOffset = self.heightRow * 2
         self.todayHeight = self.heightRow + 2
 
-    def DrawMonth(self, dc, startDate, y, startDayPosition, highlightDate = False):
+    def DrawMonth(self, dc, startDate, y, highlightDate = False):
         """
         draw a single month
         return the updated value of y
@@ -675,16 +634,9 @@ class PyMiniCalendar(wx.PyControl):
             # draw the background
             dc.DrawRectangle(0, y, self.GetClientSize().x, self.heightRow)
 
-            startOnMonday = (self.GetWindowStyle() & CAL_MONDAY_FIRST) != 0
-            
             for wd in xrange(DAYS_PER_WEEK):
-                if startOnMonday:
-                    if (wd == (DAYS_PER_WEEK - 1)):
-                        n = 0
-                    else:
-                        wd + 1
-                else:
-                    n = wd
+                n = wd + self.firstDayOfWeek
+                n %= DAYS_PER_WEEK
                     
                 (dayw, dayh) = dc.GetTextExtent(self.weekdays[n])
                 dc.DrawText(self.weekdays[n],
@@ -694,10 +646,7 @@ class PyMiniCalendar(wx.PyControl):
         y += (self.heightRow - 1)
         
         weekDate = date(startDate.year, startDate.month, 1)
-        if self.GetWindowStyle() & CAL_MONDAY_FIRST:
-            weekDate = PreviousWeekDay(weekDate,0)   # monday
-        else:
-            weekDate = PreviousWeekday(weekDate,6)   # sunday
+        weekDate = PreviousWeekday(weekDate, self.firstDayOfWeek)
 
         mainColour = wx.Colour(0, 0, 0)
         lightColour = wx.Colour(255, 255, 255)
@@ -706,7 +655,8 @@ class PyMiniCalendar(wx.PyControl):
         busyColour = wx.Colour(0, 0, 0)
 
         dc.SetTextForeground(mainColour)
-        dc.SetTextForeground(wx.RED)
+        # dc.SetTextForeground(wx.RED)    # help us find drawing mistakes
+        
         for nWeek in xrange(1,WEEKS_TO_DISPLAY+1):
             # if the update region doesn't intersect this row, don't paint it
             if not self.IsExposed(0, y, DAYS_PER_WEEK * self.widthCol,
@@ -725,7 +675,6 @@ class PyMiniCalendar(wx.PyControl):
 
             for weekDay in xrange(DAYS_PER_WEEK):
 
-                dayPosition = startDayPosition + (nWeek - 1) * DAYS_PER_WEEK + weekDay
                 if self.IsDateShown(weekDate):
 
                     dayStr = str(weekDate.day)
@@ -748,14 +697,14 @@ class PyMiniCalendar(wx.PyControl):
                             (not highlightWeek and
                              (weekDate == self.selected))):
 
+                            startX = weekDay * self.widthCol
                             if weekDay == 0:
-                                startX = SEPARATOR_MARGIN
-                            else:
-                                startX = weekDay * self.widthCol
+                                startX += SEPARATOR_MARGIN
 
-                            endX = self.widthCol
-                            if weekDay == ( DAYS_PER_WEEK - 1 ):
-                                endX -= (SEPARATOR_MARGIN)
+                            width = self.widthCol
+
+                            if weekDay == DAYS_PER_WEEK-1:
+                                width -= (SEPARATOR_MARGIN)
 
                             dc.SetTextBackground(highlightColour)
                             dc.SetBrush(wx.Brush(highlightColour, wx.SOLID))
@@ -764,14 +713,14 @@ class PyMiniCalendar(wx.PyControl):
                                 dc.SetPen(wx.TRANSPARENT_PEN)
                             else:
                                 dc.SetPen(wx.Pen(highlightColour, 1, wx.SOLID))
-                                
-                            dc.DrawRectangle(startX, y, endX, self.heightRow) 
+
+                            dc.DrawRectangle(startX, y, width, self.heightRow) 
 
                             changedColours = True
 
                     # draw free/busy indicator
                     if self.GetWindowStyle() & CAL_SHOW_BUSY:
-                        busyPercentage = self.GetBusy(dayPosition)
+                        busyPercentage = self.GetBusy(weekDate)
                         height = (self.heightRow - 8) * busyPercentage
 
                         dc.SetTextBackground(busyColour)
@@ -879,16 +828,10 @@ class PyMiniCalendar(wx.PyControl):
         """
         if useRelative:
             # week of the month
-            if self.GetWindowStyle() & CAL_MONDAY_FIRST:
-                return GetWeekOfMonth(targetDate, 0) # monday
-            else:
-                return GetWeekOfMonth(targetDate, 6) # sunday
+            return GetWeekOfMonth(targetDate, self.firstDayOfWeek)
 
         # week of the year
-        if self.GetWindowStyle() & CAL_MONDAY_FIRST:
-            targetDate = PreviousWeekday(targetDate, 0)
-        else:
-            targetDate = PreviousWeekday(targetDate, 6)
+        targetDate = PreviousWeekday(targetDate, self.firstDayOfWeek)
         (year, week, day) = targetDate.isocalendar()
         return week
 
@@ -943,11 +886,11 @@ class PyMiniCalendar(wx.PyControl):
 
         self.RefreshRect(rect)
 
-    def GetBusy(self, dayPosition):
+    def GetBusy(self, date):
         """
         get the busy state for the desired position
         """
-        return self.busyPercent.get(dayPosition, 0.0)
+        return self.busyPercent.get(date, 0.0)
      
     def ChangeDay(self, date):
         """

@@ -10,7 +10,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 import wx.calendar
-import wx.minical
+import minical
 
 from application import schema
 
@@ -27,7 +27,7 @@ from osaf.framework.attributeEditors import DateTimeAttributeEditor
 from i18n import OSAFMessageFactory as _
 
 
-class wxMiniCalendar(wx.minical.MiniCalendar):
+class wxMiniCalendar(minical.PyMiniCalendar):
 
     # Used to limit the frequency with which we repaint the minicalendar.
     # This used to be a real issue, but with the 0.6 notification system,
@@ -46,23 +46,23 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
-        self.Bind(wx.minical.EVT_MINI_CALENDAR_SEL_CHANGED,
+        self.Bind(minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
-        self.Bind(wx.minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
+        self.Bind(minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
                   self.OnWXDoubleClick)
-        self.Bind(wx.minical.EVT_MINI_CALENDAR_UPDATE_BUSY,
+        self.Bind(minical.EVT_MINI_CALENDAR_UPDATE_BUSY,
                   self.setFreeBusy)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def wxSynchronizeWidget(self, useHints=False):
-        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.minical.CAL_SHOW_BUSY
+        style = minical.CAL_SHOW_SURROUNDING_WEEKS | minical.CAL_SHOW_BUSY
         if '__WXMAC__' in wx.PlatformInfo:
             style |= wx.BORDER_SIMPLE
         else:
             style |= wx.BORDER_STATIC
         
         if isMainCalendarVisible() and self.blockItem.doSelectWeek:
-            style |= wx.minical.CAL_HIGHLIGHT_WEEK
+            style |= minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
         if useHints:
             self.setFreeBusy(None, **self.hints)
@@ -83,17 +83,11 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                                         {'start': self.getSelectedDate()})
 
     def getSelectedDate(self):
-        wxdate = self.GetDate()
-        date = datetime(wxdate.GetYear(),
-                        wxdate.GetMonth() + 1,
-                        wxdate.GetDay())
+        date = datetime.combine(self.GetDate(), time(0))
         return date
 
-    def setSelectedDate(self, date):
-        wxdate = wx.DateTimeFromDMY(date.day,
-                                    date.month - 1,
-                                    date.year)
-        self.SetDate(wxdate)
+    def setSelectedDate(self, newDate):
+        self.SetDate(newDate.date())
 
     def setSelectedDateRange(self, start, end):
         self.setSelectedDate(start)
@@ -117,18 +111,16 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
     def setFreeBusy(self, event, **hints):
         
         if self._recalcCount == 0:
-            startWxDate = self.GetStartDate();
-            endWxDate = startWxDate + wx.DateSpan.Month() * 3
-                    
-            
-            start = datetime(startWxDate.GetYear(),
-                        startWxDate.GetMonth() + 1,
-                        startWxDate.GetDay())
+            start = self.GetStartDate();
 
-            end = datetime(endWxDate.GetYear(),
-                        endWxDate.GetMonth() + 1,
-                        endWxDate.GetDay())
-
+            # ugh, why can't timedelta just support months?
+            endYear = start.year
+            endMonth = start.month + 3
+            if endMonth > 12:
+                endYear += 1
+                endMonth -= 12
+            end = datetime(endYear, endMonth, start.day)
+                
             addedEvents = self.blockItem._getAddedEventsFromHints(start, end,
                                                               hints)
     
@@ -162,12 +154,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             
     def _doDrawing(self):
 
-        startWxDate = self.GetStartDate();
-        endWxDate = startWxDate + wx.DateSpan.Month() * 3
-        
-        startDate = date(startWxDate.GetYear(),
-                        startWxDate.GetMonth() + 1,
-                        startWxDate.GetDay())
+        startDate = self.GetStartDate();
 
         month = startDate.month + 3
         if month > 12:
@@ -232,8 +219,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                 
             # Finally, update the UI
             for offset, busy in busyFractions.iteritems():
-                eventWxDate = startWxDate + wx.DateSpan.Days(offset)
-                self.SetBusy(eventWxDate, busy)
+                eventDate = start + timedelta(days=offset)
+                self.SetBusy(eventDate, busy)
         
         else:
 
@@ -311,11 +298,9 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                             updateBusy(matchingMod, modStart)
     
             offset = 0
-            wxDay = wx.DateSpan.Day()
             timeDeltaDay = timedelta(days=1)
             while (startDate < endDate):
-                self.SetBusy(startWxDate, busyFractions.get(offset, 0.0))
-                startWxDate += wxDay
+                self.SetBusy(startDate, busyFractions.get(offset, 0.0))
                 startDate += timeDeltaDay
                 offset += 1
             
