@@ -126,8 +126,8 @@ class PyMiniCalendar(wx.PyControl):
         self.selected = None
         self.visible = None
 
-        self.lowdate = None
-        self.highdate = None
+        self.lowerDateLimit = None
+        self.upperDateLimit = None
 
         # colors
         self.colHighlightFg = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
@@ -179,7 +179,7 @@ class PyMiniCalendar(wx.PyControl):
             self.selected = date.today()
         self.visible = self.selected
 
-        self.lowdate = self.highdate = None
+        self.lowerDateLimit = self.upperDateLimit = None
 
         self.ShowCurrentControls()
 
@@ -205,8 +205,6 @@ class PyMiniCalendar(wx.PyControl):
 
     def SetDate(self, date):
 
-        retval = True
-
         sameMonth = (self.selected.month == date.month and
                      self.selected.year == date.year)
 
@@ -220,7 +218,6 @@ class PyMiniCalendar(wx.PyControl):
                 self.GenerateEvent(EVT_MINI_CALENDAR_UPDATE_BUSY)
 
                 self.Refresh()
-
                      
         self.userChangedYear = False
 
@@ -234,9 +231,9 @@ class PyMiniCalendar(wx.PyControl):
         retval = True
 
         # XXX WTF is this crazy algebra
-        if ( (lowdate is None) or (self.highdate is not None and
-                                    lowdate <= self.highdate)):
-            self.lowdate = lowdate
+        if ( (lowdate is None) or (self.upperDateLimit is not None and
+                                   lowdate <= self.upperDateLimit)):
+            self.lowerDateLimit = lowdate
 
         else:
             retval = False
@@ -244,15 +241,15 @@ class PyMiniCalendar(wx.PyControl):
         return retval
     
     def GetLowerDateLimit(self):
-        return self.lowdate
+        return self.lowerDateLimit
 
     def SetUpperDateLimit(self, highdate):
         retval = True
 
         # XXX WTF is this crazy algebra
-        if ( (highdate is None) or (self.lowdate is not None and
-                                highdate >= self.lowdate)):
-            self.highdate = date
+        if ( (highdate is None) or (self.lowerDateLimit is not None and
+                                    highdate >= self.lowerDateLimit)):
+            self.upperDateLimit = date
 
         else:
             retval = False
@@ -260,7 +257,7 @@ class PyMiniCalendar(wx.PyControl):
         return retval
         
     def GetUpperDateLimit(self):
-        return self.highdate
+        return self.upperDateLimit
 
     def SetDateRange(self, lowerdate=None, upperdate=None):
         retval = True
@@ -270,8 +267,8 @@ class PyMiniCalendar(wx.PyControl):
                                   lowerdate <= upperdate)) and
             (upperdate is None or (lowerdate is not None and
                                    upperdate >= lowerdate))):
-            self.lowdate = lowerdate
-            self.highdate = upperdate
+            self.lowerDateLimit = lowerdate
+            self.upperDateLimit = upperdate
         else:
             retval = False
 
@@ -545,13 +542,13 @@ class PyMiniCalendar(wx.PyControl):
 
         arrowheight = todayh - 5
 
-        leftarrow = [wx.Point(0, arrowheight / 2),
-                     wx.Point(arrowheight / 2, 0),
-                     wx.Point(arrowheight / 2, arrowheight - 1)]
+        leftarrow = [(0, arrowheight / 2),
+                     (arrowheight / 2, 0),
+                     (arrowheight / 2, arrowheight - 1)]
 
-        rightarrow = [wx.Point(0, 0),
-                      wx.Point(arrowheight / 2, arrowheight / 2),
-                      wx.Point(0, arrowheight - 1)]
+        rightarrow = [(0, 0),
+                      (arrowheight / 2, arrowheight / 2),
+                      (0, arrowheight - 1)]
 
         # draw the "month-arrows"
         arrowy = (self.todayHeight - arrowheight) / 2 + y
@@ -761,7 +758,7 @@ class PyMiniCalendar(wx.PyControl):
         for nWeek in xrange(1,WEEKS_TO_DISPLAY+1):
             # if the update region doesn't intersect this row, don't paint it
             if not self.IsExposed(0, y, DAYS_PER_WEEK * self.widthCol,
-                              self.heightRow - 1):
+                                  self.heightRow - 1):
                 weekDate += timedelta(days=7)
                 y += self.heightRow
                 continue
@@ -774,9 +771,9 @@ class PyMiniCalendar(wx.PyControl):
                 y += self.heightRow
                 continue
 
-            for wd in xrange(DAYS_PER_WEEK):
+            for weekDay in xrange(DAYS_PER_WEEK):
 
-                dayPosition = startDayPosition + (nWeek - 1) * DAYS_PER_WEEK + wd
+                dayPosition = startDayPosition + (nWeek - 1) * DAYS_PER_WEEK + weekDay
                 if self.IsDateShown(weekDate):
 
                     dayStr = str(weekDate.day)
@@ -785,23 +782,27 @@ class PyMiniCalendar(wx.PyControl):
                     changedColours = False
                     changedFont = False
                     
-                    x = wd * self.widthCol + (self.widthCol - width) / 2
+                    x = weekDay * self.widthCol + (self.widthCol - width) / 2
 
                     if highlightDate:
                         # either highlight the selected week or the
                         # selected day depending upon the style
-                        if (((self.GetWindowStyle() & CAL_HIGHLIGHT_WEEK) and
-                             (self.GetWeek(weekDate, False) == self.GetWeek(self.selected, False))) or
-                            (not (self.GetWindowStyle() & CAL_HIGHLIGHT_WEEK) and
+                        highlightWeek = (self.GetWindowStyle() &
+                                         CAL_HIGHLIGHT_WEEK) != 0
+                        if ((highlightWeek and
+                             (self.GetWeek(weekDate, False) ==
+                              self.GetWeek(self.selected, False))) or
+                            
+                            (not highlightWeek and
                              (weekDate == self.selected))):
 
-                            if wd == 0:
+                            if weekDay == 0:
                                 startX = SEPARATOR_MARGIN
                             else:
-                                startX = wd * self.widthCol
+                                startX = weekDay * self.widthCol
 
                             endX = self.widthCol
-                            if wd == ( DAYS_PER_WEEK - 1 ):
+                            if weekDay == ( DAYS_PER_WEEK - 1 ):
                                 endX -= (SEPARATOR_MARGIN)
 
                             dc.SetTextBackground(highlightColour)
@@ -878,10 +879,9 @@ class PyMiniCalendar(wx.PyControl):
         """
         set the date and send the notification
         """
-        if self.SetDate(date):
-            self.GenerateEvents(EVT_MINI_CALENDAR_YEAR_CHANGED,
-                                EVT_MINI_CALENDAR_SEL_CHANGED)
-            
+        self.SetDate(date)
+        self.GenerateEvents(EVT_MINI_CALENDAR_YEAR_CHANGED,
+                            EVT_MINI_CALENDAR_SEL_CHANGED)
 
     def SetVisibleDate(self, date, setVisible):
 
@@ -958,13 +958,13 @@ class PyMiniCalendar(wx.PyControl):
         """
         is this date in the given range?
         """
-        if self.lowdate is not None:
-            lowvalid = date >= self.lowdate
+        if self.lowerDateLimit is not None:
+            lowvalid = date >= self.lowerDateLimit
         else:
             lowvalid = True
 
-        if self.highdate is not None:
-            highvalid = date <= self.highdate
+        if self.upperDateLimit is not None:
+            highvalid = date <= self.upperDateLimit
         else:
             highvalid = True
 
@@ -983,13 +983,15 @@ class PyMiniCalendar(wx.PyControl):
         height = self.heightRow
 
         rect = wx.Rect(x,y,width,height)
-        # VZ: for some reason, the selected date seems to occupy more space under
-        #     MSW - this is probably some bug in the font size calculations, but I
-        #     don't know where exactly. This fix is ugly and leads to more
-        #     refreshes than really needed, but without it the selected days
-        #     leaves even more ugly underscores on screen.
-        
-        # MSW only: rect.Inflate(0, 1)
+        # VZ: for some reason, the selected date seems to occupy more
+        # space under MSW - this is probably some bug in the font size
+        # calculations, but I don't know where exactly. This fix is
+        # ugly and leads to more refreshes than really needed, but
+        # without it the selected days leaves even more ugly
+        # underscores on screen.
+
+        if '__WXMSW__' in wx.PlatformInfo:
+            rect.Inflate(0, 1)
 
         self.RefreshRect(rect)
 
@@ -1041,152 +1043,3 @@ class PyMiniCalendar(wx.PyControl):
     
     def GetYearControl(self):
         return self.staticYear
-
-    # OnPaint helper-methods
-
-    def HighlightRange(self, dc, fromdate, todate, pen, brush):
-        """
-        Highlight the [fromdate : todate] range using pen and brush
-        """
-        if todate >=fromdate:
-
-            fd, fw = self.GetDateCoord(fromdate)
-            td, tw = self.GetDateCoord(todate)
-
-            if -1 not in (fd, fw, td, tw):
-                # special case: interval 7 days or less not in same week
-                # split in two seperate intervals
-                tfd = fromdate + timedelta(days=DAYS_PER_WEEK - fd)
-                ftd = tfd + timedelta(days=1)
-
-                # draw seperately
-                self.HighlightRange(pDC, fromdate, tfd, pen, brush);
-                self.HighlightRange(pDC, ftd, todate, pen, brush);
-                
-            else:
-                corners = []
-
-                if fw == tw:
-                    # simple case: same week
-                    corners.append(wx.Point((fd - 1) * self.widthCol,
-                                            fw * self.heightRow +
-                                            self.rowOffset +
-                                            self.heightPreview))
-                    corners.append(wx.Point((fd - 1) * self.widthCol,
-                                            ((fw + 1 ) * self.heightRow) +
-                                            self.rowOffset +
-                                            self.heightPreview))
-                    corners.append(wx.Point(td * self.widthCol,
-                                            ((tw + 1) * self.heightRow) +
-                                            self.rowOffset +
-                                            self.heightPreview))
-                    corners.append(wx.Point(td * self.widthCol,
-                                            tw * self.heightRow +
-                                            self.rowOffset +
-                                            self.heightPreview))
-                else:
-                    # "complex" polygon
-                    corners.append(wx.Point((fd - 1) * self.widthCol,
-                                            (fw * self.heightRow) +
-                                            self.rowOffset +
-                                            self.heightPreview))
-
-                    if ( fd > 1 ):
-                        corners.append(wx.Point((fd - 1) * self.widthCol,
-                                                (fw + 1) * self.heightRow +
-                                                self.rowOffset +
-                                                self.heightPreview))
-                        corners.append(wx.Point(0,
-                                                (fw + 1) * self.heightRow +
-                                                self.rowOffset +
-                                                self.heightPreview))
-
-                    corners.append(wx.Point(0,
-                                            (tw + 1) * self.heightRow +
-                                            self.rowOffset +
-                                            self.heightPreview))
-                    corners.append(wx.Point(td * self.widthCol,
-                                            (tw + 1) * self.heightRow +
-                                            self.rowOffset +
-                                            self.heightPreview))
-
-                    if td < DAYS_PER_WEEK:
-                        corners.append(wx.Point(td * self.widthCol,
-                                                tw * self.heightRow +
-                                                self.rowOffset +
-                                                self.heightPreview))
-                        corners.append(wx.Point(DAYS_PER_WEEK * self.widthCol,
-                                                tw * self.heightRow +
-                                                self.rowOffset +
-                                                self.heightPreview))
-
-                    corners.append(wx.Point(DAYS_PER_WEEK * self.widthCol,
-                                            (fw * self.heightRow) +
-                                            self.rowOffset +
-                                            self.heightPreview))
-
-
-                # draw the polygon
-                dc.SetBrush(brush)
-                dc.SetPen(pen)
-                dc.DrawPolygon(corners)
-            
-    
-    def GetDateCoord(self, targetDate):
-        """
-        Get the "coordinates" for the date relative to the month
-        currently displayed.  using (day, week): upper left coord is (1,
-        1), lower right coord is (7, 6)
-        
-        if the date isn't visible (-1, -1) is put in (day, week) and
-        False is returned
-        """
-        if self.IsDateShown(date):
-            startOnMonday = ( self.GetWindowStyle() & wxCAL_MONDAY_FIRST ) != 0
-
-            # Find day
-            day = targetDate.weekday()
-
-            # this is a quick, but ugly way to map date-based
-            # weekdays to our (1..7) coordinate system
-            if startOnMonday:
-                day +=1                 # weekday is monday-based
-            else:
-                # weekday is kind of sunday-based starting at -1
-                day += 2
-                if day == DAYS_PER_WEEK + 1:
-                    day = 0
-
-            # XXX use timedelta, this is ugly
-            targetmonth = targetDate.month + (12 * targetDate.year)
-            thismonth = self.visible.month + (12 * self.visible.year)
-
-            # Find week
-            if targetmonth == thismonth:
-                week = self.GetWeek(targetDate)
-            elif targetmonth < thismonth:
-                week = 1 # trivial
-            else: # targetmonth > thismonth
-
-                # get the datecoord of the last day in the month currently shown
-                ldcm = (date(self.visible.year, self.visible.month+1,1) -
-                        timedelta(days=1))
-                (lastday, lastweek) = self.GetDateCoord(ldcm)
-
-                span = targetDate - ldcm
-
-                daysfromlast = span.days
-                if daysfromlast + lastday > DAYS_PER_WEEK: # past week boundary
-                    wholeweeks = (daysfromlast / DAYS_PER_WEEK)
-                    week = wholeweeks + lastweek
-                    if (daysfromlast - (DAYS_PER_WEEK * wholeweeks) + lastday) > DAYS_PER_WEEK:
-                        week += 1
-                else:
-                    week = lastweek
-
-        else:
-            day = -1
-            week = -1
-
-        return day,week
-
