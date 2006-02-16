@@ -344,8 +344,8 @@ else
         # scan the test output for the success message "OK"
         RESULT=`grep '#TINDERBOX# Status = PASSED' $PERF_LOG`
 
-		cat $C_DIR/test.log >> $PERF_LOG
-		
+        cat $C_DIR/test.log >> $PERF_LOG
+
         if [ "$RESULT" = "" ]; then
             for test in $TESTS ; do
                 FAILED_TESTS="$FAILED_TESTS $test"
