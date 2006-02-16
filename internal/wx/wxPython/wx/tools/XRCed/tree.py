@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, XML_tree class
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: tree.py,v 1.28 2006/01/29 17:35:47 vell Exp $
+# RCS-ID:       $Id: tree.py,v 1.29 2006/02/16 17:19:39 ROL Exp $
 
 from xxx import *                       # xxx imports globals and params
 import types
@@ -653,9 +653,9 @@ class XML_Tree(wxTreeCtrl):
         # Top-level sizer? return window's sizer
         if xxx.isSizer and isinstance(parentWin, wxWindow):
             return parentWin.GetSizer()
-        elif isinstance(xxx, xxxStatusBar):  return None
-        elif isinstance(xxx, xxxToolBar):
-            # If it's the main toolbar, we can't really select it
+        elif xxx.__class__ in [xxxStatusBar, xxxMenu, xxxMenuItem, xxxSeparator]:  return None
+        elif xxx.__class__ in [xxxToolBar, xxxMenuBar]:
+            # If it's the main toolbar or menubar, we can't really select it
             if xxx.parent.__class__ == xxxFrame:  return None
         elif isinstance(xxx.parent, xxxToolBar):
             # Select complete toolbar
