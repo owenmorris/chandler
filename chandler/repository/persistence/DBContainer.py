@@ -1538,13 +1538,22 @@ class ValueContainer(DBContainer):
         versionId, format, schema = unpack('>16sll', value)
         if open:
             versionSeq.open(txn, versionId, DBSequence.DB_THREAD)
-        version = versionSeq.last_value
+        version = self.getVersion()
 
         return UUID(versionId), version, format, schema
         
     def getVersion(self):
 
-        return self._versionSeq.last_value
+        store = self.store
+        if store._ramdb:
+            return self._versionSeq.last_value
+        
+        txnStatus = 0
+        try:
+            txnStatus = store.startTransaction(None, True)
+            return self._versionSeq.get(store.txn) - 1
+        finally:
+            store.abortTransaction(None, txnStatus)
 
     def nextVersion(self):
 
