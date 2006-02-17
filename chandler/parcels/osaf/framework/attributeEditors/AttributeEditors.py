@@ -1945,7 +1945,7 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
                 self.AttributeChanged()
 
     def _parse(self, inputString):
-        """"
+        """
           parse the durationString into a timedelta.
         """
         seconds = self.hourMinuteFormat.parse(inputString) - self.zeroHours
