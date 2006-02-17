@@ -441,6 +441,7 @@ class wxMenuItem (wx.MenuItem):
             raise NotImplementedError
 
     def Destroy(self):
+        Block.Block.wxOnDestroyWidget (self)
         self.GetMenu().DestroyItem (self)
 
     def wxSynchronizeWidget(self, useHints=False):
@@ -499,6 +500,7 @@ class wxMenu(wx.Menu):
         self.blockItem.synchronizeItems()
 
     def Destroy(self):
+        Block.Block.wxOnDestroyWidget (self)
         parentMenu = self.GetParent()
         if parentMenu is not None:
             for item in parentMenu.GetMenuItems():
@@ -514,17 +516,6 @@ class wxMenu(wx.Menu):
                         del self
                         break
 
-    def __del__(self):
-        for child in self.blockItem.childrenBlocks:
-            try:
-                widget = child.widget
-            except AttributeError:
-                pass
-            else:
-                if isinstance (widget, wx.MenuItem):
-                    Block.Block.wxOnDestroyWidget (widget)
-        Block.Block.wxOnDestroyWidget (self)
-            
     def __cmp__ (self, other):
         """
           CPIA and wxWidgets have different ideas about how submenus work.
@@ -813,6 +804,11 @@ class wxToolbarMixin (object):
     call the onDestroy method on each ToolbarItem to unhook that
     block from its widget. 
     """
+    def Destroy(self):
+        Block.Block.wxOnDestroyWidget (self)
+        toolbar = self.blockItem.parentBlock.widget
+        toolbar.DeleteTool(self.GetId())
+
     def wxSynchronizeWidget(self, useHints=False):
         """
           Currently, we only synchronize radio buttons, eventually we
@@ -879,12 +875,6 @@ class wxToolbarMixin (object):
         self.selectTool()
         event.Skip()
 
-class wxToolbarItem (wxToolbarMixin, wx.ToolBarToolBase):
-    """
-    Toolbar Tool Item widget.
-    """
-    pass
-
 class Toolbar(Block.RectangularChild, DynamicContainer):
 
     colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
@@ -910,7 +900,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
 
         if '__WXMAC__' in wx.PlatformInfo:
-            # widgets on the Mac has a bug causing it not to sett the Toolbar on the FrameWindow
+            # widgets on the Mac has a bug causing it not to set the Toolbar on the FrameWindow
             if (self.mainFrameToolbar):
                 self.getFrame().SetToolBar (toolbar)
 

@@ -190,23 +190,19 @@ class Block(schema.Item):
             if name is not None:
                 list = dictionary.get (name, None)
                 if list is None:
-                    dictionary [name] = [item.itsUUID, 1]
+                    dictionary [name] = [item.itsUUID]
                 else:
-                    list [1] = list [1] + 1 #increment the reference count
+                    list.insert (0, item.itsUUID)
 
     @classmethod
     def removeFromNameToItemUUIDDictionary (theClass, list, dictionary):
         for item in list:
-            try:
-                name = item.blockName
-            except AttributeError:
-                pass
-            else:
+            name = getattr (item, "blockName", None)
+            if name is not None:
                 list = dictionary [name]
-                if list [0] == item.itsUUID:
-                    list [1] = list [1] - 1 #decrement the reference count
-                    if list [1] == 0:
-                        del dictionary [name]
+                list.remove (item.itsUUID)
+                if len (list) == 0:
+                    del dictionary [name]
 
     @classmethod
     def template(theClass, blockName, **attrs):
@@ -334,8 +330,21 @@ class Block(schema.Item):
         for child in self.childrenBlocks:
             child.unRender()
         widget = getattr (self, 'widget', None)
+
         if widget is not None:
-            if (not isinstance (widget, wx.ToolBarToolBase)):
+
+            if __debug__:
+                eventsForNamedLookup = self.eventsForNamedLookup
+                if eventsForNamedLookup is not None:
+                    oldCounts = []
+                    for item in eventsForNamedLookup:
+                        list = self.eventNameToItemUUID.get (item.blockName, None)
+                        assert list is not None
+                        oldCounts.append (list.count (item.itsUUID))
+
+            method = getattr (type(widget), 'GetParent', None)
+            if method is not None:
+                parent = method (widget)
                 """
                   Remove child from parent before destroying child.
                 """
@@ -344,21 +353,23 @@ class Block(schema.Item):
                     if parent:
                         parent.RemoveChild (widget)
 
-                try:
-                    method = getattr (type(widget), 'Destroy')
-                except AttributeError:
-                    pass
-                else:
-                    method (widget)
-            
+            method = getattr (type(widget), 'Destroy', None)
+            if method is not None:
+                method (widget)
+        
+            # If the block has eventsForNamedLookup, make sure they are all gone
+            if __debug__:
+                if eventsForNamedLookup is not None:
+                    for item, oldCount in map (None, eventsForNamedLookup, oldCounts):
+                        list = self.eventNameToItemUUID.get (item.blockName, None)
+                        if list is None:
+                            count = 0
+                        else:
+                            count = list.count (item.itsUUID)
+                        assert count == oldCount - 1
 
-        try:
-            lastView = Globals.views[-1]
-        except IndexError:
-            pass
-        else:
-            if lastView == self:
-                Globals.views.pop()
+        if (len (Globals.views) > 0 and Globals.views[-1] == self):
+            Globals.views.pop()
 
     def onCollectionEvent (self, op, item, name, other, *args):
         """
