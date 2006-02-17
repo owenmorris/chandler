@@ -178,10 +178,7 @@ class AbstractCollection(items.ContentItem):
 
             # we must propagate changes "by hand"
             if op == "changed":
-                if isinstance(i, AbstractCollection):
-                    method_name = "notifySubscribers"
-                else:
-                    method_name = "onCollectionEvent"
+                method_name = "onCollectionEvent"
             if method_name != None:
                 method = getattr(type(i), method_name, None)
                 if method != None:
@@ -386,8 +383,6 @@ class DifferenceCollection(AbstractCollection):
 
                 if len(self.sources) == 2:
                     self.rep = Difference((self.sources[0], "rep"),(self.sources[1], "rep"))
-                    for i in self.sources:
-                        i.subscribers.add(self)
 
     def _inspect_(self, indent):
         """ more debugging """
@@ -425,7 +420,6 @@ class UnionCollection(AbstractCollection):
     def addSource(self, source):
 
         if source not in self.sources:
-            source.subscribers.add(self)
             self.sources.append(source)
             self._sourcesChanged()
 
@@ -444,7 +438,6 @@ class UnionCollection(AbstractCollection):
                                    'remove', 'collection', source, 'rep', False,
                                    uuid)
 
-            source.subscribers.remove(self)
             self.sources.remove(source)
             self._sourcesChanged()
 
@@ -479,9 +472,6 @@ class IntersectionCollection(AbstractCollection):
                     self.rep = Intersection((self.sources[0],"rep"),(self.sources[1],"rep"))
                 else:
                     self.rep = MultiIntersection(*[(i, "rep") for i in self.sources])
-            for i in self.sources:
-                i.subscribers.add(self)
-
     def _inspect_(self, indent):
         """ more debugging """
 
@@ -545,7 +535,6 @@ class FilteredCollection(AbstractCollection):
                             attrTuples.append((j, "remove"))
 
                     self.rep = FilteredSet((self.source, "rep"), self.filterExpression, attrTuples)
-                    self.source.subscribers.add(self)
 
     def _inspect_(self, indent):
         """ more debugging """
@@ -890,7 +879,6 @@ class IndexedSelectionCollection (AbstractCollection):
     def onValueChanged(self, name):
         if name == "source" and self.source != None:
             self.rep = Set((self.source, "rep"))
-            self.source.subscribers.add (self)
 
     def add(self, item):
         self.source.add(item)

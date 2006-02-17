@@ -391,9 +391,9 @@ class CollectionTests(CollectionTestCase):
 
         delattr(self.i,"label")
         deliverNotifications(self.view)
-        print nh3.log
+
         self.failUnless(nh3.checkLog("remove", f2, self.i,-2))
-        self.failUnless(nh3.checkLog("changed", k1, self.i))
+        self.failUnless(self.nh2.checkLog("changed", k1, self.i))
 
     def testFilters(self):
         from application.Parcel import Manager as ParcelManager

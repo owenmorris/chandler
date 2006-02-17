@@ -33,6 +33,10 @@ class Movie(Item):
 
         print self, 'itemChanged', op, item, names
 
+    def onCollectionEvent(self, op, collection, name, other, *args):
+
+        print self, 'onCollectionEvent', op, collection, name, other, args
+
 
 class Cartoon(Movie):
     pass

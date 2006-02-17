@@ -453,9 +453,10 @@ class Kind(Item):
 
         c = self.c
         allAttributes = self._allAttributes
-        allNames = self._allNames
 
         if not c.attributesCached:
+            allNames = self._allNames
+
             allAttributes.clear()
             allNames.clear()
 
@@ -665,6 +666,7 @@ class Kind(Item):
 
         if c.attributesCached:
             self._allAttributes.clear()
+            self._allNames.clear()
             c.attributesCached = False
 
         self.inheritedSuperKinds.clear()
