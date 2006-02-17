@@ -1116,7 +1116,8 @@ class AEBlock(BoxContainer):
             if editor is not None:
                 editor.BeginControlEdit(editor.item, editor.attributeName, self.widget)
 
-        IgnoreSynchronizeWidget(True, BeginEdit)
+        if not wx.GetApp().ignoreSynchronizeWidget:
+            IgnoreSynchronizeWidget(True, BeginEdit)
             
 
     def onWidgetChangedSize(self):
