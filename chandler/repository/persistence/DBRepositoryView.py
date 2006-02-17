@@ -228,7 +228,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                     for attribute, watchers in dispatch.iteritems():
                         if watchers:
                             if attribute is None:  # item watchers
-                                names = dirtyNames(kind, dirties)
+                                if names is None:
+                                    names = dirtyNames(kind, dirties)
                                 for watcher, watch, methodName in watchers:
                                     getattr(watcher, methodName)('refresh', item, names)
                             elif isNew or attribute in dirties:
@@ -323,7 +324,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def commit(self, mergeFn=None):
 
-        if self._status & RepositoryView.COMMITTING == 0:
+        if not (self._status & RepositoryView.COMMITTING or
+                len(self._log) + len(self._deletedRegistry) == 0):
             try:
                 release = self._acquireExclusive()
                 self._status |= RepositoryView.COMMITTING
