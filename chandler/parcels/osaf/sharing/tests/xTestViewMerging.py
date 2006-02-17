@@ -197,7 +197,6 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
 
     def Modify(self):
-        # change one of the items in both shares
 
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
@@ -211,7 +210,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
                 uuid = item.itsUUID
                 break
 
+
         # Make non-overlapping changes to the item
+
         item0 = view0.findUUID(uuid)
         item0.displayName = u"meeting rescheduled"
         oldStart = item0.startTime
@@ -257,7 +258,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
          u"startTime is %s" % (item1.startTime))
 
 
+
         # Make overlapping changes to the item
+
         newStart0 = datetime.datetime(2006, 1, 1, 12, 0, 0, 0, tzinfo)
         item0.startTime = newStart0
         newStart1 = datetime.datetime(2006, 1, 2, 12, 0, 0, 0, tzinfo)
@@ -293,6 +296,52 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
          u"startTime is %s" % (item0.startTime))
         self.assertEqual(item1.startTime, newStart0,
          u"startTime is %s" % (item1.startTime))
+
+
+
+        # Make an overlapping change on a Lob attribute
+
+        # (Not sure if I need view-specific lob items for makeValue( ), but
+        # just to be safe...)
+        lob0 = view0.findPath("//Schema/Core/Lob")
+        lob1 = view1.findPath("//Schema/Core/Lob")
+
+        item0.body = lob0.makeValue("view0 change", mimetype="plain/text")
+        item1.body = lob1.makeValue("view1 change", mimetype="plain/text")
+
+        stats = sharing.sync(coll0)
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        stats = sharing.sync(coll1)
+        printStats(view1, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        stats = sharing.sync(coll0)
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+
+        # Since we sync'd coll0 first, its change wins out over coll1
+        item0body = item0.body.getInputStream().read()
+        self.assertEqual(item0body, "view0 change",
+         u"item0 body is %s" % item0body)
+        item1body = item1.body.getInputStream().read()
+        self.assertEqual(item1body, "view0 change",
+         u"item1 body is %s" % item1body)
+
 
 
     def Remove(self):
