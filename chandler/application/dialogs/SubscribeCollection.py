@@ -21,13 +21,14 @@ class SubscribeDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, view=None, url=None):
+         resources=None, view=None, url=None, modal=True):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.view = view
         self.resources = resources
         self.parent = parent
+        self.modal = modal
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Subscribe")
@@ -119,7 +120,9 @@ class SubscribeDialog(wx.Dialog):
             if collection is None:
                 # user cancelled out of account dialog
                 self.subscribing = False
-                self.EndModal(True)
+                if self.modal:
+                    self.EndModal(True)
+                self.Destory()
                 return
 
             # Keep this collection out of "My items" if checked:
@@ -144,7 +147,9 @@ class SubscribeDialog(wx.Dialog):
 
             Globals.views[0].postEventByName(event, {})
 
-            self.EndModal(True)
+            if self.modal:
+                self.EndModal(True)
+            self.Destroy()
 
         except Exception, e:
             self.subscribeButton.Enable(True)
@@ -210,9 +215,11 @@ class SubscribeDialog(wx.Dialog):
         if self.subscribing:
             self.cancelPressed = True
         else:
-            self.EndModal(False)
+            if self.modal:
+                self.EndModal(False)
+            self.Destroy()
 
-def Show(parent, view=None, url=None):
+def Show(parent, view=None, url=None, modal=True):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -220,7 +227,10 @@ def Show(parent, view=None, url=None):
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
     win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
-     resources=resources, view=view, url=url)
+     resources=resources, view=view, url=url, modal=modal)
     win.CenterOnScreen()
-    win.ShowModal()
-    win.Destroy()
+    if modal:
+        return win.ShowModal()
+    else:
+        win.Show()
+        return win

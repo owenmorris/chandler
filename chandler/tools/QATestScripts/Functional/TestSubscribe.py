@@ -35,20 +35,14 @@ try:
     
     # Subscribe dialog
     logger.Start("Subscribe dialog")
-    xrcFile = os.path.join(Globals.chandlerDirectory, 'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
-    resources = wx.xrc.XmlResource(xrcFile)
-    win = SubscribeCollection.SubscribeDialog(wx.GetApp().mainFrame, _("Subscribe to Shared Collection"), resources=resources, view=App_ns.itsView, url=None)
-    win.CenterOnScreen()
-    win.Show()
-    wx.GetApp().Yield()
+    window = SubscribeCollection.Show(wx.GetApp().mainFrame,
+        view=App_ns.itsView, modal=False)
     window = wx.FindWindowByLabel("Subscribe to Shared Collection")
     url = window.toolPanel.GetChildren()[1]
     url.SetFocus()
     url.Clear()
-    wx.GetApp().Yield()
     QAUITestAppLib.scripting.User.emulate_typing("http://qacosmo.osafoundation.org:8080/home/demo1/importTest-1?ticket=g0kplikch1")
     window.OnSubscribe(None)
-    win.Destroy()
     User.idle()
     logger.Stop()
 
