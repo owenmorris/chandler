@@ -30,13 +30,18 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         self.RegisterDataType("Section", SectionRenderer(),
                               SectionEditor())
+
+        self.previousIndex = self.blockItem.contents.indexName
         
     def SynchronizeDelegate(self):
         """
         its reasonably cheap to rebuild section indexes, as
         get_divisions is really optimized for this
         """
-
+        if self.previousIndex != self.blockItem.contents.indexName:
+            self.collapsedSections = set()
+            self.previousIndex = self.blockItem.contents.indexName
+            
         self.RebuildSections()
 
     def RebuildSections(self):
@@ -194,7 +199,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         for reversedSection, sectionIndex in enumerate(reversed(self.sectionIndexes)):
             section = sectionAdjust - reversedSection
             
-            if itemIndex > sectionIndex:
+            if itemIndex >= sectionIndex:
                 if section in self.collapsedSections:
                     # section is collapsed! That's not good. Perhaps
                     # we should assert? Or maybe this is a valid case?
