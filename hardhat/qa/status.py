@@ -94,14 +94,17 @@ class status:
                            'section':     'base',
                          }
 
+        self.OSAF = '@osafoundation.org'
+
         self.IgnoreTBoxes    = []
         self.SVNRepos        = {}
         self.SVNReposModules = {}
         self.SVNEmails       = {}
 
         self.SMTPServer         = 'smtp.osafoundation.org'
-        self.SheriffEmails      = ['bear@osafoundation.org']
-        self.fromAddress        = 'builder@osafoundation.org'
+        self.SheriffEmails      = ['bear' + self.OSAF]
+        self.fromAddress        = 'builder' + self.OSAF
+        self.DefaultEmail       = 'dev' + self.OSAF
 
         self.SVNRoot            = 'http://svn.osafoundation.org/'
         self.ViewCVSURL         = 'http://viewcvs.osafoundation.org/'
@@ -357,9 +360,9 @@ Full instructions are at http://wiki.osafoundation.org/twiki/bin/view/Projects/?
 
                             authors.append(revision_author)
 
-                            msg = msg + 'Revision %s by %s. For details: ' % (revision, revision_author)
-                            msg = msg + self.ViewCVSRevisionURL % (self.ViewCVSURL, self.SVNRepos[buildname], revision)
-                            msg = msg + '\n%s-------------------\n' % revision_msg
+                            msg += 'Revision %s by %s. For details: ' % (revision, revision_author)
+                            msg += self.ViewCVSRevisionURL % (self.ViewCVSURL, self.SVNRepos[buildname], revision)
+                            msg += '\n%s-------------------\n' % revision_msg
 
                             if self._options['files']:
                                 paths = entry.getElementsByTagName('path')
@@ -368,12 +371,12 @@ Full instructions are at http://wiki.osafoundation.org/twiki/bin/view/Projects/?
                                     for child in node.childNodes:
                                         revision_files.append(child.nodeValue)
 
-                                msg = msg + '\nFiles:\n'
+                                msg += '\nFiles:\n'
 
                                 for item in revision_files:
-                                    msg = msg + '%s  [' % item
-                                    msg = msg + self.ViewCVSFileURL % (self.ViewCVSURL, self.SVNRepos[buildname], item, revision)
-                                    msg = msg + ']\n'
+                                    msg += '%s  [' % item
+                                    msg += self.ViewCVSFileURL % (self.ViewCVSURL, self.SVNRepos[buildname], item, revision)
+                                    msg += ']\n'
 
                             rev_msg.append(msg)
 
@@ -390,27 +393,27 @@ Full instructions are at http://wiki.osafoundation.org/twiki/bin/view/Projects/?
                         to_list.append(self.SVNEmails[author])
 
                 if len(to_list) == 0:
-                    to_list = ['dev@osafoundation.org']
+                    to_list = [self.DefaultEmail]
 
                 to_list.extend(self.SheriffEmails)
 
                 body =        'From: %s\n'    % self.fromAddress
-                body = body + 'To: %s\n'      % ','.join(to_list)
-                body = body + 'Subject: %s\n' % 'Build failed on %s\n' % buildname
-                body = body + '\n'
-                body = body + 'Tinderbox build has failed on %s.\n' % buildname
-                body = body + 'You are being notified because you are listed as a revision author.\n\n'
-                body = body + 'On Hook:      %s\n\n' % ", ".join(hook_list)
-                body = body + 'You can view the Tinderbox log here: '
-                body = body + self.TBoxLogURL % (treename, build_id)
-                body = body + '\n\n'
-                body = body + 'To add a Notice to the Tinderbox, visit this link: '
-                body = body + self.TBoxNoteURL % treename
-                body = body + '\n\n'
-                body = body + '\n'.join(rev_msg)
-                body = body + '\n'
-                body = body + self.Instructions
-                body = body + '\n'
+                body += 'To: %s\n'      % ','.join(to_list)
+                body += 'Subject: %s\n' % 'Build failed on %s\n' % buildname
+                body += '\n'
+                body += 'Tinderbox build has failed on %s.\n' % buildname
+                body += 'You are being notified because you are listed as a revision author.\n\n'
+                body += 'On Hook:      %s\n\n' % ", ".join(hook_list)
+                body += 'You can view the Tinderbox log here: '
+                body += self.TBoxLogURL % (treename, build_id)
+                body += '\n\n'
+                body += 'To add a Notice to the Tinderbox, visit this link: '
+                body += self.TBoxNoteURL % treename
+                body += '\n\n'
+                body += '\n'.join(rev_msg)
+                body += '\n'
+                body += self.Instructions
+                body += '\n'
 
                 try:
                     server = smtplib.SMTP(self.SMTPServer)
