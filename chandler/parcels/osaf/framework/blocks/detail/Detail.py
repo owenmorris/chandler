@@ -417,12 +417,18 @@ class DetailSynchronizer(Item):
         # Ignore notifications for attributes we don't care about
         changedAttributesWeCareAbout = self.widget.watchedAttributes.intersection(attributes)
         if len(changedAttributesWeCareAbout) == 0:
-            #logger.debug("DetailSynchronizer (%s): ignoring changes to %s.", 
+            #logger.debug("%s: ignoring changes to %s.", 
+                         #debugName(self), attributes)
+            return
+        
+        # Ignore notifications during stamping or deleting
+        if item._isMutating():
+            #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
                          #debugName(self), attributes)
             return
 
         # It's for us - reload the widget
-        #logger.debug("DetailSynchronizer (%s): syncing because of changes to %s.", 
+        #logger.debug("%s: syncing because of changes to %s.", 
                      #debugName(self), changedAttributesWeCareAbout)
         self.synchronizeWidget()
         if self.synchronizeItemDetail(self.item):
