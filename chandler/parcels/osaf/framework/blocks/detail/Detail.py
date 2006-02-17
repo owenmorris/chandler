@@ -319,8 +319,10 @@ class DetailSynchronizer(Item):
     def onSetContentsEvent (self, event):
         #logger.debug("DetailSynchronizer %s: onSetContentsEvent",
                      #getattr(self, 'blockName', '?'))
+        self.stopWatchingForChanges()
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
+        self.watchForChanges()
 
     item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
@@ -373,49 +375,58 @@ class DetailSynchronizer(Item):
         item = self.item
         if self.widget is not None and item is not None and \
            not item.isDeleted():
-            attrsToMonitor = self.attributesToMonitor()
-            if attrsToMonitor is not None:
-                # Map the attributes to the real attributes they're based on
-                # (this isn't a list comprehension because we're relying on the
-                # list-flattening behavior provided by 'update')
-                basedAttributes = set()
-                for a in attrsToMonitor:
-                    if a:
-                        basedAttributes.update(item.getBasedAttributes(a))
-                if len(basedAttributes):
-                    #logger.debug("DetailSynchronizer (%s): Attaching monitors for %s",
-                                 #getattr(self, 'blockName', '?'),
-                                 #', '.join(basedAttributes))
-                    for attr in basedAttributes:
-                        Monitors.attach(self, 'onMonitoredValueChanged', 'set', attr)
-                    self.widget.monitoredAttributes = basedAttributes
-
+            self.watchForChanges()
+    
     def onDestroyWidget(self):
-        # Stop monitoring
-        monitoredAttributes = getattr(self.widget, 'monitoredAttributes', None)
-        if monitoredAttributes is not None:
-            #logger.debug("DetailSynchronizer (%s): Detaching monitors for %s", 
-                         #getattr(self, 'blockName', '?'),
-                         #', '.join(self.widget.monitoredAttributes))
-            for attr in monitoredAttributes:
-                Monitors.detach(self, 'onMonitoredValueChanged', 'set', attr)
-        
+        self.stopWatchingForChanges()
         super(DetailSynchronizer, self).onDestroyWidget()
 
-    def onMonitoredValueChanged(self, op, item, attribute):
-        # Ignore notifications that aren't for us. (Yes, it's not ideal to have 
-        # awareness of proxies here, but I'm expecting _lots_ of notifications, 
-        # and this seems like the quickest way to reduce overhead, and seems
-        # safer than a deeper '==' comparison.)
-        ourItem = self.item
-        if item in (ourItem, getattr(ourItem, 'proxiedItem', None)):            
-            # It's for us - reload the widget
-            logger.debug("DetailSynchronizer (%s): Monitor on %s fired; syncing.", 
-                         self.blockName, attribute)
-            # XXX put a monitor hint here
-            self.synchronizeWidget()
-            if self.synchronizeItemDetail(ourItem):
-                self.detailRoot.relayoutSizer()
+    def watchForChanges(self):
+        if not hasattr(self, 'widget'):
+            return
+        assert not hasattr(self.widget, 'watchedAttributes')
+        attrsToMonitor = self.attributesToMonitor()
+        if attrsToMonitor is not None:
+            # Map the attributes to the real attributes they're based on
+            # (this isn't a list comprehension because we're relying on the
+            # list-flattening behavior provided by 'update')
+            watchedAttributes = set()
+            item = self.item
+            for a in attrsToMonitor:
+                if a:
+                    watchedAttributes.update(item.getBasedAttributes(a))
+            if len(watchedAttributes):
+                #logger.debug('%s: watching for changes in %s' % 
+                             #(debugName(self), watchedAttributes))
+                self.itsView.watchItem(self, item, 'onWatchedItemChanged')
+                self.widget.watchedAttributes = watchedAttributes
+
+    def stopWatchingForChanges(self):
+        try:
+            watchedAttributes = self.widget.watchedAttributes
+        except AttributeError:
+            pass
+        else:
+            if watchedAttributes is not None:
+                #logger.debug('%s: stopping watching for changes in %s' % 
+                             #(debugName(self), watchedAttributes))
+                self.itsView.unwatchItem(self, self.item, 'onWatchedItemChanged')
+                del self.widget.watchedAttributes        
+
+    def onWatchedItemChanged(self, op, item, attributes):
+        # Ignore notifications for attributes we don't care about
+        changedAttributesWeCareAbout = self.widget.watchedAttributes.intersection(attributes)
+        if len(changedAttributesWeCareAbout) == 0:
+            #logger.debug("DetailSynchronizer (%s): ignoring changes to %s.", 
+                         #debugName(self), attributes)
+            return
+
+        # It's for us - reload the widget
+        #logger.debug("DetailSynchronizer (%s): syncing because of changes to %s.", 
+                     #debugName(self), changedAttributesWeCareAbout)
+        self.synchronizeWidget()
+        if self.synchronizeItemDetail(self.item):
+            self.detailRoot().relayoutSizer()
 
 class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
     """ 

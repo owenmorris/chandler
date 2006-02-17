@@ -1,0 +1,521 @@
+#!/usr/bin/python
+#
+# script to run all Chandler unit, functional and performance tests
+#
+# Scans the chandler/ tree for any sub-directory that is named
+# "tests" and then within that directory calls RunPython for any
+# file named Test*.py
+#
+# if CHANDLER_PERFORMANCE_TEST=yes then CATS Performance Tests are run
+# if CHANDLER_FUNCTIONAL_TEST=no then CATS Functional Tests are skipped
+#
+# Notes on conversion from bash script:
+# - based on this:
+#   http://viewcvs.osafoundation.org/chandler/trunk/chandler/tools/do_tests.sh?rev=9144&view=markup
+# - I'm executing more external command-line operations than I normally would,
+#   to try to stay absolutely compatible with the old version (eg, grepping
+#   for results in textfiles, etc). Plenty of room for further work here.)
+# - cygpath strategy: I'm keeping everything in "native" format, and doing 
+#   cygpath conversion only when building a command line where the path is 
+#   being passed as a command-line parameter option (eg, --profileDir). 
+#   If it's not a parameter, it shouldn't be converted (eg script names passed
+#   to RunPython invocations, output redirections).
+
+import os, sys, getopt, pdb, time, popen2, fcntl, select
+
+E_OPTERROR = 65 # The error code we return in the event 
+
+USAGE = """Usage: %s -fpu [-t test_name] [chandler-base-path]
+  if CHANDLER_FUNCTIONAL_TEST=yes or -f then CATS Functional Tests are run
+  if CHANDLER_PERFORMANCE_TEST=yes or -p then CATS Performance Tests are run
+  if CHANDLER_UNIT_TEST=yes or -u then Chandler Unit Tests are run
+if a specific test name or (pattern) is given using -t then only that test name will be run
+chandler-base-path is 'chandler' that has 'internal' and 'external' as sibling directories""" \
+% os.path.basename(sys.argv[0])
+
+isCygwin = sys.platform == "cygwin"
+if isCygwin:
+    def cygPath(unixPath):
+        winPath = shellCommand("cygpath -w \"%s\"" % unixPath)
+        return winPath.replace('\\', '\\\\')
+else:
+    def cygPath(unixPath):
+        return unixPath
+
+def appendLog(logPath, msg):
+    f = open(logPath, 'a')
+    try:
+        f.write("%s\n" % msg)
+    finally:
+        f.close()
+    
+def teeMainLog(msg):
+    """ Print this message, and append it to our main log """
+    print msg
+    appendLog(mainLogPath, msg)
+
+def getContents(path):
+    f = open(path, 'r')
+    try:
+        contents = f.read()
+    finally:
+        f.close()
+    if contents[-1] == '\n':
+        contents = contents[:-1]
+    return contents
+
+class CommandError(RuntimeError): pass
+
+def shellCommand(command, chDir=None, multiLine=False, ignoreError=True, 
+                 stdout=None, *args, **kwds):
+    """
+    Run a shell command (optionally, chdir'd to chDir) and return the 
+    first line of its output, or all the lines (in an list) if 'multiLine'.
+    
+    Handy command-building is provided:
+    - If any *kwds are provided, each key-value pair will be prepended with "--",
+      the value quoted, and joined with "=" (eg, profileDir='xyz' will be passed
+      on the command line as --profileDir="xyz"). (If the value is simply True,
+      no '=' or quoted value will be appended. If the value is None, the pair will
+      be ignored.)
+    - If any *args are provided, they'll then be quoted and appended to the command
+      line too (after the keyword args).
+    - if 'stdout' is specified, '&>' will be used to redirect to it.
+    - If you don't want this behavior, or you care about keyword argument order,
+      format the "command" yourself.
+    """
+    if kwds:
+        command = "%s %s" % (command, 
+                             " ".join(v == True and '--%s' % n or '--%s="%s"' % (n, v) 
+                                      for (n, v) in kwds.items()
+                                      if v is not None))
+    if args:
+        command = "%s %s" % (command, " ".join(args))
+    if stdout is not None:
+        command = "%s 2>&1" % command
+        
+    oldcwd = os.getcwd()
+    try:
+        if chDir:
+            os.chdir(chDir)
+        if verbose: 
+            print "***%s***" % command
+
+        def makeNonBlocking(fd):
+            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+            try:
+                fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NDELAY)
+            except AttributeError:
+                fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.FNDELAY)
+
+        # Start the command process, close its input stream, 
+        # and make its output stream non-blocking.
+        child = popen2.Popen3("(%s) 2>&1" % command)
+        child.tochild.close()
+        outfile = child.fromchild 
+        outfd = outfile.fileno()
+        oldFl = fcntl.fcntl(outfd, fcntl.F_GETFL)
+        try:
+            fcntl.fcntl(outfd, fcntl.F_SETFL, oldFl | os.O_NDELAY)
+        except AttributeError:
+            fcntl.fcntl(outfd, fcntl.F_SETFL, oldFl | os.FNDELAY)
+
+        # Read the process output
+        outData = []
+        outeof = 0
+        while 1:
+            ready = select.select([outfd], [], [])
+            if outfd in ready[0]:
+                outchunk = outfile.read()
+                if outchunk == '': outeof = 1
+                outData.append(outchunk)
+                if verbose:
+                    print outchunk
+            if outeof: break
+            select.select([], [], [], .1) # give a little time for buffers to fill
+        err = child.wait()
+        statusMsgs = []
+        if err and getattr(os, "WIFCONTINUED", None) is not None:
+            if os.WCOREDUMP(err):
+                statusMsgs.append('core dump')
+            if os.WIFCONTINUED(err):
+                statusMsgs.append('continued')
+            if os.WIFSTOPPED(err):
+                statusMsgs.append('stopped')
+            if os.WIFSIGNALED(err):
+                statusMsgs.append('signaled (%s, %s)' % (os.WSTOPSIG(err), os.WTERMSIG(err)))
+            if os.WIFEXITED(err):
+                exitStatus = os.WEXITSTATUS(err)
+                statusMsgs.append('exited with status %s' % exitStatus)
+                err = exitStatus
+        if err and not ignoreError:
+            raise CommandError, '%s failed w/ exit code %d (%s): %s' % (command, err, ",".join(statusMsgs), "".join(outData))
+    finally:
+        if chDir:
+            os.chdir(oldcwd)
+    
+    if stdout is not None:
+        f = open(stdout, 'w')
+        try:
+            map(f.write, outData)
+        finally:
+            f.close()
+            
+    if multiLine:
+        lines = "".join(outData).split('\n')
+        if len(lines) > 0 and lines[-1] == '': del lines[-1]
+        return lines
+    
+    # Single line: Find the first newline in outData and return everything
+    # before it
+    currentChunk = 0
+    previousChunkLengths = 0
+    while True:
+        chunkNewlinePosition = outData[currentChunk].find('\n')
+        if chunkNewlinePosition != -1:
+            result = "".join(outData[:currentChunk+1])[:(previousChunkLengths + chunkNewlinePosition)]
+            return result
+        previousChunkLengths += len(outData[currentChunk])
+        currentChunk += 1
+        if currentChunk >= len(outData):
+            return "".join(outData) # return the whole thing.
+
+def runChandler(mode='release', *args, **kwds):
+    command = "CHANDLERHOME=%s CHANDLERBIN=%s %s/%s/RunChandler%s" \
+            % (cygPath(chandlerHome), cygPath(chandlerBin), 
+               chandlerBin, mode, isCygwin and ".bat" or "")	
+    return shellCommand(command, chDir=chandlerHome, *args, **kwds)
+
+def runPython(scriptName, mode='release', *args, **kwds):
+    command = "CHANDLERHOME=%s CHANDLERBIN=%s %s/%s/RunPython%s %s" \
+            % (cygPath(chandlerHome), cygPath(chandlerBin), 
+               chandlerBin, mode, isCygwin and ".bat" or "",
+               cygPath(scriptName))
+    return shellCommand(command, chDir=chandlerHome, *args, **kwds)
+    
+largeRepoResult = None
+def makeLargeRepository():
+    """ 
+    Build the large-data repository backup, if we haven't done it yet
+    this session. Return True if it was created successfully (even if
+    previously created this session).
+    """
+    global largeRepoResult
+    if largeRepoResult is None:
+        sys.stdout.write("Creating a large repository backup for the remaining tests")
+        shellCommand("rm -fr %s/__repository__.0*" % chandlerHome)  
+        runChandler(create=True, profileDir=cygPath(profileDir), 
+                    catsPerfLog=cygPath(timeLogPath),
+                    scriptFile=cygPath(backupRepoScript), 
+                    stdout=perfLogPath)
+    
+        # scan the output for the success message "OK"
+        largeRepoResult = shellCommand("grep '#TINDERBOX#' Status = PASSED' %s"
+                                       % testLogPath)
+
+        # Show the time it took to create backup
+        print " [%s]" % getContents(timeLogPath)
+
+    return largeRepoResult != ""
+    
+def main():
+    # We'll be setting these for other code to use
+    global chandlerHome, chandlerBin, mainLogPath, verbose
+    global backupRepoPath, backupRepoScript, profileDir, excludes
+    
+    # Process arguments
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'fpusvt:')
+    except getopt.GetoptError:
+        print USAGE
+        sys.exit(E_OPTERROR)
+        
+    opts = dict(opts)
+    runFunctional = os.environ.get('CHANDLER_FUNCTIONAL_TEST', 'no') == 'yes' or opts.has_key('-f')
+    runPerformance = os.environ.get('CHANDLER_PERFORMANCE_TEST', 'no') == 'yes' or opts.has_key('-p')
+    runUnitTests = os.environ.get('CHANDLER_PERFORMANCE_TEST', 'no') == 'yes' or opts.has_key('-u')
+    runStartupTests = os.environ.get('CHANDLER_STARTUP_TEST', 'no') == 'yes' or opts.has_key('-s')
+    verbose = opts.has_key('-v')
+    testToRun = opts.get('-t', None)
+    
+    # Determine several relevant paths    
+    if len(args) > 0:
+        chandlerHome = args[0]
+    else:
+        # Find it based on the location of this script itself
+        # chandlerHome = os.path.normpath(os.path.join(os.getcwd(), __file__, "..", ".."))
+        chandlerHome = "%s/.." % shellCommand("dirname %s" % sys.argv[0])
+    # @@@ seems wrong to do this after we just did the work to find it, or had it
+    # specified on the cmd line...
+    if not os.path.isdir(os.path.join(chandlerHome, "i18n")):
+        chandlerHome = os.getcwd()
+        print "Using current directory [%s] as the chandler/ directory" % chandlerHome
+        
+        if not os.path.isdir(chandlerHome):
+            print "Error: the path [%s] given does not point to a chandler/ directory" % chandlerHome
+            print USAGE
+            sys.exit(E_OPTERROR)
+            
+    chandlerBin = os.environ.get('CHANDLERBIN', '') or chandlerHome
+    profileDir = chandlerHome
+    mainLogPath = os.path.join(chandlerHome, "%s.log" % os.path.basename(__file__))
+    testLogPath = "%s/test.log" % chandlerHome
+    timeLogPath = "%s/time.log" % chandlerHome
+    perfLogPath = "%s/perf.log" % chandlerHome
+
+    backupRepoPath = os.path.join(chandlerHome, "__repository__.001")
+    backupRepoScript = os.path.join(chandlerHome, 
+        "tools/QATestScripts/Performance/LargeDataBackupRepository.py")
+    madeRepo = False
+    
+    failedTests = ""
+    
+    teeMainLog("""- + - + - + - + - + - + - + - + - + - + - + - + - + - + - +
+Started %s
+Setting up script environment""" % shellCommand('date'))
+    
+    parcelPath = os.path.join(chandlerHome, "tools", "QATestScripts", "DataFiles")
+        
+    # if the debug/ path is not found, then avoid debug tests
+    # @@@ bug: this should be chandlerBin, but I've left it as-is.
+    if not os.path.isdir(os.path.join(chandlerHome, 'debug')):
+        modes = ["release"]
+        teeMainLog("Skipping debug tests as %s/debug does not exist" % chandlerHome)
+    else:
+        modes = ["release", "debug"]
+    
+    # each directory to exclude should be place in the 'excludes' array
+    excludes = map(lambda x: os.path.join(chandlerHome, x) + "/", 
+                   ('release', 'debug', 'tools', 'util'))
+
+    # if a specific test name has been given then
+    # find that test and run it
+    if testToRun:
+        if os.path.isfile(testToRun):
+            dirs = [testToRun]
+        else:
+            dirs = shellCommand('find %s -name %s -print' 
+                                % (chandlerHome, testToRun), multiLine=True)
+            if not dirs:
+                dirs = shellCommand('find %s -name %s.py -print' 
+                                    % (chandlerHome, testToRun), multiLine=True)
+        
+        if not dirs:
+            print "Error: The test(s) you requested were not found: %s" % testToRun
+            failedTests = testToRun
+        else:
+            for mode in modes:
+                teeMainLog("Running %s" % mode)
+                
+                for test in dirs:
+                    teeMainLog("Running %s" % test)
+
+                    # @@@ this won't work under cygwin because of the slash;
+                    # @@@ suggest: "if test.find('QATestScripts') != -1" instead?
+                    if shellCommand('echo "%s" | grep -q "QATestScripts/"'):
+                        runChandler(create=True, profileDir=cygPath(profileDir), 
+                                    scriptFile=test, 
+                                    stdout=testLogPath)
+                        successPattern = "#TINDERBOX# Status = PASSED"
+                    else:
+                        runPython(test, mode=mode, stdout=testLogPath)
+                        successPattern = "^OK"
+                    
+                    teeMainLog("- - - - - - - - - - - - - - - - - - - - - - - - - -")
+                    teeMainLog(getContents(testLogPath))
+                    
+                    result = shellCommand('grep "%s" %s' % (successPattern, testLogPath))
+                    if result == "":
+                        failedTests += " (%s)%s" % (mode, test)
+    else:
+        if runUnitTests:
+            testDirs = shellCommand("find %s -type d -name tests -print" % chandlerHome,
+                                    multiLine=True)
+            for mode in modes:
+                teeMainLog("Running %s unit tests" % mode)
+
+                for testDir in testDirs:
+                    # skip this if this directory starts with one of the excluded paths.
+                    if [ d for d in excludes if testDir.startswith(d) ]:
+                        continue
+                    
+                    tests = shellCommand("find %s -name 'Test*.py' -print" % testDir,
+                                         multiLine=True)
+                    for test in tests:
+                        teeMainLog("Running %s" % test)
+                        runPython(test, mode=mode, stdout=testLogPath)
+                        
+                        # scan the test output for the success messge "OK"
+                        result = shellCommand("grep '^OK' %s" % testLogPath)
+                        
+                        teeMainLog("""- - - - - - - - - - - - - - - - - - - - - - - - - -
+%s [%s]""" % (test, result))
+                        teeMainLog(getContents(testLogPath))
+                        
+                        if result == "":
+                            failedTests += " (%s)%s" % (mode, test)
+
+        # if Functional Tests are needed - find the FunctionalTestSuite and run it
+        if runFunctional:
+            for mode in modes:
+                teeMainLog("Running %s functional tests" % mode)
+
+                test = os.path.join(chandlerHome, 
+                    "tools/QATestScripts/Functional/FunctionalTestSuite.py")
+
+                teeMainLog("Running %s" % test)
+                
+                runChandler(create=True, stderr=(mode == "debug" and True or None),
+                            profileDir=cygPath(chandlerHome), 
+                            parcelPath=cygPath(parcelPath),
+                            scriptFile=cygPath(test),
+                            stdout=testLogPath)
+                            
+                # scan the test output for the success messge "OK"
+                result = shellCommand('grep "#TINDERBOX# Status = PASSED" %s' 
+                                      % testLogPath)
+                if result == "":
+                    failedTests += " (%s)%s" % (mode, test)
+
+        # if Performance Tests are needed - walk the CATS directory
+        # and create a list of all valid tests
+        if runPerformance:
+            teeMainLog("Running performance tests")
+            
+            tests = shellCommand("find %s/tools/QATestScripts/Performance -name 'Perf*.py' -print"
+                                 % chandlerHome,
+                                 multiLine=True)
+            if os.path.exists(perfLogPath):
+                os.remove(perfLogPath)
+
+            # We'll run the tests that start with an empty repository first, 
+            # then we'll build & backup a big repository and run the large-
+            # repository tests.
+            for doLarge in False, True:                
+                for test in tests:
+                    # Only run the tests we're supposed to.
+                    testIsLarge = ('PerfLargeData' in test)
+                    if testIsLarge != doLarge:
+                        continue
+                    
+                    # If we're running the large tests, make sure we created
+                    # the large repository (a noop if we already have)
+                    if testIsLarge:
+                        madeRepo = makeLargeRepository()
+
+                    # Fail the test if we couldn't build the large repo
+                    if testIsLarge and not madeRepo:
+                        failedTests += " %s" % test
+                    else:                
+                        if os.path.exists(timeLogPath):
+                            os.remove(timeLogPath)
+                    
+                        sys.stdout.write(test)
+    
+                        if testIsLarge:
+                            runChandler(restore=cygPath(backupRepoPath), 
+                                        profileDir=cygPath(profileDir),
+                                        catsPerfLog=cygPath(timeLogPath),
+                                        scriptFile=cygPath(test),
+                                        stdout=testLogPath)
+                        else:
+                            runChandler(create=True, profileDir=cygPath(profileDir),
+                                        catsPerfLog=cygPath(timeLogPath),
+                                        scriptFile=cygPath(test),
+                                        stdout=testLogPath)
+
+                        result = shellCommand('grep "#TINDERBOX# Status = PASSED" %s' 
+                                              % testLogPath)
+                        if result == "":
+                            result = "Failed"
+                            failedTests += " %s" % test
+                        else:
+                            result = getContents(timeLogPath)
+                
+                        teeMainLog("[ %s ]" % result)
+                        appendLog(perfLogPath, 
+                            "- + - + - + - + - + - + - + - + - + - + - + - + - + - + - +\n%s"
+                            % getContents(testLogPath))
+
+                                        
+        if runStartupTests:
+            test = "%s/tools/QATestScripts/Performance/end.py" % chandlerHome
+            createRepoScript = "%s/tools/QATestScripts/Performance/quit.py" % chandlerHome
+            create3KRepoScript = "%s/tools/QATestScripts/Performance/PerfImportCalendar.py" % chandlerHome
+            
+            if isCygwin:
+                timeCmd = "time.exe --format=%e"
+            elif sys.platform.startswith('darwin'):
+                # NOTE: gtime is not part of OS X, you need to compile one
+                # yourself (get source from http://directory.fsf.org/time.html)
+                # or get it from darwinports project.
+                try:
+                    shellCommand("which gtime")
+                except:
+                    print "gtime not found, skipping startup tests"
+                    timeCmd = None
+                else:
+                    timeCmd = 'gtime --format=%e'
+                
+            if timeCmd is not None:
+                startupTimings = {}
+                for doLarge in False, True:
+                    if doLarge:
+                        print "Creating new large repository"
+                        makeLargeRepository()
+                        sys.stdout.write("Timing startup with large repository")
+                    else:                        
+                        print "Creating new empty repository"
+                        runChandler(create=True, profileDir=cygPath(profileDir),
+                                    scriptFile=cygPath(createRepoScript),
+                                    stdout=testLogPath)
+                        sys.stdout.write("Timing startup")
+                
+                        timingRunPaths = []
+                        for run in range(1,3):
+                            timingRunPath = "%s/start%s.%d.log" \
+                                % (chandlerHome, doLarge and "6" or "1", run)
+                            runChandler(prefixCmd="%s -o %s/start1.%d.log" % (timeCmd, timingRunPath),
+                                        profileDir=cygPath(profileDir),
+                                        scriptFile=cygPath(test),
+                                        stdout=testLogPath)
+                            shellCommand('cat %s | sed "s/^Command exited with non-zero status [0-9]\+ //" >%s' %
+                                         (timingRunPath, testLogPath))
+                            shellCommand('cat %s > %s' % (testLogPath, timingRunPath))
+                            editedTimingRun = getContents(testLogPath)
+                            sys.stdout.write(' %s' % editedTimingRun)
+                            timingRunPaths.append(timingRunPath)
+                        
+                        startupTimings[doLarge] = shellCommand('cat %s | sort -n | head -n 2 | tail -n 1' %
+                            " ".join(timingRunPaths), multiLine=True)
+                        print " [%s]" % startupTimings[doLarge]
+
+                        f = open(perfLogPath, 'a')
+                        try:
+                            testMessage = doLarge and "Startup_with_large_calendar" or "Startup"
+                            f.write("""- - - - - - - - - - - - - - - - - - - - - - - - - -
+%s [#TINDERBOX# Status = PASSED]
+OSAF_QA: %s | %s | %s
+#TINDERBOX# Testname = %s
+#TINDERBOX# Status = PASSED
+#TINDERBOX# Time elapsed = %s (seconds)
+""" % (test, testMessage, revision, startupTimings[doLarge], testMessage, startupTimings[doLarge]),
+                                    perfLogPath)
+                        finally:
+                            f.close()
+                
+                sleepTime = 5
+                print "Showing performance log in %d seconds, Ctrl+C to stop tests" % sleepTime
+                time.sleep(sleepTime)
+                print getContents(perfLogPath)
+                
+    teeMainLog("- + - + - + - + - + - + - + - + - + - + - + - + - + - + - +")
+    
+    if failedTests == "":
+        teeMainLog("All tests passed")
+    else:
+        teeMainLog("The following tests failed\n    %s" %
+                   "\n    ".join(failedTests.split()))
+
+if __name__ == "__main__":
+    main()
