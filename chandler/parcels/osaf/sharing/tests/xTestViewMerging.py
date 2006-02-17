@@ -12,6 +12,27 @@ from application import schema
 
 logger = logging.getLogger(__name__)
 
+printStatistics = False
+
+def printStats(view, stats):
+    if printStatistics:
+        for opStats in stats:
+            share = view.findUUID(opStats['share'])
+            print "'%s' %-25s Add: %3d, Mod: %3d, Rm: %3d" % \
+                (opStats['op'], share.conduit.shareName,
+                 len(opStats['added']),
+                 len(opStats['modified']),
+                 len(opStats['removed'])
+                )
+        print
+
+def checkStats(stats, expecting):
+    for seen, expected in zip(stats, expecting):
+        for event in ('added', 'modified', 'removed'):
+            if len(seen[event]) != expected[event]:
+                return False
+    return True
+
 class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
     def runTest(self):
@@ -62,6 +83,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         self.uuids = {}
 
         tzinfo = ICUtzinfo.getDefault()
+        lob = view.findPath("//Schema/Core/Lob")
         for i in xrange(5):
             c = pim.CalendarEvent(itsParent=sandbox)
             c.displayName = events[i % 5]
@@ -70,6 +92,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
+            c.body = lob.makeValue("test", mimetype="plain/text")
             self.uuids[c.itsUUID] = c.displayName
             coll.add(c)
 
@@ -127,10 +150,26 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
-        self.share0.sync()
+        stats = self.share0.sync()
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 6, 'modified' : 0, 'removed' : 0},
+             {'added' : 5, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+
 
         # Import
-        self.share1.sync()
+        stats = self.share1.sync()
+        printStats(self.share1.itsView, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 6, 'modified' : 0, 'removed' : 0},
+             {'added' : 5, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+
         coll1 = self.share1.contents
 
         self.assertEqual(coll0.itsUUID, coll1.itsUUID, "Collection UUIDs "
@@ -182,9 +221,30 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         item1 = view1.findUUID(uuid)
         item1.startTime = newStart
 
-        sharing.sync(coll0)
-        sharing.sync(coll1)
-        sharing.sync(coll0)
+        stats = sharing.sync(coll0)
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        stats = sharing.sync(coll1)
+        printStats(view1, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        stats = sharing.sync(coll0)
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
 
         self.assertEqual(item0.displayName, u"meeting rescheduled",
          u"displayName is %s" % (item0.displayName))
@@ -203,9 +263,30 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         newStart1 = datetime.datetime(2006, 1, 2, 12, 0, 0, 0, tzinfo)
         item1.startTime = newStart1
 
-        sharing.sync(coll0)
-        sharing.sync(coll1)
-        sharing.sync(coll0)
+        stats = sharing.sync(coll0)
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        stats = sharing.sync(coll1)
+        printStats(view1, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        stats = sharing.sync(coll0)
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
 
         # Since we sync'd coll0 first, its change wins out over coll1
         self.assertEqual(item0.startTime, newStart0,
@@ -233,10 +314,24 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         coll0.remove(item0)
 
-        sharing.sync(coll0)
+        stats = sharing.sync(coll0)
+        printStats(view0, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 1},
+             {'added' : 0, 'modified' : 0, 'removed' : 1})),
+            "Sync operation mismatch")
 
         self.assert_(item1 in coll1)
-        sharing.sync(coll1)
+        stats = sharing.sync(coll1)
+        printStats(view1, stats)
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 1},
+             {'added' : 0, 'modified' : 0, 'removed' : 1},
+             {'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item1 not in coll1)
 
 if __name__ == "__main__":
