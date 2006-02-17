@@ -59,11 +59,6 @@ def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
     """
     app = wx.GetApp()
     oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-
-    # don't run the method if we don't need to!
-    if oldIgnoreSynchronizeWidget:
-        return
-    
     app.ignoreSynchronizeWidget = syncValue
     try:
         result = method(*args, **kwds)
