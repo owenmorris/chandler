@@ -391,7 +391,7 @@ class DetailSynchronizer(Item):
             # (this isn't a list comprehension because we're relying on the
             # list-flattening behavior provided by 'update')
             watchedAttributes = set()
-            item = self.item
+            item = getattr(self.item, 'proxiedItem', self.item)
             for a in attrsToMonitor:
                 if a:
                     watchedAttributes.update(item.getBasedAttributes(a))
@@ -410,7 +410,8 @@ class DetailSynchronizer(Item):
             if watchedAttributes is not None:
                 #logger.debug('%s: stopping watching for changes in %s' % 
                              #(debugName(self), watchedAttributes))
-                self.itsView.unwatchItem(self, self.item, 'onWatchedItemChanged')
+                item = getattr(self.item, 'proxiedItem', self.item)
+                self.itsView.unwatchItem(self, item, 'onWatchedItemChanged')
                 del self.widget.watchedAttributes        
 
     def onWatchedItemChanged(self, op, item, attributes):
