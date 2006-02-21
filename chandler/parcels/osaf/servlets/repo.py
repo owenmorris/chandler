@@ -184,14 +184,14 @@ def RenderSearchForm(repoView):
 <tr class="toprow">
 <td><b>PyLucene Search:</b></td>
 </tr>
+<tr class="oddrow">
+<td>
+    <div class="tree">
+    <form method="get" action="/repo"><input type="text" name="text" size="40"><input type="hidden" name="mode" value="search"></form>
+</div>
+</td></tr></table>
 """
 
-    result += "<tr class='oddrow'>\n"
-    result += "<td>"
-    result += "<div class='tree'>"
-    result += "<form method=get action=/repo><input type=text name=text size=40><input type=hidden name=mode value=search>"
-    result += "</div>"
-    result += "</td></tr></table></form>\n"
     return result
 
 def RenderSearchResults(repoView, text):
@@ -588,7 +588,7 @@ def RenderBlock(repoView, block):
         if mode == 'horizontal':
             result += '<td class="block" valign="top" >%s</td>' % childRender
         else:
-            result += '<tr class="block"><td class="block" width="100%">%s</td></tr>' % childRender
+            result += '<tr class="block"><td class="block" width="100%%">%s</td></tr>' % childRender
 
     if mode == 'horizontal':
         result += "</tr>"
