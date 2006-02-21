@@ -114,12 +114,7 @@ class wxMiniCalendar(minical.PyMiniCalendar):
             start = self.GetStartDate();
 
             # ugh, why can't timedelta just support months?
-            endYear = start.year
-            endMonth = start.month + 3
-            if endMonth > 12:
-                endYear += 1
-                endMonth -= 12
-            end = datetime(endYear, endMonth, start.day)
+            end = minical.MonthDelta(start, 3)
                 
             addedEvents = self.blockItem._getAddedEventsFromHints(start, end,
                                                               hints)
@@ -156,12 +151,7 @@ class wxMiniCalendar(minical.PyMiniCalendar):
 
         startDate = self.GetStartDate();
 
-        month = startDate.month + 3
-        if month > 12:
-            endDate = startDate.replace(year=startDate.year+1,
-                                        month=month - 12)
-        else:
-            endDate = startDate.replace(month=month)
+        endDate = minical.MonthDelta(startDate, 3)
 
         numDays = (endDate - startDate).days
         busyFractions = {}

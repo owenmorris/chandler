@@ -1,6 +1,7 @@
 
 import wx
 from i18n import OSAFMessageFactory as _
+from PyICU import DateFormatSymbols, GregorianCalendar
 
 from datetime import date, timedelta
 import calendar
@@ -115,10 +116,14 @@ class PyMiniCalendar(wx.PyControl):
         self.widthCol = 0
         self.heightRow = 0
 
-        # TODO fill weekdays with names from PyICU
-        self.weekdays = ["M", "T", "W", "T", "F", "S", "S"]
-        self.firstDayOfWeek = calendar.SUNDAY
+        dateFormatSymbols = DateFormatSymbols()
 
+        self.months = dateFormatSymbols.getMonths()
+        
+        # this is a 1-based array as entry [0] is an empty string
+        self.weekdays = [unicode(d) for d in dateFormatSymbols.getShortWeekdays()]
+        self.firstDayOfWeek = GregorianCalendar().getFirstDayOfWeek()
+        
         self.busyPercent = {}
 
         # I'm sure this will really get initialized in RecalcGeometry
@@ -569,11 +574,11 @@ class PyMiniCalendar(wx.PyControl):
             dc.DrawRectangle(0, y, self.GetClientSize().x, self.heightRow)
 
             for wd in xrange(DAYS_PER_WEEK):
-                n = wd + self.firstDayOfWeek
+                n = wd + self.firstDayOfWeek + 1
                 n %= DAYS_PER_WEEK
                     
-                (dayw, dayh) = dc.GetTextExtent(self.weekdays[n])
-                dc.DrawText(self.weekdays[n],
+                (dayw, dayh) = dc.GetTextExtent(self.weekdays[n+1])
+                dc.DrawText(self.weekdays[n+1],
                             (wd*self.widthCol) + ((self.widthCol- dayw) / 2),
                             y) # center the day-name
 
