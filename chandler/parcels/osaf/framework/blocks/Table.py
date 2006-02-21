@@ -311,14 +311,51 @@ class wxTable(DragAndDrop.DraggableWidget,
           A Grid can't easily redisplay its contents, so we write the following
         helper function to readjust everything after the contents change
         """
-        #Trim/extend the control's rows and update all values
 
+        self.SynchronizeDelegate()
+
+        self.UpdateRowsAndColumns()
+        
+        # Either we should move selectedItemToView into the selection
+        # that is part of the contents or get rid of it. This would
+        # eliminate the following code that keeps it up to date and
+        # when we install a different contents on a block it would get
+        # restored to the correct value -- DJA
+        contents = self.blockItem.contents
+        selectedItemToView = self.blockItem.selectedItemToView
+        if (selectedItemToView not in contents and
+            selectedItemToView is not None):
+            selectedItemToView = contents.getFirstSelectedItem()
+            self.blockItem.selectedItemToView = selectedItemToView
+            self.blockItem.postEventByName("SelectItemsBroadcast",
+                                           {'items':[selectedItemToView]})
+
+        if selectedItemToView is not None:
+            index = contents.index (selectedItemToView)
+            contents.addSelectionRange (index)
+            column = 0
+            editAttributeNamed = getattr (self.blockItem, "editAttributeNamed", None)
+            if editAttributeNamed is not None:
+                try:
+                    column = self.blockItem.columnData.index (editAttributeNamed)
+                except ValueError:
+                    editAttributeNamed = None
+
+            cursorRow = self.IndexToRow(index)
+            if cursorRow != -1:
+                self.SetGridCursor (cursorRow, column)
+                self.MakeCellVisible (cursorRow, column)
+                if editAttributeNamed is not None:
+                    self.EnableCellEditControl()
+                    
+    def UpdateRowsAndColumns(self):
+
+        #Trim/extend the control's rows and update all values
         if self.blockItem.hideColumnHeadings:
             self.SetColLabelSize (0)
         else:
             self.SetColLabelSize (wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT)
 
-        self.SynchronizeDelegate()
 
         gridTable = self.GetTable()
         newColumns = gridTable.GetNumberCols()
@@ -354,10 +391,25 @@ class wxTable(DragAndDrop.DraggableWidget,
         
         assert (self.GetNumberCols() == gridTable.GetNumberCols() and
                 self.GetNumberRows() == gridTable.GetNumberRows())
+
+        self.UpdateColumnWidths(newColumns)
         
+        # Workaround for bug #3994
+        wx.CallAfter (self.AdjustScrollbars)
+
+        self.UpdateSelection(newColumns)
+        self.EndBatch()
+
+        # Update all displayed values
+        gridTable = self.GetTable()
+        message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
+        self.ProcessTableMessage (message)
+        self.ForceRefresh () 
+
+    def UpdateColumnWidths(self, columns):
         # update all column widths but the last one
         widthMinusLastColumn = 0
-        for columnIndex in xrange (newColumns - 1):
+        for columnIndex in xrange (columns - 1):
             widthMinusLastColumn += self.blockItem.columnWidths[columnIndex]
             self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
@@ -367,56 +419,16 @@ class wxTable(DragAndDrop.DraggableWidget,
         if (self.GetSize() != self.GetVirtualSize()):
             remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) - 1
         if remaining > 0:
-            self.SetColSize(newColumns - 1, remaining)
-        
-        # Workaround for bug #3994
-        wx.CallAfter (self.AdjustScrollbars)
-
+            self.SetColSize(columns - 1, remaining)
+    
+    def UpdateSelection(self, columns):
         self.ClearSelection()
         contents = self.blockItem.contents
         for selectionStart,selectionEnd in contents.getSelectionRanges():
             rowStart = self.IndexToRow(selectionStart)
             rowEnd = self.IndexToRow(selectionEnd)
             self.SelectBlock (rowStart, 0,
-                              rowEnd, newColumns, True)
-        self.EndBatch() 
-
-        # Update all displayed values
-        gridTable = self.GetTable()
-        message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
-        self.ProcessTableMessage (message)
-        self.ForceRefresh () 
-
-        # Either we should move selectedItemToView into the selection
-        # that is part of the contents or get rid of it. This would
-        # eliminate the following code that keeps it up to date and
-        # when we install a different contents on a block it would get
-        # restored to the correct value -- DJA
-        selectedItemToView = self.blockItem.selectedItemToView
-        if (selectedItemToView not in contents and
-            selectedItemToView is not None):
-            selectedItemToView = contents.getFirstSelectedItem()
-            self.blockItem.selectedItemToView = selectedItemToView
-            self.blockItem.postEventByName("SelectItemsBroadcast",
-                                           {'items':[selectedItemToView]})
-
-        if selectedItemToView is not None:
-            index = contents.index (selectedItemToView)
-            contents.addSelectionRange (index)
-            column = 0
-            editAttributeNamed = getattr (self.blockItem, "editAttributeNamed", None)
-            if editAttributeNamed is not None:
-                try:
-                    column = self.blockItem.columnData.index (editAttributeNamed)
-                except ValueError:
-                    editAttributeNamed = None
-
-            cursorRow = self.IndexToRow(index)
-            if cursorRow != -1:
-                self.SetGridCursor (cursorRow, column)
-                self.MakeCellVisible (cursorRow, column)
-                if editAttributeNamed is not None:
-                    self.EnableCellEditControl()
+                              rowEnd, columns, True)
 
     def GoToItem(self, item):
         if item != None:
@@ -478,12 +490,9 @@ class wxTable(DragAndDrop.DraggableWidget,
             DeleteItemCallback = DefaultCallback
         topLeftList = self.GetSelectionBlockTopLeft()
         bottomRightList = self.GetSelectionBlockBottomRight()
+
         
-        selectionRanges = []
-        # build up a list of selection ranges [[tl1, br1], [tl2, br2]]
-        for indexStart, indexEnd in self.SelectedIndexRanges():
-            selectionRanges.append ([indexStart, indexEnd])
-        selectionRanges.sort(reverse=True)
+        selectionRanges = reversed(self.blockItem.contents.getSelectionRanges())
 
         """
           Clear the selection before removing the elements from the collection
@@ -506,6 +515,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         newSelectedItemIndex = -1
         for selectionStart,selectionEnd in selectionRanges:
             for itemIndex in xrange (selectionEnd, selectionStart - 1, -1):
+                print "Deleting item at %s" % itemIndex
                 DeleteItemCallback(contents[itemIndex])
                 # remember the last deleted row
                 newSelectedItemIndex = itemIndex
@@ -528,6 +538,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem.synchronizeWidget()
         totalItems = len(contents)
         if totalItems > 0:
+            print "Now I'd like to select something at index %s" % newSelectedItemIndex
             if newSelectedItemIndex != -1:
                 newSelectedItemIndex = min(newSelectedItemIndex, totalItems - 1)
             blockItem.PostSelectItems([contents[newSelectedItemIndex]])
