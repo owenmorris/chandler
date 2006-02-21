@@ -586,7 +586,7 @@ class ItemRoot:
             try:
                 item = item[part]
             except KeyError:
-                item = Item(part, item)
+                item = Base(part, item)
             declareTemplate(item)
         return item
 
