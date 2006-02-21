@@ -68,6 +68,7 @@ typedef struct {
 } t_lock;
 
 
+extern PyTypeObject *SingleRef;
 extern PyTypeObject *CView;
 extern PyTypeObject *CRepository;
 extern PyTypeObject *CItem;

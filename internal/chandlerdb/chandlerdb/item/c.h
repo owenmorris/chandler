@@ -37,6 +37,7 @@ extern PyObject *Nil;
 extern PyObject *Default;
 
 extern CView_invokeMonitors_fn CView_invokeMonitors;
+extern CView_invokeWatchers_fn CView_invokeWatchers;
 extern PyUUID_Check_fn PyUUID_Check;
 extern PyCFunction _countAccess;
 

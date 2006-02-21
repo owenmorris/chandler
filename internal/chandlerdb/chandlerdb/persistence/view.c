@@ -10,6 +10,7 @@
 #include "structmember.h"
 
 #include "c.h"
+#include "../util/singleref.h"
 
 static void t_view_dealloc(t_view *self);
 static int t_view_traverse(t_view *self, visitproc visit, void *arg);
@@ -46,6 +47,7 @@ static PyObject *t_view_find(t_view *self, PyObject *args);
 static PyObject *t_view_getSingleton(t_view *self, PyObject *key);
 static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
 static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args);
+static PyObject *t_view_invokeWatchers(t_view *self, PyObject *args);
 
 static int t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -62,6 +64,8 @@ static PyObject *method_NAME;
 static PyObject *args_NAME, *kwds_NAME;
 static PyObject *item_NAME;
 static PyObject *MONITORS_PATH;
+static PyObject *sourceChanged_NAME;
+static PyObject *set_NAME, *kind_NAME, *collection_NAME;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
@@ -97,6 +101,7 @@ static PyMethodDef t_view_methods[] = {
     { "getSingleton", (PyCFunction) t_view_getSingleton, METH_O, NULL },
     { "setSingleton", (PyCFunction) t_view_setSingleton, METH_VARARGS, "" },
     { "invokeMonitors", (PyCFunction) t_view_invokeMonitors, METH_VARARGS, "" },
+    { "invokeWatchers", (PyCFunction) t_view_invokeWatchers, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -794,6 +799,135 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static int _t_view_invokeWatchers(t_view *self, PyObject *watchers,
+                                  PyObject *op, PyObject *change,
+                                  PyObject *owner, PyObject *name,
+                                  PyObject *other)
+{
+    PyObject *dict, *key, *value;
+    int pos = 0;
+
+    if (!PyAnySet_Check(watchers))
+    {
+        PyErr_SetObject(PyExc_TypeError, watchers);
+        return -1;
+    }
+
+    /* a set's dict is organized as { value: True } */
+    dict = ((PySetObject *) watchers)->data;
+
+    while (PyDict_Next(dict, &pos, &key, &value)) {
+        PyObject *watcher = PyTuple_GetItem(key, 0);
+        PyObject *watch = PyTuple_GetItem(key, 1);
+
+        if (!watcher || !watch)
+            return -1;
+
+        if (PyObject_TypeCheck(watcher, SingleRef))
+            watcher = t_view_dict_get(self, ((t_sr *) watcher)->uuid);
+        else if (PyUUID_Check(watcher))
+            watcher = t_view_dict_get(self, watcher);
+        else
+        {
+            PyErr_SetObject(PyExc_TypeError, watcher);
+            return -1;
+        }
+
+        if (!watcher)
+            return -1;
+
+        if (!PyObject_Compare(watch, set_NAME))
+        {
+            PyObject *attrName = PyTuple_GetItem(key, 2);
+            PyObject *set = PyObject_GetAttr(watcher, attrName);
+            PyObject *result;
+
+            if (!set)
+            {
+                Py_DECREF(watcher);
+                return -1;
+            }
+
+            result = PyObject_CallMethodObjArgs(set, sourceChanged_NAME,
+                                                op, change, owner, name,
+                                                Py_False, other, NULL);
+            Py_DECREF(watcher);
+            Py_DECREF(set);
+
+            if (!result)
+                return -1;
+            Py_DECREF(result);
+        }
+        else if (!PyObject_Compare(watch, kind_NAME))
+        {
+            PyObject *methName = PyTuple_GetItem(key, 2);
+            PyObject *result, *kind;
+
+            if (PyUUID_Check(owner))
+            {
+                PyObject *extent = t_view_dict_get(self, owner);
+
+                if (!extent)
+                {
+                    Py_DECREF(watcher);
+                    return -1;
+                }
+
+                kind = PyObject_GetAttr(extent, kind_NAME);
+                Py_DECREF(extent);
+            }
+            else
+                kind = PyObject_GetAttr(owner, kind_NAME);
+
+            if (!kind)
+            {
+                Py_DECREF(watcher);
+                return -1;
+            }
+
+            result = PyObject_CallMethodObjArgs(watcher, methName,
+                                                op, kind, other, NULL);
+            Py_DECREF(kind);
+            Py_DECREF(watcher);
+
+            if (!result)
+                return -1;
+            Py_DECREF(result);
+        }
+        else if (!PyObject_Compare(watch, collection_NAME))
+        {
+            PyObject *methName = PyTuple_GetItem(key, 2);
+            PyObject *result =
+                PyObject_CallMethodObjArgs(watcher, methName,
+                                           op, owner, name, other, NULL);
+
+            Py_DECREF(watcher);
+            if (!result)
+                return -1;
+            Py_DECREF(result);
+        }
+        else
+            Py_DECREF(watcher);
+    }
+
+    return 0;
+}
+
+static PyObject *t_view_invokeWatchers(t_view *self, PyObject *args)
+{
+    PyObject *watchers, *op, *change, *owner, *name, *other;
+
+    if (!PyArg_ParseTuple(args, "OOOOOO", &watchers, &op, &change,
+                          &owner, &name, &other))
+        return NULL;
+
+    if (_t_view_invokeWatchers(self, watchers, op, change,
+                               owner, name, other) < 0)
+        return NULL;
+
+    Py_RETURN_NONE;
+}
+
 
 void _init_view(PyObject *m)
 {
@@ -828,12 +962,18 @@ void _init_view(PyObject *m)
             args_NAME = PyString_FromString("args");
             kwds_NAME = PyString_FromString("kwds");
             item_NAME = PyString_FromString("item");
+            sourceChanged_NAME = PyString_FromString("sourceChanged");
+            set_NAME = PyString_FromString("set");
+            kind_NAME = PyString_FromString("kind");
+            collection_NAME = PyString_FromString("collection");
 
             MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
             PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);
 
             cobj = PyCObject_FromVoidPtr(t_view_invokeMonitors, NULL);
             PyModule_AddObject(m, "CView_invokeMonitors", cobj);
+            cobj = PyCObject_FromVoidPtr(_t_view_invokeWatchers, NULL);
+            PyModule_AddObject(m, "CView_invokeWatchers", cobj);
         }
     }
 }

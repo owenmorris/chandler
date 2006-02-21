@@ -13,6 +13,7 @@
 #include <db.h>
 #include "c.h"
 
+PyTypeObject *SingleRef = NULL;
 PyTypeObject *CView = NULL;
 PyTypeObject *CRepository = NULL;
 PyTypeObject *CItem = NULL;
@@ -129,6 +130,7 @@ void initc(void)
     PyModule_AddIntConstant(m, "DB_VERSION_PATCH", DB_VERSION_PATCH);
 
     m = PyImport_ImportModule("chandlerdb.util.c");
+    LOAD_TYPE(m, SingleRef);
     LOAD_FN(m, PyUUID_Check);
     LOAD_FN(m, PyUUID_Make16);
     Py_DECREF(m);

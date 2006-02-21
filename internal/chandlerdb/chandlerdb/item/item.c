@@ -34,7 +34,7 @@ static PyObject *t_item__isKDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isNoDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isCopyExport(t_item *self, PyObject *args);
 static PyObject *t_item__isImporting(t_item *self, PyObject *args);
-static PyObject *t_item__isMutating(t_item *self, PyObject *args);
+static PyObject *t_item_isMutating(t_item *self, PyObject *args);
 static PyObject *t_item__isRepository(t_item *self, PyObject *args);
 static PyObject *t_item__isView(t_item *self, PyObject *args);
 static PyObject *t_item__isItem(t_item *self, PyObject *args);
@@ -48,7 +48,6 @@ static PyObject *t_item__fireChanges(t_item *self, PyObject *args);
 static PyObject *t_item__fillItem(t_item *self, PyObject *args);
 static PyObject *t_item_setDirty(t_item *self, PyObject *args);
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args);
-static PyObject *t_item_collectionChanged(t_item *self, PyObject *args);
 static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
@@ -81,13 +80,12 @@ static PyObject *logger_NAME;
 static PyObject *_verifyAssignment_NAME;
 static PyObject *_setDirty_NAME;
 static PyObject *set_NAME, *remove_NAME;
-static PyObject *kind_NAME, *collection_NAME, *item_NAME;
+static PyObject *item_NAME;
 static PyObject *_logItem_NAME;
 static PyObject *_clearDirties_NAME;
 static PyObject *_flags_NAME;
 static PyObject *watchers_NAME, *watcherDispatch_NAME;
 static PyObject *filterItem_NAME;
-static PyObject *sourceChanged_NAME, *collectionChanged_NAME;
 static PyObject *_setParent_NAME;
 static PyObject *_setItem_NAME;
 static PyObject *c_NAME;
@@ -126,7 +124,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isNoDirty", (PyCFunction) t_item__isNoDirty, METH_NOARGS, "" },
     { "_isCopyExport", (PyCFunction) t_item__isCopyExport, METH_NOARGS, "" },
     { "_isImporting", (PyCFunction) t_item__isImporting, METH_NOARGS, "" },
-    { "_isMutating", (PyCFunction) t_item__isMutating, METH_NOARGS, NULL },
+    { "isMutating", (PyCFunction) t_item_isMutating, METH_NOARGS, NULL },
     { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_item__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
@@ -140,7 +138,6 @@ static PyMethodDef t_item_methods[] = {
     { "_fillItem", (PyCFunction) t_item__fillItem, METH_VARARGS, "" },
     { "setDirty", (PyCFunction) t_item_setDirty, METH_VARARGS, NULL },
     { "_collectionChanged", (PyCFunction) t_item__collectionChanged, METH_VARARGS, NULL },
-    { "collectionChanged", (PyCFunction) t_item_collectionChanged, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -419,7 +416,7 @@ static PyObject *t_item__isImporting(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isMutating(t_item *self, PyObject *args)
+static PyObject *t_item_isMutating(t_item *self, PyObject *args)
 {
     if (self->status & MUTATING)
         Py_RETURN_TRUE;
@@ -1024,9 +1021,8 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 {
-    PyObject *op, *change, *name, *other;
-    PyObject *dispatch, *watchers, *result, *dict, *key, *value;
-    int pos = 0;
+    PyObject *op, *change, *name, *other, *dispatch;
+    t_view *view = (t_view *) ((t_item *) self->root)->parent;
 
     if (self->status & NODIRTY)
         Py_RETURN_NONE;
@@ -1035,106 +1031,31 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
         return NULL;
 
     dispatch = PyDict_GetItem(self->values->dict, watcherDispatch_NAME);
-    if (!dispatch)
-        Py_RETURN_NONE;
-            
-    if (!PyObject_Compare(op, remove_NAME) &&
-        !PyObject_Compare(name, watchers_NAME))
+    if (dispatch)
     {
-        PyObject *two = PyInt_FromLong(2);
+        PyObject *watchers = PyDict_GetItem(dispatch, name);
 
-        result = PyObject_CallMethodObjArgs(dispatch, filterItem_NAME,
-                                            two, NULL);
-        Py_DECREF(two);
-        if (result == NULL)
-            return result;
-        Py_DECREF(result);
+        if (watchers &&
+            CView_invokeWatchers(view, watchers, op, change,
+                                 (PyObject *) self, name, other) < 0)
+            return NULL;
     }
 
-    watchers = PyDict_GetItem(dispatch, name);
-    if (!watchers)
-        Py_RETURN_NONE;
-
-    if (!PyAnySet_Check(watchers))
+    if (view->watcherDispatch)
     {
-        PyErr_SetObject(PyExc_TypeError, watchers);
-        return NULL;
+        PyObject *dispatch = PyDict_GetItem(view->watcherDispatch, self->uuid);
+
+        if (dispatch)
+        {
+            PyObject *watchers = PyDict_GetItem(dispatch, name);
+
+            if (watchers &&
+                CView_invokeWatchers(view, watchers, op, change,
+                                     (PyObject *) self, name, other) < 0)
+                return NULL;
+        }
     }
 
-    /* a set's dict is organized as { value: True } */
-    dict = ((PySetObject *) watchers)->data;
-
-    while (PyDict_Next(dict, &pos, &key, &value)) {
-        PyObject *watcher = PyTuple_GetItem(key, 0);
-        PyObject *watch = PyTuple_GetItem(key, 1);
-
-        if (!watcher || !watch)
-            return NULL;
-
-        if (!PyObject_TypeCheck(watcher, SingleRef))
-        {
-            PyErr_SetObject(PyExc_TypeError, watcher);
-            return NULL;
-        }
-
-        watcher = PyObject_GetItem(((t_item *) self->root)->parent,
-                                   ((t_sr *) watcher)->uuid);
-        if (!watcher)
-            return NULL;
-
-        if (!PyObject_Compare(watch, set_NAME))
-        {
-            PyObject *attrName = PyTuple_GetItem(key, 2);
-            PyObject *set = PyObject_GetAttr(watcher, attrName);
-
-            if (!set)
-            {
-                Py_DECREF(watcher);
-                return NULL;
-            }
-
-            result = PyObject_CallMethodObjArgs(set, sourceChanged_NAME,
-                                                op, change, self, name,
-                                                Py_False, other, NULL);
-            Py_DECREF(watcher);
-            Py_DECREF(set);
-
-            if (!result)
-                return NULL;
-            Py_DECREF(result);
-        }
-        else if (!PyObject_Compare(watch, kind_NAME))
-        {
-            PyObject *methName = PyTuple_GetItem(key, 2);
-            PyObject *kind = PyObject_GetAttr((PyObject *) self, kind_NAME);
-
-            result = PyObject_CallMethodObjArgs(watcher, methName,
-                                                op, kind, other, NULL);
-            Py_DECREF(kind);
-            Py_DECREF(watcher);
-
-            if (!result)
-                return NULL;
-            Py_DECREF(result);
-        }
-        else if (!PyObject_Compare(watch, collection_NAME))
-        {
-            result = PyObject_CallMethodObjArgs(watcher, collectionChanged_NAME,
-                                                op, self, name, other, NULL);
-            Py_DECREF(watcher);
-            if (!result)
-                return NULL;
-            Py_DECREF(result);
-        }
-        else
-            Py_DECREF(watcher);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject *t_item_collectionChanged(t_item *self, PyObject *args)
-{
     Py_RETURN_NONE;
 }
 
@@ -1523,9 +1444,7 @@ void _init_item(PyObject *m)
             _verifyAssignment_NAME = PyString_FromString("_verifyAssignment");
             _setDirty_NAME = PyString_FromString("_setDirty");
             set_NAME = PyString_FromString("set");
-            collection_NAME = PyString_FromString("collection");
             remove_NAME = PyString_FromString("remove");
-            kind_NAME = PyString_FromString("kind");
             item_NAME = PyString_FromString("item");
             _logItem_NAME = PyString_FromString("_logItem");
             _clearDirties_NAME = PyString_FromString("_clearDirties");
@@ -1533,8 +1452,6 @@ void _init_item(PyObject *m)
             watchers_NAME = PyString_FromString("watchers");
             watcherDispatch_NAME = PyString_FromString("watcherDispatch");
             filterItem_NAME = PyString_FromString("filterItem");
-            sourceChanged_NAME = PyString_FromString("sourceChanged");
-            collectionChanged_NAME = PyString_FromString("collectionChanged");
             _setParent_NAME = PyString_FromString("_setParent");
             _setItem_NAME = PyString_FromString("_setItem");
             c_NAME = PyString_FromString("c");

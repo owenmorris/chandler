@@ -46,3 +46,7 @@ enum {
 
 
 typedef PyObject *(*CView_invokeMonitors_fn)(t_view *, PyObject *);
+typedef int (*CView_invokeWatchers_fn)(t_view *, PyObject *,
+                                       PyObject *, PyObject *,
+                                       PyObject *, PyObject *,
+                                       PyObject *);

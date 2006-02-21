@@ -23,9 +23,10 @@ PyTypeObject *ItemValue = NULL;
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
 
-CView_invokeMonitors_fn CView_invokeMonitors = NULL;
+CView_invokeMonitors_fn CView_invokeMonitors;
+CView_invokeWatchers_fn CView_invokeWatchers;
 PyUUID_Check_fn PyUUID_Check;
-PyCFunction _countAccess = NULL;
+PyCFunction _countAccess;
 
 
 static PyObject *isitem(PyObject *self, PyObject *obj)
@@ -133,5 +134,6 @@ void initc(void)
 
     m = PyImport_ImportModule("chandlerdb.persistence.c");
     LOAD_FN(m, CView_invokeMonitors);
+    LOAD_FN(m, CView_invokeWatchers);
     Py_DECREF(m);
 }    
