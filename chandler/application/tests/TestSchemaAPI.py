@@ -13,8 +13,10 @@ class Dummy(schema.Item):
 class Other(schema.Item):
     thing = schema.One(Dummy, inverse="other")
 
+TEST_PATH = "//this/is/a/test"
+
 class Mixed(Dummy, Types.Type):
-    pass
+    __default_path__ = TEST_PATH
 
 class AnEnum(schema.Enumeration):
     values = "yes", "no"
@@ -78,8 +80,17 @@ class SchemaTests(SchemaTestCase):
 
     def testImportAll(self):
         schema.initRepository(self.rv)
+
+        # Verify that //userdata and the test default path don't exist
+        self.assertRaises(KeyError, lambda: self.rv['userdata'])
+        self.assertEqual( self.rv.findPath(TEST_PATH), None)
+
         schema.synchronize(self.rv, this_module)
         path = "//parcels/%s/" % this_module.replace('.','/')
+
+        # Everything should exist now, including the default parent objects        
+        self.assertNotEqual( self.rv.findPath(TEST_PATH), None)
+        self.assertNotEqual( self.rv.findPath("//userdata"), None)
         self.assertNotEqual( self.rv.findPath(path+'Dummy'), None)
         self.assertNotEqual( self.rv.findPath(path+'AnEnum'), None)
 
@@ -93,7 +104,7 @@ class SchemaTests(SchemaTestCase):
             list(getattr(parcel, __name__+".CoreAnnotation.otherItem.inverse")),
             [kind_kind]
         )
-            
+
 
 def test_schema_api():
     import doctest

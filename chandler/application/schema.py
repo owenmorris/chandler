@@ -533,6 +533,8 @@ class ItemClass(Activator):
         def fixup():
             kind.itsParent = parcel_for_module(cls.__module__, view)
             kind.itsName = cls.__name__
+            if hasattr(cls,'getDefaultParent'):
+                cls.getDefaultParent(view)
         return fixup
 
     def update(cls, parcel, itsName, **attrs):
