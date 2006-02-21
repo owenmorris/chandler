@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging, heapq, sys, gc, threading, os
+from Queue import Queue
 
 from chandlerdb.util.c import UUID
 from chandlerdb.item.c import CItem, Nil, Default
@@ -52,7 +53,7 @@ class RepositoryView(CView):
         implementation for the repository be used.
         """
 
-        self._historyCallbacks = []
+        self._notifications = Queue()
 
         if not name:
             name = threading.currentThread().getName()
@@ -895,44 +896,32 @@ class RepositoryView(CView):
                     item._parent = localParent
                     setRoot(root, item)
 
-    def addHistoryCallback(self, callable):
-        """
-        Add a callback to receive view refresh history notifications.
+    def queueNotification(self, item, op, change, name, other):
 
-        After a view refreshes changes that happened in other views
-        successfully, it sends out a number of notifications to the
-        callbacks registered through this method.
+        self._notifications.put((item.itsUUID, op, change, name, other))
 
-        The callback needs to be able to accept the following arguments:
+    def dispatchNotifications(self):
 
-            - the view instance refresh() was called on
-            - the list of history tuples to be used with L{mapHistory}
-            - the set of the uuids of the refreshed items
+        queue = self._notifications
 
-        @param callable: the callback to add
-        @type callable: a python callable
-        """
+        while True:
+            while not queue.empty():
+                uItem, op, change, name, other = queue.get()
+                item = self.find(uItem)
+                if item is not None:
+                    item._collectionChanged(op, 'dispatch', name, other)
 
-        if not callable in self._historyCallbacks:
-            self._historyCallbacks.append(callable)
+            while self.isDirtyAgain():
+                self._dispatchChanges(self.mapChanges(True))
 
-    def removeHistoryCallback(self, callable):
-        """
-        Remove a callback to receive view refresh history notifications.
+            if queue.empty():
+                break
 
-        @param callable: the callback to remove
-        @type callable: a python callable
-        """
+    def _dispatchHistory(self, history, refreshes, oldVersion, newVersion):
 
-        if callable in self._historyCallbacks:
-            self._historyCallbacks.remove(callable)
+        raise NotImplementedError, "%s._dispatchHistory" %(type(self))
 
-    def _dispatchHistory(self, history, refreshes):
-
-        for callback in self._historyCallbacks:
-            callback(self, history, refreshes)
-
-    def _dispatchChanges(self, history, refreshes, oldVersion, newVersion):
+    def _dispatchChanges(self, changes):
 
         raise NotImplementedError, "%s._dispatchChanges" %(type(self))
 
@@ -979,6 +968,16 @@ class RepositoryView(CView):
     def unwatchItem(self, watcher, item, methodName):
         self._unregisterWatch(watcher, item, None, 'item', methodName)
 
+    def watchKind(self, watcher, kind, methodName):
+        self._registerWatch(watcher, kind.extent, 'extent', 'kind', methodName)
+
+    def unwatchKind(self, watcher, kind, methodName):
+        self._unregisterWatch(watcher, kind.extent, 'extent', 'kind', methodName)
+    def watchCollection(self, watcher, owner, attribute, methodName):
+        self._registerWatch(watcher, owner, attribute, 'collection', methodName)
+
+    def unwatchCollection(self, watcher, owner, attribute, methodName):
+        self._unregisterWatch(watcher, owner, attribute, 'collection', methodName)
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     itsPath = property(_getPath)

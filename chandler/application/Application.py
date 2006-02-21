@@ -602,17 +602,7 @@ class wxApplication (wx.App):
 
         the_view = self.repository.view  # cache the view for performance
         the_view.refresh() # pickup changes from other threads
-        try:
-            #import it here, after schema.reset(view) was called in Utility.py
-            import osaf.pim.collections as collections
-            collections.deliverNotifications(the_view)
-        except MergeError, e:
-            if e.getReasonCode() == MergeError.BUG:
-                logger.warning("Changes cancelled due to merge error: %s", e)
-                self.repository.view.cancel()
-                self.needsUpdateUI = True
-            else:
-                raise
+        the_view.dispatchNotifications()
 
         # Redraw all the blocks dirtied by notifications
 

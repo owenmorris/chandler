@@ -479,7 +479,8 @@ class DBValueReader(ValueReader):
             elif flags & DBItemWriter.NONE:
                 return None
 
-            raise NotImplementedError, "loading ref collection without item"
+            offset, uuid = self.readUUID(offset + 1, data)
+            return uuid
 
         else:
             raise ValueError, flags

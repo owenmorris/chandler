@@ -206,11 +206,9 @@ class AbstractSet(ItemValue, Indexed):
                 if item is None:
                     sourceItem = view.findUUID(source[0])
                     if sourceItem is not None: # was deleted
-                        oldItem.unwatchCollection(sourceItem, source[1],
-                                                  'set', oldAttribute)
+                        oldItem._unwatchSet(sourceItem, source[1], oldAttribute)
                 else:
-                    item.watchCollection(view[source[0]], source[1],
-                                         'set', attribute)
+                    item._watchSet(view[source[0]], source[1], attribute)
 
     def _setSourceView(self, source, view):
 
@@ -224,7 +222,9 @@ class AbstractSet(ItemValue, Indexed):
             op = source.sourceChanged(op, change, sourceOwner, sourceName,
                                       True, other)
 
-        elif sourceOwner is self._view[source[0]] and sourceName == source[1]:
+        elif (sourceName == source[1] and
+              (isuuid(sourceOwner) and sourceOwner == source[0] or
+               sourceOwner is self._view[source[0]])):
             pass
         else:
             op = None
@@ -280,7 +280,6 @@ class AbstractSet(ItemValue, Indexed):
                     if dirty:
                         self._setDirty(True)
 
-            item.collectionChanged(op, item, attribute, other)
             item._collectionChanged(op, change, attribute, other)
 
     def notify(self, op, other):
@@ -896,7 +895,7 @@ class KindSet(Set):
             contains = item.itsKind is kind
 
         if contains:
-            if (excludeMutating and item._isMutating() and
+            if (excludeMutating and item.isMutating() and
                 (item._futureKind is None or
                  not item._futureKind.isKindOf(kind))):
                 return False

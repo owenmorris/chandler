@@ -24,18 +24,15 @@ class Movie(Item):
     def kindChanged(self, op, kind, item):
 
         self.monitorAttribute = 'kind'
-
-    def collectionChanged(self, op, item, name, other, *args):
-
-        print op, self, name, other, args
+        print self, 'kindChanged', op, self, kind, item
 
     def itemChanged(self, op, item, names):
 
         print self, 'itemChanged', op, item, names
 
-    def onCollectionEvent(self, op, collection, name, other, *args):
+    def onCollectionEvent(self, op, collection, name, other):
 
-        print self, 'onCollectionEvent', op, collection, name, other, args
+        print self, 'onCollectionEvent', op, collection, name, other
 
 
 class Cartoon(Movie):

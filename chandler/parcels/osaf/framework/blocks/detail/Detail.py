@@ -28,6 +28,7 @@ import osaf.mail.constants as MailConstants
 import osaf.mail.sharing as MailSharing
 import osaf.mail.message as MailMessage
 from repository.item.Item import Item
+from chandlerdb.item.c import isitem
 from repository.item.Monitors import Monitors
 import wx
 import sets
@@ -423,7 +424,7 @@ class DetailSynchronizer(Item):
             return
         
         # Ignore notifications during stamping or deleting
-        if item._isMutating():
+        if isitem(item) and item.isMutating():
             #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
                          #debugName(self), attributes)
             return

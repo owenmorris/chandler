@@ -229,13 +229,13 @@ class Block(schema.Item):
     def stopNotificationDirt (self):
         assert (self.ignoreNotifications >= 0)
         if self.ignoreNotifications == 0:
-            collections.deliverNotifications (self.itsView)
+            self.itsView.dispatchNotifications()
         self.ignoreNotifications = self.ignoreNotifications + 1
 
     def startNotificationDirt (self):
         try:
             if self.ignoreNotifications == 1:
-                collections.deliverNotifications (self.itsView)
+                self.itsView.dispatchNotifications()
         finally:
             assert (self.ignoreNotifications > 0)
             self.ignoreNotifications = self.ignoreNotifications - 1
@@ -371,14 +371,14 @@ class Block(schema.Item):
         if (len (Globals.views) > 0 and Globals.views[-1] == self):
             Globals.views.pop()
 
-    def onCollectionEvent (self, op, item, name, other, *args):
+    def onCollectionEvent (self, op, collection, name, other):
         """
           When our item collection has changed, we need to synchronize
         """
         if not self.ignoreNotifications:
             onItemNotification = getattr(self.widget, 'onItemNotification', None)
             if onItemNotification is not None:
-                onItemNotification('collectionChange', (op, item, name, other, args))
+                onItemNotification('collectionChange', (op, collection, name, other))
             self.synchronizeSoon()
 
     def synchronizeSoon(self):

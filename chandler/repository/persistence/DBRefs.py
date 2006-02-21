@@ -81,6 +81,10 @@ class PersistentRefs(object):
             if key == lastKey:
                 break
 
+    def _iterChanges(self):
+
+        return self._changedRefs.iterkeys()
+
     def _copy_(self, orig):
 
         self._changedRefs.clear()
@@ -277,6 +281,10 @@ class DBRefList(RefList, PersistentRefs):
     def iteraliases(self, firstKey=None, lastKey=None):
 
         return self._iteraliases(firstKey, lastKey)
+
+    def iterChanges(self):
+
+        return self._iterChanges()
 
     def _getView(self):
 

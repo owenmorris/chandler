@@ -53,6 +53,9 @@ class RefList(LinkedMap, Indexed):
     def _isTransient(self):
         return False
 
+    def iterChanges(self):
+        return iter(())
+
     def _setFlag(self, flag, on):
 
         old = self._flags & flag != 0

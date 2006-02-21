@@ -337,13 +337,17 @@ class Item(CItem):
                 if watch == 'item' and not watchers:
                     self._status &= ~Item.P_WATCHED
 
-    def watchCollection(self, owner, attribute,
-                        _watch='collection', _name=None):
-        owner._registerWatch(self, attribute, _watch, _name)
+    def _watchSet(self, owner, attribute, name):
+        owner._registerWatch(self, attribute, 'set', name)
 
-    def unwatchCollection(self, owner, attribute,
-                          _watch='collection', _name=None):
-        owner._unregisterWatch(self, attribute, _watch, _name)
+    def _unwatchSet(self, owner, attribute, name):
+        owner._unregisterWatch(self, attribute, 'set', name)
+
+    def watchCollection(self, owner, attribute, methodName):
+        owner._registerWatch(self, attribute, 'collection', methodName)
+
+    def unwatchCollection(self, owner, attribute, methodName):
+        owner._unregisterWatch(self, attribute, 'collection', methodName)
 
     def watchKind(self, kind, methodName):
         kind.extent._registerWatch(self, 'extent', 'kind', methodName)

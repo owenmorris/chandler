@@ -22,9 +22,10 @@ class movie(Movie):
         super(movie, self).__init__(*args, **kwds)
         self.calls = []
 
-    def collectionChanged(self, op, item, name, other):
+    def _collectionChanged(self, op, change, name, other):
 
-        self.calls.append((op, item, name, other))
+        self.calls.append((op, self, name, other))
+        super(movie, self)._collectionChanged(op, change, name, other)
     
 
 class TestAbstractSets(RepositoryTestCase):

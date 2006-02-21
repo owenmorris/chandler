@@ -757,7 +757,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         addedEvents = None
         
         collectionChanges = hints.get('collectionChange', [])
-        for op, coll, name, item, positions in collectionChanges:
+        for op, coll, name, item in collectionChanges:
             if ( (op == 'add') and
                  (item is not None) and
                  hasattr(item, 'startTime') and

@@ -7,51 +7,11 @@ from repository.item.Sets import Set, MultiUnion, Union, MultiIntersection, Inte
 from repository.item.Item import Item
 from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
-import logging, os, re, Queue
+import logging, os, re
 from osaf.pim.structs import ColorType
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
-
-def deliverNotifications(view):
-    # first play back the notification queue
-    if not hasattr(view,'notificationQueue'):
-        view.notificationQueue = Queue.Queue()
-    notificationQueue = view.notificationQueue
-
-    while True:
-        while not notificationQueue.empty():
-            (collection, op, item, name, other, args) = notificationQueue.get()
-            if DEBUG:
-                logger.debug("dequeued: %s %s %s %s",
-                             collection, op, item, other)
-
-            # If the view was cancelled, we could be trying to deliver to stale
-            # items:
-            if not collection.isStale():
-                collection.notifySubscribers(op, collection, name, other, args)
-
-
-        # Pick up changes to items in C{ListCollections} and
-        # C{KindCollections}.  
-        # These changes are then passed along to the contentsUpdated method
-        # of any collection containing the modified items. 
-
-        while view.isDirtyAgain():
-            for item, version, status, literals, references in view.mapChanges(True):
-                # handle changes to items in a ListCollection
-                collections = getattr(item, 'collections', None)
-                if collections is not None:
-                    for i in collections:
-                        i.contentsUpdated(item)
-
-                # handle changes to items in KindCollections
-                kind = item.itsKind
-                if kind is not None:
-                    kind.extent.notify('changed', item)
-
-        if notificationQueue.empty():
-            break
 
 
 class CollectionColors(schema.Item):
@@ -144,58 +104,14 @@ class AbstractCollection(items.ContentItem):
             self.color = schema.ns('osaf.pim', self.itsView).collectionColors.nextColor()
         return self
 
-    def collectionChanged(self, op, item, name, other, *args):
-        """
-        The method called by the repository level set that backs a collection.
+    def _collectionChanged(self, op, change, name, other):
 
-        C{collectionChanged} dispatches to C{notifySubscribers} which does the
-        work of delivering notifications to all subscribers.
-        """
-        # mapChanges (called in the idle loop)
-        # propagates any updates (not add/removes) that
-        # happened since the last
-        if DEBUG:
-            logger.debug("Collection Changed on %s: %s %s %s %s",
-                         self, op, item, name, other)
-        if not hasattr(self.itsView,'notificationQueue'):
-            self.itsView.notificationQueue = Queue.Queue()
-        if DEBUG:
-            logger.debug("%s is queuing %s %s", self, op, other)
-        self.itsView.notificationQueue.put((self, op, item, name, other, args))
-
-    def notifySubscribers(self, op, item, name, other, *args):
-        """
-        Deliver notifications to all subscribers
-
-        Calls the method named in each subscribers' C{collectionEventHandler}
-        to deliver the notification.  If the item has no
-        C{collectionEventEventHandler}, C{onCollectionEvent} will be called
-        if it exists.
-        """
-        for i in self.subscribers:
-            method = None # must be done each time around the loop
-            method_name = getattr(i, "collectionEventHandler", "onCollectionEvent")
-
-            # we must propagate changes "by hand"
-            if op == "changed":
-                method_name = "onCollectionEvent"
-            if method_name != None:
-                method = getattr(type(i), method_name, None)
-                if method != None:
-                    if DEBUG:
-                        logger.debug("Delivering %s [%s] %s to %s from %s using %s",
-                                     op, item, other, i, self.itsName, method_name)
-                    method(i, op, self, name, other, *args)
-                elif DEBUG:
-                    logger.debug("Didn't find the specified notification handler named %s for %s", method_name, i)
-            elif DEBUG:
-                logger.debug("notification handler not specfied - no collectionEventHandler attribute")
-
-    def contentsUpdated(self, item):
-        """
-        Callback for handling changes found by C{mapChangesCallable}
-        """
-        pass
+        if change == 'dispatch':
+            for subscriber in self.subscribers:
+                subscriber.onCollectionEvent(op, self, name, other)
+        else:
+            self.itsView.queueNotification(self, op, change, name, other)
+            super(AbstractCollection, self)._collectionChanged(op, change, name, other)
 
     def __contains__(self, *args, **kwds):
         return self.rep.__contains__(*args, **kwds)
@@ -293,9 +209,6 @@ class KindCollection(AbstractCollection):
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'), initialValue=None)
     recursive = schema.One(schema.Boolean, initialValue=False)
 
-    def contentsUpdated(self, item):
-        self.rep.notify('changed', item)
-
     def onValueChanged(self, name):
         if name == "kind" or name == "recursive":
             self.rep = KindSet(self.kind, self.recursive)
@@ -342,9 +255,6 @@ class ListCollection(AbstractCollection):
 
     def remove(self, item):
         self.refCollection.remove(item)
-
-    def contentsUpdated(self, item):
-        self.rep.notify('changed', item)
 
     def empty(self):
         for item in self:
@@ -891,9 +801,6 @@ class IndexedSelectionCollection (AbstractCollection):
 
     def remove(self, item):
         self.source.remove(item)
-
-    def contentsUpdated(self, item):
-        self.rep.notify('changed', item)
 
     def empty(self):
         self.source.empty()
