@@ -1604,6 +1604,9 @@ class Item(CItem):
 
             if kind is None:
                 self.__class__ = Item
+                if self.isWatched():
+                    view._notifyChange(self._itemChanged,
+                                       'remove', ('itsKind',))
             else:
                 self.__class__ = kind.getItemClass()
                 kind._setupClass(self.__class__)
@@ -1611,6 +1614,9 @@ class Item(CItem):
                 view._notifyChange(kind.extent._collectionChanged,
                                    'add', 'collection', 'extent', self,
                                    prevKind)
+                if self.isWatched():
+                    view._notifyChange(self._itemChanged,
+                                       'set', ('itsKind',))
 
     def mixinKinds(self, *kinds):
         """

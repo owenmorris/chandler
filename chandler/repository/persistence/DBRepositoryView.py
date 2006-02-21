@@ -203,6 +203,8 @@ class DBRepositoryView(OnDemandRepositoryView):
         def dirtyNames(kind, dirties):
             if kind is None:
                 return ()
+            elif status & CItem.WATCHED:
+                return kind._nameTuple(dirties) + ('itsKind',)
             else:
                 return kind._nameTuple(dirties)
 
