@@ -327,8 +327,10 @@ class wxTable(DragAndDrop.DraggableWidget,
             selectedItemToView is not None):
             selectedItemToView = contents.getFirstSelectedItem()
             self.blockItem.selectedItemToView = selectedItemToView
-            self.blockItem.postEventByName("SelectItemsBroadcast",
-                                           {'items':[selectedItemToView]})
+            if selectedItemToView is None:
+                self.blockItem.PostSelectItems([selectedItemToView])
+            else:
+                self.blockItem.PostSelectItems([])
 
         if selectedItemToView is not None:
             index = contents.index (selectedItemToView)
@@ -447,8 +449,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             blockItem.contents.setSelectionRanges([])
             blockItem.selectedItemToView = None
             self.ClearSelection()
-        self.blockItem.postEventByName("SelectItemsBroadcast",
-                                       {'items':[item]})
+        self.blockItem.PostSelectItems([item])
 
     def SelectedIndexRanges(self):
         """
@@ -515,7 +516,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         newSelectedItemIndex = -1
         for selectionStart,selectionEnd in selectionRanges:
             for itemIndex in xrange (selectionEnd, selectionStart - 1, -1):
-                print "Deleting item at %s" % itemIndex
                 DeleteItemCallback(contents[itemIndex])
                 # remember the last deleted row
                 newSelectedItemIndex = itemIndex
@@ -538,7 +538,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem.synchronizeWidget()
         totalItems = len(contents)
         if totalItems > 0:
-            print "Now I'd like to select something at index %s" % newSelectedItemIndex
             if newSelectedItemIndex != -1:
                 newSelectedItemIndex = min(newSelectedItemIndex, totalItems - 1)
             blockItem.PostSelectItems([contents[newSelectedItemIndex]])
@@ -733,27 +732,11 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         fact that not all of the items are int the table Also make the
         first visible.
         """
-        visiblerow = None
-        self.widget.ClearSelection()
-        lastColumn = self.widget.GetColumnCount() - 1
-        for item in items:
-            try:
-                row = self.widget.IndexToRow(self.contents.index (item))
-            except ValueError:
-                continue
 
-            if row == -1:
-                continue
-            
-            if visiblerow is None:
-                visiblerow = row
-                
-            if item != self.selectedItemToView:
-                self.selectedItemToView = item
-                self.widget.SelectBlock (row, 0, row, lastColumn, True)
-                
-        if visiblerow is not None:
-            self.widget.MakeCellVisible (row, 0)
+        self.contents.setSelectionRanges([])
+        for item in items:
+            if item in self.contents:
+                self.contents.selectItem(item)
             
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent
 import osaf.framework.attributeEditors
