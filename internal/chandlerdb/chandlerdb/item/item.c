@@ -41,6 +41,7 @@ static PyObject *t_item__isItem(t_item *self, PyObject *args);
 static PyObject *t_item__isRefList(t_item *self, PyObject *args);
 static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyObject *t_item__isMerged(t_item *self, PyObject *args);
+static PyObject *t_item_isWatched(t_item *self, PyObject *args);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
 static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args);
 static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args);
@@ -49,6 +50,7 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args);
 static PyObject *t_item_setDirty(t_item *self, PyObject *args);
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args);
 static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names);
+static PyObject *t_item__itemChanged(t_item *self, PyObject *args);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
@@ -131,6 +133,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isRefList", (PyCFunction) t_item__isRefList, METH_NOARGS, "" },
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
+    { "isWatched", (PyCFunction) t_item_isWatched, METH_NOARGS, "" },
     { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
     { "hasLocalAttributeValue", (PyCFunction) t_item_hasLocalAttributeValue, METH_VARARGS, NULL },
     { "hasTrueAttributeValue", (PyCFunction) t_item_hasTrueAttributeValue, METH_VARARGS, NULL },
@@ -138,6 +141,7 @@ static PyMethodDef t_item_methods[] = {
     { "_fillItem", (PyCFunction) t_item__fillItem, METH_VARARGS, "" },
     { "setDirty", (PyCFunction) t_item_setDirty, METH_VARARGS, NULL },
     { "_collectionChanged", (PyCFunction) t_item__collectionChanged, METH_VARARGS, NULL },
+    { "_itemChanged", (PyCFunction) t_item__itemChanged, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -455,6 +459,14 @@ static PyObject *t_item__isUUID(t_item *self, PyObject *args)
 static PyObject *t_item__isMerged(t_item *self, PyObject *args)
 {
     if (self->status & MERGED)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item_isWatched(t_item *self, PyObject *args)
+{
+    if (self->status & WATCHED)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
@@ -1151,6 +1163,18 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
     return 0;
 }
 
+static PyObject *t_item__itemChanged(t_item *self, PyObject *args)
+{
+    PyObject *op, *names;
+
+    if (!PyArg_ParseTuple(args, "OO", &op, &names))
+        return NULL;
+
+    if (_t_item__itemChanged(self, op, names) < 0)
+        return NULL;
+
+    Py_RETURN_NONE;
+}
 
 /* itsKind */
 
