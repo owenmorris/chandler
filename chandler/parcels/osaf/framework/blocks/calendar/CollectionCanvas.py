@@ -89,6 +89,10 @@ class CanvasItem(object):
         self._bounds = bounds
         self.item = item
 
+    def __repr__(self):
+        return "<%s: item=%s box=%s>" % (self.__class__.__name__,
+                                         self.item,
+                                         self._bounds)
     def isHit(self, point):
         """
         Hit testing (used for selection and moving items).
