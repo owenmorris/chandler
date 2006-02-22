@@ -536,7 +536,7 @@ class Block(schema.Item):
             
             collection.add (item)
 
-            # Optionally select the item in a named block and p;ossibly edit
+            # Optionally select the item in a named block and possibly edit
             # an attribute on it
             selectInBlockNamed = getattr (event, "selectInBlockNamed", None)
             if selectInBlockNamed is not None:
