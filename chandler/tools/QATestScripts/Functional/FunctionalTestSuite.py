@@ -46,18 +46,25 @@ elif sys.platform == 'darwin':
 else:
     platform = 'other'
     
-exclusions = { 'other':( "TestCalView.py", #bug 5109 emulate typing starting with unhighlighted text appends rather than overwrites                                     
-                                        ),
-                        'mac':( 
-                                        ),
-                        'windows':(
-                                        ),
-                        'all':(        
-                                        "TestAllDayEvent.py", #test not functioning bug#5110
-                                        "TestDates.py", #Chandler not handling daylightsavings bug#5038
-                                        "TestRecurrenceImporting.py", #Chandler bug #5116
-                                    )
-                     }
+exclusions = {
+    'other':(
+        "TestCalView.py", #bug 5109 emulate typing starting with unhighlighted text appends rather than overwrites                                     
+    ),
+    
+    'mac':( 
+    ),
+    
+    'windows':(
+    ),
+    
+    'all':(        
+        "TestAllDayEvent.py", #test not functioning bug#5110
+        "TestDates.py", #Chandler not handling daylightsavings bug#5038
+        "TestRecurrenceImporting.py", #Chandler bug #5116
+        "TestNewEvent.py", # bug 5086
+        "TestNewCollNoteStampMulti.py", # bug 5233
+    )
+}
 
 tests_to_run = filter(lambda test : test not in exclusions['all'] and test not in exclusions[platform], allTests)
 
