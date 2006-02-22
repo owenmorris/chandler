@@ -200,13 +200,14 @@ class DBRepositoryView(OnDemandRepositoryView):
         refs = self.store._refs
         watcherDispatch = self._watcherDispatch
 
-        def dirtyNames(kind, dirties):
+        def dirtyNames():
             if kind is None:
-                return ()
-            elif status & CItem.WATCHED:
-                return kind._nameTuple(dirties) + ('itsKind',)
+                names = ()
             else:
-                return kind._nameTuple(dirties)
+                names = kind._nameTuple(dirties)
+            if status & CItem.KDIRTY:
+                names += ('itsKind',)
+            return names
 
         for uItem, version, uKind, status, uParent, pKind, dirties in history:
 
@@ -229,7 +230,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                         if watchers:
                             if attribute is None:  # item watchers
                                 if names is None:
-                                    names = dirtyNames(kind, dirties)
+                                    names = dirtyNames()
                                 for watcher, watch, methodName in watchers:
                                     if issingleref(watcher):
                                         watcher = self[watcher.itsUUID]
@@ -249,7 +250,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     watchers = watcherDispatch[uItem].get(None)
                     if watchers:
                         if names is None:
-                            names = dirtyNames(kind, dirties)
+                            names = dirtyNames()
                         for watcher, watch, methodName in watchers:
                             getattr(self[watcher], methodName)('refresh', uItem, names)
 
