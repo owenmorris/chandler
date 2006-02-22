@@ -211,7 +211,7 @@ class UITestItem(object):
         self.SelectItem()
         if timeInfo:
             if self.logger: self.logger.Start("%s setting" %description)
-        block = App_ns.__getattr__(blockName)
+        block = getattr(App_ns, blockName)
         # Emulate the mouse click in the display name block
         scripting.User.emulate_click(block)
         # Select the old text
@@ -722,7 +722,7 @@ class UITestItem(object):
         @param value : expected value to compare
         """
         #find the block
-        block = App_ns.__getattr__(blockName)
+        block = getattr(App_ns, blockName)
         #get the editable block value
         blockValue = block.widget.GetValue()
         if not blockValue == value :
@@ -741,7 +741,7 @@ class UITestItem(object):
         @param value : expected value to compare
         """
         #find the block
-        block = App_ns.__getattr__(blockName)
+        block = getattr(App_ns,blockName)
         #get the menu block value
         menuValue = block.widget.GetStringSelection()
         if not menuValue == value :
