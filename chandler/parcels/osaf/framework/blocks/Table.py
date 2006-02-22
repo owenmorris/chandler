@@ -192,6 +192,9 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     @WithoutSynchronizeWidget
     def OnRangeSelect(self, event):
+        """
+        Synchronize the grid's selection back into the row
+        """
         blockItem = self.blockItem
         # Ignore notifications that arrise as a side effect of
         # changes to the selection
@@ -201,6 +204,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             contents = self.blockItem.contents
             contents.setSelectionRanges ([])
             firstItemIndex = -1
+            # ranges = [(event.GetTopRow(), event.GetBottomRow()),]
             for indexStart, indexEnd in self.SelectedIndexRanges():
 
                 # We'll need the first selected index later..
@@ -208,6 +212,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                     firstItemIndex = indexStart
 
                 contents.addSelectionRange ((indexStart, indexEnd))
+                
             item = None
             if firstItemIndex != -1:
                 item = blockItem.contents[firstItemIndex]
@@ -741,6 +746,9 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     def onSelectItemsEvent (self, event):
         items = event.arguments ['items']
         self.selectItems (items)
+        if len(items)>0:
+            self.selectedItemToView = items[0]
+            
         editAttributeNamed = event.arguments.get ('editAttributeNamed')
         if editAttributeNamed is not None:
             self.widget.EnableCellEditControl (False)
