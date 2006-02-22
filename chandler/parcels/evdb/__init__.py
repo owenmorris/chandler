@@ -40,6 +40,7 @@ def installParcel(parcel, version=None):
     # Add an event for creating new EVDB collections
     NewEVDBCollectionEvent = Block.ModifyCollectionEvent.update(
         parcel, 'NewEVDBCollectionEvent',
+        blockName = 'newEVDBCollectionEvent',
         methodName='onModifyCollectionEvent',
         copyItems = True,
         disambiguateDisplayName = True,
