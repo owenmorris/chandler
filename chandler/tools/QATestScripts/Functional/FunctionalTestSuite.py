@@ -15,7 +15,7 @@ def run_tests(tests):
     for filename in tests:
         execfile(os.path.join(functional_dir, filename))
         
-allTests = [
+allTests = ["TestBlocks.py",
             "TestCreateAccounts.py",
             "TestAllDayEvent.py", 
             "TestNewCollection.py",
@@ -36,8 +36,8 @@ allTests = [
             "TestFlickr.py",
             "TestImporting.py",
             "TestImportOverwrite.py",
-            "TestSharing.py",  #assert traceback when run in debug mode bug#5185
-            "TestBlocks.py"]
+            "TestSharing.py",
+            ]
 
 if sys.platform == 'win32': 
     platform = 'windows'
@@ -49,7 +49,6 @@ else:
 exclusions = { 'other':( "TestCalView.py", #bug 5109 emulate typing starting with unhighlighted text appends rather than overwrites                                     
                                         ),
                         'mac':( 
-                                        "TestBlocks.py", #Bug 5182
                                         ),
                         'windows':(
                                         ),
