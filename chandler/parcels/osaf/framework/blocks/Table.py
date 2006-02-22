@@ -424,14 +424,43 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.SetColSize(columns - 1, remaining)
     
     def UpdateSelection(self, columns):
+        """
+        Update the grid's selection based on the collection's selection.
+
+        If we previously had selected items, but now are not, then we
+        probably just deleted all the selected items so we should try
+        to select the next logical item in the collection.
+        """
+
+        # remember the first row in the old selection
+        topLeftSelection = self.GetSelectionBlockTopLeft()
+        
+        newRowSelection = -1
+        if len(topLeftSelection) > 0:
+            newRowSelection = topLeftSelection[0][0]
+        
         self.ClearSelection()
         contents = self.blockItem.contents
         for selectionStart,selectionEnd in contents.getSelectionRanges():
+            # since we're selecting something, we don't need to
+            # auto-select any rows
+            newRowSelection = -1
+
+            # now just do the selection update
             rowStart = self.IndexToRow(selectionStart)
             rowEnd = self.IndexToRow(selectionEnd)
             self.SelectBlock (rowStart, 0,
                               rowEnd, columns, True)
 
+        # now auto-select a row if necessary
+        if newRowSelection != -1:
+            itemIndex = self.RowToIndex(newRowSelection)
+            if itemIndex != -1:
+                # we need to do this after the current
+                # wxSynchronizeWidget is over
+                wx.CallAfter(self.blockItem.PostSelectItems,
+                             [self.blockItem.contents[itemIndex]])
+                
     def GoToItem(self, item):
         if item != None:
             try:
