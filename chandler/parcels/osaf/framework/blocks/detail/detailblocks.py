@@ -577,6 +577,16 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     stretchFactor=0.0,
                     minimumSize=SizeType(100, -1))])
  
+    timeDescriptionArea = \
+        makeArea(parcel, 'CalendarTimeDescriptionArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'when'), borderTop=5),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'TimeDescription',
+                    viewAttribute=u'timeDescription',
+                    presentationStyle={ 'format' : 'static' },
+                    )])
+ 
     calendarDetails = \
         makeArea(parcel, 'CalendarDetails',
             orientationEnum='Vertical',
@@ -584,6 +594,8 @@ def makeCalendarEventSubtree(parcel, oldVersion):
             childrenBlocks = [
                 locationArea,
                 makeSpacer(parcel, height=4),
+                #timeDescriptionArea,
+                #makeSpacer(parcel, height=4),
                 allDayArea,
                 makeSpacer(parcel, height=4),
                 startTimeArea,

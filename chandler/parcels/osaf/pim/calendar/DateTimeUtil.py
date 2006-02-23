@@ -1,4 +1,23 @@
 from datetime import datetime
+from i18n import OSAFMessageFactory as _
+import PyICU
+from TimeZone import formatTime
+
+"""
+General date/time utility functions
+
+Herein lies: 
+- The mechanism we use to naively compare datetimes that might or might not
+  have timezones associated with them (see, I made a little joke there, using
+  the word 'naively' in this context. Aren't you glad you read this comment?)
+
+- Instances of the PyICU objects related to formatting and parsing date/time-
+  related stuff using the current locale. (@@@ eventually, I'd guess that we'll
+  have a method here to update these objects when the user changes the current
+  locale on the fly...)
+
+"""
+  
 def removeTypeError(f):
     def g(dt1, dt2):
         if isinstance(dt2, datetime) and isinstance(dt1, datetime):
@@ -58,4 +77,90 @@ def datetimeOp(dt1, operator, dt2):
     if f is None:
         raise ValueError, "Unrecognized operator '%s'" % (operator)
     return f(dt1, dt2)
-    
+
+class DatetimeFormatter(object):
+    """This class works around some issues with timezone dependence of
+    PyICU DateFormat objects; for details, see:
+
+    <http://wiki.osafoundation.org/bin/view/Journal/GrantBaillie20050809>
+
+    @ivar dateFormat: A C{PyICU.DateFormat} object, which we want to
+      use to parse or format dates/times in a timezone-aware fashion.
+    """
+    def __init__(self, dateFormat):
+        super(DatetimeFormatter, self).__init__()
+        self.dateFormat = dateFormat
+        
+    def parse(self, string, referenceDate=None):
+        """
+        @param string: The date/time string to parse
+        @type string: C{str} or C{unicode}
+
+        @param referenceDate: Specifies what timezone to use when
+            interpretting the parsed result.
+        @type referenceDate: C{datetime}
+
+        @return: C{datetime}
+        
+        @raises: ICUError or ValueError (The latter occurs because
+            PyICU DateFormat objects sometimes claim to parse bogus
+            inputs like "06/05/0506/05/05". This triggers an exception
+            later when trying to create a C{datetime}).
+        """
+
+        tzinfo = None
+        if referenceDate is not None:
+            tzinfo = referenceDate.tzinfo
+            
+        if tzinfo is None:
+            self.dateFormat.setTimeZone(PyICU.ICUtzinfo.getDefault().timezone)
+        else:
+            self.dateFormat.setTimeZone(tzinfo.timezone)
+        
+        timestamp = self.dateFormat.parse(string)
+        
+        if tzinfo is None:
+            # We started with a naive datetime, so return one
+            return datetime.fromtimestamp(timestamp)
+        else:
+            # Similarly, return a naive datetime
+            return datetime.fromtimestamp(timestamp, tzinfo)
+        
+    def format(self, datetime):
+        """
+        @param datetime: The C{datetime} to format. If it's naive,
+            its interpreted as being in the user's default timezone.
+
+        @return: A C{unicode}
+        
+        @raises: ICUError
+        """
+        tzinfo = datetime.tzinfo
+        if tzinfo is None: tzinfo = PyICU.ICUtzinfo.getDefault()
+        self.dateFormat.setTimeZone(tzinfo.timezone)
+        return unicode(self.dateFormat.format(datetime))
+
+mediumDateFormat = DatetimeFormatter(
+    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium))
+shortTimeFormat = DatetimeFormatter(
+    PyICU.DateFormat.createTimeInstance(PyICU.DateFormat.kShort))
+shortDateFormat = DatetimeFormatter(
+    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kShort))
+durationFormat = PyICU.SimpleDateFormat(_(u"H:mm"))
+
+symbols = PyICU.DateFormatSymbols()
+weekdayNames = symbols.getWeekdays()
+monthNames = symbols.getMonths()
+
+# We want to build hint strings like "mm/dd/yy" and "hh:mm PM", but we don't 
+# know the locale-specific ordering of these fields. Format a date with 
+# distinct values, then replace the resulting string's pieces with text. 
+# (Some locales use 4-digit years, some use two, so we'll handle both.)
+sampleDate = unicode(shortDateFormat.format(datetime(2003,10,30))
+                     .replace(u"2003", _(u"yyyy"))
+                     .replace(u"03", _(u"yy"))
+                     .replace(u"10", _(u"mm"))
+                     .replace(u"30", _(u"dd")))
+sampleTime = unicode(shortTimeFormat.format(datetime(2003,10,30,11,45))
+                     .replace("11", _(u'hh'))
+                     .replace("45", _(u'mm')))

@@ -32,7 +32,7 @@ from chandlerdb.item.c import isitem
 import wx
 import sets
 import logging
-from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
+from PyICU import ICUError
 from datetime import datetime, time, timedelta
 from i18n import OSAFMessageFactory as _
 from osaf import messages
@@ -990,8 +990,8 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             # claims to parse bogus  values like "06/05/0506/05/05" 
             #successfully, which causes fromtimestamp() to throw.)
             try:
-                dateTimeValue = DateTimeAttributeEditor.shortDateFormat.parse(
-                                    newValueString, referenceDate=oldValue)
+                dateTimeValue = pim.shortDateFormat.parse(newValueString, 
+                                                          referenceDate=oldValue)
             except ICUError, ValueError:
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
@@ -1057,8 +1057,8 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
             oldValue = getattr(item, attributeName)
 
             try:
-                time = DateTimeAttributeEditor.shortTimeFormat.parse(
-                    newValueString, referenceDate=oldValue)
+                time = pim.shortTimeFormat.parse(newValueString, 
+                                                 referenceDate=oldValue)
             except ICUError, ValueError:
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return

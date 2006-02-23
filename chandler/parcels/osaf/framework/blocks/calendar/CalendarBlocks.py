@@ -19,11 +19,11 @@ from osaf.framework.blocks import (
     )
 
 from osaf.framework import Preferences
+import osaf.pim as pim
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
 from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo
-from osaf.framework.attributeEditors import DateTimeAttributeEditor
 from i18n import OSAFMessageFactory as _
 
 
@@ -430,8 +430,7 @@ class wxPreviewArea(wx.Panel):
             # and we'll draw the time aligned with the colon.
             # If the locale doesn't use AM/PM, it won't show; so, format a
             # generic time and see how it looks:
-            timeFormat = DateTimeAttributeEditor.shortTimeFormat
-            genericTime = timeFormat.format(datetime(2005,1,1,12,00))
+            genericTime = pim.shortTimeFormat.format(datetime(2005,1,1,12,00))
             self.timeSeparator = ':'
             #XXX [18n] Localizing the time separator is an issue
             # it forces the localizer to understand these programming semantics
@@ -475,8 +474,7 @@ class wxPreviewArea(wx.Panel):
             if not (item.allDay or item.anyTime):
                 # Draw the time
                 dc.SetFont(self.timeFont)
-                formattedTime = DateTimeAttributeEditor.shortTimeFormat.\
-                                format(item.startTime)
+                formattedTime = pim.shortTimeFormat.format(item.startTime)
                 preSep = formattedTime[:formattedTime.find(self.timeSeparator)]
                 prePos = self.colonPosition - dc.GetTextExtent(preSep)[0]
                 dc.DrawText(formattedTime, prePos, y + self.timeFontOffset)

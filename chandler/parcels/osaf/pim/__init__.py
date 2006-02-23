@@ -9,6 +9,9 @@ from notes import Note
 from contacts import Contact, ContactName
 from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern
+from calendar.DateTimeUtil import (datetimeOp, durationFormat, mediumDateFormat, 
+     monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
+     weekdayNames)
 from calendar.Reminders import Reminder, RemindableMixin
 from tasks import Task, TaskMixin
 from mail import EmailAddress

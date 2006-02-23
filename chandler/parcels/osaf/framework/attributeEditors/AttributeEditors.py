@@ -10,6 +10,7 @@ import os, cStringIO, re
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
 from osaf.pim.tasks import TaskMixin
+import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
@@ -20,8 +21,7 @@ from osaf.framework.blocks import DragAndDrop, DrawingUtilities, Styles
 import logging
 from operator import itemgetter
 from datetime import datetime, time, timedelta
-from PyICU import (DateFormat, DateFormatSymbols, ICUError, ICUtzinfo, 
-                   ParsePosition, SimpleDateFormat, UnicodeString)
+from PyICU import ICUError, ICUtzinfo, UnicodeString
 from osaf.framework.blocks.Block import (ShownSynchronizer, 
                                          wxRectangularChild, debugName)
 from osaf.pim.items import ContentItem
@@ -1575,82 +1575,7 @@ class LobImageAttributeEditor (BaseAttributeEditor):
 
         control.SetBitmap(bmp)
 
-
-class DatetimeFormatter(object):
-    """This class works around some issues with timezone dependence of
-    PyICU DateFormat objects; for details, see:
-
-    <http://wiki.osafoundation.org/bin/view/Journal/GrantBaillie20050809>
-    
-    @ivar dateFormat: A C{PyICU.DateFormat} object, which we want to
-      use to parse or format dates/times in a timezone-aware fashion.
-    """
-    def __init__(self, dateFormat):
-        super(DatetimeFormatter, self).__init__()
-        self.dateFormat = dateFormat
-        
-    def parse(self, string, referenceDate=None):
-        """
-        @param string: The date/time string to parse
-        @type string: C{str} or C{unicode}
-
-        @param referenceDate: Specifies what timezone to use when
-            interpretting the parsed result.
-        @type referenceDate: C{datetime}
-
-        @return: C{datetime}
-        
-        @raises: ICUError or ValueError (The latter occurs because
-            PyICU DateFormat objects sometimes claim to parse bogus
-            inputs like "06/05/0506/05/05". This triggers an exception
-            later when trying to create a C{datetime}).
-        """
-
-        tzinfo = None
-        if referenceDate is not None:
-            tzinfo = referenceDate.tzinfo
-            
-        if tzinfo is None:
-            self.dateFormat.setTimeZone(ICUtzinfo.getDefault().timezone)
-        else:
-            self.dateFormat.setTimeZone(tzinfo.timezone)
-        
-        timestamp = self.dateFormat.parse(string)
-        
-        if tzinfo is None:
-            # We started with a naive datetime, so return one
-            return datetime.fromtimestamp(timestamp)
-        else:
-            # Similarly, return a naive datetime
-            return datetime.fromtimestamp(timestamp, tzinfo)
-        
-    def format(self, datetime):
-        """
-        @param datetime: The C{datetime} to format. If it's naive,
-            its interpreted as being in the user's default timezone.
-
-        @return: A C{unicode}
-        
-        @raises: ICUError
-        """
-        tzinfo = datetime.tzinfo
-        if tzinfo is None: tzinfo = ICUtzinfo.getDefault()
-        self.dateFormat.setTimeZone(tzinfo.timezone)
-        return unicode(self.dateFormat.format(datetime))
-
-class DateTimeAttributeEditor(StringAttributeEditor):
-    # Cache formatting info
-    shortTimeFormat = DatetimeFormatter(
-            DateFormat.createTimeInstance(DateFormat.kShort))
-    shortDateFormat = DatetimeFormatter(
-            DateFormat.createDateInstance(DateFormat.kShort))
-    mediumDateFormat = DatetimeFormatter(
-            DateFormat.createDateInstance(DateFormat.kMedium))
-
-    
-    symbols = DateFormatSymbols()
-    weekdays = symbols.getWeekdays()
-    
+class DateTimeAttributeEditor(StringAttributeEditor):    
     def GetAttributeValue(self, item, attributeName):
         itemDateTime = getattr (item, attributeName, None) # getattr will work with properties
         if itemDateTime is None:
@@ -1669,11 +1594,10 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             # (same day last week or earlier). (We'll do day names for days
             # in the last week (below), but this excludes this day last week
             # from that, to avoid confusion.)
-            value = DateTimeAttributeEditor.mediumDateFormat.format(\
-                            itemDateTime)
+            value = pim.mediumDateFormat.format(itemDateTime)
         elif itemDate == todayDate:
             # Today? Just use the time.
-            value = DateTimeAttributeEditor.shortTimeFormat.format(itemDateTime)
+            value = pim.shortTimeFormat.format(itemDateTime)
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
             value = _(u'Yesterday')
@@ -1681,7 +1605,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             # Do day names for days in the last week. We'll need to convert 
             # python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).
             wkDay = ((itemDateTime.weekday() + 1) % 7) + 1
-            value = unicode(DateTimeAttributeEditor.weekdays[wkDay])
+            value = unicode(pim.weekdayNames[wkDay])
 
         return value
 
@@ -1699,9 +1623,7 @@ class DateAttributeEditor (StringAttributeEditor):
             value = u''
         else:
             value = dateTimeValue is not None \
-                  and DateTimeAttributeEditor.shortDateFormat.format(
-                                                          dateTimeValue) \
-                  or u''
+                  and pim.shortDateFormat.format(dateTimeValue) or u''
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -1713,7 +1635,7 @@ class DateAttributeEditor (StringAttributeEditor):
         oldValue = getattr(item, attributeName, None)
 
         try:
-            dateValue = DateTimeAttributeEditor.shortDateFormat.parse(newValueString, referenceDate=oldValue)
+            dateValue = pim.shortDateFormat.parse(newValueString, referenceDate=oldValue)
         except ICUError, ValueError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
@@ -1732,21 +1654,7 @@ class DateAttributeEditor (StringAttributeEditor):
                                  self.GetAttributeValue(item, attributeName))
     
     def GetSampleText(self, item, attributeName):
-        # We want to build a hint like "mm/dd/yy", but we don't know the locale-
-        # specific ordering of these fields. Format a date with distinct values,
-        # then replace the resulting string's pieces with text.
-        if not hasattr(self, 'cachedSampleText'):
-            year4 = u"yyyy"
-            year2 = u"yy"
-            month = u"mm"
-            day   = u"dd"
-            sampleText = DateTimeAttributeEditor.shortDateFormat.format(datetime(2003,10,30))
-            sampleText = sampleText.replace(u"2003", year4) # Some locales use 4-digit year, some use 2.
-            sampleText = sampleText.replace(u"03", year2)   # so we'll handle both.
-            sampleText = sampleText.replace(u"10", month)
-            sampleText = sampleText.replace(u"30", day)
-            self.cachedSampleText = unicode(sampleText)
-        return self.cachedSampleText
+        return pim.sampleDate # get a hint like "mm/dd/yy"
     
 class TimeAttributeEditor(StringAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
@@ -1755,8 +1663,7 @@ class TimeAttributeEditor(StringAttributeEditor):
         except AttributeError:
             value = u''
         else:
-            value = \
-                DateTimeAttributeEditor.shortTimeFormat.format(dateTimeValue)
+            value = pim.shortTimeFormat.format(dateTimeValue)
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -1767,8 +1674,8 @@ class TimeAttributeEditor(StringAttributeEditor):
         # We have _something_; parse it.
         oldValue = getattr(item, attributeName, None)
         try:
-            timeValue = DateTimeAttributeEditor.shortTimeFormat.parse(
-                            newValueString, referenceDate=oldValue)
+            timeValue = pim.shortTimeFormat.parse(newValueString, 
+                                                  referenceDate=oldValue)
         except ICUError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
@@ -1805,28 +1712,14 @@ class TimeAttributeEditor(StringAttributeEditor):
         else:
             if hour < 24:
                 if hour == 12:
-                    yield DateTimeAttributeEditor.shortTimeFormat.format(\
-                        datetime(2003,10,30,0,00))
-                yield DateTimeAttributeEditor.shortTimeFormat.format(\
-                    datetime(2003,10,30,hour,00))
+                    yield pim.shortTimeFormat.format(datetime(2003,10,30,0,00))
+                yield pim.shortTimeFormat.format(datetime(2003,10,30,hour,00))
                 if hour < 12:
-                    yield DateTimeAttributeEditor.shortTimeFormat.format(\
+                    yield pim.shortTimeFormat.format(
                         datetime(2003,10,30,hour + 12,00))
 
     def GetSampleText(self, item, attributeName):
-        # We want to build a hint like "hh:mm PM", but we don't know the locale-
-        # specific ordering of these fields. Format a date with distinct values,
-        # then replace the resulting string's pieces with text.            
-        if not hasattr(self, 'cachedSampleText'):
-            hour = _(u"hh")
-            minute = _(u"mm")
-            sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
-                datetime(2003,10,30,11,45))
-
-            sampleText = sampleText.replace("11", hour)
-            sampleText = sampleText.replace("45", minute)
-            self.cachedSampleText = sampleText
-        return self.cachedSampleText
+        return pim.sampleTime # Get a hint like "hh:mm PM"
 
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
@@ -1919,8 +1812,7 @@ class LocationAttributeEditor (StringAttributeEditor):
 class TimeDeltaAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is timedelta. """
 
-    hourMinuteFormat = SimpleDateFormat("H:mm")
-    zeroHours = hourMinuteFormat.parse("0:00")
+    zeroHours = pim.durationFormat.parse("0:00")
     dummyDate = datetime(2005,1,1)
     
     def GetAttributeValue (self, item, attributeName):
@@ -1948,14 +1840,14 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
         """
           parse the durationString into a timedelta.
         """
-        seconds = self.hourMinuteFormat.parse(inputString) - self.zeroHours
+        seconds = pim.durationFormat.parse(inputString) - self.zeroHours
         theDuration = timedelta(seconds=seconds)
         return theDuration
 
     def _format(self, aDuration):
         # if we got a value different from the default
         durationTime = self.dummyDate + aDuration
-        value = unicode(self.hourMinuteFormat.format(durationTime))
+        value = unicode(pim.durationFormat.format(durationTime))
         return value
 
 class ContactNameAttributeEditor (StringAttributeEditor):
