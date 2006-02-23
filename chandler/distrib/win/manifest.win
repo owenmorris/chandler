@@ -68,8 +68,9 @@ chandler.exe
 src=chandler/release/bin
 dest=release/bin
 chandler.exe
+python.exe
 chandler.exe.manifest
-
+python.exe.manifest
 # and the launch scripts
 src=chandler/release
 dest=release
