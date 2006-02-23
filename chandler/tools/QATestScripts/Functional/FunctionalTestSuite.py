@@ -52,6 +52,7 @@ exclusions = {
     ),
     
     'mac':( 
+            "TestCalView.py", # bug 5258
     ),
     
     'windows':(
