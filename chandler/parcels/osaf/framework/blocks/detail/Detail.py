@@ -29,7 +29,6 @@ import osaf.mail.sharing as MailSharing
 import osaf.mail.message as MailMessage
 from repository.item.Item import Item
 from chandlerdb.item.c import isitem
-from repository.item.Monitors import Monitors
 import wx
 import sets
 import logging
@@ -53,13 +52,51 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
     def onSetContentsEvent (self, event):
         # logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
+        self.stopWatchingForChanges()
         Block.Block.finishEdits()
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
-        
+        self.watchForChanges()
+
     item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
     
+    def onDestroyWidget(self):
+        self.stopWatchingForChanges()
+        super(DetailRootBlock, self).onDestroyWidget()
+
+    def watchForChanges(self):
+        if self.item is not None:
+            logger.debug('%s: watching for kind change on %s',
+                         debugName(self), debugName(self.item))
+            item = getattr(self.item, 'proxiedItem', self.item)
+            self.itsView.watchItem(self, item, 'onItemKindChanged')
+
+    def stopWatchingForChanges(self):
+        if self.item is not None:
+            logger.debug('%s: stopping watching for kind change on %s',
+                         debugName(self), debugName(self.item))
+            item = getattr(self.item, 'proxiedItem', self.item)
+            self.itsView.unwatchItem(self, item, 'onItemKindChanged')
+
+    def onItemKindChanged(self, op, item, attributes):
+        # Ignore notifications for attributes we don't care about
+        if 'itsKind' not in attributes:
+            #logger.debug("%s: ignoring changes to %s.", 
+                         #debugName(self), attributes)
+            return
+
+        # Ignore notifications during stamping or deleting
+        if isitem(item) and item.isMutating():
+            logger.debug("%s: ignoring kind change to %s during stamping or deletion.", 
+                         debugName(self), debugName(item))
+            return
+        
+        # It's for us - tell our parent to resync.
+        logger.debug("%s: Resyncing parent block due to kind change on %s", 
+                     debugName(self), debugName(item))
+        self.parentBlock.synchronizeWidget()
+        
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
         # after the control's been deleted, which makes it impossible to grab
@@ -364,15 +401,15 @@ class DetailSynchronizer(Item):
         return getattr(self, 'viewAttribute',
                        getattr(self.parentBlock, 'viewAttribute', u''))
 
-    def attributesToMonitor(self):
+    def attributesToWatch(self):
         """
-        Get the set of attributes that we'll monitor while rendered
+        Get the set of attributes that we'll watch while rendered
         """
         return [ self.whichAttribute() ]
 
     def render(self):
         super(DetailSynchronizer, self).render()
-        # Start monitoring the attributes that affect this block
+        # Start watching the attributes that affect this block
         item = self.item
         if self.widget is not None and item is not None and \
            not item.isDeleted():
@@ -386,19 +423,20 @@ class DetailSynchronizer(Item):
         if not hasattr(self, 'widget'):
             return
         assert not hasattr(self.widget, 'watchedAttributes')
-        attrsToMonitor = self.attributesToMonitor()
-        if attrsToMonitor is not None:
+        attrsToWatch = self.attributesToWatch()
+        if attrsToWatch is not None:
             # Map the attributes to the real attributes they're based on
             # (this isn't a list comprehension because we're relying on the
             # list-flattening behavior provided by 'update')
             watchedAttributes = set()
             item = getattr(self.item, 'proxiedItem', self.item)
-            for a in attrsToMonitor:
+            for a in attrsToWatch:
                 if a:
                     watchedAttributes.update(item.getBasedAttributes(a))
             if len(watchedAttributes):
-                #logger.debug('%s: watching for changes in %s' % 
-                             #(debugName(self), watchedAttributes))
+                #logger.debug('%s: watching for changes in %s on %s',
+                             #debugName(self), watchedAttributes, 
+                             #debugName(self.item))
                 self.itsView.watchItem(self, item, 'onWatchedItemChanged')
                 self.widget.watchedAttributes = watchedAttributes
 
@@ -409,13 +447,20 @@ class DetailSynchronizer(Item):
             pass
         else:
             if watchedAttributes is not None:
-                #logger.debug('%s: stopping watching for changes in %s' % 
-                             #(debugName(self), watchedAttributes))
+                #logger.debug('%s: stopping watching for changes in %s on %s',
+                             #debugName(self), watchedAttributes, 
+                             #debugName(self.item))
                 item = getattr(self.item, 'proxiedItem', self.item)
                 self.itsView.unwatchItem(self, item, 'onWatchedItemChanged')
                 del self.widget.watchedAttributes        
 
     def onWatchedItemChanged(self, op, item, attributes):
+        # Ignore notifications during stamping or deleting
+        if isitem(item) and item.isMutating():
+            #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
+                         #debugName(self), attributes)
+            return
+
         # Ignore notifications for attributes we don't care about
         changedAttributesWeCareAbout = self.widget.watchedAttributes.intersection(attributes)
         if len(changedAttributesWeCareAbout) == 0:
@@ -423,15 +468,9 @@ class DetailSynchronizer(Item):
                          #debugName(self), attributes)
             return
         
-        # Ignore notifications during stamping or deleting
-        if isitem(item) and item.isMutating():
-            #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
-                         #debugName(self), attributes)
-            return
-
         # It's for us - reload the widget
-        #logger.debug("%s: syncing because of changes to %s.", 
-                     #debugName(self), changedAttributesWeCareAbout)
+        #logger.debug("%s: syncing because of changes to %s on %s", 
+                     #debugName(self), changedAttributesWeCareAbout, debugName(self.item))
         self.synchronizeWidget()
         if self.synchronizeItemDetail(self.item):
             self.detailRoot().relayoutSizer()
@@ -547,7 +586,9 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
             operation = 'remove'
         
         # Now change the kind and class of this item
+        #logger.debug("%s: stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
         item.StampKind(operation, mixinKind)
+        #logger.debug("%s: done stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item
@@ -1253,7 +1294,10 @@ class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     """
     def shouldShow (self, item):
         return item.isOutbound
-    
+
+    def whichAttribute(self):
+        return 'isOutbound'
+           
 class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     """ 
     This block will only be visible on inbound messages
@@ -1261,6 +1305,9 @@ class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     """
     def shouldShow (self, item):
         return item.isInbound
+
+    def whichAttribute(self):
+        return 'isInbound'
 
 class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
     """ 

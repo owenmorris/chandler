@@ -120,7 +120,7 @@ class RemindableMixin(ContentItem):
     reminderInterval = Calculated(
         schema.TimeDelta,
         displayName=u"Reminder Interval",
-        basedOn=('reminders'),
+        basedOn=('reminders',),
         fget=getReminderInterval,
         fset=setReminderInterval,
         doc="Reminder interval, computed from the first unexpired reminder."

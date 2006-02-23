@@ -62,7 +62,6 @@ exclusions = {
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestRecurrenceImporting.py", #Chandler bug #5116
         "TestNewEvent.py", # bug 5086
-        "TestNewCollNoteStampMulti.py", # bug 5233
     )
 }
 

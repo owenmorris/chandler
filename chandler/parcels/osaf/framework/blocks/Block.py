@@ -860,9 +860,11 @@ def debugName(thing):
         widget = getattr(thing, 'control', None)
         return '%s on %s' % (thing.__class__.__name__, debugName(widget))
 
-    return '(unknown)'
-    
-    
+    try:
+        return thing.__repr__()
+    except:
+        return '(unknown)'
+        
 class ShownSynchronizer(object):
     """
     A mixin that handles isShown-ness: Make sure my visibility
