@@ -451,7 +451,8 @@ class DetailSynchronizer(Item):
                              #debugName(self), watchedAttributes, 
                              #debugName(self.item))
                 item = getattr(self.item, 'proxiedItem', self.item)
-                self.itsView.unwatchItem(self, item, 'onWatchedItemChanged')
+                if item is not None:
+                    self.itsView.unwatchItem(self, item, 'onWatchedItemChanged')
                 del self.widget.watchedAttributes        
 
     def onWatchedItemChanged(self, op, item, attributes):
@@ -461,8 +462,17 @@ class DetailSynchronizer(Item):
                          #debugName(self), attributes)
             return
 
+        # Ignore spurious notifications that happen after our widget's been
+        # destroyed
+        try:
+            watchedAttrs = self.widget.watchedAttributes
+        except AttributeError:
+            #logger.debug("%s: ignoring changes to %s, no widget", 
+                         #debugName(self), attributes)
+            return
+
         # Ignore notifications for attributes we don't care about
-        changedAttributesWeCareAbout = self.widget.watchedAttributes.intersection(attributes)
+        changedAttributesWeCareAbout = watchedAttrs.intersection(attributes)
         if len(changedAttributesWeCareAbout) == 0:
             #logger.debug("%s: ignoring changes to %s.", 
                          #debugName(self), attributes)
