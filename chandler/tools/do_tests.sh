@@ -398,13 +398,11 @@ else
         if [ "$OSTYPE" = "cygwin" ]; then
             TESTNAME=`cygpath -w $C_DIR/tools/QATestScripts/Performance/end.py`
             CREATEREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/quit.py`
-            CREATE3KREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py`
             P_DIR=`cygpath -w $PC_DIR`
             TIME='time.exe --format=%e'
         else
             TESTNAME=$C_DIR/tools/QATestScripts/Performance/end.py
             CREATEREPO=$C_DIR/tools/QATestScripts/Performance/quit.py
-            CREATE3KREPO=$C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py
             P_DIR="$PC_DIR"
 
             if [ "${OSTYPE:0:6}" = "darwin" ]; then
