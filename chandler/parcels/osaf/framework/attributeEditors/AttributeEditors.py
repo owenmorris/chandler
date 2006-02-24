@@ -1258,7 +1258,8 @@ class StringAttributeEditor (BaseAttributeEditor):
                     control.SetValue(text)
     
             control.SetEditable(not self.ReadOnly((self.item, self.attributeName)))
-
+            
+            control.SetForegroundColour(textColor)
             if hasattr(control, 'SetStyle'):
                 # Trying to make the text in the editbox gray doesn't seem to work on Win.
                 # (I'm doing it anyway, because it seems to work on Mac.)
@@ -1266,8 +1267,6 @@ class StringAttributeEditor (BaseAttributeEditor):
                 
                 if isSample and self._isFocused(control):
                     control.SelectAll()
-            else:
-                control.SetForegroundColour(textColor)
         finally:
             del self.ignoreTextChanged
 

@@ -574,22 +574,38 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
     def OnFinishChangesEvent (self, event):
         self.saveValue(validate=True)
 
-class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
+class DetailStampButton(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
-      Markup Toolbar, for quick control over Items.
-    Doesn't need to synchronizeItemDetail, because
-    the individual ToolbarItems synchronizeItemDetail.
+      Common base class for the stamping buttons in the Markup Bar
     """
+    def stampMixinClass(self):
+        # return the class of this stamp's Mixin Kind (bag of kind-specific attributes)
+        raise NotImplementedError, "%s.stampMixinClass()" % (type(self))
+        
+    def synchronizeItemDetail (self, item):
+        # toggle this button to reflect the kind of the selected item
+        mixinClass = self.stampMixinClass()
+        mixinKind = mixinClass.getKind(self.itsView)
+        shouldToggleBasedOnClass = isinstance(item, mixinClass)
+        shouldToggleBasedOnKind = item.isItemOf(mixinKind)
+        assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
+            "Class/Kind mismatch! Item is class %s, kind %s; " \
+            "stamping with class %s, kind %s" % (
+             item.__class__.__name__, 
+             item.itsKind.itsName,
+             mixinClass.__name__, 
+             mixinKind.itsName)            
+        self.parentBlock.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
+        return False
+
     def onButtonPressedEvent (self, event):
         # Rekind the item by adding or removing the associated Mixin Kind
         Block.Block.finishEdits()
-        tool = event.arguments['sender']
         item = self.item
-        
         if not item or not self._isStampable(item):
             return
             
-        mixinKind = tool.stampMixinKind()
+        mixinKind = self.stampMixinClass().getKind(self.itsView)
         if not item.itsKind.isKindOf(mixinKind):
             operation = 'add'
         else:
@@ -605,55 +621,10 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
         enable = item is not None and self._isStampable(item) and \
                item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
-
-    def onTogglePrivateEvent(self, event):
-        item = self.item            
-        self.postEventByName("FocusTogglePrivate", {'items': [item]})
-        tool = event.arguments['sender']
-        self.widget.ToggleTool(tool.toolID, item.private) # in case the user canceled the dialog, reset markupbar buttons
-
-    def onReadOnlyEventUpdateUI(self, event):
-        enable = ( self.item.getSharedState() == ContentItem.READONLY )
-        event.arguments ['Enable'] = enable        
-
-    def onTogglePrivateEventUpdateUI(self, event):
-        item = self.item            
-        enable = item is not None and item.isAttributeModifiable('displayName')
-        event.arguments ['Enable'] = enable
-
+        
     def _isStampable(self, item):
         # for now, any ContentItem is stampable. This may change if Mixin rules/policy change
         return item.isItemOf(items.ContentItem.getKind(self.itsView))
-
-class DetailStampButton (DetailSynchronizer, MenusAndToolbars.ToolbarItem):
-    """
-      Common base class for the stamping buttons in the Markup Bar
-    """
-    def stampMixinClass(self):
-        # return the class of this stamp's Mixin Kind (bag of kind-specific attributes)
-        raise NotImplementedError, "%s.stampMixinClass()" % (type(self))
-    
-    def stampMixinKind(self):
-        # return the Mixin Kind of this stamp
-        raise NotImplementedError, "%s.stampMixinKind()" % (type(self))
-    
-    def synchronizeItemDetail (self, item):
-        # toggle this button to reflect the kind of the selected item
-        shouldToggleBasedOnClass = isinstance(item, self.stampMixinClass())
-        shouldToggleBasedOnKind = item.isItemOf(self.stampMixinKind())
-        assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
-            "Class/Kind mismatch! Item is class %s, kind %s; " \
-            "stamping with class %s, kind %s" % (
-             item.__class__.__name__, 
-             item.itsKind.itsName,
-             self.stampMixinClass().__name__, 
-             self.stampMixinKind().itsName)
-        # @@@DLD remove workaround for bug 1712 - ToogleTool doesn't work on mac when bar hidden
-        if shouldToggleBasedOnKind:
-            self.dynamicParent.show (True) # if we're toggling a button down, the bar must be shown
-            
-        self.dynamicParent.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
-        return False
 
 class MailMessageButtonBlock(DetailStampButton):
     """
@@ -662,18 +633,12 @@ class MailMessageButtonBlock(DetailStampButton):
     def stampMixinClass(self):
         return Mail.MailMessageMixin
     
-    def stampMixinKind(self):
-        return Mail.MailMessageMixin.getKind(self.itsView)
-    
 class CalendarStampBlock(DetailStampButton):
     """
       Calendar button in the Markup Bar
     """
     def stampMixinClass(self):
         return Calendar.CalendarEventMixin
-
-    def stampMixinKind(self):
-        return Calendar.CalendarEventMixin.getKind(self.itsView)
 
 class TaskStampBlock(DetailStampButton):
     """
@@ -682,21 +647,25 @@ class TaskStampBlock(DetailStampButton):
     def stampMixinClass(self):
         return TaskMixin
 
-    def stampMixinKind(self):
-        return TaskMixin.getKind(self.itsView)
-
-
 class PrivateSwitchButtonBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
       "Never share" button in the Markup Bar
     """
     def synchronizeItemDetail (self, item):
         # toggle this button to reflect the privateness of the selected item        
-        # @@@DLD remove workaround for bug 1712 - ToogleTool doesn't work on mac when bar hidden
-        if item.private:
-            self.dynamicParent.show (True) # if we're toggling a button down, the bar must be shown
-        self.dynamicParent.widget.ToggleTool(self.toolID, item.private)
+        self.parentBlock.widget.ToggleTool(self.toolID, item.private)
         return False
+
+    def onButtonPressedEvent(self, event):
+        item = self.item            
+        self.postEventByName("FocusTogglePrivate", {'items': [item]})
+        tool = event.arguments['sender']
+        self.parentBlock.widget.ToggleTool(tool.toolID, item.private) # in case the user canceled the dialog, reset markupbar buttons
+
+    def onButtonPressedEventUpdateUI(self, event):
+        item = self.item            
+        enable = item is not None and item.isAttributeModifiable('displayName')
+        event.arguments ['Enable'] = enable
 
 class ReadOnlyIconBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
@@ -707,14 +676,14 @@ class ReadOnlyIconBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
         enable = ( item.getSharedState() == ContentItem.READONLY )
         self.parentBlock.widget.EnableTool(self.toolID, enable)
         return False
-            
-    def onReadOnlyEvent(self, event):
+
+    def onButtonPressedEvent(self, event):
         # We don't actually allow the read only state to be toggled
         pass
 
-    def onReadOnlyEventUpdateUI(self, event):
-        # We don't want to update the status of the button
-        pass
+    def onButtonPressedEventUpdateUI(self, event):
+        enable = ( self.item.getSharedState() == ContentItem.READONLY )
+        event.arguments ['Enable'] = enable        
 
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     """

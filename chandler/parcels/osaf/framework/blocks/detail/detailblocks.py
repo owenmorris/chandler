@@ -281,24 +281,10 @@ def makeRootStuff(parcel, oldVersion):
 
 def makeMarkupBar(parcel, oldVersion):
     """ Build the markup bar. """
-    
-    # Predeclare this - we'll flesh it out below.
-    markupBar = MarkupBarBlock.template('MarkupBar').install(parcel)
-    
-    # The events.
-    buttonPressed = \
-        BlockEvent.template('ButtonPressed',
-                            'SendToBlockByReference',
-                            destinationBlockReference=markupBar).install(parcel)
-    togglePrivate = \
-        BlockEvent.template('TogglePrivate',
-                            'SendToBlockByReference',
-                            destinationBlockReference=markupBar).install(parcel)
-
-    readOnly = \
-        BlockEvent.template('ReadOnly',
-                            'SendToBlockByReference',
-                            destinationBlockReference=markupBar).install(parcel)
+        
+    # Each button just sends this event to itself.
+    buttonPressed = BlockEvent.template('ButtonPressed', 
+                                        'SendToSender').install(parcel)
 
     # The buttons.
     mailMessageButton = \
@@ -335,7 +321,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     toolbarItemKind='Button',
                                     toggle=True,
                                     helpString=messages.PRIVATE,
-                                    event=togglePrivate)
+                                    event=buttonPressed)
 
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',
@@ -344,19 +330,19 @@ def makeMarkupBar(parcel, oldVersion):
                                     disabledBitmap="MarkupBarReadWrite.png",
                                     toolbarItemKind='Status',
                                     helpString=messages.READONLY,
-                                    event=readOnly)
+                                    event=buttonPressed)
 
-    # Finally, (re-)do the bar itself.
-    markupBar = MarkupBarBlock.template('MarkupBar',
-                                        childrenBlocks=[mailMessageButton,
-                                                        taskStamp,
-                                                        calendarStamp,
-                                                        privateSwitchButton,
-                                                        readOnlyIcon],
-                                        position=0.0,
-                                        toolSize=SizeType(20, 20),
-                                        separatorWidth=16,
-                                        stretchFactor=0.0).install(parcel)
+    # Finally, do the bar itself.
+    markupBar = MenusAndToolbars.Toolbar.template('MarkupBar',
+                                    childrenBlocks=[mailMessageButton,
+                                                    taskStamp,
+                                                    calendarStamp,
+                                                    privateSwitchButton,
+                                                    readOnlyIcon],
+                                    position=0.0,
+                                    toolSize=SizeType(20, 20),
+                                    separatorWidth=16,
+                                    stretchFactor=0.0).install(parcel)
     
 def makeNoteSubtree(parcel, oldVersion):
     """ Build the subtree (and related stuff) for Note """
