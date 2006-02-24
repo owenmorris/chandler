@@ -32,27 +32,6 @@ CAL_SHOW_PREVIEW           = 0x0004 # show a preview of events on the
 CAL_HIGHLIGHT_WEEK         = 0x0008 # select an entire week at a time
 CAL_SHOW_BUSY              = 0x0010 # show busy bars
 
-def PreviousWeekday(targetDate, targetWeekday):
-    """
-    rewind the selected date to the previous specified date
-    """
-    dayAdjust = targetWeekday - targetDate.weekday()
-    if dayAdjust > 0:
-        dayAdjust -= 7
-
-    return targetDate + timedelta(days=dayAdjust)
-
-def GetWeekOfMonth(dt, ignored):
-    """
-    there may be issues with monday/sunday first day of week
-    """
-    year,week,day = dt.isocalendar()
-    
-    firstYear, firstWeek, firstDay = \
-               date(dt.year, dt.month, 1).isocalendar()
-
-    return week - firstWeek
-
 def MonthDelta(dt, months):
     """
     Adjust the given date by the specified number of months, maxing
@@ -300,7 +279,7 @@ class PyMiniCalendar(wx.PyControl):
 
         clickDate = date(self.firstVisibleDate.year, self.firstVisibleDate.month, 1)
         clickDate = MonthDelta(clickDate, month)
-        clickDate = PreviousWeekday(clickDate, self.firstDayOfWeek)
+        clickDate = self.FirstDayOfWeek(clickDate)
 
         clickDate += timedelta(days=DAYS_PER_WEEK * week + wday)
         targetMonth = self.firstVisibleDate.month + month
@@ -328,7 +307,7 @@ class PyMiniCalendar(wx.PyControl):
         startDate = date(self.firstVisibleDate.year, self.firstVisibleDate.month, 1)
 
         # now to back to the beginning of the week
-        return PreviousWeekday(startDate, self.firstDayOfWeek)
+        return self.FirstDayOfWeek(startDate)
 
     # Get sizes of individual components
     def GetHeaderSize(self):
@@ -574,7 +553,7 @@ class PyMiniCalendar(wx.PyControl):
             dc.DrawRectangle(0, y, self.GetClientSize().x, self.heightRow)
 
             for wd in xrange(DAYS_PER_WEEK):
-                n = wd + self.firstDayOfWeek + 1
+                n = wd + self.firstDayOfWeek - 1
                 n %= DAYS_PER_WEEK
                     
                 (dayw, dayh) = dc.GetTextExtent(self.weekdays[n+1])
@@ -585,7 +564,7 @@ class PyMiniCalendar(wx.PyControl):
         y += (self.heightRow - 1)
         
         weekDate = date(startDate.year, startDate.month, 1)
-        weekDate = PreviousWeekday(weekDate, self.firstDayOfWeek)
+        weekDate = self.FirstDayOfWeek(weekDate)
 
         mainColour = wx.Colour(0, 0, 0)
         lightColour = wx.Colour(255, 255, 255)
@@ -629,6 +608,7 @@ class PyMiniCalendar(wx.PyControl):
                         # selected day depending upon the style
                         highlightWeek = (self.GetWindowStyle() &
                                          CAL_HIGHLIGHT_WEEK) != 0
+                            
                         if ((highlightWeek and
                              (self.GetWeek(weekDate, False) ==
                               self.GetWeek(self.selectedDate, False))) or
@@ -658,7 +638,8 @@ class PyMiniCalendar(wx.PyControl):
                             changedColours = True
 
                     # draw free/busy indicator
-                    if self.GetWindowStyle() & CAL_SHOW_BUSY:
+                    if (self.GetWindowStyle() & CAL_SHOW_BUSY and
+                        weekDate.month == startDate.month):
                         busyPercentage = self.GetBusy(weekDate)
                         height = (self.heightRow - 8) * busyPercentage
 
@@ -763,16 +744,44 @@ class PyMiniCalendar(wx.PyControl):
         self.SetVisibleDate(newDate, setVisible)
         self.GenerateEvents(eventType, EVT_MINI_CALENDAR_SEL_CHANGED)
 
+
+    def FirstDayOfWeek(self, targetDate):
+        """
+        rewind the selected date to the previous specified date
+        
+        Unfortunately, firstDayOfWeek has sunday = 1, and weekday()
+        has monday=0, so they're actually off by 2!
+        """
+        dayAdjust = (self.firstDayOfWeek - 1) - (targetDate.weekday() + 1)
+        if dayAdjust > 0:
+            dayAdjust -= 7
+        elif dayAdjust == -7:
+            dayAdjust = 0
+
+        return targetDate + timedelta(days=dayAdjust)
+
+    def GetWeekOfMonth(self, dt):
+        """
+        there may be issues with monday/sunday first day of week
+        """
+        week = self.FirstDayOfWeek(dt).weekday()
+
+        firstWeek = \
+                  date(dt.year, dt.month, 1).weekday()
+
+        return week - firstWeek
+
+
     def GetWeek(self, targetDate, useRelative=True):
         """
         get the week (row, in range 1..WEEKS_TO_DISPLAY) for the given date
         """
         if useRelative:
             # week of the month
-            return GetWeekOfMonth(targetDate, self.firstDayOfWeek)
+            return self.GetWeekOfMonth(targetDate)
 
         # week of the year
-        targetDate = PreviousWeekday(targetDate, self.firstDayOfWeek)
+        targetDate = self.FirstDayOfWeek(targetDate)
         (year, week, day) = targetDate.isocalendar()
         return week
 
