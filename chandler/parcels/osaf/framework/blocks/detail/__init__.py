@@ -34,7 +34,6 @@ from Detail import (
     InboundOnlyAreaBlock,
     LabeledTextAttributeBlock, 
     MailMessageButtonBlock,
-    MarkupBarBlock, 
     OutboundOnlyAreaBlock,
     PrivateSwitchButtonBlock, 
     StaticRedirectAttribute,
