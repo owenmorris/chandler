@@ -18,7 +18,7 @@ try:
     # no action - we just verify import
 
     # verification
-    def TestEventCreation(title):
+    def VerifyEventCreation(title):
         global logger
         global App_ns
         global pim
@@ -28,10 +28,10 @@ try:
         else:
             logger.ReportFailure("Testing event creation: '%s' not created" % title)
     
-    TestEventCreation("Go to the beach")
-    TestEventCreation("Basketball game")
-    TestEventCreation("Visit friend")
-    TestEventCreation("Library")
+    VerifyEventCreation("Go to the beach")
+    VerifyEventCreation("Basketball game")
+    VerifyEventCreation("Visit friend")
+    VerifyEventCreation("Library")
     
     logger.SetChecked(True)
     logger.Report("Import")

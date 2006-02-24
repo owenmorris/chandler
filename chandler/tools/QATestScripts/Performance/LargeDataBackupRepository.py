@@ -13,7 +13,7 @@ try:
     QAUITestAppLib.UITestView(logger, u'Generated3000.ics')
     
     # verification of import
-    def TestEventCreation(title):
+    def VerifyEventCreation(title):
         global logger
         global App_ns
         global pim
@@ -23,10 +23,10 @@ try:
         else:
             logger.ReportFailure("Testing event creation: '%s' not created" % title)
     
-    TestEventCreation("Go to the beach")
-    TestEventCreation("Basketball game")
-    TestEventCreation("Visit friend")
-    TestEventCreation("Library")
+    VerifyEventCreation("Go to the beach")
+    VerifyEventCreation("Basketball game")
+    VerifyEventCreation("Visit friend")
+    VerifyEventCreation("Library")
     
     # backup
     # - need to commit first so that the collection in the sidebar
