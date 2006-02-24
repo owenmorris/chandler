@@ -311,7 +311,7 @@ class Item(CItem):
     def _registerWatch(self, watcher, attribute, watch, name):
 
         dispatch = self._values.get('watcherDispatch', None)
-        watcher = (watcher, watch, name)
+        watcher = (watcher.itsUUID, watch, name)
 
         if dispatch is None:
             self.watcherDispatch = { attribute: set([watcher]) }
@@ -329,13 +329,16 @@ class Item(CItem):
 
         dispatch = self._values.get('watcherDispatch', None)
         if dispatch:
-            watcher = (watcher, watch, name)
+            watcher = (watcher.itsUUID, watch, name)
             watchers = dispatch.get(attribute, None)
             if watchers:
-                watchers.remove(watcher)
-
-                if watch == 'item' and not watchers:
-                    self._status &= ~Item.P_WATCHED
+                try:
+                    watchers.remove(watcher)
+                except KeyError:
+                    pass
+                else:
+                    if watch == 'item' and not watchers:
+                        self._status &= ~Item.P_WATCHED
 
     def _watchSet(self, owner, attribute, name):
         owner._registerWatch(self, attribute, 'set', name)

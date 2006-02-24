@@ -957,10 +957,13 @@ class RepositoryView(CView):
             if watchers:
                 watchers = watchers.get(attribute)
                 if watchers:
-                    watchers.remove(watcher)
-
-                    if watch == 'item' and not watchers:
-                        item._status &= ~CItem.T_WATCHED
+                    try:
+                        watchers.remove(watcher)
+                    except KeyError:
+                        pass
+                    else:
+                        if watch == 'item' and not watchers:
+                            item._status &= ~CItem.T_WATCHED
 
     def watchItem(self, watcher, item, methodName):
         self._registerWatch(watcher, item, None, 'item', methodName)

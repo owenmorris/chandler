@@ -29,9 +29,6 @@ class ACL(list):
             grant |= on
             deny |= off
 
-            if grant == perms or deny == perms:
-                break
-
         return grant & ~deny
 
 

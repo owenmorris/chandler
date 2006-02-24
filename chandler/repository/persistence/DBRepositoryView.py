@@ -232,8 +232,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 if names is None:
                                     names = dirtyNames()
                                 for watcher, watch, methodName in watchers:
-                                    if issingleref(watcher):
-                                        watcher = self[watcher.itsUUID]
+                                    watcher = self[watcher.itsUUID]
                                     getattr(watcher, methodName)('refresh', uItem, names)
                             elif isNew or attribute in dirties:
                                 value = self.findValue(uItem, attribute, None)
