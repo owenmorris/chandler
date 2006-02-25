@@ -100,7 +100,9 @@ class PyMiniCalendar(wx.PyControl):
         self.months = dateFormatSymbols.getMonths()
         
         # this is a 1-based array as entry [0] is an empty string
-        self.weekdays = [unicode(d) for d in dateFormatSymbols.getShortWeekdays()]
+        self.weekdays = [unicode(d) for d in
+                         dateFormatSymbols.getWeekdays(DateFormatSymbols.STANDALONE,
+                                                       DateFormatSymbols.NARROW)]
         self.firstDayOfWeek = GregorianCalendar().getFirstDayOfWeek()
         
         self.busyPercent = {}
