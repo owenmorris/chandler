@@ -1749,7 +1749,7 @@ class Item(CItem):
             acl = Nil
 
         if acl is Nil:
-            acl = self.itsView.getACL(self._uuid, name, self._version)
+            acl = self.itsView.getACL(self._uuid, name)
 
         return acl
 

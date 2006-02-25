@@ -645,7 +645,7 @@ class ACLContainer(DBContainer):
             value = "".join([pack('>16sl', ace.pid._uuid, ace.perms)
                              for ace in acl])
 
-        self.put(key, value)
+        return self.put(key, value)
 
     def readACL(self, view, version, key, name):
 
