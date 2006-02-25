@@ -18,7 +18,8 @@ class EVDBCollection(pim.ListCollection):
             try:
                 result = evdb.GetCollectionFromSearch(self.itsView, keywords)
             except Exception, e:
-                Util.ok(None, _(u"EVDB Search"), _(u"An error occurred while fetching events from EVDB:\n%s\n\nSee chandler.log for details." % (e,)))
+                Util.ok(None, _(u"EVDB Search"),
+                _(u"An error occurred while fetching events from EVDB:\n%(error)s\n\nSee chandler.log for details.") % {'error': e})
             else:
                 if len(list(result)) == 0:
                     Util.ok(None, _(u"EVDB Search"), _(u"No matching events were found."))
