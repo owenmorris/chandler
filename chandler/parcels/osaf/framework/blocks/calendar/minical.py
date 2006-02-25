@@ -530,7 +530,9 @@ class PyMiniCalendar(wx.PyControl):
         dc.SetTextForeground(wx.BLACK);
 
         # Get extent of month-name + year
-        headertext = startDate.strftime("%B %Y")
+        headertext = _(u'%(currentMonth)s %(currentYear)d') % {
+            'currentMonth' : self.months[startDate.month-1],
+            'currentYear' : startDate.year }
         dc.SetFont(self.boldFont)
         (monthw, monthh) = dc.GetTextExtent(headertext)
 
