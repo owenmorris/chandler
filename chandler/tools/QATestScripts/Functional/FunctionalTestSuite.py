@@ -13,7 +13,12 @@ logger = QAUITestAppLib.QALogger(fileName,"FunctionalTestSuite")
 
 def run_tests(tests):
     for filename in tests:
-        execfile(os.path.join(functional_dir, filename))
+        try:
+            execfile(os.path.join(functional_dir, filename))
+        except:
+            import traceback
+            type, value, stack = sys.exc_info()
+            traceback.print_exception(type, value, stack, None, sys.stderr)
         
 allTests = ["TestBlocks.py",
             "TestCreateAccounts.py",

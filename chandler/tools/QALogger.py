@@ -1,11 +1,32 @@
 from datetime import datetime, timedelta
-import os
+import os, sys
 import time
 import string
 import version
 import application.Globals as Globals
 import osaf.framework.scripting as scripting
 import hotshot
+            
+class FileWatcher:       
+    """masquerades as a file so stderr can be directed to it
+         sets a flag if writen to, then passes str to stdout via print"""
+    def __init__(self):
+        self.text = ''
+        self.hadError = False
+    def write(self, str):
+        self.text = self.text + str
+        self.hadError = True 
+        print str #send to stdout
+    def writelines(self, lines):
+        for line in lines: 
+            self.write(line)
+            print line #send to stdout
+        self.hadError = True         
+    def read(self):
+        return self.text
+    def clear(self):
+        self.text = ''
+        self.hadError = False
 
 def QALogger(fileName=None, description="No description"):
     ''' Factory method for QALogger '''
@@ -29,6 +50,12 @@ def QALogger(fileName=None, description="No description"):
 class TestLogger:
     def __init__(self,filepath=None,description="No description"):
         self.startDate = datetime.now()
+        #capture stderr
+        self.old_stderr = sys.stderr #need this so we can go back to it in close()
+        self.old_stdout = sys.stdout
+        self.standardErr = FileWatcher()
+        sys.stderr = self.standardErr      
+            
         if filepath:
             self.inTerminal = False
             time_stamp = "%4s%2s%2s%2s%2s%2s" %(self.startDate.year, self.startDate.month, self.startDate.day,
@@ -74,6 +101,7 @@ class TestLogger:
         self.nbVerif = 0
         self.failureList = []
         self.passedList = []
+        self.standardErr.clear()
             
     def Print(self,string):
         ''' Printing method '''
@@ -175,7 +203,6 @@ class TestLogger:
             self.nbFail = self.nbFail + 1
         self.Print("Verification = %s" % status)
         self.Print("")
-
         #reset
         self.failureList = []
         self.passedList = []
@@ -192,7 +219,7 @@ class TestLogger:
 
     def SetChecked(self, bool):
         self.checked = bool
-    
+        
     def Close(self, quit=True):
         now = datetime.now()
         if self.toClose: # The file must close (time to report a summary)
@@ -242,6 +269,16 @@ class TestLogger:
                 self.Print("")
                 #Test case status
                 self.Print("Status : %s testcase %s" %(self.mainDescription, status))
+            
+            #change status to FAILED if anything writen to stderr
+            if self.standardErr.hadError:
+                status = "FAILED"
+                self.Print('+' * 20)
+                self.Print("Failed due to exception:")
+                self.Print(self.standardErr.text)
+                self.Print('+' * 20)
+            #restore stderr
+            #sys.stderr = self.old_stderr
 
             # Tinderbox printing
             # compute the elapsed time in seconds
@@ -287,4 +324,3 @@ class TestLogger:
                 self.PrintTBOX(elapsed, "Testcase")
             # new testcase inits
             self.Reset()
-            
