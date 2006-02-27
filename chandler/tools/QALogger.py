@@ -101,7 +101,7 @@ class TestLogger:
         self.nbVerif = 0
         self.failureList = []
         self.passedList = []
-        self.standardErr.clear()
+        #self.standardErr.clear()
             
     def Print(self,string):
         ''' Printing method '''
@@ -295,6 +295,12 @@ class TestLogger:
             print("#TINDERBOX# Testname = %s" %description)    
             print("#TINDERBOX# Status = %s" %status)
             print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
+            #print names of failed tests
+            if status == "FAILED":
+                print "Failed tests:"
+                for tc in self.testcaseList:
+                    if tc[1] == "FAIL":
+                        print tc[0] + ' FAILED'
             if not self.inTerminal:
                 # close the file
                 self.File.close()
