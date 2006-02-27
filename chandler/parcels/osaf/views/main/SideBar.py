@@ -751,7 +751,7 @@ class SidebarBlock(Table):
     def onRequestSelectSidebarItemEvent (self, event):
         # Request the sidebar to change selection
         # Item specified is usually by name
-        item = arguments.get ('item', None)
+        item = event.arguments.get ('item', None)
         if item is None:
             return self.select(None, event.arguments['itemName'])
         else:

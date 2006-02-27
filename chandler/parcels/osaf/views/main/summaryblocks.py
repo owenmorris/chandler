@@ -18,8 +18,8 @@ def makeSummaryBlocks(parcel):
     detailBranchPointDelegate = detail.DetailBranchPointDelegate.update(
         parcel, 'DetailBranchPointDelegateInstance',
         branchStub = detailblocks.DetailRoot)
-    detailContentsCollection = pim.ListCollection.update(
-        parcel, 'DetailContentsCollection')
+    #detailContentsCollection = pim.ListCollection.update(
+        #parcel, 'DetailContentsCollection')
     
     SplitterWindow.template(
         'TableSummaryViewTemplate',
@@ -43,7 +43,8 @@ def makeSummaryBlocks(parcel):
                 selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
                 delegate = detailBranchPointDelegate,
-                contents = detailContentsCollection)
+                #contents = detailContentsCollection
+                )
             ]).install(parcel) # SplitterWindow TableSummaryViewTemplate
 
 
@@ -88,12 +89,13 @@ def makeSummaryBlocks(parcel):
     CalendarDetailBranchPointBlock = BranchPointBlock.template(
         'CalendarDetailBranchPointBlock',
         delegate = detailBranchPointDelegate,
-        contents = detailContentsCollection).install(parcel)
+        #contents = detailContentsCollection
+        ).install(parcel)
 
     WelcomeEvent = schema.ns('osaf.app', view).WelcomeEvent
     CalendarDetailBranchPointBlock.selectedItem = WelcomeEvent
-    detailContentsCollection.clear()
-    detailContentsCollection.add(WelcomeEvent)
+    #detailContentsCollection.clear()
+    #detailContentsCollection.add(WelcomeEvent)
 
     CalendarSummaryView = CalendarContainer.template(
         'CalendarSummaryView',
