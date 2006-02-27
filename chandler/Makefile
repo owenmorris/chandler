@@ -195,14 +195,14 @@ purge:
 	python $(CHANDLERHOME)/tools/purge.py $(CHANDLERHOME)
 
 tests:
-	$(CHANDLERHOME)/tools/do_tests.sh $(CHANDLERHOME)
+	$(CHANDLERHOME)/tools/do_tests.sh -u
 
 clean: purge
-	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
+	rm -rf $(CHANDLERBIN)/$(SNAP)
+	rm -rf __repository__
 	rm -f chandler.log randpool.dat
 	find . -name '*.pyc' | xargs rm -f
 	find . -name '*.pyo' | xargs rm -f
 
 realclean: clean
-	rm -rf $(CHANDLERBIN)/debug $(CHANDLERBIN)/release
-	rm -f $(ARCHIVES) $(ARCHIVES_INST)
+	rm -f $(ARCHIVES)
