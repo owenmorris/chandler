@@ -17,7 +17,7 @@ def makeMainEvents(parcel):
         # because of a circular dependence
         ).install(parcel)
     
-    KindParameterizedEvent.template(
+    NewEvent.template(
         'NewNote',
         methodName = 'onNewEvent',
         kindParameter = osaf.pim.notes.Note.getKind(repositoryView),
@@ -169,7 +169,7 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
-    KindParameterizedEvent.template(
+    NewEvent.template(
         'NewMailMessage',
         methodName = 'onNewEvent',
         kindParameter = osaf.pim.mail.MailMessage.getKind(repositoryView),
@@ -183,7 +183,7 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
-    KindParameterizedEvent.template(
+    NewEvent.template(
         'NewCalendar',
         methodName = 'onNewEvent',
         kindParameter = osaf.pim.calendar.Calendar.CalendarEvent.getKind(repositoryView),
@@ -250,7 +250,7 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'ApplicationBar').install(parcel)
 
-    KindParameterizedEvent.template(
+    NewEvent.template(
         'NewTask',
         methodName = 'onNewEvent',
         kindParameter = osaf.pim.tasks.Task.getKind(repositoryView),
