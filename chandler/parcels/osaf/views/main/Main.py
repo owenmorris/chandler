@@ -149,19 +149,23 @@ class MainView(View):
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
 
-        sidebar = Block.findBlockByName("Sidebar")
+        collection = event.collection
+        if collection is None:
+            sidebar = Block.findBlockByName("Sidebar")
+    
+            # if the collection is read-only, then jump to the
+            # all collection
+            collection = sidebar.selectedItemToView
+            isReadOnly = getattr(collection, 'isReadOnly', None)
+            if isReadOnly and isReadOnly():
+                # Tell the sidebar we want to go to the All collection
+                allCollection = schema.ns('osaf.pim', self).allCollection
+                self.postEventByName ('RequestSelectSidebarItem',
+                                      {'item': allCollection})
+                collection = None
 
-        # if the sidebaritem is read-only, then jump to the
-        # all collection
-        sidebaritem = sidebar.selectedItemToView
-        isReadOnly = getattr(sidebaritem, 'isReadOnly', None)
-        if isReadOnly and isReadOnly():
-            # Tell the sidebar we want to go to the All collection
-            allCollection = schema.ns('osaf.pim', self).allCollection
-            self.postEventByName ('RequestSelectSidebarItem',
-                                  {'item': allCollection})
-        elif hasattr(sidebaritem, 'add'):
-            sidebaritem.add(newItem)
+        if collection is not None and hasattr(collection, 'add'):
+            collection.add(newItem)
 
         # If the event cannot be displayed in this viewer,
         # we need to switch to the all view

@@ -1016,6 +1016,9 @@ class KindParameterizedEvent(BlockEvent):
         copying = schema.Cloud(byRef=[kindParameter])
     )
     
+class NewEvent(KindParameterizedEvent):
+    collection = schema.One(collections.AbstractCollection, defaultValue = None)
+
 
 
 class ModifyCollectionEvent(BlockEvent):

@@ -1,10 +1,11 @@
 from Styles import CharacterStyle, ColorStyle, Style
 from Block import Block as __Block
+from application import schema
 import wx
 
 
 from Block import (
-    RectangularChild, BlockEvent, ChoiceEvent, ColorEvent,
+    RectangularChild, BlockEvent, NewEvent, ChoiceEvent, ColorEvent,
     KindParameterizedEvent, ModifyCollectionEvent, EventList, debugName,
     getProxiedItem, WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
@@ -81,9 +82,6 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('About', 'ActiveViewBubbleUp').install(parcel),
 
         BlockEvent.template('Close', 'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('New', 'ActiveViewBubbleUp',
-                            commitAfterDispatch=True).install(parcel),
 
         BlockEvent.template('Open', 'ActiveViewBubbleUp').install(parcel),
 
