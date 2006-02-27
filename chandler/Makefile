@@ -26,7 +26,6 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.7-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-$(BP)4.tar.gz \
-         $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-$(BP)5.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)3.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.4-53-$(BP)1.tar.gz \
