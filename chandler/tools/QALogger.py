@@ -300,7 +300,7 @@ class TestLogger:
                 print "Failed tests:"
                 for tc in self.testcaseList:
                     if tc[1] == "FAIL":
-                        print tc[0] + ' FAILED'
+                        print tc[0] + ' failed'
             if not self.inTerminal:
                 # close the file
                 self.File.close()
