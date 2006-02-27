@@ -119,7 +119,7 @@ class FeedChannel(pim.ListCollection):
 
     def __init__(self, *args, **kw):
         super(FeedChannel, self).__init__(*args, **kw)
-        self.rep.addIndex('link', 'value', attribute='link')
+        self.addIndex('link', 'value', attribute='link')
 
     schema.kindInfo(displayName=u"Feed Channel")
 

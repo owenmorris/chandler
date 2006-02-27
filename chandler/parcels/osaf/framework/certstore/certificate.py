@@ -237,10 +237,11 @@ def importCertificate(x509, fingerprint, trust, repView):
     # XXX Why is this collection created here, as it is not used here?
     q = repView.findPath('//userdata/%s' %(constants.TRUSTED_SITE_CERTS_QUERY_NAME))
     if q is None:
-        q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME, itsView=repView)
-        q.source = utils.getExtent(Certificate, repView)
-        q.filterExpression = u'item.type == "%s" and item.trust == %d' % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY)
-        q.filterAttributes = ['type', 'trust']
+        q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME,
+                               itsView=repView,
+                               source=utils.getExtent(Certificate, repView),
+                               filterExpression=u'item.type == "%s" and item.trust == %d' % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
+                               filterAttributes=['type', 'trust'])
 
     repView.commit()
 

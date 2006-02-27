@@ -89,10 +89,11 @@ rZehs7GgIFvKMquNzxPwHynD
         self.loadParcel("osaf.framework.certstore.data")
         
         view = self.rep.view
-        rootCerts = FilteredCollection('rootCertsQuery', itsView=view)
-        rootCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
-        rootCerts.filterExpression = u'item.type == "%s"' % constants.TYPE_ROOT
-        rootCerts.filterAttributes = ['type']
+        rootCerts = FilteredCollection('rootCertsQuery',
+                                       itsView=view,
+                                       source=utils.getExtent(certificate.Certificate, view, exact=True),
+                                       filterExpression=u'item.type == "%s"' % constants.TYPE_ROOT,
+                                       filterAttributes=['type'])
             
         now = time.gmtime()
         format = '%b %d %H:%M:%S %Y %Z'
@@ -129,13 +130,13 @@ rZehs7GgIFvKMquNzxPwHynD
         
         view = self.rep.view
 
-        matchingCerts = FilteredCollection('fpCertQuery' + fingerprint, itsView=view)
-        matchingCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
-        matchingCerts.filterExpression = u'item.fingerprint == "%s"' % fingerprint
-        matchingCerts.filterAttributes = ['fingerprint']
+        matchingCerts = FilteredCollection('fpCertQuery' + fingerprint,
+                                           itsView=view,
+                                           source=utils.getExtent(certificate.Certificate, view, exact=True),
+                                           filterExpression=u'item.fingerprint == "%s"' % fingerprint,
+                                           filterAttributes=['fingerprint'])
         
-        #unfortunately len isn't implemented for FilteredCollections
-        assert len([theItem for theItem in matchingCerts]) == 1
+        assert len(matchingCerts) == 1
         
         return iter(matchingCerts).next()
     

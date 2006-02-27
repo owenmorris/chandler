@@ -174,6 +174,9 @@ class ContentItem(schema.Item):
     branchPointDetailItemOwner = schema.Sequence(otherName="detailItem") # Block
     branchPointSelectedItemOwner = schema.Sequence(otherName="selectedItem") # Block
 
+    # ContentItem instances can be put into ListCollections
+    collections = schema.Sequence(otherName='refCollection', notify=True)
+
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',
                                "description"),

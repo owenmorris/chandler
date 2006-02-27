@@ -198,8 +198,8 @@ class Attribute(Item):
 
         return match
 
-    valueAspects = ('required', 'persisted', 'indexed', 'cardinality',
-                    'defaultValue', 'initialValue',
+    valueAspects = ('required', 'persisted', 'indexed', 'notify',
+                    'cardinality', 'defaultValue', 'initialValue',
                     'inheritFrom', 'redirectTo', 'otherName',
                     'deletePolicy', 'copyPolicy', 'countPolicy', 'domains')
 

@@ -222,7 +222,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             if kind is not None:
                 kind.extent._collectionChanged('refresh', 'collection',
                                                'extent', uItem)
-
+                
                 dispatch = self.findValue(uItem, 'watcherDispatch', None)
                 if dispatch:
                     isNew = (status & CItem.NEW) != 0
@@ -241,17 +241,32 @@ class DBRepositoryView(OnDemandRepositoryView):
                                         value = value.uuid
                                     else:
                                         continue
-                                for uRef in refs.iterHistory(self, value, oldVersion, newVersion, True):
+                                for uRef in refs.iterHistory(self, value, version - 1, version, True):
                                     if uRef in refreshes:
                                         self.invokeWatchers(watchers, 'refresh', 'collection', uItem, attribute, uRef)
 
-                if watcherDispatch and uItem in watcherDispatch:
-                    watchers = watcherDispatch[uItem].get(None)
-                    if watchers:
-                        if names is None:
-                            names = dirtyNames()
-                        for watcher, watch, methodName in watchers:
-                            getattr(self[watcher], methodName)('refresh', uItem, names)
+                for name in kind._iterNotifyAttributes():
+                    value = self.findValue(uItem, name, None)
+                    if not isuuid(value):
+                        if isinstance(value, RefList):
+                            value = value.uuid
+                        else:
+                            continue
+                    otherName = kind.getOtherName(name, None)
+                    for uRef in refs.iterKeys(self, value, version):
+                        dispatch = self.findValue(uRef, 'watcherDispatch', None)
+                        if dispatch:
+                            watchers = dispatch.get(otherName, None)
+                            if watchers:
+                                self.invokeWatchers(watchers, 'changed', 'notification', uRef, otherName, uItem)
+
+            if watcherDispatch and uItem in watcherDispatch:
+                watchers = watcherDispatch[uItem].get(None)
+                if watchers:
+                    if names is None:
+                        names = dirtyNames()
+                    for watcher, watch, methodName in watchers:
+                        getattr(self[watcher], methodName)('refresh', uItem, names)
 
     def _dispatchChanges(self, changes):
 
@@ -262,20 +277,16 @@ class DBRepositoryView(OnDemandRepositoryView):
                 kind.extent._collectionChanged('changed', 'notification',
                                                'extent', item)
 
-                dispatch = getattr(item, 'watcherDispatch', None)
-                if dispatch:
-                    isNew = (status & CItem.NEW) != 0
-                    for attribute, watchers in dispatch.iteritems():
-                        if watchers:
-                            if attribute is None:  # item watchers
-                                continue
-                            elif isNew or attribute in references:
-                                value = getattr(item, attribute, None)
-                                if isinstance(value, RefList):
-                                    for uRef in value.iterChanges():
-                                        other = self.find(uRef, False)
-                                        if other is not None and other.isDirty():
-                                            self.invokeWatchers(watchers, 'changed', 'notification', item, attribute, other)
+                for name in kind._iterNotifyAttributes():
+                    value = getattr(item, name, None)
+                    if value is not None and isinstance(value, RefList):
+                        otherName = value._otherName
+                        for uRef in value.iterkeys():
+                            dispatch = self.findValue(uRef, 'watcherDispatch', None)
+                            if dispatch:
+                                watchers = dispatch.get(otherName, None)
+                                if watchers:
+                                    self.invokeWatchers(watchers, 'changed', 'notification', uRef, otherName, item)
     
     def refresh(self, mergeFn=None, version=None):
 

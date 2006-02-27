@@ -9,6 +9,7 @@ class NotifyHandler(schema.Item):
     we should change notifications to work on callables -- John is cool with that.
     """
     log = schema.Sequence(initialValue=[])
+    subscribesTo = schema.One(ContentCollection, otherName="subscribers")
 
     def checkLog(self, op, item, other, index=-1):
         if len(self.log) == 0:
@@ -25,7 +26,7 @@ class NotifyHandler(schema.Item):
                 continue
             return rec[0] == op and rec[3] == other 
 
-    def onCollectionEvent(self, op, collection, name, other):
+    def onCollectionNotification(self, op, collection, name, other):
         self.log.append((op, collection, name, other))
 
 class SimpleItem(schema.Item):
@@ -34,6 +35,7 @@ class SimpleItem(schema.Item):
     """
 
     label = schema.One(schema.Text, displayName=u"My Label")
+    collections = schema.Sequence(otherName='refCollection')
 
 class ChildSimpleItem(SimpleItem):
     childData = schema.One(schema.Text, displayName=u"Child data")
@@ -44,6 +46,7 @@ class OtherSimpleItem(schema.Item):
     """
 
     label = schema.One(schema.Text, displayName=u"My Label")
+    collections = schema.Sequence(otherName='refCollection')
 
 class CollectionTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
@@ -94,9 +97,8 @@ class CollectionTests(CollectionTestCase):
         """
         Test UnionCollection
         """
-        u = UnionCollection('u', itsView=self.view)
-        u.addSource(self.b1)
-        u.addSource(self.b2)
+        u = UnionCollection('u', itsView=self.view,
+                            sources=[ self.b1, self.b2 ])
 
         self.b1.subscribers.add(self.nh)
         u.subscribers.add(self.nh1)
@@ -151,8 +153,8 @@ class CollectionTests(CollectionTestCase):
         """
         Test DifferenceCollection
         """
-        d = DifferenceCollection('d', itsView=self.view)
-        d.sources = [ self.b1, self.b2 ]
+        d = DifferenceCollection('d', itsView=self.view,
+                                 sources=[ self.b1, self.b2 ])
         self.b1.subscribers.add(self.nh)
         d.subscribers.add(self.nh1)
 
@@ -183,14 +185,13 @@ class CollectionTests(CollectionTestCase):
         Test the ItemCollection expression
         """
         inclusions = ListCollection("inclusions", itsView=self.view)
-        rule = KindCollection(itsView=self.view)
-        rule.kind = self.i.itsKind
+        rule = KindCollection(itsView=self.view,
+                              kind=self.i.itsKind)
         exclusions = ListCollection("exclusions", itsView=self.view)
-        iu = UnionCollection("iu", itsView=self.view)
-        iu.addSource(inclusions)
-        iu.addSource(rule)
-        ic = DifferenceCollection("ic", itsView=self.view)
-        ic.sources = [ iu, exclusions ]
+        iu = UnionCollection("iu", itsView=self.view,
+                             sources=[ inclusions, rule ])
+        ic = DifferenceCollection("ic", itsView=self.view,
+                                  sources=[ iu, exclusions ])
 
         inclusions.subscribers.add(self.nh)
         rule.subscribers.add(self.nh1)
@@ -234,10 +235,10 @@ class CollectionTests(CollectionTestCase):
         Test KindCollection
         """
         k = self.view.findPath('//Schema/Core/Kind')
-        k1 = KindCollection(itsView=self.view)
-        k1.kind = k
-        k2 = KindCollection(itsView=self.view)
-        k2.kind  = self.i.itsKind
+        k1 = KindCollection(itsView=self.view,
+                            kind=k)
+        k2 = KindCollection(itsView=self.view,
+                            kind=self.i.itsKind)
         k2.subscribers.add(self.nh)
 
         i = SimpleItem("new i", itsView=self.view)
@@ -253,9 +254,9 @@ class CollectionTests(CollectionTestCase):
         """
         Test Recursive KindCollections
         """
-        k = KindCollection(itsView=self.view)
-        k.kind = self.i.itsKind
-        k.recursive = True
+        k = KindCollection(itsView=self.view,
+                           kind=self.i.itsKind,
+                           recursive=True)
 
         i = SimpleItem("new i", itsView=self.view)
         i1 = ChildSimpleItem("new child", itsView=self.view)
@@ -265,10 +266,10 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(False not in flags)
 
     def testFilteredCollection(self):
-        f1 = FilteredCollection(itsView=self.view)
-        f1.source = self.b1
-        f1.filterExpression = u"len(item.label) > 2"
-        f1.filterAttributes = ["label"]
+        f1 = FilteredCollection(itsView=self.view,
+                                source=self.b1,
+                                filterExpression=u"len(item.label) > 2",
+                                filterAttributes=["label"])
         self.b1.subscribers.add(self.nh)
         f1.subscribers.add(self.nh1)
 
@@ -292,12 +293,12 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(ted in f1)
         self.failIf(self.i in f1)
 
-        k1 = KindCollection(itsView=self.view)
-        k1.kind = self.i.itsKind
-        f2 = FilteredCollection(itsView=self.view)
-        f2.source = k1
-        f2.filterExpression = u"len(item.label) > 2"
-        f2.filterAttributes = ["label"]
+        k1 = KindCollection(itsView=self.view,
+                            kind=self.i.itsKind)
+        f2 = FilteredCollection(itsView=self.view,
+                                source=k1,
+                                filterExpression=u"len(item.label) > 2",
+                                filterAttributes=["label"])
         nh3 = NotifyHandler("nh3", itsView=self.view)
 
         k1.subscribers.add(self.nh2)
@@ -365,12 +366,12 @@ class CollectionTests(CollectionTestCase):
         Test deleting an item from a FilteredCollection by updating an
         attribute of an item in the source.
         """
-        k1 = KindCollection(itsView=self.view)
-        k1.kind = self.i.itsKind
-        f2 = FilteredCollection(itsView=self.view)
-        f2.source = k1
-        f2.filterExpression = u"item.hasLocalAttributeValue('label')"
-        f2.filterAttributes = ["label"]
+        k1 = KindCollection(itsView=self.view,
+                            kind=self.i.itsKind)
+        f2 = FilteredCollection(itsView=self.view,
+                                source=k1,
+                                filterExpression=u"item.hasLocalAttributeValue('label')",
+                                filterAttributes=["label"])
         nh3 = NotifyHandler("nh3", itsView=self.view)
 
         k1.subscribers.add(self.nh2)
@@ -395,27 +396,17 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(nh3.checkLog("remove", f2, self.i,-2))
         self.failUnless(self.nh2.checkLog("changed", k1, self.i))
 
-    def testFilters(self):
-        from application.Parcel import Manager as ParcelManager
-        manager = \
-                ParcelManager.get(self.view, \
-                                  path=[os.path.join(self.repoDir, 'parcels')])
-        manager.loadParcels(['osaf.pim'])
-
-        k = KindCollection(itsView=self.view)
-        kind = self.view.findPath('//parcels/osaf/pim/ContentItem')
-    
     def testFilteredStack(self):
         """
         Test collections stacked on top of each other
         """
-        k = KindCollection(itsView=self.view)
-        k.kind = self.i.itsKind
+        k = KindCollection(itsView=self.view,
+                           kind=self.i.itsKind)
 
-        f = FilteredCollection(itsView=self.view)
-        f.source = k
-        f.filterExpression = u"len(item.label) > 1"
-        f.filterAttributes = ["label"]
+        f = FilteredCollection(itsView=self.view,
+                               source=k,
+                               filterExpression=u"len(item.label) > 1",
+                               filterAttributes=["label"])
         
         l = ListCollection(itsView=self.view)
         
@@ -439,11 +430,11 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(self.nh.checkLog('remove', u, self.i))                
         
     def testNumericIndex(self):
-        k = KindCollection(itsView=self.view)
-        k.kind = self.i.itsKind
+        k = KindCollection(itsView=self.view,
+                           kind=self.i.itsKind)
 
-        testCollection = IndexedSelectionCollection(itsView=self.view)
-        testCollection.source = k
+        testCollection = IndexedSelectionCollection(itsView=self.view,
+                                                    source=k)
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=i, itsView=self.view)
 
@@ -451,18 +442,18 @@ class CollectionTests(CollectionTestCase):
         #create any indexes, you are out of luck
 #        self.assertEqual(len(list(testCollection)),8)
         testCollection.indexName = "__adhoc__"
-        testCollection.getIndex()
+        testCollection.getCollectionIndex()
 
         self.assertEqual([x.label for x in testCollection],
                          [testCollection[i].label for i in xrange(0, len(testCollection))])
 
 
     def testAttributeIndex(self):
-        k = KindCollection(itsView = self.view)
-        k.kind = self.i.itsKind
+        k = KindCollection(itsView=self.view,
+                           kind=self.i.itsKind)
 
-        testCollection = IndexedSelectionCollection(itsView=self.view)
-        testCollection.source = k
+        testCollection = IndexedSelectionCollection(itsView=self.view,
+                                                    source=k)
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=i, itsView=self.view)
 
@@ -479,23 +470,23 @@ class CollectionTests(CollectionTestCase):
         uc = UnionCollection('u', itsView=self.view)
         uc.addSource(self.b1)
         uc.addSource(self.b2)
-        self.failUnless(uc.rep is not None)
+        self.failUnless(getattr(uc, uc.__collection__) is not None)
 
-        kc = KindCollection(itsView=self.view)
-        kc.kind = self.view.findPath('Schema/Core/Parcel')
-        self.failUnless(kc.rep is not None)
+        kc = KindCollection(itsView=self.view,
+                            kind=self.view.findPath('Schema/Core/Parcel'))
+        self.failUnless(getattr(kc, kc.__collection__) is not None)
 
-        fc = FilteredCollection(itsView=self.view)
-        fc.filterExpression = u"len(item.label) > 2"
-        fc.filterAttributes = [ "label" ]
-        fc.source = self.b1
-        self.failUnless(fc.rep is not None)
+        fc = FilteredCollection(itsView=self.view,
+                                filterExpression=u"len(item.label) > 2",
+                                filterAttributes=[ "label" ],
+                                source=self.b1)
+        self.failUnless(getattr(fc, fc.__collection__) is not None)
 
-        fc1 = FilteredCollection(itsView=self.view)
-        fc1.source = self.b1
-        fc1.filterExpression = u"len(item.label) > 2"
-        fc1.filterAttributes = [ "label" ]
-        self.failUnless(fc1.rep is not None)
+        fc1 = FilteredCollection(itsView=self.view,
+                                 source=self.b1,
+                                 filterExpression=u"len(item.label) > 2",
+                                 filterAttributes=[ "label" ])
+        self.failUnless(getattr(fc1, fc1.__collection__) is not None)
 
     def testBug2755(self):
         """
@@ -503,8 +494,8 @@ class CollectionTests(CollectionTestCase):
         <https://bugzilla.osafoundation.org/show_bug.cgi?id=2755>
         is fixed.
         """
-        k1 = KindCollection(itsView=self.view)
-        k1.kind = self.i.itsKind
+        k1 = KindCollection(itsView=self.view,
+                            kind=self.i.itsKind)
 
         for i in k1:
             self.failUnless(i != None)
@@ -552,11 +543,10 @@ class CollectionTests(CollectionTestCase):
         # if it's not in any other collections
 
         trash = ListCollection(itsView=self.view)
-        notes = KindCollection(itsView=self.view)
-        notes.kind = pim.Note.getKind(self.view)
-        notes.recursive = True
+        notes = KindCollection(itsView=self.view,
+                               kind=pim.Note.getKind(self.view),
+                               recursive=True)
         notMine = UnionCollection(itsView=self.view)
-        notMine._sourcesChanged()
         mine = DifferenceCollection(itsView=self.view,
             sources=[notes, notMine]
         )

@@ -438,6 +438,25 @@ class RefContainer(DBContainer):
 
         return _iterator()
 
+    def iterKeys(self, view, uCol, version, firstKey=None, lastKey=None):
+
+        iterator = self.refIterator(view, uCol, version)
+        if firstKey is None or lastKey is None:
+            _firstKey, _lastKey, alias = iterator.next(uCol)
+            if firstKey is None:
+                firstKey = _firstKey
+            if lastKey is None:
+                lastKey = _lastKey
+
+        nextKey = firstKey
+        while nextKey != lastKey:
+            key = nextKey
+            previousKey, nextKey, alias = iterator.next(key)
+            yield key
+
+        if lastKey is not None:
+            yield lastKey
+
     def purgeRefs(self, txn, uCol, keepOne):
 
         count = 0

@@ -1,53 +1,43 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <items>
-
   <item withSchema="True">
-    <name>extents</name>
-  </item>
-
-  <item withSchema="True">
-    <name>Extent</name>
+    <name>Collection</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
-
-    <ref name="superKinds" cardinality="list"
-         otherName="subKinds" otherCard="list">
-    </ref>
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">
 
       <!-- 
-         - plus local attributes below:
-	 -     kind
+         - plus local attributes below: 
+         -   subscribers
         -->
-
     </ref>
 
     <ref name="superKinds" cardinality="list"
          otherName="subKinds" otherCard="list">
       <ref type="path">/Core/Item</ref>
     </ref>
-
     <attribute name="classes" cardinality="dict" type="class">
-      <value name="python">repository.schema.Kind.Extent</value>
+      <value name="python">repository.item.Collection.Collection</value>
     </attribute>
   </item>
 
   <item withSchema="True">
-    <name>kind</name>
+    <name>subscribers</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Extent</parent>
+    <parent type="path">//Schema/Core/Collection</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="kind">..</ref>
+      <ref type="path" otherAlias="subscribers">..</ref>
     </ref>
 
-    <attribute name="cardinality">single</attribute>
-    <attribute name="otherName">extent</attribute>
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">subscribesTo</attribute>
+    <attribute name="initialValue" type="list"></attribute>
   </item>
 
 </items>

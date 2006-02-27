@@ -5,7 +5,7 @@ import wx.grid
 from application import schema
 from application.Application import mixinAClass
 
-from osaf.pim import AbstractCollection
+from osaf.pim import ContentCollection
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
 
 from Block import (
@@ -740,7 +740,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
-        if isinstance (item, AbstractCollection):
+        if isinstance (item, ContentCollection):
             self.setContentsOnBlock(item, event.arguments['collection'])
 
     def onSelectItemsEvent (self, event):

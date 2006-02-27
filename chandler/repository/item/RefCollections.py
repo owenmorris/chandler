@@ -663,6 +663,10 @@ class RefList(LinkedMap, Indexed):
                 hash = _combine(hash, _hash(link.alias))
 
         return hash
+
+    def _inspect_(self, indent):
+        return ''
+
     
     #   NEW  = 0x0001 (defined on LinkedMap)
     #   LOAD = 0x0002 (defined on LinkedMap)

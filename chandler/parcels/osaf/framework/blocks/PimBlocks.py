@@ -7,7 +7,7 @@ import time
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
-from osaf.pim import ContentItem, Note, AbstractCollection
+from osaf.pim import ContentItem, Note, ContentCollection
 import application.dialogs.Util as Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages
@@ -87,7 +87,7 @@ class FocusEventHandlers(Item):
             collection = self.contents
 
         # in some views, self.contents is an item, not a collection!
-        if isinstance(collection, AbstractCollection):
+        if isinstance(collection, ContentCollection):
             return collection
 
     def onSendShareItemEventUpdateUI(self, event):
@@ -369,7 +369,7 @@ def AllItemsInCollection(items, collection):
     collection, using getMembershipItem() to make sure the 'in' test
     is valid. 
 
-    Should this be in AbstractCollection? (not sure if thats
+    Should this be in ContentCollection? (not sure if thats
     appropriate or not.. -alecf)
     """
     for item in items:

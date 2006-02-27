@@ -1357,7 +1357,7 @@ class Location(ContentItem):
         def callback(key):
             return cmp(locationName, view[key].displayName)
         
-        existing = locations.rep.findInIndex('locationName', 'exact', callback)
+        existing = locations.findInIndex('locationName', 'exact', callback)
         if existing is not None:
             return view[existing]
         else:

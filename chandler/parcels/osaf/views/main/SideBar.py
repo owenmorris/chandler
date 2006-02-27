@@ -11,7 +11,7 @@ from osaf.framework.blocks import (
     )
 
 from osaf.pim import (
-    AbstractCollection, IntersectionCollection, KindCollection,
+    ContentCollection, IntersectionCollection, KindCollection,
     UnionCollection, IndexedSelectionCollection
     )
     
@@ -138,7 +138,7 @@ class wxSidebar(wxTable):
         try:
             if (cellRect.InsideXY (x, y) and
                 not self.IsCellEditControlEnabled() and
-                isinstance (item, AbstractCollection)):
+                isinstance (item, ContentCollection)):
                     if not hasattr (self, 'hoverImageRow'):
                         gridWindow.CaptureMouse()
         
@@ -170,7 +170,7 @@ class wxSidebar(wxTable):
                     for button in blockItem.buttons:
                         buttonState = button.buttonState
                         if (buttonState['imageRect'].InsideXY (x, y) and
-                            isinstance (item, AbstractCollection)):
+                            isinstance (item, ContentCollection)):
                             
                             event.Skip (False) #Gobble the event
                             self.SetFocus()
@@ -356,7 +356,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         item, attribute = grid.GetTable().GetValue (row, col)
 
         sidebar = grid.blockItem
-        if isinstance (item, AbstractCollection):
+        if isinstance (item, ContentCollection):
             """
               Gray text forground color if the collection is empty
             """
@@ -789,7 +789,7 @@ class SidebarBlock(Table):
         def deleteItem(collection):
 
             # clear out the collection contents, if appropriate
-            if isinstance(collection, AbstractCollection):
+            if isinstance(collection, ContentCollection):
                 if (shouldClearCollection):
                     self.ClearCollectionContents(collection)
                     
@@ -901,7 +901,7 @@ class SidebarBlock(Table):
 
     def onToggleMineEventUpdateUI(self, event):
         isCollection = (self.selectedItemToView is not None and
-                        isinstance (self.selectedItemToView, AbstractCollection))
+                        isinstance (self.selectedItemToView, ContentCollection))
         if isCollection:
             if hasattr (self.selectedItemToView, "displayNameAlternatives"):
                 collectionName = self.getNameAlternative (self.selectedItemToView)
@@ -967,7 +967,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             collectionList = []
 
         # the current item goes at the head of the list
-        if isinstance (item, AbstractCollection):
+        if isinstance (item, ContentCollection):
             collectionList.insert (0, item)
 
         if len (collectionList) > 0:
@@ -991,9 +991,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 if len (collectionList) == 1:
                     key = collectionList [0]
                 else:
-                    key = UnionCollection (itsView=self.itsView)
-                    for col in collectionList:
-                        key.addSource(col)
+                    key = UnionCollection(itsView=self.itsView,
+                                          sources=collectionList)
 
                 # create an INTERNAL name for this collection, just
                 # for debugging purposes
@@ -1002,24 +1001,23 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 # Handle filtered collections by intersecting with
                 # the kind collection
                 if filterKind is not None:
-                    newKey = IntersectionCollection(itsView=self.itsView)
-                    kindCollection = self.kindToKindCollectionCache.get (filterKind, None)
+                    kindCollection = self.kindToKindCollectionCache.get(filterKind, None)
                     if kindCollection is None:
-                        kindCollection = KindCollection (itsView=self.itsView)
-                        kindCollection.kind = filterKind
-                        kindCollection.recursive = True
+                        kindCollection = KindCollection(itsView=self.itsView,
+                                                        kind=filterKind,
+                                                        recursive=True)
                         self.kindToKindCollectionCache [filterKind] = kindCollection
-
-                    newKey.sources = [key, kindCollection]
-                    newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
+                    newKey = IntersectionCollection(itsView=self.itsView,
+                                                    sources=[key, kindCollection],
+                                                    dontDisplayAsCalendar=key.dontDisplayAsCalendar)
                     displayName += u" filtered by " + filterKind.displayName
                     key = newKey
 
                 # Finally, create a UI wrapper collection to manage
                 # things like selection and sorting
-                newKey = IndexedSelectionCollection (itsView=self.itsView)
-                newKey.source = key
-                newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
+                newKey = IndexedSelectionCollection(itsView=self.itsView,
+                                                    source=key,
+                                                    dontDisplayAsCalendar=key.dontDisplayAsCalendar)
                 key = newKey
 
                 key.displayName = displayName
@@ -1046,7 +1044,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return key
 
     def _makeBranchForCacheKey(self, keyItem):
-        if isinstance (keyItem, AbstractCollection):
+        if isinstance (keyItem, ContentCollection):
             sidebar = Block.Block.findBlockByName("Sidebar")
             if (not keyItem.dontDisplayAsCalendar and
                 sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
@@ -1075,7 +1073,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         sidebar is also the collection that gets passed down the views
         to the detail view
         """
-        if isinstance(item, AbstractCollection):
+        if isinstance(item, ContentCollection):
             return item
 
 class CPIATestSidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
@@ -1083,7 +1081,7 @@ class CPIATestSidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     templatePath = schema.One(schema.Text)
 
     def _makeBranchForCacheKey(self, keyItem):
-        if isinstance (keyItem, AbstractCollection):
+        if isinstance (keyItem, ContentCollection):
             branch = self.findPath (self.templatePath)
         else:
             branch = keyItem

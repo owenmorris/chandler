@@ -9,7 +9,6 @@ __parcel__ = "osaf.framework.blocks.calendar"
 import wx
 
 from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
-from osaf.pim import AbstractCollection
 from application import schema
 from application.dialogs import Util
 from wx.lib import buttons
@@ -232,7 +231,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                          wx.ScrolledWindow):
 
     """
-    Canvas used for displaying an AbstractCollection
+    Canvas used for displaying an ContentCollection
 
     This class handles:
       1. Mouse Events: the class sets up methods for selection, move, resize

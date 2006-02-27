@@ -240,6 +240,7 @@ class AbstractDownloadClient(object):
 
         @return: C{None}
         """
+
         if __debug__:
             trace("catchErrors")
 

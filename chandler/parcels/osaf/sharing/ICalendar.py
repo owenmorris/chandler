@@ -7,7 +7,7 @@ __all__ = [
 
 import Sharing
 import application.Parcel
-from osaf.pim import AbstractCollection, InclusionExclusionCollection, CalendarEventMixin
+from osaf.pim import ContentCollection, InclusionExclusionCollection, CalendarEventMixin
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
@@ -323,7 +323,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         InclusionExclusionCollection(itsView=view).setup()
                 item = item.contents
 
-            if not isinstance(item, AbstractCollection):
+            if not isinstance(item, ContentCollection):
                 print "Only a share or an item collection can be passed in"
                 #@@@MOR Raise something
 

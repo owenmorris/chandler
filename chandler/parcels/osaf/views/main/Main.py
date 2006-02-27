@@ -28,7 +28,7 @@ import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
 import osaf.mail.sharing as MailSharing
 from osaf.framework.blocks.Block import Block
 from osaf.framework.prompts import promptOk
-from osaf.pim import AbstractCollection
+from osaf.pim import ContentCollection
 import osaf.sharing.ICalendar as ICalendar
 from osaf import webserver
 from i18n import OSAFMessageFactory as _
@@ -397,7 +397,7 @@ class MainView(View):
         is True) unless you pass private=True.
         """
         item = Block.findBlockByName ("Sidebar").selectedItemToView
-        if not isinstance (item, AbstractCollection):
+        if not isinstance (item, ContentCollection):
             item = None
         elif private == False and item.private:
             item = None

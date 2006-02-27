@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
 from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime
-from osaf.pim import FilteredCollection, AbstractCollection
+from osaf.pim import FilteredCollection, ContentCollection
 from application.dialogs import RecurrenceDialog, Util
 
 from osaf.framework.blocks import (
@@ -142,7 +142,7 @@ class ColorInfo(object):
 # wrapper around 
 class CalendarSelection(schema.Annotation):
     """
-    Wrapper around AbstractCollection to provide specialized knowledge
+    Wrapper around ContentCollection to provide specialized knowledge
     about selection of recurrence.
 
     Recurring items don't appear in the current collection, only the
@@ -151,10 +151,10 @@ class CalendarSelection(schema.Annotation):
     are selected.
 
     Then we can just treat selection as the union between the
-    AbstractCollection (in self.itsItem) and the list of occurrences.
+    ContentCollection (in self.itsItem) and the list of occurrences.
     """
     
-    schema.kindInfo(annotates=AbstractCollection)
+    schema.kindInfo(annotates=ContentCollection)
     selectedOccurrences = schema.Many(schema.Item, defaultValue=set())
 
     def delegated(method):
@@ -724,7 +724,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             return
 
     def EnsureIndexes(self):
-        events = self.contents.rep
+        events = self.contents
         # events needs to have an index or iterindexkeys will load items,
         # is that true?
         if not events.hasIndex('__adhoc__'):
@@ -972,9 +972,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         items from that list. This gives us two lists, which we intersect.
         """
 
-        events = self.contents.rep
+        events = self.contents
         view = self.itsView
-        allEvents = schema.ns("osaf.pim", view).events.rep
+        allEvents = schema.ns("osaf.pim", view).events
         keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
                                    allEvents, nextDate,'effectiveEndTime',
                                    'effectiveEnd', allEvents,
@@ -986,11 +986,11 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 yield view[key]
 
     def recurringEventsInRange(self, date, nextDate, dayItems, timedItems):
-        events = self.contents.rep
+        events = self.contents
         view = self.itsView
         pim_ns = schema.ns("osaf.pim", view)
-        allEvents = pim_ns.events.rep
-        masterEvents = pim_ns.masterEvents.rep
+        allEvents = pim_ns.events
+        masterEvents = pim_ns.masterEvents
         keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
                                    allEvents, nextDate, 'recurrenceEnd',
                                    'recurrenceEnd', masterEvents,

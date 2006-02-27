@@ -6,6 +6,7 @@ import application
 import re
 from osaf import pim, webserver
 from osaf.pim.items import ContentItem
+from osaf.pim.collections import ContentCollection
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.PersistentCollections import PersistentSet
@@ -932,7 +933,7 @@ def RenderItem(repoView, item):
         result += "<br />\n"
         result += RenderClouds(repoView, item)
 
-    if isinstance(item, pim.AbstractCollection):
+    if isinstance(item, ContentCollection):
         result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
         result += "<tr class='toprow'>\n"
         result += "<td><b>Collection Sources:</b></td>\n"

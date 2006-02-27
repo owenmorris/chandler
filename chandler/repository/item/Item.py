@@ -329,11 +329,10 @@ class Item(CItem):
 
         dispatch = self._values.get('watcherDispatch', None)
         if dispatch:
-            watcher = (watcher.itsUUID, watch, name)
             watchers = dispatch.get(attribute, None)
             if watchers:
                 try:
-                    watchers.remove(watcher)
+                    watchers.remove((watcher.itsUUID, watch, name))
                 except KeyError:
                     pass
                 else:
@@ -1729,7 +1728,7 @@ class Item(CItem):
 
         self.setACL(None, name)
 
-    def getACL(self, name=None):
+    def getACL(self, name=None, default=Default):
         """
         Get an ACL from this item.
 
@@ -1741,6 +1740,8 @@ class Item(CItem):
         @type name: a string
         @return: an L{ACL<repository.item.Access.ACL>} instance or C{None} if
         no ACL is set
+        @param default: an optional default value to return when no ACL is
+        found (by default an error is raised)
         """
 
         if self._acls is not None:
@@ -1750,6 +1751,12 @@ class Item(CItem):
 
         if acl is Nil:
             acl = self.itsView.getACL(self._uuid, name)
+
+        if acl is None:
+            if default is not Default:
+                acl = default
+            else:
+                raise ItemError, ('no acl found and no default provided', name)
 
         return acl
 
@@ -2280,6 +2287,20 @@ class Item(CItem):
 
             else:
                 print indent2, "%s: <%s>" %(name, type(value).__name__), repr(value)
+
+    def _inspectCollection(self, name, indent=0):
+
+        collection = getattr(self, name)
+        indexes = collection._indexes
+
+        if indexes is None:
+            indexes = ''
+        else:
+            indexes = ', '.join((str(t) for t in indexes.iteritems()))
+
+        return "%s%s\n%s  indexes: %s%s" %('  ' * indent, self._repr_(),
+                                           '  ' * indent, indexes,
+                                           collection._inspect_(indent + 1))
 
     def _afterMerge(self):
 

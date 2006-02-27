@@ -230,11 +230,11 @@ class wxMiniCalendar(minical.PyMiniCalendar):
             # datetime range
             
             # The following iteration over keys comes from CalendarCanvas.py
-            events = self.blockItem.contents.rep
+            events = self.blockItem.contents
             view = self.blockItem.itsView
             
-            allEvents = schema.ns('osaf.pim', view).events.rep
-            masterEvents = schema.ns('osaf.pim', view).masterEvents.rep
+            allEvents = schema.ns('osaf.pim', view).events
+            masterEvents = schema.ns('osaf.pim', view).masterEvents
     
             keys = self.blockItem.getKeysInRange(startDatetime, 'effectiveStartTime', 'effectiveStart',
                                        allEvents, endDatetime, 'recurrenceEnd',

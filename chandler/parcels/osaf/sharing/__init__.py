@@ -105,7 +105,7 @@ def publish(collection, account, classesToInclude=None,
     Publish a collection, automatically determining which conduits/formats
     to use, and how many
 
-    @type collection: pim.AbstractCollection
+    @type collection: pim.ContentCollection
     @param collection: The collection to publish
     @type account: WebDAVAccount
     @param account: The sharing (WebDAV) account to use
@@ -365,7 +365,7 @@ def unpublish(collection):
     """
     Remove a share from the server, and delete all associated Share objects
 
-    @type collection: pim.AbstractCollection
+    @type collection: pim.ContentCollection
     @param collection: The shared collection to unpublish
     """
 
@@ -803,10 +803,10 @@ def getUrls(share):
 
 
 def getShare(collection):
-    """ Return the Share item (if any) associated with an AbstractCollection.
+    """ Return the Share item (if any) associated with an ContentCollection.
 
-    @param collection: an AbstractCollection
-    @type collection: AbstractCollection
+    @param collection: an ContentCollection
+    @type collection: ContentCollection
     @return: A Share item, or None
     """
 
@@ -941,8 +941,8 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
-    @param collection: The AbstractCollection that will be shared
-    @type collection: AbstractCollection
+    @param collection: The ContentCollection that will be shared
+    @type collection: ContentCollection
     @param classesToInclude: Which classes to share
     @type classesToInclude: A list of dotted class names
     @param account: The WebDAV Account item to use

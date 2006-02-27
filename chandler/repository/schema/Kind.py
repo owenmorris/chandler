@@ -13,6 +13,7 @@ from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 from chandlerdb.item.ItemValue import ItemValue
 
 from repository.item.Item import Item
+from repository.item.RefCollections import RefList
 from repository.item.Monitors import Monitors, Monitor
 from repository.item.Values import Values, References
 from repository.item.PersistentCollections import \
@@ -38,6 +39,7 @@ class Kind(Item):
         self._initialValues = None
         self._initialReferences = None
         self._inheritedAttributes = {}
+        self._notifyAttributes = set()
         self._allAttributes = {}
         self._allNames = {}
 
@@ -97,6 +99,7 @@ class Kind(Item):
 
             self.c.monitorSchema = True
             self._setupDescriptors(cls)
+            self._setupDelegates(cls)
 
         except RecursiveLoadItemError:
             kinds[uuid].remove(cls)
@@ -140,6 +143,26 @@ class Kind(Item):
                 descriptor.registerAttribute(self, attribute.c)
             else:
                 self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
+
+    def _setupDelegates(self, cls):
+
+        delegates = cls.__dict__.get('__delegates__', None) # locally defined
+        if delegates:
+            for delegate in delegates:
+                attribute = self.getAttribute(delegate)
+                cardinality = attribute.getAspect('cardinality', 'single')
+                if cardinality == 'single':
+                    type = attribute.type.getImplementationType()
+                elif (cardinality == 'list' and
+                      self.getOtherName(delegate, None, None) is not None):
+                    type = RefList
+                else:
+                    raise NotImplementedError, ('value delegate', delegate)
+
+                for name in dir(type):
+                    if (not hasattr(cls, name) and
+                        hasattr(getattr(type, name), '__call__')):
+                        setattr(cls, name, DelegateDescriptor(name, delegate))
 
     def newItem(self, name=None, parent=None, cls=None, **values):
         """
@@ -456,9 +479,11 @@ class Kind(Item):
 
         if not c.attributesCached:
             allNames = self._allNames
+            notifyAttributes = self._notifyAttributes
 
             allAttributes.clear()
             allNames.clear()
+            notifyAttributes.clear()
 
             references = self._references
             for superKind in references['superKinds']:
@@ -466,6 +491,8 @@ class Kind(Item):
                     if name not in allAttributes:
                         allAttributes[name] = (attribute.itsUUID, kind.itsUUID, False, False)
                         allNames[_hash(name)] = name
+                        if attribute.getAspect('notify', False):
+                            notifyAttributes.add(name)
 
             attributes = references.get('attributes', None)
             if attributes is not None:
@@ -474,6 +501,10 @@ class Kind(Item):
                     name = attributes.getAlias(attribute)
                     allAttributes[name] = (attribute.itsUUID, uuid, attribute.itsParent is self, True)
                     allNames[_hash(name)] = name
+                    if attribute.getAspect('notify', False):
+                        notifyAttributes.add(name)
+                    elif name in notifyAttributes:
+                        notifyAttributes.remove(name)
 
             c.attributesCached = True
 
@@ -492,6 +523,13 @@ class Kind(Item):
         else:
             return tuple([name for name, a, k in self.iterAttributes()
                           if name in hashTuple])
+
+    def _iterNotifyAttributes(self):
+
+        if not self.c.attributesCached:
+            self.iterAttributes()
+
+        return iter(self._notifyAttributes)
 
     def getInheritedSuperKinds(self):
 
@@ -667,6 +705,7 @@ class Kind(Item):
         if c.attributesCached:
             self._allAttributes.clear()
             self._allNames.clear()
+            self._notifyAttributes.clear()
             c.attributesCached = False
 
         self.inheritedSuperKinds.clear()
@@ -907,43 +946,13 @@ class Extent(Item):
 
     def iterItems(self, recursive=True):
 
-        if self.withCache:   # not implemented
-
-            for item in self.instances:
-                yield item
-
-            if recursive:
-                subKinds = kind._references.get('subKinds', None)
-                if subKinds:
-                    for subKind in subKinds:
-                        for item in subKind.extent.iterItems(True):
-                            yield item
-
-        else:
-            for item in KindQuery(recursive).run((self.kind,)):
-                yield item
+        for item in KindQuery(recursive).run((self.kind,)):
+            yield item
 
     def iterKeys(self, recursive=True):
 
-        if self.withCache:   # not implemented
-
-            for item in self.instances:
-                yield item.itsUUID
-
-            if recursive:
-                subKinds = kind._references.get('subKinds', None)
-                if subKinds:
-                    for subKind in subKinds:
-                        for key in subKind.extent.iterKeys(True):
-                            yield key
-
-        else:
-            for key in KindQuery(recursive).runKeys((self.kind,)):
-                yield key
-
-    def notify(self, op, other):
-
-        self._collectionChanged(op, 'notification', 'extent', other)
+        for key in KindQuery(recursive).runKeys((self.kind,)):
+            yield key
 
     def _collectionChanged(self, op, change, name, other, filterKind=None):
 
@@ -970,3 +979,14 @@ class Extent(Item):
         else:
             callable(self, op, change, name, other)
 
+
+class DelegateDescriptor(object):
+
+    def __init__(self, name, delegate):
+
+        self.name = name
+        self.delegate = delegate
+
+    def __get__(self, obj, type=None):
+
+        return getattr(getattr(obj, self.delegate), self.name)

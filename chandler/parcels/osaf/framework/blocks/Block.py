@@ -5,9 +5,8 @@ __parcel__ = "osaf.framework.blocks"
 import application.Globals as Globals
 from application import schema
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
-from repository.item.Item import Item
 from osaf.pim.items import ContentItem
-from osaf.pim import collections
+from osaf.pim.collections import ContentCollection
 import wx
 import logging
 
@@ -75,6 +74,11 @@ class Block(schema.Item):
 
     contents = schema.One(ContentItem, otherName="contentsOwner")
     contentsCollection = schema.One(ContentItem, defaultValue=None)
+
+    # Must be provided in order to subcribe to collection notifications.
+    # In order to subscribe to more than one collection, this attribute
+    # should be declared with schema.Sequence().
+    subscribesTo = schema.One(ContentCollection, otherName="subscribers")
 
     viewAttribute = schema.One(
         schema.Text,
@@ -289,7 +293,7 @@ class Block(schema.Item):
                 to items in the contents.
                 """
                 contents = getattr (self, 'contents', None)
-                if isinstance (contents, collections.AbstractCollection):
+                if isinstance (contents, ContentCollection):
                     contents.subscribers.add (self)
                     # Add a non-persistent attribute that controls whether or not
                     # notifications will dirty the block.
@@ -371,7 +375,7 @@ class Block(schema.Item):
         if (len (Globals.views) > 0 and Globals.views[-1] == self):
             Globals.views.pop()
 
-    def onCollectionEvent (self, op, collection, name, other):
+    def onCollectionNotification(self, op, collection, name, other):
         """
           When our item collection has changed, we need to synchronize
         """
@@ -401,7 +405,7 @@ class Block(schema.Item):
         instantiateWidget.
         """
         contents = getattr (self, 'contents', None)
-        if isinstance (contents, collections.AbstractCollection):
+        if isinstance (contents, ContentCollection):
             # Remove the non-persistent attribute that controls whether or not
             # notifications will dirty the block.
             del self.ignoreNotifications
@@ -1017,7 +1021,7 @@ class KindParameterizedEvent(BlockEvent):
     )
     
 class NewEvent(KindParameterizedEvent):
-    collection = schema.One(collections.AbstractCollection, defaultValue = None)
+    collection = schema.One(ContentCollection, defaultValue = None)
 
 
 

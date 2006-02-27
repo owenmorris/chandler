@@ -46,6 +46,10 @@ class AbstractSet(ItemValue, Indexed):
 
         return False
 
+    def isEmpty(self):
+
+        return not self
+
     def __iter__(self):
 
         index = self._anIndex()
@@ -148,6 +152,13 @@ class AbstractSet(ItemValue, Indexed):
 
         return getattr(self._view[source[0]],
                        source[1]).__contains__(item, excludeMutating)
+
+    def _inspectSource(self, source, indent):
+
+        if isinstance(source, AbstractSet):
+            return source._inspect_(indent)
+        
+        return self._view[source[0]]._inspectCollection(source[1], indent)
 
     def _aSourceIndex(self, source):
 
@@ -281,10 +292,6 @@ class AbstractSet(ItemValue, Indexed):
                         self._setDirty(True)
 
             item._collectionChanged(op, change, attribute, other)
-
-    def notify(self, op, other):
-
-        self.sourceChanged(op, 'notification', None, None, False, other)
 
     def removeByIndex(self, indexName, position):
 
@@ -501,6 +508,11 @@ class BiSet(AbstractSet):
             yield self._left
         if isinstance(self._right, AbstractSet):
             yield self._right
+
+    def _inspect_(self, indent):
+
+        return '\n%s' %('\n'.join([self._inspectSource(self._left, indent),
+                                   self._inspectSource(self._right, indent)]))
 
 
 class Union(BiSet):
@@ -727,6 +739,11 @@ class MultiSet(AbstractSet):
             if isinstance(source, AbstractSet):
                 yield source
 
+    def _inspect_(self, indent):
+
+        return '\n%s' %('\n'.join([self._inspectSource(source, indent)
+                                   for source in self._sources]))
+
 
 class MultiUnion(MultiSet):
 
@@ -947,6 +964,11 @@ class KindSet(Set):
 
         return iter(())
 
+    def _inspect_(self, indent):
+
+        return "\n%skind: %s" %('  ' * indent,
+                                self._view[self._extent].kind.itsPath)
+
 
 class FilteredSet(Set):
     """
@@ -1050,3 +1072,7 @@ class FilteredSet(Set):
                 self._collectionChanged('add', 'collection', other)
             elif not matched and not contains is False:
                 self._collectionChanged('remove', 'collection', other)
+
+    def _inspect_(self, indent):
+
+        return "\n%sfilter: %s\n%s attrs: %s\n%s" %('  ' * indent, self.filterExpression, '  ' * indent, ', '.join(str(a) for a in self.attributes), self._inspectSource(self._source, indent))

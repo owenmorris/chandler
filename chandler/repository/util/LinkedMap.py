@@ -20,6 +20,10 @@ class LinkedMap(CLinkedMap):
         self._firstKey = None
         self._lastKey = None
 
+    def isEmpty(self):
+        
+        return len(self) == 0
+
     def _copy_(self, orig):
 
         self._clear_()

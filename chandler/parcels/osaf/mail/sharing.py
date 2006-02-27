@@ -33,8 +33,8 @@ def sendInvitation(repository, url, collection, sendToList):
        @param url: The url to share
        @type url: C{str}
 
-       @param collection: An AbstractCollection Instance
-       @type collection: C{AbstractCollection}
+       @param collection: An ContentCollection Instance
+       @type collection: C{ContentCollection}
 
        @param sendToList: List of EmailAddress Items
        @type: C{list}
@@ -49,8 +49,8 @@ class SMTPInvitationSender(object):
         assert isinstance(url, basestring), "URL must be a String"
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
         assert len(sendToList) > 0, "sendToList must contain at least one email address"
-        assert isinstance(collection, pim.AbstractCollection), \
-                          "collection must be of type osaf.pim.AbstractCollection"
+        assert isinstance(collection, pim.ContentCollection), \
+                          "collection must be of type osaf.pim.ContentCollection"
 
 
         #XXX: Theses may eventual need i18n decoding

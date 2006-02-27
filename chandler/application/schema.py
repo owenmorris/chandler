@@ -1,5 +1,6 @@
 from repository.persistence.RepositoryView import NullRepositoryView
 from repository.item.Item import Item as Base
+from repository.item.Collection import CollectionClass as BaseCollectionClass
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
 from repository.schema import Types
@@ -561,6 +562,14 @@ class ItemClass(Activator):
     def targetType(cls):
         """Backreferences to an Item class go to that class"""
         return cls
+
+
+class CollectionClass(ItemClass, BaseCollectionClass):
+    """The metaclass to use for declaring collection classes"""
+
+    def __init__(cls, name, bases, clsdict):
+        ItemClass.__init__(cls, name, bases, clsdict)
+        BaseCollectionClass.__init__(cls, name, bases, clsdict)
 
 
 class ItemRoot:

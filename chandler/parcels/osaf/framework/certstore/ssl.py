@@ -64,10 +64,11 @@ def loadCertificatesToContext(repView, ctx):
         from osaf.pim.collections import FilteredCollection
         from osaf.framework.certstore import certificate
         
-        q = FilteredCollection(qName, itsView=repView)        
-        q.source = utils.getExtent(certificate.Certificate, repView)
-        q.filterExpression = u'item.type == "%s" and item.trust == %d' % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE)
-        q.filterAttributes = ['type', 'trust']
+        q = FilteredCollection(qName, itsView=repView,
+                               source=utils.getExtent(certificate.Certificate,
+                                                      repView),
+                               filterExpression=u'item.type == "%s" and item.trust == %d' % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
+                               filterAttributes=['type', 'trust'])
         
     store = ctx.get_cert_store()
     for cert in q:

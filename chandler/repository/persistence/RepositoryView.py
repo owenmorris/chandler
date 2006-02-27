@@ -40,8 +40,9 @@ class RepositoryView(CView):
     # 0.5.10: added Importable type
     # 0.5.11: removed inheritedAttributes transient cache
     # 0.6.1: watcherDispatch layout changed
+    # 0.6.2: added 'notify' aspect
     
-    CORE_SCHEMA_VERSION = 0x00060100
+    CORE_SCHEMA_VERSION = 0x00060200
 
     def __init__(self, repository, name, version):
         """
@@ -951,14 +952,13 @@ class RepositoryView(CView):
 
         dispatch = self._watcherDispatch
         if dispatch:
-            watcher = (watcher.itsUUID, watch, name)
             uItem = item.itsUUID
             watchers = dispatch.get(uItem, None)
             if watchers:
                 watchers = watchers.get(attribute)
                 if watchers:
                     try:
-                        watchers.remove(watcher)
+                        watchers.remove((watcher.itsUUID, watch, name))
                     except KeyError:
                         pass
                     else:

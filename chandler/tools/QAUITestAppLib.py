@@ -645,7 +645,7 @@ class UITestItem(object):
         @type timeInfo: boolean
         """
         if not self.isCollection:
-            col = App_ns.item_named(pim.AbstractCollection, collectionName)
+            col = App_ns.item_named(pim.ContentCollection, collectionName)
             if timeInfo:
                 if self.logger: self.logger.Start("Give a collection")
             if not col:
@@ -1021,7 +1021,7 @@ class UITestItem(object):
             if collectionName in chandler_collections.keys():
                 col = chandler_collections[collectionName]
             else:
-                col = App_ns.item_named(pim.AbstractCollection, collectionName)
+                col = App_ns.item_named(pim.ContentCollection, collectionName)
             if col:
                 if col.__contains__(self.item):
                     value = True

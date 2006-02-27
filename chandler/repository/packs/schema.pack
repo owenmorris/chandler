@@ -25,6 +25,7 @@
       <item file="Principal.kind" />
       <item file="Monitors.kind" />
       <item file="Monitor.kind" />
+      <item file="Collection.kind" />
     </item>
 
     <item path="//Schema/Core" cwd="model" afterLoadHooks="True">

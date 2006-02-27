@@ -670,7 +670,7 @@ class ShareConduit(pim.ContentItem):
 
             # If we're sharing a collection, put the collection's items
             # individually:
-            if isinstance(self.share.contents, pim.AbstractCollection):
+            if isinstance(self.share.contents, pim.ContentCollection):
 
                 #
                 # Remove any resources from the server that aren't in
@@ -886,23 +886,15 @@ class ShareConduit(pim.ContentItem):
 
         contents = self.share.contents
 
-        # If share.contents is an AbstractCollection, treat other resources as
+        # If share.contents is an ContentCollection, treat other resources as
         # items to add to the collection:
-        if isinstance(contents, pim.AbstractCollection):
-
-            # Make sure the collection item is properly set up:
-
-            if isinstance(contents, pim.ListCollection) and \
-                not hasattr(contents, 'rep'):
-                    contents.rep = Set((contents,'refCollection'))
-                    contents.setup() # make sure a color is assigned
+        if isinstance(contents, pim.ContentCollection):
 
             if isinstance(contents, pim.InclusionExclusionCollection) and \
-                not hasattr(contents, 'rep'):
-                    contents.setup()
+                    not hasattr(contents, 'inclusions'):
+                contents.setup()
 
             filterClasses = self._getFilterClasses()
-
 
             # If an item is in the manifest but it's no longer in the
             # collection, we need to skip the server's copy -- we'll
@@ -2292,10 +2284,10 @@ def serializeLiteral(attrValue, attrType):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def isShared(collection):
-    """ Return whether an AbstractCollection has a Share item associated with it.
+    """ Return whether an ContentCollection has a Share item associated with it.
 
-    @param collection: an AbstractCollection
-    @type collection: AbstractCollection
+    @param collection: an ContentCollection
+    @type collection: ContentCollection
     @return: True if collection does have a Share associated with it; False
         otherwise.
     """

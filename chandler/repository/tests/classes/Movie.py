@@ -30,9 +30,9 @@ class Movie(Item):
 
         print self, 'itemChanged', op, item, names
 
-    def onCollectionEvent(self, op, collection, name, other):
+    def onCollectionNotification(self, op, collection, name, other):
 
-        print self, 'onCollectionEvent', op, collection, name, other
+        print self, 'onCollectionNotification', op, collection, name, other
 
 
 class Cartoon(Movie):

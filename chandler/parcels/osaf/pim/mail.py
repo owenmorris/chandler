@@ -827,7 +827,7 @@ class EmailAddress(items.ContentItem):
         inverse = MailMessageMixin.toAddress,
     )
     inviteeOf = schema.Sequence(
-        'osaf.pim.collections.AbstractCollection',
+        'osaf.pim.collections.ContentCollection',
         displayName = u'Invitee Of',
         doc = 'List of collections that the user is about to be invited to share with.',
         inverse = 'invitees',
@@ -1035,7 +1035,7 @@ class EmailAddress(items.ContentItem):
     @classmethod
     def findEmailAddress(cls, view, emailAddress):
         """ Find a single EmailAddress that exactly matches this one. """
-        collection = schema.ns("osaf.pim", view).emailAddressCollection.rep
+        collection = schema.ns("osaf.pim", view).emailAddressCollection
         emailAddress = emailAddress.lower()
 
         def compareAddr(uuid):
@@ -1054,7 +1054,7 @@ class EmailAddress(items.ContentItem):
         Generate any EmailAddresses whose emailAddress or fullName starts 
         with this.
         """
-        collection = schema.ns("osaf.pim", view).emailAddressCollection.rep
+        collection = schema.ns("osaf.pim", view).emailAddressCollection
         partialAddress = unicode(partialAddress).lower()
         for indexName in ('emailAddress', 'fullName'):
             def _compare(uuid):
