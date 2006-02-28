@@ -52,7 +52,6 @@ class TestLogger:
         self.startDate = datetime.now()
         #capture stderr
         self.old_stderr = sys.stderr #need this so we can go back to it in close()
-        self.old_stdout = sys.stdout
         self.standardErr = FileWatcher()
         sys.stderr = self.standardErr      
             
@@ -101,7 +100,7 @@ class TestLogger:
         self.nbVerif = 0
         self.failureList = []
         self.passedList = []
-        #self.standardErr.clear()
+        self.standardErr.clear()
             
     def Print(self,string):
         ''' Printing method '''
@@ -220,6 +219,11 @@ class TestLogger:
     def SetChecked(self, bool):
         self.checked = bool
         
+    def PrintBoth(self, str):
+        """use both self.Print and print"""
+        self.Print(str)
+        print str
+                
     def Close(self, quit=True):
         now = datetime.now()
         if self.toClose: # The file must close (time to report a summary)
@@ -270,16 +274,6 @@ class TestLogger:
                 #Test case status
                 self.Print("Status : %s testcase %s" %(self.mainDescription, status))
             
-            #change status to FAILED if anything writen to stderr
-            if self.standardErr.hadError:
-                status = "FAILED"
-                self.Print('+' * 20)
-                self.Print("Failed due to exception:")
-                self.Print(self.standardErr.text)
-                self.Print('+' * 20)
-            #restore stderr
-            #sys.stderr = self.old_stderr
-
             # Tinderbox printing
             # compute the elapsed time in seconds
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
@@ -295,12 +289,12 @@ class TestLogger:
             print("#TINDERBOX# Testname = %s" %description)    
             print("#TINDERBOX# Status = %s" %status)
             print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
-            #print names of failed tests
+            #print names of failed tests and stderr output if there was any
             if status == "FAILED":
-                print "Failed tests:"
+                self.PrintBoth('Failed tests:')
                 for tc in self.testcaseList:
                     if tc[1] == "FAIL":
-                        print tc[0] + ' failed'
+                        self.PrintBoth( tc[0] + ' failed\n' + tc[2])
             if not self.inTerminal:
                 # close the file
                 self.File.close()
@@ -310,13 +304,15 @@ class TestLogger:
                 scripting.app_ns().root.Quit()
         else: # Just the end of a testcase
             if self.subTestcaseDesc:
-                if self.nbUnchecked == self.nbVerif:
+                if self.standardErr.hadError:
+                    status = "FAIL"
+                elif self.nbUnchecked == self.nbVerif:
                     status = "UNCHECKED"
                 elif self.nbPass == self.nbVerif:
                     status = "PASS"
                 else:
                     status = "FAIL"
-                self.testcaseList.append((self.subTestcaseDesc,status))
+                self.testcaseList.append((self.subTestcaseDesc,status, self.standardErr.text))
             # Test case status
             elapsed = now - self.testcaseStartDate
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
