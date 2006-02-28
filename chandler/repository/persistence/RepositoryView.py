@@ -340,6 +340,35 @@ class RepositoryView(CView):
         return self.find(uuid, load)
 
     def findValue(self, uItem, name, default=Default):
+        """
+        Find a value for an item attribute.
+
+        If the item is already loaded, regular attribute value retrieval is
+        used.
+
+        If the item is not loaded, only the value for the named attribute is
+        returned with the following limitations:
+
+            - only local values are returned, schema-based inheritance is
+              not used to return a non-local value.
+
+            - item references and bi-directional ref collections are
+              returned as UUIDs, they are not actually loaded.
+
+        If the item does not exist or does not have a value for the given
+        attribute an optional default value is returned or an exception is
+        raised.
+
+        To load multiple values for the same item, consider using
+        L{findValues}.
+
+        @param uItem: an item UUID
+        @param name: an attribute name
+        @param default: an optional default value to return if the item does
+        not exist or does not have a local value for C{name}; an exception
+        is raised if default is not specified and no value was found.
+        @return: an attribute value or C{default}
+        """
 
         item = self.find(uItem, False)
         if item is not None:
@@ -361,16 +390,32 @@ class RepositoryView(CView):
 
         return reader.readValue(self, uValue)
 
-    def hasValue(self, uItem, name):
-
-        item = self.find(uItem, False)
-        if item is not None:
-            return hasattr(item, name)
-
-        return self.repository.store.hasValue(self, self.itsVersion,
-                                              uItem, name)
-
     def findValues(self, uItem, *pairs):
+        """
+        Find values for one or more attributes of an item.
+
+        As with L{findValue}, if the item is already loaded, regular
+        attribute value retrieval is used.
+
+        If the item is not loaded, the values for the named attributes are
+        returned, without loading the item, with the following limitations:
+
+            - only local values are returned, schema-based inheritance is
+              not used to return a non-local value.
+
+            - item references and bi-directional ref collections are
+              returned as UUIDs, they are not actually loaded.
+
+        If the item does not exist or does not have a value for the given
+        attribute an optional default value is returned or an exception is
+        raised.
+
+        @param uItem: an item UUID
+        @param pairs: one or more C{(name, default)} tuples for each
+        attribute to retrieve a value for.
+        @return: a list of attribute or default values, matching the order
+        of the given C{(name, default)} pairs.
+        """
 
         item = self.find(uItem, False)
         if item is not None:
@@ -390,6 +435,28 @@ class RepositoryView(CView):
                 values.append(default)
 
         return values
+
+    def hasValue(self, uItem, name):
+        """
+        Tell if an item has a local attribute value without loading it.
+
+        As with L{findValue} and L{findValues}, if the item is already
+        loaded, regular attribute retrieval is used.
+
+        if the item is not loaded, the item record in the repository is
+        checked for a value but it is not returned.
+
+        @param uItem: an item UUID
+        @param name: an attribute name
+        @return: C{True} if a value was found, C{False} otherwise
+        """
+
+        item = self.find(uItem, False)
+        if item is not None:
+            return hasattr(item, name)
+
+        return self.repository.store.hasValue(self, self.itsVersion,
+                                              uItem, name)
 
     def findMatch(self, view, matches=None):
 
