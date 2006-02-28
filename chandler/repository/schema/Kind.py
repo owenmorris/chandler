@@ -161,7 +161,7 @@ class Kind(Item):
 
                 for name in dir(type):
                     if (not hasattr(cls, name) and
-                        hasattr(getattr(type, name), '__call__')):
+                        callable(getattr(type, name))):
                         setattr(cls, name, DelegateDescriptor(name, delegate))
 
     def newItem(self, name=None, parent=None, cls=None, **values):
