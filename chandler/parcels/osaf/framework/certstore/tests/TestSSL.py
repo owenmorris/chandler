@@ -67,7 +67,7 @@ class TestSSL(TestContentModel.ContentModelTestCase):
         # We wrap the connect() in try/except and filter some common
         # network errors that are not SSL-related.
         try:
-            assert conn1.connect(('www.thawte.com', 443)) >= 0
+            self.assert_(conn1.connect(('www.thawte.com', 443)) >= 0)
             conn1.clear()
 
             #self.assertRaises(SSL.SSLError, conn2.connect, ('bugzilla.osafoundation.org', 443))
@@ -116,7 +116,7 @@ QUW4hRYWNNbb
                                              0,
                                              1)
         
-        assert wrapper.postConnectionVerify(x509, 'bugzilla.osafoundation.org')
+        self.assert_(wrapper.postConnectionVerify(x509, 'bugzilla.osafoundation.org'))
         self.assertRaises(Checker.WrongHost, wrapper.postConnectionVerify, 
                           x509, 'example.com')
         self.assertRaises(Checker.NoCertificate, wrapper.postConnectionVerify, 

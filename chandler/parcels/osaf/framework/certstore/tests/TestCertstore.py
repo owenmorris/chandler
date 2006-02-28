@@ -98,7 +98,7 @@ rZehs7GgIFvKMquNzxPwHynD
         now = time.gmtime()
         format = '%b %d %H:%M:%S %Y %Z'
 
-        assert not rootCerts.isEmpty()
+        self.assert_(not rootCerts.isEmpty())
 
         for cert in rootCerts:
             x509 = cert.asX509()
@@ -108,8 +108,8 @@ rZehs7GgIFvKMquNzxPwHynD
             before = x509.get_not_before()
             after = x509.get_not_after()
             try:
-                assert time.strptime(str(before), format) < now, before
-                assert now < time.strptime(str(after), format), after
+                self.assert_(time.strptime(str(before), format) < now, '%s not yet valid:%s' % (cert.displayName, before))
+                self.assert_(now < time.strptime(str(after), format), '%s expired:%s' % (cert.displayName, after))
             except ValueError:
                 raise ValueError('bad time value in ' + cert.displayName.encode('utf8'))
         
@@ -136,7 +136,7 @@ rZehs7GgIFvKMquNzxPwHynD
                                            filterExpression=u'item.fingerprint == "%s"' % fingerprint,
                                            filterAttributes=['fingerprint'])
         
-        assert len(matchingCerts) == 1
+        self.assert_(len(matchingCerts) == 1)
         
         return iter(matchingCerts).next()
     
@@ -148,29 +148,29 @@ rZehs7GgIFvKMquNzxPwHynD
 
         x509Issuer = X509.load_cert_string(self.pemRoot)
         issuerPublicKey = x509Issuer.get_pubkey()
-        assert x509.verify(issuerPublicKey)
+        self.assert_(x509.verify(issuerPublicKey))
         
-        assert x509.as_pem()[:-1] == self.pemSite
-        assert x509.get_subject().CN == 'bugzilla.osafoundation.org'
+        self.assert_(x509.as_pem()[:-1] == self.pemSite)
+        self.assert_(x509.get_subject().CN == 'bugzilla.osafoundation.org')
         
-        assert cert.fingerprint == '0xFF8013055AAE612AD79C347F06D1B83F93DEB664L'
-        assert cert.trust == trust
-        assert cert.type == constants.TYPE_SITE
-        assert cert.displayName == u'bugzilla.osafoundation.org'
+        self.assert_(cert.fingerprint == '0xFF8013055AAE612AD79C347F06D1B83F93DEB664L')
+        self.assert_(cert.trust == trust)
+        self.assert_(cert.type == constants.TYPE_SITE)
+        self.assert_(cert.displayName == u'bugzilla.osafoundation.org')
 
     def testImportRootCertificate(self):
         trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SITE
         cert = self._importAndFind(self.pemRoot, trust)
 
         x509 = cert.asX509()
-        assert x509.verify()
-        assert x509.as_pem()[:-1] == self.pemRoot
-        assert x509.get_subject().CN == 'OSAF CA'
+        self.assert_(x509.verify())
+        self.assert_(x509.as_pem()[:-1] == self.pemRoot)
+        self.assert_(x509.get_subject().CN == 'OSAF CA')
         
-        assert cert.fingerprint == '0xADACC622C85DF4C2AE471A81EDA1BD28379A6FA9L'
-        assert cert.trust == trust
-        assert cert.type == constants.TYPE_ROOT
-        assert cert.displayName == u'OSAF CA'
+        self.assert_(cert.fingerprint == '0xADACC622C85DF4C2AE471A81EDA1BD28379A6FA9L')
+        self.assert_(cert.trust == trust)
+        self.assert_(cert.type == constants.TYPE_ROOT)
+        self.assert_(cert.displayName == u'OSAF CA')
         
     def testImportUnsupportedCertificate(self):
         trust = constants.TRUST_AUTHENTICITY
