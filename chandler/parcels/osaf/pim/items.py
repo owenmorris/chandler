@@ -826,3 +826,26 @@ class UserNotification(ContentItem):
         if not hasattr(self, 'timestamp'):
             self.timestamp = datetime.now()
 
+
+class Principal(ContentItem):
+    schema.kindInfo(displayName=u'Access Control Principal')
+
+    # @@@MOR These should be moved out so that authentication can be made
+    # more general, but they're here for convenience for now.
+    login = schema.One(schema.Text)
+    password = schema.One(schema.Text)
+
+
+    members = schema.Sequence('Principal', initialValue=[])
+    memberOf = schema.Sequence('Principal', initialValue=[])
+
+    def isMemberOf(self, pid):
+
+        if self.itsUUID == pid:
+            return True
+
+        for member in getattr(self.itsView.findUUID(pid), 'members', []):
+            if self.isMemberOf(member.itsUUID):
+                return True
+
+        return False

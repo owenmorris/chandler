@@ -3,7 +3,7 @@
 #
 from items import (
     ContentKind, ContentItem, ImportanceEnum, Group, Project, Tag, TriageEnum,
-    UserNotification
+    UserNotification, Principal
 )
 from notes import Note
 from contacts import Contact, ContactName
