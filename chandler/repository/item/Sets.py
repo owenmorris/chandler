@@ -1005,11 +1005,25 @@ class FilteredSet(Set):
 
         return False
 
+    def _iterkeys(self):
+
+        for item in self._iterSource(self._source):
+            if self.filter(item):
+                yield item.itsUUID
+
     def _itervalues(self):
 
         for item in self._iterSource(self._source):
             if self.filter(item):
                 yield item
+
+    def _len(self):
+
+        count = 0
+        for key in self._iterkeys():
+            count += 1
+
+        return count
 
     def _setOwner(self, item, attribute):
 

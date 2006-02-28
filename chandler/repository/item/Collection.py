@@ -56,15 +56,15 @@ class Collection(Item):
 
     def __contains__(self, obj):
 
-        return getattr(self, self.__collection__).__contains__(obj)
+        return obj in getattr(self, self.__collection__)
 
     def __iter__(self):
 
-        return getattr(self, self.__collection__).__iter__()
+        return iter(getattr(self, self.__collection__))
 
     def __len__(self):
 
-        return getattr(self, self.__collection__).__len__()
+        return len(getattr(self, self.__collection__))
 
     def __nonzero__(self):
 

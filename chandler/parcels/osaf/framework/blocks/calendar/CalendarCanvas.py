@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
 from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime
-from osaf.pim import FilteredCollection, ContentCollection
+from osaf.pim import ContentCollection
 from application.dialogs import RecurrenceDialog, Util
 
 from osaf.framework.blocks import (

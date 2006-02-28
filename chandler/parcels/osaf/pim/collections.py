@@ -427,6 +427,10 @@ class InclusionExclusionCollection(ContentCollection):
     sources = schema.Sequence(ContentCollection, initialValue=[])
     trash = schema.One(ListCollection, otherName='trashFor', initialValue=None)
 
+    schema.addClouds(
+        copying = schema.Cloud(byCloud=[sources]),
+    )
+
     def add (self, item):
         """
           Add an item to the collection

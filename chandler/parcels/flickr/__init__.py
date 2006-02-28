@@ -9,7 +9,7 @@ import flickr
 from osaf import pim
 from photos import PhotoMixin
 import osaf.framework.blocks.detail.Detail as Detail
-from osaf.pim.collections import KindCollection, FilteredCollection
+from osaf.pim.collections import KindCollection
 from repository.util.URL import URL
 from datetime import datetime
 import dateutil
