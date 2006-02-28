@@ -88,7 +88,7 @@ def makeArea(parcel, name, stretchFactor=None, border=None, minimumSize=None,
                               border=border or RectType(0, 0, 0, 6),
                               **kwds)
 
-def makeLabel(parcel, label=u'', borderTop=5, border=None):
+def makeLabel(parcel, label=u'', borderTop=5, border=None, width=60):
     """
     Make a StaticText label template for use in the detail view.
     
@@ -107,6 +107,9 @@ def makeLabel(parcel, label=u'', borderTop=5, border=None):
     @param border: Optionally, specify all four sides of the border on the new 
     label block.
     @type border: Rect
+    @param width: Optionally, override the default width (60) (eventually, 
+    this'll be ignored and the label will measure itself).
+    @type width: Integer
     @returns: The new label block template.
     """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
@@ -116,7 +119,7 @@ def makeLabel(parcel, label=u'', borderTop=5, border=None):
                                characterStyle=blocks.LabelStyle,
                                textAlignmentEnum='Right',
                                stretchFactor=0.0,
-                               minimumSize=SizeType(60, -1),
+                               minimumSize=SizeType(width, -1),
                                border=border)
 
 def makeSpacer(parcel, size=None, width=-1, height=-1, 
