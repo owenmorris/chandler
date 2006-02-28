@@ -33,21 +33,13 @@ DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 localtime = dateutil.tz.tzlocal()
 utc = dateutil.tz.tzutc()
-    
+oneDay = datetime.timedelta(1)
+
 def translateToTimezone(dt, tzinfo):
     if dt.tzinfo == None:
         return dt.replace(tzinfo=localtime).astimezone(tzinfo)
     else:
         return dt.astimezone(tzinfo)
-
-def dateForVObject(dt, asDate = False):
-    """
-    Convert the given datetime into a date or datetime, depending on asDate.
-    """
-    if asDate:
-        return dt.date()
-    else:
-        return dt
 
 def itemsToVObject(view, items, cal=None, filters=None):
     """
@@ -72,13 +64,13 @@ def itemsToVObject(view, items, cal=None, filters=None):
             dtstartLine = comp.add('dtstart')
             if item.allDay:
                 # allDay-ness overrides anyTime-ness
-                dtstartLine.value = dateForVObject(item.startTime, True)
+                dtstartLine.value = item.startTime.date()
             elif item.anyTime:
                 dtstartLine.params['X-OSAF-ANYTIME']=['TRUE']
                 # anyTime should be exported as allDay for non-Chandler apps
-                dtstartLine.value = dateForVObject(item.startTime, True)
+                dtstartLine.value = item.startTime.date()
             else:
-                dtstartLine.value = dateForVObject(item.startTime, False)
+                dtstartLine.value = item.startTime
 
         except AttributeError:
             comp.dtstart = [] # delete the dtstart that was added
@@ -86,18 +78,17 @@ def itemsToVObject(view, items, cal=None, filters=None):
         try:
             if not (item.duration == datetime.timedelta(0) or (
                     (item.anyTime or item.allDay) and 
-                    item.duration <= datetime.timedelta(days=1))):
+                    item.duration <= oneDay)):
                 dtendLine = comp.add('dtend')
                 #convert Chandler's notion of allDay duration to iCalendar's
                 if item.allDay:
-                    dtendLine.value = dateForVObject(item.endTime, True) + \
-                                                     datetime.timedelta(days=1)
+                    dtendLine.value = item.endTime.date() + oneDay
                 elif item.anyTime:
                     dtendLine.params['X-OSAF-ANYTIME']=['TRUE']
                     # anyTime should be exported as allDay for non-Chandler apps
-                    dtendLine.value = dateForVObject(item.endTime, True)
+                    dtendLine.value = item.endTime.datae()
                 else:
-                    dtendLine.value = dateForVObject(item.endTime, False)
+                    dtendLine.value = item.endTime
 
         except AttributeError:
             comp.dtend = [] # delete the dtend that was added
@@ -130,7 +121,10 @@ def itemsToVObject(view, items, cal=None, filters=None):
             recurrenceid = comp.add('recurrence-id')
             master = item.getMaster()
             allDay = master.allDay or master.anyTime
-            recurrenceid.value = dateForVObject(item.recurrenceID, allDay)
+            if allDay:
+                recurrenceid.value = item.recurrenceID.date()
+            else:     
+                recurrenceid.value = item.recurrenceID
         
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative
@@ -433,7 +427,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             duration = event.due[0].value - dtstart
                         except AttributeError:
                             if anyTime or isDate:
-                                duration = datetime.timedelta(days=1)
+                                duration = oneDay
                             else:
                                 duration = datetime.timedelta(0)
                                 
@@ -441,7 +435,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if isDate:
                     dtstart = TimeZone.forceToDateTime(dtstart)
                     # convert to Chandler's notion of all day duration
-                    duration -= datetime.timedelta(days=1)
+                    duration -= oneDay
                 
                 # coerce timezones based on coerceTzinfo
                 coerceTzinfo = getattr(self, 'coerceTzinfo', None)

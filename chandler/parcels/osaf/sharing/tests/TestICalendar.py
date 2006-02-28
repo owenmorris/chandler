@@ -204,7 +204,7 @@ class ICalendarTestCase(unittest.TestCase):
         vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
         vevent.behavior = vobject.icalendar.VEvent
         
-        vevent.add('dtstart').value = ICalendar.dateForVObject(start)
+        vevent.add('dtstart').value = start
 
         # not creating a RuleSetItem, although it would be required for an item
         ruleItem = RecurrenceRule(None, itsView=self.repo.view)
