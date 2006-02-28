@@ -129,6 +129,7 @@ def initOptions(**kwds):
         'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
         'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
+        'scriptTimeout': ('-s', '--scriptTimeout', 's', None,  None, 'script file timeout'),
         'catsProfile':('',   '--catsProfile','s', None,  None, 'file for hotshot profile of script execution'),
         'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),

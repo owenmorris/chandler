@@ -164,6 +164,19 @@ def run_script(scriptText, fileName=u"", profiler=None):
     for attr in __all__:
         builtIns[attr] = globals()[attr]
 
+    # Protect against scripts that don't stop, needed especially by 
+    # automated tests.
+    if Globals.options.scriptTimeout > 0:
+        try:
+            from signal import signal, alarm, SIGALRM
+        except ImportError:
+            pass    # no alarm on Windows  :(
+        else:
+            def timeout(*args):
+                raise KeyboardInterrupt('Timeout: Script did not finish within %d seconds.' % Globals.options.scriptTimeout)
+            signal(SIGALRM, timeout)
+            alarm(Globals.options.scriptTimeout)
+
     # now run that script in our predefined scope
     exec scriptCode in builtIns
 
