@@ -611,10 +611,11 @@ class ValueRenderer(object):
         value = getattr(self.item, name)
 
         # we're guaranteed that we'll fall all the way back to Render_object
-        for cls in value.__class__.__mro__:
-            renderMethod = getattr(self, 'Render_' + cls.__name__, None)
-            if renderMethod is not None:
-                return renderMethod(name, value)
+        if hasattr(value, '__class__'):
+            for cls in value.__class__.__mro__:
+                renderMethod = getattr(self, 'Render_' + cls.__name__, None)
+                if renderMethod is not None:
+                    return renderMethod(name, value)
             
     def __str__(self):
         return self.renderMethod()

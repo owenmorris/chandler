@@ -836,7 +836,7 @@ class Principal(ContentItem):
     password = schema.One(schema.Text)
 
 
-    members = schema.Sequence('Principal', initialValue=[])
+    members = schema.Sequence('Principal', initialValue=[], inverse='memberOf')
     memberOf = schema.Sequence('Principal', initialValue=[])
 
     def isMemberOf(self, pid):

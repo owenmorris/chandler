@@ -5,12 +5,19 @@ import application
 from application import schema, Globals
 from osaf import pim
 from repository.item.Item import Item
+from repository.item import Access
 from repository.util.ClassLoader import ClassLoader
 import os, sys
 import logging
 from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
+
+def installParcel(parcel, oldVersion=None):
+    pim.Principal.update(parcel, 'public',
+        displayName=_("Public")
+    )
+
 
 def start_servers(startup_item):
     if getattr(Globals.options,'webserver',False):
@@ -127,10 +134,6 @@ class Resource(schema.Item):
         inverse=Server.resources
     )
 
-    users = schema.Sequence("User", inverse='resources',
-        doc="A ref collection of users who have access to this resource"
-    )
-
     autoView = schema.One(schema.Boolean,
         initialValue=True,
         doc="Resouce should automatically create a private view, refresh() "
@@ -170,40 +173,39 @@ class AuthenticatedResource(resource.Resource):
         else:
             self.myView = self.repositoryView
 
-        users = getattr(self.resourceItem, 'users', None)
 
         args = request.args
         if args.has_key('command'):
             command = args['command'][0]
-
-            if users is not None:
-
-                if command == 'login':
-                    login = request.args['login'][0]
-                    password = request.args['password'][0]
-                    session.user = self.authenticate(login, password)
-                    request.method = 'GET'
-                    request.args['command'] = ['default']
-
-                elif command == 'logout':
-                    if hasattr(session, 'user'):
-                        del session.user
-                    return self.loginPage(request)
-
-
-        if users is None:
-            userAllowed = True
         else:
-            userAllowed = False
-            if getattr(session, 'user', None) is not None:
-                userItem = self.resourceItem.itsView.findUUID(session.user)
-                if userItem in self.resourceItem.users:
-                    userAllowed = True
+            command = None
 
-        if userAllowed:
+        # See if the user is trying to log in
+        if command == 'login':
+            login = args['login'][0]
+            password = args['password'][0]
+            uuid = self.authenticate(login, password)
+            if uuid is not None:
+                session.user = uuid
+                request.method = 'GET'
+                request.args['command'] = ['default']
+
+        elif command == 'logout':
+            if hasattr(session, 'user'):
+                del session.user
+                # We'll get set to 'public' a few lines down...
+
+        # Set user to 'public' if not set to something already
+        public = schema.ns('osaf.webserver', self.myView).public.itsUUID
+        session.user = getattr(session, 'user', public)
+        user = self.resourceItem.itsView.findUUID(session.user)
+
+        acl = self.resourceItem.getACL(default=None)
+        if (not acl) or acl.verify(user, Access.Permission.READ):
             method = getattr(self, 'render_' + request.method, None)
             if not method:
                 raise server.Unsupported(getattr(self, 'allowedMethods', ()))
+
             output = method(request)
 
             if self.resourceItem.autoView:
@@ -220,9 +222,10 @@ class AuthenticatedResource(resource.Resource):
         Return uuid of User item matching login/password, or None if no match
         """
 
-        for user in self.resourceItem.users:
-            if login == user.login and password == user.password:
-                return user.itsUUID
+        for principal in pim.Principal.iterItems(self.resourceItem.itsView):
+            if (login == getattr(principal, 'login', '') and
+                password == getattr(principal, 'password', '')):
+                return principal.itsUUID
         return None
 
 
@@ -281,9 +284,3 @@ class Directory(schema.Item):
         initialValue=None,
         inverse=Server.directories
     )
-
-class User(pim.ContentItem):
-    login = schema.One(schema.Text)
-    password = schema.One(schema.Text)
-    resources = schema.Sequence(Resource, inverse='users')
-
