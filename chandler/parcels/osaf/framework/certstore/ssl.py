@@ -67,7 +67,7 @@ def loadCertificatesToContext(repView, ctx):
         q = FilteredCollection(qName, itsView=repView,
                                source=utils.getExtent(certificate.Certificate,
                                                       repView),
-                               filterExpression=u'item.type == "%s" and item.trust == %d' % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
+                               filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
                                filterAttributes=['type', 'trust'])
         
     store = ctx.get_cert_store()

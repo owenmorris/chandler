@@ -442,7 +442,7 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
         repository = self.itsView.repository
         progressMessage = _(u'Compacting repository...')
-        repository.logger.info('Compacting up repository...')
+        repository.logger.info('Compacting repository...')
         self.setStatusMessage(progressMessage)
         counts = repository.compact()
 

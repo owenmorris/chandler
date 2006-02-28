@@ -979,7 +979,7 @@ class FilteredSet(Set):
 
         self.filterExpression = expr
         self.attributes = attrs
-        self.filter = eval("lambda item: %s" % self.filterExpression)
+        self.filter = eval("lambda view, uuid: " + self.filterExpression)
     
     def _repr_(self, replace=None):
 
@@ -994,27 +994,29 @@ class FilteredSet(Set):
 
         index = self._anIndex()
         if index is not None:
-            if isitem(item):
+            if not isuuid(item):
                 item = item.itsUUID
             return item in index
 
         if self._sourceContains(item, self._source, excludeMutating):
-            if isuuid(item):
-                item = self._view[item]
-            return self.filter(item)
+            if not isuuid(item):
+                item = item.itsUUID
+            return self.filter(self._view, item)
 
         return False
 
     def _iterkeys(self):
 
-        for item in self._iterSource(self._source):
-            if self.filter(item):
-                yield item.itsUUID
+        view = self._view
+        for uuid in self._iterSourceKeys(self._source):
+            if self.filter(view, uuid):
+                yield uuid
 
     def _itervalues(self):
 
+        view = self._view
         for item in self._iterSource(self._source):
-            if self.filter(item):
+            if self.filter(view, item.itsUUID):
                 yield item
 
     def _len(self):
@@ -1059,12 +1061,11 @@ class FilteredSet(Set):
         if op is not None:
             if change == 'collection':
                 if op != 'refresh':
-                    if isuuid(other):
-                        other = self._view.find(other)
-                        if other is None:
+                    if not isuuid(other):
+                        if other.isDeleted():
                             op = None
-                    if (not (op is None or other.isDeleted() or
-                             self.filter(other))):
+                        other = other.itsUUID
+                    if not (op is None or self.filter(self._view, other)):
                         op = None
 
             if not (inner is True or op is None):
@@ -1075,10 +1076,11 @@ class FilteredSet(Set):
     def itemChanged(self, other, attribute):
 
         if self._sourceContains(other, self._source):
-            matched = self.filter(other)
+            other = other.itsUUID
+            matched = self.filter(self._view, other)
 
             if self._indexes:
-                contains = other.itsUUID in self._indexes.itervalues().next()
+                contains = other in self._indexes.itervalues().next()
             else:
                 contains = None
                 

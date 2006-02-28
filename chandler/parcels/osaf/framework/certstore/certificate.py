@@ -240,7 +240,7 @@ def importCertificate(x509, fingerprint, trust, repView):
         q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME,
                                itsView=repView,
                                source=utils.getExtent(Certificate, repView),
-                               filterExpression=u'item.type == "%s" and item.trust == %d' % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
+                               filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
                                filterAttributes=['type', 'trust'])
 
     repView.commit()

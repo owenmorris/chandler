@@ -5,7 +5,9 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging, heapq, sys, gc, threading, os
+
 from Queue import Queue
+from itertools import izip
 
 from chandlerdb.util.c import UUID
 from chandlerdb.item.c import CItem, Nil, Default
@@ -349,13 +351,45 @@ class RepositoryView(CView):
                                                          uItem, name)
         if reader is None:
             if uValue is Nil:
-                raise KeyError, uItem
+                if default is Default:
+                    raise KeyError, uItem
+                return default
             if uValue is Default:
                 if default is Default:
                     raise AttributeError, (uItem, name)
-            return default
+                return default
 
         return reader.readValue(self, uValue)
+
+    def hasValue(self, uItem, name):
+
+        item = self.find(uItem, False)
+        if item is not None:
+            return hasattr(item, name)
+
+        return self.repository.store.hasValue(self, self.itsVersion,
+                                              uItem, name)
+
+    def findValues(self, uItem, *pairs):
+
+        item = self.find(uItem, False)
+        if item is not None:
+            return [getattr(item, name, default) for name, default in pairs]
+
+        reader, uValues = self.repository.store.loadValues(self,
+                                                           self.itsVersion,
+                                                           uItem, pairs)
+        if reader is None:
+            return [default for name, default in pairs]
+
+        values = []
+        for uValue, (name, default) in izip(uValues, pairs):
+            if uValue is not None:
+                values.append(reader.readValue(self, uValue))
+            else:
+                values.append(default)
+
+        return values
 
     def findMatch(self, view, matches=None):
 

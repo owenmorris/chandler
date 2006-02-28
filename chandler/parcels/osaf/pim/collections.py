@@ -2,7 +2,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
 
-import logging, os, re
+import logging, os
 
 from application import schema
 from repository.item.Sets import \
@@ -345,10 +345,6 @@ class IntersectionCollection(ContentCollection):
         setattr(self, self.__collection__, set)
 
 
-# regular expression for finding the attribute name used by
-# hasLocalAttributeValue
-delPat = re.compile(".*(hasLocalAttributeValue|hasTrueAttributeValue)\(([^\)]*)\).*")
-
 class FilteredCollection(ContentCollection):
     """
     A ContentCollection which is the result of applying a boolean predicate
@@ -387,24 +383,10 @@ class FilteredCollection(ContentCollection):
 
         super(FilteredCollection, self).__init__(*args, **kwds)
 
-        # see if the expression contains hasLocalAttributeValue
-        m = delPat.match(self.filterExpression)
-        if m:
-            delatt = m.group(2)
-            if delatt is not None:
-                # strip leading quotes
-                if delatt.startswith("'") or delatt.startswith('"'):
-                    delatt = delatt[1:-1] 
-                delatt = [ delatt.replace("item.","") ]
-        else:
-            delatt = []
-
-        # build a set of (item, monitor-operation) tuples
         attrTuples = set()
         for i in self.filterAttributes:
             attrTuples.add((i, "set"))
-            for j in delatt:
-                attrTuples.add((j, "remove"))
+            attrTuples.add((i, "remove"))
 
         setattr(self, self.__collection__,
                 FilteredSet((self.source, self.source.__collection__),

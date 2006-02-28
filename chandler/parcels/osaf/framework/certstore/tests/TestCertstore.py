@@ -92,7 +92,7 @@ rZehs7GgIFvKMquNzxPwHynD
         rootCerts = FilteredCollection('rootCertsQuery',
                                        itsView=view,
                                        source=utils.getExtent(certificate.Certificate, view, exact=True),
-                                       filterExpression=u'item.type == "%s"' % constants.TYPE_ROOT,
+                                       filterExpression=u"view.findValue(uuid, 'type') == '%s'" % constants.TYPE_ROOT,
                                        filterAttributes=['type'])
             
         now = time.gmtime()
@@ -133,7 +133,7 @@ rZehs7GgIFvKMquNzxPwHynD
         matchingCerts = FilteredCollection('fpCertQuery' + fingerprint,
                                            itsView=view,
                                            source=utils.getExtent(certificate.Certificate, view, exact=True),
-                                           filterExpression=u'item.fingerprint == "%s"' % fingerprint,
+                                           filterExpression=u"view.findValue(uuid, 'fingerprint') == '%s'" % fingerprint,
                                            filterAttributes=['fingerprint'])
         
         self.assert_(len(matchingCerts) == 1)

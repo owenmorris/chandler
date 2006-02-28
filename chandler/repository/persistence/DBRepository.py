@@ -687,6 +687,19 @@ class DBStore(Store):
 
         return DBValueReader(self, status), uValue
     
+    def loadValues(self, view, version, uItem, pairs):
+
+        status, uValues = self._items.findValues(view, version, uItem, pairs)
+        if status is None:
+            return None, uValues
+
+        return DBValueReader(self, status), uValues
+    
+    def hasValue(self, view, version, uItem, name):
+
+        status, uValue = self._items.findValue(view, version, uItem, name)
+        return uValue not in (Nil, Default)
+    
     def loadRef(self, view, version, uItem, uuid, key):
 
         return self._refs.loadRef(view, uItem._uuid + uuid._uuid, version, key)

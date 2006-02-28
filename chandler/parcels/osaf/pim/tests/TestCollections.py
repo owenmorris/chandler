@@ -24,7 +24,7 @@ class NotifyHandler(schema.Item):
                 continue
             if op == 'changed' and rec[0] != 'changed':
                 continue
-            return rec[0] == op and rec[3] == other 
+            return rec[0] == op and (rec[3] == other or rec[3] == other.itsUUID)
 
     def onCollectionNotification(self, op, collection, name, other):
         self.log.append((op, collection, name, other))
@@ -268,7 +268,7 @@ class CollectionTests(CollectionTestCase):
     def testFilteredCollection(self):
         f1 = FilteredCollection(itsView=self.view,
                                 source=self.b1,
-                                filterExpression=u"len(item.label) > 2",
+                                filterExpression=u"len(view[uuid].label) > 2",
                                 filterAttributes=["label"])
         self.b1.subscribers.add(self.nh)
         f1.subscribers.add(self.nh1)
@@ -297,7 +297,7 @@ class CollectionTests(CollectionTestCase):
                             kind=self.i.itsKind)
         f2 = FilteredCollection(itsView=self.view,
                                 source=k1,
-                                filterExpression=u"len(item.label) > 2",
+                                filterExpression=u"len(view[uuid].label) > 2",
                                 filterAttributes=["label"])
         nh3 = NotifyHandler("nh3", itsView=self.view)
 
@@ -370,7 +370,7 @@ class CollectionTests(CollectionTestCase):
                             kind=self.i.itsKind)
         f2 = FilteredCollection(itsView=self.view,
                                 source=k1,
-                                filterExpression=u"item.hasLocalAttributeValue('label')",
+                                filterExpression=u"view[uuid].hasLocalAttributeValue('label')",
                                 filterAttributes=["label"])
         nh3 = NotifyHandler("nh3", itsView=self.view)
 
@@ -405,7 +405,7 @@ class CollectionTests(CollectionTestCase):
 
         f = FilteredCollection(itsView=self.view,
                                source=k,
-                               filterExpression=u"len(item.label) > 1",
+                               filterExpression=u"len(view[uuid].label) > 1",
                                filterAttributes=["label"])
         
         l = ListCollection(itsView=self.view)
@@ -477,14 +477,14 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(getattr(kc, kc.__collection__) is not None)
 
         fc = FilteredCollection(itsView=self.view,
-                                filterExpression=u"len(item.label) > 2",
+                                filterExpression=u"len(view[uuid].label) > 2",
                                 filterAttributes=[ "label" ],
                                 source=self.b1)
         self.failUnless(getattr(fc, fc.__collection__) is not None)
 
         fc1 = FilteredCollection(itsView=self.view,
                                  source=self.b1,
-                                 filterExpression=u"len(item.label) > 2",
+                                 filterExpression=u"len(view[uuid].label) > 2",
                                  filterAttributes=[ "label" ])
         self.failUnless(getattr(fc1, fc1.__collection__) is not None)
 

@@ -106,7 +106,8 @@ def installParcel(parcel, oldVersion=None):
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=notes,
-        filterExpression=u"(not item.hasLocalAttributeValue('isGenerated') or not getattr(item, 'isGenerated', False)) and not item.hasLocalAttributeValue('modificationFor')",
+        # filter(None, values) will filter out all non True values
+        filterExpression=u"not filter(None, view.findValues(uuid, ('isGenerated', False), ('modificationFor', None)))",
         filterAttributes=['isGenerated', 'modificationFor']
     )
 
@@ -145,7 +146,7 @@ def installParcel(parcel, oldVersion=None):
     eventsWithReminders = FilteredCollection.update(
         parcel, 'eventsWithReminders',
         source=events,
-        filterExpression='item.reminders',
+        filterExpression="getattr(view[uuid], 'reminders', None)",
         filterAttributes=['reminders'])
 
     # the monitor list assumes all reminders will be relativeTo
@@ -155,8 +156,8 @@ def installParcel(parcel, oldVersion=None):
                                  monitor=('startTime', 'allDay', 'anyTime'
                                           'reminders'))
 
-    masterFilter = "item.hasTrueAttributeValue('occurrences') and "\
-                   "item.hasTrueAttributeValue('rruleset')"
+    masterFilter = "view[uuid].hasTrueAttributeValue('occurrences') and "\
+                   "view[uuid].hasTrueAttributeValue('rruleset')"
     masterEvents = FilteredCollection.update(parcel, 'masterEvents',
         source = events,
         filterExpression = masterFilter,
@@ -191,7 +192,7 @@ def installParcel(parcel, oldVersion=None):
     inSource = FilteredCollection.update(
         parcel, 'inSource',
         source=mailCollection,
-        filterExpression=u'getattr(item, \'isInbound\', False)',
+        filterExpression=u"view.findValue(uuid, 'isInbound', False)",
         filterAttributes=['isInbound'])
 
     # The "In" collection
@@ -205,7 +206,7 @@ def installParcel(parcel, oldVersion=None):
 
     outSource = FilteredCollection.update(parcel, 'outSource',
         source=mailCollection,
-        filterExpression=u'getattr(item, \'isOutbound\', False)',
+        filterExpression=u"view.findValue(uuid, 'isOutbound', False)",
         filterAttributes=['isOutbound'])
 
     # The "Out" collection

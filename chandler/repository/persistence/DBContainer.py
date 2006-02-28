@@ -1230,6 +1230,26 @@ class ItemContainer(DBContainer):
 
         return None, Nil
 
+    def findValues(self, view, version, uuid, pairs):
+
+        version, item = self._findItem(view, version, uuid)
+        if item is not None:
+            uValues = [None] * len(pairs)
+
+            names = [_hash(name) for name, default in pairs]
+            vCount, dCount = unpack('>ll', item[-8:])
+            pos = -(dCount + 2) * 4 - vCount * 20
+
+            for i in xrange(vCount):
+                h, uValue = unpack('>l16s', item[pos:pos+20])
+                if h in names:
+                    uValues[names.index(h)] = UUID(uValue)
+                pos += 20
+
+            return unpack('>l', item[16:20])[0], uValues
+
+        return None, Nil
+
     def getItemParentId(self, view, version, uuid):
 
         version, item = self._findItem(view, version, uuid)
