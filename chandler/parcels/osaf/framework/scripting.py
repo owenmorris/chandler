@@ -166,7 +166,7 @@ def run_script(scriptText, fileName=u"", profiler=None):
 
     # Protect against scripts that don't stop, needed especially by 
     # automated tests.
-    scriptTimeout = getattr(Globals.options, 'scriptTimeout', 0)
+    scriptTimeout = int(getattr(Globals.options, 'scriptTimeout', 0))
     if scriptTimeout > 0:
         try:
             from signal import signal, alarm, SIGALRM
@@ -174,7 +174,7 @@ def run_script(scriptText, fileName=u"", profiler=None):
             pass    # no alarm on Windows  :(
         else:
             def timeout(*args):
-                raise KeyboardInterrupt('Timeout: Script did not finish within %d seconds.' % scriptTimeout)
+                sys.exit('Timeout: Script did not finish within %d seconds.' % scriptTimeout)
             signal(SIGALRM, timeout)
             alarm(scriptTimeout)
 
