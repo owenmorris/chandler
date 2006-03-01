@@ -413,13 +413,11 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     if [ "$OSTYPE" = "cygwin" ]; then
         TESTNAME=`cygpath -w $C_DIR/tools/QATestScripts/Performance/end.py`
         CREATEREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/quit.py`
-        CREATE3KREPO=`cygpath -w $C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py`
         P_DIR=`cygpath -w $C_DIR`
         TIME='time.exe --format=%e'
     else
         TESTNAME=$C_DIR/tools/QATestScripts/Performance/end.py
         CREATEREPO=$C_DIR/tools/QATestScripts/Performance/quit.py
-        CREATE3KREPO=$C_DIR/tools/QATestScripts/Performance/PerfImportCalendar.py
         P_DIR=$C_DIR
         if [ "${OSTYPE:0:6}" = "darwin" ]; then
             # NOTE: gtime is not part of OS X, you need to compile one
@@ -445,7 +443,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     done
 
     echo Creating new large repository | tee -a $BUILDLOG
-    $CHANDLERBIN/release/$RUN_CHANDLER --create --profileDir="$P_DIR" --scriptFile="$CREATE3KREPO" &> $T_DIR/test.log
+    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --profileDir="$P_DIR" --scriptFile="$CREATEREPO" &> $T_DIR/test.log
     
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
