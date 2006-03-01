@@ -459,8 +459,10 @@ class UITestItem(object):
         @type timeInfo: boolean
         """
         if self.isMessage:
-            self.SetEditableBlock(self.item.isInbound and "EditMailInboundFrom" or "EditMailOutboundFrom", 
-                                  "from address", fromAdd, timeInfo=timeInfo)
+            blockName = (self.item.isOutbound and "EditMailOutboundFrom" 
+                         or "EditMailInboundFrom")
+            self.SetEditableBlock(blockName, "from address", fromAdd, 
+                                  timeInfo=timeInfo)
         else:
             if self.logger: self.logger.Print("SetFromAddress is not available for this kind of item")
             return

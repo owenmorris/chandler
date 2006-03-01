@@ -192,8 +192,8 @@ def installParcel(parcel, oldVersion=None):
     inSource = FilteredCollection.update(
         parcel, 'inSource',
         source=mailCollection,
-        filterExpression=u"view.findValue(uuid, 'isInbound', False)",
-        filterAttributes=['isInbound'])
+        filterExpression=u"not view.findValue(uuid, 'isOutbound', True)",
+        filterAttributes=['isOutbound'])
 
     # The "In" collection
     inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',

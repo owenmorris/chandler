@@ -539,8 +539,7 @@ class MailMessageMixin(MIMEContainer):
         initialValue = None,
         inverse = MailDeliveryBase.mailMessage,
     )
-    isOutbound = schema.One(schema.Boolean, initialValue = False)
-    isInbound = schema.One(schema.Boolean, initialValue = False)
+    isOutbound = schema.One(schema.Boolean, initialValue = True)
     parentAccount = schema.One(
         AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
     )
@@ -625,9 +624,6 @@ class MailMessageMixin(MIMEContainer):
         except AttributeError:
             pass
 
-        #self.outgoingMessage() # default to outgoing message
-        self.isOutbound = True
-
     def getAnyAbout(self):
         """
         Get any non-empty definition for the "about" attribute.
@@ -661,7 +657,7 @@ class MailMessageMixin(MIMEContainer):
             elif type == "POP":
                  self.deliveryExtension = POPDelivery(itsView=self.itsView)
 
-        self.isInbound = True
+        self.isOutbound = False
         self.parentAccount = account
 
     def getAttachments(self):

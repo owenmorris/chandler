@@ -770,7 +770,7 @@ class AttachmentTextFieldBlock(EditTextAttribute):
 class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
         showIt = False
-        if item is not None and item.isInbound:
+        if item is not None and not item.isOutbound:
             try:
                 MailSharing.getSharingHeaderInfo(item)
             except:       
@@ -1283,10 +1283,10 @@ class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     (like the inbound version of 'from')
     """
     def shouldShow (self, item):
-        return item.isInbound
+        return not item.isOutbound
 
     def whichAttribute(self):
-        return 'isInbound'
+        return 'isOutbound'
 
 class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
     """ 
