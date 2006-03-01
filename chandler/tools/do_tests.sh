@@ -483,4 +483,6 @@ else
     for item in $FAILED_TESTS ; do
         echo "    $item" | tee -a $TESTLOG
     done
+
+    exit 1
 fi
