@@ -66,7 +66,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
                 # allDay-ness overrides anyTime-ness
                 dtstartLine.value = item.startTime.date()
             elif item.anyTime:
-                dtstartLine.params['X-OSAF-ANYTIME']=['TRUE']
+                dtstartLine.x_osaf_anytime_param = 'TRUE'
                 # anyTime should be exported as allDay for non-Chandler apps
                 dtstartLine.value = item.startTime.date()
             else:
@@ -84,7 +84,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
                 if item.allDay:
                     dtendLine.value = item.endTime.date() + oneDay
                 elif item.anyTime:
-                    dtendLine.params['X-OSAF-ANYTIME']=['TRUE']
+                    dtendLine.x_osaf_anytime_param = 'TRUE'
                     # anyTime should be exported as allDay for non-Chandler apps
                     dtendLine.value = item.endTime.datae()
                 else:
@@ -128,9 +128,9 @@ def itemsToVObject(view, items, cal=None, filters=None):
         
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative
-            if item.modifies == 'thisandfuture' or item.getMaster() == item:
+            if item.getMaster() == item and item.rruleset is not None:
                 # False because we don't want to ignore isCount for export
-                cal.vevent[-1].rruleset = item.createDateUtilFromRule(False)
+                cal.vevent_list[-1].rruleset = item.createDateUtilFromRule(False)
         except AttributeError:
             pass
         # end of populate function
@@ -326,19 +326,14 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             caldavReturn = None
 
         input = StringIO.StringIO(text)
-        calendar = list(vobject.readComponents(input, validate=True))
-        if len(calendar) == 0:
+        try:
+            calendar = vobject.readOne(input, validate=True)
+        except StopIteration:
             # an empty ics file, what to do?
-            return
-        else:
-            calendar = calendar[0]
-        
+            return        
 
         if self.fileStyle() == self.STYLE_SINGLE:
-            try:
-                calName = calendar.contents[u'x-wr-calname'][0].value
-            except:
-                calName = u"Imported Calendar"
+            calName=calendar.getChildValue('x_wr_calname', u"Imported Calendar") 
             if getattr(item, 'displayName', "") == "":
                 item.displayName = unicode(calName)
 
@@ -347,89 +342,67 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         
         modificationQueue = []
         
-        minusone = itertools.repeat(-1)
-        # This is, essentially: [(-1, event) for event in calendar.vevent]
-        rawVevents = getattr(calendar, 'vevent', [])
+        rawVevents = getattr(calendar, 'vevent_list', [])
         numVevents = len(rawVevents)
         if updateCallback and self.fileStyle() == self.STYLE_SINGLE:
             updateCallback(msg=_(u"Calendar contains %d events") % numVevents,
                 totalWork=numVevents)
             
-        vevents = itertools.izip(minusone, rawVevents)
+        vevents = ((-1, event) for event in rawVevents)
         for i, event in itertools.chain(vevents, enumerate(modificationQueue)):
             # Queue modifications to recurring events so modifications are
             # processed after master events in the iCalendar stream.
-            recurrenceID = None
-            try:
-                recurrenceID = event.contents['recurrence-id'][0].value
-                if i < 0: # only add to modificationQueue in initial processing
-                    modificationQueue.append(event)
-                    continue
-            except:
-                pass
+            recurrenceID = event.getChildValue('recurrence_id')
+            if recurrenceID is not None and i < 0:
+                # only add to modificationQueue in initial processing
+                modificationQueue.append(event)
+                continue
 
             try:
                 if DEBUG: logger.debug("got VEVENT")
                 pickKind = eventKind
 
-                try:
-                    displayName = event.summary[0].value
-                except AttributeError:
-                    displayName = u""
+                displayName = event.getChildValue('summary', u"")
+                description = event.getChildValue('summary')
+                location    = event.getChildValue('location')
+                status      = event.getChildValue('status', "").lower()
+                duration    = event.getChildValue('duration')
+                dtstart     = event.getChildValue('dtstart')
+                dtend       = event.getChildValue('dtend')
+                due         = event.getChildValue('due')
+                uid         = event.getChildValue('uid')
 
-                try:
-                    description = event.description[0].value
-                except AttributeError:
-                    description = None
-
-                try:
-                    location = event.location[0].value
-                except AttributeError:
-                    location = None
-
-                try:
-                    status = event.status[0].value.lower()
-                    if status in ('confirmed', 'tentative'):
-                        pass
-                    elif status == 'cancelled': #Chandler doesn't have CANCELLED
-                        status = 'fyi'
-                    else:
-                        status = 'confirmed'
-                except AttributeError:
+                if status in ('confirmed', 'tentative'):
+                    pass
+                elif status == 'cancelled': #Chandler doesn't have CANCELLED
+                    status = 'fyi'
+                else:
                     status = 'confirmed'
+
+                isDate = type(dtstart) == date
 
                 # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
                 # what that would mean, so we won't catch an exception if there's no
                 # dtstart.
-                dtstartLine = event.dtstart[0]
-                dtstart = dtstartLine.value
-                anyTime = dtstartLine.params.get('X-OSAF-ANYTIME', [None])[0] == 'TRUE'
-                isDate = type(dtstart) == date
+                anyTime = getattr(event.dtstart, 'x_osaf_anytime_param', None) == 'TRUE'
 
                 try:
-                    reminderDelta = event.valarm[0].trigger[0].value
+                    reminderDelta = event.valarm.trigger.value
                     if type(reminderDelta) is datetime.datetime:
                         reminderDelta = reminderDelta - dtstart
                 except AttributeError:
                     reminderDelta = None
 
-                try:
-                    duration = event.duration[0].value
-                except AttributeError:
-                    # note that duration = dtend - dtstart isn't strictly correct
-                    # throughout a recurrence set, 1 hour differences might happen
-                    # around DST, but we'll ignore that corner case for now
-                    try:
-                        duration = event.dtend[0].value - dtstart
-                    except AttributeError:
-                        # FIXME Nesting try/excepts is ugly.
-                        try:
-                            duration = event.due[0].value - dtstart
-                        except AttributeError:
-                            if anyTime or isDate:
-                                duration = oneDay
-                            else:
-                                duration = datetime.timedelta(0)
+                
+                if duration is None:
+                    if dtend is not None:
+                        duration = dtend - dtstart
+                    elif due is not None: #VTODO case
+                        duration = due - dtstart
+                    elif anyTime or isDate:
+                        duration = oneDay
+                    else:
+                        duration = datetime.timedelta(0)
                                 
     
                 if isDate:
@@ -452,7 +425,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 itemChangeCallback = None
                
                 # See if we have a corresponding item already
-                uidMatchItem = self.findUID(event.uid[0].value)
+                uidMatchItem = self.findUID(uid)
                 if uidMatchItem is not None:
                     if DEBUG: logger.debug("matched UID")
 
@@ -570,11 +543,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if itemChangeCallback is None:
                     # create a new item
                     # setting icalUID in the constructor doesn't seem to work
-                    #change('icalUID', event.uid[0].value)
+                    #change('icalUID', uid)
                     eventItem = pickKind.newItem(None, newItemParent, **changesDict)
                     # set icalUID seperately to make sure uid_map gets set
                     # @@@MOR Needed anymore since we got rid of uid_map?
-                    eventItem.icalUID = event.uid[0].value
+                    eventItem.icalUID = uid
                     for tup in changeLast:
                         eventItem.changeThis(*tup)
                     countNew += 1

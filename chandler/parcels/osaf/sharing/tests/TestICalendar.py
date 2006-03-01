@@ -118,14 +118,14 @@ class ICalendarTestCase(unittest.TestCase):
 
         cal = ICalendar.itemsToVObject(self.repo.view, [event])
 
-        self.assert_(cal.vevent[0].summary[0].value == "test",
+        self.assert_(cal.vevent.summary.value == "test",
          "summary not set properly, summary is %s"
-         % cal.vevent[0].summary[0].value)
+         % cal.vevent.summary.value)
 
         start = event.startTime
-        self.assert_(cal.vevent[0].dtstart[0].value == start,
+        self.assert_(cal.vevent.dtstart.value == start,
          "dtstart not set properly, dtstart is %s"
-         % cal.vevent[0].summary[0].value)
+         % cal.vevent.summary.value)
 
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.displayName = u"test2"
@@ -134,9 +134,9 @@ class ICalendarTestCase(unittest.TestCase):
 
         cal = ICalendar.itemsToVObject(self.repo.view, [event])
 
-        self.assert_(cal.vevent[0].dtstart[0].value == datetime.date(2010,1,1),
+        self.assert_(cal.vevent.dtstart.value == datetime.date(2010,1,1),
          "dtstart for allDay event not set properly, dtstart is %s"
-         % cal.vevent[0].summary[0].value)
+         % cal.vevent.summary.value)
          # test bug 3509, all day event duration is off by one
          
     def writeICalendarUnicodeBug3338(self):
@@ -159,7 +159,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.share.create()
         self.share.sync(modeOverride='put')
         cal=vobject.readComponents(file(filename, 'rb')).next()
-        self.assertEqual(cal.vevent[0].summary[0].value, event.displayName)
+        self.assertEqual(cal.vevent.summary.value, event.displayName)
         self.share.destroy()
 
     def importRecurrence(self):
@@ -213,7 +213,7 @@ class ICalendarTestCase(unittest.TestCase):
         ruleSetItem.addRule(ruleItem)
         
         vevent.rruleset = ruleSetItem.createDateUtilFromRule(start)
-        self.assertEqual(vevent.rrule[0].value, 'FREQ=DAILY')
+        self.assertEqual(vevent.rrule.value, 'FREQ=DAILY')
     
                          
         event = Calendar.CalendarEvent(itsView = self.repo.view)
@@ -230,10 +230,10 @@ class ICalendarTestCase(unittest.TestCase):
         
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
         
-        self.assertEqual(vcalendar.vevent[0].dtstart[0].serialize(),
+        self.assertEqual(vcalendar.vevent.dtstart.serialize(),
                          'DTSTART;TZID=US/Eastern:20050201T000000\r\n')
-        vcalendar.vevent[0] = vcalendar.vevent[0].transformFromNative()
-        self.assertEqual(vcalendar.vevent[0].rrule[0].serialize(),
+        vcalendar.vevent = vcalendar.vevent.transformFromNative()
+        self.assertEqual(vcalendar.vevent.rrule.serialize(),
                          'RRULE:FREQ=WEEKLY;UNTIL=20050302T045900Z\r\n')
         
         # move the second occurrence one day later
@@ -243,15 +243,15 @@ class ICalendarTestCase(unittest.TestCase):
         nextEvent.getNextOccurrence().deleteThis()
 
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
-        modified = vcalendar.vevent[1]
-        self.assertEqual(modified.dtstart[0].serialize(),
+        modified = vcalendar.vevent_list[1]
+        self.assertEqual(modified.dtstart.serialize(),
                          'DTSTART:20050209T000000\r\n')
-        self.assertEqual(modified.contents['recurrence-id'][0].serialize(),
+        self.assertEqual(modified.recurrence_id.serialize(),
                          'RECURRENCE-ID;TZID=US/Eastern:20050208T000000\r\n')
-        self.assertEqual(vcalendar.vevent[0].exdate[0].serialize(),
+        self.assertEqual(vcalendar.vevent.exdate.serialize(),
                          'EXDATE;TZID=US/Eastern:20050215T000000\r\n')
         vcalendar.behavior.generateImplicitParameters(vcalendar)
-        self.assertEqual(vcalendar.vtimezone[0].tzid[0].value, "US/Eastern")
+        self.assertEqual(vcalendar.vtimezone.tzid.value, "US/Eastern")
         
         
         
