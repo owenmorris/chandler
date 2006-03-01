@@ -363,7 +363,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 pickKind = eventKind
 
                 displayName = event.getChildValue('summary', u"")
-                description = event.getChildValue('summary')
+                description = event.getChildValue('description')
                 location    = event.getChildValue('location')
                 status      = event.getChildValue('status', "").lower()
                 duration    = event.getChildValue('duration')
