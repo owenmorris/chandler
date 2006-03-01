@@ -14,10 +14,8 @@ from optparse import OptionParser
 
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryView import NullRepositoryView
-from repository.persistence.RepositoryError \
-     import VersionConflictError, MergeError, RepositoryPasswordError, \
-     RepositoryOpenDeniedError, ExclusiveOpenDeniedError,\
-     RepositoryVersionError
+from repository.persistence.RepositoryError import \
+    VersionConflictError, RepositoryPasswordError, RepositoryVersionError
 
 
 # Increment this value whenever the schema changes, and replace the comment
@@ -37,10 +35,9 @@ def locateProfileDir():
     """
 
     def _makeRandomProfileDir(pattern):
-        import M2Crypto.BN as BN
-        profileDir = pattern.replace('*', '%s') % (BN.randfname(8))
-        from osaf.framework.certstore import utils
-        utils.entropyInitialized = True
+        chars = string.letters + string.digits
+        name = ''.join([chars[ord(c) % len(chars)] for c in os.urandom(8)])
+        profileDir = pattern.replace('*', '%s') %(name)
         os.makedirs(profileDir, 0700)
         return profileDir
 
