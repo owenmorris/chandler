@@ -20,29 +20,30 @@ def run_tests(tests):
             type, value, stack = sys.exc_info()
             traceback.print_exception(type, value, stack, None, sys.stderr)
         
-allTests = ["TestCreateAccounts.py",
-            "TestAllDayEvent.py", 
-            "TestNewCollection.py",
-            "TestDates.py", 
-            "TestNewEvent.py",
-            "TestNewMail.py",
-            "TestNewTask.py",
-            "TestNewNote.py",
-            "TestStamping.py", 
-            "TestMoveToTrash.py", 
-            "TestDeleteCollection.py",
-            "TestNewCollNoteStampMulti.py", 
-            "TestCalView.py",
-            "TestRecurrenceImporting.py", 
-            "TestRecurringEvent.py",  
-            "TestSwitchingViews.py",
-            "TestExporting.py",
-            "TestFlickr.py",
-            "TestImporting.py",
-            "TestImportOverwrite.py",
-            "TestSharing.py",
-            "TestBlocks.py",
-            ]
+allTests = [
+                "TestBlocks.py",
+                "TestCreateAccounts.py",
+                "TestAllDayEvent.py", 
+                "TestNewCollection.py",
+                "TestDates.py", 
+                "TestNewEvent.py",
+                "TestNewMail.py",
+                "TestNewTask.py",
+                "TestNewNote.py",
+                "TestStamping.py", 
+                "TestMoveToTrash.py", 
+                "TestDeleteCollection.py",
+                "TestNewCollNoteStampMulti.py", 
+                "TestCalView.py",
+                "TestRecurrenceImporting.py", 
+                "TestRecurringEvent.py",  
+                "TestSwitchingViews.py",
+                "TestExporting.py",
+                "TestFlickr.py",
+                "TestImporting.py",
+                "TestImportOverwrite.py",
+                "TestSharing.py",
+                ]
 
 if sys.platform == 'win32': 
     platform = 'windows'
@@ -68,7 +69,6 @@ exclusions = {
         "TestAllDayEvent.py", #test not functioning bug#5110
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestRecurrenceImporting.py", #Chandler bug #5116
-        "TestNewEvent.py", # bug 5086
     )
 }
 
