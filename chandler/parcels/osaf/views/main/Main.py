@@ -954,7 +954,7 @@ class MainView(View):
         if activeShares:
             # find all the shared collections and sync them.
             self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            SyncProgress.Show(wx.GetApp().mainFrame, itsView=self.itsView)
+            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView)
             self.setStatusMessage (_(u"Shared collections synchronized"))
 
         else:
