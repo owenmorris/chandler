@@ -102,6 +102,10 @@ class RepositoryView(CView):
 
         raise NotImplementedError, "%s._getLobType" %(type(self))
 
+    def createLob(self, data, *args, **kwds):
+
+        return self['Schema']['Core']['Lob'].makeValue(data, *args, **kwds)
+
     def openView(self):
         """
         Open this repository view.
