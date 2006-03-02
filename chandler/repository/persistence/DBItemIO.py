@@ -473,7 +473,6 @@ class DBValueReader(ValueReader):
             attribute = view[uAttr]
             offset, name = 0, attribute.itsName
 
-
         flags = ord(data[offset])
 
         if flags & DBItemWriter.VALUE:
@@ -482,15 +481,25 @@ class DBValueReader(ValueReader):
             return value
 
         elif flags & DBItemWriter.REF:
-            if flags & DBItemWriter.SINGLE:
-                offset, uuid = self.readUUID(offset + 1, data)
-                return view[uuid]
-
-            elif flags & DBItemWriter.NONE:
+            if flags & DBItemWriter.NONE:
                 return None
 
-            offset, uuid = self.readUUID(offset + 1, data)
-            return uuid
+            elif flags & DBItemWriter.SINGLE:
+                offset, uuid = self.readUUID(offset + 1, data)
+                return uuid
+
+            elif flags & DBItemWriter.LIST:
+                offset, uuid = self.readUUID(offset + 1, data)
+                return uuid
+
+            elif flags & DBItemWriter.SET:
+                offset, value = self.readString(offset + 1, data)
+                value = AbstractSet.makeValue(value)
+                value._setView(view)
+                return value
+
+            else:
+                raise ValueError, flags
 
         else:
             raise ValueError, flags

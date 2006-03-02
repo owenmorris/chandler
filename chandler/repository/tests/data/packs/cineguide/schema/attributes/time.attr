@@ -5,5 +5,5 @@
     <kind type="path">//Schema/Core/Attribute</kind>
 
     <attribute name="cardinality">single</attribute>
-    <ref name="type" type="path">//Schema/Core/Time</ref>
+    <ref name="type" type="path">//Schema/Core/TimeTZ</ref>
 </item>

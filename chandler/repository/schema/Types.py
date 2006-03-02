@@ -1237,6 +1237,12 @@ class DateTime(DateStruct):
         return offset, datetime.combine(date.fromordinal(then), time)
 
 
+class DateTimeTZ(DateTime):
+
+    def recognizes(self, value):
+        return type(self) is datetime and value.tzinfo is not None
+
+
 class Date(DateStruct):
 
     format = "%d-%02d-%02d"
@@ -1344,6 +1350,12 @@ class Time(DateStruct):
                   afterLoadHooks):
 
         return self.readTime(itemReader, offset, data)
+
+
+class TimeTZ(Time):
+
+    def recognizes(self, value):
+        return type(value) is time and value.tzinfo is not None
 
 
 class TimeDelta(DateStruct):
