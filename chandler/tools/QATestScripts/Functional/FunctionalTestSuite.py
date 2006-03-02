@@ -20,8 +20,7 @@ def run_tests(tests):
             type, value, stack = sys.exc_info()
             traceback.print_exception(type, value, stack, None, sys.stderr)
         
-allTests = ["TestBlocks.py",
-            "TestCreateAccounts.py",
+allTests = ["TestCreateAccounts.py",
             "TestAllDayEvent.py", 
             "TestNewCollection.py",
             "TestDates.py", 
@@ -42,6 +41,7 @@ allTests = ["TestBlocks.py",
             "TestImporting.py",
             "TestImportOverwrite.py",
             "TestSharing.py",
+            "TestBlocks.py",
             ]
 
 if sys.platform == 'win32': 
