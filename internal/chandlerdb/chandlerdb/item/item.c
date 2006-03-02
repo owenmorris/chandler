@@ -38,7 +38,7 @@ static PyObject *t_item_isMutating(t_item *self, PyObject *args);
 static PyObject *t_item__isRepository(t_item *self, PyObject *args);
 static PyObject *t_item__isView(t_item *self, PyObject *args);
 static PyObject *t_item__isItem(t_item *self, PyObject *args);
-static PyObject *t_item__isRefList(t_item *self, PyObject *args);
+static PyObject *t_item__isRefs(t_item *self, PyObject *args);
 static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyObject *t_item__isMerged(t_item *self, PyObject *args);
 static PyObject *t_item_isWatched(t_item *self, PyObject *args);
@@ -130,7 +130,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_item__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
-    { "_isRefList", (PyCFunction) t_item__isRefList, METH_NOARGS, "" },
+    { "_isRefs", (PyCFunction) t_item__isRefs, METH_NOARGS, "" },
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { "isWatched", (PyCFunction) t_item_isWatched, METH_NOARGS, "" },
@@ -446,7 +446,7 @@ static PyObject *t_item__isItem(t_item *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isRefList(t_item *self, PyObject *args)
+static PyObject *t_item__isRefs(t_item *self, PyObject *args)
 {
     Py_RETURN_FALSE;
 }

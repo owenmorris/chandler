@@ -23,7 +23,7 @@ static PyObject *t_uuid_richcmp(t_uuid *o1, t_uuid *o2, int opid);
 static PyObject *format64(t_uuid *self);
 static PyObject *_isUUID(PyObject *self);
 static PyObject *_isItem(PyObject *self);
-static PyObject *_isRefList(PyObject *self);
+static PyObject *_isRefs(PyObject *self);
 
 int debug = 0;
 
@@ -40,7 +40,7 @@ static PyMethodDef t_uuid_methods[] = {
       "format uuid in abbreviated base 64 syntax" },
     { "_isUUID", (PyCFunction) _isUUID, METH_NOARGS, "return True" },
     { "_isItem", (PyCFunction) _isItem, METH_NOARGS, "return False" },
-    { "_isRefList", (PyCFunction) _isRefList, METH_NOARGS, "return False" },
+    { "_isRefs", (PyCFunction) _isRefs, METH_NOARGS, "return False" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -222,7 +222,7 @@ static PyObject *_isItem(PyObject *self)
     Py_RETURN_FALSE;
 }
 
-static PyObject *_isRefList(PyObject *self)
+static PyObject *_isRefs(PyObject *self)
 {
     Py_RETURN_FALSE;
 }
