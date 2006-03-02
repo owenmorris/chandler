@@ -502,36 +502,37 @@ class perf:
           line      = lines[0]
           item      = string.split(string.lower(line[:-1]), '|')
           treename  = item[0]
-          buildname = item[1]
+          buildname = item[1].lower()
 
-            # another hack - check to see if the buildname is one of the performance
-            # only tboxes.  They only run release mode tests so will not have any
-            # debug data so the starting point will be the first line
-          if buildname.lower().startswith('p_'):
-            p = 0
-          else:
-            p = p / 2
-
-          for line in lines[p:]:
-            item = string.split(string.lower(line[:-1]), '|')
-
-              # each line of a .perf file has the following format
-              # treename | buildname | date | time | testname | svn rev # | time
-
-            if not datafiles.has_key(buildname):
-              datafiles[buildname] = file(os.path.join(self._options['perf_data'], ('%s.dat' % buildname)), 'a')
-
-              tarname = os.path.join(self._options['perf_data'], '%s.tar' % buildname)
-
-              if os.path.isfile(tarname):
-                tarfiles[buildname] = tarfile.open(tarname, 'a')
+          if buildname in self.PerformanceTBoxes:
+                # another hack - check to see if the buildname is one of the performance
+                # only tboxes.  They only run release mode tests so will not have any
+                # debug data so the starting point will be the first line
+              if buildname.startswith('p_'):
+                p = 0
               else:
-                tarfiles[buildname] = tarfile.open(tarname, 'w')
+                p = p / 2
 
-            datafiles[buildname].write('%s\n' % string.join(item[2:], '|'))
+              for line in lines[p:]:
+                item = string.split(string.lower(line[:-1]), '|')
 
-          if tarfiles.has_key(buildname):
-            tarfiles[buildname].add(perffile)
+                  # each line of a .perf file has the following format
+                  # treename | buildname | date | time | testname | svn rev # | time
+
+                if not datafiles.has_key(buildname):
+                  datafiles[buildname] = file(os.path.join(self._options['perf_data'], ('%s.dat' % buildname)), 'a')
+
+                  tarname = os.path.join(self._options['perf_data'], '%s.tar' % buildname)
+
+                  if os.path.isfile(tarname):
+                    tarfiles[buildname] = tarfile.open(tarname, 'a')
+                  else:
+                    tarfiles[buildname] = tarfile.open(tarname, 'w')
+
+                datafiles[buildname].write('%s\n' % string.join(item[2:], '|'))
+
+              if tarfiles.has_key(buildname):
+                tarfiles[buildname].add(perffile)
 
         if self._options['cleanup']:
           os.remove(perffile)
