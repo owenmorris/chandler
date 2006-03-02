@@ -65,7 +65,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     # if branchID is present then we have to modify reposBase as a branch has
     # been requested instead of the trunk
     if branchID:
-        reposBase='branches/%s' % branchID
+        reposBase='tags/%s' % branchID
     else:
         reposBase='trunk'
 
