@@ -25,7 +25,7 @@ except ImportError:
     raise # Comment this out if you don't care about graphs
 
     
-def drawGraph(data, platforms, filename):
+def drawGraph(data, platforms, filename, size=(132, 132), xLabel='Revision'):
     """
     Draw a picture in png format.
     
@@ -38,17 +38,17 @@ def drawGraph(data, platforms, filename):
 
     def ticX(data):
         return int(len(data)/10) + 1
-            
+
     myCanvas = canvas.init(filename, format='png')
 
     myXAxis = axis.X(format='/a-45/hL%s',
                      tic_interval = ticX(data),
-                     label='Revision')
+                     label=xLabel)
     myYAxis = axis.Y(#tic_interval = ticY,
                      label='Seconds')
 
     myArea = area.T(x_coord=category_coord.T(data, 0),
-                    size=(132, 132), # about 480x420 image w/ our settings
+                    size=size, # about 480x420 image w/ default settings
                     x_axis=myXAxis,
                     y_axis=myYAxis,
                     y_range=(0, None))
@@ -306,6 +306,7 @@ class perf:
                        'warn':       2.0,    # range of values to control color of cells
                        'alert':      5.0,
                        'p_alert':    100.0, # percentage change to warn about (for summary only)
+                       'delta_days': 30,    # how many days to include in detailed long history and graph
                      }
 
     self.loadConfiguration()
@@ -555,7 +556,7 @@ class perf:
 
             delta = today - itemDateTime
 
-            if delta.days < 14:
+            if delta.days < self._options['delta_days']:
               testname = string.strip(testname)
               hour     = itemTime[:2]
 
@@ -638,7 +639,7 @@ class perf:
     indexpage  = []
     detailpage = []
 
-    indexpage.append('<h1>Performance Standard Deviation for the previous 7 days</h1>\n')
+    indexpage.append('<h1>Performance Standard Deviation for the previous %d days</h1>\n' % self._options['delta_days'])
     indexpage.append('<div id="summary">\n')
     indexpage.append('<p>From %s-%s-%s to %s-%s-%s<br/>\n' % (startdate[:4], startdate[4:6], startdate[6:8],
                                                               enddate[:4], enddate[4:6], enddate[6:8]))
@@ -647,8 +648,13 @@ class perf:
     detailpage.append('<h1>Performance Standard Deviation for the previous 7 days</h1>\n')
     detailpage.append('<div id="detail">\n')
 
+    graphTests = self.SummaryTargets.keys()
+    
+    graphDict = {}
+    
     for testkey in tests.keys():
-      if testkey <> 'totals:':
+      if testkey in graphTests:
+          
         testitem = tests[testkey]
 
         indexpage.append('<h2>%s</h2>\n' % testkey)
@@ -663,13 +669,15 @@ class perf:
         indexpage.append('<tr><th></th><th></th><th colspan="2">Sample</th><th colspan="9">Difference of Sample Average to Prior Day (avg - pd)</th>')
         indexpage.append('<tr><th>Build</th><th>Std.Dev.</th><th>Count</th><th>Average</th><th>0</th><th>-1</th><th>-2</th><th>-3</th><th>-4</th><th>-5</th><th>-6</th><th>-7</th><th>-8</th></tr>\n')
 
+        graphPlatform = {'win':{}, 'osx':{}, 'linux':{}}
+
         for buildkey in k_builds:
           builditem = testitem[buildkey]
 
             # make one pass thru to gather the data points
           values = []
           day_values = {}
-
+                    
           for datekey in builditem.keys():
             dateitem = builditem[datekey]
 
@@ -725,6 +733,8 @@ class perf:
               c_perc = 0
             c_diff = avg - dv_avg
 
+            graphPlatform[buildkey[2:]][datekey] = dv_avg
+            
             tv_dates.append((datekey, dv_avg, c_perc, c_diff))
 
             detailpage.append('<h4>%s-%s-%s</h4>\n' % (datekey[:4], datekey[4:6], datekey[6:8]))
@@ -784,7 +794,43 @@ class perf:
           indexpage.append(dt)
 
         indexpage.append('</table>\n')
+        
+        graphDict[testkey] = graphPlatform
+    
+    def plat2data(graphPlatform, acceptable):
+      dates = unique(graphPlatform['win'].keys() + \
+                     graphPlatform['osx'].keys() + \
+                     graphPlatform['linux'].keys())
+      dates.sort()
+      data = []
+      for date in dates:
+        data.append((date, 
+                     graphPlatform['win'].get(date, None),
+                     graphPlatform['osx'].get(date, None),
+                     graphPlatform['linux'].get(date, None),
+                     acceptable))
 
+      return data
+    
+    
+    detailfilename = 'detail_%s_%s.html' % (startdate, enddate)
+    
+    trendspage = ['<html><head><title>Performance trends for the last %d days</title></head>\n<body><h1>Performance trends for the last %d days</h1>' % (self._options['delta_days'], self._options['delta_days'])]
+    trendspage.append('<p><a href="%s">Numerical trends</a></p>' % detailfilename)
+    graphPlatforms = ('win', 'osx', 'linux') # We are assuming we get data for all in such a long period of time
+    for test in graphDict.keys():
+      graphPlatform = graphDict[test]
+       
+      #print  plat2data(graphPlatform, self.SummaryTargets[test])
+      graphfilename = '%d_%s.png' % (self._options['delta_days'], test)
+      graphfile = os.path.join(self._options['html_data'], graphfilename)
+      drawGraph(plat2data(graphPlatform, self.SummaryTargets[test]),
+                graphPlatforms,
+                graphfile, 
+                size=(264, 132), xLabel='Date')
+      trendspage.append('<h2>%s</h2><img src="%s" alt="graph" title="%s">' % (test, graphfilename, test))
+
+    trendspage.append('</body></html>')
     detailpage.append('</div>\n')
     indexpage.append('</div>\n')
 
@@ -803,7 +849,7 @@ class perf:
 
     indexfile.close()
 
-    detailfile = file(os.path.join(self._options['html_data'], 'detail_%s_%s.html' % (startdate, enddate)), 'w')
+    detailfile = file(os.path.join(self._options['html_data'], detailfilename), 'w')
 
     if os.path.isfile(os.path.join(self._options['perf_data'], 'detail.html.header')):
       for line in file(os.path.join(self._options['perf_data'], 'detail.html.header')):
@@ -817,6 +863,13 @@ class perf:
         detailfile.write(line)
 
     detailfile.close()
+
+    trendsfile = file(os.path.join(self._options['html_data'], 'trends.html'), 'w')
+
+    for line in trendspage:
+      trendsfile.write(line)
+
+    trendsfile.close()
 
 
   def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName, currentValue, previousValue):
@@ -1145,7 +1198,7 @@ class perf:
 
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
-    tboxfile.write('<tr><th rowspan="2">Test<br/>Latest results as of %s</th><th rowspan="2">0.6<br/>Target</th>' % latest)
+    tboxfile.write('<tr><th rowspan="2">Test (<a href="%s">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.6<br/>Target</th>' % ('trends.html', latest))
     tboxfile.write('<th colspan="4">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
     tboxfile.write('<th colspan="4">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
     tboxfile.write('<th colspan="4">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
