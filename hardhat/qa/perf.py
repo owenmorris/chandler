@@ -23,6 +23,8 @@ try:
     doChart = True
 except ImportError:
     doChart = False
+    raise # Comment this out if you don't care about graphs
+
     
 def drawGraph(data, platforms, filename):
     """
