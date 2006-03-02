@@ -10,7 +10,6 @@ __svn__          = "$Id$"
 
 
 import sys, os, string, datetime, time, math
-import tarfile
 import ConfigParser, optparse
 
 try:
@@ -474,9 +473,7 @@ class perf:
       t = time.time()
 
     datafiles = {}
-    tarfiles  = {}
-
-    perfs = os.listdir(self._options['tbox_data'])
+    perfs     = os.listdir(self._options['tbox_data'])
 
     if self.verbose:
       print 'Scanning %d files from %s' % (len(perfs), self._options['tbox_data'])
@@ -505,13 +502,9 @@ class perf:
           buildname = item[1].lower()
 
           if buildname in self.PerformanceTBoxes:
-                # another hack - check to see if the buildname is one of the performance
-                # only tboxes.  They only run release mode tests so will not have any
-                # debug data so the starting point will be the first line
-              if buildname.startswith('p_'):
-                p = 0
-              else:
-                p = p / 2
+                # Performance tboxes only run release mode tests so will not have any
+                # debug data so the starting point will be the first line instead of p / 2
+              p = 0
 
               for line in lines[p:]:
                 item = string.split(string.lower(line[:-1]), '|')
@@ -522,26 +515,13 @@ class perf:
                 if not datafiles.has_key(buildname):
                   datafiles[buildname] = file(os.path.join(self._options['perf_data'], ('%s.dat' % buildname)), 'a')
 
-                  tarname = os.path.join(self._options['perf_data'], '%s.tar' % buildname)
-
-                  if os.path.isfile(tarname):
-                    tarfiles[buildname] = tarfile.open(tarname, 'a')
-                  else:
-                    tarfiles[buildname] = tarfile.open(tarname, 'w')
-
                 datafiles[buildname].write('%s\n' % string.join(item[2:], '|'))
-
-              if tarfiles.has_key(buildname):
-                tarfiles[buildname].add(perffile)
 
         if self._options['cleanup']:
           os.remove(perffile)
 
     for key in datafiles:
       datafiles[key].close()
-
-    for key in tarfiles:
-      tarfiles[key].close()
 
     if self._options['debug']:
       print 'Processed %d files in %d seconds' % (len(perfs), time.time() - t)
