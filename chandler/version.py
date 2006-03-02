@@ -12,6 +12,6 @@
 # buildRevision = "1234"
 #
 
-release = "0.7.m1"
-build = "Milestone 0.7.m1"
+release = "0.7alpha2.dev"
+build = "Milestone 0.7alpha2.dev"
 buildRevision = "0000"
