@@ -818,7 +818,7 @@ class perf:
     trendspage = ['<html><head><title>Performance trends for the last %d days</title></head>\n<body><h1>Performance trends for the last %d days</h1>' % (self._options['delta_days'], self._options['delta_days'])]
     trendspage.append('<p><a href="%s">Numerical trends</a></p>' % detailfilename)
     graphPlatforms = ('win', 'osx', 'linux') # We are assuming we get data for all in such a long period of time
-    for test in graphDict.keys():
+    for (test, testDisplayName) in self.SummaryTests:
       graphPlatform = graphDict[test]
        
       #print  plat2data(graphPlatform, self.SummaryTargets[test])
@@ -828,7 +828,7 @@ class perf:
                 graphPlatforms,
                 graphfile, 
                 size=(264, 132), xLabel='Date')
-      trendspage.append('<h2>%s</h2><img src="%s" alt="graph" title="%s">' % (test, graphfilename, test))
+      trendspage.append('<h2>%s</h2><img src="%s" alt="graph" title="%s">' % (testDisplayName, graphfilename, testDisplayName))
 
     trendspage.append('</body></html>')
     detailpage.append('</div>\n')
@@ -1198,7 +1198,7 @@ class perf:
 
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
-    tboxfile.write('<tr><th rowspan="2">Test (<a href="%s">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.6<br/>Target</th>' % ('trends.html', latest))
+    tboxfile.write('<tr><th rowspan="2">Test (<a href="%s" target="_new">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.6<br/>Target</th>' % ('trends.html', latest))
     tboxfile.write('<th colspan="4">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
     tboxfile.write('<th colspan="4">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
     tboxfile.write('<th colspan="4">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
