@@ -24,6 +24,7 @@
     <item files="*.writer" />
     <item files="*.actor" />
     <item files="khepburn.movies" />
+    <item files="movies.collection" />
   </item>
 
 </pack>

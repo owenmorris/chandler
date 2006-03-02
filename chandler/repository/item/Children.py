@@ -16,9 +16,9 @@ class Children(LinkedMap):
         super(Children, self).__init__(lmflags)
 
         self._item = None
-        self._setItem(item, lmflags & LinkedMap.NEW != 0)
+        self._setItem(item)
 
-    def _setItem(self, item, new):
+    def _setItem(self, item):
 
         if self._item is not None:
             assert item._uuid == self._item._uuid

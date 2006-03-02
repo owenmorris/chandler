@@ -14,6 +14,7 @@ from chandlerdb.item.ItemValue import ItemValue
 
 from repository.item.Item import Item
 from repository.item.RefCollections import RefList
+from repository.item.Sets import AbstractSet
 from repository.item.Monitors import Monitors, Monitor
 from repository.item.Values import Values, References
 from repository.item.PersistentCollections import \
@@ -156,6 +157,9 @@ class Kind(Item):
                 elif (cardinality == 'list' and
                       self.getOtherName(delegate, None, None) is not None):
                     type = RefList
+                elif (cardinality == 'set' and
+                      self.getOtherName(delegate, None, None) is not None):
+                    type = AbstractSet
                 else:
                     raise NotImplementedError, ('value delegate', delegate)
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<xml>
+<items>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
@@ -624,4 +624,4 @@
     </attribute>
   </item>
 
-</xml>
+</items>

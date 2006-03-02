@@ -402,7 +402,10 @@ class InclusionExclusionCollection(ContentCollection):
     __metaclass__ = schema.CollectionClass
     __collection__ = 'set'
 
-    set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
+    # it involves bi-refs because of 'otherName'
+    # it's an AbstractSet because cardinality is 'set' (schema.Many)
+    # it's an AbstractSet of bi-directional references
+    set = schema.Many(otherName='appearsIn')
 
     inclusions = schema.One(ContentCollection)
     exclusions = schema.One(ContentCollection)

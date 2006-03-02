@@ -403,22 +403,32 @@ class DBItemWriter(ItemWriter):
             buffer.append(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
             buffer.append(value.itsUUID._uuid)
 
-        elif value._isRefList():
-            flags = DBItemWriter.LIST | DBItemWriter.REF
-            if withSchema:
-                flags |= DBItemWriter.TYPED
-            buffer.append(chr(flags))
-            buffer.append(value.uuid._uuid)
-            if withSchema:
-                self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
-            size += value._saveValues(version)
+        elif value._isRefs():
+            attrCard = attribute.c.cardinality
+            if attrCard == 'list':
+                flags = DBItemWriter.LIST | DBItemWriter.REF
+                if withSchema:
+                    flags |= DBItemWriter.TYPED
+                buffer.append(chr(flags))
+                buffer.append(value.uuid._uuid)
+                if withSchema:
+                    self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
+                size += value._saveValues(version)
+
+            elif attrCard == 'set':
+                flags = DBItemWriter.SET | DBItemWriter.REF
+                buffer.append(chr(flags))
+                self.writeString(buffer, value.makeString(value))
+
+            else:
+                raise NotImplementedError, attrCard
+
             self.indexes = []
             size += self.writeIndexes(buffer, item, version, value)
-
             for uuid in self.indexes:
                 self.writeUUID(buffer, uuid)
             buffer.append(pack('>H', len(self.indexes)))
-        
+
         else:
             raise TypeError, value
 
@@ -531,6 +541,14 @@ class DBValueReader(ValueReader):
                 otherName = kind.getOtherName(name, None)
             value = view._createRefList(None, name, otherName,
                                         True, False, False, uuid)
+            offset = self._readIndexes(offset, data, value, afterLoadHooks)
+
+            return offset, value
+
+        elif flags & DBItemWriter.SET:
+            offset, string = self.readString(offset, data)
+            value = AbstractSet.makeValue(string)
+            value._setView(view)
             offset = self._readIndexes(offset, data, value, afterLoadHooks)
 
             return offset, value
@@ -1019,7 +1037,7 @@ class DBItemRMergeReader(DBItemMergeReader):
             if flags & DBItemWriter.LIST:
                 if name in self.oldDirties:
                     value = self.item._references.get(name, None)
-                    if value is not None and value._isRefList():
+                    if value is not None and value._isRefs():
                         value._mergeChanges(self.oldVersion, self.version)
                         self.merged.append(self.dirties.hash(name))
 
@@ -1027,9 +1045,26 @@ class DBItemRMergeReader(DBItemMergeReader):
 
                 else:
                     offset, value = super(DBItemRMergeReader, self)._ref(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-                    value._setItem(self.item, False)
+                    value._setOwner(self.item, name)
     
                     return offset, value
+
+            elif flags & DBItemWriter.SET:
+                offset, value = super(DBItemRMergeReader, self)._ref(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
+                value._setOwner(self.item, name)
+    
+                if name in self.oldDirties:
+                    originalValue = self.item._references.get(name, None)
+                    if value is not None and value._isRefs():
+                        if originalValue._merge(value):
+                            value = originalValue
+                        else:
+                            raise NotImplementedError, 'bi-directional set merge with mergeFn'
+
+                return offset, value
+
+            else:
+                raise ValueError, flags
 
         return offset, Nil
 
@@ -1063,9 +1098,9 @@ class DBItemPurger(ItemPurger):
             if flags & DBItemWriter.VALUE:
                 for uuid, indexed in self.iterLobs(flags, data):
                     self.keep.add(uuid)
-                    if indexed:
+                    if indexed:                     # full text indexed
                         keepDocuments.add(uAttr)
-                if ord(vFlags) & CValues.INDEXED:
+                if ord(vFlags) & CValues.INDEXED:   # full text indexed
                     keepDocuments.add(uAttr)
 
             elif flags & DBItemWriter.REF:
@@ -1104,7 +1139,7 @@ class DBItemPurger(ItemPurger):
                 indexStart += 16
 
         elif flags & DBItemWriter.REF:
-            if flags & DBItemWriter.LIST:
+            if flags & (DBItemWriter.LIST | DBItemWriter.SET):
                 indexCount, = unpack('>H', data[-2:])
                 indexStart = -indexCount * 16 - 2
                 for i in xrange(indexCount):

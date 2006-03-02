@@ -187,7 +187,7 @@ class Item(CItem):
                     _attrDict = _values
 
         isItem = isitem(value)
-        wasRefList = False
+        wasRefs = False
         old = None
 
         if _attrDict is _references:
@@ -195,9 +195,9 @@ class Item(CItem):
                 old = _attrDict[name]
                 if old is value:
                     return value
-                if isinstance(old, RefList):
-                    wasRefList = True
-                    old.clear()
+                if old is not None and old._isRefs():
+                    wasRefs = True
+                    old._removeRefs()
 
         if isItem or value is None:
             if _attrDict is _values:
@@ -215,8 +215,15 @@ class Item(CItem):
         elif not isinstance(value, (RefList, list, dict, tuple, set)):
 
             if _attrDict is not _values:
-                raise TypeError, ('Expecting an item or a ref collection',
-                                  value)
+                from repository.item.Sets import AbstractSet
+                if isinstance(value, AbstractSet):
+                    _references[name] = value
+                    value._setOwner(self, name)
+                    value._fillRefs()
+                    dirty = Item.VDIRTY
+                else:
+                    raise TypeError, ('Expecting an item or a ref collection',
+                                      value)
             else:
                 _values[name] = value
                 if isinstance(value, ItemValue):
@@ -228,7 +235,7 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    if not wasRefList:
+                    if not wasRefs:
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
@@ -245,7 +252,7 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    if not wasRefList:
+                    if not wasRefs:
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
@@ -262,7 +269,7 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    if not wasRefList:
+                    if not wasRefs:
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
@@ -279,7 +286,7 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    if not wasRefList:
+                    if not wasRefs:
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
@@ -1151,7 +1158,7 @@ class Item(CItem):
                     
                 for key, value in _item._references._dict.items():
                     if value is not None:
-                        if value._isRefList():
+                        if value._isRefs():
                             for other in value:
                                 collectOther(other)
                         else:
@@ -1408,7 +1415,7 @@ class Item(CItem):
                 if policy == 'cascade':
                     value = refs._getRef(name)
                     if value is not None:
-                        if value._isRefList():
+                        if value._isRefs():
                             others.extend(value)
                         else:
                             others.append(value)

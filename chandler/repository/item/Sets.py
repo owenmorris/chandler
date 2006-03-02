@@ -21,6 +21,7 @@ class AbstractSet(ItemValue, Indexed):
         self._init_indexed()
 
         self._view = view
+        self._otherName = None
 
     def __contains__(self, item, excludeMutating=False):
         raise NotImplementedError, "%s.__contains__" %(type(self))
@@ -256,40 +257,51 @@ class AbstractSet(ItemValue, Indexed):
 
         return op
 
-    def _collectionChanged(self, op, change, other):
+    def _collectionChanged(self, op, change, other, local=False):
 
         item = self._item
         attribute = self._attribute
 
         if item is not None:
             if change == 'collection':
-                if self._indexes:
-                    if isuuid(other):
-                        key = other
-                    else:
-                        key = other.itsUUID
-                    dirty = False
+                if op in ('add', 'remove'):
+                    if not (local or self._otherName is None):
+                        if isuuid(other):
+                            refs = self._view[other]._references
+                        else:
+                            refs = other._references
 
-                    if op == 'add':
-                        for index in self._indexes.itervalues():
-                            if key not in index:
-                                index.insertKey(key, index.getLastKey())
-                                dirty = True
+                        if op == 'add':
+                            refs._setRef(self._otherName, item, attribute)
+                        else:
+                            refs._removeRef(self._otherName, item, True)
+                            
+                    if self._indexes:
+                        if isuuid(other):
+                            key = other
+                        else:
+                            key = other.itsUUID
+                        dirty = False
 
-                    elif op == 'remove':
-                        for index in self._indexes.itervalues():
-                            if key in index:
-                                index.removeKey(key)
-                                dirty = True
+                        if op == 'add':
+                            for index in self._indexes.itervalues():
+                                if key not in index:
+                                    index.insertKey(key, index.getLastKey())
+                                    dirty = True
+                        else:
+                            for index in self._indexes.itervalues():
+                                if key in index:
+                                    index.removeKey(key)
+                                    dirty = True
 
-                    elif op == 'refresh':
-                        pass
+                        if dirty:
+                            self._setDirty(True)
 
-                    else:
-                        raise ValueError, op
+                elif op == 'refresh':
+                    pass
 
-                    if dirty:
-                        self._setDirty(True)
+                else:
+                    raise ValueError, op
 
             item._collectionChanged(op, change, attribute, other)
 
@@ -357,6 +369,18 @@ class AbstractSet(ItemValue, Indexed):
         return (super(AbstractSet, self)._check(logger, item, attribute) and
                 self._checkIndexes(logger, item, attribute))
 
+    def _setDirty(self, noMonitors=False):
+
+        self._dirty = True
+        item = self._item
+        if item is not None:
+            if self._otherName is None:
+                item.setDirty(item.VDIRTY, self._attribute,
+                              item._values, noMonitors)
+            else:
+                item.setDirty(item.RDIRTY, self._attribute,
+                              item._references, noMonitors)
+
     @classmethod
     def makeValue(cls, string):
         return eval(string)
@@ -364,6 +388,63 @@ class AbstractSet(ItemValue, Indexed):
     @classmethod
     def makeString(cls, value):
         return value._repr_()
+
+    # refs part
+
+    def _setOwner(self, item, attribute):
+
+        result = super(AbstractSet, self)._setOwner(item, attribute)
+
+        if item is None:
+            self._otherName = None
+        else:
+            self._otherName = item.itsKind.getOtherName(attribute, item, None)
+
+        return result
+
+    def _isRefs(self):
+        return True
+    
+    def _isItem(self):
+        return False
+    
+    def _isUUID(self):
+        return False
+
+    def _setRef(self, other, alias=None):
+
+        self._item.add(other)
+        self._view._notifyChange(self._collectionChanged,
+                                 'add', 'collection', other, True)
+
+    def _removeRef(self, other, noError=False):
+
+        if not noError or other in self:
+            self._item.remove(other)
+            self._view._notifyChange(self._collectionChanged,
+                                     'remove', 'collection', other, True)
+
+    def _removeRefs(self):
+        
+        if self._otherName is not None:
+            for item in self:
+                item._references._removeRef(self._otherName, self._item)
+
+    def _fillRefs(self):
+
+        if self._otherName is not None:
+            for item in self:
+                item._references._setRef(self._otherName, self._item,
+                                         self._attribute)
+
+    def _unloadRef(self, item):
+        pass
+
+    def _unloadRefs(self):
+        pass
+
+    def _clearDirties(self):
+        pass
 
 
 class Set(AbstractSet):
@@ -971,8 +1052,7 @@ class KindSet(Set):
 
 
 class FilteredSet(Set):
-    """
-    """
+
     def __init__(self, source, expr, attrs=None):
 
         super(FilteredSet, self).__init__(source)
@@ -1061,11 +1141,13 @@ class FilteredSet(Set):
         if op is not None:
             if change == 'collection':
                 if op != 'refresh':
-                    if not isuuid(other):
+                    if isuuid(other):
+                        key = other
+                    else:
                         if other.isDeleted():
                             op = None
-                        other = other.itsUUID
-                    if not (op is None or self.filter(self._view, other)):
+                        key = other.itsUUID
+                    if not (op is None or self.filter(self._view, key)):
                         op = None
 
             if not (inner is True or op is None):
@@ -1076,11 +1158,11 @@ class FilteredSet(Set):
     def itemChanged(self, other, attribute):
 
         if self._sourceContains(other, self._source):
-            other = other.itsUUID
-            matched = self.filter(self._view, other)
+            key = other.itsUUID
+            matched = self.filter(self._view, key)
 
             if self._indexes:
-                contains = other in self._indexes.itervalues().next()
+                contains = key in self._indexes.itervalues().next()
             else:
                 contains = None
                 

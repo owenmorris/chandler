@@ -443,7 +443,7 @@ class RepositoryView(CView):
         As with L{findValue} and L{findValues}, if the item is already
         loaded, regular attribute retrieval is used.
 
-        if the item is not loaded, the item record in the repository is
+        If the item is not loaded, the item record in the repository is
         checked for a value but it is not returned.
 
         @param uItem: an item UUID

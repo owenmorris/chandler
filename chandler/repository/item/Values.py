@@ -411,9 +411,14 @@ class References(Values):
                     value._references._removeRef(name, other)
 
         value = self._setRef(name, other, otherName, cardinality, alias)
+
         if other is not None:
-            otherValue = other._references._setRef(otherName, item, name,
-                                                   otherCard, otherAlias)
+            try:
+                otherValue = other._references._setRef(otherName, item, name,
+                                                       otherCard, otherAlias)
+            except:
+                self._removeRef(name, other)   # remove dangling ref
+                raise
         else:
             otherValue = None
 
@@ -423,10 +428,10 @@ class References(Values):
             if not (other is None or other._isNoDirty()):
                 other._fireChanges('set', otherName)
 
-        if value is not None and value._isRefList():
+        if value is not None and value._isRefs():
             view._notifyChange(item._collectionChanged,
                                'add', 'collection', name, other)
-        if otherValue is not None and otherValue._isRefList():
+        if otherValue is not None and otherValue._isRefs():
             view._notifyChange(other._collectionChanged,
                                'add', 'collection', otherName, item)
             
@@ -441,8 +446,10 @@ class References(Values):
                                                       True, None, 'single')
             if cardinality == 'list':
                 self[name] = value = item._refList(name, otherName)
+            elif cardinality != 'single':
+                raise ValueError, cardinality
 
-        if value is not None and value._isRefList():
+        if value is not None and value._isRefs():
             value._setRef(other, alias)
         else:
             self[name] = value = other
@@ -461,7 +468,7 @@ class References(Values):
                 if default is not Default:
                     return default
                 raise KeyError, name
-            if value is None or isitem(value) or value._isRefList():
+            if value is None or isitem(value) or value._isRefs():
                 return value
             if isuuid(value):
                 try:
@@ -495,7 +502,7 @@ class References(Values):
             self[name] = other
             return other
 
-        if value._isRefList():
+        if value._isRefs():
             if other in value:
                 return other
             else:
@@ -506,7 +513,7 @@ class References(Values):
     def _removeValue(self, name, other, otherName):
 
         self._removeRef(name, other)
-        if not (other is None or other._isRefList()):
+        if not (other is None or other._isRefs()):
             item = self._item
             other._references._removeRef(otherName, item)
             #initialValue = other.getAttributeAspect(otherName, 'initialValue',
@@ -514,15 +521,17 @@ class References(Values):
             #if initialValue is not item:
             #    other._references._setValue(otherName, initialValue, name)
 
-    def _removeRef(self, name, other):
+    def _removeRef(self, name, other, noError=False):
 
         value = self.get(name, self)
         if value is self:
+            if noError:
+                return
             raise AssertionError, '_removeRef: no value for %s' %(name)
 
         item = self._item
         if value is other:
-            if other is not None and other._isRefList():
+            if other is not None and other._isRefs():
                 other.clear()
                 dirty = CItem.RDIRTY
             else:
@@ -530,12 +539,12 @@ class References(Values):
             del self[name]
             item.setDirty(dirty, name, self, True)
             item._fireChanges('remove', name)
-        elif isuuid(value) and isitem(other) and value == other._uuid:
+        elif isuuid(value) and isitem(other) and value == other.itsUUID:
             del self[name]
             item.setDirty(CItem.VDIRTY, name, self, True)
             item._fireChanges('remove', name)
-        elif value._isRefList():
-            value._removeRef(other)
+        elif value._isRefs():
+            value._removeRef(other, noError)
         else:
             raise BadRefError, (self._item, name, other, value)
         
@@ -552,7 +561,7 @@ class References(Values):
             value = self.get(name, None)
             if value is None or value is other:
                 self[name] = other._uuid
-            elif value._isRefList():
+            elif value._isRefs():
                 value._unloadRef(other)
             elif isuuid(value) and value == other._uuid:
                 pass
@@ -571,11 +580,10 @@ class References(Values):
     def _setItem(self, item):
 
         self._item = item
-        isNew = item.isNew()
 
-        for value in self._dict.itervalues():
-            if value is not None and value._isRefList():
-                value._setItem(item, isNew)
+        for name, value in self._dict.iteritems():
+            if value is not None and value._isRefs():
+                value._setOwner(item, name)
 
     def refCount(self, loaded):
 
@@ -585,7 +593,7 @@ class References(Values):
             if value is not None:
                 if isitem(value):
                     count += 1
-                elif value._isRefList():
+                elif value._isRefs():
                     count += value.refCount(loaded)
                 elif not loaded and isuuid(value):
                     count += 1
@@ -600,7 +608,7 @@ class References(Values):
             if value is not None:
                 if isitem(value):
                     count += 1
-                elif value._isRefList():
+                elif value._isRefs():
                     count += value._refCount()
 
         return count
@@ -621,7 +629,7 @@ class References(Values):
         item = self._item
         for name, value in orig._dict.iteritems():
             policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
-            if value is not None and value._isRefList():
+            if value is not None and value._isRefs():
                 value._copy(item, name, policy, copyFn)
             else:
                 orig._copyRef(item, name, value, policy, copyFn)
@@ -643,7 +651,7 @@ class References(Values):
                 continue
 
             otherName = kind.getOtherName(name, item)
-            if value._isRefList():
+            if value._isRefs():
                 self[name] = clone = item._refList(name, otherName)
                 if not value:
                     continue
@@ -677,8 +685,8 @@ class References(Values):
         if clean:
             for name, value in self._dict.iteritems():
                 if value is not None:
-                    if value._isRefList():
-                        value._unload()
+                    if value._isRefs():
+                        value._unloadRefs()
                     elif isitem(value):
                         item = self._item
                         otherName = item.itsKind.getOtherName(name, item)
@@ -686,11 +694,11 @@ class References(Values):
 
         super(References, self)._unload(clean)
 
-    def _isRefList(self, name):
+    def _isRefs(self, name):
 
         try:
             value = self[name]
-            return value is not None and value._isRefList()
+            return value is not None and value._isRefs()
         except KeyError:
             return False
 
@@ -796,7 +804,7 @@ class References(Values):
                     if withSchema and isuuid(value):
                         value = self._getRef(name, value)
                     
-                    if value._isRefList():
+                    if value._isRefs():
                         value._xmlValue(name, item, generator, withSchema,
                                         version, attrs)
                     else:
@@ -827,7 +835,7 @@ class References(Values):
                     hash = _combine(hash, value._hash)
                 elif isitem(value):
                     hash = _combine(hash, value._uuid._hash)
-                elif value._isRefList():
+                elif value._isRefs():
                     hash = _combine(hash, value._hashValues())
                 else:
                     raise TypeError, value
@@ -838,7 +846,7 @@ class References(Values):
 
         # clearing according to flags is not enough, flags not set on new items
         for value in self._dict.itervalues():
-            if value is not None and value._isRefList():
+            if value is not None and value._isRefs():
                 value._clearDirties()
 
     def _commitMerge(self):
@@ -855,7 +863,7 @@ class References(Values):
             dirties = None
 
         for key, value in self._dict.iteritems():
-            if value is not None and value._isRefList():
+            if value is not None and value._isRefs():
                 if dirties is not None and key in dirties:
                     value._clear_()
                 else:
@@ -880,7 +888,7 @@ class References(Values):
 
         for key, value in original._dict.iteritems():
             try:
-                if value is not None and value._isRefList():
+                if value is not None and value._isRefs():
                     self[key] = value._original
                     del value._original
             except AttributeError:
@@ -931,8 +939,8 @@ class References(Values):
 
             otherOther = other._references._getRef(otherName)
             if not (otherOther is self._item or
-                    otherOther._isRefList() and self._item in otherOther):
-                if otherOther._isRefList():
+                    otherOther._isRefs() and self._item in otherOther):
+                if otherOther._isRefs():
                     logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
                                  otherOther, self._item._repr_(),
                                  self._item._repr_(), otherName, other._repr_())
@@ -965,12 +973,17 @@ class References(Values):
                 check = self._checkCardinality(logger, key, value,
                                                RefList, 'list')
                 if check:
-                    check = value.check(logger, key, item)
+                    check = value._check(logger, item, key)
             elif attrCard == 'dict':
                 logger.error("Attribute %s on %s is using deprecated 'dict' cardinality, use 'list' instead", key, self._item.itsPath)
-                check = value.check(logger, key, item)
+                check = value._check(logger, item, key)
                 check = False
-
+            elif attrCard == 'set':
+                from repository.item.Sets import AbstractSet
+                check = self._checkCardinality(logger, key, value,
+                                               AbstractSet, 'set')
+                if check:
+                    check = value._check(logger, item, key)
             else:
                 logger.error("Attribute %s on %s is using a cardinality, '%s', which is not supported, use 'list' instead", key, self._item.itsPath, attrCard)
                 check = False
@@ -998,7 +1011,7 @@ class References(Values):
 
         for key, value in self._dict.items():
             if value is not None:
-                if value._isRefList():
+                if value._isRefs():
                     if sameType or value._isTransient():
                         previous = None
                         for other in value:

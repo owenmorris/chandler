@@ -74,3 +74,21 @@ class Collection(Item):
 
         return super(Collection, self)._inspectCollection(self.__collection__,
                                                           indent)
+
+    def add(self, other):
+
+        try:
+            add = getattr(self, self.__collection__).add
+        except AttributeError:
+            raise NotImplementedError, (type(self), 'add not implemented')
+        else:
+            return add(other)
+
+    def remove(self, other):
+
+        try:
+            remove = getattr(self, self.__collection__).remove
+        except AttributeError:
+            raise NotImplementedError, (type(self), 'remove not implemented')
+        else:
+            return remove(other)

@@ -36,12 +36,12 @@ class RefList(LinkedMap, Indexed):
         self._otherName = otherName
 
         if item is not None:
-            self._setItem(item, lmflags & LinkedMap.NEW != 0)
+            self._setOwner(item, name)
 
         if readOnly:
             self._flags |= RefList.READONLY
         
-    def _isRefList(self):
+    def _isRefs(self):
         return True
     
     def _isItem(self):
@@ -104,7 +104,7 @@ class RefList(LinkedMap, Indexed):
 
         return refList
 
-    def _setItem(self, item, new):
+    def _setOwner(self, item, name):
 
         if self._item is not None and self._item is not item:
             raise AssertionError, 'Item is already set'
@@ -368,14 +368,19 @@ class RefList(LinkedMap, Indexed):
 
         return link
 
-    def _removeRef(self, other):
+    def _removeRef(self, other, noError=False):
 
-        self._removeRef_(other)
+        if not noError or other in self:
+            self._removeRef_(other)
 
-        item = self._item
-        view = item.itsView
-        view._notifyChange(item._collectionChanged,
-                           'remove', 'collection', self._name, other)
+            item = self._item
+            view = item.itsView
+            view._notifyChange(item._collectionChanged,
+                               'remove', 'collection', self._name, other)
+
+    def _removeRefs(self):
+
+        self.clear()
 
     def _load(self, key):
 
@@ -406,7 +411,7 @@ class RefList(LinkedMap, Indexed):
 
         return False
 
-    def _unload(self):
+    def _unloadRefs(self):
 
         references = self._item._references
         name = self._name
@@ -602,7 +607,7 @@ class RefList(LinkedMap, Indexed):
 
         return None
 
-    def check(self, logger, name, item):
+    def _check(self, logger, item, name):
         """
         Debugging: verify this ref collection for consistency.
 
@@ -687,7 +692,7 @@ class TransientRefList(RefList):
     def linkChanged(self, link, key):
         pass
     
-    def check(self, logger, name, item):
+    def _check(self, logger, item, name):
         return True
 
     def _load(self, key):

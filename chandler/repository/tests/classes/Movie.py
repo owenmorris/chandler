@@ -1,5 +1,6 @@
 
 from repository.item.Item import Item
+from repository.item.Collection import Collection, CollectionClass
 
 
 class Movie(Item):
@@ -37,3 +38,9 @@ class Movie(Item):
 
 class Cartoon(Movie):
     pass
+
+
+class Movies(Collection):
+
+    __metaclass__ = CollectionClass
+    __collection__ = 'collection'

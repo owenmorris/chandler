@@ -112,10 +112,3 @@ class Monitor(Item):
                _noMonitors=False):
         return super(Monitor, self).delete(recursive, deletePolicy, cloudAlias,
                                            True)
-
-
-#
-# recursive import prevention
-#
-
-Item._monitorsClass = Monitors

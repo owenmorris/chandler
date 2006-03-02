@@ -36,6 +36,7 @@ class SimpleItem(schema.Item):
 
     label = schema.One(schema.Text, displayName=u"My Label")
     collections = schema.Sequence(otherName='refCollection')
+    appearsIn = schema.Sequence(otherName='set')
 
 class ChildSimpleItem(SimpleItem):
     childData = schema.One(schema.Text, displayName=u"Child data")
@@ -47,6 +48,8 @@ class OtherSimpleItem(schema.Item):
 
     label = schema.One(schema.Text, displayName=u"My Label")
     collections = schema.Sequence(otherName='refCollection')
+    appearsIn = schema.Sequence(otherName='set')
+
 
 class CollectionTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""

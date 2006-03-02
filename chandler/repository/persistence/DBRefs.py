@@ -92,9 +92,9 @@ class PersistentRefs(object):
             self._changedRefs.update(orig._changedRefs)
         self._count = len(orig)
 
-    def _setItem(self, item, new):
+    def _setItem(self, item):
 
-        if not new:
+        if not self._flags & self.NEW:
             ref = self.store._refs.loadRef(self.view, self.uuid,
                                            self._item.itsVersion, self.uuid)
             if ref is not None:
@@ -307,10 +307,10 @@ class DBRefList(RefList, PersistentRefs):
         link = RefList._removeRef_(self, other)
         PersistentRefs._removeRef_(self, other._uuid, link)
 
-    def _setItem(self, item, new):
+    def _setOwner(self, item, name):
 
-        RefList._setItem(self, item, new)
-        PersistentRefs._setItem(self, item, new)
+        RefList._setOwner(self, item, name)
+        PersistentRefs._setItem(self, item)
 
     def _setFuture(self, key, alias):
         
@@ -374,7 +374,7 @@ class DBRefList(RefList, PersistentRefs):
     def _clear_(self):
 
         RefList._clear_(self)
-        PersistentRefs._setItem(self, self._item, False)
+        PersistentRefs._setItem(self, self._item)
 
     def _mergeChanges(self, oldVersion, toVersion):
 
@@ -599,10 +599,10 @@ class DBChildren(Children, PersistentRefs):
 
         return self._iterrefs(firstKey, lastKey)
 
-    def _setItem(self, item, new):
+    def _setItem(self, item):
 
-        Children._setItem(self, item, new)
-        PersistentRefs._setItem(self, item, new)
+        Children._setItem(self, item)
+        PersistentRefs._setItem(self, item)
 
     def _load(self, key):
 
@@ -721,7 +721,7 @@ class DBChildren(Children, PersistentRefs):
     def _clear_(self):
 
         Children._clear_(self)
-        PersistentRefs._setItem(self, self._item, False)
+        PersistentRefs._setItem(self, self._item)
 
     def _commitMerge(self):
 
