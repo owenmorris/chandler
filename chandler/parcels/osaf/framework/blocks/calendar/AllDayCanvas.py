@@ -12,33 +12,61 @@ from CalendarCanvas import (
     )
 from PyICU import GregorianCalendar, ICUtzinfo
 
-import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar import Calendar
 
 class SparseMatrix(object):
 
     def __init__(self):
         self._grid = {}
+        self.maxX = -1
+        self.maxY = -1
     
-    def Fill(self, x,y):
-        self._grid.setdefault(x, {})[y] = True
+    def Fill(self, x,y,value):
+        """
+        Fills the given space in the matrix with the given value
+        """
+        if x > self.maxX: self.maxX = x
+        if y > self.maxY: self.maxY = y
+        
+        self._grid.setdefault(x, {})[y] = value
 
     def Filled(self, x,y):
+        """
+        Returns True or False to indicate if the given space is filled
+        in the matrix
+        """
         if not self._grid.has_key(x):
             return False
         if not self._grid[x].has_key(y):
             return False
-        return self._grid[x][y]
+        return True
 
+    def Get(self, x, y, v=None):
+        """
+        Like dict.get - retrieves the value at x,y, returns None or v
+        if the value isn't found
+        """
+        try:
+            return self._grid[x][y]
+        except KeyError:
+            return v
+        
     def FitBlock(self, x1, x2, y):
-        # are the cells grid[x1..x2][y] all false-valued?  (x2 inclusive.)
+        """
+        are the cells grid[x1..x2][y] all false-valued?  (x2 inclusive.)
+
+        Just returns True/False, does not alter the matrix
+        """
         for x in range(x1, x2+1):
             if self.Filled(x,y): return False
         return True
 
-    def FitRange(self, startX, endX):
+    def FillRange(self, startX, endX, value):
         """
         find the first available row that fits something that spans from
-        startX to endX
+        startX to endX and fills it with the given value
+
+        returns the row that got filled
         """
         y = 0
         while True:
@@ -46,9 +74,28 @@ class SparseMatrix(object):
             if fitsHere:
                 # lay out into this spot
                 for x in xrange(startX, endX+1):
-                    self.Fill(x,y)
+                    self.Fill(x,y, value)
                 return y
             y += 1
+
+    def FindFirst(self, value):
+        for x in sorted(self._grid.iterkeys()):
+            for y in sorted(self._grid[x].iterkeys()):
+                if self._grid[x][y] == value:
+                    return x,y
+        return -1,-1
+
+    def GetWidth(self, x, y):
+        """
+        Get the width of the value at x,y - this will walk forward
+        along the x axis until it finds a cell that is not x.
+        """
+        item = self.Get(x,y)
+        for newX in xrange(x + 1, self.maxX+1):
+            if self.Get(newX,y) != item:
+                return newX - x
+        return self.maxX - x + 1
+        
     
 class AllDayEventsCanvas(CalendarBlock):
 
@@ -223,7 +270,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             # conflict grid: 2-d "matrix" of booleans.  False == free spot
             # FIXME fixed number of rows.   Rigged up for grid[x][y] notation:
             # [[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
-            grid = SparseMatrix()
+            self.grid = SparseMatrix()
             
             numEventRows = 0
 
@@ -232,7 +279,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                            self.GetColumnRange(item, currentRange)
                 
                 #search downward, looking for a spot where it'll fit
-                row = grid.FitRange(dayStart, dayEnd)
+                row = self.grid.FillRange(dayStart, dayEnd, item)
                 self.RebuildCanvasItem(item, dayStart, dayEnd, row)
                 numEventRows = max(row+1, self.numEventRows)
 
@@ -314,6 +361,40 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         #if dateResult != 0:
             #return dateResult
         #return spanResult
+
+    def OnNavigateItem(self, direction):
+        currentItem = self.SelectedCanvasItem()
+        if currentItem is None:
+            return
+
+        # find current position in matrix... yuck.
+        x,y = self.grid.FindFirst(currentItem.item)
+
+        # we initially start with x as a range because events can span
+        # multiple columns
+        xr = xrange(x, x+self.grid.GetWidth(x,y))
+        yr = (y,)
+
+        # now we expand those ranges to look for events beyond the
+        # current item, depending on the direction we're going
+        if direction == "UP":
+            yr = xrange(y - 1, -1, -1)
+        elif direction == "DOWN":
+            yr = xrange(y + 1, self.grid.maxY + 1, 1)
+        elif direction == "LEFT":
+            xr = xrange(x - 1, -1, -1)
+        elif direction == "RIGHT":
+            xr = xrange(x + 1, self.grid.maxX + 1, 1)
+
+        # finally walk the grid starting just past the current item,
+        # looking for a new item... if we find it then select it.
+        for newX in xr:
+            for newY in yr:
+                item = self.grid.Get(newX, newY)
+                if item is not None and item != currentItem.item:
+                    self.OnSelectItem(item)
+                    return
+            
 
     def OnBeginDragItem(self):
         if not self.dragState.currentDragBox.CanDrag():
