@@ -6,7 +6,6 @@ __parcel__ = "photos"
 
 import urllib, time, datetime, cStringIO, logging, mimetypes, sys
 from osaf import pim
-import osaf.mail.utils as utils
 from repository.util.URL import URL
 from repository.util.Streams import BlockInputStream
 from application import schema
@@ -34,17 +33,17 @@ class PhotoMixin(pim.ContentItem):
             path = path.encode(sys.getfilesystemencoding())
 
         data = file(path, "rb").read()
-        (mimeType, encoding) = mimetypes.guess_type(path)
-        self.photoBody = utils.dataToBinary(self, 'photoBody', data,
-                                            mimeType=mimeType)
+        (mimetype, encoding) = mimetypes.guess_type(path)
+        self.photoBody = self.itsView.createLob(data, mimetype=mimetype,
+            compression='bz2')
 
     def importFromURL(self, url):
         if isinstance(url, URL):
             url = str(url)
         data = urllib.urlopen(url).read()
-        (mimeType, encoding) = mimetypes.guess_type(url)
-        self.photoBody = utils.dataToBinary(self, 'photoBody', data,
-                                            mimeType=mimeType)
+        (mimetype, encoding) = mimetypes.guess_type(url)
+        self.photoBody = self.itsView.createLob(data, mimetype=mimetype,
+            compression='bz2')
 
     def exportToFile(self, path):
         if isinstance(path, unicode):
