@@ -255,8 +255,10 @@ def _getVersionInfo(buildenv):
 
                 data[id] = value
 
-    del data['revision'] # remove the lowercase item
-    del data['version']
+        # remove keys that we calculate below
+    for key in ('revision', 'version', 'majorversion', 'minorversion', 'releaseversion'):
+        if key in data:
+            del data[key]
 
     if len(buildenv['buildVersion']) > 0:
         data['build'] = '-%s' % buildenv['buildVersion']
@@ -276,6 +278,8 @@ def _getVersionInfo(buildenv):
         if len(versionData) == 2:
             minorVersion = versionData[0]
             releaseVersion = versionData[1]
+        else:
+            minorVersion = versionData[0]
     else:
         if len(versionData) == 3:
             majorVersion   = versionData[0]
