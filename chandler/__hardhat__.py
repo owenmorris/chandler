@@ -228,9 +228,9 @@ def _getSVNRevisionInfo(buildenv):
 
 
 def _getVersionInfo(buildenv):
-    majorVersion    = ''
-    minorVersion    = ''
-    releaseVersion  = ''
+    majorVersion    = '0'
+    minorVersion    = '0'
+    releaseVersion  = '0'
     versionFilename = 'version.py'
 
     versionFile = open(versionFilename, 'r')
