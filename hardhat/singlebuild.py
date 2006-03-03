@@ -94,7 +94,7 @@ def main():
     if svnDateArg:
         buildVersion = svnDateArg
     if svnTagArg:
-        buildVersion = svnTagArg
+        buildVersion = "" #svnTagArg
     if buildVersionArg:
         buildVersion = buildVersionArg
 

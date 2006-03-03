@@ -258,12 +258,14 @@ def _getVersionInfo(buildenv):
     del data['revision'] # remove the lowercase item
     del data['version']
 
-    data['build']    = '-%s' % buildenv['buildVersion']
+    if len(buildenv['buildVersion']) > 0:
+        data['build'] = '-%s' % buildenv['buildVersion']
+    else:
+        data['build'] = ''
+
     data['revision'] = '-r%s' % _getSVNRevisionInfo(buildenv)
 
-    release = data['release']
-    version = '%s%s%s' % (release, data['revision'], data['build'])
-
+    release     = data['release']
     versionData = release.split('.')
 
     if len(versionData) == 2:
@@ -285,6 +287,11 @@ def _getVersionInfo(buildenv):
     data['majorVersion']   = majorVersion
     data['minorVersion']   = minorVersion
     data['releaseVersion'] = releaseVersion
+
+    if releaseVersion == 'dev':
+        buildRevision = data['revision']
+
+    buildName = '%s%s%s' % (release, buildRevision, data['build'])
 
     versionFile = open(versionFilename, 'w')
 
@@ -323,7 +330,7 @@ def _getVersionInfo(buildenv):
 
     versionFile.close()
 
-    return (majorVersion, minorVersion, releaseVersion, version)
+    return (majorVersion, minorVersion, releaseVersion, buildName)
 
 
 def generateDocs(buildenv):
