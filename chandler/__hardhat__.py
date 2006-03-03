@@ -24,26 +24,14 @@ def removeRuntimeDir(buildenv):
 
 def distribute(buildenv):
 
-    majorVersion, minorVersion, releaseVersion = _getVersionInfo(buildenv)
-
-    buildVersionShort = \
-     hardhatutil.RemovePunctuation(buildenv['buildVersion'])
-
-    # When the build version string is based on one of our tags
-    # (which usually begin with "CHANDLER_") let's remove the "CHANDLER_"
-    # prefix from the string so it doesn't end up in the generated filenames
-    # (so we can avoid getting a distro file named:
-    # "Chandler_linux_CHANDLER_M1.tar.gz", and instead get:
-    # "Chandler_linux_M1.tar.gz")
-    buildVersionShort = buildVersionShort.replace("CHANDLER_", "")
+    majorVersion, minorVersion, releaseVersion, buildName = _getVersionInfo(buildenv)
 
     installTargetFile = None
 
     if buildenv['version'] == 'debug':
-
         if buildenv['os'] == 'osx':
 
-            distName = 'Chandler_osx_debug_' + buildVersionShort
+            distName = 'Chandler_osx_debug_' + buildName
             # when we make an osx distribution, we actually need to put it
             # in a subdirectory (which has a .app extension).  So we set
             # 'distdir' temporarily to that .app dir so that handleManifest()
@@ -73,7 +61,7 @@ def distribute(buildenv):
 
         elif buildenv['os'] == 'posix':
 
-            distName = 'Chandler_linux_debug_' + buildVersionShort
+            distName = 'Chandler_linux_debug_' + buildName
             distDir = buildenv['root'] + os.sep + distName
             buildenv['distdir'] = distDir
             if os.access(distDir, os.F_OK):
@@ -90,7 +78,7 @@ def distribute(buildenv):
 
         elif buildenv['os'] == 'win':
 
-            distName = 'Chandler_win_debug_' + buildVersionShort
+            distName = 'Chandler_win_debug_' + buildName
             distDir  = buildenv['root'] + os.sep + distName
 
             buildenv['distdir'] = distDir
@@ -114,7 +102,7 @@ def distribute(buildenv):
 
         if buildenv['os'] == 'posix':
 
-            distName = 'Chandler_linux_' + buildVersionShort
+            distName = 'Chandler_linux_' + buildName
             distDir = buildenv['root'] + os.sep + distName
             buildenv['distdir'] = distDir
             if os.access(distDir, os.F_OK):
@@ -131,7 +119,7 @@ def distribute(buildenv):
 
         if buildenv['os'] == 'osx':
 
-            distName = 'Chandler_osx_' + buildVersionShort
+            distName = 'Chandler_osx_' + buildName
             # when we make an osx distribution, we actually need to put it
             # in a subdirectory (which has a .app extension).  So we set
             # 'distdir' temporarily to that .app dir so that handleManifest()
@@ -161,7 +149,7 @@ def distribute(buildenv):
 
         if buildenv['os'] == 'win':
 
-            distName = 'Chandler_win_' + buildVersionShort
+            distName = 'Chandler_win_' + buildName
             distDir  = buildenv['root'] + os.sep + distName
 
             buildenv['distdir'] = distDir
@@ -246,7 +234,7 @@ def _getVersionInfo(buildenv):
     versionFilename = 'version.py'
 
     versionFile = open(versionFilename, 'r')
-    lines = versionFile.readlines()
+    lines      = versionFile.readlines()
     versionFile.close()
 
     data = {}
@@ -262,19 +250,21 @@ def _getVersionInfo(buildenv):
                 value = linedata[1].lstrip()
                 value = value[:-1] #strip off newline
 
-                if value.startswith('"'):
+                if value.startswith('"') and id != 'version':
                     value = value[1:-1]  #remove ""'s hack
 
                 data[id] = value
 
-    del data['buildrevision'] # remove the lowercase item
+    del data['revision'] # remove the lowercase item
+    del data['version']
 
-    data['build']         = buildenv['buildVersion']
-    data['buildRevision'] = _getSVNRevisionInfo(buildenv)
+    data['build']    = '-%s' % buildenv['buildVersion']
+    data['revision'] = '-r%s' % _getSVNRevisionInfo(buildenv)
 
-    version = data['release']
+    release = data['release']
+    version = '%s%s%s' % (release, data['revision'], data['build'])
 
-    versionData = version.split('.')
+    versionData = release.split('.')
 
     if len(versionData) == 2:
         majorVersion = versionData[0]
@@ -290,32 +280,50 @@ def _getVersionInfo(buildenv):
             minorVersion   = versionData[1]
             releaseVersion = versionData[2]
         else:
-            majorVersion = version
+            majorVersion = release
+
+    data['majorVersion']   = majorVersion
+    data['minorVersion']   = minorVersion
+    data['releaseVersion'] = releaseVersion
 
     versionFile = open(versionFilename, 'w')
 
-    headerData = ' # Note:\n \
-#\n \
-# This file is read and parsed by the distribution\n \
-# scripts to determine what the major, minor and\n \
-# release version number is.  It does this in a\n \
-# very brute-force manner: it looks for the line\n \
-# that starts with "release ="\n \
-#\n \
-# The same script also appends to the file the\n \
-# svn revision # in the following format:\n \
-#\n \
-#    buildRevision = "1234"\n \
-#\n\n'
+    headerData = """\
+# Note:
+#
+# release  - base version number
+# build    - "" or "-checkpointYYYYMMDD"
+# revision - "-r####"
+# version  - "%s%s%s" % (release, revision, build)
+#
+# build and revision are calculated by the distribution script
+# majorVersion, minorVersion and releaseVersion are calculated
+# by the distribution script and inserted here
+#
+
+"""
+
+    body = ''
+
+      # These four items are written out manually to ensure
+      # their order of presentation and that they come last
+      # in the file
+    for key in ('release', 'build', 'revision'):
+        body += '%s = "%s"\n' % (key, data[key])
+        del data[key]
 
     versionFile.write(headerData)
 
     for key in data.keys():
         versionFile.write('%s = "%s"\n' % (key, data[key]))
 
+    versionFile.write(body)
+    versionFile.write('\nversion = "%s%s%s" % (release, revision, build)')
+    versionFile.write('\n\n')
+
     versionFile.close()
 
-    return (majorVersion, minorVersion, releaseVersion)
+    return (majorVersion, minorVersion, releaseVersion, version)
 
 
 def generateDocs(buildenv):
