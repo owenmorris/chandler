@@ -265,7 +265,7 @@ def _getVersionInfo(buildenv):
     else:
         data['build'] = ''
 
-    data['revision'] = '-r%s' % _getSVNRevisionInfo(buildenv)
+    data['revision'] = _getSVNRevisionInfo(buildenv)
 
     release     = data['release']
     versionData = release.split('.')
@@ -297,7 +297,7 @@ def _getVersionInfo(buildenv):
     else:
         buildRevision = ""
 
-    buildName = '%s%s%s' % (release, buildRevision, data['build'])
+    buildName = '%s-r%s%s' % (release, buildRevision, data['build'])
 
     versionFile = open(versionFilename, 'w')
 
@@ -306,8 +306,8 @@ def _getVersionInfo(buildenv):
 #
 # release  - base version number
 # build    - "" or "-checkpointYYYYMMDD"
-# revision - "-r####"
-# version  - "%s%s%s" % (release, revision, build)
+# revision - "####"
+# version  - "%s-r%s%s" % (release, revision, build)
 #
 # build and revision are calculated by the distribution script
 # majorVersion, minorVersion and releaseVersion are calculated
@@ -331,7 +331,7 @@ def _getVersionInfo(buildenv):
         versionFile.write('%s = "%s"\n' % (key, data[key]))
 
     versionFile.write(body)
-    versionFile.write('\nversion = "%s%s%s" % (release, revision, build)')
+    versionFile.write('\nversion = "%s-r%s%s" % (release, revision, build)')
     versionFile.write('\n\n')
 
     versionFile.close()

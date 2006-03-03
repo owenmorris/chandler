@@ -2,8 +2,8 @@
 #
 # release  - base version number
 # build    - "" or "-checkpointYYYYMMDD"
-# revision - "-r####"
-# version  - "%s%s%s" % (release, revision, build)
+# revision - "####"
+# version  - "%s-r%s%s" % (release, revision, build)
 #
 # build and revision are calculated by the distribution script
 # majorVersion, minorVersion and releaseVersion are calculated
@@ -12,7 +12,7 @@
 
 release = "0.7alpha2.dev"
 build = ""
-revision = "-r0000"
+revision = "0000"
 
-version = "%s%s%s" % (release, revision, build)
+version = "%s-r%s%s" % (release, revision, build)
 
