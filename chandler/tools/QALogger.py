@@ -122,8 +122,8 @@ class TestLogger:
                 description = "%s.%s" %(description, testcaseDesc)
             description = "%s.%s" %(description, actionDesc)
         elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
-        self.Print("OSAF_QA: %s | %s | %s" %(description, version.buildRevision, elapsed_secs)) 
-        print("OSAF_QA: %s | %s | %s" %(description, version.buildRevision, elapsed_secs))
+        self.Print("OSAF_QA: %s | %s | %s" %(description, version.revision, elapsed_secs)) 
+        print("OSAF_QA: %s | %s | %s" %(description, version.revision, elapsed_secs))
         
     def SuspendProfiling(self):
         """
