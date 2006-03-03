@@ -290,6 +290,8 @@ def _getVersionInfo(buildenv):
 
     if releaseVersion == 'dev':
         buildRevision = data['revision']
+    else:
+        buildRevision = ""
 
     buildName = '%s%s%s' % (release, buildRevision, data['build'])
 
