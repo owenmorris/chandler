@@ -91,7 +91,10 @@ class ProgressMonitor:
 
         if work is True:
             self.workDone += 1
-            percent = int(self.workDone * 100 / self.totalWork)
+            try:
+                percent = int(self.workDone * 100 / self.totalWork)
+            except ZeroDivisionError:
+                percent = 100
         else:
             percent = None
 
