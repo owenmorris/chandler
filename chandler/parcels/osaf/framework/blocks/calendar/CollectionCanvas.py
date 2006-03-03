@@ -289,7 +289,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # has a child window that deals with focus stuff. We create an
         # invisible window and send all focus (i.e. keyboard) events
         # through it.
-        self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0))
+        self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0), style=wx.WANTS_CHARS)
         self._focusWindow.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
     def SetPanelFocus(self):
@@ -458,10 +458,10 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 self.dragState.HandleDragEnd()
                 self.dragState = None
 
-    def EditCurrentItem(self):
+    def SelectedCanvasItem(self):
         """
         Use the selection to find the currently selected canvas item,
-        so we can call OnEditItem()
+        returning None if there isn't any
         """
         
         selection = self.SelectedItems()
@@ -469,7 +469,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         try:
             selectedItem = selection.next()
         except StopIteration:
-            return                  # no items selected, that's fine
+            return None                 # no items selected, that's fine
 
         try:
             selection.next()
@@ -486,15 +486,16 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             assert len(selectedCanvasItems) == 1
 
             if len(selectedCanvasItems) == 1:
-                self.OnEditItem(selectedCanvasItems[0])
+                return selectedCanvasItems[0]
 
-        # success of the last .next() just means we have multiple
-        # items so we can't edit them all! (at least not right now...)
-        
-        # if any new code is added here, be sure to add a return after
-        # the previous StopIteration to ensure legitimate edits don't
-        # fall through to here
 
+        return None                     # oops, more than one item selected
+
+    def EditCurrentItem(self):
+        currentCanvasItem = self.SelectedCanvasItem()
+        if currentCanvasItem is not None:
+            self.OnEditItem(currentCanvasItem)
+            
     def GetCanvasItems(self, *items):
         """
         Maps one or more items to their respective canvas items,
@@ -512,10 +513,24 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
+
         if keyCode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
             self.EditCurrentItem()
-        else:
-            event.Skip()
+            return
+
+        # dispatch arrow keys, etc
+        
+        # (actually it would be really nice to just intercept
+        # NavigationEvents somehow, but they aren't really documented
+        navigation_keys = ("UP", "DOWN", "LEFT", "RIGHT")
+        for key in navigation_keys:
+            if (keyCode == getattr(wx, 'WXK_' + key) or
+                keyCode == getattr(wx, 'WXK_NUMPAD_' + key)):
+                self.OnNavigateItem(key)
+                return
+
+        # didn't handle it so propagate the key event upward
+        event.Skip()
 
     def ScrollIntoView(self, unscrolledPosition):
         clientSize = self.GetClientSize()
@@ -536,6 +551,15 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         return True
         
     def GrabFocusHack(self):
+        pass
+
+    def OnNavigateItem(self, direction):
+        """
+        Navigate from the currently selected item(s) in the direction given.
+
+        The directions come from wx and currently include 'UP','DOWN',
+        'LEFT', and 'RIGHT'
+        """
         pass
 
     def OnCreateItem(self, position):

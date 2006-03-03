@@ -465,6 +465,69 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         super(wxTimedEventsCanvas, self).OnSelectNone(unscrolledPosition)
         self.Refresh()
 
+    def OnNavigateItem(self, direction):
+
+        # find the first selected canvas item:
+        currentCanvasItem = self.SelectedCanvasItem()
+        if currentCanvasItem is None:
+            return
+
+        newItemIndex = -1
+        canvasItemIndex = self.canvasItemList.index(currentCanvasItem)
+
+        # Hopefully the current (drawing) order of canvasItemList is ok
+        if direction == "DOWN":
+            newItemIndex = canvasItemIndex + 1
+        elif direction == "UP":
+            newItemIndex = canvasItemIndex - 1
+        elif direction in ("LEFT", "RIGHT"):
+            # try to go back or forward one day, and find the nearest event
+            currentDate = currentCanvasItem.item.startTime.date()
+            if direction == "LEFT":
+                delta = -1
+                searchEnd = -1
+            else:                       # "RIGHT"
+                delta = 1
+                searchEnd = len(self.canvasItemList)
+                
+            newItemIndex = canvasItemIndex + delta
+            foundDecentItem = False
+            
+            for idx in range(newItemIndex, searchEnd, delta):
+                newCanvasItem = self.canvasItemList[idx]
+                newDate = newCanvasItem.item.startTime.date()
+                
+                if foundDecentItem:
+                    # we've already gone back/forward at least a day, so if we
+                    # hit another date, then we've gone too far
+                    if newDate != bestDate:
+                        break
+                    
+                    # look to see if there is something even better
+                    newTimeDiff = abs(newCanvasItem.item.startTime - bestTime)
+                    if newTimeDiff < timeDiff:
+                        timeDiff = newTimeDiff
+                        newItemIndex = idx
+                    
+                    
+                elif newDate != currentDate:
+                    foundDecentItem = True
+                    
+                    # found first/last item in a different date. Save
+                    # for now as it is the best we have so far
+                    bestTime = currentCanvasItem.item.startTime.replace(
+                        year=newDate.year, month=newDate.month,
+                        day=newDate.day)
+                    
+                    bestDate = newDate
+                    
+                    newItemIndex = idx
+                    timeDiff = abs(newCanvasItem.item.startTime - bestTime)
+                
+
+        if 0 <= newItemIndex < len(self.canvasItemList):
+            self.OnSelectItem(self.canvasItemList[newItemIndex].item)
+            
     def OnCreateItem(self, unscrolledPosition):
         
         # if a region is selected, then use that for the event span
