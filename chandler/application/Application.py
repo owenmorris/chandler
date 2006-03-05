@@ -602,7 +602,6 @@ class wxApplication (wx.App):
 
         the_view = self.repository.view  # cache the view for performance
         the_view.refresh() # pickup changes from other threads
-        the_view.dispatchNotifications()
 
         # Redraw all the blocks dirtied by notifications
 

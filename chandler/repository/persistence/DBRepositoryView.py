@@ -346,10 +346,11 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             before = time()
             self._dispatchHistory(history, refreshes, oldVersion, newVersion)
+            count = self.dispatchNotifications()
             duration = time() - before
             if duration > 1.0:
                 self.logger.warning('%s %d notifications ran in %s',
-                                    self, len(history),
+                                    self, len(history) + count,
                                     timedelta(seconds=duration))
 
             self.prune(10000)

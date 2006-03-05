@@ -57,6 +57,7 @@ class RepositoryView(CView):
         """
 
         self._notifications = Queue()
+        self._subscribers = {}
 
         if not name:
             name = threading.currentThread().getName()
@@ -1008,11 +1009,13 @@ class RepositoryView(CView):
 
     def dispatchNotifications(self):
 
+        count = 0
         queue = self._notifications
 
         while True:
             while not queue.empty():
                 uItem, op, change, name, other = queue.get()
+                count += 1
                 item = self.find(uItem)
                 if item is not None:
                     item._collectionChanged(op, 'dispatch', name, other)
@@ -1022,6 +1025,39 @@ class RepositoryView(CView):
 
             if queue.empty():
                 break
+
+        return count
+
+    def flushNotifications(self):
+
+        count = 0
+        queue = self._notifications
+
+        while not queue.empty():
+            queue.get()
+            count += 1
+
+        return count
+
+    def notificationQueueSubscribe(self, collection, subscriber):
+
+        uCol = collection.itsUUID
+        uItem = subscriber.itsUUID
+        subscribers = self._subscribers.get(uCol)
+
+        if subscribers is None:
+            self._subscribers[uCol] = set((uItem,))
+        else:
+            subscribers.add(uItem)
+
+    def notificationQueueUnsubscribe(self, collection, subscriber):
+
+        uCol = collection.itsUUID
+        uItem = subscriber.itsUUID
+        subscribers = self._subscribers.get(uCol)
+
+        if subscribers and uItem in subscribers:
+            subscribers.remove(uItem)
 
     def _dispatchHistory(self, history, refreshes, oldVersion, newVersion):
 

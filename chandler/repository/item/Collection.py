@@ -48,10 +48,22 @@ class Collection(Item):
     def _collectionChanged(self, op, change, name, other):
 
         if change == 'dispatch':
+
             for subscriber in self.subscribers:
                 subscriber.onCollectionNotification(op, self, name, other)
+
+            view = self.itsView
+            subscribers = view._subscribers.get(self.itsUUID)
+            if subscribers:
+                for subscriber in subscribers:
+                    view[subscriber].onCollectionNotification(op, self, name, other)
+
         else:
-            self.itsView.queueNotification(self, op, change, name, other)
+
+            view = self.itsView
+            if self.subscribers or view._subscribers.get(self.itsUUID):
+                view.queueNotification(self, op, change, name, other)
+
             super(Collection, self)._collectionChanged(op, change, name, other)
 
     def __contains__(self, obj):
@@ -92,3 +104,12 @@ class Collection(Item):
             raise NotImplementedError, (type(self), 'remove not implemented')
         else:
             return remove(other)
+
+    def notificationQueueSubscribe(self, subscriber):
+
+        self.subscribers.add(subscriber)
+
+    def notificationQueueUnsubscribe(self, subscriber):
+
+        if subscriber in self.subscribers:
+            self.subscribers.remove(subscriber)

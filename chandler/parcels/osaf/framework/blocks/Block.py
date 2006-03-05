@@ -255,14 +255,10 @@ class Block(schema.Item):
         oldContents = getattr (self, 'contents', None)
         if oldContents is item:
             return
-        if oldContents is not None:
-            oldSubscribers = getattr(oldContents, 'subscribers', None)
-            if oldSubscribers is not None and self in oldSubscribers:
-                oldSubscribers.remove(self)
-        if item is not None:
-            newSubscribers = getattr(item, 'subscribers', None)
-            if newSubscribers is not None:
-                newSubscribers.add(self)
+        if isinstance(oldContents, ContentCollection):
+            oldContents.notificationQueueUnsubscribe(self)
+        if isinstance(item, ContentCollection):
+            item.notificationQueueSubscribe(self)
         self.contents = item
 
     def getProxiedContents(self):
@@ -294,7 +290,7 @@ class Block(schema.Item):
                 """
                 contents = getattr (self, 'contents', None)
                 if isinstance (contents, ContentCollection):
-                    contents.subscribers.add (self)
+                    contents.notificationQueueSubscribe(self)
                     # Add a non-persistent attribute that controls whether or not
                     # notifications will dirty the block.
                     self.ignoreNotifications = 0
@@ -379,7 +375,7 @@ class Block(schema.Item):
         """
           When our item collection has changed, we need to synchronize
         """
-        if not self.ignoreNotifications:
+        if hasattr(self, 'widget') and not self.ignoreNotifications:
             onItemNotification = getattr(self.widget, 'onItemNotification', None)
             if onItemNotification is not None:
                 onItemNotification('collectionChange', (op, collection, name, other))
@@ -409,7 +405,7 @@ class Block(schema.Item):
             # Remove the non-persistent attribute that controls whether or not
             # notifications will dirty the block.
             del self.ignoreNotifications
-            contents.subscribers.remove (self)
+            contents.notificationQueueUnsubscribe(self)
 
 
         eventsForNamedLookup = self.eventsForNamedLookup
