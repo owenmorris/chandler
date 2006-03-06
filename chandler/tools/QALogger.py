@@ -291,7 +291,6 @@ class TestLogger:
             print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
             #print names of failed tests and stderr output if there was any
             if status == "FAILED":
-                self.PrintBoth('Failed tests:')
                 for tc in self.testcaseList:
                     if tc[1] == "FAIL":
                         self.PrintBoth( tc[0] + ' failed\n' + tc[2])
