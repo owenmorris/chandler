@@ -355,6 +355,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             self.prune(10000)
 
+        elif newVersion == self._version:
+            self.dispatchNotifications()
+
         elif newVersion < self._version:
             self.cancel()
             refCounted = self.isRefCounted()
@@ -362,6 +365,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                        if item._version > newVersion]
             self._version = newVersion
             _refresh(unloads.__iter__)
+            self.flushNotifications()
 
     def commit(self, mergeFn=None):
 
