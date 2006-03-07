@@ -144,7 +144,7 @@ $(SETUPTOOLS_EGG):
 	$(CURL) $@ http://$(HOST)/external/$(notdir $@)
 
 $(SETUPTOOLS_INST): $(ARCHIVES_INST) $(SETUPTOOLS_EGG)
-	$(PYTHON_BIN) \
+	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
         -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
         --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
 	touch $@
