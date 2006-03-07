@@ -6,6 +6,20 @@ import version
 import application.Globals as Globals
 import osaf.framework.scripting as scripting
 import hotshot
+            
+class FileWatcher:       
+    """masquerades as a file so stderr can be directed to it
+         sets a flag if writen to, then passes str to stdout via print"""
+    def __init__(self):
+        self.text = ''
+        self.hadError = False
+    def write(self, str):
+        self.text = self.text + str
+        self.hadError = True 
+        print str #send to stdout
+    def clear(self):
+        self.text = ''
+        self.hadError = False
 
 def QALogger(fileName=None, description="No description"):
     ''' Factory method for QALogger '''
@@ -29,6 +43,10 @@ def QALogger(fileName=None, description="No description"):
 class TestLogger:
     def __init__(self,filepath=None,description="No description"):
         self.startDate = datetime.now()
+        #capture stderr
+        self.old_stderr = sys.stderr #need this so we can go back to it in close()
+        self.standardErr = FileWatcher()
+        sys.stderr = self.standardErr      
             
         if filepath:
             self.inTerminal = False
@@ -247,7 +265,9 @@ class TestLogger:
                 self.Print("")
                 #Test case status
                 self.Print("Status : %s testcase %s" %(self.mainDescription, status))
-            
+            #change to fail if output detected on stderr
+            if self.standardErr.hadError:
+                status = "FAIL"
             # Tinderbox printing
             # compute the elapsed time in seconds
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
