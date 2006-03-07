@@ -6,27 +6,6 @@ import version
 import application.Globals as Globals
 import osaf.framework.scripting as scripting
 import hotshot
-            
-class FileWatcher:       
-    """masquerades as a file so stderr can be directed to it
-         sets a flag if writen to, then passes str to stdout via print"""
-    def __init__(self):
-        self.text = ''
-        self.hadError = False
-    def write(self, str):
-        self.text = self.text + str
-        self.hadError = True 
-        print str #send to stdout
-    def writelines(self, lines):
-        for line in lines: 
-            self.write(line)
-            print line #send to stdout
-        self.hadError = True         
-    def read(self):
-        return self.text
-    def clear(self):
-        self.text = ''
-        self.hadError = False
 
 def QALogger(fileName=None, description="No description"):
     ''' Factory method for QALogger '''
@@ -50,10 +29,6 @@ def QALogger(fileName=None, description="No description"):
 class TestLogger:
     def __init__(self,filepath=None,description="No description"):
         self.startDate = datetime.now()
-        #capture stderr
-        self.old_stderr = sys.stderr #need this so we can go back to it in close()
-        self.standardErr = FileWatcher()
-        sys.stderr = self.standardErr      
             
         if filepath:
             self.inTerminal = False
@@ -100,7 +75,6 @@ class TestLogger:
         self.nbVerif = 0
         self.failureList = []
         self.passedList = []
-        self.standardErr.clear()
             
     def Print(self,string):
         ''' Printing method '''
@@ -293,7 +267,7 @@ class TestLogger:
             if status == "FAILED":
                 for tc in self.testcaseList:
                     if tc[1] == "FAIL":
-                        self.PrintBoth( tc[0] + ' failed\n' + tc[2])
+                        self.PrintBoth( tc[0] + ' failed')
             if not self.inTerminal:
                 # close the file
                 self.File.close()
@@ -303,15 +277,13 @@ class TestLogger:
                 scripting.app_ns().root.Quit()
         else: # Just the end of a testcase
             if self.subTestcaseDesc:
-                if self.standardErr.hadError:
-                    status = "FAIL"
-                elif self.nbUnchecked == self.nbVerif:
+                if self.nbUnchecked == self.nbVerif:
                     status = "UNCHECKED"
                 elif self.nbPass == self.nbVerif:
                     status = "PASS"
                 else:
                     status = "FAIL"
-                self.testcaseList.append((self.subTestcaseDesc,status, self.standardErr.text))
+                self.testcaseList.append((self.subTestcaseDesc,status))
             # Test case status
             elapsed = now - self.testcaseStartDate
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
