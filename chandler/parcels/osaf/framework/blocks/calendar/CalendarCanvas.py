@@ -1188,16 +1188,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
         # the legend border is major
         dc.SetPen(wx.Pen(styles.majorLineColor, self.legendBorderWidth))
-
+        
         # thick pens with the line centered at x - 1. Offset the
         # legend border because we want the righthand side of the line
         # to be at x - 1
         legendBorderX = drawInfo.columnPositions[1] - self.legendBorderWidth/2 - 1
-        
-        # save old anti-aliasing value and turn off anti-aliasing
-        oldAA = dc.GetAntiAliasing()
-        dc.SetAntiAliasing(False)
-
         dc.DrawLine(legendBorderX, 0,
                     legendBorderX, self.size.height)
         
@@ -1209,9 +1204,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         dc.SetPen(styles.minorLinePen)
         for dayNum in range(1, drawInfo.columns):
             drawDayLine(dayNum)
-
-        # restore previous value for anti-aliasing
-        dc.SetAntiAliasing(oldAA)
 
 
     def CreateEmptyEvent(self, **initialValues):
