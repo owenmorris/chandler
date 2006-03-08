@@ -120,9 +120,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         for releaseMode in buildModes:
             doInstall(releaseMode, workingDir, log)
-        
+
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
-        
+
             if skipTests:
                 ret = 'success'
             else:
@@ -130,6 +130,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
+
+        if ret == 'success' and not skipTests:
+            ret = doFunctionalTests(workingDir, log)
 
         changes = "-first-run"
     else:
@@ -167,6 +170,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                 if ret != 'success':
                     break
 
+            if ret == 'success':
+                ret = doFunctionalTests(workingDir, log)
+
     return (ret + changes, revisions['chandler'])
 
 
@@ -200,6 +206,31 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         doCopyLog("Tests successful", workingDir, logPath, log)
 
     return "success"  # end of doTests( )
+
+
+def doFunctionalTests(workingDir, log):
+    testDir = os.path.join(workingDir, "chandler")
+    os.chdir(testDir)
+
+    try: # test
+        print "Running Functional Tests"
+        log.write(separator)
+        log.write("Running Functional Tests ...\n")
+
+        testscript = "./tools/do_tests.sh"
+        outputList = hardhatutil.executeCommandReturnOutput([testscript, "-f"])
+
+        hardhatutil.dumpOutputList(outputList, log)
+
+    except Exception, e:
+        print "a testing error"
+        doCopyLog("***Error during tests***", workingDir, logPath, log)
+        forceBuildNextCycle(log, workingDir)
+        return "test_failed"
+    else:
+        doCopyLog("Tests successful", workingDir, logPath, log)
+
+    return "success"
 
 
 def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
