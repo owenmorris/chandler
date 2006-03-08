@@ -1212,6 +1212,16 @@ void wxDC::SetLogicalFunction( int function )
 #endif
 }
 
+void wxDC::SetAntiAliasing( bool isAntiAliased )
+{
+    // make sure parent class maintains state
+    wxDCBase::SetAntiAliasing( isAntiAliased );
+    // actually change the CGContext
+    CGContextRef cgContext = ((wxMacCGContext*)(m_graphicContext))->GetNativeContext() ;
+    // use GetAntiAliasing() in case the parent class decided not to set it or something
+    CGContextSetShouldAntialias(cgContext, GetAntiAliasing());
+}
+
 extern bool wxDoFloodFill(wxDC *dc, wxCoord x, wxCoord y,
                           const wxColour & col, int style);
 

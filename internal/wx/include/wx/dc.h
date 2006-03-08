@@ -119,6 +119,7 @@ public:
         , m_logicalFunction(wxCOPY)
         , m_backgroundMode(wxTRANSPARENT)
         , m_mappingMode(wxMM_TEXT)
+        , m_antiAliasing(false)
         , m_pen()
         , m_brush()
         , m_backgroundBrush(*wxTRANSPARENT_BRUSH)
@@ -556,6 +557,9 @@ public:
     int GetLogicalFunction() const { return m_logicalFunction; }
     virtual void SetLogicalFunction(int function) = 0;
 
+    bool GetAntiAliasing() const { return m_antiAliasing; }
+    virtual void SetAntiAliasing(bool isAntiAliased) { m_antiAliasing = isAntiAliased; }
+
 #if WXWIN_COMPATIBILITY_2_4
     virtual void SetOptimization(bool WXUNUSED(opt)) { }
     virtual bool GetOptimization() { return false; }
@@ -803,6 +807,7 @@ protected:
     int m_logicalFunction;
     int m_backgroundMode;
     int m_mappingMode;
+    bool m_antiAliasing;
 
     // GDI objects
     wxPen             m_pen;
