@@ -175,9 +175,9 @@ if [ "$TBOX" = "yes" ]; then
     REVISION=${REVISION/Checked out revision /}
     REVISION=${REVISION/./}
 
-      # remove any reference to buildRevision (only if at start of line)
-    sed -i "/^revision/d" $C_DIR/version.py
-    echo revision = \"$REVISION\" >> $C_DIR/version.py
+      # update the revision number (only if at start of line)
+    sed "s/^revision = \"[0-9]*\"/revision = \"$REVISION\"/" $C_DIR/version.py $C_DIR/version.new
+    mv -f $C_DIR/version.new $C_DIR/version.py
 else
     REVISION=0000
 fi
