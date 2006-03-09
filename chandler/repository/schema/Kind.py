@@ -147,7 +147,7 @@ class Kind(Item):
 
     def _setupDelegates(self, cls):
 
-        delegates = cls.__dict__.get('__delegates__', None) # locally defined
+        delegates = getattr(cls, '__delegates__', None)
         if delegates:
             for delegate in delegates:
                 attribute = self.getAttribute(delegate)

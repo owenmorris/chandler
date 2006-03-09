@@ -189,6 +189,8 @@ class RepositoryView(CView):
                 del repository._threaded.view
             repository._openViews.remove(self)
 
+        self.flushNotifications()
+        self._subscribers.clear()
         self.clear()
 
         if repository is not None:
