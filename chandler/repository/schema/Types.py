@@ -18,7 +18,6 @@ from repository.item.Item import Item
 from repository.item.PersistentCollections import \
      PersistentList, PersistentDict, PersistentTuple, PersistentSet
 from repository.item.ItemHandler import ValueHandler
-from repository.item.Query import KindQuery
 from repository.schema.Kind import Kind
 from repository.schema.TypeHandler import TypeHandler
 from repository.util.ClassLoader import ClassLoader

@@ -10,7 +10,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, os.path, sys, unittest
 
 from repository.util.Path import Path
-from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.util.URL import URL
 from osaf import pim
@@ -129,8 +128,7 @@ class TestPerfWithRSS(RepositoryTestCase):
         self._stressTest(True)
 
     def _readItems(self, kind):
-        items = KindQuery().run([kind]) 
-        for i in items:
+        for i in kind.iterItems(True):
             assert(i.itsName is not None)
 
 #    def testReadBackRSS(self):

@@ -10,7 +10,6 @@ from chandlerdb.util.c import UUID, isuuid
 from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
-from repository.item.Query import KindQuery
 from repository.item.Indexed import Indexed
 
 class AbstractSet(ItemValue, Indexed):

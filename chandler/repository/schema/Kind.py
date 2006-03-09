@@ -17,12 +17,10 @@ from repository.item.RefCollections import RefList
 from repository.item.Sets import AbstractSet
 from repository.item.Monitors import Monitors, Monitor
 from repository.item.Values import Values, References
-from repository.item.PersistentCollections import \
-    PersistentCollection, PersistentDict
+from repository.item.PersistentCollections import PersistentCollection
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
 from repository.schema.TypeHandler import TypeHandler
-from repository.item.Query import KindQuery
 
 CORE=Path('//Schema/Core')
 
@@ -954,13 +952,58 @@ class Extent(Item):
 
     def iterItems(self, recursive=True):
 
-        for item in KindQuery(recursive).run((self.kind,)):
-            yield item
+        view = self.itsView
+        changedItems = set(item for item in view.dirtyItems()
+                           if item._isKDirty())
+
+        def _query(kinds):
+            for kind in kinds:
+                for item in changedItems:
+                    if item.itsKind is kind:
+                        yield item
+                for item in view.queryItems(kind):
+                    if item not in changedItems: 
+                        yield item
+                if recursive:
+                    subKinds = kind._references.get('subKinds')
+                    if subKinds:
+                        for item in _query(subKinds):
+                            yield item
+
+        matches = set()
+        for item in _query((self.kind,)):
+            if item not in matches:
+                matches.add(item)
+                yield item
 
     def iterKeys(self, recursive=True):
 
-        for key in KindQuery(recursive).runKeys((self.kind,)):
-            yield key
+        view = self.itsView
+
+        changedItems = {}
+        for item in view.dirtyItems():
+            if item._isKDirty():
+                changedItems[item.itsUUID] = item.itsKind
+
+        def _query(kinds):
+            for kind in kinds:
+                for key, itemKind in changedItems.iteritems():
+                    if itemKind is kind:
+                        yield key
+                for key in view.queryItemKeys(kind):
+                    if key not in changedItems: 
+                        yield key
+                if recursive:
+                    subKinds = kind._references.get('subKinds', None)
+                    if subKinds:
+                        for key in _query(subKinds):
+                            yield key
+
+        matches = set()
+        for key in _query((self.kind,)):
+            if key not in matches:
+                matches.add(key)
+                yield key
 
     def _collectionChanged(self, op, change, name, other, filterKind=None):
 
