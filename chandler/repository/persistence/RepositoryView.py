@@ -473,7 +473,7 @@ class RepositoryView(CView):
 
         return self.find(spec)
 
-    def getACL(self, uuid, name):
+    def getACL(self, uuid, name, default=None):
         """
         Get an Access Control List.
 
@@ -488,10 +488,16 @@ class RepositoryView(CView):
 
         @param uuid: a L{UUID<chandlerdb.util.c.UUID>} instance
         @param name: a string or C{None}
+        @param default: an optional default value to return when no ACL is
+        found (by default C{None} is returned)
         @return: an L{ACL<repository.item.Access.ACL>} instance or C{None}
         """
 
-        return self.repository.store.loadACL(self, self._version, uuid, name)
+        acl = self.repository.store.loadACL(self, self._version, uuid, name)
+        if acl is None:
+            return default
+
+        return acl
 
     def loadPack(self, path, parent=None):
         """

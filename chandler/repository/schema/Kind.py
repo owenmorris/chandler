@@ -573,6 +573,10 @@ class Kind(Item):
 
         return self.extent.iterItems(recursive)
 
+    def iterKeys(self, recursive=True):
+
+        return self.extent.iterKeys(recursive)
+
     def getItemKind(self):
 
         return self.find(CORE)['Item']
