@@ -39,14 +39,7 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetColLabelValue (self, column):
         grid = self.GetView()
-        item = None
-        
-        if grid.GetElementCount() != 0:
-            row = grid.GetGridCursorRow()
-            itemIndex = grid.RowToIndex(row)
-            if itemIndex != -1:
-                item = grid.blockItem.contents [itemIndex]
-
+        item = grid.blockItem.contents.getFirstSelectedItem()
         return grid.GetColumnHeading (column, item)
 
     def IsEmptyCell (self, row, column): 
@@ -158,11 +151,7 @@ class wxTable(DragAndDrop.DraggableWidget,
     def InvalidateSelection (self):
         lastRow = self.GetNumberCols() - 1
         
-        selectionRanges = self.blockItem.contents.getSelectionRanges()
-        gridTable = self.GetTable()
-        for indexStart, indexEnd in selectionRanges:
-            rowStart = self.IndexToRow(indexStart)
-            rowEnd = self.IndexToRow(indexEnd)
+        for rowStart, rowEnd in self.SelectedRowRanges():
             dirtyRect = wx.Rect()
             dirtyRect.SetTopLeft(self.CellToRect(rowStart, 0).GetTopLeft())
             dirtyRect.SetBottomRight(self.CellToRect(rowEnd,
@@ -202,45 +191,45 @@ class wxTable(DragAndDrop.DraggableWidget,
         try:
             # map row ranges to index ranges 
             contents = self.blockItem.contents
-            contents.setSelectionRanges ([])
-            firstItemIndex = -1
-            # ranges = [(event.GetTopRow(), event.GetBottomRow()),]
-            for indexStart, indexEnd in self.SelectedIndexRanges():
 
-                # We'll need the first selected index later..
-                if firstItemIndex == -1 or firstItemIndex > indexStart:
-                    firstItemIndex = indexStart
+            firstRow = event.GetTopRow()
+            lastRow = event.GetBottomRow()
+            indexStart = self.RowToIndex(firstRow)
+            indexEnd = self.RowToIndex(lastRow)
 
-                contents.addSelectionRange ((indexStart, indexEnd))
-                
-            item = None
-            if firstItemIndex != -1:
-                item = blockItem.contents[firstItemIndex]
+            postSelection = True
+            if event.Selecting():
+                contents.addSelectionRange((indexStart, indexEnd))
+            else:
+                contents.removeSelectionRange((indexStart, indexEnd))
+                if (firstRow == 0 and
+                    lastRow != 0 and lastRow == self.GetNumberRows()-1):
+                    # this is a special "deselection" event that the
+                    # grid sends us just before selecting another
+                    # single item. This happens just before a user
+                    # simply clicks from one item to another.
 
-            if item is not blockItem.selectedItemToView:
-                blockItem.selectedItemToView = item
-                if item is not None:
+                    # this allows us to avoid broadcasting an empty
+                    # deselection if the user is just clicking from
+                    # one item to another.
+                    postSelection = False
+
+            selectedItem = None
+            selectedRanges = contents.getSelectionRanges()
+            if (len(selectedRanges) == 1 and
+                selectedRanges[0][0] == selectedRanges[0][1]):
+                selectedItem = contents.getFirstSelectedItem()
+
+            # now update the selectedItemToView, and possibly
+            # broadcast the "new" selection
+            if selectedItem is not blockItem.selectedItemToView:
+                blockItem.selectedItemToView = selectedItem
+
+                if postSelection:
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                """
-                Widgets needs to clear the selection before setting a
-                brand new selection, e.g. when you have some rows in a
-                table selected and you click on another cell. So you
-                get two OnRangeSelect calls, one to clear the old
-                selection and another to set the new selection.
-
-                We don't want to broadcast the first deselection if
-                we're pretty sure we're actually going to select
-                something next.
-
-                It turns out that ignoring all the clear selections
-                except when control is down skips the extra clear
-                selections.
-                """
-                if (item is not None or event.Selecting() or
-                    event.ControlDown()):
-                    blockItem.PostSelectItems([item])
+                    blockItem.PostSelectItems()
         finally:
             blockItem.startNotificationDirt()
 
@@ -320,40 +309,36 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SynchronizeDelegate()
 
         self.UpdateRowsAndColumns()
-        
-        # Either we should move selectedItemToView into the selection
-        # that is part of the contents or get rid of it. This would
-        # eliminate the following code that keeps it up to date and
-        # when we install a different contents on a block it would get
-        # restored to the correct value -- DJA
+
+        # Hrm. Why do we need to call this in wxSynchronizeWidget?
+        # Shouldn't this have come in via an event?
+        self.EditIfNecessary()
+
+    def EditIfNecessary(self):
         contents = self.blockItem.contents
         selectedItemToView = self.blockItem.selectedItemToView
-        if (selectedItemToView not in contents and
-            selectedItemToView is not None):
-            selectedItemToView = contents.getFirstSelectedItem()
-            self.blockItem.selectedItemToView = selectedItemToView
-            if selectedItemToView is None:
-                self.blockItem.PostSelectItems([selectedItemToView])
-            else:
-                self.blockItem.PostSelectItems([])
 
-        if selectedItemToView is not None:
-            index = contents.index (selectedItemToView)
-            contents.addSelectionRange (index)
-            column = 0
-            editAttributeNamed = getattr (self.blockItem, "editAttributeNamed", None)
-            if editAttributeNamed is not None:
-                try:
-                    column = self.blockItem.columnData.index (editAttributeNamed)
-                except ValueError:
-                    editAttributeNamed = None
+        if selectedItemToView is None:
+            return
 
-            cursorRow = self.IndexToRow(index)
-            if cursorRow != -1:
-                self.SetGridCursor (cursorRow, column)
-                self.MakeCellVisible (cursorRow, column)
-                if editAttributeNamed is not None:
-                    self.EnableCellEditControl()
+        index = contents.index (selectedItemToView)
+        cursorRow = self.IndexToRow(index)
+        
+        if cursorRow == -1:
+            return
+
+        editAttributeNamed = getattr (self.blockItem, "editAttributeNamed", None)
+        if editAttributeNamed is not None:
+            try:
+                column = self.blockItem.columnData.index (editAttributeNamed)
+            except ValueError:
+                editAttributeNamed = None
+
+        
+        if editAttributeNamed is not None:
+            self.SetGridCursor (cursorRow, column)
+            self.MakeCellVisible (cursorRow, column)
+            self.EnableCellEditControl()
                     
     def UpdateRowsAndColumns(self):
 
@@ -446,17 +431,23 @@ class wxTable(DragAndDrop.DraggableWidget,
         
         self.ClearSelection()
         contents = self.blockItem.contents
-        for selectionStart,selectionEnd in contents.getSelectionRanges():
+        for rowStart,rowEnd in self.SelectedRowRanges():
             # since we're selecting something, we don't need to
             # auto-select any rows
             newRowSelection = -1
 
             # now just do the selection update
-            rowStart = self.IndexToRow(selectionStart)
-            rowEnd = self.IndexToRow(selectionEnd)
             self.SelectBlock (rowStart, 0,
                               rowEnd, columns, True)
 
+        # make sure selectedItemToView is current
+        selection = contents.getSelectionRanges()
+        if (len(selection) == 1 and
+            selection[0][0] == selection[0][1]):
+            self.blockItem.selectedItemToView = contents.getFirstSelectedItem()
+        else:
+            self.blockItem.selectedItemToView = None
+            
         # now auto-select a row if necessary
         if newRowSelection != -1:
             itemIndex = self.RowToIndex(newRowSelection)
@@ -483,38 +474,31 @@ class wxTable(DragAndDrop.DraggableWidget,
             blockItem.contents.setSelectionRanges([])
             blockItem.selectedItemToView = None
             self.ClearSelection()
-        self.blockItem.PostSelectItems([item])
+        self.blockItem.PostSelectItems()
 
-    def SelectedIndexRanges(self):
+    def SelectedRowRanges(self):
         """
-        Uses RowRangeToIndexRange to convert the selected rows to
-        selected indexes
+        Uses IndexRangeToRowRange to convert the selected indexes to
+        selected rows
         """
-        # filter out columns from grid selection
-        topLeftList = self.GetSelectionBlockTopLeft()
-        bottomRightList = self.GetSelectionBlockBottomRight()
-        selectedRows = ((row1, row2) for ((row1, col1), (row2, col2)) in
-                zip(topLeftList, bottomRightList))
-        
-        return self.RowRangeToIndexRange(selectedRows)
+        selection = self.blockItem.contents.getSelectionRanges()
+        return self.IndexRangeToRowRange(selection)
 
-    def RowRangeToIndexRange(self, rowRanges):
+    def IndexRangeToRowRange(self, indexRanges):
         """
-        Given a list of row ranges, [(a,b), (c,d), ...], generate
-        corresponding index ranges [(w,x), (y, z),..]
-        """
-        
-        for (topRow, bottomRow) in rowRanges:
-            indexStart = self.RowToIndex(topRow)
-            indexEnd = self.RowToIndex(bottomRow)
+        Given a list of index ranges, [(a,b), (c,d), ...], generate
+        corresponding row ranges [(w,x), (y, z),..]
 
-            # this is the ugly case where the user "selects" a
-            # section. It would be nice to avoid this case
-            # alltogether by making table sections
-            # un-selectable.
-            if -1 not in (indexStart, indexEnd):
-                yield (indexStart, indexEnd)
-        
+        Eventually this will need to get more complex when
+        IndexToRow() returns multiple rows
+        """
+        for (indexStart, indexEnd) in indexRanges:
+            topRow = self.IndexToRow(indexStart)
+            bottomRow = self.IndexToRow(indexEnd)
+
+            # not sure when the -1 case would happen?
+            if -1 not in (topRow, bottomRow):
+                yield (topRow, bottomRow)
 
     def DeleteSelection (self, DeleteItemCallback=None, *args, **kwargs):
         def DefaultCallback(item, collection=self.blockItem.contents):
@@ -523,11 +507,9 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem = self.blockItem
         if DeleteItemCallback is None:
             DeleteItemCallback = DefaultCallback
-        topLeftList = self.GetSelectionBlockTopLeft()
-        bottomRightList = self.GetSelectionBlockBottomRight()
 
-        
-        selectionRanges = reversed(self.blockItem.contents.getSelectionRanges())
+        # save a list copy of the ranges because we're about to clear them.
+        selectionRanges = list(reversed(self.blockItem.contents.getSelectionRanges()))
 
         """
           Clear the selection before removing the elements from the collection
@@ -544,7 +526,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         # the corresponding rows.
         # (that probably can't be fixed until ItemCollection
         # becomes Collection and notifications work again)
-        
+
         newRowSelection = 0
         contents = blockItem.contents
         newSelectedItemIndex = -1
@@ -582,17 +564,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         """
         Return the list of selected items.
         """
-        selectionRanges = self.blockItem.contents.getSelectionRanges()
-        if not selectionRanges:
-            detailItem = self.blockItem.selectedItemToView
-            if detailItem is not None:
-                yield detailItem
-                return
-        
-        for selectionStart, selectionEnd in selectionRanges:
-            for index in xrange(selectionStart, selectionEnd+1):
-
-                yield self.blockItem.contents [index]
+        return self.blockItem.contents.iterSelection()
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
     def __init__(self, type):
@@ -746,7 +718,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     def onSelectItemsEvent (self, event):
         items = event.arguments ['items']
         self.selectItems (items)
-        if len(items)>0:
+        if len(items)==1:
             self.selectedItemToView = items[0]
             
         editAttributeNamed = event.arguments.get ('editAttributeNamed')
@@ -754,7 +726,10 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
             self.widget.EnableCellEditControl (False)
             self.editAttributeNamed = editAttributeNamed
 
-    def PostSelectItems(self, items):
+    def PostSelectItems(self, items = None):
+        if items is None:
+            items = list(self.contents.iterSelection())
+        
         self.postEventByName("SelectItemsBroadcast",
                              {'items': items,
                               'collection': self.contentsCollection })
@@ -770,7 +745,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         first visible.
         """
 
-        self.contents.setSelectionRanges([])
+        self.contents.clearSelection()
         for item in items:
             if item in self.contents:
                 self.contents.selectItem(item)
