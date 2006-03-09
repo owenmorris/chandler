@@ -176,7 +176,7 @@ if [ "$TBOX" = "yes" ]; then
     REVISION=${REVISION/./}
 
       # update the revision number (only if at start of line)
-    sed "s/^revision = \"[0-9]*\"/revision = \"$REVISION\"/" $C_DIR/version.py $C_DIR/version.new
+    sed "s/^revision = \"[0-9]*\"/revision = \"$REVISION\"/" $C_DIR/version.py > $C_DIR/version.new
     mv -f $C_DIR/version.new $C_DIR/version.py
 else
     REVISION=0000
