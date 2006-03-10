@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     23-May-2000
-// RCS-ID:      $Id: calendar.i,v 1.40 2005/03/09 22:28:40 RD Exp $
+// RCS-ID:      $Id: calendar.i,v 1.41 2006/03/05 04:00:35 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -260,7 +260,7 @@ creation.", "");
         "Sets the current date.", "");
 
     DocDeclStr(
-        const wxDateTime&, GetDate() const,
+        const wxDateTime, GetDate() const,
         "Gets the currently selected date.", "");
     
 
@@ -274,11 +274,11 @@ creation.", "");
         "set the range in which selection can occur", "");
     
     DocDeclStr(
-        const wxDateTime&, GetLowerDateLimit() const,
+        const wxDateTime, GetLowerDateLimit() const,
         "get the range in which selection can occur", "");
     
     DocDeclStr(
-        const wxDateTime&, GetUpperDateLimit() const,
+        const wxDateTime, GetUpperDateLimit() const,
         "get the range in which selection can occur", "");
 
     DocDeclStr(

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: _datetime.i,v 1.22 2006/01/20 18:11:53 RD Exp $
+// RCS-ID:      $Id: _datetime.i,v 1.23 2006/03/05 03:59:06 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -426,6 +426,7 @@ public:
                                      wxDateTime_t minute = 0,
                                      wxDateTime_t second = 0,
                                      wxDateTime_t millisec = 0));
+    %RenameCtor(DateTimeFromDateTime, wxDateTime(const wxDateTime& date));
             
     ~wxDateTime();
 

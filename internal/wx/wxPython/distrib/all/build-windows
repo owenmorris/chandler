@@ -4,9 +4,9 @@
 set -o errexit
 
 # read the config variables from the file given on the command line
-. $1
+# . $1
 
-PYVER=$2
+PYVER=$1
 
 if [ $skipwin != yes ]; then
     # test if the target machine is online
@@ -30,4 +30,6 @@ if [ $skipwin != yes ]; then
      echo "Fetching the results..."
      scp "$WIN_HOST:$WIN_BUILD/wxPython*-win32*"  $STAGING_DIR
      ssh $WIN_HOST "rm $WIN_BUILD/wxPython*-win32*"
+
+     echo "Done!"
 fi

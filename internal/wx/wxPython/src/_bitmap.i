@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     7-July-1997
-// RCS-ID:      $Id: _bitmap.i,v 1.16 2005/12/30 23:01:19 RD Exp $
+// RCS-ID:      $Id: _bitmap.i,v 1.17 2006/02/24 01:11:56 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ public:
         wxBitmap(int width, int height, int depth=-1),
         "Creates a new bitmap of the given size.  A depth of -1 indicates the
 depth of the current screen or visual. Some platforms only support 1
-for monochrome and -1 for the current colour setting.", "",
+for monochrome and -1 for the current display depth.", "",
         EmptyBitmap);
 
     DocCtorStrName(

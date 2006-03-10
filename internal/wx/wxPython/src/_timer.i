@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-June-1999
-// RCS-ID:      $Id: _timer.i,v 1.17 2006/02/07 03:56:36 RD Exp $
+// RCS-ID:      $Id: _timer.i,v 1.18 2006/03/10 00:01:28 vell Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public:
     virtual void Stop();
 
     // override this in your wxTimer-derived class if you need to process timer
-    // messages in it; otherwise use non-default ctor or call SetOwner()
+    // messages in it; otherwise, use non-default ctor or call SetOwner()
     virtual void Notify();
 
     // return True if the timer is running

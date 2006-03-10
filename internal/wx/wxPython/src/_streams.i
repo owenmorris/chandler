@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Sept-2000
-// RCS-ID:      $Id: _streams.i,v 1.9 2005/03/03 19:56:38 RD Exp $
+// RCS-ID:      $Id: _streams.i,v 1.10 2006/02/24 01:13:18 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -159,6 +159,7 @@ public:
             Py_DECREF(str);
         }
     }
+    size_t LastWrite() const;
 };
 
 

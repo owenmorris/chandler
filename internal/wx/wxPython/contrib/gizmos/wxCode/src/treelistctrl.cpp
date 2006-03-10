@@ -5,7 +5,7 @@
 // Created:     01/02/97
 // Modified:    Alberto Griggio, 2002
 //              22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treelistctrl.cpp,v 1.25 2006/02/07 09:32:05 vell Exp $
+// Id:          $Id: treelistctrl.cpp,v 1.26 2006/02/24 01:04:08 RD Exp $
 // Copyright:   (c) Robert Roebling, Julian Smart, Alberto Griggio,
 //              Vadim Zeitlin, Otto Wyss
 // Licence:     wxWindows licence
@@ -3449,8 +3449,8 @@ void wxTreeListMainWindow::PaintLevel (wxTreeListItem *item, wxDC &dc,
             int total_width = m_owner->GetHeaderWindow()->GetWidth();
             // if the background colour is white, choose a
             // contrasting color for the lines
-            dc.SetPen (*((GetBackgroundColour() == *wxWHITE)?
-                        wxMEDIUM_GREY_PEN : wxWHITE_PEN));
+            dc.SetPen(((GetBackgroundColour() == *wxWHITE) ?
+                       wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT) : *wxWHITE_PEN));
             dc.DrawLine(0, y_top, total_width, y_top);
             dc.DrawLine(0, y, total_width, y);
         }

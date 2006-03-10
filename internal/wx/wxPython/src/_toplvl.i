@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     27-Aug-1998
-// RCS-ID:      $Id: _toplvl.i,v 1.31 2006/02/10 19:16:20 vell Exp $
+// RCS-ID:      $Id: _toplvl.i,v 1.32 2006/03/08 03:06:25 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -134,7 +134,16 @@ public:
     virtual bool IsActive();
 
 #ifdef __WXMAC__
-    void MacSetMetalAppearance( bool on );
+    %extend {
+        void MacSetMetalAppearance( bool on ) {
+            int style = self->GetExtraStyle();
+            if ( on )
+                style |= wxFRAME_EX_METAL;
+            else
+                style &= ~wxFRAME_EX_METAL;
+            self->SetExtraStyle(style);
+        }
+    }
     bool MacGetMetalAppearance() const;
 #else
     %extend
