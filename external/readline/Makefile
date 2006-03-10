@@ -38,7 +38,7 @@ endif
 binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/libreadline* \
+          $(SNAP)/lib/libreadline*.dylib \
           --exclude '*.a'
 
 upload: readline-$(SNAP)-$(RELVER).tar.gz
