@@ -438,10 +438,10 @@ def initCrypto(profileDir):
     @param profileDir: The profile directory. Additional entropy will be loaded
                        from a file in this directory. It is not a fatal error
                        if the file does not exist.
-    @warning: XXX [i18n] M2Crypto can not handle unicode
+    @return:           The number of bytes read from file.
     """
     m2threading.init()
-    Rand.load_file(_randpoolPath(profileDir), -1)
+    return Rand.load_file(_randpoolPath(profileDir), -1)
 
 
 def stopCrypto(profileDir):
@@ -452,12 +452,14 @@ def stopCrypto(profileDir):
     @param profileDir: The profile directory. A snapshot of current entropy
                        state will be saved into a file in this directory. 
                        It is not a fatal error if the file cannot be created.
-    @warning: XXX [i18n] M2Crypto can not handle unicode
+    @return:           The number of bytes saved to file.
     """
     from osaf.framework.certstore import utils
+    ret = 0
     if utils.entropyInitialized:
-        Rand.save_file(_randpoolPath(profileDir))
+        ret = Rand.save_file(_randpoolPath(profileDir))
     m2threading.cleanup()
+    return ret
 
 
 class CertificateVerificationError(Exception):
