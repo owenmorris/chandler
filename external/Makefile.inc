@@ -1,5 +1,6 @@
 #-*- Mode: Makefile; -*-
 OS=$(shell uname)
+OS_VER=$(shell uname -r)
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
 OS=Cygwin
@@ -8,6 +9,8 @@ endif
 ifeq ($(findstring WINNT,$(OS)),WINNT)
 OS=Cygwin
 endif
+
+OS_MAJOR_VER=$(firstword $(subst ., ,$(OS_VER)))
 
 ifeq ($(DEBUG),1)
 SNAP=debug
@@ -229,6 +232,9 @@ $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
 endif
 
 compilers: $(compiler)
+
+print-%:
+	@echo $* = $($*)
 
 _realclean::
 	@if [ "$(SRC)" = "" ]; then \
