@@ -2,11 +2,11 @@
 include ../Makefile.inc
 
 VERSION=5.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 BUILD=build_$(SNAP)
 READLINE=$(BUILD_ROOT)/readline
 SRC=$(READLINE)/$(BUILD)
-SRC_BUILD=$(SRC)/readline-$(VERSION)  
+SRC_BUILD=$(SRC)/readline-$(VERSION)
 
 .PHONY: readline
 
@@ -26,10 +26,10 @@ clean:
 	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
 endif
 
-ifeq ($(strip $(OS_VERSION)),8.0.0) 
+ifeq ($(OS_MAJOR_VER),8)
 apply:
 	mv $(SRC_BUILD)/shlib/Makefile $(SRC_BUILD)/shlib/Makefile.backup
-	sed -e 's/-dynamic /-dynamiclib /' $(SRC_BUILD)/shlib/Makefile.backup > $(SRC_BUILD)/shlib/Makefile
+	sed -e 's/ -dynamic/ -dynamiclib/' $(SRC_BUILD)/shlib/Makefile.backup > $(SRC_BUILD)/shlib/Makefile
 else
 # Nothing to do
 apply:
@@ -39,6 +39,7 @@ binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/lib/libreadline*.dylib \
+          $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/lib-dynload/readline.so \
           --exclude '*.a'
 
 upload: readline-$(SNAP)-$(RELVER).tar.gz
