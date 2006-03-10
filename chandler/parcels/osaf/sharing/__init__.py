@@ -61,7 +61,7 @@ CALDAVFILTER = [
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-PUBLISH_MONOLITHIC_ICS = False
+PUBLISH_MONOLITHIC_ICS = True
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -328,23 +328,24 @@ def publish(collection, account, classesToInclude=None,
 
                 if PUBLISH_MONOLITHIC_ICS:
                     icsShareName = u"%s.ics" % shareName
-                    share = _newOutboundShare(view, collection,
+                    icsShare = _newOutboundShare(view, collection,
                                              classesToInclude=classesToInclude,
                                              shareName=icsShareName,
                                              displayName=displayName,
                                              account=account)
-                    shares.append(share)
-                    share.displayName = u"%s.ics" % displayName
-                    share.format = ICalendarFormat(itsParent=share)
-                    share.mode = "put"
+                    shares.append(icsShare)
+                    icsShare.follows = share
+                    icsShare.displayName = u"%s.ics" % displayName
+                    icsShare.format = ICalendarFormat(itsParent=icsShare)
+                    icsShare.mode = "put"
 
-                    if share.exists():
+                    if icsShare.exists():
                         raise SharingError(_(u"Share already exists"))
 
-                    share.create()
-                    share.put(updateCallback=callback)
+                    icsShare.create()
+                    icsShare.put(updateCallback=callback)
                     if supportsTickets:
-                        share.conduit.createTickets()
+                        icsShare.conduit.createTickets()
 
     except (SharingError,
             zanshin.error.Error,
