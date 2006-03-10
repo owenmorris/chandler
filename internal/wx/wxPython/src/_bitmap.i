@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     7-July-1997
-// RCS-ID:      $Id: _bitmap.i,v 1.17 2006/02/24 01:11:56 RD Exp $
+// RCS-ID:      $Id: _bitmap.i,v 1.18 2006/03/10 00:27:37 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -201,6 +201,7 @@ bitmap. This preserves mask information so that bitmaps and images can
 be converted back and forth without loss in that respect.", "");
     
 
+    
     DocDeclStr(
         virtual wxMask* , GetMask() const,
         "Gets the associated mask (if any) which may have been loaded from a
@@ -211,13 +212,14 @@ file or explpicitly set for the bitmap.
 
     // MSW only?    wxBitmap GetMaskBitmap() const;
 
+    %disownarg(wxMask*);
     DocDeclStr(
         virtual void , SetMask(wxMask* mask),
         "Sets the mask for this bitmap.
 
 :see: `GetMask`, `wx.Mask`
 ", "");
-    
+    %cleardisown(wxMask*);
     
     %extend {
         DocStr(SetMaskColour,
@@ -338,7 +340,7 @@ passed then BLACK is used.
         }
     }
     
-    //~wxMask();
+    ~wxMask();
 };
 
 %pythoncode { MaskColour = wx._deprecated(Mask, "wx.MaskColour is deprecated, use `wx.Mask` instead.") }

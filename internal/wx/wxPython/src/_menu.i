@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _menu.i,v 1.18 2006/01/29 02:09:25 RD Exp $
+// RCS-ID:      $Id: _menu.i,v 1.19 2006/03/10 00:27:37 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -55,15 +55,20 @@ public:
                                            wxMenu *submenu,
                                            const wxString& help = wxPyEmptyString));
 
+
+    %disownarg(wxMenuItem*);
     // the most generic form of Append() - append anything
     %Rename(AppendItem, wxMenuItem*, Append(wxMenuItem *item));
+    // insert an item before given position
+    %Rename(InsertItem, wxMenuItem*, Insert(size_t pos, wxMenuItem *item));
+    // prepend an item to the menu
+    %Rename(PrependItem,  wxMenuItem*, Prepend(wxMenuItem *item));
+    %cleardisown(wxMenuItem*);
+
 
     // insert a break in the menu (only works when appending the items, not
     // inserting them)
     virtual void Break();
-
-    // insert an item before given position
-    %Rename(InsertItem, wxMenuItem*, Insert(size_t pos, wxMenuItem *item));
 
     // insert an item before given position
     wxMenuItem* Insert(size_t pos,
@@ -94,9 +99,6 @@ public:
                                          wxMenu *submenu,
                                          const wxString& help = wxPyEmptyString));
 
-    // prepend an item to the menu
-    %Rename(PrependItem,  wxMenuItem*, Prepend(wxMenuItem *item));
-
     // prepend any item to the menu
     wxMenuItem* Prepend(int id,
                         const wxString& text,
@@ -122,9 +124,11 @@ public:
                                            wxMenu *submenu,
                                            const wxString& help = wxPyEmptyString));
 
+    
     // detach an item from the menu, but don't delete it so that it can be
     // added back later (but if it's not, the caller is responsible for
     // deleting it!)
+    %newobject Remove;
     wxMenuItem *Remove(int id);
     %Rename(RemoveItem,  wxMenuItem*, Remove(wxMenuItem *item));
 
@@ -323,6 +327,7 @@ public:
                const wxString& help = wxPyEmptyString,
                wxItemKind kind = wxITEM_NORMAL,
                wxMenu* subMenu = NULL);
+    ~wxMenuItem();
 
     // the menu we're in
     wxMenu *GetMenu() const;

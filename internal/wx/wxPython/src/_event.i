@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-May-1998
-// RCS-ID:      $Id: _event.i,v 1.28 2006/02/13 19:13:38 RD Exp $
+// RCS-ID:      $Id: _event.i,v 1.29 2006/03/10 00:24:32 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -567,6 +567,32 @@ radiobox selection (only if the event was a selection, not a
 deselection), or a boolean value representing the value of a checkbox.", "");
     
 
+     %extend {
+        DocStr(GetClientData,
+               "Returns the client data object for a listbox or choice selection event, (if any.)", "");
+        PyObject* GetClientData() {
+            wxPyClientData* data = (wxPyClientData*)self->GetClientObject();
+            if (data) {
+                Py_INCREF(data->m_obj);
+                return data->m_obj;
+            } else {
+                Py_INCREF(Py_None);
+                return Py_None;
+            }
+        }
+
+        DocStr(SetClientData,
+               "Associate the given client data with the item at position n.", "");
+        void SetClientData(PyObject* clientData) {
+            wxPyClientData* data = new wxPyClientData(clientData);
+            self->SetClientObject(data);
+        }
+    }
+    %pythoncode {
+         GetClientObject = GetClientData
+         SetClientObject = SetClientData
+    }
+             
     virtual wxEvent *Clone() const;
 
 };

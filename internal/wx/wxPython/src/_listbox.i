@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listbox.i,v 1.17 2006/01/29 02:09:26 RD Exp $
+// RCS-ID:      $Id: _listbox.i,v 1.18 2006/03/10 00:26:28 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -106,6 +106,8 @@ public:
     // return True if this listbox is sorted
     bool IsSorted() const;
 
+    // return the index of the item at this position or wxNOT_FOUND
+    int HitTest(const wxPoint& pt) const;
 
     %extend {
         void SetItemForegroundColour(int item, const wxColour& c) {
@@ -170,9 +172,6 @@ public:
     int GetItemHeight();
 #endif
 
-    // return the index of the item at this position or wxNOT_FOUND
-    int HitTest(const wxPoint& pt) const;
-    %Rename(HitTestXY, int, HitTest(wxCoord x, wxCoord y) const);
 };
 
 //---------------------------------------------------------------------------

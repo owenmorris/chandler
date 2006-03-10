@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _window.i,v 1.62 2006/02/11 19:45:38 RD Exp $
+// RCS-ID:      $Id: _window.i,v 1.63 2006/03/10 00:27:37 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1810,7 +1810,7 @@ Only functional on Windows.", "");
     // constraints and sizers
     // ----------------------
 
-    // set the constraints for this window or retrieve them (may be NULL)
+    %disownarg(wxLayoutConstraints*);
     DocDeclStr(
         void , SetConstraints( wxLayoutConstraints *constraints ),
         "Sets the window to have the given layout constraints. If an existing
@@ -1828,6 +1828,7 @@ effect.", "");
         wxLayoutConstraints *, GetConstraints() const,
         "Returns a pointer to the window's layout constraints, or None if there
 are none.", "");
+    %cleardisown(wxLayoutConstraints*);
     
 
     DocDeclStr(
