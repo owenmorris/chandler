@@ -2,7 +2,7 @@
 include ../Makefile.inc
 
 VERSION=5.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 BUILD=build_$(SNAP)
 READLINE=$(BUILD_ROOT)/readline
 SRC=$(READLINE)/$(BUILD)
@@ -10,7 +10,12 @@ SRC_BUILD=$(SRC)/readline-$(VERSION)
 
 .PHONY: readline
 
+MANIFEST=$(SNAP)/lib/libreadline*
+
 ifeq ($(OS),Darwin)
+
+MANIFEST:=$(MANIFEST) \
+          $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/lib-dynload/readline.*
 
 $(SRC)/Makefile:
 	cd $(SRC_BUILD); \
@@ -38,7 +43,7 @@ endif
 binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/lib/libreadline* \
+          $(MANIFEST) \
           --exclude '*.a'
 
 upload: readline-$(SNAP)-$(RELVER).tar.gz
