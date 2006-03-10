@@ -600,6 +600,55 @@ class CalendarEventHandler(object):
             self.blockItem.postEventByName("TimeZoneChange",
                                             {'tzinfo':newTZ})
 
+class CalendarNotificationHandler(object):
+    """
+    Mixin to a wx class to deal with item notifications
+    """
+    def __init__(self, *args, **kwds):
+        super(CalendarNotificationHandler, self).__init__(*args, **kwds)
+        self.pendingNewEvents = []
+    
+    def onItemNotification(self, notificationType, data):
+        if (notificationType == 'collectionChange'):
+            op, coll, name, item = data
+            if op == 'add':
+                self.pendingNewEvents.append(item)
+            
+    def GetPendingNewEvents(self, (startTime, endTime)):
+
+        # Helper method for optimizing the display of
+        # newly created events in various calendar widgets.
+        # (See Bug:4118).
+        # 
+        # The return value will be a list of all the non-recurring
+        # events that overlap the range between the datetime arguments
+        # startTime and endTime.
+        # 
+        # The idea is that you can call this from wxSynchronizeWidget(),
+        # and do a full redraw if you get back [], or do less work
+        # if you get a list of events.
+        #
+        # The returned list may be empty (e.g. if an event is added
+        # outside the given range). There is also no guarantee
+        # that any given element in the list appears only once.
+        # 
+        
+        addedEvents = []
+        for item in self.pendingNewEvents:
+            if (hasattr(item, 'startTime') and
+                hasattr(item, 'duration') and
+                (item.rruleset is None) ):
+
+                if not (Calendar.datetimeOp(item.startTime, '>', endTime) or
+                        Calendar.datetimeOp(item.endTime, '<', startTime)):
+                    addedEvents.append(item)
+
+        self.pendingNewEvents = []
+        return addedEvents
+
+    def HavePendingNewEvents(self):
+        return len(self.pendingNewEvents)>0
+
 
 # ATTENTION: do not put mixins here - put them in CollectionBlock
 # instead, to keep them more general
@@ -729,47 +778,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         # is that true?
         if not events.hasIndex('__adhoc__'):
             events.addIndex('__adhoc__', 'numeric')
-
-    def _getAddedEventsFromHints(self, (startTime, endTime), hints):
-
-        # Helper method for optimizing the display of
-        # newly created events in various calendar widgets.
-        # (See Bug:4118).
-        # 
-        # If the passed in dict of hints specifies only added
-        # events (i.e. 'op' is 'add'), the return value will
-        # be a list of all the non-recurring events that overlap
-        # the range between the datetime arguments startTime and
-        # endTime.
-        # 
-        # In all other cases (i.e. hints other than 'add', addition
-        # of recurring events) this method returns []
-        #
-        # The idea is that you can call this from wxSynchronizeWidget(),
-        # and do a full redraw if you get back None, or do less work
-        # if you get a list of events.
-        #
-        # The returned list may be empty (e.g. if an event is added
-        # outside the given range). There is also no guarantee
-        # that any given element in the list appears only once.
-        # 
-        
-        addedEvents = []
-        for notType, data in hints:
-            if notType == 'collectionChange':
-                op, coll, name, item  = data
-                
-                if ((op == 'add') and
-                    (item is not None) and
-                     hasattr(item, 'startTime') and
-                     hasattr(item, 'duration') and
-                     (item.rruleset is None) ):
-
-                     if not (Calendar.datetimeOp(item.startTime, '>', endTime) or
-                             Calendar.datetimeOp(item.endTime, '<', startTime)):
-                         addedEvents.append(item)
-
-        return addedEvents
 
 
     def setContentsOnBlock(self, *args, **kwds):
@@ -1087,7 +1095,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
 # ATTENTION: do not put mixins here - put them in wxCollectionCanvas
 # instead, to keep them more general
-class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
+class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection, 
     date ranges, and so forth
@@ -1097,7 +1105,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     legendBorderWidth = 3
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
-        self.hints = []
 
         self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
         
@@ -1309,13 +1316,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             return (drawInfo.columnPositions[dayStart + 1],
                     sum(drawInfo.columnWidths[dayStart + 1:dayEnd+2]))
 
-    def onItemNotification(self, notificationType, data):
-        # queue up notifications if the widget wants them
-        self.hints.append((notificationType,data))
-
     def wxSynchronizeWidget(self, useHints=False):
         # clear notifications
-        self.hints = []
+        self.pendingNewEvents = []
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):

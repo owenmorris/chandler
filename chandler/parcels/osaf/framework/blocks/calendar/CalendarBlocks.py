@@ -27,7 +27,8 @@ from PyICU import ICUtzinfo
 from i18n import OSAFMessageFactory as _
 
 
-class wxMiniCalendar(minical.PyMiniCalendar):
+class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
+                     minical.PyMiniCalendar):
 
     # Used to limit the frequency with which we repaint the minicalendar.
     # This used to be a real issue, but with the 0.6 notification system,
@@ -64,11 +65,7 @@ class wxMiniCalendar(minical.PyMiniCalendar):
         if isMainCalendarVisible() and self.blockItem.doSelectWeek:
             style |= minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
-        if useHints:
-            self.setFreeBusy(None, *self.hints)
-        else:
-            self.setFreeBusy(None)
-        self.hints = []
+        self.setFreeBusy(None, useHints)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -108,20 +105,19 @@ class wxMiniCalendar(minical.PyMiniCalendar):
 
         self.Refresh()
 
-    def setFreeBusy(self, event, *hints):
+    def setFreeBusy(self, event, useHints):
         
         if self._recalcCount == 0:
             start = self.GetStartDate();
+            start = datetime.combine(start, time())
 
             # ugh, why can't timedelta just support months?
             end = minical.MonthDelta(start, 3)
+            end = datetime.combine(end, time())
+            
+            if useHints and self.HavePendingNewEvents():
+                addedEvents = self.GetPendingNewEvents((start, end))
                 
-            addedEvents = self.blockItem._getAddedEventsFromHints((start, end),
-                                                                  hints)
-    
-            if len(addedEvents) == 0:
-                self._eventsToAdd = None
-            else:
                 # self._eventsToAdd is a set to deal with cases where
                 # multiple notifications are received for a given
                 # event.
@@ -130,6 +126,8 @@ class wxMiniCalendar(minical.PyMiniCalendar):
                 # Include confirmed events only
                 self._eventsToAdd.update(item for item in addedEvents if
                                          item.transparency == 'confirmed')
+            else:
+                self._eventsToAdd = None
 
         if self._eventsToAdd is None:
             self._recalcCount += 1
@@ -192,16 +190,13 @@ class wxMiniCalendar(minical.PyMiniCalendar):
                 busyFractions[offset] = min(fraction, 1.0)
                 
         if self._eventsToAdd is not None:
-        
             # First, set up busyFractions to contain the
             # existing values for all the dates of events
             # we're about to add
             for newEvent in self._eventsToAdd:
                 offset = (newEvent.startTime.date() - startDate).days
-                
-                currentAttr = self.GetAttr(offset)
-                if (currentAttr is not None):
-                    busyFractions[offset] = currentAttr.GetBusy()
+
+                busyFractions[offset] = self.GetBusy(newEvent.startTime.date())
 
             # Now, update them all
             for newEvent in self._eventsToAdd:
@@ -209,7 +204,7 @@ class wxMiniCalendar(minical.PyMiniCalendar):
                 
             # Finally, update the UI
             for offset, busy in busyFractions.iteritems():
-                eventDate = start + timedelta(days=offset)
+                eventDate = startDate + timedelta(days=offset)
                 self.SetBusy(eventDate, busy)
         
         else:
@@ -321,9 +316,6 @@ def isMainCalendarVisible():
 class MiniCalendar(CalendarCanvas.CalendarBlock):
     doSelectWeek = schema.One(schema.Boolean, initialValue = True)
     
-    def __init__(self, *arguments, **keywords):
-        super (MiniCalendar, self).__init__(*arguments, **keywords)
-
     def instantiateWidget(self):
         if '__WXMAC__' in wx.PlatformInfo:
             style = wx.BORDER_SIMPLE
@@ -385,7 +377,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
                              eventCharStyle = self.eventCharacterStyle)
 
 
-class wxPreviewArea(wx.Panel):
+class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
     vMargin = 4 # space above & below text
     hMargin = 6 # space on sides
     midMargin = 6 # space between time & date
@@ -530,16 +522,12 @@ class wxPreviewArea(wx.Panel):
             startDay = minical.widget.getSelectedDate()
         endDay = startDay + timedelta(days=1)
 
-        if useHints:
-            addedEvents = self.blockItem._getAddedEventsFromHints(
-                (startDay, endDay), self.hints)
-        else:
-            addedEvents = []
+        if useHints and self.HavePendingNewEvents():
+            addedEvents = self.GetPendingNewEvents((startDay, endDay))
             
-
-        if len(addedEvents) != 0:
             addedEvents = set(item for item in addedEvents
                                 if item.transparency == 'confirmed')
+
             if len(addedEvents) == 0:
                 return # No "interesting" new events
             for item in addedEvents:
@@ -554,7 +542,6 @@ class wxPreviewArea(wx.Panel):
         drawnHeight = self.Draw(dc)
         
         self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
-        self.hints = []
 
 
     @staticmethod

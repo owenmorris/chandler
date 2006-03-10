@@ -46,18 +46,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # The only hints we understand are event additions.
         # So, if any other kind of hints have been received,
         # fall back to a full synchronize.
-        if useHints:
-            addedEvents = self.blockItem._getAddedEventsFromHints(
-                currentRange,
-                self.hints)
-        else:
-            addedEvents = []
-        self.hints = []
-
+        
         numAdded = 0 # The events may not be timed, or may fall
                      # outside our range, etc,
                      
-        if len(addedEvents) != 0:
+        if useHints and self.HavePendingNewEvents():
+            addedEvents = self.GetPendingNewEvents(currentRange)
+            
             defaultTzinfo = ICUtzinfo.getDefault()
             
             def fixTimezone(d):
@@ -121,7 +116,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         self.RealignCanvasItems()
         self.Refresh()
-        
+
         if numAdded == 1:
             self.EditCurrentItem()
 
