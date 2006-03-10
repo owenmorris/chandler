@@ -268,6 +268,7 @@ class TestLogger:
             #change to fail if output detected on stderr
             if self.standardErr.hadError:
                 status = "FAIL"
+                self.Print(self.standardErr.text)
             # Tinderbox printing
             # compute the elapsed time in seconds
             elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
