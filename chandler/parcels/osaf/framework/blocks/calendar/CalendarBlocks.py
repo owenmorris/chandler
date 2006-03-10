@@ -65,10 +65,10 @@ class wxMiniCalendar(minical.PyMiniCalendar):
             style |= minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
         if useHints:
-            self.setFreeBusy(None, **self.hints)
+            self.setFreeBusy(None, *self.hints)
         else:
             self.setFreeBusy(None)
-        self.hints = {}
+        self.hints = []
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -108,7 +108,7 @@ class wxMiniCalendar(minical.PyMiniCalendar):
 
         self.Refresh()
 
-    def setFreeBusy(self, event, **hints):
+    def setFreeBusy(self, event, *hints):
         
         if self._recalcCount == 0:
             start = self.GetStartDate();
@@ -116,10 +116,10 @@ class wxMiniCalendar(minical.PyMiniCalendar):
             # ugh, why can't timedelta just support months?
             end = minical.MonthDelta(start, 3)
                 
-            addedEvents = self.blockItem._getAddedEventsFromHints(start, end,
-                                                              hints)
+            addedEvents = self.blockItem._getAddedEventsFromHints((start, end),
+                                                                  hints)
     
-            if addedEvents is None:
+            if len(addedEvents) == 0:
                 self._eventsToAdd = None
             else:
                 # self._eventsToAdd is a set to deal with cases where
@@ -518,8 +518,10 @@ class wxPreviewArea(wx.Panel):
         self.GetParent().GetParent().Thaw()
         
     def wxSynchronizeWidget(self, useHints=False):
-        # We now want the preview area to always appear.  If the calendar is visible, however, we always want the
-        # preview area to describe today, rather than the currently selected day.
+        # We now want the preview area to always appear.  If the
+        # calendar is visible, however, we always want the preview
+        # area to describe today, rather than the currently selected
+        # day.
         minical = Block.Block.findBlockByName("MiniCalendar")
         if isMainCalendarVisible() or not minical:
             today = datetime.today()
@@ -530,12 +532,12 @@ class wxPreviewArea(wx.Panel):
 
         if useHints:
             addedEvents = self.blockItem._getAddedEventsFromHints(
-                startDay, endDay, self.hints)
+                (startDay, endDay), self.hints)
         else:
-            addedEvents = None
+            addedEvents = []
             
 
-        if addedEvents is not None:
+        if len(addedEvents) != 0:
             addedEvents = set(item for item in addedEvents
                                 if item.transparency == 'confirmed')
             if len(addedEvents) == 0:
@@ -552,7 +554,7 @@ class wxPreviewArea(wx.Panel):
         drawnHeight = self.Draw(dc)
         
         self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
-        self.hints = {}
+        self.hints = []
 
 
     @staticmethod

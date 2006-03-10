@@ -138,19 +138,17 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # So, if any other kind of hints have been received,
         # fall back to a full synchronize.
         if useHints:
-            addedEvents = self.blockItem._getAddedEventsFromHints(
-                currentRange[0], currentRange[1],
-                self.hints)
+            addedEvents = self.blockItem._getAddedEventsFromHints(currentRange, self.hints)
+            
         else:
-            addedEvents = None
-        self.hints = {}
+            addedEvents = []
+        self.hints = []
 
-        if addedEvents is not None:
-            addedEvents = [event for event in addedEvents
-                              if self.blockItem.isDayItem(event)]
+        addedEvents = [event for event in addedEvents
+                       if self.blockItem.isDayItem(event)]
                                 
 
-        if addedEvents is None:
+        if len(addedEvents) == 0:
             self.visibleItems = list(
                 self.blockItem.getItemsInRange(currentRange, dayItems=True))
             self.RefreshCanvasItems(resort=True)

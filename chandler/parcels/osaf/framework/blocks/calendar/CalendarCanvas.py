@@ -90,7 +90,7 @@ def roundToColumnPosition(v, columnList):
     index = bisect(columnList, v)-1
     if index >= 0:
         return columnList[index]
-    
+
 class ColorInfo(object):
     def __init__(self, collection):
         assert hasattr (collection, 'color')
@@ -730,7 +730,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         if not events.hasIndex('__adhoc__'):
             events.addIndex('__adhoc__', 'numeric')
 
-    def _getAddedEventsFromHints(self, startTime, endTime, hints):
+    def _getAddedEventsFromHints(self, (startTime, endTime), hints):
 
         # Helper method for optimizing the display of
         # newly created events in various calendar widgets.
@@ -743,7 +743,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         # endTime.
         # 
         # In all other cases (i.e. hints other than 'add', addition
-        # of recurring events) this method returns None.
+        # of recurring events) this method returns []
         #
         # The idea is that you can call this from wxSynchronizeWidget(),
         # and do a full redraw if you get back None, or do less work
@@ -754,29 +754,21 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         # that any given element in the list appears only once.
         # 
         
-        addedEvents = None
-        
-        collectionChanges = hints.get('collectionChange', [])
-        for op, coll, name, item in collectionChanges:
-            if ( (op == 'add') and
-                 (item is not None) and
-                 hasattr(item, 'startTime') and
-                 hasattr(item, 'duration') and
-                 (item.rruleset is None) ):
-                 
-                 if addedEvents is None: addedEvents = []
-                 
-                 if not (Calendar.datetimeOp(item.startTime, '>', endTime) or
-                         Calendar.datetimeOp(item.endTime, '<', startTime)):
-                     addedEvents.append(item)
-            else:
-                # Something incomprehensible; toss the
-                # addedEvents and move on.
-                addedEvents = None
-                break
+        addedEvents = []
+        for notType, data in hints:
+            if notType == 'collectionChange':
+                op, coll, name, item  = data
+                
+                if ((op == 'add') and
+                    (item is not None) and
+                     hasattr(item, 'startTime') and
+                     hasattr(item, 'duration') and
+                     (item.rruleset is None) ):
 
-        #if addedEvents:
-        #    print "%s: Hints included %d events: %s" % (self.__class__.__name__, len(addedEvents), [e.displayName for e in addedEvents])
+                     if not (Calendar.datetimeOp(item.startTime, '>', endTime) or
+                             Calendar.datetimeOp(item.endTime, '<', startTime)):
+                         addedEvents.append(item)
+
         return addedEvents
 
 
@@ -1105,7 +1097,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     legendBorderWidth = 3
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
-        self.hints = {}
+        self.hints = []
 
         self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
         
@@ -1319,11 +1311,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def onItemNotification(self, notificationType, data):
         # queue up notifications if the widget wants them
-        self.hints.setdefault(notificationType, []).append(data)
+        self.hints.append((notificationType,data))
 
     def wxSynchronizeWidget(self, useHints=False):
         # clear notifications
-        self.hints = {}
+        self.hints = []
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):
