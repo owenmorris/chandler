@@ -3199,7 +3199,7 @@ msgid "PRC Envelope #10 324 x 458 mm"
 msgstr "中国标准信封10#, 324 x 458 毫米"
 
 #: ../src/common/paper.cpp:219
-msgid "PRC Envelope #10 Rotated 458 x 324 m"
+msgid "PRC Envelope #10 Rotated 458 x 324 mm"
 msgstr "中国标准信封10#(横向), 458 x 324 毫米"
 
 #: ../src/common/paper.cpp:198
@@ -3957,8 +3957,8 @@ msgid "There was a problem during page setup: you may need to set a default prin
 msgstr "在页面建立时发生问题: 您可能需要设置一台默认的打印机."
 
 #: ../src/msw/datectrl.cpp:109
-msgid ""
 msgid "This system doesn't support date picker control, please upgrade your version of comctl32.dll"
+msgstr "本系统不支持日期获取控制, 请升级您的comctl32.dll"
 
 #: ../src/msw/thread.cpp:1206
 msgid "Thread module initialization failed: can not store value in thread local storage"

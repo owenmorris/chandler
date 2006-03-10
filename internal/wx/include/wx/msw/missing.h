@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.59 2006/02/06 17:42:08 JS Exp $
+// RCS-ID:      $Id: missing.h,v 1.61 2006/03/07 19:53:43 ABX Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -138,6 +138,10 @@
     #define LVS_EX_SUBITEMIMAGES 0x00000002
 #endif
 
+#ifndef HDN_GETDISPINFOW
+    #define HDN_GETDISPINFOW (HDN_FIRST-29)
+#endif
+
  /*
   * In addition to the above, the following are required for several compilers.
   */
@@ -189,10 +193,22 @@
 
 #ifdef __DMC__
 
-#ifdef __DMC__
-    #ifndef _TrackMouseEvent
-        #define _TrackMouseEvent TrackMouseEvent
-    #endif
+typedef struct _OSVERSIONINFOEX {
+    DWORD dwOSVersionInfoSize;
+    DWORD dwMajorVersion;
+    DWORD dwMinorVersion;
+    DWORD dwBuildNumber;
+    DWORD dwPlatformId;
+    TCHAR szCSDVersion[ 128 ];
+    WORD  wServicePackMajor;
+    WORD  wServicePackMinor;
+    WORD  wSuiteMask;
+    BYTE  wProductType;
+    BYTE  wReserved;
+} OSVERSIONINFOEX;
+
+#ifndef _TrackMouseEvent
+    #define _TrackMouseEvent TrackMouseEvent
 #endif
 
 #ifndef LVM_SETEXTENDEDLISTVIEWSTYLE
@@ -212,10 +228,6 @@
     #define HDM_GETITEMRECT (HDM_FIRST+7)
 #endif
 
-#ifndef HDN_GETDISPINFOW
-    #define HDN_GETDISPINFOW (HDN_FIRST-29)
-#endif
-
 #ifndef ListView_GetHeader
     #define ListView_GetHeader(w) (HWND)SendMessage((w),LVM_GETHEADER,0,0)
 #endif
@@ -227,6 +239,10 @@
 #ifndef LVSICF_NOSCROLL
     #define LVSICF_NOINVALIDATEALL  0x0001
     #define LVSICF_NOSCROLL         0x0002
+#endif
+
+#ifndef CP_SYMBOL
+    #define CP_SYMBOL 42
 #endif
 
 // ----------------------------------------------------------------------------

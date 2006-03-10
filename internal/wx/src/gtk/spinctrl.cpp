@@ -3,7 +3,7 @@
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by:
-// RCS-ID:      $Id: spinctrl.cpp,v 1.45 2006/01/22 23:28:56 MR Exp $
+// RCS-ID:      $Id: spinctrl.cpp,v 1.46 2006/03/09 13:36:53 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,9 +24,6 @@
 //-----------------------------------------------------------------------------
 // idle system
 //-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 static const float sensitivity = 0.02;
 

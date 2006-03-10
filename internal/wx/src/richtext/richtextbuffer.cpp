@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextbuffer.cpp,v 1.26 2006/01/01 01:47:19 VZ Exp $
+// RCS-ID:      $Id: richtextbuffer.cpp,v 1.27 2006/03/08 00:09:37 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -589,10 +589,13 @@ bool wxRichTextParagraphLayoutBox::Layout(wxDC& dc, const wxRect& rect, int styl
         // Assume this box only contains paragraphs
 
         wxRichTextParagraph* child = wxDynamicCast(node->GetData(), wxRichTextParagraph);
-        wxASSERT (child != NULL);
+        wxCHECK_MSG( child, false, _T("Unknown object in layout") );
 
         // TODO: what if the child hasn't been laid out (e.g. involved in Undo) but still has 'old' lines
-        if (child && !forceQuickLayout && (layoutAll || child->GetLines().GetCount() == 0 || !child->GetRange().IsOutside(invalidRange)))
+        if ( !forceQuickLayout &&
+                (layoutAll ||
+                    child->GetLines().IsEmpty() ||
+                        !child->GetRange().IsOutside(invalidRange)) )
         {
             child->Layout(dc, availableSpace, style);
 

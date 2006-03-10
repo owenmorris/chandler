@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h,v 1.13 2005/11/09 09:44:27 SC Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.14 2006/02/28 01:33:54 KH Exp $
 // Copyright:   (c) 2001 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,6 @@ public:
     bool MacUsesCompositing() { return m_macUsesCompositing; }
     virtual void MacInstallTopLevelWindowEventHandler() ;
 
-    void MacSetMetalAppearance( bool on ) ;
     bool MacGetMetalAppearance() const ;
 
     void MacChangeWindowAttributes( wxUint32 attributesToSet , wxUint32 attributesToClear ) ;
@@ -132,6 +131,12 @@ protected:
 
     static wxTopLevelWindowMac *s_macDeactivateWindow;
 private :
+    // KH: We cannot let this be called directly since the metal appearance is now managed by an
+    // extra style. Calling this function directly can result in blank white window backgrounds.
+    // This is because the ExtraStyle flags get out of sync with the metal appearance and the metal
+    // logic & checks cease to work as expected. To set the metal appearance, use SetExtraStyle.
+    void MacSetMetalAppearance( bool on ) ;
+
     WXEVENTHANDLERREF    m_macEventHandler ;
 
     DECLARE_EVENT_TABLE()

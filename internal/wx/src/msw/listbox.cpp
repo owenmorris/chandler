@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (owner drawn stuff)
 // Created:
-// RCS-ID:      $Id: listbox.cpp,v 1.127 2005/12/25 02:34:42 VZ Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.128 2006/03/09 12:46:35 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -550,6 +550,16 @@ wxListBox::DoInsertItems(const wxArrayString& items, int pos)
     SetHorizontalExtent();
 
     InvalidateBestSize();
+}
+
+int wxListBox::DoListHitTest(const wxPoint& point) const
+{
+    LRESULT lRes =  ::SendMessage(GetHwnd(), LB_ITEMFROMPOINT, 
+                                  0L, MAKELONG(point.x, point.y));
+
+    // non zero high-order word means that this item is outside of the client
+    // area, IOW the point is outside of the listbox
+    return HIWORD(lRes) ? wxNOT_FOUND : lRes;
 }
 
 void wxListBox::SetString(int N, const wxString& s)

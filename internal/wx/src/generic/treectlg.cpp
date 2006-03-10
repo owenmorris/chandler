@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.184 2006/02/12 12:16:49 MW Exp $
+// Id:          $Id: treectlg.cpp,v 1.186 2006/03/07 22:56:11 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -199,9 +199,9 @@ public:
     wxGenericTreeItem *GetParent() const { return m_parent; }
 
     // operations
-        // deletes all children notifying the treectrl about it if !NULL
-        // pointer given
-    void DeleteChildren(wxGenericTreeCtrl *tree = NULL);
+
+    // deletes all children notifying the treectrl about it
+    void DeleteChildren(wxGenericTreeCtrl *tree);
 
     // get count of all children (and grand children if 'recursively')
     size_t GetChildrenCount(bool recursively = true) const;
@@ -548,11 +548,10 @@ void wxGenericTreeItem::DeleteChildren(wxGenericTreeCtrl *tree)
     for ( size_t n = 0; n < count; n++ )
     {
         wxGenericTreeItem *child = m_children[n];
-        if (tree)
-            tree->SendDeleteEvent(child);
+        tree->SendDeleteEvent(child);
 
         child->DeleteChildren(tree);
-        if (child == tree->m_select_me)
+        if ( child == tree->m_select_me )
             tree->m_select_me = NULL;
         delete child;
     }
@@ -3144,6 +3143,8 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
     }
     else if ( (event.LeftUp() || event.RightUp()) && m_isDragging )
     {
+        ReleaseMouse();
+
         // erase the highlighting
         DrawDropEffect(m_dropTarget);
 
@@ -3165,8 +3166,6 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
 
         m_isDragging = false;
         m_dropTarget = (wxGenericTreeItem *)NULL;
-
-        ReleaseMouse();
 
         SetCursor(m_oldCursor);
 

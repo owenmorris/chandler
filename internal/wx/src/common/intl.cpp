@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp,v 1.177 2006/01/18 16:45:37 JS Exp $
+// RCS-ID:      $Id: intl.cpp,v 1.178 2006/02/24 23:40:18 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1802,7 +1802,7 @@ bool wxLocale::Init(int language, int flags)
 
 #ifndef WX_NO_LOCALE_SUPPORT
     wxChar *szLocale = retloc ? wxStrdup(retloc) : NULL;
-    bool ret = Init(name, canonical, retloc,
+    bool ret = Init(name, canonical, szLocale,
                     (flags & wxLOCALE_LOAD_DEFAULT) != 0,
                     (flags & wxLOCALE_CONV_ENCODING) != 0);
     free(szLocale);
@@ -1811,7 +1811,7 @@ bool wxLocale::Init(int language, int flags)
         m_language = lang;
 
     return ret;
-#endif
+#endif // !WX_NO_LOCALE_SUPPORT
 }
 
 

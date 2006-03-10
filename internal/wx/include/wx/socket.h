@@ -4,7 +4,7 @@
 // Authors:     Guilhem Lavaux, Guillermo Rodriguez Garcia
 // Modified by:
 // Created:     April 1997
-// RCS-ID:      $Id: socket.h,v 1.68 2006/02/11 23:39:23 KH Exp $
+// RCS-ID:      $Id: socket.h,v 1.69 2006/02/28 02:04:27 KH Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ public:
   // addresses
   virtual bool GetLocal(wxSockAddress& addr_man) const;
   virtual bool GetPeer(wxSockAddress& addr_man) const;
-  virtual bool SetLocal(wxSockAddress& local);
+  virtual bool SetLocal(wxIPV4address& local);
 
   // base IO
   virtual bool  Close();
@@ -202,6 +202,7 @@ private:
   wxList        m_states;           // stack of states
   bool          m_interrupt;        // interrupt ongoing wait operations?
   bool          m_beingDeleted;     // marked for delayed deletion?
+  wxIPV4address m_localAddress;     // bind to local address?
 
   // pushback buffer
   void         *m_unread;           // pushback buffer

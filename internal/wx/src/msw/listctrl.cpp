@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.247 2006/02/14 03:49:18 VZ Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.254 2006/03/08 01:27:59 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2409,25 +2409,37 @@ static void HandleSubItemPrepaint(LPNMLVCUSTOMDRAW pLVCD, HFONT hfont)
     it.cchTextMax = WXSIZEOF(text);
     ListView_GetItem(hwndList, &it);
 
-    if ( it.iImage != -1 )
+    HIMAGELIST himl = ListView_GetImageList(hwndList, LVSIL_SMALL);
+    if ( himl && ImageList_GetImageCount(himl) )
     {
-        HIMAGELIST himl = ListView_GetImageList(hwndList, LVSIL_SMALL);
+        if ( it.iImage != -1 )
+        {
+            ImageList_Draw(himl, it.iImage, hdc, rc.left, rc.top,
+                           nmcd.uItemState & CDIS_SELECTED ? ILD_SELECTED
+                                                           : ILD_TRANSPARENT);
+        }
 
-        ImageList_Draw(himl, it.iImage, hdc, rc.left, rc.top,
-                       nmcd.uItemState & CDIS_SELECTED ? ILD_SELECTED
-                                                       : ILD_TRANSPARENT);
+        // notice that even if this item doesn't have any image, the list
+        // control still leaves space for the image in the first column if the
+        // image list is not empty (presumably so that items with and without
+        // images align?)
+        if ( it.iImage != -1 || it.iSubItem == 0 )
+        {
+            int wImage, hImage;
+            ImageList_GetIconSize(himl, &wImage, &hImage);
 
-        int wImage, hImage;
-        ImageList_GetIconSize(himl, &wImage, &hImage);
-
-        rc.left += wImage + 2;
+            rc.left += wImage + 2;
+        }
     }
 
     ::SetBkMode(hdc, TRANSPARENT);
 
     // TODO: support for centred/right aligned columns
     ::DrawText(hdc, text, -1, &rc,
-               DT_WORD_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
+#ifndef __WXWINCE__
+               DT_WORD_ELLIPSIS |
+#endif // __WXWINCE__
+               DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
 }
 
 static void HandleItemPostpaint(NMCUSTOMDRAW nmcd)
@@ -2446,7 +2458,8 @@ static void HandleItemPaint(LPNMLVCUSTOMDRAW pLVCD, HFONT hfont)
 {
     NMCUSTOMDRAW& nmcd = pLVCD->nmcd; // just a shortcut
 
-    HWND hwndList = nmcd.hdr.hwndFrom;
+    const HWND hwndList = nmcd.hdr.hwndFrom;
+    const int item = nmcd.dwItemSpec;
 
     // unfortunately we can't trust CDIS_SELECTED, it is often set even when
     // the item is not at all selected for some reason (comctl32 6), but we
@@ -2462,11 +2475,22 @@ static void HandleItemPaint(LPNMLVCUSTOMDRAW pLVCD, HFONT hfont)
             break;
         }
 
-        if ( (DWORD)i == nmcd.dwItemSpec )
+        if ( i == item )
         {
             nmcd.uItemState |= CDIS_SELECTED;
             break;
         }
+    }
+
+    // same thing for CDIS_FOCUS (except simpler as there is only one of them)
+    if ( ::GetFocus() == hwndList &&
+            ListView_GetNextItem(hwndList, -1, LVNI_FOCUSED) == item )
+    {
+        nmcd.uItemState |= CDIS_FOCUS;
+    }
+    else
+    {
+        nmcd.uItemState &= ~CDIS_FOCUS;
     }
 
     if ( nmcd.uItemState & CDIS_SELECTED )
@@ -2521,12 +2545,12 @@ static WXLPARAM HandleItemPrepaint(wxListCtrl *listctrl,
 
 
     // set the colours to use for text drawing
-    pLVCD->clrText = wxColourToRGB(attr->HasTextColour()
-                                    ? attr->GetTextColour()
-                                    : listctrl->GetTextColour());
-    pLVCD->clrTextBk = wxColourToRGB(attr->HasBackgroundColour()
-                                        ? attr->GetBackgroundColour()
-                                        : listctrl->GetBackgroundColour());
+    pLVCD->clrText = attr->HasTextColour()
+                     ? wxColourToRGB(attr->GetTextColour())
+                     : wxColourToRGB(listctrl->GetTextColour());
+    pLVCD->clrTextBk = attr->HasBackgroundColour()
+                       ? wxColourToRGB(attr->GetBackgroundColour())
+                       : wxColourToRGB(listctrl->GetBackgroundColour());
 
     // select the font if non default one is specified
     if ( attr->HasFont() )
@@ -2585,18 +2609,21 @@ WXLPARAM wxListCtrl::OnCustomDraw(WXLPARAM lParam)
 // Necessary for drawing hrules and vrules, if specified
 void wxListCtrl::OnPaint(wxPaintEvent& event)
 {
+    bool drawHRules = HasFlag(wxLC_HRULES);
+    bool drawVRules = HasFlag(wxLC_VRULES);
+
+    if (!InReportView() || !drawHRules && !drawVRules)
+    {
+        event.Skip();
+        return;
+    }
+
     wxPaintDC dc(this);
 
     wxControl::OnPaint(event);
 
     // Reset the device origin since it may have been set
     dc.SetDeviceOrigin(0, 0);
-
-    bool drawHRules = HasFlag(wxLC_HRULES);
-    bool drawVRules = HasFlag(wxLC_VRULES);
-
-    if (!InReportView() || !drawHRules && !drawVRules)
-        return;
 
     wxPen pen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT), 1, wxSOLID);
     dc.SetPen(pen);

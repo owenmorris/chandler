@@ -5,7 +5,7 @@
 // Created:    April 1997
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 2000-1999, Guillermo Rodriguez Garcia
-// RCS_ID:     $Id: socket.cpp,v 1.141 2006/02/16 08:49:46 JS Exp $
+// RCS_ID:     $Id: socket.cpp,v 1.142 2006/02/28 02:04:29 KH Exp $
 // License:    see wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1203,13 +1203,14 @@ bool wxSocketBase::SetOption(int level, int optname, const void *optval,
     return true;
 }
 
-bool wxSocketBase::SetLocal(wxSockAddress& local)
+bool wxSocketBase::SetLocal(wxIPV4address& local)
 {
   GAddress* la = local.GetAddress();
 
+  // If the address is valid, save it for use when we call Connect
   if (la && la->m_addr)
   {
-    m_socket->SetLocal(la);
+    m_localAddress = local;
 
     return true;
   }
@@ -1272,6 +1273,12 @@ bool wxSocketClient::DoConnect(wxSockAddress& addr_man, wxSockAddress* local, bo
   if (GetFlags() & wxSOCKET_REUSEADDR)
   {
     m_socket->SetReusable();
+  }
+
+  // If no local address was passed and one has been set, use the one that was Set
+  if (!local && m_localAddress.GetAddress())
+  {
+    local = &m_localAddress;
   }
 
   // Bind to the local IP address and port, when provided

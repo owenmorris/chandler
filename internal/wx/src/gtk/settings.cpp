@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified by: Mart Raudsepp (GetMetric)
-// Id:          $Id: settings.cpp,v 1.61 2006/01/22 20:29:16 MR Exp $
+// Id:          $Id: settings.cpp,v 1.62 2006/02/20 21:28:52 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,12 @@
 #include "wx/cmndata.h"
 #include "wx/fontutil.h"
 #include "wx/toplevel.h"
+
+// Using gtk_list_new, which is deprecated since GTK2
+// Using gtk_object_sink, which is deprecated since GTK+-2.9.0
+#ifdef GTK_DISABLE_DEPRECATED
+#undef GTK_DISABLE_DEPRECATED
+#endif
 
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>

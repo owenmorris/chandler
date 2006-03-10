@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.cpp,v 1.111 2005/12/21 16:11:58 VZ Exp $
+// RCS-ID:      $Id: dynlib.cpp,v 1.112 2006/03/07 23:55:23 VZ Exp $
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -245,8 +245,8 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
     {
         wxAppTraits *traits = wxAppConsole::GetInstance() ?
                               wxAppConsole::GetInstance()->GetTraits() : NULL;
-        wxASSERT_MSG( traits,
-               _("can't query for GUI plugins name in console applications") );
+        wxCHECK_MSG( traits, _T(""),
+                     _("can't query for GUI plugins name in console applications") );
         suffix = traits->GetToolkitInfo().shortName;
     }
 #if wxUSE_UNICODE

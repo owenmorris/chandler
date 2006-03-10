@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.355 2006/02/12 12:16:46 MW Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.357 2006/03/07 22:53:10 VZ Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1161,19 +1161,24 @@ void wxGridCellFloatEditor::SetParameters(const wxString& params)
 wxString wxGridCellFloatEditor::GetString() const
 {
     wxString fmt;
-    if ( m_width == -1 )
-    {
-        // default width/precision
-        fmt = _T("%f");
-    }
-    else if ( m_precision == -1 )
+    if ( m_precision == -1 && m_width != -1)
     {
         // default precision
         fmt.Printf(_T("%%%d.f"), m_width);
     }
-    else
+    else if ( m_precision != -1 && m_width == -1)
+    {
+        // default width
+        fmt.Printf(_T("%%.%df"), m_precision);
+    }
+    else if ( m_precision != -1 && m_width != -1 )
     {
         fmt.Printf(_T("%%%d.%df"), m_width, m_precision);
+    }
+    else
+    {
+        // default width/precision
+        fmt = _T("%f");
     }
 
     return wxString::Format(fmt, m_valueOld);
@@ -5871,7 +5876,7 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
         // Dragging on the corner of a cell to resize in both
         // directions is not implemented yet...
         //
-        if ( dragRow >= 0  &&  dragCol >= 0 )
+        if ( dragRow >= 0 && dragCol >= 0 )
         {
             ChangeCursorMode(WXGRID_CURSOR_SELECT_CELL);
             return;
@@ -5886,16 +5891,8 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                 if ( CanDragRowSize() && CanDragGridSize() )
                     ChangeCursorMode(WXGRID_CURSOR_RESIZE_ROW);
             }
-
-            if ( dragCol >= 0 )
-            {
-                m_dragRowOrCol = dragCol;
-            }
-
-            return;
         }
-
-        if ( dragCol >= 0 )
+        else if ( dragCol >= 0 )
         {
             m_dragRowOrCol = dragCol;
 
@@ -5904,15 +5901,13 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                 if ( CanDragColSize() && CanDragGridSize() )
                     ChangeCursorMode(WXGRID_CURSOR_RESIZE_COL);
             }
-
-            return;
         }
-
-        // Neither on a row or col edge
-        //
-        if ( m_cursorMode != WXGRID_CURSOR_SELECT_CELL )
+        else // Neither on a row or col edge
         {
-            ChangeCursorMode(WXGRID_CURSOR_SELECT_CELL);
+            if ( m_cursorMode != WXGRID_CURSOR_SELECT_CELL )
+            {
+                ChangeCursorMode(WXGRID_CURSOR_SELECT_CELL);
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
 // Name:        htmlwin.h
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.h,v 1.72 2006/02/11 17:17:08 VZ Exp $
+// RCS-ID:      $Id: htmlwin.h,v 1.73 2006/03/07 18:31:39 VS Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -269,9 +269,13 @@ protected:
     void StopAutoScrolling();
 #endif // wxUSE_CLIPBOARD
 
-protected:
     wxString DoSelectionToText(wxHtmlSelection *sel);
 
+private:
+    // implementation of SetPage()
+    bool DoSetPage(const wxString& source);
+
+protected:
     // This is pointer to the first cell in parsed data.  (Note: the first cell
     // is usually top one = all other cells are sub-cells of this one)
     wxHtmlContainerCell *m_Cell;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.cpp,v 1.257 2006/02/08 22:24:29 VZ Exp $
+// RCS-ID:      $Id: filefn.cpp,v 1.258 2006/02/27 15:14:27 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -251,7 +251,7 @@ wxString wxPathList::FindValidPath (const wxString& file)
 
   for (wxStringList::compatibility_iterator node = GetFirst(); node; node = node->GetNext())
     {
-      const wxChar *path = node->GetData();
+      const wxString path(node->GetData());
       wxStrcpy (wxFileFunctionsBuffer, path);
       wxChar ch = wxFileFunctionsBuffer[wxStrlen(wxFileFunctionsBuffer)-1];
       if (ch != wxT('\\') && ch != wxT('/'))

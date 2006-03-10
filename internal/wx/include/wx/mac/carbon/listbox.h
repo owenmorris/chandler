@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.h,v 1.16 2006/02/08 21:46:10 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.17 2006/03/09 12:46:23 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -113,6 +113,7 @@ protected:
     virtual void DoSetItemClientObject(int n, wxClientData* clientData);
     virtual wxClientData* DoGetItemClientObject(int n) const;
     virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
+    virtual int DoListHitTest(const wxPoint& point) const;
 
     void            MacDelete( int n ) ;
     void            MacInsert( int n , const wxString& item) ;

@@ -2,7 +2,7 @@
 // Name:        src/gtk/toplevel.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.cpp,v 1.100 2006/02/16 09:00:45 RR Exp $
+// Id:          $Id: toplevel.cpp,v 1.102 2006/03/09 13:36:53 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,13 +47,6 @@
 
 // XA_CARDINAL
 #include <X11/Xatom.h>
-
-// ----------------------------------------------------------------------------
-// idle system
-// ----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 // ----------------------------------------------------------------------------
 // data
@@ -265,7 +258,10 @@ static void gtk_frame_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation*
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WXUNUSED(event), wxTopLevelWindowGTK *win )
+static gboolean
+gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget),
+                           GdkEvent *WXUNUSED(event),
+                           wxTopLevelWindowGTK *win )
 {
     if (g_isIdle)
         wxapp_install_idle_handler();
@@ -285,8 +281,10 @@ static gint gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WX
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint
-gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget), GdkEventConfigure *WXUNUSED(event), wxTopLevelWindowGTK *win )
+static gboolean
+gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget),
+                              GdkEventConfigure *WXUNUSED(event),
+                              wxTopLevelWindowGTK *win )
 {
     if (g_isIdle)
         wxapp_install_idle_handler();
@@ -380,7 +378,10 @@ gtk_frame_unmap_callback( GtkWidget * WXUNUSED(widget),
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static int gtk_window_expose_callback( GtkWidget *widget, GdkEventExpose *gdk_event, wxWindow *win )
+static gboolean
+gtk_window_expose_callback( GtkWidget *widget,
+                            GdkEventExpose *gdk_event,
+                            wxWindow *win )
 {
     GtkPizza *pizza = GTK_PIZZA(widget);
 

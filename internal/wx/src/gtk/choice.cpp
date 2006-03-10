@@ -2,7 +2,7 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp,v 1.91 2006/02/03 23:07:20 MR Exp $
+// Id:          $Id: choice.cpp,v 1.93 2006/03/09 13:36:49 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,14 +14,15 @@
 #include "wx/choice.h"
 #include "wx/arrstr.h"
 
+// FIXME: We use GtkOptionMenu which has been deprecated since GTK+ 2.3.0 in
+// favour of GtkComboBox.
+// Later use GtkComboBox if GTK+ runtime version is new enough.
+#include <gtk/gtkversion.h>
+#if defined(GTK_DISABLE_DEPRECATED) && GTK_CHECK_VERSION(2,3,0)
+#undef GTK_DISABLE_DEPRECATED
+#endif
+
 #include "wx/gtk/private.h"
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data

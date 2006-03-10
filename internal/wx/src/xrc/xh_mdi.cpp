@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for dialogs
 // Author:      David M. Falkinder & Vaclav Slavik
 // Created:     14/02/2005
-// RCS-ID:      $Id: xh_mdi.cpp,v 1.6 2005/09/23 12:56:12 MR Exp $
+// RCS-ID:      $Id: xh_mdi.cpp,v 1.7 2006/03/08 00:03:15 VZ Exp $
 // Copyright:   (c) 2005 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,10 @@ wxWindow *wxMdiXmlHandler::CreateFrame()
         wxMDIParentFrame *mdiParent = wxDynamicCast(m_parent, wxMDIParentFrame);
 
         if ( !mdiParent )
-            wxLogError(wxT("Parent is not of type wxMDIParentFrame."));
+        {
+            wxLogError(wxT("Parent of wxMDIParentFrame must be wxMDIParentFrame."));
+            return NULL;
+        }
 
         XRC_MAKE_INSTANCE(frame, wxMDIChildFrame);
 

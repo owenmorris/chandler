@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.16 2006/02/12 13:01:07 VZ Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.17 2006/02/18 18:16:57 VZ Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -691,7 +691,7 @@ private:
 
 public:
     wxActiveXEvents(wxActiveXContainer *ax) : m_activeX(ax), m_haveCustomId(false) {}
-    wxActiveXEvents(wxActiveXContainer *ax, REFIID iid) : m_activeX(ax), m_haveCustomId(true), m_customId(iid) {}
+    wxActiveXEvents(wxActiveXContainer *ax, REFIID iid) : m_activeX(ax), m_customId(iid), m_haveCustomId(true) {}
     virtual ~wxActiveXEvents()
     {
     }

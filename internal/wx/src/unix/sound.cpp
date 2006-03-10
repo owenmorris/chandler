@@ -4,7 +4,7 @@
 // Author:      Marcel Rasche, Vaclav Slavik
 // Modified by:
 // Created:     25/10/98
-// RCS-ID:      $Id: sound.cpp,v 1.15 2006/01/26 16:50:16 ABX Exp $
+// RCS-ID:      $Id: sound.cpp,v 1.16 2006/03/07 23:18:20 VZ Exp $
 // Copyright:   (c) Julian Smart, Open Source Applications Foundation
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -467,12 +467,14 @@ bool wxSound::Create(const wxString& fileName,
     wxUint8 *data = new wxUint8[len];
     if ( fileWave.Read(data, len) != lenOrig )
     {
+        delete [] data;
         wxLogError(_("Couldn't load sound data from '%s'."), fileName.c_str());
         return false;
     }
 
     if (!LoadWAV(data, len, false))
     {
+        delete [] data;
         wxLogError(_("Sound file '%s' is in unsupported format."),
                    fileName.c_str());
         return false;

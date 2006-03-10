@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.cpp,v 1.109 2006/02/11 16:19:03 VZ Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.110 2006/03/02 20:00:13 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1554,10 +1554,6 @@ CMProfileRef wxMacOpenGenericProfile()
     return it whenever this function is called.
 */
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
-#define kCGColorSpaceGenericRGB   CFSTR("kCGColorSpaceGenericRGB")
-#endif
-
 CGColorSpaceRef wxMacGetGenericRGBColorSpace()
 {
     static wxMacCFRefHolder<CGColorSpaceRef> genericRGBColorSpace ;
@@ -1566,7 +1562,7 @@ CGColorSpaceRef wxMacGetGenericRGBColorSpace()
     {
         if ( UMAGetSystemVersion() >= 0x1040 )
         {
-            genericRGBColorSpace.Set( CGColorSpaceCreateWithName( kCGColorSpaceGenericRGB ) ) ;
+            genericRGBColorSpace.Set( CGColorSpaceCreateWithName( CFSTR("kCGColorSpaceGenericRGB") ) ) ;
         }
         else
         {

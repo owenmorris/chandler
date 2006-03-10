@@ -2,7 +2,7 @@
 // Name:        textctrl.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: textctrl.cpp,v 1.225 2006/02/09 03:53:16 VZ Exp $
+// Id:          $Id: textctrl.cpp,v 1.226 2006/03/09 13:36:53 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,13 +27,6 @@
 
 #include "wx/gtk/private.h"
 #include <gdk/gdkkeysyms.h>
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data

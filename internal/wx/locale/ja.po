@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: $Id: ja.po,v 1.17 2005/08/21 16:02:11 MBN Exp $\n"
+"Project-Id-Version: $Id: ja.po,v 1.18 2006/03/05 12:40:41 VZ Exp $\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2005-08-21 17:37+0200\n"
 "PO-Revision-Date: 2005-03-01 04:19+0900\n"
@@ -3134,7 +3134,7 @@ msgstr "C3 封筒, 324 x 458 mm"
 
 #: ../src/common/paper.cpp:219
 #, fuzzy
-msgid "PRC Envelope #10 Rotated 458 x 324 m"
+msgid "PRC Envelope #10 Rotated 458 x 324 mm"
 msgstr "C4 封筒, 229 x 324 mm"
 
 #: ../src/common/paper.cpp:198

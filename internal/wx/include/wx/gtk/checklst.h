@@ -3,7 +3,7 @@
 // Purpose:     wxCheckListBox class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: checklst.h,v 1.18 2005/09/23 12:49:13 MR Exp $
+// RCS-ID:      $Id: checklst.h,v 1.19 2006/03/01 21:51:38 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,6 +23,10 @@
 
     #define wxCHECKLBOX_STRING    _T("[ ] ")
 #endif
+
+//Use the native GTK2.0+ checklist?? You should say YYEEESS unless
+//there are like some major bugs or something :)
+#define wxUSE_NATIVEGTKCHECKLIST 1
 
 //-----------------------------------------------------------------------------
 // wxCheckListBox
@@ -53,6 +57,10 @@ public:
 
     int GetItemHeight() const;
     
+#if wxUSE_NATIVEGTKCHECKLIST
+    void DoCreateCheckList();
+#endif
+
 private:
     DECLARE_DYNAMIC_CLASS(wxCheckListBox)
 };

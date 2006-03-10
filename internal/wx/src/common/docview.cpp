@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.cpp,v 1.140 2005/11/03 16:47:27 ABX Exp $
+// RCS-ID:      $Id: docview.cpp,v 1.141 2006/02/21 19:53:31 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,6 +60,7 @@
 #include "wx/confbase.h"
 #include "wx/file.h"
 #include "wx/cmdproc.h"
+#include "wx/tokenzr.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -796,6 +797,17 @@ wxView *wxDocTemplate::CreateView(wxDocument *doc, long flags)
 // that of the template
 bool wxDocTemplate::FileMatchesTemplate(const wxString& path)
 {
+    wxStringTokenizer parser (GetFileFilter(), wxT(";"));
+    wxString anything = wxT ("*");
+    while (parser.HasMoreTokens())
+    {
+        wxString filter = parser.GetNextToken();
+        wxString filterExt = FindExtension (filter);
+        if ( filter.IsSameAs (anything)    ||
+             filterExt.IsSameAs (anything) ||
+             filterExt.IsSameAs (FindExtension (path)) )
+            return true;
+    }
     return GetDefaultExtension().IsSameAs(FindExtension(path));
 }
 

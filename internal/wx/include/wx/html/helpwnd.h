@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        helpwnd.h
+// Name:        wx/html/helpwnd.h
 // Purpose:     wxHtmlHelpWindow
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpwnd.h,v 1.4 2006/01/26 22:35:13 JS Exp $
+// RCS-ID:      $Id: helpwnd.h,v 1.5 2006/03/07 18:40:40 ABX Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -252,6 +252,8 @@ protected:
     int m_hfStyle;
 
 private:
+    void DoIndexFind();
+    void DoIndexAll();
     void DisplayIndexItem(const wxHtmlHelpMergedIndexItem *it);
     wxHtmlHelpMergedIndex *m_mergedIndex;
 
@@ -327,4 +329,3 @@ END_DECLARE_EVENT_TYPES()
 #endif // wxUSE_WXHTML_HELP
 
 #endif
-

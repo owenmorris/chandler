@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     30.10.2005
-// RCS-ID:      $Id: checklst.h,v 1.1 2005/11/05 22:49:30 ABX Exp $
+// RCS-ID:      $Id: checklst.h,v 1.2 2006/02/24 16:00:38 JS Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,6 +65,8 @@ public:
     virtual bool IsSelected(int n) const;
     virtual void SetString(int n, const wxString& s);
 
+    // Implementation
+    virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result);
 protected:
 
     void OnSize(wxSizeEvent& event);

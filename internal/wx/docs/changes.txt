@@ -89,6 +89,9 @@ All (GUI):
 - Added <disabled> XRC tag for wxToolBar elements and <bg> for wxToolBar itself.
 - Fixed centering of top level windows on secondary displays.
 - Implemented wxDisplay::GetFromWindow() for platforms other than MSW.
+- UpdateUI handler can now show/hide the window too (Ronald Weiss)
+- More than one filter allowed in in wxDocTemplate filter.
+- Added wxListBox::HitTest()
 
 wxMSW:
 
@@ -133,6 +136,8 @@ wxMSW:
 - Link oleacc.lib conditionally.
 - Drag and drop now works inside static boxes.
 - Fall back to unthemed wxNotebook if specified orientation not available.
+- wxListCtrl and wxTreeCtrl now resize their standard font if the user
+  changes the system font.
 
 wxGTK:
 
@@ -202,10 +207,13 @@ wxWinCE:
 - Checkable items in wxToolMenuBarTool supported.
 - Fixed date formatting and mktime.
 - Fixed getting standard folder paths on WinCE.
-- Support for backspace key on smartphone.
+- Support for backspace key on Smartphone.
 - Made both windows wxMediaCtrl Windows backends compilable with wxWinCE - it
   is recommended that you use wxMEDIABACKEND_WMP10 on this platform
   directly, however.
+- Added support for the context menu event (wxContextMenuEvent)
+  and added platform-specific wxWindow::EnableContextMenu.
+- Fixed wxGenericFileDialog to work with WinCE.
 
 wxUniv:
 

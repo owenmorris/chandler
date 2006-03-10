@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: Bakefiles.bkgen,v 1.19 2005/10/17 16:35:08 ABX Exp $ -->
+<!-- $Id: Bakefiles.bkgen,v 1.22 2006/03/07 06:29:02 KO Exp $ -->
 
 <bakefile-gen>
 
@@ -15,18 +15,17 @@
 
     Reasons why these formats are disabled (and so not in CVS):
 
-    dmars     - In beta testing, will be added when it stabilizes.
-    dmars_smake     - ditto
-    msevc4prj - ditto
     cbuilderx - Generated projects are too bad to be included in CVS. Please
                 *do not* enable this format until FIXMEs in .bkl files related
                 to cbuilderx are addressed. In particular, the project must
                 be placed into build/msw(?) directory and store object files
                 in its subdirectory and it must copy setup.h as others do.
     cbx_unix  - Doesn't integrate well and won't be used by most Unix people.
+    dmars, dmars_smake, msevc4prj - These are generated at release time and
+                we don't want to clutter the source tree with these files.
     -->
 
-    <disable-formats>dmars,dmars_smake,cbx_unix,cbuilderx,msevc4prj</disable-formats>
+    <disable-formats>dmars,dmars_smake,msevc4prj,cbx_unix,cbuilderx</disable-formats>
 
 
     <!-- These wildcards match all .bkl files in wxWidgets tree: -->

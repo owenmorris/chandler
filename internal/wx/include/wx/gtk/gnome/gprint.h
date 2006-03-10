@@ -3,7 +3,7 @@
 // Author:      Robert Roebling
 // Purpose:     GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id: gprint.h,v 1.11 2006/02/05 11:59:27 JG Exp $
+// RCS-ID:      $Id: gprint.h,v 1.12 2006/02/24 09:36:26 RR Exp $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -285,6 +285,8 @@ private:
     wxGnomePrinter         *m_printer;
     GnomePrintContext      *m_gpc;
 
+    void makeEllipticalPath(wxCoord x, wxCoord y, wxCoord width, wxCoord height);
+    
 private:
     wxCoord XDEV2LOG(wxCoord x) const
     {

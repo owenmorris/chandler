@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlg.cpp,v 1.137 2006/01/31 00:54:26 ABX Exp $
+// RCS-ID:      $Id: dirctrlg.cpp,v 1.139 2006/03/05 20:52:34 VZ Exp $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -118,12 +118,13 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
         name.Printf(wxT("%c:"), driveBuffer[i]);
 
 #if !defined(__WXWINCE__)
-        wxChar pname[52];
-        if (GetVolumeInformation( path.c_str(), pname, 52, NULL, NULL, NULL, NULL, 0 ))
+        wxChar pname[52]; // FIXME: why 52 and not MAX_PATH or whatever?
+        if ( GetVolumeInformation(path, pname, WXSIZEOF(pname),
+                                  NULL, NULL, NULL, NULL, 0) )
         {
-            name.Printf(wxT("%s %s"), (const wxChar*) name, pname );
+            name << _T(' ') << pname;
         }
-#endif
+#endif // __WXWINCE__
 
         int imageId;
         int driveType = ::GetDriveType(path);

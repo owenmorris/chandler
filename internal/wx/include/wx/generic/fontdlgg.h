@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: fontdlgg.h,v 1.20 2006/01/26 17:20:07 ABX Exp $
+// RCS-ID:      $Id: fontdlgg.h,v 1.22 2006/03/07 18:53:53 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,6 +17,13 @@
 #include "wx/font.h"
 #include "wx/dialog.h"
 #include "wx/cmndata.h"
+
+#ifdef __WXWINCE__
+#define USE_SPINCTRL_FOR_POINT_SIZE 1
+class WXDLLEXPORT wxSpinEvent;
+#else
+#define USE_SPINCTRL_FOR_POINT_SIZE 0
+#endif
 
 /*
  * FONT DIALOG
@@ -59,20 +66,32 @@ public:
 
     void OnChangeFont(wxCommandEvent& event);
 
+#if USE_SPINCTRL_FOR_POINT_SIZE
+    void OnChangeSize(wxSpinEvent& event);
+#endif
+
 protected:
-    // common part of all ctors
-    void Init();
 
     virtual bool DoCreate(wxWindow *parent);
 
-    wxFont dialogFont;
+private:
 
-    wxChoice *familyChoice;
-    wxChoice *styleChoice;
-    wxChoice *weightChoice;
-    wxChoice *colourChoice;
-    wxCheckBox *underLineCheckBox;
-    wxChoice   *pointSizeChoice;
+    // common part of all ctors
+    void Init();
+
+    void DoChangeFont();
+
+    wxFont m_dialogFont;
+
+    wxChoice *m_familyChoice;
+    wxChoice *m_styleChoice;
+    wxChoice *m_weightChoice;
+    wxChoice *m_colourChoice;
+    wxCheckBox *m_underLineCheckBox;
+
+#if !USE_SPINCTRL_FOR_POINT_SIZE
+    wxChoice   *m_pointSizeChoice;
+#endif
 
     wxFontPreviewer *m_previewer;
     bool       m_useEvents;

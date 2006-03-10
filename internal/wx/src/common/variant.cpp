@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/09/98
-// RCS-ID:      $Id: variant.cpp,v 1.73 2005/10/17 17:08:28 MW Exp $
+// RCS-ID:      $Id: variant.cpp,v 1.74 2006/03/07 14:52:33 JS Exp $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -470,7 +470,7 @@ bool wxVariantDataReal::Write(wxSTD ostream& str) const
 
 bool wxVariantDataReal::Write(wxString& str) const
 {
-    str.Printf(wxT("%.4f"), m_value);
+    str.Printf(wxT("%.14g"), m_value);
     return true;
 }
 

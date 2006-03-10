@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.03.02
-// RCS-ID:      $Id: private.h,v 1.16 2006/02/03 20:38:49 MR Exp $
+// RCS-ID:      $Id: private.h,v 1.19 2006/03/09 13:36:44 VZ Exp $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,14 +30,39 @@
     #define wxGTK_CONV_BACK(s)  wxConvLocal.cWC2WX( (wxConvUTF8.cMB2WC( s ) ) )
 #endif
 
-// FIXME: Make gtk2 only, so no macros needed - MR
-// GTK+ 2.0 compatibility define is broken when used from C++ as it
-// casts enum to int implicitly
-#undef gtk_signal_disconnect_by_func
-#define gtk_signal_disconnect_by_func(object,func,data) \
-    gtk_signal_compat_matched((object), (func), (data), \
-                              (GSignalMatchType)(G_SIGNAL_MATCH_FUNC | \
-                                                 G_SIGNAL_MATCH_DATA), 0)
+// Some deprecated GTK+ prototypes we still use often
+// FIXME: Don't use them if possible.
+G_BEGIN_DECLS
+
+// Should use gtk_image_new, but the mask seems to be handled different,
+// and we need to migrate
+GtkWidget* gtk_pixmap_new (GdkPixmap *pixmap,
+                           GdkBitmap *mask);
+
+// Deprecated since GTK+-1.3.7:
+// Trivial wrapper around gtk_window_move, with some side effects we seem to rely on
+void gtk_widget_set_uposition (GtkWidget *widget,
+                               gint      x,
+                               gint      y);
+
+// We rely on the allow_shrink parameter in one place
+void gtk_window_set_policy (GtkWindow *window,
+                            gint       allow_shrink,
+                            gint       allow_grow,
+                            gint       auto_shrink);
+
+G_END_DECLS
+
+//-----------------------------------------------------------------------------
+// idle system
+//-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
+
+//-----------------------------------------------------------------------------
+// GTK+ scroll types -> wxEventType
+//-----------------------------------------------------------------------------
 
 // translate a GTK+ scroll type to a wxEventType
 inline wxEventType GtkScrollTypeToWx(guint scrollType)
@@ -74,6 +99,11 @@ inline wxEventType GtkScrollWinTypeToWx(guint scrollType)
     return GtkScrollTypeToWx(scrollType) +
             wxEVT_SCROLLWIN_TOP - wxEVT_SCROLL_TOP;
 }
+
+
+//-----------------------------------------------------------------------------
+// Misc. functions
+//-----------------------------------------------------------------------------
 
 // Needed for implementing e.g. combobox on wxGTK within a modal dialog.
 void wxAddGrab(wxWindow* window);

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.05.02
-// RCS-ID:      $Id: fontdlg.h,v 1.30 2006/01/23 03:27:32 MR Exp $
+// RCS-ID:      $Id: fontdlg.h,v 1.31 2006/03/08 19:45:45 JS Exp $
 // Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,9 +75,6 @@ protected:
 
 #if defined(__WXUNIVERSAL__) || \
     defined(__WXMOTIF__)     || \
-    (defined(__WXMAC__) && !defined(__WXMAC_OSX__))  || \
-    (defined(__WXMAC__) && !USE_NATIVE_FONT_DIALOG_FOR_MACOSX)  || \
-    (defined(__WXMAC_OSX__) && ( MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_2 ) ) || \
     defined(__WXCOCOA__)     || \
     defined(__WXWINCE__)     || \
     defined(__WXGPE__)

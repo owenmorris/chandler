@@ -2,7 +2,7 @@
 // Name:        gtk/slider.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: slider.cpp,v 1.64 2006/02/03 20:38:54 MR Exp $
+// Id:          $Id: slider.cpp,v 1.66 2006/03/09 13:36:52 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,13 +17,6 @@
 #include "wx/utils.h"
 #include "wx/math.h"
 #include "wx/gtk/private.h"
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data
@@ -52,25 +45,34 @@ static inline int AdjustValueToInt(double x)
 static void
 ProcessScrollEvent(wxSlider *win, wxEventType evtType, double dvalue)
 {
-    int orient = win->GetWindowStyleFlag() & wxSL_VERTICAL ? wxVERTICAL
-                                                           : wxHORIZONTAL;
+    const int orient = win->HasFlag(wxSL_VERTICAL) ? wxVERTICAL
+                                                   : wxHORIZONTAL;
 
-    int value = (int)(dvalue < 0 ? dvalue - 0.5 : dvalue + 0.5);
-    wxScrollEvent event( evtType, win->GetId(), value, orient );
-    event.SetEventObject( win );
-    win->GetEventHandler()->ProcessEvent( event );
+    const int value = (int)(dvalue < 0 ? dvalue - 0.5 : dvalue + 0.5);
 
-    if ( evtType != wxEVT_SCROLL_THUMBTRACK )
+    // if we have any "special" event (i.e. the value changed by a line or a
+    // page), send this specific event first
+    if ( evtType != wxEVT_NULL )
     {
-        wxScrollEvent event2(wxEVT_SCROLL_CHANGED, win->GetId(), value, orient);
-        event2.SetEventObject( win );
-        win->GetEventHandler()->ProcessEvent( event2 );
+        wxScrollEvent event( evtType, win->GetId(), value, orient );
+        event.SetEventObject( win );
+        win->GetEventHandler()->ProcessEvent( event );
     }
 
-    wxCommandEvent cevent( wxEVT_COMMAND_SLIDER_UPDATED, win->GetId() );
-    cevent.SetEventObject( win );
-    cevent.SetInt( value );
-    win->GetEventHandler()->ProcessEvent( cevent );
+    // but, in any case, except if we're dragging the slider (and so the change
+    // is not definitive), send a generic "changed" event
+    if ( evtType != wxEVT_SCROLL_THUMBTRACK )
+    {
+        wxScrollEvent event(wxEVT_SCROLL_CHANGED, win->GetId(), value, orient);
+        event.SetEventObject( win );
+        win->GetEventHandler()->ProcessEvent( event );
+    }
+
+    // and also generate a command event for compatibility
+    wxCommandEvent event( wxEVT_COMMAND_SLIDER_UPDATED, win->GetId() );
+    event.SetEventObject( win );
+    event.SetInt( value );
+    win->GetEventHandler()->ProcessEvent( event );
 }
 
 //-----------------------------------------------------------------------------
@@ -107,6 +109,8 @@ static void gtk_slider_callback( GtkAdjustment *adjust,
         evtType = wxEVT_SCROLL_TOP;
     else if ( AreSameAdjustValues(adjust->value, adjust->upper) )
         evtType = wxEVT_SCROLL_BOTTOM;
+    else
+        evtType = wxEVT_NULL; // wxEVT_SCROLL_CHANGED will still be generated
 
     ProcessScrollEvent(win, evtType, dvalue);
 

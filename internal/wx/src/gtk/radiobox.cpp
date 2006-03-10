@@ -2,7 +2,7 @@
 // Name:        src/gtk/radiobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.cpp,v 1.112 2006/02/16 11:26:03 RR Exp $
+// Id:          $Id: radiobox.cpp,v 1.113 2006/03/09 13:36:52 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,13 +22,6 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "wx/gtk/win_gtk.h"
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data

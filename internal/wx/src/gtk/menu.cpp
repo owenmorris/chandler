@@ -2,7 +2,7 @@
 // Name:        menu.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.cpp,v 1.177 2006/02/09 22:19:14 MW Exp $
+// Id:          $Id: menu.cpp,v 1.178 2006/03/09 13:36:51 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,9 +47,6 @@ static const int wxGTK_TITLE_ID = -3;
 //-----------------------------------------------------------------------------
 // idle system
 //-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 #if wxUSE_ACCEL
 static wxString GetGtkHotKey( const wxMenuItem& item );

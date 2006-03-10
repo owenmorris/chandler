@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h,v 1.158 2006/02/08 21:46:23 VZ Exp $
+// RCS-ID:      $Id: window.h,v 1.161 2006/02/28 13:37:20 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -136,6 +136,11 @@ public:
     virtual bool RegisterHotKey(int hotkeyId, int modifiers, int keycode);
     virtual bool UnregisterHotKey(int hotkeyId);
 #endif // wxUSE_HOTKEY
+
+#ifdef __POCKETPC__
+    bool IsContextMenuEnabled() const { return m_contextMenuEnabled; }
+    void EnableContextMenu(bool enable = true) { m_contextMenuEnabled = enable; }
+#endif
 
     // window handle stuff
     // -------------------
@@ -299,6 +304,7 @@ public:
     bool HandleSysColorChange();
     bool HandleDisplayChange();
     bool HandleCaptureChanged(WXHWND gainedCapture);
+    virtual bool HandleSettingChange(WXWPARAM wParam, WXLPARAM lParam);
 
     bool HandleQueryEndSession(long logOff, bool *mayEnd);
     bool HandleEndSession(bool endSession, long logOff);
@@ -500,6 +506,10 @@ private:
     // this window before the group of deferred changes is completed.
     wxPoint     m_pendingPosition;
     wxSize      m_pendingSize;
+
+#ifdef __POCKETPC__
+    bool        m_contextMenuEnabled;
+#endif
 
     DECLARE_DYNAMIC_CLASS(wxWindowMSW)
     DECLARE_NO_COPY_CLASS(wxWindowMSW)

@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: window.tex,v 1.198 2006/02/13 15:18:35 VZ Exp $
+%% RCS-ID:      $Id: window.tex,v 1.199 2006/03/07 01:50:21 VZ Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -688,6 +688,10 @@ is a good idea to use it before doing many large text insertions in a row into
 a wxTextCtrl under wxGTK) but is not implemented on all platforms nor for all
 controls so it is mostly just a hint to wxWidgets and not a mandatory
 directive.
+
+\wxheading{See also}
+
+\helpref{wxWindowUpdateLocker}{wxwindowupdatelocker}
 
 
 \membersection{wxWindow::GetAcceleratorTable}\label{wxwindowgetacceleratortable}
@@ -3410,6 +3414,10 @@ done because it already was in the requested state.
 Reenables window updating after a previous call to
 \helpref{Freeze}{wxwindowfreeze}. To really thaw the control, it must be called
 exactly the same number of times as \helpref{Freeze}{wxwindowfreeze}.
+
+\wxheading{See also}
+
+\helpref{wxWindowUpdateLocker}{wxwindowupdatelocker}
 
 
 \membersection{wxWindow::TransferDataFromWindow}\label{wxwindowtransferdatafromwindow}

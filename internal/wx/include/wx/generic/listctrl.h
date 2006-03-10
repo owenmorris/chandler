@@ -3,7 +3,7 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.105 2006/02/13 00:49:20 VZ Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.107 2006/02/24 23:40:01 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,7 @@
 #include "wx/scrolwin.h"
 #include "wx/settings.h"
 #include "wx/listbase.h"
+#include "wx/textctrl.h"
 
 #if wxUSE_DRAG_AND_DROP
 class WXDLLEXPORT wxDropTarget;
@@ -138,8 +139,10 @@ public:
 
     void SetItemCount(long count);
 
-    void EditLabel( long item ) { Edit(item); }
-    void Edit( long item );
+    wxTextCtrl *EditLabel(long item,
+                          wxClassInfo* textControlClass = CLASSINFO(wxTextCtrl));
+    wxTextCtrl* GetEditControl() const;
+    void Edit( long item ) { EditLabel(item); }
 
     bool EnsureVisible( long item );
     long FindItem( long start, const wxString& str, bool partial = false );

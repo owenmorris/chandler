@@ -5,7 +5,7 @@
 // Modified by: VZ (23.11.00) to fix realloc()ing new[]ed memory,
 //                            general code review
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.cpp,v 1.100 2005/10/17 22:07:57 MW Exp $
+// RCS-ID:      $Id: stream.cpp,v 1.101 2006/03/07 23:02:33 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,10 @@ wxStreamBuffer::wxStreamBuffer(const wxStreamBuffer& buffer)
 void wxStreamBuffer::FreeBuffer()
 {
     if ( m_destroybuf )
+    {
         free(m_buffer_start);
+        m_buffer_start = NULL;
+    }
 }
 
 wxStreamBuffer::~wxStreamBuffer()
@@ -163,15 +166,15 @@ void wxStreamBuffer::SetBufferIO(void *start,
 
 void wxStreamBuffer::SetBufferIO(size_t bufsize)
 {
-    // start by freeing the old buffer
-    FreeBuffer();
-
     if ( bufsize )
     {
+        // this will free the old buffer and allocate the new one
         SetBufferIO(malloc(bufsize), bufsize, true /* take ownership */);
     }
     else // no buffer size => no buffer
     {
+        // still free the old one
+        FreeBuffer();
         InitBuffer();
     }
 }

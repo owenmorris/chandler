@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.2000
-// RCS-ID:      $Id: filename.cpp,v 1.165 2006/01/18 09:44:03 JS Exp $
+// RCS-ID:      $Id: filename.cpp,v 1.166 2006/03/02 12:45:50 JS Exp $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -621,7 +621,8 @@ wxFileName::CreateTempFileName(const wxString& prefix, wxFile *fileTemp)
     if (dir.empty())
     {
         // FIXME. Create \temp dir?
-        dir = wxT("\\");
+        if (DirExists(wxT("\\temp")))
+            dir = wxT("\\temp");
     }
     path = dir + wxT("\\") + name;
     int i = 1;

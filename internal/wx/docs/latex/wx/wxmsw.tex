@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: wxmsw.tex,v 1.23 2005/11/13 21:47:08 ABX Exp $
+%% RCS-ID:      $Id: wxmsw.tex,v 1.25 2006/03/06 10:44:30 JS Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -239,6 +239,14 @@ the Ctrl+Q accelerator can be used to quit the application, so wxWidgets
 defines this accelerator by default and if your application handles
 wxID\_EXIT, it will do the right thing.
 
+\subsubsection{Context menus in wxWinCE}
+
+To enable context menus in PocketPC, you currently need to call wxWindow::EnableContextMenu,
+a wxWinCE-only function. Otherwise the context menu event (wxContextMenuEvent) will
+never be sent. This API is subject to change.
+
+Context menus are not supported in Smartphone.
+
 \subsubsection{Control differences on wxWinCE}
 
 These controls and styles are specific to wxWinCE:
@@ -311,8 +319,11 @@ Allowing the user to access files on memory cards, or on arbitrary
 parts of the filesystem, is a pain; the standard file dialog only
 shows folders under My Documents or folders on memory cards
 (not the system or card root directory, for example). This is
-a known problem for PocketPC developers, and a wxFileDialog
-replacement will need to be written.
+a known problem for PocketPC developers.
+
+If you need a file dialog that allows access to all folders,
+you can use wxGenericFileDialog instead. You will need to include 
+{\tt wx/generic/filedlgg.h}.
 
 \subsubsection{Embedded Visual C++ Issues}
 
@@ -354,8 +365,6 @@ show the SIP automatically using the WC\_SIPREF control.
 the correct size on the emulator, but too small on a VGA Pocket Loox device.
 \item {\bf wxStaticLine.} Lines don't show up, and the documentation suggests that
 missing styles are implemented with WM\_PAINT.
-\item {\bf wxFileDialog.} A more flexible dialog needs to be written (probably using wxGenericFileDialog)
-that can access arbitrary locations.
 \item {\bf HTML control.} PocketPC has its own HTML control which can be used for showing
 local pages or navigating the web. We should create a version of wxHtmlWindow that uses this
 control, or have a separately-named control (wxHtmlCtrl), with a syntax as close as possible to wxHtmlWindow.

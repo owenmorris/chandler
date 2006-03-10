@@ -8,7 +8,7 @@
 //              3) Fixed ShowPage() bug on displaying bitmaps
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.cpp,v 1.69 2006/02/12 13:48:49 VZ Exp $
+// RCS-ID:      $Id: wizard.cpp,v 1.70 2006/03/07 23:24:55 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -780,10 +780,12 @@ void wxWizard::OnBackOrNext(wxCommandEvent& event)
                   (event.GetEventObject() == m_btnPrev),
                   wxT("unknown button") );
 
+    wxCHECK_RET( m_page, _T("should have a valid current page") );
+
     // ask the current page first: notice that we do it before calling
     // GetNext/Prev() because the data transfered from the controls of the page
     // may change the value returned by these methods
-    if ( m_page && (!m_page->Validate() || !m_page->TransferDataFromWindow()) )
+    if ( !m_page->Validate() || !m_page->TransferDataFromWindow() )
     {
         // the page data is incorrect, don't do anything
         return;

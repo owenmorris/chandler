@@ -2,7 +2,7 @@
 // Name:        app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp,v 1.217 2006/02/03 21:44:31 MR Exp $
+// Id:          $Id: app.cpp,v 1.220 2006/03/09 13:44:02 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,7 @@
 
 #include "wx/unix/private.h"
 #include "wx/gtk/win_gtk.h"
+#include "wx/gtk/private.h"
 
 #include <gtk/gtk.h>
 
@@ -89,8 +90,6 @@ static GtkWidget *gs_RootWindow = (GtkWidget*) NULL;
 //-----------------------------------------------------------------------------
 // idle system
 //-----------------------------------------------------------------------------
-
-extern bool g_isIdle;
 
 void wxapp_install_idle_handler();
 
@@ -249,17 +248,18 @@ static gint wxapp_idle_callback( gpointer WXUNUSED(data) )
         wxTheApp->m_idleTag = 0;
     }
 
+    bool moreIdles;
+
     // Send idle event to all who request them as long as
     // no events have popped up in the event queue.
-    while (wxTheApp->ProcessIdle() && (gtk_events_pending() == 0))
+    while ( (moreIdles = wxTheApp->ProcessIdle()) && gtk_events_pending() == 0)
         ;
 
     // Release lock again
     gdk_threads_leave();
 
-    // Return FALSE to indicate that no more idle events are
-    // to be sent (single shot instead of continuous stream).
-    return FALSE;
+    // Return FALSE if no more idle events are to be sent
+    return moreIdles;
 }
 
 #if wxUSE_THREADS

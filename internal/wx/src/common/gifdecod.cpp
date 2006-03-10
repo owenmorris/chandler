@@ -3,7 +3,7 @@
 // Purpose:     wxGIFDecoder, GIF reader for wxImage and wxAnimation
 // Author:      Guillermo Rodriguez Garcia <guille@iies.es>
 // Version:     3.04
-// RCS-ID:      $Id: gifdecod.cpp,v 1.41 2006/01/01 20:19:13 vell Exp $
+// RCS-ID:      $Id: gifdecod.cpp,v 1.42 2006/03/07 23:44:25 VZ Exp $
 // Copyright:   (c) Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -142,21 +142,18 @@ bool wxGIFDecoder::ConvertToImage(wxImage *image) const
         image->SetMask(false);
 
 #if wxUSE_PALETTE
-    if (pal)
+    unsigned char r[256];
+    unsigned char g[256];
+    unsigned char b[256];
+
+    for (i = 0; i < 256; i++)
     {
-        unsigned char r[256];
-        unsigned char g[256];
-        unsigned char b[256];
-
-        for (i = 0; i < 256; i++)
-        {
-            r[i] = pal[3*i + 0];
-            g[i] = pal[3*i + 1];
-            b[i] = pal[3*i + 2];
-        }
-
-        image->SetPalette(wxPalette(256, r, g, b));
+        r[i] = pal[3*i + 0];
+        g[i] = pal[3*i + 1];
+        b[i] = pal[3*i + 2];
     }
+
+    image->SetPalette(wxPalette(256, r, g, b));
 #endif // wxUSE_PALETTE
 
     /* copy image data */

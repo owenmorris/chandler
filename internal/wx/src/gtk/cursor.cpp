@@ -2,7 +2,7 @@
 // Name:        cursor.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: cursor.cpp,v 1.48 2006/02/09 00:49:18 VZ Exp $
+// Id:          $Id: cursor.cpp,v 1.49 2006/03/09 13:36:49 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,15 +14,10 @@
 #include "wx/utils.h"
 #include "wx/app.h"
 
+#include "wx/gtk/private.h" //for idle stuff
+
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // wxCursor

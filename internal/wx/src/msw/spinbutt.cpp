@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: spinbutt.cpp,v 1.65 2005/09/23 12:55:10 MR Exp $
+// RCS-ID:      $Id: spinbutt.cpp,v 1.66 2006/03/09 14:04:04 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,15 @@ IMPLEMENT_DYNAMIC_CLASS(wxSpinEvent, wxNotifyEvent)
 
 #include "wx/msw/private.h"
 #include "wx/msw/wrapcctl.h"
+
+#ifndef UDM_SETRANGE32
+    #define UDM_SETRANGE32 (WM_USER+111)
+#endif
+
+#ifndef UDM_SETPOS32
+    #define UDM_SETPOS32 (WM_USER+113)
+    #define UDM_GETPOS32 (WM_USER+114)
+#endif
 
 // ============================================================================
 // implementation

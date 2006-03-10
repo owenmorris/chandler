@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.cpp,v 1.59 2006/01/23 04:11:46 vell Exp $
+// RCS-ID:      $Id: mimetype.cpp,v 1.64 2006/03/09 19:08:38 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -123,6 +123,11 @@ public:
             s = m_commands[(size_t)n];
             if ( idx )
                 *idx = n;
+        }
+        else if ( idx )
+        {
+            // different from any valid index
+            *idx = (size_t)-1;
         }
 
         return s;
@@ -646,7 +651,9 @@ void wxMimeTypesManagerImpl::LoadGnomeDataFromKeyFile(const wxString& filename,
         nLine++;
     } // end of while, save any data
 
-    if (! curMimeType.empty())
+    if ( curMimeType.empty() )
+        delete entry;
+    else
         AddToMimeData( curMimeType, curIconFile, entry, strExtensions, strDesc);
 }
 
@@ -1398,13 +1405,17 @@ size_t wxFileTypeImpl::GetAllCommands(wxArrayString *verbs,
                  count++;
                  if ( vrb.IsSameAs(wxT("open")))
                  {
-                     verbs->Insert(vrb, 0u);
-                     commands ->Insert(cmd, 0u);
+                     if ( verbs )
+                        verbs->Insert(vrb, 0u);
+                     if ( commands )
+                        commands ->Insert(cmd, 0u);
                  }
                  else
                  {
-                     verbs->Add(vrb);
-                     commands->Add(cmd);
+                     if ( verbs )
+                        verbs->Add(vrb);
+                     if ( commands )
+                        commands->Add(cmd);
                  }
              }
         }
@@ -1465,17 +1476,16 @@ wxFileTypeImpl::SetCommand(const wxString& cmd,
     wxArrayString strExtensions;
     wxString strDesc, strIcon;
 
+    wxArrayString strTypes;
+    GetMimeTypes(strTypes);
+    if ( strTypes.IsEmpty() )
+        return false;
+
     wxMimeTypeCommands *entry = new wxMimeTypeCommands();
     entry->Add(verb + wxT("=")  + cmd + wxT(" %s "));
 
-    wxArrayString strTypes;
-    GetMimeTypes(strTypes);
-    if (strTypes.GetCount() < 1)
-        return false;
-
-    size_t i;
     bool ok = true;
-    for (i = 0; i < strTypes.GetCount(); i++)
+    for ( size_t i = 0; i < strTypes.GetCount(); i++ )
     {
         if (!m_manager->DoAssociation(strTypes[i], strIcon, entry, strExtensions, strDesc))
             ok = false;
@@ -1493,19 +1503,26 @@ bool wxFileTypeImpl::SetDefaultIcon(const wxString& strIcon, int WXUNUSED(index)
     wxArrayString strExtensions;
     wxString strDesc;
 
-    wxMimeTypeCommands *entry = new wxMimeTypeCommands();
-
     wxArrayString strTypes;
     GetMimeTypes(strTypes);
-    if (strTypes.GetCount() < 1)
+    if ( strTypes.IsEmpty() )
         return false;
 
-    size_t i;
+    wxMimeTypeCommands *entry = new wxMimeTypeCommands();
     bool ok = true;
-    for (i = 0; i < strTypes.GetCount(); i++)
+    for ( size_t i = 0; i < strTypes.GetCount(); i++ )
     {
-        if (!m_manager->DoAssociation(strTypes[i], strIcon, entry, strExtensions, strDesc))
+        if ( !m_manager->DoAssociation
+                         (
+                            strTypes[i],
+                            strIcon,
+                            entry,
+                            strExtensions,
+                            strDesc
+                         ) )
+        {
             ok = false;
+        }
     }
 
     return ok;

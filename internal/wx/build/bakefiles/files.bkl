@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.307 2006/02/10 19:37:21 VZ Exp $ -->
+<!-- $Id: files.bkl,v 1.313 2006/03/06 10:46:37 JS Exp $ -->
 <makefile>
 
 <!--
@@ -956,6 +956,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/gtk/tbargtk.cpp
     src/gtk/textctrl.cpp
     src/gtk/tglbtn.cpp
+    src/gtk/treeentry_gtk.c
     src/gtk/utilsres.cpp
 </set>
 <set var="GTK_HDR" hints="files">
@@ -1001,6 +1002,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/gtk/textctrl.h
     wx/gtk/tglbtn.h
     wx/gtk/treectrl.h
+    wx/gtk/treeentry_gtk.h
 </set>
 
 
@@ -1346,7 +1348,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/x11/gdiobj.cpp
     src/x11/gsockx11.cpp
     src/x11/icon.cpp
-    src/x11/main.cpp
     src/x11/minifram.cpp
     src/x11/nanox.c
     src/x11/palette.cpp
@@ -1648,6 +1649,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="WINCE_SRC" hints="files">
     src/generic/dirdlgg.cpp
     src/generic/fdrepdlg.cpp
+    src/generic/filedlgg.cpp
     src/generic/fontdlgg.cpp
     src/msw/wince/checklst.cpp
     src/msw/wince/choicece.cpp
@@ -1661,6 +1663,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 </set>
 <set var="WINCE_HDR" hints="files">
     wx/generic/fdrepdlg.h
+    wx/generic/filedlgg.h
     wx/generic/fontdlgg.h
     wx/msw/wince/checklst.h
     wx/msw/wince/choicece.h
@@ -1692,6 +1695,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/mgl/dcmemory.cpp
     src/mgl/dcscreen.cpp
     src/mgl/dirmgl.cpp
+    src/mgl/display.cpp
     src/mgl/evtloop.cpp
     src/mgl/font.cpp
     src/mgl/fontenum.cpp
@@ -1720,6 +1724,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/mgl/dcclient.h
     wx/mgl/dcmemory.h
     wx/mgl/dcscreen.h
+    wx/mgl/display.h
     wx/mgl/font.h
     wx/mgl/fontutil.h
     wx/mgl/gdiobj.h
@@ -2511,6 +2516,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <!-- ====================================================================== -->
 
 <set var="ADVANCED_CMN_SRC" hints="files">
+    src/common/datavcmn.cpp
     src/generic/calctrl.cpp
     src/generic/datectlg.cpp
     src/generic/minical.cpp
@@ -2534,6 +2540,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="ADVANCED_CMN_HDR" hints="files">
     wx/calctrl.h
+    wx/dataview.h
     wx/dateevt.h
     wx/dcbuffer.h
     wx/generic/calctrl.h
@@ -2570,6 +2577,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="ADVANCED_CMN_NATIVE_HDR" hints="files">
     wx/datectrl.h
+    wx/dataview.h
 </set>
 
 <set var="ADVANCED_MSW_SRC" hints="files">
@@ -2645,6 +2653,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="ADVANCED_GTK_SRC" hints="files">
     src/gtk/taskbar.cpp
+    src/gtk/dataview.cpp
     src/gtk/eggtrayicon.c
 </set>
 <set var="ADVANCED_GTK1_SRC" hints="files">

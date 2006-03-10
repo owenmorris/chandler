@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III
 // Modified by: Vadim Zeitlin (resolution changes, display modes, ...)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.h,v 1.21 2005/09/23 12:48:36 MR Exp $
+// RCS-ID:      $Id: display.h,v 1.22 2006/03/05 23:41:57 ABX Exp $
 // Copyright:   (c) 2002-2003 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -113,6 +113,8 @@ protected:
     #include "wx/mac/display.h"
 #elif defined(__WXPM__)
     #include "wx/os2/display.h"
+#elif defined(__WXMGL__)
+    #include "wx/mgl/display.h"
 #endif
 
 #endif // wxUSE_DISPLAY

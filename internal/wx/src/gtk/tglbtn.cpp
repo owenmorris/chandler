@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp,v 1.24 2006/02/03 22:58:26 MR Exp $
+// RCS-ID:      $Id: tglbtn.cpp,v 1.26 2006/03/09 13:36:53 VZ Exp $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,10 +18,14 @@
 
 #if wxUSE_TOGGLEBTN
 
+// FIXME: Use GtkImage instead of GtkPixmap.
+#include <gtk/gtkversion.h>
+#ifdef GTK_DISABLE_DEPRECATED
+#undef GTK_DISABLE_DEPRECATED
+#endif
+
 #include "wx/gtk/private.h"
 
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 extern bool      g_blockEventsOnDrag;
 extern wxCursor   g_globalCursor;
 

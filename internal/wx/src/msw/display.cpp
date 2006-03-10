@@ -5,7 +5,7 @@
 // Modified by: VZ (resolutions enumeration/change support, DirectDraw, ...)
 //              Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp,v 1.18 2005/12/10 14:40:26 ABX Exp $
+// RCS-ID:      $Id: display.cpp,v 1.19 2006/02/17 21:25:05 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,6 +58,19 @@
 
 #ifndef __WXWINCE__
     #include <multimon.h>
+
+    // HMONITOR can be declared either in new enough windef.h or in multimon.h
+    // itself if _WIN32_WINNT < 0x0500, but the trouble is that we set
+    // _WIN32_WINNT to maximal possible value ourselves in wx/msw/wrapwin.h so
+    // that multimon.h doesn't define it but with old headers, neither does
+    // windef.h, in spite of _WIN32_WINNT value. Even more unfortunately, we
+    // can't directly test whether HMONITOR is defined or not in windef.h as
+    // it's not a macro but a typedef, so we test for an unrelated symbol which
+    // is only defined in winuser.h if WINVER >= 0x0500
+    #if !defined(HMONITOR_DECLARED) && !defined(MNS_NOCHECK)
+        DECLARE_HANDLE(HMONITOR);
+        #define HMONITOR_DECLARED
+    #endif
 #endif // !__WXWINCE__
 
 #ifdef _MSC_VER

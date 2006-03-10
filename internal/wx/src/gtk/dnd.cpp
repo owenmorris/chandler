@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp,v 1.101 2006/02/03 21:51:21 MR Exp $
+// Id:          $Id: dnd.cpp,v 1.103 2006/03/09 13:36:50 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,20 +28,6 @@
 
 #include <gtk/gtkdnd.h>
 #include <gtk/gtkselection.h>
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
-
-//-----------------------------------------------------------------------------
-// thread system
-//-----------------------------------------------------------------------------
-
-#if wxUSE_THREADS
-#endif
 
 //----------------------------------------------------------------------------
 // global data

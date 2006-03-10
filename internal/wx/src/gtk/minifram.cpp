@@ -2,7 +2,7 @@
 // Name:        src/gtk/minifram.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: minifram.cpp,v 1.43 2006/02/04 13:06:06 MR Exp $
+// Id:          $Id: minifram.cpp,v 1.44 2006/03/09 13:36:51 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,13 +23,6 @@
 #include <gdk/gdk.h>
 #include <gdk/gdkprivate.h>
 #include <gdk/gdkx.h>
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data

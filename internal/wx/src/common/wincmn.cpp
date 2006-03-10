@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.252 2006/02/12 16:32:48 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.254 2006/03/04 20:34:12 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -446,8 +446,10 @@ void wxWindowBase::InvalidateBestSize()
     m_bestSizeCache = wxDefaultSize;
 
     // parent's best size calculation may depend on its children's
-    // best sizes, so let's invalidate it as well to be safe:
-    if (m_parent)
+    // as long as child window we are in is not top level window itself
+    // (because the TLW size is never resized automatically)
+    // so let's invalidate it as well to be safe:
+    if (m_parent && !IsTopLevel())
         m_parent->InvalidateBestSize();
 }
 

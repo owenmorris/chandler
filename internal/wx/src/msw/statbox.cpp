@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: statbox.cpp,v 1.85 2006/01/18 16:16:36 JS Exp $
+// RCS-ID:      $Id: statbox.cpp,v 1.86 2006/02/23 13:50:39 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -386,7 +386,7 @@ void wxStaticBox::PaintForeground(wxDC& dc, const RECT& WXUNUSED(rc))
         const int x = 9;
 
         // TODO: RTL?
-        RECT rc = { x, 0, GetSize().x - x, y };
+        RECT rc = { x, 0, GetSize().x, y };
 
         const wxString label = GetLabel();
         ::DrawText(hdc, label, label.length(), &rc, DT_SINGLELINE | DT_VCENTER);

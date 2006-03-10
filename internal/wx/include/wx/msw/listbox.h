@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listbox.h,v 1.46 2006/02/08 21:46:20 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.47 2006/03/09 12:46:24 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -142,6 +142,7 @@ protected:
     virtual void* DoGetItemClientData(int n) const;
     virtual void DoSetItemClientObject(int n, wxClientData* clientData);
     virtual wxClientData* DoGetItemClientObject(int n) const;
+    virtual int DoListHitTest(const wxPoint& point) const;
 
     // free memory (common part of Clear() and dtor)
     void Free();

@@ -2,7 +2,7 @@
 // Name:        htmlpars.cpp
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.cpp,v 1.51 2005/09/25 19:59:09 VZ Exp $
+// RCS-ID:      $Id: htmlpars.cpp,v 1.53 2006/03/09 14:15:07 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -491,7 +491,8 @@ wxString wxHtmlEntitiesParser::Parse(const wxString& input)
         {
             if (c - last > 0)
                 output.append(last, c - last);
-            if (++c == wxT('\0')) break;
+            if ( *++c == wxT('\0') )
+                break;
 
             wxString entity;
             const wxChar *ent_s = c;
@@ -833,11 +834,24 @@ wxChar wxHtmlEntitiesParser::GetEntityChar(const wxString& entity)
             while (substitutions[substitutions_cnt].code != 0)
                 substitutions_cnt++;
 
-        wxHtmlEntityInfo *info;
+        wxHtmlEntityInfo *info = NULL;
+#ifdef __WXWINCE__
+        // bsearch crashes under WinCE for some reason
+        size_t i;
+        for (i = 0; i < substitutions_cnt; i++)
+        {
+            if (entity == substitutions[i].name)
+            {
+                info = & substitutions[i];
+                break;
+            }
+        }
+#else
         info = (wxHtmlEntityInfo*) bsearch(entity.c_str(), substitutions,
                                            substitutions_cnt,
                                            sizeof(wxHtmlEntityInfo),
                                            wxHtmlEntityCompare);
+#endif
         if (info)
             code = info->code;
     }

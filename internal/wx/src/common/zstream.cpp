@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mike Wetherell
 // Created:     11/07/98
-// RCS-ID:      $Id: zstream.cpp,v 1.54 2005/12/18 13:51:24 MW Exp $
+// RCS-ID:      $Id: zstream.cpp,v 1.56 2006/03/07 23:40:06 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -283,7 +283,11 @@ size_t wxZlibOutputStream::OnSysWrite(const void *buffer, size_t size)
   wxASSERT_MSG(m_deflate && m_z_buffer, wxT("Deflate stream not open"));
 
   if (!m_deflate || !m_z_buffer)
+  {
+    // notice that this will make IsOk() test just below return false
     m_lasterror = wxSTREAM_WRITE_ERROR;
+  }
+
   if (!IsOk() || !size)
     return 0;
 

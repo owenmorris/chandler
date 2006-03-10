@@ -3,7 +3,7 @@
 // Purpose:     GTK toolbar
 // Author:      Robert Roebling
 // Modified:    13.12.99 by VZ to derive from wxToolBarBase
-// RCS-ID:      $Id: tbargtk.cpp,v 1.106 2006/02/03 22:53:37 MR Exp $
+// RCS-ID:      $Id: tbargtk.cpp,v 1.108 2006/03/09 13:36:53 VZ Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,16 +25,18 @@
 
 #include "wx/frame.h"
 
-#include <glib.h>
+// FIXME: Use GtkImage instead of GtkPixmap. Use the new toolbar API for when gtk runtime is new enough?
+// Beware that the new and old toolbar API may not be mixed in usage.
+#include <gtk/gtkversion.h>
+#ifdef GTK_DISABLE_DEPRECATED
+#undef GTK_DISABLE_DEPRECATED
+#endif
+
 #include "wx/gtk/private.h"
 
 // ----------------------------------------------------------------------------
 // globals
 // ----------------------------------------------------------------------------
-
-// idle system
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
 
 // data
 extern bool       g_blockEventsOnDrag;

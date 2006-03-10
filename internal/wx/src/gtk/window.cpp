@@ -2,7 +2,7 @@
 // Name:        gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.577 2006/02/16 09:00:44 RR Exp $
+// Id:          $Id: window.cpp,v 1.583 2006/03/09 13:36:53 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,9 @@
 #include "wx/msgdlg.h"
 #include "wx/module.h"
 #include "wx/combobox.h"
+#if wxUSE_TOOLBAR_NATIVE
+#include "wx/toolbar.h"
+#endif
 
 #if wxUSE_DRAG_AND_DROP
     #include "wx/dnd.h"
@@ -55,6 +58,12 @@
 
 #include "wx/math.h"
 #include <ctype.h>
+
+// FIXME: Due to a hack we use GtkCombo in here, which is deprecated since gtk2.3.0
+#include <gtk/gtkversion.h>
+#if defined(GTK_DISABLE_DEPRECATED) && GTK_CHECK_VERSION(2,3,0)
+#undef GTK_DISABLE_DEPRECATED
+#endif
 
 #include "wx/gtk/private.h"
 #include <gdk/gdkprivate.h>
@@ -274,13 +283,6 @@ gdk_window_warp_pointer (GdkWindow      *window,
 }
 
 //-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
-
-//-----------------------------------------------------------------------------
 // local code (see below)
 //-----------------------------------------------------------------------------
 
@@ -400,7 +402,10 @@ static void draw_frame( GtkWidget *widget, wxWindowGTK *win )
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_own_expose_callback( GtkWidget *widget, GdkEventExpose *gdk_event, wxWindowGTK *win )
+static gboolean
+gtk_window_own_expose_callback( GtkWidget *widget,
+                                GdkEventExpose *gdk_event,
+                                wxWindowGTK *win )
 {
     if (gdk_event->count > 0) return FALSE;
 
@@ -468,9 +473,10 @@ void wxgtk_combo_size_request_callback(GtkWidget *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static int gtk_window_expose_callback( GtkWidget *widget,
-                                       GdkEventExpose *gdk_event,
-                                       wxWindow *win )
+static gboolean
+gtk_window_expose_callback( GtkWidget *widget,
+                            GdkEventExpose *gdk_event,
+                            wxWindow *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -831,10 +837,6 @@ static void wxFillOtherKeyEventFields(wxKeyEvent& event,
     event.m_rawFlags = 0;
 #if wxUSE_UNICODE
     event.m_uniChar = gdk_keyval_to_unicode(gdk_event->keyval);
-    if ( gdk_event->type == GDK_KEY_PRESS ||  gdk_event->type == GDK_KEY_RELEASE )
-    {
-        event.m_uniChar = toupper(event.m_uniChar);
-    }
 #endif
     wxGetMousePosition( &x, &y );
     win->ScreenToClient( &x, &y );
@@ -942,6 +944,12 @@ wxTranslateGTKKeyEventToWx(wxKeyEvent& event,
     wxFillOtherKeyEventFields(event, win, gdk_event);
 
     event.m_keyCode = key_code;
+#if wxUSE_UNICODE
+    if ( gdk_event->type == GDK_KEY_PRESS ||  gdk_event->type == GDK_KEY_RELEASE )
+    {
+        event.m_uniChar = key_code;
+    }
+#endif
 
     return true;
 }
@@ -964,9 +972,10 @@ struct wxGtkIMData
 };
 
 extern "C" {
-static gint gtk_window_key_press_callback( GtkWidget *widget,
-                                           GdkEventKey *gdk_event,
-                                           wxWindow *win )
+static gboolean
+gtk_window_key_press_callback( GtkWidget *widget,
+                               GdkEventKey *gdk_event,
+                               wxWindow *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1016,12 +1025,12 @@ static gint gtk_window_key_press_callback( GtkWidget *widget,
         if (intercepted_by_IM)
         {
             wxLogTrace(TRACE_KEYS, _T("Key event intercepted by IM"));
-            return true;
+            return TRUE;
         }
     }
 
     if (return_after_IM)
-        return false;
+        return FALSE;
 
 #if wxUSE_ACCEL
     if (!ret)
@@ -1079,7 +1088,7 @@ static gint gtk_window_key_press_callback( GtkWidget *widget,
 #if wxUSE_UNICODE
                 event.m_uniChar = event.m_keyCode;
 #endif
-            }               
+            }
 
             // Implement OnCharHook by checking ancestor top level windows
             wxWindow *parent = win;
@@ -1175,9 +1184,10 @@ static gint gtk_window_key_press_callback( GtkWidget *widget,
 }
 
 extern "C" {
-static void gtk_wxwindow_commit_cb (GtkIMContext *context,
-                           const gchar  *str,
-                           wxWindow     *window)
+static void
+gtk_wxwindow_commit_cb (GtkIMContext *context,
+                        const gchar  *str,
+                        wxWindow     *window)
 {
     wxKeyEvent event( wxEVT_KEY_DOWN );
 
@@ -1223,8 +1233,8 @@ static void gtk_wxwindow_commit_cb (GtkIMContext *context,
             event.m_keyCode = *pstr - 'a' + 1;
 #if wxUSE_UNICODE
             event.m_uniChar = event.m_keyCode;
-#endif  
-        }               
+#endif
+        }
 
         if (parent)
         {
@@ -1247,9 +1257,10 @@ static void gtk_wxwindow_commit_cb (GtkIMContext *context,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_key_release_callback( GtkWidget *widget,
-                                             GdkEventKey *gdk_event,
-                                             wxWindowGTK *win )
+static gboolean
+gtk_window_key_release_callback( GtkWidget *widget,
+                                 GdkEventKey *gdk_event,
+                                 wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1420,9 +1431,10 @@ wxWindowGTK *FindWindowForMouseEvent(wxWindowGTK *win, wxCoord& x, wxCoord& y)
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_button_press_callback( GtkWidget *widget,
-                                              GdkEventButton *gdk_event,
-                                              wxWindowGTK *win )
+static gboolean
+gtk_window_button_press_callback( GtkWidget *widget,
+                                  GdkEventButton *gdk_event,
+                                  wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1610,9 +1622,10 @@ static gint gtk_window_button_press_callback( GtkWidget *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_button_release_callback( GtkWidget *widget,
-                                                GdkEventButton *gdk_event,
-                                                wxWindowGTK *win )
+static gboolean
+gtk_window_button_release_callback( GtkWidget *widget,
+                                    GdkEventButton *gdk_event,
+                                    wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1672,9 +1685,10 @@ static gint gtk_window_button_release_callback( GtkWidget *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_motion_notify_callback( GtkWidget *widget,
-                                               GdkEventMotion *gdk_event,
-                                               wxWindowGTK *win )
+static gboolean
+gtk_window_motion_notify_callback( GtkWidget *widget,
+                                   GdkEventMotion *gdk_event,
+                                   wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1733,6 +1747,15 @@ static gint gtk_window_motion_notify_callback( GtkWidget *widget,
         win = FindWindowForMouseEvent(win, event.m_x, event.m_y);
     }
 
+    if ( !g_captureWindow )
+    {
+        wxSetCursorEvent cevent( event.m_x, event.m_y );
+        if (win->GetEventHandler()->ProcessEvent( cevent ))
+        {
+            // Rewrite cursor handling here (away from idle).
+        }
+    }
+    
     if (win->GetEventHandler()->ProcessEvent( event ))
     {
         g_signal_stop_emission_by_name (widget, "motion_notify_event");
@@ -1748,9 +1771,10 @@ static gint gtk_window_motion_notify_callback( GtkWidget *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_window_wheel_callback (GtkWidget * widget,
-                                       GdkEventScroll * gdk_event,
-                                       wxWindowGTK * win)
+static gboolean
+gtk_window_wheel_callback (GtkWidget * widget,
+                           GdkEventScroll * gdk_event,
+                           wxWindowGTK * win)
 {
     DEBUG_MAIN_THREAD
 
@@ -1835,9 +1859,10 @@ static bool DoSendFocusEvents(wxWindow *win)
 }
 
 extern "C" {
-static gboolean gtk_window_focus_in_callback( GtkWidget *widget,
-                                              GdkEvent *WXUNUSED(event),
-                                              wxWindow *win )
+static gboolean
+gtk_window_focus_in_callback( GtkWidget *widget,
+                              GdkEventFocus *WXUNUSED(event),
+                              wxWindow *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1876,16 +1901,16 @@ static gboolean gtk_window_focus_in_callback( GtkWidget *widget,
         win->m_hasFocus = true;
 
         (void)DoSendFocusEvents(win);
-        
-        ret = true;
+
+        ret = TRUE;
     }
 
     // Disable default focus handling for custom windows
     // since the default GTK+ handler issues a repaint
     if (win->m_wxwindow)
         return ret;
-        
-    return false;
+
+    return FALSE;
 }
 }
 
@@ -1894,9 +1919,10 @@ static gboolean gtk_window_focus_in_callback( GtkWidget *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gboolean gtk_window_focus_out_callback( GtkWidget *widget,
-                                               GdkEventFocus *gdk_event,
-                                               wxWindowGTK *win )
+static gboolean
+gtk_window_focus_out_callback( GtkWidget *widget,
+                               GdkEventFocus *gdk_event,
+                               wxWindowGTK *win )
 {
     DEBUG_MAIN_THREAD
 
@@ -1942,16 +1968,16 @@ static gboolean gtk_window_focus_out_callback( GtkWidget *widget,
         event.SetEventObject( win );
 
         (void)win->GetEventHandler()->ProcessEvent( event );
-        
-        ret = true;
+
+        ret = TRUE;
     }
-    
+
     // Disable default focus handling for custom windows
     // since the default GTK+ handler issues a repaint
     if (win->m_wxwindow)
         return ret;
-           
-    return false;
+
+    return FALSE;
 }
 }
 
@@ -1990,6 +2016,15 @@ gtk_window_enter_callback( GtkWidget *widget,
     event.m_x = x + pt.x;
     event.m_y = y + pt.y;
 
+    if ( !g_captureWindow )
+    {
+        wxSetCursorEvent cevent( event.m_x, event.m_y );
+        if (win->GetEventHandler()->ProcessEvent( cevent ))
+        {
+            // Rewrite cursor handling here (away from idle).
+        }
+    }
+    
     if (win->GetEventHandler()->ProcessEvent( event ))
     {
        g_signal_stop_emission_by_name (widget, "enter_notify_event");
@@ -2123,9 +2158,10 @@ static void gtk_window_hscroll_callback( GtkAdjustment *adjust,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_scrollbar_button_press_callback( GtkRange *widget,
-                                                 GdkEventButton *gdk_event,
-                                                 wxWindowGTK *win)
+static gboolean
+gtk_scrollbar_button_press_callback( GtkWidget *widget,
+                                     GdkEventButton *gdk_event,
+                                     wxWindowGTK *win)
 {
     DEBUG_MAIN_THREAD
 
@@ -2149,9 +2185,10 @@ static gint gtk_scrollbar_button_press_callback( GtkRange *widget,
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gint gtk_scrollbar_button_release_callback( GtkRange *widget,
-                                                   GdkEventButton *WXUNUSED(gdk_event),
-                                                   wxWindowGTK *win)
+static gboolean
+gtk_scrollbar_button_release_callback( GtkRange *widget,
+                                       GdkEventButton *WXUNUSED(gdk_event),
+                                       wxWindowGTK *win)
 {
     DEBUG_MAIN_THREAD
 
@@ -2210,7 +2247,7 @@ wxWindow *wxWindowBase::DoFindFocus()
    been realized, so we do this directly after realization. */
 
 extern "C" {
-static gint
+static void
 gtk_window_realized_callback( GtkWidget *m_widget, wxWindow *win )
 {
     DEBUG_MAIN_THREAD
@@ -2228,8 +2265,6 @@ gtk_window_realized_callback( GtkWidget *m_widget, wxWindow *win )
     wxWindowCreateEvent event( win );
     event.SetEventObject( win );
     win->GetEventHandler()->ProcessEvent( event );
-
-    return FALSE;
 }
 }
 
@@ -2308,7 +2343,7 @@ void gtk_wxwindow_size_callback( GtkWidget* WXUNUSED_UNLESS_XIM(widget),
 /* Initialize XIM support */
 
 extern "C" {
-static gint
+static void
 gtk_wxwindow_realized_callback( GtkWidget * WXUNUSED_UNLESS_XIM(widget),
                                 wxWindowGTK * WXUNUSED_UNLESS_XIM(win) )
 {
@@ -2316,12 +2351,12 @@ gtk_wxwindow_realized_callback( GtkWidget * WXUNUSED_UNLESS_XIM(widget),
         wxapp_install_idle_handler();
 
 #ifdef HAVE_XIM
-    if (win->m_ic) return FALSE;
-    if (!widget) return FALSE;
-    if (!gdk_im_ready()) return FALSE;
+    if (win->m_ic) return;
+    if (!widget) return;
+    if (!gdk_im_ready()) return;
 
     win->m_icattr = gdk_ic_attr_new();
-    if (!win->m_icattr) return FALSE;
+    if (!win->m_icattr) return;
 
     gint width, height;
     GdkEventMask mask;
@@ -2391,8 +2426,6 @@ gtk_wxwindow_realized_callback( GtkWidget * WXUNUSED_UNLESS_XIM(widget),
               gdk_im_begin (win->m_ic, widget->window);
       }
 #endif // HAVE_XIM
-
-    return FALSE;
 }
 }
 
@@ -2875,9 +2908,46 @@ void wxWindowGTK::DoSetSize( int x, int y, int width, int height, int sizeFlags 
         y = currentY;
     AdjustForParentClientOrigin(x, y, sizeFlags);
 
-    if (m_parent->m_wxwindow == NULL) /* i.e. wxNotebook */
+    // calculate the best size if we should auto size the window
+    if ( ((sizeFlags & wxSIZE_AUTO_WIDTH) && width == -1) ||
+         ((sizeFlags & wxSIZE_AUTO_HEIGHT) && height == -1) )
     {
-        /* don't set the size for children of wxNotebook, just take the values. */
+        const wxSize sizeBest = GetBestSize();
+        if ( (sizeFlags & wxSIZE_AUTO_WIDTH) && width == -1 )
+            width = sizeBest.x;
+        if ( (sizeFlags & wxSIZE_AUTO_HEIGHT) && height == -1 )
+            height = sizeBest.y;
+    }
+
+    if (width != -1)
+        m_width = width;
+    if (height != -1)
+        m_height = height;
+
+    int minWidth  = GetMinWidth(),
+        minHeight = GetMinHeight(),
+        maxWidth  = GetMaxWidth(),
+        maxHeight = GetMaxHeight();
+
+    if ((minWidth  != -1) && (m_width  < minWidth )) m_width  = minWidth;
+    if ((minHeight != -1) && (m_height < minHeight)) m_height = minHeight;
+    if ((maxWidth  != -1) && (m_width  > maxWidth )) m_width  = maxWidth;
+    if ((maxHeight != -1) && (m_height > maxHeight)) m_height = maxHeight;
+
+#if wxUSE_TOOLBAR_NATIVE
+    if (wxDynamicCast(GetParent(), wxToolBar))
+    {
+       // don't take the x,y values, they're wrong because toolbar sets them
+       GtkWidget  *widget = GTK_WIDGET(m_widget);
+       gtk_widget_set_size_request (widget, m_width, m_height);
+       if (GTK_WIDGET_VISIBLE (widget))
+            gtk_widget_queue_resize (widget);
+    }
+    else 
+#endif
+    if (m_parent->m_wxwindow == NULL) // i.e. wxNotebook
+    {
+        // don't set the size for children of wxNotebook, just take the values.
         m_x = x;
         m_y = y;
         m_width = width;
@@ -2896,32 +2966,6 @@ void wxWindowGTK::DoSetSize( int x, int y, int width, int height, int sizeFlags 
             m_x = x + pizza->xoffset;
             m_y = y + pizza->yoffset;
         }
-
-        // calculate the best size if we should auto size the window
-        if ( ((sizeFlags & wxSIZE_AUTO_WIDTH) && width == -1) ||
-                ((sizeFlags & wxSIZE_AUTO_HEIGHT) && height == -1) )
-        {
-            const wxSize sizeBest = GetBestSize();
-            if ( (sizeFlags & wxSIZE_AUTO_WIDTH) && width == -1 )
-                width = sizeBest.x;
-            if ( (sizeFlags & wxSIZE_AUTO_HEIGHT) && height == -1 )
-                height = sizeBest.y;
-        }
-
-        if (width != -1)
-            m_width = width;
-        if (height != -1)
-            m_height = height;
-
-        int minWidth = GetMinWidth(),
-            minHeight = GetMinHeight(),
-            maxWidth = GetMaxWidth(),
-            maxHeight = GetMaxHeight();
-
-        if ((minWidth != -1) && (m_width < minWidth)) m_width = minWidth;
-        if ((minHeight != -1) && (m_height < minHeight)) m_height = minHeight;
-        if ((maxWidth != -1) && (m_width > maxWidth)) m_width = maxWidth;
-        if ((maxHeight != -1) && (m_height > maxHeight)) m_height = maxHeight;
 
         int left_border = 0;
         int right_border = 0;

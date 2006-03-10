@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupcmn.cpp,v 1.61 2005/09/25 19:58:46 VZ Exp $
+// RCS-ID:      $Id: popupcmn.cpp,v 1.62 2006/03/07 22:30:01 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -462,8 +462,11 @@ void wxPopupWindowHandler::OnLeftDown(wxMouseEvent& event)
 
     wxPoint pos = event.GetPosition();
 
+    // in non-Univ ports the system manages scrollbars for us
+#ifdef __WXUNIVERSAL__
     // scrollbar on which the click occurred
     wxWindow *sbar = NULL;
+#endif // __WXUNIVERSAL__
 
     wxWindow *win = (wxWindow *)event.GetEventObject();
 
@@ -504,7 +507,7 @@ void wxPopupWindowHandler::OnLeftDown(wxMouseEvent& event)
         case wxHT_WINDOW_VERT_SCROLLBAR:
             sbar = win->GetScrollbar(wxVERTICAL);
             break;
-#endif
+#endif // __WXUNIVERSAL__
 
         default:
             // forgot to update the switch after adding a new hit test code?
@@ -521,6 +524,7 @@ void wxPopupWindowHandler::OnLeftDown(wxMouseEvent& event)
             break;
     }
 
+#ifdef __WXUNIVERSAL__
     if ( sbar )
     {
         // translate the event coordinates to the scrollbar ones
@@ -533,6 +537,7 @@ void wxPopupWindowHandler::OnLeftDown(wxMouseEvent& event)
 
         (void)sbar->GetEventHandler()->ProcessEvent(event2);
     }
+#endif // __WXUNIVERSAL__
 }
 
 // ----------------------------------------------------------------------------

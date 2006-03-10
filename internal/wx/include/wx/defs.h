@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.529 2006/02/12 12:16:34 MW Exp $
+*  RCS-ID:      $Id: defs.h,v 1.530 2006/02/20 21:34:42 MR Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -2873,6 +2873,7 @@ typedef GtkWidget *WXWidget;
 #ifdef __WXGTK20__
 #define G_DISABLE_DEPRECATED
 #define PANGO_DISABLE_DEPRECATED
+#define GTK_DISABLE_DEPRECATED
 #endif
 
 #endif /*  __WXGTK__ */

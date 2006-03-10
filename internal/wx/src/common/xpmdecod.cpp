@@ -2,7 +2,7 @@
 // Name:        xpmdecod.cpp
 // Purpose:     wxXPMDecoder
 // Author:      John Cristy, Vaclav Slavik
-// RCS-ID:      $Id: xpmdecod.cpp,v 1.48 2006/02/13 15:30:28 VZ Exp $
+// RCS-ID:      $Id: xpmdecod.cpp,v 1.49 2006/03/09 13:23:52 VZ Exp $
 // Copyright:   (c) John Cristy, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -653,6 +653,7 @@ static const char *ParseColor(const char *data)
 
 struct wxXPMColourMapData
 {
+    wxXPMColourMapData() { R = G = B = 0; }
     unsigned char R,G,B;
 };
 WX_DECLARE_STRING_HASH_MAP(wxXPMColourMapData, wxXPMColourMap);
@@ -699,6 +700,7 @@ wxImage wxXPMDecoder::ReadData(const char **xpm_data)
     /*
      *  Create colour map:
      */
+    wxXPMColourMapData clr_data;
     for (i = 0; i < colors_cnt; i++)
     {
         const char *xmpColLine = xpm_data[1 + i];
@@ -710,8 +712,6 @@ wxImage wxXPMDecoder::ReadData(const char **xpm_data)
                        (int)(1 + i));
             return wxNullImage;
         }
-
-        wxXPMColourMapData clr_data;
 
         for (i_key = 0; i_key < chars_per_pixel; i_key++)
             key[i_key] = (wxChar)xmpColLine[i_key];

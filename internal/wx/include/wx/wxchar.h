@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.189 2006/01/18 12:45:24 JS Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.190 2006/03/09 13:16:02 VZ Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -232,7 +232,8 @@
     #if !wxUSE_UNICODE
         #define _T(x) x
     #else /* Unicode */
-        #define _T(x) L ## x
+        /* use wxCONCAT_HELPER so that x could be expanded if it's a macro */
+        #define _T(x) wxCONCAT_HELPER(L, x)
     #endif /* ASCII/Unicode */
 #endif /* !defined(_T) */
 

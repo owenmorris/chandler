@@ -3,7 +3,7 @@
 // Purpose:     XRC resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.cpp,v 1.77 2006/02/11 16:20:22 VZ Exp $
+// RCS-ID:      $Id: xmlres.cpp,v 1.79 2006/03/04 22:40:16 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -786,12 +786,15 @@ void wxXmlResourceHandler::AddStyle(const wxString& name, int value)
 void wxXmlResourceHandler::AddWindowStyles()
 {
     XRC_ADD_STYLE(wxCLIP_CHILDREN);
-    XRC_ADD_STYLE(wxSIMPLE_BORDER);
-    XRC_ADD_STYLE(wxSUNKEN_BORDER);
-    XRC_ADD_STYLE(wxDOUBLE_BORDER);
-    XRC_ADD_STYLE(wxRAISED_BORDER);
-    XRC_ADD_STYLE(wxSTATIC_BORDER);
-    XRC_ADD_STYLE(wxNO_BORDER);
+
+    // the border styles all have the old and new names, recognize both for now
+    XRC_ADD_STYLE(wxSIMPLE_BORDER); XRC_ADD_STYLE(wxBORDER_SIMPLE);
+    XRC_ADD_STYLE(wxSUNKEN_BORDER); XRC_ADD_STYLE(wxBORDER_SUNKEN);
+    XRC_ADD_STYLE(wxDOUBLE_BORDER); XRC_ADD_STYLE(wxBORDER_DOUBLE);
+    XRC_ADD_STYLE(wxRAISED_BORDER); XRC_ADD_STYLE(wxBORDER_RAISED);
+    XRC_ADD_STYLE(wxSTATIC_BORDER); XRC_ADD_STYLE(wxBORDER_STATIC);
+    XRC_ADD_STYLE(wxNO_BORDER);     XRC_ADD_STYLE(wxBORDER_NONE);
+
     XRC_ADD_STYLE(wxTRANSPARENT_WINDOW);
     XRC_ADD_STYLE(wxWANTS_CHARS);
     XRC_ADD_STYLE(wxTAB_TRAVERSAL);
@@ -1288,10 +1291,10 @@ wxFont wxXmlResourceHandler::GetFont(const wxString& param)
     // font attributes:
 
     // size
-    int isize = wxDEFAULT;
+    int isize = -1;
     bool hasSize = HasParam(wxT("size"));
     if (hasSize)
-        isize = GetLong(wxT("size"), wxDEFAULT);
+        isize = GetLong(wxT("size"), -1);
 
     // style
     int istyle = wxNORMAL;
@@ -1369,36 +1372,38 @@ wxFont wxXmlResourceHandler::GetFont(const wxString& param)
     }
 
     // is this font based on a system font?
-    wxFont sysfont = GetSystemFont(GetParamValue(wxT("sysfont")));
+    wxFont font = GetSystemFont(GetParamValue(wxT("sysfont")));
 
-    if (sysfont.Ok())
+    if (font.Ok())
     {
-        if (hasSize)
-            sysfont.SetPointSize(isize);
+        if (hasSize && isize != -1)
+            font.SetPointSize(isize);
         else if (HasParam(wxT("relativesize")))
-            sysfont.SetPointSize(int(sysfont.GetPointSize() *
+            font.SetPointSize(int(font.GetPointSize() *
                                      GetFloat(wxT("relativesize"))));
 
         if (hasStyle)
-            sysfont.SetStyle(istyle);
+            font.SetStyle(istyle);
         if (hasWeight)
-            sysfont.SetWeight(iweight);
+            font.SetWeight(iweight);
         if (hasUnderlined)
-            sysfont.SetUnderlined(underlined);
+            font.SetUnderlined(underlined);
         if (hasFamily)
-            sysfont.SetFamily(ifamily);
+            font.SetFamily(ifamily);
         if (hasFacename)
-            sysfont.SetFaceName(facename);
+            font.SetFaceName(facename);
         if (hasEncoding)
-            sysfont.SetDefaultEncoding(enc);
-
-        m_node = oldnode;
-        return sysfont;
+            font.SetDefaultEncoding(enc);
+    }
+    else // not based on system font
+    {
+        font = wxFont(isize == -1 ? wxNORMAL_FONT->GetPointSize() : isize,
+                      ifamily, istyle, iweight,
+                      underlined, facename, enc);
     }
 
     m_node = oldnode;
-    return wxFont(isize, ifamily, istyle, iweight,
-                  underlined, facename, enc);
+    return font;
 }
 
 
