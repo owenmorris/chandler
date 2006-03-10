@@ -4,7 +4,7 @@
 // Author:      Ryan Norton & Brian Victor
 // Modified by: Royce Mitchell III
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp,v 1.14 2006/01/14 07:31:29 vell Exp $
+// RCS-ID:      $Id: display.cpp,v 1.15 2006/03/10 16:04:54 SC Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
     #include <Quickdraw.h>
     #include <Video.h>  // for VDSwitchInfoRec
     #include <FixMath.h>
+    #include <Debugging.h>
 #endif
 
 #include "wx/display.h"

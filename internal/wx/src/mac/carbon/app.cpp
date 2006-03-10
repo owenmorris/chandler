@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.cpp,v 1.197 2006/01/27 17:04:15 SC Exp $
+// RCS-ID:      $Id: app.cpp,v 1.198 2006/03/10 16:01:08 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1447,11 +1447,17 @@ wxMouseState wxGetMouseState()
     ms.SetX(pt.x);
     ms.SetY(pt.y);
 
+#if TARGET_API_MAC_OSX
     UInt32 buttons = GetCurrentButtonState();
     ms.SetLeftDown( (buttons & 0x01) != 0 );
     ms.SetMiddleDown( (buttons & 0x04) != 0 );
     ms.SetRightDown( (buttons & 0x02) != 0 );
-    
+#else
+    ms.SetLeftDown( Button() );
+    ms.SetMiddleDown( 0 );
+    ms.SetRightDown( 0 );
+#endif
+
     UInt32 modifiers = GetCurrentKeyModifiers();
     ms.SetControlDown(modifiers & controlKey);
     ms.SetShiftDown(modifiers & shiftKey);

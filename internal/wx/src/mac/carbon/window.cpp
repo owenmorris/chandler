@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.283 2006/02/09 15:30:21 SC Exp $
+// RCS-ID:      $Id: window.cpp,v 1.284 2006/03/10 16:06:32 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -167,9 +167,11 @@ static const EventTypeSpec eventList[] =
     { kEventClassTextInput, kEventTextInputUpdateActiveInputArea } ,
 
     { kEventClassControl , kEventControlDraw } ,
+#if TARGET_API_MAC_OSX
     { kEventClassControl , kEventControlVisibilityChanged } ,
     { kEventClassControl , kEventControlEnabledStateChanged } ,
     { kEventClassControl , kEventControlHiliteChanged } ,
+#endif
     { kEventClassControl , kEventControlSetFocusPart } ,
 
     { kEventClassService , kEventServiceGetTypes },
@@ -513,7 +515,7 @@ pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef handler , Even
         uniChars = new wchar_t[ numChars ] ;
         GetEventParameter( event, kEventParamTextInputSendText, typeUnicodeText, NULL, dataSize , NULL , charBuf ) ;
 #if SIZEOF_WCHAR_T == 2
-        uniChars = charBuf ;
+        uniChars = (wchar_t*) charBuf ;
         memcpy( uniChars , charBuf , dataSize ) ;
 #else
         // the resulting string will never have more chars than the utf16 version, so this is safe

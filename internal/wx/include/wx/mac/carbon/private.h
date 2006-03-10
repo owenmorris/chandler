@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.45 2005/12/10 15:24:55 SC Exp $
+// RCS-ID:      $Id: private.h,v 1.46 2006/03/10 17:02:51 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -216,6 +216,10 @@ template<> inline EventParamType wxMacGetEventParamType<EventRef>() { return typ
 template<> inline EventParamType wxMacGetEventParamType<Point>() { return typeQDPoint ; }
 template<> inline EventParamType wxMacGetEventParamType<Rect>() { return typeQDRectangle ; }
 template<> inline EventParamType wxMacGetEventParamType<Boolean>() { return typeBoolean ; }
+template<> inline EventParamType wxMacGetEventParamType<SInt16>() { return typeSInt16 ; }
+template<> inline EventParamType wxMacGetEventParamType<SInt32>() { return typeSInt32 ; }
+template<> inline EventParamType wxMacGetEventParamType<UInt32>() { return typeUInt32 ; }
+template<> inline EventParamType wxMacGetEventParamType<RGBColor>() { return typeRGBColor ; }
 #if TARGET_API_MAC_OSX
 template<> inline EventParamType wxMacGetEventParamType<HICommand>() { return typeHICommand ; }
 template<> inline EventParamType wxMacGetEventParamType<HIPoint>() { return typeHIPoint ; }
@@ -223,6 +227,7 @@ template<> inline EventParamType wxMacGetEventParamType<HISize>() { return typeH
 template<> inline EventParamType wxMacGetEventParamType<HIRect>() { return typeHIRect ; }
 template<> inline EventParamType wxMacGetEventParamType<void*>() { return typeVoidPtr ; }
 #endif
+template<> inline EventParamType wxMacGetEventParamType<CFDictionaryRef>() { return typeCFDictionaryRef ; }
 template<> inline EventParamType wxMacGetEventParamType<Collection>() { return typeCollection ; }
 template<> inline EventParamType wxMacGetEventParamType<CGContextRef>() { return typeCGContextRef ; }
 /*

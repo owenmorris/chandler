@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpwnd.cpp,v 1.3 2006/03/07 18:41:27 ABX Exp $
+// RCS-ID:      $Id: helpwnd.cpp,v 1.4 2006/03/10 09:59:38 ABX Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1718,11 +1718,11 @@ void wxHtmlHelpWindow::OnSearch(wxCommandEvent& WXUNUSED(event))
 
 void wxHtmlHelpWindow::OnBookmarksSel(wxCommandEvent& WXUNUSED(event))
 {
-    wxString sr = m_Bookmarks->GetStringSelection();
-
-    if (sr != wxEmptyString && sr != _("(bookmarks)"))
+    wxString str = m_Bookmarks->GetStringSelection();
+    int idx = m_BookmarksNames.Index(str);
+    if (!str.empty() && str != _("(bookmarks)") && idx != wxNOT_FOUND)
     {
-       m_HtmlWin->LoadPage(m_BookmarksPages[m_BookmarksNames.Index(sr)]);
+       m_HtmlWin->LoadPage(m_BookmarksPages[(size_t)idx]);
        NotifyPageChanged();
     }
 }
