@@ -39,7 +39,6 @@ binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/lib/libreadline*.dylib \
-          $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/lib-dynload/readline.so \
           --exclude '*.a'
 
 upload: readline-$(SNAP)-$(RELVER).tar.gz
