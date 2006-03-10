@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-03
-// RCS-ID:      $Id: fontdlgosx.mm,v 1.8 2006/03/10 16:44:10 SC Exp $
+// RCS-ID:      $Id: fontdlgosx.mm,v 1.9 2006/03/10 18:54:11 SC Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,6 @@
 
     NSRect rectCancel = NSMakeRect( 10.0 , 10.0 , 82  , 24 );
     NSRect rectOK = NSMakeRect( 100.0 , 10.0 , 82  , 24 );
-    NSView* panel = [[NSView alloc] initWithFrame:rectBox];
     
     NSButton* cancelButton = [[NSButton alloc] initWithFrame:rectCancel];
     [cancelButton setTitle:(NSString*)cfCancelString.Detach()];

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp,v 1.88 2006/02/10 17:40:25 SC Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.89 2006/03/10 18:58:16 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1615,53 +1615,12 @@ void *wxBitmap::GetRawData(wxPixelDataBase& data, int bpp)
     data.m_height = GetHeight() ;
     data.m_stride = GetWidth() * 4 ;
 
-    return GetRawAccess() ;
+    return BeginRawAccess() ;
 }
 
 void wxBitmap::UngetRawData(wxPixelDataBase& dataBase)
 {
-    if ( !Ok() )
-        return;
-
-    // TODO: if we have some information about the API we should check
-    // this code looks strange...
-
-    if ( !M_BITMAPDATA->HasAlpha() )
-        return;
-
-    wxAlphaPixelData& data = (wxAlphaPixelData&)dataBase;
-    int w = data.GetWidth();
-    int h = data.GetHeight();
-
-    wxBitmap bmpMask( GetWidth(), GetHeight(), 32 );
-    wxAlphaPixelData dataMask( bmpMask, data.GetOrigin(), wxSize( w, h ) );
-    wxAlphaPixelData::Iterator pMask( dataMask ), p( data );
-
-    for ( int y = 0; y < h; y++ )
-    {
-        wxAlphaPixelData::Iterator rowStartMask = pMask;
-        wxAlphaPixelData::Iterator rowStart = p;
-
-        for ( int x = 0; x < w; x++ )
-        {
-            const wxAlphaPixelData::Iterator::ChannelType alpha = p.Alpha();
-
-            pMask.Red() = alpha;
-            pMask.Green() = alpha;
-            pMask.Blue() = alpha;
-
-            ++p;
-            ++pMask;
-        }
-
-        p = rowStart;
-        p.OffsetY( data, 1 );
-
-        pMask = rowStartMask;
-        pMask.OffsetY( dataMask, 1 );
-    }
-
-    SetMask( new wxMask( bmpMask ) );
+    EndRawAccess() ;
 }
 
 void wxBitmap::UseAlpha()

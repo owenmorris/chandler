@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: fontdlg.cpp,v 1.29 2006/03/10 16:11:29 SC Exp $
+// RCS-ID:      $Id: fontdlg.cpp,v 1.30 2006/03/10 17:35:39 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -126,7 +126,7 @@ pascal OSStatus wxMacCarbonFontPanelHandler(EventHandlerCallRef nextHandler, Eve
                             ByteCount *sizePtr = (ByteCount *)CFDataGetBytePtr(sizesData);
                             UInt32 *bytePtr = (UInt32*)CFDataGetBytePtr(valuesData);
                             ATSUAttributeValuePtr valuesPtr = bytePtr ;
-                            for ( int i = 0 ; i < count ; ++i)
+                            for ( ItemCount i = 0 ; i < count ; ++i)
                             {
                                 if ( tagPtr[i] == kATSUColorTag && sizePtr[i] == sizeof(RGBColor))
                                 {

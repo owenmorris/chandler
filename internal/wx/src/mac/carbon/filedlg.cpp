@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: filedlg.cpp,v 1.59 2006/01/15 07:20:59 vell Exp $
+// RCS-ID:      $Id: filedlg.cpp,v 1.60 2006/03/10 19:04:59 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -173,11 +173,11 @@ void MakeUserDataRec(OpenUserDataRec *myData , const wxString& filter )
             wxString extension = myData->extensions[i];
 
             // Remove leading '*'
-            if (extension.GetChar(0) == '*')
+            if (extension.length() && (extension.GetChar(0) == '*'))
                 extension = extension.Mid( 1 );
 
             // Remove leading '.'
-            if (extension.GetChar(0) == '.')
+            if (extension.length() && (extension.GetChar(0) == '.'))
                 extension = extension.Mid( 1 );
        
             if (wxFileName::MacFindDefaultTypeAndCreator( extension, &fileType, &creator ))
