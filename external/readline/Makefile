@@ -10,12 +10,7 @@ SRC_BUILD=$(SRC)/readline-$(VERSION)
 
 .PHONY: readline
 
-MANIFEST=$(SNAP)/lib/libreadline*
-
 ifeq ($(OS),Darwin)
-
-MANIFEST:=$(MANIFEST) \
-          $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/lib-dynload/readline.*
 
 $(SRC)/Makefile:
 	cd $(SRC_BUILD); \
@@ -43,7 +38,7 @@ endif
 binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
-          $(MANIFEST) \
+          $(SNAP)/libreadline* \
           --exclude '*.a'
 
 upload: readline-$(SNAP)-$(RELVER).tar.gz
