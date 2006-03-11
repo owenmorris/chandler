@@ -105,7 +105,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
 
         self.Refresh()
 
-    def setFreeBusy(self, event, useHints):
+    def setFreeBusy(self, event, useHints=False):
         
         if self._recalcCount == 0:
             start = self.GetStartDate();
