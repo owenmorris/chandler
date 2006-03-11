@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.61 2006/03/07 19:53:43 ABX Exp $
+// RCS-ID:      $Id: missing.h,v 1.62 2006/03/11 13:13:00 JS Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -119,6 +119,10 @@
 
 #ifndef EM_SETUSEMOUSEFORINPUT
 #define EM_SETUSEMOUSEFORINPUT (WM_USER + 0x224)
+#endif
+
+#ifndef TPM_RECURSE
+#define TPM_RECURSE 1
 #endif
 
 // ----------------------------------------------------------------------------

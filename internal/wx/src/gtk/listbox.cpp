@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified By: Ryan Norton (GtkTreeView implementation)
-// Id:          $Id: listbox.cpp,v 1.171 2006/03/09 13:47:25 VZ Exp $
+// Id:          $Id: listbox.cpp,v 1.172 2006/03/11 13:24:07 JS Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -419,7 +419,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxListBox, wxControl)
 // construction
 // ----------------------------------------------------------------------------
 
-wxListBox::wxListBox()
+void wxListBox::Init()
 {
     m_treeview = (GtkTreeView*) NULL;
 #if wxUSE_CHECKLISTBOX

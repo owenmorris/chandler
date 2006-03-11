@@ -3,7 +3,7 @@
 // Purpose:     wxXmlDocument - XML parser & data holder class
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xml.cpp,v 1.18 2005/12/18 15:02:01 VZ Exp $
+// RCS-ID:      $Id: xml.cpp,v 1.19 2006/03/11 13:43:55 JS Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,11 @@
 // DLL options compatibility check:
 #include "wx/app.h"
 WX_CHECK_BUILD_OPTIONS("wxXML")
+
+
+IMPLEMENT_CLASS(wxXmlDocument, wxObject)
+
+
 
 //-----------------------------------------------------------------------------
 //  wxXmlNode
@@ -271,6 +276,20 @@ bool wxXmlNode::DeleteProperty(const wxString& name)
         }
         return false;
     }
+}
+
+wxString wxXmlNode::GetNodeContent() const
+{
+    wxXmlNode *n = GetChildren();
+
+    while (n)
+    {
+        if (n->GetType() == wxXML_TEXT_NODE ||
+            n->GetType() == wxXML_CDATA_SECTION_NODE)
+            return n->GetContent();
+        n = n->GetNext();
+    }
+    return wxEmptyString;
 }
 
 

@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.357 2006/03/07 22:53:10 VZ Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.358 2006/03/11 14:17:50 JS Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1589,6 +1589,14 @@ void wxGridCellEditorEvtHandler::OnKeyDown(wxKeyEvent& event)
 
 void wxGridCellEditorEvtHandler::OnChar(wxKeyEvent& event)
 {
+    int row = m_grid->GetGridCursorRow();
+    int col = m_grid->GetGridCursorCol();
+    wxRect rect = m_grid->CellToRect( row, col );
+    int cw, ch;
+    m_grid->GetGridWindow()->GetClientSize( &cw, &ch );
+    // if cell width is smaller than grid client area, cell is wholly visible
+    bool wholeCellVisible = (rect.GetWidth() < cw);
+
     switch ( event.GetKeyCode() )
     {
         case WXK_ESCAPE:
@@ -1596,6 +1604,85 @@ void wxGridCellEditorEvtHandler::OnChar(wxKeyEvent& event)
         case WXK_RETURN:
         case WXK_NUMPAD_ENTER:
             break;
+
+        case WXK_HOME:
+        {
+            if( wholeCellVisible )
+            {
+                // no special processing needed...
+                event.Skip();
+                break;
+            }
+
+            // do special processing for partly visible cell...
+
+            // get the widths of all cells previous to this one
+            int colXPos = 0;
+            for ( int i = 0; i < col; i++ ) 
+            {
+                colXPos += m_grid->GetColSize(i);
+            }
+
+            int xUnit = 1, yUnit = 1;
+            m_grid->GetScrollPixelsPerUnit(&xUnit, &yUnit);
+            if (col != 0)
+            {
+                m_grid->Scroll(colXPos/xUnit-1, m_grid->GetScrollPos(wxVERTICAL));
+            }
+            else
+            {
+                m_grid->Scroll(colXPos/xUnit, m_grid->GetScrollPos(wxVERTICAL));
+            }
+            event.Skip();
+            break;
+        }
+        case WXK_END:
+        {
+            if( wholeCellVisible )
+            {
+                // no special processing needed...
+                event.Skip();
+                break;
+            }
+
+            // do special processing for partly visible cell...
+
+            int textWidth = 0;
+            wxString value = m_grid->GetCellValue(row, col);
+            if ( wxEmptyString != value )
+            {
+                // get width of cell CONTENTS (text)
+                int y;
+                wxFont font = m_grid->GetCellFont(row, col);
+                m_grid->GetTextExtent(value, &textWidth, &y, NULL, NULL, &font);
+                // try to RIGHT align the text by scrolling
+                int client_right = m_grid->GetGridWindow()->GetClientSize().GetWidth();
+                // (m_grid->GetScrollLineX()*2) is a factor for not scrolling to far,
+                // otherwise the last part of the cell content might be hidden below the scroll bar
+                // FIXME: maybe there is a more suitable correction?
+                textWidth -= (client_right - (m_grid->GetScrollLineX()*2));
+                if ( textWidth < 0 )
+                {
+                    textWidth = 0;
+                }
+            }
+
+            // get the widths of all cells previous to this one
+            int colXPos = 0;
+            for ( int i = 0; i < col; i++ ) 
+            {
+                colXPos += m_grid->GetColSize(i);
+            }
+            // and add the (modified) text width of the cell contents
+            // as we'd like to see the last part of the cell contents
+            colXPos += textWidth;
+
+            int xUnit = 1, yUnit = 1;
+            m_grid->GetScrollPixelsPerUnit(&xUnit, &yUnit);
+            m_grid->Scroll(colXPos/xUnit-1, m_grid->GetScrollPos(wxVERTICAL));
+            event.Skip();
+            break;
+        }
 
         default:
             event.Skip();
@@ -5729,22 +5816,9 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                              coords.GetCol(),
                              event ) )
             {
-                // We want double click to select a cell and start editing
-                // (i.e. to behave in same way as sequence of two slow clicks)
-                // except when we don't have a cursor, in which case double
-                // click starts editing
-                if ( m_hasCursor )
-                    m_waitForSlowClick = true;
-                else if ( coords == m_currentCellCoords && CanEnableCellControl() )
-                {
-                    EnableCellEditControl();
-
-                    wxGridCellAttr* attr = GetCellAttr(coords);
-                    wxGridCellEditor *editor = attr->GetEditor(this, coords.GetRow(), coords.GetCol());
-                    editor->StartingClick();
-                    editor->DecRef();
-                    attr->DecRef();
-                }
+                // we want double click to select a cell and start editing
+                // (i.e. to behave in same way as sequence of two slow clicks):
+                m_waitForSlowClick = true;
             }
         }
     }
@@ -7859,7 +7933,7 @@ void wxGrid::ShowCellEditControl()
 {
     if ( IsCellEditControlEnabled() )
     {
-        if ( !IsVisible( m_currentCellCoords ) )
+        if ( !IsVisible( m_currentCellCoords, false ) )
         {
             m_cellEditCtrlEnabled = false;
             return;
@@ -7884,6 +7958,10 @@ void wxGrid::ShowCellEditControl()
             // convert to scrolled coords
             //
             CalcScrolledPosition( rect.x, rect.y, &rect.x, &rect.y );
+
+            int nXMove = 0;
+            if (rect.x < 0)
+                nXMove = rect.x;
 
             // done in PaintBackground()
 #if 0
@@ -7946,20 +8024,34 @@ void wxGrid::ShowCellEditControl()
                     int c_rows, c_cols;
                     GetCellSize( row, i, &c_rows, &c_cols );
                     // looks weird going over a multicell
-                    if (m_table->IsEmptyCell(row,i) &&
+                    if (m_table->IsEmptyCell( row, i ) &&
                             (rect.width < maxWidth) && (c_rows == 1))
-                        rect.width += GetColWidth(i);
+                        rect.width += GetColWidth( i );
                     else
                         break;
                 }
 
                 if (rect.GetRight() > client_right)
-                    rect.SetRight(client_right - 1);
+                    rect.SetRight( client_right - 1 );
             }
 
-            editor->SetCellAttr(attr);
+            editor->SetCellAttr( attr );
             editor->SetSize( rect );
+            editor->GetControl()->Move( editor->GetControl()->GetPosition().x + nXMove, editor->GetControl()->GetPosition().y );
             editor->Show( true, attr );
+
+            int colXPos = 0;
+            for (int i = 0; i < m_currentCellCoords.GetCol(); i++) 
+            {
+                colXPos += GetColSize( i );
+            }
+
+            int xUnit = 1, yUnit = 1;
+            GetScrollPixelsPerUnit( &xUnit, &yUnit );
+            if (m_currentCellCoords.GetCol() != 0)
+                Scroll( colXPos / xUnit - 1, GetScrollPos( wxVERTICAL ) );
+            else
+                Scroll( colXPos / xUnit, GetScrollPos( wxVERTICAL ) );
 
             // recalc dimensions in case we need to
             // expand the scrolled window to account for editor
@@ -8290,7 +8382,11 @@ void wxGrid::MakeCellVisible( int row, int col )
             ypos += m_scrollLineY;
         }
 
-        if ( left < 0 )
+        // special handling for wide cells - show always left part of the cell!
+        // Otherwise, e.g. when stepping from row to row, it would jump between 
+        // left and right part of the cell on every step!
+//      if ( left < 0 )
+        if ( left < 0 || (right-left) >= cw )
         {
             xpos = r.GetLeft();
         }

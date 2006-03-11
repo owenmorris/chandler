@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-02-12
-// RCS-ID:      $Id: access.cpp,v 1.18 2006/01/26 16:49:44 ABX Exp $
+// RCS-ID:      $Id: access.cpp,v 1.19 2006/03/11 13:25:27 JS Exp $
 // Copyright:   (c) 2003 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -297,8 +297,8 @@ public:
 
 // Obsolete
 
-    STDMETHODIMP put_accName(VARIANT varChild, BSTR szName) { return E_FAIL; }
-    STDMETHODIMP put_accValue(VARIANT varChild, BSTR szName) { return E_FAIL; }
+    STDMETHODIMP put_accName(VARIANT /* varChild */, BSTR /* szName */) { return E_FAIL; }
+    STDMETHODIMP put_accValue(VARIANT /* varChild */, BSTR /* szName */) { return E_FAIL; }
 
 // IDispatch
 
