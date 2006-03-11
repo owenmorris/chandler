@@ -528,6 +528,14 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 keyCode == getattr(wx, 'WXK_NUMPAD_' + key)):
                 self.OnNavigateItem(key)
                 return
+            
+        # fix ugly bug 2749 - for some reason "BACK" isn't propagating
+        # up to the menu when the _focusWindow has focus
+        
+        if ('__WXMAC__' in wx.PlatformInfo and 
+            (keyCode in (wx.WXK_BACK, wx.WXK_DELETE))):
+            self.blockItem.onDeleteEvent(event)
+            return
 
         # didn't handle it so propagate the key event upward
         event.Skip()
