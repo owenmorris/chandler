@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listctrl.h,v 1.6 2005/09/23 12:49:34 MR Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.7 2006/03/10 21:26:55 RD Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -223,6 +223,7 @@ class WXDLLEXPORT wxListCtrl: public wxControl
 
   // Sets the item image
   bool SetItemImage(long item, int image, int selImage) ;
+  bool SetItemColumnImage(long item, long column, int image);
 
   // Gets the item text
   wxString GetItemText(long item) const ;

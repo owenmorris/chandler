@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py,v 1.80 2006/01/29 17:35:38 vell Exp $
+# RCS-ID:      $Id: config.py,v 1.81 2006/03/10 21:30:03 VZ Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -712,6 +712,9 @@ if os.name == 'nt':
 
     if not FINAL or HYBRID:
         defines.append( ('__WXDEBUG__', None) )
+
+    if UNICODE:
+        defines.append( ('wxUSE_UNICODE', 1) )
 
     libdirs = [ opj(WXDIR, 'lib', 'vc_dll') ]
     if MONOLITHIC:

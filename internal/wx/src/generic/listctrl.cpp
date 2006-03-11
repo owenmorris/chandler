@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.397 2006/03/04 20:42:54 VZ Exp $
+// Id:          $Id: listctrl.cpp,v 1.398 2006/03/10 21:26:46 RD Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -4936,10 +4936,17 @@ bool wxGenericListCtrl::SetItemState( long item, long state, long stateMask )
 bool
 wxGenericListCtrl::SetItemImage( long item, int image, int WXUNUSED(selImage) )
 {
+    return SetItemColumnImage(item, 0, image);
+}
+
+bool
+wxGenericListCtrl::SetItemColumnImage( long item, long column, int image )
+{
     wxListItem info;
     info.m_image = image;
     info.m_mask = wxLIST_MASK_IMAGE;
     info.m_itemId = item;
+    info.m_col = column;
     m_mainWin->SetItem( info );
     return true;
 }

@@ -3,7 +3,7 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.107 2006/02/24 23:40:01 VZ Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.108 2006/03/10 21:26:57 RD Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -100,6 +100,7 @@ public:
     int  GetItemState( long item, long stateMask ) const;
     bool SetItemState( long item, long state, long stateMask);
     bool SetItemImage( long item, int image, int selImage = -1 );
+    bool SetItemColumnImage( long item, long column, int image );
     wxString GetItemText( long item ) const;
     void SetItemText( long item, const wxString& str );
     wxUIntPtr GetItemData( long item ) const;

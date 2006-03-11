@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listctrl.i,v 1.28 2006/03/05 04:01:10 RD Exp $
+// RCS-ID:      $Id: _listctrl.i,v 1.29 2006/03/10 21:26:40 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -513,6 +513,7 @@ public:
 
     // Sets the item image
     bool SetItemImage(long item, int image, int selImage=-1) ;
+    bool SetItemColumnImage( long item, long column, int image );
 
     // Gets the item text
     wxString GetItemText(long item) const ;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.254 2006/03/08 01:27:59 VZ Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.255 2006/03/10 21:26:44 RD Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -919,11 +919,18 @@ bool wxListCtrl::SetItemState(long item, long state, long stateMask)
 // Sets the item image
 bool wxListCtrl::SetItemImage(long item, int image, int WXUNUSED(selImage))
 {
+    return SetItemColumnImage(item, 0, image);
+}
+
+// Sets the item image
+bool wxListCtrl::SetItemColumnImage(long item, long column, int image)
+{
     wxListItem info;
 
     info.m_mask = wxLIST_MASK_IMAGE;
     info.m_image = image;
     info.m_itemId = item;
+    info.m_col = column;
 
     return SetItem(info);
 }
