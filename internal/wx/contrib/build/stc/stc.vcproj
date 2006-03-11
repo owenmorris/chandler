@@ -3607,7 +3607,285 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexBasic.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\stc\scintilla\src\LexBullant.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexCaml.cxx">
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
 					<Tool
@@ -4302,6 +4580,145 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexCsound.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\stc\scintilla\src\LexCSS.cxx">
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
@@ -4581,6 +4998,145 @@
 			</File>
 			<File
 				RelativePath="..\..\src\stc\scintilla\src\LexErlang.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexFlagship.cxx">
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
 					<Tool
@@ -5137,6 +5693,145 @@
 			</File>
 			<File
 				RelativePath="..\..\src\stc\scintilla\src\LexGui4Cli.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexHaskell.cxx">
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
 					<Tool
@@ -7777,6 +8472,145 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexRebol.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\stc\scintilla\src\LexRuby.cxx">
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
@@ -8055,6 +8889,145 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexSmalltalk.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\stc\scintilla\src\LexSpecman.cxx">
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
@@ -8195,6 +9168,145 @@
 			</File>
 			<File
 				RelativePath="..\..\src\stc\scintilla\src\LexSQL.cxx">
+				<FileConfiguration
+					Name="DLL Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;__WXMSW__;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;__WXUNIVERSAL__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DLL Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_USRDLL;DLL_EXPORTS;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Universal Unicode Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_LIB;_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;__WX__;SCI_LEXER;LINK_LEXERS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\stc\scintilla\src\LexTADS3.cxx">
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
 					<Tool
