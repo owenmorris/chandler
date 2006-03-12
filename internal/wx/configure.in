@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1115 2006/02/12 01:55:40 MW Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1116 2006/03/11 18:01:24 SN Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1115 2006/02/12 01:55:40 MW Exp $
+dnl Version: $Id: configure.in,v 1.1116 2006/03/11 18:01:24 SN Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -5147,10 +5147,19 @@ if test "$wxUSE_OPTIMISE" = "no" ; then
     fi
 else
     if test "$GCC" = yes ; then
-        dnl Switch on optimisation but keep strict-aliasing off for now (see
-        dnl -fstrict-aliasing in the gcc manual). When it is switched back on
-        dnl consider using -Wstrict-aliasing=2.
-        OPTIMISE_CFLAGS="-O2 -fno-strict-aliasing"
+        case "${host}" in
+            *-pc-os2_emx | *-pc-os2-emx )
+                dnl Not all of the supported gcc versions understand
+                dnl -fstrict-aliasing and none actually needs it (yet).
+                OPTIMISE_CFLAGS="-O2"
+            ;;
+            *)
+                dnl Switch on optimisation but keep strict-aliasing off for
+                dnl now (see -fstrict-aliasing in the gcc manual). When it is
+                dnl switched back on consider using -Wstrict-aliasing=2.
+                OPTIMISE_CFLAGS="-O2 -fno-strict-aliasing"
+            ;;
+        esac
     else
         OPTIMISE_CFLAGS="-O"
     fi
