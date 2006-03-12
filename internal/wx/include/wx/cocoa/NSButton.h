@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2002/12/09
-// RCS-ID:      $Id: NSButton.h,v 1.6 2004/06/24 15:14:29 DE Exp $
+// RCS-ID:      $Id: NSButton.h,v 1.7 2006/03/12 15:10:23 VZ Exp $
 // Copyright:   (c) 2002-2004 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,13 +23,15 @@ class wxCocoaNSButton
     WX_DECLARE_OBJC_INTERFACE_HASHMAP(NSButton);
 public:
     void AssociateNSButton(WX_NSButton cocoaNSButton);
-    inline void DisassociateNSButton(WX_NSButton cocoaNSButton)
+    void DisassociateNSButton(WX_NSButton cocoaNSButton)
     {
         if(cocoaNSButton)
             sm_cocoaHash.erase(cocoaNSButton);
     }
 
     virtual void Cocoa_wxNSButtonAction(void) = 0;
+    virtual ~wxCocoaNSButton() { }
+
 protected:
     static const wxObjcAutoRefFromAlloc<struct objc_object*> sm_cocoaTarget;
 };

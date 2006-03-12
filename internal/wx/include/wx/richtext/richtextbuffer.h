@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextbuffer.h,v 1.8 2005/12/18 12:31:03 JS Exp $
+// RCS-ID:      $Id: richtextbuffer.h,v 1.9 2006/03/12 13:15:53 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1492,7 +1492,7 @@ public:
     virtual void ClearStyleStack();
 
     /// Get the size of the style stack, for example to check correct nesting
-    virtual int GetStyleStackSize() const { return m_attributeStack.GetCount(); }
+    virtual size_t GetStyleStackSize() const { return m_attributeStack.GetCount(); }
 
     /// Begin using bold
     bool BeginBold();

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: dirdlg.h,v 1.40 2006/01/16 14:59:03 MR Exp $
+// RCS-ID:      $Id: dirdlg.h,v 1.41 2006/03/12 15:30:46 VZ Exp $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -83,6 +83,11 @@ public:
 #elif defined(__WXMAC__)
 
     #include "wx/mac/dirdlg.h"
+
+// Native Cocoa
+#elif defined(__WXCOCOA__)
+
+    #include "wx/cocoa/dirdlg.h"
 
 // Other ports use generic implementation
 #elif defined(__WXMOTIF__) || \

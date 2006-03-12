@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup0.h,v 1.217 2006/01/30 16:26:30 JS Exp $
+// RCS-ID:      $Id: setup0.h,v 1.218 2006/03/12 13:49:18 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -677,7 +677,7 @@
 // Default is 0 because it isn't yet implemented on all platforms
 //
 // Recommended setting: 1 if you need it, can be safely set to 0 otherwise
-#define wxUSE_DISPLAY       0
+#define wxUSE_DISPLAY       1
 
 // Miscellaneous geometry code: needed for Canvas library
 #define wxUSE_GEOMETRY            1

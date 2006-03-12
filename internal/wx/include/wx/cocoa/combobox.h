@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2005/02/16
-// RCS-ID:      $Id: combobox.h,v 1.12 2005/09/27 16:54:23 ABX Exp $
+// RCS-ID:      $Id: combobox.h,v 1.13 2006/03/12 15:10:23 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,7 @@ public:
     void DisassociateNSComboBox(WX_NSComboBox cocoaNSComboBox);
 
     virtual void doWxEvent(int nEvent) = 0;
+    virtual ~wxCocoaNSComboBox() { }
 };
 
 //begin combobox.h

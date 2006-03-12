@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III
 // Modified by:
 // Created:     06/21/02
-// RCS-ID:      $Id: display.h,v 1.10 2005/09/23 12:50:10 MR Exp $
+// RCS-ID:      $Id: display.h,v 1.11 2006/03/12 13:49:18 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,9 +37,6 @@ public:
     virtual bool IsPrimary() const;
 
 private:
-    // get the display name to use with EnumDisplaySettings()
-    wxString GetNameForEnumSettings() const;
-
     // we have different implementations using DirectDraw and without it
     wxArrayVideoModes DoGetModesDirectX(const wxVideoMode& modeMatch) const;
     bool DoChangeModeDirectX(const wxVideoMode& mode);

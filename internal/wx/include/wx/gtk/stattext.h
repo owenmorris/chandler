@@ -2,7 +2,7 @@
 // Name:        stattext.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.h,v 1.20 2005/09/23 12:49:19 MR Exp $
+// Id:          $Id: stattext.h,v 1.21 2006/03/12 14:21:15 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,6 +65,9 @@ public:
     // --------------
 
 protected:
+    virtual bool GTKWidgetNeedsMnemonic() const;
+    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
+
     virtual void DoSetSize(int x, int y,
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);

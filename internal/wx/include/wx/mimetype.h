@@ -5,7 +5,7 @@
 // Modified by:
 //  Chris Elliott (biol75@york.ac.uk) 5 Dec 00: write support for Win32
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.h,v 1.39 2005/09/23 12:48:44 MR Exp $
+// RCS-ID:      $Id: mimetype.h,v 1.40 2006/03/12 15:11:20 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ public:
     const wxString& GetDescription() const { return m_desc; }
         // get the array of all extensions
     const wxArrayString& GetExtensions() const { return m_exts; }
-    int GetExtensionsCount() const {return m_exts.GetCount(); }
+    size_t GetExtensionsCount() const {return m_exts.GetCount(); }
         // get the icon info
     const wxString& GetIconFile() const { return m_iconFile; }
     int GetIconIndex() const { return m_iconIndex; }

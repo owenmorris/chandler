@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     04/01/98
-// RCS-ID:      $Id: choice.cpp,v 1.109 2005/09/27 17:05:17 ABX Exp $
+// RCS-ID:      $Id: choice.cpp,v 1.110 2006/03/12 19:43:27 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -647,6 +647,9 @@ bool wxChoice::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
             break;
 
         case CBN_SELCHANGE:
+            // don't generate any events while the dropdown is opened as the
+            // selection is not final yet
+            if ( m_lastAcceptedSelection == wxID_NONE )
             {
                 const int n = GetSelection();
 

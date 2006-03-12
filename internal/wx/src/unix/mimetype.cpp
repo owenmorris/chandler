@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.cpp,v 1.64 2006/03/09 19:08:38 VZ Exp $
+// RCS-ID:      $Id: mimetype.cpp,v 1.66 2006/03/12 16:51:43 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -2395,8 +2395,8 @@ bool wxMimeTypesManagerImpl::ReadMimeTypes(const wxString& strFileName)
                 pEnd = wxStrchr(++pc, wxT('"'));
                 if ( pEnd == NULL )
                 {
-                    wxLogWarning(wxT("Mime.types file %s, line %d: unterminated quoted string."),
-                                 strFileName.c_str(), nLine + 1);
+                    wxLogWarning(wxT("Mime.types file %s, line %lu: unterminated quoted string."),
+                                 strFileName.c_str(), nLine + 1L);
                 }
             }
             else
@@ -2453,8 +2453,8 @@ bool wxMimeTypesManagerImpl::ReadMimeTypes(const wxString& strFileName)
                 // unregistered extensions according to the standard practice,
                 // but it may be worth telling the user about other junk in
                 // his mime.types file
-                wxLogWarning(wxT("Unknown field in file %s, line %d: '%s'."),
-                             strFileName.c_str(), nLine + 1, strLHS.c_str());
+                wxLogWarning(wxT("Unknown field in file %s, line %lu: '%s'."),
+                             strFileName.c_str(), nLine + 1L, strLHS.c_str());
             }
 
             if ( !entryEnded )
@@ -2680,7 +2680,7 @@ bool wxMimeTypesManagerImpl::ReadMailcap(const wxString& strFileName,
 
                             wxLogDebug(wxT("Mailcap file %s, line %lu: '\\' on the end of the last line ignored."),
                                        strFileName.c_str(),
-                                       (unsigned long)nLine + 1);
+                                       nLine + 1L);
                         }
                         else
                         {
@@ -2744,7 +2744,7 @@ bool wxMimeTypesManagerImpl::ReadMailcap(const wxString& strFileName,
                                 (
                                     wxT("Mailcap file %s, line %lu: unknown field '%s' for the MIME type '%s' ignored."),
                                     strFileName.c_str(),
-                                    (unsigned long)nLine + 1,
+                                    nLine + 1L,
                                     curField.c_str(),
                                     data.type.c_str()
                                 );
@@ -2781,8 +2781,8 @@ bool wxMimeTypesManagerImpl::ReadMailcap(const wxString& strFileName,
         // check that we really read something reasonable
         if ( currentToken < Field_Other )
         {
-            wxLogWarning(wxT("Mailcap file %s, line %d: incomplete entry ignored."),
-                         strFileName.c_str(), nLine + 1);
+            wxLogWarning(wxT("Mailcap file %s, line %lu: incomplete entry ignored."),
+                         strFileName.c_str(), nLine + 1L);
 
             continue;
         }

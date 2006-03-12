@@ -2,7 +2,7 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h,v 1.139 2006/02/09 03:50:59 VZ Exp $
+// Id:          $Id: window.h,v 1.140 2006/03/12 14:21:15 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -155,6 +155,13 @@ public:
     virtual GtkWidget* GetConnectWidget();
     virtual bool IsOwnGtkWindow( GdkWindow *window );
     void ConnectWidget( GtkWidget *widget );
+
+    // Override GTKWidgetNeedsMnemonic and return true if your
+    // needs to set its mnemonic widget, such as for a 
+    // GtkLabel for wxStaticText, then do the actual
+    // setting of the widget inside GTKWidgetDoSetMnemonic
+    virtual bool GTKWidgetNeedsMnemonic() const;
+    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
 
     // Returns the default context which usually is anti-aliased
     PangoContext   *GtkGetPangoDefaultContext();

@@ -2,7 +2,7 @@
 // Name:        textctrl.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: textctrl.cpp,v 1.226 2006/03/09 13:36:53 VZ Exp $
+// Id:          $Id: textctrl.cpp,v 1.228 2006/03/12 14:14:09 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,6 +85,19 @@ static void wxGtkTextApplyTagsFromAttr(GtkTextBuffer *text_buffer,
                                               NULL );
         gtk_text_buffer_apply_tag (text_buffer, tag, start, end);
         g_free (font_string);
+
+        if (attr.GetFont().GetUnderlined())
+        {
+            g_snprintf(buf, sizeof(buf), "WXFONTUNDERLINE");
+            tag = gtk_text_tag_table_lookup( gtk_text_buffer_get_tag_table( text_buffer ),
+                                             buf );
+            if (!tag)
+                tag = gtk_text_buffer_create_tag( text_buffer, buf,
+                                                  "underline-set", TRUE,
+                                                  "underline", PANGO_UNDERLINE_SINGLE,
+                                                  NULL );
+            gtk_text_buffer_apply_tag (text_buffer, tag, start, end);
+        }
     }
 
     if (attr.HasTextColour())
@@ -947,10 +960,38 @@ int wxTextCtrl::GetLineLength(long lineNo) const
 
 int wxTextCtrl::GetNumberOfLines() const
 {
-    if (m_windowStyle & wxTE_MULTILINE)
-        return gtk_text_buffer_get_line_count( m_buffer );
-    else
+    if ( m_windowStyle & wxTE_MULTILINE )
+    {
+        GtkTextIter iter;
+        gtk_text_buffer_get_iter_at_offset( m_buffer, &iter, 0 );
+
+        // move forward by one display line until the end is reached
+        int lineCount = 1;
+        while ( gtk_text_view_forward_display_line(GTK_TEXT_VIEW(m_text), &iter) )
+        {
+            lineCount++;
+        }
+
+        // If the last character in the text buffer is a newline,
+        // gtk_text_view_forward_display_line() will return false without that
+        // line being counted. Must add one manually in that case.
+        GtkTextIter lastCharIter;        
+        gtk_text_buffer_get_iter_at_offset
+        (
+            m_buffer,
+            &lastCharIter,
+            gtk_text_buffer_get_char_count(m_buffer) - 1
+        );
+        gchar lastChar = gtk_text_iter_get_char( &lastCharIter );
+        if ( lastChar == wxT('\n') )
+            lineCount++;
+
+        return lineCount;
+    }
+    else // single line
+    {
         return 1;
+    }
 }
 
 void wxTextCtrl::SetInsertionPoint( long pos )

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        treectrl.h
+// Name:        wx/mac/carbon/treectrl.h
 // Purpose:     wxTreeCtrl class
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: treectrl.h,v 1.6 2005/09/23 12:49:36 MR Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.7 2006/03/12 13:08:21 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ public:
     // --------
     wxTreeCtrl();
 
-    inline wxTreeCtrl(wxWindow *parent, wxWindowID id = -1,
+    inline wxTreeCtrl(wxWindow *parent, wxWindowID id = wxID_ANY,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long style = wxTR_HAS_BUTTONS|wxTR_LINES_AT_ROOT,
@@ -137,7 +137,7 @@ public:
     // accessors
     // ---------
       //
-    int GetCount() const;
+    size_t GetCount() const;
 
       // indent
     int GetIndent() const;

@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.358 2006/03/11 14:17:50 JS Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.359 2006/03/12 15:44:44 VZ Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -5796,7 +5796,13 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                     m_waitForSlowClick = m_currentCellCoords == coords && coords != wxGridNoCellCoords;
                     SetCurrentCell( coords );
                     if ( m_selection )
-                        HighlightBlock( coords, coords, clearSelection );
+                    {
+                        if ( m_selection->GetSelectionMode() !=
+                                wxGrid::wxGridSelectCells )
+                        {
+                            HighlightBlock( coords, coords, clearSelection );
+                        }
+                    }
                 }
             }
         }
@@ -7039,114 +7045,105 @@ void wxGrid::DrawGridCellArea( wxDC& dc, const wxGridCellCoordsArray& cells )
     int i, numCells = cells.GetCount();
     int row, col, cell_rows, cell_cols;
     wxGridCellCoordsArray redrawCells;
-    int maxRow, maxCol;
-    wxGridTableBase *table = GetTable();
-
-    maxRow = table->GetNumberRows();
-    maxCol = table->GetNumberCols();
-
 
     for ( i = numCells-1; i >= 0;  i-- )
     {
         row = cells[i].GetRow();
         col = cells[i].GetCol();
-        if (row < maxRow && col < maxCol)
-        {
-            GetCellSize( row, col, &cell_rows, &cell_cols );
+        GetCellSize( row, col, &cell_rows, &cell_cols );
 
-            // If this cell is part of a multicell block, find owner for repaint
-            if ( cell_rows <= 0 || cell_cols <= 0 )
+        // If this cell is part of a multicell block, find owner for repaint
+        if ( cell_rows <= 0 || cell_cols <= 0 )
+        {
+            wxGridCellCoords cell(row+cell_rows, col+cell_cols);
+            bool marked = false;
+            for ( int j = 0;  j < numCells;  j++ )
             {
-                wxGridCellCoords cell(row+cell_rows, col+cell_cols);
-                bool marked = false;
-                for ( int j = 0;  j < numCells;  j++ )
+                if ( cell == cells[j] )
                 {
-                    if ( cell == cells[j] )
+                    marked = true;
+                    break;
+                }
+            }
+            if (!marked)
+            {
+                int count = redrawCells.GetCount();
+                for (int j = 0; j < count; j++)
+                {
+                    if ( cell == redrawCells[j] )
                     {
                         marked = true;
                         break;
                     }
                 }
                 if (!marked)
-                {
-                    int count = redrawCells.GetCount();
-                    for (int j = 0; j < count; j++)
-                    {
-                        if ( cell == redrawCells[j] )
-                        {
-                            marked = true;
-                            break;
-                        }
-                    }
-                    if (!marked)
-                        redrawCells.Add( cell );
-                }
-                continue; // don't bother drawing this cell
+                    redrawCells.Add( cell );
             }
+            continue; // don't bother drawing this cell
+        }
 
-            // If this cell is empty, find cell to left that might want to overflow
-            if (m_table && m_table->IsEmptyCell(row, col))
+        // If this cell is empty, find cell to left that might want to overflow
+        if (m_table && m_table->IsEmptyCell(row, col))
+        {
+            for ( int l = 0; l < cell_rows; l++ )
             {
-                for ( int l = 0; l < cell_rows; l++ )
+                // find a cell in this row to left alreay marked for repaint
+                int left = col;
+                for (int k = 0; k < int(redrawCells.GetCount()); k++)
+                    if ((redrawCells[k].GetCol() < left) &&
+                        (redrawCells[k].GetRow() == row))
+                        left = redrawCells[k].GetCol();
+
+                if (left == col)
+                    left = 0; // oh well
+
+                for (int j = col-1; j >= left; j--)
                 {
-                    // find a cell in this row to left alreay marked for repaint
-                    int left = col;
-                    for (int k = 0; k < int(redrawCells.GetCount()); k++)
-                        if ((redrawCells[k].GetCol() < left) &&
-                            (redrawCells[k].GetRow() == row))
-                            left = redrawCells[k].GetCol();
-
-                    if (left == col)
-                        left = 0; // oh well
-
-                    for (int j = col-1; j >= left; j--)
+                    if (!m_table->IsEmptyCell(row+l, j))
                     {
-                        if (!m_table->IsEmptyCell(row+l, j))
+                        if (GetCellOverflow(row+l, j))
                         {
-                            if (GetCellOverflow(row+l, j))
-                            {
-                                wxGridCellCoords cell(row+l, j);
-                                bool marked = false;
+                            wxGridCellCoords cell(row+l, j);
+                            bool marked = false;
 
-                                for (int k = 0; k < numCells; k++)
+                            for (int k = 0; k < numCells; k++)
+                            {
+                                if ( cell == cells[k] )
                                 {
-                                    if ( cell == cells[k] )
+                                    marked = true;
+                                    break;
+                                }
+                            }
+
+                            if (!marked)
+                            {
+                                int count = redrawCells.GetCount();
+                                for (int k = 0; k < count; k++)
+                                {
+                                    if ( cell == redrawCells[k] )
                                     {
                                         marked = true;
                                         break;
                                     }
                                 }
                                 if (!marked)
-                                {
-                                    int count = redrawCells.GetCount();
-                                    for (int k = 0; k < count; k++)
-                                    {
-                                        if ( cell == redrawCells[k] )
-                                        {
-                                            marked = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!marked)
-                                        redrawCells.Add( cell );
-                                }
+                                    redrawCells.Add( cell );
                             }
-                            break;
                         }
+                        break;
                     }
                 }
             }
-
-            DrawCell( dc, cells[i] );
         }
+
+        DrawCell( dc, cells[i] );
     }
 
     numCells = redrawCells.GetCount();
 
     for ( i = numCells - 1; i >= 0;  i-- )
     {
-        if (cells[i].GetRow() < maxRow && cells[i].GetCol() < maxCol)
-            DrawCell( dc, redrawCells[i] );
+        DrawCell( dc, redrawCells[i] );
     }
 }
 
@@ -7845,9 +7842,6 @@ void wxGrid::EnableCellEditControl( bool enable )
 {
     if (! m_editable)
         return;
-
-    if ( m_currentCellCoords == wxGridNoCellCoords )
-        SetCurrentCell( 0, 0 );
 
     if ( enable != m_cellEditCtrlEnabled )
     {
@@ -9795,7 +9789,7 @@ wxGrid::GetDefaultEditorForType(const wxString& typeName) const
     int index = m_typeRegistry->FindOrCloneDataType(typeName);
     if ( index == wxNOT_FOUND )
     {
-    wxString errStr;
+        wxString errStr;
 
         errStr.Printf(wxT("Unknown data type name [%s]"), typeName.c_str());
         wxFAIL_MSG(errStr.c_str());

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/radiobox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.h,v 1.47 2006/02/08 21:45:44 VZ Exp $
+// Id:          $Id: radiobox.h,v 1.49 2006/03/12 15:25:12 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -127,16 +127,14 @@ public:
 protected:
     void DoApplyWidgetStyle(GtkRcStyle *style);
 
+    virtual bool GTKWidgetNeedsMnemonic() const;
+    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
+
     // common part of all ctors
     void Init();
-
-    // check that the index is valid
-    // FIXME: remove once GTK will derive from wxRadioBoxBase
-    inline bool IsValid(int n) const { return n >= 0 && n < GetCount(); }
 
 private:
     DECLARE_DYNAMIC_CLASS(wxRadioBox)
 };
 
 #endif // _WX_GTK_RADIOBOX_H_
-

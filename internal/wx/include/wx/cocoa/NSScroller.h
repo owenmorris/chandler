@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/27
-// RCS-ID:      $Id: NSScroller.h,v 1.1 2004/06/23 15:26:35 DE Exp $
+// RCS-ID:      $Id: NSScroller.h,v 1.2 2006/03/12 15:10:23 VZ Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,13 +25,15 @@ class wxCocoaNSScroller
     WX_DECLARE_OBJC_INTERFACE_HASHMAP(NSScroller);
 public:
     void AssociateNSScroller(WX_NSScroller cocoaNSScroller);
-    inline void DisassociateNSScroller(WX_NSScroller cocoaNSScroller)
+    void DisassociateNSScroller(WX_NSScroller cocoaNSScroller)
     {
         if(cocoaNSScroller)
             sm_cocoaHash.erase(cocoaNSScroller);
     }
 
     virtual void Cocoa_wxNSScrollerAction(void) = 0;
+    virtual ~wxCocoaNSScroller() { }
+
 protected:
     static const wxObjcAutoRefFromAlloc<struct objc_object*> sm_cocoaTarget;
 };
