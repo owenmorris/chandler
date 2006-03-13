@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.79 2006/02/10 18:37:57 RD Exp $
+// RCS-ID:      $Id: html.i,v 1.80 2006/03/13 23:11:35 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -506,7 +506,8 @@ public:
     %typemap(out) wxHtmlCell*;    // turn off this typemap
 
     wxHtmlCell();
-
+    ~wxHtmlCell();
+    
     // Turn it back on again
     %typemap(out) wxHtmlCell* { $result = wxPyMake_wxObject($1, $owner); }
 
@@ -536,7 +537,11 @@ public:
 
 
     void SetLink(const wxHtmlLinkInfo& link);
+
+    %disownarg(wxHtmlCell*);
     void SetNext(wxHtmlCell *cell);
+    %cleardisown(wxHtmlCell*);
+    
     void SetParent(wxHtmlContainerCell *p);
     void SetPos(int x, int y);
     void Layout(int w);
@@ -601,7 +606,10 @@ class wxHtmlContainerCell : public wxHtmlCell {
 public:
     wxHtmlContainerCell(wxHtmlContainerCell *parent);
 
+    %disownarg(wxHtmlCell*);
     void InsertCell(wxHtmlCell *cell);
+    %cleardisown(wxHtmlCell*);
+
     void SetAlignHor(int al);
     int GetAlignHor();
     void SetAlignVer(int al);
