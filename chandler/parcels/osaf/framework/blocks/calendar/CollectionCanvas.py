@@ -23,7 +23,14 @@ def GetPlatformBorder():
     if '__WXGTK__' in wx.PlatformInfo:
         return  5
     return 0
-    
+
+ignore = [wx.WXK_SHIFT, wx.WXK_TAB, wx.WXK_CAPITAL, wx.WXK_SCROLL,
+          wx.WXK_ESCAPE, wx.WXK_NUMLOCK, wx.WXK_PAUSE, wx.WXK_PAGEDOWN,
+          wx.WXK_PAGEUP, wx.WXK_WINDOWS_LEFT, wx.WXK_WINDOWS_RIGHT,
+          wx.WXK_WINDOWS_MENU, wx.WXK_HOME, wx.WXK_END]
+ignore.extend([getattr(wx, 'WXK_F' + str(n)) for n in range(1,25)])
+        
+
 # @@@ These buttons could become a more general utility
 
 class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
@@ -291,7 +298,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # through it.
         self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0), style=wx.WANTS_CHARS)
         self._focusWindow.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
-
+        self._focusWindow.Bind(wx.EVT_CHAR, self.OnChar)
+        
     def SetPanelFocus(self):
         self._focusWindow.SetFocus()
 
@@ -511,12 +519,11 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 if item == canvasItem.item:
                     yield canvasItem
 
+    def SaveCharTyped(self, event):
+        pass
+
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
-
-        if keyCode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
-            self.EditCurrentItem()
-            return
 
         # dispatch arrow keys, etc
         
@@ -539,6 +546,22 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         # didn't handle it so propagate the key event upward
         event.Skip()
+
+    def OnChar(self, event):
+        """Handle character after system translation."""
+        keyCode = event.GetKeyCode()
+        
+        # is there a good way to find out if the key press was a normal
+        # (for the current locale) key?
+        
+        if not (keyCode in ignore or event.AltDown() or event.ControlDown() or
+                event.MetaDown()):
+            
+            # normal key presses should cause the item to start being edited
+            self.EditCurrentItem()
+            if keyCode not in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+                # don't eat non-enter keypresses 
+                self.SaveCharTyped(event)
 
     def ScrollIntoView(self, unscrolledPosition):
         clientSize = self.GetClientSize()

@@ -1213,7 +1213,10 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         view = self.blockItem.itsView
 
         event = Calendar.CalendarEvent(itsView=view, **initialValues)
-        event.InitOutgoingAttributes()	
+        event.InitOutgoingAttributes()
+        # Keep InitOutgoingAttributes from clobbering displayName
+        if initialValues.has_key('displayName'):
+            event.displayName = initialValues['displayName']
        
         self.blockItem.contentsCollection.add (event)
         
@@ -1316,6 +1319,20 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
             return (drawInfo.columnPositions[dayStart + 1],
                     sum(drawInfo.columnWidths[dayStart + 1:dayEnd+2]))
 
+    def SaveCharTyped(self, event):
+        """
+        Capture the first key press that began the edit.
+        """
+        key = unichr(event.GetUnicodeKey())
+
+        # Seeting the insertion point seems to work when several keys are typed
+        # before the edit widget is displayed, but perhaps there's a better
+        # way to achieve this?
+        
+        self.editor.SetInsertionPoint(0)
+        self.editor.SetValue(key)
+        self.editor.SetInsertionPointEnd()
+
     def wxSynchronizeWidget(self, useHints=False):
         # clear notifications
         self.pendingNewEvents = []
@@ -1371,7 +1388,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         self._unfocusing = False
         self.Hide()
 
-        #self.editor.Bind(wx.EVT_CHAR, self.OnChar)
+        self.Bind(wx.EVT_CHAR, self.OnChar)
         parent = self.GetParent()
         parent.Bind(wx.EVT_SIZE, self.OnSize)
 
@@ -1393,13 +1410,27 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         self.Hide()
         self.ResetFocus()
         self._unfocusing = False
-        
+
+        # If an event's title is empty and a user presses enter to begin 
+        # editing, SetItem doesn't call SetValue, so empty the buffer
+        self.SetValue('') 
+
     def OnEnterPressed(self, event):
         """
         for now, no need to display
         """
         self.SaveAndHide()
-        event.Skip()
+
+    def OnEscapePressed(self, event):
+        self.Undo()
+        self._unfocusing = True
+        self.Hide()
+        self.ResetFocus()
+        self._unfocusing = False
+
+        # If an event's title is empty and a user presses enter to begin 
+        # editing, SetItem doesn't call SetValue, so empty the buffer
+        self.SetValue('') 
 
     def OnKillFocus(self, event):
         super(wxInPlaceEditor, self).OnKillFocus(event)
@@ -1407,15 +1438,21 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
             self.SaveAndHide()
 
     def OnChar(self, event):
-        if (event.KeyCode() == wx.WXK_RETURN):
-            if self.item != None:
-                self.item.displayName = self.GetValue()
-            self.Hide()
-        event.Skip()
+        keycode = event.KeyCode()
+        if keycode == wx.WXK_ESCAPE:
+            self.OnEscapePressed(event)
+        else:
+            event.Skip()
 
     def SetItem(self, item, position, size, pointSize):
         self.item = item
-        self.SetValue(item.displayName)
+
+        if item.displayName != '':
+            # item.displayName == '' is used as a flag to determine if this
+            # SetItem is for a new item and was initiated by typing.  In this
+            # case, calling SetValue would clobber characters typed in the time
+            # between initiation of EditCurrentItem and the call to SetItem.
+            self.SetValue(item.displayName)
 
         newSize = wx.Size(size.width, size.height)
 
@@ -1439,7 +1476,10 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         
         self.Show()
         self.SetFocus()
-        self.SetSelection(-1, -1)
+        # if displayName is empty, a keyboard edit is likely in progress, don't
+        # interrupt it.
+        if item.displayName != '':
+            self.SetSelection(-1, -1)
 
     def OnSize(self, event):
         self.Hide()

@@ -523,12 +523,16 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if 0 <= newItemIndex < len(self.canvasItemList):
             self.OnSelectItem(self.canvasItemList[newItemIndex].item)
             
-    def OnCreateItem(self, unscrolledPosition):
+    def OnCreateItem(self, unscrolledPosition, displayName = None):
         
         # if a region is selected, then use that for the event span
         newTime, duration = self.GetNewEventTime(unscrolledPosition)
-            
-        event = self.CreateEmptyEvent(startTime=newTime, duration=duration, anyTime=False)
+        
+        kwargs = dict(startTime=newTime, duration=duration, anyTime=False)
+        if displayName is not None:
+            kwargs['displayName'] = displayName
+        
+        event = self.CreateEmptyEvent(**kwargs)
 
         # now try to insert the event onto the canvas without too many
         # redraws, and allow the user to start dragging if they are
@@ -540,6 +544,17 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         canvasItem.UpdateDrawingRects()
         canvasItem.setResizeMode(canvasItem.RESIZE_MODE_END)
         return canvasItem
+
+    def EditCurrentItem(self):
+        """
+        Extend EditCurrentItem to cause edits when a background region is
+        selected to create an empty item then edit it.
+        """
+        canvasItem = self.SelectedCanvasItem()
+        if canvasItem is None and self._bgSelectionStartTime is not None:
+            canvasItem = self.OnCreateItem(None, displayName = '')
+        if canvasItem is not None:
+            self.OnEditItem(canvasItem)
 
     def GetNewEventTime(self, unscrolledPosition=None):
         """
