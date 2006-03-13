@@ -2,7 +2,7 @@
 include ../Makefile.inc
 
 VERSION=0.9.7i
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
 
@@ -36,24 +36,22 @@ openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
       ms/$(DOMASM); \
       nmake -f ms/ntdll.mak;\
       cd $(OUT32DLL); \
-      ../ms/test.bat; \
-      cp -f ssleay32.dll $(PREFIX)/bin/; \
-      cp -f libeay32.dll $(PREFIX)/bin/; \
+      cp -f ssleay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/; \
+      cp -f libeay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/; \
       cp -f ssleay32.lib $(PREFIX)/lib/; \
       cp -f libeay32.lib $(PREFIX)/lib/; \
       cp -fr  ../inc32/openssl $(PREFIX)/Include
 
-# binaries target can be empty on Windows because we will install the OpenSSL
-# DLLs during M2Crypto build, as we'll be copying the DLLs into site-packages
-# to make sure Chandler will find our DLLs and not anything in Windows
-# system directories.
+# Need to put the files into M2Crypto dir so that Windows finds our versions
 binaries: 
+	cd $(BUILD_ROOT); \
+      tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
+          $(SNAP)/$(SITE)/M2Crypto/ssleay32.dll \
+          $(SNAP)/$(SITE)/M2Crypto/libeay32.dll
 
-# M2Crypto upload handles this as well
-upload:
-
-# and this
-install:
+tests:
+	cd $(SRC)/$(BUILD)/$(OUT32DLL); \
+	../ms/test.bat
 
 else
 
@@ -68,11 +66,9 @@ openssl: apply $(SRC)/$(BUILD)
       $(MAKE); \
       $(MAKE) install
 
-upload: openssl-$(SNAP)-$(RELVER).tar.gz
-	scp openssl-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-
-install: openssl-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf openssl-$(SNAP)-$(RELVER).tar.gz
+tests:
+	cd $(SRC)/$(BUILD); \
+      $(MAKE) test
 
 ifeq ($(OS),Darwin)
 
@@ -100,6 +96,12 @@ binaries:
 
 endif # if OS X or linux
 endif # if Cygwin or not
+
+install: openssl-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf openssl-$(SNAP)-$(RELVER).tar.gz
+
+upload: openssl-$(SNAP)-$(RELVER).tar.gz
+	scp openssl-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 
 openssl-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/openssl-$(VERSION).tar.gz

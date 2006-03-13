@@ -1,16 +1,17 @@
 
 VERSION=310
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 
 include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
-apply: patches
-	patch -Nup0 < patches || true
-
 ifeq ($(OS),Cygwin)
+apply:
+	patch -Nup0 < patches || true
+	patch -Nup0 < patches-wintest || true
+
 build: expand apply
 	cd $(SRC); \
 	$(PYTHON) setup.py \
@@ -19,14 +20,11 @@ build: expand apply
                     --include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
-	cp -f $(BUILD_ROOT)/$(SNAP)/bin/libeay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto
-	cp -f $(BUILD_ROOT)/$(SNAP)/bin/ssleay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto
-
-# The tests do not run properly with Windows Python (Cygwin would work) since
-# we don't have win32process module.
-tests:
 
 else
+apply: patches
+	patch -Nup0 < patches || true
+
 build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
@@ -36,10 +34,10 @@ build: expand apply
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
+endif
+
 tests:
 	cd $(SRC)/tests; $(PYTHON) alltests.py
-
-endif
 
 M2Crypto-$(VERSION).tar.gz:
 	svn export -r $(VERSION) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-$(VERSION)
