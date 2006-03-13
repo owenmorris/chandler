@@ -7,10 +7,74 @@ __parcel__ = "//Schema/Core"
 import sys, os, logging
 from datetime import datetime
 
-import schema
+import schema, pkg_resources
+from pkg_resources import working_set
 import application.Globals as Globals
 
 logger = logging.getLogger(__name__)
+
+def activate_plugins(dirs, working_set=working_set):
+    """Add plugins from `dirs` to `working_set`"""
+    plugin_env = pkg_resources.Environment(dirs)
+    dists, errors = working_set.find_plugins(plugin_env, fallback=False)
+    map(working_set.add, dists)
+    # XXX log errors
+
+def loadable_parcels(working_set=working_set):
+    """Yield entry points for loadable parcels in `working_set`"""
+    for ep in working_set.iter_entry_points('chandler.parcels'):
+        try:
+            ep.require(env)
+        except pkg_resources.ResolutionError:
+            # XXX log the error
+            continue    # skip unloadable parcels ???
+        else:
+            yield ep
+
+def load_parcel_from_entrypoint(rv,ep):
+    """Load the parcel defined by entrypoint `ep` into repository view `rv`
+
+    `ep` should be an object returned by ``parcel_entrypoints()``, and `rv`
+    should be a repository view.  Before calling this function, you should use
+    the `ep` object's ``require()`` method to ensure that the entrypoint's
+    dependencies have been added to sys.path.  (The egg should also have been
+    added to sys.path first.)
+
+    If a parcel already exists in `rv` for the entrypoint, it is updated if
+    its version does not match the version of the egg containing the
+    entrypoint.  If no parcel exists, it is created.
+    """
+    module_name = ep.module_name
+    egg_version = ep.dist.version
+
+    if ep.attrs:
+        # This is a fatal error so that nobody will ship
+        # a parcel with attrs set to something!
+        raise AssertionError(
+            "%s: parcel entrypoints must specify a module only"
+            % ep.dist
+        )
+
+    old_parcel = rv.findPath('//parcels/'+module_name.replace('.','/'))
+
+    if old_parcel is None:
+        new_parcel = parcel_for_module(module_name, rv)
+        old_version = egg_version
+    else:
+        new_parcel = old_parcel
+        old_version = getattr(old_parcel,'version','')
+
+    #new_parcel.egg_id = ep.dist.key    XXX schema change needed for this
+    new_parcel.version = egg_version
+
+    # XXX what if parcel came from a different egg?
+
+    if old_version <> egg_version:
+        schema.synchronize(rv, module_name)     # get any new Kinds
+        module = sys.modules[module_name]       # get the actual module
+        if hasattr(module,'installParcel') and not hasattr(module,'__parcel__'):
+            module.installParcel(new_parcel, old_version)   # upgrade!
+
 
 
 #@@@Temporary testing tool written by Morgen -- DJA
@@ -119,23 +183,33 @@ class Manager(schema.Item):
 
         self._imported = set()    # imported namespaces
 
+        load_plugins = not namespaces
+
         if not namespaces:
             namespaces = sorted(self.findPlugins())
             appParcel = getattr(
                 getattr(Globals,'options',None), "appParcel", "osaf.app"
-            )                
+            )
             # always load the app parcel first
             namespaces.insert(0, appParcel)
 
         logger.info("Loading parcels...")
+
+        # Load old-style or explicitly-listed parcels
         for namespace in namespaces:
             self.__syncParcel(namespace)
-        logger.info("...done")               
+
+        if load_plugins:
+            # Load egg and plugin parcels
+            activate_plugins(self.path)
+            for parcel_ep in loadable_parcels():
+                load_parcel_from_entrypoint(self.itsView, parcel_ep)
+
+        logger.info("...done")
 
         #@@@Temporary testing tool written by Morgen -- DJA
         if timing: util.timing.end("Load parcels")
 
-        
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Parcel(schema.Item):
