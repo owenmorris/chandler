@@ -32,43 +32,34 @@ try:
     path = unicode(path, sys.getfilesystemencoding())
     share = Sharing.OneTimeFileSystemShare(path, u'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=appView)
     logger.ReportPass("Export Event")
-    
-    try:
-        collection = ListCollection(itsView=appView)
-        for tmpEvent in Calendar.CalendarEvent.iterItems(appView):
-            collection.add(tmpEvent)
-        share.contents = collection
-        share.put()
-    except:
-        logger.ReportFailure("Exception raised during event export")
-    else:
-        wx.GetApp().Yield()
-        logger.ReportPass("Exporting event")
+
+    collection = ListCollection(itsView=appView)
+    for tmpEvent in Calendar.CalendarEvent.iterItems(appView):
+        collection.add(tmpEvent)
+    share.contents = collection
+    share.put()
+    wx.GetApp().Yield()
+    logger.ReportPass("Exporting event")
     
     #change the event after exporting
     event.SetAttr(displayName="Changed Event",  body="This event has been changed")
     logger.ReportPass("modifing event")
     
     #import the original event
-    try:
-        share = Sharing.OneTimeFileSystemShare(path, u'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
-        share.get()
-    except:
-        logger.ReportFailure("Exception raised during event import")
-    else:
-        wx.GetApp().Yield()
-        logger.ReportPass("importing event")
+
+    share = Sharing.OneTimeFileSystemShare(path, u'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
+    share.get()
+    wx.GetApp().Yield()
+    logger.ReportPass("importing event")
     
     #check if changed attributes have reverted to original values
-    try:
         #find imported event by UUID
-        found =App_ns.view.findUUID(event_UUID)
-        if found.bodyString == 'This is the original event' and  found.displayName == 'Original Event':
-            logger.ReportPass("Event overwriten")
-        else:
-            logger.ReportFailure('Event not overwriten')
-    except:
-        logger.ReportFailure('Exception raised during overwrite testing')
+    found = App_ns.view.findUUID(event_UUID)
+    if found.bodyString == 'This is the original event' and  found.displayName == 'Original Event':
+        logger.ReportPass("Event overwriten")
+    else:
+        logger.ReportFailure('Event not overwriten')
+   
     
 finally: 
     #report results  
