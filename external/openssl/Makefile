@@ -36,6 +36,7 @@ openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
       ms/$(DOMASM); \
       nmake -f ms/ntdll.mak;\
       cd $(OUT32DLL); \
+      mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto; \
       cp -f ssleay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/; \
       cp -f libeay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/; \
       cp -f ssleay32.lib $(PREFIX)/lib/; \
