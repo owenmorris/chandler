@@ -7,11 +7,11 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
-ifeq ($(OS),Cygwin)
-apply:
+apply: patches
 	patch -Nup0 < patches || true
-	patch -Nup0 < patches-wintest || true
 
+
+ifeq ($(OS),Cygwin)
 build: expand apply
 	cd $(SRC); \
 	$(PYTHON) setup.py \
@@ -22,9 +22,6 @@ build: expand apply
           install --force
 
 else
-apply: patches
-	patch -Nup0 < patches || true
-
 build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
@@ -46,6 +43,7 @@ M2Crypto-$(VERSION).tar.gz:
 sources: M2Crypto-$(VERSION).tar.gz
 
 M2Crypto-$(VERSION)-expanded: M2Crypto-$(VERSION).tar.gz
+	tar zxvf M2Crypto-$(VERSION).tar.gz
 	touch M2Crypto-$(VERSION)-expanded
 
 expand: M2Crypto-$(VERSION)-expanded

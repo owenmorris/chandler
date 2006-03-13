@@ -58,13 +58,12 @@ else
 $(SRC)/$(BUILD):
 	cd $(SRC); \
       mkdir $(BUILD); \
-      cp -r Configure Makefile.org *.h crypto ssl apps certs tools util doc include fips $(BUILD)/
+      cp -r Configure Makefile.org *.h crypto ssl apps certs tools util doc include fips test $(BUILD)/
 
 openssl: apply $(SRC)/$(BUILD)
-	cd $(SRC)/$(BUILD); \
-      ../config shared --openssldir=$(PREFIX) $(CONF_OPT); \
-      $(MAKE); \
-      $(MAKE) install
+	cd $(SRC)/$(BUILD); ../config shared --openssldir=$(PREFIX) $(CONF_OPT)
+	$(MAKE) -C $(SRC)/$(BUILD)
+	$(MAKE) -C $(SRC)/$(BUILD) install
 
 tests:
 	cd $(SRC)/$(BUILD); \
