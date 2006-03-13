@@ -2,7 +2,7 @@
 // Name:        wx/gtk/listbox.h
 // Purpose:     wxListBox class declaration
 // Author:      Robert Roebling
-// Id:          $Id: listbox.h,v 1.57 2006/03/11 13:24:04 JS Exp $
+// Id:          $Id: listbox.h,v 1.58 2006/03/13 09:37:23 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,8 +45,6 @@ public:
         Create(parent, id, pos, size, choices, style, validator, name);
     }
     virtual ~wxListBox();
-
-    void Init(); //common construction
 
     bool Create(wxWindow *parent, wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
@@ -120,6 +118,8 @@ protected:
     void DoApplyWidgetStyle(GtkRcStyle *style);
 
 private:
+    void Init(); //common construction
+
     DECLARE_DYNAMIC_CLASS(wxListBox)
 };
 

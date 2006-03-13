@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 31.08.00: wxScrollHelper allows to implement.
 //              Ron Lee on 10.4.02:  virtual size / auto scrollbars et al.
 // Created:     01/02/97
-// RCS-ID:      $Id: scrlwing.cpp,v 1.73 2006/02/12 12:16:48 MW Exp $
+// RCS-ID:      $Id: scrlwing.cpp,v 1.74 2006/03/13 15:11:14 JS Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -222,7 +222,7 @@ bool wxScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
         // normally, nothing more to do here - except if it was a paint event
         // which wasn't really processed, then we'll try to call our
         // OnDraw() below (from HandleOnPaint)
-        if ( m_hasDrawnWindow )
+        if ( m_hasDrawnWindow || event.IsCommandEvent() )
         {
             return true;
         }
