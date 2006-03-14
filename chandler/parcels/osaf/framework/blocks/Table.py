@@ -117,6 +117,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
 
     def OnGainFocus (self, event):
@@ -140,6 +141,23 @@ class wxTable(DragAndDrop.DraggableWidget,
             contents.setDescending (indexName, not contents.isDescending(indexName))
 
         self.wxSynchronizeWidget()
+
+    def OnKeyDown(self, event):
+
+        # default grid behavior is to move to the "next" cell,
+        # whatever that may be. We want to edit instead.
+        if event.GetKeyCode() == wx.WXK_RETURN:
+            defaultEditableAttribute = getattr(self.blockItem,
+                                               'defaultEditableAttribute',
+                                               None)
+            if defaultEditableAttribute is not None:
+                self.EditAttribute(self.blockItem.defaultEditableAttribute)
+                
+            return
+
+        # other keys should just get propagated up
+        event.Skip()
+        
 
     def SetLightSelectionBackground (self):
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
@@ -314,7 +332,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         # Shouldn't this have come in via an event?
         self.EditIfNecessary()
 
-    def EditIfNecessary(self):
+    def EditAttribute(self, attrName):
         contents = self.blockItem.contents
         selectedItemToView = self.blockItem.selectedItemToView
 
@@ -327,18 +345,18 @@ class wxTable(DragAndDrop.DraggableWidget,
         if cursorRow == -1:
             return
 
-        editAttributeNamed = getattr (self.blockItem, "editAttributeNamed", None)
-        if editAttributeNamed is not None:
-            try:
-                column = self.blockItem.columnData.index (editAttributeNamed)
-            except ValueError:
-                editAttributeNamed = None
+        try:
+            column = self.blockItem.columnData.index(attrName)
+        except ValueError:
+            return
 
-        
+        self.SetGridCursor (cursorRow, column)
+        self.EnableCellEditControl()
+
+    def EditIfNecessary(self):
+        editAttributeNamed = getattr(self, "editAttributeNamed", None)
         if editAttributeNamed is not None:
-            self.SetGridCursor (cursorRow, column)
-            self.MakeCellVisible (cursorRow, column)
-            self.EnableCellEditControl()
+            self.EditAttribute(editAttributeNamed)
                     
     def UpdateRowsAndColumns(self):
 
@@ -619,8 +637,8 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
     def EndEdit (self, row, column, grid):
         assert self.editingCell == (row, column)
         self.editingCell = None
-        if hasattr (grid.blockItem, "editAttributeNamed"):
-            del grid.blockItem.editAttributeNamed
+        if hasattr (grid, "editAttributeNamed"):
+            del grid.editAttributeNamed
         
         value = self.delegate.GetControlValue (self.control)
         item, attributeName = grid.GetElementValue (row, column)
@@ -661,7 +679,11 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     columnReadOnly = schema.Sequence(schema.Boolean)
     elementDelegate = schema.One(schema.Text, initialValue = '')
     selectedItemToView = schema.One(schema.Item, initialValue = None)
-    editAttributeNamed = schema.One(schema.Text)
+    defaultEditableAttribute = schema.One(schema.Text,
+                                          doc="The default attribute to " 
+                                          "edit, for instance if the user " 
+                                          "uses the keyboard to activate "
+                                          "in-place editing")
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
@@ -724,7 +746,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         editAttributeNamed = event.arguments.get ('editAttributeNamed')
         if editAttributeNamed is not None:
             self.widget.EnableCellEditControl (False)
-            self.editAttributeNamed = editAttributeNamed
+            self.widget.editAttributeNamed = editAttributeNamed
 
     def PostSelectItems(self, items = None):
         if items is None:
