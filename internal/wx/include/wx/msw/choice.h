@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     01/02/97
-// RCS-ID:      $Id: choice.h,v 1.36 2006/02/08 21:46:19 VZ Exp $
+// RCS-ID:      $Id: choice.h,v 1.37 2006/03/14 19:35:25 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ public:
     virtual void Delete(int n);
     virtual void Clear();
 
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual int GetSelection() const;
     virtual int GetCurrentSelection() const;
     virtual void SetSelection(int n);

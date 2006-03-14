@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/16
-// Id:          $Id: choice.mm,v 1.15 2005/09/27 17:04:52 ABX Exp $
+// Id:          $Id: choice.mm,v 1.16 2006/03/14 19:44:23 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -156,9 +156,9 @@ void wxChoice::Delete(int n)
     [(NSPopUpButton*)m_cocoaNSView removeItemAtIndex:n];
 }
 
-int wxChoice::GetCount() const
+size_t wxChoice::GetCount() const
 {
-    return [(NSPopUpButton*)m_cocoaNSView numberOfItems];
+    return (size_t)[(NSPopUpButton*)m_cocoaNSView numberOfItems];
 }
 
 wxString wxChoice::GetString(int n) const

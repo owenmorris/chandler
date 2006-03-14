@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h,v 1.46 2006/01/02 11:03:24 JG Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.47 2006/03/14 19:35:26 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ public:
     // implement the radiobox interface
     virtual void SetSelection(int n);
     virtual int GetSelection() const { return m_selectedButton; }
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& label);
     virtual bool Enable(int n, bool enable = true);

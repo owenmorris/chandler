@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: choice.h,v 1.27 2005/09/27 21:20:22 ABX Exp $
+// RCS-ID:      $Id: choice.h,v 1.28 2006/03/14 19:35:24 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ public:
         const wxString& name = wxChoiceNameStr);
 
     // implementation of wxControlWithItems
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual int DoAppend(const wxString& item);
     virtual int DoInsert(const wxString& item, int pos);
     virtual void DoSetItemClientData(int n, void* clientData);

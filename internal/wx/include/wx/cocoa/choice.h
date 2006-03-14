@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/16
-// RCS-ID:      $Id: choice.h,v 1.7 2005/09/27 16:54:22 ABX Exp $
+// RCS-ID:      $Id: choice.h,v 1.8 2006/03/14 19:35:12 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ protected:
 public:
     virtual void Clear();
     virtual void Delete(int);
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual wxString GetString(int) const;
     virtual void SetString(int, const wxString&);
     virtual int FindString(const wxString& s, bool bCase = false) const;

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: combobox.h,v 1.33 2006/02/08 21:46:50 VZ Exp $
+// RCS-ID:      $Id: combobox.h,v 1.34 2006/03/14 19:35:33 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -294,7 +294,7 @@ public:
     // wxControlWithItems methods
     virtual void Clear();
     virtual void Delete(int n);
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const;

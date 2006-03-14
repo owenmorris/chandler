@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: listbox.h,v 1.26 2006/02/08 21:46:51 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.27 2006/03/14 19:35:34 ABX Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -99,8 +99,8 @@ public:
     virtual void Clear();
     virtual void Delete(int n);
 
-    virtual int GetCount() const
-        { return (int)m_strings->GetCount(); }
+    virtual size_t GetCount() const
+        { return m_strings->GetCount(); }
     virtual wxString GetString(int n) const
         { return m_strings->Item(n); }
     virtual void SetString(int n, const wxString& s);

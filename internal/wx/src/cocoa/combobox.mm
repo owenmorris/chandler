@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2005/02/16
-// RCS-ID:      $Id: combobox.mm,v 1.13 2005/09/27 17:04:52 ABX Exp $
+// RCS-ID:      $Id: combobox.mm,v 1.14 2006/03/14 19:44:23 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,6 +75,7 @@
 // ----------------------------------------------------------------------------
 
 #include "wx/wxprec.h"
+
 #if wxUSE_COMBOBOX
 
 #ifndef WX_PRECOMP
@@ -260,9 +261,9 @@ void wxComboBox::Delete(int nIndex)
     m_Datas.RemoveAt(nIndex);
 }
 
-int wxComboBox::GetCount() const
+size_t wxComboBox::GetCount() const
 {
-    return [GetNSComboBox() numberOfItems];
+    return (size_t)[GetNSComboBox() numberOfItems];
 }
 
 wxString wxComboBox::GetString(int nIndex) const

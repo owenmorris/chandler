@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.255 2006/03/14 15:45:12 VZ Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.256 2006/03/14 18:45:31 RD Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -221,9 +221,6 @@ wxWindowBase::wxWindowBase()
 
     // VZ: this one shouldn't exist...
     m_isBeingDeleted = false;
-
-    // Reserved for future use
-//    m_windowReserved = NULL;
 }
 
 // common part of window creation process

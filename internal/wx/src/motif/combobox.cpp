@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: combobox.cpp,v 1.37 2006/01/26 16:02:00 ABX Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.38 2006/03/14 19:44:35 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ bool wxComboBox::Create(wxWindow *parent, wxWindowID id,
     if( !CreateControl( parent, id, pos, size, style, validator, name ) )
         return false;
 
-    m_noStrings = n;
+    m_noStrings = (size_t)n;
 
     Widget parentWidget = (Widget) parent->GetClientWidget();
 
@@ -162,7 +162,7 @@ int wxComboBox::DoAppend(const wxString& item)
 int wxComboBox::DoInsert(const wxString& item, int pos)
 {
     wxCHECK_MSG(!(GetWindowStyle() & wxCB_SORT), -1, wxT("can't insert into sorted list"));
-    wxCHECK_MSG((pos>=0) && (pos<=GetCount()), -1, wxT("invalid index"));
+    wxCHECK_MSG(IsValidInsert(pos), -1, wxT("invalid index"));
 
     if (pos == GetCount())
         return DoAppend(item);

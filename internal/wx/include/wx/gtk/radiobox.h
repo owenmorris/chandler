@@ -2,7 +2,7 @@
 // Name:        wx/gtk/radiobox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.h,v 1.49 2006/03/12 15:25:12 ABX Exp $
+// Id:          $Id: radiobox.h,v 1.50 2006/03/14 19:35:15 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ public:
 
 
     // implement wxItemContainerImmutable methods
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
 
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);

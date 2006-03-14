@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/16
-// RCS-ID:      $Id: listbox.h,v 1.9 2005/09/27 16:54:23 ABX Exp $
+// RCS-ID:      $Id: listbox.h,v 1.10 2006/03/14 19:35:13 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ public:
     virtual void Clear();
     virtual void Delete(int n);
     // accessing strings
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const;

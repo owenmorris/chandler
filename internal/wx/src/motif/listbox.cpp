@@ -4,13 +4,15 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: listbox.cpp,v 1.47 2005/10/06 12:10:42 ABX Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.48 2006/03/14 19:44:35 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
+
+#if wxUSE_LISTBOX
 
 #ifdef __VMS
 #define XtParent XTPARENT
@@ -87,7 +89,7 @@ bool wxListBox::Create(wxWindow *parent, wxWindowID id,
                                    validator, name ) )
         return false;
 
-    m_noItems = n;
+    m_noItems = (size_t)n;
     m_backgroundColour = * wxWHITE;
 
     Widget parentWidget = (Widget) parent->GetClientWidget();
@@ -190,8 +192,9 @@ void wxListBox::DoSetFirstItem( int N )
 {
     int count, length;
 
-    if (N < 0)
+    if (!IsValid(N))
         return;
+
     XtVaGetValues ((Widget) m_mainWidget,
                     XmNvisibleItemCount, &count,
                     XmNitemCount, &length,
@@ -663,7 +666,7 @@ void wxListBox::ChangeForegroundColour()
     */
 }
 
-int wxListBox::GetCount() const
+size_t wxListBox::GetCount() const
 {
     return m_noItems;
 }
@@ -714,3 +717,5 @@ wxSize wxListBox::DoGetBestSize() const
 {
     return wxDoGetListBoxBestSize( (Widget)m_mainWidget, this );
 }
+
+#endif // wxUSE_LISTBOX

@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     29.07.2004
-// RCS-ID:      $Id: choicece.h,v 1.5 2005/09/27 16:54:36 ABX Exp $
+// RCS-ID:      $Id: choicece.h,v 1.6 2006/03/14 19:35:28 ABX Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ public:
     virtual void Delete(int n);
     virtual void Clear() ;
 
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual int GetSelection() const;
     virtual void SetSelection(int n);
 

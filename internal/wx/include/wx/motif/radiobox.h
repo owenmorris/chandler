@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobox.h,v 1.29 2005/11/30 16:27:45 VZ Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.30 2006/03/14 19:35:24 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public:
 
     virtual wxString GetStringSelection() const;
     virtual bool SetStringSelection(const wxString& s);
-    virtual int GetCount() const { return m_noItems; } ;
+    virtual size_t GetCount() const { return m_noItems; } ;
     void Command(wxCommandEvent& event);
 
     int GetNumberOfRowsOrCols() const { return m_noRowsOrCols; }
@@ -103,7 +103,7 @@ protected:
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);
 
-    int               m_noItems;
+    size_t            m_noItems;
     int               m_noRowsOrCols;
     int               m_selectedButton;
 

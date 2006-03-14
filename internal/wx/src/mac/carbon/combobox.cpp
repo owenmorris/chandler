@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor, Dan "Bud" Keith (composite combobox)
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.cpp,v 1.67 2006/02/14 04:00:39 KH Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.68 2006/03/14 19:44:31 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -410,7 +410,7 @@ wxString wxComboBox::GetValue() const
     return result;
 }
 
-int wxComboBox::GetCount() const
+size_t wxComboBox::GetCount() const
 {
     return m_choice->GetCount() ;
 }

@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        cocoa/listbox.mm
+// Name:        src/cocoa/listbox.mm
 // Purpose:     wxListBox
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/18
-// Id:          $Id: listbox.mm,v 1.16 2005/09/27 17:04:52 ABX Exp $
+// Id:          $Id: listbox.mm,v 1.17 2006/03/14 19:44:23 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -224,9 +224,9 @@ void wxListBox::Delete(int n)
 }
 
     // accessing strings
-int wxListBox::GetCount() const
+size_t wxListBox::GetCount() const
 {
-    return [m_cocoaItems count];
+    return (size_t)[m_cocoaItems count];
 }
 
 wxString wxListBox::GetString(int n) const

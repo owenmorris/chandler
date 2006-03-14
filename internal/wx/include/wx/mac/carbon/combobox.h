@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h,v 1.20 2006/02/14 04:41:07 vell Exp $
+// RCS-ID:      $Id: combobox.h,v 1.21 2006/03/14 19:35:19 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,7 +114,7 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
     virtual void SetEditable(bool editable);
     virtual bool IsEditable() const;
 
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
 
     virtual void Undo();
     virtual void Redo();

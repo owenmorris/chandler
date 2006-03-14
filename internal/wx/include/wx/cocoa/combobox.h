@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2005/02/16
-// RCS-ID:      $Id: combobox.h,v 1.13 2006/03/12 15:10:23 VZ Exp $
+// RCS-ID:      $Id: combobox.h,v 1.14 2006/03/14 19:35:12 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ public:
     // wxItemContainer
     virtual void Clear();
     virtual void Delete(int);
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual wxString GetString(int) const;
     virtual void SetString(int, const wxString&);
     virtual int FindString(const wxString& s, bool bCase = false) const;

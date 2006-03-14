@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     30.10.2005
-// RCS-ID:      $Id: checklst.h,v 1.2 2006/02/24 16:00:38 JS Exp $
+// RCS-ID:      $Id: checklst.h,v 1.3 2006/03/14 19:35:28 ABX Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ public:
 
     // public interface derived from wxListBox and lower classes
     virtual void Clear();
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual int GetSelection() const;
     virtual int GetSelections(wxArrayInt& aSelections) const;
     virtual wxString GetString(int n) const;

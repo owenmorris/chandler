@@ -2,7 +2,7 @@
 // Name:        wx/gtk/listbox.h
 // Purpose:     wxListBox class declaration
 // Author:      Robert Roebling
-// Id:          $Id: listbox.h,v 1.58 2006/03/13 09:37:23 ABX Exp $
+// Id:          $Id: listbox.h,v 1.59 2006/03/14 19:35:15 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ public:
     virtual void Clear();
     virtual void Delete(int n);
 
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const;
@@ -98,8 +98,8 @@ public:
     bool       m_spacePressed;
 
     struct _GtkTreeEntry* GtkGetEntry(int pos) const;
-    void GtkInsertItems(const wxArrayString& items, 
-                        void** clientData, int pos);
+    void GtkInsertItems(const wxArrayString& items,
+                        void** clientData, size_t pos);
     void GtkSetSelection(int n, const bool select, const bool blockEvent);
 
 protected:

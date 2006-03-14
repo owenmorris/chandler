@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: listbox.h,v 1.28 2005/10/03 16:25:53 ABX Exp $
+// RCS-ID:      $Id: listbox.h,v 1.29 2006/03/14 19:35:24 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ public:
     ~wxListBox();
 
     // implementation of wxControlWithItems
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual int DoAppend(const wxString& item);
     virtual void DoSetItemClientData(int n, void* clientData);
     virtual void* DoGetItemClientData(int n) const;
@@ -101,7 +101,7 @@ public:
 protected:
     virtual wxSize DoGetBestSize() const;
 
-    int       m_noItems;
+    size_t m_noItems;
 
     // List mapping positions->client data
     wxClientDataDictionary m_clientDataDict;

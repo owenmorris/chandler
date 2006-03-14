@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: choice.h,v 1.10 2006/02/08 21:46:09 VZ Exp $
+// RCS-ID:      $Id: choice.h,v 1.11 2006/03/14 19:35:19 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ public:
     virtual void Delete(int n);
     virtual void Clear();
 
-    virtual int GetCount() const ;
+    virtual size_t GetCount() const ;
     virtual int GetSelection() const ;
     virtual void SetSelection(int n);
     int GetCurrentSelection() const { return GetSelection(); }

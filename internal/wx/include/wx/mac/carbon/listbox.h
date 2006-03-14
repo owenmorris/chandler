@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.h,v 1.17 2006/03/09 12:46:23 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.18 2006/03/14 19:35:20 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,13 +71,13 @@ public:
                 const wxString& name = wxListBoxNameStr);
 
     virtual ~wxListBox();
-    virtual void Refresh(bool eraseBack = TRUE, const wxRect *rect = NULL);
+    virtual void Refresh(bool eraseBack = true, const wxRect *rect = NULL);
 
     // implement base class pure virtuals
     virtual void Clear();
     virtual void Delete(int n);
 
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const;
@@ -132,7 +132,7 @@ protected:
     // prevent collision with some BSD definitions of macro Free()
     void FreeData();
 
-    int m_noItems;
+    size_t m_noItems;
     int m_selected;
     bool m_suppressSelection ;
     wxString  m_typeIn ;
