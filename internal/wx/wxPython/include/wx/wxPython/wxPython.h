@@ -8,7 +8,7 @@
 // Author:      Robin Dunn
 //
 // Created:     14-Dec-2000
-// RCS-ID:      $Id: wxPython.h,v 1.14 2005/03/03 19:56:42 RD Exp $
+// RCS-ID:      $Id: wxPython.h,v 1.15 2006/03/14 01:28:22 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,8 @@ inline wxPyCoreAPI* wxPyGetCoreAPIPtr()
 #define wxColour_typecheck(a)                   (wxPyGetCoreAPIPtr()->p_wxColour_typecheck(a))
 
 #define wxPyCBH_setCallbackInfo(a, b, c, d)     (wxPyGetCoreAPIPtr()->p_wxPyCBH_setCallbackInfo(a,b,c,d))
-#define wxPyCBH_findCallback(a, b)              (wxPyGetCoreAPIPtr()->p_wxPyCBH_findCallback(a, b))
+#define wxPyCBH_findCallback(a, b)              (wxPyGetCoreAPIPtr()->p_wxPyCBH_findCallback(a, b, true))
+#define wxPyCBH_findCallback2(a, b, c)          (wxPyGetCoreAPIPtr()->p_wxPyCBH_findCallback(a, b, c))
 #define wxPyCBH_callCallback(a, b)              (wxPyGetCoreAPIPtr()->p_wxPyCBH_callCallback(a, b))
 #define wxPyCBH_callCallbackObj(a, b)           (wxPyGetCoreAPIPtr()->p_wxPyCBH_callCallbackObj(a, b))
 #define wxPyCBH_delete(a)                       (wxPyGetCoreAPIPtr()->p_wxPyCBH_delete(a))

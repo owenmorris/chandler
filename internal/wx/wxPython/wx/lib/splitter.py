@@ -1,12 +1,12 @@
 #----------------------------------------------------------------------
 # Name:        wx.lib.splitter
 # Purpose:     A class similar to wx.SplitterWindow but that allows more
-#              a single split
+#              than a single split
 #
 # Author:      Robin Dunn
 #
 # Created:     9-June-2005
-# RCS-ID:      $Id: splitter.py,v 1.5 2006/01/06 07:05:04 RD Exp $
+# RCS-ID:      $Id: splitter.py,v 1.6 2006/03/14 01:29:52 RD Exp $
 # Copyright:   (c) 2005 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------

@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py,v 1.81 2006/03/10 21:30:03 VZ Exp $
+# RCS-ID:      $Id: config.py,v 1.82 2006/03/14 04:06:46 RD Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -433,6 +433,18 @@ def run_swig(files, dir, gendir, package, USE_SWIG, force, swig_args,
 
     return sources
 
+
+def swig_version():
+    # It may come on either stdout or stderr, depending on the
+    # version, so read both.
+    i, o, e = os.popen3(SWIG + ' -version', 't')
+    stext = o.read() + e.read()
+    import re
+    match = re.search(r'[0-9]+\.[0-9]+\.[0-9]+$', stext, re.MULTILINE)
+    if not match:
+        raise 'NotFound'
+    SVER = match.group(0)
+    return SVER
 
 
 # Specializations of some distutils command classes
@@ -883,6 +895,15 @@ swig_args = ['-c++',
              '-modern',
              '-D'+WXPLAT,
              ] + i_files_includes
+
+if USE_SWIG:
+    SVER = swig_version()
+    if int(SVER[-2:]) >= 29:
+        swig_args += [ '-fastdispatch',
+                       '-fvirtual',
+                       '-fastinit',
+                       '-fastunpack',
+                       ]
              
 if UNICODE:
     swig_args.append('-DwxUSE_UNICODE')
