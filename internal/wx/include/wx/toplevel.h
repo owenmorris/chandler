@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h,v 1.66 2006/02/10 00:02:04 VZ Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.68 2006/03/14 16:04:33 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -204,17 +204,6 @@ public:
     // do the window-specific processing after processing the update event
     virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) ;
 
-    // Reserved for future use
-    virtual void ReservedTopLevelWindowFunc1() {}
-    virtual void ReservedTopLevelWindowFunc2() {}
-    virtual void ReservedTopLevelWindowFunc3() {}
-    virtual void ReservedTopLevelWindowFunc4() {}
-    virtual void ReservedTopLevelWindowFunc5() {}
-    virtual void ReservedTopLevelWindowFunc6() {}
-    virtual void ReservedTopLevelWindowFunc7() {}
-    virtual void ReservedTopLevelWindowFunc8() {}
-    virtual void ReservedTopLevelWindowFunc9() {}
-
 protected:
     // the frame client to screen translation should take account of the
     // toolbar which may shift the origin of the client area
@@ -224,6 +213,12 @@ protected:
     // add support for wxCENTRE_ON_SCREEN
     virtual void DoCentre(int dir);
 
+    // no need to do client to screen translation to get our position in screen
+    // coordinates: this is already the case
+    virtual void DoGetScreenPosition(int *x, int *y) const
+    {
+        return DoGetPosition(x, y);
+    }
 
     // test whether this window makes part of the frame
     // (menubar, toolbar and statusbar are excluded from automatic layout)

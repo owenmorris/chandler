@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.02.01
-// RCS-ID:      $Id: notebook.h,v 1.57 2006/01/23 03:27:33 MR Exp $
+// RCS-ID:      $Id: notebook.h,v 1.58 2006/03/14 16:04:32 VZ Exp $
 // Copyright:   (c) 1996-2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -89,14 +89,6 @@ public:
 
     // On platforms that support it, get the theme page background colour, else invalid colour
     virtual wxColour GetThemeBackgroundColour() const { return wxNullColour; }
-
-
-    // Reserved for future use
-    virtual void ReservedNotebookFunc1() {}
-    virtual void ReservedNotebookFunc2() {}
-    virtual void ReservedNotebookFunc3() {}
-    virtual void ReservedNotebookFunc4() {}
-    virtual void ReservedNotebookFunc5() {}
 
 protected:
     DECLARE_NO_COPY_CLASS(wxNotebookBase)

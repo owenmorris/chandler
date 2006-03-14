@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.254 2006/03/04 20:34:12 ABX Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.255 2006/03/14 15:45:12 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -223,7 +223,7 @@ wxWindowBase::wxWindowBase()
     m_isBeingDeleted = false;
 
     // Reserved for future use
-    m_windowReserved = NULL;
+//    m_windowReserved = NULL;
 }
 
 // common part of window creation process
@@ -713,6 +713,18 @@ wxSize wxWindowBase::DoGetVirtualSize() const
         size.y = m_virtualSize.y;
 
     return size;
+}
+
+void wxWindowBase::DoGetScreenPosition(int *x, int *y) const
+{
+    // screen position is the same as (0, 0) in client coords for non TLWs (and
+    // TLWs override this method)
+    if ( x )
+        *x = 0;
+    if ( y )
+        *y = 0;
+
+    return ClientToScreen(x, y);
 }
 
 // ----------------------------------------------------------------------------

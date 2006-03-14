@@ -12,7 +12,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: stc.h,v 1.71 2006/03/08 01:47:58 RD Exp $
+// RCS-ID:      $Id: stc.h,v 1.72 2006/03/14 01:39:22 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -381,6 +381,10 @@
 #define wxSTC_LEX_FLAGSHIP 73
 #define wxSTC_LEX_CSOUND 74
 #define wxSTC_LEX_FREEBASIC 75
+
+// These are deprecated, STC_LEX_HTML should be used instead.
+#define wxSTC_LEX_ASP 29
+#define wxSTC_LEX_PHP 30
 
 // When a lexer specifies its language as SCLEX_AUTOMATIC it receives a
 // value assigned in sequence from SCLEX_AUTOMATIC+1.

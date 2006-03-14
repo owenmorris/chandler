@@ -3,7 +3,7 @@
 // Purpose:     common (for all platforms) wxTopLevelWindow functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: toplvcmn.cpp,v 1.37 2006/02/12 16:32:48 VZ Exp $
+// Id:          $Id: toplvcmn.cpp,v 1.38 2006/03/14 15:59:32 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -158,8 +158,9 @@ void wxTopLevelWindowBase::DoCentre(int dir)
     wxRect rectCentre;
     if ( !(dir & wxCENTRE_ON_SCREEN) && GetParent() )
     {
-        // centre on parent window
-        rectCentre = GetParent()->GetRect();
+        // centre on parent window: notice that we need screen coordinates for
+        // positioning this TLW
+        rectCentre = GetParent()->GetScreenRect();
     }
     else
     {
