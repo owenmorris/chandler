@@ -1,70 +1,39 @@
 include ../Makefile.inc
 
-VERSION=0.6a9
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=0.6a10-py2.4
 SETUPTOOLS=$(BUILD_ROOT)/setuptools
 BUILD=build_$(SNAP)
-SRC=setuptools-$(VERSION)
+SRC=setuptools-$(VERSION).egg
 
-MANIFEST=$(SNAP)/$(SITE)/setuptools \
-         $(SNAP)/$(SITE)/pkg_resources.py \
-         $(SNAP)/$(SITE)/easy_install.py \
-         $(SNAP)/$(SITE)/site.py \
-         $(SNAP)/$(SITE)/setuptools-$(VERSION)-py2.4.egg-info \
-         $(SNAP)/bin/easy_install*
+SETUPTOOLS_EGG=$(CHANDLERBIN)/$(SNAP)/$(SRC)
+SETUPTOOLS_ABS=$(SETUPTOOLS_EGG)
+SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
+PYTHONEGG_BIN=$(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
 
-.PHONY: patches-$(VERSION)
-
-$(SRC).zip:
-	$(CURL) http://builds.osafoundation.org/external/$(SRC).zip
-
-sources: setuptools-$(VERSION).zip
-
-$(SRC)-expanded: $(SRC).zip
-	unzip -o $(SRC).zip
-	touch $(SRC)-expanded
-
-expand: $(SRC)-expanded
-
-apply: patches-$(VERSION)
-	if [ -f patches-$(VERSION) ]; then \
-            patch -Nup0 < patches-$(VERSION); echo ok; \
-        fi
 ifeq ($(OS),Cygwin)
-
-MFILE=`cygpath -aw $(SETUPTOOLS)/manifest.txt`
-
-build: expand apply
-	cd $(SRC); \
-    $(PYTHON) setup.py -v \
-        build --build-base=$(BUILD) $(DIST_OPT) \
-        install --record=$(MFILE) --install-scripts=../../$(SNAP)/bin \
-                --force --single-version-externally-managed 
-
-else
-build: expand apply
-	cd $(SRC); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py -v \
-        build --build-base=$(BUILD) $(DIST_OPT) \
-        install --record=$(SETUPTOOLS)/manifest.txt --install-scripts=../../$(SNAP)/bin \
-                --force --single-version-externally-managed 
+SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
+SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
 endif
 
-binaries: 
-	cd $(BUILD_ROOT); \
-	      find $(MANIFEST) -name "*.pyc" | xargs rm -f; n\
-      find $(MANIFEST) -name "*.pyo" | xargs rm -f
-	echo [$(BUILD_ROOT)] [$(MANIFEST)]
-	tar -C $(BUILD_ROOT) -cvzf $(SETUPTOOLS)/setuptools-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
-
-upload: setuptools-$(SNAP)-$(RELVER).tar.gz
-	scp setuptools-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-
-install:
-	cd $(BUILD_ROOT); \
-      tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
-
-ifneq (/,$(SRC)/$(BUILD))
-clean:
-	rm -rf $(SRC)/$(BUILD)
+ifeq ($(OS),Darwin)
+PYTHONEGG_BIN:=$(SETUPTOOLS_BIN)/RunPython
 endif
+
+$(SRC):
+	$(CURL) http://builds.osafoundation.org/external/$(SRC)
+
+sources: $(SRC)
+
+expand: $(SRC)
+
+build: expand
+
+all: build
+
+binaries:
+
+install: build
+	cp $(SRC) $(SETUPTOOLS_ABS)
+	MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERBIN) $(PYTHONEGG_BIN) \
+        -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
+        --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
