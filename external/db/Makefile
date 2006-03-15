@@ -62,7 +62,8 @@ clean:
 	cd $(SRC); rm -rf $(BUILD)
 
 binaries:
-	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) \
+	cd $(BUILD_ROOT); \
+    tar -cvzf $(TARBALL) \
         --exclude '*.a' \
         $(SNAP)/db/bin $(SNAP)/db/lib
 
