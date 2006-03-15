@@ -35,7 +35,8 @@ clean:
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
 binaries: 
-	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
+	cd $(BUILD_ROOT); \
+    tar -cvzf $(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
 
 else
 
