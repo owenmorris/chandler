@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.256 2006/03/14 18:45:31 RD Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.257 2006/03/15 19:49:39 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -721,7 +721,7 @@ void wxWindowBase::DoGetScreenPosition(int *x, int *y) const
     if ( y )
         *y = 0;
 
-    return ClientToScreen(x, y);
+    ClientToScreen(x, y);
 }
 
 // ----------------------------------------------------------------------------
