@@ -145,8 +145,8 @@ $(SETUPTOOLS_EGG):
 
 $(SETUPTOOLS_INST): $(ARCHIVES_INST) $(SETUPTOOLS_EGG)
 	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
-        -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
-        --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
+      -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
+      -D --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
 	touch $@
 
 ifeq ($(OS),Cygwin)
