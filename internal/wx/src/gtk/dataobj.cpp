@@ -2,7 +2,7 @@
 // Name:        dataobj.cpp
 // Purpose:     wxDataObject class
 // Author:      Robert Roebling
-// Id:          $Id: dataobj.cpp,v 1.51 2006/02/09 00:37:56 VZ Exp $
+// Id:          $Id: dataobj.cpp,v 1.52 2006/03/15 00:38:36 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,9 @@ wxDataFormatId wxDataFormat::GetType() const
 
 wxString wxDataFormat::GetId() const
 {
-    wxString ret = wxString::FromAscii( gdk_atom_name( m_format ) );
+    gchar* atom_name = gdk_atom_name( m_format );
+    wxString ret = wxString::FromAscii( atom_name );
+    g_free(atom_name);
     return ret;
 }
 

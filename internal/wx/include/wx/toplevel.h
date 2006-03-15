@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h,v 1.68 2006/03/14 16:04:33 VZ Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.69 2006/03/15 03:42:26 MR Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -217,7 +217,7 @@ protected:
     // coordinates: this is already the case
     virtual void DoGetScreenPosition(int *x, int *y) const
     {
-        return DoGetPosition(x, y);
+        DoGetPosition(x, y);
     }
 
     // test whether this window makes part of the frame

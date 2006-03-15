@@ -3,14 +3,13 @@
 // Purpose:
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999, 2000
-// CVSID: $Id: sndfile.cpp,v 1.5 2004/11/22 20:10:25 JS Exp $
+// CVSID: $Id: sndfile.cpp,v 1.6 2006/03/14 23:27:59 ABX Exp $
 // wxWindows licence
 // --------------------------------------------------------------------------
 #include "wx/wxprec.h"
 
 #ifndef WX_PRECOMP
-#include <wx/defs.h>
-#include <wx/stream.h>
+#include "wx/stream.h"
 #endif
 
 #include "wx/mmedia/sndbase.h"

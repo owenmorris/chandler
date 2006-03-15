@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Ian Brown
 // Modified by:
 // Created:     01/02/03
-// RCS-ID:      $Id: combobox_native.cpp,v 1.17 2006/01/26 16:02:01 ABX Exp $
+// RCS-ID:      $Id: combobox_native.cpp,v 1.18 2006/03/15 00:01:17 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -216,9 +216,9 @@ int wxComboBox::DoAppend(const wxString& item)
 int wxComboBox::DoInsert(const wxString& item, int pos)
 {
     wxCHECK_MSG(!(GetWindowStyle() & wxCB_SORT), -1, wxT("can't insert into sorted list"));
-    wxCHECK_MSG((pos>=0) && (pos<=GetCount()), -1, wxT("invalid index"));
+    wxCHECK_MSG(IsValidInsert(pos), -1, wxT("invalid index"));
 
-    if (pos == GetCount())
+    if ((size_t)pos == GetCount())
         return DoAppend(item);
 
     wxXmString str( item.c_str() );
