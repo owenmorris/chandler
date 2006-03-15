@@ -4,14 +4,10 @@
 // Author:      Stefan Csomor
 // Modified by: JS Lair (99/11/15) first implementation
 // Created:     1998-01-01
-// RCS-ID:      $Id: radiobox.cpp,v 1.53 2006/03/14 19:44:31 ABX Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.54 2006/03/15 06:22:36 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-//-------------------------------------------------------------------------------------
-//         headers
-//-------------------------------------------------------------------------------------
 
 #include "wx/wxprec.h"
 
@@ -107,7 +103,7 @@ bool wxRadioBox::Create( wxWindow *parent,
 
     SetMajorDim( majorDim == 0 ? n : majorDim, style );
 
-    m_label = label ;
+    m_label = label;
 
     Rect bounds = wxMacGetBoundsForControl( this, pos, size );
     if ( bounds.right <= bounds.left )
@@ -433,7 +429,7 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     y_offset = y_start;
 
     current = m_radioButtonCycle;
-    for ( i = 0 ; i < m_noItems; i++)
+    for (i = 0 ; i < (int)m_noItems; i++)
     {
         // not to do for the zero button!
         if ((i > 0) && ((i % GetMajorDim()) == 0))
