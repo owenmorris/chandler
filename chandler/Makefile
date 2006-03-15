@@ -26,7 +26,8 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-$(BP)4.tar.gz \
-         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7i-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.4-53-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-1.9.1-$(BP)1.tar.gz \
@@ -43,11 +44,6 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/common-$(SNAP)-0.13.0-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.9.0-$(BP)1.tar.gz
 
-
-# OpenSSL gets bundled into M2Crypto on Windows
-ifneq ($(OS),Cygwin)
-ARCHIVES += $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7i-$(BP)1.tar.gz
-endif
 
 # readline is only needed for OSX
 ifeq ($(OS),Darwin)
