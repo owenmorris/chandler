@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _control.i,v 1.17 2005/02/18 04:48:26 RD Exp $
+// RCS-ID:      $Id: _control.i,v 1.18 2006/03/15 22:45:10 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -206,7 +206,7 @@ than the number of items in the control.", "");
 
     
     DocDeclStr(
-        virtual int , GetCount() const,
+        virtual size_t , GetCount() const,
         "Returns the number of items in the control.", "");
     
     DocDeclStr(

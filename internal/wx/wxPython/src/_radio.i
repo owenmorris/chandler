@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _radio.i,v 1.15 2005/05/27 00:53:05 RD Exp $
+// RCS-ID:      $Id: _radio.i,v 1.16 2006/03/15 22:45:10 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ public:
     virtual bool SetStringSelection(const wxString& s);
 
     // string access
-    virtual int GetCount() const;
+    virtual size_t GetCount() const;
     virtual int FindString(const wxString& s) const;
     
     virtual wxString GetString(int n) const;
