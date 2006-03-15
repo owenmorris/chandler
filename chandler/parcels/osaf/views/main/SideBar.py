@@ -778,19 +778,29 @@ class SidebarBlock(Table):
 
         viewsmain = schema.ns('osaf.views.main', self.itsView)
         
-        # first ask the user if we should be deleting the entire
-        # collection including the items, or just some things
-        shouldClearCollection = \
-            promptYesNoCancel(_(u'Do you also want to delete the items in this collection?'), viewsmain.clearCollectionPref)
-
-        if shouldClearCollection is None: # user pressed cancel
-            return
+        # If there are any "mine" collections selected, ask the user
+        # if we should be deleting the entire collection including the
+        # items, or just some things
+        shouldClearCollection = True
+        notMine = schema.ns('osaf.pim', self.itsView).notMine
+        for collection in self.contents.iterSelection():
+            if collection not in notMine.sources:
+                # we found a "mine" collection, so prompt the user
+                shouldClearCollection = \
+                    promptYesNoCancel(_(u'Do you also want to delete the items in this collection?'),
+                                      viewsmain.clearCollectionPref)
+                
+                if shouldClearCollection is None: # user pressed cancel
+                    return
+                
+                break
+            
         
         def deleteItem(collection):
 
             # clear out the collection contents, if appropriate
             if isinstance(collection, ContentCollection):
-                if (shouldClearCollection):
+                if shouldClearCollection:
                     self.ClearCollectionContents(collection)
                     
                 sharing.unsubscribe(collection)
@@ -823,9 +833,6 @@ class SidebarBlock(Table):
         the collection.
         """
         
-        itemsForRemoval = []
-        itemsForDeletion = []
-
         app_ns = schema.ns('osaf.app', self.itsView)
         pim_ns = schema.ns('osaf.pim', self.itsView)
         sidebarCollections = app_ns.sidebarCollection
