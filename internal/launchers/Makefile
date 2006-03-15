@@ -3,7 +3,7 @@ include ../Makefile.inc
 
 RELVER=0.7-$(BRANCH_REV_PREFIX)1
 LAUNCHERS=$(INTERNAL)/launchers
-
+TARBALL=Launchers-$(SNAP)-$(RELVER).tar.gz
 BUILD=build_$(SNAP)
 
 
@@ -81,14 +81,13 @@ MANIFEST=$(SNAP)/Run* \
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LAUNCHERS)/Launchers-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+        tar -cvzf $(LAUNCHERS)/$(TARBALL) $(MANIFEST)
 
 install:
-	cd $(BUILD_ROOT); \
-        tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 realclean: clean
 	rm -f Launchers-debug-*.tar.gz* Launchers-release-*.tar.gz*
 
-upload: Launchers-$(SNAP)-$(RELVER).tar.gz
-	scp Launchers-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)

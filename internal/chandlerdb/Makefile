@@ -4,6 +4,7 @@ include ../Makefile.inc
 RELVER=0.6-$(BRANCH_REV_PREFIX)16
 CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.4
+TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
 
 BUILD=build_$(SNAP)
 
@@ -21,7 +22,7 @@ endif
 build:
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
         PREFIX=$(_prefix) \
-	DB_VER=$(DB_VER) \
+        DB_VER=$(DB_VER) \
         $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
@@ -32,14 +33,14 @@ endif
 
 realclean: clean
 
-upload: chandlerdb-$(SNAP)-$(RELVER).tar.gz
-	scp chandlerdb-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(CHANDLERDB)/chandlerdb-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+        tar -cvzf $(CHANDLERDB)/$(TARBALL) $(MANIFEST)
 
 install:
-	tar -C $(BUILD_ROOT) -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+	cp $(TARBALL) $(CHANDLERARCHIVES)

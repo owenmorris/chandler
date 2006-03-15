@@ -10,6 +10,7 @@ VERSION_REVISION_INDEX=36
 WX_VERSION_NODOT=26
 
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)$(VERSION_REVISION_INDEX)
+TARBALL=wxPython-$(SNAP)-$(RELVER).tar.gz
 
 SRC=$(INTERNAL)/wx
 SWIG_OPTION=1
@@ -238,13 +239,12 @@ build: wxWidgets wxPython
 realclean: clean
 	rm -f wxPython-debug-*.tar.gz* wxPython-release-*.tar.gz*
 
-upload: wxPython-$(SNAP)-$(RELVER).tar.gz
-	scp wxPython-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 snap: cleanmanifest
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	tar -cvzf $(SRC)/$(TARBALL) $(MANIFEST)
 
 install:
-	cd $(BUILD_ROOT); \
-	tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+	cp $(TARBALL) $(CHANDLERARCHIVES)
