@@ -378,12 +378,10 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
             log.write("cd " + moduleDir + "\n")
             os.chdir(moduleDir)
 
-            buildCmds = ' all binaries install'
-                
-            print "Doing make " + dbgStr + " " + clean + buildCmds + "\n"
-            log.write("Doing make " + dbgStr + " " + clean + buildCmds + "\n")
+            print "Doing make " + dbgStr + " " + clean + " world\n"
+            log.write("Doing make " + dbgStr + " " + clean + " world\n")
 
-            outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, buildCmds ])
+            outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, "world"])
             hardhatutil.dumpOutputList(outputList, log)
 
             log.write(separator)
