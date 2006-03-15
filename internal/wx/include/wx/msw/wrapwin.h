@@ -3,7 +3,7 @@
 // Purpose:     Wrapper around <windows.h>, to be included instead of it
 // Author:      Vaclav Slavik
 // Created:     2003/07/22
-// RCS-ID:      $Id: wrapwin.h,v 1.15 2006/02/08 22:32:42 VZ Exp $
+// RCS-ID:      $Id: wrapwin.h,v 1.16 2006/03/15 10:30:00 JS Exp $
 // Copyright:   (c) 2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,22 +43,16 @@
     #define _WIN32_WINNT 0x0600
 #endif
 
+/* Deal with clash with __WINDOWS__ include guard */
+#if defined(__WXWINCE__) && defined(__WINDOWS__)
+#undef __WINDOWS__
+#endif
 
 #include <windows.h>
 
-#ifdef __WXWINCE__
-    // this doesn't make any sense knowing that windows.h includes all these
-    // headers anyhow, but the fact remains that when building using eVC 4 the
-    // functions and constants from these headers are not defined unless we
-    // explicitly include them ourselves -- how is it possible is beyond me...
-    #include <winbase.h>
-    #include <wingdi.h>
-    #include <winuser.h>
-
-    // this one OTOH contains many useful CE-only functions
-    #include <shellapi.h>
-#endif // __WXWINCE__
-
+#if defined(__WXWINCE__) && !defined(__WINDOWS__)
+#define __WINDOWS__
+#endif
 
 // #undef the macros defined in winsows.h which conflict with code elsewhere
 #include "wx/msw/winundef.h"

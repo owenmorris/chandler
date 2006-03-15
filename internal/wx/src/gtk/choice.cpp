@@ -2,7 +2,7 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp,v 1.95 2006/03/14 22:00:17 RD Exp $
+// Id:          $Id: choice.cpp,v 1.96 2006/03/15 11:52:59 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -485,7 +485,7 @@ void wxChoice::DoApplyWidgetStyle(GtkRcStyle *style)
 
 int wxChoice::GtkAddHelper(GtkWidget *menu, size_t pos, const wxString& item)
 {
-    wxCHECK_MSG((pos>=0) && (pos<=(int)m_clientList.GetCount()), -1, wxT("invalid index"));
+    wxCHECK_MSG((pos>=0) && (pos<=m_clientList.GetCount()), -1, wxT("invalid index"));
 
     GtkWidget *menu_item = gtk_menu_item_new_with_label( wxGTK_CONV( item ) );
 

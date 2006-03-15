@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.17 2006/02/18 18:16:57 VZ Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.19 2006/03/15 10:28:38 JS Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -523,7 +523,7 @@ public:
     HRESULT STDMETHODCALLTYPE LockContainer(BOOL){return S_OK;}
     //********************IOleItemContainer***************************
     HRESULT STDMETHODCALLTYPE
-    #ifdef __WXWINCE__
+    #if 0 // defined(__WXWINCE__) && __VISUALC__ < 1400
     GetObject
     #elif defined(_UNICODE)
     GetObjectW

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: tbarwce.cpp,v 1.30 2006/01/19 21:57:13 ABX Exp $
+// RCS-ID:      $Id: tbarwce.cpp,v 1.31 2006/03/15 09:56:50 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -552,7 +552,7 @@ WXLRESULT wxToolMenuBar::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lP
             break;
     }
 
-    return wxControl::MSWWindowProc(nMsg, wParam, lParam);
+    return MSWDefWindowProc(nMsg, wParam, lParam);
 }
 
 

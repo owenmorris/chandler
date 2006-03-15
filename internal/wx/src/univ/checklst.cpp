@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        univ/checklst.cpp
+// Name:        src/univ/checklst.cpp
 // Purpose:     wxCheckListBox implementation
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.00
-// RCS-ID:      $Id: checklst.cpp,v 1.14 2005/09/23 12:55:49 MR Exp $
+// RCS-ID:      $Id: checklst.cpp,v 1.15 2006/03/15 07:48:04 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -132,7 +132,7 @@ void wxCheckListBox::Check(size_t item, bool check)
 
 void wxCheckListBox::Delete(int n)
 {
-    wxCHECK_RET( n < GetCount(), _T("invalid index in wxListBox::Delete") );
+    wxCHECK_RET( IsValid(n), _T("invalid index in wxListBox::Delete") );
 
     wxListBox::Delete(n);
 
@@ -265,7 +265,7 @@ bool wxStdCheckListboxInputHandler::HandleMouse(wxInputConsumer *consumer,
         if ( x >= 0 &&
              x < renderer->GetCheckBitmapSize().x &&
              item >= 0 &&
-             item < lbox->GetCount() )
+             (size_t)item < lbox->GetCount() )
         {
             lbox->PerformAction(wxACTION_CHECKLISTBOX_TOGGLE, item);
 

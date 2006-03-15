@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     04/01/98
-// RCS-ID:      $Id: menu.cpp,v 1.131 2006/02/12 13:13:56 ABX Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.132 2006/03/15 09:55:43 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -874,7 +874,9 @@ WXHMENU wxMenuBar::Create()
 
     HWND hCommandBar = (HWND) GetToolBar()->GetHWND();
     HMENU hMenu = (HMENU)::SendMessage(hCommandBar, SHCMBM_GETMENU, (WPARAM)0, (LPARAM)0);
-    if (hMenu)
+
+	// hMenu may be zero on Windows Mobile 5. So add the menus anyway.
+    if (1) // (hMenu)
     {
         TBBUTTON tbButton;
         memset(&tbButton, 0, sizeof(TBBUTTON));

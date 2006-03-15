@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxComboBox
 // Author:      Vadim Zeitlin
 // Created:     27.03.01
-// Id:          $Id: combobox.cpp,v 1.21 2006/02/10 20:24:48 VZ Exp $
+// Id:          $Id: combobox.cpp,v 1.22 2006/03/15 07:49:43 ABX Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -491,7 +491,7 @@ void ComboboxWidgetsPage::OnUpdateUICurText(wxUpdateUIEvent& event)
 void ComboboxWidgetsPage::OnUpdateUIInsertionPointText(wxUpdateUIEvent& event)
 {
     if (m_combobox)
-        event.SetText( wxString::Format(_T("%d"), m_combobox->GetInsertionPoint()) );
+        event.SetText( wxString::Format(_T("%ld"), m_combobox->GetInsertionPoint()) );
 }
 
 void ComboboxWidgetsPage::OnUpdateUIResetButton(wxUpdateUIEvent& event)

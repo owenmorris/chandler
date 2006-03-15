@@ -2,7 +2,7 @@
 // Name:        src/gtk/toplevel.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.cpp,v 1.102 2006/03/09 13:36:53 VZ Exp $
+// Id:          $Id: toplevel.cpp,v 1.103 2006/03/15 10:37:24 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1274,8 +1274,10 @@ void wxTopLevelWindowGTK::RequestUserAttention(int flags)
 
 void wxTopLevelWindowGTK::SetWindowStyleFlag( long style )
 {
+#if defined(__WXGTK24__) || GTK_CHECK_VERSION(2,2,0)
     // Store which styles were changed
     long styleChanges = style ^ m_windowStyle;
+#endif
 
     // Process wxWindow styles. This also updates the internal variable
     // Therefore m_windowStyle bits carry now the _new_ style values

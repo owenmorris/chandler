@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp,v 1.255 2006/03/10 21:26:44 RD Exp $
+// RCS-ID:      $Id: listctrl.cpp,v 1.256 2006/03/15 10:03:44 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2491,7 +2491,7 @@ static void HandleItemPaint(LPNMLVCUSTOMDRAW pLVCD, HFONT hfont)
 
     // same thing for CDIS_FOCUS (except simpler as there is only one of them)
     if ( ::GetFocus() == hwndList &&
-            ListView_GetNextItem(hwndList, -1, LVNI_FOCUSED) == item )
+            ListView_GetNextItem(hwndList, (WPARAM)-1, LVNI_FOCUSED) == item )
     {
         nmcd.uItemState |= CDIS_FOCUS;
     }
