@@ -4,6 +4,7 @@ SVNVER=53
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYICU=$(BUILD_ROOT)/PyICU
 SRC=$(PYICU)/PyICU-$(VERSION)
+TARBALL=PyICU-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -77,13 +78,13 @@ clean: PyICU-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+    tar -cvzf $(PYICU)/$(TARBALL) $(MANIFEST)
 
-install: PyICU-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf PyICU-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz
-	scp $(PYICU)/PyICU-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(PYICU)/$(TARBALL)
+	scp $(PYICU)/$(TARBALL) $(UPLOAD)
 
 sources: PyICU-$(VERSION)-expanded
 

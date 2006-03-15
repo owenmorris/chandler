@@ -8,6 +8,7 @@ include $(BUILD_ROOT)/Makefile.inc
 
 PYTHON=$(BUILD_ROOT)/python
 SRC=$(PYTHON)/Python-$(VERSION)
+TARBALL=python-$(SNAP)-$(RELVER).tar.gz
 
 BUILD=build_$(SNAP)
 
@@ -224,11 +225,11 @@ zlib-$(ZLIBVERSION)-expanded: zlib-$(ZLIBVERSION).tar.gz
 	tar xvzf zlib-$(ZLIBVERSION).tar.gz
 	touch zlib-$(ZLIBVERSION)-expanded
 
-upload: python-$(SNAP)-$(RELVER).tar.gz
-	scp python-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
-install: python-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf python-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 _realclean::
 	@rm -rf zlib-* bzip2-*

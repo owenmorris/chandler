@@ -4,6 +4,7 @@ include ../Makefile.inc
 VERSION=1.3.24
 SWIG=$(BUILD_ROOT)/swig
 SRC=$(SWIG)/SWIG-$(VERSION)
+TARBALL=
 
 BUILD=build_$(SNAP)
 
@@ -57,7 +58,6 @@ install:
 
 SWIG-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/SWIG-$(VERSION).tar.gz 
-#	$(CURL) http://builds.osafoundation.org/external/SWIG-$(VERSION).tar.gz.md5
 
 sources: SWIG-$(VERSION).tar.gz
 

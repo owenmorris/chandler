@@ -3,6 +3,7 @@ VERSION=1.9.1
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
+TARBALL=PyLucene-$(SNAP)-$(RELVER).tar.gz
 
 DB_VER=4.4.20
 DB_LIB_VER=$(basename $(DB_VER))
@@ -124,14 +125,13 @@ clean:
 	$(MAKE) -C $(SRC) clean
 
 binaries: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	tar -C $(BUILD_ROOT) -cvzf $(PYLUCENE)/$(TARBALL) $(MANIFEST)
 
-install: PyLucene-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf PyLucene-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz
-	scp $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(PYLUCENE)/$(TARBALL)
+	scp $(PYLUCENE)/$(TARBALL) $(UPLOAD)
 
 PyLucene-src-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/PyLucene-src-$(VERSION).tar.gz

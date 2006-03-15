@@ -7,6 +7,7 @@ BUILD=build_$(SNAP)
 READLINE=$(BUILD_ROOT)/readline
 SRC=$(READLINE)/$(BUILD)
 SRC_BUILD=$(SRC)/readline-$(VERSION)
+TARBALL=readline-$(SNAP)-$(RELVER).tar.gz
 
 .PHONY: readline
 
@@ -37,15 +38,15 @@ endif
 
 binaries:
 	cd $(BUILD_ROOT); \
-      tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
+    tar -cvzf $(READLINE)/$(TARBALL) \
           $(SNAP)/lib/libreadline*.dylib \
           --exclude '*.a'
 
-upload: readline-$(SNAP)-$(RELVER).tar.gz
-	scp readline-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
-install: readline-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf readline-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 readline-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/readline-$(VERSION).tar.gz 

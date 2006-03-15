@@ -3,6 +3,7 @@ VERSION=0.4-0
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
 JABBERPY=$(BUILD_ROOT)/jabber-py
 SRC=$(JABBERPY)/jabberpy$(VERSION)
+TARBALL=jabberpy-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -29,16 +30,15 @@ jabberpy$(VERSION)-expanded: jabberpy$(VERSION).tar.gz
 expand: jabberpy$(VERSION)-expanded
 
 binaries: 
-	cd $(BUILD_ROOT); \
-      tar -cvzf $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz \
+	tar -C $(BUILD_ROOT) -cvzf $(JABBERPY)/$(TARBALL) \
           $(SNAP)/$(SITE)/jabber.py \
           $(SNAP)/$(SITE)/xmlstream.py
 
-install: jabberpy-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf jabberpy-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: jabberpy-$(SNAP)-$(RELVER).tar.gz
-	scp jabberpy-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

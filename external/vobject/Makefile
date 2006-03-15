@@ -8,6 +8,7 @@ MANIFEST=$(SNAP)/$(SITE)/vobject
 #MANIFEST=$(SNAP)/$(SITE)/vobject-$(VERSION)-py$(PYTHON_VER).egg
 BUILD=build_$(SNAP)
 SRC=vobject-$(RELVER)
+TARBALL=vobject-$(SNAP)-$(RELVER).tar.gz
 
 .PHONY: patches-$(VERSION)
 
@@ -34,16 +35,13 @@ build: expand apply
         install --force
 
 binaries: 
-	cd $(BUILD_ROOT); \
-	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/vobject-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) $(MANIFEST)
 
-
-upload: vobject-$(SNAP)-$(RELVER).tar.gz
-	scp vobject-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 install:
-	cd $(BUILD_ROOT); \
-      tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

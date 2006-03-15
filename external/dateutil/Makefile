@@ -6,6 +6,7 @@ DATEUTIL=$(BUILD_ROOT)/dateutil
 MANIFEST=$(SNAP)/$(SITE)/dateutil
 BUILD=build_$(SNAP)
 SRC=python-dateutil-$(VERSION)
+TARBALL=dateutil-$(SNAP)-$(RELVER).tar.gz
 
 $(SRC).tar.bz2:
 	$(CURL) http://builds.osafoundation.org/external/$(SRC).tar.bz2
@@ -31,14 +32,13 @@ binaries:
 	cd $(BUILD_ROOT); \
       find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
       find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
-      tar -C $(BUILD_ROOT) -cvzf $(DATEUTIL)/dateutil-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+      tar -C $(BUILD_ROOT) -cvzf $(DATEUTIL)/$(TARBALL) $(MANIFEST)
 
-upload: dateutil-$(SNAP)-$(RELVER).tar.gz
-	scp dateutil-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
-install:
-	cd $(BUILD_ROOT); \
-        tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+install: binaries
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

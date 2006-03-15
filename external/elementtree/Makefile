@@ -3,6 +3,7 @@ VERSION=1.2.6-20050316
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 ETREE=$(BUILD_ROOT)/elementtree
 SRC=$(ETREE)/elementtree-$(VERSION)
+TARBALL=elementtree-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -30,20 +31,20 @@ binaries:
 	cd $(BUILD_ROOT); \
     find $(SNAP)/$(SITE)/elementtree -name "*.pyc" | xargs rm -f; \
     find $(SNAP)/$(SITE)/elementtree -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(ETREE)/elementtree-$(SNAP)-$(RELVER).tar.gz \
+        tar -cvzf $(ETREE)/$(TARBALL) \
                   --exclude test \
                   $(SNAP)/$(SITE)/elementtree
 
-install: elementtree-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf elementtree-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
 endif
 
-upload: elementtree-$(SNAP)-$(RELVER).tar.gz
-	scp elementtree-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 _realclean::
 	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded

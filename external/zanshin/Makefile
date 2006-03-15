@@ -4,6 +4,7 @@ RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 
 ZANSHIN=$(BUILD_ROOT)/zanshin
 SRC=$(ZANSHIN)/zanshin-$(VERSION)
+TARBALL=zanshin-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -30,15 +31,15 @@ binaries:
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(ZANSHIN)/$(TARBALL) \
           --exclude tests \
           $(SNAP)/$(SITE)/zanshin
 
-install: zanshin-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf zanshin-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: zanshin-$(SNAP)-$(RELVER).tar.gz
-	scp zanshin-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

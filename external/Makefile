@@ -20,8 +20,7 @@ SYSTEMS=db \
         m2crypto \
         zanshin \
         elementtree \
-        pylint \
-        setuptools
+        pylint
 
 .PHONY: systems env binaries sources expand install clean $(SYSTEMS)
 
@@ -82,7 +81,7 @@ endif
 endif
 
 env::
-	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include
+	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include $(CHANDLERARCHIVES)
 
 systems: $(SYSTEMS)
 
@@ -103,6 +102,7 @@ all: env sources $(SYSTEMS)
 
 world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
+	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) install
 
 cleanworld: $(addprefix clean-, $(SYSTEMS))
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) clean

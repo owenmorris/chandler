@@ -3,6 +3,7 @@ VERSION=0.8.13
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
 PYCHECKER=$(BUILD_ROOT)/pychecker
 SRC=$(PYCHECKER)/pychecker-$(VERSION)
+TARBALL=pychecker-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -21,7 +22,8 @@ BUILD=build_$(SNAP)
 
 build: expand
 	cd $(SRC); \
-      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build \
+          --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
 pychecker-$(VERSION).tar.gz:
@@ -39,15 +41,15 @@ binaries:
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/pychecker -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/pychecker -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(PYCHECKER)/$(TARBALL) \
           $(SNAP)/$(SITE)/pychecker \
           $(SNAP)/$(BIN)/pychecker*
 
-install: pychecker-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf pychecker-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: pychecker-$(SNAP)-$(RELVER).tar.gz
-	scp pychecker-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

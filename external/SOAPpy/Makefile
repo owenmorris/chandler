@@ -3,6 +3,7 @@ VERSION=0.10.2
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
 SOAPPY=$(BUILD_ROOT)/SOAPpy
 SRC=$(SOAPPY)/SOAPpy-$(VERSION)
+TARBALL=soappy-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -33,16 +34,16 @@ binaries:
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/SOAPpy -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/SOAPpy -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(SOAPPY)/$(TARBALL) \
           $(SNAP)/$(SITE)/SOAPpy
 
-install: soappy-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf soappy-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
 endif
 
-upload: soappy-$(SNAP)-$(RELVER).tar.gz
-	scp soappy-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)

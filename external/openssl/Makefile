@@ -5,6 +5,7 @@ VERSION=0.9.7i
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
+TARBALL=openssl-$(SNAP)-$(RELVER).tar.gz
 
 BUILD=build_$(SNAP)
 
@@ -45,8 +46,7 @@ openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
 
 # Need to put the files into M2Crypto dir so that Windows finds our versions
 binaries: 
-	cd $(BUILD_ROOT); \
-      tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
+	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
           $(SNAP)/$(SITE)/M2Crypto/ssleay32.dll \
           $(SNAP)/$(SITE)/M2Crypto/libeay32.dll
 
@@ -73,8 +73,7 @@ tests:
 ifeq ($(OS),Darwin)
 
 binaries: 
-	cd $(BUILD_ROOT); \
-      tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
+	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
           $(SNAP)/lib/libcrypto.0.9.7.dylib \
           $(SNAP)/lib/libcrypto.0.dylib \
           $(SNAP)/lib/libcrypto.dylib \
@@ -85,8 +84,7 @@ binaries:
 else
 
 binaries: 
-	cd $(BUILD_ROOT); \
-      tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
+	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
           $(SNAP)/lib/libcrypto.so.0.9.7 \
           $(SNAP)/lib/libcrypto.so.0 \
           $(SNAP)/lib/libcrypto.so \
@@ -97,11 +95,11 @@ binaries:
 endif # if OS X or linux
 endif # if Cygwin or not
 
-install: openssl-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf openssl-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: openssl-$(SNAP)-$(RELVER).tar.gz
-	scp openssl-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 openssl-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/openssl-$(VERSION).tar.gz

@@ -3,6 +3,7 @@ VERSION=0.13.0
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 COMMON=$(BUILD_ROOT)/pylint/common
 SRC=$(COMMON)/common-$(VERSION)
+TARBALL=common-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -30,13 +31,13 @@ binaries:
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/logilab -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/logilab -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(COMMON)/common-$(SNAP)-$(RELVER).tar.gz \
+        tar -cvzf $(COMMON)/$(TARBALL) \
                   --exclude test $(SNAP)/$(SITE)/logilab/common \
                   $(SNAP)/$(SITE)/logilab/__init__.py
 
 
-install: common-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf common-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
@@ -47,5 +48,5 @@ _realclean::
 	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded
 	rm -rf $(SRC)*
 
-upload: common-$(SNAP)-$(RELVER).tar.gz
-	scp common-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)

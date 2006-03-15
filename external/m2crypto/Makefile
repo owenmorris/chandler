@@ -2,6 +2,7 @@
 VERSION=310
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
+TARBALL=m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -52,14 +53,14 @@ binaries:
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/M2Crypto -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/M2Crypto -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(BUILD_ROOT)/m2crypto/m2crypto-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(BUILD_ROOT)/m2crypto/$(TARBALL) \
           $(SNAP)/$(SITE)/M2Crypto
 
 install: binaries #m2crypto-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf m2crypto-$(SNAP)-$(RELVER).tar.gz
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
-	scp m2crypto-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

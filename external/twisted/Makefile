@@ -3,6 +3,7 @@ VERSION=r15399
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 TWISTED=$(BUILD_ROOT)/twisted
 SRC=$(TWISTED)/Twisted-$(VERSION)
+TARBALL=twisted-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -36,15 +37,15 @@ binaries:
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(TWISTED)/$(TARBALL) \
           --exclude test \
           $(SNAP)/$(SITE)/twisted
 
-install: twisted-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf twisted-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: twisted-$(SNAP)-$(RELVER).tar.gz
-	scp twisted-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

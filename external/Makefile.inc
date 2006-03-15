@@ -99,6 +99,10 @@ ifeq ($(CHANDLERBIN),)
 CHANDLERBIN=$(CHANDLERHOME)
 endif
 
+ifeq ($(CHANDLERARCHIVES),)
+CHANDLERARCHIVES=$(BUILD_ROOT)/../downloads
+endif
+
 ifeq ($(OS),Cygwin)
 ifdef VS71COMNTOOLS
 

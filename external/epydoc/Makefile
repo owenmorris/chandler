@@ -3,6 +3,7 @@ VERSION=2.1
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)6
 EPYDOC=$(BUILD_ROOT)/epydoc
 SRC=$(EPYDOC)/epydoc-$(VERSION)
+TARBALL=epydoc-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -17,8 +18,9 @@ apply: patches-$(VERSION)
 
 build: expand apply
 	cd $(SRC); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build \
+        --build-base=$(BUILD) $(DIST_OPT) \
+        install --force
 
 epydoc-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/epydoc-$(VERSION).tar.gz
@@ -35,15 +37,15 @@ binaries:
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/epydoc -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/epydoc -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(EPYDOC)/$(TARBALL) \
           --exclude test \
           $(SNAP)/$(SITE)/epydoc
 
-install: epydoc-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf epydoc-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: epydoc-$(SNAP)-$(RELVER).tar.gz
-	scp epydoc-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

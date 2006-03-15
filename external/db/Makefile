@@ -3,6 +3,7 @@ VERSION=4.4.20
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 DB=$(BUILD_ROOT)/db
 SRC=$(DB)/db-$(VERSION)
+TARBALL=$(DB)/db-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -34,9 +35,7 @@ clean:
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
 binaries: 
-	cd $(BUILD_ROOT); tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
-                                    $(SNAP)/bin/libdb*.dll \
-                                    $(SNAP)/bin/db/db_*.exe
+	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
 
 else
 
@@ -63,9 +62,9 @@ clean:
 	cd $(SRC); rm -rf $(BUILD)
 
 binaries:
-	cd $(BUILD_ROOT); tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
-                              --exclude '*.a'                         \
-                              $(SNAP)/db/bin $(SNAP)/db/lib
+	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) \
+        --exclude '*.a' \
+        $(SNAP)/db/bin $(SNAP)/db/lib
 
 endif
 
@@ -83,8 +82,8 @@ db-$(VERSION)-expanded: db-$(VERSION).tar.gz
 
 expand: db-$(VERSION)-expanded
 
-upload: db-$(SNAP)-$(RELVER).tar.gz
-	scp db-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
-install: db-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf db-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)

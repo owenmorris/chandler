@@ -3,6 +3,7 @@ VERSION=0.9.0
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLINT=$(BUILD_ROOT)/pylint
 SRC=$(PYLINT)/pylint-$(VERSION)
+TARBALL=pylint-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -64,8 +65,8 @@ install-common:
 install-astng:
 	$(MAKE) -C astng DEBUG=$(DEBUG) install
 
-install: install-common install-astng pylint-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf pylint-$(SNAP)-$(RELVER).tar.gz
+install: install-common install-astng $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
 clean-common:
 	$(MAKE) -C common DEBUG=$(DEBUG) clean
@@ -84,8 +85,8 @@ upload-common:
 upload-astng:
 	$(MAKE) -C astng DEBUG=$(DEBUG) upload
 
-upload: upload-common upload-astng pylint-$(SNAP)-$(RELVER).tar.gz
-	scp pylint-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: upload-common upload-astng $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 _realclean::
 	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded

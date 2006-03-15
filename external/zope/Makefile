@@ -3,6 +3,7 @@ VERSION=3.1.0c1
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 ZOPE=$(BUILD_ROOT)/zope
 SRC=$(ZOPE)/ZopeInterface-$(VERSION)
+TARBALL=zopeinterface-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -36,16 +37,16 @@ binaries:
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/zope -name "*.pyo" | xargs rm -f; \
-	tar -cvzf $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz \
+	tar -cvzf $(ZOPE)/$(TARBALL) \
         --exclude tests \
         --exclude testing \
         $(SNAP)/$(SITE)/zope
 
-install: zopeinterface-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf zopeinterface-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
 
-upload: zopeinterface-$(SNAP)-$(RELVER).tar.gz
-	scp zopeinterface-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

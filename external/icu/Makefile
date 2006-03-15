@@ -3,6 +3,7 @@ VERSION=3.4
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 ICU=$(BUILD_ROOT)/icu
 SRC=$(ICU)/icu-$(VERSION)
+TARBALL=icu-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -35,7 +36,7 @@ clean:
 
 binaries: 
 	cd $(BUILD_ROOT); \
-      tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(ICU)/$(TARBALL) \
           $(SNAP)/bin/icu*.dll \
           $(SNAP)/bin/icu/*.exe
 
@@ -69,7 +70,7 @@ clean:
 
 binaries:
 	cd $(BUILD_ROOT); \
-      tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
+      tar -cvzf $(ICU)/$(TARBALL) \
           $(SNAP)/icu/bin $(SNAP)/icu/lib
 
 endif
@@ -86,8 +87,8 @@ icu-$(VERSION)-expanded: icu-$(VERSION).tgz
 
 expand: icu-$(VERSION)-expanded
 
-upload: icu-$(SNAP)-$(RELVER).tar.gz
-	scp icu-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
-install: icu-$(SNAP)-$(RELVER).tar.gz
-	tar -C $(CHANDLERBIN) -xvzf icu-$(SNAP)-$(RELVER).tar.gz
+install: $(TARBALL)
+	cp $(TARBALL) $(CHANDLERARCHIVES)
