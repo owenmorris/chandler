@@ -186,8 +186,15 @@ strip:
 endif
 endif
 
+# This should work the same on all platforms, but for some reason
+# kona-win (at least) needs this special treatment
+ifeq ($(OS),Cygwin)
+purge:
+	python `cygpath -w $(CHANDLERHOME)/tools/purge.py` `cygpath -w $(CHANDLERHOME)`
+else
 purge:
 	python $(CHANDLERHOME)/tools/purge.py $(CHANDLERHOME)
+endif
 
 tests:
 	$(CHANDLERHOME)/tools/do_tests.sh -u
