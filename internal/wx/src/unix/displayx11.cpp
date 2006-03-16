@@ -24,10 +24,7 @@
   #pragma hdrstop
 #endif
 
-#include "wx/display.h"
-#include "wx/display_impl.h"
-#include "wx/intl.h"
-#include "wx/log.h"
+#if wxUSE_DISPLAY
 
 #ifndef WX_PRECOMP
   #include "wx/dynarray.h"
@@ -36,7 +33,10 @@
   #include "wx/utils.h"
 #endif /* WX_PRECOMP */
 
-#if wxUSE_DISPLAY
+#include "wx/display.h"
+#include "wx/display_impl.h"
+#include "wx/intl.h"
+#include "wx/log.h"
 
 /* These must be included after the wx files.  Otherwise the Data macro in
  * Xlibint.h conflicts with a function declaration in wx/list.h.  */
