@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.315 2006/03/16 04:24:04 VZ Exp $ -->
+<!-- $Id: files.bkl,v 1.316 2006/03/16 08:06:27 ABX Exp $ -->
 <makefile>
 
 <!--
@@ -1696,7 +1696,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/mgl/dcmemory.cpp
     src/mgl/dcscreen.cpp
     src/mgl/dirmgl.cpp
-    src/mgl/display.cpp
     src/mgl/evtloop.cpp
     src/mgl/font.cpp
     src/mgl/fontenum.cpp
