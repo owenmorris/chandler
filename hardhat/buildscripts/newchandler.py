@@ -242,13 +242,25 @@ def doFunctionalTests(releaseMode, workingDir, log):
 
         hardhatutil.dumpOutputList(outputList, log)
 
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "functional tests failed", e
+        log.write("***Error during functional tests***\n")
+        log.write("Test log:\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        log.write("exit code=%s\n" % e.args)
+        log.write("NOTE: If the tests themselves passed but the exit code\n")
+        log.write("      reports failure, it means a shutdown problem.\n")
+        forceBuildNextCycle(log, workingDir)
+        return "test_failed"
     except Exception, e:
         print "functional tests failed", e
-        doCopyLog("***Error during tests***", workingDir, logPath, log)
+        log.write("***Error during functional tests***\n")
+        log.write("Exception:\n")
+        log.write(str(e) + "\n")
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     else:
-        doCopyLog("Tests successful", workingDir, logPath, log)
+        log.write("Functional tests passed")
 
     return "success"
 
@@ -280,14 +292,25 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             outputlist = hardhatutil.executeCommandReturnOutput(args)
             hardhatutil.dumpOutputList(outputlist, log)
 
+        except hardhatutil.ExternalCommandErrorWithOutputList, e:
+            print "perf tests failed", e
+            log.write("***Error during performance tests***\n")
+            log.write("Test log:\n")
+            hardhatutil.dumpOutputList(e.outputList, log)
+            log.write("exit code=%s\n" % e.args)
+            log.write("NOTE: If the tests themselves passed but the exit code\n")
+            log.write("      reports failure, it means a shutdown problem.\n")
+            forceBuildNextCycle(log, workingDir)
+            return "test_failed"
         except Exception, e:
-            print "perf testing error", e
-            print "exception raised: ", e
-            doCopyLog("***Error during tests***", workingDir, logPath, log)
+            print "perf tests failed", e
+            log.write("***Error during performance tests***\n")
+            log.write("Exception:\n")
+            log.write(str(e) + "\n")
             forceBuildNextCycle(log, workingDir)
             return "test_failed"
         else:
-            doCopyLog("Tests successful", workingDir, logPath, log)
+            log.write("Performance tests passed")
 
     return result
 
@@ -307,7 +330,7 @@ def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildV
          [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
         hardhatutil.dumpOutputList(outputList, log)
     except Exception, e:
-        doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
+        doCopyLog("***Error during distribution building*** ", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         raise e
 
@@ -405,7 +428,7 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
 
-    targets = ['install', 'strip']
+    targets = ['install', 'strip', 'purge']
 
     print "Doing make " + dbgStr + clean + " ".join(targets) + "\n"
     log.write("Doing make " + dbgStr + clean + " ".join(targets) + "\n")
@@ -430,7 +453,8 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
         print "build error"
         log.write("***Error during build***\n")
         log.write(separator)
-        log.write("No build log!\n")
+        log.write("Exception:\n")
+        log.write(str(e) + "\n")
         log.write(separator)
         forceBuildNextCycle(log, workingDir)
         raise e
