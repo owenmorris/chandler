@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp,v 1.178 2006/02/24 23:40:18 VZ Exp $
+// RCS-ID:      $Id: intl.cpp,v 1.179 2006/03/16 18:59:12 JS Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2395,7 +2395,7 @@ wxFontEncoding wxLocale::GetSystemEncoding()
         // on some modern Linux systems (RedHat 8) the default system locale
         // is UTF8 -- but it isn't supported by wxGTK in ANSI build at all so
         // don't even try to use it in this case
-#if !wxUSE_UNICODE && defined(__WXGTK__)
+#if !wxUSE_UNICODE && (defined(__WXGTK__) || defined(__WXMOTIF__))
         if ( enc == wxFONTENCODING_UTF8 )
         {
             // the most similar supported encoding...
