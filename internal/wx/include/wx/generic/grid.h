@@ -1102,9 +1102,6 @@ public:
     bool HasCursor() const { return m_hasCursor; }
     void EnableCursor( bool enableCursor );
 
-    void ScaleWidthToFit( bool scale = true );
-    bool GetScaleWidthToFit() const { return m_scaleWidthToFit; }
-
     // ------ grid dimensions
     //
     int      GetNumberRows() { return  m_numRows; }
@@ -1366,7 +1363,6 @@ public:
     void     SetDefaultColSize( int width, bool resizeExistingCols = false );
 
     void     SetColSize( int col, int width );
-    void     SetScaledColSize( int col, int width );
 
     // automatically size the column or row to fit to its contents, if
     // setAsMin is true, this optimal width will also be set as minimal width
@@ -1736,7 +1732,6 @@ public:
 
 protected:
     virtual wxSize DoGetBestSize() const;
-    virtual void NormalizeColumnWidths();
 
     bool m_created;
 
@@ -1912,8 +1907,6 @@ protected:
     bool       m_editable;              // applies to whole grid
     bool       m_cellEditCtrlEnabled;   // is in-place edit currently shown?
     bool       m_hasCursor;
-    bool       m_scaleWidthToFit;       //scale the width to fit the window?
-    double     m_scaleValue;            //value to multiply widths to fit window
 
     int m_scrollLineX; // X scroll increment
     int m_scrollLineY; // Y scroll increment
@@ -1923,7 +1916,6 @@ protected:
     void CalcDimensions();
     void CalcWindowSizes();
     bool Redimension( wxGridTableMessage& );
-    bool ScaleWidthToFit();
 
 
     int SendEvent( const wxEventType, int row, int col, wxMouseEvent& );
