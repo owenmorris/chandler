@@ -6,7 +6,7 @@
 // Author:      Robin Dunn
 //
 // Created:     14-Aug-2003
-// RCS-ID:      $Id: _vscroll.i,v 1.18 2006/03/05 04:00:08 RD Exp $
+// RCS-ID:      $Id: _vscroll.i,v 1.19 2006/03/16 02:30:40 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -517,7 +517,7 @@ public:
     //
     // the base class version doesn't do anything
     //    virtual void OnDrawSeparator(wxDC& dc, wxRect& rect, size_t n) const;
-    DEC_PYCALLBACK__DCRECTSIZET_constpure(OnDrawSeparator);
+    DEC_PYCALLBACK__DCRECTSIZET2_const(OnDrawSeparator);
 
 
     // this method is used to draw the items background and, maybe, a border
@@ -538,7 +538,7 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyVListBox, wxVListBox);
 
 IMP_PYCALLBACK__DCRECTSIZET_constpure(wxPyVListBox, wxVListBox, OnDrawItem);
 IMP_PYCALLBACK_COORD_SIZET_constpure (wxPyVListBox, wxVListBox, OnMeasureItem);
-IMP_PYCALLBACK__DCRECTSIZET_constpure(wxPyVListBox, wxVListBox, OnDrawSeparator);
+IMP_PYCALLBACK__DCRECTSIZET2_const   (wxPyVListBox, wxVListBox, OnDrawSeparator);
 IMP_PYCALLBACK__DCRECTSIZET_const    (wxPyVListBox, wxVListBox, OnDrawBackground);
 
 %}
@@ -709,6 +709,8 @@ public:
     // change the background colour of the selected cells
     void SetSelectionBackground(const wxColour& col);
 
+    virtual void OnDrawSeparator(wxDC& dc, wxRect& rect, size_t n) const;
+    virtual void OnDrawBackground(wxDC& dc, const wxRect& rect, size_t n) const;
 };
 
 
@@ -745,6 +747,10 @@ public:
     // this function may be overridden to decorate HTML returned by OnGetItem()
     DEC_PYCALLBACK_STRING_SIZET(OnGetItemMarkup);
 
+    // These are from wxVListBox
+    DEC_PYCALLBACK__DCRECTSIZET2_const(OnDrawSeparator);
+    DEC_PYCALLBACK__DCRECTSIZET_const(OnDrawBackground);
+
 // TODO:
 //     // this method allows to customize the selection appearance: it may be used
 //     // to specify the colour of the text which normally has the given colour
@@ -768,6 +774,8 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyHtmlListBox, wxHtmlListBox)
 
 IMP_PYCALLBACK_STRING_SIZET_pure(wxPyHtmlListBox, wxHtmlListBox, OnGetItem);
 IMP_PYCALLBACK_STRING_SIZET     (wxPyHtmlListBox, wxHtmlListBox, OnGetItemMarkup);
+IMP_PYCALLBACK__DCRECTSIZET2_const   (wxPyHtmlListBox, wxHtmlListBox, OnDrawSeparator);
+IMP_PYCALLBACK__DCRECTSIZET_const    (wxPyHtmlListBox, wxHtmlListBox, OnDrawBackground);
 
 %}
 

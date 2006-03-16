@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.23 2005/11/30 17:28:16 VZ Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.24 2006/03/14 19:35:34 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public:
     virtual void SetSelection(int n);
     virtual int GetSelection() const;
 
-    virtual int GetCount() const { return (int) m_buttons.GetCount(); }
+    virtual size_t GetCount() const { return m_buttons.GetCount(); }
 
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& label);
