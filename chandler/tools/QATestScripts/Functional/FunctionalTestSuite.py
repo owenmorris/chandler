@@ -67,7 +67,6 @@ exclusions = {
     'all':(        
         "TestAllDayEvent.py", #test not functioning bug#5110
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
-        "TestNewEvent.py", #bug 5086
     )
 }
 
