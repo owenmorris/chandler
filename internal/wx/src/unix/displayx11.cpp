@@ -28,27 +28,27 @@
 
 #ifndef WX_PRECOMP
   #include "wx/dynarray.h"
-  #include "wx/gdicmn.h"
   #include "wx/string.h"
   #include "wx/utils.h"
-#endif /* WX_PRECOMP */
+  #include "wx/log.h"
+#endif
 
+#include "wx/gdicmn.h"
 #include "wx/display.h"
 #include "wx/display_impl.h"
-#include "wx/intl.h"
-#include "wx/log.h"
+//#include "wx/intl.h"
 
-/* These must be included after the wx files.  Otherwise the Data macro in
- * Xlibint.h conflicts with a function declaration in wx/list.h.  */
+// These must be included after the wx files; otherwise the Data macro
+// in Xlibint.h conflicts with a function declaration in wx/list.h.
 extern "C"
 {
-    #include <X11/Xlib.h>
-    #include <X11/Xlibint.h>
+#include <X11/Xlib.h>
+#include <X11/Xlibint.h>
 
-    #include <X11/extensions/Xinerama.h>
-    #ifdef HAVE_X11_EXTENSIONS_XF86VMODE_H
-        #include <X11/extensions/xf86vmode.h>
-    #endif
+#include <X11/extensions/Xinerama.h>
+#ifdef HAVE_X11_EXTENSIONS_XF86VMODE_H
+    #include <X11/extensions/xf86vmode.h>
+#endif
 }
 
 // ----------------------------------------------------------------------------
