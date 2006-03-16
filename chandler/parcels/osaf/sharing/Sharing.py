@@ -17,6 +17,7 @@ from repository.item.Item import Item
 from repository.item.Sets import Set
 from repository.schema.Types import Type
 from repository.util.Lob import Lob
+from chandlerdb.item.ItemError import NoSuchAttributeError
 
 import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, wx
 from cStringIO import StringIO
@@ -2129,22 +2130,26 @@ def importValue(item, changes, attribute, value, previousView,
     if not isinstance(value, Item):
         # For literal values, let's see if this is a no-op:
 
-        attrType = item.getAttributeAspect(attribute, 'type')
+        try:
+            attrType = item.getAttributeAspect(attribute, 'type')
 
-        if type(value) in (str, unicode, int, float):
-            needSerialized = False
-        else:
-            needSerialized = True
-
-            curValue = getattr(item, attribute, "")
-            if curValue is None:
-                mimeType, encoding, curSerialized = None, None, curValue
+            if type(value) in (str, unicode, int, float):
+                needSerialized = False
             else:
-                (mimeType, encoding, curSerialized) = \
-                    serializeLiteral(getattr(item, attribute, ""), attrType)
+                needSerialized = True
 
-            (mimeType, encoding, newSerialized) = serializeLiteral(value,
-                attrType)
+                curValue = getattr(item, attribute, "")
+                if curValue is None:
+                    mimeType, encoding, curSerialized = None, None, curValue
+                else:
+                    (mimeType, encoding, curSerialized) = \
+                        serializeLiteral(getattr(item, attribute, ""), attrType)
+
+                (mimeType, encoding, newSerialized) = serializeLiteral(value,
+                    attrType)
+
+        except NoSuchAttributeError:
+            needSerialized = False
 
         # See if the new value equals the current value.
         # If it matches, then this is a no-op.
