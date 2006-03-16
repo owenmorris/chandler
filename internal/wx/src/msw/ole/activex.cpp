@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msw/ole/activex.cpp
+// Name:        src/msw/ole/activex.cpp
 // Purpose:     wxActiveXContainer implementation
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.19 2006/03/15 10:28:38 JS Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.20 2006/03/16 08:52:36 ABX Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1123,7 +1123,11 @@ void wxActiveXContainer::OnPaint(wxPaintEvent& WXUNUSED(event))
         posRect.right = w;
         posRect.bottom = h;
 
+#if !(defined(_WIN32_WCE) && _WIN32_WCE < 400)
         ::RedrawWindow(m_oleObjectHWND, NULL, NULL, RDW_INTERNALPAINT);
+#else
+        ::InvalidateRect(m_oleObjectHWND, NULL, false);
+#endif
         RECTL *prcBounds = (RECTL *) &posRect;
         m_viewObject->Draw(DVASPECT_CONTENT, -1, NULL, NULL, NULL,
             (HDC)dc.GetHDC(), prcBounds, NULL, NULL, 0);

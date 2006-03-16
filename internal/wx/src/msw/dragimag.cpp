@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     08/04/99
-// RCS-ID:      $Id: dragimag.cpp,v 1.39 2006/02/12 12:16:52 MW Exp $
+// RCS-ID:      $Id: dragimag.cpp,v 1.40 2006/03/16 11:01:44 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -297,9 +297,14 @@ bool wxDragImage::BeginDrag(const wxPoint& hotspot, wxWindow* window, bool fullS
 #else
         if (!m_hCursorImageList)
         {
+#ifndef SM_CXCURSOR
+			// Smartphone may not have these metric symbol
+			int cxCursor = 16;
+            int cyCursor = 16;
+#else
             int cxCursor = ::GetSystemMetrics(SM_CXCURSOR);
             int cyCursor = ::GetSystemMetrics(SM_CYCURSOR);
-
+#endif
             m_hCursorImageList = (WXHIMAGELIST) ImageList_Create(cxCursor, cyCursor, ILC_MASK, 1, 1);
         }
 

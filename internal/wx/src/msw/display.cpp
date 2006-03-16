@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III, Vadim Zeitlin
 // Modified by: Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp,v 1.23 2006/03/16 04:22:04 VZ Exp $
+// RCS-ID:      $Id: display.cpp,v 1.24 2006/03/16 11:06:10 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Copyright:   (c) 2002-2006 wxWidgets team
 // Licence:     wxWindows licence
@@ -375,6 +375,8 @@ private:
     // we have 2 implementations for modern Windows: one using standard Win32
     // and another using DirectDraw, the choice between them is done using a
     // system option
+
+#ifdef wxUSE_DIRECTDRAW
     if ( wxSystemOptions::GetOptionInt(_T("msw.display.directdraw")) )
     {
         wxDisplayFactoryDirectDraw *factoryDD = new wxDisplayFactoryDirectDraw;
@@ -383,6 +385,7 @@ private:
 
         delete factoryDD;
     }
+#endif // wxUSE_DIRECTDRAW
 
     wxDisplayFactoryMultimon *factoryMM = new wxDisplayFactoryMultimon;
     if ( factoryMM->IsOk() )

@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.62 2006/03/11 13:13:00 JS Exp $
+// RCS-ID:      $Id: missing.h,v 1.63 2006/03/16 10:45:11 ABX Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -248,6 +248,53 @@ typedef struct _OSVERSIONINFOEX {
 #ifndef CP_SYMBOL
     #define CP_SYMBOL 42
 #endif
+
+// ----------------------------------------------------------------------------
+// wxDisplay
+// ----------------------------------------------------------------------------
+
+// The windows headers with Digital Mars lack some typedefs.
+// typedef them as my_XXX and then #define to rename to XXX in case
+// a newer version of Digital Mars fixes the headers
+// (or up to date PSDK is in use with older version)
+// also we use any required definition (MONITOR_DEFAULTTONULL) to recognize
+// whether whole missing block needs to be included
+
+#ifndef MONITOR_DEFAULTTONULL
+
+    #define HMONITOR_DECLARED
+    DECLARE_HANDLE(HMONITOR);
+    typedef BOOL(CALLBACK* my_MONITORENUMPROC)(HMONITOR,HDC,LPRECT,LPARAM);
+    #define MONITORENUMPROC my_MONITORENUMPROC
+    typedef struct my_tagMONITORINFO {
+        DWORD cbSize;
+        RECT rcMonitor;
+        RECT rcWork;
+        DWORD dwFlags;
+    } my_MONITORINFO,*my_LPMONITORINFO;
+    #define MONITORINFO my_MONITORINFO
+    #define LPMONITORINFO my_LPMONITORINFO
+
+    typedef struct my_MONITORINFOEX : public my_tagMONITORINFO
+    {
+        TCHAR       szDevice[CCHDEVICENAME];
+    } my_MONITORINFOEX, *my_LPMONITORINFOEX;
+    #define MONITORINFOEX my_MONITORINFOEX
+    #define LPMONITORINFOEX my_LPMONITORINFOEX
+
+    #ifndef MONITOR_DEFAULTTONULL
+        #define MONITOR_DEFAULTTONULL 0
+    #endif // MONITOR_DEFAULTTONULL
+
+    #ifndef MONITORINFOF_PRIMARY
+        #define MONITORINFOF_PRIMARY 1
+    #endif // MONITORINFOF_PRIMARY
+
+    #ifndef DDENUM_ATTACHEDSECONDARYDEVICES
+        #define DDENUM_ATTACHEDSECONDARYDEVICES 1
+    #endif
+
+#endif // MONITOR_DEFAULTTONULL
 
 // ----------------------------------------------------------------------------
 // Tree control

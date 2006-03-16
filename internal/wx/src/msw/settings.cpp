@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: settings.cpp,v 1.43 2006/02/06 17:42:15 JS Exp $
+// RCS-ID:      $Id: settings.cpp,v 1.44 2006/03/16 11:01:44 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -309,8 +309,12 @@ static const int gs_metricsMap[] =
 
     SM_CXBORDER,
     SM_CYBORDER,
-    SM_CXCURSOR,
+#ifdef SM_CXCURSOR
+	SM_CXCURSOR,
     SM_CYCURSOR,
+#else
+	-1, -1,
+#endif
     SM_CXDOUBLECLK,
     SM_CYDOUBLECLK,
 #if defined(__WIN32__) && defined(SM_CXDRAG)
