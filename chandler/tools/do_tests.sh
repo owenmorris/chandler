@@ -60,9 +60,16 @@ fi
 shift $(($OPTIND - 1))
 
 if [ ! -n "$1" ]; then
-    C_DIR="`dirname $0`/.."
+      # if no chandler path is passed in, calculate it
+      # the call to pwd is a quick way to get an absolute path
+    cd `dirname $0`
+    C_DIR=`pwd`
+    C_DIR=`dirname $C_DIR`
 else
-    C_DIR="$1"
+      # a chandler path was passed in so cd to that and
+      # get the absolute path
+    cd $1
+    C_DIR=`pwd`
 fi
 
 T_DIR=$C_DIR
@@ -76,6 +83,8 @@ if [ ! -d "$C_DIR/i18n" ]; then
         echo $USAGE
         exit 65
     fi
+else
+    echo Using [$C_DIR] as the chandler/ directory
 fi
 
 if [ "$CHANDLERBIN" = "" ]
