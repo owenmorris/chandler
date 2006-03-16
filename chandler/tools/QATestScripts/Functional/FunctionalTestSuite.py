@@ -63,7 +63,7 @@ exclusions = {
     ),
     
     'windows':(
-            
+        "TestImportOverwrite.py", # bug 5402 transform error
     ),
     
     'all':(        
