@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III, Vadim Zeitlin
 // Modified by: Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp,v 1.24 2006/03/16 11:06:10 ABX Exp $
+// RCS-ID:      $Id: display.cpp,v 1.25 2006/03/16 16:07:15 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Copyright:   (c) 2002-2006 wxWidgets team
 // Licence:     wxWindows licence
@@ -142,6 +142,9 @@ struct wxDisplayInfo
     // the entire area of this monitor in virtual screen coordinates
     wxRect m_rect;
 
+    // the work or client area, i.e. the area available for the normal windows
+    wxRect m_rectClient;
+
     // the display device name for this monitor, empty initially and retrieved
     // on demand by DoGetName()
     wxString m_devName;
@@ -167,6 +170,7 @@ public:
     }
 
     virtual wxRect GetGeometry() const;
+    virtual wxRect GetClientArea() const;
     virtual wxString GetName() const;
     virtual bool IsPrimary() const;
 
@@ -415,6 +419,7 @@ void wxDisplayInfo::Initialize()
         }
 
         wxCopyRECTToRect(monInfo.rcMonitor, m_rect);
+        wxCopyRECTToRect(monInfo.rcWork, m_rectClient);
         m_devName = monInfo.szDevice;
         m_flags = monInfo.dwFlags;
     }
@@ -430,6 +435,14 @@ wxRect wxDisplayImplWin32Base::GetGeometry() const
         m_info.Initialize();
 
     return m_info.m_rect;
+}
+
+wxRect wxDisplayImplWin32Base::GetClientArea() const
+{
+    if ( m_info.m_rectClient.IsEmpty() )
+        m_info.Initialize();
+
+    return m_info.m_rectClient;
 }
 
 wxString wxDisplayImplWin32Base::GetName() const

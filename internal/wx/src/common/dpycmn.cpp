@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.03.03
-// RCS-ID:      $Id: dpycmn.cpp,v 1.15 2006/03/16 04:21:51 VZ Exp $
+// RCS-ID:      $Id: dpycmn.cpp,v 1.16 2006/03/16 16:07:12 VZ Exp $
 // Copyright:   (c) 2003-2006 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,6 +67,8 @@ public:
         wxDisplaySize(&r.width, &r.height);
         return r;
     }
+
+    virtual wxRect GetClientArea() const { return wxGetClientDisplayRect(); }
 
     virtual wxString GetName() const { return wxString(); }
 
@@ -160,6 +162,13 @@ wxRect wxDisplay::GetGeometry() const
     wxCHECK_MSG( IsOk(), wxRect(), _T("invalid wxDisplay object") );
 
     return m_impl->GetGeometry();
+}
+
+wxRect wxDisplay::GetClientArea() const
+{
+    wxCHECK_MSG( IsOk(), wxRect(), _T("invalid wxDisplay object") );
+
+    return m_impl->GetClientArea();
 }
 
 wxString wxDisplay::GetName() const

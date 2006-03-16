@@ -3,7 +3,7 @@
 // Purpose:     wxDisplayImpl class declaration
 // Author:      Vadim Zeitlin
 // Created:     2006-03-15
-// RCS-ID:      $Id: display_impl.h,v 1.1 2006/03/16 04:22:25 VZ Exp $
+// RCS-ID:      $Id: display_impl.h,v 1.2 2006/03/16 16:07:07 VZ Exp $
 // Copyright:   (c) 2002-2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,6 +51,9 @@ public:
 
     // return the full area of this display
     virtual wxRect GetGeometry() const = 0;
+
+    // return the area of the display available for normal windows
+    virtual wxRect GetClientArea() const { return GetGeometry(); }
 
     // return the name (may be empty)
     virtual wxString GetName() const = 0;

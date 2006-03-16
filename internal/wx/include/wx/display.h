@@ -3,7 +3,7 @@
 // Purpose:     wxDisplay class
 // Author:      Royce Mitchell III, Vadim Zeitlin
 // Created:     06/21/02
-// RCS-ID:      $Id: display.h,v 1.23 2006/03/16 04:22:25 VZ Exp $
+// RCS-ID:      $Id: display.h,v 1.24 2006/03/16 16:07:07 VZ Exp $
 // Copyright:   (c) 2002-2006 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,8 +68,11 @@ public:
     // return true if the object was initialized successfully
     bool IsOk() const { return m_impl != NULL; }
 
-    // get the display size
+    // get the full display size
     wxRect GetGeometry() const;
+
+    // get the client area of the display, i.e. without taskbars and such
+    wxRect GetClientArea() const;
 
     // name may be empty
     wxString GetName() const;

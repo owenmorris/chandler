@@ -42,8 +42,9 @@ All:
 - Important code cleanup (Paul Cornett)
 - Added support for wxLongLong in wx stream classes (Mark Junker)
 - wxSOCKET_REUSEADDR can be used with wxSocketClient.
-- Overloaded Connect and SetLocal methods for binding to local address/port.
-- Consistency of count getters (GetCount()) with returning size_t everywhere.
+- Overloaded Connect() and SetLocal() methods for binding to local address/port.
+- All GetCount() methods now return size_t and not int
+- Albanian translation added (Besnik Bleta)
 
 All (GUI):
 
@@ -93,6 +94,7 @@ All (GUI):
 - UpdateUI handler can now show/hide the window too (Ronald Weiss)
 - More than one filter allowed in in wxDocTemplate filter.
 - Added wxListBox::HitTest()
+- Added wxDisplay::GetClientArea()
 
 wxMSW:
 
