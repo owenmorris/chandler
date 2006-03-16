@@ -131,8 +131,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                 if ret != 'success':
                     break
 
-        if ret == 'success' and not skipTests:
-            ret = doFunctionalTests(workingDir, log)
+                ret = doFunctionalTests(releaseMode, workingDir, log)
+                if ret != 'success':
+                    break
 
         changes = "-first-run"
     else:
@@ -170,8 +171,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                 if ret != 'success':
                     break
 
-            if ret == 'success':
-                ret = doFunctionalTests(workingDir, log)
+                ret = doFunctionalTests(releaseMode, workingDir, log)
+                if ret != 'success':
+                    break
 
     return (ret + changes, revisions['chandler'])
 
@@ -198,7 +200,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         hardhatutil.dumpOutputList(outputList, log)
 
     except Exception, e:
-        print "a testing error"
+        print "a testing error", e
         doCopyLog("***Error during tests***", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
@@ -208,22 +210,40 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     return "success"  # end of doTests( )
 
 
-def doFunctionalTests(workingDir, log):
-    testDir = os.path.join(workingDir, "chandler")
-    os.chdir(testDir)
+def doFunctionalTests(releaseMode, workingDir, log):
+    hardhatlib.setupEnvironment(buildenv)
 
-    try: # test
+    chandlerDir = os.path.join(workingDir, "chandler")
+
+    if buildenv['os'] == 'win':
+        runChandler = 'RunChandler.bat'
+    else:
+        runChandler = 'RunChandler'
+
+    if releaseMode == 'debug':
+        runChandler = os.path.join(chandlerDir, 'debug', runChandler)
+    elif releaseMode == 'release':
+        runChandler = os.path.join(chandlerDir, 'release', runChandler)
+
+    os.chdir(chandlerDir)
+
+    try:
         print "Running Functional Tests"
         log.write(separator)
         log.write("Running Functional Tests ...\n")
 
-        testscript = "./tools/do_tests.sh"
-        outputList = hardhatutil.executeCommandReturnOutput([testscript, "-f"])
+        args = [runChandler,
+                '--create', '--stderr', '--nocatch',
+                '--profileDir=.',
+                '--parcelPath=tools/QATestScripts/DataFiles',
+                '--scriptTimeout=600', 
+                '--scriptFile=tools/QATestScripts/Functional/FunctionalTestSuite.py']
+        outputList = hardhatutil.executeCommandReturnOutput(args)
 
         hardhatutil.dumpOutputList(outputList, log)
 
     except Exception, e:
-        print "a testing error"
+        print "functional tests failed", e
         doCopyLog("***Error during tests***", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
@@ -237,7 +257,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
     hardhatlib.setupEnvironment(buildenv)
 
     chandlerDir = os.path.join(workingDir, "chandler")
-    testDir     = os.path.join(chandlerDir, 'util', 'QATestScripts', 'Performance')
+    testDir     = os.path.join(chandlerDir, 'tools', 'QATestScripts', 'Performance')
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
@@ -261,7 +281,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             hardhatutil.dumpOutputList(outputlist, log)
 
         except Exception, e:
-            print "a testing error"
+            print "perf testing error", e
             print "exception raised: ", e
             doCopyLog("***Error during tests***", workingDir, logPath, log)
             forceBuildNextCycle(log, workingDir)
