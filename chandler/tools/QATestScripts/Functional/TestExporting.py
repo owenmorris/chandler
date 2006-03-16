@@ -34,7 +34,8 @@ try:
         logger.Stop()
         logger.ReportFailure("Exporting calendar: exception raised")
     else:
-        wx.GetApp().Yield()
+        #wx.GetApp().Yield()
+	User.idle()
         logger.Stop()
         logger.ReportPass("Exporting calendar")
     
