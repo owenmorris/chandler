@@ -229,8 +229,8 @@ def main():
             log = open(logFile, "w")
 
         elif ret[:11] == "test_failed":
-            print "Unit tests failed"
-            log.write("Unit tests failed\n")
+            print "Tests failed"
+            log.write("Tests failed\n")
             status = "test_failed"
 
             if not uploadStaging:
