@@ -116,7 +116,7 @@ class TestLogger:
         elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
         self.Print("OSAF_QA: %s | %s | %s" %(description, version.revision, elapsed_secs)) 
         print("OSAF_QA: %s | %s | %s" %(description, version.revision, elapsed_secs))
-        
+
     def SuspendProfiling(self):
         """
         Suspend profiling of code between Start()/Stop() calls
@@ -124,7 +124,7 @@ class TestLogger:
         command-line option).
         """
         self.enableProfiling = False
-        
+
     def ResumeProfiling(self):
         """
         Resume profiling of code between Start()/Stop() calls.
@@ -132,7 +132,7 @@ class TestLogger:
         command-line option)
         """
         self.enableProfiling = True
-        
+
     def Start(self,string):
         ''' Start the action timer  '''
         # usefull inits
@@ -173,7 +173,7 @@ class TestLogger:
                     catsPerfLog.close()
         #reset timing info
         self.actionStartDate = self.actionEndDate = None
-        
+
     def Report(self,description="Unknown"):
         ''' Report the current action states'''
         self.nbVerif = self.nbVerif + 1
@@ -198,10 +198,10 @@ class TestLogger:
         self.failureList = []
         self.passedList = []
         self.checked = False
-        
+
     def InitFailureList(self):
         self.failureList = []
-    
+
     def ReportFailure(self, string):
         self.failureList.append(string)
 
