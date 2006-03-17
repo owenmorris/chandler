@@ -270,7 +270,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     else:
-        log.write("Functional tests passed")
+        log.write("Functional tests exit code=0")
 
     return "success"
 
@@ -330,7 +330,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             forceBuildNextCycle(log, workingDir)
             return "test_failed"
         else:
-            log.write("Performance tests passed")
+            log.write("Performance tests exit code=0")
 
     return result
 
