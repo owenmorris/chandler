@@ -5,7 +5,7 @@
 // Modified by:
 //  Chris Elliott (biol75@york.ac.uk) 5 Dec 00: write support for Win32
 // Created:     23.09.98
-// RCS-ID:      $Id: mimecmn.cpp,v 1.43 2005/09/25 23:38:54 VZ Exp $
+// RCS-ID:      $Id: mimecmn.cpp,v 1.44 2006/03/17 14:12:44 RR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -453,6 +453,34 @@ bool wxFileType::SetDefaultIcon(const wxString& cmd, int index)
 #endif
 }
 
+//----------------------------------------------------------------------------
+// wxMimeTypesManagerFactory
+//----------------------------------------------------------------------------
+
+wxMimeTypesManagerFactory *wxMimeTypesManagerFactory::m_factory = NULL;
+
+/* static */ 
+void wxMimeTypesManagerFactory::SetFactory( wxMimeTypesManagerFactory *factory )
+{
+    if (wxMimeTypesManagerFactory::m_factory)
+        delete wxMimeTypesManagerFactory::m_factory;
+
+    wxMimeTypesManagerFactory::m_factory = factory;
+}
+
+/* static */ 
+wxMimeTypesManagerFactory *wxMimeTypesManagerFactory::GetFactory()
+{
+    if (!wxMimeTypesManagerFactory::m_factory)
+        wxMimeTypesManagerFactory::m_factory = new wxMimeTypesManagerFactory;
+
+    return wxMimeTypesManagerFactory::m_factory;
+}
+
+wxMimeTypesManagerImpl *wxMimeTypesManagerFactory::CreateMimeTypesManagerImpl()
+{
+    return new wxMimeTypesManagerImpl;
+}
 
 // ----------------------------------------------------------------------------
 // wxMimeTypesManager
@@ -461,7 +489,7 @@ bool wxFileType::SetDefaultIcon(const wxString& cmd, int index)
 void wxMimeTypesManager::EnsureImpl()
 {
     if ( !m_impl )
-        m_impl = new wxMimeTypesManagerImpl;
+        m_impl = wxMimeTypesManagerFactory::GetFactory()->CreateMimeTypesManagerImpl();
 }
 
 bool wxMimeTypesManager::IsOfType(const wxString& mimeType,

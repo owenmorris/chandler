@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.190 2006/03/09 13:16:02 VZ Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.191 2006/03/17 14:26:59 SC Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -880,7 +880,8 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
         #if defined(HAVE__VSNWPRINTF)
             #define wxVsnprintf_    _vsnwprintf
         /* MinGW?MSVCRT has the wrong vswprintf */
-        #elif defined(HAVE_VSWPRINTF) && !defined(__MINGW32__)
+		/* Mac OS X has a somehow buggy vswprintf */
+        #elif defined(HAVE_VSWPRINTF) && !defined(__MINGW32__) && !defined(__DARWIN__)
             #define wxVsnprintf_    vswprintf
         #endif
     #else /* ASCII */

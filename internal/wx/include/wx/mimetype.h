@@ -5,7 +5,7 @@
 // Modified by:
 //  Chris Elliott (biol75@york.ac.uk) 5 Dec 00: write support for Win32
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.h,v 1.40 2006/03/12 15:11:20 ABX Exp $
+// RCS-ID:      $Id: mimetype.h,v 1.41 2006/03/17 14:12:47 RR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,7 @@
 // the things we really need
 #include "wx/string.h"
 #include "wx/dynarray.h"
+#include "wx/arrstr.h"
 
 // fwd decls
 class WXDLLIMPEXP_BASE wxIconLocation;
@@ -65,6 +66,80 @@ public:
 };
 
 */
+
+// wxMimeTypeCommands stores the verbs defined for the given MIME type with
+// their values
+class WXDLLIMPEXP_BASE wxMimeTypeCommands
+{
+public:
+    wxMimeTypeCommands() {}
+
+    wxMimeTypeCommands(const wxArrayString& verbs,
+                       const wxArrayString& commands)
+        : m_verbs(verbs),
+          m_commands(commands)
+    {
+    }
+
+    // add a new verb with the command or replace the old value
+    void AddOrReplaceVerb(const wxString& verb, const wxString& cmd)
+    {
+        int n = m_verbs.Index(verb, false /* ignore case */);
+        if ( n == wxNOT_FOUND )
+        {
+            m_verbs.Add(verb);
+            m_commands.Add(cmd);
+        }
+        else
+        {
+            m_commands[n] = cmd;
+        }
+    }
+
+    void Add(const wxString& s)
+    {
+        m_verbs.Add(s.BeforeFirst(wxT('=')));
+        m_commands.Add(s.AfterFirst(wxT('=')));
+    }
+
+    // access the commands
+    size_t GetCount() const { return m_verbs.GetCount(); }
+    const wxString& GetVerb(size_t n) const { return m_verbs[n]; }
+    const wxString& GetCmd(size_t n) const { return m_commands[n]; }
+
+    bool HasVerb(const wxString& verb) const
+        { return m_verbs.Index(verb) != wxNOT_FOUND; }
+
+    wxString GetCommandForVerb(const wxString& verb, size_t *idx = NULL) const
+    {
+        wxString s;
+
+        int n = m_verbs.Index(verb);
+        if ( n != wxNOT_FOUND )
+        {
+            s = m_commands[(size_t)n];
+            if ( idx )
+                *idx = n;
+        }
+        else if ( idx )
+        {
+            // different from any valid index
+            *idx = (size_t)-1;
+        }
+
+        return s;
+    }
+
+    // get a "verb=command" string
+    wxString GetVerbCmd(size_t n) const
+    {
+        return m_verbs[n] + wxT('=') + m_commands[n];
+    }
+
+private:
+    wxArrayString m_verbs;
+    wxArrayString m_commands;
+};
 
 // ----------------------------------------------------------------------------
 // wxFileTypeInfo: static container of information accessed via wxFileType.
@@ -267,6 +342,25 @@ private:
     // the object which implements the real stuff like reading and writing
     // to/from system MIME database
     wxFileTypeImpl *m_impl;
+};
+
+//----------------------------------------------------------------------------
+// wxMimeTypesManagerFactory
+//----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_BASE wxMimeTypesManagerFactory
+{
+public:
+    wxMimeTypesManagerFactory() {}
+    virtual ~wxMimeTypesManagerFactory() {}
+
+    virtual wxMimeTypesManagerImpl *CreateMimeTypesManagerImpl();
+
+    static void SetFactory( wxMimeTypesManagerFactory *factory );
+    static wxMimeTypesManagerFactory *GetFactory();
+    
+private:
+    static wxMimeTypesManagerFactory *m_factory;
 };
 
 // ----------------------------------------------------------------------------

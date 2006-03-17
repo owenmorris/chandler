@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     10/21/99
-// RCS-ID:      $Id: dataobj.cpp,v 1.27 2006/03/15 19:22:01 vell Exp $
+// RCS-ID:      $Id: dataobj.cpp,v 1.29 2006/03/17 19:11:32 vell Exp $
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ void wxDataFormat::SetType( wxDataFormatId dataType )
 
 wxString wxDataFormat::GetId() const
 {
-    wxCHECK_MSG( !IsStandard(), wxEmptyString ,
+    wxCHECK_MSG( !IsStandard(), wxEmptyString,
                  wxT("name of predefined format cannot be retrieved") );
 
     return m_id;
@@ -342,7 +342,8 @@ bool wxBitmapDataObject::SetData( size_t nSize, const void *pBuf )
 
     // ownership is transferred to the bitmap
     m_pictCreated = false;
-    Rect frame = (**picHandle).picFrame;
+    Rect frame;
+    wxMacGetPictureBounds( picHandle, &frame );
 
     wxMetafile mf;
     mf.SetHMETAFILE( (WXHMETAFILE)m_pictHandle );

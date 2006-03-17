@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.46 2006/03/10 17:02:51 SC Exp $
+// RCS-ID:      $Id: private.h,v 1.47 2006/03/17 18:29:14 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -815,6 +815,19 @@ private :
 // toplevel.cpp
 
 ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow, const Point& location , WindowRef window , ControlPartCode *outPart ) ;
+
+#if WORDS_BIGENDIAN
+    inline Rect* wxMacGetPictureBounds( PicHandle pict , Rect* rect ) 
+    { 
+       *rect = (**pict).picFrame ; 
+        return rect ;
+    }
+#else
+    inline Rect* wxMacGetPictureBounds( PicHandle pict , Rect* rect ) 
+    {   
+        return QDGetPictureBounds( pict , rect ) ;
+    }
+#endif
 
 #endif // wxUSE_GUI
 

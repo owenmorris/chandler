@@ -2,7 +2,7 @@
 // Name:        app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp,v 1.220 2006/03/09 13:44:02 VZ Exp $
+// Id:          $Id: app.cpp,v 1.221 2006/03/17 14:12:44 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,6 +77,15 @@
 #include "wx/gtk/private.h"
 
 #include <gtk/gtk.h>
+
+//-----------------------------------------------------------------------------
+// link GnomeVFS
+//-----------------------------------------------------------------------------
+
+#if wxUSE_LIBGNOMEVFS
+#include "wx/html/forcelnk.h"
+FORCE_LINK(gnome_vfs)
+#endif
 
 //-----------------------------------------------------------------------------
 // global data

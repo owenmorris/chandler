@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.cpp,v 1.117 2006/03/14 00:35:05 ABX Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.118 2006/03/17 02:38:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -332,7 +332,7 @@ bool wxComboBox::MSWCommand(WXUINT param, WXWORD id)
             // set these variables so that they could be also fixed in
             // CBN_EDITCHANGE below
             sel = GetSelection();
-            value = GetValue();
+            value = GetStringSelection();
             {
                 wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_SELECTED, GetId());
                 event.SetEventObject(this);

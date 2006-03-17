@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dnd.cpp,v 1.47 2006/03/15 19:22:01 vell Exp $
+// RCS-ID:      $Id: dnd.cpp,v 1.48 2006/03/17 17:12:40 SC Exp $
 // Copyright:   (c) 1998 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -428,11 +428,9 @@ wxDragResult wxDropSource::DoDragDrop(int flags)
 #if !TARGET_CARBON // TODO
     ev = (EventRecord*) wxTheApp->MacGetCurrentEvent();
 #else
-    {
-        EventRecord rec;
-        ev = &rec;
-        wxMacConvertEventToRecord( (EventRef) wxTheApp->MacGetCurrentEvent(), &rec );
-    }
+    EventRecord rec;
+    ev = &rec;
+    wxMacConvertEventToRecord( (EventRef) wxTheApp->MacGetCurrentEvent(), &rec );
 #endif
 
     const short dragRegionOuterBoundary = 10;
