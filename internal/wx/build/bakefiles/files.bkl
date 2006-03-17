@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.316 2006/03/16 08:06:27 ABX Exp $ -->
+<!-- $Id: files.bkl,v 1.317 2006/03/17 14:12:50 RR Exp $ -->
 <makefile>
 
 <!--
@@ -938,6 +938,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/gtk/frame.cpp
     src/gtk/gauge.cpp
     src/gtk/gnome/gprint.cpp
+    src/gtk/gnome/gvfs.cpp
     src/gtk/listbox.cpp
     src/gtk/mdi.cpp
     src/gtk/menu.cpp
@@ -982,6 +983,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/gtk/frame.h
     wx/gtk/gauge.h
     wx/gtk/gnome/gprint.h
+    wx/gtk/gnome/gvfs.h
     wx/gtk/listbox.h
     wx/gtk/mdi.h
     wx/gtk/menu.h
