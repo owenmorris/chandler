@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-Mar-2004
-// RCS-ID:      $Id: _display.i,v 1.10 2006/02/10 18:32:10 RD Exp $
+// RCS-ID:      $Id: _display.i,v 1.11 2006/03/17 00:50:33 RD Exp $
 // Copyright:   (c) 2004 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -196,15 +196,13 @@ As any mode matches the default value of the argument and there is
 always at least one video mode supported by display, the returned
 array is only empty for the default value of the argument if this
 function is not supported at all on this platform.", "");
-
-        PyObject* GetModes(const wxVideoMode& mode = wxDefaultVideoMode)
-        {
+        
+        PyObject* GetModes(const wxVideoMode& mode = wxDefaultVideoMode) {
             PyObject* pyList = NULL;
             wxArrayVideoModes arr = self->GetModes(mode);
             wxPyBlock_t blocked = wxPyBeginBlockThreads();
             pyList = PyList_New(0);
-            for (int i=0; i < arr.GetCount(); i++)
-            {
+            for (int i=0; i < arr.GetCount(); i++) {
                 wxVideoMode* m = new wxVideoMode(arr.Item(i));
                 PyObject* pyObj = wxPyConstructObject(m, wxT("wxVideoMode"), true);
                 PyList_Append(pyList, pyObj);
@@ -237,7 +235,7 @@ nothing.  This happens because Carbon no longer has access to
 DMUseScreenPrefs, an undocumented function that changed the video mode
 to the system default by using the system's 'scrn' resource.
 
-Returns True if succeeded; False otherwise", "")
+Returns True if succeeded; False otherwise", "");
 
     DocDeclStr(
         void , ResetMode(),

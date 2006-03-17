@@ -3,7 +3,7 @@
 // Purpose:     wxDisplayImpl class declaration
 // Author:      Vadim Zeitlin
 // Created:     2006-03-15
-// RCS-ID:      $Id: display_impl.h,v 1.2 2006/03/16 16:07:07 VZ Exp $
+// RCS-ID:      $Id: display_impl.h,v 1.3 2006/03/17 00:15:04 VZ Exp $
 // Copyright:   (c) 2002-2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -11,7 +11,7 @@
 #ifndef _WX_DISPLAY_IMPL_H_BASE_
 #define _WX_DISPLAY_IMPL_H_BASE_
 
-#include "wx/gdicmn.h" // for wxRect
+#include "wx/gdicmn.h"      // for wxRect
 
 // ----------------------------------------------------------------------------
 // wxDisplayFactory: allows to create wxDisplay objects
