@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     9-June-2005
-// RCS-ID:      $Id: _renderer.i,v 1.1 2005/06/09 20:11:08 RD Exp $
+// RCS-ID:      $Id: _renderer.i,v 1.2 2006/03/16 23:22:10 RD Exp $
 // Copyright:   (c) 2005 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -124,7 +124,7 @@ public:
                                         wxDC& dc,
                                         const wxRect& rect,
                                         int flags = 0),
-        "Draw the header control button (such as whar is used by `wx.ListCtrl`
+        "Draw the header control button (such as what is used by `wx.ListCtrl`
 in report mode.)", "");
     
 
