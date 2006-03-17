@@ -31,32 +31,31 @@ struct wxVideoMode
 {
     wxVideoMode(int width = 0, int height = 0, int depth = 0, int freq = 0);
     ~wxVideoMode();
-    
+
     DocDeclStr(
         bool , Matches(const wxVideoMode& other) const,
-        "Returns true if this mode matches the other one in the sense that all
+        "Returns True if this mode matches the other one in the sense that all
 non zero fields of the other mode have the same value in this
 one (except for refresh which is allowed to have a greater value)", "");
 
     DocDeclStr(
         int , GetWidth() const,
         "Returns the screen width in pixels (e.g. 640*480), 0 means unspecified", "");
-    
+
     DocDeclStr(
         int , GetHeight() const,
         "Returns the screen width in pixels (e.g. 640*480), 0 means
 unspecified", "");
-    
+
     DocDeclStr(
         int , GetDepth() const,
         "Returns the screen's bits per pixel (e.g. 32), 1 is monochrome and 0
 means unspecified/known", "");
-    
+
 
     DocDeclStr(
         bool , IsOk() const,
         "returns true if the object has been initialized", "");
-    
 
 
     %pythoncode { def __nonzero__(self): return self.IsOk() }
@@ -65,7 +64,7 @@ means unspecified/known", "");
         bool __ne__(const wxVideoMode* other) { return other ? (*self != *other) : true;  }
     }
 
-    
+
     // the screen size in pixels (e.g. 640*480), 0 means unspecified
     int w, h;
 
@@ -96,35 +95,37 @@ const wxVideoMode     wxDefaultVideoMode;
 WX_DEFINE_OBJARRAY(wxArrayVideoModes);
 const wxVideoMode wxDefaultVideoMode;
 
-class wxDisplay 
+class wxDisplay
 {
 public:
     wxDisplay(size_t index = 0) { wxPyRaiseNotImplemented(); }
     ~wxDisplay() {}
 
-    static size_t  GetCount()
+    static size_t GetCount()
         { wxPyRaiseNotImplemented(); return 0; }
-    
     static int GetFromPoint(const wxPoint& pt)
         { wxPyRaiseNotImplemented(); return wxNOT_FOUND; }
-    static int GetFromWindow(wxWindow *window) 
+    static int GetFromWindow(wxWindow *window)
         { wxPyRaiseNotImplemented(); return wxNOT_FOUND; }
-        
-    virtual bool IsOk() const { return false; }
-    virtual wxRect GetGeometry() const { wxRect r; return r; }
-    virtual wxString GetName() const { return wxEmptyString; }
+
+    bool IsOk() const { return false; }
+    wxRect GetGeometry() const { wxRect r; return r; }
+    wxRect GetClientArea() const { wxRect r; return r; }
+    wxString GetName() const { return wxEmptyString; }
     bool IsPrimary() const { return false; }
-    
+
+#if 0
     wxArrayVideoModes GetModes(const wxVideoMode& mode = wxDefaultVideoMode)
         { wxArrayVideoModes a; return a; }
 
-    virtual wxVideoMode GetCurrentMode() const
+    wxVideoMode GetCurrentMode() const
         { return wxDefaultVideoMode; }
-    
-    virtual bool ChangeMode(const wxVideoMode& mode = wxDefaultVideoMode)
+
+    bool ChangeMode(const wxVideoMode& mode = wxDefaultVideoMode)
        { return false; }
-    
-    void  ResetMode() {}
+
+    void ResetMode() {}
+#endif
 };
 #endif
 %}
@@ -136,54 +137,53 @@ DocStr(wxDisplay,
 class wxDisplay
 {
 public:
-    // 
+    //
     DocCtorStr(
         wxDisplay(size_t index = 0),
         "Set up a Display instance with the specified display.  The displays
 are numbered from 0 to GetCount() - 1, 0 is always the primary display
 and the only one which is always supported", "");
 
-    virtual ~wxDisplay();
-    
+    ~wxDisplay();
+
     DocDeclStr(
         static size_t , GetCount(),
         "Return the number of available displays.", "");
-    
 
     DocDeclStr(
         static int , GetFromPoint(const wxPoint& pt),
         "Find the display where the given point lies, return wx.NOT_FOUND if it
 doesn't belong to any display", "");
-    
 
     DocStr(GetFromWindow,
            "Find the display where the given window lies, return wx.NOT_FOUND if
 it is not shown at all.", "");
     static int GetFromWindow(wxWindow *window);
 
-    
+
     DocDeclStr(
-        virtual bool , IsOk() const,
+        bool , IsOk() const,
         "Return true if the object was initialized successfully", "");
     %pythoncode { def __nonzero__(self): return self.IsOk() }
- 
 
     DocDeclStr(
-        virtual wxRect , GetGeometry() const,
+        wxRect , GetGeometry() const,
         "Returns the bounding rectangle of the display whose index was passed
 to the constructor.", "");
-    
 
     DocDeclStr(
-        virtual wxString , GetName() const,
+        wxRect , GetClientArea() const,
+        "Returns the bounding rectangle the client area of the display,
+i.e., without taskbars and such.", "");
+
+    DocDeclStr(
+        wxString , GetName() const,
         "Returns the display's name. A name is not available on all platforms.", "");
-    
 
     DocDeclStr(
         bool , IsPrimary() const,
         "Returns true if the display is the primary display. The primary
 display is the one whose index is 0.", "");
-    
 
 
     %extend {
@@ -196,13 +196,15 @@ As any mode matches the default value of the argument and there is
 always at least one video mode supported by display, the returned
 array is only empty for the default value of the argument if this
 function is not supported at all on this platform.", "");
-        
-        PyObject* GetModes(const wxVideoMode& mode = wxDefaultVideoMode) {
+
+        PyObject* GetModes(const wxVideoMode& mode = wxDefaultVideoMode)
+        {
             PyObject* pyList = NULL;
             wxArrayVideoModes arr = self->GetModes(mode);
             wxPyBlock_t blocked = wxPyBeginBlockThreads();
             pyList = PyList_New(0);
-            for (int i=0; i < arr.GetCount(); i++) {
+            for (int i=0; i < arr.GetCount(); i++)
+            {
                 wxVideoMode* m = new wxVideoMode(arr.Item(i));
                 PyObject* pyObj = wxPyConstructObject(m, wxT("wxVideoMode"), true);
                 PyList_Append(pyList, pyObj);
@@ -212,15 +214,14 @@ function is not supported at all on this platform.", "");
             return pyList;
         }
     }
-    
+
 
     DocDeclStr(
         virtual wxVideoMode , GetCurrentMode() const,
         "Get the current video mode.", "");
-    
 
     DocDeclStr(
-        virtual bool , ChangeMode(const wxVideoMode& mode = wxDefaultVideoMode),
+        bool , ChangeMode(const wxVideoMode& mode = wxDefaultVideoMode),
         "Changes the video mode of this display to the mode specified in the
 mode parameter.
 
@@ -236,14 +237,11 @@ nothing.  This happens because Carbon no longer has access to
 DMUseScreenPrefs, an undocumented function that changed the video mode
 to the system default by using the system's 'scrn' resource.
 
-Returns True if succeeded, False otherwise", "");
-    
+Returns True if succeeded; False otherwise", "")
 
     DocDeclStr(
         void , ResetMode(),
         "Restore the default video mode (just a more readable synonym)", "");
-    
-
 };
 
 //---------------------------------------------------------------------------
