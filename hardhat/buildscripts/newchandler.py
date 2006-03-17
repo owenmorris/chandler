@@ -232,6 +232,11 @@ def doFunctionalTests(releaseMode, workingDir, log):
         log.write(separator)
         log.write("Running Functional Tests ...\n")
 
+        try:
+            os.remove('chandler.log')
+        except OSError:
+            pass
+
         args = [runChandler,
                 '--create', '--stderr', '--nocatch',
                 '--profileDir=.',
@@ -250,6 +255,11 @@ def doFunctionalTests(releaseMode, workingDir, log):
         log.write("exit code=%s\n" % e.args)
         log.write("NOTE: If the tests themselves passed but the exit code\n")
         log.write("      reports failure, it means a shutdown problem.\n")
+        log.write("chandler.log:\n")
+        try:
+            CopyLog('chandler.log', log)
+        except:
+            pass
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     except Exception, e:
@@ -289,6 +299,11 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
                 '--create', '--profileDir=%s' % chandlerDir, '--scriptFile=%s' % testFile]
 
         try:
+            try:
+                os.remove('chandler.log')
+            except OSError:
+                pass
+
             outputlist = hardhatutil.executeCommandReturnOutput(args)
             hardhatutil.dumpOutputList(outputlist, log)
 
@@ -300,6 +315,11 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             log.write("exit code=%s\n" % e.args)
             log.write("NOTE: If the tests themselves passed but the exit code\n")
             log.write("      reports failure, it means a shutdown problem.\n")
+            log.write("chandler.log:\n")
+            try:
+                CopyLog('chandler.log', log)
+            except:
+                pass
             forceBuildNextCycle(log, workingDir)
             return "test_failed"
         except Exception, e:
