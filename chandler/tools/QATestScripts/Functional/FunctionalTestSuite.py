@@ -43,7 +43,7 @@ allTests = [
                 "TestImporting.py",
                 "TestImportOverwrite.py",
                 "TestSharing.py",
-                #"TestBlocks.py",
+                "TestBlocks.py",
                 ]
 
 if sys.platform == 'win32': 

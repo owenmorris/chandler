@@ -1020,6 +1020,7 @@ class NewEvent(KindParameterizedEvent):
     collection = schema.One(ContentCollection, defaultValue = None)
 
 
+
 class ModifyCollectionEvent(BlockEvent):
     items = schema.Sequence(schema.Item, initialValue = [])
     collectionName = schema.One(schema.Text, initialValue = "sidebarCollection")
