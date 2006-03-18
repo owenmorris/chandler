@@ -211,8 +211,6 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
 
 def doFunctionalTests(releaseMode, workingDir, log):
-    hardhatlib.setupEnvironment(buildenv)
-
     chandlerDir = os.path.join(workingDir, "chandler")
 
     if buildenv['os'] == 'win':
@@ -245,6 +243,13 @@ def doFunctionalTests(releaseMode, workingDir, log):
                 '--scriptFile=tools/QATestScripts/Functional/FunctionalTestSuite.py']
         outputList = hardhatutil.executeCommandReturnOutput(args)
 
+        # Hack: find if any line contains '#TINDERBOX# Status = FAILED' and
+        # if so raise the exception to signal test failure
+        for line in outputList:
+            if line.find('#TINDERBOX# Status = FAILED') >= 0 or \
+               line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
+                raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
+            
         hardhatutil.dumpOutputList(outputList, log)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
@@ -276,8 +281,6 @@ def doFunctionalTests(releaseMode, workingDir, log):
 
 
 def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
-    hardhatlib.setupEnvironment(buildenv)
-
     chandlerDir = os.path.join(workingDir, "chandler")
     testDir     = os.path.join(chandlerDir, 'tools', 'QATestScripts', 'Performance')
 
@@ -305,6 +308,14 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
                 pass
 
             outputlist = hardhatutil.executeCommandReturnOutput(args)
+
+            # Hack: find if any line contains '#TINDERBOX# Status = FAILED' and
+            # if so raise the exception to signal test failure
+            for line in outputList:
+                if line.find('#TINDERBOX# Status = FAILED') >= 0 or \
+                   line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
+                    raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
+
             hardhatutil.dumpOutputList(outputlist, log)
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
