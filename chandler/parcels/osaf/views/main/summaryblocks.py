@@ -13,6 +13,7 @@ def makeSummaryBlocks(parcel):
     detailblocks = schema.ns('osaf.framework.blocks.detail', view)
     pim_ns = schema.ns('osaf.pim', view)
     blocks = schema.ns('osaf.framework.blocks', view)
+    repositoryView = parcel.itsView
     
     # Our detail views share the same delegate instance and contents collection
     detailBranchPointDelegate = detail.DetailBranchPointDelegate.update(
@@ -32,14 +33,27 @@ def makeSummaryBlocks(parcel):
                 characterStyle = blocks.SummaryRowStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
                 columnHeadings = 
-                    [u'', _(u'who'), _(u'about'), _(u'date'), _(u'Triage')],
+                    [_(u'M'), _(u'T'), _(u'E'),
+                     _(u'who'), _(u'about'), _(u'date'), _(u'Triage')],
                 columnData = 
-                    [u'itsKind', u'who', u'about', u'date', u'triageStatus'],
+                    [u'', u'',
+                     u'',
+                     u'who', u'about', u'date', u'triageStatus'],
+                columnKind =
+                    [pim.mail.MailMessageMixin.getKind(repositoryView),
+                     pim.TaskMixin.getKind(repositoryView),
+                     pim.CalendarEventMixin.getKind(repositoryView)],
+                columnValueType =
+                    [u'kind', u'kind', u'kind',
+                     u'attribute', u'attribute', u'attribute', u'attribute'],
                 columnWidths = 
-                    [20, 130, 130, 130, 20],
+                    [20, 20, 20,
+                     130, 130, 130, 20],
                 columnReadOnly = 
-                    [True, True, False, True, False],
+                    [True, True, True,
+                     True, False, True, False],
                 elementDelegate = 'osaf.views.main.SectionedGridDelegate',
+                       defaultEditableAttribute = u'about',
                 selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
                 delegate = detailBranchPointDelegate,

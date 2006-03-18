@@ -240,7 +240,11 @@ class AttributeDelegate (ListDelegate):
             pass
         else:
             attributeName = self.blockItem.columnData [column]
-            if item.itsKind.hasAttribute (attributeName):
+            
+            if self.blockItem.columnValueType[column] == 'kind':
+                typeName = 'IsKind'
+                
+            elif item.itsKind.hasAttribute(attributeName):
                 try:
                     typeName = item.getAttributeAspect (attributeName, 'type').itsName
                 except NoSuchAttributeError:
@@ -266,13 +270,21 @@ class AttributeDelegate (ListDelegate):
     def GetElementValue (self, row, column):
         itemIndex = self.RowToIndex(row)
         assert itemIndex != -1
+
+        blockItem = self.blockItem
+        item = blockItem.contents[itemIndex]
         
-        return (self.blockItem.contents [itemIndex],
-                self.blockItem.columnData [column])
+        if self.blockItem.columnValueType[column] == 'kind':
+            return (item, blockItem.columnKind[column])
+        else:
+            return (item, blockItem.columnData[column])
     
     def SetElementValue (self, row, column, value):
         itemIndex = self.RowToIndex(row)
         assert itemIndex != -1
+        
+        # just for now, you can't 'set' a kind
+        assert self.blockItem.columnValueType[column] != 'kind'
         
         item = self.blockItem.contents [itemIndex]
         attributeName = self.blockItem.columnData [column]
@@ -280,6 +292,9 @@ class AttributeDelegate (ListDelegate):
         item.setAttributeValue (attributeName, value)
 
     def GetColumnHeading (self, column, item):
+        if self.blockItem.columnValueType == 'kind':
+            return self.blockItem.columnHeadings[column]
+        
         attributeName = self.blockItem.columnData [column]
         if item is not None:
             try:

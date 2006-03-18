@@ -59,6 +59,8 @@ def makeMainView (parcel):
         hideColumnHeadings = True,
         columnWidths = [150],
         columnData = [u'displayName'],
+        columnValueType = [u'attribute'],
+        defaultEditableAttribute = u'displayName',
         filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView)).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 

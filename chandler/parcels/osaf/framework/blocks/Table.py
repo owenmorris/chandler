@@ -131,6 +131,9 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnLabelLeftClicked (self, event):
         assert (event.GetRow() == -1) # Currently Table only supports column headers
         blockItem = self.blockItem
+        if blockItem.columnValueType[event.GetCol()] != 'attribute':
+            # for now we only support sorting on attribute-style columns
+            return
         attributeName = blockItem.columnData [event.GetCol()]
         contents = blockItem.contents
         indexName = contents.indexName
@@ -670,20 +673,56 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         assert False # who needs this?
         return self.delegate.GetControlValue (self.control)
 
+class columnType(schema.Enumeration):
+    """
+    Indicates the type of the value used in the column, that
+    determines the way that columnData and/or columnKind is used.
+
+    An 'attribute' column gets the value of the item using
+    columnData[column] as an attribute name.
+
+    A 'kind' column gets the value of the item passing
+    columnKind[column] to the attribute editor.
+    """
+    values = 'attribute', 'kind'
+
 class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
+    # All the 'column Heading
     columnHeadings = schema.Sequence(schema.Text, required = True)
     columnHeadingTypes = schema.Sequence(schema.Text)
-    columnData = schema.Sequence(schema.Text)
-    columnWidths = schema.Sequence(schema.Integer, required = True)
-    columnReadOnly = schema.Sequence(schema.Boolean)
+    columnData = schema.Sequence(schema.Text,
+                                 doc="A list of attribute names or other "
+                                 "data for each column that is used to "
+                                 "evaluate the column value for the item "
+                                 "in the row")
+
+    columnKind = schema.Sequence(schema.Kind,
+                                 doc="A list of classes for columns where "
+                                 "the columnValueType is 'kind'")
+    
+    columnWidths = schema.Sequence(schema.Integer, required = True,
+                                   doc="A list of widths of each column "
+                                   "that will be used to keep the columns "
+                                   "proportionally sized")
+    columnReadOnly = schema.Sequence(schema.Boolean,
+                                     doc="A list indicating if each column "
+                                     "is read-only")
+
+    columnValueType = \
+                    schema.Sequence(columnType,
+                                    doc="A list indicating the value "
+                                    "type of each column, to determine "
+                                    "how to use the respective value in "
+                                    "columnData or columnKind.")
+    
     elementDelegate = schema.One(schema.Text, initialValue = '')
     selectedItemToView = schema.One(schema.Item, initialValue = None)
-    defaultEditableAttribute = schema.One(schema.Text,
-                                          doc="The default attribute to " 
-                                          "edit, for instance if the user " 
-                                          "uses the keyboard to activate "
-                                          "in-place editing")
+    defaultEditableAttribute = \
+        schema.One(schema.Text,
+                   doc="The default attribute to edit, for instance if "
+                   "the user uses the keyboard to activate in-place editing")
+    
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
@@ -691,7 +730,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef=[characterStyle,headerCharacterStyle,selectedItemToView]
+            byRef=[characterStyle,headerCharacterStyle,selectedItemToView,columnKind]
         )
     )
 

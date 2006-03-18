@@ -144,9 +144,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             # this is just a hack because this value is getting passed
             # to the default attribute editor
             return object(), None
-        
-        attributeName = self.blockItem.columnData[column]
-        return (self.blockItem.contents [itemIndex], attributeName)
+
+        return super(SectionedGridDelegate, self).GetElementValue(row, column)
 
     def RowToIndex(self, row):
         """
