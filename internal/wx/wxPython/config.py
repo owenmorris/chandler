@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py,v 1.82 2006/03/14 04:06:46 RD Exp $
+# RCS-ID:      $Id: config.py,v 1.83 2006/03/18 01:03:08 RD Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -903,6 +903,7 @@ if USE_SWIG:
                        '-fvirtual',
                        '-fastinit',
                        '-fastunpack',
+                       #'-outputtuple',  Currently setting this with a -D define above
                        ]
              
 if UNICODE:

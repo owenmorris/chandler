@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-03
-// RCS-ID:      $Id: fontdlgosx.mm,v 1.9 2006/03/10 18:54:11 SC Exp $
+// RCS-ID:      $Id: fontdlgosx.mm,v 1.10 2006/03/17 20:51:38 SC Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -147,6 +147,7 @@ int RunMixedFontDialog(wxFontDialog* dialog)
     SetWindowGroup(carbonWindowRef , GetWindowGroupOfClass(kMovableModalWindowClass));
     
     [fontPanel setFloatingPanel:NO] ;
+    [[fontPanel standardWindowButton:NSWindowCloseButton] setEnabled:NO] ;
     
     wxMacFontPanelAccView* accessoryView = (wxMacFontPanelAccView*) [fontPanel accessoryView] ;
     if ( accessoryView == nil)
@@ -166,6 +167,8 @@ int RunMixedFontDialog(wxFontDialog* dialog)
 
     [NSApp endModalSession:session];
 
+    // if we don't reenable it, FPShowHideFontPanel does not work
+    [[fontPanel standardWindowButton:NSWindowCloseButton] setEnabled:YES] ;
     if( FPIsFontPanelVisible())
         FPShowHideFontPanel() ;
     
