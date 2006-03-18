@@ -117,6 +117,7 @@ def installParcel(parcel, oldVersion=None):
         'Integer': 'StringAttributeEditor',
         'Item': 'ItemNameAttributeEditor',
         'Kind': 'StampAttributeEditor',
+        'IsKind': 'IsKindAttributeEditor',
         'image/jpeg': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
         'SharingStatusEnum': 'EnumAttributeEditor',
@@ -2152,8 +2153,19 @@ class EnumAttributeEditor (IconAttributeEditor):
 class StampAttributeEditor (IconAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         if isinstance(item, TaskMixin):
-            return 'taskStamp'
+            return 'TaskMixinStamp'
         elif isinstance(item, Calendar.CalendarEventMixin):
-            return 'eventStamp'
+            return 'CalendarEventMixin'
         else:
             return ''
+
+class IsKindAttributeEditor(IconAttributeEditor):
+    """
+    A sort of boolean attribute editor - it returns whether or not an
+    item is of the given kind
+    """
+    def GetAttributeValue(self, item, kind):
+        if item.isItemOf(kind):
+            return "%sStamp" % (kind.itsName)
+        else:
+            return ""
