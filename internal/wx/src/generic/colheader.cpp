@@ -166,6 +166,8 @@ void wxColumnHeader::Init( void )
 
 	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
 
+	m_BUseVerticalOrientation = false;
+
 #if wxUSE_UNICODE
 	m_BUseUnicode = true;
 #else
@@ -607,6 +609,10 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
+	case CH_ATTR_VerticalOrientation:
+		bResult = m_BUseVerticalOrientation;
+		break;
+
 	case CH_ATTR_Unicode:
 		bResult = m_BUseUnicode;
 		break;
@@ -640,6 +646,11 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
+	case CH_ATTR_VerticalOrientation:
+		// NB: runtime set not allowed
+		// m_BUseVerticalOrientation = bFlagValue;
+		break;
+
 	case CH_ATTR_Unicode:
 		// NB: runtime set not allowed
 		// m_BUseUnicode = bFlagValue;
@@ -695,17 +706,17 @@ bool			bResult;
 
 long wxColumnHeader::GetTotalUIExtent( void ) const
 {
-long		extentX, i;
+long		extentDim, i;
 
-	extentX = 0;
+	extentDim = 0;
 	if (m_ItemList != NULL)
 		for (i=0; i<m_ItemCount; i++)
 		{
 			if (m_ItemList[i] != NULL)
-				extentX += m_ItemList[i]->m_ExtentX;
+				extentDim += m_ItemList[i]->m_ExtentX;
 		}
 
-	return extentX;
+	return extentDim;
 }
 
 bool wxColumnHeader::RescaleToFit(
@@ -713,9 +724,13 @@ bool wxColumnHeader::RescaleToFit(
 {
 long		scaleItemCount, scaleItemAmount, i;
 long		deltaX, summerX, resultX, originX, incX;
+bool		bIsVertical;
 
 	if ((newWidth <= 0) || (m_ItemList == NULL))
 		return false;
+
+	// NB: not implemented - vertical
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 
 	// count non-fixed-width items and tabulate size
 	scaleItemCount = 0;
@@ -795,6 +810,7 @@ bool wxColumnHeader::ResizeDivision(
 {
 wxColumnHeaderItem		*itemRef1, *itemRef2;
 long					deltaV, newExtent1, newExtent2;
+bool					bIsVertical;
 
 	if ((itemIndex <= 0) || (itemIndex >= m_ItemCount))
 		return false;
@@ -806,6 +822,9 @@ long					deltaV, newExtent1, newExtent2;
 
 	if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
 		return false;
+
+	// NB: not implemented - vertical
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 
 	deltaV = itemRef2->m_OriginX - originX;
 	newExtent1 = itemRef1->m_ExtentX - deltaV;
@@ -1272,31 +1291,57 @@ bool wxColumnHeader::GetItemBounds(
 	wxRect				*boundsR ) const
 {
 wxColumnHeaderItem		*itemRef;
-bool					bResultV;
+bool					bResultV, bIsVertical;
 
 	if (boundsR == NULL)
 		return false;
 
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+
 	itemRef = GetItemRef( itemIndex );
 	bResultV = (itemRef != NULL);
 
-	// is this item beyond the right edge?
-	if (bResultV)
-		bResultV = (itemRef->m_OriginX < m_NativeBoundsR.width);
-
-	if (bResultV)
+	if (bIsVertical)
 	{
-		boundsR->x = itemRef->m_OriginX;
-		boundsR->y = 0; // m_NativeBoundsR.y;
-		boundsR->width = itemRef->m_ExtentX + 1;
-		boundsR->height = m_NativeBoundsR.height;
+		// is this item beyond the bottom edge?
+		if (bResultV)
+			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.height);
 
-		if (boundsR->width > m_NativeBoundsR.width - itemRef->m_OriginX)
-			boundsR->width = m_NativeBoundsR.width - itemRef->m_OriginX;
+		if (bResultV)
+		{
+			boundsR->x = 0; // m_NativeBoundsR.x;
+			boundsR->y = itemRef->m_OriginX;
+			boundsR->width = m_NativeBoundsR.width;
+			boundsR->height = itemRef->m_ExtentX + 1;
 
-		bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
+			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_OriginX)
+				boundsR->height = m_NativeBoundsR.height - itemRef->m_OriginX;
+
+			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
+		}
 	}
 	else
+	{
+		// is this item beyond the right edge?
+		if (bResultV)
+			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.width);
+
+		if (bResultV)
+		{
+			boundsR->x = itemRef->m_OriginX;
+			boundsR->y = 0; // m_NativeBoundsR.y;
+			boundsR->width = itemRef->m_ExtentX + 1;
+			boundsR->height = m_NativeBoundsR.height;
+
+			if (boundsR->width > m_NativeBoundsR.width - itemRef->m_OriginX)
+				boundsR->width = m_NativeBoundsR.width - itemRef->m_OriginX;
+
+			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
+		}
+	}
+
+
+	if (!bResultV)
 	{
 		boundsR->x =
 		boundsR->y =

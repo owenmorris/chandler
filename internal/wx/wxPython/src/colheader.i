@@ -38,6 +38,7 @@ enum wxColumnHeaderHitTestResult
 
 enum wxColumnHeaderAttribute
 {
+    CH_ATTR_VerticalOrientation,
     CH_ATTR_Unicode,
     CH_ATTR_GenericRenderer,
     CH_ATTR_VisibleSelection,
