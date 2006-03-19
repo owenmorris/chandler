@@ -2,7 +2,7 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp,v 1.96 2006/03/15 11:52:59 ABX Exp $
+// Id:          $Id: choice.cpp,v 1.98 2006/03/18 12:59:09 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

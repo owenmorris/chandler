@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     24-June-1997
-// RCS-ID:      $Id: _window.i,v 1.64 2006/03/15 22:46:54 RD Exp $
+// RCS-ID:      $Id: _window.i,v 1.65 2006/03/19 02:17:43 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1757,7 +1757,7 @@ already on top/bottom and nothing was done.", "");
         void , SetHelpText(const wxString& text),
         "Sets the help text to be used as context-sensitive help for this
 window.  Note that the text is actually stored by the current
-wxHelpProvider implementation, and not in the window object itself.", "");
+`wx.HelpProvider` implementation, and not in the window object itself.", "");
     
 
     DocDeclStr(
@@ -1770,7 +1770,7 @@ one.", "");
         wxString , GetHelpText() const,
         "Gets the help text to be used as context-sensitive help for this
 window.  Note that the text is actually stored by the current
-wxHelpProvider implementation, and not in the window object itself.", "");
+`wx.HelpProvider` implementation, and not in the window object itself.", "");
     
 
 

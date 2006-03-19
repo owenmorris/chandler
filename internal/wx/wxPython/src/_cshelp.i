@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     28-July-2001
-// RCS-ID:      $Id: _cshelp.i,v 1.9 2006/01/29 02:09:29 RD Exp $
+// RCS-ID:      $Id: _cshelp.i,v 1.10 2006/03/19 02:16:08 RD Exp $
 // Copyright:   (c) 2001 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -208,6 +208,10 @@ application using wx.HelpProvider.Set().", "");
 class wxHelpProvider 
 {
 public:
+    
+    ~wxHelpProvider();
+    
+    
     %disownarg( wxHelpProvider *helpProvider );
     %newobject Set;
     DocDeclStr(

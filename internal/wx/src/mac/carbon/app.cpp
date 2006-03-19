@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.cpp,v 1.198 2006/03/10 16:01:08 SC Exp $
+// RCS-ID:      $Id: app.cpp,v 1.200 2006/03/18 17:14:55 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1254,7 +1254,6 @@ void wxApp::MacHandleOneEvent( WXEVENTREF evr )
 #endif // wxUSE_THREADS
 }
 
-long wxMacTranslateKey(unsigned char key, unsigned char code) ;
 long wxMacTranslateKey(unsigned char key, unsigned char code)
 {
     long retval = key ;
@@ -1671,8 +1670,6 @@ void wxApp::MacCreateKeyEvent( wxKeyEvent& event, wxWindow* focus , long keymess
     event.m_keyCode = keyval ;
 #if wxUSE_UNICODE
     event.m_uniChar = uniChar ;
-    if ( event.GetEventType() == wxEVT_CHAR )
-        event.m_keyCode = uniChar ;
 #endif
 
     event.m_rawCode = keymessage;
