@@ -418,10 +418,15 @@ class wxMenuItem (wx.MenuItem):
             uncheckedbitmap = \
                 app.GetImage(self.blockItem.icon + ".png")
             if uncheckedbitmap:
-                checkedbitmap = \
-                    app.GetImage(self.blockItem.icon + "Checked.png")
-                if not checkedbitmap:
+                if '__WXMAC__' in wx.PlatformInfo:
+                    # the mac already shows checkmarks next to menu
+                    # items, so we just use the regular bitmap here
                     checkedbitmap = uncheckedbitmap
+                else:
+                    checkedbitmap = \
+                        app.GetImage(self.blockItem.icon + "Checked.png")
+                    if not checkedbitmap:
+                        checkedbitmap = uncheckedbitmap
                 self.SetBitmaps(checkedbitmap, uncheckedbitmap)
 
     def __cmp__ (self, other):
