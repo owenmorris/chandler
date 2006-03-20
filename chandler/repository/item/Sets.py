@@ -11,6 +11,7 @@ from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Indexed import Indexed
+from repository.item.Collection import Collection
 
 class AbstractSet(ItemValue, Indexed):
 
@@ -134,10 +135,12 @@ class AbstractSet(ItemValue, Indexed):
         self._view = view
 
     def _prepareSource(self, source):
-
+        
         if isinstance(source, AbstractSet):
             return source._view, source
-        elif isinstance(source[0], UUID):
+        elif isinstance(source, Collection):
+            return source.itsView, (source.itsUUID, source.__collection__)
+        elif isuuid(source[0]):
             return None, source
         else:
             return source[0].itsView, (source[0].itsUUID, source[1])

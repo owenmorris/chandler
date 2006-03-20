@@ -239,8 +239,7 @@ class DifferenceCollection(ContentCollection):
         super(DifferenceCollection, self).__init__(*args, **kwds)
 
         a, b = self.sources
-        setattr(self, self.__collection__,
-                Difference((a, a.__collection__), (b, b.__collection__)))
+        setattr(self, self.__collection__, Difference(a, b))
 
 
 class UnionCollection(ContentCollection):
@@ -276,9 +275,10 @@ class UnionCollection(ContentCollection):
 
         if len(self.sources) == 2:
             a, b = self.sources
-            set = Union((a, a.__collection__), (b, b.__collection__))
+            set = Union(a, b)
         else:
-            set = MultiUnion(*[(i, i.__collection__) for i in self.sources])
+            # (i for i in self.sources) is needed here to extract items
+            set = MultiUnion(*(i for i in self.sources))
 
         setattr(self, self.__collection__, set)
 
@@ -337,10 +337,10 @@ class IntersectionCollection(ContentCollection):
 
         if len(self.sources) == 2:
             a, b = self.sources
-            set = Intersection((a, a.__collection__), (b, b.__collection__))
+            set = Intersection(a, b)
         else:
-            set = MultiIntersection(*[(i, i.__collection__)
-                                      for i in self.sources])
+            # (i for i in self.sources) is needed here to extract items
+            set = MultiIntersection(*(i for i in self.sources))
 
         setattr(self, self.__collection__, set)
 
@@ -389,8 +389,8 @@ class FilteredCollection(ContentCollection):
             attrTuples.add((i, "remove"))
 
         setattr(self, self.__collection__,
-                FilteredSet((self.source, self.source.__collection__),
-                            self.filterExpression, tuple(attrTuples)))
+                FilteredSet(self.source, self.filterExpression,
+                            tuple(attrTuples)))
 
 
 class InclusionExclusionCollection(ContentCollection):
@@ -554,9 +554,7 @@ class InclusionExclusionCollection(ContentCollection):
             self.trash = exclusions
 
         self.sources = [outerSource, exclusions]
-        setattr(self, self.__collection__,
-                Difference((outerSource, outerSource.__collection__),
-                           (exclusions, exclusions.__collection__)))
+        setattr(self, self.__collection__, Difference(outerSource, exclusions))
 
         return self
 
@@ -578,8 +576,7 @@ class IndexedSelectionCollection(ContentCollection):
     def __init__(self, *args, **kwds):
 
         super(IndexedSelectionCollection, self).__init__(*args, **kwds)
-        setattr(self, self.__collection__,
-                Set((self.source, self.source.__collection__)))
+        setattr(self, self.__collection__, Set(self.source))
 
     def getCollectionIndex(self):
         """
