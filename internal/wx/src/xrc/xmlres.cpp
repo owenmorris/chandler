@@ -3,7 +3,7 @@
 // Purpose:     XRC resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.cpp,v 1.79 2006/03/04 22:40:16 VZ Exp $
+// RCS-ID:      $Id: xmlres.cpp,v 1.80 2006/03/20 22:26:39 VS Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1094,13 +1094,13 @@ wxBitmap wxXmlResourceHandler::GetBitmap(const wxString& param,
     wxImage img(*(fsfile->GetStream()));
     delete fsfile;
 #else
-    wxImage img(GetParamValue(wxT("bitmap")));
+    wxImage img(name);
 #endif
 
     if (!img.Ok())
     {
         wxLogError(_("XRC resource: Cannot create bitmap from '%s'."),
-                   param.c_str());
+                   name.c_str());
         return wxNullBitmap;
     }
     if (!(size == wxDefaultSize)) img.Rescale(size.x, size.y);

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.139 2006/02/09 00:49:39 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.140 2006/03/20 22:57:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -808,8 +808,9 @@ bool wxBitmap::CreateFromImage(const wxImage& image, int depth, WXHDC hdc)
     wxDIB dib(image);
     if ( !dib.IsOk() )
         return false;
-	if (depth == -1)
-		depth = dib.GetDepth();	// Get depth from image if none specified
+
+    if ( depth == -1 )
+        depth = dib.GetDepth(); // Get depth from image if none specified
 
     // store the bitmap parameters
     wxBitmapRefData *refData = new wxBitmapRefData;
