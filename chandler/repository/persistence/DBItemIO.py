@@ -293,7 +293,7 @@ class DBItemWriter(ItemWriter):
                 self.writeDict(buffer, item, version,
                                value, withSchema, attrType)
         except Exception, e:
-            raise #SaveValueError, (item, name, e)
+            raise SaveValueError, (item, name, e)
 
         if indexed:
 
@@ -1072,8 +1072,7 @@ class DBItemRMergeReader(DBItemMergeReader):
 
                 return offset, value
 
-            else:
-                raise ValueError, flags
+            # else skip, not a collection of refs
 
         return offset, Nil
 
