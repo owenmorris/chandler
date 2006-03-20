@@ -39,7 +39,7 @@ try:
         sidebarWidget = app_ns().sidebar.widget
         for i in range(sidebarWidget.GetNumberRows()):
             collection = sidebarWidget.GetTable().GetValue(i,0)[0]
-            if collection.displayName == "oscon2005":
+            if collection.displayName == name:
                 return collection
         return False
 
