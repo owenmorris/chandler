@@ -448,6 +448,9 @@ class AbstractSet(ItemValue, Indexed):
     def _clearDirties(self):
         pass
 
+    def _clear_(self):
+        pass
+
 
 class Set(AbstractSet):
 
