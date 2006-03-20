@@ -67,13 +67,20 @@ def installParcel(parcel, oldVersion=None):
         items = [certStore],
         dispatchEnum = 'SendToBlockByName').install(parcel)
 
+    certMenu = blocks.Menu.update(
+        parcel, "CertificateTestMenu",
+        blockName = "CertificateTestMenu",
+        title = u"Certificates",
+        parentBlock = main.TestMenu,
+        )
+
     blocks.MenuItem.update(
         parcel, "CertificateView",
         blockName = "CertificateView",
         title = u"Manage Certificates",
         event = addCertificateToSidebarEvent,
         eventsForNamedLookup = [addCertificateToSidebarEvent],
-        parentBlock = main.TestMenu,
+        parentBlock = certMenu,
     )
 
 
@@ -97,7 +104,7 @@ def installParcel(parcel, oldVersion=None):
         title = u"Import Certificate",
         event = CertificateImportEvent,
         eventsForNamedLookup = [CertificateImportEvent],
-        parentBlock = main.TestMenu,
+        parentBlock = certMenu,
     )
 
     detail.makeSubtree(parcel, certstore.Certificate, [

@@ -383,11 +383,6 @@ def makeMainEvents(parcel):
         dispatchToBlockName = 'MainViewRoot').install(parcel)
 
     BlockEvent.template(
-        'Test',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
-
-    BlockEvent.template(
         'RequestSelectSidebarItem',
         'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)

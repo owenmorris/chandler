@@ -987,8 +987,3 @@ class MainView(View):
             Globals.mailService.getPOPInstance(account).getMail()
 
         view.refresh()
-
-    def onTestEvent (self, event):
-        f = wx.GetTopLevelWindows()[0]
-        p = f.GetChildren()[0].GetChildren()[0].GetChildren()[0].GetChildren()[0]
-        p.Layout()
