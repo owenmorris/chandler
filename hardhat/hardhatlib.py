@@ -924,12 +924,10 @@ def setupEnvironment(buildenv):
         # external programs that expect PATH to be in DOS format, so
         # convert it
         try:
-            if('.'.join(map(str, sys.version_info[:3])) < '2.3.0'):
-                # we only need to fix the path on versions before 2.3
-                cygpath = os.popen("/bin/cygpath -wp \"" + path + "\"", "r")
-                path = cygpath.readline()
-                path = path[:-1]
-                cygpath.close()
+            cygpath = os.popen("/bin/cygpath -wp \"" + path + "\"", "r")
+            path = cygpath.readline()
+            path = path[:-1]
+            cygpath.close()
 
             # also convert PYTHONPATH to DOS format
             cygpath = os.popen("/bin/cygpath -wp \"" + pythonpath + "\"", "r")
