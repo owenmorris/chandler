@@ -119,7 +119,7 @@ $(ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
-SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6a10-py2.4.egg
+SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6a11dev_r43178-py2.4.egg
 SETUPTOOLS_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
@@ -142,7 +142,7 @@ $(SETUPTOOLS_EGG):
 $(SETUPTOOLS_INST): $(ARCHIVES_INST) $(SETUPTOOLS_EGG)
 	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
       -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
-      -D --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
+      --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
 	touch $@
 
 ifeq ($(OS),Cygwin)
