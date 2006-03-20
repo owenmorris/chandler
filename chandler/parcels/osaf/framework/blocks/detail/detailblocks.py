@@ -380,7 +380,7 @@ def makeNoteSubtree(parcel, oldVersion):
                            viewAttribute=u'collections',
                            border=RectType(0,2,2,2),
                            presentationStyle={'format': 'appearsIn'})],
-            position=0.95).install(parcel)    
+            position=0.9999).install(parcel)    
 
     # Then, the Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
@@ -569,7 +569,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
     timeDescriptionArea = \
         makeArea(parcel, 'CalendarTimeDescriptionArea',
             childrenBlocks=[
-                makeLabel(parcel, _(u'when'), borderTop=5),
+                makeLabel(parcel, _(u'when'), borderTop=2),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'TimeDescription',
                     viewAttribute=u'timeDescription',
@@ -690,7 +690,7 @@ def makeMailSubtree(parcel, oldVersion):
                     textAlignmentEnum='Left',
                     minimumSize=SizeType(100, 48),
                     border=RectType(2, 2, 2, 2))],
-            position=0.95).install(parcel)
+            position=0.98).install(parcel)
     
     makeSubtree(parcel, osaf.pim.mail.MailMessageMixin, [
         outboundFromArea, 

@@ -332,26 +332,28 @@ class CalendarEventMixin(RemindableMixin):
         our initial cut at invitations.
         """
         if self.duration == timedelta(0): # @time
-            fmt = _(u'%(startDate)s at %(startTimeTz)s%(recurrenceSeparator)s%(recurrence)s')
+            fmt = _(u'%(startDay)s, %(startDate)s at %(startTimeTz)s%(recurrenceSeparator)s%(recurrence)s')
         else:
             sameDate = self.endTime.date() == self.startTime.date()
             if self.anyTime:
-                fmt = (sameDate and _(u'%(startDate)s any time%(recurrenceSeparator)s%(recurrence)s')
+                fmt = (sameDate and _(u'%(startDay)s, %(startDate)s any time%(recurrenceSeparator)s%(recurrence)s')
                        or _(u'%(startDate)s - %(endDate)s, any time%(recurrenceSeparator)s%(recurrence)s'))
             elif self.allDay:
-                fmt = (sameDate and _(u'%(startDate)s all day%(recurrenceSeparator)s%(recurrence)s')
+                fmt = (sameDate and _(u'%(startDay)s, %(startDate)s all day%(recurrenceSeparator)s%(recurrence)s')
                        or _(u'%(startDate)s - %(endDate)s all day%(recurrenceSeparator)s%(recurrence)s'))
             else:
-                fmt = (sameDate and _(u'%(startDate)s %(startTime)s - %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s')
-                       or _(u'%(startDate)s %(startTime)s - %(endDate)s %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s'))
+                fmt = (sameDate and _(u'%(startDay)s, %(startDate)s %(startTime)s - %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s')
+                       or _(u'%(startDay)s, %(startDate)s %(startTime)s - %(endDay)s, %(endDate)s %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s'))
             
         recurrenceDescription = self.getCustomDescription()
         # @@@ this could probably be made 'lazy', to only format the values we need...
         return fmt % {
-            'startDate': DateTimeUtil.shortDateFormat.format(self.startTime),
+            'startDay': DateTimeUtil.weekdayName(self.startTime),
+            'startDate': DateTimeUtil.mediumDateFormat.format(self.startTime),
             'startTime': DateTimeUtil.shortTimeFormat.format(self.startTime),
             'startTimeTz': formatTime(self.startTime),
-            'endDate': DateTimeUtil.shortDateFormat.format(self.endTime),
+            'endDay': DateTimeUtil.weekdayName(self.endTime),
+            'endDate': DateTimeUtil.mediumDateFormat.format(self.endTime),
             'endTime': DateTimeUtil.shortTimeFormat.format(self.endTime),
             'endTimeTz': formatTime(self.endTime),
             'recurrenceSeparator': recurrenceDescription and _(u', ') or u'',

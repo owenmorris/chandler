@@ -140,18 +140,24 @@ class DatetimeFormatter(object):
         self.dateFormat.setTimeZone(tzinfo.timezone)
         return unicode(self.dateFormat.format(datetime))
 
+shortDateFormat = DatetimeFormatter(
+    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kShort))
 mediumDateFormat = DatetimeFormatter(
     PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium))
 shortTimeFormat = DatetimeFormatter(
     PyICU.DateFormat.createTimeInstance(PyICU.DateFormat.kShort))
-shortDateFormat = DatetimeFormatter(
-    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kShort))
 durationFormat = PyICU.SimpleDateFormat(_(u"H:mm"))
 
 symbols = PyICU.DateFormatSymbols()
 weekdayNames = symbols.getWeekdays()
 monthNames = symbols.getMonths()
 
+def weekdayName(when):
+    # Get the name of the day for this datetime.
+    # Convert python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).
+    wkDay = ((when.weekday() + 1) % 7) + 1
+    return unicode(weekdayNames[wkDay])
+    
 # We want to build hint strings like "mm/dd/yy" and "hh:mm PM", but we don't 
 # know the locale-specific ordering of these fields. Format a date with 
 # distinct values, then replace the resulting string's pieces with text. 

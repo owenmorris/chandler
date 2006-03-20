@@ -216,6 +216,9 @@ class SMTPClient(object):
         self.mailMessage = self._getMailMessage(mailMessageUUID)
 
         self.mailMessage.outgoingMessage(self.account)
+        now = datetime.now()
+        self.mailMessage.dateSent = now
+        self.mailMessage.dateSentString = dateTimeToRFC2882Date(now)
 
         """Clear out any previous DeliveryErrors from a previous attempt"""
         for item in self.mailMessage.deliveryExtension.deliveryErrors:
@@ -356,10 +359,6 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSuccess")
 
-        now = datetime.now()
-        self.mailMessage.dateSent = now
-        self.mailMessage.dateSentString = dateTimeToRFC2882Date(now)
-
         self.mailMessage.deliveryExtension.sendSucceeded()
 
     def _mailSomeFailed(self, result):
@@ -386,6 +385,9 @@ class SMTPClient(object):
                 self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
 
         self.mailMessage.deliveryExtension.sendFailed()
+        # Unset the date-sent info in the message
+        del self.mailMessage.dateSent
+        self.mailMessage.dateSentString = ''
 
         if __debug__:
             s = ["Send failed for the following recipients"]
@@ -406,6 +408,10 @@ class SMTPClient(object):
             and commiting. Will not cause merge conflicts since
             no data changed in view in yet """
         self.view.refresh()
+
+        # Unset the date-sent info in the message
+        del self.mailMessage.dateSent
+        self.mailMessage.dateSentString = ''
 
         exc = exc.value
 

@@ -8,6 +8,8 @@ import email as email
 import email.Header as Header
 import email.Message as Message
 import email.Utils as emailUtils
+from email.MIMEText import MIMEText
+from email.MIMENonMultipart import MIMENonMultipart
 import logging as logging
 import mimetypes
 from time import mktime
@@ -16,12 +18,14 @@ from datetime import datetime
 #Chandler imports
 import osaf.pim.mail as Mail
 from PyICU import UnicodeString
+from i18n import OSAFMessageFactory as _
 
 #Chandler Mail Service imports
 import constants
 from utils import *
 from utils import Counter
 
+logger = logging.getLogger(__name__)
 
 """
 Performance:
@@ -290,7 +294,7 @@ def kindToMessageObject(mailMessage):
     populateStaticHeaders(messageObject)
     populateChandlerHeaders(mailMessage, messageObject)
     populateHeaders(mailMessage, messageObject)
-    populateHeader(messageObject, 'Subject', mailMessage.subject, encode=True)
+    populateHeader(messageObject, 'Subject', mailMessage.about, encode=True)
 
     try:
         payload = textToUnicode(mailMessage.body).encode('utf8')
@@ -298,7 +302,53 @@ def kindToMessageObject(mailMessage):
     except AttributeError:
         payload = ""
 
-    messageObject.set_payload(payload)
+    # If this message is an event, prepend the event description to the body,
+    # and add the event data as an attachment.
+    # @@@ This probably isn't the right place to do this (since it couples the
+    # email service to events and ICalendarness), but until we resolve the architectural
+    # questions around stamping, it's good enough.
+    try:
+        timeDescription = mailMessage.getTimeDescription()
+    except AttributeError:
+        # Not an event - just add the body as-is.
+        messageObject.set_payload(payload)
+    else:
+        # It's an event - prepend the description to the body, make the
+        # message multipart, and add the body & ICS event as parts.
+        # @@@ I tried multipart/alternative here, but this hides the attachment
+        # completely on some clients...
+        # @@@ In formatting the prepended description, I'm adding a double newline so
+        # that a Chandler on the other end can remove it. I'm adding an extra newline
+        # at the end so that Apple Mail will display the .ics attachment on its own line.
+        location = getattr(mailMessage, 'location', None)
+        if location is not None and len(unicode(location)) > 0:
+            location = _(u"\n%(locationLabel)s: %(locationValue)s") \
+                     % { 'locationLabel': _(u"Where"),
+                         'locationValue': location }
+        payload = _(u"%(whenLabel)s: %(whenValue)s%(locationPair)s\n\n%(body)s\n") \
+                  % { 'whenLabel': _(u"When"),
+                      'whenValue': timeDescription, 
+                      'locationPair': location,
+                      'body': payload }
+        messageObject.set_type("multipart/mixed")
+        messageObject.attach(MIMEText(payload))
+
+        # Format this message as an ICalendar object
+        import osaf.sharing.ICalendar as ICalendar
+        calendar = ICalendar.itemsToVObject(mailMessage.itsView, [ mailMessage ],
+                                             filters=('reminders',))
+        calendar.add('method').value="REQUEST"
+        ics = calendar.serialize().encode('utf-8')
+
+        # Attach the ICalendar object
+        icsPayload = MIMENonMultipart('text', 'calendar', 
+                                      method='REQUEST', charset='utf-8')
+        icsPayload.add_header("Content-Disposition", "attachment", filename=_(u"event.ics"))
+        icsPayload.set_payload(ics)
+        messageObject.attach(icsPayload)
+
+        # For debugging, print it to the log.
+        logger.debug(messageObject)
 
     return messageObject
 
@@ -318,8 +368,11 @@ def kindToMessageText(mailMessage, saveMessage=True):
 
     assert isinstance(mailMessage, Mail.MailMessageMixin), \
     "mailMessage must be an instance of Kind Mail.MailMessage"
-
-    messageObject = kindToMessageObject(mailMessage)
+    try:
+        messageObject = kindToMessageObject(mailMessage)
+    except Exception, e:
+        logger.debug(e)
+        raise
     messageText   = messageObject.as_string()
 
     if saveMessage:
