@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.96 2006/02/11 19:46:49 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.97 2006/03/20 18:02:37 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -104,6 +104,8 @@ typedef unsigned long   wxUIntPtr;
 #define %disownarg(typespec)   %typemap(in) typespec = SWIGTYPE* DISOWN
 #define %cleardisown(typespec) %typemap(in) typespec
     
+#define %ref   %feature("ref")
+#define %unref %feature("unref")
 
 
 #ifndef %pythoncode

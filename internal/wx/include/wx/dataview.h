@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     08.01.06
-// RCS-ID:      $Id: dataview.h,v 1.20 2006/03/02 10:45:59 RR Exp $
+// RCS-ID:      $Id: dataview.h,v 1.21 2006/03/20 16:37:23 RR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,16 @@
 #include "wx/textctrl.h"
 #include "wx/bitmap.h"
 #include "wx/variant.h"
+
+
+#if defined(__WXGTK20__)
+    // for testing
+  //  #define wxUSE_GENERICDATAVIEWCTRL 1
+#elif defined(__WXMAC__)
+    #define wxUSE_GENERICDATAVIEWCTRL 1
+#else
+    #define wxUSE_GENERICDATAVIEWCTRL 1
+#endif
 
 // ----------------------------------------------------------------------------
 // wxDataViewCtrl flags 
@@ -293,7 +303,9 @@ protected:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewCtrlBase)
 };
 
-#if defined(__WXGTK20__)
+#if defined(wxUSE_GENERICDATAVIEWCTRL)
+    #include "wx/generic/dataview.h"
+#elif defined(__WXGTK20__)
     #include "wx/gtk/dataview.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/dataview.h"
