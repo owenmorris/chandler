@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.c import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, _hash, _combine, isuuid
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap, CLink
 from repository.item.Indexed import Indexed
@@ -449,11 +449,21 @@ class RefList(LinkedMap, Indexed):
         @return: the alias string or None if the item is not aliased
         """
 
-        return self._get(item._uuid).alias
+        if isuuid(item):
+            key = item
+        else:
+            key = item.itsUUID
+
+        return self._get(key).alias
 
     def setAlias(self, item, alias):
 
-        oldAlias = super(RefList, self).setAlias(item._uuid, alias)
+        if isuuid(item):
+            key = item
+        else:
+            key = item.itsUUID
+
+        oldAlias = super(RefList, self).setAlias(key, alias)
         if oldAlias != alias:
             self._setDirty(True)
 
