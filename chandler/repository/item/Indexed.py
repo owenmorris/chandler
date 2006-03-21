@@ -393,9 +393,9 @@ class Indexed(object):
         @type indexNames: strings
         """
 
-        key = item._uuid
+        key = item.itsUUID
         if after is not None:
-            afterKey = after._uuid
+            afterKey = after.itsUUID
         else:
             afterKey = None
 
@@ -433,7 +433,7 @@ class Indexed(object):
         @return: the index entry value
         """
         
-        return self.getIndex(indexName).getEntryValue(item._uuid)
+        return self.getIndex(indexName).getEntryValue(item.itsUUID)
 
     def setIndexEntryValue(self, indexName, item, value):
         """
@@ -449,7 +449,7 @@ class Indexed(object):
         @type value: int
         """
 
-        self.getIndex(indexName).setEntryValue(item._uuid, value)
+        self.getIndex(indexName).setEntryValue(item.itsUUID, value)
         self._setDirty()
 
     def resolveIndex(self, indexName, position):
@@ -471,7 +471,7 @@ class Indexed(object):
         """
 
         if item in self:
-            return self.getIndex(indexName).getPosition(item._uuid)
+            return self.getIndex(indexName).getPosition(item.itsUUID)
 
         ownerItem, name = self._getOwner()
         raise NoSuchItemInCollectionError, (ownerItem, name, item)
@@ -518,7 +518,7 @@ class Indexed(object):
         referenced item in the collection.
         """
 
-        key = previous._uuid
+        key = previous.itsUUID
 
         try:
             nextKey = self.getIndex(indexName).getNextKey(key)
@@ -546,7 +546,7 @@ class Indexed(object):
         referenced item in the collection.
         """
 
-        key = next._uuid
+        key = next.itsUUID
 
         try:
             previousKey = self.getIndex(indexName).getPreviousKey(key)

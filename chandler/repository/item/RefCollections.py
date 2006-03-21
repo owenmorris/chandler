@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.c import UUID, _hash, _combine, isuuid
+from chandlerdb.util.c import UUID, _hash, _combine
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap, CLink
 from repository.item.Indexed import Indexed
@@ -145,10 +145,7 @@ class RefList(LinkedMap, Indexed):
         if key is None:
             return False
 
-        if isitem(key):
-            key = key._uuid
-        
-        return super(RefList, self).__contains__(key)
+        return super(RefList, self).__contains__(key.itsUUID)
 
     def extend(self, valueList):
         """
@@ -277,9 +274,9 @@ class RefList(LinkedMap, Indexed):
         """
         
         if not indexNames:
-            key = item._uuid
+            key = item.itsUUID
             if after is not None:
-                afterKey = after._uuid
+                afterKey = after.itsUUID
             else:
                 afterKey = None
 
@@ -357,7 +354,7 @@ class RefList(LinkedMap, Indexed):
         if self._flags & RefList.READONLY:
             raise ReadOnlyAttributeError, (self._item, self._name)
 
-        key = other._uuid
+        key = other.itsUUID
         
         if self._indexes:
             for index in self._indexes.itervalues():
@@ -449,21 +446,11 @@ class RefList(LinkedMap, Indexed):
         @return: the alias string or None if the item is not aliased
         """
 
-        if isuuid(item):
-            key = item
-        else:
-            key = item.itsUUID
-
-        return self._get(key).alias
+        return self._get(item.itsUUID).alias
 
     def setAlias(self, item, alias):
 
-        if isuuid(item):
-            key = item
-        else:
-            key = item.itsUUID
-
-        oldAlias = super(RefList, self).setAlias(key, alias)
+        oldAlias = super(RefList, self).setAlias(item.itsUUID, alias)
         if oldAlias != alias:
             self._setDirty(True)
 
@@ -579,7 +566,7 @@ class RefList(LinkedMap, Indexed):
         referenced item in the collection.
         """
 
-        key = previous._uuid
+        key = previous.itsUUID
 
         try:
             nextKey = self.nextKey(key)
@@ -605,7 +592,7 @@ class RefList(LinkedMap, Indexed):
         referenced item in the collection.
         """
 
-        key = next._uuid
+        key = next.itsUUID
 
         try:
             previousKey = self.previousKey(key)
@@ -720,7 +707,7 @@ class TransientRefList(RefList):
 
     def _unloadRef(self, item):
 
-        key = item._uuid
+        key = item.itsUUID
 
         if self.has_key(key, False):
             link = self._get(key, False)
