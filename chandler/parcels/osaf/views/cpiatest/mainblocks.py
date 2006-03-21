@@ -40,8 +40,11 @@ def makeCPIATestMainView (parcel):
     Sidebar = SidebarBlock.template(
         'Sidebar',
         characterStyle = globalBlocks.SidebarRowStyle,
-        columnReadOnly = [False],
-        columnHeadings = [u''],
+        columns = [
+            Column.update(parcel, 'SidebarColName',
+                          heading = u'',
+                          attributeName = u'displayName')],
+
         border = RectType(0, 0, 4, 0),
         editRectOffsets = [17, -17, 0],
         buttons = [IconButton, SharingButton],
@@ -49,9 +52,6 @@ def makeCPIATestMainView (parcel):
         selectedItemToView = pim_ns.allCollection,
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
         hideColumnHeadings = True,
-        columnWidths = [150],
-        columnData = [u'displayName'],
-        columnValueType = [u'attribute'],
         filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView)).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 

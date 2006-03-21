@@ -21,8 +21,8 @@ from Views import View
 
 from ControlBlocks import (
     AEBlock, Button, ContentItemDetail,
-    ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail, List,
-    ReminderTimer, StaticText, StatusBar, Timer, Tree, PresentationStyle
+    ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail,
+    ReminderTimer, StaticText, StatusBar, Timer, Tree, PresentationStyle, Column
 )
 
 from Table import (

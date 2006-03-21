@@ -38,7 +38,7 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
     def GetElementValue (self, row, column):
         itemIndex = self.RowToIndex(row)
         return (self.blockItem.contents [itemIndex],
-                self.blockItem.columnData [column])
+                self.blockItem.columns[column].attributeName)
     
 class wxSidebar(wxTable):
     def __init__(self, *arguments, **keywords):

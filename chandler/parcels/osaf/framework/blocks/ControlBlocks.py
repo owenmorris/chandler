@@ -169,6 +169,57 @@ class HTML(RectangularChild):
             htmlWindow.LoadPage(self.url)
         return htmlWindow
 
+class columnType(schema.Enumeration):
+    """
+    Indicates the type of the value used in the column, that
+    determines the way that attributeName or kind is used
+
+    An 'attribute' column gets the value of the item using
+    attributeName as the attribute name.
+
+    A 'kind' column gets the value of the item passing kind
+    to the attribute editor.
+    """
+    values = 'attribute', 'kind'
+
+
+class Column(schema.Item):
+    
+    heading = schema.One(schema.Text, required = True)
+
+    valueType = schema.One(columnType, initialValue='attribute',
+                           doc="The type of value being displayed in "
+                           "this column. Determines if client code "
+                           "should use 'attributeName' or 'kind' "
+                           "attributes of the Column object when "
+                           "determining the value of the item in "
+                           "this column")
+
+    attributeName = schema.One(schema.Text, 
+                               doc="The attribute used to "
+                               "evaluate the column value for the "
+                               "item in the row")
+    kind = schema.One(schema.Kind, doc="The Kind used "
+                      "for 'kind' columns")
+
+    width = schema.One(schema.Integer, required=True,
+                       doc="The width of the column, "
+                       "relative to other columns")
+
+    readOnly = schema.One(schema.Boolean, initialValue=False)
+    
+    schema.addClouds(
+        copying = schema.Cloud(byRef=[kind])
+    )
+
+    def getAttributeEditorValue(self):
+        if self.valueType == 'kind':
+            return self.kind
+        else:
+            return self.attributeName
+
+    attributeEditorValue = property(getAttributeEditorValue)
+    
  
 class ListDelegate (object):
     """
@@ -176,7 +227,7 @@ class ListDelegate (object):
     to customize your behavior. You must implement GetElementValue.
     """
     def GetColumnCount (self):
-        return len (self.blockItem.columnHeadings)
+        return len (self.blockItem.columns)
 
     def GetElementCount (self):
         return len (self.blockItem.contents)
@@ -185,7 +236,7 @@ class ListDelegate (object):
         return "Text"
 
     def GetColumnHeading (self, column, item):
-        return self.blockItem.columnHeadings [column]
+        return self.blockItem.columns[column].heading
 
     def ReadOnly (self, row, column):
         """
@@ -239,24 +290,26 @@ class AttributeDelegate (ListDelegate):
         except IndexError:
             pass
         else:
-            attributeName = self.blockItem.columnData [column]
+            col = self.blockItem.columns[column]
             
-            if self.blockItem.columnValueType[column] == 'kind':
+            if col.valueType == 'kind':
                 typeName = 'IsKind'
                 
-            elif item.itsKind.hasAttribute(attributeName):
-                try:
-                    typeName = item.getAttributeAspect (attributeName, 'type').itsName
-                except NoSuchAttributeError:
-                    # We special-case the non-Chandler attributes we
-                    # want to use (_after_ trying the Chandler
-                    # attribute, to avoid a hit on Chandler-attribute
-                    # performance). If we want to add other
-                    # itsKind-like non-Chandler attributes, we'd add
-                    # more tests here.
-                    raise
-            elif attributeName == 'itsKind':
-                typeName = 'Kind'
+            elif col.valueType == 'attribute':
+                attributeName = col.attributeName
+                if item.itsKind.hasAttribute(attributeName):
+                    try:
+                        typeName = item.getAttributeAspect (attributeName, 'type').itsName
+                    except NoSuchAttributeError:
+                        # We special-case the non-Chandler attributes we
+                        # want to use (_after_ trying the Chandler
+                        # attribute, to avoid a hit on Chandler-attribute
+                        # performance). If we want to add other
+                        # itsKind-like non-Chandler attributes, we'd add
+                        # more tests here.
+                        raise
+                elif attributeName == 'itsKind':
+                    typeName = 'Kind'
             else:
                 try:
                     # to support properties, we get the value, and use its type's name.
@@ -273,35 +326,34 @@ class AttributeDelegate (ListDelegate):
 
         blockItem = self.blockItem
         item = blockItem.contents[itemIndex]
+        col = blockItem.columns[column]
         
-        if self.blockItem.columnValueType[column] == 'kind':
-            return (item, blockItem.columnKind[column])
-        else:
-            return (item, blockItem.columnData[column])
+        return (item, col.attributeEditorValue)
     
     def SetElementValue (self, row, column, value):
         itemIndex = self.RowToIndex(row)
         assert itemIndex != -1
         
         # just for now, you can't 'set' a kind
-        assert self.blockItem.columnValueType[column] != 'kind'
+        assert self.blockItem.columns[column].valueType != 'kind'
         
         item = self.blockItem.contents [itemIndex]
-        attributeName = self.blockItem.columnData [column]
+        attributeName = self.blockItem.columns[column].attributeName
         assert item.itsKind.hasAttribute (attributeName), "You cannot set a non-Chandler attribute value of an item (like itsKind)"
         item.setAttributeValue (attributeName, value)
 
     def GetColumnHeading (self, column, item):
-        if self.blockItem.columnValueType == 'kind':
-            return self.blockItem.columnHeadings[column]
-        
-        attributeName = self.blockItem.columnData [column]
+        col = self.blockItem.columns[column]
+        if col.valueType == 'kind':
+            return col.heading
+
+        attributeName = col.attributeName
         if item is not None:
             try:
                 attribute = item.itsKind.getAttribute (attributeName)
             except NoSuchAttributeError:
                 # We don't need to redirect non-Chandler attributes (eg, itsKind).
-                heading = self.blockItem.columnHeadings[column]
+                heading = col.heading
             else:
                 heading = attribute.getItemDisplayName()
                 redirect = item.getAttributeAspect(attributeName, 'redirectTo')
@@ -310,10 +362,11 @@ class AttributeDelegate (ListDelegate):
                     for name in names [:-1]:
                         item = item.getAttributeValue (name)
                     actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
-                    heading = u"%s (%s)" % (heading, actual)
-                self.blockItem.columnHeadings [column] = heading
+                    heading = _(u"%(heading)s (%(actual)s)") % {
+                        'heading':heading,
+                        'actual':actual }
         else:
-            heading = self.blockItem.columnHeadings [column]
+            heading = col.heading
         return heading
     
 
@@ -373,7 +426,7 @@ class wxList (DragAndDrop.DraggableWidget,
         for columnIndex in xrange (self.GetColumnCount()):
             self.InsertColumn (columnIndex,
                                self.GetColumnHeading (columnIndex, self.blockItem.selection),
-                               width = self.blockItem.columnWidths [columnIndex])
+                               width = self.blockItem.columns[columnIndex].width)
 
         self.Thaw()
 
@@ -392,40 +445,6 @@ class wxList (DragAndDrop.DraggableWidget,
     
     def GoToItem(self, item):
         self.Select (self.blockItem.contents.index (item))
-
-
-class List(RectangularChild):
-
-    columnHeadings = schema.Sequence(schema.Text, required = True)
-    columnData = schema.Sequence(schema.Text)
-    columnWidths = schema.Sequence(schema.Integer, required = True)
-    elementDelegate = schema.One(schema.Text, initialValue = '')
-    selection = schema.One(schema.Item, initialValue = None)
-    schema.addClouds(
-        copying = schema.Cloud(byRef=[selection])
-    )
-
-    def __init__(self, *arguments, **keywords):
-        super (List, self).__init__ (*arguments, **keywords)
-        self.selection = None
-
-    def instantiateWidget (self):
-        return wxList (self.parentBlock.widget,
-                       Block.getWidgetID(self),
-                       style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
-
-    def onSelectItemsEvent (self, event):
-        """
-          Display the item in the widget.
-        """
-        items = event.arguments['items']
-        if len(items) == 1:
-            self.selection = items[0]
-        else:
-            self.selection = None
-        
-        self.widget.GoToItem (self.selection)
-
 
 
 class wxStaticText(ShownSynchronizer, wx.StaticText):
@@ -598,7 +617,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
     def OnColumnDrag(self, event):
         columnIndex = event.GetColumn()
         try:
-            self.blockItem.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+            self.blockItem.columns[columnIndex].width = self.GetColumnWidth (columnIndex)
         except AttributeError:
             pass
 
@@ -647,9 +666,9 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
                     child = self.GetNextSibling (child)
 
         try:
-            self.blockItem.columnWidths
+            self.blockItem.columns
         except AttributeError:
-            pass # A wx.TreeCtrl won't use columnWidths
+            pass # A wx.TreeCtrl won't use columns
         else:
             for index in xrange(wx.gizmos.TreeListCtrl.GetColumnCount(self)):
                 self.RemoveColumn (0)
@@ -657,7 +676,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
             for index in xrange (self.GetColumnCount()):
                 info = wx.gizmos.TreeListColumnInfo()
                 info.SetText (self.GetColumnHeading (index, None))
-                info.SetWidth (self.blockItem.columnWidths [index])
+                info.SetWidth (self.blockItem.columns[index].width)
                 self.AddColumnInfo (info)
 
         self.DeleteAllItems()
@@ -730,9 +749,8 @@ class wxTreeList(wxTreeAndList, wx.gizmos.TreeListCtrl):
 
 class Tree(RectangularChild):
 
-    columnHeadings = schema.Sequence(schema.Text, required = True)
-    columnData = schema.Sequence(schema.Text)
-    columnWidths = schema.Sequence(schema.Integer, required = True)
+    columns = schema.Sequence(Column)
+
     elementDelegate = schema.One(schema.Text, initialValue = '')
     selection = schema.One(schema.Item, initialValue = None)
     hideRoot = schema.One(schema.Boolean, initialValue = True)
@@ -747,7 +765,7 @@ class Tree(RectangularChild):
 
     def instantiateWidget(self):
         try:
-            self.columnWidths
+            self.columns
         except AttributeError:
             tree = wxTree (self.parentBlock.widget, Block.getWidgetID(self), 
                            style=wxTreeAndList.CalculateWXStyle(self))

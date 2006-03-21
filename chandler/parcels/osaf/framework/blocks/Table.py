@@ -14,6 +14,9 @@ from Block import (
     WithoutSynchronizeWidget,
     IgnoreSynchronizeWidget
     )
+
+from ControlBlocks import Column, columnType
+
 import Styles
 import DragAndDrop
 import PimBlocks
@@ -64,7 +67,7 @@ class wxTableData(wx.grid.PyGridTableBase):
             assert (row < self.GetNumberRows() and
                     column < self.GetNumberCols())
 
-            if (not grid.blockItem.columnReadOnly[column] and
+            if (not grid.blockItem.columns[column].readOnly and
                 not grid.ReadOnly (row, column)[0] and
                 not delegate.ReadOnly (grid.GetElementValue (row, column))):
                 attribute = self.defaultRWAttribute
@@ -131,10 +134,10 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnLabelLeftClicked (self, event):
         assert (event.GetRow() == -1) # Currently Table only supports column headers
         blockItem = self.blockItem
-        if blockItem.columnValueType[event.GetCol()] != 'attribute':
+        if blockItem.columns[event.GetCol()].valueType != 'attribute':
             # for now we only support sorting on attribute-style columns
             return
-        attributeName = blockItem.columnData [event.GetCol()]
+        attributeName = blockItem.columns[event.GetCol()].attributeName
         contents = blockItem.contents
         indexName = contents.indexName
 
@@ -284,7 +287,7 @@ class wxTable(DragAndDrop.DraggableWidget,
     @WithoutSynchronizeWidget
     def OnColumnDrag(self, event):
         columnIndex = event.GetRowOrCol()
-        self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+        self.blockItem.columns[columnIndex].width = self.GetColSize (columnIndex)
 
     def OnItemDrag(self, event):
 
@@ -348,12 +351,15 @@ class wxTable(DragAndDrop.DraggableWidget,
         if cursorRow == -1:
             return
 
-        try:
-            column = self.blockItem.columnData.index(attrName)
-        except ValueError:
+        # find the relevant column
+        for colIndex,column in enumerate(self.blockItem.columns):
+            if (column.valueType == 'attribute' and
+                column.attributeName == attrName):
+                break
+        else:
             return
 
-        self.SetGridCursor (cursorRow, column)
+        self.SetGridCursor (cursorRow, colIndex)
         self.EnableCellEditControl()
 
     def EditIfNecessary(self):
@@ -423,8 +429,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         # update all column widths but the last one
         widthMinusLastColumn = 0
         for columnIndex in xrange (columns - 1):
-            widthMinusLastColumn += self.blockItem.columnWidths[columnIndex]
-            self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
+            widthMinusLastColumn += self.blockItem.columns[columnIndex].width
+            self.SetColSize (columnIndex, self.blockItem.columns[columnIndex].width)
 
         # update the last column to fill the rest of the widget
         remaining = self.GetSize().width - widthMinusLastColumn
@@ -673,48 +679,10 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         assert False # who needs this?
         return self.delegate.GetControlValue (self.control)
 
-class columnType(schema.Enumeration):
-    """
-    Indicates the type of the value used in the column, that
-    determines the way that columnData and/or columnKind is used.
-
-    An 'attribute' column gets the value of the item using
-    columnData[column] as an attribute name.
-
-    A 'kind' column gets the value of the item passing
-    columnKind[column] to the attribute editor.
-    """
-    values = 'attribute', 'kind'
 
 class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
-    # All the 'column Heading
-    columnHeadings = schema.Sequence(schema.Text, required = True)
-    columnHeadingTypes = schema.Sequence(schema.Text)
-    columnData = schema.Sequence(schema.Text,
-                                 doc="A list of attribute names or other "
-                                 "data for each column that is used to "
-                                 "evaluate the column value for the item "
-                                 "in the row")
-
-    columnKind = schema.Sequence(schema.Kind,
-                                 doc="A list of classes for columns where "
-                                 "the columnValueType is 'kind'")
-    
-    columnWidths = schema.Sequence(schema.Integer, required = True,
-                                   doc="A list of widths of each column "
-                                   "that will be used to keep the columns "
-                                   "proportionally sized")
-    columnReadOnly = schema.Sequence(schema.Boolean,
-                                     doc="A list indicating if each column "
-                                     "is read-only")
-
-    columnValueType = \
-                    schema.Sequence(columnType,
-                                    doc="A list indicating the value "
-                                    "type of each column, to determine "
-                                    "how to use the respective value in "
-                                    "columnData or columnKind.")
+    columns = schema.Sequence(Column, required=True)
     
     elementDelegate = schema.One(schema.Text, initialValue = '')
     selectedItemToView = schema.One(schema.Item, initialValue = None)
@@ -730,7 +698,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef=[characterStyle,headerCharacterStyle,selectedItemToView,columnKind]
+            byRef=[characterStyle,headerCharacterStyle,selectedItemToView,columns],
         )
     )
 
