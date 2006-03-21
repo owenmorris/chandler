@@ -2,7 +2,18 @@ import unittest
 this_module = "application.tests.TestEggParcels"     # change this if it moves
 
 
-# XXX This doesn't test anything yet
+def test_egg_parcels():
+    import doctest
+    return doctest.DocFileSuite(
+        'egg-parcel-tests.txt',
+        optionflags=doctest.ELLIPSIS, package='application.tests',
+    )
+
+
+def additional_tests():
+    return unittest.TestSuite(
+        [ test_egg_parcels(), ]
+    )
 
 
 if __name__=='__main__':

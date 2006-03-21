@@ -1,0 +1,182 @@
+Egg Parcel Loading Tests
+========================
+
+This document performs some basic unit tests on the egg parcel loader, by
+mocking various aspects of the runtime environment.
+
+
+``loadable_parcels()``
+----------------------
+
+The ``loadable_parcels()`` function yields entry points corresponding to
+loadable parcels in a given "working set" (of Python packages on sys.path)::
+
+    >>> from application.Parcel import loadable_parcels
+
+To test it, we'll create a "mock" working set that just yields whatever we
+tell it to::
+
+    >>> class DummySet:
+    ...     def __init__(self, entrypoints):
+    ...         self.entrypoints = entrypoints
+    ...     def iter_entry_points(self, group):
+    ...         print "yielding entry points for", group
+    ...         return (ep for ep in self.entrypoints)
+
+    >>> ws = DummySet([None])
+    >>> list(ws.iter_entry_points('foo'))
+    yielding entry points for foo
+    [None]
+
+Now, we can pass use this class to test ``loadable_parcels()``::
+
+    >>> list(loadable_parcels(DummySet([])))
+    yielding entry points for chandler.parcels
+    []
+
+    >>> from pkg_resources import EntryPoint, Distribution
+    >>> dist = Distribution.from_filename('FooBar-1.0.egg')
+    >>> ep = EntryPoint.parse('foo=bar', dist)
+
+    >>> list(loadable_parcels(DummySet([ep])))
+    yielding entry points for chandler.parcels
+    [EntryPoint.parse('foo = bar'...)]
+
+The function should invoke the ``require()`` method of the entry points it
+yields, passing through the 'env' and 'installer' arguments::
+
+    >>> class DummyPoint:
+    ...     def require(self, env, installer):
+    ...         print "require(%r, %r)" % (env,installer)
+
+    >>> dp = DummyPoint()
+
+    >>> list(loadable_parcels(DummySet([dp])))
+    yielding entry points for chandler.parcels
+    require(None, None)
+    [<...DummyPoint...>]
+
+    >>> list(loadable_parcels(DummySet([dp]), 1, 2))
+    yielding entry points for chandler.parcels
+    require(1, 2)
+    [<...DummyPoint...>]
+
+And if the ``require()`` method raises a ``pkg_resources.ResolutionError``
+(such as ``DistributionNotFound`` or ``VersionConflict``), the function should
+ignore it, and skip the failed item in the yielded sequence::
+
+    >>> class ErrorPoint:
+    ...     def __init__(self, error):
+    ...         self.error = error
+    ...     def require(self, env, installer):
+    ...         raise self.error
+
+    >>> from pkg_resources import ResolutionError, DistributionNotFound
+    >>> from pkg_resources import VersionConflict
+
+    >>> list(loadable_parcels(DummySet([ep, ErrorPoint(VersionConflict), dp])))
+    yielding entry points for chandler.parcels
+    require(None, None)
+    [EntryPoint.parse('foo = bar'...), <...DummyPoint...>]
+
+    >>> list(loadable_parcels(DummySet(
+    ...     [ep, ErrorPoint(DistributionNotFound), dp]
+    ... )))
+    yielding entry points for chandler.parcels
+    require(None, None)
+    [EntryPoint.parse('foo = bar'...), <...DummyPoint...>]
+
+    >>> list(loadable_parcels(DummySet([ep, ErrorPoint(ResolutionError), dp])))
+    yielding entry points for chandler.parcels
+    require(None, None)
+    [EntryPoint.parse('foo = bar'...), <...DummyPoint...>]
+
+But any other errors raised by the ``require()`` method should be carried
+through to the caller::
+
+    >>> list(loadable_parcels(DummySet([ep, ErrorPoint(Exception), dp])))
+    Traceback (most recent call last):
+      ...
+    Exception
+
+
+``load_parcel_from_entrypoint()``
+---------------------------------
+
+The ``load_parcel_from_entrypoint()`` function loads a single parcel, given a
+repository view and an entry point yielded by ``loadable_parcels()``::
+
+    >>> from application.Parcel import load_parcel_from_entrypoint
+
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> rv = NullRepositoryView(verify=True)  # report errors immediately
+
+
+The entry point must describe a module or package, not an object in the module
+or package::
+
+    >>> load_parcel_from_entrypoint(rv,EntryPoint.parse('foo = bar:baz', dist))
+    Traceback (most recent call last):
+      ...
+    AssertionError: FooBar 1.0: parcel entrypoints must specify a module only
+
+The return value is the new or updated parcel::
+
+    >>> dist = Distribution.from_filename('FooBar-1.0.egg')
+
+    >>> parcel1 = load_parcel_from_entrypoint(
+    ...     rv, EntryPoint.parse('test=application.tests.TestSchemaAPI', dist)
+    ... )
+
+    >>> parcel1
+    <Parcel (new): TestSchemaAPI ...>
+
+    >>> parcel1.version
+    '1.0'
+
+    >>> parcel1.itsView is rv
+    True
+
+Updating an existing parcel modifies the existing parcel and its version
+number::
+
+    >>> dist = Distribution.from_filename('FooBar-2.0.egg')
+
+    >>> parcel2 = load_parcel_from_entrypoint(
+    ...     rv, EntryPoint.parse('test=application.tests.TestSchemaAPI', dist)
+    ... )
+
+    >>> parcel1 is parcel2
+    True
+
+    >>> parcel1.version, parcel2.version
+    ('2.0', '2.0')
+
+Updating also invokes the parcel's ``installParcel()`` with an "old" version
+number::
+
+    >>> def installParcel(parcel, oldVersion=None):
+    ...     if oldVersion is None:
+    ...         print "installing", parcel
+    ...     else:
+    ...         print "upgrading %s from %s to %s" % (
+    ...             parcel, oldVersion, parcel.version
+    ...         )
+
+    >>> from application.tests import TestEggParcels
+    >>> TestEggParcels.installParcel = installParcel
+
+    >>> rv = NullRepositoryView(verify=True)
+
+    >>> dist = Distribution.from_filename('EggParcelTests-1.0.egg')
+    >>> parcel1 = load_parcel_from_entrypoint(
+    ...     rv, EntryPoint.parse('test=application.tests.TestEggParcels', dist)
+    ... )
+    installing <Parcel (new): TestEggParcels ...>
+
+    >>> dist = Distribution.from_filename('EggParcelTests-1.1.egg')
+    >>> parcel2 = load_parcel_from_entrypoint(
+    ...     rv, EntryPoint.parse('test=application.tests.TestEggParcels', dist)
+    ... )
+    upgrading <Parcel (new): TestEggParcels ...> from 1.0 to 1.1
+

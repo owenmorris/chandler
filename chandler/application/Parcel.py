@@ -20,11 +20,11 @@ def activate_plugins(dirs, working_set=working_set):
     map(working_set.add, dists)
     # XXX log errors
 
-def loadable_parcels(working_set=working_set):
+def loadable_parcels(working_set=working_set, env=None, installer=None):
     """Yield entry points for loadable parcels in `working_set`"""
     for ep in working_set.iter_entry_points('chandler.parcels'):
         try:
-            ep.require(env)
+            ep.require(env, installer)
         except pkg_resources.ResolutionError:
             # XXX log the error
             continue    # skip unloadable parcels ???
@@ -34,15 +34,13 @@ def loadable_parcels(working_set=working_set):
 def load_parcel_from_entrypoint(rv,ep):
     """Load the parcel defined by entrypoint `ep` into repository view `rv`
 
-    `ep` should be an object returned by ``parcel_entrypoints()``, and `rv`
-    should be a repository view.  Before calling this function, you should use
-    the `ep` object's ``require()`` method to ensure that the entrypoint's
-    dependencies have been added to sys.path.  (The egg should also have been
-    added to sys.path first.)
+    `ep` should be an entry point yielded by ``loadable_parcels()``, and `rv`
+    should be a repository view.  The egg corresponding to the entry point,
+    along with any dependencies, must already be on sys.path.
 
     If a parcel already exists in `rv` for the entrypoint, it is updated if
-    its version does not match the version of the egg containing the
-    entrypoint.  If no parcel exists, it is created.
+    its version doesn't match the version of the egg containing the
+    entry point.  If no parcel exists, it is created.
     """
     module_name = ep.module_name
     egg_version = ep.dist.version
@@ -58,7 +56,7 @@ def load_parcel_from_entrypoint(rv,ep):
     old_parcel = rv.findPath('//parcels/'+module_name.replace('.','/'))
 
     if old_parcel is None:
-        new_parcel = parcel_for_module(module_name, rv)
+        new_parcel = schema.parcel_for_module(module_name, rv)
         old_version = egg_version
     else:
         new_parcel = old_parcel
@@ -75,6 +73,7 @@ def load_parcel_from_entrypoint(rv,ep):
         if hasattr(module,'installParcel') and not hasattr(module,'__parcel__'):
             module.installParcel(new_parcel, old_version)   # upgrade!
 
+    return new_parcel
 
 
 #@@@Temporary testing tool written by Morgen -- DJA
@@ -209,6 +208,10 @@ class Manager(schema.Item):
 
         #@@@Temporary testing tool written by Morgen -- DJA
         if timing: util.timing.end("Load parcels")
+
+        #if self.itsView._schema_init_level or self.itsView._schema_init_queue:
+        #    raise AssertionError("Incomplete initialization")
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
