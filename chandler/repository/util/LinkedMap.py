@@ -202,6 +202,8 @@ class LinkedMap(CLinkedMap):
 
             if alias is not None:
                 aliases[alias] = key
+            
+        return oldAlias
 
     def __iter__(self):
 

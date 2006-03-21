@@ -453,7 +453,11 @@ class RefList(LinkedMap, Indexed):
 
     def setAlias(self, item, alias):
 
-        return super(RefList, self).setAlias(item._uuid, alias)
+        oldAlias = super(RefList, self).setAlias(item._uuid, alias)
+        if oldAlias != alias:
+            self._setDirty(True)
+
+        return oldAlias
 
     def removeByIndex(self, indexName, position):
 
@@ -700,6 +704,9 @@ class TransientRefList(RefList):
     
     def _isTransient(self):
         return True
+
+    def _setDirty(self, noMonitors=False):
+        pass
 
     def _unloadRef(self, item):
 
