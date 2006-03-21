@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.140 2006/03/20 22:57:07 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.141 2006/03/20 23:22:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -780,8 +780,6 @@ wxImage wxBitmap::ConvertToImage() const
 // wxImage to/from conversions
 // ----------------------------------------------------------------------------
 
-#if wxUSE_WXDIB
-
 bool wxBitmap::CreateFromImage(const wxImage& image, int depth)
 {
     return CreateFromImage(image, depth, 0);
@@ -794,6 +792,8 @@ bool wxBitmap::CreateFromImage(const wxImage& image, const wxDC& dc)
 
     return CreateFromImage(image, -1, dc.GetHDC());
 }
+
+#if wxUSE_WXDIB
 
 bool wxBitmap::CreateFromImage(const wxImage& image, int depth, WXHDC hdc)
 {
@@ -974,7 +974,22 @@ wxImage wxBitmap::ConvertToImage() const
     return image;
 }
 
-#endif // wxUSE_WXDIB
+#else // !wxUSE_WXDIB
+
+bool
+wxBitmap::CreateFromImage(const wxImage& WXUNUSED(image),
+                          int WXUNUSED(depth),
+                          WXHDC WXUNUSED(hdc))
+{
+    return false;
+}
+
+wxImage wxBitmap::ConvertToImage() const
+{
+    return wxImage();
+}
+
+#endif // wxUSE_WXDIB/!wxUSE_WXDIB
 
 #endif // wxUSE_IMAGE
 

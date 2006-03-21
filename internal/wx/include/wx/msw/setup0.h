@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup0.h,v 1.218 2006/03/12 13:49:18 VZ Exp $
+// RCS-ID:      $Id: setup0.h,v 1.219 2006/03/20 23:24:47 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1097,7 +1097,12 @@
 // bitmaps > 16MB on Win95/98/Me.  Set to 0 to use DDB's only.
 #define wxUSE_DIB_FOR_BITMAP 0
 
-// Set this to 1 to enable wxDIB
+// Set this to 1 to enable wxDIB class used internally for manipulating
+// wxBitmao data.
+//
+// Default is 1, set it to 0 only if you don't use wxImage neither
+//
+// Recommended setting: 1 (without it conversion to/from wxImage won't work)
 #define wxUSE_WXDIB 1
 
 // Set to 0 to disable PostScript print/preview architecture code under Windows
