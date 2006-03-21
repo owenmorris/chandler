@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from itertools import izip
 
 from chandlerdb.util.c import UUID, isuuid
-from chandlerdb.item.c import Nil, isitem
+from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Indexed import Indexed
@@ -205,7 +205,7 @@ class AbstractSet(ItemValue, Indexed):
         if replace is not None:
             replaceItem = replace[source[0]]
             if replaceItem is not Nil:
-                source = (replaceItem._uuid, source[1])
+                source = (replaceItem.itsUUID, source[1])
 
         return "(UUID('%s'), '%s')" %(source[0].str64(), source[1])
 
@@ -247,10 +247,7 @@ class AbstractSet(ItemValue, Indexed):
             index = self._anIndex()
             if index is not None:
                 sourceContains = self._sourceContains(other, source)
-                if isuuid(other):
-                    indexContains = other in index
-                else:
-                    indexContains = other.itsUUID in index
+                indexContains = other.itsUUID in index
 
                 if sourceContains and not indexContains:
                     op = 'add'
@@ -279,10 +276,7 @@ class AbstractSet(ItemValue, Indexed):
                             refs._removeRef(self._otherName, item, True)
                             
                     if self._indexes:
-                        if isuuid(other):
-                            key = other
-                        else:
-                            key = other.itsUUID
+                        key = other.itsUUID
                         dirty = False
 
                         if op == 'add':
@@ -328,9 +322,9 @@ class AbstractSet(ItemValue, Indexed):
         replace = {}
         for sourceItem in self._iterSourceItems():
             if copyFn is not None:
-                replace[sourceItem._uuid] = copyFn(item, sourceItem, policy)
+                replace[sourceItem.itsUUID] = copyFn(item, sourceItem, policy)
             else:
-                replace[sourceItem._uuid] = sourceItem
+                replace[sourceItem.itsUUID] = sourceItem
 
         copy = eval(self._repr_(replace))
         copy._setView(item.itsView)
@@ -466,9 +460,7 @@ class Set(AbstractSet):
 
         index = self._anIndex()
         if index is not None:
-            if isitem(item):
-                item = item.itsUUID
-            return item in index
+            return item.itsUUID in index
 
         return self._sourceContains(item, self._source, excludeMutating)
 
@@ -610,9 +602,7 @@ class Union(BiSet):
 
         index = self._anIndex()
         if index is not None:
-            if isitem(item):
-                item = item.itsUUID
-            return item in index
+            return item.itsUUID in index
 
         return (self._sourceContains(item, self._left, excludeMutating) or
                 self._sourceContains(item, self._right, excludeMutating))
@@ -663,9 +653,7 @@ class Intersection(BiSet):
 
         index = self._anIndex()
         if index is not None:
-            if isitem(item):
-                item = item.itsUUID
-            return item in index
+            return item.itsUUID in index
 
         return (self._sourceContains(item, self._left, excludeMutating) and
                 self._sourceContains(item, self._right, excludeMutating))
@@ -714,9 +702,7 @@ class Difference(BiSet):
 
         index = self._anIndex()
         if index is not None:
-            if isitem(item):
-                item = item.itsUUID
-            return item in index
+            return item.itsUUID in index
 
         return (self._sourceContains(item, self._left, excludeMutating) and
                 not self._sourceContains(item, self._right, excludeMutating))
@@ -840,9 +826,7 @@ class MultiUnion(MultiSet):
 
         index = self._anIndex()
         if index is not None:
-            if isitem(item):
-                item = item.itsUUID
-            return item in index
+            return item.itsUUID in index
 
         for source in self._sources:
             if self._sourceContains(item, source, excludeMutating):
@@ -907,9 +891,7 @@ class MultiIntersection(MultiSet):
 
         index = self._anIndex()
         if index is not None:
-            if isitem(item):
-                item = item.itsUUID
-            return item in index
+            return item.itsUUID in index
 
         for source in self._sources:
             if not self._sourceContains(item, source, excludeMutating):
@@ -1079,14 +1061,10 @@ class FilteredSet(Set):
 
         index = self._anIndex()
         if index is not None:
-            if not isuuid(item):
-                item = item.itsUUID
-            return item in index
+            return item.itsUUID in index
 
         if self._sourceContains(item, self._source, excludeMutating):
-            if not isuuid(item):
-                item = item.itsUUID
-            return self.filter(self._view, item)
+            return self.filter(self._view, item.itsUUID)
 
         return False
 
