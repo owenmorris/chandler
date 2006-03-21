@@ -88,4 +88,7 @@ upload: $(TARBALL)
 	scp $(TARBALL) $(UPLOAD)
 
 install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
+drop: $(TARBALL)
+	tar -C $(CHANDLERBIN) -xvzf $(TARBALL)
