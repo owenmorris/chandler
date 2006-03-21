@@ -8,6 +8,11 @@ from PyICU import ICUtzinfo
 from osaf import pim, messages
 from osaf.framework import scripting
 
+from osaf.framework import Preferences
+
+class TZPrefs(Preferences):
+    showUI = schema.One(schema.Boolean, initialValue = False)
+
 def installParcel(parcel, oldVersion=None):
 
     import scripts as Scripts
@@ -270,3 +275,4 @@ The Chandler Team""")
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
 
 
+    TZPrefs.update(parcel, 'TimezonePrefs')

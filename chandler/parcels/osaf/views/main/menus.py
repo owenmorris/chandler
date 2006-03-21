@@ -198,6 +198,13 @@ def makeMainMenus(parcel):
                         title = _(u'View Status Bar'),
                         menuItemKind = 'Check',
                         helpString = _(u'Show or hide the Status bar')),
+                    MenuItem.template('ViewSeparator2',
+                        menuItemKind = 'Separator'),
+                    MenuItem.template('EnableTimezonesItem',
+                        event = main.EnableTimezones,
+                        title = _(u'Use Timezones'),
+                        menuItemKind = 'Check',
+                        helpString = _(u'Hide or show timezones')),
                     ]), # Menu ViewMenu
             Menu.template('ItemMenu',
                 title = _(u'&Item'),

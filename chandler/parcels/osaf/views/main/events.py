@@ -67,6 +67,11 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'StatusBar').install(parcel)
 
+    BlockEvent.template(
+        'EnableTimezones',
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'MainView').install(parcel)
+
     # "Item" menu events
     BlockEvent.template(
         'FocusTogglePrivate',

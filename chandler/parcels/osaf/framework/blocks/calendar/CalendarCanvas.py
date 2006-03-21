@@ -1620,6 +1620,20 @@ class CalendarControl(CalendarBlock):
                               tzCharacterStyle=self.tzCharacterStyle)
         return w
 
+    def render(self, *args, **kwds):
+        super(CalendarControl, self).render(*args, **kwds)
+
+        # transitent subscription since its only valid when we're rendered
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.watchItem(self, tzPrefs, 'onTZPrefChange')
+        
+
+    def onDestroyWidget(self, *args, **kwds):
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.unwatchItem(self, tzPrefs, 'onTZPrefChange')
+        
+        super(CalendarControl, self).onDestroyWidget(*args, **kwds)
+        
     def onSelectedDateChangedEvent(self, event):
         super(CalendarControl, self).onSelectedDateChangedEvent(event)
 
@@ -1672,7 +1686,11 @@ class CalendarControl(CalendarBlock):
         if hasattr(self, 'widget'):
             self.widget.Refresh()
 
-        
+    def onTZPrefChange(self, op, item, names):
+        print "Pref changed: %s" % ((op, item, names),)
+        if 'showUI' in names:
+            self.widget.tzChoice.Show(item.showUI)
+            self.widget.Layout()
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
     """
@@ -1770,7 +1788,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         # onetime measurements
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
-        
+
+        tzPrefs = schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs
+        self.tzChoice.Show(tzPrefs.showUI)
+
         self._doDrawingCalculations() #hopefully this is early enough
 
     def MakeTimezoneChoice(self, tzCharacterStyle):

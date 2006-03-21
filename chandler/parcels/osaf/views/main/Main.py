@@ -987,3 +987,11 @@ class MainView(View):
             Globals.mailService.getPOPInstance(account).getMail()
 
         view.refresh()
+
+    def onEnableTimezonesEventUpdateUI(self, event):
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        event.arguments['Check'] = tzPrefs.showUI
+
+    def onEnableTimezonesEvent(self, event):
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs.showUI = not tzPrefs.showUI
