@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp,v 1.103 2006/03/09 13:36:50 VZ Exp $
+// Id:          $Id: dnd.cpp,v 1.104 2006/03/21 14:16:16 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -345,7 +345,7 @@ static gboolean target_drag_drop( GtkWidget *widget,
         GdkAtom format = drop_target->GetMatchingPair();
 
         // this does happen somehow, see bug 555111
-        wxCHECK_MSG( format, FALSE, _T("no matching GdkAtom for format?") )
+        wxCHECK_MSG( format, FALSE, _T("no matching GdkAtom for format?") );
 
 /*
         GdkDragAction action = GDK_ACTION_MOVE;

@@ -2,7 +2,7 @@
 // Name:        htmlwin.cpp
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML (implementation)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.cpp,v 1.114 2006/03/07 18:31:49 VS Exp $
+// RCS-ID:      $Id: htmlwin.cpp,v 1.115 2006/03/21 14:05:11 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -274,8 +274,10 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
         wxHtmlProcessorList::compatibility_iterator nodeL, nodeG;
         int prL, prG;
 
-        nodeL = (m_Processors) ? m_Processors->GetFirst() : wxHtmlProcessorList::compatibility_iterator();
-        nodeG = (m_GlobalProcessors) ? m_GlobalProcessors->GetFirst() : wxHtmlProcessorList::compatibility_iterator();
+        if ( m_Processors )
+            nodeL = m_Processors->GetFirst();
+        if ( m_GlobalProcessors )
+            nodeG = m_GlobalProcessors->GetFirst();
 
         // VS: there are two lists, global and local, both of them sorted by
         //     priority. Since we have to go through _both_ lists with

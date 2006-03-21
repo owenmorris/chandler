@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.39 2006/02/09 00:49:47 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.40 2006/03/21 14:16:34 VZ Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -312,7 +312,7 @@ bool wxBitmap::Create( int width, int height, int depth )
 {
     UnRef();
 
-    wxCHECK_MSG( (width > 0) && (height > 0), false, wxT("invalid bitmap size") )
+    wxCHECK_MSG( (width > 0) && (height > 0), false, wxT("invalid bitmap size") );
 
     m_refData = new wxBitmapRefData();
 
@@ -534,8 +534,8 @@ bool wxBitmap::CreateFromImage( const wxImage& image, int depth )
 
     UnRef();
 
-    wxCHECK_MSG( image.Ok(), false, wxT("invalid image") )
-    wxCHECK_MSG( depth == -1, false, wxT("invalid bitmap depth") )
+    wxCHECK_MSG( image.Ok(), false, wxT("invalid image") );
+    wxCHECK_MSG( depth == -1, false, wxT("invalid bitmap depth") );
 
     m_refData = new wxBitmapRefData();
 
@@ -1445,7 +1445,7 @@ bool wxXPMDataHandler::Create(wxBitmap *bitmap, void *bits,
                               int WXUNUSED(width), int WXUNUSED(height), int WXUNUSED(depth))
 {
 #if wxHAVE_LIB_XPM
-    wxCHECK_MSG( bits != NULL, false, wxT("invalid bitmap data") )
+    wxCHECK_MSG( bits != NULL, false, wxT("invalid bitmap data") );
 
     if (!bitmap->GetRefData())
         bitmap->SetRefData( new wxBitmapRefData() );

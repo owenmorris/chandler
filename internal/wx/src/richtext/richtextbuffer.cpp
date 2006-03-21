@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextbuffer.cpp,v 1.27 2006/03/08 00:09:37 VZ Exp $
+// RCS-ID:      $Id: richtextbuffer.cpp,v 1.28 2006/03/21 14:05:10 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -567,7 +567,9 @@ bool wxRichTextParagraphLayoutBox::Layout(wxDC& dc, const wxRect& rect, int styl
         if (firstParagraph)
         {
             wxRichTextObjectList::compatibility_iterator firstNode = m_children.Find(firstParagraph);
-            wxRichTextObjectList::compatibility_iterator previousNode = firstNode ? firstNode->GetPrevious() : wxRichTextObjectList::compatibility_iterator();
+            wxRichTextObjectList::compatibility_iterator previousNode;
+            if ( firstNode )
+                previousNode = firstNode->GetPrevious();
             if (firstNode && previousNode)
             {
                 wxRichTextParagraph* previousParagraph = wxDynamicCast(previousNode->GetData(), wxRichTextParagraph);

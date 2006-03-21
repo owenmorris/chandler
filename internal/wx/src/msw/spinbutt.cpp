@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: spinbutt.cpp,v 1.66 2006/03/09 14:04:04 VZ Exp $
+// RCS-ID:      $Id: spinbutt.cpp,v 1.67 2006/03/21 14:16:28 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -277,7 +277,7 @@ void wxSpinButton::SetRange(int minVal, int maxVal)
 bool wxSpinButton::MSWOnScroll(int WXUNUSED(orientation), WXWORD wParam,
                                WXWORD pos, WXHWND control)
 {
-    wxCHECK_MSG( control, false, wxT("scrolling what?") )
+    wxCHECK_MSG( control, false, wxT("scrolling what?") );
 
     if ( wParam != SB_THUMBPOSITION )
     {

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     08.01.06
-// RCS-ID:      $Id: dataview.h,v 1.21 2006/03/20 16:37:23 RR Exp $
+// RCS-ID:      $Id: dataview.h,v 1.22 2006/03/21 12:30:03 RR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@
 
 #if defined(__WXGTK20__)
     // for testing
-  //  #define wxUSE_GENERICDATAVIEWCTRL 1
+    // #define wxUSE_GENERICDATAVIEWCTRL 1
 #elif defined(__WXMAC__)
     #define wxUSE_GENERICDATAVIEWCTRL 1
 #else

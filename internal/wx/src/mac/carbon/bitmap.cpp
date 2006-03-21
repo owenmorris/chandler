@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp,v 1.89 2006/03/10 18:58:16 SC Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.90 2006/03/21 14:16:22 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -876,11 +876,11 @@ void wxBitmap::EndRawAccess()
 bool wxBitmap::CreateFromXpm(const char **bits)
 {
 #if wxUSE_IMAGE
-    wxCHECK_MSG( bits != NULL, false, wxT("invalid bitmap data") )
+    wxCHECK_MSG( bits != NULL, false, wxT("invalid bitmap data") );
 
     wxXPMDecoder decoder;
     wxImage img = decoder.ReadData(bits);
-    wxCHECK_MSG( img.Ok(), false, wxT("invalid bitmap data") )
+    wxCHECK_MSG( img.Ok(), false, wxT("invalid bitmap data") );
 
     *this = wxBitmap(img);
 
@@ -1027,7 +1027,7 @@ bool wxBitmap::Create(void *data, wxBitmapType type, int width, int height, int 
 
 wxBitmap::wxBitmap(const wxImage& image, int depth)
 {
-    wxCHECK_RET( image.Ok(), wxT("invalid image") )
+    wxCHECK_RET( image.Ok(), wxT("invalid image") );
 
     // width and height of the device-dependent bitmap
     int width = image.GetWidth();

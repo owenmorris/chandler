@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: uma.cpp,v 1.72 2006/01/09 00:46:43 vell Exp $
+// RCS-ID:      $Id: uma.cpp,v 1.73 2006/03/21 11:30:23 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     The wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -401,7 +401,7 @@ void UMASetMenuItemShortcut( MenuRef menu , MenuItemIndex item , wxAcceleratorEn
 
         // 1d and 1e have special meaning to SetItemCmd, so
         // do not use for these character codes.
-        if (key != WXK_UP && key != WXK_RIGHT)
+        if (key != WXK_UP && key != WXK_RIGHT && key != WXK_DOWN && key != WXK_LEFT)
             SetItemCmd( menu, item , macKey );
 
         SetMenuItemModifiers( menu, item , modifiers ) ;

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.148 2006/02/05 14:10:51 rgammans Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.149 2006/03/21 14:16:12 VZ Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -204,13 +204,8 @@ struct tm *wxGmtime_r(const time_t* ticks, struct tm* temp)
 // ----------------------------------------------------------------------------
 
 // debugging helper: just a convenient replacement of wxCHECK()
-#define wxDATETIME_CHECK(expr, msg)     \
-        if ( !(expr) )                  \
-        {                               \
-            wxFAIL_MSG(msg);            \
-            *this = wxInvalidDateTime;  \
-            return *this;               \
-        }
+#define wxDATETIME_CHECK(expr, msg) \
+    wxCHECK2_MSG(expr, *this = wxInvalidDateTime; return *this, msg)
 
 // ----------------------------------------------------------------------------
 // private classes

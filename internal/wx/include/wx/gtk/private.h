@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.03.02
-// RCS-ID:      $Id: private.h,v 1.20 2006/03/15 07:25:32 MR Exp $
+// RCS-ID:      $Id: private.h,v 1.21 2006/03/21 13:31:35 VZ Exp $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,6 +69,8 @@ class wxGtkString
 public:
     explicit wxGtkString(gchar *s) : m_str(s) { }
     ~wxGtkString() { g_free(m_str); }
+
+    const gchar *c_str() const { return m_str; }
 
     operator gchar *() const { return m_str; }
 

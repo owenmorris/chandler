@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.141 2006/03/20 23:22:58 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.142 2006/03/21 14:16:28 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -476,11 +476,11 @@ wxBitmap::wxBitmap(const char bits[], int width, int height, int depth)
 bool wxBitmap::CreateFromXpm(const char **data)
 {
 #if wxUSE_IMAGE && wxUSE_XPM && wxUSE_WXDIB
-    wxCHECK_MSG( data != NULL, false, wxT("invalid bitmap data") )
+    wxCHECK_MSG( data != NULL, false, wxT("invalid bitmap data") );
 
     wxXPMDecoder decoder;
     wxImage img = decoder.ReadData(data);
-    wxCHECK_MSG( img.Ok(), false, wxT("invalid bitmap data") )
+    wxCHECK_MSG( img.Ok(), false, wxT("invalid bitmap data") );
 
     *this = wxBitmap(img);
     return true;

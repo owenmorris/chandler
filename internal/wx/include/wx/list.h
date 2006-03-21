@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h,v 1.98 2006/02/03 18:26:51 MBN Exp $
+// RCS-ID:      $Id: list.h,v 1.102 2006/03/21 14:05:08 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -166,7 +166,11 @@ private:
             const compatibility_iterator* operator->() const { return this; } \
                                                                               \
             bool operator==(const compatibility_iterator& i) const            \
-                { return (m_list == i.m_list) && (m_iter == i.m_iter); }      \
+            {                                                                 \
+                wxASSERT_MSG( m_list && i.m_list,                             \
+                              _T("comparing invalid iterators is illegal") ); \
+                return (m_list == i.m_list) && (m_iter == i.m_iter);          \
+            }                                                                 \
             bool operator!=(const compatibility_iterator& i) const            \
                 { return !( operator==( i ) ); }                              \
             operator bool() const                                             \
@@ -186,16 +190,16 @@ private:
             }                                                                 \
             compatibility_iterator GetPrevious() const                        \
             {                                                                 \
+                if ( m_iter == m_list->begin() )                              \
+                    return compatibility_iterator();                          \
+                                                                              \
                 iterator i = m_iter;                                          \
                 return compatibility_iterator( m_list, --i );                 \
             }                                                                 \
             int IndexOf() const                                               \
             {                                                                 \
-                return m_list ?                                               \
-                    m_iter != m_list->end() ?                                 \
-                        std::distance( m_list->begin(), m_iter ) :            \
-                            wxNOT_FOUND :                                     \
-                        wxNOT_FOUND;                                          \
+                return *this ? std::distance( m_list->begin(), m_iter )       \
+                             : wxNOT_FOUND;                                   \
             }                                                                 \
         };                                                                    \
     public:                                                                   \
@@ -676,7 +680,17 @@ private:
     {                                                                       \
     public:                                                                 \
         typedef nodetype Node;                                              \
-        typedef Node* compatibility_iterator;                               \
+        class compatibility_iterator                                        \
+        {                                                                   \
+        public:                                                             \
+            compatibility_iterator(Node *ptr = NULL) : m_ptr(ptr) { }       \
+                                                                            \
+            Node *operator->() const { return m_ptr; }                      \
+            operator Node *() const { return m_ptr; }                       \
+                                                                            \
+        private:                                                            \
+            Node *m_ptr;                                                    \
+        };                                                                  \
                                                                             \
         name(wxKeyType keyType = wxKEY_NONE) : wxListBase(keyType)          \
             { }                                                             \

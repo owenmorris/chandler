@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// RCS-ID:      $Id: appbase.cpp,v 1.65 2006/01/09 00:12:49 VZ Exp $
+// RCS-ID:      $Id: appbase.cpp,v 1.66 2006/03/21 14:17:49 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -585,16 +585,6 @@ void wxTrap()
 #else
     // TODO
 #endif // Win/Unix
-}
-
-void wxAssert(int cond,
-              const wxChar *szFile,
-              int nLine,
-              const wxChar *szCond,
-              const wxChar *szMsg)
-{
-    if ( !cond )
-        wxOnAssert(szFile, nLine, szCond, szMsg);
 }
 
 // this function is called when an assert fails

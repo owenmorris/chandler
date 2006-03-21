@@ -2,7 +2,7 @@
 // Name:        mgl/timer.cpp
 // Purpose:     wxTimer implementation
 // Author:      Vaclav Slavik
-// Id:          $Id: timer.cpp,v 1.19 2005/09/23 12:53:30 MR Exp $
+// Id:          $Id: timer.cpp,v 1.20 2006/03/21 11:25:26 JS Exp $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -190,7 +190,11 @@ void wxTimerScheduler::NotifyTimers()
                         QueueTimer(desc, now + desc->timer->GetInterval());
                 }
                 else
+                {
                     desc = m_timers;
+                    if (!desc)
+                        break;
+                }
             }
         }
     }

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10.10.98
 // Created:     1997
-// RCS-ID:      $Id: treectrl.cpp,v 1.221 2005/12/01 11:02:19 ABX Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.222 2006/03/21 14:16:28 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1808,7 +1808,7 @@ void wxTreeCtrl::DoExpand(const wxTreeItemId& item, int flag)
 
     // A hidden root can be neither expanded nor collapsed.
     wxCHECK_RET( !(m_windowStyle & wxTR_HIDE_ROOT) || (HITEM(item) != TVI_ROOT),
-                 wxT("Can't expand/collapse hidden root node!") )
+                 wxT("Can't expand/collapse hidden root node!") );
 
     // TreeView_Expand doesn't send TVN_ITEMEXPAND(ING) messages, so we must
     // emulate them. This behaviour has changed slightly with comctl32.dll
@@ -2743,7 +2743,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
 
                 WXWPARAM wParam = info->wVKey;
 
-                int keyCode = wxCharCodeMSWToWX(info->wVKey);
+                int keyCode = wxCharCodeMSWToWX(wParam);
                 if ( !keyCode )
                 {
                     // wxCharCodeMSWToWX() returns 0 to indicate that this is a

@@ -2,7 +2,7 @@
 // Name:        src/gtk/bitmap.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: bitmap.cpp,v 1.98 2006/03/07 23:52:46 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.99 2006/03/21 14:16:15 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -298,7 +298,7 @@ bool wxBitmap::Create( int width, int height, int depth )
         depth = visual->depth;
 
     wxCHECK_MSG( (depth == visual->depth) || (depth == 1) || (depth == 32), false,
-                    wxT("invalid bitmap depth") )
+                    wxT("invalid bitmap depth") );
 
     m_refData = new wxBitmapRefData();
     M_BMPDATA->m_mask = (wxMask *) NULL;
@@ -328,7 +328,7 @@ bool wxBitmap::CreateFromXpm( const char **bits )
 {
     UnRef();
 
-    wxCHECK_MSG( bits != NULL, false, wxT("invalid bitmap data") )
+    wxCHECK_MSG( bits != NULL, false, wxT("invalid bitmap data") );
 
     GdkVisual *visual = wxTheApp->GetGdkVisual();
 
@@ -557,8 +557,8 @@ bool wxBitmap::CreateFromImage(const wxImage& image, int depth)
 {
     UnRef();
 
-    wxCHECK_MSG( image.Ok(), false, wxT("invalid image") )
-    wxCHECK_MSG( depth == -1 || depth == 1, false, wxT("invalid bitmap depth") )
+    wxCHECK_MSG( image.Ok(), false, wxT("invalid image") );
+    wxCHECK_MSG( depth == -1 || depth == 1, false, wxT("invalid bitmap depth") );
 
     if (image.GetWidth() <= 0 || image.GetHeight() <= 0)
         return false;
