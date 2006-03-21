@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.6-$(BRANCH_REV_PREFIX)16
+RELVER=0.6-$(BRANCH_REV_PREFIX)17
 CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.4
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
@@ -42,5 +42,8 @@ snap:
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(CHANDLERDB)/$(TARBALL) $(MANIFEST)
 
-install:
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
+drop:
+	tar -C $(BUILD_ROOT) -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -

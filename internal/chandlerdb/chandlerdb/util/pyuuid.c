@@ -19,6 +19,7 @@ static PyObject *t_uuid_str(t_uuid *self);
 static PyObject *t_uuid_repr(t_uuid *self);
 static int t_uuid_cmp(t_uuid *o1, t_uuid *o2);
 static PyObject *t_uuid_richcmp(t_uuid *o1, t_uuid *o2, int opid);
+static PyObject *t_uuid__getUUID(t_uuid *self, void *data);
 
 static PyObject *format64(t_uuid *self);
 static PyObject *_isUUID(PyObject *self);
@@ -42,6 +43,11 @@ static PyMethodDef t_uuid_methods[] = {
     { "_isItem", (PyCFunction) _isItem, METH_NOARGS, "return False" },
     { "_isRefs", (PyCFunction) _isRefs, METH_NOARGS, "return False" },
     { NULL, NULL, 0, NULL }
+};
+
+static PyGetSetDef t_uuid_properties[] = {
+    { "itsUUID", (getter) t_uuid__getUUID, NULL, NULL, NULL },
+    { NULL, NULL, NULL, NULL, NULL }
 };
 
 static PyTypeObject UUIDType = {
@@ -75,7 +81,7 @@ static PyTypeObject UUIDType = {
     0,                           /* tp_iternext */
     t_uuid_methods,              /* tp_methods */
     t_uuid_members,              /* tp_members */
-    0,                           /* tp_getset */
+    t_uuid_properties,           /* tp_getset */
     0,                           /* tp_base */
     0,                           /* tp_dict */
     0,                           /* tp_descr_get */
@@ -225,6 +231,15 @@ static PyObject *_isItem(PyObject *self)
 static PyObject *_isRefs(PyObject *self)
 {
     Py_RETURN_FALSE;
+}
+
+
+/* itsUUID */
+
+static PyObject *t_uuid__getUUID(t_uuid *self, void *data)
+{
+    Py_INCREF(self);
+    return (PyObject *) self;
 }
 
 
