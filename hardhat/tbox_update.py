@@ -19,6 +19,7 @@ def initOptions():
     # option name, (value, short cmd, long cmd, type flag, default, help text)
     _configItems = {'tree':     ('-t', '--tree',     's', 'Chandler', 'Tree Name'),
                     'build':    ('-b', '--build',    's', None, 'Build Name'),
+                    'epoch':    ('-e', '--epoch',    's', None, 'Start time (in seconds since epoch)'),
                     'logfile':  ('-f', '--logfile',  's', None, 'Build Log filename'),
                     'logpath':  ('-p', '--logpath',  's', None, 'Build Log path'),
                     'status':   ('-s', '--status',   's', None, 'Build Status'),
@@ -63,12 +64,16 @@ def run(options):
     logPath      = options.logpath
     status       = options.status
     logData      = None
+    startTime    = options.epoch
 
     if treeName is None:
         print "Tree name must be specified"
         return
     if buildName is None:
         print "Build name must be specified"
+        return
+    if startTime is None:
+        print "Start time must be specified"
         return
     if logPath is None:
         logPath = os.getcwd()
@@ -95,7 +100,7 @@ def run(options):
     msg  = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromAddr, toAddr, subject))
     msg += "tinderbox: tree: %s\n" % treeName
     msg += "tinderbox: buildname: %s\n" % buildName
-    msg += "tinderbox: starttime: %s\n" % nowTime
+    msg += "tinderbox: starttime: %s\n" % startTime
     msg += "tinderbox: timenow: %s\n" % nowTime
     msg += "tinderbox: errorparser: unix\n"
     msg += "tinderbox: status: %s\n" % status

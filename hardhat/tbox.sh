@@ -73,6 +73,7 @@ LOGFILES="svn.log distrib.log install.log tests.log"
 MODES="release debug"
 
 BUILDID=`date +%Y%m%d%H%M%S`
+STARTEPOCH=`date +%s`
 BUILDLOG=$T_DIR/tbox_$BUILDID.log
 
 if [ -e $BUILDLOG ]; then
@@ -104,7 +105,7 @@ for i in $LOGFILES ; do
 done
 
 if [ "$TBOX" = "yes" ]; then
-    $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s building
+    python $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s building -e $STARTEPOCH
 
     if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
         MODES="release"
@@ -500,6 +501,6 @@ if [ "$TBOX" = "yes" ]; then
         LOGPATH=$T_DIR/
     fi
 
-    $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $LOGPATH
+    python $TBOX_UPDATE -t $TBOX_TREE -b $TBOX_BUILD -s $TBOX_STATUS -f tbox_$BUILDID.log -p $LOGPATH -e $STARTEPOCH
 fi
 
