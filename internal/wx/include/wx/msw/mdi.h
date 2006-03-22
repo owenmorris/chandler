@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: mdi.h,v 1.37 2006/02/08 21:46:20 VZ Exp $
+// RCS-ID:      $Id: mdi.h,v 1.38 2006/03/22 20:51:07 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,6 @@
 
 #include "wx/frame.h"
 
-extern WXDLLEXPORT_DATA(const wxChar) wxFrameNameStr[];
 extern WXDLLEXPORT_DATA(const wxChar) wxStatusLineNameStr[];
 
 class WXDLLEXPORT wxMDIClientWindow;

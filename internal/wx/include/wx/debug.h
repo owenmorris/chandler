@@ -4,7 +4,7 @@
 *  Author:      Vadim Zeitlin
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     29/01/98
-*  RCS-ID:      $Id: debug.h,v 1.52 2006/03/22 14:39:47 ABX Exp $
+*  RCS-ID:      $Id: debug.h,v 1.55 2006/03/22 20:39:52 ABX Exp $
 *  Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 *  Licence:     wxWindows licence
 */
@@ -47,13 +47,23 @@
     #endif /*  !WXDEBUG */
 #endif /*  __WXDEBUG__ */
 
-/* TODO: add more compilers supporting __FUNCTION__ */
-#if !defined(__GNUC__) && \
-    !(defined(_MSC_VER) && _MSC_VER >= 1300) && \
-    !defined(__FUNCTION__)
-    /* no __FUNCTION__ support, still define it to avoid #ifdefs elsewhere */
-    #define __FUNCTION__ (NULL)
-#endif
+#ifndef __WXFUNCTION__
+    /* TODO: add more compilers supporting __FUNCTION__ */
+    #if defined(__DMC__)
+        /* 
+           __FUNCTION__ happens to be not defined within class members
+           http://www.digitalmars.com/drn-bin/wwwnews?c%2B%2B.beta/485
+        */
+        #define __WXFUNCTION__ (NULL)
+    #elif defined(__GNUC__) || \
+          (defined(_MSC_VER) && _MSC_VER >= 1300) || \
+          defined(__FUNCTION__)
+        #define __WXFUNCTION__ __FUNCTION__
+    #else
+        /* still define __WXFUNCTION__ to avoid #ifdefs elsewhere */
+        #define __WXFUNCTION__ (NULL)
+    #endif
+#endif /* __WXFUNCTION__ already defined */
 
 /*  ---------------------------------------------------------------------------- */
 /*  Debugging macros */
@@ -108,7 +118,7 @@
     if ( cond )                                                               \
         ;                                                                     \
     else                                                                      \
-        wxOnAssert(__TFILE__, __LINE__, __FUNCTION__, _T(#cond), msg)
+        wxOnAssert(__TFILE__, __LINE__, __WXFUNCTION__, _T(#cond), msg)
 
   /*  special form of assert: always triggers it (in debug mode) */
   #define wxFAIL wxFAIL_MSG(NULL)
@@ -118,7 +128,7 @@
 
   /*  FAIL with some message and a condition */
   #define wxFAIL_COND_MSG(cond, msg)                                          \
-      wxOnAssert(__TFILE__, __LINE__,  __FUNCTION__, _T(cond), msg)
+      wxOnAssert(__TFILE__, __LINE__,  __WXFUNCTION__, _T(cond), msg)
 
   /*  an assert helper used to avoid warning when testing constant expressions, */
   /*  i.e. wxASSERT( sizeof(int) == 4 ) can generate a compiler warning about */
