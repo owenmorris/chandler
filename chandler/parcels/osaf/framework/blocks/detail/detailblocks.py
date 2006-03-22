@@ -246,7 +246,7 @@ def installParcel(parcel, oldVersion=None):
 def registerAttributeEditors(parcel, oldVersion):
     # make the detail view's attribute editors at repository-init time
     # If you edit this dictionary, please keep it in alphabetical order by key.
-    aeList = {
+    aeDict = {
         'DateTime+calendarDateOnly': 'CalendarDateAttributeEditor',
         'DateTime+calendarTimeOnly': 'CalendarTimeAttributeEditor',
         'EmailAddress+outbound': 'OutboundEmailAddressAttributeEditor',
@@ -257,9 +257,7 @@ def registerAttributeEditors(parcel, oldVersion):
         'RecurrenceRuleSet+occurs': 'RecurrenceAttributeEditor',
         'TimeDelta+reminder': 'ReminderAttributeEditor',
     }
-    for typeName, className in aeList.items():
-        AttributeEditorMapping.update(parcel, typeName, className=\
-                                      __name__ + '.' + className)
+    AttributeEditorMapping.register(parcel, aeDict, __name__)
     
 def makeRootStuff(parcel, oldVersion):
     # The BranchPoint mechanism starts each specific detail view by cloning 
@@ -575,16 +573,11 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     viewAttribute=u'timeDescription',
                     presentationStyle={ 'format' : 'static' },
                     )])
- 
-    calendarDetails = \
-        makeArea(parcel, 'CalendarDetails',
+    
+    timeEditArea = \
+        makeArea(parcel, 'CalendarTimeEditArea',
             orientationEnum='Vertical',
-            position=0.8,
-            childrenBlocks = [
-                locationArea,
-                makeSpacer(parcel, height=4),
-                #timeDescriptionArea,
-                #makeSpacer(parcel, height=4),
+            childrenBlocks=[
                 allDayArea,
                 makeSpacer(parcel, height=4),
                 startTimeArea,
@@ -602,6 +595,17 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                            baseClass=CalendarRecurrenceCustomSpacerBlock),
                 recurrenceCustomArea,
                 recurrenceEndArea,
+            ])
+    
+    calendarDetails = \
+        makeArea(parcel, 'CalendarDetails',
+            orientationEnum='Vertical',
+            position=0.8,
+            childrenBlocks = [
+                locationArea,
+                makeSpacer(parcel, height=4),
+                #timeDescriptionArea,
+                timeEditArea,
                 makeSpacer(parcel, height=7,
                            baseClass=CalendarReminderSpacerBlock),
                 reminderArea]).install(parcel)

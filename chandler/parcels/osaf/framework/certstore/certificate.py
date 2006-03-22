@@ -95,14 +95,19 @@ class Certificate(pim.ContentItem):
         # M2Crypto needs this to be str rather than unicode - safe conversion
         return str(self.pem.getReader().read())
 
-    def asTextAsString(self):
+    def getAsTextAsString(self):
         """
         Get the asText attribute (which is stored as a LOB) as a str.
 
-        @return: asText as str
-        @rtype:  str
+        @return: asText as unicode
+        @rtype:  unicode
         """
-        return self.asText.getReader().read()
+        return self.asText.getPlainTextReader().read()
+
+    asTextAsString = pim.Calculated(schema.Text, u"bodyString",
+        basedOn=('asText',),
+        fget=getAsTextAsString,
+        doc="asText attribute as a string")
 
     def asX509(self):
         """
@@ -134,6 +139,13 @@ class Certificate(pim.ContentItem):
             self.trust &= ~constants.TRUST_SITE
     siteBit = property(getSiteBit, setSiteBit,
                        doc='Site bit.')
+
+    def isAttributeModifiable(self, attribute):
+        # None of these attributes should be edited by the user.
+        if attribute in ['date', 'type', 'fingerprintAlgorithm', 
+                                 'fingerprint', 'asTextAsString' ]:
+            return False
+        return super(Certificate, self).isAttributeModifiable(attribute)
 
 
 def _isSiteCertificate(x509):

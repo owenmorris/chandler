@@ -78,6 +78,13 @@ class AttributeEditorMapping(schema.Item):
       
         aeMappings = schema.ns("osaf.framework.attributeEditors", self.itsView).aeMappings
         aeMappings.editors.append(self, alias=self.itsName)
+    
+    @classmethod
+    def register(cls, parcel, aeDict, moduleName):
+        for typeName, className in aeDict.items():
+            if className.find('.') == -1:
+                className = moduleName + '.' + className
+            cls.update(parcel, typeName, className=className)
 
 def installParcel(parcel, oldVersion=None):
     """ 
@@ -103,7 +110,7 @@ def installParcel(parcel, oldVersion=None):
     # 
     # If you do modify this list, please keep it in alphabetical 
     # order by type string.
-    aeList = {
+    aeDict = {
         '_default': 'RepositoryAttributeEditor',
         'Boolean': 'CheckboxAttributeEditor',
         'Contact': 'ContactAttributeEditor',
@@ -114,7 +121,7 @@ def installParcel(parcel, oldVersion=None):
         'DateTime+timeOnly': 'TimeAttributeEditor',
         'DateTime+timeZoneOnly': 'TimeZoneAttributeEditor',
         'EmailAddress': 'EmailAddressAttributeEditor',
-        'Integer': 'StringAttributeEditor',
+        'Integer': 'RepositoryAttributeEditor',
         'Item': 'ItemNameAttributeEditor',
         'Kind': 'StampAttributeEditor',
         'IsKind': 'IsKindAttributeEditor',
@@ -128,10 +135,7 @@ def installParcel(parcel, oldVersion=None):
         'TriageEnum': 'StringAttributeEditor',
         'URL': 'StaticStringAttributeEditor',
     }
-    for characteristics, className in aeList.items():
-        AttributeEditorMapping.update(parcel, characteristics, 
-                                      className=\
-                                      __name__ + '.' + className)
+    AttributeEditorMapping.register(parcel, aeDict, __name__)
 
 _TypeToEditorInstances = {}
 
@@ -499,6 +503,8 @@ class DragAndDropTextCtrl(ShownSynchronizer,
     
     def OnRightClick(self, event):
         """ Build and display our context menu """
+        self.SetFocus()
+        
         # @@@ In the future, it might be nice to base this menu
         # on CPIA mechanisms, but we don't need that for now.
         menu = wx.Menu()

@@ -2,8 +2,8 @@
 # (this should include all ContentItem subclasses in this package)
 #
 from items import (
-    ContentKind, ContentItem, ImportanceEnum, Group, Project, Tag, TriageEnum,
-    UserNotification, Principal
+    Calculated, ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
+    Project, Tag, TriageEnum, UserNotification
 )
 from notes import Note
 from contacts import Contact, ContactName

@@ -118,7 +118,7 @@ rZehs7GgIFvKMquNzxPwHynD
             self.assertTrue(cert.trust == constants.TRUST_AUTHENTICITY | constants.TRUST_SITE)
             self.assertTrue(cert.fingerprintAlgorithm == 'sha1')
             self.assertTrue(len(cert.fingerprint) > 3)
-            self.assertTrue(cert.asTextAsString()[:12] == 'Certificate:')            
+            self.assertTrue(cert.asTextAsString[:12] == 'Certificate:')            
     
     def _importAndFind(self, pem, trust):
         x509 = X509.load_cert_string(pem)
