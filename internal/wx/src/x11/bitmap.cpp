@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.40 2006/03/21 14:16:34 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.41 2006/03/22 18:29:34 ABX Exp $
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -327,7 +327,7 @@ bool wxBitmap::Create( int width, int height, int depth )
     if (depth == -1) depth = bpp;
 
     wxCHECK_MSG( (depth == bpp) ||
-                 (depth == 1), false, wxT("invalid bitmap depth") )
+                 (depth == 1), false, wxT("invalid bitmap depth") );
 
     M_BMPDATA->m_mask = (wxMask *) NULL;
     M_BMPDATA->m_width = width;
