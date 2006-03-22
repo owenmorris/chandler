@@ -4,7 +4,7 @@
 *  Author:      Vadim Zeitlin
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     29/01/98
-*  RCS-ID:      $Id: debug.h,v 1.50 2006/03/22 01:11:52 VZ Exp $
+*  RCS-ID:      $Id: debug.h,v 1.52 2006/03/22 14:39:47 ABX Exp $
 *  Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 *  Licence:     wxWindows licence
 */
@@ -48,7 +48,9 @@
 #endif /*  __WXDEBUG__ */
 
 /* TODO: add more compilers supporting __FUNCTION__ */
-#if !defined(__GNUC__) && !(defined(_MSC_VER) && _MSC_VER >= 1300)
+#if !defined(__GNUC__) && \
+    !(defined(_MSC_VER) && _MSC_VER >= 1300) && \
+    !defined(__FUNCTION__)
     /* no __FUNCTION__ support, still define it to avoid #ifdefs elsewhere */
     #define __FUNCTION__ (NULL)
 #endif
@@ -169,11 +171,11 @@
     if ( cond )                                                               \
         ;                                                                     \
     else                                                                      \
-        do                                                                    \
-        {                                                                     \
-            wxFAIL_COND_MSG(#cond, msg);                                      \
-            op;                                                               \
-        } while ( 0 )
+    {                                                                         \
+        wxFAIL_COND_MSG(#cond, msg);                                          \
+        op;                                                                   \
+    }                                                                         \
+    struct wxDummyCheckStruct /* just to force a semicolon */
 
 /*  special form of wxCHECK2: as wxCHECK, but for use in void functions */
 /*  */

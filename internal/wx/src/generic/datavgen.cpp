@@ -2,7 +2,7 @@
 // Name:        datavgen.cpp
 // Purpose:     wxDataViewCtrl generic implementation
 // Author:      Robert Roebling
-// Id:          $Id: datavgen.cpp,v 1.3 2006/03/21 12:29:59 RR Exp $
+// Id:          $Id: datavgen.cpp,v 1.5 2006/03/22 10:27:29 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,82 @@
 
 class wxDataViewCtrl;
 
+//-----------------------------------------------------------------------------
+// wxDataViewHeaderWindow
+//-----------------------------------------------------------------------------
+
+class wxDataViewHeaderWindow: public wxWindow
+{
+public:
+    wxDataViewHeaderWindow( wxDataViewCtrl *parent,
+                            wxWindowID id,
+                            const wxPoint &pos = wxDefaultPosition,
+                            const wxSize &size = wxDefaultSize,
+                            const wxString &name = wxT("wxdataviewctrlheaderwindow") );
+    ~wxDataViewHeaderWindow();
+
+    void SetOwner( wxDataViewCtrl* owner ) { m_owner = owner; }
+    wxDataViewCtrl *GetOwner() { return m_owner; }
+
+    void OnPaint( wxPaintEvent &event );
+    void OnMouse( wxMouseEvent &event );
+    void OnSetFocus( wxFocusEvent &event );
+    
+private:
+    wxDataViewCtrl      *m_owner;
+    wxCursor            *m_resizeCursor;
+    
+private:
+    DECLARE_DYNAMIC_CLASS(wxDataViewHeaderWindow)
+    DECLARE_EVENT_TABLE()
+};
+
+//-----------------------------------------------------------------------------
+// wxDataViewMainWindow
+//-----------------------------------------------------------------------------
+
+class wxDataViewMainWindow: public wxWindow
+{
+public:
+    wxDataViewMainWindow( wxDataViewCtrl *parent,
+                            wxWindowID id,
+                            const wxPoint &pos = wxDefaultPosition,
+                            const wxSize &size = wxDefaultSize,
+                            const wxString &name = wxT("wxdataviewctrlmainwindow") );
+    ~wxDataViewMainWindow();
+
+    // notifications from wxDataViewListModel
+    bool RowAppended();
+    bool RowPrepended();
+    bool RowInserted( size_t before );
+    bool RowDeleted( size_t row );
+    bool RowChanged( size_t row );
+    bool ValueChanged( size_t col, size_t row );
+    bool RowsReordered( size_t *new_order );
+    bool Cleared();
+
+    void SetOwner( wxDataViewCtrl* owner ) { m_owner = owner; }
+    wxDataViewCtrl *GetOwner() { return m_owner; }
+
+    void OnPaint( wxPaintEvent &event );
+    void OnMouse( wxMouseEvent &event );
+    void OnSetFocus( wxFocusEvent &event );
+    
+    void UpdateDisplay();
+    void RecalculateDisplay();
+    void OnInternalIdle();
+    
+    void ScrollWindow( int dx, int dy, const wxRect *rect );
+private:
+    wxDataViewCtrl      *m_owner;
+    int                  m_lineHeight;
+    bool                 m_dirty;
+    
+private:
+    DECLARE_DYNAMIC_CLASS(wxDataViewMainWindow)
+    DECLARE_EVENT_TABLE()
+};
+
 // --------------------------------------------------------- 
 // wxGenericDataViewListModelNotifier
 // --------------------------------------------------------- 
@@ -44,91 +120,28 @@ class wxDataViewCtrl;
 class wxGenericDataViewListModelNotifier: public wxDataViewListModelNotifier
 {
 public:
-    wxGenericDataViewListModelNotifier( wxDataViewListModel *wx_model );
-    
-    virtual bool RowAppended();
-    virtual bool RowPrepended();
-    virtual bool RowInserted( size_t before );
-    virtual bool RowDeleted( size_t row );
-    virtual bool RowChanged( size_t row );
-    virtual bool ValueChanged( size_t col, size_t row );
-    virtual bool RowsReordered( size_t *new_order );
-    virtual bool Cleared();
-    
-    wxDataViewListModel *m_wx_model;
-};
-
-// --------------------------------------------------------- 
-// wxGenericDataViewListModelNotifier
-// --------------------------------------------------------- 
-
-wxGenericDataViewListModelNotifier::wxGenericDataViewListModelNotifier( 
-    wxDataViewListModel *wx_model )
-{
-    m_wx_model = wx_model;
-}
-    
-bool wxGenericDataViewListModelNotifier::RowAppended()
-{
-    size_t pos = m_wx_model->GetNumberOfRows()-1;
-    
-    return false;
-}
-
-bool wxGenericDataViewListModelNotifier::RowPrepended()
-{
-    return false;
-}
-
-bool wxGenericDataViewListModelNotifier::RowInserted( size_t before )
-{
-    return false;
-}
-
-bool wxGenericDataViewListModelNotifier::RowDeleted( size_t row )
-{
-    return false;
-}
-
-bool wxGenericDataViewListModelNotifier::RowChanged( size_t row )
-{
-    return true;
-}
-
-bool wxGenericDataViewListModelNotifier::ValueChanged( size_t model_col, size_t model_row )
-{
-    wxNode *node = GetOwner()->m_viewingColumns.GetFirst();
-    while (node)
-    {
-        wxDataViewViewingColumn* viewing_column = (wxDataViewViewingColumn*) node->GetData();
-        if (viewing_column->m_modelColumn == model_col)
-        {
+    wxGenericDataViewListModelNotifier( wxDataViewMainWindow *mainWindow )
+        { m_mainWindow = mainWindow; }
         
-        }
-
-        node = node->GetNext();
-    }
+    virtual bool RowAppended()
+        { return m_mainWindow->RowAppended(); }
+    virtual bool RowPrepended()
+        { return m_mainWindow->RowPrepended(); }
+    virtual bool RowInserted( size_t before )
+        { return m_mainWindow->RowInserted( before ); }
+    virtual bool RowDeleted( size_t row )
+        { return m_mainWindow->RowDeleted( row ); }
+    virtual bool RowChanged( size_t row )
+        { return m_mainWindow->RowChanged( row ); }
+    virtual bool ValueChanged( size_t col, size_t row )
+        { return m_mainWindow->ValueChanged( col, row ); }
+    virtual bool RowsReordered( size_t *new_order )
+        { return m_mainWindow->RowsReordered( new_order ); }
+    virtual bool Cleared()
+        { return m_mainWindow->Cleared(); }
     
-    return false;
-}
-
-bool wxGenericDataViewListModelNotifier::RowsReordered( size_t *new_order )
-{
-    wxNode *node = GetOwner()->m_viewingColumns.GetFirst();
-    while (node)
-    {
-        wxDataViewViewingColumn* viewing_column = (wxDataViewViewingColumn*) node->GetData();
-
-        node = node->GetNext();
-    }
-    
-    return false;
-}
-
-bool wxGenericDataViewListModelNotifier::Cleared()
-{
-    return false;
-}
+    wxDataViewMainWindow    *m_mainWindow;
+};
 
 // --------------------------------------------------------- 
 // wxDataViewCell
@@ -139,16 +152,50 @@ IMPLEMENT_ABSTRACT_CLASS(wxDataViewCell, wxDataViewCellBase)
 wxDataViewCell::wxDataViewCell( const wxString &varianttype, wxDataViewCellMode mode ) :
     wxDataViewCellBase( varianttype, mode )
 {
+    m_dc = NULL;
 }
 
+wxDataViewCell::~wxDataViewCell()
+{
+    if (m_dc)
+        delete m_dc;
+}
+
+wxDC *wxDataViewCell::GetDC()
+{
+    if (m_dc == NULL)
+    {
+        if (GetOwner() == NULL)
+            return NULL;
+        if (GetOwner()->GetOwner() == NULL)
+            return NULL;
+        m_dc = new wxClientDC( GetOwner()->GetOwner() );
+    }
+        
+    return m_dc;
+}
+
+// --------------------------------------------------------- 
+// wxDataViewCustomCell
+// --------------------------------------------------------- 
+
+IMPLEMENT_ABSTRACT_CLASS(wxDataViewCustomCell, wxDataViewCell)
+
+wxDataViewCustomCell::wxDataViewCustomCell( const wxString &varianttype, 
+                          wxDataViewCellMode mode ) :
+    wxDataViewCell( varianttype, mode )
+{
+}
+
+    
 // --------------------------------------------------------- 
 // wxDataViewTextCell
 // --------------------------------------------------------- 
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewTextCell, wxDataViewCell)
+IMPLEMENT_ABSTRACT_CLASS(wxDataViewTextCell, wxDataViewCustomCell)
 
 wxDataViewTextCell::wxDataViewTextCell( const wxString &varianttype, wxDataViewCellMode mode ) :
-    wxDataViewCell( varianttype, mode )
+    wxDataViewCustomCell( varianttype, mode )
 {
 }
 
@@ -162,15 +209,25 @@ bool wxDataViewTextCell::GetValue( wxVariant &value )
     return false;
 }
 
+bool wxDataViewTextCell::Render( wxRect cell, wxDC *dc, int state )
+{
+    return false;
+}
+
+wxSize wxDataViewTextCell::GetSize()
+{
+    return wxSize(80,20);
+}
+
 // --------------------------------------------------------- 
 // wxDataViewToggleCell
 // --------------------------------------------------------- 
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewToggleCell, wxDataViewCell)
+IMPLEMENT_ABSTRACT_CLASS(wxDataViewToggleCell, wxDataViewCustomCell)
 
 wxDataViewToggleCell::wxDataViewToggleCell( const wxString &varianttype, 
                         wxDataViewCellMode mode ) :
-    wxDataViewCell( varianttype, mode )
+    wxDataViewCustomCell( varianttype, mode )
 {
 }
 
@@ -184,46 +241,16 @@ bool wxDataViewToggleCell::GetValue( wxVariant &value )
     return false;
 }
     
-// --------------------------------------------------------- 
-// wxDataViewCustomCell
-// --------------------------------------------------------- 
-
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewCustomCell, wxDataViewCell)
-
-wxDataViewCustomCell::wxDataViewCustomCell( const wxString &varianttype, 
-                          wxDataViewCellMode mode ) :
-    wxDataViewCell( varianttype, mode )
-{
-    m_dc = NULL;
-    
-    Init();
-}
-
-bool wxDataViewCustomCell::Init()
+bool wxDataViewToggleCell::Render( wxRect cell, wxDC *dc, int state )
 {
     return false;
 }
 
-wxDataViewCustomCell::~wxDataViewCustomCell()
+wxSize wxDataViewToggleCell::GetSize()
 {
-    if (m_dc)
-        delete m_dc;
+    return wxSize(20,20);
 }
 
-wxDC *wxDataViewCustomCell::GetDC()
-{
-    if (m_dc == NULL)
-    {
-        if (GetOwner() == NULL)
-            return NULL;
-        if (GetOwner()->GetOwner() == NULL)
-            return NULL;
-        m_dc = new wxClientDC( GetOwner()->GetOwner() );
-    }
-        
-    return m_dc;
-}
-    
 // --------------------------------------------------------- 
 // wxDataViewProgressCell
 // --------------------------------------------------------- 
@@ -398,32 +425,6 @@ void wxDataViewColumn::SetTitle( const wxString &title )
 // wxDataViewHeaderWindow
 //-----------------------------------------------------------------------------
 
-class wxDataViewHeaderWindow: public wxWindow
-{
-public:
-    wxDataViewHeaderWindow( wxDataViewCtrl *parent,
-                            wxWindowID id,
-                            const wxPoint &pos = wxDefaultPosition,
-                            const wxSize &size = wxDefaultSize,
-                            const wxString &name = wxT("wxdataviewctrlheaderwindow") );
-    ~wxDataViewHeaderWindow();
-
-    void SetOwner( wxDataViewCtrl* owner ) { m_owner = owner; }
-    wxDataViewCtrl *GetOwner() { return m_owner; }
-
-    void OnPaint( wxPaintEvent &event );
-    void OnMouse( wxMouseEvent &event );
-    void OnSetFocus( wxFocusEvent &event );
-    
-private:
-    wxDataViewCtrl      *m_owner;
-    wxCursor            *m_resizeCursor;
-    
-private:
-    DECLARE_DYNAMIC_CLASS(wxDataViewHeaderWindow)
-    DECLARE_EVENT_TABLE()
-};
-
 IMPLEMENT_ABSTRACT_CLASS(wxDataViewHeaderWindow, wxWindow)
 
 BEGIN_EVENT_TABLE(wxDataViewHeaderWindow,wxWindow)
@@ -516,38 +517,6 @@ void wxDataViewHeaderWindow::OnSetFocus( wxFocusEvent &event )
 // wxDataViewMainWindow
 //-----------------------------------------------------------------------------
 
-class wxDataViewMainWindow: public wxWindow
-{
-public:
-    wxDataViewMainWindow( wxDataViewCtrl *parent,
-                            wxWindowID id,
-                            const wxPoint &pos = wxDefaultPosition,
-                            const wxSize &size = wxDefaultSize,
-                            const wxString &name = wxT("wxdataviewctrlmainwindow") );
-    ~wxDataViewMainWindow();
-
-    void SetOwner( wxDataViewCtrl* owner ) { m_owner = owner; }
-    wxDataViewCtrl *GetOwner() { return m_owner; }
-
-    void OnPaint( wxPaintEvent &event );
-    void OnMouse( wxMouseEvent &event );
-    void OnSetFocus( wxFocusEvent &event );
-    
-    void UpdateDisplay();
-    void RecalculateDisplay();
-    void OnInternalIdle();
-    
-    void ScrollWindow( int dx, int dy, const wxRect *rect );
-private:
-    wxDataViewCtrl      *m_owner;
-    int                  m_lineHeight;
-    bool                 m_dirty;
-    
-private:
-    DECLARE_DYNAMIC_CLASS(wxDataViewMainWindow)
-    DECLARE_EVENT_TABLE()
-};
-
 IMPLEMENT_ABSTRACT_CLASS(wxDataViewMainWindow, wxWindow)
 
 BEGIN_EVENT_TABLE(wxDataViewMainWindow,wxWindow)
@@ -570,6 +539,46 @@ wxDataViewMainWindow::wxDataViewMainWindow( wxDataViewCtrl *parent, wxWindowID i
 
 wxDataViewMainWindow::~wxDataViewMainWindow()
 {
+}
+
+bool wxDataViewMainWindow::RowAppended()
+{
+    return false;
+}
+
+bool wxDataViewMainWindow::RowPrepended()
+{
+    return false;
+}
+
+bool wxDataViewMainWindow::RowInserted( size_t before )
+{
+    return false;
+}
+
+bool wxDataViewMainWindow::RowDeleted( size_t row )
+{
+    return false;
+}
+
+bool wxDataViewMainWindow::RowChanged( size_t row )
+{
+    return false;
+}
+
+bool wxDataViewMainWindow::ValueChanged( size_t col, size_t row )
+{
+    return false;
+}
+
+bool wxDataViewMainWindow::RowsReordered( size_t *new_order )
+{
+    return false;
+}
+
+bool wxDataViewMainWindow::Cleared()
+{
+    return false;
 }
 
 void wxDataViewMainWindow::UpdateDisplay()
@@ -726,7 +735,7 @@ bool wxDataViewCtrl::AssociateModel( wxDataViewListModel *model )
     if (!wxDataViewCtrlBase::AssociateModel( model ))
         return false;
 
-    m_notifier = new wxGenericDataViewListModelNotifier( model );
+    m_notifier = new wxGenericDataViewListModelNotifier( m_clientArea );
 
     model->AddNotifier( m_notifier );    
 

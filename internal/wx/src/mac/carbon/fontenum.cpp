@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: fontenum.cpp,v 1.17 2006/03/10 15:59:52 SC Exp $
+// RCS-ID:      $Id: fontenum.cpp,v 1.18 2006/03/22 16:45:17 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,6 +23,7 @@
 #include "wx/fontmap.h"
 #include "wx/fontutil.h"
 #include "wx/encinfo.h"
+#include "wx/intl.h"
 
 #include "wx/mac/private.h"
 
