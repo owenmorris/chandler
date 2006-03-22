@@ -166,10 +166,7 @@
         ;                                                                     \
     else                                                                      \
         do                                                                    \
-        {                                                                     \
-            wxOnAssert(__TFILE__, __LINE__, __FUNCTION__, _T(#cond), msg);       \
-            op;                                                               \
-        } while ( 0 )
+        {} while ( 0 )
 
 /*  special form of wxCHECK2: as wxCHECK, but for use in void functions */
 /*  */
