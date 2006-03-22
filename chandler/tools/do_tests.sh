@@ -338,8 +338,8 @@ else
         done
 
         echo -n Creating a large repository backup for the remaining tests
-        rm -fr $C_DIR/__repository__.0*
-        REPO=$C_DIR/__repository__.001
+        rm -fr $PC_DIR/__repository__.0*
+        REPO=$PC_DIR/__repository__.001
         BACKUP_REPO=$C_DIR/tools/QATestScripts/Performance/LargeDataBackupRepository.py
         if [ "$OSTYPE" = "cygwin" ]; then
             REPO=`cygpath -w $REPO`
