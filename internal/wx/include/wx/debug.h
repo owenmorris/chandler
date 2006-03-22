@@ -4,7 +4,7 @@
 *  Author:      Vadim Zeitlin
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     29/01/98
-*  RCS-ID:      $Id: debug.h,v 1.49 2006/03/21 17:00:11 VZ Exp $
+*  RCS-ID:      $Id: debug.h,v 1.50 2006/03/22 01:11:52 VZ Exp $
 *  Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 *  Licence:     wxWindows licence
 */
@@ -112,8 +112,11 @@
   #define wxFAIL wxFAIL_MSG(NULL)
 
   /*  FAIL with some message */
-  #define wxFAIL_MSG(msg)                                                     \
-      wxOnAssert(__TFILE__, __LINE__,  __FUNCTION__, _T("wxAssertFailure"), msg)
+  #define wxFAIL_MSG(msg) wxFAIL_COND_MSG("wxAssertFailure", msg)
+
+  /*  FAIL with some message and a condition */
+  #define wxFAIL_COND_MSG(cond, msg)                                          \
+      wxOnAssert(__TFILE__, __LINE__,  __FUNCTION__, _T(cond), msg)
 
   /*  an assert helper used to avoid warning when testing constant expressions, */
   /*  i.e. wxASSERT( sizeof(int) == 4 ) can generate a compiler warning about */
@@ -132,6 +135,7 @@
   #define wxASSERT_MSG(cond, msg)
   #define wxFAIL
   #define wxFAIL_MSG(msg)
+  #define wxFAIL_COND_MSG(cond, msg)
 #endif  /* __WXDEBUG__ */
 
 #ifdef __cplusplus
@@ -166,7 +170,10 @@
         ;                                                                     \
     else                                                                      \
         do                                                                    \
-        {} while ( 0 )
+        {                                                                     \
+            wxFAIL_COND_MSG(#cond, msg);                                      \
+            op;                                                               \
+        } while ( 0 )
 
 /*  special form of wxCHECK2: as wxCHECK, but for use in void functions */
 /*  */
