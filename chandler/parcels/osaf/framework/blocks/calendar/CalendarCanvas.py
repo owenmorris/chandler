@@ -1687,7 +1687,6 @@ class CalendarControl(CalendarBlock):
             self.widget.Refresh()
 
     def onTZPrefChange(self, op, item, names):
-        print "Pref changed: %s" % ((op, item, names),)
         if 'showUI' in names:
             self.widget.tzChoice.Show(item.showUI)
             self.widget.Layout()
