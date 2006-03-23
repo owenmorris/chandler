@@ -48,14 +48,14 @@ def installParcel(parcel, oldVersion=None):
     certMenu = blocks.Menu.update(
         parcel, "CertificateTestMenu",
         blockName = "CertificateTestMenu",
-        title = u"Certificates",
+        title = _(u"Certificates"),
         parentBlock = main.TestMenu,
         )
 
     blocks.MenuItem.update(
         parcel, "CertificateView",
         blockName = "CertificateView",
-        title = u"Manage Certificates",
+        title = _(u"Manage Certificates"),
         event = addCertificateToSidebarEvent,
         eventsForNamedLookup = [addCertificateToSidebarEvent],
         parentBlock = certMenu,
@@ -79,7 +79,7 @@ def installParcel(parcel, oldVersion=None):
     blocks.MenuItem.update(
         parcel, "CertificateImport",
         blockName = "CertificateImport",
-        title = u"Import Certificate",
+        title = _(u"Import Certificate"),
         event = CertificateImportEvent,
         eventsForNamedLookup = [CertificateImportEvent],
         parentBlock = certMenu,
@@ -113,6 +113,17 @@ def installParcel(parcel, oldVersion=None):
             detail.makeLabel(parcel, _(u"fingerprint")),
             detail.makeSpacer(parcel, width=8),
             detail.makeEditor(parcel, "FingerprintLabel",
+                viewAttribute=u"fingerprint",
+                stretchFactor = 0,
+                size=SizeType(180, -1)
+            )]).install(parcel)
+    
+    fingerprintAlgArea = detail.makeArea(parcel, "FingerprintAlgArea",
+        position = 0.4,
+        childrenBlocks = [
+            detail.makeLabel(parcel, _(u"algorithm")),
+            detail.makeSpacer(parcel, width=8),
+            detail.makeEditor(parcel, "FingerprintAlgLabel",
                 viewAttribute=u"fingerprintAlgorithm",
                 stretchFactor = 0,
                 size=SizeType(60, -1)
@@ -130,5 +141,6 @@ def installParcel(parcel, oldVersion=None):
         typeArea,
         trustArea,
         fingerprintArea,
+        fingerprintAlgArea,
         asTextEditor,
     ])
