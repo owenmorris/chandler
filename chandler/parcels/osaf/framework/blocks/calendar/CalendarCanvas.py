@@ -96,7 +96,7 @@ def roundToColumnPosition(v, columnList):
 
 class ColorInfo(object):
     def __init__(self, collection):
-        assert hasattr (collection, 'color')
+        assert hasattr (UserCollection(collection), 'color')
         color = UserCollection(collection).ensureColor().color
         self.hue = rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
     
