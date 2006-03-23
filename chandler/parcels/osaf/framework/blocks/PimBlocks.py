@@ -11,6 +11,7 @@ from osaf.pim import ContentItem, Note, ContentCollection
 import application.dialogs.Util as Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages
+from osaf.usercollections import UserCollection
 from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem
 from application import schema
 

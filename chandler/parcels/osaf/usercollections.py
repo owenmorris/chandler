@@ -43,7 +43,6 @@ class UserCollection(schema.Annotation):
         setup the color of a collection
         """
         if not hasattr (self, 'color'):
-            print "Creating new color for %s" % self
             self.color = schema.ns('osaf.usercollections', self.itsItem.itsView).collectionColors.nextColor()
         return self
 
