@@ -873,14 +873,53 @@ class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
         return item.isAttributeModifiable('reminders') \
                or len(item.reminders) > 0
 
-class CalendarTimeZoneSpacerBlock(SynchronizedSpacerBlock):
+class TransparencyConditionalBlock(Item):
     def shouldShow (self, item):
         return not (item.allDay or item.anyTime)
 
-class CalendarTimeZoneAreaBlock (DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return not (item.allDay or item.anyTime)
+    def attributesToWatch(self):
+        attributes = super(TransparencyConditionalBlock, self).attributesToWatch()
+        attributes.extend(('allDay', 'anyTime'))
+        return attributes
 
+class CalendarTransparencySpacerBlock(TransparencyConditionalBlock, 
+                                      SynchronizedSpacerBlock):
+    pass
+
+class CalendarTransparencyAreaBlock(TransparencyConditionalBlock, 
+                                    DetailSynchronizedContentItemDetail):
+    pass
+
+class TimeZoneConditionalBlock(Item):
+    def shouldShow (self, item):
+        # allDay and anyTime items never show the timezone popup
+        if item.allDay or item.anyTime:
+            return False
+
+        # Otherwise, it depends on the preference
+        tzPrefs = schema.ns('osaf.app', item.itsView).TimezonePrefs
+        return tzPrefs.showUI
+    
+    def watchForChanges(self):
+        super(TimeZoneConditionalBlock, self).watchForChanges()
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.watchItem(self, tzPrefs, 'onTimezonePrefsChanged')
+
+    def stopWatchingForChanges(self):
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.unwatchItem(self, tzPrefs, 'onTimezonePrefsChanged')
+
+    def onTimezonePrefsChanged(self, op, item, attributes):
+        if self.synchronizeItemDetail(self.item):
+            self.detailRoot().relayoutSizer()
+
+class CalendarTimeZoneSpacerBlock(TimeZoneConditionalBlock, 
+                                  SynchronizedSpacerBlock):
+    pass
+
+class CalendarTimeZoneAreaBlock (TimeZoneConditionalBlock, 
+                                 DetailSynchronizedContentItemDetail):
+    pass
 
 # Centralize the recurrence blocks' visibility decisions
 showPopup = 1

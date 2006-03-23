@@ -488,6 +488,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
 
     transparencyArea = \
         makeArea(parcel, 'CalendarTransparencyArea',
+            baseClass=CalendarTransparencyAreaBlock,
             childrenBlocks=[
                 makeLabel(parcel, _(u'status')),
                 makeSpacer(parcel, width=8),
@@ -586,7 +587,8 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                 makeSpacer(parcel, height=7,
                            baseClass=CalendarTimeZoneSpacerBlock),
                 timeZoneArea,
-                makeSpacer(parcel, height=7),
+                makeSpacer(parcel, height=7,
+                           baseClass=CalendarTransparencySpacerBlock),
                 transparencyArea,
                 makeSpacer(parcel, height=7,
                            baseClass=CalendarRecurrencePopupSpacerBlock),
