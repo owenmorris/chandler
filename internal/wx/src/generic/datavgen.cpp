@@ -2,7 +2,7 @@
 // Name:        datavgen.cpp
 // Purpose:     wxDataViewCtrl generic implementation
 // Author:      Robert Roebling
-// Id:          $Id: datavgen.cpp,v 1.8 2006/03/23 19:00:53 RR Exp $
+// Id:          $Id: datavgen.cpp,v 1.9 2006/03/23 21:28:16 JS Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -187,7 +187,6 @@ wxDataViewCustomCell::wxDataViewCustomCell( const wxString &varianttype,
 {
 }
 
-    
 // --------------------------------------------------------- 
 // wxDataViewTextCell
 // --------------------------------------------------------- 
@@ -828,7 +827,7 @@ WXLRESULT wxDataViewCtrl::MSWWindowProc(WXUINT nMsg,
                                        WXWPARAM wParam,
                                        WXLPARAM lParam)
 {
-    WXLRESULT rc = wxPanel::MSWWindowProc(nMsg, wParam, lParam);
+    WXLRESULT rc = wxDataViewCtrlBase::MSWWindowProc(nMsg, wParam, lParam);
 
 #ifndef __WXWINCE__
     // we need to process arrows ourselves for scrolling
