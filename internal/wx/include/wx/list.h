@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h,v 1.105 2006/03/23 02:01:21 VZ Exp $
+// RCS-ID:      $Id: list.h,v 1.106 2006/03/23 16:19:48 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -730,12 +730,12 @@ private:
         name& operator=(const name& list)                                   \
             { Assign(list); return *this; }                                 \
                                                                             \
-        compatibility_iterator GetFirst() const                             \
+        nodetype *GetFirst() const                                          \
             { return (nodetype *)wxListBase::GetFirst(); }                  \
-        compatibility_iterator GetLast() const                              \
+        nodetype *GetLast() const                                           \
             { return (nodetype *)wxListBase::GetLast(); }                   \
                                                                             \
-        compatibility_iterator Item(size_t index) const                     \
+        nodetype *Item(size_t index) const                                  \
             { return (nodetype *)wxListBase::Item(index); }                 \
                                                                             \
         T *operator[](size_t index) const                                   \
@@ -744,18 +744,18 @@ private:
             return node ? (T*)(node->GetData()) : (T*)NULL;                 \
         }                                                                   \
                                                                             \
-        compatibility_iterator Append(Tbase *object)                        \
+        nodetype *Append(Tbase *object)                                     \
             { return (nodetype *)wxListBase::Append(object); }              \
-        compatibility_iterator Insert(Tbase *object)                        \
+        nodetype *Insert(Tbase *object)                                     \
             { return (nodetype *)Insert((nodetype*)NULL, object); }         \
-        compatibility_iterator Insert(size_t pos, Tbase *object)            \
+        nodetype *Insert(size_t pos, Tbase *object)                         \
             { return (nodetype *)wxListBase::Insert(pos, object); }         \
-        compatibility_iterator Insert(nodetype *prev, Tbase *object)        \
+        nodetype *Insert(nodetype *prev, Tbase *object)                     \
             { return (nodetype *)wxListBase::Insert(prev, object); }        \
                                                                             \
-        compatibility_iterator Append(long key, void *object)               \
+        nodetype *Append(long key, void *object)                            \
             { return (nodetype *)wxListBase::Append(key, object); }         \
-        compatibility_iterator Append(const wxChar *key, void *object)      \
+        nodetype *Append(const wxChar *key, void *object)                   \
             { return (nodetype *)wxListBase::Append(key, object); }         \
                                                                             \
         nodetype *DetachNode(nodetype *node)                                \
@@ -764,10 +764,10 @@ private:
             { return wxListBase::DeleteNode(node); }                        \
         bool DeleteObject(Tbase *object)                                    \
             { return wxListBase::DeleteObject(object); }                    \
-        void Erase(compatibility_iterator it)                               \
+        void Erase(nodetype *it)                                            \
             { DeleteNode(it); }                                             \
                                                                             \
-        compatibility_iterator Find(const Tbase *object) const              \
+        nodetype *Find(const Tbase *object) const                           \
             { return (nodetype *)wxListBase::Find(object); }                \
                                                                             \
         virtual nodetype *Find(const wxListKey& key) const                  \
