@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: dobjcmn.cpp,v 1.39 2006/03/22 23:03:04 vell Exp $
+// RCS-ID:      $Id: dobjcmn.cpp,v 1.40 2006/03/23 00:41:09 vell Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -247,8 +247,6 @@ bool wxTextDataObject::GetDataHere(const wxDataFormat& format, void *buf) const
         return false;
 
     wxCharBuffer buffer = GetConv(format).cWX2MB( GetText().c_str() );
-    if ( buffer == NULL )
-        return false;
 
     strcpy( (char*)buf, buffer );
 
@@ -262,8 +260,6 @@ bool wxTextDataObject::SetData(const wxDataFormat& format,
         return false;
 
     wxWCharBuffer buffer = GetConv(format).cMB2WX( (const char*)buf );
-    if ( buffer == NULL )
-        return false;
 
     SetText( buffer );
 
