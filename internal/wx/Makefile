@@ -247,4 +247,13 @@ snap: cleanmanifest
 	tar -cvzf $(SRC)/$(TARBALL) $(MANIFEST)
 
 install:
+	# this section operates correctly when run from "external/",
+	# but appears to fail when run from "internal/wx/"
+	# SO:
+	# if you're building wx with incremental builds,
+	# then comment out line 1
+	# and uncomment lines 2-3
+	# and then "cd ../chandler" make DEBUG=[1,0] install"
 	cp $(TARBALL) $(CHANDLERARCHIVES)
+#	cp $(TARBALL) ../../downloads
+#	rm -f ../../chandler/$(SNAP)/$(TARBALL).inst
