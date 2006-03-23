@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup0.h,v 1.219 2006/03/20 23:24:47 VZ Exp $
+// RCS-ID:      $Id: setup0.h,v 1.220 2006/03/23 21:28:10 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -559,6 +559,7 @@
 #define wxUSE_TEXTCTRL     1    // wxTextCtrl
 #define wxUSE_TOGGLEBTN    1    // requires wxButton
 #define wxUSE_TREECTRL     1    // wxTreeCtrl
+#define wxUSE_DATAVIEWCTRL 1    // wxDataViewCtrl
 
 // Use a status bar class? Depending on the value of wxUSE_NATIVE_STATUSBAR
 // below either wxStatusBar95 or a generic wxStatusBar will be used.
