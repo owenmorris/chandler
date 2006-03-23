@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-09-25
-// RCS-ID:      $Id: fontdlg.h,v 1.9 2006/03/10 16:09:39 SC Exp $
+// RCS-ID:      $Id: fontdlg.h,v 1.10 2006/03/23 18:11:54 SC Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
  */
 
 #ifndef wxMAC_USE_EXPERIMENTAL_FONTDIALOG
-#define wxMAC_USE_EXPERIMENTAL_FONTDIALOG 0
+#define wxMAC_USE_EXPERIMENTAL_FONTDIALOG 1
 #endif
 
 #if wxMAC_USE_EXPERIMENTAL_FONTDIALOG
