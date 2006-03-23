@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     10/21/99
-// RCS-ID:      $Id: dataobj.cpp,v 1.29 2006/03/17 19:11:32 vell Exp $
+// RCS-ID:      $Id: dataobj.cpp,v 1.30 2006/03/23 18:16:02 SC Exp $
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,9 @@
 #include "wx/mstream.h"
 #include "wx/image.h"
 #include "wx/metafile.h"
+#include "wx/tokenzr.h"
+
+
 #include "wx/mac/private.h"
 
 #ifndef __DARWIN__
@@ -127,7 +130,7 @@ void wxDataFormat::SetId( NativeFormat format )
     default:
         m_type = wxDF_PRIVATE;
         char text[5];
-        strncpy( text, (char*)&format, 4 );
+        memcpy( text, (const char*)&format, 4 );
         text[4] = 0;
         m_id = wxString::FromAscii( text );
         break;
@@ -202,46 +205,54 @@ void wxTextDataObject::GetAllFormats( wxDataFormat *formats, wxDataObjectBase::D
 // wxFileDataObject
 // ----------------------------------------------------------------------------
 
+void wxFileDataObject::GetFileNames(wxCharBuffer &buf) const
+{
+    wxString filenames;
+    
+    for (size_t i = 0; i < m_filenames.GetCount(); i++)
+    {
+        filenames += m_filenames[i];
+        filenames += wxT('\n');
+    }
+    
+    buf = filenames.fn_str();
+}
+
 bool wxFileDataObject::GetDataHere( void *pBuf ) const
 {
     if (pBuf == NULL)
         return false;
 
-    wxString sFilenames;
+    wxCharBuffer buf;
+    GetFileNames( buf );
 
-    for (size_t i = 0; i < m_filenames.GetCount(); i++)
-    {
-        sFilenames += m_filenames[i];
-        sFilenames += (wxChar)0;
-    }
-
-    memcpy( pBuf, sFilenames.mbc_str(), sFilenames.Len() + 1 );
+    memcpy( pBuf, (const char*) buf, strlen(buf) + 1 );
 
     return true;
 }
 
 size_t wxFileDataObject::GetDataSize() const
 {
-    size_t nRes = 0;
+    wxCharBuffer buf;
+    GetFileNames( buf );
 
-    for (size_t i = 0; i < m_filenames.GetCount(); i++)
-    {
-        nRes += m_filenames[i].Len();
-        nRes += 1;
-    }
-
-    return nRes + 1;
+    return strlen(buf) + 1;
 }
 
-bool wxFileDataObject::SetData( size_t WXUNUSED(nSize), const void *pBuf )
+bool wxFileDataObject::SetData( size_t nSize, const void *pBuf )
 {
-    m_filenames.Empty();
+wxLogDebug( wxT("wxFDO->SetData(%s) - entering"), pBuf );
 
-    // only add if this is not an empty string
-    // we can therefore clear the list by just setting an empty string
-    if ((*(const char*)pBuf) != 0)
-        AddFile( wxString::FromAscii( (char*)pBuf) );
+    wxString filenames;
 
+#if wxUSE_UNICODE
+    filenames = wxString( (const char*) pBuf , *wxConvFileName );
+#else
+    filenames = wxString( wxConvFileName->cMB2WX( pBuf ) , wxConvLocal );
+#endif
+
+    m_filenames = wxStringTokenize( filenames , wxT("\n") , wxTOKEN_STRTOK );
+    
     return true;
 }
 

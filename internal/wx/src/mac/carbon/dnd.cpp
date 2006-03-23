@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dnd.cpp,v 1.48 2006/03/17 17:12:40 SC Exp $
+// RCS-ID:      $Id: dnd.cpp,v 1.49 2006/03/23 18:18:20 SC Exp $
 // Copyright:   (c) 1998 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -189,6 +189,8 @@ bool wxDropTarget::GetData()
         FlavorFlags theFlags;
         UInt16 flavors;
         bool firstFileAdded = false;
+        
+        wxString filenamesPassed ;
 
         CountDragItems( (DragReference)m_currentDrag, &items );
         for (UInt16 index = 1; index <= items; ++index)
@@ -261,23 +263,13 @@ bool wxDropTarget::GetData()
 
                         case kDragFlavorTypeHFS:
                             {
-                                wxFileDataObject *fdo = dynamic_cast<wxFileDataObject*>(m_dataObject);
-                                wxASSERT( fdo != NULL );
-
-                                if ((theData != NULL) && (fdo != NULL))
+                                if (theData != NULL)
                                 {
                                     HFSFlavor* theFile = (HFSFlavor*) theData;
                                     wxString name = wxMacFSSpec2MacFilename( &theFile->fileSpec );
 
-                                    if ( !firstFileAdded )
-                                    {
-                                        // reset file list
-                                        fdo->SetData( 0, "" );
-                                        firstFileAdded = true;
-                                    }
-
                                     if (!name.IsEmpty())
-                                        fdo->AddFile( name );
+                                        filenamesPassed += name + wxT("\n");
                                 }
                             }
                             break;
@@ -292,6 +284,11 @@ bool wxDropTarget::GetData()
                     break;
                 }
             }
+        }
+        if ( filenamesPassed.Len() > 0 )
+        {
+            wxCharBuffer buf = filenamesPassed.fn_str();
+            m_dataObject->SetData( wxDataFormat( wxDF_FILENAME ) , strlen( buf ) , (const char*) buf );
         }
     }
 

@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.47 2006/03/17 18:29:14 SC Exp $
+// RCS-ID:      $Id: private.h,v 1.48 2006/03/23 18:09:04 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -543,6 +543,14 @@ public :
     {
         return SetData( inPartCode , inTag , sizeof( T ) , &data ) ;
     }
+    template <typename T> OSStatus SetData( ResType inTag , const T *data )
+    {
+        return SetData( kControlEntireControl , inTag , sizeof( T ) , data ) ;
+    }
+    template <typename T> OSStatus SetData( ResType inTag , const T& data )
+    {
+        return SetData( kControlEntireControl , inTag , sizeof( T ) , &data ) ;
+    }
     template <typename T> OSStatus GetData( ControlPartCode inPartCode , ResType inTag , T *data ) const
     {
         Size dummy ;
@@ -554,7 +562,18 @@ public :
         verify_noerr( GetData<T>( inPartCode , inTag , &value ) ) ;
         return value ;
     }
-
+    template <typename T> OSStatus GetData( ResType inTag , T *data ) const
+    {
+        Size dummy ;
+        return GetData( kControlEntireControl , inTag , sizeof( T ) , data , &dummy ) ;
+    }
+    template <typename T> T GetData( ResType inTag ) const
+    {
+        T value ;
+        verify_noerr( GetData<T>( kControlEntireControl , inTag , &value ) ) ;
+        return value ;
+    }
+    
     // Flash the control for the specified amount of time
     virtual void Flash( ControlPartCode part , UInt32 ticks = 8 ) ;
 

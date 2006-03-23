@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: uma.cpp,v 1.73 2006/03/21 11:30:23 JS Exp $
+// RCS-ID:      $Id: uma.cpp,v 1.74 2006/03/23 16:16:00 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     The wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -388,6 +388,15 @@ void UMASetMenuItemShortcut( MenuRef menu , MenuItemIndex item , wxAcceleratorEn
                     glyph = kMenuDownArrowGlyph ;
                     break ;
 
+                case WXK_HOME :
+                    macKey = kHomeCharCode ;
+                    glyph = kMenuNorthwestArrowGlyph ;
+                    break ;
+
+                case WXK_END :
+                    macKey = kEndCharCode ;
+                    glyph = kMenuSoutheastArrowGlyph ;
+                    break ;
                 default :
                     macKey = toupper( key ) ;
                     break ;
