@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py,v 1.83 2006/03/18 01:03:08 RD Exp $
+# RCS-ID:      $Id: config.py,v 1.84 2006/03/23 15:56:22 RD Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -1051,7 +1051,6 @@ class BuildRenamers:
         # do a depth first iteration over what's left
         for node in topnode:
             doRename = False
-            doPtr = False
             addWX = False
             revOnly = False
     
@@ -1060,7 +1059,6 @@ class BuildRenamers:
                 lastClassName = name = self.GetAttr(node, "name")
                 lastClassSymName = sym_name = self.GetAttr(node, "sym_name")
                 doRename = True
-                doPtr = True
                 if sym_name != name:
                     name = sym_name
                     addWX = True
@@ -1118,8 +1116,6 @@ class BuildRenamers:
                 if addWX and not old.startswith('wx'):
                     old = 'wx'+old
                 pyFile.write("%s = wx.%s.%s\n" % (old, modname, new))
-                if doPtr:
-                    pyFile.write("%sPtr = wx.%s.%sPtr\n" % (old, modname, new))
                 
     
     #---------------------------------------------------------------------------
