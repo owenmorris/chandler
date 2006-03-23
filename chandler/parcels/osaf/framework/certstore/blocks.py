@@ -35,7 +35,7 @@ def installParcel(parcel, oldVersion=None):
         parcel, 'CertificateStore',
         displayName = _(u"Certificate Store"),
         kind = certstore.Certificate.getKind(parcel.itsView),
-        recursive = True).setup()
+        recursive = True)
 
     addCertificateToSidebarEvent = Block.ModifyCollectionEvent.template(
         'addCertificateToSidebarEvent',

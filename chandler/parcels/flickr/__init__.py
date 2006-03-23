@@ -236,7 +236,7 @@ def installParcel(parcel, oldVersion=None):
     # the NewFlickrCollectionEvent
     photoCollectionTemplate = PhotoCollection.update(
         parcel, 'photoCollectionTemplate',
-        displayName = messages.UNTITLED).setup()
+        displayName = messages.UNTITLED)
 
     # A NewFlickrCollectionEvent that adds a "Owner" collection to the sidebar
     newFlickrCollectionByOwnerEvent = NewFlickrCollectionEvent.update(

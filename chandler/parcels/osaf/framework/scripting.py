@@ -19,6 +19,7 @@ import hotshot
 import hotshot.stats as stats
 from i18n import OSAFMessageFactory as _
 from osaf import messages
+from osaf.usercollections import UserCollection
 
 __all__ = [
     'app_ns', 'cats_profiler', 'hotkey_script', 
@@ -34,12 +35,15 @@ def installParcel(parcel, oldVersion=None):
         kind=Script.getKind(parcel.itsView)
     )
 
-    pim.InclusionExclusionCollection.update(parcel, 'scriptsCollection',
-        displayName = _(u"Scripts"),
-        renameable = False,
-        private = False,
-        dontDisplayAsCalendar=True,
-        ).setup(source=scripts)
+    scriptsCollection = \
+        pim.InclusionExclusionCollection.update(parcel, 'scriptsCollection',
+            displayName = _(u"Scripts"),
+            renameable = False,
+            private = False,
+            ).setup(source=scripts)
+    userScripts = UserCollection(scriptsCollection)
+    userScripts.dontDisplayAsCalendar = True
+    
 
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)

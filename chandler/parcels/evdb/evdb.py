@@ -52,7 +52,7 @@ def GetCollectionFromSearch(repoView, searchTerms):
            
     logger.info('sending query %s', query)
 
-    collection = osaf.pim.ListCollection(itsView=repoView, displayName=displayName).setup()
+    collection = osaf.pim.ListCollection(itsView=repoView, displayName=displayName)
 
     share = sharing.Share(itsView=repoView, contents=collection)
 

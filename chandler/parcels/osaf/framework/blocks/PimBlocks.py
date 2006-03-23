@@ -266,7 +266,7 @@ class FocusEventHandlers(Item):
             return False
 
         # for OOTB collections, you can only remove not-mine items
-        if selectedCollection.outOfTheBoxCollection:
+        if UserCollection(selectedCollection).outOfTheBoxCollection:
             return AllItemsInCollection(selection, pim_ns.notMine)
 
         # For "mine" collections, item is always removable
@@ -285,7 +285,7 @@ class FocusEventHandlers(Item):
             for otherCollection in sidebarCollections:
                 
                 if (otherCollection is selectedCollection or
-                    otherCollection.outOfTheBoxCollection):
+                    UserCollection(otherCollection).outOfTheBoxCollection):
                     continue
 
                 # found an 'other' collection, stkip ahead to next

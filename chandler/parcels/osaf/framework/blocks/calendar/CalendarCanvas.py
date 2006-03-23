@@ -17,19 +17,22 @@ from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
 from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime
 from osaf.pim import ContentCollection
+from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util
 
 from osaf.framework.blocks import (
     DragAndDrop, Block, SplitterWindow, Styles, BoxContainer
     )
 from osaf.framework.attributeEditors import AttributeEditors
+from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
+
 from osaf.framework.blocks.calendar import CollectionCanvas
 
-from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
 from colorsys import rgb_to_hsv, hsv_to_rgb
-from operator import add
 
 from application import schema
+
+from operator import add
 from itertools import islice, chain
 from bisect import bisect
 import copy
@@ -94,7 +97,7 @@ def roundToColumnPosition(v, columnList):
 class ColorInfo(object):
     def __init__(self, collection):
         assert hasattr (collection, 'color')
-        color = collection.color
+        color = UserCollection(collection).ensureColor().color
         self.hue = rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
     
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
@@ -703,10 +706,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
     def render(self, *args, **kwds):
         super(CalendarBlock, self).render(*args, **kwds)
-        Monitors.attach(self, 'onColorChanged', 'set', 'color')
+        Monitors.attach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
 
     def onDestroyWidget(self, *args, **kwds):
-        Monitors.detach(self, 'onColorChanged', 'set', 'color')
+        Monitors.detach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
         super(CalendarBlock, self).onDestroyWidget(*args, **kwds)
         
     #This is interesting. By Bug 3415 we want to reset the cal block's current
@@ -1074,7 +1077,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         for coll in collections:
 
             if (event in coll):
-                if coll.outOfTheBoxCollection:
+                if UserCollection(coll).outOfTheBoxCollection:
                     # save it for later, we might be returning it
                     firstSpecialCollection = coll
                 else:
@@ -1088,7 +1091,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     def setCurrentCalendarColor(self, color):
 
         # contentsCollection is the currently selected collection
-        self.contentsCollection.color = ColorType(*color)
+        UserCollection(self.contentsCollection).color = ColorType(*color)
 
     def GetSelection(self):
         return CalendarSelection(self.contents)

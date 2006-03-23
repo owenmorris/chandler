@@ -18,6 +18,7 @@ from osaf.pim import (
 from osaf.framework.prompts import promptYesNoCancel
 
 from osaf import sharing, pim
+from osaf.usercollections import UserCollection
 import osaf.sharing.ICalendar
 from application import schema
 from i18n import OSAFMessageFactory as _
@@ -371,7 +372,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             """
               Confuse user by changing the name to something they won't understand
             """
-            if hasattr (item, "displayNameAlternatives"):
+            if hasattr (UserCollection(item), "displayNameAlternatives"):
                 name = sidebar.getNameAlternative (item)
             else:
                 name = getattr (item, attribute)
@@ -503,6 +504,7 @@ class SSSidebarIconButton (SSSidebarButton):
         mouseOver = ""
         mouseDown = ""
         imageSuffix = ".png"
+        userCollection = UserCollection(item)
 
         if mouseOverFlag:
             mouseOver = "MouseOver"
@@ -512,11 +514,11 @@ class SSSidebarIconButton (SSSidebarButton):
             if self.getChecked (item):
                 mouseDown = "MouseDown"
             else:
-                colorizeIcon = item.colorizeIcon
+                colorizeIcon = userCollection.colorizeIcon
 
-        iconName = getattr(item, "iconName", "")
+        iconName = getattr(userCollection, "iconName", "")
         sidebar = self.buttonOwner
-        if item.iconNameHasKindVariant and sidebar.filterKind is not None:
+        if userCollection.iconNameHasKindVariant and sidebar.filterKind is not None:
             iconName += os.path.basename (str (sidebar.filterKind.itsPath))
 
         # First lookup full image name
@@ -537,11 +539,12 @@ class SSSidebarIconButton (SSSidebarButton):
 
 
         if image is not None and colorizeIcon:
-            color = getattr (item, 'color', None)
-            if color is not None:
-                rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
-                hsvValue = rgb_to_hsv(*rgbValue)
-                image.RotateHue (hsvValue[0])
+            userCollection = UserCollection(item)
+            userCollection.ensureColor()
+            color = getattr (UserCollection(item), 'color', None)
+            rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
+            hsvValue = rgb_to_hsv(*rgbValue)
+            image.RotateHue (hsvValue[0])
 
         if image is not None:
             image = wx.BitmapFromImage (image)
@@ -822,7 +825,7 @@ class SidebarBlock(Table):
         # can remove anything except library collections
         event.arguments['Enable'] = \
             (self.selectedItemToView is not None) and \
-            (not self.selectedItemToView.outOfTheBoxCollection)
+            (not UserCollection(self.selectedItemToView).outOfTheBoxCollection)
 
 
     def ClearCollectionContents(self, collection):
@@ -842,7 +845,7 @@ class SidebarBlock(Table):
         # filter out the usable collections
         def IsValidCollection(col):
             return (col is not collection and
-                    not col.outOfTheBoxCollection)
+                    not UserCollection(col).outOfTheBoxCollection)
 
         sidebarCollections = [col for col in sidebarCollections
                               if IsValidCollection(col)]
@@ -875,13 +878,13 @@ class SidebarBlock(Table):
             DoDeleteAction(item)
         
     def onCollectionColorEvent(self, event):
-        self.selectedItemToView.color = event.color
+        UserCollection(self.selectedItemToView).color = event.color
         
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
         event.arguments['Enable'] = self.selectedItemToView is not None
         
-        color = getattr(self.selectedItemToView, 'color', None)
+        color = getattr(UserCollection(self.selectedItemToView), 'color', None)
 
         # the event contains the color, so we need to look at that
         # the only way to test for equality is by converting both
@@ -910,7 +913,7 @@ class SidebarBlock(Table):
         isCollection = (self.selectedItemToView is not None and
                         isinstance (self.selectedItemToView, ContentCollection))
         if isCollection:
-            if hasattr (self.selectedItemToView, "displayNameAlternatives"):
+            if hasattr (UserCollection(self.selectedItemToView), "displayNameAlternatives"):
                 collectionName = self.getNameAlternative (self.selectedItemToView)
             else:
                 collectionName = self.selectedItemToView.getItemDisplayName()
@@ -923,7 +926,7 @@ class SidebarBlock(Table):
         if not isCollection:
             enabled = False
             menuTitle = _(u'Keep out of %(kind)s') % arguments
-        elif self.selectedItemToView.outOfTheBoxCollection:
+        elif UserCollection(self.selectedItemToView).outOfTheBoxCollection:
             enabled = False
             menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
         else:
@@ -946,7 +949,7 @@ class SidebarBlock(Table):
             key = "None"
         else:
             key = os.path.basename (str (self.filterKind.itsPath))
-        return item.displayNameAlternatives [key]
+        return UserCollection(item).displayNameAlternatives [key]
 
 class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
@@ -1015,16 +1018,16 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                                                         recursive=True)
                         self.kindToKindCollectionCache [filterKind] = kindCollection
                     newKey = IntersectionCollection(itsView=self.itsView,
-                                                    sources=[key, kindCollection],
-                                                    dontDisplayAsCalendar=key.dontDisplayAsCalendar)
+                                                    sources=[key, kindCollection])
+                    UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
                     displayName += u" filtered by " + filterKind.displayName
                     key = newKey
 
                 # Finally, create a UI wrapper collection to manage
                 # things like selection and sorting
                 newKey = IndexedSelectionCollection(itsView=self.itsView,
-                                                    source=key,
-                                                    dontDisplayAsCalendar=key.dontDisplayAsCalendar)
+                                                    source=key)
+                UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
                 key = newKey
 
                 key.displayName = displayName
@@ -1053,7 +1056,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     def _makeBranchForCacheKey(self, keyItem):
         if isinstance (keyItem, ContentCollection):
             sidebar = Block.Block.findBlockByName("Sidebar")
-            if (not keyItem.dontDisplayAsCalendar and
+            if (not UserCollection(keyItem).dontDisplayAsCalendar and
                 sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
                     template = self.findPath (self.calendarTemplatePath)
                     keyUUID = template.itsUUID

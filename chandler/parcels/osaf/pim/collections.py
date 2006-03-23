@@ -11,26 +11,10 @@ from repository.item.Sets import \
 from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
-from osaf.pim.structs import ColorType
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
-
-class CollectionColors(schema.Item):
-    """
-    Temporarily put the CollectionColors here until we refactor collection
-    to remove display information
-    """
-    colors           = schema.Sequence (ColorType)
-    colorIndex       = schema.One (schema.Integer)
-
-    def nextColor (self):
-        color = self.colors [self.colorIndex]
-        self.colorIndex += 1
-        if self.colorIndex == len (self.colors):
-            self.colorIndex = 0
-        return color
 
 
 class ContentCollection(ContentItem, Collection):
@@ -72,22 +56,6 @@ class ContentCollection(ContentItem, Collection):
         displayName=u"ContentCollection"
     )
 
-    """
-      The following collection attributes may be moved once the dust
-    settles on pje's external attribute mechanism
-    """
-    renameable              = schema.One(schema.Boolean, defaultValue = True)
-    color                   = schema.One(ColorType)
-    iconName                = schema.One(schema.Text)
-    iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
-    colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
-    dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
-    outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
-    """
-      A dictionary mapping a KindName string to a new displayName.
-    """
-    displayNameAlternatives = schema.Mapping (schema.Text)
-
     collectionList = schema.Sequence(
         'ContentCollection',
         doc="Views, e.g. the Calendar, that display collections need to know "
@@ -116,15 +84,6 @@ class ContentCollection(ContentItem, Collection):
         ),
         sharing = schema.Cloud( none = ["displayName"] ),
     )
-
-    def setup(self):
-        """
-        setup the color of a collection
-        """
-        if not hasattr (self, 'color'):
-            self.color = schema.ns('osaf.pim', self.itsView).collectionColors.nextColor()
-        return self
-
 
     def __str__(self):
         """ for debugging """
@@ -513,8 +472,6 @@ class InclusionExclusionCollection(ContentCollection):
         source = collectionLookup (source)
         exclusions = collectionLookup (exclusions)
         trash = collectionLookup (trash)
-
-        super (InclusionExclusionCollection, self).setup()
 
         self.inclusions = ListCollection(itsParent=self,
                                          displayName=u"(Inclusions)")

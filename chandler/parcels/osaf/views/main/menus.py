@@ -3,7 +3,7 @@ from application import schema
 from i18n import OSAFMessageFactory as _
 from osaf import messages, pim
 from osaf.pim.structs import ColorType
-
+from osaf import usercollections
 from colorsys import hsv_to_rgb
 
 def makeMainMenus(parcel):
@@ -317,7 +317,7 @@ def makeMainMenus(parcel):
                         title = _(u'&Collection Color'),
                         childrenBlocks = makeColorMenuItems(parcel,
                                                             MenuItem,
-                                                            pim.collectionHues)),
+                                                            usercollections.collectionHues)),
                     MenuItem.template('RestoreSharesItem',
                         event = main.RestoreShares,
                         title = u'Restore published shares...',

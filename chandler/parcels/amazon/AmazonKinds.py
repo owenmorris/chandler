@@ -228,7 +228,7 @@ class AmazonCollection(ListCollection):
 
                 return collection, d
 
-        collection = AmazonCollection(itsView=repView).setup()
+        collection = AmazonCollection(itsView=repView)
         collection.displayName = displayName
         schema.ns("osaf.app", cpiaView).sidebarCollection.add (collection)
 
