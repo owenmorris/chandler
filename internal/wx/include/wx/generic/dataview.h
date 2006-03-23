@@ -2,7 +2,7 @@
 // Name:        wx/generic/dataview.h
 // Purpose:     wxDataViewCtrl generic implementation header
 // Author:      Robert Roebling
-// Id:          $Id: dataview.h,v 1.4 2006/03/22 10:01:57 RR Exp $
+// Id:          $Id: dataview.h,v 1.6 2006/03/23 11:44:55 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -91,6 +91,9 @@ public:
     bool Render( wxRect cell, wxDC *dc, int state );
     wxSize GetSize();
     
+private:
+    wxString m_text;
+    
 protected:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewTextCell)
 };
@@ -109,7 +112,11 @@ public:
     bool GetValue( wxVariant &value );
     
     bool Render( wxRect cell, wxDC *dc, int state );
+    bool Activate( wxRect cell, wxDataViewListModel *model, size_t col, size_t row );
     wxSize GetSize();
+    
+private:
+    bool    m_toggle;
     
 protected:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewToggleCell)

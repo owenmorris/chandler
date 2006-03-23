@@ -2,7 +2,7 @@
 // Name:        dataview.cpp
 // Purpose:     wxDataViewCtrl GTK+2 implementation
 // Author:      Robert Roebling
-// Id:          $Id: dataview.cpp,v 1.25 2006/03/20 16:37:24 RR Exp $
+// Id:          $Id: dataview.cpp,v 1.26 2006/03/23 11:44:53 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -997,7 +997,7 @@ wxDataViewToggleCell::wxDataViewToggleCell( const wxString &varianttype,
 {
     m_renderer = (void*) gtk_cell_renderer_toggle_new();
     
-    if (m_mode & wxDATAVIEW_CELL_EDITABLE)
+    if (m_mode & wxDATAVIEW_CELL_ACTIVATABLE)
     {
         g_signal_connect_after( m_renderer, "toggled", G_CALLBACK(wxGtkToggleRendererToggledCallback), this );
     }

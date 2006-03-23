@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     08.01.06
-// RCS-ID:      $Id: dataview.h,v 1.22 2006/03/21 12:30:03 RR Exp $
+// RCS-ID:      $Id: dataview.h,v 1.23 2006/03/23 11:44:57 RR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -219,7 +219,8 @@ public:
     virtual bool GetValue( wxVariant &value )       { return true; }
     virtual bool Validate( wxVariant &value )       { return true; }
     
-    wxString GetVariantType()   { return m_variantType; }
+    wxString GetVariantType()       { return m_variantType; }
+    wxDataViewCellMode GetMode()    { return m_mode; }
     
     void SetOwner( wxDataViewColumn *owner )    { m_owner = owner; }
     wxDataViewColumn* GetOwner()                { return m_owner; }

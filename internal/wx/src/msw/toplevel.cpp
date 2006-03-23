@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.136 2006/02/25 23:11:26 ABX Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.137 2006/03/23 12:58:43 ABX Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -740,8 +740,8 @@ void wxTopLevelWindowMSW::Maximize(bool maximize)
 
 bool wxTopLevelWindowMSW::IsMaximized() const
 {
-#ifdef __WXWINCE__
-    return false;
+#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
+    return true;
 #else
     return m_maximizeOnShow || ::IsZoomed(GetHwnd()) != 0;
 #endif

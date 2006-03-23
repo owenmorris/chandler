@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        common/toplvcmn.cpp
+// Name:        src/common/toplvcmn.cpp
 // Purpose:     common (for all platforms) wxTopLevelWindow functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: toplvcmn.cpp,v 1.39 2006/03/17 00:04:13 VZ Exp $
+// Id:          $Id: toplvcmn.cpp,v 1.40 2006/03/23 13:00:06 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -187,6 +187,10 @@ void wxTopLevelWindowBase::DoCentre(int dir)
         rectParent = rectDisplay;
     }
 
+    // centering maximized window on screen is no-op
+    if((rectParent == rectDisplay) && IsMaximized())
+        return;
+
     // the new window rect candidate
     wxRect rect = GetRect().CentreIn(rectParent, dir);
 
@@ -345,4 +349,3 @@ void wxTopLevelWindowBase::RequestUserAttention(int WXUNUSED(flags))
     // it's probably better than do nothing, isn't it?
     Raise();
 }
-

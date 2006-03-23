@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        zipstrm.cpp
+// Name:        src/common/zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp,v 1.41 2006/01/18 22:58:32 MW Exp $
+// RCS-ID:      $Id: zipstrm.cpp,v 1.42 2006/03/23 09:57:59 ABX Exp $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1100,7 +1100,7 @@ size_t wxZipEntry::ReadDescriptor(wxInputStream& stream)
     if (m_Crc == SUMS_MAGIC)
     {
         wxZipHeader buf(stream, 8);
-        wxUint32 u1 = buf.GetSize() >= 4 ? buf.Read32() : LOCAL_MAGIC;
+        wxUint32 u1 = buf.GetSize() >= 4 ? buf.Read32() : (wxUint32)LOCAL_MAGIC;
         wxUint32 u2 = buf.GetSize() == 8 ? buf.Read32() : 0;
 
         // look for the signature of the following record to decide which

@@ -2,7 +2,7 @@
 // Name:        datavgen.cpp
 // Purpose:     wxDataViewCtrl generic implementation
 // Author:      Robert Roebling
-// Id:          $Id: datavgen.cpp,v 1.5 2006/03/22 10:27:29 RR Exp $
+// Id:          $Id: datavgen.cpp,v 1.7 2006/03/23 11:44:52 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -201,7 +201,9 @@ wxDataViewTextCell::wxDataViewTextCell( const wxString &varianttype, wxDataViewC
 
 bool wxDataViewTextCell::SetValue( const wxVariant &value )
 {
-    return false;
+    m_text = value.GetString();
+    
+    return true;
 }
 
 bool wxDataViewTextCell::GetValue( wxVariant &value )
@@ -211,7 +213,9 @@ bool wxDataViewTextCell::GetValue( wxVariant &value )
 
 bool wxDataViewTextCell::Render( wxRect cell, wxDC *dc, int state )
 {
-    return false;
+    dc->DrawText( m_text, cell.x, cell.y );
+
+    return true;
 }
 
 wxSize wxDataViewTextCell::GetSize()
@@ -229,11 +233,14 @@ wxDataViewToggleCell::wxDataViewToggleCell( const wxString &varianttype,
                         wxDataViewCellMode mode ) :
     wxDataViewCustomCell( varianttype, mode )
 {
+    m_toggle = false;
 }
 
 bool wxDataViewToggleCell::SetValue( const wxVariant &value )
 {
-    return false;
+    m_toggle = value.GetBool();
+    
+    return true;;
 }
 
 bool wxDataViewToggleCell::GetValue( wxVariant &value )
@@ -243,7 +250,39 @@ bool wxDataViewToggleCell::GetValue( wxVariant &value )
     
 bool wxDataViewToggleCell::Render( wxRect cell, wxDC *dc, int state )
 {
-    return false;
+    // User wxRenderer here
+    
+    if (GetMode() == wxDATAVIEW_CELL_ACTIVATABLE)
+        dc->SetPen( *wxBLACK_PEN );
+    else
+        dc->SetPen( *wxGREY_PEN );
+    dc->SetBrush( *wxTRANSPARENT_BRUSH );
+    wxRect rect;
+    rect.x = cell.x + cell.width/2 - 10;
+    rect.width = 20;
+    rect.y = cell.y + cell.height/2 - 10;
+    rect.height = 20;
+    dc->DrawRectangle( rect );
+    if (m_toggle)
+    {
+        rect.x += 2;
+        rect.y += 2;
+        rect.width -= 4;
+        rect.height -= 4;
+        dc->DrawLine( rect.x, rect.y, rect.x+rect.width, rect.y+rect.height );
+        dc->DrawLine( rect.x+rect.width, rect.y, rect.x, rect.y+rect.height );
+    }
+    
+    return true;
+}
+
+bool wxDataViewToggleCell::Activate( wxRect cell, wxDataViewListModel *model, size_t col, size_t row )
+{
+    bool value = !m_toggle;
+    wxVariant variant = value;
+    model->SetValue( variant, col, row );
+    model->ValueChanged( col, row );    
+    return true;
 }
 
 wxSize wxDataViewToggleCell::GetSize()
@@ -568,7 +607,11 @@ bool wxDataViewMainWindow::RowChanged( size_t row )
 
 bool wxDataViewMainWindow::ValueChanged( size_t col, size_t row )
 {
-    return false;
+    wxRect rect( 0, row*m_lineHeight, 10000, m_lineHeight );
+    m_owner->CalcScrolledPosition( rect.x, rect.y, &rect.x, &rect.y );
+    Refresh( true, &rect );
+
+    return true;
 }
 
 bool wxDataViewMainWindow::RowsReordered( size_t *new_order )
@@ -636,12 +679,83 @@ void wxDataViewMainWindow::OnPaint( wxPaintEvent &event )
     GetOwner()->PrepareDC( dc );
 
     dc.SetFont( GetFont() );
+
+    wxRect update = GetUpdateRegion().GetBox();
+    m_owner->CalcUnscrolledPosition( update.x, update.y, &update.x, &update.y );
     
-    dc.DrawText( wxT("main window"), 5, 5 );
+    wxDataViewListModel *model = GetOwner()->GetModel();
+    
+    size_t item_start = update.y / m_lineHeight;
+    size_t item_count = (update.height / m_lineHeight) + 1;
+
+    wxRect cell_rect;
+    cell_rect.x = 0;
+    cell_rect.height = m_lineHeight;
+    size_t cols = GetOwner()->GetNumberOfColumns();
+    size_t i;
+    for (i = 0; i < cols; i++)
+    {
+        wxDataViewColumn *col = GetOwner()->GetColumn( i );
+        wxDataViewCell *cell = col->GetCell();
+        cell_rect.width = col->GetWidth();
+        
+        size_t item;
+        for (item = item_start; item <= item_start+item_count; item++)
+        {
+            cell_rect.y = item*m_lineHeight;
+            wxVariant value;
+            model->GetValue( value, col->GetModelColumn(), item );
+            cell->SetValue( value );
+            cell->Render( cell_rect, &dc, 0 );
+        }
+        
+        cell_rect.x += cell_rect.width;
+    }
 }
 
 void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
 {
+    int x = event.GetX();
+    int y = event.GetY();
+    m_owner->CalcUnscrolledPosition( x, y, &x, &y );
+
+    wxDataViewColumn *col = NULL;
+
+    int xpos = 0;
+    size_t cols = GetOwner()->GetNumberOfColumns();
+    size_t i;
+    for (i = 0; i < cols; i++)
+    {
+        wxDataViewColumn *c = GetOwner()->GetColumn( i );
+        if (x < xpos + c->GetWidth())
+        {
+            col = c;
+            break;
+        }
+        xpos += c->GetWidth();
+    }
+    if (!col)  
+        return;
+    wxDataViewCell *cell = col->GetCell();
+    
+    size_t row = y / m_lineHeight;
+    
+    wxDataViewListModel *model = GetOwner()->GetModel();
+
+    if (event.LeftDClick())
+    {
+        if (cell->GetMode() == wxDATAVIEW_CELL_ACTIVATABLE)
+        {
+            wxVariant value;
+            model->GetValue( value, col->GetModelColumn(), row );
+            cell->SetValue( value );
+            wxRect cell_rect( xpos, row * m_lineHeight, col->GetWidth(), m_lineHeight );
+            cell->Activate( cell_rect, model, col->GetModelColumn(), row );
+        }
+        
+        return;
+    }
+
     event.Skip();
 }
 

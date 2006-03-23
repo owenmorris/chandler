@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.20 2006/03/16 08:52:36 ABX Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.21 2006/03/23 10:11:05 ABX Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -946,7 +946,7 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
                 hret = cp->Advise(new wxActiveXEvents(this, ta->guid),
                                   &adviseCookie);
                 wxASSERT_MSG( SUCCEEDED(hret),
-                    wxString::Format(wxT("Cannot connect!\nHRESULT:%X"), hret)
+                    wxString::Format(wxT("Cannot connect!\nHRESULT:%X"), (unsigned int)hret)
                             );
             }
         }

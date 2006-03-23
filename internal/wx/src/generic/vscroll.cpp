@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Brad Anderson
 // Created:     30.05.03
-// RCS-ID:      $Id: vscroll.cpp,v 1.22 2006/02/25 21:15:50 ABX Exp $
+// RCS-ID:      $Id: vscroll.cpp,v 1.23 2006/03/23 10:08:40 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -772,16 +772,20 @@ void wxHVScrolledWindow::SetRowColumnCounts(size_t rowCount, size_t columnCount)
 
     // recalculate the scrollbars parameters
     if(m_rowsFirst >= rowCount)
-        m_rowsFirst = rowCount-1;
+        m_rowsFirst = (rowCount > 0) ? rowCount - 1 : 0;
 
     if(m_columnsFirst >= columnCount)
-        m_columnsFirst = columnCount-1;
+        m_columnsFirst = (columnCount > 0) ? columnCount - 1 : 0;
 
+#if 0
+    // checks disabled due to size_t type of members
+    // but leave them here if anyone would want to do some debugging
     if(m_rowsFirst < 0)
         m_rowsFirst = 0;
 
     if(m_columnsFirst < 0)
         m_columnsFirst = 0;
+#endif
 
     ScrollToRowColumn(m_rowsFirst, m_columnsFirst);
 }
