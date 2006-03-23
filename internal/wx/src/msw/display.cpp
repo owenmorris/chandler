@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III, Vadim Zeitlin
 // Modified by: Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp,v 1.26 2006/03/23 00:48:09 VZ Exp $
+// RCS-ID:      $Id: display.cpp,v 1.27 2006/03/23 17:15:47 JS Exp $
 // Copyright:   (c) wxWidgets team
 // Copyright:   (c) 2002-2006 wxWidgets team
 // Licence:     wxWindows licence
@@ -60,6 +60,22 @@
     // is only defined in winuser.h if WINVER >= 0x0500
     #if !defined(HMONITOR_DECLARED) && !defined(MNS_NOCHECK)
         DECLARE_HANDLE(HMONITOR);
+        typedef BOOL(CALLBACK * MONITORENUMPROC )(HMONITOR, HDC, LPRECT, LPARAM);
+        typedef struct tagMONITORINFO
+        {
+            DWORD   cbSize;
+            RECT    rcMonitor;
+            RECT    rcWork;
+            DWORD   dwFlags;
+        } MONITORINFO, *LPMONITORINFO;
+        typedef struct tagMONITORINFOEX : public tagMONITORINFO
+        {
+            TCHAR       szDevice[CCHDEVICENAME];
+        } MONITORINFOEX, *LPMONITORINFOEX;
+        #define MONITOR_DEFAULTTONULL       0x00000000
+        #define MONITOR_DEFAULTTOPRIMARY    0x00000001
+        #define MONITOR_DEFAULTTONEAREST    0x00000002
+        #define MONITORINFOF_PRIMARY        0x00000001        
         #define HMONITOR_DECLARED
     #endif
 #endif // !__WXWINCE__
