@@ -226,9 +226,9 @@ def doFunctionalTests(releaseMode, workingDir, log):
     os.chdir(chandlerDir)
 
     try:
-        print "Running Functional Tests"
+        print "Running %s Functional Tests" % releaseMode
         log.write(separator)
-        log.write("Running Functional Tests ...\n")
+        log.write("Running %s Functional Tests ...\n" % releaseMode)
 
         try:
             os.remove('chandler.log')
@@ -246,7 +246,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
         # Hack: find if any line contains '#TINDERBOX# Status = FAILED' and
         # if so raise the exception to signal test failure
         for line in outputList:
-            if line.find('#TINDERBOX# Status = FAILED') >= 0 or \
+            if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
                line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
                 raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
             
@@ -275,7 +275,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     else:
-        log.write("Functional tests exit code=0")
+        log.write("Functional tests exit code=0\n")
 
     return "success"
 
@@ -312,7 +312,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             # Hack: find if any line contains '#TINDERBOX# Status = FAILED' and
             # if so raise the exception to signal test failure
             for line in outputList:
-                if line.find('#TINDERBOX# Status = FAILED') >= 0 or \
+                if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
                    line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
                     raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
 
@@ -341,7 +341,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             forceBuildNextCycle(log, workingDir)
             return "test_failed"
         else:
-            log.write("Performance tests exit code=0")
+            log.write("Performance tests exit code=0\n")
 
     return result
 
