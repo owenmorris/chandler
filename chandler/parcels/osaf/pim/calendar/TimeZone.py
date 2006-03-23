@@ -73,6 +73,7 @@ class TimeZoneInfo(schema.Item):
                 _(u'Asia/Shanghai'),
                 _(u'Asia/Calcutta'),
                 _(u'Australia/Sydney'),
+                _(u'World/Floating'),
             ]
             result = cls.update(namespace.parcel, 'defaultInfo',
                                 wellKnownIDs=wellKnownIDs)

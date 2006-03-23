@@ -1,0 +1,103 @@
+
+from osaf.pim.structs import ColorType
+
+from application import schema
+from osaf.pim.structs import ColorType
+from osaf.pim import ContentCollection
+
+from i18n import OSAFMessageFactory as _
+
+
+class CollectionColors(schema.Item):
+    """
+    Temporarily put the CollectionColors here until we refactor collection
+    to remove display information
+    """
+    colors           = schema.Sequence (ColorType)
+    colorIndex       = schema.One (schema.Integer)
+
+    def nextColor (self):
+        color = self.colors [self.colorIndex]
+        self.colorIndex += 1
+        if self.colorIndex == len (self.colors):
+            self.colorIndex = 0
+        return color
+
+class UserCollection(schema.Annotation):
+    schema.kindInfo(annotates=ContentCollection)
+    
+    renameable              = schema.One(schema.Boolean, defaultValue = True)
+    color                   = schema.One(ColorType)
+    iconName                = schema.One(schema.Text)
+    iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
+    colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
+    dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
+    outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
+    """
+      A dictionary mapping a KindName string to a new displayName.
+    """
+    displayNameAlternatives = schema.Mapping (schema.Text)
+
+    def ensureColor(self):
+        """
+        setup the color of a collection
+        """
+        if not hasattr (self, 'color'):
+            print "Creating new color for %s" % self
+            self.color = schema.ns('osaf.usercollections', self.itsItem.itsView).collectionColors.nextColor()
+        return self
+
+    def setValues(self, **kwds):
+
+        for attr,value in kwds.iteritems():
+            setattr(self, attr, value)
+
+
+# Collection colors
+# in the form 'Color', _('LocalizableColorString'), 360-degree based hue
+import colorsys
+collectionHues = [('Blue', _(u'Blue'), 210),
+                  ('Green', (u'Green'), 120),
+                  ('Rose', _(u'Rose'), 0),
+                  ('Salmon', _(u'Salmon'), 30),
+                  ('Purple', _(u'Purple'), 270),
+                  ('Violet', _(u'Violet'), 240),
+                  ('Fuschia', _(u'Fuschia'), 330)]
+
+def installParcel(parcel, oldVersion=None):
+
+    collectionColors = CollectionColors.update(parcel, 'collectionColors',
+        colors = [],
+        colorIndex = 0
+    )
+
+    for shortName, title, hue in collectionHues:
+        rgb = colorsys.hsv_to_rgb(hue/360.0, 0.5, 1.0)
+        ct = ColorType(rgb[0]*255, rgb[1]*255, rgb[2]*255, 255)
+        collectionColors.colors.append(ct)
+
+    # setup up defaults for well-known parcels
+    pim_ns = schema.ns('osaf.pim', parcel.itsView)
+
+    allUC = UserCollection(pim_ns.allCollection)
+    allUC.setValues(renameable=False,
+                    outOfTheBoxCollection=True,
+                    displayNameAlternatives = \
+                    {'None': _(u'My items'),
+                     'MailMessageMixin': _(u'My mail'),
+                     'CalendarEventMixin': _(u'My calendar'),
+                     'TaskMixin': _(u'My tasks')})
+                                                   
+    trashUC = UserCollection(pim_ns.trashCollection)
+    trashUC.setValues(renameable=False,
+                      dontDisplayAsCalendar=True,
+                      outOfTheBoxCollection = True)
+
+    inUC = UserCollection(pim_ns.inCollection)
+    inUC.setValues(dontDisplayAsCalendar=True)
+
+    outUC = UserCollection(pim_ns.outCollection)
+    outUC.setValues(dontDisplayAsCalendar=True)
+    
+
+        
