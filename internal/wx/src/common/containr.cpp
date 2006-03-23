@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: containr.cpp,v 1.42 2006/03/21 13:10:20 VZ Exp $
+// RCS-ID:      $Id: containr.cpp,v 1.43 2006/03/23 00:47:01 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -369,7 +369,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
     for ( ;; )
     {
         // don't go into infinite loop
-        if ( start_node && node == start_node )
+        if ( start_node && node && node == start_node )
             break;
 
         // Have we come to the last or first item on the panel?

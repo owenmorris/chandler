@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III, Vadim Zeitlin
 // Modified by: Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp,v 1.25 2006/03/16 16:07:15 VZ Exp $
+// RCS-ID:      $Id: display.cpp,v 1.26 2006/03/23 00:48:09 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Copyright:   (c) 2002-2006 wxWidgets team
 // Licence:     wxWindows licence
@@ -258,7 +258,7 @@ private:
     DECLARE_NO_COPY_CLASS(wxDisplayImplMultimon)
 };
 
-class WXDLLEXPORT wxDisplayFactoryMultimon : public wxDisplayFactoryWin32Base
+class wxDisplayFactoryMultimon : public wxDisplayFactoryWin32Base
 {
 public:
     wxDisplayFactoryMultimon();
@@ -334,7 +334,7 @@ private:
     DECLARE_NO_COPY_CLASS(wxDisplayImplDirectDraw)
 };
 
-class WXDLLEXPORT wxDisplayFactoryDirectDraw : public wxDisplayFactoryWin32Base
+class wxDisplayFactoryDirectDraw : public wxDisplayFactoryWin32Base
 {
 public:
     wxDisplayFactoryDirectDraw();

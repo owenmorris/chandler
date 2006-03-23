@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h,v 1.103 2006/03/22 19:14:25 VZ Exp $
+// RCS-ID:      $Id: list.h,v 1.105 2006/03/23 02:01:21 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -135,17 +135,44 @@ private:
 
 #endif // defined( __VISUALC__ )
 
+/*
+    Note: the outer helper class _WX_LIST_HELPER_##liT below is a workaround
+    for mingw 3.2.3 compiler bug that prevents a static function of liT class
+    from being exported into dll. A minimal code snippet reproducing the bug:
+
+         struct WXDLLEXPORT Foo
+         {
+            static void Bar();
+            struct SomeInnerClass
+            {
+              friend class Foo; // comment this out to make it link
+            };
+            ~Foo()
+            {
+                Bar();
+            }
+         };
+
+    The program does not link under mingw_gcc 3.2.3 producing undefined
+    reference to Foo::Bar() function
+ */
+
+// the real wxList-class declaration
 #define WX_DECLARE_LIST_XO(elT, liT, decl)                                    \
+    class WXDLLEXPORT _WX_LIST_HELPER_##liT                                   \
+    {                                                                         \
+        typedef elT _WX_LIST_ITEM_TYPE_##liT;                                 \
+    public:                                                                   \
+        static void DeleteFunction( _WX_LIST_ITEM_TYPE_##liT X );             \
+    };                                                                        \
+                                                                              \
     VC6_WORKAROUND(elT, liT, decl)                                            \
     decl liT : public std::list<elT>                                          \
     {                                                                         \
     private:                                                                  \
         bool m_destroy;                                                       \
-    private:                                                                  \
-        typedef elT _WX_LIST_ITEM_TYPE_##liT;                                 \
-        static void DeleteFunction( _WX_LIST_ITEM_TYPE_##liT X );             \
     public:                                                                   \
-        class compatibility_iterator                                          \
+        decl compatibility_iterator                                           \
         {                                                                     \
         private:                                                              \
           /* Workaround for broken VC6 nested class name resolution */        \
@@ -269,7 +296,7 @@ private:
         void Erase( const compatibility_iterator& i )                         \
         {                                                                     \
             if ( m_destroy )                                                  \
-                DeleteFunction( i->GetData() );                               \
+                _WX_LIST_HELPER_##liT::DeleteFunction( i->GetData() );        \
             erase( i.m_iter );                                                \
         }                                                                     \
         bool DeleteNode( const compatibility_iterator& i )                    \
@@ -288,7 +315,8 @@ private:
         void Clear()                                                          \
         {                                                                     \
             if ( m_destroy )                                                  \
-                std::for_each( begin(), end(), DeleteFunction );              \
+                std::for_each( begin(), end(),                                \
+                               _WX_LIST_HELPER_##liT::DeleteFunction );       \
             clear();                                                          \
         }                                                                     \
         /* Workaround for broken VC6 std::list::sort() see above */           \
@@ -680,7 +708,7 @@ private:
     {                                                                       \
     public:                                                                 \
         typedef nodetype Node;                                              \
-        class compatibility_iterator                                        \
+        classexp compatibility_iterator                                     \
         {                                                                   \
         public:                                                             \
             compatibility_iterator(Node *ptr = NULL) : m_ptr(ptr) { }       \
@@ -773,7 +801,7 @@ private:
         typedef base_value_type& base_reference;                            \
         typedef const base_value_type& const_base_reference;                \
                                                                             \
-        class iterator                                                      \
+        classexp iterator                                                   \
         {                                                                   \
             typedef name list;                                              \
         public:                                                             \
@@ -813,7 +841,7 @@ private:
             bool operator==(const itor& it) const                           \
                 { return it.m_node == m_node; }                             \
         };                                                                  \
-        class const_iterator                                                \
+        classexp const_iterator                                             \
         {                                                                   \
             typedef name list;                                              \
         public:                                                             \
@@ -856,7 +884,7 @@ private:
             bool operator==(const itor& it) const                           \
                 { return it.m_node == m_node; }                             \
         };                                                                  \
-        class reverse_iterator                                              \
+        classexp reverse_iterator                                           \
         {                                                                   \
             typedef name list;                                              \
         public:                                                             \
@@ -895,7 +923,7 @@ private:
             bool operator==(const itor& it) const                           \
                 { return it.m_node == m_node; }                             \
         };                                                                  \
-        class const_reverse_iterator                                        \
+        classexp const_reverse_iterator                                     \
         {                                                                   \
             typedef name list;                                              \
         public:                                                             \

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.24 2006/03/14 19:35:34 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.25 2006/03/23 00:43:11 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,8 +101,9 @@ public:
     virtual wxString GetLabel() const;
     virtual void SetLabel(const wxString& label);
 
-    // we inherit a version returning false from wxStaticBox, override it again
-    virtual bool AcceptsFocus() const { return true; }
+    // we inherit a version always returning false from wxStaticBox, override
+    // it to behave normally
+    virtual bool AcceptsFocus() const { return wxControl::AcceptsFocus(); }
 
 #if wxUSE_TOOLTIPS
     virtual void DoSetToolTip( wxToolTip *tip );

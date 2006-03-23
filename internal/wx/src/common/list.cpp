@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     04/01/98
-// RCS-ID:      $Id: list.cpp,v 1.62 2006/03/22 19:14:28 VZ Exp $
+// RCS-ID:      $Id: list.cpp,v 1.63 2006/03/23 02:01:25 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////////////////////////////////
@@ -760,7 +760,7 @@ wxNode *wxStringList::Prepend(const wxChar *s)
     WX_DEFINE_LIST(wxObjectList)
 
 // with wxUSE_STL wxStringList contains wxString objects, not pointers
-void wxStringListBase::DeleteFunction( wxString WXUNUSED(X) )
+void _WX_LIST_HELPER_wxStringListBase::DeleteFunction( wxString WXUNUSED(X) )
 {
 }
 

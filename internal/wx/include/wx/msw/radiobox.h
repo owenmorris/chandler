@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h,v 1.47 2006/03/14 19:35:26 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.48 2006/03/23 00:43:09 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ public:
                      style, val, name);
     }
 
-    ~wxRadioBox();
+    virtual ~wxRadioBox();
 
     bool Create(wxWindow *parent,
                 wxWindowID id,
@@ -100,8 +100,9 @@ public:
     virtual bool SetFont(const wxFont& font);
     virtual bool ContainsHWND(WXHWND hWnd) const;
 
-    // we inherit a version returning false from wxStaticBox, override it again
-    virtual bool AcceptsFocus() const { return true; }
+    // we inherit a version always returning false from wxStaticBox, override
+    // it to behave normally
+    virtual bool AcceptsFocus() const { return wxControl::AcceptsFocus(); }
 
     void SetLabelFont(const wxFont& WXUNUSED(font)) {}
     void SetButtonFont(const wxFont& font) { SetFont(font); }
