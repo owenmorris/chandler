@@ -55,7 +55,8 @@ class ImportCertificateDialog(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         # multiline readonly edit control
-        
+        # XXX [i18n] This cannot be localized. Split into separate fields
+        # XXX [i18n] like the certificate detail view.
         text = wx.TextCtrl(self, -1, x509.as_text(), wx.DefaultPosition, 
                            [400,-1], style=wx.TE_MULTILINE|wx.TE_READONLY)
         sizer.Add(text, 1, wx.GROW|wx.ALIGN_CENTRE|wx.ALL, 5)
@@ -147,7 +148,8 @@ class TrustSiteCertificateDialog(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         # multiline readonly edit control
-        
+        # XXX [i18n] This cannot be localized. Split into separate fields
+        # XXX [i18n] like the certificate detail view.
         text = wx.TextCtrl(self, -1, x509.as_text(), wx.DefaultPosition, 
                            [400,-1], style=wx.TE_MULTILINE|wx.TE_READONLY)
         sizer.Add(text, 1, wx.GROW|wx.ALIGN_CENTRE|wx.ALL, 5)
@@ -255,7 +257,8 @@ class IgnoreSSLErrorDialog(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         # multiline readonly edit control
-        
+        # XXX [i18n] This cannot be localized. Split into separate fields
+        # XXX [i18n] like the certificate detail view.
         text = wx.TextCtrl(self, -1, x509.as_text(), wx.DefaultPosition, 
                            [400,-1], style=wx.TE_MULTILINE|wx.TE_READONLY)
         sizer.Add(text, 1, wx.GROW|wx.ALIGN_CENTRE|wx.ALL, 5)

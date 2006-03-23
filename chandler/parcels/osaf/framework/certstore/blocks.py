@@ -129,6 +129,11 @@ def installParcel(parcel, oldVersion=None):
                 size=SizeType(60, -1)
             )]).install(parcel)
     
+    #XXX [i18n] Rather than getting all as text which cannot be localized,
+    #XXX [i18n] make a field for each attribute in the certificate. These
+    #XXX [i18n] can be localized easily. There is one blocker: there are a lot
+    #XXX [i18n] of fields that should only appear if the cert has that field,
+    #XXX [i18n] but there does not seem to be a way to implement that yet.
     asTextEditor = detail.makeEditor(parcel, 'AsTextAttribute',
         position = 0.9, 
         viewAttribute=u'asTextAsString',
