@@ -885,6 +885,8 @@ class SidebarBlock(Table):
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
         event.arguments['Enable'] = self.selectedItemToView is not None
+        if not isinstance(self.selectedItemToView, ContentCollection):
+            return
         
         color = getattr(UserCollection(self.selectedItemToView), 'color', None)
 
