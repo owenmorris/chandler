@@ -690,7 +690,6 @@ class User(object):
     @classmethod
     def emulate_typing(cls, string, ctrlFlag = False, altFlag = False, shiftFlag = False):
         """ emulate_typing the string into the current focused widget """
-        cls.idle() #experiment to see if this helps with bug 5109
         success = True
         def set_event_info(event):
             # setup event info for a keypress event
