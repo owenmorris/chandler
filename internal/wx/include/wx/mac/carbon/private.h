@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.48 2006/03/23 18:09:04 SC Exp $
+// RCS-ID:      $Id: private.h,v 1.49 2006/03/24 13:01:01 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -97,15 +97,8 @@ class WXDLLEXPORT wxMacPortSaver
     DECLARE_NO_COPY_CLASS(wxMacPortSaver)
 
 public:
-    wxMacPortSaver( GrafPtr port )
-    {
-        ::GetPort( &m_port ) ;
-        ::SetPort( port ) ;
-    }
-    ~wxMacPortSaver()
-    {
-        ::SetPort( m_port ) ;
-    }
+    wxMacPortSaver( GrafPtr port );
+    ~wxMacPortSaver();
 private :
     GrafPtr m_port ;
 } ;

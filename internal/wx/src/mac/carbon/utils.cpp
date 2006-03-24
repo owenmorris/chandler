@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.cpp,v 1.110 2006/03/02 20:00:13 SC Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.111 2006/03/24 13:01:05 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1583,5 +1583,16 @@ CGColorSpaceRef wxMacGetGenericRGBColorSpace()
     return genericRGBColorSpace;
 }
 #endif
+
+wxMacPortSaver::wxMacPortSaver( GrafPtr port )
+{
+    ::GetPort( &m_port ) ;
+    ::SetPort( port ) ;
+}
+
+wxMacPortSaver::~wxMacPortSaver()
+{
+    ::SetPort( m_port ) ;
+}
 
 #endif // wxUSE_GUI

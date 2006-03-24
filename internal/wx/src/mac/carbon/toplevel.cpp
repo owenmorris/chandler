@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.173 2006/03/19 10:55:09 SC Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.174 2006/03/24 13:49:37 JS Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1219,7 +1219,9 @@ void  wxTopLevelWindowMac::MacCreateRealWindow(
     // the root control level handler
     MacInstallEventHandler( (WXWidget) m_peer->GetControlRef() ) ;
 
-#if TARGET_API_MAC_OSX
+    // Causes the inner part of the window not to be metal
+    // if the style is used before window creation.
+#if 0 // TARGET_API_MAC_OSX
     if ( m_macUsesCompositing && m_macWindow != NULL )
     {
         if ( GetExtraStyle() & wxFRAME_EX_METAL )
