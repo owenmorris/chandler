@@ -9,7 +9,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: ScintillaWX.cpp,v 1.90 2006/03/10 18:09:22 RD Exp $
+// RCS-ID:      $Id: ScintillaWX.cpp,v 1.91 2006/03/24 04:14:29 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -907,10 +907,10 @@ int  ScintillaWX::DoKeyDown(const wxKeyEvent& evt, bool* consumed)
     case WXK_RIGHT:             key = SCK_RIGHT;    break;
     case WXK_HOME:              key = SCK_HOME;     break;
     case WXK_END:               key = SCK_END;      break;
-    case WXK_PAGEUP:            // fall through
-    case WXK_PRIOR:             key = SCK_PRIOR;    break;
-    case WXK_PAGEDOWN:          // fall through
-    case WXK_NEXT:              key = SCK_NEXT;     break;
+    case WXK_PAGEUP:            key = SCK_PRIOR;    break;
+    case WXK_PAGEDOWN:          key = SCK_NEXT;     break;
+    case WXK_NUMPAD_PAGEUP:     key = SCK_PRIOR;    break;
+    case WXK_NUMPAD_PAGEDOWN:   key = SCK_NEXT;     break;
     case WXK_DELETE:            key = SCK_DELETE;   break;
     case WXK_INSERT:            key = SCK_INSERT;   break;
     case WXK_ESCAPE:            key = SCK_ESCAPE;   break;

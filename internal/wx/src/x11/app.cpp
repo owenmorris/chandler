@@ -1,13 +1,16 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        app.cpp
+// Name:        src/x11/app.cpp
 // Purpose:     wxApp
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: app.cpp,v 1.101 2005/09/23 12:56:02 MR Exp $
+// RCS-ID:      $Id: app.cpp,v 1.103 2006/03/24 12:27:29 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
+
+// for compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
 
 #include "wx/frame.h"
 #include "wx/app.h"
@@ -45,7 +48,7 @@ extern wxList wxPendingDelete;
 wxWindowHash *wxWidgetHashTable = NULL;
 wxWindowHash *wxClientWidgetHashTable = NULL;
 
-static bool g_showIconic = FALSE;
+static bool g_showIconic = false;
 static wxSize g_initialSize = wxDefaultSize;
 
 // This is required for wxFocusEvent::SetWindow(). It will only
@@ -87,7 +90,7 @@ BEGIN_EVENT_TABLE(wxApp, wxEvtHandler)
     EVT_IDLE(wxAppBase::OnIdle)
 END_EVENT_TABLE()
 
-bool wxApp::Initialize(int& argc, wxChar **argv)
+bool wxApp::Initialize(int& argC, wxChar **argV)
 {
 #if defined(__WXDEBUG__) && !wxUSE_NANOX
     // install the X error handler
@@ -95,68 +98,68 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
 #endif // __WXDEBUG__
 
     wxString displayName;
-    bool syncDisplay = FALSE;
+    bool syncDisplay = false;
 
-    int argcOrig = argc;
-    for ( int i = 0; i < argcOrig; i++ )
+    int argCOrig = argC;
+    for ( int i = 0; i < argCOrig; i++ )
     {
-        if (wxStrcmp( argv[i], _T("-display") ) == 0)
+        if (wxStrcmp( argV[i], _T("-display") ) == 0)
         {
-            if (i < (argc - 1))
+            if (i < (argC - 1))
             {
-                argv[i++] = NULL;
+                argV[i++] = NULL;
 
-                displayName = argv[i];
+                displayName = argV[i];
 
-                argv[i] = NULL;
-                argc -= 2;
+                argV[i] = NULL;
+                argC -= 2;
             }
         }
-        else if (wxStrcmp( argv[i], _T("-geometry") ) == 0)
+        else if (wxStrcmp( argV[i], _T("-geometry") ) == 0)
         {
-            if (i < (argc - 1))
+            if (i < (argC - 1))
             {
-                argv[i++] = NULL;
+                argV[i++] = NULL;
 
                 int w, h;
-                if (wxSscanf(argv[i], _T("%dx%d"), &w, &h) != 2)
+                if (wxSscanf(argV[i], _T("%dx%d"), &w, &h) != 2)
                 {
                     wxLogError( _("Invalid geometry specification '%s'"),
-                                wxString(argv[i]).c_str() );
+                                wxString(argV[i]).c_str() );
                 }
                 else
                 {
                     g_initialSize = wxSize(w, h);
                 }
 
-                argv[i] = NULL;
-                argc -= 2;
+                argV[i] = NULL;
+                argC -= 2;
             }
         }
-        else if (wxStrcmp( argv[i], _T("-sync") ) == 0)
+        else if (wxStrcmp( argV[i], _T("-sync") ) == 0)
         {
-            syncDisplay = TRUE;
+            syncDisplay = true;
 
-            argv[i] = NULL;
-            argc--;
+            argV[i] = NULL;
+            argC--;
         }
-        else if (wxStrcmp( argv[i], _T("-iconic") ) == 0)
+        else if (wxStrcmp( argV[i], _T("-iconic") ) == 0)
         {
-            g_showIconic = TRUE;
+            g_showIconic = true;
 
-            argv[i] = NULL;
-            argc--;
+            argV[i] = NULL;
+            argC--;
         }
     }
 
-    if ( argc != argcOrig )
+    if ( argC != argCOrig )
     {
         // remove the argumens we consumed
-        for ( int i = 0; i < argc; i++ )
+        for ( int i = 0; i < argC; i++ )
         {
-            while ( !argv[i] )
+            while ( !argV[i] )
             {
-                memmove(argv + i, argv + i + 1, argcOrig - i);
+                memmove(argV + i, argV + i + 1, argCOrig - i);
             }
         }
     }
@@ -181,9 +184,9 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     XSelectInput( xdisplay, XDefaultRootWindow(xdisplay), PropertyChangeMask);
 
     // Misc.
-    wxSetDetectableAutoRepeat( TRUE );
+    wxSetDetectableAutoRepeat( true );
 
-    if ( !wxAppBase::Initialize(argc, argv) )
+    if ( !wxAppBase::Initialize(argC, argV) )
     {
         XCloseDisplay(xdisplay);
 
@@ -224,7 +227,7 @@ wxApp::wxApp()
     m_mainColormap = (WXColormap) NULL;
     m_topLevelWidget = (WXWindow) NULL;
     m_maxRequestSize = 0;
-    m_showIconic = FALSE;
+    m_showIconic = false;
     m_initialSize = wxDefaultSize;
 
 #if !wxUSE_NANOX
@@ -259,13 +262,13 @@ static Bool expose_predicate (Display *display, XEvent *xevent, XPointer arg)
 
     if (xevent->xany.type != Expose)
     {
-        info->found_non_matching = TRUE;
+        info->found_non_matching = true;
         return FALSE;
     }
 
     if (xevent->xexpose.window != info->window)
     {
-        info->found_non_matching = TRUE;
+        info->found_non_matching = true;
         return FALSE;
     }
 
@@ -275,7 +278,7 @@ static Bool expose_predicate (Display *display, XEvent *xevent, XPointer arg)
     // wxUSE_NANOX
 
 //-----------------------------------------------------------------------
-// Processes an X event, returning TRUE if the event was processed.
+// Processes an X event, returning true if the event was processed.
 //-----------------------------------------------------------------------
 
 bool wxApp::ProcessXEvent(WXEvent* _event)
@@ -301,7 +304,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
         win = wxGetClientWindowFromTable(window);
         if (!win)
 #endif
-            return FALSE;
+            return false;
     }
 
 #ifdef __WXDEBUG__
@@ -318,7 +321,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 XEvent tmp_event;
                 wxExposeInfo info;
                 info.window = event->xexpose.window;
-                info.found_non_matching = FALSE;
+                info.found_non_matching = false;
                 while (XCheckIfEvent( wxGlobalDisplay(), &tmp_event, expose_predicate, (XPointer) &info ))
                 {
                     // Don't worry about optimizing redrawing the border etc.
@@ -337,7 +340,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 XEvent tmp_event;
                 wxExposeInfo info;
                 info.window = event->xexpose.window;
-                info.found_non_matching = FALSE;
+                info.found_non_matching = false;
                 while (XCheckIfEvent( wxGlobalDisplay(), &tmp_event, expose_predicate, (XPointer) &info ))
                 {
                     win->GetUpdateRegion().Union( tmp_event.xexpose.x, tmp_event.xexpose.y,
@@ -365,7 +368,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 //win->Update();
             }
 
-            return TRUE;
+            return true;
         }
 
 #if !wxUSE_NANOX
@@ -386,14 +389,14 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 // win->Update();
             }
 
-            return TRUE;
+            return true;
         }
 #endif
 
         case KeyPress:
         {
             if (!win->IsEnabled())
-                return FALSE;
+                return false;
 
             wxKeyEvent keyEvent(wxEVT_KEY_DOWN);
             wxTranslateKeyEvent(keyEvent, win, window, event);
@@ -402,14 +405,14 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
 
             // We didn't process wxEVT_KEY_DOWN, so send wxEVT_CHAR
             if (win->GetEventHandler()->ProcessEvent( keyEvent ))
-                return TRUE;
+                return true;
 
             keyEvent.SetEventType(wxEVT_CHAR);
             // Do the translation again, retaining the ASCII
             // code.
-            wxTranslateKeyEvent(keyEvent, win, window, event, TRUE);
+            wxTranslateKeyEvent(keyEvent, win, window, event, true);
             if (win->GetEventHandler()->ProcessEvent( keyEvent ))
-                return TRUE;
+                return true;
 
             if ( (keyEvent.m_keyCode == WXK_TAB) &&
                  win->GetParent() && (win->GetParent()->HasFlag( wxTAB_TRAVERSAL)) )
@@ -424,12 +427,12 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 return win->GetParent()->GetEventHandler()->ProcessEvent( new_event );
             }
 
-            return FALSE;
+            return false;
         }
         case KeyRelease:
         {
             if (!win->IsEnabled())
-                return FALSE;
+                return false;
 
             wxKeyEvent keyEvent(wxEVT_KEY_UP);
             wxTranslateKeyEvent(keyEvent, win, window, event);
@@ -461,7 +464,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                     return win->GetEventHandler()->ProcessEvent( sizeEvent );
                 }
             }
-            return FALSE;
+            return false;
         }
 #if !wxUSE_NANOX
         case PropertyNotify:
@@ -472,7 +475,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
         case ClientMessage:
         {
             if (!win->IsEnabled())
-                return FALSE;
+                return false;
 
             Atom wm_delete_window = XInternAtom(wxGlobalDisplay(), "WM_DELETE_WINDOW", True);
             Atom wm_protocols = XInternAtom(wxGlobalDisplay(), "WM_PROTOCOLS", True);
@@ -481,11 +484,11 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
             {
                 if ((Atom) (event->xclient.data.l[0]) == wm_delete_window)
                 {
-                    win->Close(FALSE);
-                    return TRUE;
+                    win->Close(false);
+                    return true;
                 }
             }
-            return FALSE;
+            return false;
         }
 #if 0
         case DestroyNotify:
@@ -527,10 +530,10 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
         {
             if (win)
             {
-                win->Close(FALSE);
-                return TRUE;
+                win->Close(false);
+                return true;
             }
-            return FALSE;
+            return false;
             break;
         }
 #endif
@@ -541,7 +544,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
         case MotionNotify:
         {
             if (!win->IsEnabled())
-                return FALSE;
+                return false;
 
             // Here we check if the top level window is
             // disabled, which is one aspect of modality.
@@ -549,7 +552,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
             while (tlw && !tlw->IsTopLevel())
                 tlw = tlw->GetParent();
             if (tlw && !tlw->IsEnabled())
-                return FALSE;
+                return false;
 
             if (event->type == ButtonPress)
             {
@@ -578,7 +581,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
             {
                 // Throw out NotifyGrab and NotifyUngrab
                 if (event->xcrossing.mode != NotifyNormal)
-                    return FALSE;
+                    return false;
             }
 #endif
             wxMouseEvent wxevent;
@@ -600,7 +603,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                     // caused by a child having its focus set.
                     g_GettingFocus = NULL;
                     wxLogTrace( _T("focus"), _T("FocusIn from %s of type %s being deliberately ignored"), win->GetName().c_str(), win->GetClassInfo()->GetClassName() );
-                    return TRUE;
+                    return true;
                 }
                 else
                 {
@@ -612,7 +615,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                     return win->GetEventHandler()->ProcessEvent(focusEvent);
                 }
             }
-            return FALSE;
+            return false;
 
         case FocusOut:
 #if !wxUSE_NANOX
@@ -628,7 +631,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 g_nextFocus = NULL;
                 return win->GetEventHandler()->ProcessEvent(focusEvent);
             }
-            return FALSE;
+            return false;
 
 #ifdef __WXDEBUG__
         default:
@@ -638,7 +641,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
 #endif // __WXDEBUG__
     }
 
-    return FALSE;
+    return false;
 }
 
 // This should be redefined in a derived class for
@@ -648,7 +651,7 @@ bool wxApp::HandlePropertyChange(WXEvent *event)
     // by default do nothing special
     // TODO: what to do for X11
     // XtDispatchEvent((XEvent*) event);
-    return FALSE;
+    return false;
 }
 
 void wxApp::WakeUpIdle()
@@ -668,7 +671,7 @@ bool wxApp::OnInitGui()
     delete wxLog::SetActiveTarget(new wxLogStderr);
 
     if (!wxAppBase::OnInitGui())
-        return FALSE;
+        return false;
 
     GetMainColormap( wxApp::GetDisplay() );
 
@@ -679,7 +682,7 @@ bool wxApp::OnInitGui()
     wxFillXVisualInfo( m_visualInfo, (Display*) wxApp::GetDisplay() );
 #endif
 
-    return TRUE;
+    return true;
 }
 
 #if wxUSE_UNICODE
@@ -785,7 +788,7 @@ bool wxApp::Yield(bool onlyIfNeeded)
     int i;
     for (i = 0; i < 2; i++)
     {
-        static bool s_inYield = FALSE;
+        static bool s_inYield = false;
 
         if ( s_inYield )
         {
@@ -794,10 +797,10 @@ bool wxApp::Yield(bool onlyIfNeeded)
                 wxFAIL_MSG( wxT("wxYield called recursively" ) );
             }
 
-            return FALSE;
+            return false;
         }
 
-        s_inYield = TRUE;
+        s_inYield = true;
 
         // Make sure we have an event loop object,
         // or Pending/Dispatch will fail
@@ -827,10 +830,10 @@ bool wxApp::Yield(bool onlyIfNeeded)
             delete newEventLoop;
         }
 
-        s_inYield = FALSE;
+        s_inYield = false;
     }
 
-    return TRUE;
+    return true;
 }
 
 #ifdef __WXDEBUG__
@@ -849,4 +852,3 @@ void wxApp::OnAssert(const wxChar *file, int line, const wxChar* cond, const wxC
 }
 
 #endif // __WXDEBUG__
-
