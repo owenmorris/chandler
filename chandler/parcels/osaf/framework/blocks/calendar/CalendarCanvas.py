@@ -609,19 +609,22 @@ class CalendarNotificationHandler(object):
     """
     def __init__(self, *args, **kwds):
         super(CalendarNotificationHandler, self).__init__(*args, **kwds)
-        self.pendingNewEvents = []
+        self._pendingNewEvents = set()
     
     def onItemNotification(self, notificationType, data):
         if (notificationType == 'collectionChange'):
             op, coll, name, item = data
-            if isuuid(item):
-                item = self.blockItem.itsView[item]
+            if not isuuid(item):
+                item = item.itsUUID
                 
             if op == 'add':
-                self.pendingNewEvents.append(item)
-            elif op == 'remove' and item in self.pendingNewEvents:
-                self.pendingNewEvents.remove(item)
-            
+                self._pendingNewEvents.add(item)
+            elif op == 'remove' and item in self._pendingNewEvents:
+                self._pendingNewEvents.remove(item)
+
+    def ClearPendingNewEvents(self):
+        self._pendingNewEvents = set()
+        
     def GetPendingNewEvents(self, (startTime, endTime)):
 
         # Helper method for optimizing the display of
@@ -637,12 +640,10 @@ class CalendarNotificationHandler(object):
         # if you get a list of events.
         #
         # The returned list may be empty (e.g. if an event is added
-        # outside the given range). There is also no guarantee
-        # that any given element in the list appears only once.
-        # 
-        
+        # outside the given range).
         addedEvents = []
-        for item in self.pendingNewEvents:
+        for itemUUID in self._pendingNewEvents:
+            item = self.blockItem.itsView[itemUUID]
             if (hasattr(item, 'startTime') and
                 hasattr(item, 'duration') and
                 (item.rruleset is None) ):
@@ -651,11 +652,11 @@ class CalendarNotificationHandler(object):
                         Calendar.datetimeOp(item.endTime, '<', startTime)):
                     addedEvents.append(item)
 
-        self.pendingNewEvents = []
+        self._pendingNewEvents = set()
         return addedEvents
 
     def HavePendingNewEvents(self):
-        return len(self.pendingNewEvents)>0
+        return len(self._pendingNewEvents)>0
 
 
 # ATTENTION: do not put mixins here - put them in CollectionBlock
@@ -1343,7 +1344,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
     def wxSynchronizeWidget(self, useHints=False):
         # clear notifications
-        self.pendingNewEvents = []
+        self.ClearPendingNewEvents()
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):

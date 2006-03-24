@@ -157,6 +157,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             if numAdded == 1:
                 self.EditCurrentItem()
         else:
+            self.ClearPendingNewEvents()
             self.visibleItems = list(
                 self.blockItem.getItemsInRange(currentRange, dayItems=True))
             self.RefreshCanvasItems(resort=True)

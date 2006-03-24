@@ -109,6 +109,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 self.canvasItemList.sort(cmpFn, keyFn)
 
         else:
+            self.ClearPendingNewEvents()
             self.visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
                                                                     timedItems=True))
 
@@ -356,7 +357,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def RealignCanvasItems(self):
         """
         Takes the existing self.canvasItemList, and realigns the
-        rectangles to deal with conflicts and the current drag state
+        rectangles to deal with conflicts and the current drag state,
+        and then resorts it to be in drawing order.
         """
         if self.dragState is not None:
             currentDragBox = self.dragState.currentDragBox
@@ -386,7 +388,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # should be relatively quick because the canvasItemList is already
         # sorted by startTime. If no conflicts, this is an O(n) operation
         # (note that as of Python 2.4, sorts are stable, so this remains safe)
-        self.canvasItemList.sort(key=TimedCanvasItem.GetDrawingOrderKey)
+        self.canvasItemsByDate = self.canvasItemList
+        self.canvasItemList = sorted(self.canvasItemsByDate,
+                                     key=TimedCanvasItem.GetDrawingOrderKey)
 
     def DrawCells(self, dc):
         styles = self.blockItem.calendarContainer
@@ -468,13 +472,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             return
 
         newItemIndex = -1
-        canvasItemIndex = self.canvasItemList.index(currentCanvasItem)
+        canvasItemIndex = self.canvasItemsByDate.index(currentCanvasItem)
 
-        # Hopefully the current (drawing) order of canvasItemList is ok
-        if direction == "DOWN":
-            newItemIndex = canvasItemIndex + 1
-        elif direction == "UP":
+        # Using canvasItemsByDate rather than drawing-order-based
+        # canvasItemList
+        if direction == "UP":
             newItemIndex = canvasItemIndex - 1
+        elif direction == "DOWN":
+            newItemIndex = canvasItemIndex + 1
+            
         elif direction in ("LEFT", "RIGHT"):
             # try to go back or forward one day, and find the nearest event
             currentDate = currentCanvasItem.item.startTime.date()
@@ -483,18 +489,18 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 searchEnd = -1
             else:                       # "RIGHT"
                 delta = 1
-                searchEnd = len(self.canvasItemList)
+                searchEnd = len(self.canvasItemsByDate)
                 
             newItemIndex = canvasItemIndex + delta
             foundDecentItem = False
             
             for idx in range(newItemIndex, searchEnd, delta):
-                newCanvasItem = self.canvasItemList[idx]
+                newCanvasItem = self.canvasItemsByDate[idx]
                 newDate = newCanvasItem.item.startTime.date()
                 
                 if foundDecentItem:
                     # we've already gone back/forward at least a day, so if we
-                    # hit another date, then we've gone too far
+                    # hit another whole day, then we've gone too far
                     if newDate != bestDate:
                         break
                     
@@ -520,8 +526,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     timeDiff = abs(newCanvasItem.item.startTime - bestTime)
                 
 
-        if 0 <= newItemIndex < len(self.canvasItemList):
-            self.OnSelectItem(self.canvasItemList[newItemIndex].item)
+        if 0 <= newItemIndex < len(self.canvasItemsByDate):
+            self.OnSelectItem(self.canvasItemsByDate[newItemIndex].item)
             
     def OnCreateItem(self, unscrolledPosition, displayName = None):
         
