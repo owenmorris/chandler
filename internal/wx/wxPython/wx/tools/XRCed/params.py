@@ -2,7 +2,7 @@
 # Purpose:      Classes for parameter introduction
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      22.08.2001
-# RCS-ID:       $Id: params.py,v 1.19 2005/11/11 00:23:31 ROL Exp $
+# RCS-ID:       $Id: params.py,v 1.20 2006/03/24 01:47:55 RD Exp $
 
 import string
 import os.path
@@ -187,7 +187,6 @@ class ParamExStyle(ParamBinaryOr):
         else:
             self.values = []
         ParamBinaryOr.__init__(self, parent, name)
-        self.SetTitle('Extended window styles')
 
 class ParamColour(PPanel):
     def __init__(self, parent, name):
@@ -234,7 +233,7 @@ class ParamColour(PPanel):
 
 ################################################################################
 
-# Mapping from wx constants ro XML strings
+# Mapping from wx constants to XML strings
 fontFamiliesWx2Xml = {wxDEFAULT: 'default', wxDECORATIVE: 'decorative',
                 wxROMAN: 'roman', wxSCRIPT: 'script', wxSWISS: 'swiss',
                 wxMODERN: 'modern'}
