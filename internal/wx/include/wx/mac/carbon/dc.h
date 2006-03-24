@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        dc.h
+// Name:        include/wx/mac/carbon/dc.h
 // Purpose:     wxDC class
 // Author:      Stefan Csomor
 // Modified by:
@@ -127,6 +127,10 @@ public:
     virtual void SetTextBackground(const wxColour& colour);
 
     virtual void ComputeScaleAndOrigin();
+
+#if wxMAC_USE_CORE_GRAPHICS
+    virtual void SetAntiAliasing(bool isAntiAliased);
+#endif
 
 public:
     wxCoord XDEV2LOG(wxCoord x) const
