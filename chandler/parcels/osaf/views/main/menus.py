@@ -19,7 +19,6 @@ def makeMainMenus(parcel):
         for shortName, title, hue in hues:
             rgb = hsv_to_rgb(hue/360.0, 0.5, 1.0)
             rgb = [int(c*255) for c in rgb] + [255]
-            #rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue/360.0, 0.5, 1.0))
             color = ColorType (*rgb)
 
             colorEvent = ColorEvent.template(

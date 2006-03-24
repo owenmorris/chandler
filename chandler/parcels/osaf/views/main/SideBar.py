@@ -878,7 +878,9 @@ class SidebarBlock(Table):
             DoDeleteAction(item)
         
     def onCollectionColorEvent(self, event):
-        UserCollection(self.selectedItemToView).color = event.color
+        if (self.selectedItemToView is not None and
+            isinstance(self.selectedItemToView, ContentCollection)):
+            UserCollection(self.selectedItemToView).color = event.color
         
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
