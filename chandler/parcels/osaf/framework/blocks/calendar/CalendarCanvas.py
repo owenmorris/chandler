@@ -10,6 +10,7 @@ import wx
 import wx.colheader
 
 from repository.item.Monitors import Monitors
+from chandlerdb.util.c import isuuid
 from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 
 from datetime import datetime, timedelta, date, time
@@ -613,8 +614,13 @@ class CalendarNotificationHandler(object):
     def onItemNotification(self, notificationType, data):
         if (notificationType == 'collectionChange'):
             op, coll, name, item = data
+            if isuuid(item):
+                item = self.blockItem.itsView[item]
+                
             if op == 'add':
                 self.pendingNewEvents.append(item)
+            elif op == 'remove' and item in self.pendingNewEvents:
+                self.pendingNewEvents.remove(item)
             
     def GetPendingNewEvents(self, (startTime, endTime)):
 
