@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobox.h,v 1.31 2006/03/23 22:04:37 VZ Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.32 2006/03/24 22:50:48 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,15 +72,29 @@ public:
                 const wxValidator& val = wxDefaultValidator,
                 const wxString& name = wxRadioBoxNameStr);
 
+    // Enabling
+    virtual bool Enable(bool enable = true);
+    virtual bool Enable(unsigned int item, bool enable = true);
+    virtual bool IsItemEnabled(unsigned int WXUNUSED(n)) const
+    {
+        /* TODO */
+        return true;
+    }
+
+    // Showing
+    virtual bool Show(bool show = true);
+    virtual bool Show(unsigned int item, bool show = true);
+    virtual bool IsItemShown(unsigned int WXUNUSED(n)) const
+    {
+        /* TODO */
+        return true;
+    }
+
     virtual void SetSelection(int n);
     int GetSelection() const;
 
     virtual void SetString(unsigned int item, const wxString& label);
     virtual wxString GetString(unsigned int item) const;
-    virtual bool Enable(bool enable = true);
-    virtual bool Enable(unsigned int item, bool enable = true);
-    virtual bool Show(unsigned int item, bool show = true);
-    virtual bool Show(bool show = true);
 
     virtual wxString GetStringSelection() const;
     virtual bool SetStringSelection(const wxString& s);
