@@ -221,6 +221,11 @@ bool			bResultV;
 			actualSize.x = size.x;
 	}
 
+	// NB: we're stealing the style argument from Win32 and wx to support ListHeader attributes
+	if (style & (1 << CH_ATTR_VerticalOrientation))
+		m_BUseVerticalOrientation = true;
+	style = 0;
+
 	// NB: the CreateControl call crashes on MacOS
 #if defined(__WXMSW__)
 	// NB: this is a string from Win32 headers and is conditionally defined as Unicode or ANSI,
@@ -363,6 +368,8 @@ wxSize wxColumnHeader::CalculateDefaultSize( void ) const
 wxWindow	*parentW;
 wxSize		bestSize;
 
+	// FIXME: needs work for vertical row headers
+
 	// best width is parent's width; height is fixed by native drawing routines
 	parentW = GetParent();
 	if (parentW != NULL)
@@ -383,6 +390,8 @@ wxSize		bestSize;
 		boundsR.left = boundsR.top = 0;
 		boundsR.right = bestSize.x;
 		boundsR.bottom = bestSize.y;
+
+		ZeroMemory( &hdl, sizeof(hdl) );
 		hdl.prc = &boundsR;
 		hdl.pwpos = &wp;
 		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
@@ -647,12 +656,12 @@ bool			bResult;
 	switch (flagEnum)
 	{
 	case CH_ATTR_VerticalOrientation:
-		// NB: runtime set not allowed
+		// NB: runtime assignment not (currently) supported
 		// m_BUseVerticalOrientation = bFlagValue;
 		break;
 
 	case CH_ATTR_Unicode:
-		// NB: runtime set not allowed
+		// NB: runtime assignment not (currently) supported
 		// m_BUseUnicode = bFlagValue;
 		break;
 
@@ -729,7 +738,7 @@ bool		bIsVertical;
 	if ((newWidth <= 0) || (m_ItemList == NULL))
 		return false;
 
-	// NB: not implemented - vertical
+	// FIXME: needs work for vertical row headers
 	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 
 	// count non-fixed-width items and tabulate size
@@ -799,7 +808,8 @@ bool		bScaling;
 	extentX = GetTotalUIExtent();
 	DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentX, m_NativeBoundsR.height, 0 );
 
-	m_BProportionalResizing = true;
+	if (bScaling)
+		m_BProportionalResizing = true;
 
 	return true;
 }
@@ -823,7 +833,7 @@ bool					bIsVertical;
 	if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
 		return false;
 
-	// NB: not implemented - vertical
+	// FIXME: needs work for vertical row headers
 	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 
 	deltaV = itemRef2->m_OriginX - originX;
@@ -1310,12 +1320,12 @@ bool					bResultV, bIsVertical;
 		if (bResultV)
 		{
 			boundsR->x = 0; // m_NativeBoundsR.x;
-			boundsR->y = itemRef->m_OriginX;
+			boundsR->y = m_NativeBoundsR.height * itemIndex; // itemRef->m_OriginX;
 			boundsR->width = m_NativeBoundsR.width;
-			boundsR->height = itemRef->m_ExtentX + 1;
+			boundsR->height = m_NativeBoundsR.height; // itemRef->m_ExtentX + 1;
 
-			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_OriginX)
-				boundsR->height = m_NativeBoundsR.height - itemRef->m_OriginX;
+//			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_OriginX)
+//				boundsR->height = m_NativeBoundsR.height - itemRef->m_OriginX;
 
 			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
 		}
@@ -2412,8 +2422,7 @@ Rect					qdBoundsR;
 bool					bSelected, bHasButtonArrow, bHasBitmap;
 OSStatus				errStatus;
 
-//	if ((boundsR == NULL) || boundsR->IsEmpty())
-	if (boundsR == NULL)
+	if ((boundsR == NULL) || boundsR->IsEmpty())
 		return (-1L);
 
 	errStatus = noErr;
@@ -2529,7 +2538,7 @@ OSStatus				errStatus;
 			}
 		}
 
-//		if (errStatus != 0)
+//		if (errStatus != noErr)
 //			wxLogDebug(
 //				wxT("wxColumnHeaderItem::MacDraw(%s: %s) failure [%ld]"),
 //				bUseUnicode ? wxT("unicode") : wxT("ascii"), targetStr.c_str(), (long)errStatus );
@@ -2553,8 +2562,7 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	wxUnusedVar( bUseUnicode );
 
-//	if ((boundsR == NULL) || boundsR->IsEmpty())
-	if (boundsR == NULL)
+	if ((boundsR == NULL) || boundsR->IsEmpty())
 		return (-1L);
 
 	if ((parentW == NULL) || (dc == NULL))
@@ -2568,7 +2576,7 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
 	localBoundsR = *boundsR;
-	localBoundsR.Deflate( 1, 1 );
+//	localBoundsR.Deflate( 1, 1 );
 	drawFlags = 0;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR, drawFlags );
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.09.00
-// RCS-ID:      $Id: radiobox.h,v 1.25 2006/03/23 00:43:11 VZ Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.26 2006/03/23 22:04:47 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,16 +84,17 @@ public:
     virtual void SetSelection(int n);
     virtual int GetSelection() const;
 
-    virtual size_t GetCount() const { return m_buttons.GetCount(); }
+    virtual unsigned int GetCount() const
+        { return (unsigned int)m_buttons.GetCount(); }
 
-    virtual wxString GetString(int n) const;
-    virtual void SetString(int n, const wxString& label);
+    virtual wxString GetString(unsigned int n) const;
+    virtual void SetString(unsigned int n, const wxString& label);
 
-    virtual bool Enable(int n, bool enable = true);
-    virtual bool Show(int n, bool show = true);
+    virtual bool Enable(unsigned int n, bool enable = true);
+    virtual bool Show(unsigned int n, bool show = true);
 
-    virtual bool IsItemEnabled(int n) const;
-    virtual bool IsItemShown(int n) const;
+    virtual bool IsItemEnabled(unsigned int n) const;
+    virtual bool IsItemShown(unsigned int n) const;
 
     // we also override the wxControl methods to avoid virtual function hiding
     virtual bool Enable(bool enable = true);

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobox.h,v 1.30 2006/03/14 19:35:24 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.31 2006/03/23 22:04:37 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,19 +72,19 @@ public:
                 const wxValidator& val = wxDefaultValidator,
                 const wxString& name = wxRadioBoxNameStr);
 
-    void SetSelection(int N);
+    virtual void SetSelection(int n);
     int GetSelection() const;
 
-    void SetString(int item, const wxString& label) ;
-    wxString GetString(int item) const;
+    virtual void SetString(unsigned int item, const wxString& label);
+    virtual wxString GetString(unsigned int item) const;
     virtual bool Enable(bool enable = true);
-    virtual bool Enable(int item, bool enable = true);
-    virtual bool Show(int item, bool show = true);
+    virtual bool Enable(unsigned int item, bool enable = true);
+    virtual bool Show(unsigned int item, bool show = true);
     virtual bool Show(bool show = true);
 
     virtual wxString GetStringSelection() const;
     virtual bool SetStringSelection(const wxString& s);
-    virtual size_t GetCount() const { return m_noItems; } ;
+    virtual unsigned int GetCount() const { return m_noItems; } ;
     void Command(wxCommandEvent& event);
 
     int GetNumberOfRowsOrCols() const { return m_noRowsOrCols; }
@@ -103,7 +103,7 @@ protected:
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);
 
-    size_t            m_noItems;
+    unsigned int      m_noItems;
     int               m_noRowsOrCols;
     int               m_selectedButton;
 

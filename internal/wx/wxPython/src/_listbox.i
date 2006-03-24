@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listbox.i,v 1.18 2006/03/10 00:26:28 RD Exp $
+// RCS-ID:      $Id: _listbox.i,v 1.19 2006/03/24 00:08:45 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ public:
         }
     }
 
-    void InsertItems(const wxArrayString& items, int pos);
+    void InsertItems(const wxArrayString& items, unsigned int pos);
     void Set(const wxArrayString& items/*, void **clientData = NULL */);
 
     // multiple selection logic
@@ -165,8 +165,8 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxPyListBoxNameStr);
 
-    bool  IsChecked(int index);
-    void  Check(int index, int check = true);
+    bool  IsChecked(unsigned int index);
+    void  Check(unsigned int index, int check = true);
 
 #if defined(__WXMSW__) || defined(__WXGTK__)
     int GetItemHeight();

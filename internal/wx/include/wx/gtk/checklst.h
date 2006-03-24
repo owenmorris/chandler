@@ -1,9 +1,9 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        checklst.h
+// Name:        wx/gtk/checklst.h
 // Purpose:     wxCheckListBox class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: checklst.h,v 1.19 2006/03/01 21:51:38 RR Exp $
+// RCS-ID:      $Id: checklst.h,v 1.20 2006/03/23 22:04:26 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,11 +52,11 @@ public:
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxListBoxNameStr);
 
-    bool IsChecked( int index ) const;
-    void Check( int index, bool check = TRUE );
+    bool IsChecked(unsigned int index) const;
+    void Check(unsigned int index, bool check = true);
 
     int GetItemHeight() const;
-    
+
 #if wxUSE_NATIVEGTKCHECKLIST
     void DoCreateCheckList();
 #endif

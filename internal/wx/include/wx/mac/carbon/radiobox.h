@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: radiobox.h,v 1.9 2006/03/14 19:35:20 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.10 2006/03/23 22:04:32 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,13 +58,13 @@ public:
     virtual void SetSelection(int item);
     virtual int GetSelection() const;
 
-    virtual size_t GetCount() const { return m_noItems; } ;
+    virtual unsigned int GetCount() const { return m_noItems; }
 
-    virtual wxString GetString(int item) const;
-    virtual void SetString(int item, const wxString& label) ;
+    virtual wxString GetString(unsigned int item) const;
+    virtual void SetString(unsigned int item, const wxString& label);
 
-    virtual bool Enable(int item, bool enable = true);
-    virtual bool Show(int item, bool show = true);
+    virtual bool Enable(unsigned int item, bool enable = true);
+    virtual bool Show(unsigned int item, bool show = true);
 
     virtual bool Enable(bool enable = true);
     virtual wxString GetLabel() const;
@@ -84,7 +84,7 @@ public:
 protected:
     wxRadioButton    *m_radioButtonCycle;
 
-    size_t            m_noItems;
+    unsigned int      m_noItems;
     int               m_noRowsOrCols;
 
 // Internal functions

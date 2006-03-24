@@ -2,7 +2,7 @@
 // Name:        wx/gtk/listbox.h
 // Purpose:     wxListBox class declaration
 // Author:      Robert Roebling
-// Id:          $Id: listbox.h,v 1.59 2006/03/14 19:35:15 ABX Exp $
+// Id:          $Id: listbox.h,v 1.60 2006/03/23 22:04:27 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,11 +63,11 @@ public:
 
     // implement base class pure virtuals
     virtual void Clear();
-    virtual void Delete(int n);
+    virtual void Delete(unsigned int n);
 
-    virtual size_t GetCount() const;
-    virtual wxString GetString(int n) const;
-    virtual void SetString(int n, const wxString& s);
+    virtual unsigned int GetCount() const;
+    virtual wxString GetString(unsigned int n) const;
+    virtual void SetString(unsigned int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const;
 
     virtual bool IsSelected(int n) const;
@@ -99,20 +99,20 @@ public:
 
     struct _GtkTreeEntry* GtkGetEntry(int pos) const;
     void GtkInsertItems(const wxArrayString& items,
-                        void** clientData, size_t pos);
+                        void** clientData, unsigned int pos);
     void GtkSetSelection(int n, const bool select, const bool blockEvent);
 
 protected:
     virtual wxSize DoGetBestSize() const;
     virtual void DoSetSelection(int n, bool select);
     virtual int DoAppend(const wxString& item);
-    virtual void DoInsertItems(const wxArrayString& items, int pos);
+    virtual void DoInsertItems(const wxArrayString& items, unsigned int pos);
     virtual void DoSetItems(const wxArrayString& items, void **clientData);
     virtual void DoSetFirstItem(int n);
-    virtual void DoSetItemClientData(int n, void* clientData);
-    virtual void* DoGetItemClientData(int n) const;
-    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
-    virtual wxClientData* DoGetItemClientObject(int n) const;
+    virtual void DoSetItemClientData(unsigned int n, void* clientData);
+    virtual void* DoGetItemClientData(unsigned int n) const;
+    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(unsigned int n) const;
     virtual int DoListHitTest(const wxPoint& point) const;
 
     void DoApplyWidgetStyle(GtkRcStyle *style);

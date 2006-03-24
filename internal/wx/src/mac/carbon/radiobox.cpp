@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: JS Lair (99/11/15) first implementation
 // Created:     1998-01-01
-// RCS-ID:      $Id: radiobox.cpp,v 1.54 2006/03/15 06:22:36 vell Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.55 2006/03/23 22:05:05 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,10 +32,10 @@ void wxRadioBox::OnRadioButton( wxCommandEvent &outer )
     {
         wxCommandEvent event( wxEVT_COMMAND_RADIOBOX_SELECTED, m_windowId );
         int i = GetSelection() ;
-        event.SetInt( i );
-        event.SetString( GetString( i ) );
+        event.SetInt(i);
+        event.SetString(GetString(i));
         event.SetEventObject( this );
-        ProcessCommand( event );
+        ProcessCommand(event);
     }
 }
 
@@ -97,7 +97,7 @@ bool wxRadioBox::Create( wxWindow *parent,
 
     int i;
 
-    m_noItems = (size_t)n;
+    m_noItems = (unsigned int)n;
     m_noRowsOrCols = majorDim;
     m_radioButtonCycle = NULL;
 
@@ -150,7 +150,7 @@ bool wxRadioBox::Enable(bool enable)
         return false;
 
     current = m_radioButtonCycle;
-    for (size_t i = 0; i < m_noItems; i++)
+    for (unsigned int i = 0; i < m_noItems; i++)
     {
         current->Enable( enable );
         current = current->NextInCycle();
@@ -161,16 +161,13 @@ bool wxRadioBox::Enable(bool enable)
 
 // Enables or disables an given button
 //
-bool wxRadioBox::Enable(int item, bool enable)
+bool wxRadioBox::Enable(unsigned int item, bool enable)
 {
-    int i;
-    wxRadioButton *current;
-
     if (!IsValid( item ))
         return false;
 
-    i = 0;
-    current = m_radioButtonCycle;
+    unsigned int i = 0;
+    wxRadioButton *current = m_radioButtonCycle;
     while (i != item)
     {
         i++;
@@ -189,15 +186,14 @@ wxString wxRadioBox::GetLabel() const
 
 // Returns the label for the given button
 //
-wxString wxRadioBox::GetString(int item) const
+wxString wxRadioBox::GetString(unsigned int item) const
 {
-    int i;
     wxRadioButton *current;
 
     if (!IsValid( item ))
         return wxEmptyString;
 
-    i = 0;
+    unsigned int i = 0;
     current = m_radioButtonCycle;
     while (i != item)
     {
@@ -235,16 +231,13 @@ void wxRadioBox::SetLabel(const wxString& label)
 
 // Sets the label of a given button
 //
-void wxRadioBox::SetString(int item,const wxString& label)
+void wxRadioBox::SetString(unsigned int item,const wxString& label)
 {
-    int i;
-    wxRadioButton *current;
-
     if (!IsValid( item ))
         return;
 
-    i = 0;
-    current = m_radioButtonCycle;
+    unsigned int i = 0;
+    wxRadioButton *current = m_radioButtonCycle;
     while (i != item)
     {
         i++;
@@ -283,7 +276,7 @@ bool wxRadioBox::Show(bool show)
     wxRadioButton *current;
 
     current = m_radioButtonCycle;
-    for (size_t i=0; i<m_noItems; i++)
+    for (unsigned int i=0; i<m_noItems; i++)
     {
         current->Show( show );
         current = current->NextInCycle();
@@ -296,16 +289,13 @@ bool wxRadioBox::Show(bool show)
 
 // Shows or hides the given button
 //
-bool wxRadioBox::Show(int item, bool show)
+bool wxRadioBox::Show(unsigned int item, bool show)
 {
-    int i;
-    wxRadioButton *current;
-
     if (!IsValid( item ))
         return false;
 
-    i = 0;
-    current = m_radioButtonCycle;
+    unsigned int i = 0;
+    wxRadioButton *current = m_radioButtonCycle;
     while (i != item)
     {
         i++;
@@ -383,9 +373,9 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 
     maxWidth = -1;
     maxHeight = -1;
-    for (size_t i = 0 ; i < m_noItems; i++)
+    for (unsigned int i = 0 ; i < m_noItems; i++)
     {
-        GetTextExtent( GetString( i ), &eachWidth[i], &eachHeight[i] );
+        GetTextExtent(GetString(i), &eachWidth[i], &eachHeight[i] );
         eachWidth[i] = (int)(eachWidth[i] + RADIO_SIZE);
         eachHeight[i] = (int)((3 * eachHeight[i]) / 2);
 
@@ -473,9 +463,9 @@ wxSize wxRadioBox::DoGetBestSize() const
     maxWidth = -1;
     maxHeight = -1;
 
-    for (size_t i = 0 ; i < m_noItems; i++)
+    for (unsigned int i = 0 ; i < m_noItems; i++)
     {
-        GetTextExtent( GetString( i ), &eachWidth, &eachHeight, NULL, NULL, &font );
+        GetTextExtent(GetString(i), &eachWidth, &eachHeight, NULL, NULL, &font );
         eachWidth  = (int)(eachWidth + RADIO_SIZE);
         eachHeight = (int)((3 * eachHeight) / 2);
         if (maxWidth < eachWidth)

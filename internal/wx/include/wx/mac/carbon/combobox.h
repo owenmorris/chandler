@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h,v 1.21 2006/03/14 19:35:19 ABX Exp $
+// RCS-ID:      $Id: combobox.h,v 1.22 2006/03/23 22:04:31 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,16 +85,16 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
            const wxString& name = wxComboBoxNameStr);
 
     // List functions
-    virtual void Delete(int n);
+    virtual void Delete(unsigned int n);
     virtual void Clear();
 
     virtual int GetSelection() const;
     int GetCurrentSelection() const { return GetSelection(); }
     virtual void SetSelection(int n);
     virtual int FindString(const wxString& s, bool bCase = false) const;
-    virtual wxString GetString(int n) const;
+    virtual wxString GetString(unsigned int n) const;
     virtual wxString GetStringSelection() const;
-    virtual void SetString(int n, const wxString& s);
+    virtual void SetString(unsigned int n, const wxString& s);
 
     // Text field functions
     virtual wxString GetValue() const;
@@ -114,7 +114,7 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
     virtual void SetEditable(bool editable);
     virtual bool IsEditable() const;
 
-    virtual size_t GetCount() const;
+    virtual unsigned int GetCount() const;
 
     virtual void Undo();
     virtual void Redo();
@@ -143,12 +143,12 @@ protected:
     virtual void DoMoveWindow(int x, int y, int width, int height);
 
     virtual int DoAppend(const wxString& item);
-    virtual int DoInsert(const wxString& item, int pos);
+    virtual int DoInsert(const wxString& item, unsigned int pos);
 
-    virtual void DoSetItemClientData(int n, void* clientData);
-    virtual void * DoGetItemClientData(int n) const;
-    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
-    virtual wxClientData * DoGetItemClientObject(int n) const;
+    virtual void DoSetItemClientData(unsigned int n, void* clientData);
+    virtual void * DoGetItemClientData(unsigned int n) const;
+    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
+    virtual wxClientData * DoGetItemClientObject(unsigned int n) const;
 
     // the subcontrols
     wxComboBoxText*     m_text;

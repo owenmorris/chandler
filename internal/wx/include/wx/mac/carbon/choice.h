@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: choice.h,v 1.11 2006/03/14 19:35:19 ABX Exp $
+// RCS-ID:      $Id: choice.h,v 1.12 2006/03/23 22:04:31 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,28 +69,28 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxChoiceNameStr);
 
-    virtual void Delete(int n);
+    virtual void Delete(unsigned int n);
     virtual void Clear();
 
-    virtual size_t GetCount() const ;
+    virtual unsigned int GetCount() const ;
     virtual int GetSelection() const ;
     virtual void SetSelection(int n);
     int GetCurrentSelection() const { return GetSelection(); }
 
     virtual int FindString(const wxString& s, bool bCase = false) const;
-    virtual wxString GetString(int n) const ;
-    virtual void SetString( int , const wxString& s ) ;
+    virtual wxString GetString(unsigned int n) const ;
+    virtual void SetString(unsigned int pos, const wxString& s);
     virtual wxInt32 MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF event ) ;
 
 protected:
     virtual wxSize DoGetBestSize() const ;
     virtual int DoAppend(const wxString& item);
-    virtual int DoInsert(const wxString& item, int pos);
+    virtual int DoInsert(const wxString& item, unsigned int pos);
 
-    virtual void DoSetItemClientData( int n, void* clientData );
-    virtual void* DoGetItemClientData( int n ) const;
-    virtual void DoSetItemClientObject( int n, wxClientData* clientData );
-    virtual wxClientData* DoGetItemClientObject( int n ) const;
+    virtual void DoSetItemClientData(unsigned int n, void* clientData);
+    virtual void* DoGetItemClientData(unsigned int n) const;
+    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(unsigned int n) const;
 
     // free all memory we have (used by Clear() and dtor)
     // prevent collision with some BSD definitions of macro Free()

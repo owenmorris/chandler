@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2005/02/16
-// RCS-ID:      $Id: combobox.h,v 1.14 2006/03/14 19:35:12 ABX Exp $
+// RCS-ID:      $Id: combobox.h,v 1.15 2006/03/23 22:04:24 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -102,23 +102,23 @@ protected:
 // ------------------------------------------------------------------------
 public:
     // wxCombobox methods
-    virtual void SetSelection(int);
+    virtual void SetSelection(int pos);
     // Overlapping methods
     virtual wxString GetStringSelection();
     // wxItemContainer
     virtual void Clear();
-    virtual void Delete(int);
-    virtual size_t GetCount() const;
-    virtual wxString GetString(int) const;
-    virtual void SetString(int, const wxString&);
+    virtual void Delete(unsigned int n);
+    virtual unsigned int GetCount() const;
+    virtual wxString GetString(unsigned int) const;
+    virtual void SetString(unsigned int pos, const wxString&);
     virtual int FindString(const wxString& s, bool bCase = false) const;
     virtual int GetSelection() const;
     virtual int DoAppend(const wxString&);
-    virtual int DoInsert(const wxString&, int);
-    virtual void DoSetItemClientData(int, void*);
-    virtual void* DoGetItemClientData(int) const;
-    virtual void DoSetItemClientObject(int, wxClientData*);
-    virtual wxClientData* DoGetItemClientObject(int) const;
+    virtual int DoInsert(const wxString&, unsigned int pos);
+    virtual void DoSetItemClientData(unsigned int, void*);
+    virtual void* DoGetItemClientData(unsigned int) const;
+    virtual void DoSetItemClientObject(unsigned int, wxClientData*);
+    virtual wxClientData* DoGetItemClientObject(unsigned int) const;
     // wxComboBoxBase pure virtuals
     virtual wxString GetValue() const
     {   return wxTextCtrl::GetValue(); }

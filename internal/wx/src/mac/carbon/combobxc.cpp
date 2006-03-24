@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobxc.cpp,v 1.15 2005/09/27 17:05:07 ABX Exp $
+// RCS-ID:      $Id: combobxc.cpp,v 1.16 2006/03/23 22:05:05 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -561,7 +561,7 @@ int wxComboBox::DoAppend(const wxString& item)
 #endif
 }
 
-int wxComboBox::DoInsert(const wxString& item, int pos)
+int wxComboBox::DoInsert(const wxString& item, unsigned int pos)
 {
 #if USE_HICOMBOBOX
     HIComboBoxInsertTextItemAtIndex( *m_peer, (CFIndex)pos, wxMacCFStringHolder(item, m_font.GetEncoding()) );
@@ -574,7 +574,7 @@ int wxComboBox::DoInsert(const wxString& item, int pos)
 #endif
 }
 
-void wxComboBox::DoSetItemClientData(int n, void* clientData)
+void wxComboBox::DoSetItemClientData(unsigned int n, void* clientData)
 {
 #if USE_HICOMBOBOX
     return; //TODO
@@ -583,7 +583,7 @@ void wxComboBox::DoSetItemClientData(int n, void* clientData)
 #endif
 }
 
-void* wxComboBox::DoGetItemClientData(int n) const
+void* wxComboBox::DoGetItemClientData(unsigned int n) const
 {
 #if USE_HICOMBOBOX
     return NULL; //TODO
@@ -592,7 +592,7 @@ void* wxComboBox::DoGetItemClientData(int n) const
 #endif
 }
 
-void wxComboBox::DoSetItemClientObject(int n, wxClientData* clientData)
+void wxComboBox::DoSetItemClientObject(unsigned int n, wxClientData* clientData)
 {
 #if USE_HICOMBOBOX
     return; //TODO
@@ -601,7 +601,7 @@ void wxComboBox::DoSetItemClientObject(int n, wxClientData* clientData)
 #endif
 }
 
-wxClientData* wxComboBox::DoGetItemClientObject(int n) const
+wxClientData* wxComboBox::DoGetItemClientObject(unsigned int n) const
 {
 #if USE_HICOMBOBOX
     return NULL;
@@ -612,25 +612,25 @@ wxClientData* wxComboBox::DoGetItemClientObject(int n) const
 
 void wxComboBox::FreeData()
 {
-    if ( HasClientObjectData() )
+    if (HasClientObjectData())
     {
-        size_t count = GetCount();
-        for ( size_t n = 0; n < count; n++ )
+        unsigned int count = GetCount();
+        for ( unsigned int n = 0; n < count; n++ )
         {
             SetClientObject( n, NULL );
         }
     }
 }
 
-int wxComboBox::GetCount() const {
+unsigned int wxComboBox::GetCount() const {
 #if USE_HICOMBOBOX
-    return (int) HIComboBoxGetItemCount( *m_peer );
+    return (unsigned int) HIComboBoxGetItemCount( *m_peer );
 #else
     return m_choice->GetCount() ;
 #endif
 }
 
-void wxComboBox::Delete(int n)
+void wxComboBox::Delete(unsigned int n)
 {
 #if USE_HICOMBOBOX
     HIComboBoxRemoveItemAtIndex( *m_peer, (CFIndex)n );
@@ -672,7 +672,7 @@ void wxComboBox::SetSelection(int n)
 
     if ( m_text != NULL )
     {
-        m_text->SetValue( GetString( n ) );
+        m_text->SetValue(GetString(n));
     }
 #endif
 }
@@ -680,9 +680,9 @@ void wxComboBox::SetSelection(int n)
 int wxComboBox::FindString(const wxString& s, bool bCase) const
 {
 #if USE_HICOMBOBOX
-    for( int i = 0 ; i < GetCount() ; i++ )
+    for( unsigned int i = 0 ; i < GetCount() ; i++ )
     {
-        if ( GetString( i ).IsSameAs(s, bCase) )
+        if (GetString(i).IsSameAs(s, bCase) )
             return i ;
     }
     return wxNOT_FOUND ;
@@ -691,7 +691,7 @@ int wxComboBox::FindString(const wxString& s, bool bCase) const
 #endif
 }
 
-wxString wxComboBox::GetString(int n) const
+wxString wxComboBox::GetString(unsigned int n) const
 {
 #if USE_HICOMBOBOX
     CFStringRef itemText;
@@ -708,14 +708,14 @@ wxString wxComboBox::GetStringSelection() const
     return wxMacCFStringHolder(m_peer->GetData<CFStringRef>(kHIComboBoxEditTextPart,kControlEditTextCFStringTag)).AsString() ;
 #else
     int sel = GetSelection ();
-    if (sel > -1)
-        return wxString(this->GetString (sel));
+    if (sel != wxNOT_FOUND)
+        return wxString(this->GetString((unsigned int)sel));
     else
         return wxEmptyString;
 #endif
 }
 
-void wxComboBox::SetString(int n, const wxString& s)
+void wxComboBox::SetString(unsigned int n, const wxString& s)
 {
 #if USE_HICOMBOBOX
     verify_noerr ( HIComboBoxInsertTextItemAtIndex( *m_peer, (CFIndex) n,

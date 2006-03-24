@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/18
-// RCS-ID:      $Id: radiobox.h,v 1.10 2006/03/14 19:35:13 ABX Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.11 2006/03/23 22:04:25 VZ Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,12 +85,12 @@ public:
     virtual void SetSelection(int n);
     virtual int GetSelection() const;
     // string access
-    virtual size_t GetCount() const;
-    virtual wxString GetString(int n) const;
-    virtual void SetString(int n, const wxString& label);
+    virtual unsigned int GetCount() const;
+    virtual wxString GetString(unsigned int n) const;
+    virtual void SetString(unsigned int n, const wxString& label);
     // change the individual radio button state
-    virtual bool Enable(int n, bool enable = true);
-    virtual bool Show(int n, bool show = true);
+    virtual bool Enable(unsigned int n, bool enable = true);
+    virtual bool Show(unsigned int n, bool show = true);
 protected:
     virtual wxSize DoGetBestSize() const;
 };

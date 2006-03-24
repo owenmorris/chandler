@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.06.01
-// RCS-ID:      $Id: radiocmn.cpp,v 1.15 2005/11/30 16:27:57 VZ Exp $
+// RCS-ID:      $Id: radiocmn.cpp,v 1.16 2006/03/23 22:04:52 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@
 // implementation
 // ============================================================================
 
-void wxRadioBoxBase::SetMajorDim(int majorDim, long style)
+void wxRadioBoxBase::SetMajorDim(unsigned int majorDim, long style)
 {
     wxCHECK_RET( majorDim != 0, _T("major radiobox dimension can't be 0") );
 
