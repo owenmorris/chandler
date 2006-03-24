@@ -2,7 +2,7 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp,v 1.100 2006/03/23 22:04:55 VZ Exp $
+// Id:          $Id: choice.cpp,v 1.101 2006/03/24 07:26:14 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -483,10 +483,6 @@ void wxChoice::DoApplyWidgetStyle(GtkRcStyle *style)
     }
 }
 
-#ifdef __VMS
-#pragma message disable unscomzer
-#endif
-
 int wxChoice::GtkAddHelper(GtkWidget *menu, unsigned int pos, const wxString& item)
 {
     wxCHECK_MSG(pos<=m_clientList.GetCount(), -1, wxT("invalid index"));
@@ -554,10 +550,6 @@ int wxChoice::GtkAddHelper(GtkWidget *menu, unsigned int pos, const wxString& it
     // return the index of the item in the control
     return index;
 }
-
-#ifdef __VMS
-#pragma message enable unscomzer
-#endif
 
 wxSize wxChoice::DoGetBestSize() const
 {

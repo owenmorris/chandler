@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Brad Anderson
 // Created:     30.05.03
-// RCS-ID:      $Id: vscroll.cpp,v 1.23 2006/03/23 10:08:40 ABX Exp $
+// RCS-ID:      $Id: vscroll.cpp,v 1.24 2006/03/24 07:19:45 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -997,7 +997,7 @@ bool wxHVScrolledWindow::Layout()
         y = -GetRowsHeight(0, GetVisibleRowsBegin());
         x = -GetColumnsWidth(0, GetVisibleColumnsBegin());
         GetVirtualSize(&w, &h);
-        GetSizer()->SetDimension(0, y, w, h);
+        GetSizer()->SetDimension(x, y, w, h);
         return true;
     }
 

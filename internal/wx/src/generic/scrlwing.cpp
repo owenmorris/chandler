@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 31.08.00: wxScrollHelper allows to implement.
 //              Ron Lee on 10.4.02:  virtual size / auto scrollbars et al.
 // Created:     01/02/97
-// RCS-ID:      $Id: scrlwing.cpp,v 1.74 2006/03/13 15:11:14 JS Exp $
+// RCS-ID:      $Id: scrlwing.cpp,v 1.75 2006/03/24 04:14:27 RD Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1084,13 +1084,11 @@ void wxScrollHelper::HandleOnChar(wxKeyEvent& event)
     switch ( event.GetKeyCode() )
     {
         case WXK_PAGEUP:
-        case WXK_PRIOR:
             dsty = sty - (5 * cliy / 6);
             Scroll(-1, (dsty == -1) ? 0 : dsty);
             break;
 
         case WXK_PAGEDOWN:
-        case WXK_NEXT:
             Scroll(-1, sty + (5 * cliy / 6));
             break;
 

@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.531 2006/03/22 07:47:21 JJ Exp $
+*  RCS-ID:      $Id: defs.h,v 1.532 2006/03/24 04:14:28 RD Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -2084,8 +2084,6 @@ enum wxKeyCode
     WXK_MENU,
     WXK_PAUSE,
     WXK_CAPITAL,
-    WXK_PRIOR,  /*  Page up */
-    WXK_NEXT,   /*  Page down */
     WXK_END,
     WXK_HOME,
     WXK_LEFT,
@@ -2142,6 +2140,8 @@ enum wxKeyCode
     WXK_SCROLL,
     WXK_PAGEUP,
     WXK_PAGEDOWN,
+    WXK_PRIOR = WXK_PAGEUP,
+    WXK_NEXT  = WXK_PAGEDOWN,
 
     WXK_NUMPAD_SPACE,
     WXK_NUMPAD_TAB,
@@ -2155,10 +2155,10 @@ enum wxKeyCode
     WXK_NUMPAD_UP,
     WXK_NUMPAD_RIGHT,
     WXK_NUMPAD_DOWN,
-    WXK_NUMPAD_PRIOR,
     WXK_NUMPAD_PAGEUP,
-    WXK_NUMPAD_NEXT,
     WXK_NUMPAD_PAGEDOWN,
+    WXK_NUMPAD_PRIOR = WXK_NUMPAD_PAGEUP,
+    WXK_NUMPAD_NEXT  = WXK_NUMPAD_PAGEDOWN,
     WXK_NUMPAD_END,
     WXK_NUMPAD_BEGIN,
     WXK_NUMPAD_INSERT,

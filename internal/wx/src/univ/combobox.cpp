@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.12.00
-// RCS-ID:      $Id: combobox.cpp,v 1.47 2006/03/23 22:05:22 VZ Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.48 2006/03/24 08:26:02 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -506,8 +506,6 @@ void wxComboTextCtrl::OnKey(wxKeyEvent& event)
         case WXK_ESCAPE:
         case WXK_PAGEDOWN:
         case WXK_PAGEUP:
-        case WXK_PRIOR:
-        case WXK_NEXT:
             (void)m_combo->ProcessEvent(event);
             return;
     }
