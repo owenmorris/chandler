@@ -764,7 +764,8 @@ def generateDocs(options, outputDir):
 
 if __name__ == '__main__':
     options = Utility.initOptions()
-
+    
+    Utility.initProfileDir(options)
     Utility.initLogging(options)
 
     if options.args:

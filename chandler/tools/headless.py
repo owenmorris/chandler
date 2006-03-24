@@ -23,6 +23,7 @@ def startup(**kwds):
     global view
 
     Globals.options = Utility.initOptions(**kwds)
+    Utility.initProfileDir(Globals.options)
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     os.chdir(Globals.chandlerDirectory)
     Utility.initI18n(Globals.options)

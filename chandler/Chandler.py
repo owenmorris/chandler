@@ -11,18 +11,22 @@ import os, PyLucene
 import application.Globals as Globals
 import application.Utility as Utility
 
-def main():
-    # Process any command line switches and any environment variable values
 
+def main():
+
+    # Process any command line switches and any environment variable values
     Globals.options = Utility.initOptions()
 
-    Globals.chandlerDirectory = Utility.locateChandlerDirectory()
-
-    os.chdir(Globals.chandlerDirectory)
-    Utility.initLogging(Globals.options)
-    Utility.initI18n(Globals.options)
-
     def realMain():
+        
+        Utility.initProfileDir(Globals.options)
+        
+        Globals.chandlerDirectory = Utility.locateChandlerDirectory()
+    
+        os.chdir(Globals.chandlerDirectory)
+        Utility.initLogging(Globals.options)
+        Utility.initI18n(Globals.options)
+
         if __debug__ and Globals.options.wing:
             # Check for -wing command line argument; if specified, try to 
             # connect to an already-running WingIDE instance. See
@@ -30,6 +34,7 @@ def main():
             # for details.
 
             import wingdbstub
+
         if __debug__ and Globals.options.komodo:
             # Check for -komodo command line argument; if specified, try to 
             # connect to an already-running Komodo instance. See
@@ -53,6 +58,7 @@ def main():
 
         redirect = __debug__ and not Globals.options.stderr
         app = wxApplication(redirect=redirect, useBestVisual=True)
+
         app.MainLoop()
 
     if Globals.options.nocatch:
@@ -68,9 +74,10 @@ def main():
             realMain()
 
         except (RepositoryOpenDeniedError, ExclusiveOpenDeniedError):
+            # XXX [i18n] Dunno how this could be translated
             message = "Another instance of Chandler currently has the " \
                       "repository open."
-            logging.exception(message)
+            logging.error(message)
             dialog = wx.MessageDialog(None, message, "Chandler", 
                                       wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
@@ -86,17 +93,18 @@ def main():
             frames = 8
             formattedBacktrace = "".join(backtrace[-frames:])
 
+            # XXX [i18n] Dunno how this could be translated
             message = ("Chandler encountered an unexpected problem while trying to start.\n" + \
                       "Here are the bottom %s frames of the stack:\n%s") % (frames - 1, formattedBacktrace)
-            logging.exception(message)
+            logging.error(message)
 
-            try:
-                dialog = wx.MessageDialog(None, message, "Chandler", 
-                                          wx.OK | wx.ICON_INFORMATION)
-                dialog.ShowModal()
-                dialog.Destroy()
-            except wx.PyNoAppError:
-                raise e
+            if wx.GetApp() is None:
+                app = wx.PySimpleApp()
+
+            dialog = wx.MessageDialog(None, message, "Chandler", 
+                                      wx.OK | wx.ICON_INFORMATION)
+            dialog.ShowModal()
+            dialog.Destroy()
 
 
     #@@@Temporary testing tool written by Morgen -- DJA

@@ -26,6 +26,13 @@ SCHEMA_VERSION = "162" # alecf: factor out UserCollection
 
 logger = None # initialized in initLogging()
 
+def createProfileDir(profileDir):
+    """
+    Create the profile directory with the right permissions. 
+    
+    Will raise exception if the directory cannot be created.
+    """
+    os.makedirs(profileDir, 0700)
 
 def locateProfileDir():
     """
@@ -38,7 +45,7 @@ def locateProfileDir():
         chars = string.letters + string.digits
         name = ''.join([chars[ord(c) % len(chars)] for c in os.urandom(8)])
         profileDir = pattern.replace('*', '%s') %(name)
-        os.makedirs(profileDir, 0700)
+        createProfileDir(profileDir)
         return profileDir
 
     if os.name == 'nt':
@@ -192,15 +199,6 @@ def initOptions(**kwds):
     else:
         (options, args) = parser.parse_args()
         
-
-
-    #XXX: i18n a users home directory can be non-ascii path
-    if not options.profileDir:
-        profileDir = locateProfileDir()
-        if profileDir is None:
-            profileDir = locateChandlerDirectory()
-        options.profileDir = os.path.expanduser(profileDir)
-
     for (opt,val) in kwds.iteritems():
         setattr(options, opt, val)
 
@@ -209,13 +207,25 @@ def initOptions(**kwds):
 
     return options
 
+
+def initProfileDir(options):
+    """
+    Ensure we have the profile directory.
+    """
+    #XXX: i18n a users home directory can be non-ascii path
+    if not options.profileDir:
+        profileDir = locateProfileDir()
+        if profileDir is None:
+            profileDir = locateChandlerDirectory()
+        options.profileDir = os.path.expanduser(profileDir)
+    elif not os.path.isdir(options.profileDir):
+        createProfileDir(options.profileDir)
+
+
 def initI18n(options):
     if options.locale is not None:
-        """
-        If a locale is passed in on the command line
-        we set it as the root in the localeset.
-        """
-
+        # If a locale is passed in on the command line
+        # we set it as the root in the localeset.
         i18n.setLocaleSet([options.locale])
     else:
         i18n.discoverLocaleSet()

@@ -96,6 +96,7 @@ if __name__ == '__main__':
         sys.exit(2)
 
     options = Utility.initOptions()
+    Utility.initProfileDir(options)
     Utility.initI18n(options)
     Utility.initLogging(options)
 
