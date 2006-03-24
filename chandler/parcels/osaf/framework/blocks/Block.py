@@ -7,6 +7,7 @@ from application import schema
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from osaf.pim.items import ContentItem
 from osaf.pim.collections import ContentCollection
+from osaf.usercollections import UserCollection
 import wx
 import logging
 
@@ -507,6 +508,8 @@ class Block(schema.Item):
                 if method:
                     method (item)
 
+            if isinstance(item, ContentCollection):
+                UserCollection(item).ensureColor()
             # Call the item's onAddToCollection method if it has one. If it returns None
             # Exit. If it returns something else, add that to the collection
             method = getattr (type (item), "onAddToCollection", None)
