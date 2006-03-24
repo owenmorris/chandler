@@ -278,7 +278,6 @@ def GenerateCollection(view, postToView=None, existingNames=None):
             break
         
     if postToView is not None:
-        assert hasattr (collection, 'color')
         schema.ns("osaf.app", view).sidebarCollection.add (collection)
     return collection
 
