@@ -34,11 +34,11 @@ class UserCollection(schema.Annotation):
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
     outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
     """
-      preferedKind is used as a hint to the user-interface to choose the right
-      view for the display, e.g. CalendarView for collections that have a preferedKind
+      preferredKind is used as a hint to the user-interface to choose the right
+      view for the display, e.g. CalendarView for collections that have a preferredKind
       of CalendarEventMixin's kind.
     """
-    preferedKind            = schema.One(schema.TypeReference('//Schema/Core/Kind'), defaultValue = None)
+    preferredKind           = schema.One(schema.TypeReference('//Schema/Core/Kind'), defaultValue = None)
     """
       A dictionary mapping a KindName string to a new displayName.
     """

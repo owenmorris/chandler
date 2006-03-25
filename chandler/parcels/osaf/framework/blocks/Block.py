@@ -555,7 +555,7 @@ class Block(schema.Item):
                 method = getattr(blockItem, 'onKindParameterizedEvent', None)
                 if method:
                     event = KindParameterizedEvent(itsView = self.itsView)
-                    event.kindParameter = UserCollection(item).preferedKind
+                    event.kindParameter = UserCollection(item).preferredKind
                     method (event)
                     event.delete()
 
