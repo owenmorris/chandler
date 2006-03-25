@@ -2,7 +2,7 @@
 // Name:        gtk/clipbrd.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: clipbrd.cpp,v 1.67 2006/03/15 09:12:52 MR Exp $
+// Id:          $Id: clipbrd.cpp,v 1.68 2006/03/25 00:06:23 RD Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -300,7 +300,7 @@ selection_handler( GtkWidget *WXUNUSED(widget),
         gtk_selection_data_set_text(
             selection_data,
             (const gchar*)d,
-            size-1 );
+            size );
     }
     else
     {
@@ -309,7 +309,7 @@ selection_handler( GtkWidget *WXUNUSED(widget),
             GDK_SELECTION_TYPE_STRING,
             8*sizeof(gchar),
             (unsigned char*) d,
-            size-1 );
+            size );
     }
 
     free(d);

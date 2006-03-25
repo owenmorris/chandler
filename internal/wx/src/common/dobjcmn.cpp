@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Robert Roebling
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: dobjcmn.cpp,v 1.40 2006/03/23 00:41:09 vell Exp $
+// RCS-ID:      $Id: dobjcmn.cpp,v 1.41 2006/03/25 00:06:25 RD Exp $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -238,7 +238,7 @@ size_t wxTextDataObject::GetDataSize(const wxDataFormat& format) const
 {
     wxCharBuffer buffer = GetConv(format).cWX2MB( GetText().c_str() );
 
-    return buffer ? strlen( buffer ) + 1 : 0;
+    return buffer ? strlen( buffer ) : 0;
 }
 
 bool wxTextDataObject::GetDataHere(const wxDataFormat& format, void *buf) const
