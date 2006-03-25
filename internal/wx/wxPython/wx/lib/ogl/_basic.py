@@ -6,7 +6,7 @@
 # Author:       Pierre Hjälm (from C++ original by Julian Smart)
 #
 # Created:      2004-05-08
-# RCS-ID:       $Id: _basic.py,v 1.15 2006/02/03 06:51:34 RD Exp $
+# RCS-ID:       $Id: _basic.py,v 1.16 2006/03/25 00:14:46 RD Exp $
 # Copyright:    (c) 2004 Pierre Hjälm - 1998 Julian Smart
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -1166,7 +1166,7 @@ class Shape(ShapeEvtHandler):
         """Flash the shape."""
         if self.GetCanvas():
             dc = wx.ClientDC(self.GetCanvas())
-            self.GetCanvas.PrepareDC(dc)
+            self.GetCanvas().PrepareDC(dc)
 
             dc.SetLogicalFunction(OGLRBLF)
             self.Draw(dc)

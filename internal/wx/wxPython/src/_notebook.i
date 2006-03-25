@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     2-June-1998
-// RCS-ID:      $Id: _notebook.i,v 1.34 2006/03/15 22:45:10 RD Exp $
+// RCS-ID:      $Id: _notebook.i,v 1.35 2006/03/25 00:13:33 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -100,8 +100,8 @@ public:
 
 
     // get/set size of area between book control area and page area
-    size_t GetInternalBorder() const;
-    void SetInternalBorder(size_t internalBorder);
+    unsigned int GetInternalBorder() const;
+    void SetInternalBorder(unsigned int internalBorder);
 
     // returns true if we have wxCHB_TOP or wxCHB_BOTTOM style
     bool IsVertical() const;
