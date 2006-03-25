@@ -251,16 +251,17 @@ class AbstractDownloadClient(object):
         errorType   = str(err.__class__)
         errorString = err.__str__()
 
+        if self.testing:
+            reconnect = self.testAccountSettings
+        else:
+            reconnect = self.getMail
+
         if isinstance(err, Utility.CertificateVerificationError):
             assert err.args[1] == 'certificate verify failed'
 
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
 
-            if self.testing:
-                reconnect = self.testAccountSettings
-            else:
-                reconnect = self.getMail
 
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to trust this
