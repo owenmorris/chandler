@@ -39,7 +39,7 @@ import twisted
 import twisted.protocols.policies as policies
 from i18n import OSAFMessageFactory as _
 
-import application.Utility as Utility
+from application import schema, Utility
 from osaf.framework.certstore import constants, utils
 
 __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
@@ -58,18 +58,8 @@ def loadCertificatesToContext(repView, ctx):
     @param repView: repository view
     @param ctx:     M2Crypto.SSL.Context
     """
-    qName = 'sslCertificateQuery'
-    q = repView.findPath('//userdata/%s' %(qName))
-    if q is None:
-        from osaf.pim.collections import FilteredCollection
-        from osaf.framework.certstore import certificate
-        
-        q = FilteredCollection(qName, itsView=repView,
-                               source=utils.getExtent(certificate.Certificate,
-                                                      repView),
-                               filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
-                               filterAttributes=['type', 'trust'])
-        
+
+    q = schema.ns('osaf.framework.certstore', repView).sslCertificateQuery
     store = ctx.get_cert_store()
     for cert in q:
         store.add_x509(cert.asX509())

@@ -6,3 +6,11 @@ def installParcel(parcel, oldVersion=None):
     schema.synchronize(parcel.itsView, "osaf.framework.certstore.data")
     schema.synchronize(parcel.itsView, "osaf.framework.certstore.blocks")
 
+    from osaf.pim.collections import FilteredCollection
+    import certificate, utils
+
+    FilteredCollection.update(parcel, 'sslCertificateQuery',
+        source=utils.getExtent(certificate.Certificate, parcel.itsView),
+        filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
+        filterAttributes=['type', 'trust']
+    )
