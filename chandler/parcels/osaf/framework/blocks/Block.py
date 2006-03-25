@@ -549,7 +549,11 @@ class Block(schema.Item):
                 editAttributeNamed = getattr (event, "editAttributeNamed", None)
                 if editAttributeNamed is not None:
                     arguments ['editAttributeNamed'] = editAttributeNamed
+                
                 blockItem.postEventByName ("SelectItemsBroadcast", arguments)
+                
+                if selectInBlockNamed == "Sidebar":
+                    blockItem.postEventByName ("ApplicationBarAll", {})
 
             itemList.append (item)
         # Need to SelectFirstItem -- DJA based on self.selectInBlock
