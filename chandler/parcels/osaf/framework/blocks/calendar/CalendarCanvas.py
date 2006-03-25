@@ -28,6 +28,7 @@ from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
 
 from osaf.framework.blocks.calendar import CollectionCanvas
+from osaf.framework import Preferences
 
 from colorsys import rgb_to_hsv, hsv_to_rgb
 
@@ -2103,3 +2104,32 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             return self.blockItem.daysPerView
 
     columns = property(_getColumns)
+
+class CalendarHourMode(schema.Enumeration):
+    values="visibleHours", "pixelSize", "auto"
+
+class CalendarPrefs(Preferences):
+    hourHeightMode = schema.One(CalendarHourMode, defaultValue="auto",
+                                doc="Chooses which mode to use when setting "
+                                "the hour height.\n"
+                                "'visibleHours' means to show exactly the "
+                                "number of hours in self.visibleHours\n"
+                                "'pixelSize' means it should be exactly the "
+                                "pixel size in self.hourPixelSize\n"
+                                "'auto' means to base it on the size of the "
+                                "font used for drawing")
+                                
+
+    visibleHours = schema.One(schema.Integer, defaultValue = 10,
+                              doc="Number of hours visible vertically "
+                              "when hourHeightMode is 'visibleHours'")
+    hourPixelSize = schema.One(schema.Integer, defaultValue = 40,
+                               doc="An exact number of pixels for the hour")
+
+    def getHourHeight(self, windowHeight, fontHeight):
+        if self.hourHeightMode == "visibleHours":
+            return windowHeight/self.visibleHours
+        elif self.hourHeightMode == "pixelSize":
+            return self.hourPixelSize
+        else:
+            return (fontHeight+6) * 2

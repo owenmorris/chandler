@@ -18,6 +18,23 @@ from application.dialogs import RecurrenceDialog
 
 class TimedEventsCanvas(CalendarBlock):
 
+    def render(self, *args, **kwds):
+        super(TimedEventsCanvas, self).render(*args, **kwds)
+
+        prefs = schema.ns('osaf.framework.blocks.calendar', self.itsView).calendarPrefs
+        self.itsView.watchItem(self, prefs, 'onCalendarPrefsChange')
+
+    def onDestroyWidget(self, *args, **kwds):
+
+        prefs = schema.ns('osaf.framework.blocks.calendar', self.itsView).calendarPrefs
+        self.itsView.unwatchItem(self, prefs, 'onCalendarPrefsChange')
+        super(TimedEventsCanvas, self).onDestroyWidget(*args, **kwds)
+        
+
+    def onCalendarPrefsChange(self, op, item, names):
+        self.widget.SetWindowGeometry()
+        self.widget.Refresh()
+
     def instantiateWidget(self):
         super(TimedEventsCanvas, self).instantiateWidget()
         return wxTimedEventsCanvas(self.parentBlock.widget)
@@ -123,27 +140,37 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def OnSize(self, event):
         # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
+        self.SetWindowGeometry()
         self._doDrawingCalculations()
 
         self.RefreshCanvasItems()
         event.Skip()
 
-    def OnInit(self):
-        super (wxTimedEventsCanvas, self).OnInit()
-
+    def SetWindowGeometry(self):
         calendarContainer = self.blockItem.calendarContainer
         maxTextHeight = max(calendarContainer.eventLabelMeasurements.height,
                             calendarContainer.eventTimeMeasurements.height)
-
-        # make sure the half-hour slot is big enough to hold one line of text
-        self.hourHeight = (maxTextHeight + 6) * 2
         
-        self.size = self.GetSize()
-        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
-        self.size.height = self.hourHeight * 24
-        self.SetVirtualSize(self.size)
+        # make sure the half-hour slot is big enough to hold one line of text
+        calendarPrefs = schema.ns("osaf.framework.blocks.calendar",
+                                  self.blockItem.itsView).calendarPrefs
 
-        self.SetScrollRate(0, self._scrollYRate)
+        self.size = self.GetSize()
+        self.hourHeight = calendarPrefs.getHourHeight(self.size.height,
+                                                      maxTextHeight)
+        
+        self.size.height = self.hourHeight * 24
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
+        
+        self.SetVirtualSize(self.size)
+        
+        self.SetScrollRate(0, self.hourHeight/3)
+        
+
+    def OnInit(self):
+        super (wxTimedEventsCanvas, self).OnInit()
+
+        self.SetWindowGeometry()
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -165,23 +192,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def _doDrawingCalculations(self):
 
         # @@@ magic numbers
-
-        # FIXME: on wxPython-Mac v2.6.0, this returns negative and otherwise bogus dimension values: e.g., [-15, 960]
-        #self.size = self.GetVirtualSize()
-        self.size = self.GetSize()
-
-        # account for the scrollbar, but also for the extra one pixel
-        # on the right side of the canvas that is used to draw the
-        # whole event lozenge
-        
-        # when drawing the BACKGROUND, be sure to account for this
-        # extra 1 pixel
-        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) +1
-        self.size.height = self.hourHeight * 24
-        self.SetVirtualSize(self.size)
-
-        self.dayHeight = self.hourHeight * 24
-
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         self.xOffset = drawInfo.xOffset
 
@@ -223,7 +233,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def DrawBackground(self, dc):
         styles = self.blockItem.calendarContainer
-        self._doDrawingCalculations()
 
         # Use the transparent pen for painting the background
         dc.SetPen(wx.TRANSPARENT_PEN)
@@ -861,7 +870,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
 class TimedCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
-    textMargin = 3
+    textMargin = 4
     
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2

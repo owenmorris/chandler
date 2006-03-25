@@ -3,8 +3,8 @@
 from CalendarCanvas import (
     CalendarContainer,
     CalendarControl, 
-    CanvasSplitterWindow
-    
+    CanvasSplitterWindow,
+    CalendarPrefs,
 )
 
 from AllDayCanvas import AllDayEventsCanvas
@@ -19,3 +19,4 @@ def installParcel(parcel, oldName=None):
 
     # pref instances
     PreviewPrefs.update(parcel, "previewPrefs")
+    CalendarPrefs.update(parcel, "calendarPrefs")
