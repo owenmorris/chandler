@@ -121,7 +121,7 @@ def makeMainEvents(parcel):
         dispatchToBlockName = 'MainView').install(parcel)
 
     BlockEvent.template(
-        'ActivateShareMerging',
+        'ActivateBackgroundSyncing',
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
@@ -290,11 +290,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template(
         'SyncAll',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
-
-    BlockEvent.template(
-        'ShareTool',
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 

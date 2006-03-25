@@ -46,7 +46,6 @@ __all__ = [
     'WebDAVAccount',
     'WebDAVConduit',
     'changedAttributes',
-    'Task',
     'importValue',
     'isShared',
     'splitUrl',
@@ -61,10 +60,13 @@ CLOUD_XML_VERSION = '2'
 
 USE_VIEW_MERGING = False
 
-
-def sync(collectionOrShares, modeOverride=None, updateCallback=None):
+def sync(collectionOrShares, modeOverride=None, updateCallback=None,
+         background=False):
 
     view_merging = USE_VIEW_MERGING # May be enabled via Test menu
+
+    if background:
+        view_merging = True
 
     def mergeFunction(code, item, attribute, value):
 
@@ -113,13 +115,17 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
         # a list of Shares
         shares = collectionOrShares
         view = shares[0].itsView
-        marker = shares[0].conduit.marker
+        getMarker = shares[0].conduit.getMarker
+        putMarker = shares[0].conduit.putMarker
+        manifestMarker = shares[0].conduit.manifestMarker
 
     elif isinstance(collectionOrShares, Share):
         # just one Share
         shares = [collectionOrShares]
         view = collectionOrShares.itsView
-        marker = collectionOrShares.conduit.marker
+        getMarker = collectionOrShares.conduit.getMarker
+        putMarker = collectionOrShares.conduit.putMarker
+        manifestMarker = collectionOrShares.conduit.manifestMarker
 
     else:
         # just a collection
@@ -127,14 +133,18 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
             return
         shares = getLinkedShares(collectionOrShares.shares.first())
         view = collectionOrShares.itsView
-        marker = shares[0].conduit.marker
+        getMarker = shares[0].conduit.getMarker
+        putMarker = shares[0].conduit.putMarker
+        manifestMarker = shares[0].conduit.manifestMarker
 
     # Make main view changes available for sharing
-    if updateCallback:
-        updateCallback(msg=_(u"Saving changes..."))
-    view.commit()
+    if not background:
+        if updateCallback:
+            updateCallback(msg=_(u"Saving changes..."))
+        view.commit()
 
     stats = []
+
 
     # previousView will be used by importValue() to look back in time to see
     # if changes we've received from the server are really new or whether they
@@ -146,25 +156,52 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
         if updateCallback:
             updateCallback(msg=_(u"Using view merging"))
 
-        syncVersion = marker.getVersion()
+        # Get us to the repository view that contains the state of things
+        # just after the commit() that followed the previous GET
 
-        sharingView = None
+        syncVersion = getMarker.getVersion()
+
         for existingView in view.repository.views:
             if existingView.name == 'Sharing':
                 sharingView = existingView
+                sharingView.itsVersion = syncVersion
                 logger.debug("Using existing sharing view")
-
-        if sharingView is None:
+                break
+        else:
             sharingView = view.repository.createView("Sharing", syncVersion)
             logger.debug("Created new sharing view")
-        else:
-            sharingView.itsVersion = syncVersion
 
         logger.debug("Sharing view version: %d" % syncVersion)
 
         workingShares = []
         for share in shares:
             workingShares.append(sharingView.findUUID(share.itsUUID))
+
+
+        # If needed, grab the manifest as it was after its last change, and
+        # copy the manifest into the share item which has been rolled back
+        # to the getMarker's version
+
+        manifestVersion = manifestMarker.getVersion()
+
+        if manifestVersion != syncVersion:
+            for existingView in view.repository.views:
+                if existingView.name == 'Manifest':
+                    manifestView = existingView
+                    manifestView.itsVersion = manifestVersion
+                    logger.debug("Using existing manifest view")
+                    break
+            else:
+                manifestView = view.repository.createView("Manifest",
+                    manifestVersion)
+                logger.debug("Created new manifest view")
+
+            logger.debug("Manifest view version: %d" % manifestVersion)
+
+            for share in workingShares:
+                manifestShare = manifestView.findUUID(share.itsUUID)
+                share.conduit.manifest = manifestShare.conduit.manifest.copy()
+
 
     else:
         # Not using view merging, but we have another form of merging, via
@@ -173,7 +210,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
         sharingView = view
         workingShares = shares
 
-        syncVersion = marker.getVersion()
+        syncVersion = getMarker.getVersion()
 
         # Here we get a view as things were the last time we synced, so that
         # importValue( ) can determine whether imported changes are real;
@@ -209,7 +246,6 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                         # like 'contents' above, the filterClasses of a master
                         # share needs to be replicated to the slaves:
                         share.filterClasses = filterClasses
-
                     stat = share.conduit._get(previousView=previousView,
                         updateCallback=updateCallback)
                     stats.append(stat)
@@ -251,11 +287,15 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
                             item.delete(True)
 
+        for share in workingShares:
+            share.conduit.getMarker.setDirty(Item.NDIRTY)
+            share.conduit.manifestMarker.setDirty(Item.NDIRTY)
+
         if view_merging:
-            # Pull in local changes from main view
+            # Pull in local changes from other views, and commit
             if updateCallback:
                 updateCallback(msg=_(u"Merging local changes..."))
-            sharingView.refresh(mergeFunction)
+            sharingView.commit(mergeFunction)
 
         if not modeOverride or modeOverride == 'put':
 
@@ -267,18 +307,20 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                     stats.append(stat)
 
         for share in workingShares:
-            share.conduit.marker.setDirty(Item.NDIRTY)
+            share.conduit.putMarker.setDirty(Item.NDIRTY)
+            share.conduit.manifestMarker.setDirty(Item.NDIRTY)
 
         if updateCallback:
             updateCallback(msg=_(u"Saving changes..."))
 
         if view_merging:
-            # Make remote changes available to main view
+            # Record the post-PUT manifest
             sharingView.commit()
             # Pull remote changes into main view
-            view.refresh()
+            if not background:
+                view.refresh()
         else:
-            # Demarcate the end of sync (bumps up the marker version)
+            # Demarcate the end of sync (bumps up the manifestMarker version)
             view.commit()
 
     except Exception, e:
@@ -514,7 +556,9 @@ class ShareConduit(pim.ContentItem):
 
     def __init__(self, *args, **kw):
         super(ShareConduit, self).__init__(*args, **kw)
-        self.marker = Item('marker', self, None)
+        self.getMarker = Item('getMarker', self, None)
+        self.putMarker = Item('putMarker', self, None)
+        self.manifestMarker = Item('manifestMarker', self, None)
 
     schema.kindInfo(displayName = u"Share Conduit Kind")
 
@@ -537,7 +581,9 @@ class ShareConduit(pim.ContentItem):
         initialValue = {}
     )
 
-    marker = schema.One(schema.SingleRef)
+    getMarker = schema.One(schema.SingleRef)
+    putMarker = schema.One(schema.SingleRef)
+    manifestMarker = schema.One(schema.SingleRef)
 
 
 
@@ -583,7 +629,7 @@ class ShareConduit(pim.ContentItem):
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
              (item.getItemDisplayName().encode('ascii', 'replace'), item.itsUUID,
-              item.getVersion(), self.marker.getVersion(), externalItemExists))
+              item.getVersion(), self.getMarker.getVersion(), externalItemExists))
 
             if updateCallback and updateCallback(msg="'%s'" %
                 item.getItemDisplayName()):
@@ -648,6 +694,9 @@ class ShareConduit(pim.ContentItem):
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
 
+            if updateCallback and updateCallback(msg=_(u"Getting list of remote items...")):
+                raise SharingError(_(u"Cancelled by user"))
+
             self.resourceList = \
                 self._getResourceList(location)
 
@@ -666,7 +715,7 @@ class ShareConduit(pim.ContentItem):
                         del self.resourceList[path]
 
             # Build the list of local changes
-            prevVersion = self.marker.getVersion()
+            prevVersion = self.putMarker.getVersion()
             changes = localChanges(view, prevVersion, view.itsVersion)
 
             # If we're sharing a collection, put the collection's items
@@ -827,7 +876,7 @@ class ShareConduit(pim.ContentItem):
         }
 
         # Build the list of local changes
-        prevVersion = self.marker.getVersion()
+        prevVersion = self.getMarker.getVersion()
         changes = localChanges(view, prevVersion, view.itsVersion)
 
         self.connect()
@@ -835,6 +884,9 @@ class ShareConduit(pim.ContentItem):
         if not self.exists():
             raise NotFound(_(u"%(location)s does not exist") %
                 {'location': location})
+
+        if updateCallback and updateCallback(msg=_(u"Getting list of remote items...")):
+            raise SharingError(_(u"Cancelled by user"))
 
         self.resourceList = self._getResourceList(location)
 
@@ -1404,9 +1456,21 @@ class WebDAVConduit(ShareConduit):
             (host, port, sharePath, username, password, useSSL) = \
             self._getSettings()
 
+            # The certstore parcel ends up doing a refresh( ) in the
+            # middle of an SSL sync operation, which pollutes the sharing
+            # view.  To work around this, let zanshin/certstore use their
+            # own view.
+            repo = self.itsView.repository
+            for existingView in repo.views:
+                if existingView.name == 'Zanshin':
+                    zanshinView = existingView
+                    break
+            else:
+                zanshinView = repo.createView('Zanshin')
+
             self.serverHandle = WebDAV.ChandlerServerHandle(host, port=port,
                 username=username, password=password, useSSL=useSSL,
-                repositoryView=self.itsView)
+                repositoryView=zanshinView)
 
         return self.serverHandle
 
@@ -1472,6 +1536,7 @@ class WebDAVConduit(ShareConduit):
         resource = self._resourceFromPath(u"")
 
         try:
+
             result = self._getServerHandle().blockUntil(resource.exists)
         except zanshin.error.ConnectionError, err:
             raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err.args[0]})
@@ -1481,7 +1546,6 @@ class WebDAVConduit(ShareConduit):
             message = _(u"Not authorized to PUT %(info)s") % {'info': self.getLocation()}
             logging.exception(err)
             raise NotAllowed(message)
-
 
         return result
 
@@ -1890,7 +1954,7 @@ class SimpleHTTPConduit(WebDAVConduit):
             'removed' : []
         }
 
-        prevVersion = self.marker.getVersion()
+        prevVersion = self.getMarker.getVersion()
         view = self.itsView
         changes = localChanges(view, prevVersion, view.itsVersion)
 
@@ -1978,95 +2042,6 @@ class OneTimeFileSystemShare(OneTimeShare):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class Task(object):
-    """
-    Task class.
-
-    @ivar running: Whether or not this task is actually running
-    @type running: C{bool}
-    """
-
-    def __init__(self, repo):
-        super(Task, self).__init__()
-        self.view = repo.createView(name=repr(self))
-
-    def start(self, inOwnThread=False):
-        """
-        Launches an activity either in the twisted thread,
-        or in its own background thread.
-
-        @param inOwnThread: If C{True}, this activity runs in its
-           own thread. Otherwise, it is launched in the twisted
-           thread.
-        @type inOwnThread: bool
-        """
-
-        from twisted.internet import reactor
-        if inOwnThread:
-            fn = reactor.callInThread
-        else:
-            fn = reactor.callFromThread
-
-        fn(self.__threadStart)
-
-    def cancel(self):
-        # Note that _callInMainThread() should work from
-        # the main thread!
-        self._callInMainThread(self.error,
-                               SharingError(_(u"Cancelled by user")),
-                               done=True)
-        # XXX: [grant] Does self._error get called? Otherwise self.view
-        # will never get cancelled.
-
-    def __threadStart(self):
-        # Run from background thread
-        self.running = True
-
-        try:
-            self._run()
-        except Exception, e:
-            logger.exception("%s raised an error" % (self,))
-            self._error(e)
-
-    def _callInMainThread(self, f, arg, done=False):
-        if self.running:
-            def mainCallback(x):
-                if self.running:
-                    if done: self.running = False
-                    f(x)
-            wx.GetApp().PostAsyncEvent(mainCallback, arg)
-
-    def _run(self):
-        """Subclass hook; always called from the task's thread"""
-        pass
-
-    def _status(self, msg):
-        """
-        Subclasses can call this to ensure self.status() gets called in
-        the UI thread.
-        """
-
-        self._callInMainThread(self.status, msg)
-
-    def _completed(self, result):
-        """
-        Subclasses can call this to ensure self.completed() gets called in
-        the UI thread.
-        """
-        self.view.commit()
-        self._callInMainThread(self.completed, result, done=True)
-
-    def _error(self, failure):
-        """
-        Subclasses can call this to ensure self.error() gets called in
-        the UI thread
-        """
-        self.view.cancel()
-        self._callInMainThread(self.error, failure, done=True)
-
-    error = completed = status = lambda self, arg : None
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def splitUrl(url):
     (scheme, host, path, query, fragment) = urlparse.urlsplit(url)

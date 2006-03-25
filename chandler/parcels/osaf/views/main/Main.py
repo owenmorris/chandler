@@ -14,7 +14,7 @@ import application.Parcel
 
 import application.dialogs.Util
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, ShareTool, SyncProgress, RestoreShares
+    SubscribeCollection, SyncProgress, RestoreShares
 )
 
 from osaf import pim, sharing, messages, webserver
@@ -705,14 +705,17 @@ class MainView(View):
         for server in webserver.Server.iterItems(self.itsView):
             server.startup()
 
-    def onActivateShareMergingEventUpdateUI (self, event):
-        if sharing.Sharing.USE_VIEW_MERGING:
-            event.arguments['Text'] = _(u'Disable share view merging')
+    def onActivateBackgroundSyncingEventUpdateUI (self, event):
+        prefs = schema.ns('osaf.sharing', self.itsView).prefs
+        if prefs.background_syncing:
+            event.arguments['Text'] = _(u'Disable background syncing')
         else:
-            event.arguments['Text'] = _(u'Enable share view merging')
+            event.arguments['Text'] = _(u'Enable background syncing')
 
-    def onActivateShareMergingEvent(self, event):
-        sharing.Sharing.USE_VIEW_MERGING = not sharing.Sharing.USE_VIEW_MERGING
+    def onActivateBackgroundSyncingEvent(self, event):
+        prefs = schema.ns('osaf.sharing', self.itsView).prefs
+        prefs.background_syncing = not prefs.background_syncing
+        self.itsView.commit() # To make the change available to sharing thread
 
     def onShowLogWindowEvent(self, event):
         # Test menu item
@@ -826,11 +829,6 @@ class MainView(View):
             share = sharing.getShare(collection)
             sharedByMe = sharing.isSharedByMe(share)
         event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and sharedByMe
-
-    def onShareToolEvent(self, event):
-        # Triggered from "Test | Share tool..."
-        ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, rv=self.itsView)
-
 
     def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."

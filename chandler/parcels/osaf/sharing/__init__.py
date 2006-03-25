@@ -15,7 +15,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import logging, urlparse
+import logging, urlparse, datetime
 
 from application import schema, Utility
 from application.Parcel import Reference
@@ -68,12 +68,71 @@ PUBLISH_MONOLITHIC_ICS = True
 class SharingPreferences(schema.Item):
     import_dir = schema.One(schema.Text, defaultValue = getDesktopDir())
     import_as_new = schema.One(schema.Boolean, defaultValue = True)
+    background_syncing = schema.One(schema.Boolean, defaultValue = False)
 
 
 def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
     Reference.update(parcel, 'currentWebDAVAccount')
+
+    from osaf import startup
+    startup.PeriodicTask.update(parcel, "BackgroundSync",
+        invoke="osaf.sharing.BackgroundSyncTask",
+        run_at_startup=True,
+        interval=datetime.timedelta(seconds=30)
+    )
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+class BackgroundSyncTask:
+
+    def __init__(self, item):
+        repo = item.itsView.repository
+        for view in repo.views:
+            if view.name == 'BackgroundSync':
+                break
+        else:
+            view = repo.createView('BackgroundSync')
+
+        self.rv = view
+        self.busy = False
+
+    def run(self):
+
+        if self.busy:
+            return True
+
+        try:
+            self.busy = True
+
+            try:
+                self.rv.refresh()
+
+                prefs = schema.ns('osaf.sharing', self.rv).prefs
+                enabled = prefs.background_syncing
+                if not enabled:
+                    return True
+
+                collections = []
+                for share in Sharing.Share.iterItems(self.rv):
+                    if(share.active and
+                        not share.hidden and
+                        share.contents is not None and
+                        share.contents not in collections):
+                        collections.append(share.contents)
+
+                stats = []
+                for collection in collections:
+                    stats.extend(sync(collection, background=True))
+
+            except Exception, e:
+                logger.exception("Background sync error")
+
+        finally:
+            self.busy = False
+
+        return True
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -605,6 +664,9 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
         try:
             if progressMonitor:
+                if updateCallback and updateCallback(
+                    msg=_(u"Getting list of remote items...")):
+                    raise SharingError(_(u"Cancelled by user"))
                 progressMonitor.totalWork = share.getCount()
             share.sync(updateCallback=callback, modeOverride='get')
             share.conduit.getTickets()
@@ -653,6 +715,9 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 for attr in CALDAVFILTER:
                     subShare.filterAttributes.append(attr)
 
+                if updateCallback and updateCallback(
+                    msg=_(u"Getting list of remote items...")):
+                    raise SharingError(_(u"Cancelled by user"))
                 totalWork += subShare.getCount()
 
 
@@ -668,6 +733,9 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                     port=port, sharePath=parentPath, shareName=shareName,
                     useSSL=useSSL, ticket=ticket)
 
+            if updateCallback and updateCallback(
+                msg=_(u"Getting list of remote items...")):
+                raise SharingError(_(u"Cancelled by user"))
             totalWork += share.getCount()
 
             if subShare is not None:
@@ -706,6 +774,98 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 def unsubscribe(collection):
     for share in collection.shares:
         share.delete(recursive=True, cloudAlias='copying')
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+class Task(object):
+    """
+    Task class.
+
+    @ivar running: Whether or not this task is actually running
+    @type running: C{bool}
+    """
+
+    def __init__(self, repo):
+        super(Task, self).__init__()
+        self.view = repo.createView(name=repr(self))
+
+    def start(self, inOwnThread=False):
+        """
+        Launches an activity either in the twisted thread,
+        or in its own background thread.
+
+        @param inOwnThread: If C{True}, this activity runs in its
+           own thread. Otherwise, it is launched in the twisted
+           thread.
+        @type inOwnThread: bool
+        """
+
+        from twisted.internet import reactor
+        if inOwnThread:
+            fn = reactor.callInThread
+        else:
+            fn = reactor.callFromThread
+
+        fn(self.__threadStart)
+
+    def cancel(self):
+        # Note that _callInMainThread() should work from
+        # the main thread!
+        self._callInMainThread(self.error,
+                               SharingError(_(u"Cancelled by user")),
+                               done=True)
+        # XXX: [grant] Does self._error get called? Otherwise self.view
+        # will never get cancelled.
+
+    def __threadStart(self):
+        # Run from background thread
+        self.running = True
+
+        try:
+            self._run()
+        except Exception, e:
+            logger.exception("%s raised an error" % (self,))
+            self._error(e)
+
+    def _callInMainThread(self, f, arg, done=False):
+        if self.running:
+            def mainCallback(x):
+                if self.running:
+                    if done: self.running = False
+                    f(x)
+            wx.GetApp().PostAsyncEvent(mainCallback, arg)
+
+    def _run(self):
+        """Subclass hook; always called from the task's thread"""
+        pass
+
+    def _status(self, msg):
+        """
+        Subclasses can call this to ensure self.status() gets called in
+        the UI thread.
+        """
+
+        self._callInMainThread(self.status, msg)
+
+    def _completed(self, result):
+        """
+        Subclasses can call this to ensure self.completed() gets called in
+        the UI thread.
+        """
+        self.view.commit()
+        self._callInMainThread(self.completed, result, done=True)
+
+    def _error(self, failure):
+        """
+        Subclasses can call this to ensure self.error() gets called in
+        the UI thread
+        """
+        self.view.cancel()
+        self._callInMainThread(self.error, failure, done=True)
+
+    error = completed = status = lambda self, arg : None
+
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
