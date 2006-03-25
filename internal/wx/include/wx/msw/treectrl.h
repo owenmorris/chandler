@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10/10/98
 // Created:     01/02/97
-// RCS-ID:      $Id: treectrl.h,v 1.86 2006/02/08 21:46:23 VZ Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.87 2006/03/24 23:44:50 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ public:
     // implement base class pure virtuals
     // ----------------------------------
 
-    virtual size_t GetCount() const;
+    virtual unsigned int GetCount() const;
 
     virtual unsigned int GetIndent() const;
     virtual void SetIndent(unsigned int indent);

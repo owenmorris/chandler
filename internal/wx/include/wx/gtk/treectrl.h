@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        treectrl.h
+// Name:        wx/gtk/treectrl.h
 // Purpose:     wxTreeCtrl class
 // Author:      Denis Pershin
 // Modified by:
 // Created:     08/08/98
-// RCS-ID:      $Id: treectrl.h,v 1.21 2005/09/23 12:49:20 MR Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.22 2006/03/24 23:44:44 ABX Exp $
 // Copyright:   (c) Denis Pershin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -154,7 +154,7 @@ public:
     // ---------
 
         // get the total number of items in the control
-    size_t GetCount() const;
+    virtual unsigned int GetCount() const;
 
         // indent is the number of pixels the children are indented relative to
         // the parents position. SetIndent() also redraws the control

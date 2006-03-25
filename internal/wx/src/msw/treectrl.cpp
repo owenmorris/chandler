@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10.10.98
 // Created:     1997
-// RCS-ID:      $Id: treectrl.cpp,v 1.222 2006/03/21 14:16:28 VZ Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.223 2006/03/24 23:46:39 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -817,9 +817,9 @@ void wxTreeCtrl::DoSetItem(wxTreeViewItem* tvItem)
     }
 }
 
-size_t wxTreeCtrl::GetCount() const
+unsigned int wxTreeCtrl::GetCount() const
 {
-    return (size_t)TreeView_GetCount(GetHwnd());
+    return (unsigned int)TreeView_GetCount(GetHwnd());
 }
 
 unsigned int wxTreeCtrl::GetIndent() const

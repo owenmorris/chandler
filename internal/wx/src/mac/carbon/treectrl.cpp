@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: treectrl.cpp,v 1.14 2006/03/12 13:13:46 ABX Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.15 2006/03/24 23:46:35 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ wxTreeCtrl::~wxTreeCtrl()
 }
 
 // Attributes
-size_t wxTreeCtrl::GetCount() const
+unsigned int wxTreeCtrl::GetCount() const
 {
     // TODO
     return 0;

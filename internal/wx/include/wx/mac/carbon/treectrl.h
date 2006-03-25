@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: treectrl.h,v 1.7 2006/03/12 13:08:21 ABX Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.8 2006/03/24 23:44:47 ABX Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ public:
     // accessors
     // ---------
       //
-    size_t GetCount() const;
+    virtual unsigned int GetCount() const;
 
       // indent
     int GetIndent() const;

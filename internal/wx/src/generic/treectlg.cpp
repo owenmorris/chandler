@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.186 2006/03/07 22:56:11 VZ Exp $
+// Id:          $Id: treectlg.cpp,v 1.187 2006/03/24 23:46:31 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -863,7 +863,7 @@ wxGenericTreeCtrl::~wxGenericTreeCtrl()
 // accessors
 // -----------------------------------------------------------------------------
 
-size_t wxGenericTreeCtrl::GetCount() const
+unsigned int wxGenericTreeCtrl::GetCount() const
 {
     if ( !m_anchor )
     {
@@ -871,7 +871,7 @@ size_t wxGenericTreeCtrl::GetCount() const
         return 0;
     }
 
-    size_t count = m_anchor->GetChildrenCount();
+    unsigned int count = m_anchor->GetChildrenCount();
     if ( !HasFlag(wxTR_HIDE_ROOT) )
     {
         // take the root itself into account
