@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: app.cpp,v 1.103 2006/03/24 12:27:29 JS Exp $
+// RCS-ID:      $Id: app.cpp,v 1.104 2006/03/25 03:01:55 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -243,6 +243,7 @@ wxApp::~wxApp()
 }
 
 #if !wxUSE_NANOX
+
 //-----------------------------------------------------------------------
 // X11 predicate function for exposure compression
 //-----------------------------------------------------------------------
@@ -253,7 +254,8 @@ struct wxExposeInfo
     Bool found_non_matching;
 };
 
-static Bool expose_predicate (Display *display, XEvent *xevent, XPointer arg)
+extern "C"
+Bool wxX11ExposePredicate (Display *display, XEvent *xevent, XPointer arg)
 {
     wxExposeInfo *info = (wxExposeInfo*) arg;
 
@@ -274,8 +276,8 @@ static Bool expose_predicate (Display *display, XEvent *xevent, XPointer arg)
 
     return TRUE;
 }
-#endif
-    // wxUSE_NANOX
+
+#endif // wxUSE_NANOX
 
 //-----------------------------------------------------------------------
 // Processes an X event, returning true if the event was processed.
@@ -322,7 +324,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 wxExposeInfo info;
                 info.window = event->xexpose.window;
                 info.found_non_matching = false;
-                while (XCheckIfEvent( wxGlobalDisplay(), &tmp_event, expose_predicate, (XPointer) &info ))
+                while (XCheckIfEvent( wxGlobalDisplay(), &tmp_event, wxX11ExposePredicate, (XPointer) &info ))
                 {
                     // Don't worry about optimizing redrawing the border etc.
                 }
@@ -341,7 +343,7 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 wxExposeInfo info;
                 info.window = event->xexpose.window;
                 info.found_non_matching = false;
-                while (XCheckIfEvent( wxGlobalDisplay(), &tmp_event, expose_predicate, (XPointer) &info ))
+                while (XCheckIfEvent( wxGlobalDisplay(), &tmp_event, wxX11ExposePredicate, (XPointer) &info ))
                 {
                     win->GetUpdateRegion().Union( tmp_event.xexpose.x, tmp_event.xexpose.y,
                                                   tmp_event.xexpose.width, tmp_event.xexpose.height );

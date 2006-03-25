@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: menu.cpp,v 1.61 2006/03/23 16:29:02 VZ Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.62 2006/03/25 03:14:13 VZ Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -375,7 +375,7 @@ wxMenuItemIter wxPopupMenuWindow::GetPrevNode() const
 {
     // return the last node if there had been no previously selected one
     return m_nodeCurrent ? GetPrevNode(m_nodeCurrent)
-                         : m_menu->GetMenuItems().GetLast();
+                         : wxMenuItemIter(m_menu->GetMenuItems().GetLast());
 }
 
 wxMenuItemIter
@@ -398,7 +398,7 @@ wxMenuItemIter wxPopupMenuWindow::GetNextNode() const
 {
     // return the first node if there had been no previously selected one
     return m_nodeCurrent ? GetNextNode(m_nodeCurrent)
-                         : m_menu->GetMenuItems().GetFirst();
+                         : wxMenuItemIter(m_menu->GetMenuItems().GetFirst());
 }
 
 wxMenuItemIter
