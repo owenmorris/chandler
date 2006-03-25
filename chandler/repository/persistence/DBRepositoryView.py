@@ -459,7 +459,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     except ZeroDivisionError:
                         iSpeed = dSpeed = 'speed could not be measured'
 
-                    self.logger.info('%s committed %d items (%d kbytes) in %s, %s (%s)', self, count, size >> 10, timedelta(seconds=duration), iSpeed, dSpeed)
+                    self.logger.info('%s committed %d items (%d kbytes) in %s, %s (%s), version: %d', self, count, size >> 10, timedelta(seconds=duration), iSpeed, dSpeed, newVersion)
 
             finally:
                 self._status &= ~RepositoryView.COMMITTING
