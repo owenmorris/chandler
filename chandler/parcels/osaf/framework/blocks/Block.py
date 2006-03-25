@@ -486,7 +486,7 @@ class Block(schema.Item):
 
     def onModifyCollectionEvent(self, event):
         """
-        Adds itms to a collection, by default the sidebarCollection.
+        Adds items to a collection, by default the sidebarCollection.
 
         This method originally had an operation attribute that let you add,
         remove or toggle (e.g. add if not present or delete if present) items
@@ -552,8 +552,12 @@ class Block(schema.Item):
                 
                 blockItem.postEventByName ("SelectItemsBroadcast", arguments)
                 
-                if selectInBlockNamed == "Sidebar":
-                    blockItem.postEventByName ("ApplicationBarAll", {})
+                method = getattr(blockItem, 'onKindParameterizedEvent', None)
+                if method:
+                    event = KindParameterizedEvent(itsView = self.itsView)
+                    event.kindParameter = UserCollection(item).preferedKind
+                    method (event)
+                    event.delete()
 
             itemList.append (item)
         # Need to SelectFirstItem -- DJA based on self.selectInBlock
