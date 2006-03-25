@@ -247,13 +247,16 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 for name in kind._iterNotifyAttributes():
                     value = self.findValue(uItem, name, None)
-                    if not isuuid(value):
-                        if isinstance(value, RefList):
-                            value = value.uuid
-                        else:
+                    if isuuid(value):
+                        if kind.getAttribute(name).c.cardinality != 'list':
                             continue
+                        refsIterator = refs.iterKeys(self, value, version)
+                    elif isinstance(value, RefList):
+                        refsIterator = value.iterkeys()
+                    else:
+                        continue
                     otherName = kind.getOtherName(name, None)
-                    for uRef in refs.iterKeys(self, value, version):
+                    for uRef in refsIterator:
                         dispatch = self.findValue(uRef, 'watcherDispatch', None)
                         if dispatch:
                             watchers = dispatch.get(otherName, None)
