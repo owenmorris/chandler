@@ -49,7 +49,9 @@ class PhotoMixin(pim.ContentItem):
         if isinstance(path, unicode):
             path = path.encode(sys.getfilesystemencoding())
 
-        data = utils.binaryToData(self.photoBody)
+        input = self.photoBody.getInputStream()
+        data = input.read()
+        input.close()
         out = file(path, "wb")
         out.write(data)
         out.close()
