@@ -1,10 +1,12 @@
 from osaf.framework.blocks import *
+from osaf.framework.blocks.calendar import VisibleHoursEvent
 from application import schema
 from i18n import OSAFMessageFactory as _
 from osaf import messages, pim
 from osaf.pim.structs import ColorType
 from osaf import usercollections
 from colorsys import hsv_to_rgb
+from itertools import chain
 
 def makeMainMenus(parcel):
 
@@ -35,6 +37,53 @@ def makeMainMenus(parcel):
                 menuItemKind = "Check",
                 event = colorEvent)
             menuItems.append (menuItem)
+
+        return menuItems
+
+    def makeVisibleHourMenuItems(parcel):
+        """
+        Create the 'Visible Hours' submenu. Should look like:
+        
+        Automatic
+        ---------
+        5 hours
+        6 hours
+
+        etc..
+        """
+        menuItems = []
+        
+        # include '-1' in the list of hours
+        for hour in chain([-1], xrange(5, 13)):
+
+            # create the event that will fire. Note that all events on
+            # the same method
+            eventName = 'VisibleHour' + str(hour)
+            event = \
+                VisibleHoursEvent.template(eventName,
+                                           'SendToBlockByName',
+                                           dispatchToBlockName = 'MainView',
+                                           methodName = 'onVisibleHoursEvent',
+                                           visibleHours = hour)
+            event = event.install(parcel)
+
+            # now create the menuitem itself
+            if hour == -1:
+                title = _(u"&Automatic")
+            else:
+                title = _(u"%(hours)s hours") % {'hours': hour}
+                
+            menuItem = MenuItem.template(eventName + 'Item',
+                                         title = title,
+                                         menuItemKind = "Check",
+                                         event = event)
+            menuItems.append(menuItem)
+
+            # add a separator after 'Automatic'
+            if hour == -1:
+                menuItem = MenuItem.template('VisibleHourSeparator',
+                                             menuItemKind="Separator")
+                menuItems.append(menuItem)
 
         return menuItems
                                          
@@ -182,6 +231,27 @@ def makeMainMenus(parcel):
                         helpString = _(u'View only calendar items')),
                     MenuItem.template('ViewSeparator1',
                         menuItemKind = 'Separator'),
+                    Menu.template('ViewGoMenu',
+                        title = _(u'&Go to'),
+                        helpString = _(u'Navigate to different times in the calendar'),
+                        childrenBlocks = [
+                            MenuItem.template('GoToToday',
+                                              #event = main.GoToToday,
+                                              title = _(u'Today'),
+                                              accel = _(u'Ctrl+T'),
+                                              helpString = _(u'Navigate to today\'s date')),
+                            MenuItem.template('GoToNextWeek',
+                                              #event = main.GoToNext,
+                                              title = _(u'Next Day/Week'),
+                                              helpString = _(u'Go to the next day or week')),
+                            MenuItem.template('GoToPrevWeek',
+                                              #event = main.GoToPrev,
+                                              title = _(u'Previous Day/Week'),
+                                              helpString = _(u'Go to the previous day or week')),
+                            ]),
+
+                    MenuItem.template('ViewSeparator2',
+                        menuItemKind = 'Separator'),
                     MenuItem.template('ViewToolBarItem',
                         event = main.ShowHideApplicationBar,
                         title = _(u'View Toolbar'),
@@ -197,8 +267,12 @@ def makeMainMenus(parcel):
                         title = _(u'View Status Bar'),
                         menuItemKind = 'Check',
                         helpString = _(u'Show or hide the Status bar')),
-                    MenuItem.template('ViewSeparator2',
+                    MenuItem.template('ViewSeparator3',
                         menuItemKind = 'Separator'),
+                    Menu.template('VisibleHoursMenu',
+                                  title = _(u'Visible Hours'),
+                                  childrenBlocks = \
+                                  makeVisibleHourMenuItems(parcel)),
                     MenuItem.template('EnableTimezonesItem',
                         event = main.EnableTimezones,
                         title = _(u'Use Timezones'),

@@ -5,6 +5,7 @@ from CalendarCanvas import (
     CalendarControl, 
     CanvasSplitterWindow,
     CalendarPrefs,
+    VisibleHoursEvent,
 )
 
 from AllDayCanvas import AllDayEventsCanvas

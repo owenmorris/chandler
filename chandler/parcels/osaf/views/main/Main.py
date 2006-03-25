@@ -3,39 +3,45 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
-from application import schema
-from osaf.framework.blocks.Views import View
 from datetime import timedelta
 from time import time
 import wx, os, sys, traceback, logging
+
+from application import Globals, Printing, schema
+
+from application.SplashScreen import SplashScreen
+import application.Parcel
+
+import application.dialogs.Util
 from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, ShareTool, SyncProgress, RestoreShares
 )
-import application.dialogs.Util
-import osaf.mail.constants as constants
-from application.SplashScreen import SplashScreen
-import application.Parcel
-import osaf.pim.mail as Mail
-from osaf.pim import Contact
-from osaf import pim, sharing
-from photos import Photo
+
+from osaf import pim, sharing, messages, webserver
+
+from osaf.pim import Contact, ContentCollection, mail
+from osaf.usercollections import UserCollection
 import osaf.pim.generate as generate
-import util.GenerateItemsFromFile as GenerateItemsFromFile
-from repository.item.Item import Item
-import application.Printing as Printing
-import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
+
+from osaf.mail import constants
 import osaf.mail.sharing as MailSharing
+from osaf.sharing import ICalendar
+
+from photos import Photo
+from util import GenerateItemsFromFile
+
+from osaf.framework.blocks.Views import View
+from osaf.framework.blocks.calendar import CalendarCanvas
 from osaf.framework.blocks.Block import Block
+
 from osaf.framework.prompts import promptOk
-from osaf.pim import ContentCollection
-import osaf.sharing.ICalendar as ICalendar
-from osaf import webserver
-from i18n import OSAFMessageFactory as _
+
 import i18n
-from osaf import messages
+from i18n import OSAFMessageFactory as _
+
 from application.Utility import getDesktopDir
 from application.dialogs import ImportExport
+
 logger = logging.getLogger(__name__)
 
 class MainView(View):
@@ -296,7 +302,7 @@ class MainView(View):
         assert fromAddress is not None and fromAddress.accounts is not None
         downloadAccount = fromAddress.accounts.first()
         account = (downloadAccount is not None and downloadAccount.defaultSMTPAccount
-                   or Mail.getCurrentSMTPAccount(self.itsView)[0])
+                   or mail.getCurrentSMTPAccount(self.itsView)[0])
 
         # put a sending message into the status bar
         self.setStatusMessage (_(u'Sending mail...'))
@@ -405,7 +411,7 @@ class MainView(View):
     def _logChange(self, item, version, status, values, references):
         logger = item.itsView.logger
         logger.info("%s %d 0x%0.4x\n  values: %s\n  refs: %s",
-                    Item.__repr__(item), version, status, values, references)
+                    schema.Item.__repr__(item), version, status, values, references)
 
     def onCheckRepositoryEvent(self, event):
         # triggered from "Test | Check Repository" Menu
@@ -980,10 +986,10 @@ class MainView(View):
 
         view.commit()
 
-        for account in Mail.IMAPAccount.getActiveAccounts(view):
+        for account in mail.IMAPAccount.getActiveAccounts(view):
             Globals.mailService.getIMAPInstance(account).getMail()
 
-        for account in Mail.POPAccount.getActiveAccounts(view):
+        for account in mail.POPAccount.getActiveAccounts(view):
             Globals.mailService.getPOPInstance(account).getMail()
 
         view.refresh()
@@ -995,3 +1001,23 @@ class MainView(View):
     def onEnableTimezonesEvent(self, event):
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         tzPrefs.showUI = not tzPrefs.showUI
+
+    def onVisibleHoursEvent(self, event):
+        calendarPrefs = schema.ns('osaf.framework.blocks.calendar',
+                                  self.itsView).calendarPrefs
+        if event.visibleHours == -1:
+            calendarPrefs.hourHeightMode = "auto"
+        else:
+            calendarPrefs.hourHeightMode = "visibleHours"
+            calendarPrefs.visibleHours = event.visibleHours
+            
+    def onVisibleHoursEventUpdateUI(self, event):
+        calendarPrefs = schema.ns('osaf.framework.blocks.calendar',
+                                  self.itsView).calendarPrefs
+
+        if event.visibleHours == -1:
+            event.arguments['Check'] = (calendarPrefs.hourHeightMode == "auto")
+        else:
+            event.arguments['Check'] = \
+                (calendarPrefs.hourHeightMode == "visibleHours" and
+                 calendarPrefs.visibleHours == event.visibleHours)

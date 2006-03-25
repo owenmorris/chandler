@@ -33,6 +33,7 @@ class TimedEventsCanvas(CalendarBlock):
 
     def onCalendarPrefsChange(self, op, item, names):
         self.widget.SetWindowGeometry()
+        self.widget.RealignCanvasItems()
         self.widget.Refresh()
 
     def instantiateWidget(self):
@@ -45,8 +46,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         super(wxTimedEventsCanvas, self).__init__(parent, *arguments, **keywords)
 
         # @@@ rationalize drawing calculations...
-        
-        self._scrollYRate = 10
         
         self._bgSelectionStartTime = None
         self._bgSelectionEndTime = None
@@ -158,19 +157,26 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.size = self.GetSize()
         self.hourHeight = calendarPrefs.getHourHeight(self.size.height,
                                                       maxTextHeight)
-        
         self.size.height = self.hourHeight * 24
         self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
         
         self.SetVirtualSize(self.size)
         
-        self.SetScrollRate(0, self.hourHeight/3)
+        self._scrollYRate = self.hourHeight/3
+        if self._scrollYRate == 0:
+            self._scrollYRate = 1
+        self.SetScrollRate(0, self._scrollYRate)
         
 
     def OnInit(self):
         super (wxTimedEventsCanvas, self).OnInit()
 
         self.SetWindowGeometry()
+        
+        # not sure why this doesn't scroll us to the middle
+        #middle = self.size.height / 2 - self.GetSize().height/2
+        # self.Scroll(0, middle/self._scrollYRate)
+
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
         self.Bind(wx.EVT_SIZE, self.OnSize)

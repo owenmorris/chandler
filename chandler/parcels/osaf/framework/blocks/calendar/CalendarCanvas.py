@@ -22,7 +22,7 @@ from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util
 
 from osaf.framework.blocks import (
-    DragAndDrop, Block, SplitterWindow, Styles, BoxContainer
+    DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent
     )
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
@@ -2109,6 +2109,12 @@ class CalendarHourMode(schema.Enumeration):
     values="visibleHours", "pixelSize", "auto"
 
 class CalendarPrefs(Preferences):
+    """
+    Calendar preferences - there should be a single global instance of
+    this object accessible at:
+
+    prefs = schema.ns('osaf.framework.blocks.calendar', view).calendarPrefs
+    """
     hourHeightMode = schema.One(CalendarHourMode, defaultValue="auto",
                                 doc="Chooses which mode to use when setting "
                                 "the hour height.\n"
@@ -2133,3 +2139,11 @@ class CalendarPrefs(Preferences):
             return self.hourPixelSize
         else:
             return (fontHeight+6) * 2
+
+class VisibleHoursEvent(BlockEvent):
+    """
+    The type of event that gets fired to change the number of visible
+    hours. The code running the event should approprately set the
+    global CalendarPreferences object as described there.
+    """
+    visibleHours = schema.One(schema.Integer)
