@@ -85,7 +85,7 @@ class TimeZoneInfo(schema.Item):
         
         super(TimeZoneInfo, self).__init__(*args, **keywds)
         
-        self.default = PyICU.ICUtzinfo.getDefault()
+        self.default = PyICU.ICUtzinfo.default
         
     def canonicalTimeZone(self, tzinfo):
         """
@@ -96,9 +96,12 @@ class TimeZoneInfo(schema.Item):
         A side-effect is that if a previously unseen tzinfo is
         passed in, it will be added to the receiver's wellKnownIDs
         """
-        result = None
+        if tzinfo is None or tzinfo == PyICU.ICUtzinfo.floating:
+            
+            result = PyICU.ICUtzinfo.floating
         
-        if tzinfo is not None:
+        else:
+            result = None
         
             if tzinfo.tzid in self.wellKnownIDs:
                 result = tzinfo
@@ -118,15 +121,24 @@ class TimeZoneInfo(schema.Item):
             
         return result
         
-    def iterTimeZones(self):
+    def iterTimeZones(self, withFloating=True):
         """
         A generator for all the well-known ICUtzinfo objects. Each
         generated value is a tuple of the form (display name, ICUtzinfo),
         where 'display name' is a suitably localized unicode string.
         """
         
+        floating = PyICU.ICUtzinfo.floating
+        
         for name in self.wellKnownIDs:
-            yield (OSAFMessageFactory(name), PyICU.ICUtzinfo.getInstance(name))
+            tzinfo = PyICU.ICUtzinfo.getInstance(name)
+            
+            if tzinfo != floating:
+            
+                yield (OSAFMessageFactory(name), tzinfo)
+            
+        if withFloating:
+            yield OSAFMessageFactory(u"Floating"), floating
         
     def onItemLoad(self, view):
         # This is overridden to ensure that storing the
@@ -158,7 +170,7 @@ def stripTimeZone(dt):
     if dt.tzinfo == None:
         return dt
     else:
-        return dt.astimezone(PyICU.ICUtzinfo.getDefault()).replace(tzinfo=None)
+        return dt.astimezone(PyICU.ICUtzinfo.default).replace(tzinfo=None)
 
 def forceToDateTime(dt):
     """If dt is a datetime, return dt, if a date, add time(0) and return.
@@ -193,7 +205,7 @@ def coerceTimeZone(dt, tzinfo):
         return stripTimeZone(dt)
     else:
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=PyICU.ICUtzinfo.getDefault())
+            dt = dt.replace(tzinfo=PyICU.ICUtzinfo.default)
         return dt.astimezone(tzinfo)
 
 def formatTime(dt, tzinfo=None):
@@ -207,7 +219,7 @@ def formatTime(dt, tzinfo=None):
         msgFormat.setFormats(subformats)
 
     
-    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.getDefault()
+    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
     
     useSameTimeZoneFormat = True
 

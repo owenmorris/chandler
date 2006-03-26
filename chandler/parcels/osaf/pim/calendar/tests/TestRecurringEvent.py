@@ -12,6 +12,7 @@ import dateutil.rrule
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.tasks import TaskMixin
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
+from PyICU import ICUtzinfo
 
 from application.dialogs.RecurrenceDialog import getProxy
 from itertools import chain
@@ -25,13 +26,15 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
     def setUp(self):
         super(RecurringEventTest,self).setUp()
-        self.start = datetime(2005, 7, 4, 13) #1PM, July 4, 2005
+        self.start = datetime(2005, 7, 4, 13, tzinfo=ICUtzinfo.default) #1PM, July 4, 2005
 
-        self.weekly = {'end'   : datetime(2005, 11, 14, 13),
+        self.weekly = {'end'   : datetime(2005, 11, 14, 13,
+                                          tzinfo=ICUtzinfo.default),
                        'start' : self.start,
                        'count' : 20}
         
-        self.monthly = {'end'   : datetime(2005, 11, 4, 13),
+        self.monthly = {'end'   : datetime(2005, 11, 4, 13,
+                                           tzinfo=ICUtzinfo.default),
                        'start' : self.start,
                        'count' : 5}
         self.event = self._createEvent()
@@ -71,7 +74,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.assertEqual(self.event.isCustomRule(), False)
         
-        secondStart = datetime(2005, 7, 11, 13)
+        secondStart = datetime(2005, 7, 11, 13, tzinfo=ICUtzinfo.default)
         second = self.event.getNextOccurrence()
         self.assert_(second.isGenerated)
         self.assertEqual(self.event.createDateUtilFromRule()[1], secondStart)
@@ -82,10 +85,10 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(second, self.event.getNextOccurrence())
         
         third = second.getNextOccurrence()
-        thirdStart = datetime(2005, 7, 18, 13)
+        thirdStart = datetime(2005, 7, 18, 13, tzinfo=ICUtzinfo.default)
         self.assertEqual(third.startTime, thirdStart)
         
-        fourthStart = datetime(2005, 7, 25, 13)
+        fourthStart = datetime(2005, 7, 25, 13, tzinfo=ICUtzinfo.default)
         fourth = self.event._createOccurrence(fourthStart)
         self.assert_(fourth.isGenerated)
         self.assertEqual(fourth, third.getNextOccurrence())
@@ -191,9 +194,12 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
         threeWeeks = self.start + timedelta(days=21)
         occurs = self.event.getOccurrencesBetween(threeWeeks + 
-                                timedelta(minutes=30), datetime(2005, 8, 15, 14))
+                                timedelta(minutes=30),
+                                datetime(2005, 8, 15, 14,
+                                         tzinfo=ICUtzinfo.default))
         self.assertEqual(list(occurs)[0].startTime, threeWeeks)
-        self.assertEqual(list(occurs)[1].startTime, datetime(2005, 8, 15, 13))
+        self.assertEqual(list(occurs)[1].startTime,
+                         datetime(2005, 8, 15, 13, tzinfo=ICUtzinfo.default))
         self.rep.check()
     
     def testIcalUID(self):
@@ -340,16 +346,18 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         second = secondModified
         third = second.getNextOccurrence()
         self.assertNotEqual(newthird, third)
-        self.assertEqual(third.endTime, datetime(2005, 7, 18, 15))
+        self.assertEqual(third.endTime, datetime(2005, 7, 18, 15,
+                         tzinfo=ICUtzinfo.default))
         # FIXME: these should work after time change preservation is implemented
         #self.assertEqual(second.displayName, u'Twice modified title')
         #self.assertEqual(third.displayName, u'Twice modified title')
         
 
         # check if modificationRecurrenceID works for changeThis mod
-        second.startTime = datetime(2005, 7, 12, 13) #implicit THIS mod
+        second.startTime = datetime(2005, 7, 12, 13,
+                                    tzinfo=ICUtzinfo.default) #implicit THIS mod
         self.assertEqual(second.getNextOccurrence().startTime,
-                         datetime(2005, 7, 18, 13))
+                         datetime(2005, 7, 18, 13, tzinfo=ICUtzinfo.default))
                          
         third.lastModified = 'Changed lastModified.'
         fourth = third.getNextOccurrence()

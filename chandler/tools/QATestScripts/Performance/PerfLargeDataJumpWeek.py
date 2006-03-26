@@ -1,6 +1,7 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 
 from datetime import datetime
+from PyICU import ICUtzinfo
 
 fileName = "PerfLargeDataJumpWeek.log"
 logger = QAUITestAppLib.QALogger(fileName, "Jump from one week to another")
@@ -11,7 +12,7 @@ try:
     # Test Phase: Initialization
 
     # Start at the same date every time
-    testdate = datetime(2005, 11, 27)
+    testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
 
     # Load a large calendar
@@ -22,7 +23,7 @@ try:
     # Test Phase: Action
 
     logger.Start("Jump calendar by one week")
-    testdate = datetime(2005, 12, 4)
+    testdate = datetime(2005, 12, 4, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
     User.idle()
     logger.Stop()

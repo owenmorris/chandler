@@ -18,7 +18,6 @@ from repository.item.PersistentCollections import PersistentList
 from PyICU import ICUtzinfo, DateFormat
 from TimeZone import coerceTimeZone, forceToDateTime
 from i18n import OSAFMessageFactory as _
-from DateTimeUtil import datetimeOp
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
@@ -133,7 +132,7 @@ class RecurrenceRule(items.ContentItem):
         defaultValue = False
     )
     until = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"Until",
     )
     untilIsDate = schema.One(
@@ -243,7 +242,8 @@ class RecurrenceRule(items.ContentItem):
             return until
             
 
-    def createDateUtilFromRule(self, dtstart, ignoreIsCount = True):
+    def createDateUtilFromRule(self, dtstart, ignoreIsCount=True,
+                               convertFloating=False):
         """Return an appropriate dateutil.rrule.rrule.
         
         @param dtstart: The start time for the recurrence rule
@@ -254,6 +254,13 @@ class RecurrenceRule(items.ContentItem):
                               takes extra cycles and is only necessary when
                               the rule is going to be serialized
         @type  ignoreIsCount: C{bool}
+
+        @param convertFloating: Whether or not to allow ICUtzinfo.floating
+                                in datetimes of the rruleset. If C{True},
+                                naive datetimes are used instead. This is
+                                needed for exporting floating events to
+                                icalendar format.
+        @type  convertFloating: C{bool}
         
         @rtype: C{dateutil.rrule.rrule}
 
@@ -263,7 +270,10 @@ class RecurrenceRule(items.ContentItem):
 
         def coerceIfDatetime(value):
             if isinstance(value, datetime):
-                value = coerceTimeZone(value, tzinfo)
+                if convertFloating and value.tzinfo is ICUtzinfo.floating:
+                    value = value.replace(tzinfo=None)
+                else:
+                    value = coerceTimeZone(value, tzinfo)
             return value
 
         # TODO: more comments
@@ -325,9 +335,9 @@ class RecurrenceRule(items.ContentItem):
                 del self.until
         else:
             if until.tzinfo is None:
-                self.until = until
+                self.until = until.replace(tzinfo=ICUtzinfo.floating)
             else:
-                self.until = coerceTimeZone(until, ICUtzinfo.getDefault())
+                self.until = coerceTimeZone(until, ICUtzinfo.default)
             
         for key in self.listNames:
             # TODO: cache getattr(rrule, '_' + key)
@@ -360,7 +370,7 @@ class RecurrenceRule(items.ContentItem):
         """
         previous = None
         for dt in self.createDateUtilFromRule(dtstart):
-            if datetimeOp(dt, '<', recurrenceID):
+            if dt < recurrenceID:
                 previous = dt
             else:
                 break
@@ -406,11 +416,11 @@ class RecurrenceRuleSet(items.ContentItem):
         deletePolicy = 'cascade'
     )
     rdates = schema.Sequence(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"Recurrence Dates"
     )
     exdates = schema.Sequence(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"Exclusion Dates"
     )
     events = schema.Sequence(
@@ -439,7 +449,8 @@ class RecurrenceRuleSet(items.ContentItem):
         except AttributeError:
             setattr(self, rrulesorexrules, [rule])
         
-    def createDateUtilFromRule(self, dtstart, ignoreIsCount = True):
+    def createDateUtilFromRule(self, dtstart, ignoreIsCount=True,
+                               convertFloating=False):
         """Return an appropriate dateutil.rrule.rruleset.
 
         @param dtstart: The start time for the recurrence rule
@@ -451,16 +462,26 @@ class RecurrenceRuleSet(items.ContentItem):
                               the rule is going to be serialized
         @type  ignoreIsCount: C{bool}
         
+        @param convertFloating: Whether or not to allow ICUtzinfo.floating
+                                in datetimes of the rruleset. If C{True},
+                                naive datetimes are used instead. This is
+                                needed for exporting floating events to
+                                icalendar format.
+        @type  convertFloating: C{bool}
+        
         @rtype: C{dateutil.rrule.rruleset}
         
         """
         ruleset = rruleset()
         for rtype in 'rrule', 'exrule':
             for rule in getattr(self, rtype + 's', []):
-                getattr(ruleset, rtype)(rule.createDateUtilFromRule(dtstart, ignoreIsCount))
+                getattr(ruleset, rtype)(rule.createDateUtilFromRule(dtstart, ignoreIsCount, convertFloating))
         for datetype in 'rdate', 'exdate':
             for date in getattr(self, datetype + 's', []):
-                date = coerceTimeZone(date, dtstart.tzinfo)
+                if convertFloating and date.tzinfo is ICUtzinfo.floating:
+                    date = date.replace(tzinfo=None)
+                else:
+                    date = coerceTimeZone(date, dtstart.tzinfo)
                 getattr(ruleset, datetype)(date)
         return ruleset
 
@@ -600,19 +621,19 @@ class RecurrenceRuleSet(items.ContentItem):
             if datelist is not None:
                 l = []
                 for dt in datelist:
-                    if datetimeOp(dt, ">=", after):
+                    if dt >= after:
                         l.append(dt + delta)
                     else:
                         l.append(dt)
                 setattr(self, datetype, l)
         del self._ignoreValueChanges
 
-
-    def removeDates(self, cmp, endpoint):
+    def removeDates(self, cmpFn, endpoint):
         """Remove dates in exdates and rdates before or after endpoint.
 
-        @param cmp: Comparison operator
-        @type  cmp: '<', '<=', '>', '>=', or '=='
+        @param cmpFn: Comparison function (will be called with two
+                      C{datetime} objects as arguments).
+        @type  cmpFn: callable
 
         @param endpoint: Start or end point for comparisons
         @type  endpoint: C{datetime}
@@ -622,7 +643,7 @@ class RecurrenceRuleSet(items.ContentItem):
             datelist = getattr(self, datetype, None)
             if datelist is not None:
                 for i, dt in enumerate(datelist):
-                    if datetimeOp(dt, cmp, endpoint):
+                    if cmpFn(dt, endpoint):
                         self._ignoreValueChanges = True
                         del datelist[i]
                         self._ignoreValueChanges = False
@@ -639,10 +660,10 @@ class RecurrenceRuleSet(items.ContentItem):
         """
         #change the rule, onValueChanged will trigger cleanRule for master
         for rule in getattr(self, 'rrules', []):
-            if not rule.hasLocalAttributeValue('until') or \
-               datetimeOp(rule.calculatedUntil(), '>=', end):
+            if (not rule.hasLocalAttributeValue('until') or
+               (rule.calculatedUntil() >= end)):
                 rule.moveUntilBefore(dtstart, end)
-        self.removeDates('>=', end)
+        self.removeDates(datetime.__ge__, end)
 
     RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
 

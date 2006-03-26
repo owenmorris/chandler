@@ -318,7 +318,7 @@ def ReturnCompleteDatetime(date, time='', tz=None):
     elif tz in TIMEZONES:
         tzinfo = ICUtzinfo.getInstance(tz)
     else: # default value
-        tzinfo = ICUtzinfo.getDefault()
+        tzinfo = ICUtzinfo.default
         
     result = datetime(year=result.year,month=result.month,day=result.day,hour=result.hour,minute=result.minute,tzinfo=tzinfo)
     return result

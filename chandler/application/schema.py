@@ -64,7 +64,7 @@ class TypeReference:
 core_types = """
 Boolean Symbol Importable Bytes Text Integer Long Float
 Tuple List Set Class Dictionary Anything
-Date Time DateTime TimeDelta TimeZone
+Date Time DateTime DateTimeTZ TimeDelta TimeZone
 Lob URL Complex UUID Path SingleRef
 """.split()
 

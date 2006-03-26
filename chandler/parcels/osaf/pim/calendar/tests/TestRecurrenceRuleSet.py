@@ -12,6 +12,8 @@ import dateutil.rrule
 from dateutil.rrule import MO, TU, WE, TH, FR, SA, SU, WEEKLY
 from osaf.pim.calendar.Recurrence import \
      FrequencyEnum, RecurrenceRuleSet, RecurrenceRule, toDateUtil
+from PyICU import ICUtzinfo
+
 import osaf.pim.tests.TestContentModel as TestContentModel
 
 class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
@@ -19,13 +21,15 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
 
     def setUp(self):
         super(RecurrenceRuleTest,self).setUp()
-        self.start = datetime(2005, 7, 4, 13) #1PM, July 4, 2005
+        self.start = datetime(2005, 7, 4, 13, tzinfo=ICUtzinfo.default) #1PM, July 4, 2005
 
-        self.weekly = {'end'   : datetime(2005, 11, 14, 13),
+        self.weekly = {'end'   : datetime(2005, 11, 14, 13,
+                                          tzinfo=ICUtzinfo.default),
                        'start' : self.start,
                        'count' : 20}
         
-        self.monthly = {'end'   : datetime(2005, 11, 4, 13),
+        self.monthly = {'end'   : datetime(2005, 11, 4, 13,
+                                           tzinfo=ICUtzinfo.default),
                        'start' : self.start,
                        'count' : 5}
         
@@ -77,7 +81,7 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         complexRule = dateutil.rrule.rrule(WEEKLY, interval=2, count=4, wkst=SU,
                                            byweekday=(TU,TH), bymonthday=[5,8],
                                            dtstart=self.start)
-        lastDate = datetime(2006, 1, 5, 13)
+        lastDate = datetime(2006, 1, 5, 13,  tzinfo=ICUtzinfo.default)
 
         # Note that dtstart is a Monday and is NOT included, which is not RFC
         # compliant.  VObject works around this for now, someday dateutil will
@@ -112,7 +116,8 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         ruleItem = RecurrenceRule(None, itsView=self.rep.view)
         #default frequency is weekly
         rule = ruleItem.createDateUtilFromRule(self.start)
-        self.assertEqual(rule[149], datetime(2008, 5, 12, 13))
+        self.assertEqual(rule[149],
+                         datetime(2008, 5, 12, 13,  tzinfo=ICUtzinfo.default))
         
     def testTwoRuleSet(self):
         """Test two RecurrenceRules composed into a RuleSet."""

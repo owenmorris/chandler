@@ -12,6 +12,8 @@ from contacts import Contact
 from datetime import datetime, timedelta
 from application import schema
 
+from PyICU import ICUtzinfo
+
 
 class TaskStatusEnum(schema.Enumeration):
     schema.kindInfo(displayName=u"Task Status")
@@ -35,7 +37,7 @@ class TaskMixin(items.ContentItem):
     )
 
     reminderTime = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName = u'ReminderTime',
         doc = 'This may not be general enough',
     )
@@ -62,7 +64,7 @@ class TaskMixin(items.ContentItem):
         TaskStatusEnum,
         displayName = u'Task Status',
     )
-    dueDate = schema.One(schema.DateTime, displayName = u'Due date')
+    dueDate = schema.One(schema.DateTimeTZ, displayName = u'Due date')
     whoFrom = schema.One(redirectTo = 'requestor')
     about = schema.One(redirectTo = 'displayName')
 
@@ -92,7 +94,7 @@ class TaskMixin(items.ContentItem):
         self.taskStatus = 'todo'
 
         # default due date is 1 hour hence
-        self.dueDate = datetime.now() + timedelta(hours=1)
+        self.dueDate = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
 
         # default the title to any super class "about" definition
         try:
@@ -120,7 +122,7 @@ class TaskEventExtraMixin(items.ContentItem):
     )
 
     dueByDate = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName = u'Due by Date',
         doc = 'The date when a Task Event is due.',
     )
@@ -130,7 +132,7 @@ class TaskEventExtraMixin(items.ContentItem):
         doc = 'Recurrence information for a Task Event.',
     )
     dueByTickler = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName = u'Due by Tickler',
         doc = 'The reminder information for a Task Event.',
     )

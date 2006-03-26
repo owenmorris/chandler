@@ -17,6 +17,7 @@ import repository.item.Item as Item
 import logging
 from i18n import OSAFMessageFactory as _
 from osaf import messages
+from PyICU import ICUtzinfo
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,7 @@ class ContentItem(schema.Item):
     )
 
     modifiedOn = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=_(u"Last Modified On"),
         doc="DateTime this item was last modified"
     )
@@ -136,7 +137,7 @@ class ContentItem(schema.Item):
     )
 
     createdOn = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=_(u"created"),
         doc="DateTime this item was created"
     )
@@ -189,7 +190,7 @@ class ContentItem(schema.Item):
     def __init__(self, *args, **kw):
         super(ContentItem, self).__init__(*args, **kw)
         if not hasattr(self, 'createdOn'):
-            self.createdOn = datetime.now()
+            self.createdOn = datetime.now(ICUtzinfo.default)
 
     def __str__ (self):
         if self.isStale():
@@ -812,7 +813,7 @@ class UserNotification(ContentItem):
 
     items = schema.Sequence(ContentItem, inverse='notifications')
 
-    timestamp = schema.One(schema.DateTime,
+    timestamp = schema.One(schema.DateTimeTZ,
         displayName=_(u"timestamp"),
         doc="DateTime this notification ocurred"
     )
@@ -827,7 +828,7 @@ class UserNotification(ContentItem):
     def __init__(self, *args, **kw):
         super(UserNotification, self).__init__(*args, **kw)
         if not hasattr(self, 'timestamp'):
-            self.timestamp = datetime.now()
+            self.timestamp = datetime.now(ICUtzinfo.default)
 
 
 class Principal(ContentItem):

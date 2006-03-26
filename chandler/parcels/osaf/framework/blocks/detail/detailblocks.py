@@ -248,7 +248,9 @@ def registerAttributeEditors(parcel, oldVersion):
     # If you edit this dictionary, please keep it in alphabetical order by key.
     aeDict = {
         'DateTime+calendarDateOnly': 'CalendarDateAttributeEditor',
+        'DateTimeTZ+calendarDateOnly': 'CalendarDateAttributeEditor',
         'DateTime+calendarTimeOnly': 'CalendarTimeAttributeEditor',
+        'DateTimeTZ+calendarTimeOnly': 'CalendarTimeAttributeEditor',
         'EmailAddress+outbound': 'OutboundEmailAddressAttributeEditor',
         'NoneType+appearsIn': 'AppearsInAttributeEditor',
         'ListCollection+appearsIn': 'AppearsInAttributeEditor',

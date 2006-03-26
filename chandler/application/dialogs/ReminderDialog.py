@@ -6,6 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, sys, wx
 from datetime import datetime, timedelta
 from osaf.pim.calendar import Calendar
+from PyICU import ICUtzinfo
 from i18n import OSAFMessageFactory as _
  	
 DAY    = 1440
@@ -136,7 +137,7 @@ class ReminderDialog(wx.Dialog):
         nextReminderTime = None
         for t in reminderTuples:
             (reminderTime, remindable, reminder) = t
-            if Calendar.datetimeOp(reminderTime, '<', datetime.now()):
+            if reminderTime < datetime.now(ICUtzinfo.default):
                 # Another pending reminder; add it to the list.
                 index = listCtrl.InsertStringItem(sys.maxint, 
                                                   remindable.displayName)
@@ -167,15 +168,15 @@ class ReminderDialog(wx.Dialog):
         # otherwise, no reminder needed.
         closeIt = listCtrl.GetItemCount() == 0
         if not closeIt:
-            now = datetime.now()
+            now = datetime.now(ICUtzinfo.default)
             nextReminderTime = now + timedelta(seconds=(60-now.second))
         return (nextReminderTime, closeIt)
 
     def RelativeDateTimeMessage(self, eventTime):
         """ Build a message expressing relative time to this time, 
         like '12 minutes from now', 'Now', or '1 day ago'. """
-        now = datetime.now()
-        delta = Calendar.datetimeOp(now, '-', eventTime)
+        now = datetime.now(ICUtzinfo.default)
+        delta = now - eventTime
         deltaMinutes = (delta.days * 1440L) + (delta.seconds / 60)
         if 0 <= deltaMinutes < 1:
             return _(u"Now")

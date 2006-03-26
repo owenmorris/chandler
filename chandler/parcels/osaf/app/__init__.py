@@ -103,7 +103,7 @@ def installParcel(parcel, oldVersion=None):
 
     noonToday = datetime.datetime.combine(
         datetime.date.today(),
-        datetime.time(12, tzinfo=ICUtzinfo.getDefault()))
+        datetime.time(12, tzinfo=ICUtzinfo.default))
 
     WelcomeEvent = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
         displayName=_(u'Welcome to Chandler 0.6'),

@@ -12,7 +12,7 @@ import osaf.pim.mail as Mail
 
 from datetime import datetime
 from repository.util.Path import Path
-
+from PyICU import ICUtzinfo
 
 class MailTest(TestContentModel.ContentModelTestCase):
     """ Test Mail Content Model """
@@ -152,7 +152,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         mailDeliveryErrorItem.errorCode = 25
         mailDeliveryErrorItem.errorString = u"Test String"
-        mailDeliveryErrorItem.errorDate = datetime.now()
+        mailDeliveryErrorItem.errorDate = datetime.now(ICUtzinfo.default)
 
         smtpDeliveryItem.state = "DRAFT"
         smtpDeliveryItem.deliveryError = mailDeliveryErrorItem
@@ -164,8 +164,8 @@ class MailTest(TestContentModel.ContentModelTestCase):
         mimeSecurityItem.mimeType = "SIGNED"
 
         # Literal properties
-        mailMessageItem.dateSent = datetime.now()
-        mailMessageItem.dateReceived = datetime.now()
+        mailMessageItem.dateSent = datetime.now(ICUtzinfo.default)
+        mailMessageItem.dateReceived = datetime.now(ICUtzinfo.default)
         mailMessageItem.subject = u"Hello"
         mailMessageItem.spamScore = 5
 

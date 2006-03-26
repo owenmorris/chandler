@@ -2,7 +2,7 @@ import repository.tests.RepositoryTestCase as RepositoryTestCase
 import unittest
 from osaf.pim import CalendarEvent, Reminder
 import osaf.pim.tests.TestContentModel as TestContentModel
-import PyICU
+from PyICU import ICUtzinfo
 import repository.item
 from datetime import datetime, timedelta
 
@@ -10,7 +10,8 @@ class ReminderTestCase(TestContentModel.ContentModelTestCase):
     def testReminders(self):
         # Make an event and add a reminder to it.
         anEvent = CalendarEvent("calendarEventItem", itsView=self.rep.view, 
-                                startTime=datetime(2005,3,8,12,00),
+                                startTime=datetime(2005,3,8,12,00,
+                                                   tzinfo = ICUtzinfo.default),
                                 duration=timedelta(hours=1),
                                 allDay=False, anyTime=False)
         regularReminder = anEvent.makeReminder(timedelta(minutes=-10))
@@ -20,7 +21,7 @@ class ReminderTestCase(TestContentModel.ContentModelTestCase):
                         and anEvent.reminders.first() is regularReminder)
         self.failIf(len(anEvent.expiredReminders))        
         self.failUnless(anEvent.reminderFireTime == datetime(2005,3,8,11,50, 
-                                 tzinfo = PyICU.ICUtzinfo.getDefault()))
+                                 tzinfo = ICUtzinfo.default))
 
         # Snooze the reminder for 5 minutes.
         snoozeReminder = anEvent.snoozeReminder(regularReminder, 

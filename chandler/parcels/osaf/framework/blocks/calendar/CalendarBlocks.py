@@ -80,7 +80,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                                         {'start': self.getSelectedDate()})
 
     def getSelectedDate(self):
-        date = datetime.combine(self.GetDate(), time(0))
+        date = datetime.combine(self.GetDate(), time(tzinfo = ICUtzinfo.floating))
         return date
 
     def setSelectedDate(self, newDate):
@@ -108,12 +108,13 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
     def setFreeBusy(self, event, useHints=False):
         
         if self._recalcCount == 0:
-            start = self.GetStartDate();
-            start = datetime.combine(start, time())
+            zerotime = time(tzinfo=ICUtzinfo.default)
+            start = self.GetStartDate()
+            start = datetime.combine(start, zerotime)
 
             # ugh, why can't timedelta just support months?
             end = minical.MonthDelta(start, 3)
-            end = datetime.combine(end, time())
+            end = datetime.combine(end, zerotime)
             
             if useHints and self.HavePendingNewEvents():
                 addedEvents = self.GetPendingNewEvents((start, end))
@@ -147,13 +148,13 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             
     def _doDrawing(self):
 
-        startDate = self.GetStartDate();
+        startDate = self.GetStartDate()
 
         endDate = minical.MonthDelta(startDate, 3)
 
         numDays = (endDate - startDate).days
         busyFractions = {}
-        defaultTzinfo = ICUtzinfo.getDefault()
+        defaultTzinfo = ICUtzinfo.default
         
         # The exact algorithm for the busy state is yet to be determined.
         # For now, just  get the confirmed items on a given day and calculate
@@ -214,8 +215,9 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             self.blockItem.EnsureIndexes()
             
             # First, look at all non-generated events
-            startDatetime = datetime.combine(startDate, time(0))
-            endDatetime = datetime.combine(endDate, time(0))
+            startOfDay = time(0, tzinfo=ICUtzinfo.default)
+            startDatetime = datetime.combine(startDate, startOfDay)
+            endDatetime = datetime.combine(endDate, startOfDay)
     
             for item in self.blockItem.eventsInRange(startDatetime, endDatetime,
                                                 dayItems=True, timedItems=True):
@@ -254,7 +256,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                     matchingMod = None
                     
                     for mod in modifications:
-                        if Calendar.datetimeOp(recurDatetime, '==', mod.recurrenceID):
+                        if recurDatetime == mod.recurrenceID:
                             matchingMod = mod
                             break
                             
@@ -520,6 +522,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             startDay = datetime.combine(today, time(0))
         else:
             startDay = minical.widget.getSelectedDate()
+        startDay = startDay.replace(tzinfo=ICUtzinfo.default)
         endDay = startDay + timedelta(days=1)
 
         if useHints and self.HavePendingNewEvents():
@@ -552,7 +555,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             return -1
         if item2.anyTime or item2.allDay:
             return 1
-        return Calendar.datetimeOp(item1.startTime, 'cmp', item2.startTime) \
-               or cmp(item1.duration, item2.duration) \
-               or cmp(item1.displayName, item2.displayName)
+        return (cmp(item1.startTime, item2.startTime)
+               or cmp(item1.duration, item2.duration)
+               or cmp(item1.displayName, item2.displayName))
 

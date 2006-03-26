@@ -47,7 +47,7 @@ LOCATIONS  = [u"Home", u"Office", u"School"]
 
 
 
-def GenerateCalendarEvent(view, days=30, tzinfo=None):
+def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
     event = Calendar.CalendarEvent(itsView=view)
     event.displayName = random.choice(HEADLINES)
 
@@ -311,7 +311,7 @@ def GenerateAllItems(view, count, mainView=None, sidebarCollection=None):
     collections = GenerateItems(view, 6, GenerateCollection, [], mainView, existingNames)
     
     items = []
-    defaultTzinfo = ICUtzinfo.getDefault()
+    defaultTzinfo = ICUtzinfo.default
     for fn in GenerateMailMessage, GenerateNote, GenerateCalendarEvent, GenerateTask, GenerateEventTask: # GenerateContact omitted.
         def newFn(*args, **keywds):
             keywds['tzinfo'] = defaultTzinfo

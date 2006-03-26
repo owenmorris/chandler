@@ -19,10 +19,9 @@ from application.dialogs import RecurrenceDialog
 
 import wx
 
-from DateTimeUtil import datetimeOp
 from TimeZone import formatTime
 from Reminders import RemindableMixin, Reminder
-from osaf.pim.calendar.TimeZone import coerceTimeZone
+from osaf.pim.calendar.TimeZone import coerceTimeZone, TimeZoneInfo
 from osaf.pim.calendar import DateTimeUtil
 from PyICU import DateFormat, DateFormatSymbols, ICUtzinfo
 from datetime import datetime, time, timedelta
@@ -55,7 +54,7 @@ class ModificationEnum(schema.Enumeration):
 def _sortEvents(eventlist, reverse=False):
     """Helper function for working with events."""
     def cmpEventStarts(event1, event2):
-        return datetimeOp(event1.startTime, 'cmp', event2.startTime)
+        return cmp(event1.startTime, event2.startTime)
     eventlist = list(eventlist)
     eventlist.sort(cmp=cmpEventStarts)
     if reverse: eventlist.reverse()
@@ -93,7 +92,7 @@ class CalendarEventMixin(RemindableMixin):
     )
 
     startTime = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=_(u"Start-Time/Do-on"),
         doc="For items that represent *only* Tasks, this attribute serves as "
             "the 'Do-on' attribute. For items that represent only Calendar "
@@ -109,7 +108,7 @@ class CalendarEventMixin(RemindableMixin):
         doc="Duration.")
 
     recurrenceID = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"Recurrence ID",
         defaultValue=None,
         doc="Date time this occurrence was originally scheduled. startTime and "
@@ -199,7 +198,7 @@ class CalendarEventMixin(RemindableMixin):
     )
 
     modificationRecurrenceID = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"Start-Time backup",
         defaultValue=None,
         doc="If a modification's startTime is changed, none of its generated"
@@ -228,7 +227,7 @@ class CalendarEventMixin(RemindableMixin):
     )
     
     recurrenceEnd = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"Recurrence End",
         defaultValue = None,
         doc="End time for recurrence, or None, kept up to date by "
@@ -257,32 +256,32 @@ class CalendarEventMixin(RemindableMixin):
         if not kw.has_key('icalUID'):
             self.icalUID = unicode(self.itsUUID)
 
-    def InitOutgoingAttributes (self):
+    def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
         try:
-            super(CalendarEventMixin, self).InitOutgoingAttributes ()
+            super(CalendarEventMixin, self).InitOutgoingAttributes()
         except AttributeError:
             pass
 
-        CalendarEventMixin._initMixin (self) # call our init, not the method of a subclass
+        CalendarEventMixin._initMixin(self) # call our init, not the method of a subclass
 
         # New item initialization
         self.displayName = u"New Event"
 
-    def _initMixin (self):
+    def _initMixin(self):
         """ 
           Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
-        # start at the nearest half hour, duration of an hour
-        now = datetime.now(ICUtzinfo.getDefault())
         if not self.hasLocalAttributeValue('startTime'):
-            self.startTime = datetime.combine(now,
-                                              time(hour=now.hour,
-                                                   minute=((now.minute/30) * 30),
-                                                   tzinfo=now.tzinfo))
+            # start at the nearest half hour, duration of an hour
+            defaultTz = TimeZoneInfo.get(self.itsView).default
+            now = datetime.now(defaultTz)
+            roundedTime = time(hour=now.hour, minute=(now.minute/30)*30,
+                               tzinfo = defaultTz)
+            self.startTime = datetime.combine(now, roundedTime)
         if not self.hasLocalAttributeValue('duration'):
             self.duration = timedelta(hours=1)
 
@@ -383,7 +382,7 @@ class CalendarEventMixin(RemindableMixin):
             self.duration = duration
 
     endTime = Calculated(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"End-Time",
         basedOn=('startTime', 'duration'),
         fget=getEndTime,
@@ -402,12 +401,13 @@ class CalendarEventMixin(RemindableMixin):
         if not self.hasLocalAttributeValue('startTime'):
             return None
         elif self.anyTime or self.allDay:
-            return datetime.combine(self.startTime, time(0, tzinfo=None))
+            startOfDay = time(0, tzinfo=ICUtzinfo.floating)
+            return datetime.combine(self.startTime, startOfDay)
         else:
             return self.startTime
 
     effectiveStartTime = Calculated(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"EffectiveStartTime",
         basedOn=('startTime', 'allDay', 'anyTime'),
         fget=getEffectiveStartTime,
@@ -428,7 +428,7 @@ class CalendarEventMixin(RemindableMixin):
             return endTime
 
     effectiveEndTime = Calculated(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"EffectiveEndTime",
         basedOn=('startTime', 'allDay', 'anyTime', 'duration'),
         fget=getEffectiveEndTime,
@@ -468,7 +468,7 @@ class CalendarEventMixin(RemindableMixin):
         for rule in self.rruleset.rrules:
             until = getattr(rule, 'until', None)
             if until is not None:
-                if last is None or datetimeOp(last, '<', until):
+                if last is None or last < until:
                     last = until
         return last
     
@@ -483,7 +483,7 @@ class CalendarEventMixin(RemindableMixin):
         last = self.getLastUntil()
         rdates = getattr(self.rruleset, 'rdates', [])
         for dt in rdates:
-            if datetimeOp(last, '<', dt):
+            if last < dt:
                 last = dt
         # @@@ we're not doing anything with anyTime or allDay
         if last is None:
@@ -538,13 +538,16 @@ class CalendarEventMixin(RemindableMixin):
         
         """
         if inclusive:
-            compare = '<='
+            # could just say compare = datetime.__le__ here
+            def compare(dt1, dt2):
+                return dt1 <= dt2
         else:
-            compare = '<'
-        return (before is None or datetimeOp(self.startTime, compare, before)) and \
-               (after is None or datetimeOp(self.endTime, '>=', after))
+            def compare(dt1, dt2):
+                return dt1 < dt2
+        return ((before is None or compare(self.startTime, before)) and
+               (after is None or (self.endTime >= after)))
 
-    def createDateUtilFromRule(self, ignoreIsCount = True):
+    def createDateUtilFromRule(self, ignoreIsCount = True, convertFloating=False):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
         
         @see: L{Recurrence.RecurrenceRuleSet.createDateUtilFromRule}
@@ -552,10 +555,10 @@ class CalendarEventMixin(RemindableMixin):
         
         """
         if self.getFirstInRule() != self:
-            return self.getFirstInRule().createDateUtilFromRule(ignoreIsCount)
+            return self.getFirstInRule().createDateUtilFromRule(ignoreIsCount, convertFloating)
         else:
             dtstart = self.getEffectiveStartTime()
-            return self.rruleset.createDateUtilFromRule(dtstart, ignoreIsCount)
+            return self.rruleset.createDateUtilFromRule(dtstart, ignoreIsCount, convertFloating)
 
     def setRuleFromDateUtil(self, rule):
         """Set self.rruleset from rule.  Rule may be an rrule or rruleset.
@@ -628,8 +631,8 @@ class CalendarEventMixin(RemindableMixin):
             if after is None:
                 # isBetween isn't quite what we want if after is None
                 def test(mod):
-                    return datetimeOp(self.startTime, '<', mod.startTime) and \
-                           (before is None or datetimeOp(mod.startTime, '<', before))
+                    return ((self.startTime < mod.startTime) and
+                           (before is None or (mod.startTime < before)))
             else:
                 def test(mod):
                     return mod.isBetween(after, before)
@@ -641,10 +644,9 @@ class CalendarEventMixin(RemindableMixin):
                     if nextEvent is None:
                         nextEvent = mod
                     # sort by recurrenceID if startTimes are equal
-                    elif (datetimeOp(mod.startTime, '<', nextEvent.startTime) or
-                         (datetimeOp(mod.startTime, '==', nextEvent.startTime)
-                          and datetimeOp(mod.recurrenceID, 
-                                         '<', nextEvent.recurrenceID))):
+                    elif ((mod.startTime < nextEvent.startTime) or
+                         ((mod.startTime == nextEvent.startTime)
+                          and (mod.recurrenceID  < nextEvent.recurrenceID))):
                         nextEvent = mod
             return nextEvent
                 
@@ -671,7 +673,7 @@ class CalendarEventMixin(RemindableMixin):
             if (recurrenceID < start or (not exact and recurrenceID == start)):
                 continue
             
-            if before != None and datetimeOp(recurrenceID, '>', before):
+            if before is not None and recurrenceID > before:
                 return checkModifications(first, before)
 
             calculated = self.getExistingOccurrence(recurrenceID)
@@ -689,12 +691,11 @@ class CalendarEventMixin(RemindableMixin):
         # expired, and the rest are not. This helps avoid a
         # mass of reminders if an event in the past is changed.
         #
-        now = datetime.now()
+        now = datetime.now(ICUtzinfo.default)
         
         def expired(reminder):
             nextTime = reminder.getNextReminderTimeFor(self)
-            return (nextTime is not None and
-                    datetimeOp(nextTime, '<=', now))
+            return (nextTime is not None and nextTime <= now)
 
 
         # We really don't want to touch self.reminders
@@ -727,10 +728,10 @@ class CalendarEventMixin(RemindableMixin):
         # check for modifications taking place before first, but only if
         # if we're actually interested in dates before first (i.e., the
         # after argument is None or less than first.startTime)
-        if first.modifications is not None and \
-           (after is None or datetimeOp(after, "<", first.startTime)):
+        if (first.modifications is not None and
+            (after is None or after < first.startTime)):
             for mod in first.modifications:
-                if datetimeOp(mod.startTime, "<=", event.startTime):
+                if mod.startTime <= event.startTime:
                     event = mod
                 
         if not event.isBetween(after, before):
@@ -817,7 +818,7 @@ class CalendarEventMixin(RemindableMixin):
         # and we need to make sure occurrences has a value
         if first.occurrences is not None:
             for occurrence in first.occurrences:
-                if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
+                if occurrence.recurrenceID == recurrenceID:
                     return occurrence
         return None
 
@@ -837,7 +838,7 @@ class CalendarEventMixin(RemindableMixin):
 
         # no existing matches, see if one can be generated:
         for occurrence in self.getOccurrencesBetween(recurrenceID,recurrenceID,True):
-            if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
+            if occurrence.recurrenceID == recurrenceID:
                 return occurrence
 
         # no match
@@ -857,8 +858,9 @@ class CalendarEventMixin(RemindableMixin):
 
     def _propagateChange(self, modification):
         """Move later modifications to self."""
-        if modification.occurrenceFor != self and \
-           datetimeOp(modification.recurrenceID, '>',  self.startTime):
+        # [@@@] grant != or is not?
+        if (modification.occurrenceFor != self and 
+            modification.recurrenceID > self.startTime):
             # future 'this' modifications in master should move to self
             modification.modificationFor = self
             modification.occurrenceFor = self
@@ -870,11 +872,11 @@ class CalendarEventMixin(RemindableMixin):
         master = self.getMaster()
         first = master # Changed for no-THISANDFUTURE-style
         recurrenceID = self.recurrenceID
-        isFirst = datetimeOp(recurrenceID, '==', master.startTime)
+        isFirst = (recurrenceID == master.startTime)
         self._ignoreValueChanges = True
         
         if attr == 'startTime':
-            startTimeDelta = datetimeOp(value, '-', self.startTime)
+            startTimeDelta = (value - self.startTime)
             self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
         
         setattr(self, attr, value)
@@ -885,7 +887,7 @@ class CalendarEventMixin(RemindableMixin):
             self.occurrenceFor = self
             if attr != 'rruleset':
                 self.rruleset = self.rruleset.copy(cloudAlias='copying')
-                self.rruleset.removeDates('<', self.startTime)
+                self.rruleset.removeDates(datetime.__lt__, self.startTime)
             # We have to pass in master because occurrenceFor has been changed
             self._makeGeneralChange()
             # Make this event a separate event from the original rule
@@ -934,7 +936,7 @@ class CalendarEventMixin(RemindableMixin):
                     # move THIS modifications after self to newfirst
                     if first.hasLocalAttributeValue('modifications'):
                         for mod in first.modifications:
-                            if datetimeOp(mod.recurrenceID, '>', newfirst.startTime):
+                            if mod.recurrenceID > newfirst.startTime:
                                 mod.occurrenceFor = newfirst
                                 mod.modificationFor = newfirst
                                 mod.icalUID = newfirst.icalUID
@@ -1140,7 +1142,7 @@ class CalendarEventMixin(RemindableMixin):
             until = first.rruleset.rrules.first().calculatedUntil()
             for mod in first.modifications:
                 # this won't work for complicated rrulesets
-                if until != None and datetimeOp(mod.recurrenceID, '>', until):
+                if until != None and (mod.recurrenceID > until):
                     mod._ignoreValueChanges = True
                     mod.delete()
                     
@@ -1156,7 +1158,7 @@ class CalendarEventMixin(RemindableMixin):
         """Delete self and all future occurrences and modifications."""
         # changing the rule will delete self unless self is the master
         master = self.getMaster()
-        if datetimeOp(self.recurrenceID, '==', master.startTime):
+        if self.recurrenceID == master.startTime:
             self.deleteAll()
         else:
             self.moveRuleEndBefore(self.recurrenceID)
@@ -1196,7 +1198,7 @@ class CalendarEventMixin(RemindableMixin):
         """Delete all future occurrences and modifications."""
         master = self.getMaster()
         for event in master.occurrences:
-            if datetimeOp(event.startTime, '>',  self.startTime): 
+            if event.startTime >  self.startTime:
                 event._ignoreValueChanges = True
                 event.delete()
                     
@@ -1209,13 +1211,13 @@ class CalendarEventMixin(RemindableMixin):
         The resulting event will occur exactly once.
         """
         master = self.getMaster()
-        if datetimeOp(master.recurrenceID, '!=', master.startTime):
+        if master.recurrenceID != master.startTime:
             master.changeNoModification('recurrenceID', master.startTime)
         rruleset = master.rruleset
         if rruleset is not None:
             masterHadModification = False
             for event in master.occurrences:                
-                if datetimeOp(event.recurrenceID, '!=', master.startTime):
+                if event.recurrenceID != master.startTime:
                     event.delete()
                 elif event != master:
                     # A THIS modification to master, make it the new master
@@ -1295,7 +1297,7 @@ class CalendarEventMixin(RemindableMixin):
         if selfTime is None:
             return 1
         
-        return datetimeOp(selfTime, 'cmp', itemTime)
+        return cmp(selfTime, itemTime)
         
     # for use in indexing CalendarEventMixins
     def cmpStartTime(self, item):

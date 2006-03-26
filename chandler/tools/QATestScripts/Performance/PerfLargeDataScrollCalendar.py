@@ -2,6 +2,7 @@ import tools.QAUITestAppLib as QAUITestAppLib
 
 import wx
 from datetime import datetime
+from PyICU import ICUtzinfo
 
 # Test Phase: Initialization
 App_ns = app_ns()
@@ -13,7 +14,7 @@ try:
     # Look at the same date every time -- do this before we import
     # to save time and grief
     
-    testdate = datetime(2005, 12, 14)
+    testdate = datetime(2005, 12, 14, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
     
     # Load a large calendar so we have events to scroll

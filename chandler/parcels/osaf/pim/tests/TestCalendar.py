@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 from datetime import datetime, timedelta
+from PyICU import ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.tests.TestContentModel as TestContentModel
@@ -111,22 +112,25 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         view = self.rep.view
         firstItem = Calendar.CalendarEvent(itsView=view)
         firstItem.anyTime = False
-        firstItem.startTime = datetime(2003, 2, 1, 10)
-        firstItem.endTime = datetime(2003, 2, 1, 11, 30)
+        firstItem.startTime = datetime(2003, 2, 1, 10, tzinfo=ICUtzinfo.default)
+        firstItem.endTime = datetime(2003, 2, 1, 11, 30,
+                                     tzinfo=ICUtzinfo.default)
         self.assertEqual(firstItem.duration, timedelta(hours=1.5))
 
         # Test setting duration and getting endTime
         secondItem = Calendar.CalendarEvent(itsView=view)
         secondItem.anyTime = False
-        secondItem.startTime = datetime(2003, 3, 5, 9)
+        secondItem.startTime = datetime(2003, 3, 5, 9, tzinfo=ICUtzinfo.default)
         secondItem.duration = timedelta(hours=1.5)
         self.assertEqual(secondItem.endTime,
-                         datetime(2003, 3, 5, 10, 30))
+                         datetime(2003, 3, 5, 10, 30, tzinfo=ICUtzinfo.default))
 
         # Test changing startTime (shouldn't change duration)
-        firstItem.startTime = datetime(2003, 3, 4, 12, 45)
+        firstItem.startTime = datetime(2003, 3, 4, 12, 45,
+                                       tzinfo=ICUtzinfo.default)
         self.assertEqual(firstItem.duration, timedelta(hours=1.5))
-        self.assertEqual(firstItem.startTime, datetime(2003, 3, 4, 12, 45))
+        self.assertEqual(firstItem.startTime,
+                         datetime(2003, 3, 4, 12, 45, tzinfo=ICUtzinfo.default))
 
         # Test allDay
         firstItem.allDay = True

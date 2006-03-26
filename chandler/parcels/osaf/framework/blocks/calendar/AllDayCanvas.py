@@ -11,6 +11,7 @@ from CalendarCanvas import (
     wxCalendarCanvas, roundToColumnPosition
     )
 from PyICU import GregorianCalendar, ICUtzinfo
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
 from osaf.pim.calendar import Calendar
 
@@ -190,9 +191,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         def drawCanvasItems(canvasItems, selected):
             for canvasItem in canvasItems:
-                pastEnd = Calendar.datetimeOp(canvasItem.item.endTime,
-                                              '>=',
-                                              self.blockItem.rangeEnd)
+                pastEnd = canvasItem.item.endTime >= self.blockItem.rangeEnd
                 canvasItem.Draw(dc, styles,
                                 selected, rightSideCutOff=pastEnd)
 
@@ -219,7 +218,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     @staticmethod
     def GetColumnRange(item, (startDateTime, endDateTime)):
         # get first and last column of its span
-        if Calendar.datetimeOp(item.startTime, '<', startDateTime):
+        if item.startTime < startDateTime:
             dayStart = 0
         else:
             dayStart = wxAllDayEventsCanvas.DayOfWeekNumber(item.startTime)
@@ -230,7 +229,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # means that events that 'end' on midnight, on exactly
         # endDateTime, need to be thought of as extending PAST
         # endDateTime.
-        if Calendar.datetimeOp(item.endTime, '>=', endDateTime):
+        if item.endTime >= endDateTime:
             dayEnd = 6
         else:
             dayEnd = wxAllDayEventsCanvas.DayOfWeekNumber(item.endTime)
@@ -348,7 +347,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if spanResult != 0:
             return spanResult
         else:
-            return Calendar.datetimeOp(item1.startTime, 'cmp', item2.startTime)
+            return cmp(item1.startTime, item2.startTime)
         
         # another possibililty is ORDER BY date, duration
         #dateResult = cmp(item1.startTime, item2.startTime)
@@ -437,20 +436,19 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             newTime = newTime.astimezone(tzinfo)
         
         # bounding rules are: at least one cell of the event must stay visible.
-        if Calendar.datetimeOp(newTime, '>=', self.blockItem.rangeEnd):
+        if newTime >= self.blockItem.rangeEnd:
             newTime = self.blockItem.rangeEnd - timedelta(days=1)
-            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
-        elif Calendar.datetimeOp(newTime + item.duration, '<',
-             self.blockItem.rangeStart):
+            newTime = newTime.replace(tzinfo=ICUtzinfo.default)
+        elif newTime + item.duration < self.blockItem.rangeStart:
             newTime = self.blockItem.rangeStart - item.duration
-            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
+            newTime = newTime.replace(tzinfo=ICUtzinfo.default)
         
         if tzinfo is None:
             oldStartTime = \
-                item.startTime.replace(tzinfo=ICUtzinfo.getDefault())
+                item.startTime.replace(tzinfo=ICUtzinfo.default)
         else:
             oldStartTime = \
-                item.startTime.astimezone(ICUtzinfo.getDefault())
+                item.startTime.astimezone(ICUtzinfo.default)
         # [@@@] grant .toordinal() & tzinfo?
         
         if (newTime.date() != oldStartTime.date()):
@@ -467,6 +465,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     def OnCreateItem(self, unscrolledPosition):
         view = self.blockItem.itsView
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        newTime = newTime.replace(tzinfo=TimeZoneInfo.get(view).default)
         
         event = self.CreateEmptyEvent(startTime=newTime, allDay=True, anyTime=True)
 

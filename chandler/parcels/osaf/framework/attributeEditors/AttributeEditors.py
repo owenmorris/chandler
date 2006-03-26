@@ -117,9 +117,13 @@ def installParcel(parcel, oldVersion=None):
         'ContactName': 'ContactNameAttributeEditor', 
         'ContentItem': 'StringAttributeEditor', 
         'DateTime': 'DateTimeAttributeEditor', 
+        'DateTimeTZ': 'DateTimeAttributeEditor', 
         'DateTime+dateOnly': 'DateAttributeEditor', 
+        'DateTimeTZ+dateOnly': 'DateAttributeEditor', 
         'DateTime+timeOnly': 'TimeAttributeEditor',
+        'DateTimeTZ+timeOnly': 'TimeAttributeEditor',
         'DateTime+timeZoneOnly': 'TimeZoneAttributeEditor',
+        'DateTimeTZ+timeZoneOnly': 'TimeZoneAttributeEditor',
         'EmailAddress': 'EmailAddressAttributeEditor',
         'Integer': 'RepositoryAttributeEditor',
         'Item': 'ItemNameAttributeEditor',
@@ -1590,7 +1594,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         # [grant] This means we always display datetimes in the
         # user's default timezone in the summary table.
         if itemDateTime.tzinfo is not None:
-            itemDateTime = itemDateTime.astimezone(ICUtzinfo.getDefault())
+            itemDateTime = itemDateTime.astimezone(ICUtzinfo.default)
 
         itemDate = itemDateTime.date()
         today = datetime.today()
@@ -1646,8 +1650,12 @@ class DateAttributeEditor (StringAttributeEditor):
         
 
         # If this results in a new value, put it back.
-        value = (oldValue is None) and dateValue \
-              or datetime.combine(dateValue.date(), oldValue.timetz())
+        if oldValue is not None:
+            value = datetime.combine(dateValue.date(), oldValue.timetz())
+        elif dateValue:
+            value = dateValue.replace(tzinfo=ICUtzinfo.floating)
+        else:
+            value = None
         if oldValue != value:
             setattr(item, attributeName, value)
             self.AttributeChanged()
@@ -2081,6 +2089,9 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
     def SetControlValue(self, control, value):
         """ Select the choice with the given time zone """
         
+        if value is None:
+            value = ICUtzinfo.floating
+
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue is None or existingValue != value:
@@ -2093,19 +2104,11 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
 
             # rebuild the list of choices
             for name, zone in info.iterTimeZones():
-            
-                # [@@@] grant: Should be canonicalTimeZone == zone; PyICU bug?
-                if canonicalTimeZone is not None and \
-                   canonicalTimeZone.timezone == zone.timezone:
+                if canonicalTimeZone == zone:
                     selectIndex = control.Append(name, clientData=value)
                 else:
                     control.Append(name, clientData=zone)
 
-            # Add an entry for "floating" (a tzinfo of None)
-            index = control.Append(_(u"Floating"), clientData=None)
-            if value is None:
-                selectIndex = index
-        
             if selectIndex is -1:
                 control.Insert(unicode(value), 0, clientData=value)
                 selectIndex = 0

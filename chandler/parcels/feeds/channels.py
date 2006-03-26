@@ -474,4 +474,4 @@ class FeedItem(pim.ContentItem):
             self.date = date_parse(str(data.date))
         else:
             # No date was available in the feed, so assign it 'now'
-            self.date = datetime.datetime.now(ICUtzinfo.getDefault())
+            self.date = datetime.datetime.now(ICUtzinfo.default)

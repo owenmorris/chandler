@@ -9,7 +9,7 @@ from notes import Note
 from contacts import Contact, ContactName
 from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern
-from calendar.DateTimeUtil import (datetimeOp, durationFormat, mediumDateFormat, 
+from calendar.DateTimeUtil import (durationFormat, mediumDateFormat, 
      monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
      weekdayNames, weekdayName)
 from calendar.Reminders import Reminder, RemindableMixin

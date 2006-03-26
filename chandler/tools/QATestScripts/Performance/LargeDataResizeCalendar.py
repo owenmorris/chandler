@@ -2,6 +2,7 @@ import tools.QAUITestAppLib as QAUITestAppLib
 import osaf.framework.scripting as scripting
 
 from datetime import datetime
+from PyICU import ICUtzinfo
 
 fileName = "PerfLargeDataResizeCalendar.log"
 logger = QAUITestAppLib.QALogger(fileName, "Resize app in calendar mode")
@@ -12,7 +13,7 @@ try:
     # Test Phase: Initialization
 
     # Start at the same date every time
-    testdate = datetime(2005, 11, 27)
+    testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
 
     frame = App_ns.root.widget.GetParent()

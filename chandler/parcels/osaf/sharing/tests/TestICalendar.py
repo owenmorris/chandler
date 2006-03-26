@@ -101,7 +101,8 @@ class ICalendarTestCase(unittest.TestCase):
     def DateImportAsAllDay(self):
         format = self.Import(self.repo.view, u'AllDay.ics')
         event = format.findUID('testAllDay')
-        self.assert_(event.startTime == datetime.datetime(2005,1,1),
+        self.assert_(event.startTime ==
+                     datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating),
          "startTime not set properly for all day event, startTime is %s"
          % event.startTime)
         self.assert_(event.allDay == True,
@@ -113,8 +114,10 @@ class ICalendarTestCase(unittest.TestCase):
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.anyTime = False
         event.displayName = u"test"
-        event.startTime = datetime.datetime(2010, 1, 1, 10)
-        event.endTime = datetime.datetime(2010, 1, 1, 11)        
+        event.startTime = datetime.datetime(2010, 1, 1, 10,
+                                            tzinfo=ICUtzinfo.default)
+        event.endTime = datetime.datetime(2010, 1, 1, 11,
+                                          tzinfo=ICUtzinfo.default)
 
         cal = ICalendar.itemsToVObject(self.repo.view, [event])
 
@@ -129,7 +132,8 @@ class ICalendarTestCase(unittest.TestCase):
 
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.displayName = u"test2"
-        event.startTime = datetime.datetime(2010, 1, 1)
+        event.startTime = datetime.datetime(2010, 1, 1, 
+                                            tzinfo=ICUtzinfo.floating)
         event.allDay = True        
 
         cal = ICalendar.itemsToVObject(self.repo.view, [event])
@@ -142,8 +146,10 @@ class ICalendarTestCase(unittest.TestCase):
     def writeICalendarUnicodeBug3338(self):
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.displayName = u"unicode \u0633\u0644\u0627\u0645"
-        event.startTime = datetime.datetime(2010, 1, 1, 10)
-        event.endTime = datetime.datetime(2010, 1, 1, 11)
+        event.startTime = datetime.datetime(2010, 1, 1, 10,
+                                            tzinfo=ICUtzinfo.default)
+        event.endTime = datetime.datetime(2010, 1, 1, 11,
+                                          tzinfo=ICUtzinfo.default)
 
         coll = ListCollection("testcollection", itsParent=self.sandbox)
         coll.add(event)
@@ -167,7 +173,8 @@ class ICalendarTestCase(unittest.TestCase):
         event = format.findUID('5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getNextOccurrence().getNextOccurrence()
         self.assertEqual(third.displayName, u'Changed title')
-        self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10))
+        self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
+                                                    tzinfo=ICUtzinfo.floating))
         # while were at it, test bug 3509, all day event duration is off by one
         self.assertEqual(event.duration, datetime.timedelta(0))
 
@@ -200,7 +207,7 @@ class ICalendarTestCase(unittest.TestCase):
     
     def exportRecurrence(self):
         eastern = ICUtzinfo.getInstance("US/Eastern")
-        start = datetime.datetime(2005,2,1, tzinfo = eastern)            
+        start = datetime.datetime(2005,2,1, tzinfo = eastern)
         vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
         vevent.behavior = vobject.icalendar.VEvent
         
@@ -238,7 +245,9 @@ class ICalendarTestCase(unittest.TestCase):
         
         # move the second occurrence one day later
         nextEvent = event.getNextOccurrence()
-        nextEvent.changeThis('startTime', datetime.datetime(2005,2,9))
+        nextEvent.changeThis('startTime',
+                             datetime.datetime(2005,2,9, 
+                                               tzinfo=ICUtzinfo.floating))
         
         nextEvent.getNextOccurrence().deleteThis()
 

@@ -15,6 +15,9 @@ from twisted.internet import threads
 import cStringIO as StringIO
 from datetime import datetime
 
+#PyICU imports
+from PyICU import ICUtzinfo
+
 #Chandler imports
 import osaf.pim.mail as Mail
 from osaf.framework.certstore import ssl
@@ -216,7 +219,7 @@ class SMTPClient(object):
         self.mailMessage = self._getMailMessage(mailMessageUUID)
 
         self.mailMessage.outgoingMessage(self.account)
-        now = datetime.now()
+        now = datetime.now(ICUtzinfo.default)
         self.mailMessage.dateSent = now
         self.mailMessage.dateSentString = dateTimeToRFC2882Date(now)
 

@@ -1,6 +1,7 @@
 from QALogger import *
 from datetime import datetime, timedelta
 from time import mktime, strptime
+from PyICU import ICUtzinfo
 from osaf import pim
 import osaf.pim.mail as Mail
 import osaf.pim.collections as Collection
@@ -1323,6 +1324,8 @@ class UITestView(object):
     def GoToDate(self, datestring):
         # convert to timestamp
         timestamp = mktime(strptime(datestring, "%Y-%m-%d"))
+        dateToSelect = datetime.fromtimestamp(timestamp).replace(
+                                                   tzinfo=ICUtzinfo.floating) 
         
         App_ns.root.SelectedDateChanged(start=datetime.fromtimestamp(timestamp))
         

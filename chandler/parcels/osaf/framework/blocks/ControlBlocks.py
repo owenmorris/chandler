@@ -888,7 +888,7 @@ class Timer(Block):
         # Set the new time, if we have one. If it's in the past, fire "really soon". If it's way in the future,
         # don't bother firing.
         if when is not None:
-            td = Calendar.datetimeOp(when, '-', datetime.now())
+            td = (when - datetime.now(PyICU.ICUtzinfo.default))
             millisecondsUntilFiring = ((td.days * 86400) + td.seconds) * 1000L
             if millisecondsUntilFiring < 100:
                 millisecondsUntilFiring = 100
@@ -934,7 +934,7 @@ class ReminderTimer(Timer):
 
         view = self.itsView
         # reminderFireTime always adds a timezone, so add one to now 
-        now = datetime.now(PyICU.ICUtzinfo.getDefault())
+        now = datetime.now(PyICU.ICUtzinfo.default)
 
         def matches(key):
             if view[key].reminderFireTime <= now:
@@ -964,7 +964,7 @@ class ReminderTimer(Timer):
             # Chandler is started with a reminder already due. Wait a couple
             # of seconds and try again.
             (nextReminderTime, closeIt) = (datetime.now(
-                PyICU.ICUtzinfo.getDefault()) + timedelta(seconds=1), False)
+                PyICU.ICUtzinfo.default) + timedelta(seconds=1), False)
         else:
             # Get the dialog if we have it; we'll create it if 'createDialog' and
             # it doesn't exist.

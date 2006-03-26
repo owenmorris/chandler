@@ -12,8 +12,8 @@ from email.MIMEText import MIMEText
 from email.MIMENonMultipart import MIMENonMultipart
 import logging as logging
 import mimetypes
-from time import mktime
 from datetime import datetime
+from PyICU import ICUtzinfo
 
 #Chandler imports
 import osaf.pim.mail as Mail
@@ -387,8 +387,7 @@ def __parseHeaders(view, messageObject, m):
     date = messageObject['Date']
 
     if date is not None:
-        #XXX: look at using Utils.parsedate_tz
-        parsed = emailUtils.parsedate(date)
+        parsed = emailUtils.parsedate_tz(date)
 
         """It is a non-rfc date string"""
         if parsed is None:
@@ -396,10 +395,11 @@ def __parseHeaders(view, messageObject, m):
                 trace("Message contains a Non-RFC Compliant Date format")
 
             """Set the sent date to the current Date"""
-            m.dateSent = datetime.now()
+            m.dateSent = datetime.now(ICUtzinfo.default)
 
         else:
-            m.dateSent = datetime.fromtimestamp(mktime(parsed))
+            m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(parsed),
+                                                ICUtzinfo.default)
 
         ##XXX:  Do we need this the tz could be preserved
         m.dateSentString = date

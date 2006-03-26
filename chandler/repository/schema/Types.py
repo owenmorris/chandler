@@ -1239,7 +1239,7 @@ class DateTime(DateStruct):
 class DateTimeTZ(DateTime):
 
     def recognizes(self, value):
-        return type(self) is datetime and value.tzinfo is not None
+        return type(value) is datetime and value.tzinfo is not None
 
 
 class Date(DateStruct):

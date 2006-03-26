@@ -2,7 +2,6 @@
 from application import schema
 from osaf.pim.items import Calculated, ContentItem
 from datetime import datetime, time, timedelta
-from DateTimeUtil import datetimeOp
 from PyICU import ICUtzinfo
 
 
@@ -38,7 +37,7 @@ class Reminder(schema.Item):
     )
     
     snoozedUntil = schema.One(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"SnoozedUntil",
         defaultValue=None
     )
@@ -59,7 +58,7 @@ class Reminder(schema.Item):
         result = self.snoozedUntil or \
                (self.getBaseTimeFor(remindable) + self.delta)
         if result.tzinfo is None:
-            result = result.replace(tzinfo=ICUtzinfo.getDefault())
+            result = result.replace(tzinfo=ICUtzinfo.default)
         return result
 
 class RemindableMixin(ContentItem):
@@ -138,7 +137,7 @@ class RemindableMixin(ContentItem):
             return reminder.getNextReminderTimeFor(self)
 
     reminderFireTime = Calculated(
-        schema.DateTime,
+        schema.DateTimeTZ,
         displayName=u"Reminder fire time",
         basedOn=('startTime', 'allDay', 'anyTime', 'reminders'),
         fget=getReminderFireTime,
@@ -158,7 +157,7 @@ class RemindableMixin(ContentItem):
             nextTime = newReminder.getNextReminderTimeFor(self)
             
             if (nextTime is not None and
-                datetimeOp(nextTime, '<', datetime.now())):
+                nextTime < datetime.now(ICUtzinfo.default)):
                 addThisTo = self.expiredReminders
             
         addThisTo.add(newReminder)

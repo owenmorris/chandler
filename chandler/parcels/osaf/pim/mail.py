@@ -546,7 +546,7 @@ class MailMessageMixin(MIMEContainer):
     spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob)
     dateSentString = schema.One(schema.Text, initialValue = '')
-    dateSent = schema.One(schema.DateTime, displayName=_(u"date sent"))
+    dateSent = schema.One(schema.DateTimeTZ, displayName=_(u"date sent"))
     messageId = schema.One(schema.Text, initialValue = '')
     toAddress = schema.Sequence(
         'EmailAddress',

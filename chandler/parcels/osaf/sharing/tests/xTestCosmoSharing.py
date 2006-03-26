@@ -66,7 +66,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
         self.uuids = {}
 
-        tzinfo = ICUtzinfo.getDefault()
+        tzinfo = ICUtzinfo.default
         for i in xrange(6):
             c = pim.CalendarEvent(None, sandbox)
             c.displayName = events[i % 6]
@@ -170,7 +170,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         item0.displayName = u"meeting rescheduled"
         oldStart = item0.startTime
 
-        tzinfo = ICUtzinfo.getDefault()
+        tzinfo = ICUtzinfo.default
         newStart = datetime.datetime(2005, 11, 1, 12, 0, 0, 0, tzinfo)
         item1 = view1.findUUID(uuid)
         item1.startTime = newStart

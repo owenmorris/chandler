@@ -15,7 +15,7 @@ import email.Utils as emailUtils
 import unittest as unittest
 from repository.item.RefCollections import RefList
 
-from time import mktime
+from PyICU import ICUtzinfo
 from datetime import datetime
 
 
@@ -84,7 +84,7 @@ This is the body"""
         m.headers['References'] = "<9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>"
 
         dateString = "Mon, 9 Aug 2004 13:55:15 -0700"
-        m.dateSent = datetime.fromtimestamp(mktime(emailUtils.parsedate(dateString)))
+        m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(emailUtils.parsedate_tz(dateString)), ICUtzinfo.getInstance("Etc/GMT-7"))
         m.dateSentString = dateString
 
         m.body = utils.unicodeToText(m, "body", u"This is the body")

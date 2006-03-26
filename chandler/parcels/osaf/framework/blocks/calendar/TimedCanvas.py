@@ -69,7 +69,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if useHints and self.HavePendingNewEvents():
             addedEvents = self.GetPendingNewEvents(currentRange)
             
-            defaultTzinfo = ICUtzinfo.getDefault()
+            defaultTzinfo = ICUtzinfo.default
             
             def fixTimezone(d):
                 if d.tzinfo is None:
@@ -121,8 +121,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 # self.canvasItemList is supposed to be in the same
                 # order as self.visibleItems
                 keyFn = (lambda ci: ci.item.startTime)
-                cmpFn = (lambda x, y: Calendar.datetimeOp(x, 'cmp', y))
-                self.canvasItemList.sort(cmpFn, keyFn)
+                self.canvasItemList.sort(cmp, keyFn)
 
         else:
             self.ClearPendingNewEvents()
@@ -229,7 +228,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                "Dont' have an hour in the current locale's time format"
 
         for hour in hourrange:
-            timedate = time(hour=hour)
+            timedate = time(hour=hour, tzinfo=ICUtzinfo.default)
             hourdate = datetime.combine(dummyDate, timedate)
             timeString = timeFormatter.format(hourdate, hourFP)
             (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
@@ -326,12 +325,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         Comparison function for sorting, mostly by start time
         """
-        dateResult = Calendar.datetimeOp(item1.startTime, 'cmp', item2.startTime)
+        dateResult = cmp(item1.startTime, item2.startTime)
         
         # when two items start at the same time, we actually want to show the
         # SHORTER event last, so that painting draws it on top
         if dateResult == 0:
-            dateResult = Calendar.datetimeOp(item2.endTime, 'cmp', item1.endTime)
+            dateResult = cmp(item2.endTime, item1.endTime)
         return dateResult
 
     def RebuildCanvasItems(self, resort=False):
@@ -469,8 +468,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # only select something new if there's no existing selection, or if 
         # we're outside of an existing selection
         if (not self._bgSelectionStartTime or
-            Calendar.datetimeOp(selectedTime, '<', self._bgSelectionStartTime) or
-            Calendar.datetimeOp(selectedTime, '>', self._bgSelectionEndTime)):
+            (selectedTime < self._bgSelectionStartTime) or
+            (selectedTime > self._bgSelectionEndTime)):
             self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
             self._bgSelectionDragEnd = True
             self._bgSelectionEndTime = self._bgSelectionStartTime + \
@@ -595,7 +594,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             # next try the current time today, if visible
             duration = timedelta(hours=1)
             
-            now = datetime.today()
+            now = datetime.now(ICUtzinfo.default)
             startDay, endDay = self.blockItem.GetCurrentDateRange()
             if startDay <= now <= endDay:
                 # if today is in view, try to create the time about an
@@ -609,8 +608,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             else:
                 # finally, just throw it in the middle of the current view
                 newTime = startDay + timedelta(days=3, hours=12)
-                
-        newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
+        
+        defaultTz = TimeZoneInfo.get(self.blockItem.itsView).default
+        newTime = newTime.replace(tzinfo=defaultTz)
                 
         return newTime, duration
 
@@ -706,8 +706,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         else:
             self._bgSelectionStartTime = dragDateTime
             
-        if Calendar.datetimeOp(self._bgSelectionEndTime, '<',
-                self._bgSelectionStartTime):
+        if (self._bgSelectionEndTime < self._bgSelectionStartTime):
             # swap values, drag the other end
             self._bgSelectionDragEnd = not self._bgSelectionDragEnd
             (self._bgSelectionStartTime, self._bgSelectionEndTime) = \
@@ -798,15 +797,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         (startDay, endDay) = self.GetCurrentDateRange()
         
         if datetime.tzinfo is None:
-            datetime = datetime.replace(tzinfo=ICUtzinfo.getDefault())
+            datetime = datetime.replace(tzinfo=ICUtzinfo.default)
         else:
-            datetime = datetime.astimezone(ICUtzinfo.getDefault())
+            datetime = datetime.astimezone(ICUtzinfo.default)
             
         if datetime.date() < startDay.date() or \
            datetime.date() > endDay.date():
             raise ValueError, "Must be visible on the calendar"
         
-        delta = Calendar.datetimeOp(datetime, '-', startDay)
+        delta = (datetime - startDay)
         x,width = self.getColumnForDay(delta.days)
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return x,y,width
@@ -837,7 +836,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
 
         # calculate how many unique days this appears on 
-        defaultTzinfo = ICUtzinfo.getDefault()
+        defaultTzinfo = ICUtzinfo.default
         
         if startTime.tzinfo is None:
             startTime = startTime.replace(tzinfo=defaultTzinfo)
@@ -1025,10 +1024,8 @@ class TimedCanvasItem(CalendarCanvasItem):
 
             # plus, we also have to make sure that two zero-length
             # events that have the same start time still conflict
-            if (Calendar.datetimeOp(conflict.item.startTime, '>=',
-                                   self.item.endTime) and
-                Calendar.datetimeOp(conflict.item.startTime, '!=',
-                                    self.item.startTime)):
+            if ((conflict.item.startTime >= self.item.endTime) and
+                (conflict.item.startTime != self.item.startTime)):
                  break
 
             # item and conflict MUST conflict now

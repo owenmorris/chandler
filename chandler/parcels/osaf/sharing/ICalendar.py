@@ -51,6 +51,15 @@ def itemsToVObject(view, items, cal=None, filters=None):
     """
     def populate(comp, item):
         """Populate the given vobject vevent with data from item."""
+        
+        def makeDateTimeValue(dt, asDate=False):
+            if asDate:
+                return dt.date()
+            elif dt.tzinfo is ICUtzinfo.floating:
+                return dt.replace(tzinfo=None)
+            else:
+                return dt
+        
         if item.getAttributeValue('icalUID', default=None) is None:
             item.icalUID = unicode(item.itsUUID)
         comp.add('uid').value = item.icalUID
@@ -62,15 +71,13 @@ def itemsToVObject(view, items, cal=None, filters=None):
         
         try:
             dtstartLine = comp.add('dtstart')
-            if item.allDay:
-                # allDay-ness overrides anyTime-ness
-                dtstartLine.value = item.startTime.date()
-            elif item.anyTime:
+            
+            # allDay-ness overrides anyTime-ness
+            if item.anyTime and not item.allDay:
                 dtstartLine.x_osaf_anytime_param = 'TRUE'
-                # anyTime should be exported as allDay for non-Chandler apps
-                dtstartLine.value = item.startTime.date()
-            else:
-                dtstartLine.value = item.startTime
+                
+            dtstartLine.value = makeDateTimeValue(item.startTime,
+                                    item.anyTime or item.allDay)
 
         except AttributeError:
             comp.dtstart = [] # delete the dtstart that was added
@@ -83,12 +90,13 @@ def itemsToVObject(view, items, cal=None, filters=None):
                 #convert Chandler's notion of allDay duration to iCalendar's
                 if item.allDay:
                     dtendLine.value = item.endTime.date() + oneDay
-                elif item.anyTime:
-                    dtendLine.x_osaf_anytime_param = 'TRUE'
-                    # anyTime should be exported as allDay for non-Chandler apps
-                    dtendLine.value = item.endTime.datae()
                 else:
-                    dtendLine.value = item.endTime
+                    if item.anyTime:
+                        dtendLine.x_osaf_anytime_param = 'TRUE'
+
+                    # anyTime should be exported as allDay for non-Chandler apps
+                    dtendLine.value = makeDateTimeValue(item.endTime,
+                                                        item.anyTime)
 
         except AttributeError:
             comp.dtend = [] # delete the dtend that was added
@@ -121,16 +129,15 @@ def itemsToVObject(view, items, cal=None, filters=None):
             recurrenceid = comp.add('recurrence-id')
             master = item.getMaster()
             allDay = master.allDay or master.anyTime
-            if allDay:
-                recurrenceid.value = item.recurrenceID.date()
-            else:     
-                recurrenceid.value = item.recurrenceID
+            
+            recurrenceid.value = makeDateTimeValue(item.recurrenceID, allDay)
         
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative
             if item.getMaster() == item and item.rruleset is not None:
                 # False because we don't want to ignore isCount for export
-                cal.vevent_list[-1].rruleset = item.createDateUtilFromRule(False)
+                # True because we don't want to use ICUtzinfo.floating
+                cal.vevent_list[-1].rruleset = item.createDateUtilFromRule(False, True)
         except AttributeError:
             pass
         # end of populate function
@@ -171,7 +178,11 @@ def convertToICUtzinfo(dt, view=None):
     """
     oldTzinfo = dt.tzinfo
     
-    if oldTzinfo is not None:
+    if oldTzinfo is None:
+
+        icuTzinfo = None # Will patch to floating at the end
+        
+    else:
 
         def getICUInstance(name):
             result = None
@@ -242,10 +253,13 @@ def convertToICUtzinfo(dt, view=None):
                     if tzical_tzid is not None:
                         tzid_mapping[tzical_tzid] = icuTzinfo                    
                     break
-            
-        # Here, if we have an unknown timezone, we'll turn
-        # it into a floating datetime
-        dt = dt.replace(tzinfo=icuTzinfo)
+        
+    # Here, if we have an unknown timezone, we'll turn
+    # it into a floating datetime
+    if icuTzinfo is None:
+        icuTzinfo = ICUtzinfo.floating
+
+    dt = dt.replace(tzinfo=icuTzinfo)
         
     return dt
 

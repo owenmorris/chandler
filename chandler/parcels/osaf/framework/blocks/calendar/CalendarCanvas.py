@@ -649,8 +649,7 @@ class CalendarNotificationHandler(object):
                 hasattr(item, 'duration') and
                 (item.rruleset is None) ):
 
-                if not (Calendar.datetimeOp(item.startTime, '>', endTime) or
-                        Calendar.datetimeOp(item.endTime, '<', startTime)):
+                if not (item.startTime > endTime or item.endTime < startTime):
                     addedEvents.append(item)
 
         self._pendingNewEvents = set()
@@ -756,7 +755,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     @staticmethod
     def startOfToday():
         today = date.today()
-        start = time(tzinfo=ICUtzinfo.getDefault())
+        start = time(tzinfo=ICUtzinfo.default)
         return datetime.combine(today, start)
         
         
@@ -849,7 +848,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         @type date: datetime
         """
 
-        date = datetime.combine(date, time())
+        date = datetime.combine(date, time(tzinfo=ICUtzinfo.floating))
 
         # basic behavior
         self.rangeStart = date
@@ -909,8 +908,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Helpful utility to determine if an item is within a given range
         Assumes the item has a startTime and endTime attribute
         """
-        return (Calendar.datetimeOp(item.startTime, '<=', end) and
-                Calendar.datetimeOp(item.endTime, '>=', start))
+        return ((item.startTime <= end) and (item.endTime >= start))
 
     def getKeysInRange(self, startVal, startAttrName, startIndex, startColl,
                              endVal,   endAttrName,   endIndex,   endColl,
@@ -931,7 +929,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 return -1 # interpret None as negative infinity
             # note that we're NOT using >=, if we did, we'd include all day
             # events starting at the beginning of the next week
-            if Calendar.datetimeOp(endVal, '>', testVal):
+            if endVal > testVal:
                 return 0
             return -1
 
@@ -940,7 +938,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             testVal = getattr(view[key], endAttrName)
             if testVal is None:
                 return 0 # interpret None as positive infinity, thus, a match
-            if Calendar.datetimeOp(startVal, '<=', testVal):
+            if startVal <= testVal:
                 return 0
             return 1
         
@@ -1044,7 +1042,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         @rtype: generator of Items
         """
         assert dayItems or timedItems, "dayItems or timedItems must be True"
-        defaultTzinfo = ICUtzinfo.getDefault()
+        defaultTzinfo = ICUtzinfo.default
         if date.tzinfo is None:
             date = date.replace(tzinfo=defaultTzinfo)
         else:
@@ -1154,6 +1152,10 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
             self.editor.SaveAndHide()
 
     def RefreshCanvasItems(self, resort=False):
+        # [@@@] grant setting resort=True here avoids a
+        # wiggling events problem (if you drag an event
+        # from Tuesday to Thursday, Wednesday's events
+        # momentarily acquire an indent).
         self.RebuildCanvasItems(resort)
         self.Refresh()
         
@@ -1170,7 +1172,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
             return
 
         # next make sure today is in view
-        today = datetime.today()
+        today = datetime.today().replace(tzinfo=ICUtzinfo.default)
         startDay, endDay = self.blockItem.GetCurrentDateRange()
         if (today < startDay or endDay < today):
             return
@@ -1179,7 +1181,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
 
         # rectangle goes from top to bottom, but the 
-        dayNum = Calendar.datetimeOp(today, '-', startDay).days
+        dayNum = (today - startDay).days
         x = drawInfo.columnPositions[dayNum+1]
         y = 0
         (width, height) = (drawInfo.columnWidths[dayNum+1],
@@ -1228,7 +1230,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         if initialValues.has_key('displayName'):
             event.displayName = initialValues['displayName']
        
-        self.blockItem.contentsCollection.add (event)
+        self.blockItem.contentsCollection.add(event)
         
         self.OnSelectItem(event)
 
@@ -1279,7 +1281,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         deltaTime = self.getRelativeTimeFromPosition(drawInfo, position)
         newTime = startDay + deltaDays + deltaTime
 
-        newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
+        newTime = newTime.replace(tzinfo=ICUtzinfo.default)
         if tzinfo:
             newTime = newTime.astimezone(tzinfo)
         return newTime
@@ -1663,7 +1665,7 @@ class CalendarControl(CalendarBlock):
         """
         assert self.daysPerView == 7, "daysPerView is a legacy variable, keep it at 7 plz"
         
-        date = datetime.combine(date, time())
+        date = datetime.combine(date, time(tzinfo=ICUtzinfo.default))
 
         #Set rangeStart
         # start at the beginning of the week (Sunday midnight)
@@ -1676,7 +1678,7 @@ class CalendarControl(CalendarBlock):
 
         #Set selectedDate.  if on week mode, sel'd date is always Sunday midnight.
         if self.dayMode:
-            self.selectedDate = date
+            self.selectedDate = date.replace(tzinfo=ICUtzinfo.floating)
         else:
             self.selectedDate = self.rangeStart
 
@@ -1819,14 +1821,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         # Now, populate the wxChoice with TimeZoneInfo.knownTimeZones
         selectIndex = -1
-        for name, zone in info.iterTimeZones():
+        for name, zone in info.iterTimeZones(withFloating=False):
             index = tzChoice.Append(name, clientData=zone)
             
-            if defaultTzinfo.timezone == zone.timezone:
-                # [@@@] grant: Should be defaultTzinfo == zone; PyICU bug?
+            if selectIndex == -1 and defaultTzinfo == zone:
                 selectIndex = index
         
-        if selectIndex is -1:
+        if selectIndex is -1: # @@@ this should never happen
             tzChoice.Insert(unicode(defaultTzinfo), 0, clientData=zone)
             selectIndex = 0
 
@@ -1902,9 +1903,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             dayName = u"%s %d" %(shortWeekdays[actualDay + 1],
                                  currentDate.day)
             self.weekColumnHeader.SetLabelText(day+1, dayName)
-            
-        self.currentSelectedDate = datetime.combine(selectedDate, time())
-        self.currentStartDate = datetime.combine(startDate, time())
+        
+        startOfDay = time(tzinfo=ICUtzinfo.floating)
+        self.currentSelectedDate = datetime.combine(selectedDate, startOfDay)
+        self.currentStartDate = datetime.combine(startDate, startOfDay)
         
         self.Layout()
 
