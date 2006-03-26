@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp,v 1.12 2006/01/21 16:47:25 JS Exp $
+// RCS-ID:      $Id: stdpaths.cpp,v 1.14 2006/03/25 18:31:44 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -242,6 +242,26 @@ wxString wxStandardPaths::DoGetDirectory(int csidl)
     return dir;
 }
 
+/* static */
+wxString wxStandardPaths::GetAppDir()
+{
+    wxFileName fn(wxGetFullModuleName());
+
+    // allow running the apps directly from build directory in debug builds
+#ifdef __WXDEBUG__
+    wxString lastdir;
+    if ( fn.GetDirCount() )
+    {
+        lastdir = fn.GetDirs().Last();
+        lastdir.MakeLower();
+        if ( lastdir.Matches(_T("debug*")) || lastdir.Matches(_T("vc_msw*")) )
+            fn.RemoveLastDir();
+    }
+#endif // __WXDEBUG__
+
+    return fn.GetPath();
+}
+
 // ----------------------------------------------------------------------------
 // public functions
 // ----------------------------------------------------------------------------
@@ -260,7 +280,7 @@ wxString wxStandardPaths::GetDataDir() const
 {
     // under Windows each program is usually installed in its own directory and
     // so its datafiles are in the same directory as its main executable
-    return wxFileName(wxGetFullModuleName()).GetPath();
+    return GetAppDir();
 }
 
 wxString wxStandardPaths::GetUserDataDir() const
@@ -275,9 +295,10 @@ wxString wxStandardPaths::GetUserLocalDataDir() const
 
 wxString wxStandardPaths::GetPluginsDir() const
 {
-    return wxFileName(wxGetFullModuleName()).GetPath();
+    // there is no standard location for plugins, suppose they're in the same
+    // directory as the .exe
+    return GetAppDir();
 }
-
 
 // ============================================================================
 // wxStandardPathsWin16 implementation

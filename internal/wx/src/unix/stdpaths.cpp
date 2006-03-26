@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp,v 1.9 2005/12/08 21:49:52 JS Exp $
+// RCS-ID:      $Id: stdpaths.cpp,v 1.14 2006/03/25 17:00:34 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,22 +38,73 @@
     #include <unistd.h>
 #endif
 
-#if defined(__WXMAC__)
-    #include "wx/mac/private.h"
-#endif
-
 // ============================================================================
-// wxStandardPaths implementation
+// common VMS/Unix part of wxStandardPaths implementation
 // ============================================================================
-
-// ----------------------------------------------------------------------------
-// prefix management
-// ----------------------------------------------------------------------------
 
 void wxStandardPaths::SetInstallPrefix(const wxString& prefix)
 {
     m_prefix = prefix;
 }
+
+wxString wxStandardPaths::GetUserConfigDir() const
+{
+    return wxFileName::GetHomeDir();
+}
+
+// ============================================================================
+// wxStandardPaths implementation for VMS
+// ============================================================================
+
+#ifdef __VMS
+
+wxString wxStandardPaths::GetInstallPrefix() const
+{
+    if ( m_prefix.empty() )
+    {
+        wx_const_cast(wxStandardPaths *, this)->m_prefix = wxT("/sys$system");
+    }
+
+    return m_prefix;
+}
+
+wxString wxStandardPaths::GetConfigDir() const
+{
+   return _T("/sys$manager");
+}
+
+wxString wxStandardPaths::GetDataDir() const
+{
+   return AppendAppName(GetInstallPrefix() + _T("/sys$share"));
+}
+
+wxString wxStandardPaths::GetLocalDataDir() const
+{
+   return AppendAppName(_T("/sys$manager"));
+}
+
+wxString wxStandardPaths::GetUserDataDir() const
+{
+   return wxFileName::GetHomeDir();
+}
+
+wxString wxStandardPaths::GetPluginsDir() const
+{
+    return wxString(); // TODO: this is wrong, it should return something
+}
+
+wxString
+wxStandardPaths::GetLocalizedResourcesDir(const wxChar *lang,
+                                          ResourceCat category) const
+{
+    return wxStandardPathsBase::GetLocalizedResourcesDir(lang, category);
+}
+
+#else // !__VMS
+
+// ============================================================================
+// wxStandardPaths implementation for Unix
+// ============================================================================
 
 wxString wxStandardPaths::GetInstallPrefix() const
 {
@@ -70,11 +121,10 @@ wxString wxStandardPaths::GetInstallPrefix() const
         {
             buf[result] = '\0'; // readlink() doesn't NUL-terminate the buffer
 
-            wxString exeStr(buf, wxConvLibc);
+            const wxString exeStr(buf, wxConvLibc);
 
             // consider that we're in the last "bin" subdirectory of our prefix
-            wxString basename(wxString(wxTheApp->argv[0]).AfterLast(_T('/')));
-            size_t pos = exeStr.find(wxT("/bin/") + basename);
+            size_t pos = exeStr.rfind(wxT("/bin/"));
             if ( pos != wxString::npos )
                 pathPtr->m_prefix.assign(exeStr, 0, pos);
         }
@@ -82,11 +132,7 @@ wxString wxStandardPaths::GetInstallPrefix() const
 
         if ( m_prefix.empty() )
         {
-#ifdef __VMS
-            pathPtr->m_prefix = wxT("/sys$system");
-#else
             pathPtr->m_prefix = wxT("/usr/local");
-#endif
         }
     }
 
@@ -99,50 +145,39 @@ wxString wxStandardPaths::GetInstallPrefix() const
 
 wxString wxStandardPaths::GetConfigDir() const
 {
-#ifdef __VMS
-   return _T("/sys$manager");
-#else
    return _T("/etc");
-#endif
-}
-
-wxString wxStandardPaths::GetUserConfigDir() const
-{
-    return wxFileName::GetHomeDir();
 }
 
 wxString wxStandardPaths::GetDataDir() const
 {
-#ifdef __VMS
-   return AppendAppName(GetInstallPrefix() + _T("/sys$share"));
-#else
    return AppendAppName(GetInstallPrefix() + _T("/share"));
-#endif
 }
 
 wxString wxStandardPaths::GetLocalDataDir() const
 {
-#ifdef __VMS
-   return AppendAppName(_T("/sys$manager"));
-#else
    return AppendAppName(_T("/etc"));
-#endif
 }
 
 wxString wxStandardPaths::GetUserDataDir() const
 {
-#ifdef __VMS
-   return wxFileName::GetHomeDir();
-#elif defined(__WXMAC__)
-   return AppendAppName(wxMacFindFolder((short) kUserDomain, kApplicationSupportFolderType, kDontCreateFolder));
-#else
    return AppendAppName(wxFileName::GetHomeDir() + _T("/."));
-#endif
 }
 
 wxString wxStandardPaths::GetPluginsDir() const
 {
-    return wxString();
+    return AppendAppName(GetInstallPrefix() + _T("/lib"));
 }
+
+wxString
+wxStandardPaths::GetLocalizedResourcesDir(const wxChar *lang,
+                                          ResourceCat category) const
+{
+    if ( category != ResourceCat_Messages )
+        return wxStandardPathsBase::GetLocalizedResourcesDir(lang, category);
+
+    return GetInstallPrefix() + _T("/share/locale/") + lang + _T("/LC_MESSAGES");
+}
+
+#endif // __VMS/!__VMS
 
 #endif // wxUSE_STDPATHS

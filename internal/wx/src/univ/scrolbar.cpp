@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        univ/scrolbar.cpp
+// Name:        src/univ/scrolbar.cpp
 // Purpose:     wxScrollBar implementation
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.08.00
-// RCS-ID:      $Id: scrolbar.cpp,v 1.26 2005/09/23 12:55:53 MR Exp $
+// RCS-ID:      $Id: scrolbar.cpp,v 1.27 2006/03/25 07:59:53 ABX Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -717,10 +717,8 @@ bool wxStdScrollBarInputHandler::HandleKey(wxInputConsumer *consumer,
             case WXK_LEFT:      action = wxACTION_SCROLL_LINE_UP;   break;
             case WXK_HOME:      action = wxACTION_SCROLL_START;     break;
             case WXK_END:       action = wxACTION_SCROLL_END;       break;
-            case WXK_PAGEUP:
-            case WXK_PRIOR:     action = wxACTION_SCROLL_PAGE_UP;   break;
-            case WXK_PAGEDOWN:
-            case WXK_NEXT:      action = wxACTION_SCROLL_PAGE_DOWN; break;
+            case WXK_PAGEUP:    action = wxACTION_SCROLL_PAGE_UP;   break;
+            case WXK_PAGEDOWN:  action = wxACTION_SCROLL_PAGE_DOWN; break;
         }
 
         if ( !action.IsEmpty() )
@@ -951,4 +949,3 @@ void wxScrollTimer::Notify()
         (void)DoNotify();
     }
 }
-

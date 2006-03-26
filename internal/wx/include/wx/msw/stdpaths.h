@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.h,v 1.2 2004/10/20 00:34:25 VZ Exp $
+// RCS-ID:      $Id: stdpaths.h,v 1.4 2006/03/25 18:31:38 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,6 +30,9 @@ public:
 protected:
     // get the path corresponding to the given standard CSIDL_XXX constant
     static wxString DoGetDirectory(int csidl);
+
+    // return the directory of the application itself
+    static wxString GetAppDir();
 };
 
 // ----------------------------------------------------------------------------
