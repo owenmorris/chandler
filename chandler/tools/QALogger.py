@@ -184,13 +184,13 @@ class TestLogger:
         for passed in self.passedList:
             self.Print("        - Ok : %s" % passed)
         if len(self.failureList) == 0 and self.checked:
-            status = "Pass"
+            status = "PASSED"
             self.nbPass = self.nbPass + 1
         elif len(self.failureList) == 0 and not self.checked:
             status = "Uncheck"
             self.nbUnchecked = self.nbUnchecked + 1
         else:
-            status = "Fail"
+            status = "FAILED"
             self.nbFail = self.nbFail + 1
         self.Print("Verification = %s" % status)
         self.Print("")
@@ -235,9 +235,9 @@ class TestLogger:
                 nbTCPassed = 0
                 nbTCUnchecked = 0
                 for tc in self.testcaseList:
-                    if tc[1] == "FAIL":
+                    if tc[1] == "FAILED":
                         nbTCFailed = nbTCFailed + 1
-                    elif tc[1] == "PASS":
+                    elif tc[1] == "PASSED":
                         nbTCPassed = nbTCPassed + 1
                     else:
                         nbTCUnchecked = nbTCUnchecked + 1
@@ -267,7 +267,7 @@ class TestLogger:
                 self.Print("Status : %s testcase %s" %(self.mainDescription, status))
             #change to fail if output detected on stderr
             if self.standardErr.hadError:
-                status = "FAIL"
+                status = "FAILED"
                 self.Print(self.standardErr.text)
             # Tinderbox printing
             # compute the elapsed time in seconds
@@ -287,8 +287,8 @@ class TestLogger:
             #print names of failed tests and stderr output if there was any
             if status == "FAILED":
                 for tc in self.testcaseList:
-                    if tc[1] == "FAIL":
-                        self.PrintBoth( tc[0] + ' failed')
+                    if tc[1] == "FAILED":
+                        self.PrintBoth( tc[0] + ' FAILED')
             if not self.inTerminal:
                 # close the file
                 self.File.close()
@@ -301,9 +301,9 @@ class TestLogger:
                 if self.nbUnchecked == self.nbVerif:
                     status = "UNCHECKED"
                 elif self.nbPass == self.nbVerif:
-                    status = "PASS"
+                    status = "PASSED"
                 else:
-                    status = "FAIL"
+                    status = "FAILED"
                 self.testcaseList.append((self.subTestcaseDesc,status))
             # Test case status
             elapsed = now - self.testcaseStartDate
