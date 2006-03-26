@@ -229,11 +229,30 @@ class OccurrenceProxy(object):
         elif self.proxiedItem.rruleset is None:
             setattr(self.proxiedItem, name, value)
         else:
-            try:
-                testedEqual = hasattr(self.proxiedItem, name) and \
-                              getattr(self.proxiedItem, name) == value
-            except TypeError: # datetimes with and without TZs will raise this
-                testedEqual = False
+            testedEqual = False
+            
+            #
+            # In the case of datetime-valued attributes, we don't want to
+            # do == comparison right away, since:
+            #
+            # (1) it could raise a TypeError if comparing naive and
+            #     non-naive values
+            #
+            # (2) it can return True when we still want to propagate
+            #     a change; for example if trying to change the timezone
+            #     from your default to floating.
+            #
+            if hasattr(self.proxiedItem, name):
+                oldValue = getattr(self.proxiedItem, name)
+                
+                # These will be None for non-datetime values
+                oldTzinfo = getattr(oldValue, 'tzinfo', None)
+                tzinfo = getattr(value, 'tzinfo', None)
+                
+                # By checking the tzinfos first, we bypass the
+                # possible TypeError, too.
+                testedEqual = (oldTzinfo == tzinfo and oldValue == value)
+                    
             if testedEqual:
                 pass
             elif self.currentlyModifying is None:
