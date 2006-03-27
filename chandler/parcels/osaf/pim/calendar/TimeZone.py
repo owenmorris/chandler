@@ -86,6 +86,7 @@ class TimeZoneInfo(schema.Item):
         super(TimeZoneInfo, self).__init__(*args, **keywds)
         
         self.default = PyICU.ICUtzinfo.default
+
         
     def canonicalTimeZone(self, tzinfo):
         """
@@ -96,6 +97,7 @@ class TimeZoneInfo(schema.Item):
         A side-effect is that if a previously unseen tzinfo is
         passed in, it will be added to the receiver's wellKnownIDs
         """
+
         if tzinfo is None or tzinfo == PyICU.ICUtzinfo.floating:
             
             result = PyICU.ICUtzinfo.floating
@@ -118,6 +120,7 @@ class TimeZoneInfo(schema.Item):
             if result is None and tzinfo is not None:
                 self.wellKnownIDs.append(unicode(tzinfo.tzid))
                 result = tzinfo
+
             
         return result
         
@@ -151,9 +154,16 @@ class TimeZoneInfo(schema.Item):
     def onValueChanged(self, name):
         # Repository hook for attribute changes.
         if name == 'default':
-            tzinfo = self.canonicalTimeZone(self.default)
-            if tzinfo is not None:
-                PyICU.TimeZone.setDefault(tzinfo.timezone)
+            default = self.default
+            canonicalDefault = self.canonicalTimeZone(default)
+            # Make sure that PyICU's default timezone is synched with
+            # ours
+            if (canonicalDefault is not None and
+                canonicalDefault is not PyICU.ICUtzinfo.floating):
+                PyICU.ICUtzinfo.default = canonicalDefault
+            # This next if is required to avoid an infinite recursion!
+            if canonicalDefault is not default:
+                self.default = canonicalDefault
 
 def stripTimeZone(dt):
     """
