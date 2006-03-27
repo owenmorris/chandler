@@ -22,7 +22,7 @@ class TestFeedImporting(testcase.SingleRepositoryTestCase):
         url = 'http://wp.osafoundation.org/rss2'
         channel = feeds.newChannelFromURL(view, url)
         view.commit() # Make the channel available to feedsView
-        status = blockUntil(channel.update)
+        status = blockUntil(channel.refresh)
         view.refresh()
 
         # Only bother checking if the fetch was successful.  If there is a

@@ -48,7 +48,7 @@ def updateFeeds(repository):
     view.refresh()
 
     for channel in FeedChannel.iterItems(view):
-        channel.update()
+        channel.refresh()
 
 
 def newChannelFromURL(view, url):
@@ -167,6 +167,12 @@ class FeedChannel(pim.ListCollection):
         displayName=u"Language"
     )
 
+    ignoreContentChanges = schema.One(
+        schema.Boolean,
+        displayName=u"Ignore Content Changes",
+        initialValue=False
+    )
+
     schema.addClouds(
         sharing = schema.Cloud(author, copyright, link, url)
     )
@@ -175,7 +181,7 @@ class FeedChannel(pim.ListCollection):
     about = schema.Descriptor(redirectTo="about")
 
 
-    def update(self):
+    def refresh(self):
 
         # Make sure we have the feedsView copy of the channel item
         feedsView = getFeedsView(self.itsView.repository)
@@ -347,7 +353,7 @@ class FeedChannel(pim.ListCollection):
             if matchingItem is None:
 
                 feedItem = FeedItem(itsView=view)
-                feedItem.update(newItem)
+                feedItem.refresh(newItem)
                 self.addFeedItem(feedItem)
                 logger.debug("Added new item: %s", title)
                 count += 1
@@ -358,8 +364,8 @@ class FeedChannel(pim.ListCollection):
                 # FeedItem at a time (per Channel) to link to the same place,
                 # since it seems like that gets the behavior we want.
 
-                oldContent = matchingItem.content.getReader().read()
                 oldTitle = matchingItem.displayName
+                titleDifferent = (oldTitle != title)
 
                 # If no date in the item, just consider it a matching date;
                 # otherwise do compare datestamps:
@@ -369,13 +375,15 @@ class FeedChannel(pim.ListCollection):
                     if matchingItem.date != newItem.date:
                         dateDifferent = True
 
-                contentDifferent = (oldContent != content)
-
-                titleDifferent = (oldTitle != title)
+                if not self.ignoreContentChanges:
+                    oldContent = matchingItem.content.getReader().read()
+                    contentDifferent = (oldContent != content)
+                else:
+                    contentDifferent = False
 
                 if contentDifferent or titleDifferent or dateDifferent:
 
-                    matchingItem.update(newItem)
+                    matchingItem.refresh(newItem)
 
                     if matchingItem.read:
                         matchingItem.updated = True
@@ -450,7 +458,7 @@ class FeedItem(pim.ContentItem):
     def _compareLink(self, other):
         return cmp(str(self.link).lower(), str(other.link).lower())
 
-    def update(self, data):
+    def refresh(self, data):
         # fill in the item
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs)
