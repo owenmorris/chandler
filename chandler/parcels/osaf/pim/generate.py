@@ -126,7 +126,7 @@ def GenerateMailMessage(view, tzinfo=None):
     if TEST_I18N:
         message.subject = addSurrogatePairToText(message.subject)
 
-    message.dateSent = datetime.now()
+    message.dateSent = datetime.now(tzinfo)
 
 
 
@@ -181,7 +181,7 @@ def GenerateTask(view, tzinfo=None):
     task = pim.Task(itsView=view)
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
-    task.dueDate = datetime.today() + delta
+    task.dueDate = datetime.today().replace(tzinfo=tzinfo) + delta
     task.displayName = random.choice(TITLES)
 
     if TEST_I18N:
