@@ -27,13 +27,38 @@ icutu34.dll
 icule34.dll
 icuuc34.dll
 
-# Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
+# Grab all py, pyc, etc. from release/bin/DLLs
 src=chandler/release/bin
 dest=release/bin
 glob=*.py,*.pyd,*.so,*.dll,*.security
 recursive=yes
 DLLs
+
+# Recursively grab python libraries
+src=chandler/release/bin
+dest=release/bin
+recursive=yes
+glob=*.py,*.pyd,*.so,*.security
+Lib/compiler
+Lib/curses
+Lib/distutils
+Lib/email
+Lib/encodings
+Lib/hotshot
+Lib/logging
+Lib/xml
+
+# Grab files from the Lib directory
+recursive=no
 Lib
+
+# Recursively grab python libraries
+src=chandler/release/bin/Lib
+dest=release/bin/Lib
+recursive=yes
+glob=*
+site-packages
+
 
 # Grab Chandler.py and others
 src=chandler

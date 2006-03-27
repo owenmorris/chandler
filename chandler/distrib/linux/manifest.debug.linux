@@ -60,9 +60,17 @@ python2.4/plat-linux2
 python2.4/site-packages
 python2.4/xml
 
-# Grab files from the lib/python2.3 directory
+# Grab files from the lib/python2.4 directory
 recursive=no
 python2.4
+
+# Recursively grab python libraries
+src=chandler/debug/lib/python2.4
+dest=debug/lib/python2.4
+recursive=yes
+glob=*
+site-packages
+
 
 # Grab the DB libraries
 dest=debug/db/lib

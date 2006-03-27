@@ -29,13 +29,38 @@ icule34d.dll
 icuuc34d.dll
 
 
-# Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
+# Grab all py, pyc, etc. from debug/bin/DLLs
 src=chandler/debug/bin
 dest=debug/bin
 glob=*.py,*.pyd,*.so,*.dll,*.security
 recursive=yes
 DLLs
+
+# Recursively grab python libraries
+src=chandler/debug/bin
+dest=debug/bin
+recursive=yes
+glob=*.py,*.pyd,*.so,*.security
+Lib/compiler
+Lib/curses
+Lib/distutils
+Lib/email
+Lib/encodings
+Lib/hotshot
+Lib/logging
+Lib/xml
+
+# Grab files from the Lib directory
+recursive=no
 Lib
+
+# Recursively grab python libraries
+src=chandler/debug/bin/Lib
+dest=debug/bin/Lib
+recursive=yes
+glob=*
+site-packages
+
 
 # Grab Chandler.py and others
 src=chandler
