@@ -86,30 +86,32 @@ shortTimeFormat = DatetimeFormatter(
 durationFormat = PyICU.SimpleDateFormat(_(u"H:mm"))
 
 symbols = PyICU.DateFormatSymbols()
-weekdayNames = symbols.getWeekdays()
-monthNames = symbols.getMonths()
-
-# Ick: getAmPmStrings returns am/pm strings even if the locale doesn't use
-# them when formatting dates; so, check an actual format and make the
-# name list empty if our times would be formatted that way.
-ampmNames = ('a' in unicode(shortTimeFormat.dateFormat.toPattern())) \
-          and symbols.getAmPmStrings() or []
+weekdayNames = map(unicode, symbols.getWeekdays())
+monthNames = map(unicode, symbols.getMonths())
 
 def weekdayName(when):
     # Get the name of the day for this datetime.
     # Convert python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).
     wkDay = ((when.weekday() + 1) % 7) + 1
-    return unicode(weekdayNames[wkDay])
+    return weekdayNames[wkDay]
     
 # We want to build hint strings like "mm/dd/yy" and "hh:mm PM", but we don't 
 # know the locale-specific ordering of these fields. Format a date with 
 # distinct values, then replace the resulting string's pieces with text. 
 # (Some locales use 4-digit years, some use two, so we'll handle both.)
-sampleDate = unicode(shortDateFormat.format(datetime(2003,10,30))
-                     .replace(u"2003", _(u"yyyy"))
-                     .replace(u"03", _(u"yy"))
-                     .replace(u"10", _(u"mm"))
-                     .replace(u"30", _(u"dd")))
-sampleTime = unicode(shortTimeFormat.format(datetime(2003,10,30,11,45))
-                     .replace("11", _(u'hh'))
-                     .replace("45", _(u'mm')))
+# We also get the AM/PM field position, to see if it's empty in this locale,
+# for use below.
+ampmPosition = PyICU.FieldPosition(PyICU.DateFormat.AM_PM_FIELD)
+sampleTime = unicode(shortTimeFormat.dateFormat.format(
+    datetime(2003,10,30,11,45), ampmPosition)).replace("11", _(u'hh')) \
+    .replace("45", _(u'mm'))
+sampleDate = unicode(shortDateFormat.dateFormat.format(
+    datetime(2003,10,30))).replace(u"2003", _(u"yyyy")) \
+    .replace(u"03", _(u"yy")).replace(u"10", _(u"mm")) \
+    .replace(u"30", _(u"dd"))
+
+# Ick: getAmPmStrings returns am/pm strings even if the locale doesn't use
+# them when formatting dates; so, check an actual format and make the
+# name list empty if our times would be formatted that way.
+ampmNames = (ampmPosition.getBeginIndex() != ampmPosition.getEndIndex()) \
+          and map(unicode, symbols.getAmPmStrings()) or []

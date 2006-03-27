@@ -1032,6 +1032,8 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                                  self.GetAttributeValue(item, attributeName))
 
 class CalendarTimeAttributeEditor(TimeAttributeEditor):
+    zeroHours = pim.durationFormat.parse(_(u"0:00"))
+    
     def GetAttributeValue (self, item, attributeName):
         noTime = getattr(item, 'allDay', False) \
                or getattr(item, 'anyTime', False)
@@ -1081,10 +1083,10 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     # This locale uses an am/pm indicator. If one's present,
                     # note it and remove it.
                     (am, pm) = pim.ampmNames
-                    (timeString, hasAM) = re.subn("\w%s\w" % am, '', 
-                                                  timeString, re.IGNORECASE)
-                    (timeString, hasPM) = re.subn("\w%s\w" % pm, '',
-                                                  timeString, re.IGNORECASE)
+                    (timeString, hasAM) = re.subn(am, '', timeString, 
+                                                  re.IGNORECASE)
+                    (timeString, hasPM) = re.subn(pm, '', timeString, 
+                                                  re.IGNORECASE)
                     if hasAM and hasPM:
                         return # both? bogus.
                     if hasAM or hasPM:
@@ -1101,8 +1103,9 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     except (ICUError, ValueError):
                         return # give up.
                     # It looks like a duration:
-                    hour = duration.hours
-                    minute = duration.minutes
+                    totalSeconds = (duration - CalendarTimeAttributeEditor.zeroHours)
+                    hour = int(totalSeconds / 3600)
+                    minute = int((totalSeconds % 3600)/ 60)
                 else:
                     minute = 0
 
@@ -1123,6 +1126,7 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                         pmDiff = abs(oldHour - (hour + 12))
                         meridian = " " + (amDiff >= pmDiff and pm or am)
                         
+                forceReload = True
                 yield format % locals()
                                 
             gotTime = None
