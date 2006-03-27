@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import time, urlparse, os, base64, logging
+import time, urlparse, os, base64, logging, datetime
 from elementtree.ElementTree import ElementTree
 from application import schema
 from osaf import pim, messages, ChandlerException
@@ -18,7 +18,7 @@ from repository.item.Sets import Set
 from repository.schema.Types import Type
 from repository.util.Lob import Lob
 from chandlerdb.item.ItemError import NoSuchAttributeError
-
+from PyICU import ICUtzinfo
 import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, wx
 from cStringIO import StringIO
 
@@ -63,7 +63,7 @@ USE_VIEW_MERGING = False
 def sync(collectionOrShares, modeOverride=None, updateCallback=None,
          background=False):
 
-    view_merging = USE_VIEW_MERGING # May be enabled via Test menu
+    view_merging = USE_VIEW_MERGING # Currently set only by view-merging test
 
     if background:
         view_merging = True
@@ -2076,6 +2076,8 @@ def changedAttributes(item, fromVersion, toVersion):
 
 
 def localChanges(view, fromVersion, toVersion):
+    logger.debug("Computing changes from version %d to %d", fromVersion,
+        toVersion)
 
     changedItems = {}
 
@@ -2254,6 +2256,13 @@ def serializeLiteral(attrValue, attrType):
 
     if type(attrValue) is unicode:
         attrValue = attrValue.encode('utf-8')
+    elif type(attrValue) is datetime.datetime:
+        # For backwards compatibility with 0.6 clients: since 0.6 doesn't
+        # know about 'World/Floating' timezone, strip out the timezone when
+        # exporting
+        if attrValue.tzinfo is ICUtzinfo.floating:
+            attrValue = attrValue.replace(tzinfo=None)
+        attrValue = attrType.makeString(attrValue)
     elif type(attrValue) is not str:
         attrValue = attrType.makeString(attrValue)
 
