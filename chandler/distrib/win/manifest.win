@@ -40,7 +40,6 @@ dest=release/bin
 recursive=yes
 glob=*.py,*.pyd,*.so,*.security
 Lib/compiler
-Lib/curses
 Lib/distutils
 Lib/email
 Lib/encodings
