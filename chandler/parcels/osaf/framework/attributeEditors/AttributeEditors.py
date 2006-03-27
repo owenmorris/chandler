@@ -1644,7 +1644,7 @@ class DateAttributeEditor (StringAttributeEditor):
 
         try:
             dateValue = pim.shortDateFormat.parse(newValueString, referenceDate=oldValue)
-        except ICUError, ValueError:
+        except (ICUError, ValueError):
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
         

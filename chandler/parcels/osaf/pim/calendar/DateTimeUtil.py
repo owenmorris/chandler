@@ -89,6 +89,12 @@ symbols = PyICU.DateFormatSymbols()
 weekdayNames = symbols.getWeekdays()
 monthNames = symbols.getMonths()
 
+# Ick: getAmPmStrings returns am/pm strings even if the locale doesn't use
+# them when formatting dates; so, check an actual format and make the
+# name list empty if our times would be formatted that way.
+ampmNames = ('a' in unicode(shortTimeFormat.dateFormat.toPattern())) \
+          and symbols.getAmPmStrings() or []
+
 def weekdayName(when):
     # Get the name of the day for this datetime.
     # Convert python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).

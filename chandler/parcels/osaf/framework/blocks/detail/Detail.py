@@ -4,6 +4,7 @@ __parcel__ = "osaf.framework.blocks.detail"
 
 import sys
 import application
+import re
 from application import schema
 from osaf import pim
 from osaf.framework.attributeEditors import \
@@ -1000,7 +1001,7 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             try:
                 dateTimeValue = pim.shortDateFormat.parse(newValueString, 
                                                           referenceDate=oldValue)
-            except ICUError, ValueError:
+            except (ICUError, ValueError):
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
 
@@ -1064,15 +1065,81 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
             # We have _something_; parse it.
             oldValue = getattr(item, attributeName)
 
-            try:
-                time = pim.shortTimeFormat.parse(newValueString, 
-                                                 referenceDate=oldValue)
-            except ICUError, ValueError:
+            # Try to parse it, a couple of different ways; we'll call this
+            # generator until it returns something we can parse successfully.
+            def generateTimeAttempts(timeString):
+                # First, we try as-is. This'll take care of a fully-specified time,
+                # including the case of "15:30" in a locale that doesn't use AM/PM.
+                yield timeString
+                
+                # See if we can get hours, minutes, and maybe am/pm out of 
+                # what the user typed.
+                localeUsesAMPM = len(pim.ampmNames) > 0
+                meridian = ""
+                format = _(u"%(hour)d:%(minute)02d%(meridian)s")
+                if localeUsesAMPM:
+                    # This locale uses an am/pm indicator. If one's present,
+                    # note it and remove it.
+                    (am, pm) = pim.ampmNames
+                    (timeString, hasAM) = re.subn("\w%s\w" % am, '', 
+                                                  timeString, re.IGNORECASE)
+                    (timeString, hasPM) = re.subn("\w%s\w" % pm, '',
+                                                  timeString, re.IGNORECASE)
+                    if hasAM and hasPM:
+                        return # both? bogus.
+                    if hasAM or hasPM:
+                        meridian = " " + (hasAM and am or pm)
+                        timeString = timeString.strip()
+
+                # Now try to get hours & minutes, or just hours, 
+                # out of the string. 
+                try:
+                    hour = int(timeString)
+                except ValueError:
+                    try:
+                        duration = pim.durationFormat.parse(timeString)
+                    except (ICUError, ValueError):
+                        return # give up.
+                    # It looks like a duration:
+                    hour = duration.hours
+                    minute = duration.minutes
+                else:
+                    minute = 0
+
+                if localeUsesAMPM and len(meridian) == 0:
+                    # Gotta try to figure out AM vs PM.
+                    if hour > 12 and not hasAM:
+                        # The hour is unambiguously PM
+                        meridian = " " + pm
+                        hour -= 12
+                    else:
+                        # Guess that the user wants the hour closest to the
+                        # old time's hour, or noon if we didn't have one.
+                        if item.allDay or item.anyTime:
+                            oldHour = 12
+                        else:
+                            oldHour = item.startTime.hour
+                        amDiff = abs(oldHour - hour)
+                        pmDiff = abs(oldHour - (hour + 12))
+                        meridian = " " + (amDiff >= pmDiff and pm or am)
+                        
+                yield format % locals()
+                                
+            gotTime = None
+            for valueString in generateTimeAttempts(newValueString):
+                try:
+                    gotTime = pim.shortTimeFormat.parse(valueString, 
+                                                     referenceDate=oldValue)
+                except (ICUError, ValueError):
+                    continue        
+                else:
+                    break
+            if gotTime is None:            
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
 
             # If we got a new value, put it back.
-            value = datetime.combine(oldValue.date(), time.timetz())
+            value = datetime.combine(oldValue.date(), gotTime.timetz())
             # Preserve the time zone!
             value = value.replace(tzinfo=oldValue.tzinfo)
             if item.anyTime or oldValue != value:
