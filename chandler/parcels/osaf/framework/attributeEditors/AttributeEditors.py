@@ -136,7 +136,7 @@ def installParcel(parcel, oldVersion=None):
         'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',
         'TimeTransparencyEnum': 'ChoiceAttributeEditor',
-        'TriageEnum': 'StringAttributeEditor',
+        'TriageEnum': 'TriageAttributeEditor',
         'URL': 'StaticStringAttributeEditor',
     }
     AttributeEditorMapping.register(parcel, aeDict, __name__)
@@ -656,6 +656,9 @@ class DragAndDropTextCtrl(ShownSynchronizer,
 
     def onSelectAllEvent(self, event):
         self.SetSelection(-1, -1)
+
+    def ActivateInPlace(self):
+        self.SelectAll()
         
 class wxEditText(DragAndDropTextCtrl):
     def __init__(self, *arguments, **keywords):
@@ -1946,6 +1949,13 @@ class BasePermanentAttributeEditor (BaseAttributeEditor):
         self.SetControlValue(control, value)
         control.Enable(not self.ReadOnly((item, attributeName)))
 
+    def EndControlEdit(self, item, attributeName, control):
+        # update the item attribute value, from the latest control value.
+        # logger.debug("EndControlEdit: '%s' on %s", attributeName, item)
+        if item is not None:
+            value = self.GetControlValue (control)
+            self.SetAttributeValue (item, attributeName, value)
+
 class AECheckBox(ShownSynchronizer, wx.CheckBox):
     pass
 
@@ -1994,14 +2004,43 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         control.SetValue(value)
 
 class AEChoice(ShownSynchronizer, wx.Choice):
-    pass
+    def ActivateInPlace(self):
+        """
+        Force the pop-up to pop up so the user can select an item.
+        """
+#       # this is a total hack that doesn't work right now.. 
+#       from osaf.framework import scripting
+#       scripting.User.emulate_click(self.control, 2, 2)
+        pass
 
 class ChoiceAttributeEditor(BasePermanentAttributeEditor):
     """ A pop-up control. The list of choices comes from presentationStyle.choices """        
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
-        # We have to implement Draw, but we don't need to do anything
-        # because we've always got a control to do it for us.
-        pass
+        """
+        Assumes that the attribute is an enum, and uses that to draw
+        the locale-sensitive string returned from GetChoices()
+        """
+        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
+        # Erase the bounding box
+        dc.SetBackgroundMode (wx.SOLID)
+        dc.SetPen (wx.TRANSPARENT_PEN)
+
+        dc.DrawRectangleRect (rect)
+        
+        # get the index of the value, and use that to find the
+        # locale-specific value from GetValues()
+        value = self.GetAttributeValue(item, attributeName)
+        attrType = item.getAttributeAspect(attributeName, 'type')
+        choiceIndex = attrType.values.index(value)
+        theText = self.GetChoices()[choiceIndex]
+        
+        rect.Inflate (-1, -1)
+        
+        dc.SetClippingRect (rect)
+
+        DrawingUtilities.DrawClippedTextWithDots (dc, theText, rect)
+
+        dc.DestroyClippingRegion()
 
     def CreateControl (self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
@@ -2056,6 +2095,12 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
             except AttributeError:
                 choiceIndex = 0
             control.Select(choiceIndex)
+            
+    def BeginControlEdit(self, item, attributeName, control):
+        self.item = item
+        self.attributeName = attributeName
+        super(ChoiceAttributeEditor, self).BeginControlEdit(item, attributeName, control)
+
 
 class TimeZoneAttributeEditor(ChoiceAttributeEditor):
     """ A pop-up control for the tzinfo field of a datetime. The list of
@@ -2116,8 +2161,16 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             if selectIndex != -1:
                 control.Select(selectIndex)
 
-
-
+class TriageAttributeEditor(ChoiceAttributeEditor):
+    """
+    A pop-up control for the triageStatus attribute. Displays a
+    string, and then a control when clicked on.
+    """
+    def GetChoices(self):
+        # would be nice if this came directly from the enum
+        return (_(u"Now"),
+                _(u"Later"),
+                _(u"Done"))
     
 class IconAttributeEditor (BaseAttributeEditor):
     def ReadOnly (self, (item, attribute)):
