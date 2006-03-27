@@ -291,11 +291,10 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             share.conduit.getMarker.setDirty(Item.NDIRTY)
             share.conduit.manifestMarker.setDirty(Item.NDIRTY)
 
-        if view_merging:
-            # Pull in local changes from other views, and commit
-            if updateCallback:
-                updateCallback(msg=_(u"Merging local changes..."))
-            sharingView.commit(mergeFunction)
+        # Pull in local changes from other views, and commit
+        if view_merging and updateCallback:
+            updateCallback(msg=_(u"Merging local changes..."))
+        sharingView.commit(mergeFunction)
 
         if not modeOverride or modeOverride == 'put':
 
@@ -714,9 +713,14 @@ class ShareConduit(pim.ContentItem):
                         logger.debug('Removing an unparsable resource from the resourceList: %(path)s' % { 'path' : path })
                         del self.resourceList[path]
 
-            # Build the list of local changes
-            prevVersion = self.putMarker.getVersion()
-            changes = localChanges(view, prevVersion, view.itsVersion)
+            # Build the list of local changes by comparing change history
+            # between the time we last PUT and the commit that happened
+            # *just before* the last time we incorporated changes from other
+            # views.  Therefore, we don't include previous changes from the
+            # server.
+            prevPutVersion = self.putMarker.getVersion()
+            prevLocalVersion = self.manifestMarker.getVersion() - 1
+            changes = localChanges(view, prevPutVersion, prevLocalVersion)
 
             # If we're sharing a collection, put the collection's items
             # individually:
