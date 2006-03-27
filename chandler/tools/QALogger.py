@@ -288,7 +288,7 @@ class TestLogger:
             if status == "FAILED":
                 for tc in self.testcaseList:
                     if tc[1] == "FAILED":
-                        self.PrintBoth( tc[0] + ' FAILED')
+                        self.PrintBoth( tc[0] + ' failed')
             if not self.inTerminal:
                 # close the file
                 self.File.close()
