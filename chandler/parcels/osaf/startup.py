@@ -192,13 +192,17 @@ class TaskRunner(object):
         """This should only be called from a pool thread"""
         self.runlock.acquire()
         try:
-            if self.subject.run(): # can stop by returning false
-                if self.running:
-                    reactor.callFromThread(self.reschedule)
+            if self.subject.run(): 
+                reactor.callFromThread(self.reschedule_if_running)
             else:
-                self.stop()
+                # task can stop by returning false
+                reactor.callFromThread(self.stop)
         finally:
             self.runlock.release()
+
+    def reschedule_if_running(self):
+        if self.running:
+            self.reschedule()
 
     def stop(self):
         self.running = False
