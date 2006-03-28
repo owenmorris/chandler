@@ -598,10 +598,20 @@ class wxApplication (wx.App):
             self.focus = focus
             self.needsUpdateUI = True
 
-        # Fire set notifications that require mapChanges
-
         the_view = self.repository.view  # cache the view for performance
-        the_view.refresh() # pickup changes from other threads
+
+        def mergeFunction(code, item, attribute, value):
+            # You can choose which view wins by uncommenting the appropriate
+            # return statement:
+
+            return value                                # Let changes from
+                                                        # other views win
+
+            # return item.getAttributeValue(attribute)  # Let changes from the
+                                                        # main view win
+
+        # Fire set notifications that require mapChanges
+        the_view.refresh(mergeFunction) # pickup changes from other threads
 
         # Redraw all the blocks dirtied by notifications
 
