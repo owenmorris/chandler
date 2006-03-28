@@ -50,7 +50,7 @@ class DatetimeFormatter(object):
             tzinfo = referenceDate.tzinfo
             
         if tzinfo is None:
-            self.dateFormat.setTimeZone(PyICU.ICUtzinfo.getDefault().timezone)
+            self.dateFormat.setTimeZone(PyICU.ICUtzinfo.default.timezone)
         else:
             self.dateFormat.setTimeZone(tzinfo.timezone)
         
@@ -73,7 +73,7 @@ class DatetimeFormatter(object):
         @raises: ICUError
         """
         tzinfo = datetime.tzinfo
-        if tzinfo is None: tzinfo = PyICU.ICUtzinfo.getDefault()
+        if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
         self.dateFormat.setTimeZone(tzinfo.timezone)
         return unicode(self.dateFormat.format(datetime))
 
