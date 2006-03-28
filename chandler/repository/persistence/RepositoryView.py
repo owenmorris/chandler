@@ -886,9 +886,9 @@ class RepositoryView(CView):
         @param fromVersion: the version to start iterating changes from, the
         current version by default.
         @type fromVersion: integer
-        @param fromVersion: the version to continue iterating changes to, the
+        @param toVersion: the version to continue iterating changes to, the
         latest committed version by default.
-        @type fromVersion: integer
+        @type toVersion: integer
         @param history: instead of querying the repository history between
         versions, use the history records in this list.
         @type history: iterable
