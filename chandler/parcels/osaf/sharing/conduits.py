@@ -4,6 +4,7 @@ __all__ = [
 
 import Sharing
 import logging
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ class InMemoryConduit(Sharing.ShareConduit):
             text = self.share.format.exportProcess(item)
         except Exception, e:
             logging.exception(e)
-            raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
+            raise Sharing.TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
         if text is None:
             return None
@@ -91,7 +92,7 @@ class InMemoryConduit(Sharing.ShareConduit):
                 updateCallback=updateCallback)
         except Exception, e:
             logging.exception(e)
-            raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
+            raise Sharing.TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
         return (item, shareDict[self.shareName][itemPath][0])
 
