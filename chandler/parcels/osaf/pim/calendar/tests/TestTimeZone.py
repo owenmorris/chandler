@@ -147,6 +147,14 @@ class DatetimeFormatTestCase(AbstractTimeZoneTestCase):
         dt = datetime(2022, 9, 17, 2, 11)
         self.failUnlessEqual(formatTime(dt), "2:11 AM")
 
+    def testFloating(self):
+
+        dt = datetime(1999, 1, 2, 13, 46, tzinfo=PyICU.ICUtzinfo.floating)
+        self.failUnlessEqual(formatTime(dt), "1:46 PM")
+
+        dt = datetime(2022, 9, 17, 2, 11, tzinfo=PyICU.ICUtzinfo.floating)
+        self.failUnlessEqual(formatTime(dt), "2:11 AM")
+
     def testDefaultTimeZone(self):
 
         dt = datetime(1999, 1, 2, 13, 46, tzinfo=PyICU.ICUtzinfo.default)

@@ -233,7 +233,7 @@ def formatTime(dt, tzinfo=None):
     
     useSameTimeZoneFormat = True
 
-    if dt.tzinfo is None:
+    if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
         dt = dt.replace(tzinfo=tzinfo)
     elif dt.tzinfo != tzinfo:
         useSameTimeZoneFormat = False
