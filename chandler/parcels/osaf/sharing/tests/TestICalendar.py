@@ -177,6 +177,10 @@ class ICalendarTestCase(unittest.TestCase):
                                                     tzinfo=ICUtzinfo.floating))
         # while were at it, test bug 3509, all day event duration is off by one
         self.assertEqual(event.duration, datetime.timedelta(0))
+        # make sure we imported the floating EXDATE
+        event = Calendar.findUID(self.repo.view, '07f3d6f0-4c04-11da-b671-0013ce40e90f')
+        self.assertEqual(event.rruleset.exdates[0], datetime.datetime(2005, 12, 6, 12, 30,
+                                                    tzinfo=ICUtzinfo.floating))
 
     def importRecurrenceWithTimezone(self):
         format = self.Import(self.repo.view, u'RecurrenceWithTimezone.ics')

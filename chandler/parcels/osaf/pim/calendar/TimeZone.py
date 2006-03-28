@@ -191,10 +191,14 @@ def forceToDateTime(dt):
     @return: A C{datetime}
     
     """
+    floating = PyICU.ICUtzinfo.floating
     if type(dt) == datetime.datetime:
-        return dt
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=floating)
+        else:
+            return dt
     elif type(dt) == datetime.date:
-        return datetime.datetime.combine(dt, datetime.time(0))
+        return datetime.datetime.combine(dt, datetime.time(0, tzinfo=floating))
 
 def coerceTimeZone(dt, tzinfo):
     """This method returns a C{datetime} with a specified C{tzinfo}.
