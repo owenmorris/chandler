@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     12-Oct-2000
-# RCS-ID:      $Id: setup.py,v 1.158 2006/03/14 04:06:46 RD Exp $
+# RCS-ID:      $Id: setup.py,v 1.159 2006/03/28 19:16:49 RD Exp $
 # Copyright:   (c) 2000 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -802,6 +802,8 @@ if __name__ == "__main__":
 
               packages = ['wxPython',
                           'wxPython.lib',
+                          'wx.lib.analogclock',
+                          'wx.lib.analogclock.lib_setup',
                           'wxPython.lib.colourchooser',
                           'wxPython.lib.editor',
                           'wxPython.lib.mixins',
