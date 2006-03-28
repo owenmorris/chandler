@@ -12,7 +12,7 @@ try:
     col = QAUITestAppLib.UITestItem("Collection", logger)
     
     # verification
-    col.Check_CollectionExistance("Untitled")
+    col.Check_Collectionexistence("Untitled")
     
 finally:
     # cleaning

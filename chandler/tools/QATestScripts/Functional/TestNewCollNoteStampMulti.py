@@ -51,7 +51,7 @@ try:
     # action -- Create new Collection
     col = QAUITestAppLib.UITestItem("Collection", logger)
     # verification -- Initial Existense of Collection
-    col.Check_CollectionExistance("Untitled")
+    col.Check_Collectionexistence("Untitled")
     # action -- Set the Display name for new Collection
     col.SetDisplayName("TestCollection")
     
@@ -73,7 +73,7 @@ try:
     note.SetAttr(startDate="09/12/2004", startTime="6:00 PM", location="Club101", status="FYI",timeZone="US/Central", recurrence="Daily", recurrenceEnd="9/14/2005")
     
     # verification -- Collection Display
-    col.Check_CollectionExistance("TestCollection")
+    col.Check_Collectionexistence("TestCollection")
     # verification -- note object in TestCollection
     note.Check_ItemInCollection("TestCollection")
     # verification -- Note Attributes
