@@ -408,6 +408,7 @@ class Endpoint(object):
         if self.method is not None:
             ep.method = self.method
         declareTemplate(ep)
+        cloud.endpoints.append(ep, ep.itsName)
         return ep
 
 
@@ -479,12 +480,17 @@ class Cloud:
             )
 
     def make_cloud(self,kind,alias):
-        cloud = _Cloud(alias.title()+"Cloud", kind, itemFor(_Cloud,kind.itsView))
-        declareTemplate(cloud)
-        cloud.endpoints = []
+        cloud = kind.clouds.getByAlias(alias)
+        if cloud is None:
+            cloud = _Cloud(
+                alias.title()+"Cloud", kind, itemFor(_Cloud,kind.itsView),
+                endpoints = []
+            )
+            declareTemplate(cloud)
+            kind.clouds.append(cloud, alias)
+
         for ep in self.endpoints:
-            ep = ep.make_endpoint(cloud, alias)
-            cloud.endpoints.append(ep, ep.itsName)
+            ep.make_endpoint(cloud, alias)
         return cloud
 
 
@@ -511,7 +517,10 @@ class ItemClass(Activator):
                 return item
 
     def _create_schema_item(cls, view):
-        return Kind(None, view['Schema'], itemFor(Kind, view))
+        return Kind(
+            None, view['Schema'], itemFor(Kind, view), superKinds=[],
+            clouds=[], attributes=[], classes={'python': cls}
+        )
 
     def _init_schema_item(cls, kind, view):
         kind.superKinds = [
@@ -519,12 +528,9 @@ class ItemClass(Activator):
                 if isinstance(b,ItemClass) or b in view._schema_cache
         ]
 
-        kind.clouds = []
         for alias, cloud_def in cls.__dict__.get('__kind_clouds__',{}).items():
-            kind.clouds.append(cloud_def.make_cloud(kind,alias), alias)
+            cloud_def.make_cloud(kind,alias)
 
-        kind.classes = {'python': cls }
-        kind.attributes = []
         for name,attr in cls.__dict__.items():
             if isinstance(attr,Descriptor):
                 ai = itemFor(attr, view)
@@ -733,6 +739,11 @@ class AnnotationClass(type):
         for attr in cls.__dict__.values():
             if isinstance(attr,Redirector):
                 itemFor(attr.cdesc, view)     # ensure all attributes exist
+
+        kind = itemFor(cls.targetType(), view)
+        for alias, cloud_def in cls.__dict__.get('__kind_clouds__',{}).items():
+            cloud_def.make_cloud(kind,alias)
+
         def fixup():
             annInfo.itsParent = parcel_for_module(cls.__module__, view)
             annInfo.itsName = cls.__name__

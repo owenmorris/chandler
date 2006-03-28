@@ -1262,10 +1262,20 @@ Note that you only need to use this if you need to specify a ``byMethod``
 policy, a non-default ``cloudAlias`` for an endpoint, or a series of attributes
 instead of a single attribute.
 
-A final note on defining clouds: the schema API implementation for Chandler 0.6
-does not support defining clouds on annotation attributes, whether they are
-anonymous inverses or defined in an annotation class.  This restriction may be
-lifted in 0.7 if needed.
+You can also define clouds on annotations, and these are added to the clouds
+defined by the annotated class, updating in place if applicable::
+
+    >>> class AddOnExample(schema.Annotation):
+    ...     schema.kindInfo(annotates=CloudExample2)
+    ...     spam = schema.One(CloudExample2)
+    ...     schema.addClouds(sharing = schema.Cloud(spam))
+
+    >>> example = schema.itemFor(AddOnExample, rv)
+    >>> sharing.endpoints.getByAlias('application.tests.AddOnExample.spam')
+    <Endpoint (new): application.tests.AddOnExample.spam ...>
+
+Note, however, that when defining a cloud's endpoints using strings, you must
+use the fully-qualified names of any annotation attributes, as shown above.
 
 
 Other Metadata
