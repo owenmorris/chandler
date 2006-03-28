@@ -3,6 +3,7 @@
 from application import schema
 from repository.persistence.Repository import RepositoryThread
 import threading, datetime
+from weakref import WeakValueDictionary
 
 __all__ = [
     'Startup', 'Thread', 'TwistedTask', 'PeriodicTask',
@@ -160,6 +161,69 @@ class TwistedTask(Startup):
         reactor.callFromThread(target, fork_item(self))
 
 
+class TaskRunner(object):
+    """Manage a periodic task object
+
+    All methods except ``_run()`` must be invoked from the reactor thread only!
+    """
+
+    _cache = WeakValueDictionary()     # global cache of runners by UUID
+    pending = None
+    running = True
+
+    def __init__(self, item):
+        self._cache[item.itsUUID] = self
+        self.subject = item.getTarget()(item)
+        self.interval = item.interval
+        self.runlock = threading.Lock()
+
+        global reactor
+        from twisted.internet import reactor
+
+        if item.run_at_startup:
+            self.run_once()     # run first time immediately
+        else:
+            self.reschedule()   # run first time later
+
+    def run_once(self):
+        reactor.callInThread(self._run)
+
+    def _run(self):
+        """This should only be called from a pool thread"""
+        self.runlock.acquire()
+        try:
+            if self.subject.run(): # can stop by returning false
+                if self.running:
+                    reactor.callFromThread(self.reschedule)
+            else:
+                self.stop()
+        finally:
+            self.runlock.release()
+
+    def stop(self):
+        self.running = False
+        if self.pending and self.pending.active():
+            self.pending.cancel()
+
+    def reschedule(self, interval=None):
+        if interval is None:
+            interval = self.interval
+        else:
+            self.interval = interval    # update the interval
+
+        self.running = True
+
+        if self.pending and self.pending.active():
+            # cancel the pending call so we don't schedule multiples
+            self.pending.cancel()
+
+        self.pending = reactor.callLater(
+            interval.days*86400 + interval.seconds + interval.microseconds/1e6,
+            reactor.callInThread, self.run_once
+        )
+
+
+
 class PeriodicTask(TwistedTask):
     """
     A Startup that runs its target periodically
@@ -187,23 +251,27 @@ class PeriodicTask(TwistedTask):
         """
         Set up for running and repeating the task
         """
+        TaskRunner(self)
 
-        from twisted.internet import reactor
-        subject = self.getTarget()(self)
+    def run_once(self):
+        """Request to run the task once, immediately"""
+        reactor.callFromThread(self._get_runner().run_once)
 
-        def doCall():           
-            if subject.run(): # can stop by returning false
-                reactor.callFromThread(reschedule)
+    def stop(self):
+        """Stop running the task until/unless reschedule() is called"""
+        reactor.callFromThread(self._get_runner().stop)
 
-        def reschedule():
-            d = self.interval
-            delay = d.days*86400.0 + d.seconds + d.microseconds/1e6
-            reactor.callLater(delay, reactor.callInThread, doCall)
-
-        if self.run_at_startup:
-            reactor.callInThread(doCall) # run first time immediately
+    def reschedule(self, interval=None):
+        """Reschedule the next occurrence of the task"""
+        if interval is None:
+            interval = self.interval
         else:
-            reschedule()    # run first time later
+            self.interval = interval
+        reactor.callFromThread(self._get_runner().reschedule, interval)
+
+    def _get_runner(self):
+        return TaskRunner._cache[self.itsUUID]
+
 
 
 

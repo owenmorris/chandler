@@ -448,9 +448,33 @@ To demonstrate, we'll set the delay interval to a year::
     __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
 
-Notice that call 1 ran, even though there's a year between runs.  However, if
-we turn the flag back off, it doesn't get a ``run()`` call at startup::
+Notice that call 1 ran, even though there's a year between runs.
 
+This is probably a good time to mention that we can manually force a task to
+be run immediately using the ``run_once()`` method::
+
+    >>> counter.run_once(); wait_until(lambda: run_count==2)
+    run() call 2 running ... in <RepositoryThread(RepositoryPoolThread...)>
+
+and that we can change the interval of a running ``PeriodicTask``, using the
+``reschedule()`` method::
+
+    >>> counter.reschedule(
+    ...     timedelta(microseconds=1)
+    ... ); wait_until(lambda: run_count==5)
+    run() call 3 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 4 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 5 running ... in <RepositoryThread(RepositoryPoolThread...)>
+
+There's also a ``stop()`` method, which will prevent any further invocations
+from occurring, until/unless you call ``reschedule()`` again.  If you don't
+provide an interval argument to ``reschedule()``, it defaults to the current
+``interval`` of the ``PeriodicTask`` you called it on.
+
+Anyway, if we turn the ``run_at_startup`` flag back off, it doesn't get a
+``run()`` call at startup::
+
+    >>> counter.interval = timedelta(days=365)
     >>> counter.run_at_startup = False
     >>> started = 0     # reset the counter
     >>> run_startup(rv); wait_until(lambda: started)
@@ -474,7 +498,8 @@ confused by changes being made by other threads or tasks at the same time.
 ``TwistedTask``, ``PeriodicTask``, and ``Thread`` items handle this for you
 automatically, by calling the ``fork_item()`` API on an item.  ``fork_item()``
 opens a new repository view and returns a copy of the item that is native to
-the new view.
+the new view.  (Note that this means you should periodically refresh the view,
+to ensure that you are seeing an up-to-date persistent state for the item(s).)
 
 To demonstrate, let's set up a "real" (in-memory) repository, since null
 repository views can't be forked::
