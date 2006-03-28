@@ -24,7 +24,6 @@ from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from application import schema
 import itertools
 from i18n import OSAFMessageFactory as _
-from util import indexes
 import os, logging
 import application.Globals as Globals
 
@@ -272,96 +271,52 @@ def makeNaiveteMatch(dt, tzinfo):
             dt = TimeZone.stripTimeZone(dt)
     return dt
 
+def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
+                     monolithic = True, changes=None, previousView=None,
+                     updateCallback=None):
+    """
+    Take a string, create or update items from that stream.
 
-class ICalendarFormat(Sharing.ImportExportFormat):
+    The updating of items uses Sharing.importValue; changes, previousView and
+    updateCallback are all optional pass-throughs to this function.
 
-    schema.kindInfo(displayName=u"iCalendar Import/Export Format Kind")
-
-    _calendarEventPath = "//parcels/osaf/pim/calendar/CalendarEvent"
-    _taskPath = "//parcels/osaf/pim/EventTask"
-    _lobPath = "//Schema/Core/Lob"
+    The filters argument is an optional sequence of attributes to not populate.
     
-    def fileStyle(self):
-        return self.STYLE_SINGLE
+    monolithic is True for calendars that may contain multiple events, for
+    CalDAV shares calendars will always contain one event (modulo recurrence) 
+    so monolithic will be False for CalDAV.
 
-    def extension(self, item):
-        return "ics"
+    Return is a tuple (itemlist, calname).
 
-    def contentType(self, item):
-        return "text/calendar"
+    """
+    
+    newItemParent = view.findPath("//userdata")
+    
+    eventKind = view.findPath(_calendarEventPath)
+    taskKind  = view.findPath(_taskPath)
+    textKind  = view.findPath(_lobPath)
+    
+    countNew = 0
+    countUpdated = 0
+    
+    itemlist = []
+    
+    calname = ""
 
-    def acceptsItem(self, item):
-        return isinstance(item, (CalendarEventMixin, Sharing.Share))
-
-    def findUID(self, uid):
-        """
-        Return the master event whose icalUID matched uid, or None.
-        """
-        events = schema.ns('osaf.pim', self.itsView).events
-        event = indexes.valueLookup(events, 'icalUID', 'icalUID', uid)
-        if event is None:
-            return None
-        else:
-            return event.getMaster()
-
-    def importProcess(self, text, extension=None, item=None, changes=None,
-        previousView=None, updateCallback=None):
-        # the item parameter is so that a share item can be passed in for us
-        # to populate.
-
-        # An ICalendar file doesn't have any 'share' info, just the collection
-        # of events, etc.  Therefore, we want to actually populate the share's
-        # 'contents':
-
-        view = self.itsView
-        filters = self.share.filterAttributes
-
-        newItemParent = self.findPath("//userdata")
-        eventKind = self.itsView.findPath(self._calendarEventPath)
-        taskKind  = self.itsView.findPath(self._taskPath)
-        textKind  = self.itsView.findPath(self._lobPath)
-
-        if self.fileStyle() == self.STYLE_SINGLE:
-            if item is None:
-                item = InclusionExclusionCollection(itsView=view).setup()
-            elif isinstance(item, Sharing.Share):
-                        
-                if item.contents is None:
-                    item.contents = \
-                        InclusionExclusionCollection(itsView=view).setup()
-                item = item.contents
-
-            if not isinstance(item, ContentCollection):
-                print "Only a share or an item collection can be passed in"
-                #@@@MOR Raise something
-
-
-        else:
-            caldavReturn = None
-
-        input = StringIO.StringIO(text)
-        try:
-            calendar = vobject.readOne(input, validate=True)
-        except StopIteration:
-            # an empty ics file, what to do?
-            return        
-
-        if self.fileStyle() == self.STYLE_SINGLE:
-            calName=calendar.getChildValue('x_wr_calname', u"Imported Calendar") 
-            if getattr(item, 'displayName', "") == "":
-                item.displayName = unicode(calName)
-
-        countNew = 0
-        countUpdated = 0
-        
+    # iterate over calendars, usually only one, but more are allowed
+    for calendar in vobject.readComponents(text, validate=True):
         modificationQueue = []
-        
+
+        # just grab the first calendar name
+        if calname != "":
+            calname = calendar.getChildValue('x_wr_calname')             
+
         rawVevents = getattr(calendar, 'vevent_list', [])
         numVevents = len(rawVevents)
-        if updateCallback and self.fileStyle() == self.STYLE_SINGLE:
+        if updateCallback and monolithic:
             updateCallback(msg=_(u"Calendar contains %d events") % numVevents,
                 totalWork=numVevents)
-            
+        
         vevents = ((-1, event) for event in rawVevents)
         for i, event in itertools.chain(vevents, enumerate(modificationQueue)):
             # Queue modifications to recurring events so modifications are
@@ -425,7 +380,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     duration -= oneDay
                 
                 # coerce timezones based on coerceTzinfo
-                coerceTzinfo = getattr(self, 'coerceTzinfo', None)
+
                 if coerceTzinfo is not None:
                     dtstart = TimeZone.coerceTimeZone(dtstart, coerceTzinfo)
                     
@@ -439,7 +394,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 itemChangeCallback = None
                
                 # See if we have a corresponding item already
-                uidMatchItem = self.findUID(uid)
+                uidMatchItem = Calendar.findUID(view, uid)
+                
                 if uidMatchItem is not None:
                     if DEBUG: logger.debug("matched UID")
 
@@ -585,18 +541,17 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if DEBUG: logger.debug(u"Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
 
-                if updateCallback and \
-                    updateCallback(msg="'%s'" % eventItem.getItemDisplayName(),
-                        work=(self.fileStyle() == self.STYLE_SINGLE)):
-                    raise Sharing.SharingError(_(u"Cancelled by user"))
-
-                allCollection = schema.ns("osaf.pim", view).allCollection
-
-                if self.fileStyle() == self.STYLE_SINGLE:
-                    if item != allCollection:
-                        item.add(eventItem.getMaster())
-                else:
-                    caldavReturn = eventItem.getMaster()
+                if updateCallback:
+                    msg="'%s'" % eventItem.getItemDisplayName()
+                    # the work parameter tells the callback whether progress
+                    # should be tracked, this only makes sense if we might have
+                    # more than one event.
+                    cancelled = updateCallback(msg=msg, work=monolithic)
+                    if cancelled:
+                        raise Sharing.SharingError(_(u"Cancelled by user"))
+                
+                # finished creating the item
+                itemlist.append(eventItem)
 
             except Sharing.SharingError:
                 raise
@@ -607,14 +562,85 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 else:
                     logger.exception("import failed to import one event with \
                                      exception: %s" % str(e))
-                     
-        logger.info("...iCalendar import of %d new items, %d updated" % \
-         (countNew, countUpdated))
 
-        if self.fileStyle() == self.STYLE_SINGLE:
+    else:
+        # an empty ics file, what to do?
+        pass
+
+    logger.info("...iCalendar import of %d new items, %d updated" % \
+     (countNew, countUpdated))
+    
+    return itemlist, calname
+
+_calendarEventPath = "//parcels/osaf/pim/calendar/CalendarEvent"
+_taskPath = "//parcels/osaf/pim/EventTask"
+_lobPath = "//Schema/Core/Lob"
+
+class ICalendarFormat(Sharing.ImportExportFormat):
+
+    schema.kindInfo(displayName=u"iCalendar Import/Export Format Kind")
+    
+    def fileStyle(self):
+        return self.STYLE_SINGLE
+
+    def extension(self, item):
+        return "ics"
+
+    def contentType(self, item):
+        return "text/calendar"
+
+    def acceptsItem(self, item):
+        return isinstance(item, (CalendarEventMixin, Sharing.Share))
+
+    def importProcess(self, text, extension=None, item=None, changes=None,
+                      previousView=None, updateCallback=None):
+        # the item parameter is so that a share item can be passed in for us
+        # to populate.
+
+        # An ICalendar file doesn't have any 'share' info, just the collection
+        # of events, etc.  Therefore, we want to actually populate the share's
+        # 'contents':
+
+        view = self.itsView
+        filters = self.share.filterAttributes
+        monolithic = self.fileStyle() == self.STYLE_SINGLE
+        coerceTzinfo = getattr(self, 'coerceTzinfo', None)
+
+        events, calname = itemsFromVObject(view, text, coerceTzinfo, filters,
+                                           monolithic, changes, previousView,
+                                           updateCallback)
+
+        if monolithic:
+            if calname == "":
+                calname = _(u"Imported Calendar")
+
+            if item is None:
+                item = InclusionExclusionCollection(itsView=view).setup()
+            elif isinstance(item, Sharing.Share):                        
+                if item.contents is None:
+                    item.contents = \
+                        InclusionExclusionCollection(itsView=view).setup()
+                item = item.contents
+
+            if not isinstance(item, ContentCollection):
+                print "Only a share or an item collection can be passed in"
+                #@@@MOR Raise something
+
+            if getattr(item, 'displayName', "") == "":
+                item.displayName = unicode(calname)
+
+            # don't explicitly add items to allCollection, they're already
+            # there.  This fails if items are already in a not-mine collection,
+            # that's a general problem that needs to be solved
+            if item is not schema.ns("osaf.pim", view).allCollection:
+                for event in events:
+                    item.add(event.getMaster())
+
             return item
+
         else:
-            return caldavReturn
+            # if fileStyle isn't single, item must be a collection
+            return events[0].getMaster()
 
 
     def exportProcess(self, share, depth=0):

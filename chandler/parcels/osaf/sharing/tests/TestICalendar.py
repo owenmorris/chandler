@@ -89,7 +89,7 @@ class ICalendarTestCase(unittest.TestCase):
 
     def SummaryAndDateTimeImported(self):
         format = self.Import(self.repo.view, u'Chandler.ics')
-        event = format.findUID('BED962E5-6042-11D9-BE74-000A95BB2738')
+        event = Calendar.findUID(self.repo.view, 'BED962E5-6042-11D9-BE74-000A95BB2738')
         self.assert_(event.displayName == u'3 hour event',
          "SUMMARY of first VEVENT not imported correctly, displayName is %s"
          % event.displayName)
@@ -100,7 +100,7 @@ class ICalendarTestCase(unittest.TestCase):
 
     def DateImportAsAllDay(self):
         format = self.Import(self.repo.view, u'AllDay.ics')
-        event = format.findUID('testAllDay')
+        event = Calendar.findUID(self.repo.view, 'testAllDay')
         self.assert_(event.startTime ==
                      datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating),
          "startTime not set properly for all day event, startTime is %s"
@@ -170,7 +170,7 @@ class ICalendarTestCase(unittest.TestCase):
 
     def importRecurrence(self):
         format = self.Import(self.repo.view, u'Recurrence.ics')
-        event = format.findUID('5B30A574-02A3-11DA-AA66-000A95DA3228')
+        event = Calendar.findUID(self.repo.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getNextOccurrence().getNextOccurrence()
         self.assertEqual(third.displayName, u'Changed title')
         self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
@@ -180,26 +180,26 @@ class ICalendarTestCase(unittest.TestCase):
 
     def importRecurrenceWithTimezone(self):
         format = self.Import(self.repo.view, u'RecurrenceWithTimezone.ics')
-        event = format.findUID('FF14A660-02A3-11DA-AA66-000A95DA3228')
+        event = Calendar.findUID(self.repo.view, 'FF14A660-02A3-11DA-AA66-000A95DA3228')
         # THISANDFUTURE change creates a new event, so there's nothing in
         # event.modifications
         self.assertEqual(event.modifications, None)
 
     def importUnusualTzid(self):
         format = self.Import(self.repo.view, u'UnusualTzid.ics')
-        event = format.findUID('42583280-8164-11da-c77c-0011246e17f0')
+        event = Calendar.findUID(self.repo.view, '42583280-8164-11da-c77c-0011246e17f0')
         self.assertEqual(event.startTime.tzinfo, ICUtzinfo.getInstance('US/Mountain'))
         
     def importReminders(self):
         format = self.Import(self.repo.view, u'RecurrenceWithAlarm.ics')
-        future = format.findUID('RecurringAlarmFuture')
+        future = Calendar.findUID(self.repo.view, 'RecurringAlarmFuture')
         reminder = future.reminders.first()
         # this will start failing in 2015...
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
         second = future.getNextOccurrence()
         self.assert_(reminder in second.reminders)
         
-        past = format.findUID('RecurringAlarmPast')
+        past = Calendar.findUID(self.repo.view, 'RecurringAlarmPast')
         reminder = past.expiredReminders.first()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
         second = past.getNextOccurrence()

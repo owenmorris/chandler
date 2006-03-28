@@ -28,6 +28,7 @@ from datetime import datetime, time, timedelta
 import itertools
 import StringIO
 import logging
+from util import indexes
 
 from i18n import OSAFMessageFactory as _
 
@@ -59,7 +60,18 @@ def _sortEvents(eventlist, reverse=False):
     eventlist.sort(cmp=cmpEventStarts)
     if reverse: eventlist.reverse()
     return eventlist
-    
+
+def findUID(view, uid):
+    """
+    Return the master event whose icalUID matched uid, or None.
+    """
+    events = schema.ns('osaf.pim', view).events
+    event = indexes.valueLookup(events, 'icalUID', 'icalUID', uid)
+    if event is None:
+        return None
+    else:
+        return event.getMaster()
+
 
 class CalendarEventMixin(RemindableMixin):
     """
