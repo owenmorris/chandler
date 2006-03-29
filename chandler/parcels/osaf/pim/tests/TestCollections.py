@@ -511,9 +511,9 @@ class CollectionTests(CollectionTestCase):
 
     def testInclusionExclusionCollection(self):
         trash = ListCollection(itsView=self.view)
-        coll1 = InclusionExclusionCollection(itsView=self.view).setup(trash=trash)
-        coll2 = InclusionExclusionCollection(itsView=self.view).setup(trash=trash)
-        coll3 = InclusionExclusionCollection(itsView=self.view).setup(trash=trash)
+        coll1 = InclusionExclusionCollection(itsView=self.view, trash=trash)
+        coll2 = InclusionExclusionCollection(itsView=self.view, trash=trash)
+        coll3 = InclusionExclusionCollection(itsView=self.view, trash=trash)
         note = pim.Note(itsView=self.view)
 
         # Ensure that removing an item from its last collection puts it into
@@ -555,11 +555,11 @@ class CollectionTests(CollectionTestCase):
         mine = DifferenceCollection(itsView=self.view,
             sources=[notes, notMine]
         )
-        all = InclusionExclusionCollection(itsView=self.view).setup(source=mine,
+        all = InclusionExclusionCollection(itsView=self.view, source=mine,
             exclusions=trash, trash=None)
-        coll1 = InclusionExclusionCollection(itsView=self.view).setup(trash=trash)
-        coll2 = InclusionExclusionCollection(itsView=self.view).setup(trash=trash)
-        coll3 = InclusionExclusionCollection(itsView=self.view).setup(trash=trash)
+        coll1 = InclusionExclusionCollection(itsView=self.view, trash=trash)
+        coll2 = InclusionExclusionCollection(itsView=self.view, trash=trash)
+        coll3 = InclusionExclusionCollection(itsView=self.view, trash=trash)
         notMine.addSource(coll1)
         note = pim.Note(itsView=self.view)
 

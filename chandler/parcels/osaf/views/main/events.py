@@ -293,21 +293,12 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
-    untitledCollection = pim.InclusionExclusionCollection.update(parcel,
-        'untitledCollection',
-        displayName=messages.UNTITLED)
-
-    ModifyCollectionEvent.template(
+    NewEvent.template(
         'NewCollection',
-        methodName = 'onModifyCollectionEvent',
-        copyItems = True,
-        disambiguateDisplayName = True,
-        dispatchToBlockName = 'MainView',
-        selectInBlockNamed = 'Sidebar',
-        editAttributeNamed = 'displayName',
-        items = [untitledCollection],
-        dispatchEnum = 'SendToBlockByName').install(parcel)
-
+        methodName = 'onNewCollection',
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'Sidebar').install(parcel)
+        
     BlockEvent.template(
         'ImportImage',
         dispatchEnum = 'SendToBlockByName',

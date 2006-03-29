@@ -96,7 +96,10 @@ def installParcel(parcel, oldVersion=None):
     # the "All" collection
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_(u"My items"),
-    ).setup(source=mine, exclusions=trashCollection, trash=None)
+        source=mine,
+        exclusions=trashCollection,
+        trash=None,
+    )
     # kludge to improve on bug 4144 (not a good long term fix but fine for 0.6)
     allCollection.addIndex('__adhoc__', 'numeric')
 
@@ -167,7 +170,9 @@ def installParcel(parcel, oldVersion=None):
     # The "In" collection
     inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',
         displayName=_(u"In"),
-        visible=False).setup(source=inSource)
+        source=inSource,
+        trash=trashCollection,
+        visible=False)
 
     outSource = FilteredCollection.update(parcel, 'outSource',
         source=mailCollection,
@@ -177,8 +182,10 @@ def installParcel(parcel, oldVersion=None):
     # The "Out" collection
     outCollection = InclusionExclusionCollection.update(parcel, 'outCollection',
         displayName=_(u"Out"),
-        visible=False
-    ).setup(source=outSource)
+        visible=False,
+        source=outSource,
+        trash=trashCollection,
+    )
 
     allEventsCollection = IntersectionCollection.update(parcel,
         'allEventsCollection',

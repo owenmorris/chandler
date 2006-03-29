@@ -40,7 +40,8 @@ def installParcel(parcel, oldVersion=None):
             displayName = _(u"Scripts"),
             renameable = False,
             private = False,
-            ).setup(source=scripts)
+            source=scripts
+            )
     userScripts = UserCollection(scriptsCollection)
     userScripts.dontDisplayAsCalendar = True
     

@@ -644,7 +644,12 @@ class CalendarNotificationHandler(object):
         # outside the given range).
         addedEvents = []
         for itemUUID in self._pendingNewEvents:
-            item = self.blockItem.itsView[itemUUID]
+            try:
+                item = self.blockItem.itsView[itemUUID]
+            except KeyError:
+                # print "Couldn't find new item %s" % itemUUID
+                continue
+            
             if (hasattr(item, 'startTime') and
                 hasattr(item, 'duration') and
                 (item.rruleset is None) ):

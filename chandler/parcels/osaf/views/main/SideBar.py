@@ -12,12 +12,12 @@ from osaf.framework.blocks import (
 
 from osaf.pim import (
     ContentCollection, IntersectionCollection, KindCollection,
-    UnionCollection, IndexedSelectionCollection
+    UnionCollection, IndexedSelectionCollection, InclusionExclusionCollection
     )
     
 from osaf.framework.prompts import promptYesNoCancel
 
-from osaf import sharing, pim
+from osaf import sharing, pim, messages
 from osaf.usercollections import UserCollection
 import osaf.sharing.ICalendar
 from application import schema
@@ -876,6 +876,33 @@ class SidebarBlock(Table):
         # here's the meat of it
         for item in collection:
             DoDeleteAction(item)
+
+    def onNewCollection(self, event):
+        app_ns = schema.ns('osaf.app', self.itsView)
+        sidebarCollection = app_ns.sidebarCollection
+
+        newCollection = InclusionExclusionCollection(itsView=self.itsView)
+        
+        # disambiguate the display name
+        displayName = newDisplayName = messages.UNTITLED
+        suffix = 1
+        while True:
+            for theCollection in sidebarCollection:
+                if theCollection.displayName == newDisplayName:
+                    newDisplayName = displayName + u'-' + unicode (suffix)
+                    suffix += 1
+                    break
+            else:
+                newCollection.displayName = newDisplayName
+                break
+
+        sidebarCollection.add (newCollection)
+
+        # now initiate the selection
+        arguments = {'items': [newCollection],
+                     'editAttributeNamed': 'displayName'}
+        self.postEventByName('SelectItemsBroadcast', arguments)
+        return [newCollection]
         
     def onCollectionColorEvent(self, event):
         if (self.selectedItemToView is not None and

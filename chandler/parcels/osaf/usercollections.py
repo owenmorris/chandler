@@ -92,11 +92,13 @@ def installParcel(parcel, oldVersion=None):
                      'MailMessageMixin': _(u'My mail'),
                      'CalendarEventMixin': _(u'My calendar'),
                      'TaskMixin': _(u'My tasks')})
+    allUC.ensureColor()
                                                    
     trashUC = UserCollection(pim_ns.trashCollection)
     trashUC.setValues(renameable=False,
                       dontDisplayAsCalendar=True,
                       outOfTheBoxCollection = True)
+    trashUC.ensureColor()
 
     inUC = UserCollection(pim_ns.inCollection)
     inUC.setValues(dontDisplayAsCalendar=True)

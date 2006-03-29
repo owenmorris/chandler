@@ -615,11 +615,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 calname = _(u"Imported Calendar")
 
             if item is None:
-                item = InclusionExclusionCollection(itsView=view).setup()
+                item = InclusionExclusionCollection(itsView=view)
             elif isinstance(item, Sharing.Share):                        
                 if item.contents is None:
                     item.contents = \
-                        InclusionExclusionCollection(itsView=view).setup()
+                        InclusionExclusionCollection(itsView=view)
                 item = item.contents
 
             if not isinstance(item, ContentCollection):

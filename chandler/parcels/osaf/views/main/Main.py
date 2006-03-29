@@ -736,7 +736,7 @@ class MainView(View):
         if query:
             view = self.itsView
             results = pim.InclusionExclusionCollection(itsView=view,
-                displayName=query).setup()
+                displayName=query)
             for (item, attribute) in view.searchItems(query):
                 results.add(item)
             schema.ns("osaf.app", self).sidebarCollection.add(results)

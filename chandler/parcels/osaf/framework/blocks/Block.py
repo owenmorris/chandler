@@ -503,10 +503,6 @@ class Block(schema.Item):
                 # Do a cloud copy
                 item = item.copy (parent = self.getDefaultParent(self.itsView),
                                   cloudAlias="copying")
-                # And call setup if it exists
-                method = getattr (type (item), "setup", None)
-                if method:
-                    method (item)
 
             if isinstance(item, ContentCollection):
                 UserCollection(item).ensureColor()

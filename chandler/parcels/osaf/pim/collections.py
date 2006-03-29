@@ -426,11 +426,14 @@ class InclusionExclusionCollection(ContentCollection):
 
         addToTrash = False
         if self.trash is not None:
-            addToTrash = True
             for collection in self.trash.trashFor:
                 if collection is not self and item in collection:
-                    addToTrash = False
+                    # it exists somewhere else, definitely don't add
+                    # to trash
                     break
+            else:
+                # we couldn't find it anywhere else, so it goes in the trash
+                addToTrash = True
 
         if DEBUG:
             logger.debug("...adding to exclusions (%s)",
@@ -454,24 +457,44 @@ class InclusionExclusionCollection(ContentCollection):
                          item.getItemDisplayName().encode('ascii', 'replace'),
                          self.getItemDisplayName().encode('ascii', 'replace'))
 
-    def setup(self, source=None, exclusions=None,  trash="trashCollection"):
+
+    def __init__(self, itsName=None, itsParent=None,
+                 itsKind=None, itsView=None,
+                 source=None, exclusions=None, trash="default",
+                 *args, **kwds):
+        super(InclusionExclusionCollection, self).__init__(itsName=itsName,
+                                                           itsParent=itsParent,
+                                                           itsKind=itsKind,
+                                                           itsView=itsView,
+                                                           *args, **kwds)
+        self._setup(source, exclusions, trash)
+
+    def _setup(self, source=None, exclusions=None,
+                trash="default"):
         """
-        setup all the extra parts of a InclusionExclusionCollection. Sets the
-        color, source, exclusions and trash collections. source, exclusions and
-        trash may be collections or strings. If they are strings, then the
-        corresponding collection is looked up in the osaf.pim namespace
+        setup all the extra parts of an
+        InclusionExclusionCollection. In general nobody should call
+        this but __init__, but unfortunately sharing creates
+        InclusionExclusionCollections without calling __init__ so it
+        should be the only caller of _setup.
+
+        Sets the source, exclusions and trash collections. 
+
+        In general trash should only be the well known Trash
+        collection or None. None indicates that this collection does
+        not participate in Trash-based activities.
+
+        The special value of 'default' for trash is only a sentinel to
+        let us know that nothing has been passed in and that the
+        default trash should be looked up in osaf.pim. During parcel
+        loading, this allows us to pass the trash into the constructor
+        and avoid trying to look it up in osaf.pim while osaf.pim is
+        being loaded.
         """
 
-        def collectionLookup (collection):
-            if isinstance (collection, str):
-                collection = getattr (pimNameSpace, collection)
-            return collection
-
-        pimNameSpace = schema.ns('osaf.pim', self.itsView)
-        
-        source = collectionLookup (source)
-        exclusions = collectionLookup (exclusions)
-        trash = collectionLookup (trash)
+        if trash=="default":
+            # better hope osaf.pim has been loaded!
+            trash = schema.ns('osaf.pim', self.itsView).trashCollection
 
         self.inclusions = ListCollection(itsParent=self,
                                          displayName=u"(Inclusions)")
@@ -512,9 +535,6 @@ class InclusionExclusionCollection(ContentCollection):
 
         self.sources = [outerSource, exclusions]
         setattr(self, self.__collection__, Difference(outerSource, exclusions))
-
-        return self
-
 
 class IndexedSelectionCollection(ContentCollection):
     """
