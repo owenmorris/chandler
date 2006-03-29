@@ -1829,7 +1829,7 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
 
     zeroHours = pim.durationFormat.parse("0:00")
     dummyDate = datetime(2005,1,1)
-    
+
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a plain Python attribute
         try:

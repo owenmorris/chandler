@@ -101,6 +101,15 @@ class I18nManager(object):
         if 'test' in localeSet:
             self._localeSet = ['fr_CA', 'fr']
             self._localeSet.extend(localeSet)
+            #import wx, gettext
+            #mylocale = wx.Locale(wx.LANGUAGE_FRENCH)
+            #wxpath = os.sep.join([Globals.chandlerDirectory, 'release',  'share', 'locale'])
+            #print wxpath
+            #mylocale.AddCatalogLookupPathPrefix(wxpath)
+            #mylocale.AddCatalog('wxstd')
+            #mytranslation = gettext.translation("wxstd", wxpath, ['fr_CA', 'fr'], fallback=True)
+            #mytranslation.install()
+
         else:
             self._localeSet = localeSet
 
@@ -173,14 +182,19 @@ class I18nManager(object):
         assert isinstance(defaultText, UnicodeType)
 
         #XXX This breaks hardhat commenting out
+        #XXX First time a translation is called check see if it is initialized
+        #    if not perform initialization then (Threading issues?)
         #if not self.__initialized:
         #raise i18n.I18nException("I18nManager.translate called before locale set created")
 
-        if 'test' in self._localeSet and not "Ctrl+" in defaultText and not "DELETE" == defaultText:
-            # If the 'test' locale is used return a surrogate pair at the 
+        if 'test' in self._localeSet and not "Ctrl+" in defaultText \
+                  and not "DELETE" == defaultText and not ":mm" in defaultText \
+                  and not "yy" in defaultText and not "hh" in defaultText and not \
+                  "0:00" in defaultText:
+            # The 'test' locale is used return a surrogate pair at the 
             # start of the defaultText block. However, if the text contains
-            # accelerator key info return the default as changing it will
-            # break keyboard shortcuts
+            # accelerator key info or Date info return the default as changing it will
+            # raise errors.
             return u"(ü): %s"% defaultText
 
         return defaultText
