@@ -301,15 +301,15 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     
     itemlist = []
     
-    calname = ""
+    calname = None
 
     # iterate over calendars, usually only one, but more are allowed
     for calendar in vobject.readComponents(text, validate=True):
         modificationQueue = []
 
         # just grab the first calendar name
-        if calname == "":
-            calname = calendar.getChildValue('x_wr_calname')             
+        if calname is None:
+            calname = calendar.getChildValue('x_wr_calname')
 
         rawVevents = getattr(calendar, 'vevent_list', [])
         numVevents = len(rawVevents)
@@ -611,7 +611,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                                            updateCallback)
 
         if monolithic:
-            if calname == "":
+            if calname is None:
                 calname = _(u"Imported Calendar")
 
             if item is None:
@@ -641,7 +641,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         else:
             # if fileStyle isn't single, item must be a collection
             return events[0].getMaster()
-
 
     def exportProcess(self, share, depth=0):
         cal = itemsToVObject(self.itsView, share.contents,
