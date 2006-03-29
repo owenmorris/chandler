@@ -8,12 +8,12 @@ try:
     # action
     col = QAUITestAppLib.UITestItem("Collection", logger)
     # verification
-    col.Check_Collectionexistence("Untitled")
+    col.Check_CollectionExistence("Untitled")
     
     # action
     col.SetDisplayName("Meeting")
     # verification
-    col.Check_Collectionexistence("Meeting")
+    col.Check_CollectionExistence("Meeting")
     
     # action
     note = QAUITestAppLib.UITestItem("Note", logger)

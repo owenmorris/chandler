@@ -969,7 +969,7 @@ class UITestItem(object):
         #report the checkings
         if self.logger: self.logger.Report("Object state")
 
-    def Check_Collectionexistence(self, expectedName=None, expectedResult=True):
+    def Check_CollectionExistence(self, expectedName=None, expectedResult=True):
         """
         Check if the collection exists/doesn't exist and has the expected display name (displayed in the sidebar)
         @type expectedName : string
@@ -1002,7 +1002,7 @@ class UITestItem(object):
             if self.logger: self.logger.Report("Collection existence")
             return result
         else:
-            if self.logger: self.logger.Print("Check_Collectionexistence is not available for this kind of item")
+            if self.logger: self.logger.Print("Check_CollectionExistence is not available for this kind of item")
             return False
         
     def Check_ItemInCollection(self, collectionName, expectedResult=True, report=True):

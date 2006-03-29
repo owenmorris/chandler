@@ -16,7 +16,7 @@ try:
     col.DeleteCollection()
 
     # verification
-    col.Check_Collectionexistence(expectedResult=False)
+    col.Check_CollectionExistence(expectedResult=False)
 
 finally:
     #cleaning
