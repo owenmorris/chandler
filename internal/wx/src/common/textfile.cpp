@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.98
-// RCS-ID:      $Id: textfile.cpp,v 1.51 2006/03/28 10:48:55 ABX Exp $
+// RCS-ID:      $Id: textfile.cpp,v 1.52 2006/03/29 14:22:03 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,9 +142,9 @@ bool wxTextFile::OnRead(wxMBConv& conv)
 
 
         // the beginning of the current line, changes inside the loop
-        const wxChar *lineStart = str.begin();
-        const wxChar * const end = str.end();
-        for ( const wxChar *p = lineStart; p != end; p++ )
+        wxString::const_iterator lineStart = str.begin();
+        const wxString::const_iterator end = str.end();
+        for ( wxString::const_iterator p = lineStart; p != end; p++ )
         {
             const wxChar ch = *p;
             switch ( ch )

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: wx_unix.bkl,v 1.4 2006/03/11 14:51:45 JS Exp $ -->
+<!-- $Id: wx_unix.bkl,v 1.5 2006/03/29 16:30:29 VZ Exp $ -->
 
 <!--
 Presents for building wxWidgets applications using Autoconf or GNU toosets.
@@ -80,8 +80,8 @@ Format-specific notes:
 
     <!--
          We need to re-define the resource compiler, used by bakefile when compiling
-         resources, to the resource compiler returned by 'wx-config --rescomp' since
-         'wx-config --rescomp' returns both the name of the resource compiler to use
+         resources, to the resource compiler returned by 'wx-config &#45;-rescomp' since
+         'wx-config &#45;-rescomp' returns both the name of the resource compiler to use
          and the flags required for that compiler (rcflags are rccompiler-specific
          and thus it would be wrong to use them with other resource compilers).
 
