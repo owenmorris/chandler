@@ -296,6 +296,7 @@ def makeMainEvents(parcel):
     NewEvent.template(
         'NewCollection',
         methodName = 'onNewCollection',
+        kindParameter = osaf.pim.InclusionExclusionCollection.getKind(repositoryView),
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
         
