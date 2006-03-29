@@ -308,7 +308,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
         modificationQueue = []
 
         # just grab the first calendar name
-        if calname != "":
+        if calname == "":
             calname = calendar.getChildValue('x_wr_calname')             
 
         rawVevents = getattr(calendar, 'vevent_list', [])
