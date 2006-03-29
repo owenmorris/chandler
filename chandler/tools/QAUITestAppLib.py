@@ -784,8 +784,8 @@ class UITestItem(object):
     def Check_DetailView(self, dict):
         """
         Check expected values by comparation to the data diplayed in the detail view
-        @type dict : dictionnary
-        @param dict : dictionnary with expected item attributes values for checking {"attributeName":"expected value",...}
+        @type dict : dictionary
+        @param dict : dictionary with expected item attributes values for checking {"attributeName":"expected value",...}
         """  
         if self.logger: self.logger.SetChecked(True)
         self.SelectItem()
@@ -840,8 +840,8 @@ class UITestItem(object):
     def Check_Object(self, dict):
         """
         Check expected value by comparison to the data contained in the object attributes
-        @type dict : dictionnary
-        @param dict : dictionnary with expected item attributes values for checking {"attributeName":"expected value",...}
+        @type dict : dictionary
+        @param dict : dictionary with expected item attributes values for checking {"attributeName":"expected value",...}
         """
         if self.logger: self.logger.SetChecked(True)
         # check the changing values
