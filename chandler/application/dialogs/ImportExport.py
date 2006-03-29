@@ -1,7 +1,7 @@
 import wx
 from wx.lib.filebrowsebutton import FileBrowseButton
 import os, logging
-from osaf import messages
+from osaf import messages, usercollections
 from i18n import OSAFMessageFactory as _
 from application.Utility import getDesktopDir
 from application import schema
@@ -252,5 +252,4 @@ class ImportDialog(FileChooserWithOptions):
             self.fail(unicode(e))
             return False
 
-        assert (hasattr (collection, 'color'))
         return True # Successful import
