@@ -1,5 +1,5 @@
 
-VERSION=1.9.1
+VERSION=2.0rc1-1
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
@@ -103,7 +103,6 @@ build: expand apply
             PREFIX=$(PREFIX) \
             PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
-            SWIG=$(SWIG) \
             GCJ_HOME=$(GCJ_HOME) \
             GCJ_VER=$(GCJ_VER) \
             PYDBG=$(PYDBG) \
@@ -121,6 +120,9 @@ build: expand apply
             VERSION=$(VERSION) \
             all install
 
+test:
+	$(MAKE) -C $(SRC) PYTHON=$(PYTHON) test
+
 clean:
 	$(MAKE) -C $(SRC) clean
 
@@ -129,6 +131,9 @@ binaries:
 
 install: $(TARBALL)
 	cp $(TARBALL) $(CHANDLERARCHIVES)
+
+drop: $(TARBALL)
+	tar -C $(CHANDLERBIN) -xvzf $(TARBALL)
 
 upload: $(PYLUCENE)/$(TARBALL)
 	scp $(PYLUCENE)/$(TARBALL) $(UPLOAD)

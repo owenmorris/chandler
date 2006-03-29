@@ -1,6 +1,6 @@
 --- PyLucene-src-1.9rc1-2/Makefile	2005-12-12 15:06:00.000000000 -0800
 +++ PyLucene-src-1.9rc1-2-patched/Makefile	2005-12-12 15:11:53.000000000 -0800
-@@ -700,6 +700,11 @@
+@@ -703,6 +703,11 @@
  	mkdir -p $(PREFIX_DB)/lib
  	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
  endif
@@ -12,7 +12,7 @@
  else
  
  ifeq ($(OS),FreeBSD)
-@@ -714,7 +719,8 @@
+@@ -717,7 +722,8 @@
  install::
  	install $(GCJ_HOME)/bin/libiconv-2.dll $(PYTHON_SITE)
  ifdef DB
@@ -22,3 +22,17 @@
  endif
  endif
  endif
+--- PyLucene-src-2.0rc1-1/test/test_DbDirectory.py	2005-01-31 15:34:23.000000000 -0800
++++ PyLucene-src-2.0rc1-1-patched/test/test_DbDirectory.py	2006-03-29 13:16:51.000000000 -0800
+@@ -96,8 +96,11 @@
+ if __name__ == "__main__":
+     try:
+         DbDirectory
++        from bsddb import db
+     except NameError:
+         pass
++    except ImportError:
++        pass
+     else:
+         import sys
+         if '-loop' in sys.argv:
