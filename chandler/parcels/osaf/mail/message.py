@@ -228,7 +228,33 @@ def messageObjectToKind(view, messageObject, messageText=None,
     assert messageText is None or isinstance(messageText, str), \
            "messageText can either be a string or None"
 
-    m = Mail.MailMessage(itsView=view)
+    # Create an item to represent this message.
+    # If this message came with an ICS attachment, parse it first; ICalendar
+    # will return an item that we can stamp as mail. Otherwise, just create
+    # a MailMessage.
+    m = None
+    if messageObject.is_multipart():
+        for mimePart in messageObject.get_payload():
+            if mimePart.get_content_type() == "text/calendar":
+                import osaf.sharing.ICalendar as ICalendar
+                try:
+                    items = ICalendar.itemsFromVObject(view, 
+                        mimePart.get_payload(),
+                        filters=('reminders',))[0]
+                except:
+                    # ignore parts we can't parse
+                    pass
+                else:
+                    if len(items) > 0:
+                        # We got something - stamp the first thing as a MailMessage
+                        # and use it. (If it was an existing event, we'll reuse it.)
+                        m = items[0]
+                        if not isinstance(m, Mail.MailMessageMixin):
+                            m.StampKind('add', Mail.MailMessageMixin.getKind(view))
+                        break
+    if m is None:
+        # Didn't find a parsable ICS attachment: just treat it as a mail msg.
+        m = Mail.MailMessage(itsView=view)
 
     """Save the original message text in a text blob"""
     if messageText is None:
@@ -257,7 +283,14 @@ def messageObjectToKind(view, messageObject, messageText=None,
         m.hasMimeParts = True
 
     body = constants.LF.join(bodyBuffer).replace(constants.CR, constants.EMPTY)
-
+    
+    # If our private event-description header's there, and we made an event 
+    # from this item, remove the header from the start of the body.
+    eventDescriptionLength = int(messageObject.get(createChandlerHeader(\
+        "EventDescriptionLength"), "0"))
+    if eventDescriptionLength and isinstance(m, Mail.MailMessageMixin):
+        body = body[eventDescriptionLength:]
+        
     m.body = unicodeToText(m, "body", body,
                            indexText=indexText, compression=compression)
 
@@ -314,24 +347,29 @@ def kindToMessageObject(mailMessage):
         messageObject.set_payload(payload)
     else:
         # It's an event - prepend the description to the body, make the
-        # message multipart, and add the body & ICS event as parts.
+        # message multipart, and add the body & ICS event as parts. Also,
+        # add a private header telling us how long the description is, so
+        # we'll know what to remove on the receiving end.
         # @@@ I tried multipart/alternative here, but this hides the attachment
         # completely on some clients...
-        # @@@ In formatting the prepended description, I'm adding a double newline so
-        # that a Chandler on the other end can remove it. I'm adding an extra newline
+        # @@@ In formatting the prepended description, I'm adding an extra newline
         # at the end so that Apple Mail will display the .ics attachment on its own line.
-        location = getattr(mailMessage, 'location', None)
-        if location is not None and len(unicode(location)) > 0:
+        location = unicode(getattr(mailMessage, 'location', u''))
+        if len(location) > 0:
             location = _(u"\n%(locationLabel)s: %(locationValue)s") \
                      % { 'locationLabel': _(u"Where"),
                          'locationValue': location }
-        payload = _(u"%(whenLabel)s: %(whenValue)s%(locationPair)s\n\n%(body)s\n") \
+        eventDescription = _(u"%(whenLabel)s: %(whenValue)s%(locationPair)s\n\n") \
                   % { 'whenLabel': _(u"When"),
                       'whenValue': timeDescription, 
-                      'locationPair': location,
+                      'locationPair': location }
+        payload = _(u"%(eventDescription)s%(body)s\n") \
+                  % { 'eventDescription': eventDescription,
                       'body': payload }
         messageObject.set_type("multipart/mixed")
         messageObject.attach(MIMEText(payload))
+        messageObject.add_header(createChandlerHeader("EventDescriptionLength"),
+                                 unicode(len(eventDescription)))
 
         # Format this message as an ICalendar object
         import osaf.sharing.ICalendar as ICalendar
