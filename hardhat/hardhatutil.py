@@ -110,10 +110,9 @@ def executeCommandReturnOutput(args):
         else:
             exitCode >>= 8
     else:
-        i,k = os.popen4(args_str)
-        i.close()
-        outputList = k.readlines()
-        exitCode = k.close()
+        output = os.popen(args_str, 'r')
+        outputList = output.readlines()
+        exitCode = output.close()
         
     if exitCode is not None:
         raise ExternalCommandErrorWithOutputList, [exitCode, outputList]
