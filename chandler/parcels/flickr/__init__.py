@@ -305,28 +305,14 @@ def installParcel(parcel, oldVersion=None):
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
 
     detail.makeSubtree(parcel, FlickrPhoto, [
-        detail.DetailSynchronizedLabeledTextAttributeBlock.update(
-            parcel, "AuthorArea",
-            position = 0.6,
-            viewAttribute=u"owner",
-            stretchFactor = 0,
-            childrenBlocks = [
-                detail.StaticRedirectAttributeLabel.update(
-                    parcel, "AuthorLabel",
-                    title = u"author",
-                    characterStyle = blocks.LabelStyle,
-                    stretchFactor = 0.0,
-                    textAlignmentEnum = "Right",
-                    minimumSize = SizeType(70, 24),
-                    border = RectType(0.0, 0.0, 0.0, 5.0),
-                ),
-                detail.StaticRedirectAttribute.update(
-                    parcel  , "AuthorAttribute",
-                    title = u"author",
-                    characterStyle = blocks.LabelStyle,
-                    stretchFactor = 0.0,
-                    textAlignmentEnum = "Left",
-                ),
-            ])])
-
-
+        detail.makeArea(parcel, 'AuthorArea',
+                        position=0.6,
+                        childrenBlocks=[
+                            detail.makeLabel(parcel, _(u'author'), borderTop=4),
+                            detail.makeSpacer(parcel, width=6),
+                            detail.makeEditor(parcel, 'AuthorAttribute',
+                                              viewAttribute=u'owner',
+                                              presentationStyle={'format': 'static'}
+                                          ),
+                        ]).install(parcel)
+    ])
