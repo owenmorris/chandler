@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp,v 1.99 2006/02/16 06:16:56 vell Exp $
+// RCS-ID:      $Id: toolbar.cpp,v 1.100 2006/03/29 19:17:07 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,8 +80,6 @@ public:
     ~wxToolBarTool()
     {
         ClearControl();
-        if ( m_controlHandle )
-            DisposeControl( m_controlHandle );
 
 #if wxMAC_USE_NATIVE_TOOLBAR
         if ( m_toolbarItemRef )
@@ -104,6 +102,11 @@ public:
     void ClearControl()
     {
         m_control = NULL;
+        if ( m_controlHandle )
+        {
+            DisposeControl( m_controlHandle );
+            m_controlHandle = NULL ;
+        }
 
 #if wxMAC_USE_NATIVE_TOOLBAR
         m_toolbarItemRef = NULL;
@@ -1310,8 +1313,6 @@ bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolbase)
         case wxTOOL_STYLE_SEPARATOR:
             if ( tool->GetControlHandle() )
             {
-                DisposeControl( (ControlRef) tool->GetControlHandle() );
-
 #if wxMAC_USE_NATIVE_TOOLBAR
                 if ( removeIndex != -1 && m_macHIToolbarRef )
                 {

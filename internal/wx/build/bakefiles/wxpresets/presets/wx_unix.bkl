@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: wx_unix.bkl,v 1.5 2006/03/29 16:30:29 VZ Exp $ -->
+<!-- $Id: wx_unix.bkl,v 1.6 2006/03/29 16:48:46 VS Exp $ -->
 
 <!--
 Presents for building wxWidgets applications using Autoconf or GNU toosets.
@@ -38,8 +38,9 @@ Format-specific notes:
     <!-- ============================================================== -->
 
     <if cond="FORMAT=='gnu'">
+        <set var="WX_CONFIG_DEFAULT" overwrite="0">wx-config</set>
         <option name="WX_CONFIG">
-            <default-value>wx-config</default-value>
+            <default-value>$(WX_CONFIG_DEFAULT)</default-value>
             <description>Location and arguments of wx-config script</description>
         </option>
         <option name="WX_CFLAGS">

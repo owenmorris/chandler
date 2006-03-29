@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: frame.cpp,v 1.53 2006/02/08 21:47:08 VZ Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.54 2006/03/29 20:52:36 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@
 #include "wx/mac/uma.h"
 
 extern wxWindowList wxModelessWindows;
-extern wxList wxPendingDelete;
+//extern wxList wxPendingDelete;
 
 BEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
   EVT_ACTIVATE(wxFrame::OnActivate)
@@ -134,7 +134,7 @@ wxStatusBar *wxFrame::OnCreateStatusBar(int number, long style, wxWindowID id,
     wxStatusBar *statusBar;
 
     statusBar = new wxStatusBar(this, id, style, name);
-    statusBar->SetSize(100 , WX_MAC_STATUSBAR_HEIGHT);
+    statusBar->SetSize(100, WX_MAC_STATUSBAR_HEIGHT);
     statusBar->SetFieldsCount(number);
 
     return statusBar;
@@ -204,21 +204,25 @@ void wxFrame::OnActivate(wxActivateEvent& event)
             ? m_winLastFocused->GetParent()
             : NULL;
 
-        if ( !parent )
+        if (parent == NULL)
             parent = this;
 
         wxSetFocusToChild(parent, &m_winLastFocused);
 
         if (m_frameMenuBar != NULL)
         {
-            m_frameMenuBar->MacInstallMenuBar() ;
+            m_frameMenuBar->MacInstallMenuBar();
         }
-        else if (wxTheApp->GetTopWindow() && wxTheApp->GetTopWindow()->IsKindOf(CLASSINFO(wxFrame)))
+        else
         {
-            // Trying toplevel frame membar
-            if (((wxFrame*)wxTheApp->GetTopWindow())->GetMenuBar())
-                ((wxFrame*)wxTheApp->GetTopWindow())->GetMenuBar()->MacInstallMenuBar();
-         }
+            wxFrame *tlf = wxDynamicCast( wxTheApp->GetTopWindow(), wxFrame );
+            if (tlf != NULL)
+            {
+                // Trying top-level frame membar
+                if (tlf->GetMenuBar())
+                    tlf->GetMenuBar()->MacInstallMenuBar();
+            }
+        }
     }
 }
 
