@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: treectrl.tex,v 1.65 2006/03/23 22:04:20 VZ Exp $
+%% RCS-ID:      $Id: treectrl.tex,v 1.66 2006/03/28 13:11:03 ABX Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -569,19 +569,6 @@ Returns the next visible item.
 \constfunc{wxTreeItemId}{GetItemParent}{\param{const wxTreeItemId\&}{ item}}
 
 Returns the item's parent.
-
-
-\membersection{wxTreeCtrl::GetParent}\label{wxtreectrlgetparent}
-
-\constfunc{wxTreeItemId}{GetParent}{\param{const wxTreeItemId\&}{ item}}
-
-{\bf NOTE:} This function is deprecated and will only work if {\tt WXWIN\_COMPATIBILITY\_2\_2}
-is defined.  Use \helpref{wxTreeCtrl::GetItemParent}{wxtreectrlgetitemparent} instead.
-
-Returns the item's parent.
-
-\pythonnote{This method is named {\tt GetItemParent} to avoid a name
-clash with wxWindow::GetParent.}
 
 
 \membersection{wxTreeCtrl::GetPrevSibling}\label{wxtreectrlgetprevsibling}
