@@ -464,7 +464,7 @@ class IndexContainer(FileContainer):
         doc.add(Field("owner", owner.str64(), YES, UN_TOKENIZED))
         doc.add(Field("attribute", attribute.str64(), YES, UN_TOKENIZED))
         doc.add(Field("version", str(version), YES, UN_TOKENIZED))
-        doc.add(Field.Text("contents", reader))
+        doc.add(Field("contents", reader))
 
         indexWriter.addDocument(doc)
 
