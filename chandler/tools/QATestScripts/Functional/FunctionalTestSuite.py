@@ -17,7 +17,7 @@ def run_tests(tests):
             execfile(os.path.join(functional_dir, filename))
         except:
             import traceback
-            print "%s FAILED due to exception" % fileName
+            print "%s failed due to exception" % fileName
             type, value, stack = sys.exc_info()
             traceback.print_exception(type, value, stack, None, sys.stderr)
         
