@@ -169,7 +169,7 @@ class RemindableMixin(ContentItem):
         # Make sure the next one's around, so we'll prime the reminder-
         # watching mechanism to alert us about it. We also check that
         # reminders for past events don't trigger this one.
-        now = datetime.now()
+        now = datetime.now(ICUtzinfo.default)
 
         try:
             getNextOccurrenceMethod = self.getNextOccurrence
@@ -206,6 +206,7 @@ class RemindableMixin(ContentItem):
         
         # Make a new reminder for this event
         newReminder = Reminder(None, itsView=self.itsView,
-                               snoozedUntil=(datetime.now() + delay))
+                               snoozedUntil=(datetime.now(ICUtzinfo.default) +
+                                             delay))
         self.reminders.add(newReminder)
         return newReminder
