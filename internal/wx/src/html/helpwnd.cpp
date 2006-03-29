@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpwnd.cpp,v 1.4 2006/03/10 09:59:38 ABX Exp $
+// RCS-ID:      $Id: helpwnd.cpp,v 1.5 2006/03/27 12:36:11 ABX Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1503,7 +1503,9 @@ void wxHtmlHelpWindow::OnToolbar(wxCommandEvent& event)
                 {
                     m_BookmarksNames.RemoveAt(pos);
                     m_BookmarksPages.RemoveAt(pos);
-                    m_Bookmarks->Delete(m_Bookmarks->GetSelection());
+                    pos = m_Bookmarks->GetSelection();
+                    wxASSERT_MSG( pos != wxNOT_FOUND , wxT("Unknown bookmark position") ) ;
+                    m_Bookmarks->Delete((unsigned int)pos);
                 }
             }
             break;

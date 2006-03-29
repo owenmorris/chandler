@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.49 2006/03/24 13:01:01 JS Exp $
+// RCS-ID:      $Id: private.h,v 1.50 2006/03/28 10:32:00 JS Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -828,7 +828,7 @@ private :
 
 ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow, const Point& location , WindowRef window , ControlPartCode *outPart ) ;
 
-#if WORDS_BIGENDIAN
+#ifdef WORDS_BIGENDIAN
     inline Rect* wxMacGetPictureBounds( PicHandle pict , Rect* rect ) 
     { 
        *rect = (**pict).picFrame ; 

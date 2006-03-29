@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////
-// Name:        generic/grid.cpp
+// Name:        src/generic/grid.cpp
 // Purpose:     wxGrid and related classes
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.359 2006/03/12 15:44:44 VZ Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.360 2006/03/27 12:24:46 ABX Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -6657,11 +6657,11 @@ void wxGrid::OnKeyDown( wxKeyEvent& event )
                 }
                 break;
 
-            case WXK_PRIOR:
+            case WXK_PAGEUP:
                 MovePageUp();
                 break;
 
-            case WXK_NEXT:
+            case WXK_PAGEDOWN:
                 MovePageDown();
                 break;
 

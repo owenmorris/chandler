@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxComboBox
 // Author:      Vadim Zeitlin
 // Created:     27.03.01
-// Id:          $Id: combobox.cpp,v 1.22 2006/03/15 07:49:43 ABX Exp $
+// Id:          $Id: combobox.cpp,v 1.23 2006/03/23 22:04:48 VZ Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -362,8 +362,8 @@ void ComboboxWidgetsPage::CreateCombo()
     wxArrayString items;
     if ( m_combobox )
     {
-        int count = m_combobox->GetCount();
-        for ( int n = 0; n < count; n++ )
+        unsigned int count = m_combobox->GetCount();
+        for ( unsigned int n = 0; n < count; n++ )
         {
             items.Add(m_combobox->GetString(n));
         }
@@ -377,8 +377,8 @@ void ComboboxWidgetsPage::CreateCombo()
                                 0, NULL,
                                 flags);
 
-    size_t count = items.GetCount();
-    for ( size_t n = 0; n < count; n++ )
+    unsigned int count = items.GetCount();
+    for ( unsigned int n = 0; n < count; n++ )
     {
         m_combobox->Append(items[n]);
     }
@@ -415,7 +415,7 @@ void ComboboxWidgetsPage::OnButtonDelete(wxCommandEvent& WXUNUSED(event))
 {
     unsigned long n;
     if ( !m_textDelete->GetValue().ToULong(&n) ||
-            (n >= (unsigned)m_combobox->GetCount()) )
+            (n >= m_combobox->GetCount()) )
     {
         return;
     }
@@ -426,7 +426,7 @@ void ComboboxWidgetsPage::OnButtonDelete(wxCommandEvent& WXUNUSED(event))
 void ComboboxWidgetsPage::OnButtonDeleteSel(wxCommandEvent& WXUNUSED(event))
 {
     int sel = m_combobox->GetSelection();
-    if ( sel != -1 )
+    if ( sel != wxNOT_FOUND )
     {
         m_combobox->Delete(sel);
     }

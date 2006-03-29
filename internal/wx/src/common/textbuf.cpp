@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxTextBuffer class
 // Created:     14.11.01
 // Author:      Morten Hanssen, Vadim Zeitlin
-// RCS-ID:      $Id: textbuf.cpp,v 1.14 2005/11/10 16:16:05 ABX Exp $
+// RCS-ID:      $Id: textbuf.cpp,v 1.16 2006/03/27 23:01:00 VZ Exp $
 // Copyright:   (c) 1998-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,6 +131,8 @@ wxString wxTextBuffer::Translate(const wxString& text, wxTextFileType type)
 }
 
 #if wxUSE_TEXTBUFFER
+
+wxString wxTextBuffer::ms_eof;
 
 // ----------------------------------------------------------------------------
 // ctors & dtor
@@ -268,9 +270,7 @@ wxTextFileType wxTextBuffer::GuessType() const
 
 bool wxTextBuffer::Close()
 {
-    m_aTypes.Clear();
-    m_aLines.Clear();
-    m_nCurLine = 0;
+    Clear();
     m_isOpened = false;
 
     return true;

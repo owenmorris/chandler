@@ -3,7 +3,7 @@
 // Purpose:     Controls wxWidgets sample
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: controls.cpp,v 1.240 2006/03/12 20:58:21 VZ Exp $
+// RCS-ID:      $Id: controls.cpp,v 1.241 2006/03/28 11:02:25 ABX Exp $
 // Copyright:   (c) Robert Roebling, Julian Smart
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -787,7 +787,7 @@ MyPanel::MyPanel( wxFrame *frame, int x, int y, int w, int h )
     m_combo = new MyComboBox( panel, ID_COMBO, _T("This"),
                               wxPoint(20,25), wxSize(120, wxDefaultCoord),
                               5, choices,
-                              wxPROCESS_ENTER);
+                              wxTE_PROCESS_ENTER);
 
     (void)new wxButton( panel, ID_COMBO_SEL_NUM, _T("Select #&2"), wxPoint(180,30), wxSize(140,30) );
     (void)new wxButton( panel, ID_COMBO_SEL_STR, _T("&Select 'This'"), wxPoint(340,30), wxSize(140,30) );

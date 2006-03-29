@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.cpp,v 1.67 2006/03/17 14:12:42 RR Exp $
+// RCS-ID:      $Id: mimetype.cpp,v 1.68 2006/03/27 09:35:41 JJ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -67,11 +67,6 @@
 
 // other standard headers
 #include <ctype.h>
-
-#ifdef __VMS
-/* silence warnings for comparing unsigned int's <0 */
-# pragma message disable unscomzer
-#endif
 
 // this class extends wxTextFile
 //

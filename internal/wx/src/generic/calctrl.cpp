@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrl.cpp,v 1.75 2006/01/18 10:38:43 JS Exp $
+// RCS-ID:      $Id: calctrl.cpp,v 1.76 2006/03/27 12:24:46 ABX Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -857,7 +857,7 @@ void wxCalendarCtrl::RecalcGeometry()
         {
             // 1.5 times the width gives nice margins even if the weekday
             // names are short
-	     m_widthCol = width+width/2;
+            m_widthCol = width+width/2;
         }
     }
     wxDateTime::WeekDay wd;
@@ -1451,7 +1451,7 @@ wxCalendarHitTestResult wxCalendarCtrl::HitTest(const wxPoint& pos,
                                                 wxDateTime::WeekDay *wd)
 {
     RecalcGeometry();
-    // use the correct x-pos 
+    // use the correct x-pos
     wxCoord x0 = wxMax((GetSize().x - m_widthCol*7) /2, 0);
     wxPoint pos_corr = pos;
     pos_corr.x -= x0;
@@ -1655,13 +1655,13 @@ void wxCalendarCtrl::OnChar(wxKeyEvent& event)
             }
             break;
 
-        case WXK_PRIOR:
+        case WXK_PAGEUP:
             target = m_date - wxDateSpan::Month();
             ChangeMonth(&target);
             SetDateAndNotify(target); // always
             break;
 
-        case WXK_NEXT:
+        case WXK_PAGEDOWN:
             target = m_date + wxDateSpan::Month();
             ChangeMonth(&target);
             SetDateAndNotify(target); // always

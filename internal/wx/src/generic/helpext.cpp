@@ -4,7 +4,7 @@
 // Author:      Karsten Ballueder
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpext.cpp,v 1.47 2006/01/26 16:01:25 ABX Exp $
+// RCS-ID:      $Id: helpext.cpp,v 1.50 2006/03/27 20:23:31 VZ Exp $
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,8 @@
     #include "wx/log.h"
 #endif
 
-#include "wx/helpbase.h"
+#include "wx/filename.h"
+#include "wx/textfile.h"
 #include "wx/generic/helpext.h"
 
 #include <stdio.h>
@@ -53,8 +54,7 @@
 
 /// Name for map file.
 #define WXEXTHELP_MAPFILE   _T("wxhelp.map")
-/// Maximum line length in map file.
-#define WXEXTHELP_BUFLEN 512
+
 /// Character introducing comments/documentation field in map file.
 #define WXEXTHELP_COMMENTCHAR   ';'
 
@@ -73,13 +73,12 @@ IMPLEMENT_CLASS(wxExtHelpController, wxHelpControllerBase)
    and a file mapping numerical Section numbers to relative URLS.
 */
 
-wxExtHelpController::wxExtHelpController(wxWindow* parentWindow):
-    wxHelpControllerBase(parentWindow)
+wxExtHelpController::wxExtHelpController(wxWindow* parentWindow)
+                   : wxHelpControllerBase(parentWindow)
 {
-   m_MapList = (wxList*) NULL;
+   m_MapList = NULL;
    m_NumOfEntries = 0;
-   m_BrowserName = WXEXTHELP_DEFAULTBROWSER;
-   m_BrowserIsNetscape = WXEXTHELP_DEFAULTBROWSER_IS_NETSCAPE;
+   m_BrowserIsNetscape = false;
 
    wxChar *browser = wxGetenv(WXEXTHELP_ENVVAR_BROWSER);
    if(browser)
@@ -104,85 +103,35 @@ void wxExtHelpController::SetBrowser(const wxString& browsername, bool isNetscap
 // Set viewer: new, generic name for SetBrowser
 void wxExtHelpController::SetViewer(const wxString& viewer, long flags)
 {
-    SetBrowser(viewer, ((flags & wxHELP_NETSCAPE) == wxHELP_NETSCAPE));
+    SetBrowser(viewer, (flags & wxHELP_NETSCAPE) != 0);
 }
 
 bool
 wxExtHelpController::DisplayHelp(const wxString &relativeURL)
 {
-   wxBusyCursor b; // display a busy cursor
+    // construct hte URL to open -- it's just a file
+    wxString url(_T("file://") + m_helpDir);
+    url << wxFILE_SEP_PATH << relativeURL;
 
+    // use the explicit browser program if specified
+    if ( !m_BrowserName.empty() )
+    {
+        if ( m_BrowserIsNetscape )
+        {
+            wxString command;
+            command << m_BrowserName
+                    << wxT(" -remote openURL(") << url << wxT(')');
+            if ( wxExecute(command, wxEXEC_SYNC) != -1 )
+                return true;
+        }
 
-#if defined(__WXMSW__)
-   wxString url;
-   url << m_MapFile << '\\' << relativeURL.BeforeFirst('#');
-   bool bOk = (int)ShellExecute(NULL, wxT("open"), url.c_str(),
-                                NULL, NULL, SW_SHOWNORMAL ) > 32;
-   if ( !bOk )
-   {
-      wxLogSysError(_("Cannot open URL '%s'"), relativeURL.c_str());
-      return false;
-   }
-
-   return true;
-#elif  defined(__OS2__)
-
-   wxString url;
-   url << m_MapFile << '\\' << relativeURL.BeforeFirst('#');
-//   will have to fix for OS/2, later.....DW
-//   bool bOk = (int)ShellExecute(NULL, "open", url,
-//                                NULL, NULL, SW_SHOWNORMAL ) > 32;
-//   if ( !bOk )
-//   {
-//      wxLogSysError(_("Cannot open URL '%s'"), relativeURL.c_str());
-//      return false;
-//   }
-//   else
-      return true;
-
-#elif defined(__DOS__)
-
-   wxString command;
-   command = m_BrowserName;
-   command << wxT(" file://")
-           << m_MapFile << WXEXTHELP_SEPARATOR << relativeURL;
-   return wxExecute(command) != 0;
-
-#else // UNIX
-   wxString command;
-
-#ifndef __EMX__
-   if(m_BrowserIsNetscape) // try re-loading first
-   {
-      wxString lockfile;
-      wxGetHomeDir(&lockfile);
-#ifdef __VMS__
-      lockfile << WXEXTHELP_SEPARATOR << wxT(".netscape]lock.");
-      struct stat statbuf;
-      if(stat(lockfile.fn_str(), &statbuf) == 0)
-#else
-      lockfile << WXEXTHELP_SEPARATOR << wxT(".netscape/lock");
-      struct stat statbuf;
-      if(lstat(lockfile.fn_str(), &statbuf) == 0)
-      // cannot use wxFileExists, because it's a link pointing to a
-      // non-existing location      if(wxFileExists(lockfile))
-#endif
-      {
-         long success;
-         command << m_BrowserName << wxT(" -remote openURL(")
-                 << wxT("file://") << m_MapFile
-                 << WXEXTHELP_SEPARATOR << relativeURL << wxT(")");
-         success = wxExecute(command);
-         if(success != 0 ) // returns PID on success
+        if ( wxExecute(m_BrowserName + _T(' ') + url, wxEXEC_SYNC) != -1 )
             return true;
-      }
-   }
-#endif
-   command = m_BrowserName;
-   command << wxT(" file://")
-           << m_MapFile << WXEXTHELP_SEPARATOR << relativeURL;
-   return wxExecute(command) != 0;
-#endif
+    }
+    //else: either no browser explicitly specified or we failed to open it
+
+    // just use default browser
+    return wxLaunchDefaultBrowser(url);
 }
 
 class wxExtHelpMapEntry : public wxObject
@@ -223,100 +172,151 @@ wxExtHelpController::Initialize(const wxString& file)
 }
 
 
-// ifile is the name of the base help directory
-bool wxExtHelpController::LoadFile(const wxString& ifile)
+bool wxExtHelpController::ParseMapFileLine(const wxString& line)
 {
-   wxString mapFile, file, url, doc;
-   int id,i,len;
-   char buffer[WXEXTHELP_BUFLEN];
+    const wxChar *p = line.c_str();
 
-   wxBusyCursor b; // display a busy cursor
+    // skip whitespace
+    while ( isascii(*p) && isspace(*p) )
+        p++;
 
-   if(! ifile.empty())
-   {
-      file = ifile;
-      if(! wxIsAbsolutePath(file))
-      {
-         file = wxGetCwd();
-#ifdef __WXMAC__
-         file << ifile;
-#else
-         file << WXEXTHELP_SEPARATOR << ifile;
-#endif
-      }
-      else
-         file = ifile;
+    // skip empty lines and comments
+    if ( *p == _T('\0') || *p == WXEXTHELP_COMMENTCHAR )
+        return true;
+
+    // the line is of the form "num url" so we must have an integer now
+    wxChar *end;
+    const unsigned long id = wxStrtoul(p, &end, 0);
+
+    if ( end == p )
+        return false;
+
+    p = end;
+    while ( isascii(*p) && isspace(*p) )
+        p++;
+
+    // next should be the URL
+    wxString url;
+    url.reserve(line.length());
+    while ( isascii(*p) && !isspace(*p) )
+        url += *p++;
+
+    while ( isascii(*p) && isspace(*p) )
+        p++;
+
+    // and finally the optional description of the entry after comment
+    wxString doc;
+    if ( *p == WXEXTHELP_COMMENTCHAR )
+    {
+        p++;
+        while ( isascii(*p) && isspace(*p) )
+            p++;
+        doc = p;
+    }
+
+    m_MapList->Append(new wxExtHelpMapEntry(id, url, doc));
+    m_NumOfEntries++;
+
+    return true;
+}
+
+// file is a misnomer as it's the name of the base help directory
+bool wxExtHelpController::LoadFile(const wxString& file)
+{
+    wxFileName helpDir(wxFileName::DirName(file));
+    helpDir.MakeAbsolute();
+
+    bool dirExists = false;
 
 #if wxUSE_INTL
-      // If a locale is set, look in file/localename, i.e.
-      // If passed "/usr/local/myapp/help" and the current wxLocale is
-      // set to be "de", then look in "/usr/local/myapp/help/de/"
-      // first and fall back to "/usr/local/myapp/help" if that
-      // doesn't exist.
-      if(wxGetLocale() && !wxGetLocale()->GetName().empty())
-      {
-         wxString newfile;
-         newfile << WXEXTHELP_SEPARATOR << wxGetLocale()->GetName();
-         if(wxDirExists(newfile))
-            file = newfile;
-         else
-         {
-            newfile = WXEXTHELP_SEPARATOR;
-            const wxChar *cptr = wxGetLocale()->GetName().c_str();
-            while(*cptr && *cptr != wxT('_'))
-               newfile << *(cptr++);
-            if(wxDirExists(newfile))
-               file = newfile;
-         }
-      }
-#endif
+    // If a locale is set, look in file/localename, i.e. If passed
+    // "/usr/local/myapp/help" and the current wxLocale is set to be "de", then
+    // look in "/usr/local/myapp/help/de/" first and fall back to
+    // "/usr/local/myapp/help" if that doesn't exist.
+    const wxLocale * const loc = wxGetLocale();
+    if ( loc )
+    {
+        wxString locName = loc->GetName();
 
-      if(! wxDirExists(file))
-         return false;
+        // the locale is in general of the form xx_YY.zzzz, try the full firm
+        // first and then also more general ones
+        wxFileName helpDirLoc(helpDir);
+        helpDirLoc.AppendDir(locName);
+        dirExists = helpDirLoc.DirExists();
 
-      mapFile << file << WXEXTHELP_SEPARATOR << WXEXTHELP_MAPFILE;
-   }
-   else // try to reload old file
-      mapFile = m_MapFile;
+        if ( !dirExists )
+        {
+            // try without encoding
+            const wxString locNameWithoutEncoding = locName.BeforeLast(_T('.'));
+            if ( !locNameWithoutEncoding.empty() )
+            {
+                helpDirLoc = helpDir;
+                helpDirLoc.AppendDir(locNameWithoutEncoding);
+                dirExists = helpDirLoc.DirExists();
+            }
+        }
 
-   if(! wxFileExists(mapFile))
-      return false;
+        if ( !dirExists )
+        {
+            // try without country part
+            wxString locNameWithoutCountry = locName.BeforeLast(_T('_'));
+            if ( !locNameWithoutCountry.empty() )
+            {
+                helpDirLoc = helpDir;
+                helpDirLoc.AppendDir(locNameWithoutCountry);
+                dirExists = helpDirLoc.DirExists();
+            }
+        }
 
-   DeleteList();
-   m_MapList = new wxList;
-   m_NumOfEntries = 0;
+        if ( dirExists )
+            helpDir = helpDirLoc;
+    }
+#endif // wxUSE_INTL
 
-   FILE *input = wxFopen(mapFile,wxT("rt"));
-   if(! input)
-      return false;
-   do
-   {
-      if(fgets(buffer,WXEXTHELP_BUFLEN,input) && *buffer != WXEXTHELP_COMMENTCHAR)
-      {
-         len = strlen(buffer);
-         if(buffer[len-1] == '\n')
-            buffer[len-1] = '\0'; // cut of trailing newline
-         if(sscanf(buffer,"%d", &id) != 1)
-            break; // error
-         for(i=0; isdigit(buffer[i])||isspace(buffer[i])||buffer[i]=='-'; i++)
-            ; // find begin of URL
-         url = wxEmptyString;
-         while(buffer[i] && ! isspace(buffer[i]) && buffer[i] !=
-               WXEXTHELP_COMMENTCHAR)
-            url << (wxChar) buffer[i++];
-         while(buffer[i] && buffer[i] != WXEXTHELP_COMMENTCHAR)
-            i++;
-         doc = wxEmptyString;
-         if(buffer[i])
-            doc = wxString::FromAscii( (buffer + i + 1) ); // skip the comment character
-         m_MapList->Append(new wxExtHelpMapEntry(id,url,doc));
-         m_NumOfEntries++;
-      }
-   }while(! feof(input));
-   fclose(input);
+    if ( !dirExists && !helpDir.DirExists() )
+    {
+        wxLogError(_("Help directory \"%s\" not found."),
+                   helpDir.GetFullPath().c_str());
+        return false;
+    }
 
-   m_MapFile = file; // now it's valid
-   return true;
+    const wxFileName mapFile(helpDir.GetFullPath(), WXEXTHELP_MAPFILE);
+    if ( !mapFile.FileExists() )
+    {
+        wxLogError(_("Help file \"%s\" not found."),
+                   mapFile.GetFullPath().c_str());
+        return false;
+    }
+
+    DeleteList();
+    m_MapList = new wxList;
+    m_NumOfEntries = 0;
+
+    wxTextFile input;
+    if ( !input.Open(mapFile.GetFullPath()) )
+        return false;
+
+    for ( wxString& line = input.GetFirstLine();
+          !input.Eof();
+          line = input.GetNextLine() )
+    {
+        if ( !ParseMapFileLine(line) )
+        {
+            wxLogWarning(_("Line %lu of map file \"%s\" has invalid syntax, skipped."),
+                         (unsigned long)input.GetCurrentLine(),
+                         mapFile.GetFullPath().c_str());
+        }
+    }
+
+    if ( !m_NumOfEntries )
+    {
+        wxLogError(_("No valid mappings found in the file \"%s\"."),
+                   mapFile.GetFullPath().c_str());
+        return false;
+    }
+
+    m_helpDir = helpDir.GetFullPath(); // now it's valid
+    return true;
 }
 
 
@@ -342,7 +342,7 @@ wxExtHelpController::DisplayContents()
 
    bool rc = false;
    wxString file;
-   file << m_MapFile << WXEXTHELP_SEPARATOR << contents;
+   file << m_helpDir << wxFILE_SEP_PATH << contents;
    if(file.Contains(wxT('#')))
       file = file.BeforeLast(wxT('#'));
    if(contents.length() && wxFileExists(file))

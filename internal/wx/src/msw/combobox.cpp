@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.cpp,v 1.118 2006/03/17 02:38:58 VZ Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.119 2006/03/28 11:02:35 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -199,7 +199,7 @@ LRESULT APIENTRY _EXPORT wxComboEditWndProc(HWND hWnd,
             {
                 wxCHECK_MSG( win, 0, _T("should have a parent") );
 
-                if ( win->GetWindowStyle() & wxPROCESS_ENTER )
+                if ( win->GetWindowStyle() & wxTE_PROCESS_ENTER )
                 {
                     // need to return a custom dlg code or we'll never get it
                     return DLGC_WANTMESSAGE;

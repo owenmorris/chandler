@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: fontdlg.cpp,v 1.30 2006/03/10 17:35:39 VZ Exp $
+// RCS-ID:      $Id: fontdlg.cpp,v 1.31 2006/03/28 08:29:19 JS Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,10 +25,21 @@
 #endif
 
 #ifndef WX_PRECOMP
-    #include "wx/cmndata.h"
+#include "wx/intl.h"
+#include "wx/wxchar.h"
+#include "wx/dcclient.h"
+#include "wx/frame.h"
+#include "wx/textctrl.h"
+#include "wx/listbox.h"
+#include "wx/checkbox.h"
+#include "wx/choice.h"
+#include "wx/sizer.h"
+#include "wx/stattext.h"
+#include "wx/button.h"
 #endif
 
 #include "wx/fontdlg.h"
+#include "wx/dcclient.h"
     
 #if wxMAC_USE_EXPERIMENTAL_FONTDIALOG
 

@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        generic/listctrl.cpp
+// Name:        src/generic/listctrl.cpp
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.398 2006/03/10 21:26:46 RD Exp $
+// Id:          $Id: listctrl.cpp,v 1.400 2006/03/28 08:13:48 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1583,7 +1583,7 @@ void wxListLineData::DrawTextFormatted(wxDC *dc,
 
         // continue until we have enough space or only one character left
         wxCoord w_c, h_c;
-        size_t len = text.Length();
+        size_t len = text.length();
         wxString drawntext = text.Left(len);
         while (len > 1)
         {
@@ -1596,9 +1596,9 @@ void wxListLineData::DrawTextFormatted(wxDC *dc,
         }
 
         // if still not enough space, remove ellipsis characters
-        while (ellipsis.Length() > 0 && w + base_w > width)
+        while (ellipsis.length() > 0 && w + base_w > width)
         {
-            ellipsis = ellipsis.Left(ellipsis.Length() - 1);
+            ellipsis = ellipsis.Left(ellipsis.length() - 1);
             dc->GetTextExtent(ellipsis, &base_w, &h);
         }
 
@@ -2858,6 +2858,7 @@ void wxListMainWindow::OnRenameCancelled(size_t itemEdit)
 
 void wxListMainWindow::OnMouse( wxMouseEvent &event )
 {
+
 #ifdef __WXMAC__
     // On wxMac we can't depend on the EVT_KILL_FOCUS event to properly
     // shutdown the edit control when the mouse is clicked elsewhere on the
@@ -2879,7 +2880,15 @@ void wxListMainWindow::OnMouse( wxMouseEvent &event )
     }
 
     if ( !HasCurrent() || IsEmpty() )
+    {
+        if (event.RightDown())
+        {
+            SendNotify( (size_t)-1, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, event.GetPosition() );
+            // Allow generation of context menu event
+            event.Skip();
+        }
         return;
+    }
 
     if (m_dirty)
         return;
@@ -2949,8 +2958,19 @@ void wxListMainWindow::OnMouse( wxMouseEvent &event )
 
     if ( !hitResult )
     {
-        // outside of any item, reset the selection and bail out
-        HighlightAll(false);
+        // outside of any item
+        if (event.RightDown())
+        {
+            SendNotify( (size_t) -1, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, event.GetPosition() );
+            // Allow generation of context menu event
+            event.Skip();
+        }
+        else
+        {
+            // reset the selection and bail out
+            HighlightAll(false);
+        }
+        
         return;
     }
 
@@ -3262,8 +3282,12 @@ void wxListMainWindow::OnChar( wxKeyEvent &event )
                 OnArrowChar( 0, event );
             break;
 
-        case WXK_PRIOR:
+        case WXK_PAGEUP:
             {
+                // we get a floating point exception without this
+                if (m_linesPerPage == 0)
+                    m_linesPerPage = 1;
+                    
                 int steps = InReportView() ? m_linesPerPage - 1 : m_current % m_linesPerPage;
 
                 int index = m_current - steps;
@@ -3274,8 +3298,12 @@ void wxListMainWindow::OnChar( wxKeyEvent &event )
             }
             break;
 
-        case WXK_NEXT:
+        case WXK_PAGEDOWN:
             {
+                // we get a floating point exception without this
+                if (m_linesPerPage == 0)
+                    m_linesPerPage = 1;
+                    
                 int steps = InReportView()
                                ? m_linesPerPage - 1
                                : m_linesPerPage - (m_current % m_linesPerPage) - 1;
@@ -4588,7 +4616,13 @@ void wxListMainWindow::SortItems( wxListCtrlCompare fn, long data )
 
 void wxListMainWindow::OnScroll(wxScrollWinEvent& event)
 {
-    // update our idea of which lines are shown when we redraw the window the
+	int cw, ch, vw, vh;
+	GetVirtualSize(&vw, &vh);  
+	GetClientSize(&cw, &ch);
+
+	if( event.GetOrientation() == wxVERTICAL && ch >= vh)
+		return;
+	// update our idea of which lines are shown when we redraw the window the
     // next time
     ResetVisibleLinesRange();
 
@@ -5344,10 +5378,10 @@ void wxGenericListCtrl::ResizeReportView(bool showHeader)
     {
         m_headerWin->SetSize( 0, 0, cw, m_headerHeight );
         if(ch > m_headerHeight)
-            m_mainWin->SetSize( 0, m_headerHeight + 1, 
+            m_mainWin->SetSize( 0, m_headerHeight + 1,
                                    cw, ch - m_headerHeight - 1 );
         else
-            m_mainWin->SetSize( 0, m_headerHeight + 1, 
+            m_mainWin->SetSize( 0, m_headerHeight + 1,
                                    cw, 0);
     }
     else // no header window
@@ -5626,4 +5660,3 @@ void wxGenericListCtrl::Thaw()
 }
 
 #endif // wxUSE_LISTCTRL
-

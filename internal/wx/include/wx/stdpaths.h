@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-17
-// RCS-ID:      $Id: stdpaths.h,v 1.14 2006/03/25 17:00:21 VZ Exp $
+// RCS-ID:      $Id: stdpaths.h,v 1.16 2006/03/28 10:30:20 JS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,6 +17,7 @@
 #if wxUSE_STDPATHS
 
 #include "wx/string.h"
+#include "wx/filefn.h"
 
 // ----------------------------------------------------------------------------
 // wxStandardPaths returns the standard locations in the file system
@@ -104,7 +105,8 @@ public:
     // prefix/share/locale/lang/LC_MESSAGES)
     virtual wxString
     GetLocalizedResourcesDir(const wxChar *lang,
-                             ResourceCat category = ResourceCat_None) const
+                             ResourceCat WXUNUSED(category)
+                                = ResourceCat_None) const
     {
         return GetResourcesDir() + wxFILE_SEP_PATH + lang;
     }

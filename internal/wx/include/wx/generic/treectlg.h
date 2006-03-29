@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treectlg.h,v 1.58 2006/03/24 23:44:42 ABX Exp $
+// RCS-ID:      $Id: treectlg.h,v 1.59 2006/03/28 13:11:07 ABX Exp $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -377,4 +377,3 @@ public:
 #endif // wxUSE_TREECTRL
 
 #endif // _GENERIC_TREECTRL_H_
-

@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     11/11/2003
-// RCS-ID:      $Id: hid.cpp,v 1.17 2006/03/12 13:13:48 ABX Exp $
+// RCS-ID:      $Id: hid.cpp,v 1.18 2006/03/27 12:24:59 ABX Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -440,13 +440,13 @@ void wxHIDKeyboard::BuildCookies(wxCFArray& Array)
                 AddCookie(Array[i], WXK_SPACE);
                 break;
             case kHIDUsage_KeyboardPageUp:
-                AddCookie(Array[i], WXK_PRIOR);
+                AddCookie(Array[i], WXK_PAGEUP);
                 break;
             case kHIDUsage_KeyboardEnd:
                 AddCookie(Array[i], WXK_END);
                 break;
             case kHIDUsage_KeyboardPageDown:
-                AddCookie(Array[i], WXK_NEXT);
+                AddCookie(Array[i], WXK_PAGEDOWN);
                 break;
             case kHIDUsage_KeyboardRightArrow:
                 AddCookie(Array[i], WXK_RIGHT);

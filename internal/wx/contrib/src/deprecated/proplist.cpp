@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        proplist.cpp
+// Name:        contrib/src/deprecated/proplist.cpp
 // Purpose:     Property list classes
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: proplist.cpp,v 1.13 2005/09/23 12:47:38 MR Exp $
+// RCS-ID:      $Id: proplist.cpp,v 1.14 2006/03/28 11:02:19 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -219,7 +219,7 @@ wxString wxPropertyListView::MakeNameValueString(wxString name, wxString value)
   wxString theString(name);
 
   int nameWidth = 25;
-  int padWith = nameWidth - theString.Length();
+  int padWith = nameWidth - theString.length();
   if (padWith < 0)
     padWith = 0;
 
@@ -461,7 +461,7 @@ bool wxPropertyListView::CreateControls()
     }
 
     m_valueText = new wxPropertyTextEdit(this, panel, wxID_PROP_TEXT, wxEmptyString,
-       wxDefaultPosition, wxSize(wxDefaultCoord, smallButtonSize.y), wxPROCESS_ENTER);
+       wxDefaultPosition, wxSize(wxDefaultCoord, smallButtonSize.y), wxTE_PROCESS_ENTER);
     m_valueText->Disable();
     topsizer->Add( m_valueText, 1, wxALL | wxEXPAND, buttonborder );
 
@@ -1660,7 +1660,7 @@ bool wxListOfStringsListValidator::EditStringList(wxWindow *parent, wxStringList
 
   dialog->m_stringText = new wxPropertyStringListEditorText(dialog,
        wxID_PROP_SL_TEXT, wxEmptyString, wxPoint(5, 240),
-       wxSize(300, wxDefaultCoord), wxPROCESS_ENTER);
+       wxSize(300, wxDefaultCoord), wxTE_PROCESS_ENTER);
   dialog->m_stringText->Disable();
 
   wxButton *addButton = new wxButton(dialog, wxID_PROP_SL_ADD, wxT("Add"), wxDefaultPosition, wxSize(largeButtonWidth, largeButtonHeight));

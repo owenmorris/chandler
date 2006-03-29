@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: prntbase.cpp,v 1.92 2005/10/27 15:56:19 ABX Exp $
+// RCS-ID:      $Id: prntbase.cpp,v 1.93 2006/03/27 12:24:43 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -654,9 +654,9 @@ void wxPreviewCanvas::OnChar(wxKeyEvent &event)
 
     switch(event.GetKeyCode())
     {
-        case WXK_NEXT:
+        case WXK_PAGEDOWN:
             controlBar->OnNext(); break;
-        case WXK_PRIOR:
+        case WXK_PAGEUP:
             controlBar->OnPrevious(); break;
         case WXK_HOME:
             controlBar->OnFirst(); break;

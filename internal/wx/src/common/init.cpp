@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.10.99
-// RCS-ID:      $Id: init.cpp,v 1.60 2006/02/12 12:16:41 MW Exp $
+// RCS-ID:      $Id: init.cpp,v 1.61 2006/03/27 00:53:57 VZ Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -355,8 +355,6 @@ static void DoCommonPreCleanup()
 static void DoCommonPostCleanup()
 {
     wxModule::CleanUpModules();
-
-    wxClassInfo::CleanUp();
 
     // we can't do this in wxApp itself because it doesn't know if argv had
     // been allocated
