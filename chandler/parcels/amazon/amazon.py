@@ -56,8 +56,6 @@ Other usage notes:
 
 __author__ = "Mark Pilgrim (f8dy@diveintomark.org)"
 __version__ = "0.64.1"
-__cvsversion__ = "$Revision: 1.12 $"[11:-2]
-__date__ = "$Date: 2004/07/02 13:24:09 $"[7:-2]
 __copyright__ = "Copyright (c) 2002 Mark Pilgrim"
 __license__ = "Python"
 # Powersearch and return object type fix by Joseph Reagle <geek@goatee.net>

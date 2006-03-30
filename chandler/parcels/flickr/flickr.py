@@ -37,7 +37,6 @@ TODO (see TODO comments too):
 
 __author__ = "James Clarke <james@jamesclarke.info>"
 __version__ = "$Rev: 24 $"
-__date__ = "$Date: 2005-07-04 15:44:58 +0100 (Mon, 04 Jul 2005) $"
 __copyright__ = "Copyright 2004-5 James Clarke"
 
 from urllib import urlencode, urlopen

@@ -1,5 +1,3 @@
-__revision__  = "$Revision: 9354 $"
-__date__      = "$Date: 2006-02-06 08:17:55 -0800 (Mon, 06 Feb 2006) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
