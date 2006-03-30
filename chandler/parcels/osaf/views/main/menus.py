@@ -1,15 +1,18 @@
-from osaf.framework.blocks import *
-from osaf.framework.blocks.calendar import VisibleHoursEvent
-from application import schema
-from i18n import OSAFMessageFactory as _
-from osaf import messages, pim
-from osaf.pim.structs import ColorType
-from osaf import usercollections
-from colorsys import hsv_to_rgb
-from itertools import chain
 
 def makeMainMenus(parcel):
 
+    from application import schema
+    import wx
+    
+    from osaf.framework.blocks import Menu, MenuItem, MenuBar, ColorEvent
+    from osaf.framework.blocks.calendar import VisibleHoursEvent
+    from i18n import OSAFMessageFactory as _
+    from osaf import messages, pim
+    from osaf.pim.structs import ColorType
+    from osaf import usercollections
+    from colorsys import hsv_to_rgb
+    from itertools import chain
+    
     def makeColorMenuItems (parcel, cls, hues):
         """
         dynamically creates an array of type 'cls' based on a list of colors
@@ -273,6 +276,11 @@ def makeMainMenus(parcel):
                                   title = _(u'Visible Hours'),
                                   childrenBlocks = \
                                   makeVisibleHourMenuItems(parcel)),
+                    MenuItem.template('EnableSectionsItem',
+                        event = main.EnableSections,
+                        title = _(u'Use Sections'),
+                        menuItemKind = 'Check',
+                        helpString = _(u'Hide or show section dividers')),
                     MenuItem.template('EnableTimezonesItem',
                         event = main.EnableTimezones,
                         title = _(u'Use Timezones'),

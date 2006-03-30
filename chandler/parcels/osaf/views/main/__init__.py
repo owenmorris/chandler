@@ -1,6 +1,7 @@
 from Sections import SectionedGridDelegate
 from SideBar import SidebarBlock, CPIATestSidebarBranchPointDelegate, SidebarBranchPointDelegate
 
+from Dashboard import DashboardPrefs
 
 def installParcel(parcel, oldVersion=None):
     from events import makeMainEvents
@@ -17,3 +18,4 @@ def installParcel(parcel, oldVersion=None):
 
     prompts.DialogPref.update(parcel, "clearCollectionPref")
 
+    DashboardPrefs.update(parcel, "dashboardPrefs")

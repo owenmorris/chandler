@@ -1000,6 +1000,15 @@ class MainView(View):
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         tzPrefs.showUI = not tzPrefs.showUI
 
+    def onEnableSectionsEventUpdateUI(self, event):
+        dashboardPrefs = schema.ns('osaf.views.main', self.itsView).dashboardPrefs
+        event.arguments['Check'] = dashboardPrefs.showSections
+
+    def onEnableSectionsEvent(self, event):
+        dashboardPrefs = schema.ns('osaf.views.main',
+                                    self.itsView).dashboardPrefs
+        dashboardPrefs.showSections = not dashboardPrefs.showSections
+
     def onVisibleHoursEvent(self, event):
         calendarPrefs = schema.ns('osaf.framework.blocks.calendar',
                                   self.itsView).calendarPrefs

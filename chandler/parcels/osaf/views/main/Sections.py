@@ -1,5 +1,7 @@
 import wx
 
+from application import schema
+
 from osaf.framework.blocks import ControlBlocks
 from util.divisions import get_divisions
 
@@ -49,25 +51,27 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         rebuild the sections - this is relatively cheap as long as
         there aren't a lot of sections
         """
-        indexName = self.blockItem.contents.indexName
         self.sectionRows = []
         self.sectionLabels = []
-        self.totalRows = 0
+        self.sectionIndexes = []
+        self.totalRows = len(self.blockItem.contents)
+        
+        dashboardPrefs = schema.ns('osaf.views.main',
+                                   self.blockItem.itsView).dashboardPrefs
+        if not dashboardPrefs.showSections:
+            return
         
         # regenerate index-based sections - each entry in
         # self.sectionIndexes is the first index in the collection
         # where we would need a section
-        if indexName in (None, '__adhoc__'):
-            self.sectionIndexes = []
-        else:
+        indexName = self.blockItem.contents.indexName
+        if indexName not in (None, '__adhoc__'):
             self.sectionIndexes = \
                 get_divisions(self.blockItem.contents,
                               key=lambda x: getattr(x, indexName))
 
         # dont' show section headers for zero or one section
         if len(self.sectionIndexes) <= 1:
-            self.sectionIndexes = []
-            self.totalRows = len(self.blockItem.contents)
             return
             
         # now build the row-based sections - each entry in this array
@@ -278,7 +282,7 @@ class SectionRenderer(wx.grid.PyGridCellRenderer):
         self.brushes = DrawingUtilities.Gradients()
         
     def ReadOnly(self, *args):
-        print "Who is calling RO?"
+        # print "Who is calling RO?"
         return False, False
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):

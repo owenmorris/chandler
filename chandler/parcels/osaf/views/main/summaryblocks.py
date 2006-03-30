@@ -1,14 +1,17 @@
-from application import schema
-from i18n import OSAFMessageFactory as _
-from osaf.framework.blocks.calendar import (
-    CalendarContainer, CalendarControl, CanvasSplitterWindow,
-    AllDayEventsCanvas, TimedEventsCanvas
-    )
-
-from osaf import pim
-from osaf.framework.blocks import *
 
 def makeSummaryBlocks(parcel):
+    from application import schema
+    from i18n import OSAFMessageFactory as _
+    from osaf.framework.blocks.calendar import (
+        CalendarContainer, CalendarControl, CanvasSplitterWindow,
+        AllDayEventsCanvas, TimedEventsCanvas
+        )
+
+    from osaf import pim
+    from osaf.framework.blocks import *
+
+    from Dashboard import DashboardBlock
+    
     view = parcel.itsView
     detailblocks = schema.ns('osaf.framework.blocks.detail', view)
     pim_ns = schema.ns('osaf.pim', view)
@@ -28,7 +31,7 @@ def makeSummaryBlocks(parcel):
         orientationEnum = "Vertical",
         splitPercentage = 0.65,
         childrenBlocks = [
-            Table.template('TableSummaryView',
+            DashboardBlock.template('TableSummaryView',
                 contents = pim_ns.allCollection,
                 columns = [
                     Column.update(parcel, 'SumColTask',

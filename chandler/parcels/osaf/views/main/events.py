@@ -1,12 +1,13 @@
-from osaf.framework.blocks import *
-from application import schema
-import osaf.pim.notes
-import osaf.pim.calendar
-import osaf.pim.mail
-import osaf.pim.tasks
-from osaf import pim, messages
 
 def makeMainEvents(parcel):
+
+    from osaf.framework.blocks import *
+    from application import schema
+    import osaf.pim.notes
+    import osaf.pim.calendar
+    import osaf.pim.mail
+    import osaf.pim.tasks
+    from osaf import pim, messages
 
     repositoryView = parcel.itsView
 
@@ -66,6 +67,11 @@ def makeMainEvents(parcel):
         methodName = 'onShowHideEvent',
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'StatusBar').install(parcel)
+
+    BlockEvent.template(
+        'EnableSections',
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'MainView').install(parcel)
 
     BlockEvent.template(
         'EnableTimezones',
