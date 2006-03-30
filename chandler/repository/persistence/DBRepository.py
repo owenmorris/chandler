@@ -425,6 +425,14 @@ class DBRepository(OnDemandRepository):
                             self.logger.info('unable to obtain exclusive access to open with recovery, downgrading to regular open')
 
                         if recover:
+                            if os.path.exists(self.dbHome):
+                                for name in os.listdir(self.dbHome):
+                                    if name.startswith('__db.'):
+                                        path = os.path.join(self.dbHome, name)
+                                        try:
+                                            os.remove(path)
+                                        except Exception, e:
+                                            self.logger.warning("Error removing %s: %s", path, e)
                             before = datetime.now()
                             flags = (DBEnv.DB_RECOVER_FATAL | DBEnv.DB_CREATE |
                                      self.OPEN_FLAGS)
