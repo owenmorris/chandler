@@ -115,11 +115,19 @@ def installParcel(parcel, oldVersion=None):
 
 
     # bug 4477
-    eventsWithReminders = FilteredCollection.update(
-        parcel, 'eventsWithReminders',
+    eventsWithRemindersIncludingTrash = FilteredCollection.update(
+        parcel, 'eventsWithRemindersIncludingTrash',
         source=events,
         filterExpression="getattr(view[uuid], 'reminders', None)",
         filterAttributes=['reminders'])
+
+    # eventsWithReminders should exclude the trash -- bug 5385
+    eventsWithReminders = InclusionExclusionCollection.update(
+        parcel, 'eventsWithReminders',
+        source=eventsWithRemindersIncludingTrash,
+        exclusions=trashCollection,
+        trash=None,
+    )
 
     # the monitor list assumes all reminders will be relativeTo
     # effectiveStartTime, which is true in 0.6, but may not be in the future
