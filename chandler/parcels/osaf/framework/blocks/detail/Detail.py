@@ -876,11 +876,11 @@ class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
 
 class TransparencyConditionalBlock(Item):
     def shouldShow (self, item):
-        return not (item.allDay or item.anyTime)
+        return not (item.anyTime or not item.duration)
 
     def attributesToWatch(self):
         attributes = super(TransparencyConditionalBlock, self).attributesToWatch()
-        attributes.extend(('allDay', 'anyTime'))
+        attributes.extend(('duration', 'anyTime'))
         return attributes
 
 class CalendarTransparencySpacerBlock(TransparencyConditionalBlock, 
