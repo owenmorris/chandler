@@ -12,8 +12,6 @@ from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.RefCollections import RefList
 from repository.item.PersistentCollections import PersistentCollection
-from repository.remote.CloudFilter import CloudFilter, EndpointFilter
-from repository.remote.CloudFilter import RefHandler
 from repository.persistence.RepositoryError import NoSuchItemError
 
 
@@ -272,27 +270,6 @@ class Cloud(Item):
 
         return endpoints
 
-    def writeItems(self, uuid, version, cloudAlias,
-                   generator, xml=None, uuids=None):
-
-        if uuids is None:
-            uuids = {}
-            
-        if not uuid in uuids:
-            store = self.itsView.store
-
-            uuids[uuid] = uuid
-            if xml is None:
-                doc = store.loadItem(None, version, uuid)
-                if doc is None:
-                    raise NoSuchItemError, (uuid, version)
-                
-                xml = doc.getContent()
-
-            filter = CloudFilter(self, cloudAlias, store, uuid, version,
-                                 generator)
-            filter.parse(xml, uuids)
-
     def iterEndpoints(self, cloudAlias=None):
         """
         Iterate over the endpoints of this cloud.
@@ -439,52 +416,6 @@ class Endpoint(Item):
             raise NotImplementedError, policy
 
         return results
-
-    def writeItems(self, index, uuid, version, cloudAlias,
-                   generator, xml, uuids):
-
-        names = self.attribute
-
-        if index == len(names):
-            if not uuid in uuids:
-                policy = self.includePolicy
-
-                if policy == 'byValue':
-                    filter = EndpointFilter(self, self.itsView.store,
-                                            uuid, version, generator)
-                    filter.parse(xml)
-                    uuids[uuid] = uuid
-
-                elif policy == 'byCloud':
-                    cloud = self.getAttributeValue('cloud', self._references,
-                                                   None, None)
-                    if cloud is None:
-                        match = self.kindExp.match(xml, xml.index("<kind "))
-                        kind = self.itsView[UUID(match.group(1))]
-                        cloud = kind.getClouds(cloudAlias)
-                        if not cloud:
-                            raise TypeError, 'No cloud for %s' %(kind.itsPath)
-                        cloud = cloud[0]
-
-                    cloud.writeItems(uuid, version, cloudAlias,
-                                     generator, xml, uuids)
-
-                else:
-                    raise NotImplementedError, policy
-
-        else:
-            handler = RefHandler(self, names[index], uuid, version)
-            handler.parse(xml)
-
-            if handler.values is not None:
-                store = self.itsView.store
-                for uuid in handler.values:
-                    doc = store.loadItem(None, version, uuid)
-                    if doc is None:
-                        raise NoSuchItemError, (uuid, version)
-                    xml = doc.getContent()
-                    self.writeItems(index + 1, uuid, version, cloudAlias,
-                                    generator, xml, uuids)
 
     def iterValues(self, item):
 

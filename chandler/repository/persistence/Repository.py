@@ -253,12 +253,6 @@ class Store(object):
     def loadValue(self, view, version, uuid, name):
         raise NotImplementedError, "%s.loadValue" %(type(self))
     
-    def serveItem(self, version, uuid, cloudAlias):
-        raise NotImplementedError, "%s.serveItem" %(type(self))
-    
-    def serveChild(self, version, uuid, name, cloudAlias):
-        raise NotImplementedError, "%s.serveChild" %(type(self))
-
     def loadRef(self, view, version, uItem, uuid, key):
         raise NotImplementedError, "%s.loadRef" %(type(self))
 

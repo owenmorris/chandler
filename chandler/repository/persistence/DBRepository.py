@@ -31,7 +31,6 @@ from repository.persistence.FileContainer import \
     FileContainer, BlockContainer, IndexContainer, LOBContainer
 from repository.persistence.DBItemIO import \
     DBItemReader, DBItemPurger, DBValueReader, DBItemWriter
-from repository.remote.CloudFilter import CloudFilter
 
 DB_VERSION = DB_VERSION_MAJOR << 16 | DB_VERSION_MINOR << 8 | DB_VERSION_PATCH
 
@@ -908,44 +907,6 @@ class DBStore(Store):
         if lock is not None:
             self.repository._env.lock_put(lock)
         return None
-
-    def serveItem(self, version, uuid, cloudAlias):
-
-        v, versionId = self._values.getVersionInfo()
-        if version == 0:
-            version = v
-        
-        doc = self.loadItem(None, version, uuid)
-        if doc is None:
-            return None
-                
-        xml = doc.getContent()
-        out = cStringIO.StringIO()
-        generator = XMLGenerator(out)
-
-        try:
-            attrs = { 'version': str(version),
-                      'versionId': versionId.str64() }
-            generator.startElement('items', attrs)
-            filter = CloudFilter(None, cloudAlias, self, uuid, version,
-                                 generator)
-            filter.parse(xml, {})
-            generator.endElement('items')
-        
-            return out.getvalue()
-        finally:
-            out.close()
-
-    def serveChild(self, version, uuid, name, cloudAlias):
-
-        if version == 0:
-            version = self._values.getVersion()
-        
-        uuid = self.readName(None, version, uuid, name)
-        if uuid is None:
-            return None
-
-        return self.serveItem(version, uuid, cloudAlias)
 
     TXN_STARTED = 0x0001
     TXN_NESTED  = 0x0002
